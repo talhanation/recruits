@@ -15,7 +15,19 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.IntValue VERSION;
     public static final int NEW_VERSION = 1;
 
+
+    public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
+
     static{
+        VERSION = BUILDER.comment("\n" +"##Version, do not change!##")
+                .defineInRange("Version", 0, 0, Integer.MAX_VALUE);
+
+        BUILDER.comment("Recruits Config:").push("Recruits");
+
+        PlayVillagerAmbientSound = BUILDER.comment("\n" + "----Should Recruits Make Villager Huh? sound?----" + "\n" +
+                "\t" + "(takes effect after restart)" + "\n" +
+                "\t" + "default: true")
+                .define("PlayVillagerAmbientSound", true);
 
         //config here
 

@@ -1,16 +1,19 @@
 package com.talhanation.recruits.client.render;
 
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.entities.RecruitBaseEntity;
+import com.talhanation.recruits.entities.RecruitEntity;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.model.PlayerModel;
 import net.minecraft.util.ResourceLocation;
 
 
-public class RenderRecruitEntity extends MobRenderer<RecruitBaseEntity, PlayerModel<RecruitBaseEntity>> {
+public class RenderRecruitEntity extends MobRenderer<RecruitEntity, PlayerModel<RecruitEntity>> {
 
-    public static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/entity/example/example.png");
+    private static final ResourceLocation[] TEXTURE = {
+            new ResourceLocation(Main.MOD_ID,"textures/entity/recruit.png"),
+            //new ResourceLocation(Main.MOD_ID,"textures/entity/recruit.png")
+    };
 
 
     public RenderRecruitEntity(EntityRendererManager manager) {
@@ -18,8 +21,8 @@ public class RenderRecruitEntity extends MobRenderer<RecruitBaseEntity, PlayerMo
     }
 
     @Override
-    public ResourceLocation getTextureLocation(RecruitBaseEntity p_110775_1_) {
-        return TEXTURE;
+    public ResourceLocation getTextureLocation(RecruitEntity entity) {
+        return TEXTURE[0];
     }
 
 

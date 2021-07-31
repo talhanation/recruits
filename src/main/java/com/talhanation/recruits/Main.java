@@ -35,8 +35,8 @@ public class Main {
 
 
     public Main() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, RecruitsModConfig.CONFIG);
-        RecruitsModConfig.loadConfig(RecruitsModConfig.CONFIG, FMLPaths.CONFIGDIR.get().resolve("recruits-common.toml"));
+        //ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, RecruitsModConfig.CONFIG);
+        //RecruitsModConfig.loadConfig(RecruitsModConfig.CONFIG, FMLPaths.CONFIGDIR.get().resolve("recruits-common.toml"));
 
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         modEventBus.addListener(this::setup);
@@ -52,7 +52,7 @@ public class Main {
     @SuppressWarnings("deprecation")
     private void setup(final FMLCommonSetupEvent event) {
         MinecraftForge.EVENT_BUS.register(this);
-        SIMPLE_CHANNEL = NetworkRegistry.newSimpleChannel(new ResourceLocation("smallships", "default"), () -> "1.0.0", s -> true, s -> true);
+        SIMPLE_CHANNEL = NetworkRegistry.newSimpleChannel(new ResourceLocation("recruits", "default"), () -> "1.0.0", s -> true, s -> true);
 
         /*
         SIMPLE_CHANNEL.registerMessage(0, MessagePaddleState.class, (msg, buf) -> msg.toBytes(buf),

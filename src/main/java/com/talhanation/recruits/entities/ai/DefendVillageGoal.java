@@ -24,7 +24,7 @@ public class DefendVillageGoal extends TargetGoal {
     }
 
     public boolean canUse() {
-        AxisAlignedBB axisalignedbb = this.entity.getBoundingBox().inflate(10.0D, 8.0D, 10.0D);
+        AxisAlignedBB axisalignedbb = this.entity.getBoundingBox().inflate(20.0D, 8.0D, 20.0D);
         List<LivingEntity> list = this.entity.level.getNearbyEntities(VillagerEntity.class, this.attackTargeting, this.entity, axisalignedbb);
         List<PlayerEntity> list1 = this.entity.level.getNearbyPlayers(this.attackTargeting, this.entity, axisalignedbb);
 
