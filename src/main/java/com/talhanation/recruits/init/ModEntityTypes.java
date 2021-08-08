@@ -17,6 +17,9 @@ public class ModEntityTypes {
     public static final RegistryObject<EntityType<RecruitEntity>> RECRUIT = ENTITY_TYPES.register("recruit",
             () -> EntityType.Builder.<RecruitEntity>of(RecruitEntity::new, EntityClassification.CREATURE)
                     .sized(0.6F, 1.95F)
+                    .canSpawnFarFromPlayer()
+                    .setTrackingRange(32)
+                    .setShouldReceiveVelocityUpdates(true)
                     .build(new ResourceLocation(Main.MOD_ID, "recruit").toString()));
 
 }

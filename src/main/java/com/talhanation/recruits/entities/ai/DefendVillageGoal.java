@@ -3,6 +3,7 @@ package com.talhanation.recruits.entities.ai;
 import java.util.EnumSet;
 import java.util.List;
 
+import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.RecruitBaseEntity;
 import net.minecraft.entity.EntityPredicate;
 import net.minecraft.entity.LivingEntity;
@@ -13,18 +14,18 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 
 public class DefendVillageGoal extends TargetGoal {
-    private final RecruitBaseEntity entity;
+    private final AbstractRecruitEntity entity;
     private LivingEntity potentialTarget;
     private final EntityPredicate attackTargeting = (new EntityPredicate()).range(64.0D);
 
-    public DefendVillageGoal(RecruitBaseEntity entity) {
+    public DefendVillageGoal(AbstractRecruitEntity entity) {
         super(entity, false, true);
         this.entity = entity;
         this.setFlags(EnumSet.of(Goal.Flag.TARGET));
     }
 
     public boolean canUse() {
-        AxisAlignedBB axisalignedbb = this.entity.getBoundingBox().inflate(20.0D, 8.0D, 20.0D);
+        AxisAlignedBB axisalignedbb = this.entity.getBoundingBox().inflate(40.0D, 8.0D, 40.0D);
         List<LivingEntity> list = this.entity.level.getNearbyEntities(VillagerEntity.class, this.attackTargeting, this.entity, axisalignedbb);
         List<PlayerEntity> list1 = this.entity.level.getNearbyPlayers(this.attackTargeting, this.entity, axisalignedbb);
 
