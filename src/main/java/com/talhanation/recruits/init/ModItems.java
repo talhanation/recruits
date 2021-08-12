@@ -15,5 +15,6 @@ public class ModItems {
     public static final List<RegistryObject<Item>> SPAWN_EGGS = Lists.newArrayList();
 
     public static final RegistryObject<Item> RECRUIT_SPAWN_EGG = RegistryUtils.createSpawnEggItem("recruit", ModEntityTypes.RECRUIT::get, 16755200, 16777045);
+    public static final RegistryObject<Item> BOWMAN_SPAWN_EGG = RegistryUtils.createSpawnEggItem("bowman", ModEntityTypes.BOWMAN::get, 16755200, 16777045);
 
 }

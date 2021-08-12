@@ -1,9 +1,6 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.client.events.KeyEvents;
-import com.talhanation.recruits.entities.AbstractHoldingEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.entities.RecruitEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
@@ -35,8 +32,8 @@ public class MessageHold implements Message<MessageHold> {
                         .equals(this.recruit))
                 .stream()
                 .filter(Entity::isAlive)
-                .findAny()
-                .ifPresent(recruit -> KeyEvents.holdRecruit(recruit, player));
+                .findAny();
+                //.ifPresent(recruit -> KeyEvents.holdRecruit(recruit, player));
 
     }
 

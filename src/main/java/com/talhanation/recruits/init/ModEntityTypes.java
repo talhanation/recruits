@@ -1,6 +1,7 @@
 package com.talhanation.recruits.init;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.entities.BowmanEntity;
 import com.talhanation.recruits.entities.RecruitEntity;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
@@ -21,5 +22,13 @@ public class ModEntityTypes {
                     .setTrackingRange(32)
                     .setShouldReceiveVelocityUpdates(true)
                     .build(new ResourceLocation(Main.MOD_ID, "recruit").toString()));
+
+    public static final RegistryObject<EntityType<BowmanEntity>> BOWMAN = ENTITY_TYPES.register("bowman",
+            () -> EntityType.Builder.<BowmanEntity>of(BowmanEntity::new, EntityClassification.CREATURE)
+                    .sized(0.6F, 1.95F)
+                    .canSpawnFarFromPlayer()
+                    .setTrackingRange(32)
+                    .setShouldReceiveVelocityUpdates(true)
+                    .build(new ResourceLocation(Main.MOD_ID, "bowman").toString()));
 
 }

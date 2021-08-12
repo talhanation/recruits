@@ -2,6 +2,7 @@ package com.talhanation.recruits.util;
 
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.render.RenderBowmanEntity;
 import com.talhanation.recruits.client.render.RenderRecruitEntity;
 import com.talhanation.recruits.entities.RecruitEntity;
 import com.talhanation.recruits.init.ModEntityTypes;
@@ -19,6 +20,7 @@ public class ClientEventBusSub {
     @SubscribeEvent
     public static void clientsetup(FMLClientSetupEvent event){
         RenderingRegistry.registerEntityRenderingHandler(ModEntityTypes.RECRUIT.get(), RenderRecruitEntity::new );
+        RenderingRegistry.registerEntityRenderingHandler(ModEntityTypes.BOWMAN.get(), RenderBowmanEntity::new );
         }
 
 }

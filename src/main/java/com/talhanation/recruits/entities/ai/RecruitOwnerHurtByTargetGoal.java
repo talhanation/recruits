@@ -1,13 +1,12 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.entities.AbstractHoldingEntity;
 import net.minecraft.entity.ai.goal.Goal;
 
 import java.util.EnumSet;
 import net.minecraft.entity.EntityPredicate;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.TargetGoal;
-
+/*
 public class RecruitOwnerHurtByTargetGoal extends TargetGoal {
     private final AbstractHoldingEntity recruit;
     private LivingEntity ownerLastHurtBy;
@@ -43,4 +42,6 @@ public class RecruitOwnerHurtByTargetGoal extends TargetGoal {
 
         super.start();
     }
+
 }
+*/

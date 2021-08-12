@@ -3,7 +3,10 @@ package com.talhanation.recruits;
 import com.talhanation.recruits.client.events.ClientRegistry;
 import com.talhanation.recruits.client.events.KeyEvents;
 import com.talhanation.recruits.client.events.PlayerEvents;
+import com.talhanation.recruits.client.events.VillagerEvents;
+import com.talhanation.recruits.entities.BowmanEntity;
 import com.talhanation.recruits.entities.RecruitEntity;
+import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModItems;
 import com.talhanation.recruits.network.MessageHold;
@@ -38,8 +41,9 @@ public class Main {
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         modEventBus.addListener(this::setup);
 
+        ModBlocks.BLOCKS.register(modEventBus);
         //ModSounds.SOUNDS.register(modEventBus);
-        ModItems.ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
+        ModItems.ITEMS.register(modEventBus);
         ModEntityTypes.ENTITY_TYPES.register(modEventBus);
         MinecraftForge.EVENT_BUS.register(this);
 
@@ -59,7 +63,10 @@ public class Main {
 
         DeferredWorkQueue.runLater(() -> {
             GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT.get(), RecruitEntity.setAttributes().build());
+            GlobalEntityTypeAttributes.put(ModEntityTypes.BOWMAN.get(), BowmanEntity.setAttributes().build());
         });
+
+        event.enqueueWork(VillagerEvents::registerRecruitPOI);
 
     }
 
@@ -67,6 +74,7 @@ public class Main {
     @OnlyIn(Dist.CLIENT)
     public void clientSetup(FMLClientSetupEvent event) {
 
+        MinecraftForge.EVENT_BUS.register(new VillagerEvents());
         MinecraftForge.EVENT_BUS.register(new PlayerEvents());
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
         ACTION_KEY = ClientRegistry.registerKeyBinding("key.action_key", "category.recruits", 82);

@@ -24,7 +24,6 @@ public class RecruitEntity extends AbstractRecruitEntity {
 
     public RecruitEntity(EntityType<? extends AbstractRecruitEntity> entityType, World world) {
         super(entityType, world);
-        this.setItemInHand(Hand.MAIN_HAND, new ItemStack(Items.STONE_SWORD));
         //this.experienceValue = 6;
     }
 
@@ -43,12 +42,12 @@ public class RecruitEntity extends AbstractRecruitEntity {
     public ILivingEntityData finalizeSpawn(IServerWorld world, DifficultyInstance difficultyInstance, SpawnReason reason, @Nullable ILivingEntityData data, @Nullable CompoundNBT nbt) {
         ILivingEntityData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
         ((GroundPathNavigator)this.getNavigation()).setCanOpenDoors(true);
-        this.populateDefaultEquipmentSlots();
         this.populateDefaultEquipmentEnchantments(difficultyInstance);
+        this.setEquipment();
         return ilivingentitydata;
     }
-
-    protected void populateDefaultEquipmentSlots() {
+    @Override
+    public void setEquipment() {
         this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_SWORD));
         this.setItemSlot(EquipmentSlotType.HEAD, new ItemStack(Items.LEATHER_HELMET));
         this.setItemSlot(EquipmentSlotType.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));

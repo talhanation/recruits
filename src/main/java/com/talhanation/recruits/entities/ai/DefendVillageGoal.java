@@ -4,7 +4,6 @@ import java.util.EnumSet;
 import java.util.List;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.entities.RecruitBaseEntity;
 import net.minecraft.entity.EntityPredicate;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
