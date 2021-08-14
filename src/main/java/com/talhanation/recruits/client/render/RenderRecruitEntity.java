@@ -1,6 +1,7 @@
 package com.talhanation.recruits.client.render;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.models.RecruitsBipedModel;
 import com.talhanation.recruits.entities.RecruitEntity;
 import net.minecraft.client.renderer.entity.BipedRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
@@ -14,7 +15,7 @@ import net.minecraft.util.ResourceLocation;
 import javax.annotation.Nonnull;
 
 
-public class RenderRecruitEntity<T extends CreatureEntity, M extends BipedModel<T>> extends BipedRenderer<T, M> {
+public class RenderRecruitEntity extends RecruitsBipedRenderer<RecruitEntity, BipedModel> {
 
     private static final ResourceLocation[] TEXTURE = {
             new ResourceLocation(Main.MOD_ID,"textures/entity/recruit.png"),

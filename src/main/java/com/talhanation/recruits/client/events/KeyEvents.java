@@ -4,8 +4,6 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -21,16 +19,29 @@ public class KeyEvents {
         if (clientPlayerEntity == null)
             return;
 
-        if (Main.ACTION_KEY.isDown()) {
+        if (Main.R_KEY.isDown()) {
             clientPlayerEntity.sendMessage(new StringTextComponent("Recruits! Stop Following me!"), clientPlayerEntity.getUUID());
             List<AbstractRecruitEntity> list = clientPlayerEntity.level.getEntitiesOfClass(AbstractRecruitEntity.class, clientPlayerEntity.getBoundingBox().inflate(32.0D));
             for (AbstractRecruitEntity recruits : list) {
                 if (!recruits.getStopFollow()) {
-                    //onActionKeyPressed(clientPlayerEntity.getUUID());
+                   recruits.onRKeyPressed(clientPlayerEntity.getUUID());
                 }
             }
         }
+
+        if (Main.X_KEY.isDown()) {
+            List<AbstractRecruitEntity> list = clientPlayerEntity.level.getEntitiesOfClass(AbstractRecruitEntity.class, clientPlayerEntity.getBoundingBox().inflate(32.0D));
+            for (AbstractRecruitEntity recruits : list) {
+                recruits.onXKeyPressed(clientPlayerEntity);
+
+            }
+        }
+
     }
+
+
+
+
 
 
 }

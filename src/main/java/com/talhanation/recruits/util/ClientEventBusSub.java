@@ -21,6 +21,6 @@ public class ClientEventBusSub {
     public static void clientsetup(FMLClientSetupEvent event){
         RenderingRegistry.registerEntityRenderingHandler(ModEntityTypes.RECRUIT.get(), RenderRecruitEntity::new );
         RenderingRegistry.registerEntityRenderingHandler(ModEntityTypes.BOWMAN.get(), RenderBowmanEntity::new );
-        }
+    }
 
 }

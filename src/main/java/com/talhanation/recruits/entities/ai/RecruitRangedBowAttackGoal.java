@@ -31,7 +31,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & IRangedAttackMo
     }
 
     public boolean canUse() {
-        return this.mob.getTarget() == null ? false : this.isHoldingBow();
+        return this.mob.getTarget() != null && this.isHoldingBow();
     }
 
     protected boolean isHoldingBow() {

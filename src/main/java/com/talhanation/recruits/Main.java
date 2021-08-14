@@ -31,7 +31,8 @@ import net.minecraftforge.fml.network.simple.SimpleChannel;
 public class Main {
     public static final String MOD_ID = "recruits";
     public static SimpleChannel SIMPLE_CHANNEL;
-    public static KeyBinding ACTION_KEY;
+    public static KeyBinding R_KEY;
+    public static KeyBinding X_KEY;
 
 
     public Main() {
@@ -77,7 +78,8 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new VillagerEvents());
         MinecraftForge.EVENT_BUS.register(new PlayerEvents());
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
-        ACTION_KEY = ClientRegistry.registerKeyBinding("key.action_key", "category.recruits", 82);
+        R_KEY = ClientRegistry.registerKeyBinding("key.r_key", "category.recruits", 82);
+        X_KEY = ClientRegistry.registerKeyBinding("key.x_key", "category.recruits", 88);
 
 
     }
