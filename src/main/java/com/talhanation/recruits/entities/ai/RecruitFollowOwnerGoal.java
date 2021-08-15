@@ -38,7 +38,7 @@ public class RecruitFollowOwnerGoal extends Goal {
             return false;
         } else if (owner.isSpectator()) {
             return false;
-        } else if (this.recruitEntity.getStopFollow()) {
+        } else if (!this.recruitEntity.getFollow()) {
             return false;
         } else if (this.recruitEntity.isOrderedToSit()) {
             return false;
@@ -56,7 +56,7 @@ public class RecruitFollowOwnerGoal extends Goal {
             return false;
         } else if (this.recruitEntity.isOrderedToSit()) {
             return false;
-        } else if (this.recruitEntity.getStopFollow()) {
+        } else if (!this.recruitEntity.getFollow()) {
             return false;
         }
         else {

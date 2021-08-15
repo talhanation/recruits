@@ -34,7 +34,8 @@ public class DefendVillageGoal extends TargetGoal {
             for(PlayerEntity playerentity : list1) {
                 int i = villagerentity.getPlayerReputation(playerentity);
                 if (i <= -100) {
-                    this.potentialTarget = playerentity;
+                    if (!(playerentity.getUUID() == entity.getOwnerUUID()))
+                        this.potentialTarget = playerentity;
                 }
             }
         }

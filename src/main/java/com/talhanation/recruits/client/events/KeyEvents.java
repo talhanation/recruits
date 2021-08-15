@@ -23,16 +23,17 @@ public class KeyEvents {
             clientPlayerEntity.sendMessage(new StringTextComponent("Recruits! Stop Following me!"), clientPlayerEntity.getUUID());
             List<AbstractRecruitEntity> list = clientPlayerEntity.level.getEntitiesOfClass(AbstractRecruitEntity.class, clientPlayerEntity.getBoundingBox().inflate(32.0D));
             for (AbstractRecruitEntity recruits : list) {
-                if (!recruits.getStopFollow()) {
+                if (recruits.getFollow()) {
                    recruits.onRKeyPressed(clientPlayerEntity.getUUID());
                 }
             }
         }
 
         if (Main.X_KEY.isDown()) {
+            clientPlayerEntity.sendMessage(new StringTextComponent("Recruits! Stop Following me!"), clientPlayerEntity.getUUID());
             List<AbstractRecruitEntity> list = clientPlayerEntity.level.getEntitiesOfClass(AbstractRecruitEntity.class, clientPlayerEntity.getBoundingBox().inflate(32.0D));
             for (AbstractRecruitEntity recruits : list) {
-                recruits.onXKeyPressed(clientPlayerEntity);
+                recruits.kill();
 
             }
         }
