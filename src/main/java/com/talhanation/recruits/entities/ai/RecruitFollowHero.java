@@ -29,14 +29,13 @@ public class RecruitFollowHero extends Goal {
     }
 
     public void tick() {
-        LivingEntity owner = this.recruit.getOwner();
-        if (owner != null)
-            this.recruit.getNavigation().moveTo(owner, 1);
-        //this.recruit.getNavigation().moveTo(Objects.requireNonNull(this.recruit.getOwner()), 0.9D);
+        if (owner != null) {
+            this.recruit.getNavigation().moveTo(owner, 3);
+            this.recruit.getLookControl().setLookAt(this.owner, 10.0F, (float) this.recruit.getMaxHeadXRot());
+        }
     }
 
     public boolean canUse() {
-        LivingEntity owner = recruit.getOwner();
         if (owner != null) {
             if (owner.isSpectator())
                 return false;
@@ -62,20 +61,4 @@ public class RecruitFollowHero extends Goal {
         //this.recruit.setPathfindingMalus(PathNodeType.WATER);
     }
 
-
-    public boolean canContinueToUse() {
-        LivingEntity owner = recruit.getOwner();
-        if (owner != null) {
-
-            if (this.recruit.getNavigation().isDone()) {
-                return false;
-            } else if (this.recruit.isOrderedToSit()) {
-                return false;
-            } else if (!this.recruit.getFollow()) {
-                return false;
-            } else {
-                return !(this.recruit.distanceToSqr(owner) <= (double) (this.stopDistance * this.stopDistance));
-            }
-        }
-    }
 }
