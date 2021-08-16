@@ -297,8 +297,10 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
             switch (state) {
                 case 1:
             }*/
+
             this.setOrderedToSit(true);
             this.setInSittingPose(true);
+            this.getOwner().sendMessage(new StringTextComponent("Recruits! Stop Following me!"), this.getOwnerUUID());
         }
     }
 

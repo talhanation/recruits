@@ -15,8 +15,7 @@ public class RecruitFollowHero extends Goal {
     public double stopDistance;
     private LivingEntity owner;
 
-
-    public RecruitFollowHero(AbstractRecruitEntity recruit ,double stopDistance) {
+    public RecruitFollowHero(AbstractRecruitEntity recruit, double stopDistance) {
         this.recruit = recruit;
         this.stopDistance = stopDistance;
         this.owner = recruit.getOwner();
@@ -61,4 +60,17 @@ public class RecruitFollowHero extends Goal {
         //this.recruit.setPathfindingMalus(PathNodeType.WATER);
     }
 
+    public boolean canContinueToUse() {
+        LivingEntity owner = recruit.getOwner();
+        if (owner != null) {
+            if (this.recruit.getNavigation().isDone()) {
+                return false;
+            } else if (this.recruit.isOrderedToSit()) {
+                return false;
+            } else if (!this.recruit.getFollow()) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
