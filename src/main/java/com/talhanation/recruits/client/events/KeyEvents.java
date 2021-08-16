@@ -2,9 +2,13 @@ package com.talhanation.recruits.client.events;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.network.MessageHold;
+import com.talhanation.recruits.network.MessageAttack;
+import com.talhanation.recruits.network.MessageFollow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.ActionResultType;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -15,6 +19,8 @@ import java.util.UUID;
 
 public class KeyEvents {
 
+    public boolean wasRPressed;
+
     @SubscribeEvent
     public void onKeyInput(InputEvent.KeyInputEvent event) {
         Minecraft minecraft = Minecraft.getInstance();
@@ -23,44 +29,39 @@ public class KeyEvents {
             return;
 
         if (Main.R_KEY.isDown()) {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageHold(clientPlayerEntity.getUUID()));
-            clientPlayerEntity.sendMessage(new StringTextComponent("KEY_R"), clientPlayerEntity.getUUID());
-            /*clientPlayerEntity.sendMessage(new StringTextComponent("Recruits! Stop Following me!"), clientPlayerEntity.getUUID());
-            List<AbstractRecruitEntity> list = clientPlayerEntity.level.getEntitiesOfClass(AbstractRecruitEntity.class, clientPlayerEntity.getBoundingBox().inflate(32.0D));
-            for (AbstractRecruitEntity recruits : list) {
-                if (recruits.getFollow()) {
-                   recruits.onRKeyPressed(clientPlayerEntity.getUUID());
-                }
-            }
-
-             */
-
-
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(clientPlayerEntity.getUUID()));
         }
 
         if (Main.X_KEY.isDown()) {
-            clientPlayerEntity.sendMessage(new StringTextComponent("Recruits! Stop Following me!"), clientPlayerEntity.getUUID());
-            List<AbstractRecruitEntity> list = clientPlayerEntity.level.getEntitiesOfClass(AbstractRecruitEntity.class, clientPlayerEntity.getBoundingBox().inflate(32.0D));
-            for (AbstractRecruitEntity recruits : list) {
-                recruits.kill();
-
-            }
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(clientPlayerEntity.getUUID()));
         }
 
     }
 
     public static void onRKeyPressed(UUID player, AbstractRecruitEntity recruit) {
         if (recruit.isTame() &&  Objects.equals(recruit.getOwnerUUID(), player)) {
-            /*
-            switch (state) {
-                case 1:
-            }*/
+                recruit.setFollow(true);
 
-            recruit.setFollow(true);
-            recruit.getOwner().sendMessage(new StringTextComponent("Recruits! Stop Following me!"), recruit.getOwnerUUID());
         }
     }
 
+    public static void onXKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit) {
+        if (recruit.isTame() &&  Objects.equals(recruit.getOwnerUUID(), player_uuid)) {
+            int state = recruit.getState();
+            LivingEntity player = recruit.getOwner();
 
+            switch (state) {
+                case 0:
+                    recruit.setState(player, 1);
+                    break;
+                case 1:
+                    recruit.setState(player, 2);
+                    break;
+                case 2:
+                    recruit.setState(player, 0);
+                    break;
+            }
+        }
+    }
 
 }

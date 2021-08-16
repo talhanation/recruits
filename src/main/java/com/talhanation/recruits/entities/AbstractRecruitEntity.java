@@ -72,8 +72,8 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         this.goalSelector.addGoal(2, new SitGoal(this));
         this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.0D, true));
         this.goalSelector.addGoal(4, new MoveTowardsTargetGoal(this, 1.0D, 32.0F));
-        //this.goalSelector.addGoal(5, new RecruitFollowOwnerGoal(this, 1.3D, 7.F, 3.0F));
-        this.goalSelector.addGoal(5, new RecruitFollowHero(this, 3.0F));
+        this.goalSelector.addGoal(5, new RecruitFollowOwnerGoal(this, 1.3D, 7.F, 3.0F));
+        //this.goalSelector.addGoal(5, new RecruitFollowHero(this, 3.0F));
         this.goalSelector.addGoal(6, new ReturnToVillageGoal(this, 0.6D, false));
         this.goalSelector.addGoal(7, new PatrolVillageGoal(this, 0.6D));
         this.goalSelector.addGoal(8, new WaterAvoidingRandomWalkingGoal(this, 1.0D, 0F));
@@ -291,26 +291,8 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         }
     }
 
-    public void onRKeyPressed(UUID player) {
-        if (this.isTame() &&  Objects.equals(this.getOwnerUUID(), player)) {
-            /*
-            switch (state) {
-                case 1:
-            }*/
-
-            this.setOrderedToSit(true);
-            this.setInSittingPose(true);
-            this.getOwner().sendMessage(new StringTextComponent("Recruits! Stop Following me!"), this.getOwnerUUID());
-        }
-    }
 
 
-    public void onXKeyPressed(LivingEntity owner){
-        if (this.isTame() && Objects.equals(this.getOwnerUUID(), owner.getUUID())){
-            int state = getState();
-            setState(owner, 2);
-        }
-    }
 
 
     ////////////////////////////////////ATTACK FUNCTIONS////////////////////////////////////

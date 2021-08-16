@@ -9,7 +9,8 @@ import com.talhanation.recruits.entities.RecruitEntity;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModItems;
-import com.talhanation.recruits.network.MessageHold;
+import com.talhanation.recruits.network.MessageAttack;
+import com.talhanation.recruits.network.MessageFollow;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.ai.attributes.GlobalEntityTypeAttributes;
 import net.minecraft.util.ResourceLocation;
@@ -57,10 +58,13 @@ public class Main {
         SIMPLE_CHANNEL = NetworkRegistry.newSimpleChannel(new ResourceLocation("recruits", "default"), () -> "1.0.0", s -> true, s -> true);
 
 
-        SIMPLE_CHANNEL.registerMessage(0, MessageHold.class, MessageHold::toBytes,
-                buf -> (new MessageHold()).fromBytes(buf),
+        SIMPLE_CHANNEL.registerMessage(0, MessageFollow.class, MessageFollow::toBytes,
+                buf -> (new MessageFollow()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
+        SIMPLE_CHANNEL.registerMessage(1, MessageAttack.class, MessageAttack::toBytes,
+                buf -> (new MessageAttack()).fromBytes(buf),
+                (msg, fun) -> msg.executeServerSide(fun.get()));
 
         DeferredWorkQueue.runLater(() -> {
             GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT.get(), RecruitEntity.setAttributes().build());
