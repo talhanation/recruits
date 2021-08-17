@@ -39,4 +39,5 @@ public class MessageFollow implements Message<MessageFollow> {
         buf.writeUUID(this.player);
     }
 
+
 }

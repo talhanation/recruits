@@ -72,8 +72,8 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         this.goalSelector.addGoal(2, new SitGoal(this));
         this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.0D, true));
         this.goalSelector.addGoal(4, new MoveTowardsTargetGoal(this, 1.0D, 32.0F));
-        this.goalSelector.addGoal(5, new RecruitFollowOwnerGoal(this, 1.3D, 7.F, 3.0F));
-        //this.goalSelector.addGoal(5, new RecruitFollowHero(this, 3.0F));
+        //this.goalSelector.addGoal(5, new RecruitFollowOwnerGoal(this, 1.3D, 7.F, 3.0F));
+        this.goalSelector.addGoal(5, new RecruitFollowHeroGoal(this, 3.0F));
         this.goalSelector.addGoal(6, new ReturnToVillageGoal(this, 0.6D, false));
         this.goalSelector.addGoal(7, new PatrolVillageGoal(this, 0.6D));
         this.goalSelector.addGoal(8, new WaterAvoidingRandomWalkingGoal(this, 1.0D, 0F));
@@ -218,7 +218,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         } else {
             if (this.isTame() && player.getUUID().equals(this.getOwnerUUID())) {
 
-                if (!player.isCrouching()) {
+                if (player.isCrouching()) {
                     int state = this.getState();
 
                     switch (state) {
@@ -243,7 +243,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
                     }*/
                 }
-                if(player.isCrouching()) {
+                if(!player.isCrouching()) {
                     /*
                     if (this.isInSittingPose()) {
                         setOrderedToSit(false);

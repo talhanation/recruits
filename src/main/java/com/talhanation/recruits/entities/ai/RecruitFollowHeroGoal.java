@@ -10,12 +10,12 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 
-public class RecruitFollowHero extends Goal {
+public class RecruitFollowHeroGoal extends Goal {
     public final AbstractRecruitEntity recruit;
     public double stopDistance;
     private LivingEntity owner;
 
-    public RecruitFollowHero(AbstractRecruitEntity recruit, double stopDistance) {
+    public RecruitFollowHeroGoal(AbstractRecruitEntity recruit, double stopDistance) {
         this.recruit = recruit;
         this.stopDistance = stopDistance;
         this.owner = recruit.getOwner();
@@ -29,7 +29,7 @@ public class RecruitFollowHero extends Goal {
 
     public void tick() {
         if (owner != null) {
-            this.recruit.getNavigation().moveTo(owner, 3);
+            this.recruit.getNavigation().moveTo(owner, 1.3D);
             this.recruit.getLookControl().setLookAt(this.owner, 10.0F, (float) this.recruit.getMaxHeadXRot());
         }
     }

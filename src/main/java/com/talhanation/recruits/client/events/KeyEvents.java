@@ -7,19 +7,15 @@ import com.talhanation.recruits.network.MessageFollow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 public class KeyEvents {
 
-    public boolean wasRPressed;
+    public static int state_R;
 
     @SubscribeEvent
     public void onKeyInput(InputEvent.KeyInputEvent event) {
@@ -30,7 +26,9 @@ public class KeyEvents {
 
         if (Main.R_KEY.isDown()) {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(clientPlayerEntity.getUUID()));
+            state_R++;
         }
+
 
         if (Main.X_KEY.isDown()) {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(clientPlayerEntity.getUUID()));
@@ -40,8 +38,13 @@ public class KeyEvents {
 
     public static void onRKeyPressed(UUID player, AbstractRecruitEntity recruit) {
         if (recruit.isTame() &&  Objects.equals(recruit.getOwnerUUID(), player)) {
+            if(state_R == 0){
                 recruit.setFollow(true);
-
+            }
+            else {
+                recruit.setFollow(false);
+                state_R = 0;
+            }
         }
     }
 
@@ -53,6 +56,7 @@ public class KeyEvents {
             switch (state) {
                 case 0:
                     recruit.setState(player, 1);
+
                     break;
                 case 1:
                     recruit.setState(player, 2);
