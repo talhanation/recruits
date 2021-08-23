@@ -11,6 +11,7 @@ import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModItems;
 import com.talhanation.recruits.network.MessageAttack;
 import com.talhanation.recruits.network.MessageFollow;
+import com.talhanation.recruits.network.MessageMove;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.ai.attributes.GlobalEntityTypeAttributes;
 import net.minecraft.util.ResourceLocation;
@@ -65,6 +66,10 @@ public class Main {
 
         SIMPLE_CHANNEL.registerMessage(1, MessageAttack.class, MessageAttack::toBytes,
                 buf -> (new MessageAttack()).fromBytes(buf),
+                (msg, fun) -> msg.executeServerSide(fun.get()));
+
+        SIMPLE_CHANNEL.registerMessage(1, MessageMove.class, MessageMove::toBytes,
+                buf -> (new MessageMove()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
         DeferredWorkQueue.runLater(() -> {

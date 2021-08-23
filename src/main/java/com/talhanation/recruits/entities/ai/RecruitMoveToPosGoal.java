@@ -6,26 +6,24 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.StringTextComponent;
 
 import java.util.EnumSet;
+import java.util.Optional;
 
-public class RecruitHoldPosGoal extends Goal {
+public class RecruitMoveToPosGoal extends Goal {
     private final AbstractRecruitEntity recruit;
     private final double speedModifier;
     private final double within;
 
-    public RecruitHoldPosGoal(AbstractRecruitEntity recruit, double v, double within) {
-      this.recruit = recruit;
-      this.speedModifier = v;
-      this.within = within;
-      this.setFlags(EnumSet.of(Goal.Flag.MOVE));
+    public RecruitMoveToPosGoal(AbstractRecruitEntity recruit, double v, double within) {
+        this.recruit = recruit;
+        this.speedModifier = v;
+        this.within = within;
+        this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
     public boolean canUse() {
-        if (this.recruit.getHoldPos() == null) {
+        if (this.recruit.getMovePos() == null && recruit.getMove()) {
             return false;
         }
-        else if (recruit.getFollow() != 2){
-            return false;
-        }
-        else if (this.recruit.getHoldPos().closerThan(recruit.position(), within))
+        else if (this.recruit.getMovePos().closerThan(recruit.position(), within))
             return true;
         else
             return false;
@@ -36,9 +34,15 @@ public class RecruitHoldPosGoal extends Goal {
     }
 
     public void tick() {
-        BlockPos blockpos = this.recruit.getHoldPos();
-        if (blockpos != null) {
+        BlockPos blockpos = this.recruit.getMovePos();
+        if (blockpos != null && recruit.getMove()) {
             this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
-        }else recruit.getOwner().sendMessage(new StringTextComponent("no"), recruit.getOwner().getUUID());
+        }
+
+        if(blockpos.closerThan(recruit.position(), 1)){
+            recruit.setFollow(0);
+            recruit.setMove(false);
+        }
     }
 }
+

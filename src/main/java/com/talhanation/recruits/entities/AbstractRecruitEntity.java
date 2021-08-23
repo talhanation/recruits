@@ -37,6 +37,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     private static final DataParameter<Integer> STATE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> FOLLOW = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
     private static final DataParameter<Optional<BlockPos>> HOLD_POS = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.OPTIONAL_BLOCK_POS);
+    private static final DataParameter<Optional<BlockPos>> MOVE_POS = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.OPTIONAL_BLOCK_POS);
     private static final RangedInteger PERSISTENT_ANGER_TIME = TickRangeConverter.rangeOfSeconds(20, 39);
     private UUID persistentAngerTarget;
 
@@ -70,17 +71,18 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new SwimGoal(this));
-        this.goalSelector.addGoal(2, new SitGoal(this));
+        //this.goalSelector.addGoal(2, new SitGoal(this));
         this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.1D, true));
-        //this.goalSelector.addGoal(4, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
-        this.goalSelector.addGoal(5, new MoveTowardsTargetGoal(this, 1.15D, 32.0F));
-        this.goalSelector.addGoal(6, new RecruitFollowOwnerGoal(this, 1.2D, 7.0F, 3.0F));
+        this.goalSelector.addGoal(4, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
+        this.goalSelector.addGoal(5, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
+        this.goalSelector.addGoal(6, new MoveTowardsTargetGoal(this, 1.15D, 32.0F));
+        this.goalSelector.addGoal(7, new RecruitFollowOwnerGoal(this, 1.2D, 7.0F, 3.0F));
         //this.goalSelector.addGoal(5, new RecruitFollowHeroGoal(this, 1.2D,3.0F));
-        this.goalSelector.addGoal(7, new ReturnToVillageGoal(this, 0.6D, false));
-        this.goalSelector.addGoal(8, new PatrolVillageGoal(this, 0.6D));
-        this.goalSelector.addGoal(9, new WaterAvoidingRandomWalkingGoal(this, 1.0D, 0F));
-        this.goalSelector.addGoal(10, new LookAtGoal(this, PlayerEntity.class, 8.0F));
-        this.goalSelector.addGoal(10, new LookRandomlyGoal(this));
+        this.goalSelector.addGoal(8, new ReturnToVillageGoal(this, 0.6D, false));
+        this.goalSelector.addGoal(9, new PatrolVillageGoal(this, 0.6D));
+        this.goalSelector.addGoal(10, new WaterAvoidingRandomWalkingGoal(this, 1.0D, 0F));
+        this.goalSelector.addGoal(11, new LookAtGoal(this, PlayerEntity.class, 8.0F));
+        this.goalSelector.addGoal(11, new LookRandomlyGoal(this));
 
         this.targetSelector.addGoal(1, new RecruitDefendVillageGoal(this));
         this.targetSelector.addGoal(2, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
@@ -98,7 +100,8 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         this.entityData.define(DATA_REMAINING_ANGER_TIME, 0);
         this.entityData.define(FOLLOW, 0);
         this.entityData.define(STATE, 0);
-        this.entityData.define(HOLD_POS, null);
+        this.entityData.define(HOLD_POS, Optional.empty());
+        this.entityData.define(MOVE_POS, Optional.empty());
         //STATE
         // 0=NEUTRAL
         // 1=AGGRESSIVE
@@ -167,7 +170,12 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
     @Nullable
     public BlockPos getHoldPos(){
-        return entityData.get(HOLD_POS).orElse((BlockPos)null);
+        return entityData.get(HOLD_POS).orElse(null);
+    }
+
+    @Nullable
+    public BlockPos getMovePos(){
+        return entityData.get(MOVE_POS).orElse(null);
     }
 
     ////////////////////////////////////SET////////////////////////////////////
@@ -202,6 +210,10 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
     public void setHoldPos(BlockPos holdPos){
         entityData.set(HOLD_POS, Optional.of(holdPos));
+    }
+
+    public void setMovePos(BlockPos holdPos){
+        entityData.set(MOVE_POS, Optional.of(holdPos));
     }
 
     public void setOwned(boolean owned) {

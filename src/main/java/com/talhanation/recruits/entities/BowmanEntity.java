@@ -43,9 +43,10 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new SwimGoal(this));
-        this.goalSelector.addGoal(2, new SitGoal(this));
+        //this.goalSelector.addGoal(2, new SitGoal(this));
         this.goalSelector.addGoal(3, new RecruitFollowOwnerGoal(this, 1.2D, 7.F, 4.0F));
-
+        this.goalSelector.addGoal(4, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
+        this.goalSelector.addGoal(5, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
 
         this.goalSelector.addGoal(6, new ReturnToVillageGoal(this, 0.6D, false));
         this.goalSelector.addGoal(7, new PatrolVillageGoal(this, 0.6D));
@@ -143,7 +144,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
     }
 
 
-    private final RecruitRangedBowAttackGoal<BowmanEntity> bowGoal = new RecruitRangedBowAttackGoal<>(this, 1.2D, 15, 64.0F);
+    private final RecruitRangedBowAttackGoal<BowmanEntity> bowGoal = new RecruitRangedBowAttackGoal<>(this, 1.2D, 15, 32.0F);
     private final MeleeAttackGoal meleeGoal = new MeleeAttackGoal(this, 1.2D, false) {
         public void stop() {
             super.stop();

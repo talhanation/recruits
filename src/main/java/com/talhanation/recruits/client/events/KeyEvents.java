@@ -4,15 +4,23 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.network.MessageAttack;
 import com.talhanation.recruits.network.MessageFollow;
+import com.talhanation.recruits.network.MessageMove;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.RayTraceContext;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.world.World;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.Objects;
 import java.util.UUID;
+
 
 public class KeyEvents {
 
@@ -40,6 +48,11 @@ public class KeyEvents {
             X_state++;
             if (X_state > 3) X_state = 0;
             sendXCommandInChat(X_state, clientPlayerEntity);
+        }
+
+        if(Main.C_KEY.isDown()){
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageMove(clientPlayerEntity.getUUID()));
+            clientPlayerEntity.sendMessage(new StringTextComponent("MESSAGE SEND!"), clientPlayerEntity.getUUID());
         }
 
     }
@@ -89,6 +102,26 @@ public class KeyEvents {
                     if (state != 2)
                         recruit.setState(owner, 2);
                     break;
+            }
+        }
+    }
+
+    public static void onCKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit) {
+        Minecraft minecraft = Minecraft.getInstance();
+        LivingEntity owner = recruit.getOwner();
+        if (recruit.isTame() &&  Objects.equals(recruit.getOwnerUUID(), player_uuid)) {
+            int state = recruit.getFollow();
+
+            if (state != 2){
+                RayTraceResult rayTraceResult = minecraft.hitResult;
+                if (rayTraceResult == null)
+                    owner.sendMessage(new StringTextComponent("NO RESULT!"), owner.getUUID());
+                assert rayTraceResult != null;
+                if (rayTraceResult.getType() == RayTraceResult.Type.BLOCK) {
+                    BlockRayTraceResult blockraytraceresult = (BlockRayTraceResult) rayTraceResult;
+                    BlockPos blockpos = blockraytraceresult.getBlockPos();
+                    recruit.setMovePos(blockpos);
+                }
             }
         }
     }
