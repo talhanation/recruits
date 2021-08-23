@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities;
 
 
+import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.entity.AgeableEntity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ILivingEntityData;
@@ -13,6 +14,7 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.pathfinding.GroundPathNavigator;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
 import net.minecraft.world.World;
@@ -44,16 +46,22 @@ public class RecruitEntity extends AbstractRecruitEntity {
         ((GroundPathNavigator)this.getNavigation()).setCanOpenDoors(true);
         this.populateDefaultEquipmentEnchantments(difficultyInstance);
         this.setEquipment();
+        this.dropEquipment();
         this.setCanPickUpLoot(true);
         return ilivingentitydata;
     }
     @Override
     public void setEquipment() {
-        this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_SWORD));
         this.setItemSlot(EquipmentSlotType.HEAD, new ItemStack(Items.LEATHER_HELMET));
         this.setItemSlot(EquipmentSlotType.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));
         this.setItemSlot(EquipmentSlotType.LEGS, new ItemStack(Items.LEATHER_LEGGINGS));
         this.setItemSlot(EquipmentSlotType.FEET, new ItemStack(Items.LEATHER_BOOTS));
+        int i = this.random.nextInt(3);
+        if (i == 0) {
+            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_SWORD));
+        } else {
+            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.IRON_AXE));
+        }
     }
 
     @Nullable

@@ -18,6 +18,7 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.particles.IParticleData;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.*;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
@@ -28,16 +29,16 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 public abstract class AbstractRecruitEntity extends TameableEntity implements IAngerable {
     private static final DataParameter<Integer> DATA_REMAINING_ANGER_TIME = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> STATE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
-    private static final DataParameter<Boolean> FOLLOW = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
+    private static final DataParameter<Integer> FOLLOW = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
+    private static final DataParameter<Optional<BlockPos>> HOLD_POS = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.OPTIONAL_BLOCK_POS);
     private static final RangedInteger PERSISTENT_ANGER_TIME = TickRangeConverter.rangeOfSeconds(20, 39);
     private UUID persistentAngerTarget;
-
-
 
     public AbstractRecruitEntity(EntityType<? extends TameableEntity> entityType, World world) {
         super(entityType, world);
@@ -70,18 +71,19 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new SwimGoal(this));
         this.goalSelector.addGoal(2, new SitGoal(this));
-        this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.0D, true));
-        this.goalSelector.addGoal(4, new MoveTowardsTargetGoal(this, 1.0D, 32.0F));
-        //this.goalSelector.addGoal(5, new RecruitFollowOwnerGoal(this, 1.3D, 7.F, 3.0F));
-        this.goalSelector.addGoal(5, new RecruitFollowHeroGoal(this, 3.0F));
-        this.goalSelector.addGoal(6, new ReturnToVillageGoal(this, 0.6D, false));
-        this.goalSelector.addGoal(7, new PatrolVillageGoal(this, 0.6D));
-        this.goalSelector.addGoal(8, new WaterAvoidingRandomWalkingGoal(this, 1.0D, 0F));
+        this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.1D, true));
+        //this.goalSelector.addGoal(4, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
+        this.goalSelector.addGoal(5, new MoveTowardsTargetGoal(this, 1.15D, 32.0F));
+        this.goalSelector.addGoal(6, new RecruitFollowOwnerGoal(this, 1.2D, 7.0F, 3.0F));
+        //this.goalSelector.addGoal(5, new RecruitFollowHeroGoal(this, 1.2D,3.0F));
+        this.goalSelector.addGoal(7, new ReturnToVillageGoal(this, 0.6D, false));
+        this.goalSelector.addGoal(8, new PatrolVillageGoal(this, 0.6D));
+        this.goalSelector.addGoal(9, new WaterAvoidingRandomWalkingGoal(this, 1.0D, 0F));
         this.goalSelector.addGoal(10, new LookAtGoal(this, PlayerEntity.class, 8.0F));
         this.goalSelector.addGoal(10, new LookRandomlyGoal(this));
 
-        this.targetSelector.addGoal(1, new DefendVillageGoal(this));
-        this.targetSelector.addGoal(2, (new HurtByTargetGoal(this)).setAlertOthers());
+        this.targetSelector.addGoal(1, new RecruitDefendVillageGoal(this));
+        this.targetSelector.addGoal(2, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
         this.targetSelector.addGoal(3, new OwnerHurtByTargetGoal(this));
         this.targetSelector.addGoal(4, new OwnerHurtTargetGoal(this));
         this.targetSelector.addGoal(4, new RecruitRaidNearestAttackableTargetGoal<>(this, LivingEntity.class, false));
@@ -94,12 +96,18 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(DATA_REMAINING_ANGER_TIME, 0);
-        this.entityData.define(FOLLOW, false);
+        this.entityData.define(FOLLOW, 0);
         this.entityData.define(STATE, 0);
+        this.entityData.define(HOLD_POS, null);
         //STATE
         // 0=NEUTRAL
         // 1=AGGRESSIVE
         // 2= RAID
+
+        //FOLLOW
+        //0 = false
+        //1 = ture
+        //2 = false, hold position
 
     }
 
@@ -128,7 +136,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         return SoundEvents.VILLAGER_DEATH;
     }
 
-    public boolean getFollow(){
+    public int getFollow(){
        return entityData.get(FOLLOW);
     }
 
@@ -157,33 +165,43 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         return this.persistentAngerTarget;
     }
 
+    @Nullable
+    public BlockPos getHoldPos(){
+        return entityData.get(HOLD_POS).orElse((BlockPos)null);
+    }
+
     ////////////////////////////////////SET////////////////////////////////////
 
     public void setState(LivingEntity owner, int state) {
 
         switch (state){
             case 0:
-                owner.sendMessage(new StringTextComponent("I will stay Neutral"), owner.getUUID());
+                this.setTarget(null);//wird nur 1x aufgerufen
                 break;
             case 1:
-                owner.sendMessage(new StringTextComponent("I will stay Aggressive"), owner.getUUID());
                 break;
             case 2:
-                owner.sendMessage(new StringTextComponent("I will Raid everything"), owner.getUUID());
                 break;
         }
 
         entityData.set(STATE, state);
     }
 
-    public void setFollow(boolean bool){
-        LivingEntity owner = this.getOwner();
-        if (bool){
-            owner.sendMessage(new StringTextComponent("I will follow you"), owner.getUUID());
-        }else
-            owner.sendMessage(new StringTextComponent("Im will stay here around"), owner.getUUID());
+    public void setFollow(int state){
+        switch (state){
+            case 0:
+                break;
+            case 1:
+                break;
+            case 2:
+                setHoldPos(this.getOnPos());
+                break;
+        }
+        entityData.set(FOLLOW, state);
+    }
 
-        entityData.set(FOLLOW, bool);
+    public void setHoldPos(BlockPos holdPos){
+        entityData.set(HOLD_POS, Optional.of(holdPos));
     }
 
     public void setOwned(boolean owned) {
@@ -224,46 +242,37 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
                     switch (state) {
                         case 0:
                             setState(player, 1);
+                            player.sendMessage(new StringTextComponent("I will stay Aggressive"), player.getUUID());
                             break;
                         case 1:
                             setState(player, 2);
-                            break;
+                            player.sendMessage(new StringTextComponent("I will Raid everything"), player.getUUID());
+                             break;
                         case 2:
                             setState(player, 0);
+                            player.sendMessage(new StringTextComponent("I will be Neutral"), player.getUUID());
                             break;
                     }
                     return ActionResultType.SUCCESS;
-
-                    /*
-                    if (!this.getStopFollow()) {
-                        setStopFollow(true);
-
-                    } else if (this.getStopFollow()) {
-                        setStopFollow(false);
-
-                    }*/
                 }
                 if(!player.isCrouching()) {
-                    /*
-                    if (this.isInSittingPose()) {
-                        setOrderedToSit(false);
-                        player.sendMessage(new StringTextComponent("Im will stop Holding here"), player.getUUID());
-                        return ActionResultType.SUCCESS;
+                    int state = this.getFollow();
 
-                    } if (!this.isInSittingPose()) {
-                        setOrderedToSit(true);
-                        player.sendMessage(new StringTextComponent("Im will Holding here"), player.getUUID());
-                        return ActionResultType.SUCCESS;
+                    switch (state) {
+                        case 0:
+                            setFollow(1);
+                            player.sendMessage(new StringTextComponent("I will follow you"), player.getUUID());
+                            break;
+                        case 1:
+                            setFollow(2);
+                            player.sendMessage(new StringTextComponent("Im will hold this Position"), player.getUUID());
+                            break;
+                        case 2:
+                            setFollow(0);
+                            player.sendMessage(new StringTextComponent("Im will stay here around"), player.getUUID());
+                            break;
                     }
-                    */
-                    if (this.getFollow()) {
-                        setFollow(false);
-                        return ActionResultType.SUCCESS;
-
-                    } if (!this.getFollow()) {
-                        setFollow(true);
-                        return ActionResultType.SUCCESS;
-                    }
+                    return ActionResultType.SUCCESS;
                 }
 
             } else if (item == Items.EMERALD && !this.isAngry() && !this.isTame()) {
@@ -276,7 +285,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
                     this.navigation.stop();
                     this.setTarget(null);
                     this.setOrderedToSit(false);
-                    this.setFollow(false);
+                    this.setFollow(0);
                     this.setState(player, 0);
                     this.level.broadcastEntityEvent(this, (byte)7);
                     return ActionResultType.SUCCESS;
@@ -290,10 +299,6 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
             return super.mobInteract(player, hand);
         }
     }
-
-
-
-
 
     ////////////////////////////////////ATTACK FUNCTIONS////////////////////////////////////
 

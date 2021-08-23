@@ -3,10 +3,18 @@ package com.talhanation.recruits.client.events;
 
 import com.google.common.collect.ImmutableSet;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.init.ModBlocks;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.merchant.villager.AbstractVillagerEntity;
+import net.minecraft.entity.merchant.villager.VillagerEntity;
 import net.minecraft.entity.merchant.villager.VillagerProfession;
 import net.minecraft.util.SoundEvents;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.village.PointOfInterestType;
+import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.event.entity.EntityEvent;
+import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
@@ -15,6 +23,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+import java.util.Vector;
 
 public class VillagerEvents {
     public static final DeferredRegister<PointOfInterestType> POINT_OF_INTEREST_TYPES = DeferredRegister.create(ForgeRegistries.POI_TYPES, Main.MOD_ID);

@@ -54,10 +54,6 @@ public class RecruitRaidNearestAttackableTargetGoal<T extends LivingEntity> exte
             }
             //OTHER RECRUITS
             else if (target instanceof AbstractRecruitEntity){
-                if (target.getTeam() == Objects.requireNonNull(recruit.getOwner()).getTeam()) {
-                    return false;
-                }
-
                 if (((AbstractRecruitEntity) target).getOwnerUUID() == recruit.getOwnerUUID() )
                     return false;
 

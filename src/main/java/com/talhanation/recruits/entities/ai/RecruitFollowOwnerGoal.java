@@ -38,7 +38,7 @@ public class RecruitFollowOwnerGoal extends Goal {
             return false;
         } else if (owner.isSpectator()) {
             return false;
-        } else if (!this.recruitEntity.getFollow()) {
+        } else if (this.recruitEntity.getFollow() == 0) {
             return false;
         } else if (this.recruitEntity.isOrderedToSit()) {
             return false;
@@ -47,7 +47,7 @@ public class RecruitFollowOwnerGoal extends Goal {
         }
         else {
             this.owner = owner;
-            return true;
+            return recruitEntity.getFollow() == 1;
         }
     }
 
@@ -56,11 +56,11 @@ public class RecruitFollowOwnerGoal extends Goal {
             return false;
         } else if (this.recruitEntity.isOrderedToSit()) {
             return false;
-        } else if (!this.recruitEntity.getFollow()) {
+        } else if (this.recruitEntity.getFollow() == 0) {
             return false;
         }
         else {
-            return !(this.recruitEntity.distanceToSqr(this.owner) <= (double)(this.stopDistance * this.stopDistance));
+            return recruitEntity.getFollow() == 1 && !(this.recruitEntity.distanceToSqr(this.owner) <= (double)(this.stopDistance * this.stopDistance));
         }
 
     }

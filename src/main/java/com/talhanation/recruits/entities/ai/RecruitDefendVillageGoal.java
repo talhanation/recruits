@@ -12,12 +12,12 @@ import net.minecraft.entity.merchant.villager.VillagerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 
-public class DefendVillageGoal extends TargetGoal {
+public class RecruitDefendVillageGoal extends TargetGoal {
     private final AbstractRecruitEntity entity;
     private LivingEntity potentialTarget;
     private final EntityPredicate attackTargeting = (new EntityPredicate()).range(64.0D);
 
-    public DefendVillageGoal(AbstractRecruitEntity entity) {
+    public RecruitDefendVillageGoal(AbstractRecruitEntity entity) {
         super(entity, false, true);
         this.entity = entity;
         this.setFlags(EnumSet.of(Goal.Flag.TARGET));
@@ -29,13 +29,14 @@ public class DefendVillageGoal extends TargetGoal {
         List<PlayerEntity> list1 = this.entity.level.getNearbyPlayers(this.attackTargeting, this.entity, axisalignedbb);
 
         for(LivingEntity livingentity : list) {
-            VillagerEntity villagerentity = (VillagerEntity)livingentity;
+            VillagerEntity villagerentity = (VillagerEntity) livingentity;
 
-            for(PlayerEntity playerentity : list1) {
+            for (PlayerEntity playerentity : list1) {
                 int i = villagerentity.getPlayerReputation(playerentity);
-                if (i <= -100) {
-                    if (!(playerentity.getUUID() == entity.getOwnerUUID()))
+                if ((playerentity.getUUID() != entity.getOwnerUUID())) {
+                    if (i <= -100) {
                         this.potentialTarget = playerentity;
+                    }
                 }
             }
         }
@@ -43,7 +44,8 @@ public class DefendVillageGoal extends TargetGoal {
         if (this.potentialTarget == null) {
             return false;
         } else {
-            return !(this.potentialTarget instanceof PlayerEntity) || !this.potentialTarget.isSpectator() && !((PlayerEntity)this.potentialTarget).isCreative();
+            return !(this.potentialTarget instanceof PlayerEntity) ||
+                    !this.potentialTarget.isSpectator() && !((PlayerEntity)this.potentialTarget).isCreative();
         }
     }
 

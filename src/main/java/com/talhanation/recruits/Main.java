@@ -34,6 +34,7 @@ public class Main {
     public static SimpleChannel SIMPLE_CHANNEL;
     public static KeyBinding R_KEY;
     public static KeyBinding X_KEY;
+    public static KeyBinding C_KEY;
 
 
     public Main() {
@@ -79,11 +80,12 @@ public class Main {
     @OnlyIn(Dist.CLIENT)
     public void clientSetup(FMLClientSetupEvent event) {
 
-        MinecraftForge.EVENT_BUS.register(new VillagerEvents());
+        //MinecraftForge.EVENT_BUS.register(new VillagerEvents());
         MinecraftForge.EVENT_BUS.register(new PlayerEvents());
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
         R_KEY = ClientRegistry.registerKeyBinding("key.r_key", "category.recruits", 82);
         X_KEY = ClientRegistry.registerKeyBinding("key.x_key", "category.recruits", 88);
+        C_KEY = ClientRegistry.registerKeyBinding("key.c_key", "category.recruits", 67);
 
 
     }

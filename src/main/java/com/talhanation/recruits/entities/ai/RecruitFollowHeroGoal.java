@@ -13,23 +13,25 @@ import java.util.Objects;
 public class RecruitFollowHeroGoal extends Goal {
     public final AbstractRecruitEntity recruit;
     public double stopDistance;
+    public double speedModifier;
     private LivingEntity owner;
 
-    public RecruitFollowHeroGoal(AbstractRecruitEntity recruit, double stopDistance) {
+    public RecruitFollowHeroGoal(AbstractRecruitEntity recruit, double v, double stopDistance) {
         this.recruit = recruit;
         this.stopDistance = stopDistance;
         this.owner = recruit.getOwner();
+        this.speedModifier = v;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
     }
 
     public void start() {
         this.recruit.setPathfindingMalus(PathNodeType.WATER, 0.0F);
-        this.recruit.getNavigation().moveTo(Objects.requireNonNull(this.recruit.getOwner()), 0.9D);
+        this.recruit.getNavigation().moveTo(Objects.requireNonNull(this.recruit.getOwner()), this.speedModifier);
     }
 
     public void tick() {
         if (owner != null) {
-            this.recruit.getNavigation().moveTo(owner, 1.3D);
+            this.recruit.getNavigation().moveTo(owner, speedModifier);
             this.recruit.getLookControl().setLookAt(this.owner, 10.0F, (float) this.recruit.getMaxHeadXRot());
         }
     }
@@ -39,7 +41,7 @@ public class RecruitFollowHeroGoal extends Goal {
             if (owner.isSpectator())
                 return false;
         }
-        return (this.recruit.getFollow() && shouldExecute());
+        return (this.recruit.getFollow() == 1 && shouldExecute());
     }
 
     public boolean shouldExecute() {
@@ -48,7 +50,7 @@ public class RecruitFollowHeroGoal extends Goal {
             for (LivingEntity mob : list) {
                 PlayerEntity player = (PlayerEntity) mob;
                 if (!player.isInvisible() && recruit.isOwnedByThisPlayer(recruit, player)) {
-                    if (this.recruit.getFollow())
+                    if (this.recruit.getFollow() == 1)
                         return true;
                 }
             }
@@ -67,7 +69,7 @@ public class RecruitFollowHeroGoal extends Goal {
                 return false;
             } else if (this.recruit.isOrderedToSit()) {
                 return false;
-            } else if (!this.recruit.getFollow()) {
+            } else if (this.recruit.getFollow() == 0) {
                 return false;
             }
         }

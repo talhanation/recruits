@@ -44,7 +44,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new SwimGoal(this));
         this.goalSelector.addGoal(2, new SitGoal(this));
-        this.goalSelector.addGoal(3, new RecruitFollowOwnerGoal(this, 1.3D, 7.F, 4.0F));
+        this.goalSelector.addGoal(3, new RecruitFollowOwnerGoal(this, 1.2D, 7.F, 4.0F));
 
 
         this.goalSelector.addGoal(6, new ReturnToVillageGoal(this, 0.6D, false));
@@ -53,8 +53,8 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
         this.goalSelector.addGoal(10, new LookAtGoal(this, PlayerEntity.class, 8.0F));
         this.goalSelector.addGoal(10, new LookRandomlyGoal(this));
 
-        this.targetSelector.addGoal(1, new DefendVillageGoal(this));
-        this.targetSelector.addGoal(2, (new HurtByTargetGoal(this)).setAlertOthers());
+        this.targetSelector.addGoal(1, new RecruitDefendVillageGoal(this));
+        this.targetSelector.addGoal(2, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
         this.targetSelector.addGoal(3, new OwnerHurtByTargetGoal(this));
         this.targetSelector.addGoal(4, new OwnerHurtTargetGoal(this));
         this.targetSelector.addGoal(4, new RecruitRaidNearestAttackableTargetGoal<>(this, LivingEntity.class, false));
@@ -133,7 +133,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
                     i = 40;
                 }
 
-                this.bowGoal.setMinAttackInterval(i);
+                this.bowGoal.setMinAttackInterval(i - 10);
                 this.goalSelector.addGoal(3, this.bowGoal);
             } else {
                 this.goalSelector.addGoal(4, this.meleeGoal);
