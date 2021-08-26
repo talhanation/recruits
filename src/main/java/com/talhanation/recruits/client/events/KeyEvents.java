@@ -8,13 +8,7 @@ import com.talhanation.recruits.network.MessageMove;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.RayTraceContext;
-import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.World;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -24,8 +18,9 @@ import java.util.UUID;
 
 public class KeyEvents {
 
-    public static int X_state;
-    public static int R_state;
+
+    public int R_state;
+    public int X_state;
 
     @SubscribeEvent
     public void onKeyInput(InputEvent.KeyInputEvent event) {
@@ -34,33 +29,35 @@ public class KeyEvents {
         if (clientPlayerEntity == null)
             return;
 
-        if (Main.R_KEY.isDown()) {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(clientPlayerEntity.getUUID()));
-            R_state++;
-            if (R_state > 3) R_state = 0;
-            sendRCommandInChat(R_state, clientPlayerEntity);
+        if (Main.X_KEY.isDown()) {
 
+            X_state++;
+            if (X_state > 3) X_state = 0;
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(clientPlayerEntity.getUUID(), X_state));
+            sendXCommandInChat(X_state, clientPlayerEntity);
         }
 
 
-        if (Main.X_KEY.isDown()) {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(clientPlayerEntity.getUUID()));
-            X_state++;
-            if (X_state > 3) X_state = 0;
-            sendXCommandInChat(X_state, clientPlayerEntity);
+        if (Main.R_KEY.isDown()) {
+
+            R_state++;
+            if (R_state > 3) R_state = 0;
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(clientPlayerEntity.getUUID(), R_state));
+            sendRCommandInChat(R_state, clientPlayerEntity);
         }
 
         if(Main.C_KEY.isDown()){
             Main.SIMPLE_CHANNEL.sendToServer(new MessageMove(clientPlayerEntity.getUUID()));
-            clientPlayerEntity.sendMessage(new StringTextComponent("MESSAGE SEND!"), clientPlayerEntity.getUUID());
+            //clientPlayerEntity.sendMessage(new StringTextComponent("Everyone! Move!"), clientPlayerEntity.getUUID());
+            clientPlayerEntity.sendMessage(new StringTextComponent("Mount!"), clientPlayerEntity.getUUID());
         }
 
     }
 
-    public static void onRKeyPressed(UUID player, AbstractRecruitEntity recruit) {
-        if (recruit.isTame() &&  Objects.equals(recruit.getOwnerUUID(), player)) {
+    public static void onRKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit, int r_state) {
+        if (recruit.isTame() &&  Objects.equals(recruit.getOwnerUUID(), player_uuid)) {
             int state = recruit.getFollow();
-            switch (R_state) {
+            switch (r_state) {
 
                 case 0:
                     if (state != 0)
@@ -82,31 +79,31 @@ public class KeyEvents {
         }
     }
 
-    public static void onXKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit) {
+    public static void onXKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit, int x_state) {
         if (recruit.isTame() &&  Objects.equals(recruit.getOwnerUUID(), player_uuid)) {
             int state = recruit.getState();
-            LivingEntity owner = recruit.getOwner();
+            switch (x_state) {
 
-            switch (X_state) {
                 case 0:
                     if (state != 0)
-                        recruit.setState(owner, 0);
+                        recruit.setState(0);
                     break;
 
                 case 1:
                     if (state != 1)
-                        recruit.setState(owner, 1);
+                        recruit.setState(1);
                     break;
 
                 case 2:
                     if (state != 2)
-                        recruit.setState(owner, 2);
+                        recruit.setState(2);
                     break;
             }
         }
     }
 
     public static void onCKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit) {
+       /*
         Minecraft minecraft = Minecraft.getInstance();
         LivingEntity owner = recruit.getOwner();
         if (recruit.isTame() &&  Objects.equals(recruit.getOwnerUUID(), player_uuid)) {
@@ -114,16 +111,26 @@ public class KeyEvents {
 
             if (state != 2){
                 RayTraceResult rayTraceResult = minecraft.hitResult;
-                if (rayTraceResult == null)
-                    owner.sendMessage(new StringTextComponent("NO RESULT!"), owner.getUUID());
-                assert rayTraceResult != null;
-                if (rayTraceResult.getType() == RayTraceResult.Type.BLOCK) {
-                    BlockRayTraceResult blockraytraceresult = (BlockRayTraceResult) rayTraceResult;
-                    BlockPos blockpos = blockraytraceresult.getBlockPos();
-                    recruit.setMovePos(blockpos);
+                if (rayTraceResult != null) {
+                    if (rayTraceResult.getType() == RayTraceResult.Type.BLOCK) {
+                        BlockRayTraceResult blockraytraceresult = (BlockRayTraceResult) rayTraceResult;
+                        BlockPos blockpos = blockraytraceresult.getBlockPos();
+                        recruit.setMovePos(blockpos);
+                        recruit.setMove(true);
+                    }
+                    else if (rayTraceResult.getType() == RayTraceResult.Type.ENTITY){
+                        Entity crosshairEntity = minecraft.crosshairPickEntity;
+                        if (crosshairEntity != null){
+                            recruit.setMount(crosshairEntity.getUUID());
+                        }
+
+                    }
                 }
+
             }
         }
+
+        */
     }
 
     public void sendRCommandInChat(int state, LivingEntity owner){

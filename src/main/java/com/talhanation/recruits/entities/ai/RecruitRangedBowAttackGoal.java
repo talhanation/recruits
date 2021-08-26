@@ -95,6 +95,6 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & IRangedAttackMo
                 this.mob.startUsingItem(ProjectileHelper.getWeaponHoldingHand(this.mob, Items.BOW));
             }
 
-        }
+        } else stop();
     }
 }

@@ -28,7 +28,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -38,6 +37,8 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     private static final DataParameter<Integer> FOLLOW = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
     private static final DataParameter<Optional<BlockPos>> HOLD_POS = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.OPTIONAL_BLOCK_POS);
     private static final DataParameter<Optional<BlockPos>> MOVE_POS = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.OPTIONAL_BLOCK_POS);
+    private static final DataParameter<Boolean> MOVE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
+    private static final DataParameter<Optional<UUID>> MOUNT = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.OPTIONAL_UUID);
     private static final RangedInteger PERSISTENT_ANGER_TIME = TickRangeConverter.rangeOfSeconds(20, 39);
     private UUID persistentAngerTarget;
 
@@ -61,8 +62,6 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     @Nullable
     public ILivingEntityData finalizeSpawn(IServerWorld world, DifficultyInstance diff, SpawnReason reason, @Nullable ILivingEntityData spawnData, @Nullable CompoundNBT nbt) {
         getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("random bonus on spawn", this.random.nextGaussian() * 0.10D, AttributeModifier.Operation.MULTIPLY_BASE));
-        setEquipment();
-        setCanPickUpLoot(true);
         return spawnData;
     }
 
@@ -71,28 +70,27 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new SwimGoal(this));
-        //this.goalSelector.addGoal(2, new SitGoal(this));
-        this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.1D, true));
+        this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.15D, true));
+        this.goalSelector.addGoal(4, new RecruitMountGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(4, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(5, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
-        this.goalSelector.addGoal(6, new MoveTowardsTargetGoal(this, 1.15D, 32.0F));
-        this.goalSelector.addGoal(7, new RecruitFollowOwnerGoal(this, 1.2D, 7.0F, 3.0F));
-        //this.goalSelector.addGoal(5, new RecruitFollowHeroGoal(this, 1.2D,3.0F));
+        this.goalSelector.addGoal(6, new RecruitFollowOwnerGoal(this, 1.2D, 9.0F, 3.0F));
+        this.goalSelector.addGoal(7, new RecruitMoveTowardsTargetGoal(this, 1.15D, 24.0F));
         this.goalSelector.addGoal(8, new ReturnToVillageGoal(this, 0.6D, false));
         this.goalSelector.addGoal(9, new PatrolVillageGoal(this, 0.6D));
         this.goalSelector.addGoal(10, new WaterAvoidingRandomWalkingGoal(this, 1.0D, 0F));
         this.goalSelector.addGoal(11, new LookAtGoal(this, PlayerEntity.class, 8.0F));
-        this.goalSelector.addGoal(11, new LookRandomlyGoal(this));
+        this.goalSelector.addGoal(12, new LookRandomlyGoal(this));
 
-        this.targetSelector.addGoal(1, new RecruitDefendVillageGoal(this));
+        this.targetSelector.addGoal(1, new OwnerHurtByTargetGoal(this));
         this.targetSelector.addGoal(2, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
-        this.targetSelector.addGoal(3, new OwnerHurtByTargetGoal(this));
-        this.targetSelector.addGoal(4, new OwnerHurtTargetGoal(this));
+        this.targetSelector.addGoal(3, new OwnerHurtTargetGoal(this));
         this.targetSelector.addGoal(4, new RecruitRaidNearestAttackableTargetGoal<>(this, LivingEntity.class, false));
         this.targetSelector.addGoal(4, new RecruitAggresiveNearestAttackableTargetGoal<>(this, LivingEntity.class, false));
         this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, AbstractIllagerEntity.class, false));
         this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, MonsterEntity.class, false));
         this.targetSelector.addGoal(8, new ResetAngerGoal<>(this, true));
+        this.targetSelector.addGoal(10, new RecruitDefendVillageGoal(this));
     }
 
     protected void defineSynchedData() {
@@ -102,6 +100,8 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         this.entityData.define(STATE, 0);
         this.entityData.define(HOLD_POS, Optional.empty());
         this.entityData.define(MOVE_POS, Optional.empty());
+        this.entityData.define(MOVE, true);
+        this.entityData.define(MOUNT, Optional.empty());
         //STATE
         // 0=NEUTRAL
         // 1=AGGRESSIVE
@@ -109,7 +109,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
         //FOLLOW
         //0 = false
-        //1 = ture
+        //1 = true
         //2 = false, hold position
 
     }
@@ -131,16 +131,16 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         return entityData.get(STATE);
     }
 
+    public int getFollow(){
+        return entityData.get(FOLLOW);
+    }
+
     protected SoundEvent getHurtSound(DamageSource dmg) {
         return SoundEvents.VILLAGER_HURT;
     }
 
     protected SoundEvent getDeathSound() {
         return SoundEvents.VILLAGER_DEATH;
-    }
-
-    public int getFollow(){
-       return entityData.get(FOLLOW);
     }
 
     protected float getSoundVolume() {
@@ -178,20 +178,27 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         return entityData.get(MOVE_POS).orElse(null);
     }
 
+    public boolean getMove() {
+        return entityData.get(MOVE);
+    }
+
+    @Nullable
+    public UUID getMount() {
+        return entityData.get(MOUNT).orElse(null);
+    }
+
     ////////////////////////////////////SET////////////////////////////////////
 
-    public void setState(LivingEntity owner, int state) {
-
+    public void setState(int state) {
         switch (state){
             case 0:
-                this.setTarget(null);//wird nur 1x aufgerufen
+                setTarget(null);//wird nur 1x aufgerufen
                 break;
             case 1:
                 break;
             case 2:
                 break;
         }
-
         entityData.set(STATE, state);
     }
 
@@ -216,6 +223,10 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         entityData.set(MOVE_POS, Optional.of(holdPos));
     }
 
+    public void setMove(boolean bool) {
+        entityData.set(MOVE, bool);
+    }
+
     public void setOwned(boolean owned) {
         super.setTame(owned);
     }
@@ -236,6 +247,9 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
     public void setEquipment(){}
 
+    public void setMount(UUID uuid){
+        entityData.set(MOUNT, Optional.of(uuid));
+    }
 
     ////////////////////////////////////ON FUNCTIONS////////////////////////////////////
 
@@ -253,15 +267,15 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
                     switch (state) {
                         case 0:
-                            setState(player, 1);
+                            setState(1);
                             player.sendMessage(new StringTextComponent("I will stay Aggressive"), player.getUUID());
                             break;
                         case 1:
-                            setState(player, 2);
+                            setState(2);
                             player.sendMessage(new StringTextComponent("I will Raid everything"), player.getUUID());
                              break;
                         case 2:
-                            setState(player, 0);
+                            setState(0);
                             player.sendMessage(new StringTextComponent("I will be Neutral"), player.getUUID());
                             break;
                     }
@@ -269,7 +283,6 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
                 }
                 if(!player.isCrouching()) {
                     int state = this.getFollow();
-
                     switch (state) {
                         case 0:
                             setFollow(1);
@@ -289,7 +302,9 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
             } else if (item == Items.EMERALD && !this.isAngry() && !this.isTame()) {
                 if (!player.abilities.instabuild) {
+                    if(item.getDefaultInstance().getCount() >= recruitCosts())
                     itemstack.shrink(recruitCosts());
+                    else return ActionResultType.FAIL;
                 }
 
                 if (!net.minecraftforge.event.ForgeEventFactory.onAnimalTame(this, player)) {
@@ -298,7 +313,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
                     this.setTarget(null);
                     this.setOrderedToSit(false);
                     this.setFollow(0);
-                    this.setState(player, 0);
+                    this.setState(0);
                     this.level.broadcastEntityEvent(this, (byte)7);
                     return ActionResultType.SUCCESS;
                 } else {
@@ -339,57 +354,141 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     }
 
     public boolean wantsToAttack(LivingEntity target, LivingEntity owner) {
-        int state = getState();
+        int state = this.getState();
         switch (state) {
-            case 0:
+            case 0://NEUTRAL
                 if (!(target instanceof CreeperEntity) && !(target instanceof GhastEntity)) {
+                    //RECRUIT
                     if (target instanceof AbstractRecruitEntity) {
-                        AbstractRecruitEntity abstractRecruitEntity = (AbstractRecruitEntity) target;
-                        return !abstractRecruitEntity.isTame() || abstractRecruitEntity.getOwner() != owner;
-                    } else if (target instanceof PlayerEntity && owner instanceof PlayerEntity && !((PlayerEntity) owner).canHarmPlayer((PlayerEntity) target)) {
-                        return false;
-                    } else if (target instanceof AbstractHorseEntity && ((AbstractHorseEntity) target).isTamed()) {
-                        return false;
+                        AbstractRecruitEntity targetRecruit = (AbstractRecruitEntity) target;
+
+                        if (targetRecruit.getOwner() != owner) {
+                            return true;
+                        }
+
+                        if (targetRecruit.getTeam() != owner.getTeam()) {
+                            return true;
+                        }
+
+                    }
+                    //PLAYER
+                    else if (target instanceof PlayerEntity) {
+                        PlayerEntity targetPlayer = (PlayerEntity) target;
+                        PlayerEntity ownerPlayer = (PlayerEntity) owner;
+
+                        if (ownerPlayer.canHarmPlayer(targetPlayer)) {
+                            return true;
+                        }
+
+                        if (targetPlayer.getUUID() != ownerPlayer.getUUID()) {
+                            return true;
+                        }
+
+                        if (targetPlayer.getTeam() != owner.getTeam()) {
+                            return true;
+                        }
+
+                    }
+                    //TAME
+                    else if (target instanceof AbstractHorseEntity) {
+                        AbstractHorseEntity targetHorse = (AbstractHorseEntity) target;
+                        if (targetHorse.isTamed()) {
+                            return false;
+                        }
+
                     } else {
                         return !(target instanceof TameableEntity) || !((TameableEntity) target).isTame();
                     }
+                    break;
                 }
-                break;
-
             case 1: //AGGRESSIVE
                 if (!(target instanceof CreeperEntity) && !(target instanceof GhastEntity)) {
-                return false;
+                    //RECRUIT
+                    if (target instanceof AbstractRecruitEntity) {
+                        AbstractRecruitEntity targetRecruit = (AbstractRecruitEntity) target;
+
+                        if (targetRecruit.getOwner() == owner) {
+                            return false;
+                        }
+
+                        if (targetRecruit.getTeam() == owner.getTeam()) {
+                            return false;
+                        }
+
+                        if (!targetRecruit.isTame()) {
+                            return false;
+                        }
+                    }
+                    //PLAYER
+                    else if (target instanceof PlayerEntity) {
+                        PlayerEntity targetPlayer = (PlayerEntity) target;
+                        PlayerEntity ownerPlayer = (PlayerEntity) owner;
+
+                        if (!ownerPlayer.canHarmPlayer(targetPlayer)) {
+                            return false;
+                        }
+
+                        if (targetPlayer.getUUID() == ownerPlayer.getUUID()) {
+                            return false;
+                        }
+
+                        if (targetPlayer.getTeam() == owner.getTeam()) {
+                            return false;
+                        }
+                    }
+                    //TAME
+                    else if (target instanceof AbstractHorseEntity) {
+                        AbstractHorseEntity targetHorse = (AbstractHorseEntity) target;
+                        if (targetHorse.isTamed()) {
+                            return false;
+                        }
+
+                    } else {
+                        return !(target instanceof TameableEntity) || !((TameableEntity) target).isTame();
+                    }
+                    break;
                 }
-                if (target instanceof PlayerEntity) {
+            case 2: // RAID
+                //RECRUIT
+                if (target instanceof AbstractRecruitEntity) {
+                    AbstractRecruitEntity targetRecruit = (AbstractRecruitEntity) target;
 
-                    if (target.getUUID() == this.getOwnerUUID()) {
-                        return false;
-
-                    } else if (target.getTeam() == Objects.requireNonNull(this.getOwner()).getTeam()) {
+                    if (targetRecruit.getOwner() == owner) {
                         return false;
                     }
-                    else
-                        return true;
+
+                    if (targetRecruit.getTeam() == owner.getTeam()) {
+                        return false;
+                    }
+                }
+                //PLAYER
+                else if (target instanceof PlayerEntity) {
+                    PlayerEntity targetPlayer = (PlayerEntity) target;
+                    PlayerEntity ownerPlayer = (PlayerEntity) owner;
+
+                    if (!ownerPlayer.canHarmPlayer(targetPlayer)) {
+                        return false;
+                    }
+
+                    if (targetPlayer.getUUID() == ownerPlayer.getUUID()) {
+                        return false;
+                    }
+
+                    if (targetPlayer.getTeam() == owner.getTeam()) {
+                        return false;
+                    }
+                }
+                //TAME
+                else if (target instanceof AbstractHorseEntity) {
+                    AbstractHorseEntity targetHorse = (AbstractHorseEntity) target;
+                    if (targetHorse.isTamed()) {
+                        return false;
+                    }
+
+                } else {
+                    return true;
                 }
                 break;
-            case 2: // RAID
-                if (target instanceof PlayerEntity) {
-
-                    if (target.getUUID() == this.getOwnerUUID()) {
-                        return false;
-                    }
-
-                    if (target.getTeam() == Objects.requireNonNull(this.getOwner()).getTeam()) {
-                        return false;
-                    }
-                }
-                else if (target instanceof AbstractRecruitEntity){
-                    if (target.getTeam() == Objects.requireNonNull(this.getOwner()).getTeam()) {
-                        return false;
-                    } else
-                        return true;
-                } else
-                    return true;
 
         }
         return false;
@@ -409,7 +508,6 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     public boolean canBeLeashed(PlayerEntity player) {
         return false;
     }
-
     public int recruitCosts() {
         return 1;
     }

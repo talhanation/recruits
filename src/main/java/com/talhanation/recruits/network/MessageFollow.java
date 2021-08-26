@@ -12,32 +12,35 @@ import java.util.UUID;
 public class MessageFollow implements Message<MessageFollow> {
 
     private UUID player;
+    private int state;
 
     public MessageFollow(){
     }
 
-    public MessageFollow(UUID player) {
+    public MessageFollow(UUID player, int state) {
         this.player = player;
+        this.state  = state;
     }
 
     public Dist getExecutingSide() {
         return Dist.DEDICATED_SERVER;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(NetworkEvent.Context context){
         List<AbstractRecruitEntity> list = context.getSender().level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(40.0D));
         for (AbstractRecruitEntity recruits : list){
-                KeyEvents.onRKeyPressed(this.player, recruits);
+                KeyEvents.onRKeyPressed(this.player, recruits, this.state);
         }
     }
     public MessageFollow fromBytes(PacketBuffer buf) {
         this.player = buf.readUUID();
+        this.state = buf.readInt();
         return this;
     }
 
     public void toBytes(PacketBuffer buf) {
         buf.writeUUID(this.player);
+        buf.writeInt(this.state);
     }
-
 
 }

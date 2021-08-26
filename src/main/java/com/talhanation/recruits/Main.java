@@ -68,7 +68,7 @@ public class Main {
                 buf -> (new MessageAttack()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
-        SIMPLE_CHANNEL.registerMessage(1, MessageMove.class, MessageMove::toBytes,
+        SIMPLE_CHANNEL.registerMessage(2, MessageMove.class, MessageMove::toBytes,
                 buf -> (new MessageMove()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 

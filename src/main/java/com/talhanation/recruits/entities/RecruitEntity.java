@@ -56,11 +56,13 @@ public class RecruitEntity extends AbstractRecruitEntity {
         this.setItemSlot(EquipmentSlotType.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));
         this.setItemSlot(EquipmentSlotType.LEGS, new ItemStack(Items.LEATHER_LEGGINGS));
         this.setItemSlot(EquipmentSlotType.FEET, new ItemStack(Items.LEATHER_BOOTS));
-        int i = this.random.nextInt(3);
+        int i = this.random.nextInt(4);
         if (i == 0) {
+            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_AXE));
+        } else  if (i == 1){
             this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_SWORD));
-        } else {
-            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.IRON_AXE));
+        }else{
+            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.WOODEN_SWORD));
         }
     }
 
@@ -70,5 +72,9 @@ public class RecruitEntity extends AbstractRecruitEntity {
         return null;
     }
 
+    @Override
+    public int recruitCosts() {
+        return 3;
+    }
 
 }

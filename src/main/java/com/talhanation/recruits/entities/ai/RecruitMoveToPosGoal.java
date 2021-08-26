@@ -3,10 +3,8 @@ package com.talhanation.recruits.entities.ai;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.StringTextComponent;
 
 import java.util.EnumSet;
-import java.util.Optional;
 
 public class RecruitMoveToPosGoal extends Goal {
     private final AbstractRecruitEntity recruit;
@@ -39,7 +37,7 @@ public class RecruitMoveToPosGoal extends Goal {
             this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
         }
 
-        if(blockpos.closerThan(recruit.position(), 1)){
+        if(blockpos.closerThan(recruit.position(), 3)){
             recruit.setFollow(0);
             recruit.setMove(false);
         }

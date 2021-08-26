@@ -157,4 +157,9 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
         }
     };
 
+    @Override
+    public int recruitCosts() {
+        return 4;
+    }
+
 }

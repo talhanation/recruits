@@ -82,13 +82,9 @@ public class RecruitFollowOwnerGoal extends Goal {
         if (--this.timeToRecalcPath <= 0) {
             this.timeToRecalcPath = 10;
             if (!this.recruitEntity.isLeashed() && !this.recruitEntity.isPassenger()) {
-                if (this.recruitEntity.distanceToSqr(this.owner) >= 144.0D) {
-                    //this.teleportToOwner();
-                } else {
                     this.navigation.moveTo(this.owner, this.speedModifier);
-                }
-
             }
+
         }
     }
 }

@@ -25,20 +25,20 @@ public class RecruitHoldPosGoal extends Goal {
         else if (recruit.getFollow() != 2){
             return false;
         }
-        else if (this.recruit.getHoldPos().closerThan(recruit.position(), within))
+        else if (this.recruit.getHoldPos().closerThan(recruit.position(), within) && this.recruit.getFollow() == 2)
             return true;
         else
             return false;
     }
 
     public boolean canContinueToUse() {
-        return this.canUse();
+        return canUse();
     }
 
     public void tick() {
         BlockPos blockpos = this.recruit.getHoldPos();
-        if (blockpos != null) {
+        if (blockpos != null && canUse()) {
             this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
-        }else recruit.getOwner().sendMessage(new StringTextComponent("no"), recruit.getOwner().getUUID());
+        }
     }
 }
