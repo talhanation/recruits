@@ -14,6 +14,8 @@ import net.minecraft.entity.projectile.ProjectileHelper;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.item.SwordItem;
+import net.minecraft.item.ToolItem;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.pathfinding.GroundPathNavigator;
 import net.minecraft.util.SoundEvents;
@@ -23,6 +25,7 @@ import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.common.ToolType;
 
 import javax.annotation.Nullable;
 
@@ -82,6 +85,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
         this.populateDefaultEquipmentSlots();
         this.populateDefaultEquipmentEnchantments(difficultyInstance);
         this.setCanPickUpLoot(true);
+        this.setDropChance();
         this.reassessWeaponGoal();
         this.setGroup(2);
         return ilivingentitydata;
@@ -94,12 +98,12 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
         this.setItemSlot(EquipmentSlotType.FEET, new ItemStack(Items.LEATHER_BOOTS));
 
     }
-  /*
+
     @Override
     public boolean canHoldItem(ItemStack itemStack) {
-        return ;
+        return !(itemStack.getItem() instanceof SwordItem);
     }
-*/
+
     @Nullable
     @Override
     public AgeableEntity getBreedOffspring(ServerWorld p_241840_1_, AgeableEntity p_241840_2_) {
@@ -117,7 +121,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
         double d1 = entity.getY(0.25D) - abstractarrowentity.getY();
         double d2 = entity.getZ() - this.getZ();
         double d3 = MathHelper.sqrt(d0 * d0 + d2 * d2);
-                                                        //höhenwinkel           //kraft     //accuracy
+                                                        //angle                 //force     //accuracy
         abstractarrowentity.shoot(d0, d1 + d3 * (double)0.2F, d2, 1.6F, (float)(5.2222));
         this.playSound(SoundEvents.ARROW_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
         this.level.addFreshEntity(abstractarrowentity);
