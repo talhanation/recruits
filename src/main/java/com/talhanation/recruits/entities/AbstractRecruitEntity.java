@@ -27,6 +27,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -84,7 +85,8 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new SwimGoal(this));
-        this.goalSelector.addGoal(2, new RecruitMountGoal(this, 1.2D, 32.0F));
+        this.goalSelector.addGoal(2, new RecruitUseShield(this));
+        //this.goalSelector.addGoal(2, new RecruitMountGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(4, new RecruitMeleeAttackGoal(this, 1.15D, true));
         this.goalSelector.addGoal(5, new RecruitFollowOwnerGoal(this, 1.2D, 9.0F, 3.0F));
@@ -154,7 +156,9 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         return entityData.get(FOLLOW);
     }
 
-    protected SoundEvent getHurtSound(DamageSource dmg) {
+    public SoundEvent getHurtSound(DamageSource ds) {
+        if (this.isBlocking())
+            return SoundEvents.SHIELD_BLOCK;
         return SoundEvents.VILLAGER_HURT;
     }
 
@@ -626,5 +630,4 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         }
 
     }
-
 }

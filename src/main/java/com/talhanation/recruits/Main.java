@@ -113,7 +113,6 @@ public class Main {
         V_KEY = ClientRegistry.registerKeyBinding("key.v_key", "category.recruits", 86);
     }
 
-
     @SubscribeEvent
     public void registerPointsOfInterest(RegistryEvent.Register<PointOfInterestType> event) {
         POI_RECRUIT = new PointOfInterestType("poi_recruit", PointOfInterestType.getBlockStates(ModBlocks.RECRUIT_BLOCK.get()), 1, 1);

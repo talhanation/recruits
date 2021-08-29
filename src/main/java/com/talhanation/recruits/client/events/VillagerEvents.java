@@ -87,10 +87,10 @@ public class VillagerEvents {
     public void villagerTrades(VillagerTradesEvent event) {
         if (event.getType() == VillagerProfession.WEAPONSMITH || event.getType() == VillagerProfession.ARMORER) {
             event.getTrades().put(2, ImmutableList.of(
-                    new Trade(Items.EMERALD, 20, ModBlocks.RECRUIT_BLOCK.get(), 4, 16, 2)
+                    new Trade(Items.EMERALD, 5, ModBlocks.RECRUIT_BLOCK.get(), 1, 8, 2)
             ));
             event.getTrades().put(2, ImmutableList.of(
-                    new Trade(Items.EMERALD, 24, ModBlocks.BOWMAN_BLOCK.get(), 4, 16, 2)
+                    new Trade(Items.EMERALD, 6 , ModBlocks.BOWMAN_BLOCK.get(), 1, 8, 2)
             ));
         }
     }
