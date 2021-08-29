@@ -10,6 +10,7 @@ import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.passive.horse.AbstractHorseEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.AbstractArrowEntity;
+import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.*;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
@@ -73,6 +74,16 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         getAttribute(Attributes.KNOCKBACK_RESISTANCE).addPermanentModifier(new AttributeModifier("knockback_bonus", this.random.nextGaussian() * 0.10D, AttributeModifier.Operation.MULTIPLY_BASE));
         getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(new AttributeModifier("speed_bonus", this.random.nextGaussian() * 0.10D, AttributeModifier.Operation.MULTIPLY_BASE));
 
+    }
+
+    public void setDropChance(){
+        float chance = random.nextFloat() * 10.0F;
+        this.setDropChance(EquipmentSlotType.HEAD,chance);
+        this.setDropChance(EquipmentSlotType.CHEST, chance);
+        this.setDropChance(EquipmentSlotType.FEET, chance);
+        this.setDropChance(EquipmentSlotType.LEGS, chance);
+        this.setDropChance(EquipmentSlotType.MAINHAND,chance);
+        this.setDropChance(EquipmentSlotType.OFFHAND, chance);
     }
 
     ////////////////////////////////////REGISTER////////////////////////////////////
