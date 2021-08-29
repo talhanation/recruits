@@ -78,8 +78,11 @@ public class VillagerEvents {
         VillagerEntity villager = (VillagerEntity) entity;
         recruit.copyPosition(villager);
         recruit.setEquipment();
+        recruit.setDropChance();
         recruit.setRandomSpawnBonus();
         recruit.setPersistenceRequired();
+        recruit.setCanPickUpLoot(true);
+        recruit.setGroup(1);
         villager.remove();
         villager.level.addFreshEntity(recruit);
 
@@ -90,10 +93,12 @@ public class VillagerEvents {
         VillagerEntity villager = (VillagerEntity) entity;
         recruit.copyPosition(villager);
         recruit.setEquipment();
+        recruit.setDropChance();
         recruit.setRandomSpawnBonus();
         recruit.setPersistenceRequired();
+        recruit.setCanPickUpLoot(true);
+        recruit.setGroup(2);
         villager.remove();
         villager.level.addFreshEntity(recruit);
-
     }
 }
