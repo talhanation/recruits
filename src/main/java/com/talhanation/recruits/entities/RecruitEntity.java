@@ -13,8 +13,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.pathfinding.GroundPathNavigator;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
 import net.minecraft.world.World;
@@ -29,6 +27,8 @@ public class RecruitEntity extends AbstractRecruitEntity {
         //this.experienceValue = 6;
     }
 
+
+
     //ATTRIBUTES
     public static AttributeModifierMap.MutableAttribute setAttributes() {
         return createMobAttributes()
@@ -36,7 +36,7 @@ public class RecruitEntity extends AbstractRecruitEntity {
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.1D)
                 .add(Attributes.ATTACK_DAMAGE, 2.0D)
-                .add(Attributes.FOLLOW_RANGE, 40.0D);
+                .add(Attributes.FOLLOW_RANGE, 32.0D);
 
     }
 
@@ -48,6 +48,7 @@ public class RecruitEntity extends AbstractRecruitEntity {
         this.setEquipment();
         this.dropEquipment();
         this.setCanPickUpLoot(true);
+        this.setGroup(1);
         return ilivingentitydata;
     }
     @Override
@@ -56,10 +57,12 @@ public class RecruitEntity extends AbstractRecruitEntity {
         this.setItemSlot(EquipmentSlotType.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));
         this.setItemSlot(EquipmentSlotType.LEGS, new ItemStack(Items.LEATHER_LEGGINGS));
         this.setItemSlot(EquipmentSlotType.FEET, new ItemStack(Items.LEATHER_BOOTS));
-        int i = this.random.nextInt(4);
+        int i = this.random.nextInt(8);
         if (i == 0) {
             this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_AXE));
         } else  if (i == 1){
+            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_PICKAXE));
+        } else  if (i == 2){
             this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_SWORD));
         }else{
             this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.WOODEN_SWORD));

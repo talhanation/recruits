@@ -49,6 +49,9 @@ public class RecruitMoveTowardsTargetGoal extends Goal {
     }
 
     public boolean canContinueToUse() {
+        if (this.recruit.getFollow() == 2){
+            return false;
+        }
         return !this.recruit.getNavigation().isDone() && this.target.isAlive() && this.target.distanceToSqr(this.recruit) < (double)(this.within * this.within);
     }
 

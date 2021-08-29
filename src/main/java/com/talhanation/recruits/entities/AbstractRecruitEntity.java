@@ -28,6 +28,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -40,6 +41,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     private static final DataParameter<Boolean> MOVE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
     private static final DataParameter<Optional<UUID>> MOUNT = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.OPTIONAL_UUID);
     private static final RangedInteger PERSISTENT_ANGER_TIME = TickRangeConverter.rangeOfSeconds(20, 39);
+    private static final DataParameter<Integer> GROUP = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
     private UUID persistentAngerTarget;
 
     public AbstractRecruitEntity(EntityType<? extends TameableEntity> entityType, World world) {
@@ -57,20 +59,27 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     public void tick() {
         super.tick();
         updateSwingTime();
+        updateSwimming();
     }
 
     @Nullable
     public ILivingEntityData finalizeSpawn(IServerWorld world, DifficultyInstance diff, SpawnReason reason, @Nullable ILivingEntityData spawnData, @Nullable CompoundNBT nbt) {
-        getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("random bonus on spawn", this.random.nextGaussian() * 0.10D, AttributeModifier.Operation.MULTIPLY_BASE));
+        setRandomSpawnBonus();
         return spawnData;
     }
+    public void setRandomSpawnBonus(){
+        getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("heath_bonus", this.random.nextGaussian() * 0.10D, AttributeModifier.Operation.MULTIPLY_BASE));
+        getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(new AttributeModifier("attack_bonus", this.random.nextGaussian() * 0.10D, AttributeModifier.Operation.MULTIPLY_BASE));
+        getAttribute(Attributes.KNOCKBACK_RESISTANCE).addPermanentModifier(new AttributeModifier("knockback_bonus", this.random.nextGaussian() * 0.10D, AttributeModifier.Operation.MULTIPLY_BASE));
+        getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(new AttributeModifier("speed_bonus", this.random.nextGaussian() * 0.10D, AttributeModifier.Operation.MULTIPLY_BASE));
 
+    }
 
     ////////////////////////////////////REGISTER////////////////////////////////////
 
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new SwimGoal(this));
-        this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.15D, true));
+        this.goalSelector.addGoal(3, new RecruitMeleeAttackGoal(this, 1.15D, true));
         this.goalSelector.addGoal(4, new RecruitMountGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(4, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(5, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
@@ -96,6 +105,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(DATA_REMAINING_ANGER_TIME, 0);
+        this.entityData.define(GROUP, 0);
         this.entityData.define(FOLLOW, 0);
         this.entityData.define(STATE, 0);
         this.entityData.define(HOLD_POS, Optional.empty());
@@ -129,6 +139,10 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
     public int getState() {
         return entityData.get(STATE);
+    }
+
+    public int getGroup() {
+        return entityData.get(GROUP);
     }
 
     public int getFollow(){
@@ -188,6 +202,10 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     }
 
     ////////////////////////////////////SET////////////////////////////////////
+
+    public void setGroup(int group){
+        entityData.set(GROUP, group);
+    }
 
     public void setState(int state) {
         switch (state){
@@ -300,11 +318,11 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
                     return ActionResultType.SUCCESS;
                 }
 
-            } else if (item == Items.EMERALD && !this.isAngry() && !this.isTame()) {
+            } else if (item == Items.EMERALD && !this.isAngry() && !this.isTame() && playerHasEnoughEmeralds(player)) {
                 if (!player.abilities.instabuild) {
-                    if(item.getDefaultInstance().getCount() >= recruitCosts())
-                    itemstack.shrink(recruitCosts());
-                    else return ActionResultType.FAIL;
+                    if (!player.isCreative()) {
+                        itemstack.shrink(recruitCosts());
+                    }
                 }
 
                 if (!net.minecraftforge.event.ForgeEventFactory.onAnimalTame(this, player)) {
@@ -325,6 +343,18 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
             return super.mobInteract(player, hand);
         }
+    }
+
+    private boolean playerHasEnoughEmeralds(PlayerEntity player) {
+        int recruitCosts = this.recruitCosts();
+        int emeraldCount = player.getItemInHand(Hand.MAIN_HAND).getCount();
+        if (emeraldCount >= recruitCosts){
+            return true;
+        }
+        if (player.isCreative()){
+            return true;
+        }
+        else return false;
     }
 
     ////////////////////////////////////ATTACK FUNCTIONS////////////////////////////////////
@@ -353,6 +383,66 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         return flag;
     }
 
+    public boolean wantsToAttack(LivingEntity target, LivingEntity owner) {
+        int state = this.getState();
+        switch (state) {
+            case 0://NEUTRAL
+                if (!(target instanceof CreeperEntity) && !(target instanceof GhastEntity)) {
+                    if (target instanceof AbstractRecruitEntity) {
+                        AbstractRecruitEntity abstractRecruitEntity = (AbstractRecruitEntity) target;
+                        return !abstractRecruitEntity.isTame() || abstractRecruitEntity.getOwner() != owner;
+                    } else if (target instanceof PlayerEntity && owner instanceof PlayerEntity && !((PlayerEntity) owner).canHarmPlayer((PlayerEntity) target)) {
+                        return false;
+                    } else if (target instanceof AbstractHorseEntity && ((AbstractHorseEntity) target).isTamed()) {
+                        return false;
+                    } else {
+                        return !(target instanceof TameableEntity) || !((TameableEntity) target).isTame();
+                    }
+                }
+                break;
+            case 1: //AGGRESSIVE
+                if (!(target instanceof CreeperEntity) && !(target instanceof GhastEntity)) {
+                    if (target instanceof PlayerEntity) {
+                        if (target.getUUID() == this.getOwnerUUID()){
+                            return false;
+                        }
+                        else if (target.getTeam() == Objects.requireNonNull(this.getOwner()).getTeam()) {
+                            return false;
+                        }
+                        else return true;
+                    }
+                }
+                break;
+            case 2: // RAID
+                if (target instanceof PlayerEntity) {
+                    if (target.getUUID() == this.getOwnerUUID()) {
+                        return false;
+                    }
+
+                    if (target.getTeam() == Objects.requireNonNull(this.getOwner()).getTeam()) {
+                        return false;
+                    }
+                } else if (target instanceof AbstractRecruitEntity) {
+                    if (((AbstractRecruitEntity) target).getOwnerUUID() == this.getOwnerUUID()) {
+                        return false;
+                    }
+
+                    if (target.getTeam() == Objects.requireNonNull(this.getOwner()).getTeam()) {
+                        return false;
+                    }
+
+                } else if (target instanceof AbstractHorseEntity) {
+                    if (((AbstractHorseEntity) target).isTamed()) {
+                        return false;
+                    }
+                } else
+                    return true;
+                break;
+            //case 3:
+        }
+    return false;
+    }
+    /*
     public boolean wantsToAttack(LivingEntity target, LivingEntity owner) {
         int state = this.getState();
         switch (state) {
@@ -493,9 +583,13 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         }
         return false;
     }
-
+*/
     public void die(DamageSource dmg) {
         super.die(dmg);
+    }
+
+    public void clearTarget(){
+        this.setTarget(null);
     }
 
     ////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////

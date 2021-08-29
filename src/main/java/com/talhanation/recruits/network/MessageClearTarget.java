@@ -9,42 +9,38 @@ import net.minecraftforge.fml.network.NetworkEvent;
 import java.util.List;
 import java.util.UUID;
 
-public class MessageAttack implements Message<MessageAttack> {
-
+public class MessageClearTarget implements Message<MessageClearTarget>{
     private UUID player;
-    private int state;
     private int group;
 
-    public MessageAttack(){
+    public MessageClearTarget(){
     }
 
-    public MessageAttack(UUID player, int state, int group) {
+    public MessageClearTarget(UUID player, int group) {
         this.player = player;
-        this.state  = state;
-        this.group  = group;
+        this.group = group;
     }
 
     public Dist getExecutingSide() {
         return Dist.DEDICATED_SERVER;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
+    public void executeServerSide(NetworkEvent.Context context) {
         List<AbstractRecruitEntity> list = context.getSender().level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(40.0D));
-        for (AbstractRecruitEntity recruits : list){
-            KeyEvents.onXKeyPressed(this.player, recruits, this.state, group);
+        for (AbstractRecruitEntity recruits : list) {
+            KeyEvents.onYKeyPressed(this.player, recruits, group);
         }
     }
-    public MessageAttack fromBytes(PacketBuffer buf) {
+    public MessageClearTarget fromBytes(PacketBuffer buf) {
         this.player = buf.readUUID();
-        this.state = buf.readInt();
         this.group = buf.readInt();
         return this;
     }
 
     public void toBytes(PacketBuffer buf) {
         buf.writeUUID(this.player);
-        buf.writeInt(this.state);
         buf.writeInt(this.group);
     }
 
 }
+

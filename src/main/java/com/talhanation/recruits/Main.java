@@ -10,6 +10,7 @@ import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModItems;
 import com.talhanation.recruits.network.MessageAttack;
+import com.talhanation.recruits.network.MessageClearTarget;
 import com.talhanation.recruits.network.MessageFollow;
 import com.talhanation.recruits.network.MessageMove;
 import net.minecraft.client.settings.KeyBinding;
@@ -36,7 +37,8 @@ public class Main {
     public static KeyBinding R_KEY;
     public static KeyBinding X_KEY;
     public static KeyBinding C_KEY;
-
+    public static KeyBinding Y_KEY;
+    public static KeyBinding V_KEY;
 
     public Main() {
         //ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, RecruitsModConfig.CONFIG);
@@ -50,6 +52,10 @@ public class Main {
         ModItems.ITEMS.register(modEventBus);
         ModEntityTypes.ENTITY_TYPES.register(modEventBus);
         MinecraftForge.EVENT_BUS.register(this);
+
+        VillagerEvents.VILLAGER_PROFESSIONS.register(modEventBus);
+        VillagerEvents.POINT_OF_INTEREST_TYPES.register(modEventBus);
+
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().addListener(Main.this::clientSetup));
     }
@@ -72,10 +78,17 @@ public class Main {
                 buf -> (new MessageMove()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
+        SIMPLE_CHANNEL.registerMessage(3, MessageClearTarget.class, MessageClearTarget::toBytes,
+                buf -> (new MessageClearTarget()).fromBytes(buf),
+                (msg, fun) -> msg.executeServerSide(fun.get()));
+
         DeferredWorkQueue.runLater(() -> {
             GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT.get(), RecruitEntity.setAttributes().build());
+            //GlobalEntityTypeAttributes.put(ModEntityTypes.SHILDMAN.get(), RecruitEntity.setAttributes().build());
             GlobalEntityTypeAttributes.put(ModEntityTypes.BOWMAN.get(), BowmanEntity.setAttributes().build());
         });
+
+
 
         event.enqueueWork(VillagerEvents::registerRecruitPOI);
 
@@ -85,12 +98,14 @@ public class Main {
     @OnlyIn(Dist.CLIENT)
     public void clientSetup(FMLClientSetupEvent event) {
 
-        //MinecraftForge.EVENT_BUS.register(new VillagerEvents());
+        MinecraftForge.EVENT_BUS.register(new VillagerEvents());
         MinecraftForge.EVENT_BUS.register(new PlayerEvents());
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
         R_KEY = ClientRegistry.registerKeyBinding("key.r_key", "category.recruits", 82);
         X_KEY = ClientRegistry.registerKeyBinding("key.x_key", "category.recruits", 88);
         C_KEY = ClientRegistry.registerKeyBinding("key.c_key", "category.recruits", 67);
+        Y_KEY = ClientRegistry.registerKeyBinding("key.y_key", "category.recruits", 90);
+        V_KEY = ClientRegistry.registerKeyBinding("key.v_key", "category.recruits", 86);
 
 
     }
