@@ -63,7 +63,7 @@ public class Main {
     @SuppressWarnings("deprecation")
     private void setup(final FMLCommonSetupEvent event) {
         MinecraftForge.EVENT_BUS.register(this);
-        SIMPLE_CHANNEL = NetworkRegistry.newSimpleChannel(new ResourceLocation("recruits", "default"), () -> "1.0.0", s -> true, s -> true);
+        SIMPLE_CHANNEL = NetworkRegistry.newSimpleChannel(new ResourceLocation(MOD_ID, "default"), () -> "1.0.0", s -> true, s -> true);
 
 
         SIMPLE_CHANNEL.registerMessage(0, MessageFollow.class, MessageFollow::toBytes,
@@ -91,6 +91,7 @@ public class Main {
 
 
         event.enqueueWork(VillagerEvents::registerRecruitPOI);
+        event.enqueueWork(VillagerEvents::registerBowmanPOI);
 
     }
 

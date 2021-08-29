@@ -29,15 +29,11 @@ public class VillagerEvents {
     public static final DeferredRegister<PointOfInterestType> POINT_OF_INTEREST_TYPES = DeferredRegister.create(ForgeRegistries.POI_TYPES, Main.MOD_ID);
     public static final DeferredRegister<VillagerProfession> VILLAGER_PROFESSIONS = DeferredRegister.create(ForgeRegistries.PROFESSIONS, Main.MOD_ID);
 
-
-    public static final RegistryObject<PointOfInterestType> RECRUIT_POI = POINT_OF_INTEREST_TYPES.register("recruit",
+    //RECRUIT//
+    public static final RegistryObject<PointOfInterestType> RECRUIT_POI = POINT_OF_INTEREST_TYPES.register("recruit_poi",
             () -> new PointOfInterestType(Main.MOD_ID, PointOfInterestType.getBlockStates(ModBlocks.RECRUIT_BLOCK.get()), 1, 1));
-    public static final RegistryObject<VillagerProfession> RECRUIT = VILLAGER_PROFESSIONS.register("recruit",
-            () -> new VillagerProfession(Main.MOD_ID, RECRUIT_POI.get(), ImmutableSet.of(), ImmutableSet.of(), SoundEvents.VILLAGER_CELEBRATE));
 
-    public static final RegistryObject<PointOfInterestType> BOWMAN_POI = POINT_OF_INTEREST_TYPES.register("bowman",
-            () -> new PointOfInterestType(Main.MOD_ID, PointOfInterestType.getBlockStates(ModBlocks.BOWMAN_BLOCK.get()), 1, 1));
-    public static final RegistryObject<VillagerProfession> BOWMAN = VILLAGER_PROFESSIONS.register("bowman",
+    public static final RegistryObject<VillagerProfession> RECRUIT = VILLAGER_PROFESSIONS.register("recruit",
             () -> new VillagerProfession(Main.MOD_ID, RECRUIT_POI.get(), ImmutableSet.of(), ImmutableSet.of(), SoundEvents.VILLAGER_CELEBRATE));
 
     public static void registerRecruitPOI() {
@@ -48,6 +44,20 @@ public class VillagerEvents {
         }
     }
 
+    //BOWMAN//
+    public static final RegistryObject<PointOfInterestType> BOWMAN_POI = POINT_OF_INTEREST_TYPES.register("bowman_poi",
+            () -> new PointOfInterestType(Main.MOD_ID, PointOfInterestType.getBlockStates(ModBlocks.BOWMAN_BLOCK.get()), 1, 1));
+
+    public static final RegistryObject<VillagerProfession> BOWMAN = VILLAGER_PROFESSIONS.register("bowman",
+            () -> new VillagerProfession(Main.MOD_ID, BOWMAN_POI.get(), ImmutableSet.of(), ImmutableSet.of(), SoundEvents.VILLAGER_CELEBRATE));
+
+    public static void registerBowmanPOI() {
+        try {
+            ObfuscationReflectionHelper.findMethod(PointOfInterestType.class, "registerBlockStates", PointOfInterestType.class).invoke(null, BOWMAN_POI.get());
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
 
     @SubscribeEvent
     public void onVillagerLivingUpdate(LivingEvent.LivingUpdateEvent event) {
@@ -78,7 +88,7 @@ public class VillagerEvents {
         VillagerEntity villager = (VillagerEntity) entity;
         recruit.copyPosition(villager);
         recruit.setEquipment();
-        recruit.setDropChance();
+        recruit.setDropEquipment();
         recruit.setRandomSpawnBonus();
         recruit.setPersistenceRequired();
         recruit.setCanPickUpLoot(true);
@@ -89,16 +99,17 @@ public class VillagerEvents {
     }
 
     private static void createBowman(LivingEntity entity){
-        BowmanEntity recruit = ModEntityTypes.BOWMAN.get().create(entity.level);
+        BowmanEntity bowman = ModEntityTypes.BOWMAN.get().create(entity.level);
         VillagerEntity villager = (VillagerEntity) entity;
-        recruit.copyPosition(villager);
-        recruit.setEquipment();
-        recruit.setDropChance();
-        recruit.setRandomSpawnBonus();
-        recruit.setPersistenceRequired();
-        recruit.setCanPickUpLoot(true);
-        recruit.setGroup(2);
+        bowman.copyPosition(villager);
+        bowman.setEquipment();
+        bowman.setDropEquipment();
+        bowman.setRandomSpawnBonus();
+        bowman.setPersistenceRequired();
+        bowman.setCanPickUpLoot(true);
+        bowman.reassessWeaponGoal();
+        bowman.setGroup(2);
         villager.remove();
-        villager.level.addFreshEntity(recruit);
+        villager.level.addFreshEntity(bowman);
     }
 }

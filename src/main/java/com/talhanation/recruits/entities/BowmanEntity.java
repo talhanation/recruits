@@ -51,8 +51,10 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
         this.goalSelector.addGoal(5, new ReturnToVillageGoal(this, 0.6D, false));
         this.goalSelector.addGoal(6, new PatrolVillageGoal(this, 0.6D));
         this.goalSelector.addGoal(7, new WaterAvoidingRandomWalkingGoal(this, 1.0D, 0F));
-        this.goalSelector.addGoal(8, new LookAtGoal(this, PlayerEntity.class, 8.0F));
-        this.goalSelector.addGoal(8, new LookRandomlyGoal(this));
+        this.goalSelector.addGoal(8, new ReturnToVillageGoal(this, 0.6D, false));
+        this.goalSelector.addGoal(9, new PatrolVillageGoal(this, 0.6D));
+        this.goalSelector.addGoal(11, new LookAtGoal(this, PlayerEntity.class, 8.0F));
+        this.goalSelector.addGoal(12, new LookRandomlyGoal(this));
 
         this.targetSelector.addGoal(1, new RecruitDefendVillageGoal(this));
         this.targetSelector.addGoal(2, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
@@ -63,6 +65,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
         this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, AbstractIllagerEntity.class, false));
         this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, MonsterEntity.class, false));
         this.targetSelector.addGoal(8, new ResetAngerGoal<>(this, true));
+        this.targetSelector.addGoal(10, new RecruitDefendVillageGoal(this));
     }
 
 
@@ -82,21 +85,20 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
     public ILivingEntityData finalizeSpawn(IServerWorld world, DifficultyInstance difficultyInstance, SpawnReason reason, @Nullable ILivingEntityData data, @Nullable CompoundNBT nbt) {
         ILivingEntityData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
         ((GroundPathNavigator)this.getNavigation()).setCanOpenDoors(true);
-        this.populateDefaultEquipmentSlots();
+        this.setEquipment();
         this.populateDefaultEquipmentEnchantments(difficultyInstance);
         this.setCanPickUpLoot(true);
-        this.setDropChance();
+        this.dropEquipment();
         this.reassessWeaponGoal();
         this.setGroup(2);
         return ilivingentitydata;
     }
 
-    protected void populateDefaultEquipmentSlots() {
+    public void setEquipment() {
         this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.BOW));
         this.setItemSlot(EquipmentSlotType.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));
         this.setItemSlot(EquipmentSlotType.LEGS, new ItemStack(Items.LEATHER_LEGGINGS));
         this.setItemSlot(EquipmentSlotType.FEET, new ItemStack(Items.LEATHER_BOOTS));
-
     }
 
     @Override

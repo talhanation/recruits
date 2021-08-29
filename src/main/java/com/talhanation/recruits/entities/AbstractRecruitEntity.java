@@ -76,25 +76,19 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
     }
 
-    public void setDropChance(){
-        float chance = random.nextFloat() * 10.0F;
-        this.setDropChance(EquipmentSlotType.HEAD,chance);
-        this.setDropChance(EquipmentSlotType.CHEST, chance);
-        this.setDropChance(EquipmentSlotType.FEET, chance);
-        this.setDropChance(EquipmentSlotType.LEGS, chance);
-        this.setDropChance(EquipmentSlotType.MAINHAND,chance);
-        this.setDropChance(EquipmentSlotType.OFFHAND, chance);
+    public void setDropEquipment(){
+        this.dropEquipment();
     }
 
     ////////////////////////////////////REGISTER////////////////////////////////////
 
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new SwimGoal(this));
-        this.goalSelector.addGoal(3, new RecruitMeleeAttackGoal(this, 1.15D, true));
-        this.goalSelector.addGoal(4, new RecruitMountGoal(this, 1.2D, 32.0F));
-        this.goalSelector.addGoal(4, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
-        this.goalSelector.addGoal(5, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
-        this.goalSelector.addGoal(6, new RecruitFollowOwnerGoal(this, 1.2D, 9.0F, 3.0F));
+        this.goalSelector.addGoal(2, new RecruitMountGoal(this, 1.2D, 32.0F));
+        this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
+        this.goalSelector.addGoal(4, new RecruitMeleeAttackGoal(this, 1.15D, true));
+        this.goalSelector.addGoal(5, new RecruitFollowOwnerGoal(this, 1.2D, 9.0F, 3.0F));
+        this.goalSelector.addGoal(6, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
         this.goalSelector.addGoal(7, new RecruitMoveTowardsTargetGoal(this, 1.15D, 24.0F));
         this.goalSelector.addGoal(8, new ReturnToVillageGoal(this, 0.6D, false));
         this.goalSelector.addGoal(9, new PatrolVillageGoal(this, 0.6D));

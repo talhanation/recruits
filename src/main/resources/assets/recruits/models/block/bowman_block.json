@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "recruits:block/bowman_table_side",
+    "north": "recruits:block/bowman_table_side",
+    "south": "recruits:block/bowman_table_side",
+    "east": "recruits:block/bowman_table_side",
+    "west": "recruits:block/bowman_table_side",
+    "up": "recruits:block/bowman_table_top",
+    "down": "recruits:block/bowman_table_bottom"
+  }
+}

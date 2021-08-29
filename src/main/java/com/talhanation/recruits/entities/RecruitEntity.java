@@ -46,7 +46,7 @@ public class RecruitEntity extends AbstractRecruitEntity {
         ((GroundPathNavigator)this.getNavigation()).setCanOpenDoors(true);
         this.populateDefaultEquipmentEnchantments(difficultyInstance);
         this.setEquipment();
-        this.setDropChance();
+        this.setDropEquipment();
         this.setCanPickUpLoot(true);
         this.setGroup(1);
         return ilivingentitydata;
