@@ -1,9 +1,7 @@
 package com.talhanation.recruits;
 
-import com.talhanation.recruits.client.events.ClientRegistry;
-import com.talhanation.recruits.client.events.KeyEvents;
-import com.talhanation.recruits.client.events.PlayerEvents;
-import com.talhanation.recruits.client.events.VillagerEvents;
+import com.google.common.collect.ImmutableSet;
+import com.talhanation.recruits.client.events.*;
 import com.talhanation.recruits.entities.BowmanEntity;
 import com.talhanation.recruits.entities.RecruitEntity;
 import com.talhanation.recruits.init.ModBlocks;
@@ -15,25 +13,40 @@ import com.talhanation.recruits.network.MessageFollow;
 import com.talhanation.recruits.network.MessageMove;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.ai.attributes.GlobalEntityTypeAttributes;
+import net.minecraft.entity.merchant.villager.VillagerProfession;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundEvents;
+import net.minecraft.village.PointOfInterestType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DeferredWorkQueue;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
+import net.minecraftforge.registries.IForgeRegistryEntry;
+
+import java.lang.reflect.Method;
+import java.util.Set;
 
 @Mod("recruits")
 public class Main {
     public static final String MOD_ID = "recruits";
     public static SimpleChannel SIMPLE_CHANNEL;
+    public static VillagerProfession RECRUIT;
+    public static VillagerProfession BOWMAN;
+    public static VillagerProfession SHIELDMAN;
+    public static PointOfInterestType POI_RECRUIT;
+    public static PointOfInterestType POI_BOWMAN;
+    public static PointOfInterestType POI_SHIELDMAN;
     public static KeyBinding R_KEY;
     public static KeyBinding X_KEY;
     public static KeyBinding C_KEY;
@@ -46,17 +59,13 @@ public class Main {
 
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         modEventBus.addListener(this::setup);
-
+        modEventBus.addGenericListener(PointOfInterestType.class, this::registerPointsOfInterest);
+        modEventBus.addGenericListener(VillagerProfession.class, this::registerVillagerProfessions);
         ModBlocks.BLOCKS.register(modEventBus);
         //ModSounds.SOUNDS.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
         ModEntityTypes.ENTITY_TYPES.register(modEventBus);
         MinecraftForge.EVENT_BUS.register(this);
-
-        VillagerEvents.VILLAGER_PROFESSIONS.register(modEventBus);
-        VillagerEvents.POINT_OF_INTEREST_TYPES.register(modEventBus);
-
-
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().addListener(Main.this::clientSetup));
     }
 
@@ -87,12 +96,6 @@ public class Main {
             //GlobalEntityTypeAttributes.put(ModEntityTypes.SHILDMAN.get(), RecruitEntity.setAttributes().build());
             GlobalEntityTypeAttributes.put(ModEntityTypes.BOWMAN.get(), BowmanEntity.setAttributes().build());
         });
-
-
-
-        event.enqueueWork(VillagerEvents::registerRecruitPOI);
-        event.enqueueWork(VillagerEvents::registerBowmanPOI);
-
     }
 
     @SubscribeEvent
@@ -102,12 +105,35 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new VillagerEvents());
         MinecraftForge.EVENT_BUS.register(new PlayerEvents());
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
+        MinecraftForge.EVENT_BUS.register(new PillagerEvents());
         R_KEY = ClientRegistry.registerKeyBinding("key.r_key", "category.recruits", 82);
         X_KEY = ClientRegistry.registerKeyBinding("key.x_key", "category.recruits", 88);
         C_KEY = ClientRegistry.registerKeyBinding("key.c_key", "category.recruits", 67);
         Y_KEY = ClientRegistry.registerKeyBinding("key.y_key", "category.recruits", 90);
         V_KEY = ClientRegistry.registerKeyBinding("key.v_key", "category.recruits", 86);
+    }
 
 
+    @SubscribeEvent
+    public void registerPointsOfInterest(RegistryEvent.Register<PointOfInterestType> event) {
+        POI_RECRUIT = new PointOfInterestType("poi_recruit", PointOfInterestType.getBlockStates(ModBlocks.RECRUIT_BLOCK.get()), 1, 1);
+        POI_RECRUIT.setRegistryName(Main.MOD_ID, "poi_recruit");
+        POI_BOWMAN = new PointOfInterestType("poi_bowman", PointOfInterestType.getBlockStates(ModBlocks.BOWMAN_BLOCK.get()), 1, 1);
+        POI_BOWMAN.setRegistryName(Main.MOD_ID, "poi_bowman");
+
+
+        event.getRegistry().register(POI_RECRUIT);
+        event.getRegistry().register(POI_BOWMAN);
+    }
+
+    @SubscribeEvent
+    public void registerVillagerProfessions(RegistryEvent.Register<VillagerProfession> event) {
+        RECRUIT = new VillagerProfession("recruit", POI_RECRUIT, ImmutableSet.of(), ImmutableSet.of(), SoundEvents.VILLAGER_CELEBRATE);
+        RECRUIT.setRegistryName(Main.MOD_ID, "recruit");
+        BOWMAN = new VillagerProfession("bowman", POI_BOWMAN, ImmutableSet.of(), ImmutableSet.of(), SoundEvents.VILLAGER_CELEBRATE);
+        BOWMAN.setRegistryName(Main.MOD_ID, "bowman");
+
+        event.getRegistry().register(RECRUIT);
+        event.getRegistry().register(BOWMAN);
     }
 }

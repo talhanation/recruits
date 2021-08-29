@@ -1,7 +1,7 @@
 package com.talhanation.recruits.client.events;
 
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import com.talhanation.recruits.Main;
 
 import com.talhanation.recruits.entities.BowmanEntity;
@@ -14,50 +14,20 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.merchant.villager.VillagerEntity;
 import net.minecraft.entity.merchant.villager.VillagerProfession;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.village.PointOfInterestType;
+import net.minecraft.entity.merchant.villager.VillagerTrades;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.item.MerchantOffer;
+import net.minecraft.util.IItemProvider;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.RegistryObject;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
 
-import java.lang.reflect.InvocationTargetException;
+import javax.annotation.Nullable;
+import java.util.Random;
 
 public class VillagerEvents {
-    public static final DeferredRegister<PointOfInterestType> POINT_OF_INTEREST_TYPES = DeferredRegister.create(ForgeRegistries.POI_TYPES, Main.MOD_ID);
-    public static final DeferredRegister<VillagerProfession> VILLAGER_PROFESSIONS = DeferredRegister.create(ForgeRegistries.PROFESSIONS, Main.MOD_ID);
-
-    //RECRUIT//
-    public static final RegistryObject<PointOfInterestType> RECRUIT_POI = POINT_OF_INTEREST_TYPES.register("recruit_poi",
-            () -> new PointOfInterestType(Main.MOD_ID, PointOfInterestType.getBlockStates(ModBlocks.RECRUIT_BLOCK.get()), 1, 1));
-
-    public static final RegistryObject<VillagerProfession> RECRUIT = VILLAGER_PROFESSIONS.register("recruit",
-            () -> new VillagerProfession(Main.MOD_ID, RECRUIT_POI.get(), ImmutableSet.of(), ImmutableSet.of(), SoundEvents.VILLAGER_CELEBRATE));
-
-    public static void registerRecruitPOI() {
-        try {
-            ObfuscationReflectionHelper.findMethod(PointOfInterestType.class, "registerBlockStates", PointOfInterestType.class).invoke(null, RECRUIT_POI.get());
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    //BOWMAN//
-    public static final RegistryObject<PointOfInterestType> BOWMAN_POI = POINT_OF_INTEREST_TYPES.register("bowman_poi",
-            () -> new PointOfInterestType(Main.MOD_ID, PointOfInterestType.getBlockStates(ModBlocks.BOWMAN_BLOCK.get()), 1, 1));
-
-    public static final RegistryObject<VillagerProfession> BOWMAN = VILLAGER_PROFESSIONS.register("bowman",
-            () -> new VillagerProfession(Main.MOD_ID, BOWMAN_POI.get(), ImmutableSet.of(), ImmutableSet.of(), SoundEvents.VILLAGER_CELEBRATE));
-
-    public static void registerBowmanPOI() {
-        try {
-            ObfuscationReflectionHelper.findMethod(PointOfInterestType.class, "registerBlockStates", PointOfInterestType.class).invoke(null, BOWMAN_POI.get());
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-    }
 
     @SubscribeEvent
     public void onVillagerLivingUpdate(LivingEvent.LivingUpdateEvent event) {
@@ -73,11 +43,11 @@ public class VillagerEvents {
                 return;
             }
 
-            if (profession == VillagerEvents.RECRUIT.get()) {
+            if (profession == Main.RECRUIT) {
                 createRecruit(villager);
             }
 
-            if (profession == VillagerEvents.BOWMAN.get()){
+            if (profession == Main.BOWMAN){
                 createBowman(villager);
             }
         }
@@ -112,4 +82,62 @@ public class VillagerEvents {
         villager.remove();
         villager.level.addFreshEntity(bowman);
     }
+
+    @SubscribeEvent
+    public void villagerTrades(VillagerTradesEvent event) {
+        if (event.getType() == VillagerProfession.WEAPONSMITH || event.getType() == VillagerProfession.ARMORER) {
+            event.getTrades().put(2, ImmutableList.of(
+                    new Trade(Items.EMERALD, 20, ModBlocks.RECRUIT_BLOCK.get(), 4, 16, 2)
+            ));
+            event.getTrades().put(2, ImmutableList.of(
+                    new Trade(Items.EMERALD, 24, ModBlocks.BOWMAN_BLOCK.get(), 4, 16, 2)
+            ));
+        }
+    }
+
+
+    static class EmeraldForItemsTrade extends Trade {
+        public EmeraldForItemsTrade(IItemProvider buyingItem, int buyingAmount, int maxUses, int givenExp) {
+            super(buyingItem, buyingAmount, Items.EMERALD, 1, maxUses, givenExp);
+        }
+    }
+
+    static class MultiTrade implements VillagerTrades.ITrade {
+        private final VillagerTrades.ITrade[] trades;
+
+        public MultiTrade(VillagerTrades.ITrade... trades) {
+            this.trades = trades;
+        }
+
+        @Nullable
+        @Override
+        public MerchantOffer getOffer(Entity entity, Random random) {
+            return trades[random.nextInt(trades.length)].getOffer(entity, random);
+        }
+    }
+
+    static class Trade implements VillagerTrades.ITrade {
+        private final Item buyingItem;
+        private final Item sellingItem;
+        private final int buyingAmount;
+        private final int sellingAmount;
+        private final int maxUses;
+        private final int givenExp;
+        private final float priceMultiplier;
+
+        public Trade(IItemProvider buyingItem, int buyingAmount, IItemProvider sellingItem, int sellingAmount, int maxUses, int givenExp) {
+            this.buyingItem = buyingItem.asItem();
+            this.buyingAmount = buyingAmount;
+            this.sellingItem = sellingItem.asItem();
+            this.sellingAmount = sellingAmount;
+            this.maxUses = maxUses;
+            this.givenExp = givenExp;
+            this.priceMultiplier = 0.05F;
+        }
+
+        public MerchantOffer getOffer(Entity entity, Random random) {
+            return new MerchantOffer(new ItemStack(this.buyingItem, this.buyingAmount), new ItemStack(sellingItem, sellingAmount), maxUses, givenExp, priceMultiplier);
+        }
+    }
+
 }
