@@ -93,7 +93,7 @@ public class Main {
 
         DeferredWorkQueue.runLater(() -> {
             GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT.get(), RecruitEntity.setAttributes().build());
-            //GlobalEntityTypeAttributes.put(ModEntityTypes.SHILDMAN.get(), RecruitEntity.setAttributes().build());
+            //GlobalEntityTypeAttributes.put(ModEntityTypes.SHIELDMAN.get(), RecruitEntity.setAttributes().build());
             GlobalEntityTypeAttributes.put(ModEntityTypes.BOWMAN.get(), BowmanEntity.setAttributes().build());
         });
     }

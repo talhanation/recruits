@@ -1,5 +1,8 @@
 {
-  "entity.recruits.recruit.none": "Recruit",
+  "entity.recruits.recruit": "Recruit",
+  "entity.recruits.bowman": "Bowman",
+  "entity.recruits.shieldman": "Shieldman",
+
   "item.recruits.recruit_spawn_egg": "Recruit Spawn Egg",
   "item.recruits.bowman_spawn_egg": "Bowman Spawn Egg",
 
