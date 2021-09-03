@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.talhanation.recruits.Main;
 
 import com.talhanation.recruits.entities.BowmanEntity;
+import com.talhanation.recruits.entities.NomadEntity;
 import com.talhanation.recruits.entities.RecruitEntity;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
@@ -50,6 +51,10 @@ public class VillagerEvents {
             if (profession == Main.BOWMAN){
                 createBowman(villager);
             }
+
+            if (profession == Main.NOMAD){
+                createNomad(villager);
+            }
         }
 
     }
@@ -81,6 +86,21 @@ public class VillagerEvents {
         bowman.setGroup(2);
         villager.remove();
         villager.level.addFreshEntity(bowman);
+    }
+
+    private static void createNomad(LivingEntity entity){
+        NomadEntity nomad = ModEntityTypes.NOMAD.get().create(entity.level);
+        VillagerEntity villager = (VillagerEntity) entity;
+        nomad.copyPosition(villager);
+        nomad.setEquipment();
+        nomad.setDropEquipment();
+        nomad.setRandomSpawnBonus();
+        nomad.setPersistenceRequired();
+        nomad.setCanPickUpLoot(true);
+        nomad.reassessWeaponGoal();
+        nomad.setGroup(2);
+        villager.remove();
+        villager.level.addFreshEntity(nomad);
     }
 
     @SubscribeEvent

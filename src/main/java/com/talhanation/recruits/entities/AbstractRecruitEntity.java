@@ -53,6 +53,10 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
     ///////////////////////////////////TICK/////////////////////////////////////////
 
+    public double getMyRidingOffset() {
+        return -0.35D;
+    }
+
     @Override
     public void aiStep() {
         super.aiStep();
@@ -62,6 +66,15 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         super.tick();
         updateSwingTime();
         updateSwimming();
+    }
+
+    public void rideTick() {
+        super.rideTick();
+        if (this.getVehicle() instanceof CreatureEntity) {
+            CreatureEntity creatureentity = (CreatureEntity)this.getVehicle();
+            this.yBodyRot = creatureentity.yBodyRot;
+        }
+
     }
 
     @Nullable

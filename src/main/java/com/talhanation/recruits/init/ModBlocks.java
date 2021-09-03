@@ -17,4 +17,9 @@ public class ModBlocks {
 
     public static final RegistryObject<Block> BOWMAN_BLOCK = BLOCKS.register("bowman_block",
             () -> new Block(AbstractBlock.Properties.copy(Blocks.FLETCHING_TABLE)));
+
+    public static final RegistryObject<Block> NOMAD_BLOCK = BLOCKS.register("nomad_block",
+            () -> new Block(AbstractBlock.Properties.copy(Blocks.FLETCHING_TABLE)));
+
+
 }

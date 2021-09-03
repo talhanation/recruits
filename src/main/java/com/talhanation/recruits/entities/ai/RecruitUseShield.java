@@ -45,10 +45,10 @@ public class RecruitUseShield extends Goal {
     public boolean canRaiseShield() {
         LivingEntity target = this.recruit.getTarget();
         if (target != null) {
-            if (target instanceof IRangedAttackMob && target.distanceTo(this.recruit) >= 1D) {
+            if (target instanceof IRangedAttackMob && target.distanceTo(this.recruit) >= 0.7D) {
                 return true;
             }
-            if (target.distanceTo(this.recruit) >= 0.5D && target.distanceTo(this.recruit) <= 3D) {
+            if (target.distanceTo(this.recruit) >= 0.5D && target.distanceTo(this.recruit) <= 1.5D) {
                 return true;
             }
             recruit.stopUsingItem();

@@ -3,6 +3,7 @@ package com.talhanation.recruits;
 import com.google.common.collect.ImmutableSet;
 import com.talhanation.recruits.client.events.*;
 import com.talhanation.recruits.entities.BowmanEntity;
+import com.talhanation.recruits.entities.NomadEntity;
 import com.talhanation.recruits.entities.RecruitEntity;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
@@ -44,9 +45,13 @@ public class Main {
     public static VillagerProfession RECRUIT;
     public static VillagerProfession BOWMAN;
     public static VillagerProfession SHIELDMAN;
+    public static VillagerProfession SCOUT;
+    public static VillagerProfession NOMAD;
     public static PointOfInterestType POI_RECRUIT;
     public static PointOfInterestType POI_BOWMAN;
     public static PointOfInterestType POI_SHIELDMAN;
+    public static PointOfInterestType POI_SCOUT;
+    public static PointOfInterestType POI_NOMAD;
     public static KeyBinding R_KEY;
     public static KeyBinding X_KEY;
     public static KeyBinding C_KEY;
@@ -95,6 +100,8 @@ public class Main {
             GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT.get(), RecruitEntity.setAttributes().build());
             //GlobalEntityTypeAttributes.put(ModEntityTypes.SHIELDMAN.get(), RecruitEntity.setAttributes().build());
             GlobalEntityTypeAttributes.put(ModEntityTypes.BOWMAN.get(), BowmanEntity.setAttributes().build());
+            GlobalEntityTypeAttributes.put(ModEntityTypes.NOMAD.get(), NomadEntity.setAttributes().build());
+            //GlobalEntityTypeAttributes.put(ModEntityTypes.SCOUT.get(), ScoutEntity.setAttributes().build());
         });
     }
 
@@ -119,10 +126,13 @@ public class Main {
         POI_RECRUIT.setRegistryName(Main.MOD_ID, "poi_recruit");
         POI_BOWMAN = new PointOfInterestType("poi_bowman", PointOfInterestType.getBlockStates(ModBlocks.BOWMAN_BLOCK.get()), 1, 1);
         POI_BOWMAN.setRegistryName(Main.MOD_ID, "poi_bowman");
+        POI_NOMAD = new PointOfInterestType("poi_nomad", PointOfInterestType.getBlockStates(ModBlocks.NOMAD_BLOCK.get()), 1, 1);
+        POI_NOMAD.setRegistryName(Main.MOD_ID, "poi_nomad");
 
 
         event.getRegistry().register(POI_RECRUIT);
         event.getRegistry().register(POI_BOWMAN);
+        event.getRegistry().register(POI_NOMAD);
     }
 
     @SubscribeEvent
@@ -131,8 +141,11 @@ public class Main {
         RECRUIT.setRegistryName(Main.MOD_ID, "recruit");
         BOWMAN = new VillagerProfession("bowman", POI_BOWMAN, ImmutableSet.of(), ImmutableSet.of(), SoundEvents.VILLAGER_CELEBRATE);
         BOWMAN.setRegistryName(Main.MOD_ID, "bowman");
+        NOMAD = new VillagerProfession("nomad", POI_NOMAD, ImmutableSet.of(), ImmutableSet.of(), SoundEvents.VILLAGER_CELEBRATE);
+        NOMAD.setRegistryName(Main.MOD_ID, "nomad");
 
         event.getRegistry().register(RECRUIT);
         event.getRegistry().register(BOWMAN);
+        event.getRegistry().register(NOMAD);
     }
 }
