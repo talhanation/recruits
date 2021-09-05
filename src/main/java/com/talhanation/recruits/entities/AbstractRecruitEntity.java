@@ -20,6 +20,7 @@ import net.minecraft.particles.IParticleData;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
@@ -362,7 +363,15 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
                 return ActionResultType.SUCCESS;
             }
-
+            else if (item == Items.EMERALD && !this.isAngry() && !this.isTame() && !playerHasEnoughEmeralds(player)) {
+                int i = this.random.nextInt(10);
+                if (i <= 4) {
+                    player.sendMessage(new StringTextComponent("You need " + recruitCosts() + " Emeralds to recruit me!"), player.getUUID());
+                }
+                else if (i >= 5){
+                    player.sendMessage(new StringTextComponent("My services costs " + recruitCosts() + " Emeralds!"), player.getUUID());
+                }
+            }
             return super.mobInteract(player, hand);
         }
     }
@@ -464,148 +473,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         }
     return false;
     }
-    /*
-    public boolean wantsToAttack(LivingEntity target, LivingEntity owner) {
-        int state = this.getState();
-        switch (state) {
-            case 0://NEUTRAL
-                if (!(target instanceof CreeperEntity) && !(target instanceof GhastEntity)) {
-                    //RECRUIT
-                    if (target instanceof AbstractRecruitEntity) {
-                        AbstractRecruitEntity targetRecruit = (AbstractRecruitEntity) target;
 
-                        if (targetRecruit.getOwner() != owner) {
-                            return true;
-                        }
-
-                        if (targetRecruit.getTeam() != owner.getTeam()) {
-                            return true;
-                        }
-
-                    }
-                    //PLAYER
-                    else if (target instanceof PlayerEntity) {
-                        PlayerEntity targetPlayer = (PlayerEntity) target;
-                        PlayerEntity ownerPlayer = (PlayerEntity) owner;
-
-                        if (ownerPlayer.canHarmPlayer(targetPlayer)) {
-                            return true;
-                        }
-
-                        if (targetPlayer.getUUID() != ownerPlayer.getUUID()) {
-                            return true;
-                        }
-
-                        if (targetPlayer.getTeam() != owner.getTeam()) {
-                            return true;
-                        }
-
-                    }
-                    //TAME
-                    else if (target instanceof AbstractHorseEntity) {
-                        AbstractHorseEntity targetHorse = (AbstractHorseEntity) target;
-                        if (targetHorse.isTamed()) {
-                            return false;
-                        }
-
-                    } else {
-                        return !(target instanceof TameableEntity) || !((TameableEntity) target).isTame();
-                    }
-                    break;
-                }
-            case 1: //AGGRESSIVE
-                if (!(target instanceof CreeperEntity) && !(target instanceof GhastEntity)) {
-                    //RECRUIT
-                    if (target instanceof AbstractRecruitEntity) {
-                        AbstractRecruitEntity targetRecruit = (AbstractRecruitEntity) target;
-
-                        if (targetRecruit.getOwner() == owner) {
-                            return false;
-                        }
-
-                        if (targetRecruit.getTeam() == owner.getTeam()) {
-                            return false;
-                        }
-
-                        if (!targetRecruit.isTame()) {
-                            return false;
-                        }
-                    }
-                    //PLAYER
-                    else if (target instanceof PlayerEntity) {
-                        PlayerEntity targetPlayer = (PlayerEntity) target;
-                        PlayerEntity ownerPlayer = (PlayerEntity) owner;
-
-                        if (!ownerPlayer.canHarmPlayer(targetPlayer)) {
-                            return false;
-                        }
-
-                        if (targetPlayer.getUUID() == ownerPlayer.getUUID()) {
-                            return false;
-                        }
-
-                        if (targetPlayer.getTeam() == owner.getTeam()) {
-                            return false;
-                        }
-                    }
-                    //TAME
-                    else if (target instanceof AbstractHorseEntity) {
-                        AbstractHorseEntity targetHorse = (AbstractHorseEntity) target;
-                        if (targetHorse.isTamed()) {
-                            return false;
-                        }
-
-                    } else {
-                        return !(target instanceof TameableEntity) || !((TameableEntity) target).isTame();
-                    }
-                    break;
-                }
-            case 2: // RAID
-                //RECRUIT
-                if (target instanceof AbstractRecruitEntity) {
-                    AbstractRecruitEntity targetRecruit = (AbstractRecruitEntity) target;
-
-                    if (targetRecruit.getOwner() == owner) {
-                        return false;
-                    }
-
-                    if (targetRecruit.getTeam() == owner.getTeam()) {
-                        return false;
-                    }
-                }
-                //PLAYER
-                else if (target instanceof PlayerEntity) {
-                    PlayerEntity targetPlayer = (PlayerEntity) target;
-                    PlayerEntity ownerPlayer = (PlayerEntity) owner;
-
-                    if (!ownerPlayer.canHarmPlayer(targetPlayer)) {
-                        return false;
-                    }
-
-                    if (targetPlayer.getUUID() == ownerPlayer.getUUID()) {
-                        return false;
-                    }
-
-                    if (targetPlayer.getTeam() == owner.getTeam()) {
-                        return false;
-                    }
-                }
-                //TAME
-                else if (target instanceof AbstractHorseEntity) {
-                    AbstractHorseEntity targetHorse = (AbstractHorseEntity) target;
-                    if (targetHorse.isTamed()) {
-                        return false;
-                    }
-
-                } else {
-                    return true;
-                }
-                break;
-
-        }
-        return false;
-    }
-*/
     public void die(DamageSource dmg) {
         super.die(dmg);
     }
@@ -642,5 +510,31 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
             this.level.addParticle(iparticledata, this.getRandomX(1.0D), this.getRandomY() + 0.5D, this.getRandomZ(1.0D), d0, d1, d2);
         }
 
+    }
+    /*
+    @Override
+    protected void hurtArmor(DamageSource p_230294_1_, float p_230294_2_) {
+        super.hurtArmor(p_230294_1_, p_230294_2_);
+    }
+    */
+
+    @Override
+    protected void hurtCurrentlyUsedShield(float damage) {
+        if (this.useItem.isShield(this)) {
+            if (damage >= 3.0F) {
+                int i = 1 + MathHelper.floor(damage);
+                Hand hand = this.getUsedItemHand();
+                this.useItem.hurtAndBreak(i, this, (entity) -> entity.broadcastBreakEvent(hand));
+                if (this.useItem.isEmpty()) {
+                    if (hand == Hand.MAIN_HAND) {
+                        this.setItemSlot(EquipmentSlotType.MAINHAND, ItemStack.EMPTY);
+                    } else {
+                        this.setItemSlot(EquipmentSlotType.OFFHAND, ItemStack.EMPTY);
+                    }
+                    this.useItem = ItemStack.EMPTY;
+                    this.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+                }
+            }
+        }
     }
 }

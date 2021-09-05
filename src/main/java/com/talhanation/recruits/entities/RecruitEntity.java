@@ -24,7 +24,7 @@ public class RecruitEntity extends AbstractRecruitEntity {
 
     public RecruitEntity(EntityType<? extends AbstractRecruitEntity> entityType, World world) {
         super(entityType, world);
-        //this.experienceValue = 6;
+        this.xpReward = 6;
     }
 
 
@@ -35,7 +35,7 @@ public class RecruitEntity extends AbstractRecruitEntity {
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.1D)
-                .add(Attributes.ATTACK_DAMAGE, 2.0D)
+                .add(Attributes.ATTACK_DAMAGE, 1.0D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D);
 
     }

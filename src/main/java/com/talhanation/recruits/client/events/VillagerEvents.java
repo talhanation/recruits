@@ -4,18 +4,21 @@ package com.talhanation.recruits.client.events;
 import com.google.common.collect.ImmutableList;
 import com.talhanation.recruits.Main;
 
-import com.talhanation.recruits.entities.BowmanEntity;
-import com.talhanation.recruits.entities.NomadEntity;
-import com.talhanation.recruits.entities.RecruitEntity;
+import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.entity.*;
 import net.minecraft.entity.merchant.villager.VillagerEntity;
 import net.minecraft.entity.merchant.villager.VillagerProfession;
 import net.minecraft.entity.merchant.villager.VillagerTrades;
+import net.minecraft.entity.monster.SkeletonEntity;
+import net.minecraft.entity.passive.horse.AbstractHorseEntity;
+import net.minecraft.entity.passive.horse.HorseEntity;
+import net.minecraft.entity.passive.horse.SkeletonHorseEntity;
+import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -51,9 +54,13 @@ public class VillagerEvents {
             if (profession == Main.BOWMAN){
                 createBowman(villager);
             }
-
+            /*
             if (profession == Main.NOMAD){
                 createNomad(villager);
+            }
+            */
+            if (profession == Main.RECRUIT_SHIELDMAN){
+                createRecruitShieldman(villager);
             }
         }
 
@@ -70,7 +77,20 @@ public class VillagerEvents {
         recruit.setGroup(1);
         villager.remove();
         villager.level.addFreshEntity(recruit);
+    }
 
+    private static void createRecruitShieldman(LivingEntity entity){
+        RecruitShieldmanEntity recruitShieldman = ModEntityTypes.RECRUIT_SHIELDMAN.get().create(entity.level);
+        VillagerEntity villager = (VillagerEntity) entity;
+        recruitShieldman.copyPosition(villager);
+        recruitShieldman.setEquipment();
+        recruitShieldman.setDropEquipment();
+        recruitShieldman.setRandomSpawnBonus();
+        recruitShieldman.setPersistenceRequired();
+        recruitShieldman.setCanPickUpLoot(true);
+        recruitShieldman.setGroup(1);
+        villager.remove();
+        villager.level.addFreshEntity(recruitShieldman);
     }
 
     private static void createBowman(LivingEntity entity){
@@ -86,6 +106,21 @@ public class VillagerEvents {
         bowman.setGroup(2);
         villager.remove();
         villager.level.addFreshEntity(bowman);
+    }
+
+    private static void createCrossBowman(LivingEntity entity){
+        CrossBowmanEntity crossBowman = ModEntityTypes.CROSSBOWMAN.get().create(entity.level);
+        VillagerEntity villager = (VillagerEntity) entity;
+        crossBowman.copyPosition(villager);
+        crossBowman.setEquipment();
+        crossBowman.setDropEquipment();
+        crossBowman.setRandomSpawnBonus();
+        crossBowman.setPersistenceRequired();
+        crossBowman.setCanPickUpLoot(true);
+        //crossBowman.reassessWeaponGoal();
+        crossBowman.setGroup(2);
+        villager.remove();
+        villager.level.addFreshEntity(crossBowman);
     }
 
     private static void createNomad(LivingEntity entity){
@@ -114,7 +149,6 @@ public class VillagerEvents {
             ));
         }
     }
-
 
     static class EmeraldForItemsTrade extends Trade {
         public EmeraldForItemsTrade(IItemProvider buyingItem, int buyingAmount, int maxUses, int givenExp) {

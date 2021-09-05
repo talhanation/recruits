@@ -6,6 +6,8 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.Attribute;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.entity.monster.MonsterEntity;
+import net.minecraft.item.*;
 import net.minecraft.util.Hand;
 
 public class RecruitUseShield extends Goal {
@@ -36,7 +38,7 @@ public class RecruitUseShield extends Goal {
 
     public void tick() {
         if (this.recruit.getUsedItemHand() == Hand.OFF_HAND) {
-            this.recruit.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.12D);
+            this.recruit.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.16D);
         } else {
             this.recruit.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.3D);
         }
@@ -44,13 +46,32 @@ public class RecruitUseShield extends Goal {
 
     public boolean canRaiseShield() {
         LivingEntity target = this.recruit.getTarget();
+
+
         if (target != null) {
-            if (target instanceof IRangedAttackMob && target.distanceTo(this.recruit) >= 0.7D) {
+            ItemStack itemStackinHand = target.getItemInHand(Hand.MAIN_HAND);
+            Item itemInHand = itemStackinHand.getItem();
+            boolean isClose = target.distanceTo(this.recruit) <= 3.75D;
+            boolean isFar = target.distanceTo(this.recruit) >= 20.0D;
+            boolean inRange =  !isFar && target.distanceTo(this.recruit) <= 15.0D;
+            boolean isDanger = itemInHand instanceof CrossbowItem && CrossbowItem.isCharged(itemStackinHand) || itemInHand instanceof AxeItem || itemInHand instanceof PickaxeItem || itemInHand instanceof SwordItem;
+
+            if (target instanceof IRangedAttackMob && inRange ) {
                 return true;
             }
-            if (target.distanceTo(this.recruit) >= 0.5D && target.distanceTo(this.recruit) <= 1.5D) {
+
+            if (isClose && (isDanger || target instanceof MonsterEntity)) {
                 return true;
             }
+
+            if (target.isBlocking() && inRange){
+                return false;
+            }
+
+            if ( itemInHand instanceof BowItem && !isClose || (itemInHand instanceof CrossbowItem && CrossbowItem.isCharged(itemStackinHand) )  && inRange){
+                return true;
+            }
+
             recruit.stopUsingItem();
             return false;
         }

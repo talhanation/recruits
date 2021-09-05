@@ -17,9 +17,11 @@ public class ModBlocks {
 
     public static final RegistryObject<Block> BOWMAN_BLOCK = BLOCKS.register("bowman_block",
             () -> new Block(AbstractBlock.Properties.copy(Blocks.FLETCHING_TABLE)));
-
+/*
     public static final RegistryObject<Block> NOMAD_BLOCK = BLOCKS.register("nomad_block",
             () -> new Block(AbstractBlock.Properties.copy(Blocks.FLETCHING_TABLE)));
-
+*/
+    public static final RegistryObject<Block> RECRUIT_SHIELD_BLOCK = BLOCKS.register("recruit_shield_block",
+            () -> new Block(AbstractBlock.Properties.copy(Blocks.FLETCHING_TABLE)));
 
 }

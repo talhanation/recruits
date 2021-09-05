@@ -13,10 +13,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.AbstractArrowEntity;
 import net.minecraft.entity.projectile.ProjectileHelper;
 import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.SwordItem;
-import net.minecraft.item.ToolItem;
+import net.minecraft.item.*;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.pathfinding.GroundPathNavigator;
 import net.minecraft.util.SoundEvents;
@@ -96,7 +93,6 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
 
     }
 
-
     public void setEquipment() {
         this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.BOW));
         this.setItemSlot(EquipmentSlotType.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));
@@ -106,7 +102,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
 
     @Override
     public boolean canHoldItem(ItemStack itemStack) {
-        return !(itemStack.getItem() instanceof SwordItem);
+        return !(itemStack.getItem() instanceof SwordItem ||  itemStack.getItem() instanceof ShieldItem);
     }
 
     @Nullable

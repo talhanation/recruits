@@ -3,6 +3,7 @@ package com.talhanation.recruits.util;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.render.BowmanRenderer;
+import com.talhanation.recruits.client.render.CrossBowmanRenderer;
 import com.talhanation.recruits.client.render.RecruitRenderer;
 import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraftforge.api.distmarker.Dist;
@@ -19,6 +20,8 @@ public class ClientEventBusSub {
         RenderingRegistry.registerEntityRenderingHandler(ModEntityTypes.RECRUIT.get(), RecruitRenderer::new );
         RenderingRegistry.registerEntityRenderingHandler(ModEntityTypes.BOWMAN.get(), BowmanRenderer::new );
         RenderingRegistry.registerEntityRenderingHandler(ModEntityTypes.NOMAD.get(), BowmanRenderer::new );
+        RenderingRegistry.registerEntityRenderingHandler(ModEntityTypes.CROSSBOWMAN.get(), CrossBowmanRenderer::new );
+        RenderingRegistry.registerEntityRenderingHandler(ModEntityTypes.RECRUIT_SHIELDMAN.get(), RecruitRenderer::new );
     }
 
 }

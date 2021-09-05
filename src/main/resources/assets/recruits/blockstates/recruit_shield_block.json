@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "recruits:block/recruit_shield_block"
+    }
+  }
+}

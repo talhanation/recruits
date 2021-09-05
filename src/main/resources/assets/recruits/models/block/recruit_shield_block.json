@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "recruits:block/recruit_shield_table_side",
+    "north": "recruits:block/recruit_shield_table_side",
+    "south": "recruits:block/recruit_shield_table_side",
+    "east": "recruits:block/recruit_shield_table_side",
+    "west": "recruits:block/recruit_shield_table_side",
+    "up": "recruits:block/recruit_shield_table_top",
+    "down": "recruits:block/recruit_shield_table_bottom"
+  }
+}

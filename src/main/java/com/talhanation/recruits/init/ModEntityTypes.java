@@ -1,9 +1,7 @@
 package com.talhanation.recruits.init;
 
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.entities.BowmanEntity;
-import com.talhanation.recruits.entities.NomadEntity;
-import com.talhanation.recruits.entities.RecruitEntity;
+import com.talhanation.recruits.entities.*;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
 import net.minecraft.util.ResourceLocation;
@@ -24,6 +22,15 @@ public class ModEntityTypes {
                     .setShouldReceiveVelocityUpdates(true)
                     .build(new ResourceLocation(Main.MOD_ID, "recruit").toString()));
 
+    public static final RegistryObject<EntityType<RecruitShieldmanEntity>> RECRUIT_SHIELDMAN = ENTITY_TYPES.register("recruit_shieldman",
+            () -> EntityType.Builder.of(RecruitShieldmanEntity::new, EntityClassification.CREATURE)
+                    .sized(0.6F, 1.95F)
+                    .canSpawnFarFromPlayer()
+                    .setTrackingRange(32)
+                    .setShouldReceiveVelocityUpdates(true)
+                    .build(new ResourceLocation(Main.MOD_ID, "recruit_shield").toString()));
+
+
     public static final RegistryObject<EntityType<BowmanEntity>> BOWMAN = ENTITY_TYPES.register("bowman",
             () -> EntityType.Builder.of(BowmanEntity::new, EntityClassification.CREATURE)
                     .sized(0.6F, 1.95F)
@@ -31,6 +38,24 @@ public class ModEntityTypes {
                     .setTrackingRange(32)
                     .setShouldReceiveVelocityUpdates(true)
                     .build(new ResourceLocation(Main.MOD_ID, "bowman").toString()));
+
+    public static final RegistryObject<EntityType<CrossBowmanEntity>> CROSSBOWMAN = ENTITY_TYPES.register("crossbowman",
+            () -> EntityType.Builder.of(CrossBowmanEntity::new, EntityClassification.CREATURE)
+                    .sized(0.6F, 1.95F)
+                    .canSpawnFarFromPlayer()
+                    .setTrackingRange(32)
+                    .setShouldReceiveVelocityUpdates(true)
+                    .build(new ResourceLocation(Main.MOD_ID, "crossbowman").toString()));
+
+    public static final RegistryObject<EntityType<ArcherEntity>> ARCHER = ENTITY_TYPES.register("archer",
+            () -> EntityType.Builder.of(ArcherEntity::new, EntityClassification.CREATURE)
+                    .sized(0.6F, 1.95F)
+                    .canSpawnFarFromPlayer()
+                    .setTrackingRange(32)
+                    .setShouldReceiveVelocityUpdates(true)
+                    .build(new ResourceLocation(Main.MOD_ID, "archer").toString()));
+
+
 
     public static final RegistryObject<EntityType<NomadEntity>> NOMAD = ENTITY_TYPES.register("nomad",
             () -> EntityType.Builder.of(NomadEntity::new, EntityClassification.CREATURE)
