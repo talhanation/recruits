@@ -61,7 +61,7 @@ public class RecruitEntity extends AbstractRecruitEntity {
         if (i == 0) {
             this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_AXE));
         } else  if (i == 1){
-            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_PICKAXE));
+            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_SWORD));
         } else  if (i == 2){
             this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_SWORD));
         }else{
