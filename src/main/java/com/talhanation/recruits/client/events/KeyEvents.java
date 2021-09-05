@@ -9,16 +9,16 @@ import com.talhanation.recruits.network.MessageMove;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.Objects;
 import java.util.UUID;
 
-
+@OnlyIn(Dist.CLIENT)
 public class KeyEvents {
 
 
@@ -68,90 +68,6 @@ public class KeyEvents {
 
     }
 
-    public static void onRKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit, int r_state, int group) {
-        if (recruit.isTame() &&  Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
-            int state = recruit.getFollow();
-            switch (r_state) {
-
-                case 0:
-                    if (state != 0)
-                        recruit.setFollow(0);
-                    break;
-
-                case 1:
-                    if (state != 1)
-                        recruit.setFollow(1);
-                    break;
-
-                case 2:
-                    if (state != 2)
-                        recruit.setFollow(2);
-                    break;
-
-
-            }
-        }
-    }
-
-    public static void onXKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit, int x_state, int group) {
-        if (recruit.isTame() &&  Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
-            int state = recruit.getState();
-            switch (x_state) {
-
-                case 0:
-                    if (state != 0)
-                        recruit.setState(0);
-                    break;
-
-                case 1:
-                    if (state != 1)
-                        recruit.setState(1);
-                    break;
-
-                case 2:
-                    if (state != 2)
-                        recruit.setState(2);
-                    break;
-            }
-        }
-    }
-
-    public static void onCKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
-        /*
-        Minecraft minecraft = Minecraft.getInstance();
-        LivingEntity owner = recruit.getOwner();
-        if (recruit.isTame() &&  Objects.equals(recruit.getOwnerUUID(), player_uuid)) {
-            int state = recruit.getFollow();
-
-            if (state != 2){
-                RayTraceResult rayTraceResult = minecraft.hitResult;
-                if (rayTraceResult != null) {
-                    if (rayTraceResult.getType() == RayTraceResult.Type.BLOCK) {
-                        BlockRayTraceResult blockraytraceresult = (BlockRayTraceResult) rayTraceResult;
-                        BlockPos blockpos = blockraytraceresult.getBlockPos();
-                        recruit.setMovePos(blockpos);
-                        recruit.setMove(true);
-                    }
-                    else if (rayTraceResult.getType() == RayTraceResult.Type.ENTITY){
-                        Entity crosshairEntity = minecraft.crosshairPickEntity;
-                        if (crosshairEntity != null){
-                            recruit.setMount(crosshairEntity.getUUID());
-                        }
-
-                    }
-                }
-
-            }
-        }
-*/
-    }
-
-    public static void onYKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
-        if (recruit.isTame() &&  Objects.equals(recruit.getOwnerUUID(), player_uuid) && recruit.getGroup() == group) {
-            LivingEntity owner = recruit.getOwner();
-            recruit.clearTarget();
-        }
-    }
 
     public void sendRCommandInChat(int state, LivingEntity owner){
         switch (state) {

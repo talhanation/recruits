@@ -28,18 +28,13 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DeferredWorkQueue;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
-import net.minecraftforge.registries.IForgeRegistryEntry;
 
-import java.lang.reflect.Method;
-import java.util.Set;
-
-@Mod("recruits")
+@Mod(Main.MOD_ID)
 public class Main {
     public static final String MOD_ID = "recruits";
     public static SimpleChannel SIMPLE_CHANNEL;
@@ -77,6 +72,9 @@ public class Main {
 
     @SuppressWarnings("deprecation")
     private void setup(final FMLCommonSetupEvent event) {
+        MinecraftForge.EVENT_BUS.register(new VillagerEvents());
+        MinecraftForge.EVENT_BUS.register(new PillagerEvents());
+        MinecraftForge.EVENT_BUS.register(new CommandEvents());
         MinecraftForge.EVENT_BUS.register(this);
         SIMPLE_CHANNEL = NetworkRegistry.newSimpleChannel(new ResourceLocation(MOD_ID, "default"), () -> "1.0.0", s -> true, s -> true);
 
@@ -111,10 +109,8 @@ public class Main {
     @OnlyIn(Dist.CLIENT)
     public void clientSetup(FMLClientSetupEvent event) {
 
-        MinecraftForge.EVENT_BUS.register(new VillagerEvents());
-        MinecraftForge.EVENT_BUS.register(new PlayerEvents());
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
-        MinecraftForge.EVENT_BUS.register(new PillagerEvents());
+
         R_KEY = ClientRegistry.registerKeyBinding("key.r_key", "category.recruits", 82);
         X_KEY = ClientRegistry.registerKeyBinding("key.x_key", "category.recruits", 88);
         C_KEY = ClientRegistry.registerKeyBinding("key.c_key", "category.recruits", 67);

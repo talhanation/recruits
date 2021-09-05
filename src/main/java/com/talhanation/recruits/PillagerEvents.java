@@ -1,17 +1,11 @@
-package com.talhanation.recruits.client.events;
+package com.talhanation.recruits;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.ai.goal.GoalSelector;
 import net.minecraft.entity.ai.goal.NearestAttackableTargetGoal;
-import net.minecraft.entity.merchant.villager.AbstractVillagerEntity;
 import net.minecraft.entity.monster.AbstractIllagerEntity;
 import net.minecraft.entity.monster.MonsterEntity;
-import net.minecraft.entity.monster.PillagerEntity;
-import net.minecraft.entity.monster.SkeletonEntity;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.event.entity.living.LivingSetAttackTargetEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class PillagerEvents {

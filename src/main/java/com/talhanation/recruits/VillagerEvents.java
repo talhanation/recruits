@@ -1,4 +1,4 @@
-package com.talhanation.recruits.client.events;
+package com.talhanation.recruits;
 
 
 import com.google.common.collect.ImmutableList;
@@ -7,8 +7,6 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.*;
 import net.minecraft.entity.merchant.villager.VillagerEntity;
 import net.minecraft.entity.merchant.villager.VillagerProfession;
@@ -25,21 +23,15 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import javax.annotation.Nullable;
 import java.util.Random;
 
+
 public class VillagerEvents {
 
     @SubscribeEvent
     public void onVillagerLivingUpdate(LivingEvent.LivingUpdateEvent event) {
-        Minecraft minecraft = Minecraft.getInstance();
-
-        ClientPlayerEntity clientPlayerEntity = minecraft.player;
         Entity entity = event.getEntityLiving();
         if (entity instanceof VillagerEntity) {
             VillagerEntity villager = (VillagerEntity) entity;
             VillagerProfession profession = villager.getVillagerData().getProfession();
-
-            if (clientPlayerEntity == null) {
-                return;
-            }
 
             if (profession == Main.RECRUIT) {
                 createRecruit(villager);
