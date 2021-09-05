@@ -24,7 +24,7 @@ public class RecruitEntity extends AbstractRecruitEntity {
 
     public RecruitEntity(EntityType<? extends AbstractRecruitEntity> entityType, World world) {
         super(entityType, world);
-        this.xpReward = 6;
+
     }
 
 
@@ -78,6 +78,11 @@ public class RecruitEntity extends AbstractRecruitEntity {
     @Override
     public int recruitCosts() {
         return 3;
+    }
+
+    @Override
+    public String getRecruitName() {
+        return "Recruit";
     }
 
 }

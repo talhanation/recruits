@@ -50,6 +50,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     public AbstractRecruitEntity(EntityType<? extends TameableEntity> entityType, World world) {
         super(entityType, world);
         this.setOwned(false);
+        this.xpReward = 6;
     }
 
     ///////////////////////////////////TICK/////////////////////////////////////////
@@ -364,12 +365,23 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
                 return ActionResultType.SUCCESS;
             }
             else if (item == Items.EMERALD && !this.isAngry() && !this.isTame() && !playerHasEnoughEmeralds(player)) {
-                int i = this.random.nextInt(10);
-                if (i <= 4) {
                     player.sendMessage(new StringTextComponent("You need " + recruitCosts() + " Emeralds to recruit me!"), player.getUUID());
-                }
-                else if (i >= 5){
-                    player.sendMessage(new StringTextComponent("My services costs " + recruitCosts() + " Emeralds!"), player.getUUID());
+            }
+            else if (!this.isTame() && item != Items.EMERALD ) {
+                int i = this.random.nextInt(5);
+                switch (i) {
+                    case 0:
+                        player.sendMessage(new StringTextComponent("I am a " + getRecruitName() + ". I'm here to keep things safe in these areas."), player.getUUID());
+                        break;
+                    case 1:
+                        player.sendMessage(new StringTextComponent("Stay Safe, I'm here to protect you."), player.getUUID());
+                        break;
+                    case 2:
+                        player.sendMessage(new StringTextComponent("Everyone needs a " + getRecruitName() + " like me, to have peace in these Lands."), player.getUUID());
+                        break;
+                        default:
+                        player.sendMessage(new StringTextComponent("I am a " + getRecruitName() + " defending these areas from Monsters!"), player.getUUID());
+                        break;
                 }
             }
             return super.mobInteract(player, hand);
@@ -492,9 +504,10 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     public boolean canBeLeashed(PlayerEntity player) {
         return false;
     }
-    public int recruitCosts() {
-        return 1;
-    }
+    public abstract int recruitCosts() ;
+
+    public abstract String getRecruitName();
+
     @Override
     @OnlyIn(Dist.CLIENT)
     protected void spawnTamingParticles(boolean p_70908_1_) {

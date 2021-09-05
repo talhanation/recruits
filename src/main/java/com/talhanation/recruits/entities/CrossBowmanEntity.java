@@ -101,6 +101,16 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements ICrossbo
         this.setItemSlot(EquipmentSlotType.FEET, new ItemStack(Items.LEATHER_BOOTS));
     }
 
+    @Override
+    public int recruitCosts() {
+        return 5;
+    }
+
+    @Override
+    public String getRecruitName() {
+        return "Crossbowman";
+    }
+
 
     @Override
     public boolean canHoldItem(ItemStack itemStack) {

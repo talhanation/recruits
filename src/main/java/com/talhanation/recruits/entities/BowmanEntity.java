@@ -171,4 +171,9 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
         return 4;
     }
 
+    @Override
+    public String getRecruitName() {
+        return "Bowman";
+    }
+
 }

@@ -9,16 +9,10 @@ import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
 import net.minecraft.entity.merchant.villager.VillagerEntity;
 import net.minecraft.entity.merchant.villager.VillagerProfession;
 import net.minecraft.entity.merchant.villager.VillagerTrades;
-import net.minecraft.entity.monster.SkeletonEntity;
-import net.minecraft.entity.passive.horse.AbstractHorseEntity;
-import net.minecraft.entity.passive.horse.HorseEntity;
-import net.minecraft.entity.passive.horse.SkeletonHorseEntity;
-import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -142,10 +136,13 @@ public class VillagerEvents {
     public void villagerTrades(VillagerTradesEvent event) {
         if (event.getType() == VillagerProfession.WEAPONSMITH || event.getType() == VillagerProfession.ARMORER) {
             event.getTrades().put(2, ImmutableList.of(
-                    new Trade(Items.EMERALD, 5, ModBlocks.RECRUIT_BLOCK.get(), 1, 8, 2)
+                    new Trade(Items.EMERALD, 3, ModBlocks.RECRUIT_BLOCK.get(), 1, 8, 2)
             ));
             event.getTrades().put(2, ImmutableList.of(
-                    new Trade(Items.EMERALD, 6 , ModBlocks.BOWMAN_BLOCK.get(), 1, 8, 2)
+                    new Trade(Items.EMERALD, 4, ModBlocks.BOWMAN_BLOCK.get(), 1, 8, 2)
+            ));
+            event.getTrades().put(2, ImmutableList.of(
+                    new Trade(Items.EMERALD, 10, ModBlocks.RECRUIT_SHIELD_BLOCK.get(), 1, 8, 2)
             ));
         }
     }
