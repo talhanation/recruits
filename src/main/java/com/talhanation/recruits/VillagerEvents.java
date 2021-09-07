@@ -7,6 +7,8 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import net.minecraft.block.Block;
 import net.minecraft.entity.*;
 import net.minecraft.entity.merchant.villager.VillagerEntity;
 import net.minecraft.entity.merchant.villager.VillagerProfession;
@@ -21,6 +23,7 @@ import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Random;
 
 
@@ -126,16 +129,25 @@ public class VillagerEvents {
 
     @SubscribeEvent
     public void villagerTrades(VillagerTradesEvent event) {
-        if (event.getType() == VillagerProfession.WEAPONSMITH || event.getType() == VillagerProfession.ARMORER) {
-            event.getTrades().put(2, ImmutableList.of(
-                    new Trade(Items.EMERALD, 3, ModBlocks.RECRUIT_BLOCK.get(), 1, 8, 2)
-            ));
-            event.getTrades().put(2, ImmutableList.of(
-                    new Trade(Items.EMERALD, 4, ModBlocks.BOWMAN_BLOCK.get(), 1, 8, 2)
-            ));
-            event.getTrades().put(2, ImmutableList.of(
-                    new Trade(Items.EMERALD, 10, ModBlocks.RECRUIT_SHIELD_BLOCK.get(), 1, 8, 2)
-            ));
+
+        if (event.getType() == VillagerProfession.ARMORER) {
+            VillagerTrades.ITrade block_trade = new Trade(Items.EMERALD, 10, ModBlocks.RECRUIT_SHIELD_BLOCK.get(), 1, 4, 10);
+            List list = event.getTrades().get(2);
+            list.add(block_trade);
+            event.getTrades().put(2, list);
+        }
+        if (event.getType() == VillagerProfession.WEAPONSMITH) {
+            VillagerTrades.ITrade block_trade = new Trade(Items.EMERALD, 3, ModBlocks.RECRUIT_BLOCK.get(), 1, 4, 10);
+            List list = event.getTrades().get(2);
+            list.add(block_trade);
+            event.getTrades().put(2, list);
+        }
+
+        if (event.getType() == VillagerProfession.FLETCHER) {
+            VillagerTrades.ITrade block_trade = new Trade(Items.EMERALD, 4, ModBlocks.BOWMAN_BLOCK.get(), 1, 4, 10);
+            List list = event.getTrades().get(2);
+            list.add(block_trade);
+            event.getTrades().put(2, list);
         }
     }
 
@@ -180,6 +192,44 @@ public class VillagerEvents {
 
         public MerchantOffer getOffer(Entity entity, Random random) {
             return new MerchantOffer(new ItemStack(this.buyingItem, this.buyingAmount), new ItemStack(sellingItem, sellingAmount), maxUses, givenExp, priceMultiplier);
+        }
+    }
+
+    static class ItemsForEmeraldsTrade implements VillagerTrades.ITrade {
+        private final ItemStack itemStack;
+        private final int emeraldCost;
+        private final int numberOfItems;
+        private final int maxUses;
+        private final int villagerXp;
+        private final float priceMultiplier;
+
+        public ItemsForEmeraldsTrade(Block p_i50528_1_, int p_i50528_2_, int p_i50528_3_, int p_i50528_4_, int p_i50528_5_) {
+            this(new ItemStack(p_i50528_1_), p_i50528_2_, p_i50528_3_, p_i50528_4_, p_i50528_5_);
+        }
+
+        public ItemsForEmeraldsTrade(Item p_i50529_1_, int p_i50529_2_, int p_i50529_3_, int p_i50529_4_) {
+            this(new ItemStack(p_i50529_1_), p_i50529_2_, p_i50529_3_, 12, p_i50529_4_);
+        }
+
+        public ItemsForEmeraldsTrade(Item p_i50530_1_, int p_i50530_2_, int p_i50530_3_, int p_i50530_4_, int p_i50530_5_) {
+            this(new ItemStack(p_i50530_1_), p_i50530_2_, p_i50530_3_, p_i50530_4_, p_i50530_5_);
+        }
+
+        public ItemsForEmeraldsTrade(ItemStack p_i50531_1_, int p_i50531_2_, int p_i50531_3_, int p_i50531_4_, int p_i50531_5_) {
+            this(p_i50531_1_, p_i50531_2_, p_i50531_3_, p_i50531_4_, p_i50531_5_, 0.05F);
+        }
+
+        public ItemsForEmeraldsTrade(ItemStack p_i50532_1_, int p_i50532_2_, int p_i50532_3_, int p_i50532_4_, int p_i50532_5_, float p_i50532_6_) {
+            this.itemStack = p_i50532_1_;
+            this.emeraldCost = p_i50532_2_;
+            this.numberOfItems = p_i50532_3_;
+            this.maxUses = p_i50532_4_;
+            this.villagerXp = p_i50532_5_;
+            this.priceMultiplier = p_i50532_6_;
+        }
+
+        public MerchantOffer getOffer(Entity p_221182_1_, Random p_221182_2_) {
+            return new MerchantOffer(new ItemStack(Items.EMERALD, this.emeraldCost), new ItemStack(this.itemStack.getItem(), this.numberOfItems), this.maxUses, this.villagerXp, this.priceMultiplier);
         }
     }
 
