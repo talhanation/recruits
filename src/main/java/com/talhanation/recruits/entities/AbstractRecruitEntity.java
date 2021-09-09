@@ -13,6 +13,7 @@ import net.minecraft.entity.projectile.AbstractArrowEntity;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.*;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.INBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -28,7 +29,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -149,12 +149,20 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     public void addAdditionalSaveData(CompoundNBT nbt) {
         super.addAdditionalSaveData(nbt);
         this.addPersistentAngerSaveData(nbt);
+        nbt.putInt("FollowState", this.getFollow());
+        nbt.putInt("AggroState", this.getState());
+        nbt.put("HoldPos", (INBT) this.getHoldPos());
+
     }
 
-    public void readAdditionalSaveData(CompoundNBT p_70037_1_) {
-        super.readAdditionalSaveData(p_70037_1_);
-        if(!level.isClientSide) //FORGE: allow this entity to be read from nbt on client. (Fixes MC-189565)
-            this.readPersistentAngerSaveData((ServerWorld)this.level, p_70037_1_);
+    public void readAdditionalSaveData(CompoundNBT nbt) {
+        super.readAdditionalSaveData(nbt);
+        this.setFollow(nbt.getInt("FollowState"));
+        this.setFollow(nbt.getInt("AggroState"));
+        this.setHoldPos((BlockPos) nbt.get("HoldPos"));
+
+        if(!level.isClientSide)
+            this.readPersistentAngerSaveData((ServerWorld)this.level, nbt);
     }
 
     ////////////////////////////////////GET////////////////////////////////////
@@ -170,6 +178,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     public int getFollow(){
         return entityData.get(FOLLOW);
     }
+
 
     public SoundEvent getHurtSound(DamageSource ds) {
         if (this.isBlocking())
