@@ -42,6 +42,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     private static final DataParameter<Optional<BlockPos>> HOLD_POS = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.OPTIONAL_BLOCK_POS);
     private static final DataParameter<Optional<BlockPos>> MOVE_POS = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.OPTIONAL_BLOCK_POS);
     private static final DataParameter<Boolean> MOVE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
+    private static final DataParameter<Boolean> LISTEN = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
     private static final DataParameter<Optional<UUID>> MOUNT = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.OPTIONAL_UUID);
     private static final RangedInteger PERSISTENT_ANGER_TIME = TickRangeConverter.rangeOfSeconds(20, 39);
     private static final DataParameter<Integer> GROUP = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
@@ -133,6 +134,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         this.entityData.define(HOLD_POS, Optional.empty());
         this.entityData.define(MOVE_POS, Optional.empty());
         this.entityData.define(MOVE, true);
+        this.entityData.define(LISTEN, true);
         this.entityData.define(MOUNT, Optional.empty());
         //STATE
         // 0=NEUTRAL
@@ -152,6 +154,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         nbt.putInt("FollowState", this.getFollow());
         nbt.putInt("AggroState", this.getState());
         nbt.put("HoldPos", (INBT) this.getHoldPos());
+        nbt.putBoolean("Listen", this.getListen());
 
     }
 
@@ -159,6 +162,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         super.readAdditionalSaveData(nbt);
         this.setFollow(nbt.getInt("FollowState"));
         this.setFollow(nbt.getInt("AggroState"));
+        this.setListen(nbt.getBoolean("Listen"));
         this.setHoldPos((BlockPos) nbt.get("HoldPos"));
 
         if(!level.isClientSide)
@@ -229,6 +233,10 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         return entityData.get(MOVE);
     }
 
+    public boolean getListen() {
+        return entityData.get(LISTEN);
+    }
+
     @Nullable
     public UUID getMount() {
         return entityData.get(MOUNT).orElse(null);
@@ -276,6 +284,10 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
     public void setMove(boolean bool) {
         entityData.set(MOVE, bool);
+    }
+
+    public void setListen(boolean bool) {
+        entityData.set(LISTEN, bool);
     }
 
     public void setOwned(boolean owned) {
