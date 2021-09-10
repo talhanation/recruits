@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.entities.ai.*;
+import jdk.nashorn.internal.ir.Block;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.Attributes;
@@ -147,23 +148,33 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         //2 = false, hold position
 
     }
-
+    @Override
     public void addAdditionalSaveData(CompoundNBT nbt) {
         super.addAdditionalSaveData(nbt);
         this.addPersistentAngerSaveData(nbt);
         nbt.putInt("FollowState", this.getFollow());
         nbt.putInt("AggroState", this.getState());
-        nbt.put("HoldPos", (INBT) this.getHoldPos());
         nbt.putBoolean("Listen", this.getListen());
-
+        if (this.getHoldPos() != null) {
+            nbt.putInt("HoldPosX", this.getHoldPos().getX());
+            nbt.putInt("HoldPosY", this.getHoldPos().getY());
+            nbt.putInt("HoldPosZ", this.getHoldPos().getZ());
+        }
     }
-
+    @Override
     public void readAdditionalSaveData(CompoundNBT nbt) {
         super.readAdditionalSaveData(nbt);
         this.setFollow(nbt.getInt("FollowState"));
         this.setFollow(nbt.getInt("AggroState"));
         this.setListen(nbt.getBoolean("Listen"));
-        this.setHoldPos((BlockPos) nbt.get("HoldPos"));
+        if (nbt.contains("HoldPosX")) {
+            int x = nbt.getInt("HoldPosX");
+            int y = nbt.getInt("HoldPosY");
+            int z = nbt.getInt("HoldPosZ");
+            BlockPos blockPos = new BlockPos(x,y,z);
+            this.entityData.set(HOLD_POS, Optional.of(blockPos));
+        }
+
 
         if(!level.isClientSide)
             this.readPersistentAngerSaveData((ServerWorld)this.level, nbt);
