@@ -42,10 +42,10 @@ minecraft {
 
             // Recommended logging level for the console
             property 'forge.logging.console.level', 'debug'
-
+            /*
             Random rnd = new Random()
             args = ['--username', 'Player' + rnd.nextInt(10)]
-
+            */
             mods {
                 examplemod {
                     source sourceSets.main
