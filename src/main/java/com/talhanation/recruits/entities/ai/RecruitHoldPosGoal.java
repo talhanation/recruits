@@ -19,7 +19,7 @@ public class RecruitHoldPosGoal extends Goal {
       this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
     public boolean canUse() {
-        if (this.recruit.getHoldPos() == null) {
+        if (!this.recruit.getHoldPos().isPresent()) {
             return false;
         }
         else if (recruit.getFollow() != 2){
@@ -37,7 +37,7 @@ public class RecruitHoldPosGoal extends Goal {
 
     public void tick() {
         BlockPos blockpos = this.recruit.getHoldPos().get();
-        if (blockpos != null && canUse()) {
+        if (this.recruit.getHoldPos().isPresent() && canUse()) {
             this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
         }
     }
