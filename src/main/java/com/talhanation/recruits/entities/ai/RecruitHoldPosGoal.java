@@ -25,7 +25,7 @@ public class RecruitHoldPosGoal extends Goal {
         else if (recruit.getFollow() != 2){
             return false;
         }
-        else if (this.recruit.getHoldPos().closerThan(recruit.position(), within) && this.recruit.getFollow() == 2)
+        else if (this.recruit.getHoldPos().get().closerThan(recruit.position(), within) && this.recruit.getFollow() == 2)
             return true;
         else
             return false;
@@ -36,7 +36,7 @@ public class RecruitHoldPosGoal extends Goal {
     }
 
     public void tick() {
-        BlockPos blockpos = this.recruit.getHoldPos();
+        BlockPos blockpos = this.recruit.getHoldPos().get();
         if (blockpos != null && canUse()) {
             this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
         }

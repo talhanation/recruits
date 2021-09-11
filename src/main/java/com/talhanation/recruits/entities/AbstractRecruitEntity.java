@@ -155,26 +155,23 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         nbt.putInt("FollowState", this.getFollow());
         //nbt.putInt("AggroState", this.getState());
         //nbt.putBoolean("Listen", this.getListen());
-        if (this.getHoldPos() != null) {
-            nbt.putInt("HoldPosX", this.getHoldPos().getX());
-            nbt.putInt("HoldPosY", this.getHoldPos().getY());
-            nbt.putInt("HoldPosZ", this.getHoldPos().getZ());
-        }
+        this.getHoldPos().ifPresent((pos) -> {
+            nbt.putInt("HoldX", pos.getX());
+            nbt.putInt("HoldY", pos.getY());
+            nbt.putInt("HoldZ", pos.getZ());
+        });
     }
     @Override
     public void readAdditionalSaveData(CompoundNBT nbt) {
         super.readAdditionalSaveData(nbt);
-        this.setFollow(nbt.getInt("FollowState"));
-        //this.setFollow(nbt.getInt("AggroState"));
+        if (nbt.contains("FollowState")) this.setFollow(nbt.getInt("FollowState"));
+        //if (nbt.contains("AggroState")) this.setState(nbt.getInt("AggroState"));
         //this.setListen(nbt.getBoolean("Listen"));
-        if (nbt.contains("HoldPosX")) {
-            int x = nbt.getInt("HoldPosX");
-            int y = nbt.getInt("HoldPosY");
-            int z = nbt.getInt("HoldPosZ");
-            BlockPos blockPos = new BlockPos(x, y, z);
-            this.setHoldPos(blockPos);
-        }
 
+        if (nbt.contains("HoldX", 99) && nbt.contains("HoldY", 99) && nbt.contains("HoldZ", 99)) {
+            BlockPos blockpos = new BlockPos(nbt.getInt("HoldX"), nbt.getInt("HoldY"), nbt.getInt("HoldZ"));
+            this.setHoldPos(blockpos);
+        }
         if(!level.isClientSide)
             this.readPersistentAngerSaveData((ServerWorld)this.level, nbt);
     }
@@ -230,8 +227,8 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     }
 
     @Nullable
-    public BlockPos getHoldPos(){
-        return entityData.get(HOLD_POS).orElse(null);
+    public Optional<BlockPos> getHoldPos(){
+        return entityData.get(HOLD_POS);
     }
 
     @Nullable

@@ -46,7 +46,7 @@ public class ModEntityTypes {
                     .setTrackingRange(32)
                     .setShouldReceiveVelocityUpdates(true)
                     .build(new ResourceLocation(Main.MOD_ID, "crossbowman").toString()));
-
+/*
     public static final RegistryObject<EntityType<ArcherEntity>> ARCHER = ENTITY_TYPES.register("archer",
             () -> EntityType.Builder.of(ArcherEntity::new, EntityClassification.CREATURE)
                     .sized(0.6F, 1.95F)
@@ -54,7 +54,7 @@ public class ModEntityTypes {
                     .setTrackingRange(32)
                     .setShouldReceiveVelocityUpdates(true)
                     .build(new ResourceLocation(Main.MOD_ID, "archer").toString()));
-
+*/
 
 
     public static final RegistryObject<EntityType<NomadEntity>> NOMAD = ENTITY_TYPES.register("nomad",
