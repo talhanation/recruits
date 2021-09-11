@@ -1,4 +1,4 @@
-package com.talhanation.mercenaries.init;
+package com.talhanation.recruits.init;
 
 public class ModSounds {
 }
