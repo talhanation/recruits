@@ -105,8 +105,8 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         this.goalSelector.addGoal(2, new RecruitUseShield(this));
         //this.goalSelector.addGoal(2, new RecruitMountGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
-        this.goalSelector.addGoal(4, new RecruitMeleeAttackGoal(this, 1.15D, true));
-        this.goalSelector.addGoal(5, new RecruitFollowOwnerGoal(this, 1.2D, 9.0F, 3.0F));
+        this.goalSelector.addGoal(4, new RecruitFollowOwnerGoal(this, 1.2D, 9.0F, 3.0F));
+        this.goalSelector.addGoal(5, new RecruitMeleeAttackGoal(this, 1.15D, true));
         this.goalSelector.addGoal(6, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
         this.goalSelector.addGoal(7, new RecruitMoveTowardsTargetGoal(this, 1.15D, 24.0F));
         this.goalSelector.addGoal(8, new ReturnToVillageGoal(this, 0.6D, false));
@@ -150,30 +150,50 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     }
     @Override
     public void addAdditionalSaveData(CompoundNBT nbt) {
-        super.addAdditionalSaveData(nbt);
-        this.addPersistentAngerSaveData(nbt);
+
+
         nbt.putInt("FollowState", this.getFollow());
         //nbt.putInt("AggroState", this.getState());
         //nbt.putBoolean("Listen", this.getListen());
+
         this.getHoldPos().ifPresent((pos) -> {
-            nbt.putInt("HoldX", pos.getX());
-            nbt.putInt("HoldY", pos.getY());
-            nbt.putInt("HoldZ", pos.getZ());
+            nbt.putInt("HoldPosX", pos.getX());
+            nbt.putInt("HoldPosY", pos.getY());
+            nbt.putInt("HoldPosZ", pos.getZ());
         });
+        super.addAdditionalSaveData(nbt);
+        this.addPersistentAngerSaveData(nbt);
     }
     @Override
     public void readAdditionalSaveData(CompoundNBT nbt) {
-        super.readAdditionalSaveData(nbt);
+
         if (nbt.contains("FollowState")) this.setFollow(nbt.getInt("FollowState"));
         //if (nbt.contains("AggroState")) this.setState(nbt.getInt("AggroState"));
         //this.setListen(nbt.getBoolean("Listen"));
 
-        if (nbt.contains("HoldX", 99) && nbt.contains("HoldY", 99) && nbt.contains("HoldZ", 99)) {
-            BlockPos blockpos = new BlockPos(nbt.getInt("HoldX"), nbt.getInt("HoldY"), nbt.getInt("HoldZ"));
+        if (nbt.contains("HoldPosX", 99) &&
+                nbt.contains("HoldPosY", 99) &&
+                nbt.contains("HoldPosZ", 99)) {
+            BlockPos blockpos = new BlockPos(
+                    nbt.getInt("HoldX"),
+                    nbt.getInt("HoldY"),
+                    nbt.getInt("HoldZ"));
             this.setHoldPos(blockpos);
         }
+        super.readAdditionalSaveData(nbt);
         if(!level.isClientSide)
             this.readPersistentAngerSaveData((ServerWorld)this.level, nbt);
+    }
+
+    @Override
+    public void onSyncedDataUpdated(DataParameter<?> dataParameter) {
+        super.onSyncedDataUpdated(dataParameter);
+        if (HOLD_POS.equals(dataParameter)) {
+            if (this.level.isClientSide) {
+                this.getHoldPos().ifPresent(this::setHoldPos);
+            }
+        }
+
     }
 
     ////////////////////////////////////GET////////////////////////////////////
@@ -226,7 +246,6 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         return this.persistentAngerTarget;
     }
 
-    @Nullable
     public Optional<BlockPos> getHoldPos(){
         return entityData.get(HOLD_POS);
     }
@@ -271,8 +290,10 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     public void setFollow(int state){
         switch (state){
             case 0:
+                clearHoldPos();
                 break;
             case 1:
+                clearHoldPos();
                 break;
             case 2:
                 setHoldPos(this.getOnPos());
@@ -282,11 +303,19 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     }
 
     public void setHoldPos(BlockPos holdPos){
-        entityData.set(HOLD_POS, Optional.of(holdPos));
+        this.entityData.set(HOLD_POS, Optional.of(holdPos));
+    }
+
+    public void clearHoldPos(){
+        this.entityData.set(HOLD_POS, Optional.empty());
     }
 
     public void setMovePos(BlockPos holdPos){
-        entityData.set(MOVE_POS, Optional.of(holdPos));
+        this.entityData.set(MOVE_POS, Optional.of(holdPos));
+    }
+
+    public void clearMovePos(){
+        this.entityData.set(MOVE_POS, Optional.empty());
     }
 
     public void setMove(boolean bool) {
