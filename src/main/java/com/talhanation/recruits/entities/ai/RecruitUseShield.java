@@ -79,3 +79,5 @@ public class RecruitUseShield extends Goal {
         return false;
     }
 }
+//wenn folgen und spieler weiter weg ist zu recruit als target es ist ---> false
+// oder ein bool auslösenn in followAI und hier abchecken

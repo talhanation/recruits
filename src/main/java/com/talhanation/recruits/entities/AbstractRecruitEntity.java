@@ -153,7 +153,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         super.addAdditionalSaveData(nbt);
 
         nbt.putInt("FollowState", this.getFollow());
-        //nbt.putInt("AggroState", this.getState());
+        nbt.putInt("AggroState", this.getState());
         //nbt.putBoolean("Listen", this.getListen());
 
         this.getHoldPos().ifPresent((pos) -> {
@@ -172,12 +172,12 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         //this.setListen(nbt.getBoolean("Listen"));
 
         if (nbt.contains("HoldPosX", 99) &&
-                nbt.contains("HoldPosY", 99) &&
-                nbt.contains("HoldPosZ", 99)) {
+            nbt.contains("HoldPosY", 99) &&
+            nbt.contains("HoldPosZ", 99)) {
             BlockPos blockpos = new BlockPos(
-                    nbt.getInt("HoldX"),
-                    nbt.getInt("HoldY"),
-                    nbt.getInt("HoldZ"));
+                    nbt.getInt("HoldPosX"),
+                    nbt.getInt("HoldPosY"),
+                    nbt.getInt("HoldPosZ"));
             this.setHoldPos(blockpos);
         }
 
@@ -280,10 +280,8 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     public void setFollow(int state){
         switch (state){
             case 0:
-                clearHoldPos();
                 break;
             case 1:
-                clearHoldPos();
                 break;
             case 2:
                 setHoldPos(this.getOnPos());
