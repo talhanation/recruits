@@ -18,7 +18,7 @@ public class RecruitUseShield extends Goal {
     }
 
     public boolean canUse() {
-       return (this.recruit.getItemInHand(Hand.OFF_HAND).getItem().isShield(this.recruit.getItemInHand(Hand.OFF_HAND), this.recruit) && canRaiseShield());
+       return (this.recruit.getItemInHand(Hand.OFF_HAND).getItem().isShield(this.recruit.getItemInHand(Hand.OFF_HAND), this.recruit) && canRaiseShield() && !recruit.isFollowing());
     }
 
     public boolean canContinueToUse() {
@@ -68,7 +68,7 @@ public class RecruitUseShield extends Goal {
                 return false;
             }
 
-            if ( itemInHand instanceof BowItem && !isClose || (itemInHand instanceof CrossbowItem && CrossbowItem.isCharged(itemStackinHand) )  && inRange){
+            if ( (itemInHand instanceof BowItem && !isClose && target.isUsingItem()) || (itemInHand instanceof CrossbowItem && CrossbowItem.isCharged(itemStackinHand) )  && inRange){
                 return true;
             }
 
@@ -79,5 +79,3 @@ public class RecruitUseShield extends Goal {
         return false;
     }
 }
-//wenn folgen und spieler weiter weg ist zu recruit als target es ist ---> false
-// oder ein bool auslösenn in followAI und hier abchecken

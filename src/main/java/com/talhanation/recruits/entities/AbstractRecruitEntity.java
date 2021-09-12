@@ -1,7 +1,6 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.entities.ai.*;
-import jdk.nashorn.internal.ir.Block;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.Attributes;
@@ -14,7 +13,6 @@ import net.minecraft.entity.projectile.AbstractArrowEntity;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.*;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -44,6 +42,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     private static final DataParameter<Optional<BlockPos>> MOVE_POS = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.OPTIONAL_BLOCK_POS);
     private static final DataParameter<Boolean> MOVE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
     private static final DataParameter<Boolean> LISTEN = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
+    private static final DataParameter<Boolean> isFollowing = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
     private static final DataParameter<Optional<UUID>> MOUNT = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.OPTIONAL_UUID);
     private static final RangedInteger PERSISTENT_ANGER_TIME = TickRangeConverter.rangeOfSeconds(20, 39);
     private static final DataParameter<Integer> GROUP = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
@@ -137,6 +136,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         this.entityData.define(MOVE, true);
         this.entityData.define(LISTEN, true);
         this.entityData.define(MOUNT, Optional.empty());
+        this.entityData.define(isFollowing, false);
         //STATE
         // 0=NEUTRAL
         // 1=AGGRESSIVE
@@ -154,7 +154,8 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
         nbt.putInt("FollowState", this.getFollow());
         nbt.putInt("AggroState", this.getState());
-        //nbt.putBoolean("Listen", this.getListen());
+        nbt.putBoolean("Listen", this.getListen());
+        nbt.putBoolean("isFollowing", this.isFollowing());
 
         this.getHoldPos().ifPresent((pos) -> {
             nbt.putInt("HoldPosX", pos.getX());
@@ -167,9 +168,21 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     @Override
     public void readAdditionalSaveData(CompoundNBT nbt) {
         super.readAdditionalSaveData(nbt);
-        if (nbt.contains("FollowState",1)) this.setFollow(nbt.getInt("FollowState"));
-        if (nbt.contains("AggroState",1)) this.setState(nbt.getInt("AggroState"));
-        //this.setListen(nbt.getBoolean("Listen"));
+        if (nbt.contains("FollowState",1)){
+            this.setFollow(nbt.getInt("FollowState"));
+        }
+
+        if (nbt.contains("AggroState",1)) {
+            this.setState(nbt.getInt("AggroState"));
+        }
+
+        if (nbt.contains("Listen", 1)) {
+            this.setListen(nbt.getBoolean("Listen"));
+        }
+
+        if (nbt.contains("isFollowing", 1)) {
+            this.setIsFollowing(nbt.getBoolean("isFollowing"));
+        }
 
         if (nbt.contains("HoldPosX", 99) &&
             nbt.contains("HoldPosY", 99) &&
@@ -187,6 +200,10 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
 
     ////////////////////////////////////GET////////////////////////////////////
+
+    public boolean isFollowing(){
+        return entityData.get(isFollowing);
+    }
 
     public int getState() {
         return entityData.get(STATE);
@@ -259,6 +276,10 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     }
 
     ////////////////////////////////////SET////////////////////////////////////
+
+    public void setIsFollowing(boolean bool){
+        entityData.set(isFollowing, bool);
+    }
 
     public void setGroup(int group){
         entityData.set(GROUP, group);

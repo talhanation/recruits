@@ -69,12 +69,14 @@ public class RecruitFollowOwnerGoal extends Goal {
         this.timeToRecalcPath = 0;
         this.oldWaterCost = this.recruitEntity.getPathfindingMalus(PathNodeType.WATER);
         this.recruitEntity.setPathfindingMalus(PathNodeType.WATER, 0.0F);
+        this.recruitEntity.setIsFollowing(true);
     }
 
     public void stop() {
         this.owner = null;
         this.navigation.stop();
         this.recruitEntity.setPathfindingMalus(PathNodeType.WATER, this.oldWaterCost);
+        this.recruitEntity.setIsFollowing(false);
     }
 
     public void tick() {
