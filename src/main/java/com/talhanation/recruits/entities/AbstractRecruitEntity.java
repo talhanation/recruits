@@ -150,7 +150,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     }
     @Override
     public void addAdditionalSaveData(CompoundNBT nbt) {
-
+        super.addAdditionalSaveData(nbt);
 
         nbt.putInt("FollowState", this.getFollow());
         //nbt.putInt("AggroState", this.getState());
@@ -161,14 +161,14 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
             nbt.putInt("HoldPosY", pos.getY());
             nbt.putInt("HoldPosZ", pos.getZ());
         });
-        super.addAdditionalSaveData(nbt);
+
         this.addPersistentAngerSaveData(nbt);
     }
     @Override
     public void readAdditionalSaveData(CompoundNBT nbt) {
-
-        if (nbt.contains("FollowState")) this.setFollow(nbt.getInt("FollowState"));
-        //if (nbt.contains("AggroState")) this.setState(nbt.getInt("AggroState"));
+        super.readAdditionalSaveData(nbt);
+        if (nbt.contains("FollowState",1)) this.setFollow(nbt.getInt("FollowState"));
+        if (nbt.contains("AggroState",1)) this.setState(nbt.getInt("AggroState"));
         //this.setListen(nbt.getBoolean("Listen"));
 
         if (nbt.contains("HoldPosX", 99) &&
@@ -180,21 +180,11 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
                     nbt.getInt("HoldZ"));
             this.setHoldPos(blockpos);
         }
-        super.readAdditionalSaveData(nbt);
+
         if(!level.isClientSide)
             this.readPersistentAngerSaveData((ServerWorld)this.level, nbt);
     }
 
-    @Override
-    public void onSyncedDataUpdated(DataParameter<?> dataParameter) {
-        super.onSyncedDataUpdated(dataParameter);
-        if (HOLD_POS.equals(dataParameter)) {
-            if (this.level.isClientSide) {
-                this.getHoldPos().ifPresent(this::setHoldPos);
-            }
-        }
-
-    }
 
     ////////////////////////////////////GET////////////////////////////////////
 
