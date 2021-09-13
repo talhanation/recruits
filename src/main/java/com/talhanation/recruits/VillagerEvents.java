@@ -38,11 +38,11 @@ public class VillagerEvents {
             if (profession == Main.BOWMAN){
                 createBowman(villager);
             }
-            /*
+
             if (profession == Main.NOMAD){
                 createNomad(villager);
             }
-            */
+
             if (profession == Main.RECRUIT_SHIELDMAN){
                 createRecruitShieldman(villager);
             }

@@ -65,4 +65,5 @@ public class ModEntityTypes {
                     .setShouldReceiveVelocityUpdates(true)
                     .build(new ResourceLocation(Main.MOD_ID, "nomad").toString()));
 
+
 }

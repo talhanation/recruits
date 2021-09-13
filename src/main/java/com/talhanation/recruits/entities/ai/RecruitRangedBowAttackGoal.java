@@ -74,7 +74,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & IRangedAttackMo
             if (!(d0 > (double)this.attackRadiusSqr) && this.seeTime >= 15) {
                 this.mob.getNavigation().stop();
             } else {
-                if(this.mob.getFollow() != 2)
+                if(!this.mob.getShouldHoldPos())
                 this.mob.getNavigation().moveTo(livingentity, this.speedModifier);
             }
 

@@ -72,6 +72,7 @@ public class Main {
 
     @SuppressWarnings("deprecation")
     private void setup(final FMLCommonSetupEvent event) {
+        MinecraftForge.EVENT_BUS.register(new RecruitEvents());
         MinecraftForge.EVENT_BUS.register(new VillagerEvents());
         MinecraftForge.EVENT_BUS.register(new PillagerEvents());
         MinecraftForge.EVENT_BUS.register(new CommandEvents());

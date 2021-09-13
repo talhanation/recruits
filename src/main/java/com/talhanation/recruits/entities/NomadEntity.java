@@ -107,14 +107,13 @@ public class NomadEntity extends BowmanEntity{
     public void createMount(IServerWorld world, DifficultyInstance difficultyInstance, SpawnReason reason, @Nullable ILivingEntityData data, @Nullable CompoundNBT nbt){
         HorseEntity horse = EntityType.HORSE.create(this.level);
         horse.finalizeSpawn(world, difficultyInstance, SpawnReason.TRIGGERED, (ILivingEntityData)null, null);
-        horse.canRiderInteract();
-        horse.canBeControlledByRider();
         horse.moveTo(this.getX(), this.getY(), this.getZ(), this.yRot, 0.0F);
         horse.setTamed(true);
         horse.equipSaddle(null);
         horse.setPersistenceRequired();
         horse.setAge(0);
         horse.setOwnerUUID(this.getUUID());
-        world.addFreshEntityWithPassengers(horse);
+        this.startRiding(horse);
+        world.addFreshEntity(horse);
     }
 }

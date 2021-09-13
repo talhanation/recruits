@@ -4,11 +4,8 @@ import java.util.EnumSet;
 import java.util.Objects;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.entities.RecruitEntity;
-import net.minecraft.entity.CreatureEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.passive.horse.AbstractHorseEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.pathfinding.Path;
 import net.minecraft.util.EntityPredicates;
@@ -71,7 +68,7 @@ public class RecruitMeleeAttackGoal extends Goal {
         LivingEntity livingentity = this.mob.getTarget();
         if (livingentity == null) {
             return false;
-        } else if (!livingentity.position().closerThan(mob.position(), 8D) && this.mob.getFollow() ==2) {
+        } else if (!livingentity.position().closerThan(mob.position(), 8D) && this.mob.getShouldHoldPos()) {
             return false;
         } else if (!livingentity.isAlive()) {
             return false;
@@ -86,7 +83,7 @@ public class RecruitMeleeAttackGoal extends Goal {
 
     public void start() {
         LivingEntity target = this.mob.getTarget();
-        if ((mob.getFollow() != 2) || target.position().closerThan(mob.position(), 8D)) {
+        if ((!mob.getShouldHoldPos()) || target.position().closerThan(mob.position(), 8D)) {
             this.mob.getNavigation().moveTo(this.path, this.speedModifier);
             this.mob.setAggressive(true);
             this.ticksUntilNextPathRecalculation = 0;

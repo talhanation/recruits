@@ -1,9 +1,7 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.client.events.KeyEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityPredicate;
 import net.minecraft.entity.ai.goal.Goal;
 
 import java.util.EnumSet;
@@ -44,7 +42,7 @@ public class RecruitMountGoal extends Goal {
                 this.recruit.getNavigation().moveTo(mount.getX(), mount.getY(), mount.getZ(), this.speedModifier);
 
                 if (mount.closerThan(this.recruit, 2)) {
-                    recruit.setFollow(0);
+                    recruit.setShouldFollow(false);
 
                     recruit.startRiding(mount);
                 }

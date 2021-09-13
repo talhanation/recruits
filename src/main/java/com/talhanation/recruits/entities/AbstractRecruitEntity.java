@@ -37,7 +37,9 @@ import java.util.UUID;
 public abstract class AbstractRecruitEntity extends TameableEntity implements IAngerable {
     private static final DataParameter<Integer> DATA_REMAINING_ANGER_TIME = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> STATE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
-    private static final DataParameter<Integer> FOLLOW = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
+    private static final DataParameter<Integer> FOLLOW_STATE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
+    private static final DataParameter<Boolean> SHOULD_FOLLOW = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
+    private static final DataParameter<Boolean> SHOULD_HOLD_POS = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
     private static final DataParameter<Optional<BlockPos>> HOLD_POS = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.OPTIONAL_BLOCK_POS);
     private static final DataParameter<Optional<BlockPos>> MOVE_POS = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.OPTIONAL_BLOCK_POS);
     private static final DataParameter<Boolean> MOVE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
@@ -69,6 +71,12 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         super.tick();
         updateSwingTime();
         updateSwimming();
+        /*
+        if (getFollow() == 2) {
+            BlockPos blockpos = this.getOnPos();
+            this.setHoldPos(blockpos);
+        }
+        */
     }
 
     public void rideTick() {
@@ -129,8 +137,9 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         super.defineSynchedData();
         this.entityData.define(DATA_REMAINING_ANGER_TIME, 0);
         this.entityData.define(GROUP, 0);
-        this.entityData.define(FOLLOW, 0);
+        this.entityData.define(SHOULD_FOLLOW, false);
         this.entityData.define(STATE, 0);
+        this.entityData.define(FOLLOW_STATE, 0);
         this.entityData.define(HOLD_POS, Optional.empty());
         this.entityData.define(MOVE_POS, Optional.empty());
         this.entityData.define(MOVE, true);
@@ -138,9 +147,8 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         this.entityData.define(MOUNT, Optional.empty());
         this.entityData.define(isFollowing, false);
         //STATE
-        // 0=NEUTRAL
-        // 1=AGGRESSIVE
-        // 2= RAID
+        // 1 = AGGRESSIVE
+        // 2 = RAID
 
         //FOLLOW
         //0 = false
@@ -152,47 +160,41 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     public void addAdditionalSaveData(CompoundNBT nbt) {
         super.addAdditionalSaveData(nbt);
 
-        nbt.putInt("FollowState", this.getFollow());
         nbt.putInt("AggroState", this.getState());
+        nbt.putBoolean("ShouldFollow", this.getShouldFollow());
+        nbt.putBoolean("ShouldHoldPos", this.getShouldHoldPos());
+        nbt.putBoolean("Listen", this.getListen());
         nbt.putBoolean("Listen", this.getListen());
         nbt.putBoolean("isFollowing", this.isFollowing());
 
-        this.getHoldPos().ifPresent((pos) -> {
-            nbt.putInt("HoldPosX", pos.getX());
-            nbt.putInt("HoldPosY", pos.getY());
-            nbt.putInt("HoldPosZ", pos.getZ());
-        });
+        if(this.getHoldPos() != null){
+            nbt.putInt("TresX", this.getHoldPos().getX());
+            nbt.putInt("TresY", this.getHoldPos().getY());
+            nbt.putInt("TresZ", this.getHoldPos().getZ());
+        }
 
         this.addPersistentAngerSaveData(nbt);
     }
+
     @Override
     public void readAdditionalSaveData(CompoundNBT nbt) {
         super.readAdditionalSaveData(nbt);
-        if (nbt.contains("FollowState",1)){
-            this.setFollow(nbt.getInt("FollowState"));
-        }
 
-        if (nbt.contains("AggroState",1)) {
-            this.setState(nbt.getInt("AggroState"));
-        }
+        this.setState(nbt.getInt("AggroState"));
+        this.setShouldFollow(nbt.getBoolean("ShouldFollow"));
+        this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
+        this.setListen(nbt.getBoolean("Listen"));
+        this.setIsFollowing(nbt.getBoolean("isFollowing"));
 
-        if (nbt.contains("Listen", 1)) {
-            this.setListen(nbt.getBoolean("Listen"));
-        }
-
-        if (nbt.contains("isFollowing", 1)) {
-            this.setIsFollowing(nbt.getBoolean("isFollowing"));
-        }
-
-        if (nbt.contains("HoldPosX", 99) &&
-            nbt.contains("HoldPosY", 99) &&
-            nbt.contains("HoldPosZ", 99)) {
-            BlockPos blockpos = new BlockPos(
+        if (nbt.contains("HoldPosX") &&
+                nbt.contains("HoldPosY") &&
+                nbt.contains("HoldPosZ")) {
+            this.setHoldPos(new BlockPos (
                     nbt.getInt("HoldPosX"),
                     nbt.getInt("HoldPosY"),
-                    nbt.getInt("HoldPosZ"));
-            this.setHoldPos(blockpos);
+                    nbt.getInt("HoldPosZ")));
         }
+
 
         if(!level.isClientSide)
             this.readPersistentAngerSaveData((ServerWorld)this.level, nbt);
@@ -200,6 +202,14 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
 
     ////////////////////////////////////GET////////////////////////////////////
+
+    public boolean getShouldHoldPos() {
+        return entityData.get(SHOULD_HOLD_POS);
+    }
+
+    public boolean getShouldFollow() {
+        return entityData.get(SHOULD_FOLLOW);
+    }
 
     public boolean isFollowing(){
         return entityData.get(isFollowing);
@@ -213,8 +223,8 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         return entityData.get(GROUP);
     }
 
-    public int getFollow(){
-        return entityData.get(FOLLOW);
+    public int getFollowState(){
+        return entityData.get(FOLLOW_STATE);
     }
 
 
@@ -253,8 +263,8 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         return this.persistentAngerTarget;
     }
 
-    public Optional<BlockPos> getHoldPos(){
-        return entityData.get(HOLD_POS);
+    public BlockPos getHoldPos(){
+        return entityData.get(HOLD_POS).orElse(null);
     }
 
     @Nullable
@@ -277,6 +287,14 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
     ////////////////////////////////////SET////////////////////////////////////
 
+    public void setShouldHoldPos(boolean bool){
+        entityData.set(SHOULD_HOLD_POS, bool);
+    }
+
+    public void setShouldFollow(boolean bool){
+            entityData.set(SHOULD_FOLLOW, bool);
+    }
+
     public void setIsFollowing(boolean bool){
         entityData.set(isFollowing, bool);
     }
@@ -298,17 +316,25 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         entityData.set(STATE, state);
     }
 
-    public void setFollow(int state){
+    public void setFollowState(int state){
         switch (state){
             case 0:
+                setShouldFollow(false);
+                setShouldHoldPos(false);
+                clearHoldPos();
                 break;
             case 1:
+                setShouldFollow(true);
+                setShouldHoldPos(false);
+                clearHoldPos();
                 break;
             case 2:
-                setHoldPos(this.getOnPos());
+                setShouldFollow(false);
+                setShouldHoldPos(true);
+                if(this.getHoldPos() == null) setHoldPos(this.getOnPos());
                 break;
         }
-        entityData.set(FOLLOW, state);
+        entityData.set(FOLLOW_STATE, state);
     }
 
     public void setHoldPos(BlockPos holdPos){
@@ -390,18 +416,18 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
                     return ActionResultType.SUCCESS;
                 }
                 if(!player.isCrouching()) {
-                    int state = this.getFollow();
+                    int state = this.getFollowState();
                     switch (state) {
                         case 0:
-                            setFollow(1);
+                            setFollowState(1);
                             player.sendMessage(new StringTextComponent("I will follow you"), player.getUUID());
                             break;
                         case 1:
-                            setFollow(2);
+                            setFollowState(2);
                             player.sendMessage(new StringTextComponent("Im will hold this Position"), player.getUUID());
                             break;
                         case 2:
-                            setFollow(0);
+                            setFollowState(0);
                             player.sendMessage(new StringTextComponent("Im will stay here around"), player.getUUID());
                             break;
                     }
@@ -420,7 +446,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
                     this.navigation.stop();
                     this.setTarget(null);
                     this.setOrderedToSit(false);
-                    this.setFollow(0);
+                    this.setFollowState(1);
                     this.setState(0);
                     this.level.broadcastEntityEvent(this, (byte)7);
                     return ActionResultType.SUCCESS;

@@ -38,7 +38,7 @@ public class RecruitMoveToPosGoal extends Goal {
         }
 
         if(blockpos.closerThan(recruit.position(), 3)){
-            recruit.setFollow(0);
+            recruit.setShouldFollow(false);
             recruit.setMove(false);
         }
     }

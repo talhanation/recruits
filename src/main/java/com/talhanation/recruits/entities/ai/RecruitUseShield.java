@@ -3,7 +3,6 @@ package com.talhanation.recruits.entities.ai;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.entity.IRangedAttackMob;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.attributes.Attribute;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.monster.MonsterEntity;

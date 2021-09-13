@@ -10,22 +10,22 @@ public class CommandEvents {
 
     public static void onRKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit, int r_state, int group) {
         if (recruit.isTame() && recruit.getListen() &&  Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
-            int state = recruit.getFollow();
+            int state = recruit.getFollowState();
             switch (r_state) {
 
                 case 0:
                     if (state != 0)
-                        recruit.setFollow(0);
+                        recruit.setFollowState(0);
                     break;
 
                 case 1:
                     if (state != 1)
-                        recruit.setFollow(1);
+                        recruit.setFollowState(1);
                     break;
 
                 case 2:
                     if (state != 2)
-                        recruit.setFollow(2);
+                        recruit.setFollowState(2);
                     break;
 
 

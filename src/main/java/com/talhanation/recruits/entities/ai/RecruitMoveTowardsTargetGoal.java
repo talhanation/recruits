@@ -27,7 +27,7 @@ public class RecruitMoveTowardsTargetGoal extends Goal {
 
     public boolean canUse() {
         this.target = this.recruit.getTarget();
-        if (this.recruit.getFollow() == 2){
+        if (this.recruit.getShouldHoldPos()){
             return false;
         }
 
@@ -49,7 +49,7 @@ public class RecruitMoveTowardsTargetGoal extends Goal {
     }
 
     public boolean canContinueToUse() {
-        if (this.recruit.getFollow() == 2){
+        if (this.recruit.getShouldFollow()){
             return false;
         }
         return !this.recruit.getNavigation().isDone() && this.target.isAlive() && this.target.distanceToSqr(this.recruit) < (double)(this.within * this.within);
@@ -60,7 +60,7 @@ public class RecruitMoveTowardsTargetGoal extends Goal {
     }
 
     public void start() {
-        if (this.recruit.getFollow() != 2) {
+        if (!this.recruit.getShouldFollow()) {
         this.recruit.getNavigation().moveTo(this.wantedX, this.wantedY, this.wantedZ, this.speedModifier);
         }
     }
