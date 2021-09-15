@@ -1,7 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.mixin.AbstractHorseEntityMixin;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.passive.horse.AbstractHorseEntity;
 
@@ -14,12 +13,12 @@ public class HorseAIRecruitRide extends Goal {
     public HorseAIRecruitRide(AbstractHorseEntity horse, double speed) {
         this.horse = horse;
         this.speed = speed;
+        this.recruit = (AbstractRecruitEntity) horse.getControllingPassenger();
     }
 
     @Override
     public boolean canUse() {
         if(horse.getControllingPassenger() instanceof AbstractRecruitEntity){
-            recruit = ((AbstractHorseEntityMixin)horse).getControllingRecruit();
             return true;
         }
         return false;

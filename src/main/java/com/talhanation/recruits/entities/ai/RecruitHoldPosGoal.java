@@ -10,22 +10,18 @@ import java.util.EnumSet;
 public class RecruitHoldPosGoal extends Goal {
     private final AbstractRecruitEntity recruit;
     private final double speedModifier;
-    private final double within;
 
     public RecruitHoldPosGoal(AbstractRecruitEntity recruit, double v, double within) {
       this.recruit = recruit;
       this.speedModifier = v;
-      this.within = within;
       this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
+
     public boolean canUse() {
         if (this.recruit.getHoldPos() == null) {
             return false;
         }
-        else if (recruit.getFollowState() != 2){
-            return false;
-        }
-        else if (this.recruit.getHoldPos().closerThan(recruit.position(), within) && this.recruit.getShouldHoldPos())
+        else if (this.recruit.getHoldPos().closerThan(recruit.position(), 99) && this.recruit.getShouldHoldPos())
             return true;
         else
             return false;
