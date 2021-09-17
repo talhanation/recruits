@@ -9,10 +9,7 @@ import com.talhanation.recruits.entities.RecruitShieldmanEntity;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModItems;
-import com.talhanation.recruits.network.MessageAttack;
-import com.talhanation.recruits.network.MessageClearTarget;
-import com.talhanation.recruits.network.MessageFollow;
-import com.talhanation.recruits.network.MessageMove;
+import com.talhanation.recruits.network.*;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.ai.attributes.GlobalEntityTypeAttributes;
 import net.minecraft.entity.merchant.villager.VillagerProfession;
@@ -95,6 +92,11 @@ public class Main {
         SIMPLE_CHANNEL.registerMessage(3, MessageClearTarget.class, MessageClearTarget::toBytes,
                 buf -> (new MessageClearTarget()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
+
+        SIMPLE_CHANNEL.registerMessage(4, MessageListen.class, MessageListen::toBytes,
+                buf -> (new MessageListen()).fromBytes(buf),
+                (msg, fun) -> msg.executeServerSide(fun.get()));
+
 
         DeferredWorkQueue.runLater(() -> {
             GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT.get(), RecruitEntity.setAttributes().build());

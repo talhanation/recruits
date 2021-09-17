@@ -1,6 +1,8 @@
 package com.talhanation.recruits.entities;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.ai.*;
+import com.talhanation.recruits.network.MessageListen;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.Attributes;
@@ -399,6 +401,16 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
             if (this.isTame() && player.getUUID().equals(this.getOwnerUUID())) {
 
                 if (player.isCrouching()) {
+
+                    if (getListen()) {
+                        player.sendMessage(new StringTextComponent("I will not Listen your Commands"), player.getUUID());
+                        setListen(false);
+                    }
+                    else {
+                        player.sendMessage(new StringTextComponent("I will Listen your Commands"), player.getUUID());
+                        setListen(true);
+                    }
+                    /*
                     int state = this.getState();
 
                     switch (state) {
@@ -415,6 +427,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
                             player.sendMessage(new StringTextComponent("I will be Neutral"), player.getUUID());
                             break;
                     }
+                    */
                     return ActionResultType.SUCCESS;
                 }
                 if(!player.isCrouching()) {
@@ -624,6 +637,14 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         super.hurtArmor(p_230294_1_, p_230294_2_);
     }
     */
+
+    public void sendListenToServer(boolean start) {
+        if (level.isClientSide) {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(start, this.getUUID()));
+        }
+    }
+
+
 
     @Override
     protected void hurtCurrentlyUsedShield(float damage) {
