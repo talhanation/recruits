@@ -556,10 +556,15 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
                         if (target.getUUID() == this.getOwnerUUID()){
                             return false;
                         }
-                        else if (target.getTeam() == Objects.requireNonNull(this.getOwner()).getTeam()) {
+                        if (target.getTeam() == Objects.requireNonNull(this.getOwner()).getTeam()) {
                             return false;
                         }
                         else return true;
+                    }
+                    if (target instanceof AbstractRecruitEntity) {
+                        if (((AbstractRecruitEntity) target).getOwnerUUID() == this.getOwnerUUID()) {
+                            return false;
+                        }
                     }
                 }
                 break;
@@ -664,5 +669,13 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
                 }
             }
         }
+    }
+
+
+    public static boolean canDamageTarget(AbstractRecruitEntity recruit, LivingEntity target) {
+        if (recruit.isTame() && target instanceof AbstractRecruitEntity) {
+            return !recruit.getOwnerUUID().equals(((AbstractRecruitEntity) target).getOwnerUUID());
+        } else
+            return true;
     }
 }

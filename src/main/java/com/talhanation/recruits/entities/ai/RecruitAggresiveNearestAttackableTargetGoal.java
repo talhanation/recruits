@@ -52,15 +52,13 @@ public class RecruitAggresiveNearestAttackableTargetGoal<T extends LivingEntity>
                 }
             }
             //OTHER RECRUITS
-            else if (target instanceof AbstractRecruitEntity){
+            if (target instanceof AbstractRecruitEntity){
                 if(((AbstractRecruitEntity) target).isTame())    {
-                    if (!(target.getTeam() == Objects.requireNonNull(recruit.getOwner()).getTeam()))
-                        return true;
-
-                    if (!(((AbstractRecruitEntity) target).getOwnerUUID() == recruit.getOwnerUUID()))
-                        return true;
+                    if(target.getTeam() != null) {
+                        return !(target.getTeam() == recruit.getOwner().getTeam());
+                    }
                     else
-                        return false;
+                    return !(((AbstractRecruitEntity) target).getOwnerUUID() == recruit.getOwnerUUID());
                 }
                 else return false;
             }

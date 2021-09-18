@@ -33,10 +33,10 @@ minecraft {
             workingDirectory project.file('run')
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
-            /*
+
             Random rnd = new Random()
-            args = ['--username', 'Player' + rnd.nextInt(10)]
-            */
+            args = ['--username', 'Player' + rnd.nextInt(1000)]
+
             mods {
                 examplemod {
                     source sourceSets.main
