@@ -50,6 +50,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     private static final DataParameter<Optional<UUID>> MOUNT = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.OPTIONAL_UUID);
     private static final RangedInteger PERSISTENT_ANGER_TIME = TickRangeConverter.rangeOfSeconds(20, 39);
     private static final DataParameter<Integer> GROUP = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
+    private static final DataParameter<Boolean> SHOULD_EAT = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
     private UUID persistentAngerTarget;
 
     public AbstractRecruitEntity(EntityType<? extends TameableEntity> entityType, World world) {
@@ -73,13 +74,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         super.tick();
         updateSwingTime();
         updateSwimming();
-        /*
-        if (getFollow() == 2) {
-            BlockPos blockpos = this.getOnPos();
-            this.setHoldPos(blockpos);
-        }
-        */
-    }
+   }
 
     public void rideTick() {
         super.rideTick();
@@ -111,6 +106,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new SwimGoal(this));
+        this.goalSelector.addGoal(1, new RecruitEatGoal(this));
         this.goalSelector.addGoal(2, new RecruitUseShield(this));
         //this.goalSelector.addGoal(2, new RecruitMountGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
@@ -170,6 +166,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         nbt.putBoolean("Listen", this.getListen());
         nbt.putBoolean("Listen", this.getListen());
         nbt.putBoolean("isFollowing", this.isFollowing());
+        nbt.putBoolean("ShouldEat", this.getShouldEat());
 
         if(this.getHoldPos() != null){
             nbt.putInt("HoldPosX", this.getHoldPos().getX());
@@ -189,6 +186,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         this.setShouldFollow(nbt.getBoolean("ShouldFollow"));
         this.setListen(nbt.getBoolean("Listen"));
         this.setIsFollowing(nbt.getBoolean("isFollowing"));
+        this.setShouldEat(nbt.getBoolean("ShouldEat"));
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
@@ -206,6 +204,10 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
 
     ////////////////////////////////////GET////////////////////////////////////
+
+    public boolean getShouldEat() {
+        return entityData.get(SHOULD_EAT);
+    }
 
     public boolean getShouldHoldPos() {
         return entityData.get(SHOULD_HOLD_POS);
@@ -290,6 +292,10 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     }
 
     ////////////////////////////////////SET////////////////////////////////////
+
+    public void setShouldEat(boolean bool){
+        entityData.set(SHOULD_EAT, bool);
+    }
 
     public void setShouldHoldPos(boolean bool){
         entityData.set(SHOULD_HOLD_POS, bool);
@@ -574,7 +580,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
                         return false;
                     }
 
-                    if (target.getTeam() == Objects.requireNonNull(this.getOwner()).getTeam()) {
+                    if (target.getTeam() == (this.getOwner()).getTeam()) {
                         return false;
                     }
                 } else if (target instanceof AbstractRecruitEntity) {
@@ -582,7 +588,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
                         return false;
                     }
 
-                    if (target.getTeam() == Objects.requireNonNull(this.getOwner()).getTeam()) {
+                    if (target.getTeam() == (this.getOwner()).getTeam()) {
                         return false;
                     }
 
@@ -593,7 +599,6 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
                 } else
                     return true;
                 break;
-            //case 3:
         }
     return false;
     }

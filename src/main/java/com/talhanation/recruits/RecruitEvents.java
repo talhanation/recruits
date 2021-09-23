@@ -6,6 +6,7 @@ import com.talhanation.recruits.entities.ai.HorseAIRecruitRide;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.passive.horse.AbstractHorseEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
@@ -34,11 +35,19 @@ public class RecruitEvents {
         RayTraceResult rayTrace = event.getRayTraceResult();
         if (entity instanceof ProjectileEntity) {
             ProjectileEntity projectile = (ProjectileEntity)entity;
-            Entity shooter = projectile.getOwner();
+            Entity entity1 = projectile.getOwner();
+
             if (rayTrace.getType() == RayTraceResult.Type.ENTITY) {
-                LivingEntity hitEntity = (LivingEntity) ((EntityRayTraceResult)rayTrace).getEntity();
-                if (shooter instanceof AbstractRecruitEntity && !AbstractRecruitEntity.canDamageTarget((AbstractRecruitEntity)shooter, hitEntity)) {
-                    event.setCanceled(true);
+                LivingEntity impactEntity = (LivingEntity) ((EntityRayTraceResult)rayTrace).getEntity();
+                if (entity1 instanceof AbstractRecruitEntity) {
+                    AbstractRecruitEntity recruit = (AbstractRecruitEntity) entity1;
+
+                    if (!AbstractRecruitEntity.canDamageTarget(recruit, impactEntity)) {
+                        event.setCanceled(true);
+                    }
+                    if (recruit.getOwner() == impactEntity){
+                        event.setCanceled(true);
+                    }
                 }
             }
         }

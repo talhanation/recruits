@@ -47,7 +47,7 @@ public class RecruitAggresiveNearestAttackableTargetGoal<T extends LivingEntity>
                     return true;
                 }
 
-                if (!(target.getTeam() == Objects.requireNonNull(recruit.getOwner()).getTeam())) {
+                if (!(target.getTeam() == (recruit.getOwner()).getTeam())) {
                     return true;
                 }
             }
