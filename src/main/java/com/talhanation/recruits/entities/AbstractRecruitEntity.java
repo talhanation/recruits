@@ -145,6 +145,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         this.entityData.define(LISTEN, true);
         this.entityData.define(MOUNT, Optional.empty());
         this.entityData.define(isFollowing, false);
+        this.entityData.define(SHOULD_EAT, true);
         //STATE
         // 0 = NEUTRAL
         // 1 = AGGRESSIVE

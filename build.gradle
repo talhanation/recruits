@@ -1,12 +1,15 @@
 buildscript {
     repositories {
         maven { url = 'https://files.minecraftforge.net/maven' }
+        maven { url = 'https://repo.spongepowered.org/maven' }
         jcenter()
         mavenCentral()
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1+', changing: true
         classpath group: 'com.github.jengelman.gradle.plugins', name: 'shadow', version: '4.0.4'
+        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+
     }
 }
 
@@ -18,8 +21,9 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
+apply plugin: 'org.spongepowered.mixin'
 
-version = '1.1.0'
+version = '1.1.1'
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.16.5'
 
@@ -33,7 +37,7 @@ minecraft {
             workingDirectory project.file('run')
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
-
+            arg "-mixin.config=recruits.general.mixin.json"//////////////////////////
             Random rnd = new Random()
             args = ['--username', 'Player' + rnd.nextInt(1000)]
 
@@ -48,6 +52,7 @@ minecraft {
             workingDirectory project.file('run')
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
+            arg "-mixin.config=recruits.general.mixin.json"//////////////////////////
 
             mods {
                 examplemod {
@@ -87,6 +92,13 @@ dependencies {
     shadow fg.deobf("de.maxhenkel.corelib:corelib:1.16.5-1.0.5:api")
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.16.5-1.0.5")
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.16.5-1.0.5:javadoc")
+
+    annotationProcessor 'org.spongepowered:mixin:0.8.2:processor'
+    testAnnotationProcessor 'org.spongepowered:mixin:0.8.2:processor'
+}
+
+mixin {
+    add sourceSets.main, "recruits.general.mixin-refmap.json"
 }
 
 jar {
