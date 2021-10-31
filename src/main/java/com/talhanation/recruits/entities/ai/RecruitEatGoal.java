@@ -24,7 +24,7 @@ public class RecruitEatGoal extends Goal {
     public void start() {
         recruit.setItemInHand(Hand.OFF_HAND, Items.COOKED_CHICKEN.getDefaultInstance());
         recruit.startUsingItem(Hand.OFF_HAND);
-        recruit.heal(100);
+        //recruit.heal(100);
     }
 
     @Override

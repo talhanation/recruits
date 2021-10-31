@@ -50,6 +50,8 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     private static final DataParameter<Optional<UUID>> MOUNT = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.OPTIONAL_UUID);
     private static final RangedInteger PERSISTENT_ANGER_TIME = TickRangeConverter.rangeOfSeconds(20, 39);
     private static final DataParameter<Integer> GROUP = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
+    private static final DataParameter<Integer> XP = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
+    private static final DataParameter<Integer> LEVEL = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
     private static final DataParameter<Boolean> SHOULD_EAT = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
     private UUID persistentAngerTarget;
 
@@ -106,7 +108,7 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new SwimGoal(this));
-        this.goalSelector.addGoal(1, new RecruitEatGoal(this));
+        //this.goalSelector.addGoal(1, new RecruitEatGoal(this));
         this.goalSelector.addGoal(2, new RecruitUseShield(this));
         //this.goalSelector.addGoal(2, new RecruitMountGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
@@ -138,6 +140,8 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         this.entityData.define(SHOULD_FOLLOW, false);
         this.entityData.define(SHOULD_HOLD_POS, false);
         this.entityData.define(STATE, 0);
+        this.entityData.define(XP, 0);
+        this.entityData.define(LEVEL, 1);
         this.entityData.define(FOLLOW_STATE, 0);
         this.entityData.define(HOLD_POS, Optional.empty());
         this.entityData.define(MOVE_POS, Optional.empty());
@@ -168,6 +172,8 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         nbt.putBoolean("Listen", this.getListen());
         nbt.putBoolean("isFollowing", this.isFollowing());
         nbt.putBoolean("ShouldEat", this.getShouldEat());
+        nbt.putInt("Xp", this.getXp());
+        nbt.putInt("Level", this.getXpLevel());
 
         if(this.getHoldPos() != null){
             nbt.putInt("HoldPosX", this.getHoldPos().getX());
@@ -188,6 +194,8 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         this.setListen(nbt.getBoolean("Listen"));
         this.setIsFollowing(nbt.getBoolean("isFollowing"));
         this.setShouldEat(nbt.getBoolean("ShouldEat"));
+        this.setXp(nbt.getInt("Xp"));
+        this.setXpLevel(nbt.getInt("XpLevel"));
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
@@ -205,6 +213,14 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
 
     ////////////////////////////////////GET////////////////////////////////////
+
+    public int getXpLevel() {
+        return entityData.get(LEVEL);
+    }
+
+    public int getXp() {
+        return entityData.get(XP);
+    }
 
     public boolean getShouldEat() {
         return entityData.get(SHOULD_EAT);
@@ -234,11 +250,14 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         return entityData.get(FOLLOW_STATE);
     }
 
-
     public SoundEvent getHurtSound(DamageSource ds) {
         if (this.isBlocking())
             return SoundEvents.SHIELD_BLOCK;
         return SoundEvents.VILLAGER_HURT;
+    }
+
+    public void makelevelUpSound() {
+        this.level.playSound(null, this.getX(), this.getY() + 4 , this.getZ(), SoundEvents.VILLAGER_CELEBRATE, this.getSoundSource(), 15.0F, 0.8F + 0.4F * this.random.nextFloat());
     }
 
     protected SoundEvent getDeathSound() {
@@ -293,6 +312,39 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
     }
 
     ////////////////////////////////////SET////////////////////////////////////
+
+    public void checkLevel(){
+        int currentXp = this.getXp();
+        if (currentXp >= 20){
+            this.addXpLevel(1);
+            this.setXp(0);
+            this.addLevelBuffs();
+            this.heal(10F);
+        }
+    }
+
+    public void addXpLevel(int level){
+        int currentLevel = this.getXpLevel();
+        int newLevel = currentLevel + level;
+        makelevelUpSound();
+        this.entityData.set(LEVEL, newLevel);
+    }
+
+    public void setXpLevel(int XpLevel){
+        this.addLevelBuffs();
+        this.entityData.set(LEVEL, XpLevel);
+    }
+
+    public void setXp(int xp){
+        this. entityData.set(XP, xp);
+    }
+
+    public void addXp(int xp){
+        int currentXp = this.getXp();
+        int newXp = currentXp + xp;
+
+        this. entityData.set(XP, newXp);
+    }
 
     public void setShouldEat(boolean bool){
         entityData.set(SHOULD_EAT, bool);
@@ -514,6 +566,9 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         else return false;
     }
 
+
+
+
     ////////////////////////////////////ATTACK FUNCTIONS////////////////////////////////////
 
     public boolean hurt(DamageSource dmg, float amt) {
@@ -534,12 +589,46 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         boolean flag = entity.hurt(DamageSource.mobAttack(this), (float)((int)this.getAttributeValue(Attributes.ATTACK_DAMAGE)));
         if (flag) {
             this.doEnchantDamageEffects(this, entity);
-
         }
+        this.addXp(1);
+        this.checkLevel();
 
+        if (getOwner() != null){
+            double health = getAttribute(Attributes.MAX_HEALTH).getValue();
+            double damage = getAttribute(Attributes.ATTACK_DAMAGE).getValue();
+            double speed = getAttribute(Attributes.MOVEMENT_SPEED).getValue();
+            double currnthealth = getHealth();
+
+            this.getOwner().sendMessage(new StringTextComponent("MAX_HEALTH: " + (float) health), getOwner().getUUID());
+            this.getOwner().sendMessage(new StringTextComponent("ATTACK_DAMAGE: " + (float) damage), getOwner().getUUID());
+            this.getOwner().sendMessage(new StringTextComponent("MOVEMENT_SPEED: " + (float) speed), getOwner().getUUID());
+            this.getOwner().sendMessage(new StringTextComponent(getRecruitName() + ": Level:" + getXpLevel()), getOwner().getUUID());
+            this.getOwner().sendMessage(new StringTextComponent(getRecruitName() + ": Xp:" + getXp()), getOwner().getUUID());
+            this.getOwner().sendMessage(new StringTextComponent("health:                 " + (float) currnthealth), getOwner().getUUID());
+        }
         return flag;
     }
 
+    public void addLevelBuffs(){
+        int level = getXpLevel();
+        if(level <= 10){
+            getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("heath_bonus_level", 2D, AttributeModifier.Operation.ADDITION));
+            getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(new AttributeModifier("attack_bonus_level", 0.25D, AttributeModifier.Operation.ADDITION));
+            getAttribute(Attributes.KNOCKBACK_RESISTANCE).addPermanentModifier(new AttributeModifier("knockback_bonus_level", 0.01D, AttributeModifier.Operation.ADDITION));
+            getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(new AttributeModifier("speed_bonus_level", 0.01D, AttributeModifier.Operation.ADDITION));
+        }
+        if(level > 10){
+            getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("heath_bonus_level", 1D, AttributeModifier.Operation.ADDITION));
+        }
+
+    }
+    /*
+           .add(Attributes.MAX_HEALTH, 20.0D)
+                .add(Attributes.MOVEMENT_SPEED, 0.3D)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 0.1D)
+                .add(Attributes.ATTACK_DAMAGE, 1.0D)
+                .add(Attributes.FOLLOW_RANGE, 32.0D);
+    */
     public boolean wantsToAttack(LivingEntity target, LivingEntity owner) {
         int state = this.getState();
         switch (state) {
