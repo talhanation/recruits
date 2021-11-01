@@ -39,6 +39,11 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements ICrossbo
     }
 
     @Override
+    public boolean wantsToPickUp(ItemStack itemStack) {
+        return false;
+    }
+
+    @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new SwimGoal(this));
         this.goalSelector.addGoal(2, new RecruitFollowOwnerGoal(this, 1.2D, 7.F, 4.0F));

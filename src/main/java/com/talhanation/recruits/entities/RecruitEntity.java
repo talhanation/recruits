@@ -1,16 +1,13 @@
 package com.talhanation.recruits.entities;
 
 
-import com.talhanation.recruits.init.ModEntityTypes;
-import net.minecraft.entity.AgeableEntity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ILivingEntityData;
-import net.minecraft.entity.SpawnReason;
+import com.talhanation.recruits.entities.ai.*;
+import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.item.*;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.pathfinding.GroundPathNavigator;
 import net.minecraft.world.DifficultyInstance;
@@ -19,15 +16,25 @@ import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 
 import javax.annotation.Nullable;
+import java.util.function.Predicate;
 
 public class RecruitEntity extends AbstractRecruitEntity {
+
+    private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) -> {
+        return !item.hasPickUpDelay() && item.isAlive() && this.wantsToPickUp(item.getItem());
+    };
 
     public RecruitEntity(EntityType<? extends AbstractRecruitEntity> entityType, World world) {
         super(entityType, world);
 
     }
 
-
+    @Override
+    protected void registerGoals() {
+       super.registerGoals();
+        this.goalSelector.addGoal(2, new RecruitUseShield(this));
+        this.goalSelector.addGoal(8, new RecruitPickupWantedItemGoal(this, ALLOWED_ITEMS));
+    }
 
     //ATTRIBUTES
     public static AttributeModifierMap.MutableAttribute setAttributes() {
@@ -85,4 +92,18 @@ public class RecruitEntity extends AbstractRecruitEntity {
         return "Recruit";
     }
 
+    @Override
+    public boolean wantsToPickUp(ItemStack itemStack) {
+        return false;
+    }
 }
+
+
+
+
+
+
+
+
+
+

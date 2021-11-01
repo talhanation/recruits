@@ -2,14 +2,16 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.UseAction;
 import net.minecraft.util.Hand;
+import net.minecraft.util.SoundCategory;
 
 public class RecruitEatGoal extends Goal {
 
     AbstractRecruitEntity recruit;
+    Item foodItem = null;
 
     public RecruitEatGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -17,19 +19,50 @@ public class RecruitEatGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return  recruit.getHealth() < recruit.getMaxHealth();
+        float currentHealth =  recruit.getHealth();
+        float maxHealth = recruit.getMaxHealth();
+
+
+        return  currentHealth <  maxHealth - maxHealth / 1.75;
     }
 
     @Override
     public void start() {
-        recruit.setItemInHand(Hand.OFF_HAND, Items.COOKED_CHICKEN.getDefaultInstance());
-        recruit.startUsingItem(Hand.OFF_HAND);
-        //recruit.heal(100);
+        if (hasFoodInInv() && foodItem != null) {
+            recruit.setItemInHand(Hand.OFF_HAND, foodItem.getDefaultInstance());
+            recruit.startUsingItem(Hand.OFF_HAND);
+            recruit.heal(foodItem.getFoodProperties().getSaturationModifier() * 10);
+            recruit.level.playSound(null, recruit.getX(), recruit.getY() , recruit.getZ(), foodItem.getEatingSound(), SoundCategory.NEUTRAL, 15.0F, 0.8F + 0.4F * recruit.getRandom().nextFloat());
+        }
     }
 
     @Override
     public void stop() {
         recruit.stopUsingItem();
+        ItemStack stackInHand = recruit.getItemInHand(Hand.OFF_HAND);
+        stackInHand.shrink(1);
+    }
+
+
+    private boolean hasFoodInInv(){
+        Inventory inventory = recruit.getInventory();
+        boolean flag = false;
+
+        for(int i = 0; i < inventory.getContainerSize(); i++){
+            ItemStack itemStack = inventory.getItem(i);
+            if (itemStack.getItem().isEdible()){
+                foodItem = itemStack.getItem();
+
+
+                return true;
+            }
+        }
+
+
+
+
+        return false;
+
     }
 
 }

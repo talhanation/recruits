@@ -36,7 +36,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-public abstract class AbstractRecruitEntity extends TameableEntity implements IAngerable {
+public abstract class AbstractRecruitEntity extends AbstractInventoryEntity implements IAngerable {
     private static final DataParameter<Integer> DATA_REMAINING_ANGER_TIME = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> STATE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> FOLLOW_STATE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
@@ -108,16 +108,15 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new SwimGoal(this));
-        //this.goalSelector.addGoal(1, new RecruitEatGoal(this));
-        this.goalSelector.addGoal(2, new RecruitUseShield(this));
+        this.goalSelector.addGoal(1, new RecruitEatGoal(this));
         //this.goalSelector.addGoal(2, new RecruitMountGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(4, new RecruitFollowOwnerGoal(this, 1.2D, 9.0F, 3.0F));
         this.goalSelector.addGoal(5, new RecruitMeleeAttackGoal(this, 1.15D, true));
         this.goalSelector.addGoal(6, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
         this.goalSelector.addGoal(7, new RecruitMoveTowardsTargetGoal(this, 1.15D, 24.0F));
-        this.goalSelector.addGoal(8, new ReturnToVillageGoal(this, 0.6D, false));
-        this.goalSelector.addGoal(9, new PatrolVillageGoal(this, 0.6D));
+        this.goalSelector.addGoal(9, new ReturnToVillageGoal(this, 0.6D, false));
+        this.goalSelector.addGoal(10, new PatrolVillageGoal(this, 0.6D));
         this.goalSelector.addGoal(10, new WaterAvoidingRandomWalkingGoal(this, 1.0D, 0F));
         this.goalSelector.addGoal(11, new LookAtGoal(this, PlayerEntity.class, 8.0F));
         this.goalSelector.addGoal(12, new LookRandomlyGoal(this));
@@ -254,10 +253,6 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
         if (this.isBlocking())
             return SoundEvents.SHIELD_BLOCK;
         return SoundEvents.VILLAGER_HURT;
-    }
-
-    public void makelevelUpSound() {
-        this.level.playSound(null, this.getX(), this.getY() + 4 , this.getZ(), SoundEvents.VILLAGER_CELEBRATE, this.getSoundSource(), 15.0F, 0.8F + 0.4F * this.random.nextFloat());
     }
 
     protected SoundEvent getDeathSound() {
@@ -703,6 +698,12 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
 
     ////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////
 
+    public void makelevelUpSound() {
+        this.level.playSound(null, this.getX(), this.getY() + 4 , this.getZ(), SoundEvents.VILLAGER_YES, this.getSoundSource(), 15.0F, 0.8F + 0.4F * this.random.nextFloat());
+        this.level.playSound(null, this.getX(), this.getY() + 4 , this.getZ(), SoundEvents.PLAYER_LEVELUP, this.getSoundSource(), 15.0F, 0.8F + 0.4F * this.random.nextFloat());
+
+    }
+
     public boolean isOwnedByThisPlayer(AbstractRecruitEntity recruit, PlayerEntity player){
         return  (recruit.getOwnerUUID() == player.getUUID());
     }
@@ -765,7 +766,6 @@ public abstract class AbstractRecruitEntity extends TameableEntity implements IA
             }
         }
     }
-
 
     public static boolean canDamageTarget(AbstractRecruitEntity recruit, LivingEntity target) {
         if (recruit.isTame() && target instanceof AbstractRecruitEntity) {
