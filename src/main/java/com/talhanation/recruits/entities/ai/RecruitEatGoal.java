@@ -11,7 +11,7 @@ import net.minecraft.util.SoundCategory;
 public class RecruitEatGoal extends Goal {
 
     AbstractRecruitEntity recruit;
-    Item foodItem = null;
+    ItemStack foodItem = null;
 
     public RecruitEatGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -29,9 +29,9 @@ public class RecruitEatGoal extends Goal {
     @Override
     public void start() {
         if (hasFoodInInv() && foodItem != null) {
-            recruit.setItemInHand(Hand.OFF_HAND, foodItem.getDefaultInstance());
+            recruit.setItemInHand(Hand.OFF_HAND, foodItem.getItem().getDefaultInstance());
             recruit.startUsingItem(Hand.OFF_HAND);
-            recruit.heal(foodItem.getFoodProperties().getSaturationModifier() * 10);
+            recruit.heal(foodItem.getItem().getFoodProperties().getSaturationModifier() * 10);
             recruit.level.playSound(null, recruit.getX(), recruit.getY() , recruit.getZ(), foodItem.getEatingSound(), SoundCategory.NEUTRAL, 15.0F, 0.8F + 0.4F * recruit.getRandom().nextFloat());
         }
     }
@@ -39,8 +39,7 @@ public class RecruitEatGoal extends Goal {
     @Override
     public void stop() {
         recruit.stopUsingItem();
-        ItemStack stackInHand = recruit.getItemInHand(Hand.OFF_HAND);
-        stackInHand.shrink(1);
+        foodItem.shrink(1);
     }
 
 
@@ -50,19 +49,14 @@ public class RecruitEatGoal extends Goal {
 
         for(int i = 0; i < inventory.getContainerSize(); i++){
             ItemStack itemStack = inventory.getItem(i);
-            if (itemStack.getItem().isEdible()){
-                foodItem = itemStack.getItem();
-
+            if (itemStack.isEdible()){
+                foodItem = itemStack;
 
                 return true;
             }
         }
 
-
-
-
         return false;
-
     }
 
 }
