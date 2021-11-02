@@ -13,6 +13,7 @@ import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.pathfinding.GroundPathNavigator;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
@@ -74,16 +75,39 @@ public class NomadEntity extends BowmanEntity{
 
     @Nullable
     public ILivingEntityData finalizeSpawn(IServerWorld world, DifficultyInstance difficultyInstance, SpawnReason reason, @Nullable ILivingEntityData data, @Nullable CompoundNBT nbt) {
-        ILivingEntityData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
-        ((GroundPathNavigator)this.getNavigation()).setCanOpenDoors(true);
-        this.setEquipment();
-        this.populateDefaultEquipmentEnchantments(difficultyInstance);
-        this.setCanPickUpLoot(true);
-        this.dropEquipment();
-        this.reassessWeaponGoal();
-        this.setGroup(2);
-        this.createMount(world, difficultyInstance, reason, data, nbt);
-        return ilivingentitydata;
+        if (nbt == null) nbt = new CompoundNBT();
+        nbt.putString("id", "minecraft:horse");
+
+        CompoundNBT passenger = new CompoundNBT();
+        passenger.putString("id", "recruits:nomad");
+
+        ListNBT passengers = new ListNBT();
+        passengers.add(passenger);
+
+        nbt.put("Passengers", passengers);
+
+        ServerWorld serverworld = world.getLevel();
+        HorseEntity horseentity = (HorseEntity) EntityType.loadEntityRecursive(nbt, serverworld, (entity) -> {
+            entity.moveTo(this.getX(), this.getY(), this.getZ(), this.yRot, this.xRot);
+            return entity;
+        });
+
+        this.remove();
+
+        assert horseentity != null;
+        horseentity.setTamed(true);
+        serverworld.addFreshEntityWithPassengers(horseentity);
+
+        NomadEntity that = (NomadEntity) horseentity.getPassengers().get(0);
+        ((GroundPathNavigator)that.getNavigation()).setCanOpenDoors(true);
+        that.setEquipment();
+        that.populateDefaultEquipmentEnchantments(difficultyInstance);
+        that.setCanPickUpLoot(true);
+        that.dropEquipment();
+        that.reassessWeaponGoal();
+        that.setGroup(2);
+
+        return data;
     }
 
     @Nullable
@@ -97,19 +121,5 @@ public class NomadEntity extends BowmanEntity{
         this.setItemSlot(EquipmentSlotType.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));
         this.setItemSlot(EquipmentSlotType.LEGS, new ItemStack(Items.LEATHER_LEGGINGS));
         this.setItemSlot(EquipmentSlotType.FEET, new ItemStack(Items.LEATHER_BOOTS));
-    }
-
-
-    public void createMount(IServerWorld world, DifficultyInstance difficultyInstance, SpawnReason reason, @Nullable ILivingEntityData data, @Nullable CompoundNBT nbt){
-        HorseEntity horse = EntityType.HORSE.create(this.level);
-        horse.finalizeSpawn(world, difficultyInstance, SpawnReason.TRIGGERED, (ILivingEntityData)null, null);
-        horse.moveTo(this.getX(), this.getY(), this.getZ(), this.yRot, 0.0F);
-        horse.setTamed(true);
-        horse.equipSaddle(null);
-        horse.setPersistenceRequired();
-        horse.setAge(0);
-        horse.setOwnerUUID(this.getUUID());
-        this.startRiding(horse);
-        world.addFreshEntity(horse);
     }
 }
