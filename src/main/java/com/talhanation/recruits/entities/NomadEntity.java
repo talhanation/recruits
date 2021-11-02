@@ -1,7 +1,5 @@
 package com.talhanation.recruits.entities;
 
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.talhanation.recruits.entities.ai.*;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
@@ -17,7 +15,6 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.pathfinding.GroundPathNavigator;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
 import net.minecraft.world.World;
@@ -88,27 +85,19 @@ public class NomadEntity extends BowmanEntity{
         passengers.add(passenger);
 
         nbt.put("Passengers", passengers);
-        System.out.println(nbt);
+
         ServerWorld serverworld = world.getLevel();
         HorseEntity horseentity = (HorseEntity) EntityType.loadEntityRecursive(nbt, serverworld, (entity) -> {
             entity.moveTo(this.getX(), this.getY(), this.getZ(), this.yRot, this.xRot);
             return entity;
         });
-        try {
-            if (horseentity == null) {
-                throw new SimpleCommandExceptionType(new TranslationTextComponent("commands.summon.failed")).create();
-            } else {
-                if (!serverworld.tryAddFreshEntityWithPassengers(horseentity)) {
-                    throw new SimpleCommandExceptionType(new TranslationTextComponent("commands.summon.failed.uuid")).create();
-                } else {
-                    System.out.println("success");
-                }
-            }
-        } catch (CommandSyntaxException e) {
-            e.printStackTrace();
-        }
+
+        this.remove();
 
         assert horseentity != null;
+        horseentity.setTamed(true);
+        serverworld.addFreshEntityWithPassengers(horseentity);
+
         NomadEntity that = (NomadEntity) horseentity.getPassengers().get(0);
         ((GroundPathNavigator)that.getNavigation()).setCanOpenDoors(true);
         that.setEquipment();
@@ -117,8 +106,6 @@ public class NomadEntity extends BowmanEntity{
         that.dropEquipment();
         that.reassessWeaponGoal();
         that.setGroup(2);
-
-        this.remove();
 
         return data;
     }
