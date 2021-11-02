@@ -99,7 +99,7 @@ public class NomadEntity extends BowmanEntity{
         serverworld.addFreshEntityWithPassengers(horseentity);
 
         NomadEntity that = (NomadEntity) horseentity.getPassengers().get(0);
-        ((GroundPathNavigator)that.getNavigation()).setCanOpenDoors(true);
+        (that.getNavigation()).moveTo(this.getNavigation().getPath(), 1D);
         that.setEquipment();
         that.populateDefaultEquipmentEnchantments(difficultyInstance);
         that.setCanPickUpLoot(true);
