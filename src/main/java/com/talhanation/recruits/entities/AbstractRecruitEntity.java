@@ -80,10 +80,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
 
     public void rideTick() {
         super.rideTick();
+        /*
         if (this.getVehicle() instanceof CreatureEntity) {
             CreatureEntity creatureentity = (CreatureEntity)this.getVehicle();
             this.yBodyRot = creatureentity.yBodyRot;
         }
+        */
 
     }
 
@@ -575,6 +577,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
             if (entity != null && !(entity instanceof PlayerEntity) && !(entity instanceof AbstractArrowEntity)) {
                 amt = (amt + 1.0F) / 2.0F;
             }
+            this.addXp(1);
+            this.checkLevel();
 
             return super.hurt(dmg, amt);
         }
@@ -585,7 +589,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         if (flag) {
             this.doEnchantDamageEffects(this, entity);
         }
-        this.addXp(1);
+        this.addXp(2);
         this.checkLevel();
 
         if (getOwner() != null){
