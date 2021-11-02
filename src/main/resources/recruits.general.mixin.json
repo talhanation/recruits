@@ -4,7 +4,6 @@
   "package": "com.talhanation.recruits.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "MobEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

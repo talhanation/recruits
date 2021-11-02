@@ -18,7 +18,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 public class RecruitEvents {
 
 
-    @SubscribeEvent
+    /*@SubscribeEvent
     public void abstractHorseAi(EntityJoinWorldEvent event) {
         Entity entity = event.getEntity();
 
@@ -26,7 +26,7 @@ public class RecruitEvents {
             AbstractHorseEntity horse = (AbstractHorseEntity) entity;
             horse.goalSelector.addGoal(0, new HorseAIRecruitRide(horse, 1.5D));
         }
-    }
+    }*/
 
 
     @SubscribeEvent
