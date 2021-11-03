@@ -38,13 +38,18 @@ public class RecruitEatGoal extends Goal {
             this.beforFoodItem = itemStack.copy();
             recruit.setItemInHand(Hand.OFF_HAND, foodItem.getItem().getDefaultInstance());
 
-            for (int i = 0; i < 64; i++) recruit.startUsingItem(Hand.OFF_HAND);
+            recruit.startUsingItem(Hand.OFF_HAND);
 
             if (recruit.isUsingItem()) {
                 recruit.heal(foodItem.getItem().getFoodProperties().getSaturationModifier() * 10);
                 recruit.level.playSound(null, recruit.getX(), recruit.getY(), recruit.getZ(), foodItem.getEatingSound(), SoundCategory.MUSIC, 15.0F, 0.8F + 0.4F * recruit.getRandom().nextFloat());
             }
         }
+    }
+
+    @Override
+    public boolean canContinueToUse() {
+        return canUse();
     }
 
     @Override
