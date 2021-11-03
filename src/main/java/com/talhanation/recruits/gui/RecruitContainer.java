@@ -1,10 +1,8 @@
 package com.talhanation.recruits.gui;
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.container.ContainerType;
 
 public class RecruitContainer extends ContainerBase {

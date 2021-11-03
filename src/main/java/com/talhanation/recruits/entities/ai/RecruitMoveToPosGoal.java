@@ -21,16 +21,14 @@ public class RecruitMoveToPosGoal extends Goal {
         if (this.recruit.getMovePos() == null && recruit.getMove()) {
             return false;
         }
-        else if (this.recruit.getMovePos().closerThan(recruit.position(), within))
-            return true;
-        else
-            return false;
+        else return this.recruit.getMovePos().closerThan(recruit.position(), within);
     }
 
     public boolean canContinueToUse() {
         return this.canUse();
     }
 
+    //maybe?? start(){
     public void tick() {
         BlockPos blockpos = this.recruit.getMovePos();
         if (blockpos != null && recruit.getMove()) {

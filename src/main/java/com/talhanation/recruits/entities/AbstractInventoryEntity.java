@@ -29,6 +29,7 @@ public abstract class AbstractInventoryEntity extends TameableEntity {
 
     public void tick() {
         super.tick();
+
     }
 
     ////////////////////////////////////DATA////////////////////////////////////

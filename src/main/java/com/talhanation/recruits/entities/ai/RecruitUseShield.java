@@ -17,7 +17,9 @@ public class RecruitUseShield extends Goal {
     }
 
     public boolean canUse() {
-       return (this.recruit.getItemInHand(Hand.OFF_HAND).getItem().isShield(this.recruit.getItemInHand(Hand.OFF_HAND), this.recruit) && canRaiseShield() && !recruit.isFollowing());
+       return (this.recruit.getItemInHand(Hand.OFF_HAND).getItem().isShield(this.recruit.getItemInHand(Hand.OFF_HAND), this.recruit)
+               && canRaiseShield()
+               && !recruit.isFollowing());
     }
 
     public boolean canContinueToUse() {
@@ -45,7 +47,6 @@ public class RecruitUseShield extends Goal {
 
     public boolean canRaiseShield() {
         LivingEntity target = this.recruit.getTarget();
-
 
         if (target != null) {
             ItemStack itemStackinHand = target.getItemInHand(Hand.MAIN_HAND);

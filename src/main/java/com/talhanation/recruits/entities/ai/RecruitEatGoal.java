@@ -25,9 +25,9 @@ public class RecruitEatGoal extends Goal {
         if (recruit.getTarget() != null){
             return (currentHealth <  maxHealth - maxHealth / 1.75);
         }
-        else {
+        else
             return (currentHealth <  maxHealth - maxHealth / 5.0D);
-        }
+
     }
 
 
@@ -40,10 +40,12 @@ public class RecruitEatGoal extends Goal {
 
             recruit.startUsingItem(Hand.OFF_HAND);
 
+
             if (recruit.isUsingItem()) {
                 recruit.heal(foodItem.getItem().getFoodProperties().getSaturationModifier() * 10);
-                recruit.level.playSound(null, recruit.getX(), recruit.getY(), recruit.getZ(), foodItem.getEatingSound(), SoundCategory.MUSIC, 15.0F, 0.8F + 0.4F * recruit.getRandom().nextFloat());
+                //recruit.level.playSound(null, recruit.getX(), recruit.getY(), recruit.getZ(), foodItem.getEatingSound(), SoundCategory.MUSIC, 15.0F, 0.8F + 0.4F * recruit.getRandom().nextFloat());
             }
+            recruit.eat(recruit.level, foodItem);
         }
     }
 
