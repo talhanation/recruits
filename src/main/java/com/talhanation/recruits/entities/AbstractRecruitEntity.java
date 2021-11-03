@@ -76,6 +76,21 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         super.tick();
         updateSwingTime();
         updateSwimming();
+
+        if (getOwner() != null){
+            double health = getAttribute(Attributes.MAX_HEALTH).getValue();
+            double damage = getAttribute(Attributes.ATTACK_DAMAGE).getValue();
+            double speed = getAttribute(Attributes.MOVEMENT_SPEED).getValue();
+            double currnthealth = getHealth();
+
+            //this.getOwner().sendMessage(new StringTextComponent("MAX_HEALTH: " + (float) health), getOwner().getUUID());
+            //this.getOwner().sendMessage(new StringTextComponent("ATTACK_DAMAGE: " + (float) damage), getOwner().getUUID());
+            //this.getOwner().sendMessage(new StringTextComponent("MOVEMENT_SPEED: " + (float) speed), getOwner().getUUID());
+            this.getOwner().sendMessage(new StringTextComponent("Level:    " + getXpLevel()), getOwner().getUUID());
+            this.getOwner().sendMessage(new StringTextComponent("Xp:       " + getXp()), getOwner().getUUID());
+            this.getOwner().sendMessage(new StringTextComponent("health:   " + (float) currnthealth), getOwner().getUUID());
+        }
+
    }
 
     public void rideTick() {
@@ -110,7 +125,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
 
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new SwimGoal(this));
-        this.goalSelector.addGoal(1, new RecruitEatGoal(this));
+        this.goalSelector.addGoal(0, new RecruitEatGoal(this));
         //this.goalSelector.addGoal(2, new RecruitMountGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(4, new RecruitFollowOwnerGoal(this, 1.2D, 9.0F, 3.0F));
@@ -513,18 +528,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
                     }
                 }
 
-                if (!net.minecraftforge.event.ForgeEventFactory.onAnimalTame(this, player)) {
-                    this.tame(player);
-                    this.navigation.stop();
-                    this.setTarget(null);
-                    this.setOrderedToSit(false);
-                    this.setFollowState(1);
-                    this.setState(0);
-                    this.level.broadcastEntityEvent(this, (byte)7);
-                    return ActionResultType.SUCCESS;
-                } else {
-                    this.level.broadcastEntityEvent(this, (byte)6);
-                }
+                this.tame(player);
+                this.navigation.stop();
+                this.setTarget(null);
+                this.setOrderedToSit(false);
+                this.setFollowState(1);
+                this.setState(0);
+
 
                 return ActionResultType.SUCCESS;
             }
@@ -592,20 +602,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         }
         this.addXp(2);
         this.checkLevel();
-
-        if (getOwner() != null){
-            double health = getAttribute(Attributes.MAX_HEALTH).getValue();
-            double damage = getAttribute(Attributes.ATTACK_DAMAGE).getValue();
-            double speed = getAttribute(Attributes.MOVEMENT_SPEED).getValue();
-            double currnthealth = getHealth();
-
-            this.getOwner().sendMessage(new StringTextComponent("MAX_HEALTH: " + (float) health), getOwner().getUUID());
-            this.getOwner().sendMessage(new StringTextComponent("ATTACK_DAMAGE: " + (float) damage), getOwner().getUUID());
-            this.getOwner().sendMessage(new StringTextComponent("MOVEMENT_SPEED: " + (float) speed), getOwner().getUUID());
-            this.getOwner().sendMessage(new StringTextComponent(getRecruitName() + ": Level:" + getXpLevel()), getOwner().getUUID());
-            this.getOwner().sendMessage(new StringTextComponent(getRecruitName() + ": Xp:" + getXp()), getOwner().getUUID());
-            this.getOwner().sendMessage(new StringTextComponent("health:                 " + (float) currnthealth), getOwner().getUUID());
-        }
         return flag;
     }
 
