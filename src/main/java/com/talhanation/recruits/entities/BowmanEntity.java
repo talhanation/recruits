@@ -6,9 +6,9 @@ import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.goal.*;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.monster.AbstractIllagerEntity;
 import net.minecraft.entity.monster.MonsterEntity;
-import net.minecraft.entity.passive.ChickenEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.AbstractArrowEntity;
 import net.minecraft.entity.projectile.ProjectileHelper;
@@ -23,9 +23,9 @@ import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.common.ToolType;
 
 import javax.annotation.Nullable;
+import java.util.function.Predicate;
 
 public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttackMob {
 
@@ -42,7 +42,12 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
 
     @Override
     public boolean wantsToPickUp(ItemStack itemStack) {
-        return false;
+        return true;
+    }
+
+    @Override
+    public Predicate<ItemEntity> getAllowedItems() {
+        return null;
     }
 
     @Override
@@ -81,7 +86,6 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
                 .add(Attributes.ATTACK_DAMAGE, 1.5D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D);
-
     }
 
     @Nullable
@@ -95,7 +99,6 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
         this.reassessWeaponGoal();
         this.setGroup(2);
         return ilivingentitydata;
-
     }
 
     public void setEquipment() {
@@ -153,10 +156,8 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
             } else {
                 this.goalSelector.addGoal(4, this.meleeGoal);
             }
-
         }
     }
-
 
     private final RecruitRangedBowAttackGoal<BowmanEntity> bowGoal = new RecruitRangedBowAttackGoal<>(this, 1.2D, 15, 24.0F);
     private final MeleeAttackGoal meleeGoal = new MeleeAttackGoal(this, 1.2D, false) {

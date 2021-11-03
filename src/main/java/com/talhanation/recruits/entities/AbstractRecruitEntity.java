@@ -117,6 +117,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         this.goalSelector.addGoal(5, new RecruitMeleeAttackGoal(this, 1.15D, true));
         this.goalSelector.addGoal(6, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
         this.goalSelector.addGoal(7, new RecruitMoveTowardsTargetGoal(this, 1.15D, 24.0F));
+        this.goalSelector.addGoal(8, new RecruitPickupWantedItemGoal(this));
         this.goalSelector.addGoal(9, new ReturnToVillageGoal(this, 0.6D, false));
         this.goalSelector.addGoal(10, new PatrolVillageGoal(this, 0.6D));
         this.goalSelector.addGoal(10, new WaterAvoidingRandomWalkingGoal(this, 1.0D, 0F));
@@ -312,7 +313,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
 
     public void checkLevel(){
         int currentXp = this.getXp();
-        if (currentXp >= 20){
+        if (currentXp >= 300){
             this.addXpLevel(1);
             this.setXp(0);
             this.addLevelBuffs();

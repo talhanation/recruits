@@ -5,6 +5,7 @@ import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.goal.*;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.monster.AbstractIllagerEntity;
 import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.monster.PillagerEntity;
@@ -25,6 +26,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
+import java.util.function.Predicate;
 
 public class CrossBowmanEntity extends AbstractRecruitEntity implements ICrossbowUser{
     private static final DataParameter<Boolean> IS_CHARGING_CROSSBOW = EntityDataManager.defineId(CrossBowmanEntity.class, DataSerializers.BOOLEAN);
@@ -41,6 +43,11 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements ICrossbo
     @Override
     public boolean wantsToPickUp(ItemStack itemStack) {
         return false;
+    }
+
+    @Override
+    public Predicate<ItemEntity> getAllowedItems() {
+        return null;
     }
 
     @Override

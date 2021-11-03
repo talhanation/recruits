@@ -3,7 +3,6 @@ package com.talhanation.recruits.entities.ai;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Hand;
 import net.minecraft.util.SoundCategory;
@@ -12,6 +11,7 @@ public class RecruitEatGoal extends Goal {
 
     AbstractRecruitEntity recruit;
     ItemStack foodItem = null;
+    ItemStack beforFoodItem = null;
 
     public RecruitEatGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -22,24 +22,39 @@ public class RecruitEatGoal extends Goal {
         float currentHealth =  recruit.getHealth();
         float maxHealth = recruit.getMaxHealth();
 
-
-        return  currentHealth <  maxHealth - maxHealth / 1.75;
+        if (recruit.getTarget() != null){
+            return (currentHealth <  maxHealth - maxHealth / 1.75);
+        }
+        else {
+            return (currentHealth <  maxHealth - maxHealth / 5.0D);
+        }
     }
+
 
     @Override
     public void start() {
         if (hasFoodInInv() && foodItem != null) {
+            ItemStack itemStack = recruit.getItemInHand(Hand.OFF_HAND);
+            this.beforFoodItem = itemStack.copy();
             recruit.setItemInHand(Hand.OFF_HAND, foodItem.getItem().getDefaultInstance());
-            recruit.startUsingItem(Hand.OFF_HAND);
-            recruit.heal(foodItem.getItem().getFoodProperties().getSaturationModifier() * 10);
-            recruit.level.playSound(null, recruit.getX(), recruit.getY() , recruit.getZ(), foodItem.getEatingSound(), SoundCategory.NEUTRAL, 15.0F, 0.8F + 0.4F * recruit.getRandom().nextFloat());
+
+            for (int i = 0; i < 64; i++) recruit.startUsingItem(Hand.OFF_HAND);
+
+            if (recruit.isUsingItem()) {
+                recruit.heal(foodItem.getItem().getFoodProperties().getSaturationModifier() * 10);
+                recruit.level.playSound(null, recruit.getX(), recruit.getY(), recruit.getZ(), foodItem.getEatingSound(), SoundCategory.MUSIC, 15.0F, 0.8F + 0.4F * recruit.getRandom().nextFloat());
+            }
         }
     }
 
     @Override
     public void stop() {
         recruit.stopUsingItem();
-        foodItem.shrink(1);
+        if (foodItem != null) {
+            foodItem.shrink(1);
+            resetItemInHand();
+        }
+
     }
 
 
@@ -57,6 +72,11 @@ public class RecruitEatGoal extends Goal {
         }
 
         return false;
+    }
+
+
+    private void resetItemInHand(){
+        recruit.setItemInHand(Hand.OFF_HAND, beforFoodItem.getItem().getDefaultInstance());
     }
 
 }

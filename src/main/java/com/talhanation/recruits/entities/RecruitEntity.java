@@ -20,9 +20,8 @@ import java.util.function.Predicate;
 
 public class RecruitEntity extends AbstractRecruitEntity {
 
-    private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) -> {
-        return !item.hasPickUpDelay() && item.isAlive() && this.wantsToPickUp(item.getItem());
-    };
+    private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
+            (!item.hasPickUpDelay() && item.isAlive() && this.wantsToPickUp(item.getItem()));
 
     public RecruitEntity(EntityType<? extends AbstractRecruitEntity> entityType, World world) {
         super(entityType, world);
@@ -33,7 +32,6 @@ public class RecruitEntity extends AbstractRecruitEntity {
     protected void registerGoals() {
        super.registerGoals();
         this.goalSelector.addGoal(2, new RecruitUseShield(this));
-        this.goalSelector.addGoal(8, new RecruitPickupWantedItemGoal(this, ALLOWED_ITEMS));
     }
 
     //ATTRIBUTES
@@ -94,7 +92,11 @@ public class RecruitEntity extends AbstractRecruitEntity {
 
     @Override
     public boolean wantsToPickUp(ItemStack itemStack) {
-        return false;
+        return itemStack.isEdible();
+    }
+
+    public Predicate<ItemEntity> getAllowedItems(){
+        return ALLOWED_ITEMS;
     }
 }
 

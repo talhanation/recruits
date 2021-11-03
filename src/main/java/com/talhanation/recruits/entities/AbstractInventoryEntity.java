@@ -10,6 +10,8 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 
+import java.util.function.Predicate;
+
 public abstract class AbstractInventoryEntity extends TameableEntity {
 
     private final Inventory inventory = new Inventory(9);
@@ -98,5 +100,7 @@ public abstract class AbstractInventoryEntity extends TameableEntity {
 
     @Override
     public abstract boolean wantsToPickUp(ItemStack itemStack);
+
+    public abstract Predicate<ItemEntity> getAllowedItems();
 
 }
