@@ -7,6 +7,7 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 
@@ -38,13 +39,29 @@ public abstract class AbstractInventoryEntity extends TameableEntity {
 
     public void addAdditionalSaveData(CompoundNBT nbt) {
         super.addAdditionalSaveData(nbt);
-        nbt.put("Inventory", this.inventory.createTag());
+        ListNBT list = new ListNBT();
+        for (int i = 0; i < this.inventory.getContainerSize(); ++i) {
+            ItemStack itemstack = this.inventory.getItem(i);
+            if (!itemstack.isEmpty()) {
+                CompoundNBT compoundnbt = new CompoundNBT();
+                compoundnbt.putByte("Slot", (byte) i);
+                itemstack.save(compoundnbt);
+                list.add(compoundnbt);
+            }
+        }
+
+        nbt.put("Inventory", list);
     }
 
     public void readAdditionalSaveData(CompoundNBT nbt) {
         super.readAdditionalSaveData(nbt);
-        this.inventory.fromTag(nbt.getList("Inventory", 30));
+        ListNBT list = nbt.getList("Inventory", 30);
+        for (int i = 0; i < list.size(); ++i) {
+            CompoundNBT compoundnbt = list.getCompound(i);
+            int j = compoundnbt.getByte("Slot") & 255;
 
+            this.inventory.setItem(j, ItemStack.of(compoundnbt));
+        }
     }
 
     ////////////////////////////////////GET////////////////////////////////////
