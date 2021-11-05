@@ -53,6 +53,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
     private static final DataParameter<Integer> XP = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> LEVEL = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
     private static final DataParameter<Boolean> SHOULD_EAT = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
+    public boolean hasAfterEatAction;
+    public ItemStack beforeFoodItem;
     private UUID persistentAngerTarget;
 
     public AbstractRecruitEntity(EntityType<? extends TameableEntity> entityType, World world) {
@@ -72,10 +74,20 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         super.aiStep();
     }
 
+    private void resetItemInHand() {
+        this.setItemInHand(Hand.OFF_HAND, this.beforeFoodItem.getItem().getDefaultInstance());
+        this.hasAfterEatAction = false;
+    }
+
     public void tick() {
         super.tick();
         updateSwingTime();
         updateSwimming();
+
+        if (this.hasAfterEatAction && !this.isUsingItem()) {
+            resetItemInHand();
+            //Seems like the RecruitEatGoal object is being deleted by the garbage collection prematurely. The fields are forgotten pretty quickly if stored in the object.
+        }
 
         if (getOwner() != null){
             double health = getAttribute(Attributes.MAX_HEALTH).getValue();

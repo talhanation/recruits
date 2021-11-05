@@ -5,13 +5,11 @@ import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Hand;
-import net.minecraft.util.SoundCategory;
 
 public class RecruitEatGoal extends Goal {
 
     AbstractRecruitEntity recruit;
-    ItemStack foodItem = null;
-    ItemStack beforFoodItem = null;
+    ItemStack foodItem ;
 
     public RecruitEatGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -19,6 +17,8 @@ public class RecruitEatGoal extends Goal {
 
     @Override
     public boolean canUse() {
+        if (recruit.isUsingItem()) return false;
+
         float currentHealth =  recruit.getHealth();
         float maxHealth = recruit.getMaxHealth();
 
@@ -33,18 +33,15 @@ public class RecruitEatGoal extends Goal {
 
     @Override
     public void start() {
-        if (hasFoodInInv() && foodItem != null) {
-            ItemStack itemStack = recruit.getItemInHand(Hand.OFF_HAND);
-            this.beforFoodItem = itemStack.copy();
+        if (hasFoodInInv()) {
+            recruit.beforeFoodItem = recruit.getItemInHand(Hand.OFF_HAND);
+            recruit.hasAfterEatAction = true;
             recruit.setItemInHand(Hand.OFF_HAND, foodItem.getItem().getDefaultInstance());
 
             recruit.startUsingItem(Hand.OFF_HAND);
 
+            recruit.heal(foodItem.getItem().getFoodProperties().getSaturationModifier() * 10);
 
-            if (recruit.isUsingItem()) {
-                recruit.heal(foodItem.getItem().getFoodProperties().getSaturationModifier() * 10);
-                //recruit.level.playSound(null, recruit.getX(), recruit.getY(), recruit.getZ(), foodItem.getEatingSound(), SoundCategory.MUSIC, 15.0F, 0.8F + 0.4F * recruit.getRandom().nextFloat());
-            }
             recruit.eat(recruit.level, foodItem);
         }
     }
@@ -56,18 +53,13 @@ public class RecruitEatGoal extends Goal {
 
     @Override
     public void stop() {
-        recruit.stopUsingItem();
         if (foodItem != null) {
             foodItem.shrink(1);
-            resetItemInHand();
         }
-
     }
-
 
     private boolean hasFoodInInv(){
         Inventory inventory = recruit.getInventory();
-        boolean flag = false;
 
         for(int i = 0; i < inventory.getContainerSize(); i++){
             ItemStack itemStack = inventory.getItem(i);
@@ -80,10 +72,4 @@ public class RecruitEatGoal extends Goal {
 
         return false;
     }
-
-
-    private void resetItemInHand(){
-        recruit.setItemInHand(Hand.OFF_HAND, beforFoodItem.getItem().getDefaultInstance());
-    }
-
 }
