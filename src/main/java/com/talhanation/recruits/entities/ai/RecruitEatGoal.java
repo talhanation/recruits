@@ -9,7 +9,7 @@ import net.minecraft.util.Hand;
 public class RecruitEatGoal extends Goal {
 
     AbstractRecruitEntity recruit;
-    ItemStack foodItem ;
+    ItemStack foodItem;
 
     public RecruitEatGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -35,7 +35,8 @@ public class RecruitEatGoal extends Goal {
     public void start() {
         if (hasFoodInInv()) {
             recruit.beforeFoodItem = recruit.getItemInHand(Hand.OFF_HAND);
-            recruit.hasAfterEatAction = true;
+
+            recruit.setIsEating(true);
             recruit.setItemInHand(Hand.OFF_HAND, foodItem.getItem().getDefaultInstance());
 
             recruit.startUsingItem(Hand.OFF_HAND);
@@ -69,7 +70,6 @@ public class RecruitEatGoal extends Goal {
                 return true;
             }
         }
-
         return false;
     }
 }

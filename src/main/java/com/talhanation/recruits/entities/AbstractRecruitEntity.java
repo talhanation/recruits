@@ -52,10 +52,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
     private static final DataParameter<Integer> GROUP = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> XP = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> LEVEL = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
-    private static final DataParameter<Boolean> SHOULD_EAT = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
-    public boolean hasAfterEatAction;
-    public ItemStack beforeFoodItem;
+    private static final DataParameter<Boolean> isEating = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
+    //private static final DataParameter<ItemStack> OFFHAND_ITEM_SAVE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.ITEM_STACK);
+
     private UUID persistentAngerTarget;
+    public ItemStack beforeFoodItem;
 
     public AbstractRecruitEntity(EntityType<? extends TameableEntity> entityType, World world) {
         super(entityType, world);
@@ -76,7 +77,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
 
     private void resetItemInHand() {
         this.setItemInHand(Hand.OFF_HAND, this.beforeFoodItem.getItem().getDefaultInstance());
-        this.hasAfterEatAction = false;
+        this.setIsEating(false);
     }
 
     public void tick() {
@@ -84,8 +85,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         updateSwingTime();
         updateSwimming();
 
-        if (this.hasAfterEatAction && !this.isUsingItem()) {
-            resetItemInHand();
+        if (this.getIsEating() && !this.isUsingItem()) {
+            if (beforeFoodItem != null) resetItemInHand();
             //Seems like the RecruitEatGoal object is being deleted by the garbage collection prematurely. The fields are forgotten pretty quickly if stored in the object.
         }
 
@@ -178,7 +179,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         this.entityData.define(LISTEN, true);
         this.entityData.define(MOUNT, Optional.empty());
         this.entityData.define(isFollowing, false);
-        this.entityData.define(SHOULD_EAT, true);
+        this.entityData.define(isEating, true);
         //STATE
         // 0 = NEUTRAL
         // 1 = AGGRESSIVE
@@ -200,7 +201,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         nbt.putBoolean("Listen", this.getListen());
         nbt.putBoolean("Listen", this.getListen());
         nbt.putBoolean("isFollowing", this.isFollowing());
-        nbt.putBoolean("ShouldEat", this.getShouldEat());
+        nbt.putBoolean("isEating", this.getIsEating());
         nbt.putInt("Xp", this.getXp());
         nbt.putInt("Level", this.getXpLevel());
 
@@ -222,7 +223,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         this.setShouldFollow(nbt.getBoolean("ShouldFollow"));
         this.setListen(nbt.getBoolean("Listen"));
         this.setIsFollowing(nbt.getBoolean("isFollowing"));
-        this.setShouldEat(nbt.getBoolean("ShouldEat"));
+        this.setIsEating(nbt.getBoolean("isEating"));
         this.setXp(nbt.getInt("Xp"));
         this.setXpLevel(nbt.getInt("XpLevel"));
 
@@ -234,7 +235,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
                     nbt.getInt("HoldPosZ")));
 
         }
-
 
         if(!level.isClientSide)
             this.readPersistentAngerSaveData((ServerWorld)this.level, nbt);
@@ -251,8 +251,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         return entityData.get(XP);
     }
 
-    public boolean getShouldEat() {
-        return entityData.get(SHOULD_EAT);
+    public boolean getIsEating() {
+        return entityData.get(isEating);
     }
 
     public boolean getShouldHoldPos() {
@@ -336,6 +336,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         return entityData.get(MOUNT).orElse(null);
     }
 
+    /*
+    public ItemStack getOffHandItemSave(){
+        return  entityData.get(OFFHAND_ITEM_SAVE);
+    }
+
+     */
+
+
     ////////////////////////////////////SET////////////////////////////////////
 
     public void checkLevel(){
@@ -371,8 +379,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         this. entityData.set(XP, newXp);
     }
 
-    public void setShouldEat(boolean bool){
-        entityData.set(SHOULD_EAT, bool);
+
+    public void setIsEating(boolean bool){
+        entityData.set(isEating, bool);
     }
 
     public void setShouldHoldPos(boolean bool){
