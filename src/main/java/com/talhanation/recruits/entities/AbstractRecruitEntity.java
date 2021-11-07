@@ -1,8 +1,11 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.gui.RecruitInventoryScreen;
 import com.talhanation.recruits.entities.ai.*;
+import com.talhanation.recruits.inventory.RecruitInventoryContainer;
 import com.talhanation.recruits.network.MessageListen;
+import com.talhanation.recruits.network.MessageRecruitGui;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.Attributes;
@@ -11,8 +14,12 @@ import net.minecraft.entity.monster.*;
 import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.passive.horse.AbstractHorseEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.entity.projectile.AbstractArrowEntity;
 import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.*;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
@@ -23,6 +30,7 @@ import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
@@ -30,6 +38,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -495,6 +504,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
 
                 if (player.isCrouching()) {
 
+                    openGUI(player);
+                    /*
                     if (getListen()) {
                         player.sendMessage(new StringTextComponent("I will not Listen your Commands"), player.getUUID());
                         setListen(false);
@@ -791,8 +802,29 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
 
     public static boolean canDamageTarget(AbstractRecruitEntity recruit, LivingEntity target) {
         if (recruit.isTame() && target instanceof AbstractRecruitEntity) {
-            return !recruit.getOwnerUUID().equals(((AbstractRecruitEntity) target).getOwnerUUID());
+            return !Objects.equals(recruit.getOwnerUUID(), ((AbstractRecruitEntity) target).getOwnerUUID());
         } else
             return true;
     }
+
+    @Override
+    public void openGUI(PlayerEntity player) {
+        if (player instanceof ServerPlayerEntity) {
+            NetworkHooks.openGui((ServerPlayerEntity) player, new INamedContainerProvider() {
+                @Override
+                public ITextComponent getDisplayName() {
+                    return getName();
+                }
+
+                @Nullable
+                @Override
+                public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+                    return new RecruitInventoryContainer(i, AbstractRecruitEntity.this, playerInventory);
+                }
+            }, packetBuffer -> {packetBuffer.writeUUID(getUUID());});
+        } else {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageRecruitGui(player, this.getUUID()));
+        }
+    }
+
 }

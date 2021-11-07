@@ -4,7 +4,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.container.ContainerType;
-
+/*
 public class RecruitContainer extends ContainerBase {
 
     protected AbstractRecruitEntity recruit;
@@ -28,7 +28,7 @@ public class RecruitContainer extends ContainerBase {
 
         addPlayerInventorySlots();
     }
-*/
+
     public AbstractRecruitEntity getRecruit() {
         return recruit;
     }
@@ -39,3 +39,4 @@ public class RecruitContainer extends ContainerBase {
     }
 
 }
+*/

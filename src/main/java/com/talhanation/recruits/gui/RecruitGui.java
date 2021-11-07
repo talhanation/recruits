@@ -13,7 +13,7 @@ import net.minecraft.util.text.TranslationTextComponent;
 
 import java.awt.Color;
 
-
+/*
 public class RecruitGui extends ScreenBase<RecruitContainer> {
 
     private AbstractRecruitEntity recruit;
@@ -73,3 +73,5 @@ public class RecruitGui extends ScreenBase<RecruitContainer> {
     }
 
 }
+
+ */
