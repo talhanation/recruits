@@ -42,7 +42,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
 
-        InventoryScreen.renderEntityInInventory(i + 51, j + 82, 30, (float)(i + 51) - mouseX, (float)(j + 75 - 50) - mouseY, this.recruit);
+        InventoryScreen.renderEntityInInventory(i + 50, j + 82, 30, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.recruit);
     }
 
     public void drawHealth(MatrixStack matrixStack, float percent) {

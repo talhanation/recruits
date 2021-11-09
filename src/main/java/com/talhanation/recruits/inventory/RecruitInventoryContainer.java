@@ -39,13 +39,13 @@ public class RecruitInventoryContainer extends ContainerBase {
         this.recruitInventory = recruit.getInventory();
 
         addRecruitInventorySlots();
-        addRecruitHandSlots();
-        addRecruitEquipmentSlots();
+        //addRecruitHandSlots();
+        //addRecruitEquipmentSlots();
         addPlayerInventorySlots();
 
-        recruitInventory.startOpen(playerInventory.player);
-        recruit.armor.startOpen(playerInventory.player);
-        recruit.hand.startOpen(playerInventory.player);
+        //recruitInventory.startOpen(playerInventory.player);
+        //recruit.armor.startOpen(playerInventory.player);
+        //recruit.hand.startOpen(playerInventory.player);
     }
 
     public AbstractRecruitEntity getRecruit() {
@@ -60,7 +60,7 @@ public class RecruitInventoryContainer extends ContainerBase {
     public void addRecruitInventorySlots() {
         for (int k = 0; k < 3; ++k) {
             for (int l = 0; l < 3; ++l) {
-                this.addSlot(new Slot(recruitInventory, 2 + l + k * 3, 2 * 18 + 80 + l * 18, 18 + k * 18));
+                this.addSlot(new Slot(recruitInventory, 0 + l + k * recruit.getInventoryColumns(), 2 * 18 + 80 + l * 18, 18 + k * 18));
             }
         }
     }
@@ -68,7 +68,7 @@ public class RecruitInventoryContainer extends ContainerBase {
     public void addRecruitEquipmentSlots() {
         for (int k = 0; k < 4; ++k) {
             final EquipmentSlotType equipmentslottype = SLOT_IDS[k];
-            this.addSlot(new Slot(recruit.armor,  k, 8, 18 + k * 18) {
+            this.addSlot(new Slot(recruit.inventory,  k, 8, 18 + k * 18) {
                 public int getMaxStackSize() {
                     return 1;
                 }
@@ -93,7 +93,7 @@ public class RecruitInventoryContainer extends ContainerBase {
     }
 
     public void addRecruitHandSlots() {
-        this.addSlot(new Slot(recruit.hand, 0,26,90) {
+        this.addSlot(new Slot(recruit.inventory, 0,26,90) {
             @Override
             public boolean mayPlace(ItemStack itemStack) {
                 return true;
@@ -107,7 +107,7 @@ public class RecruitInventoryContainer extends ContainerBase {
 
         });
 
-        this.addSlot(new Slot(recruit.hand, 1,44,90) {
+        this.addSlot(new Slot(recruit.inventory, 1,44,90) {
         @Override
         public boolean mayPlace(ItemStack stack){
             return true;
@@ -135,8 +135,8 @@ public class RecruitInventoryContainer extends ContainerBase {
     @Override
     public void removed(PlayerEntity playerIn) {
         super.removed(playerIn);
-        this.recruitInventory.stopOpen(playerIn);
-        this.recruit.armor.stopOpen(playerIn);
-        this.recruit.hand.stopOpen(playerIn);
+        //this.recruitInventory.stopOpen(playerIn);
+        //this.recruit.inventory.stopOpen(playerIn);
+        //this.recruit.inventory.stopOpen(playerIn);
     }
 }

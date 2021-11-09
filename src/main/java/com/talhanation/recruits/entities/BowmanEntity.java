@@ -13,6 +13,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.AbstractArrowEntity;
 import net.minecraft.entity.projectile.ProjectileHelper;
 import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.*;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.pathfinding.GroundPathNavigator;
@@ -181,5 +182,6 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
     public String getRecruitName() {
         return "Bowman";
     }
+
 
 }
