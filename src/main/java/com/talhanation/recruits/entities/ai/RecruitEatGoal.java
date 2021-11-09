@@ -54,9 +54,6 @@ public class RecruitEatGoal extends Goal {
 
     @Override
     public void stop() {
-        if (foodItem != null) {
-            foodItem.shrink(1);
-        }
     }
 
     private boolean hasFoodInInv(){
