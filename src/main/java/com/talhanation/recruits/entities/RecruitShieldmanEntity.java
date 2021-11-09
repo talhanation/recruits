@@ -56,11 +56,19 @@ public class RecruitShieldmanEntity extends RecruitEntity{
         this.setItemSlot(EquipmentSlotType.LEGS, new ItemStack(Items.LEATHER_LEGGINGS));
         this.setItemSlot(EquipmentSlotType.FEET, new ItemStack(Items.LEATHER_BOOTS));
         this.setItemSlot(EquipmentSlotType.OFFHAND, new ItemStack(Items.SHIELD));
+
+        inventory.setItem(12, new ItemStack(Items.LEATHER_CHESTPLATE));
+        inventory.setItem(13, new ItemStack(Items.LEATHER_LEGGINGS));
+        inventory.setItem(14, new ItemStack(Items.LEATHER_BOOTS));
+        inventory.setItem(10, new ItemStack(Items.SHIELD));
+
         int i = this.random.nextInt(10);
         if (i == 0) {
             this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.IRON_AXE));
+            inventory.setItem(9, new ItemStack(Items.IRON_AXE));
         } else
             this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_AXE));
+            inventory.setItem(9, new ItemStack(Items.STONE_AXE));
     }
 
     @Nullable

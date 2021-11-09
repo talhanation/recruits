@@ -1,7 +1,6 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.client.gui.RecruitInventoryScreen;
 import com.talhanation.recruits.entities.ai.*;
 import com.talhanation.recruits.inventory.RecruitInventoryContainer;
 import com.talhanation.recruits.network.MessageListen;
@@ -86,6 +85,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
 
     private void resetItemInHand() {
         this.setItemInHand(Hand.OFF_HAND, this.beforeFoodItem);
+        this.setSlot(10, this.beforeFoodItem);
         this.beforeFoodItem = null;
     }
 
@@ -96,7 +96,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
 
         if (this.getIsEating() && !this.isUsingItem()) {
             if (beforeFoodItem != null) resetItemInHand();
-            this.setIsEating(false);
+            setIsEating(false);
         }
 
         if (getOwner() != null){
@@ -501,10 +501,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
             boolean flag = this.isOwnedBy(player) || this.isTame() || isInSittingPose() || item == Items.BONE && !this.isTame() && !this.isAngry();
             return flag ? ActionResultType.CONSUME : ActionResultType.PASS;
         } else {
-            if (this.isTame() && player.getUUID().equals(this.getOwnerUUID())) {
+            if ((this.isTame() && player.getUUID().equals(this.getOwnerUUID()))) {
 
                 if (player.isCrouching()) {
-
                     openGUI(player);
                     /*
                     if (getListen()) {
@@ -560,7 +559,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
                         itemstack.shrink(recruitCosts());
                     }
                 }
-
                 this.tame(player);
                 this.navigation.stop();
                 this.setTarget(null);
@@ -810,6 +808,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
 
     @Override
     public void openGUI(PlayerEntity player) {
+        this.navigation.stop();
+
         if (player instanceof ServerPlayerEntity) {
             NetworkHooks.openGui((ServerPlayerEntity) player, new INamedContainerProvider() {
                 @Override

@@ -19,7 +19,6 @@ import net.minecraft.world.server.ServerWorld;
 
 import javax.annotation.Nullable;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public class RecruitEntity extends AbstractRecruitEntity {
 
@@ -28,7 +27,6 @@ public class RecruitEntity extends AbstractRecruitEntity {
 
     public RecruitEntity(EntityType<? extends AbstractRecruitEntity> entityType, World world) {
         super(entityType, world);
-
     }
 
     @Override
@@ -54,25 +52,37 @@ public class RecruitEntity extends AbstractRecruitEntity {
         ((GroundPathNavigator)this.getNavigation()).setCanOpenDoors(true);
         this.populateDefaultEquipmentEnchantments(difficultyInstance);
         this.setEquipment();
-        this.setDropEquipment();
+        //this.setDropEquipment();
         this.setCanPickUpLoot(true);
         this.setGroup(1);
         return ilivingentitydata;
     }
     @Override
-    public void setEquipment() {
+    public void setEquipment() {// doppelt weil bug
+        // wenn nur setItemSlot = dann geht beim gui opening weg
+        // wenn nur setItem = dann geht beim gui opening rein
+        // wtf
         this.setItemSlot(EquipmentSlotType.HEAD, new ItemStack(Items.LEATHER_HELMET));
         this.setItemSlot(EquipmentSlotType.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));
         this.setItemSlot(EquipmentSlotType.LEGS, new ItemStack(Items.LEATHER_LEGGINGS));
         this.setItemSlot(EquipmentSlotType.FEET, new ItemStack(Items.LEATHER_BOOTS));
+
+        inventory.setItem(11, new ItemStack(Items.LEATHER_HELMET));
+        inventory.setItem(12, new ItemStack(Items.LEATHER_CHESTPLATE));
+        inventory.setItem(13, new ItemStack(Items.LEATHER_LEGGINGS));
+        inventory.setItem(14, new ItemStack(Items.LEATHER_BOOTS));
         int i = this.random.nextInt(8);
         if (i == 0) {
+            inventory.setItem(9, new ItemStack(Items.STONE_AXE));
             this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_AXE));
         } else  if (i == 1){
+            inventory.setItem(9, new ItemStack(Items.STONE_SWORD));
             this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_SWORD));
         } else  if (i == 2){
+            inventory.setItem(9, new ItemStack(Items.STONE_SWORD));
             this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_SWORD));
         }else{
+            inventory.setItem(9, new ItemStack(Items.WOODEN_SWORD));
             this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.WOODEN_SWORD));
         }
     }

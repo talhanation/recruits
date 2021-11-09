@@ -96,7 +96,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
         this.setEquipment();
         this.populateDefaultEquipmentEnchantments(difficultyInstance);
         this.setCanPickUpLoot(true);
-        this.dropEquipment();
+        //this.dropEquipment();
         this.reassessWeaponGoal();
         this.setGroup(2);
         return ilivingentitydata;
@@ -107,6 +107,11 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedAttack
         this.setItemSlot(EquipmentSlotType.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));
         this.setItemSlot(EquipmentSlotType.LEGS, new ItemStack(Items.LEATHER_LEGGINGS));
         this.setItemSlot(EquipmentSlotType.FEET, new ItemStack(Items.LEATHER_BOOTS));
+
+        inventory.setItem(12, new ItemStack(Items.LEATHER_CHESTPLATE));
+        inventory.setItem(13, new ItemStack(Items.LEATHER_LEGGINGS));
+        inventory.setItem(14, new ItemStack(Items.LEATHER_BOOTS));
+        inventory.setItem(9, new ItemStack(Items.BOW));
     }
 
     @Override

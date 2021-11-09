@@ -27,7 +27,7 @@ public class RecruitEatGoal extends Goal {
             return (currentHealth <  maxHealth - maxHealth / 1.75);
         }
         else
-            return (currentHealth <  maxHealth - maxHealth / 5.0D);
+            return (currentHealth <  maxHealth - (maxHealth / 5.0D));
 
     }
 
@@ -38,6 +38,7 @@ public class RecruitEatGoal extends Goal {
 
             recruit.setIsEating(true);
             recruit.setItemInHand(Hand.OFF_HAND, foodItem);
+            recruit.setSlot(10, foodItem);
 
             recruit.startUsingItem(Hand.OFF_HAND);
 
@@ -59,6 +60,8 @@ public class RecruitEatGoal extends Goal {
             ItemStack itemStack = inventory.getItem(i);
             if (itemStack.isEdible()){
                 foodItem = itemStack.copy();
+                foodItem.setCount(2);// fixes shield bug lul
+                itemStack.shrink(1);
                 return true;
             }
         }
