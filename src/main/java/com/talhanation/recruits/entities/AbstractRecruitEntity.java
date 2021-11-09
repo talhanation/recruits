@@ -85,8 +85,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
     }
 
     private void resetItemInHand() {
-        this.setItemInHand(Hand.OFF_HAND, this.beforeFoodItem.getItem().getDefaultInstance());
-        this.setIsEating(false);
+        this.setItemInHand(Hand.OFF_HAND, this.beforeFoodItem);
+        this.beforeFoodItem = null;
     }
 
     public void tick() {
@@ -96,7 +96,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
 
         if (this.getIsEating() && !this.isUsingItem()) {
             if (beforeFoodItem != null) resetItemInHand();
-            //Seems like the RecruitEatGoal object is being deleted by the garbage collection prematurely. The fields are forgotten pretty quickly if stored in the object.
+            this.setIsEating(false);
         }
 
         if (getOwner() != null){
@@ -148,6 +148,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new SwimGoal(this));
         this.goalSelector.addGoal(0, new RecruitEatGoal(this));
+        this.goalSelector.addGoal(0, new RecruitQuaffGoal(this));
         //this.goalSelector.addGoal(2, new RecruitMountGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(4, new RecruitFollowOwnerGoal(this, 1.2D, 9.0F, 3.0F));
@@ -826,5 +827,4 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
             Main.SIMPLE_CHANNEL.sendToServer(new MessageRecruitGui(player, this.getUUID()));
         }
     }
-
 }
