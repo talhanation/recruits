@@ -59,9 +59,6 @@ public class RecruitEatGoal extends Goal {
             ItemStack itemStack = inventory.getItem(i);
             if (itemStack.isEdible()){
                 foodItem = itemStack.copy();
-                foodItem.grow(1);
-                itemStack.shrink(1);
-
                 return true;
             }
         }
