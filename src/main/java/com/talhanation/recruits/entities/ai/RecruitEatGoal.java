@@ -30,7 +30,6 @@ public class RecruitEatGoal extends Goal {
 
     }
 
-
     @Override
     public void start() {
         if (hasFoodInInv()) {
@@ -50,13 +49,6 @@ public class RecruitEatGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         return canUse();
-    }
-
-    @Override
-    public void stop() {
-        if (foodItem != null) {
-            foodItem.shrink(1);
-        }
     }
 
     private boolean hasFoodInInv(){
