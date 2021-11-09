@@ -20,8 +20,6 @@ public class RecruitFollowOwnerGoal extends Goal {
     private final float startDistance;
     private float oldWaterCost;
 
-
-
     public RecruitFollowOwnerGoal(AbstractRecruitEntity abstractRecruitEntity, double v, float startDistance, float stopDistance) {
         this.recruitEntity = abstractRecruitEntity;
         this.level = abstractRecruitEntity.level;

@@ -8,7 +8,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
@@ -39,8 +38,8 @@ public class RecruitInventoryContainer extends ContainerBase {
         this.recruitInventory = recruit.getInventory();
 
         addRecruitInventorySlots();
-        //addRecruitHandSlots();
-        //addRecruitEquipmentSlots();
+        addRecruitHandSlots();
+        addRecruitEquipmentSlots();
         addPlayerInventorySlots();
 
         //recruitInventory.startOpen(playerInventory.player);
@@ -68,7 +67,7 @@ public class RecruitInventoryContainer extends ContainerBase {
     public void addRecruitEquipmentSlots() {
         for (int k = 0; k < 4; ++k) {
             final EquipmentSlotType equipmentslottype = SLOT_IDS[k];
-            this.addSlot(new Slot(recruit.inventory,  k, 8, 18 + k * 18) {
+            this.addSlot(new Slot(recruit.inventory, 11 + k, 8, 18 + k * 18) {
                 public int getMaxStackSize() {
                     return 1;
                 }
@@ -78,7 +77,7 @@ public class RecruitInventoryContainer extends ContainerBase {
                 }
 
                 @Override
-                public void set (ItemStack stack){
+                public void set(ItemStack stack){
                     super.set(stack);
                     recruit.setItemSlot(equipmentslottype, stack);
                 }
@@ -93,7 +92,7 @@ public class RecruitInventoryContainer extends ContainerBase {
     }
 
     public void addRecruitHandSlots() {
-        this.addSlot(new Slot(recruit.inventory, 0,26,90) {
+        this.addSlot(new Slot(recruit.inventory, 9,26,90) {
             @Override
             public boolean mayPlace(ItemStack itemStack) {
                 return true;
@@ -107,10 +106,10 @@ public class RecruitInventoryContainer extends ContainerBase {
 
         });
 
-        this.addSlot(new Slot(recruit.inventory, 1,44,90) {
+        this.addSlot(new Slot(recruit.inventory, 10,44,90) {
         @Override
         public boolean mayPlace(ItemStack stack){
-            return true;
+            return stack.isShield(null);
         }
 
         @Override
