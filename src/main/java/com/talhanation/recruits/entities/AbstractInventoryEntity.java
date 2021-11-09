@@ -21,6 +21,12 @@ import java.util.function.Predicate;
 
 public abstract class AbstractInventoryEntity extends TameableEntity{
 
+
+    //iv slots
+    //9,10 = hand
+    //11,12,13,14 = armor
+    //0-8 = inv
+
     public Inventory inventory;
     private net.minecraftforge.common.util.LazyOptional<?> itemHandler = null;
 
@@ -70,7 +76,7 @@ public abstract class AbstractInventoryEntity extends TameableEntity{
         for(int i = 0; i < listnbt.size(); ++i) {
             CompoundNBT compoundnbt = listnbt.getCompound(i);
             int j = compoundnbt.getByte("Slot") & 255;
-            if (j >= 2 && j < this.inventory.getContainerSize()) {
+            if (j < this.inventory.getContainerSize()) {
                 this.inventory.setItem(j, ItemStack.of(compoundnbt));
             }
         }
@@ -84,7 +90,7 @@ public abstract class AbstractInventoryEntity extends TameableEntity{
     }
 
     public int getInventorySize() {
-        return 9;
+        return 15;
     }
 
     public int getInventoryColumns() {
@@ -93,6 +99,22 @@ public abstract class AbstractInventoryEntity extends TameableEntity{
 
 
     ////////////////////////////////////SET////////////////////////////////////
+
+    @Override
+    public boolean setSlot(int id, ItemStack itemStack) {
+        if (super.setSlot(id, itemStack)) {
+            return true;
+        } else {
+            int i = id - 300;
+            if (i >= 0 && i < this.inventory.getContainerSize()) {
+                this.inventory.setItem(i, itemStack);
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
 
 
     ////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////
