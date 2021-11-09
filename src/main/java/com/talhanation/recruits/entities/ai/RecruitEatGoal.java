@@ -33,7 +33,7 @@ public class RecruitEatGoal extends Goal {
 
     @Override
     public void start() {
-        if (hasFoodInInv() && recruit.beforeFoodItem == null) {
+        if (hasFoodInInv()) {
             recruit.beforeFoodItem = recruit.getItemInHand(Hand.OFF_HAND);
 
             recruit.setIsEating(true);
