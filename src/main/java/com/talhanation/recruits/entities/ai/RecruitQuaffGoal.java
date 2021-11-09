@@ -3,15 +3,23 @@ package com.talhanation.recruits.entities.ai;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.potion.Effect;
+import net.minecraft.potion.EffectType;
+import net.minecraft.potion.PotionUtils;
 import net.minecraft.util.Hand;
 
-public class RecruitEatGoal extends Goal {
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class RecruitQuaffGoal extends Goal {
 
     AbstractRecruitEntity recruit;
-    ItemStack foodItem;
+    ItemStack potionItem;
 
-    public RecruitEatGoal(AbstractRecruitEntity recruit) {
+    public RecruitQuaffGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
     }
 
@@ -20,30 +28,18 @@ public class RecruitEatGoal extends Goal {
         if (recruit.isUsingItem()) return false;
         if (recruit.beforeFoodItem != null) return false;
 
-        float currentHealth = recruit.getHealth();
-        float maxHealth = recruit.getMaxHealth();
-
-        if (recruit.getTarget() != null){
-            return (currentHealth <  maxHealth - maxHealth / 1.75);
-        }
-        else
-            return (currentHealth <  maxHealth - maxHealth / 5.0D);
-
+        return recruit.getTarget() != null /*&& recruit.getActiveEffects().stream().noneMatch(instance -> instance.getEffect().getCategory().equals(EffectType.BENEFICIAL)) /* Comment out to make the recruit not quaff another potion if it already has a positive effect */;
     }
 
     @Override
     public void start() {
-        if (hasFoodInInv() && recruit.beforeFoodItem == null) {
+        if (hasPotionInInv()) {
             recruit.beforeFoodItem = recruit.getItemInHand(Hand.OFF_HAND);
 
             recruit.setIsEating(true);
-            recruit.setItemInHand(Hand.OFF_HAND, foodItem);
+            recruit.setItemInHand(Hand.OFF_HAND, potionItem);
 
             recruit.startUsingItem(Hand.OFF_HAND);
-
-            recruit.heal(foodItem.getItem().getFoodProperties().getSaturationModifier() * 10);
-
-            recruit.eat(recruit.level, foodItem);
         }
     }
 
@@ -52,14 +48,13 @@ public class RecruitEatGoal extends Goal {
         return canUse();
     }
 
-    private boolean hasFoodInInv(){
+    private boolean hasPotionInInv(){
         Inventory inventory = recruit.getInventory();
 
         for(int i = 0; i < inventory.getContainerSize(); i++){
             ItemStack itemStack = inventory.getItem(i);
-            if (itemStack.isEdible()){
-                foodItem = itemStack.copy();
-                foodItem.grow(1);
+            if (PotionUtils.getMobEffects(itemStack).stream().noneMatch(instance -> instance.getEffect().getCategory().equals(EffectType.HARMFUL))) {
+                potionItem = itemStack.copy();
                 itemStack.shrink(1);
 
                 return true;
