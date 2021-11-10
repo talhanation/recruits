@@ -17,7 +17,6 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.entity.projectile.AbstractArrowEntity;
 import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.*;
@@ -61,6 +60,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
     private static final DataParameter<Integer> GROUP = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> XP = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> LEVEL = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
+    private static final DataParameter<Integer> KILLS = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
     private static final DataParameter<Boolean> isEating = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
     //private static final DataParameter<ItemStack> OFFHAND_ITEM_SAVE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.ITEM_STACK);
 
@@ -99,21 +99,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
             if (beforeFoodItem != null) resetItemInHand();
             setIsEating(false);
         }
-
-        if (getOwner() != null){
-            double health = getAttribute(Attributes.MAX_HEALTH).getValue();
-            double damage = getAttribute(Attributes.ATTACK_DAMAGE).getValue();
-            double speed = getAttribute(Attributes.MOVEMENT_SPEED).getValue();
-            double currnthealth = getHealth();
-
-            //this.getOwner().sendMessage(new StringTextComponent("MAX_HEALTH: " + (float) health), getOwner().getUUID());
-            //this.getOwner().sendMessage(new StringTextComponent("ATTACK_DAMAGE: " + (float) damage), getOwner().getUUID());
-            //this.getOwner().sendMessage(new StringTextComponent("MOVEMENT_SPEED: " + (float) speed), getOwner().getUUID());
-            this.getOwner().sendMessage(new StringTextComponent("Level:    " + getXpLevel()), getOwner().getUUID());
-            this.getOwner().sendMessage(new StringTextComponent("Xp:       " + getXp()), getOwner().getUUID());
-            this.getOwner().sendMessage(new StringTextComponent("health:   " + (float) currnthealth), getOwner().getUUID());
-        }
-
    }
 
     public void rideTick() {
@@ -182,6 +167,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         this.entityData.define(SHOULD_HOLD_POS, false);
         this.entityData.define(STATE, 0);
         this.entityData.define(XP, 0);
+        this.entityData.define(KILLS, 0);
         this.entityData.define(LEVEL, 1);
         this.entityData.define(FOLLOW_STATE, 0);
         this.entityData.define(HOLD_POS, Optional.empty());
@@ -215,6 +201,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         nbt.putBoolean("isEating", this.getIsEating());
         nbt.putInt("Xp", this.getXp());
         nbt.putInt("Level", this.getXpLevel());
+        nbt.putInt("Kills", this.getKills());
 
         if(this.getHoldPos() != null){
             nbt.putInt("HoldPosX", this.getHoldPos().getX());
@@ -237,6 +224,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         this.setIsEating(nbt.getBoolean("isEating"));
         this.setXp(nbt.getInt("Xp"));
         this.setXpLevel(nbt.getInt("XpLevel"));
+        this.setKills(nbt.getInt("Kills"));
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
@@ -253,6 +241,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
 
 
     ////////////////////////////////////GET////////////////////////////////////
+
+    public int getKills() {
+        return entityData.get(KILLS);
+    }
 
     public int getXpLevel() {
         return entityData.get(LEVEL);
@@ -363,6 +355,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         int newLevel = currentLevel + level;
         makelevelUpSound();
         this.entityData.set(LEVEL, newLevel);
+    }
+
+    public void setKills(int kills){
+        this.entityData.set(KILLS, kills);
     }
 
     public void setXpLevel(int XpLevel){
@@ -730,7 +726,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
 
     public void checkLevel(){
         int currentXp = this.getXp();
-        if (currentXp >= 300){
+        if (currentXp >= 500){
             this.addXpLevel(1);
             this.setXp(0);
             this.addLevelBuffs();
@@ -773,11 +769,20 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
 
     }
 
-    @Override
-    protected void hurtArmor(DamageSource p_230294_1_, float p_230294_2_) {
-        super.hurtArmor(p_230294_1_, p_230294_2_);
+    protected void hurtArmor(DamageSource damageSource, float damage) {
+        if (damage >= 0.0F) {
+            damage = damage / 4.0F;
+            if (damage < 1.0F) {
+                damage = 1.0F;
+            }
+            for (int i = 11; i < 15; ++i) {//11,12,13,14 = armor
+                ItemStack itemstack = this.inventory.getItem(i);
+                if ((!damageSource.isFire() || !itemstack.getItem().isFireResistant()) && itemstack.getItem() instanceof ArmorItem) {
+                    itemstack.setDamageValue((int) damage);
+                }
+            }
+        }
     }
-
 
     public void sendListenToServer(boolean start) {
         if (level.isClientSide) {
@@ -785,12 +790,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         }
     }
 
-
+    @Override
+    public void killed(ServerWorld p_241847_1_, LivingEntity p_241847_2_) {
+        super.killed(p_241847_1_, p_241847_2_);
+        this.addXp(2);
+        this.setKills(this.getKills() + 1);
+    }
 
     @Override
     protected void hurtCurrentlyUsedShield(float damage) {
         if (this.useItem.isShield(this)) {
-            if (damage >= 3.0F) {
+            if (damage >= 2.5F) {
                 int i = 1 + MathHelper.floor(damage);
                 Hand hand = this.getUsedItemHand();
                 this.useItem.hurtAndBreak(i, this, (entity) -> entity.broadcastBreakEvent(hand));
@@ -804,6 +814,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
                     }
                     this.useItem = ItemStack.EMPTY;
                     this.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+                }
+
+                ItemStack itemstack = this.inventory.getItem(10);// 10 = hoffhand slot
+                if (itemstack.getItem() instanceof ShieldItem) {
+                    itemstack.setDamageValue((int) damage);
                 }
             }
         }

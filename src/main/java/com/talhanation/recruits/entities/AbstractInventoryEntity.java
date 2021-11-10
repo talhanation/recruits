@@ -141,17 +141,8 @@ public abstract class AbstractInventoryEntity extends TameableEntity {
 
     @Override
     public boolean setSlot(int id, ItemStack itemStack) {
-        if (super.setSlot(id, itemStack)) {
-            return true;
-        } else {
-            int i = id - 300;
-            if (i >= 0 && i < this.inventory.getContainerSize()) {
-                this.inventory.setItem(i, itemStack);
-                return true;
-            } else {
-                return false;
-            }
-        }
+        super.setSlot(id, itemStack);
+        return true;
     }
 
 
@@ -182,7 +173,7 @@ public abstract class AbstractInventoryEntity extends TameableEntity {
     protected void pickUpItem(ItemEntity itemEntity) {
         ItemStack itemstack = itemEntity.getItem();
         if (this.wantsToPickUp(itemstack)) {
-            Inventory inventory = this.getInventory();
+            Inventory inventory = this.inventory;
             boolean flag = inventory.canAddItem(itemstack);
             if (!flag) {
                 return;

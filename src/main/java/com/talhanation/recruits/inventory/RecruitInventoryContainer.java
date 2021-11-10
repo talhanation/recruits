@@ -41,10 +41,6 @@ public class RecruitInventoryContainer extends ContainerBase {
         addRecruitHandSlots();
         addRecruitEquipmentSlots();
         addPlayerInventorySlots();
-
-        //recruitInventory.startOpen(playerInventory.player);
-        //recruit.armor.startOpen(playerInventory.player);
-        //recruit.hand.startOpen(playerInventory.player);
     }
 
     public AbstractRecruitEntity getRecruit() {
@@ -134,8 +130,5 @@ public class RecruitInventoryContainer extends ContainerBase {
     @Override
     public void removed(PlayerEntity playerIn) {
         super.removed(playerIn);
-        //this.recruitInventory.stopOpen(playerIn);
-        //this.recruit.inventory.stopOpen(playerIn);
-        //this.recruit.inventory.stopOpen(playerIn);
     }
 }
