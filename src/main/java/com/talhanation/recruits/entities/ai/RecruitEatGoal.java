@@ -23,7 +23,8 @@ public class RecruitEatGoal extends Goal {
         float currentHealth = recruit.getHealth();
         float maxHealth = recruit.getMaxHealth();
 
-        if (recruit.getTarget() != null || recruit.hasFoodItemInInv()){
+        if (recruit.getTarget() != null)// || recruit.hasFoodItemInInv())
+        {
             return (currentHealth <  maxHealth - maxHealth / 1.75);
         }
         else
