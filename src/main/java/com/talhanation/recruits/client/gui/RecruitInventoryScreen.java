@@ -47,11 +47,11 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         //Titles
         font.draw(matrixStack, recruit.getDisplayName().getVisualOrderText(), 8, 5, fontColor);
         font.draw(matrixStack, playerInventory.getDisplayName().getVisualOrderText(), 8, this.imageHeight - 96 + 2, fontColor);
-        //Info
-        font.draw(matrixStack, "Hp:    "+ health, k, l, fontColor);
-        font.draw(matrixStack, "Lvl:   "+ recruit.getXpLevel(), k , l + 10, fontColor);
-        font.draw(matrixStack, "Exp:   "+ recruit.getXp(), k, l + 20, fontColor);
-        font.draw(matrixStack, "Kills: "+ recruit.getKills(), k, l + 30, fontColor);
+        //Info // better formating of the labels pls
+        font.draw(matrixStack, "Hp:"+ health, k, l, fontColor);
+        font.draw(matrixStack, "Lvl:"+ recruit.getXpLevel(), k , l + 10, fontColor);
+        font.draw(matrixStack, "Exp:"+ recruit.getXp(), k, l + 20, fontColor);
+        font.draw(matrixStack, "Kills:"+ recruit.getKills(), k, l + 30, fontColor);
 
         // command
 
@@ -69,25 +69,25 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
                 break;
 
         }
-        font.draw(matrixStack, follow, k, l + 50, fontColor);
+        font.draw(matrixStack, follow, k, l + 55, fontColor);
 
 
         String aggro = "";
         switch (recruit.getState()){
             default:
-            case 2:
+            case 0:
                 aggro = "Neutral";
                 break;
-            case 0:
+            case 1:
                 aggro = "Aggressive";
                 break;
-            case 1:
+            case 2:
                 aggro = "Raid";
                 break;
         }
-        font.draw(matrixStack, aggro, k, l + 65, fontColor);
+        font.draw(matrixStack, aggro, k, l + 70, fontColor);
 
-        font.draw(matrixStack, "Group: " + recruit.getGroup(), k, l + 80, fontColor);
+        font.draw(matrixStack, "Group: " + recruit.getGroup(), k, l + 85, fontColor);
     }
 
     protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
