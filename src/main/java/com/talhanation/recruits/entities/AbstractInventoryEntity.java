@@ -188,6 +188,7 @@ public abstract class AbstractInventoryEntity extends TameableEntity {
                 return;
             }
             //this.recDetectEquipmentUpdates();
+            this.checkItemsInInv();
             this.onItemPickup(itemEntity);
             this.take(itemEntity, itemstack.getCount());
             ItemStack itemstack1 = inventory.addItem(itemstack);
@@ -199,6 +200,8 @@ public abstract class AbstractInventoryEntity extends TameableEntity {
         }
 
     }
+
+    public abstract void checkItemsInInv();
 
     @Override
     public abstract boolean wantsToPickUp(ItemStack itemStack);

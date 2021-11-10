@@ -3,16 +3,10 @@ package com.talhanation.recruits.entities.ai;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectType;
 import net.minecraft.potion.PotionUtils;
 import net.minecraft.util.Hand;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class RecruitQuaffGoal extends Goal {
 
@@ -38,6 +32,7 @@ public class RecruitQuaffGoal extends Goal {
 
             recruit.setIsEating(true);
             recruit.setItemInHand(Hand.OFF_HAND, potionItem);
+            recruit.setSlot(10, recruit.beforeFoodItem);
 
             recruit.startUsingItem(Hand.OFF_HAND);
         }
@@ -53,7 +48,7 @@ public class RecruitQuaffGoal extends Goal {
 
         for(int i = 0; i < inventory.getContainerSize(); i++){
             ItemStack itemStack = inventory.getItem(i);
-            if (PotionUtils.getMobEffects(itemStack).stream().noneMatch(instance -> instance.getEffect().getCategory().equals(EffectType.HARMFUL))) {
+            if (PotionUtils.getMobEffects(itemStack).size() > 0 && PotionUtils.getMobEffects(itemStack).stream().noneMatch(instance -> instance.getEffect().getCategory().equals(EffectType.HARMFUL))) {
                 potionItem = itemStack.copy();
                 itemStack.shrink(1);
 

@@ -23,7 +23,7 @@ public class RecruitEatGoal extends Goal {
         float currentHealth = recruit.getHealth();
         float maxHealth = recruit.getMaxHealth();
 
-        if (recruit.getTarget() != null){
+        if (recruit.getTarget() != null || recruit.hasFoodItemInInv()){
             return (currentHealth <  maxHealth - maxHealth / 1.75);
         }
         else
@@ -59,12 +59,17 @@ public class RecruitEatGoal extends Goal {
         for(int i = 0; i < inventory.getContainerSize(); i++){
             ItemStack itemStack = inventory.getItem(i);
             if (itemStack.isEdible()){
-                foodItem = itemStack.copy();
-                foodItem.setCount(2);// fixes shield bug lul
-                itemStack.shrink(1);
+                setFoodItem(itemStack);
                 return true;
             }
         }
         return false;
+    }
+
+
+    private void setFoodItem(ItemStack itemStack){
+        this.foodItem = itemStack.copy();
+        this.foodItem.setCount(2);// fixes shield bug lul
+        itemStack.shrink(1);
     }
 }

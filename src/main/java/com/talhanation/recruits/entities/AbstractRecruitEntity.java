@@ -17,6 +17,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.entity.projectile.AbstractArrowEntity;
 import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.*;
@@ -147,7 +148,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
 
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new SwimGoal(this));
-        this.goalSelector.addGoal(0, new RecruitEatGoal(this));
+        this.goalSelector.addGoal(1, new RecruitEatGoal(this));
         this.goalSelector.addGoal(0, new RecruitQuaffGoal(this));
         //this.goalSelector.addGoal(2, new RecruitMountGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
@@ -354,17 +355,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
      */
 
 
-    ////////////////////////////////////SET////////////////////////////////////
 
-    public void checkLevel(){
-        int currentXp = this.getXp();
-        if (currentXp >= 300){
-            this.addXpLevel(1);
-            this.setXp(0);
-            this.addLevelBuffs();
-            this.heal(10F);
-        }
-    }
+    ////////////////////////////////////SET////////////////////////////////////
 
     public void addXpLevel(int level){
         int currentLevel = this.getXpLevel();
@@ -504,6 +496,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
             if ((this.isTame() && player.getUUID().equals(this.getOwnerUUID()))) {
 
                 if (player.isCrouching()) {
+                    checkItemsInInv();
                     openGUI(player);
                     /*
                     if (getListen()) {
@@ -729,6 +722,35 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
     }
 
     ////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////
+
+    private void checkFoodInInv(){
+        Inventory inventory = this.getInventory();
+
+        for(int i = 0; i < inventory.getContainerSize(); i++){
+            ItemStack itemStack = inventory.getItem(i);
+            if (itemStack.isEdible()){
+                setFoodItem(itemStack);
+                setHasFoodItemInInv(true);
+            }
+            else
+                setHasFoodItemInInv(false);
+        }
+    }
+
+    @Override
+    public void checkItemsInInv(){
+        checkFoodInInv();
+    }
+
+    public void checkLevel(){
+        int currentXp = this.getXp();
+        if (currentXp >= 300){
+            this.addXpLevel(1);
+            this.setXp(0);
+            this.addLevelBuffs();
+            this.heal(10F);
+        }
+    }
 
     public void makelevelUpSound() {
         this.level.playSound(null, this.getX(), this.getY() + 4 , this.getZ(), SoundEvents.VILLAGER_YES, this.getSoundSource(), 15.0F, 0.8F + 0.4F * this.random.nextFloat());
