@@ -723,23 +723,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
 
     ////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////
 
-    private void checkFoodInInv(){
-        Inventory inventory = this.getInventory();
-
-        for(int i = 0; i < inventory.getContainerSize(); i++){
-            ItemStack itemStack = inventory.getItem(i);
-            if (itemStack.isEdible()){
-                setFoodItem(itemStack);
-                setHasFoodItemInInv(true);
-            }
-            else
-                setHasFoodItemInInv(false);
-        }
-    }
-
     @Override
     public void checkItemsInInv(){
-        checkFoodInInv();
+
     }
 
     public void checkLevel(){
@@ -786,12 +772,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         }
 
     }
-    /*
+
     @Override
     protected void hurtArmor(DamageSource p_230294_1_, float p_230294_2_) {
         super.hurtArmor(p_230294_1_, p_230294_2_);
     }
-    */
+
 
     public void sendListenToServer(boolean start) {
         if (level.isClientSide) {
@@ -811,8 +797,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
                 if (this.useItem.isEmpty()) {
                     if (hand == Hand.MAIN_HAND) {
                         this.setItemSlot(EquipmentSlotType.MAINHAND, ItemStack.EMPTY);
+                        this.setSlot(9, ItemStack.EMPTY);
                     } else {
                         this.setItemSlot(EquipmentSlotType.OFFHAND, ItemStack.EMPTY);
+                        this.setSlot(10, ItemStack.EMPTY);
                     }
                     this.useItem = ItemStack.EMPTY;
                     this.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
