@@ -49,13 +49,13 @@ public class RecruitInventoryContainer extends ContainerBase {
 
     @Override
     public int getInvOffset() {
-        return 36;
+        return 56;
     }
 
     public void addRecruitInventorySlots() {
         for (int k = 0; k < 3; ++k) {
             for (int l = 0; l < 3; ++l) {
-                this.addSlot(new Slot(recruitInventory, 0 + l + k * recruit.getInventoryColumns(), 2 * 18 + 80 + l * 18, 18 + k * 18));
+                this.addSlot(new Slot(recruitInventory, 0 + l + k * recruit.getInventoryColumns(), 2 * 18 + 82 + l * 18,  18 + k * 18));
             }
         }
     }

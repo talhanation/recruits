@@ -10,8 +10,6 @@ import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.*;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.pathfinding.GroundPathNavigator;
-import net.minecraft.potion.EffectType;
-import net.minecraft.potion.PotionUtils;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
 import net.minecraft.world.World;
@@ -23,7 +21,7 @@ import java.util.function.Predicate;
 public class RecruitEntity extends AbstractRecruitEntity {
 
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
-            (!item.hasPickUpDelay() && item.isAlive() && this.wantsToPickUp(item.getItem()));
+            (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
 
     public RecruitEntity(EntityType<? extends AbstractRecruitEntity> entityType, World world) {
         super(entityType, world);
@@ -105,7 +103,7 @@ public class RecruitEntity extends AbstractRecruitEntity {
 
     @Override
     public boolean wantsToPickUp(ItemStack itemStack) {
-        return itemStack.isEdible() || PotionUtils.getMobEffects(itemStack).stream().noneMatch(instance -> instance.getEffect().getCategory().equals(EffectType.HARMFUL));
+        return itemStack.isEdible();
     }
 
     public Predicate<ItemEntity> getAllowedItems(){

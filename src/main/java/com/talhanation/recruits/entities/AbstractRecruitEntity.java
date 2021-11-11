@@ -622,6 +622,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         }
         this.addXp(2);
         this.checkLevel();
+        this.damageMainHandItem();
         return flag;
     }
 
@@ -781,6 +782,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
                     itemstack.setDamageValue((int) damage);
                 }
             }
+        }
+    }
+
+    protected void damageMainHandItem() {
+        ItemStack itemstack = this.inventory.getItem(9);// 10 = hoffhand slot
+        if (itemstack.getItem().isDamageable(itemstack)) {
+            itemstack.setDamageValue(1);
         }
     }
 

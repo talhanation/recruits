@@ -36,25 +36,28 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         this.playerInventory = playerInventory;
 
         imageWidth = 176;
-        imageHeight = 202;
+        imageHeight = 218;
     }
     @Override
     protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
         int health = MathHelper.ceil(recruit.getHealth());
-        int k = 79;
-        int l = 19;
+        int k = 79;//höhe
+        int l = 19;//rechst links
         //Titles
         font.draw(matrixStack, recruit.getDisplayName().getVisualOrderText(), 8, 5, fontColor);
         font.draw(matrixStack, playerInventory.getDisplayName().getVisualOrderText(), 8, this.imageHeight - 96 + 2, fontColor);
         //Info // better formating of the labels pls
-        font.draw(matrixStack, "Hp:"+ health, k, l, fontColor);
-        font.draw(matrixStack, "Lvl:"+ recruit.getXpLevel(), k , l + 10, fontColor);
-        font.draw(matrixStack, "Exp:"+ recruit.getXp(), k, l + 20, fontColor);
-        font.draw(matrixStack, "Kills:"+ recruit.getKills(), k, l + 30, fontColor);
+        font.draw(matrixStack, "Hp:", k, l, fontColor);
+        font.draw(matrixStack, "" + health, k + 30, l , fontColor);
+        font.draw(matrixStack, "Lvl:", k , l  + 10, fontColor);
+        font.draw(matrixStack, "" + recruit.getXpLevel(), k + 30 , l + 10, fontColor);
+        font.draw(matrixStack, "Exp:", k, l + 20, fontColor);
+        font.draw(matrixStack, "" + recruit.getXp(), k + 30, l + 20, fontColor);
+        font.draw(matrixStack, "Kills:", k, l + 30, fontColor);
+        font.draw(matrixStack, ""+ recruit.getKills(), k + 30, l + 30, fontColor);
 
         // command
-
         String follow = "";
         switch (recruit.getFollowState()){
             default:
@@ -65,11 +68,10 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
                 follow = "Following";
                 break;
             case 2:
-                follow = "Holding Position";
+                follow = "Holding Pos.";
                 break;
-
         }
-        font.draw(matrixStack, follow, k, l + 55, fontColor);
+        font.draw(matrixStack, follow, k + 15, l + 58 + 0, fontColor);
 
 
         String aggro = "";
@@ -85,9 +87,14 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
                 aggro = "Raid";
                 break;
         }
-        font.draw(matrixStack, aggro, k, l + 70, fontColor);
+        font.draw(matrixStack, aggro, k + 15, l + 56 + 15, fontColor);
 
-        font.draw(matrixStack, "Group: " + recruit.getGroup(), k, l + 85, fontColor);
+        font.draw(matrixStack, "Group: " + recruit.getGroup(), k + 15, l + 56 + 28, fontColor);
+
+        String listen = "";
+        if (recruit.getListen()) listen = "Listening";
+        else listen = "Ignoring";
+        font.draw(matrixStack, listen, k + 15, l + 56 + 41, fontColor);
     }
 
     protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
