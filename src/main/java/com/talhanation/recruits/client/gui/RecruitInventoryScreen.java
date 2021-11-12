@@ -5,13 +5,16 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.RecruitInventoryContainer;
+import com.talhanation.recruits.network.MessageFollow;
+import com.talhanation.recruits.network.MessageListen;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.screen.inventory.InventoryScreen;
+import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.client.gui.widget.button.ImageButton;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.util.text.*;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -38,6 +41,44 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         imageWidth = 176;
         imageHeight = 218;
     }
+
+
+    @Override
+    protected void init() {
+        super.init();
+        int k = 79;//höhe
+        int l = 19;//rechst links
+
+        //FOLLOW
+        addButton(new Button(leftPos + 78, topPos + 74, 8, 12, new StringTextComponent("<"), button -> {
+            //Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(!recruit.getListen(), recruit.getUUID()));
+        }));
+
+        addButton(new Button(leftPos + 77 + 85, topPos + 74, 8, 12, new StringTextComponent(">"), button -> {
+            //Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(!recruit.getListen(), recruit.getUUID()));
+        }));
+
+        //LISTEN
+        addButton(new Button(leftPos + 77, topPos + 113, 8, 12, new StringTextComponent("<"), button -> {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
+        }));
+
+        addButton(new Button(leftPos + 77 + 85, topPos + 113, 8, 12, new StringTextComponent(">"), button -> {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
+        }));
+        /*
+        //AGGRO
+        addButton(new Button(leftPos + 8, topPos + 19, 16, 20, TextComponent.EMPTY, button -> {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageSelectTrade(false));
+        }));
+
+        addButton(new Button(leftPos + imageWidth - 16 - 8, topPos + 19, 16, 20, TextComponent.EMPTY, button -> {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageSelectTrade(true));
+        }));
+        */
+
+    }
+
     @Override
     protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
@@ -47,15 +88,16 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         //Titles
         font.draw(matrixStack, recruit.getDisplayName().getVisualOrderText(), 8, 5, fontColor);
         font.draw(matrixStack, playerInventory.getDisplayName().getVisualOrderText(), 8, this.imageHeight - 96 + 2, fontColor);
-        //Info // better formating of the labels pls
+
+        //Info
         font.draw(matrixStack, "Hp:", k, l, fontColor);
-        font.draw(matrixStack, "" + health, k + 30, l , fontColor);
+        font.draw(matrixStack, "" + health, k + 25, l , fontColor);
         font.draw(matrixStack, "Lvl:", k , l  + 10, fontColor);
-        font.draw(matrixStack, "" + recruit.getXpLevel(), k + 30 , l + 10, fontColor);
+        font.draw(matrixStack, "" + recruit.getXpLevel(), k + 25 , l + 10, fontColor);
         font.draw(matrixStack, "Exp:", k, l + 20, fontColor);
-        font.draw(matrixStack, "" + recruit.getXp(), k + 30, l + 20, fontColor);
+        font.draw(matrixStack, "" + recruit.getXp(), k + 25, l + 20, fontColor);
         font.draw(matrixStack, "Kills:", k, l + 30, fontColor);
-        font.draw(matrixStack, ""+ recruit.getKills(), k + 30, l + 30, fontColor);
+        font.draw(matrixStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
 
         // command
         String follow = "";
@@ -101,7 +143,6 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
 
         //drawHealth(matrixStack, health);
-
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 
         //this.minecraft.getTextureManager().bind(RESOURCE_LOCATION);
