@@ -8,8 +8,8 @@ import java.util.UUID;
 
 public class CommandEvents {
 
-    public static void onRKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit, int r_state, int group) {
-        if (recruit.isTame() && recruit.getListen() &&  Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
+    public static void onRKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit, int r_state, int group, boolean fromGui) {
+        if (recruit.isTame() && (recruit.getListen() || fromGui )&&  Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
             int state = recruit.getFollowState();
             switch (r_state) {
 
@@ -27,8 +27,6 @@ public class CommandEvents {
                     if (state != 2)
                         recruit.setFollowState(2);
                     break;
-
-
             }
         }
     }

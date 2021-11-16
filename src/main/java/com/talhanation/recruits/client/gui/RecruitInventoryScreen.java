@@ -33,6 +33,8 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
     private final AbstractRecruitEntity recruit;
     private final PlayerInventory playerInventory;
 
+    private int followState;
+
     public RecruitInventoryScreen(RecruitInventoryContainer recruitContainer, PlayerInventory playerInventory, ITextComponent title) {
         super(RESOURCE_LOCATION, recruitContainer, playerInventory, title);
         this.recruit = recruitContainer.getRecruit();
@@ -49,13 +51,30 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         int k = 79;//höhe
         int l = 19;//rechst links
 
+
         //FOLLOW
-        addButton(new Button(leftPos + 78, topPos + 74, 8, 12, new StringTextComponent("<"), button -> {
-            //Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(!recruit.getListen(), recruit.getUUID()));
+        addButton(new Button(leftPos + 77, topPos + 74, 8, 12, new StringTextComponent("<"), button -> {
+            this.followState = recruit.getFollowState();
+            this.followState ++;
+            if (this.followState > 3)
+                this.followState = 0;
+
+            if (this.followState < 0)
+                this.followState = 3;
+
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(recruit.getOwnerUUID(), recruit.getUUID(),this.followState, 1,  true));
         }));
 
         addButton(new Button(leftPos + 77 + 85, topPos + 74, 8, 12, new StringTextComponent(">"), button -> {
-            //Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(!recruit.getListen(), recruit.getUUID()));
+            this.followState = recruit.getFollowState();
+            this.followState --;
+            if (this.followState > 3)
+                this.followState = 0;
+
+            if (this.followState < 0)
+                this.followState = 3;
+
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(recruit.getOwnerUUID(), recruit.getUUID(),this.followState, -1,  true));
         }));
 
         //LISTEN
