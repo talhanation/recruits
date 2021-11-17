@@ -15,6 +15,8 @@ public class MessageAttack implements Message<MessageAttack> {
     private UUID player;
     private int state;
     private int group;
+    private boolean fromGui;
+    private UUID recruit;
 
     public MessageAttack(){
     }
@@ -23,6 +25,14 @@ public class MessageAttack implements Message<MessageAttack> {
         this.player = player;
         this.state  = state;
         this.group  = group;
+        this.fromGui = false;
+    }
+
+    public MessageAttack(UUID player, UUID recruit, int state, boolean fromGui) {
+        this.player = player;
+        this.recruit = recruit;
+        this.state = state;
+        this.fromGui = fromGui;
     }
 
     public Dist getExecutingSide() {
@@ -30,15 +40,25 @@ public class MessageAttack implements Message<MessageAttack> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(40.0D));
-        for (AbstractRecruitEntity recruits : list){
-            CommandEvents.onXKeyPressed(this.player, recruits, this.state, group);
+        if (fromGui){
+            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(10.0D));
+            for (AbstractRecruitEntity recruits : list) {
+                CommandEvents.onXKeyPressed(this.player, recruits, this.state, group, fromGui);
+            }
+        }
+        else {
+            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(40.0D));
+            for (AbstractRecruitEntity recruits : list) {
+                CommandEvents.onXKeyPressed(this.player, recruits, this.state, group, fromGui);
+            }
         }
     }
     public MessageAttack fromBytes(PacketBuffer buf) {
         this.player = buf.readUUID();
         this.state = buf.readInt();
         this.group = buf.readInt();
+        this.recruit = buf.readUUID();
+        this.fromGui = buf.readBoolean();
         return this;
     }
 
@@ -46,6 +66,8 @@ public class MessageAttack implements Message<MessageAttack> {
         buf.writeUUID(this.player);
         buf.writeInt(this.state);
         buf.writeInt(this.group);
+        buf.writeUUID(this.recruit);
+        buf.writeBoolean(this.fromGui);
     }
 
 }

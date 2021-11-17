@@ -19,7 +19,6 @@ public class MessageFollow implements Message<MessageFollow> {
     private int state;
     private int group;
     private boolean fromGui;
-    private int steps;
 
     public MessageFollow(){
     }
@@ -31,12 +30,11 @@ public class MessageFollow implements Message<MessageFollow> {
         this.fromGui = fromGui;
     }
 
-    public MessageFollow(UUID player, UUID recruit, int state, int steps, boolean fromGui) {
+    public MessageFollow(UUID player, UUID recruit, int state, boolean fromGui) {
         this.player = player;
         this.recruit = recruit;
         this.state  = state;
         this.fromGui = fromGui;
-        this.steps = steps;
     }
 
     public Dist getExecutingSide() {
@@ -55,13 +53,15 @@ public class MessageFollow implements Message<MessageFollow> {
         else{
             player.sendMessage(new StringTextComponent("MESSAGE! STATE: " + this.state), player.getUUID());
 
-            List<AbstractRecruitEntity> list = Objects.requireNonNull(player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(8.0D)));
+            List<AbstractRecruitEntity> list = Objects.requireNonNull(player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(16.0D)));
             for (AbstractRecruitEntity recruits : list) {
-                CommandEvents.onRKeyPressed(this.player, recruits, this.state,  0, true);
-                    player.sendMessage(new StringTextComponent("MESSAGE 2222222! STATE: " + this.state), player.getUUID());
+                player.sendMessage(new StringTextComponent("in FOR"), player.getUUID());
+                if (recruits.getUUID().equals(this.recruit)){
+                    //recruits.setFollowState(state);
+                    CommandEvents.onRKeyPressed(this.player, recruits, this.state,  0, true);
+                    player.sendMessage(new StringTextComponent("DONE! UBERGEBER STATE: " + this.state), player.getUUID());
                 }
-
-
+            }
 
             /*
             player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
@@ -82,7 +82,7 @@ public class MessageFollow implements Message<MessageFollow> {
         this.state = buf.readInt();
         this.group = buf.readInt();
         this.fromGui = buf.readBoolean();
-        this.steps = buf.readInt();
+        this.recruit = buf.readUUID();
         return this;
     }
 
@@ -91,7 +91,7 @@ public class MessageFollow implements Message<MessageFollow> {
         buf.writeInt(this.state);
         buf.writeInt(this.group);
         buf.writeBoolean(this.fromGui);
-        buf.writeInt(this.steps);
+        buf.writeUUID(this.recruit);
     }
 
 }
