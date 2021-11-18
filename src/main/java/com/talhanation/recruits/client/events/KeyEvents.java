@@ -1,20 +1,33 @@
 package com.talhanation.recruits.client.events;
 
+import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.network.MessageAttack;
-import com.talhanation.recruits.network.MessageClearTarget;
-import com.talhanation.recruits.network.MessageFollow;
-import com.talhanation.recruits.network.MessageMove;
+import com.talhanation.recruits.inventory.CommandContainer;
+import com.talhanation.recruits.inventory.RecruitInventoryContainer;
+import com.talhanation.recruits.network.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.inventory.container.SimpleNamedContainerProvider;
+import net.minecraft.util.IReorderingProcessor;
+import net.minecraft.util.text.IFormattableTextComponent;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.Style;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.network.NetworkHooks;
 
+import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -42,11 +55,15 @@ public class KeyEvents {
         }
 
         if (Main.R_KEY.isDown()) {
-
+            /*
             R_state++;
             if (R_state > 3) R_state = 0;
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(clientPlayerEntity.getUUID(), R_state, group, false));
             sendRCommandInChat(R_state, clientPlayerEntity);
+            */
+
+            CommandEvents.openCommandScreen(clientPlayerEntity);
+
         }
 
         if(Main.C_KEY.isDown()){
@@ -118,5 +135,4 @@ public class KeyEvents {
 
         }
     }
-
 }

@@ -1,8 +1,19 @@
 package com.talhanation.recruits;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.inventory.CommandContainer;
+import com.talhanation.recruits.network.MessageCommandScreen;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraftforge.fml.network.NetworkHooks;
 
+import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -91,4 +102,25 @@ public class CommandEvents {
         }
     }
 
+
+    public static void openCommandScreen(PlayerEntity player) {
+        if (player instanceof ServerPlayerEntity) {
+            NetworkHooks.openGui((ServerPlayerEntity) player, new INamedContainerProvider() {
+
+                @Override
+                public ITextComponent getDisplayName() {
+                    return new StringTextComponent("command_screen") {
+                    };
+                }
+
+                @Nullable
+                @Override
+                public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+                    return new CommandContainer(i, playerEntity);
+                }
+            }, packetBuffer -> {packetBuffer.writeUUID(player.getUUID());});
+        } else {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageCommandScreen(player));
+        }
+    }
 }

@@ -2,17 +2,20 @@ package com.talhanation.recruits;
 
 import com.google.common.collect.ImmutableSet;
 import com.talhanation.recruits.client.events.*;
+import com.talhanation.recruits.client.gui.CommandScreen;
 import com.talhanation.recruits.client.gui.RecruitInventoryScreen;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModItems;
+import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.inventory.RecruitInventoryContainer;
 import com.talhanation.recruits.network.*;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.ai.attributes.GlobalEntityTypeAttributes;
 import net.minecraft.entity.merchant.villager.VillagerProfession;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvents;
@@ -58,6 +61,7 @@ public class Main {
     public static KeyBinding Y_KEY;
     public static KeyBinding V_KEY;
     public static ContainerType<RecruitInventoryContainer> RECRUIT_CONTAINER_TYPE;
+    public static ContainerType<CommandContainer> COMMAND_CONTAINER_TYPE;
 
     public Main() {
         //ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, RecruitsModConfig.CONFIG);
@@ -110,6 +114,10 @@ public class Main {
                 buf -> (new MessageRecruitGui()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
+        SIMPLE_CHANNEL.registerMessage(6, MessageCommandScreen.class, MessageCommandScreen::toBytes,
+                buf -> (new MessageCommandScreen()).fromBytes(buf),
+                (msg, fun) -> msg.executeServerSide(fun.get()));
+
 
         DeferredWorkQueue.runLater(() -> {
             GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT.get(), RecruitEntity.setAttributes().build());
@@ -136,7 +144,7 @@ public class Main {
 
 
         ClientRegistry.registerScreen(Main.RECRUIT_CONTAINER_TYPE, RecruitInventoryScreen::new);
-
+        ClientRegistry.registerScreen(Main.COMMAND_CONTAINER_TYPE, CommandScreen::new);
     }
 
     @SubscribeEvent
@@ -188,6 +196,15 @@ public class Main {
         });
         RECRUIT_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "recruit_container"));
         event.getRegistry().register(RECRUIT_CONTAINER_TYPE);
+
+
+        COMMAND_CONTAINER_TYPE = new ContainerType<>((IContainerFactory<CommandContainer>) (windowId, inv, data) -> {
+            PlayerEntity playerEntity = inv.player;
+
+            return new CommandContainer(windowId, playerEntity);
+        });
+        COMMAND_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "command_container"));
+        event.getRegistry().register(COMMAND_CONTAINER_TYPE);
     }
 
     @Nullable

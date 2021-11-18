@@ -25,14 +25,14 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 public class CommandScreen extends ScreenBase<CommandContainer> {
 
+    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/command_gui.png");
     private static final int fontColor = 4210752;
 
 
     public CommandScreen(CommandContainer commandContainer, PlayerInventory playerInventory, ITextComponent title) {
-        super(null, commandContainer, playerInventory, title);
-
-        imageWidth = 176;
-        imageHeight = 218;
+        super(RESOURCE_LOCATION, commandContainer, playerInventory, title);
+        imageWidth = 201;
+        imageHeight = 170;
     }
 
 
@@ -44,21 +44,24 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
 
         //FOLLOW
-        addButton(new Button(0, 0, 40, 40, new StringTextComponent("Follow me!"), button -> {
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(, recruit.getUUID(), this.followState, true));
+        addButton(new Button(leftPos - 40 + imageWidth / 2, topPos, 81, 20, new StringTextComponent("Follow me!"), button -> {
+                //Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player, state, 0, fromGui));
         }));
-
-
+        //HOLDPOS
+        addButton(new Button(leftPos - 40 + imageWidth / 2, topPos + 20 + 30, 81, 20, new StringTextComponent("Hold Pos.!"), button -> {
+            //Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player, state, 0, fromGui));
+        }));
     }
 
     @Override
     protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
-
     }
 
     protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
         super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
+
+        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
 
