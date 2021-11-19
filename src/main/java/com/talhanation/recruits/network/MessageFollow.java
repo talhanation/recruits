@@ -22,11 +22,11 @@ public class MessageFollow implements Message<MessageFollow> {
     public MessageFollow(){
     }
 
-    public MessageFollow(UUID player, int state, int group, boolean fromGui) {
+    public MessageFollow(UUID player, int state, int group) {
         this.player = player;
         this.state  = state;
         this.group  = group;
-        this.fromGui = fromGui;
+        this.fromGui = false;
         this.recruit = null;
     }
 
