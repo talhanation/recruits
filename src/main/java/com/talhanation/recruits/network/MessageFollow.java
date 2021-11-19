@@ -4,7 +4,6 @@ import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.network.NetworkEvent;
 
@@ -28,6 +27,7 @@ public class MessageFollow implements Message<MessageFollow> {
         this.state  = state;
         this.group  = group;
         this.fromGui = fromGui;
+        this.recruit = null;
     }
 
     public MessageFollow(UUID player, UUID recruit, int state, boolean fromGui) {
@@ -51,15 +51,10 @@ public class MessageFollow implements Message<MessageFollow> {
             }
         }
         else{
-            player.sendMessage(new StringTextComponent("MESSAGE! STATE: " + this.state), player.getUUID());
-
             List<AbstractRecruitEntity> list = Objects.requireNonNull(player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(16.0D)));
             for (AbstractRecruitEntity recruits : list) {
-                player.sendMessage(new StringTextComponent("in FOR"), player.getUUID());
                 if (recruits.getUUID().equals(this.recruit)){
-                    //recruits.setFollowState(state);
                     CommandEvents.onRKeyPressed(this.player, recruits, this.state,  0, true);
-                    player.sendMessage(new StringTextComponent("DONE! UBERGEBER STATE: " + this.state), player.getUUID());
                 }
             }
 
@@ -82,16 +77,16 @@ public class MessageFollow implements Message<MessageFollow> {
         this.state = buf.readInt();
         this.group = buf.readInt();
         this.fromGui = buf.readBoolean();
-        this.recruit = buf.readUUID();
+        if (this.recruit != null) this.recruit = buf.readUUID();
         return this;
     }
 
     public void toBytes(PacketBuffer buf) {
         buf.writeUUID(this.player);
-        buf.writeInt(this.state);
         buf.writeInt(this.group);
+        buf.writeInt(this.state);
         buf.writeBoolean(this.fromGui);
-        buf.writeUUID(this.recruit);
+        if (this.recruit != null) buf.writeUUID(this.recruit);
     }
 
 }

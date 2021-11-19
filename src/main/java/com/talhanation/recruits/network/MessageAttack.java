@@ -26,6 +26,7 @@ public class MessageAttack implements Message<MessageAttack> {
         this.state  = state;
         this.group  = group;
         this.fromGui = false;
+        this.recruit = null;
     }
 
     public MessageAttack(UUID player, UUID recruit, int state, boolean fromGui) {
@@ -57,7 +58,7 @@ public class MessageAttack implements Message<MessageAttack> {
         this.player = buf.readUUID();
         this.state = buf.readInt();
         this.group = buf.readInt();
-        this.recruit = buf.readUUID();
+        if (this.recruit != null) this.recruit = buf.readUUID();
         this.fromGui = buf.readBoolean();
         return this;
     }
@@ -66,8 +67,8 @@ public class MessageAttack implements Message<MessageAttack> {
         buf.writeUUID(this.player);
         buf.writeInt(this.state);
         buf.writeInt(this.group);
-        buf.writeUUID(this.recruit);
         buf.writeBoolean(this.fromGui);
+        if (this.recruit != null) buf.writeUUID(this.recruit);
     }
 
 }

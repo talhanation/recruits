@@ -123,4 +123,55 @@ public class CommandEvents {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageCommandScreen(player));
         }
     }
+
+
+    public static void sendFollowCommandInChat(int state, LivingEntity owner){
+        switch (state) {
+            case 0:
+                owner.sendMessage(new StringTextComponent("Release!"), owner.getUUID());
+                break;
+
+            case 1:
+                owner.sendMessage(new StringTextComponent("Follow me!"), owner.getUUID());
+                break;
+
+            case 2:
+                owner.sendMessage(new StringTextComponent("Hold your Position!"), owner.getUUID());
+                break;
+        }
+    }
+
+    public static void sendAggroCommandInChat(int state, LivingEntity owner){
+        switch (state) {
+            case 0:
+                owner.sendMessage(new StringTextComponent("Stay Neutral!"), owner.getUUID());
+                break;
+
+            case 1:
+                owner.sendMessage(new StringTextComponent("Stay Aggressive!"), owner.getUUID());
+                break;
+
+            case 2:
+                owner.sendMessage(new StringTextComponent("Raid!"), owner.getUUID());
+                break;
+        }
+    }
+
+    public static void sendGroupInChat(int state, LivingEntity owner){
+        switch (state) {
+            case 0:
+                owner.sendMessage(new StringTextComponent("Everyone!"), owner.getUUID());
+                break;
+            case 1:
+                owner.sendMessage(new StringTextComponent("Group 1!"), owner.getUUID());
+                break;
+            case 2:
+                owner.sendMessage(new StringTextComponent("Group 2!"), owner.getUUID());
+                break;
+            case 3:
+                owner.sendMessage(new StringTextComponent("Group 3!"), owner.getUUID());
+                break;
+
+        }
+    }
 }
