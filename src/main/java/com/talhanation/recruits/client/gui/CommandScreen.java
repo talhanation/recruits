@@ -47,40 +47,40 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         //WANDER
         addButton(new Button(leftPos - 70 - 40 + imageWidth / 2, topPos + 20 + 30, 81, 20, new StringTextComponent("Release!"), button -> {
             CommandEvents.sendFollowCommandInChat(0, player);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 0, 0));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 0, group));
         }));
 
 
         //FOLLOW
         addButton(new Button(leftPos - 40 + imageWidth / 2, topPos + 10, 81, 20, new StringTextComponent("Follow me!"), button -> {
             CommandEvents.sendFollowCommandInChat(1, player);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 1, 0));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 1, group));
 
         }));
 
         //HOLDPOS
         addButton(new Button(leftPos + 30 + imageWidth / 2, topPos + 20 + 30, 81, 20, new StringTextComponent("Hold your Pos.!"), button -> {
             CommandEvents.sendFollowCommandInChat(2, player);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 2, 0));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 2, group));
         }));
 
 
         //NEUTRAL
         addButton(new Button(leftPos - 40 + imageWidth / 2, topPos + 120, 81, 20, new StringTextComponent("Stay Neutral!"), button -> {
             CommandEvents.sendAggroCommandInChat(0, player);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(player.getUUID(), 0, 0));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(player.getUUID(), 0, group));
         }));
 
         //AGGRESSIVE
         addButton(new Button(leftPos - 40 - 70 + imageWidth / 2, topPos + 20 + 30 + 30, 81, 20, new StringTextComponent("Stay Aggressive!"), button -> {
             CommandEvents.sendAggroCommandInChat(1, player);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(player.getUUID(), 1, 0));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(player.getUUID(), 1, group));
         }));
 
         //RAID
         addButton(new Button(leftPos + 30 + imageWidth / 2, topPos + 20 + 30 + 30, 81, 20, new StringTextComponent("Raid!"), button -> {
             CommandEvents.sendAggroCommandInChat(2, player);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(player.getUUID(), 2, 0));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(player.getUUID(), 2, group));
         }));
 
 

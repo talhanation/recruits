@@ -19,7 +19,9 @@ public class RecruitUseShield extends Goal {
     public boolean canUse() {
        return (this.recruit.getItemInHand(Hand.OFF_HAND).getItem().isShield(this.recruit.getItemInHand(Hand.OFF_HAND), this.recruit)
                && canRaiseShield()
-               && !recruit.isFollowing());
+               && !recruit.isFollowing()
+               //&& recruit.canBlock
+       );
     }
 
     public boolean canContinueToUse() {

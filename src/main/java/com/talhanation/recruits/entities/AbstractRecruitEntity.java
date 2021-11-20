@@ -1,4 +1,5 @@
 package com.talhanation.recruits.entities;
+//ezgi&talha kantar
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.ai.*;
@@ -62,10 +63,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
     private static final DataParameter<Integer> LEVEL = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> KILLS = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.INT);
     private static final DataParameter<Boolean> isEating = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
+
     //private static final DataParameter<ItemStack> OFFHAND_ITEM_SAVE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.ITEM_STACK);
 
     private UUID persistentAngerTarget;
     public ItemStack beforeFoodItem;
+    //public int blockCooldown = 0;
+    //public boolean canBlock;
 
     public AbstractRecruitEntity(EntityType<? extends TameableEntity> entityType, World world) {
         super(entityType, world);
@@ -99,7 +103,26 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
             if (beforeFoodItem != null) resetItemInHand();
             setIsEating(false);
         }
-   }
+        /*
+        if (this.isBlocking()) {
+            this.blockCooldown++;
+        }
+
+        if (blockCooldown >= 100){
+            blockCooldown = 0;
+        }
+
+        if (blockCooldown < 50){
+            canBlock = true;
+        }else
+            canBlock = false;
+
+
+        if (getOwner() != null)
+        this.getOwner().sendMessage(new StringTextComponent("Block Timer: " + blockCooldown), getOwner().getUUID());
+        */
+
+    }
 
     public void rideTick() {
         super.rideTick();
@@ -132,9 +155,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
     ////////////////////////////////////REGISTER////////////////////////////////////
 
     protected void registerGoals() {
+        this.goalSelector.addGoal(0, new RecruitQuaffGoal(this));
         this.goalSelector.addGoal(1, new SwimGoal(this));
         this.goalSelector.addGoal(1, new RecruitEatGoal(this));
-        this.goalSelector.addGoal(0, new RecruitQuaffGoal(this));
         //this.goalSelector.addGoal(2, new RecruitMountGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(4, new RecruitFollowOwnerGoal(this, 1.2D, 9.0F, 3.0F));

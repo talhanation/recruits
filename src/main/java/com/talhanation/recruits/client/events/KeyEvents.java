@@ -34,11 +34,6 @@ import java.util.UUID;
 @OnlyIn(Dist.CLIENT)
 public class KeyEvents {
 
-
-    public int R_state;
-    public int X_state;
-    public int group;
-
     @SubscribeEvent
     public void onKeyInput(InputEvent.KeyInputEvent event) {
         Minecraft minecraft = Minecraft.getInstance();
@@ -46,6 +41,23 @@ public class KeyEvents {
         if (clientPlayerEntity == null)
             return;
 
+
+        if (Main.R_KEY.isDown()) {
+            CommandEvents.openCommandScreen(clientPlayerEntity);
+        }
+
+        if(Main.C_KEY.isDown()){
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageMove(clientPlayerEntity.getUUID(), 0));
+            //clientPlayerEntity.sendMessage(new StringTextComponent("Everyone! Move!"), clientPlayerEntity.getUUID());
+            //clientPlayerEntity.sendMessage(new StringTextComponent("Mount!"), clientPlayerEntity.getUUID());
+        }
+
+        if(Main.Y_KEY.isDown()){
+            clientPlayerEntity.sendMessage(new StringTextComponent("Stop!"), clientPlayerEntity.getUUID());
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTarget(clientPlayerEntity.getUUID(), 0));
+        }
+
+         /*
         if (Main.X_KEY.isDown()) {
 
             X_state++;
@@ -54,27 +66,13 @@ public class KeyEvents {
             CommandEvents.sendAggroCommandInChat(X_state, clientPlayerEntity);
         }
 
-        if (Main.R_KEY.isDown()) {
-            CommandEvents.openCommandScreen(clientPlayerEntity);
-
-        }
-
-        if(Main.C_KEY.isDown()){
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageMove(clientPlayerEntity.getUUID(), group));
-            //clientPlayerEntity.sendMessage(new StringTextComponent("Everyone! Move!"), clientPlayerEntity.getUUID());
-            //clientPlayerEntity.sendMessage(new StringTextComponent("Mount!"), clientPlayerEntity.getUUID());
-        }
-
-        if(Main.Y_KEY.isDown()){
-            clientPlayerEntity.sendMessage(new StringTextComponent("Stop!"), clientPlayerEntity.getUUID());
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTarget(clientPlayerEntity.getUUID(), group));
-        }
 
         if(Main.V_KEY.isDown()){
             group++;
             if (group > 4) group = 0;
             //CommandEvents.sendGroupInChat(group, clientPlayerEntity);
         }
+        */
 
     }
 }
