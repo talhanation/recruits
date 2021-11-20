@@ -42,33 +42,18 @@ public class MessageFollow implements Message<MessageFollow> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        ServerPlayerEntity player = context.getSender();
 
-        if (!fromGui) {
-            List<AbstractRecruitEntity> list = Objects.requireNonNull(player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(40.0D)));
+        if (fromGui) {
+            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
             for (AbstractRecruitEntity recruits : list) {
-                CommandEvents.onRKeyPressed(this.player, recruits, this.state, this.group, false);
+                CommandEvents.onRKeyPressed(this.player, recruits, this.state,  this.group, fromGui);
             }
         }
         else{
-            List<AbstractRecruitEntity> list = Objects.requireNonNull(player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(16.0D)));
+            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(40.0D));
             for (AbstractRecruitEntity recruits : list) {
-                if (recruits.getUUID().equals(this.recruit)){
-                    CommandEvents.onRKeyPressed(this.player, recruits, this.state,  0, true);
-                }
+                CommandEvents.onRKeyPressed(this.player, recruits, this.state, this.group, fromGui);
             }
-
-            /*
-            player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
-                    .inflate(16.0D), v -> v
-                    .getUUID()
-                    .equals(this.recruit))
-                    .stream()
-                    .filter(AbstractRecruitEntity::isAlive)
-                    .findAny()
-                    .ifPresent(recruit -> CommandEvents.onRKeyPressed(this.player, recruit, this.state, 0, true));
-
-            */
         }
 
     }
