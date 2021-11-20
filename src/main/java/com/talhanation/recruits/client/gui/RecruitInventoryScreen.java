@@ -162,9 +162,9 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         }
         font.draw(matrixStack, aggro, k + 15, l + 56 + 15, fontColor);
 
-        font.draw(matrixStack, "Group: " + recruit.getGroup(), k + 15, l + 56 + 28, fontColor);
+        font.draw(matrixStack, CommandScreen.handleGroupText(this.group), k + 15, l + 56 + 28, fontColor);
 
-        String listen = "";
+        String listen;
         if (recruit.getListen()) listen = "Listening";
         else listen = "Ignoring";
         font.draw(matrixStack, listen, k + 15, l + 56 + 41, fontColor);
@@ -178,7 +178,4 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
         InventoryScreen.renderEntityInInventory(i + 50, j + 82, 30, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.recruit);
     }
-
-
-
 }

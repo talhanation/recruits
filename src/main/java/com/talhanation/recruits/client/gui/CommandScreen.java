@@ -47,7 +47,6 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         //WANDER
         addButton(new Button(leftPos - 70 - 40 + imageWidth / 2, topPos + 20 + 30, 81, 20, new StringTextComponent("Release!"), button -> {
             CommandEvents.sendFollowCommandInChat(0, player);
-                player.sendMessage(new StringTextComponent("MessageFollow gesendet---  State: " + 0), player.getUUID()); // debug
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 0, 0));
         }));
 
@@ -113,7 +112,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
-    private String handleGroupText(int group){
+    public static String handleGroupText(int group){
         if (group == 0){
             return "Everyone";
         }
