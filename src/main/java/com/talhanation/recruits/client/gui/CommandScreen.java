@@ -12,7 +12,6 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
@@ -23,15 +22,14 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class CommandScreen extends ScreenBase<CommandContainer> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/command_gui.png");
-    private static final int fontColor = 4210752;
+    private static final int fontColor = 16250871;
     private PlayerEntity player;
-    private int group;
+    private int group = 0;
 
     public CommandScreen(CommandContainer commandContainer, PlayerInventory playerInventory, ITextComponent title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, title);
         imageWidth = 201;
         imageHeight = 170;
-        group = 0;
         player = playerInventory.player;
     }
 
@@ -103,7 +101,9 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
     @Override
     protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
-        font.draw(matrixStack, "" +  handleGroupText(this.group), leftPos, topPos, fontColor);
+        int k = 78;//rechst links
+        int l = 71;//höhe
+        font.draw(matrixStack, "" +  handleGroupText(this.group), k , l, fontColor);
     }
 
     protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
@@ -118,7 +118,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             return "Everyone";
         }
         else
-            return String.valueOf(group);
+            return ("Group: " + group);
     }
 
 }

@@ -157,21 +157,4 @@ public class CommandEvents {
         }
     }
 
-    public static void sendGroupInChat(int state, LivingEntity owner){
-        switch (state) {
-            case 0:
-                owner.sendMessage(new StringTextComponent("Everyone!"), owner.getUUID());
-                break;
-            case 1:
-                owner.sendMessage(new StringTextComponent("Group 1!"), owner.getUUID());
-                break;
-            case 2:
-                owner.sendMessage(new StringTextComponent("Group 2!"), owner.getUUID());
-                break;
-            case 3:
-                owner.sendMessage(new StringTextComponent("Group 3!"), owner.getUUID());
-                break;
-
-        }
-    }
 }

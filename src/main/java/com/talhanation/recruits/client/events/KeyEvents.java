@@ -80,7 +80,7 @@ public class KeyEvents {
         if(Main.V_KEY.isDown()){
             group++;
             if (group > 4) group = 0;
-            CommandEvents.sendGroupInChat(group, clientPlayerEntity);
+            //CommandEvents.sendGroupInChat(group, clientPlayerEntity);
         }
 
     }

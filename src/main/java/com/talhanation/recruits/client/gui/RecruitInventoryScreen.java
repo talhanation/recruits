@@ -7,6 +7,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.RecruitInventoryContainer;
 import com.talhanation.recruits.network.MessageAttack;
 import com.talhanation.recruits.network.MessageFollow;
+import com.talhanation.recruits.network.MessageGroup;
 import com.talhanation.recruits.network.MessageListen;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.screen.inventory.InventoryScreen;
@@ -25,7 +26,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
     private static final ITextComponent TEXT_HEALTH = new TranslationTextComponent("gui.recruits.health");
     private static final ITextComponent TEXT_LEVEL = new TranslationTextComponent("gui.recruits.level");
-    private static final ITextComponent TEXT_GROUP = new TranslationTextComponent("gui.recruits.group");//maybe something to interact with later
+    private static final ITextComponent TEXT_GROUP = new TranslationTextComponent("gui.recruits.group");
     private static final ITextComponent TEXT_KILLS = new TranslationTextComponent("gui.recruits.kills");
 
     private static final int fontColor = 4210752;
@@ -35,6 +36,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
     private int followState;
     private int aggroState;
+    private int group;
 
     public RecruitInventoryScreen(RecruitInventoryContainer recruitContainer, PlayerInventory playerInventory, ITextComponent title) {
         super(RESOURCE_LOCATION, recruitContainer, playerInventory, title);
@@ -49,9 +51,6 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
     @Override
     protected void init() {
         super.init();
-        int k = 79;//höhe
-        int l = 19;//rechst links
-
 
         //FOLLOW
         addButton(new Button(leftPos + 77, topPos + 74, 8, 12, new StringTextComponent("<"), button -> {
@@ -60,14 +59,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
                 this.followState--;
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(recruit.getOwnerUUID(), recruit.getUUID(), this.followState, true));
             }
-
-
-        }) {
-            @Override
-            public void onPress() {
-
-            }
-        });
+        }));
 
         addButton(new Button(leftPos + 77 + 85, topPos + 74, 8, 12, new StringTextComponent(">"), button -> {
             this.followState = recruit.getFollowState();
@@ -100,14 +92,31 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(recruit.getOwnerUUID(), recruit.getUUID(),this.aggroState, true));
             }
         }));
+
+        //GROUP
+        addButton(new Button(leftPos + 77, topPos + 100, 8, 12, new StringTextComponent("<"), button -> {
+            this.group = recruit.getGroup();
+            if (this.group != 0) {
+                this.group--;
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(this.group, recruit.getUUID()));
+            }
+        }));
+
+        addButton(new Button(leftPos + 77 + 85, topPos + 100, 8, 12, new StringTextComponent(">"), button -> {
+            this.group = recruit.getGroup();
+            if (this.group != 9) {
+                this.group++;
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(this.group, recruit.getUUID()));
+            }
+        }));
     }
 
     @Override
     protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
         int health = MathHelper.ceil(recruit.getHealth());
-        int k = 79;//höhe
-        int l = 19;//rechst links
+        int k = 79;//rechst links
+        int l = 19;//höhe
         //Titles
         font.draw(matrixStack, recruit.getDisplayName().getVisualOrderText(), 8, 5, fontColor);
         font.draw(matrixStack, playerInventory.getDisplayName().getVisualOrderText(), 8, this.imageHeight - 96 + 2, fontColor);
@@ -123,7 +132,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         font.draw(matrixStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
 
         // command
-        String follow = "";
+        String follow;
         switch (recruit.getFollowState()){
             default:
             case 0:
@@ -138,7 +147,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         }
         font.draw(matrixStack, follow, k + 15, l + 58 + 0, fontColor);
 
-        String aggro = "";
+        String aggro;
         switch (recruit.getState()){
             default:
             case 0:
@@ -163,11 +172,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
     protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
         super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
-
-        //drawHealth(matrixStack, health);
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-
-        //this.minecraft.getTextureManager().bind(RESOURCE_LOCATION);
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
 

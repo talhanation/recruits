@@ -13,10 +13,11 @@ import java.util.UUID;
 public class MessageAttack implements Message<MessageAttack> {
 
     private UUID player;
+    private UUID recruit;
     private int state;
     private int group;
     private boolean fromGui;
-    private UUID recruit;
+
 
     public MessageAttack(){
     }
@@ -42,7 +43,7 @@ public class MessageAttack implements Message<MessageAttack> {
 
     public void executeServerSide(NetworkEvent.Context context){
         if (fromGui){
-            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(10.0D));
+            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
             for (AbstractRecruitEntity recruits : list) {
                 CommandEvents.onXKeyPressed(this.player, recruits, this.state, group, fromGui);
             }

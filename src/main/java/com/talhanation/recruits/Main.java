@@ -118,6 +118,9 @@ public class Main {
                 buf -> (new MessageCommandScreen()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
+        SIMPLE_CHANNEL.registerMessage(7, MessageGroup.class, MessageGroup::toBytes,
+                buf -> (new MessageGroup()).fromBytes(buf),
+                (msg, fun) -> msg.executeServerSide(fun.get()));
 
         DeferredWorkQueue.runLater(() -> {
             GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT.get(), RecruitEntity.setAttributes().build());
