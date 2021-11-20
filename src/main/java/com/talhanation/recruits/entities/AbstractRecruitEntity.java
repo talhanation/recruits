@@ -183,9 +183,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         // 2 = RAID
 
         //FOLLOW
-        //0 = false
-        //1 = true
-        //2 = false, hold position
+        //0 = wander
+        //1 = follow
+        //2 = hold position
 
     }
     @Override
@@ -195,7 +195,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         nbt.putInt("AggroState", this.getState());
         nbt.putBoolean("ShouldFollow", this.getShouldFollow());
 
-        nbt.putBoolean("Listen", this.getListen());
         nbt.putBoolean("Listen", this.getListen());
         nbt.putBoolean("isFollowing", this.isFollowing());
         nbt.putBoolean("isEating", this.getIsEating());

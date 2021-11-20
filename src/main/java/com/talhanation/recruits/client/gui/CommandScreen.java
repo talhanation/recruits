@@ -44,6 +44,13 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
     protected void init() {
         super.init();
 
+        //WANDER
+        addButton(new Button(leftPos - 70 - 40 + imageWidth / 2, topPos + 20 + 30, 81, 20, new StringTextComponent("Release!"), button -> {
+            CommandEvents.sendFollowCommandInChat(0, player);
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 0, 0));
+        }));
+
+
         //FOLLOW
         addButton(new Button(leftPos - 40 + imageWidth / 2, topPos + 10, 81, 20, new StringTextComponent("Follow me!"), button -> {
             CommandEvents.sendFollowCommandInChat(1, player);
@@ -57,13 +64,6 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 2, 0));
         }));
 
-        //WANDER
-        addButton(new Button(leftPos - 70 - 40 + imageWidth / 2, topPos + 20 + 30, 81, 20, new StringTextComponent("Release!"), button -> {
-            CommandEvents.sendFollowCommandInChat(0, player);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 0, 0));
-        }));
-
-
 
         //NEUTRAl
         addButton(new Button(leftPos - 40 + imageWidth / 2, topPos + 120, 81, 20, new StringTextComponent("Stay Neutral!"), button -> {
@@ -72,7 +72,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         }));
 
         //AGGRESSIVE
-        addButton(new Button(leftPos - 40 - 70 + imageWidth / 2, topPos + 20 + 30 + 30, 81, 20, new StringTextComponent("Stray Aggressive!"), button -> {
+        addButton(new Button(leftPos - 40 - 70 + imageWidth / 2, topPos + 20 + 30 + 30, 81, 20, new StringTextComponent("Stay Aggressive!"), button -> {
             CommandEvents.sendAggroCommandInChat(1, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(player.getUUID(), 1, 0));
         }));
@@ -112,13 +112,12 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
-
     private String handleGroupText(int group){
         if (group == 0){
             return "Everyone";
         }
         else
-            return ("Group: " + group);
+            return ("Group " + group);
     }
 
 }

@@ -57,6 +57,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
             this.followState = recruit.getFollowState();
             if (this.followState != 0) {
                 this.followState--;
+
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(recruit.getOwnerUUID(), recruit.getUUID(), this.followState, true));
             }
         }));

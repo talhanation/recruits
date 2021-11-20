@@ -55,6 +55,7 @@ public class MessageAttack implements Message<MessageAttack> {
             }
         }
     }
+
     public MessageAttack fromBytes(PacketBuffer buf) {
         this.player = buf.readUUID();
         this.state = buf.readInt();

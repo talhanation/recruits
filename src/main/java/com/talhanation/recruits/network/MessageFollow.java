@@ -2,7 +2,6 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.network.NetworkEvent;
@@ -42,7 +41,6 @@ public class MessageFollow implements Message<MessageFollow> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-
         if (fromGui) {
             List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
             for (AbstractRecruitEntity recruits : list) {
@@ -57,6 +55,7 @@ public class MessageFollow implements Message<MessageFollow> {
         }
 
     }
+
     public MessageFollow fromBytes(PacketBuffer buf) {
         this.player = buf.readUUID();
         this.state = buf.readInt();
