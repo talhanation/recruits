@@ -47,6 +47,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         //WANDER
         addButton(new Button(leftPos - 70 - 40 + imageWidth / 2, topPos + 20 + 30, 81, 20, new StringTextComponent("Release!"), button -> {
             CommandEvents.sendFollowCommandInChat(0, player);
+                player.sendMessage(new StringTextComponent("MessageFollow gesendet---  State: " + 0), player.getUUID()); // debug
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 0, 0));
         }));
 
@@ -65,7 +66,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         }));
 
 
-        //NEUTRAl
+        //NEUTRAL
         addButton(new Button(leftPos - 40 + imageWidth / 2, topPos + 120, 81, 20, new StringTextComponent("Stay Neutral!"), button -> {
             CommandEvents.sendAggroCommandInChat(0, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(player.getUUID(), 0, 0));
@@ -84,7 +85,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         }));
 
 
-
+        //GROUP
         addButton(new Button(leftPos - 5 + imageWidth / 2, topPos - 40 + imageHeight / 2, 11, 20, new StringTextComponent("+"), button -> {
             if (this.group != 9) {
                 this.group ++;

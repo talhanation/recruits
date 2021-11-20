@@ -44,7 +44,7 @@ public class MessageFollow implements Message<MessageFollow> {
         if (fromGui) {
             List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
             for (AbstractRecruitEntity recruits : list) {
-                CommandEvents.onRKeyPressed(this.player, recruits, this.state,  this.group, fromGui);
+                CommandEvents.onRKeyPressed(this.player, recruits, this.state,  group, fromGui);
             }
         }
         else{
@@ -60,15 +60,15 @@ public class MessageFollow implements Message<MessageFollow> {
         this.player = buf.readUUID();
         this.state = buf.readInt();
         this.group = buf.readInt();
-        this.fromGui = buf.readBoolean();
         if (this.recruit != null) this.recruit = buf.readUUID();
+        this.fromGui = buf.readBoolean();
         return this;
     }
 
     public void toBytes(PacketBuffer buf) {
         buf.writeUUID(this.player);
-        buf.writeInt(this.group);
         buf.writeInt(this.state);
+        buf.writeInt(this.group);
         buf.writeBoolean(this.fromGui);
         if (this.recruit != null) buf.writeUUID(this.recruit);
     }

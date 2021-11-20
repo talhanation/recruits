@@ -55,13 +55,6 @@ public class KeyEvents {
         }
 
         if (Main.R_KEY.isDown()) {
-            /*
-            R_state++;
-            if (R_state > 3) R_state = 0;
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(clientPlayerEntity.getUUID(), R_state, group, false));
-            sendRCommandInChat(R_state, clientPlayerEntity);
-            */
-
             CommandEvents.openCommandScreen(clientPlayerEntity);
 
         }

@@ -54,19 +54,18 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
         //FOLLOW
         addButton(new Button(leftPos + 77, topPos + 74, 8, 12, new StringTextComponent("<"), button -> {
-            this.followState = recruit.getFollowState();
-            if (this.followState != 0) {
-                this.followState--;
+            if (this.followState != 3){
+                this.followState ++;
 
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(recruit.getOwnerUUID(), recruit.getUUID(), this.followState, true));
             }
         }));
 
         addButton(new Button(leftPos + 77 + 85, topPos + 74, 8, 12, new StringTextComponent(">"), button -> {
-            this.followState = recruit.getFollowState();
-            if (this.followState != 3){
-                this.followState ++;
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(recruit.getOwnerUUID(), recruit.getUUID(),this.followState, true));
+            if (this.followState != 0) {
+                this.followState--;
+
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(recruit.getOwnerUUID(), recruit.getUUID(), this.followState, true));
             }
         }));
 

@@ -90,35 +90,35 @@ public class Main {
         SIMPLE_CHANNEL = NetworkRegistry.newSimpleChannel(new ResourceLocation(MOD_ID, "default"), () -> "1.0.0", s -> true, s -> true);
 
 
-        SIMPLE_CHANNEL.registerMessage(0, MessageFollow.class, MessageFollow::toBytes,
+        SIMPLE_CHANNEL.registerMessage(1, MessageFollow.class, MessageFollow::toBytes,
                 buf -> (new MessageFollow()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
-        SIMPLE_CHANNEL.registerMessage(1, MessageAttack.class, MessageAttack::toBytes,
+        SIMPLE_CHANNEL.registerMessage(2, MessageAttack.class, MessageAttack::toBytes,
                 buf -> (new MessageAttack()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
-        SIMPLE_CHANNEL.registerMessage(2, MessageMove.class, MessageMove::toBytes,
+        SIMPLE_CHANNEL.registerMessage(3, MessageMove.class, MessageMove::toBytes,
                 buf -> (new MessageMove()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
-        SIMPLE_CHANNEL.registerMessage(3, MessageClearTarget.class, MessageClearTarget::toBytes,
+        SIMPLE_CHANNEL.registerMessage(4, MessageClearTarget.class, MessageClearTarget::toBytes,
                 buf -> (new MessageClearTarget()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
-        SIMPLE_CHANNEL.registerMessage(4, MessageListen.class, MessageListen::toBytes,
+        SIMPLE_CHANNEL.registerMessage(5, MessageListen.class, MessageListen::toBytes,
                 buf -> (new MessageListen()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
-        SIMPLE_CHANNEL.registerMessage(5, MessageRecruitGui.class, MessageRecruitGui::toBytes,
+        SIMPLE_CHANNEL.registerMessage(6, MessageRecruitGui.class, MessageRecruitGui::toBytes,
                 buf -> (new MessageRecruitGui()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
-        SIMPLE_CHANNEL.registerMessage(6, MessageCommandScreen.class, MessageCommandScreen::toBytes,
+        SIMPLE_CHANNEL.registerMessage(7, MessageCommandScreen.class, MessageCommandScreen::toBytes,
                 buf -> (new MessageCommandScreen()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
-        SIMPLE_CHANNEL.registerMessage(7, MessageGroup.class, MessageGroup::toBytes,
+        SIMPLE_CHANNEL.registerMessage(8, MessageGroup.class, MessageGroup::toBytes,
                 buf -> (new MessageGroup()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
