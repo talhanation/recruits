@@ -23,7 +23,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: 'org.spongepowered.mixin'
 
-version = '1.1.1'
+version = '1.2.0'
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.16.5'
 
