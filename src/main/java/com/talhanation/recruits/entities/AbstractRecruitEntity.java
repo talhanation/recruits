@@ -68,8 +68,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
 
     private UUID persistentAngerTarget;
     public ItemStack beforeFoodItem;
-    //public int blockCooldown = 0;
-    //public boolean canBlock;
 
     public AbstractRecruitEntity(EntityType<? extends TameableEntity> entityType, World world) {
         super(entityType, world);

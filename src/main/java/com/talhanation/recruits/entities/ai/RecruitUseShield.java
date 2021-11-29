@@ -11,6 +11,7 @@ import net.minecraft.util.Hand;
 
 public class RecruitUseShield extends Goal {
     public final AbstractRecruitEntity recruit;
+    public int usedTimer;
 
     public RecruitUseShield(AbstractRecruitEntity recruit){
         this.recruit = recruit;
@@ -70,7 +71,7 @@ public class RecruitUseShield extends Goal {
                 return false;
             }
 
-            if ( (itemInHand instanceof BowItem && !isClose && target.isUsingItem()) || (itemInHand instanceof CrossbowItem && CrossbowItem.isCharged(itemStackinHand) )  && inRange){
+            if ( (itemInHand instanceof BowItem && !isClose) || (itemInHand instanceof CrossbowItem && CrossbowItem.isCharged(itemStackinHand) )  && inRange){
                 return true;
             }
 
