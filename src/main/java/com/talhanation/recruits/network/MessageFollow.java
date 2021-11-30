@@ -2,6 +2,7 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.network.NetworkEvent;
@@ -42,18 +43,31 @@ public class MessageFollow implements Message<MessageFollow> {
 
     public void executeServerSide(NetworkEvent.Context context){
         if (fromGui) {
+            /*
+            ServerPlayerEntity player = context.getSender();
+            assert player != null;
+            player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
+                            .inflate(16.0D), v -> v
+                            .getUUID()
+                            .equals(this.recruit))
+                    .stream()
+                    .filter(AbstractRecruitEntity::isAlive)
+                    .findAny()
+                    .ifPresent(recruit -> recruit.setFollowState(this.state));
+            */
             List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
-            for (AbstractRecruitEntity recruits : list) {
-                CommandEvents.onRKeyPressed(this.player, recruits, this.state,  group, fromGui);
+            for (AbstractRecruitEntity recruits : list){
+
+                if (recruits.getUUID().equals(this.recruit))
+                    recruits.setGroup(this.state);
             }
         }
         else{
-            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(40.0D));
+            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
             for (AbstractRecruitEntity recruits : list) {
                 CommandEvents.onRKeyPressed(this.player, recruits, this.state, this.group, fromGui);
             }
         }
-
     }
 
     public MessageFollow fromBytes(PacketBuffer buf) {

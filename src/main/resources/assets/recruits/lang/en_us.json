@@ -12,5 +12,9 @@
   "block.recruits.recruit_block": "Recruit's Table",
   "block.recruits.recruit_shield_block": "Recruit Shieldman's Table",
   "block.recruits.bowman_block": "Bowman's Table",
-  "block.recruits.nomad_block": "Nomad's Table"
+  "block.recruits.nomad_block": "Nomad's Table",
+
+  "category.recruits" : "Recruits",
+  "key.r_key": "Open Command Screen",
+  "key.y_key": "Recruits Stop Command"
 }

@@ -5,10 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.RecruitInventoryContainer;
-import com.talhanation.recruits.network.MessageAttack;
-import com.talhanation.recruits.network.MessageFollow;
-import com.talhanation.recruits.network.MessageGroup;
-import com.talhanation.recruits.network.MessageListen;
+import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.screen.inventory.InventoryScreen;
 import net.minecraft.client.gui.widget.button.Button;
@@ -54,18 +51,37 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
         //FOLLOW
         addButton(new Button(leftPos + 77, topPos + 74, 8, 12, new StringTextComponent("<"), button -> {
-            if (this.followState != 3){
-                this.followState ++;
+            this.followState = recruit.getFollowState();
+            if (this.followState != 0){
+                this.followState --;
 
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(recruit.getOwnerUUID(), recruit.getUUID(), this.followState, true));
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(this.followState, recruit.getUUID()));
             }
         }));
 
         addButton(new Button(leftPos + 77 + 85, topPos + 74, 8, 12, new StringTextComponent(">"), button -> {
-            if (this.followState != 0) {
-                this.followState--;
+            this.followState = recruit.getFollowState();
+            if (this.followState != 2) {
+                this.followState++;
 
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(recruit.getOwnerUUID(), recruit.getUUID(), this.followState, true));
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(this.followState, recruit.getUUID()));
+            }
+        }));
+
+        //AGGRO
+        addButton(new Button(leftPos + 77, topPos + 87, 8, 12, new StringTextComponent("<"), button -> {
+            this.aggroState = recruit.getState();
+            if (this.aggroState != 0){
+                this.aggroState --;
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(this.aggroState, recruit.getUUID()));
+            }
+        }));
+
+        addButton(new Button(leftPos + + 77 + 85, topPos + 87, 8, 12, new StringTextComponent(">"), button -> {
+            this.aggroState = recruit.getState();
+            if (this.aggroState != 2){
+                this.aggroState ++;
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(this.aggroState, recruit.getUUID()));
             }
         }));
 
@@ -78,20 +94,6 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         }));
 
-        //AGGRO
-        addButton(new Button(leftPos + 77, topPos + 87, 8, 12, new StringTextComponent("<"), button -> {
-            if (this.aggroState != 3){
-                this.aggroState ++;
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(recruit.getOwnerUUID(), recruit.getUUID(),this.aggroState, true));
-            }
-        }));
-
-        addButton(new Button(leftPos + + 77 + 85, topPos + 87, 8, 12, new StringTextComponent(">"), button -> {
-            if (this.aggroState != 0){
-                this.aggroState --;
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(recruit.getOwnerUUID(), recruit.getUUID(),this.aggroState, true));
-            }
-        }));
 
         //GROUP
         addButton(new Button(leftPos + 77, topPos + 100, 8, 12, new StringTextComponent("<"), button -> {

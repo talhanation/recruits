@@ -28,7 +28,7 @@ public class MessageMove implements Message<MessageMove> {
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(40.0D));
+        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
         for (AbstractRecruitEntity recruits : list) {
                 CommandEvents.onCKeyPressed(this.player, recruits, group);
         }

@@ -45,13 +45,15 @@ public class KeyEvents {
         if (Main.R_KEY.isDown()) {
             CommandEvents.openCommandScreen(clientPlayerEntity);
         }
-
+    /*
         if(Main.C_KEY.isDown()){
             Main.SIMPLE_CHANNEL.sendToServer(new MessageMove(clientPlayerEntity.getUUID(), 0));
             //clientPlayerEntity.sendMessage(new StringTextComponent("Everyone! Move!"), clientPlayerEntity.getUUID());
             //clientPlayerEntity.sendMessage(new StringTextComponent("Mount!"), clientPlayerEntity.getUUID());
         }
 
+
+     */
         if(Main.Y_KEY.isDown()){
             clientPlayerEntity.sendMessage(new StringTextComponent("Stop!"), clientPlayerEntity.getUUID());
             Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTarget(clientPlayerEntity.getUUID(), 0));

@@ -5,7 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.inventory.CommandContainer;
-import com.talhanation.recruits.network.MessageAttack;
+import com.talhanation.recruits.network.MessageAggro;
 import com.talhanation.recruits.network.MessageFollow;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.widget.button.Button;
@@ -68,19 +68,19 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         //NEUTRAL
         addButton(new Button(leftPos - 40 + imageWidth / 2, topPos + 120, 81, 20, new StringTextComponent("Stay Neutral!"), button -> {
             CommandEvents.sendAggroCommandInChat(0, player);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(player.getUUID(), 0, group));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 0, group));
         }));
 
         //AGGRESSIVE
         addButton(new Button(leftPos - 40 - 70 + imageWidth / 2, topPos + 20 + 30 + 30, 81, 20, new StringTextComponent("Stay Aggressive!"), button -> {
             CommandEvents.sendAggroCommandInChat(1, player);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(player.getUUID(), 1, group));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 1, group));
         }));
 
         //RAID
         addButton(new Button(leftPos + 30 + imageWidth / 2, topPos + 20 + 30 + 30, 81, 20, new StringTextComponent("Raid!"), button -> {
             CommandEvents.sendAggroCommandInChat(2, player);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(player.getUUID(), 2, group));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 2, group));
         }));
 
 

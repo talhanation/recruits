@@ -15,7 +15,6 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.ai.attributes.GlobalEntityTypeAttributes;
 import net.minecraft.entity.merchant.villager.VillagerProfession;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvents;
@@ -94,8 +93,8 @@ public class Main {
                 buf -> (new MessageFollow()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
-        SIMPLE_CHANNEL.registerMessage(2, MessageAttack.class, MessageAttack::toBytes,
-                buf -> (new MessageAttack()).fromBytes(buf),
+        SIMPLE_CHANNEL.registerMessage(2, MessageAggro.class, MessageAggro::toBytes,
+                buf -> (new MessageAggro()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
         SIMPLE_CHANNEL.registerMessage(3, MessageMove.class, MessageMove::toBytes,
@@ -122,6 +121,14 @@ public class Main {
                 buf -> (new MessageGroup()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
+        SIMPLE_CHANNEL.registerMessage(9, MessageFollowGui.class, MessageFollowGui::toBytes,
+                buf -> (new MessageFollowGui()).fromBytes(buf),
+                (msg, fun) -> msg.executeServerSide(fun.get()));
+
+        SIMPLE_CHANNEL.registerMessage(10, MessageAggroGui.class, MessageAggroGui::toBytes,
+                buf -> (new MessageAggroGui()).fromBytes(buf),
+                (msg, fun) -> msg.executeServerSide(fun.get()));
+
         DeferredWorkQueue.runLater(() -> {
             GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT.get(), RecruitEntity.setAttributes().build());
             GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT_SHIELDMAN.get(), RecruitShieldmanEntity.setAttributes().build());
@@ -140,10 +147,10 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new PlayerEvents());
 
         R_KEY = ClientRegistry.registerKeyBinding("key.r_key", "category.recruits", 82);
-        X_KEY = ClientRegistry.registerKeyBinding("key.x_key", "category.recruits", 88);
-        C_KEY = ClientRegistry.registerKeyBinding("key.c_key", "category.recruits", 67);
+        //X_KEY = ClientRegistry.registerKeyBinding("key.x_key", "category.recruits", 88);
+        //C_KEY = ClientRegistry.registerKeyBinding("key.c_key", "category.recruits", 67);
         Y_KEY = ClientRegistry.registerKeyBinding("key.y_key", "category.recruits", 90);
-        V_KEY = ClientRegistry.registerKeyBinding("key.v_key", "category.recruits", 86);
+        //V_KEY = ClientRegistry.registerKeyBinding("key.v_key", "category.recruits", 86);
 
 
         ClientRegistry.registerScreen(Main.RECRUIT_CONTAINER_TYPE, RecruitInventoryScreen::new);

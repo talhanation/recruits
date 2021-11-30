@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageAttack implements Message<MessageAttack> {
+public class MessageAggro implements Message<MessageAggro> {
 
     private UUID player;
     private UUID recruit;
@@ -19,10 +19,10 @@ public class MessageAttack implements Message<MessageAttack> {
     private boolean fromGui;
 
 
-    public MessageAttack(){
+    public MessageAggro(){
     }
 
-    public MessageAttack(UUID player, int state, int group) {
+    public MessageAggro(UUID player, int state, int group) {
         this.player = player;
         this.state  = state;
         this.group  = group;
@@ -30,7 +30,7 @@ public class MessageAttack implements Message<MessageAttack> {
         this.recruit = null;
     }
 
-    public MessageAttack(UUID player, UUID recruit, int state, boolean fromGui) {
+    public MessageAggro(UUID player, UUID recruit, int state, boolean fromGui) {
         this.player = player;
         this.recruit = recruit;
         this.state = state;
@@ -45,18 +45,19 @@ public class MessageAttack implements Message<MessageAttack> {
         if (fromGui){
             List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
             for (AbstractRecruitEntity recruits : list) {
+                if (recruits.getUUID().equals(this.recruit))
                 CommandEvents.onXKeyPressed(this.player, recruits, this.state, group, fromGui);
             }
         }
         else {
-            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(40.0D));
+            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
             for (AbstractRecruitEntity recruits : list) {
                 CommandEvents.onXKeyPressed(this.player, recruits, this.state, group, fromGui);
             }
         }
     }
 
-    public MessageAttack fromBytes(PacketBuffer buf) {
+    public MessageAggro fromBytes(PacketBuffer buf) {
         this.player = buf.readUUID();
         this.state = buf.readInt();
         this.group = buf.readInt();

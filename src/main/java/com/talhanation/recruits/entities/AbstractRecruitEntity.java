@@ -812,11 +812,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         }
     }
 
-    public void sendListenToServer(boolean start) {
-        if (level.isClientSide) {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(start, this.getUUID()));
-        }
-    }
 
     @Override
     public void killed(ServerWorld p_241847_1_, LivingEntity p_241847_2_) {
@@ -828,26 +823,26 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
     @Override
     protected void hurtCurrentlyUsedShield(float damage) {
         if (this.useItem.isShield(this)) {
-            if (damage >= 2.5F) {
-                int i = 1 + MathHelper.floor(damage);
-                Hand hand = this.getUsedItemHand();
-                this.useItem.hurtAndBreak(i, this, (entity) -> entity.broadcastBreakEvent(hand));
-                if (this.useItem.isEmpty()) {
-                    if (hand == Hand.MAIN_HAND) {
-                        this.setItemSlot(EquipmentSlotType.MAINHAND, ItemStack.EMPTY);
-                        this.setSlot(9, ItemStack.EMPTY);
-                    } else {
-                        this.setItemSlot(EquipmentSlotType.OFFHAND, ItemStack.EMPTY);
-                        this.setSlot(10, ItemStack.EMPTY);
-                    }
-                    this.useItem = ItemStack.EMPTY;
-                    this.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+            int i = 1 + MathHelper.floor(damage);
+            Hand hand = this.getUsedItemHand();
+            this.useItem.hurtAndBreak(i, this, (entity) -> entity.broadcastBreakEvent(hand));
+            if (this.useItem.isEmpty()) {
+                if (hand == Hand.MAIN_HAND) {
+                    this.setItemSlot(EquipmentSlotType.MAINHAND, ItemStack.EMPTY);
+                    this.setSlot(9, ItemStack.EMPTY);
+                } else {
+                    this.setItemSlot(EquipmentSlotType.OFFHAND, ItemStack.EMPTY);
+                    this.setSlot(10, ItemStack.EMPTY);
                 }
+                this.useItem = ItemStack.EMPTY;
+                this.setItemSlot(EquipmentSlotType.OFFHAND, ItemStack.EMPTY);
+                this.setSlot(10, ItemStack.EMPTY);
+                this.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+            }
 
-                ItemStack itemstack = this.inventory.getItem(10);// 10 = hoffhand slot
-                if (itemstack.getItem() instanceof ShieldItem) {
-                    itemstack.setDamageValue((int) damage);
-                }
+            ItemStack itemstack = this.inventory.getItem(10);// 10 = hoffhand slot
+            if (itemstack.getItem() instanceof ShieldItem) {
+                itemstack.setDamageValue((int) damage);
             }
         }
     }
