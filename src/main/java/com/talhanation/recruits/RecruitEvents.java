@@ -35,19 +35,22 @@ public class RecruitEvents {
         RayTraceResult rayTrace = event.getRayTraceResult();
         if (entity instanceof ProjectileEntity) {
             ProjectileEntity projectile = (ProjectileEntity)entity;
-            Entity entity1 = projectile.getOwner();
+            Entity owner = projectile.getOwner();
 
             if (rayTrace.getType() == RayTraceResult.Type.ENTITY) {
-                LivingEntity impactEntity = (LivingEntity) ((EntityRayTraceResult)rayTrace).getEntity();
-                if (entity1 instanceof AbstractRecruitEntity) {
-                    AbstractRecruitEntity recruit = (AbstractRecruitEntity) entity1;
+                if (((EntityRayTraceResult) rayTrace).getEntity() instanceof LivingEntity) {
+                    LivingEntity impactEntity = (LivingEntity) ((EntityRayTraceResult) rayTrace).getEntity();
+                    if (owner instanceof AbstractRecruitEntity) {
+                        AbstractRecruitEntity recruit = (AbstractRecruitEntity) owner;
 
-                    if (!AbstractRecruitEntity.canDamageTarget(recruit, impactEntity)) {
-                        event.setCanceled(true);
+                        if (!AbstractRecruitEntity.canDamageTarget(recruit, impactEntity)) {
+                            event.setCanceled(true);
+                        }
+                        if (recruit.getOwner() == impactEntity) {
+                            event.setCanceled(true);
+                        }
                     }
-                    if (recruit.getOwner() == impactEntity){
-                        event.setCanceled(true);
-                    }
+
                 }
             }
         }
