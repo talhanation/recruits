@@ -9,18 +9,30 @@ import net.minecraft.entity.*;
 import net.minecraft.entity.merchant.villager.VillagerEntity;
 import net.minecraft.entity.merchant.villager.VillagerProfession;
 import net.minecraft.entity.merchant.villager.VillagerTrades;
+import net.minecraft.entity.passive.GolemEntity;
 import net.minecraft.entity.passive.IronGolemEntity;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.MerchantOffer;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.ClassInheritanceMultiMap;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.IItemProvider;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IWorld;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -287,5 +299,34 @@ public class VillagerEvents {
         bowman.getInventory().setItem(5, Items.BREAD.getDefaultInstance());
         villager.remove();
         villager.level.addFreshEntity(bowman);
+    }
+
+    @SubscribeEvent
+    public void handleGolemSpawnEvent(EntityJoinWorldEvent event) {
+        IWorld world = event.getWorld();
+        if (!(event.getEntity() instanceof GolemEntity))
+            return;
+        if (!(world instanceof ServerWorld))
+            return;
+        GolemEntity entity = (GolemEntity) event.getEntity();
+        CompoundNBT nbt = entity.getPersistentData();
+
+        if (nbt.getBoolean("MaxSpawned")) {
+            return;
+        }
+
+        BlockPos spawnPos = new BlockPos(entity.getX(), entity.getY(), entity.getZ());
+        AxisAlignedBB aabb = new AxisAlignedBB(spawnPos.east(16).above(8).north(16), spawnPos.west(16).below(8).south(16));
+        List<Entity> list  = new ArrayList<>();
+        world.getEntitiesOfClass(AbstractRecruitEntity.class, aabb, (entity1)->{
+                    return list.add(entity);
+                });
+        if (list.size() >= 2) {
+            BlockPos pos = spawnPos;
+            event.getEntity().setPos(pos.getX(), -3, pos.getZ());
+            event.getEntity().remove();
+        } else {
+            nbt.putBoolean("MaxSpawned", true);
+        }
     }
 }
