@@ -13,10 +13,12 @@ public class RecruitsModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
-    public static final int NEW_VERSION = 1;
+    public static final int NEW_VERSION = 2;
 
 
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
+    public static ForgeConfigSpec.BooleanValue RenderNameTagforOwner;
+    public static ForgeConfigSpec.BooleanValue OverrideIronGolemSpawn;
 
     static{
         VERSION = BUILDER.comment("\n" +"##Version, do not change!##")
@@ -29,7 +31,16 @@ public class RecruitsModConfig {
                 "\t" + "default: true")
                 .define("PlayVillagerAmbientSound", true);
 
-        //config here
+        RenderNameTagforOwner = BUILDER.comment("\n" + "----Should Recruits Name Tag Render for the owner----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: true")
+                .define("RenderNameTagforOwner", true);
+
+        OverrideIronGolemSpawn = BUILDER.comment("\n" + "----Should Recruits instead of Iron Golems spawn in Villages ----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: false")
+                .define("OverrideIronGolemSpawn", false);
+
 
     CONFIG = BUILDER.build();
 }

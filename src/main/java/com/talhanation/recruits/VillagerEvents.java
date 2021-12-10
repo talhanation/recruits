@@ -1,5 +1,6 @@
 package com.talhanation.recruits;
 
+import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
@@ -8,6 +9,8 @@ import net.minecraft.entity.*;
 import net.minecraft.entity.merchant.villager.VillagerEntity;
 import net.minecraft.entity.merchant.villager.VillagerProfession;
 import net.minecraft.entity.merchant.villager.VillagerTrades;
+import net.minecraft.entity.passive.IronGolemEntity;
+import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -23,6 +26,7 @@ import java.util.Random;
 
 
 public class VillagerEvents {
+    protected final Random random = new Random();
 
     @SubscribeEvent
     public void onVillagerLivingUpdate(LivingEvent.LivingUpdateEvent event) {
@@ -45,6 +49,16 @@ public class VillagerEvents {
 
             if (profession == Main.RECRUIT_SHIELDMAN){
                 createRecruitShieldman(villager);
+            }
+        }
+        if (entity instanceof IronGolemEntity) {
+            IronGolemEntity ironGolemEntity = (IronGolemEntity) entity;
+
+            if (!ironGolemEntity.isPlayerCreated() && RecruitsModConfig.OverrideIronGolemSpawn.get()){
+                int i = this.random.nextInt(5);
+                if (i == 1) createBowmanIronGolem(ironGolemEntity);
+                else if (i == 0) createRecruitShieldmanIronGolem(ironGolemEntity);
+                else createRecruitIronGolem(ironGolemEntity);
             }
         }
 
@@ -228,4 +242,50 @@ public class VillagerEvents {
         }
     }
 
+
+    private static void createRecruitIronGolem(LivingEntity entity){
+        RecruitEntity recruit = ModEntityTypes.RECRUIT.get().create(entity.level);
+        IronGolemEntity villager = (IronGolemEntity) entity;
+        recruit.copyPosition(villager);
+        recruit.setEquipment();
+        recruit.setDropEquipment();
+        recruit.setRandomSpawnBonus();
+        recruit.setPersistenceRequired();
+        recruit.setCanPickUpLoot(true);
+        recruit.setGroup(1);
+        recruit.getInventory().setItem(5, Items.BREAD.getDefaultInstance());
+        villager.remove();
+        villager.level.addFreshEntity(recruit);
+    }
+
+    private void createRecruitShieldmanIronGolem(LivingEntity entity){
+        RecruitShieldmanEntity recruitShieldman = ModEntityTypes.RECRUIT_SHIELDMAN.get().create(entity.level);
+        IronGolemEntity villager = (IronGolemEntity) entity;
+        recruitShieldman.copyPosition(villager);
+        recruitShieldman.setEquipment();
+        recruitShieldman.setDropEquipment();
+        recruitShieldman.setRandomSpawnBonus();
+        recruitShieldman.setPersistenceRequired();
+        recruitShieldman.setCanPickUpLoot(true);
+        recruitShieldman.setGroup(1);
+        recruitShieldman.getInventory().setItem(5, Items.BREAD.getDefaultInstance());
+        villager.remove();
+        villager.level.addFreshEntity(recruitShieldman);
+    }
+
+    private static void createBowmanIronGolem(LivingEntity entity){
+        BowmanEntity bowman = ModEntityTypes.BOWMAN.get().create(entity.level);
+        IronGolemEntity villager = (IronGolemEntity) entity;
+        bowman.copyPosition(villager);
+        bowman.setEquipment();
+        bowman.setDropEquipment();
+        bowman.setRandomSpawnBonus();
+        bowman.setPersistenceRequired();
+        bowman.setCanPickUpLoot(true);
+        bowman.reassessWeaponGoal();
+        bowman.setGroup(2);
+        bowman.getInventory().setItem(5, Items.BREAD.getDefaultInstance());
+        villager.remove();
+        villager.level.addFreshEntity(bowman);
+    }
 }

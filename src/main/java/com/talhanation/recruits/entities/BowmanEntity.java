@@ -28,7 +28,6 @@ public class BowmanEntity extends RecruitEntity implements IRangedAttackMob {
     public BowmanEntity(EntityType<? extends AbstractRecruitEntity> entityType, World world) {
         super(entityType, world);
         this.reassessWeaponGoal();
-        //this.experienceValue = 6;
     }
     @Override
     public void readAdditionalSaveData(CompoundNBT p_70037_1_) {
@@ -132,7 +131,7 @@ public class BowmanEntity extends RecruitEntity implements IRangedAttackMob {
         }
     }
 
-    private final RecruitRangedBowAttackGoal<BowmanEntity> bowGoal = new RecruitRangedBowAttackGoal<>(this, 1.2D, 15, 24.0F);
+    private final RecruitRangedBowAttackGoal<BowmanEntity> bowGoal = new RecruitRangedBowAttackGoal<>(this, 1.2D, 15, 45, 24.0F);
     private final MeleeAttackGoal meleeGoal = new MeleeAttackGoal(this, 1.2D, false) {
         public void stop() {
             super.stop();
@@ -154,6 +153,4 @@ public class BowmanEntity extends RecruitEntity implements IRangedAttackMob {
     public String getRecruitName() {
         return "Bowman";
     }
-
-
 }

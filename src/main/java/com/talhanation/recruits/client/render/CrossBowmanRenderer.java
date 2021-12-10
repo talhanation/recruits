@@ -6,7 +6,7 @@ import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.util.ResourceLocation;
 
 
-public class CrossBowmanRenderer extends AbstractManRenderer<CrossBowmanEntity>{
+public class CrossBowmanRenderer extends AbstractRecruitRenderer<CrossBowmanEntity> {
 
     private static final ResourceLocation[] TEXTURE = {
             new ResourceLocation(Main.MOD_ID,"textures/entity/recruit.png"),
