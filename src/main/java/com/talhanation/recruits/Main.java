@@ -59,10 +59,6 @@ public class Main {
     public static PointOfInterestType POI_SCOUT;
     public static PointOfInterestType POI_NOMAD;
     public static KeyBinding R_KEY;
-    public static KeyBinding X_KEY;
-    public static KeyBinding C_KEY;
-    public static KeyBinding Y_KEY;
-    public static KeyBinding V_KEY;
     public static ContainerType<RecruitInventoryContainer> RECRUIT_CONTAINER_TYPE;
     public static ContainerType<CommandContainer> COMMAND_CONTAINER_TYPE;
 
@@ -133,6 +129,10 @@ public class Main {
                 buf -> (new MessageAggroGui()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
+        SIMPLE_CHANNEL.registerMessage(11, MessageDismount.class, MessageDismount::toBytes,
+                buf -> (new MessageDismount()).fromBytes(buf),
+                (msg, fun) -> msg.executeServerSide(fun.get()));
+
         DeferredWorkQueue.runLater(() -> {
             GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT.get(), RecruitEntity.setAttributes().build());
             GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT_SHIELDMAN.get(), RecruitShieldmanEntity.setAttributes().build());
@@ -151,11 +151,6 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new PlayerEvents());
 
         R_KEY = ClientRegistry.registerKeyBinding("key.r_key", "category.recruits", 82);
-        //X_KEY = ClientRegistry.registerKeyBinding("key.x_key", "category.recruits", 88);
-        //C_KEY = ClientRegistry.registerKeyBinding("key.c_key", "category.recruits", 67);
-        Y_KEY = ClientRegistry.registerKeyBinding("key.y_key", "category.recruits", 90);
-        //V_KEY = ClientRegistry.registerKeyBinding("key.v_key", "category.recruits", 86);
-
 
         ClientRegistry.registerScreen(Main.RECRUIT_CONTAINER_TYPE, RecruitInventoryScreen::new);
         ClientRegistry.registerScreen(Main.COMMAND_CONTAINER_TYPE, CommandScreen::new);

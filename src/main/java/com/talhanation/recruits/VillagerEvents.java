@@ -23,6 +23,7 @@ import net.minecraft.util.IItemProvider;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorld;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
@@ -67,10 +68,16 @@ public class VillagerEvents {
             IronGolemEntity ironGolemEntity = (IronGolemEntity) entity;
 
             if (!ironGolemEntity.isPlayerCreated() && RecruitsModConfig.OverrideIronGolemSpawn.get()){
-                int i = this.random.nextInt(5);
-                if (i == 1) createBowmanIronGolem(ironGolemEntity);
-                else if (i == 0) createRecruitShieldmanIronGolem(ironGolemEntity);
-                else createRecruitIronGolem(ironGolemEntity);
+                List<AbstractRecruitEntity> list1 = entity.level.getEntitiesOfClass(AbstractRecruitEntity.class, ironGolemEntity.getBoundingBox().inflate(24));
+                if (list1.size() >= 2) {
+                    ironGolemEntity.remove();
+                }
+                else {
+                    int i = this.random.nextInt(5);
+                    if (i == 1) createBowmanIronGolem(ironGolemEntity);
+                    else if (i == 0) createRecruitShieldmanIronGolem(ironGolemEntity);
+                    else createRecruitIronGolem(ironGolemEntity);
+                }
             }
         }
 
@@ -303,30 +310,21 @@ public class VillagerEvents {
 
     @SubscribeEvent
     public void handleGolemSpawnEvent(EntityJoinWorldEvent event) {
-        IWorld world = event.getWorld();
-        if (!(event.getEntity() instanceof GolemEntity))
-            return;
-        if (!(world instanceof ServerWorld))
-            return;
-        GolemEntity entity = (GolemEntity) event.getEntity();
-        CompoundNBT nbt = entity.getPersistentData();
+/*
+        if (event.getEntity() instanceof IronGolemEntity) {
+            IronGolemEntity entity = (IronGolemEntity) event.getEntity();
 
-        if (nbt.getBoolean("MaxSpawned")) {
-            return;
-        }
+            BlockPos spawnPos = new BlockPos(entity.getX(), entity.getY(), entity.getZ());
+            AxisAlignedBB aabb = new AxisAlignedBB(spawnPos.east(16).above(16).north(16), spawnPos.west(16).below(16).south(16));
+            List<AbstractRecruitEntity> list1 = entity.level.getEntitiesOfClass(AbstractRecruitEntity.class, aabb);
 
-        BlockPos spawnPos = new BlockPos(entity.getX(), entity.getY(), entity.getZ());
-        AxisAlignedBB aabb = new AxisAlignedBB(spawnPos.east(16).above(8).north(16), spawnPos.west(16).below(8).south(16));
-        List<Entity> list  = new ArrayList<>();
-        world.getEntitiesOfClass(AbstractRecruitEntity.class, aabb, (entity1)->{
-                    return list.add(entity);
-                });
-        if (list.size() >= 2) {
-            BlockPos pos = spawnPos;
-            event.getEntity().setPos(pos.getX(), -3, pos.getZ());
+            if (list1.size() >= 1){
             event.getEntity().remove();
-        } else {
-            nbt.putBoolean("MaxSpawned", true);
+            }
         }
+         */
     }
+
+
+
 }

@@ -8,7 +8,7 @@ loaderVersion="[34,)" #mandatory This is typically bumped every Minecraft versio
 
 modId="recruits"
 
-version="1.2.4"
+version="1.2.5"
 
 displayName="Recriuts Mod"
 updateJSONURL="https://github.com/talhanation/recruits/blob/main/update.json"

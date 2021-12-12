@@ -6,6 +6,8 @@ import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.network.MessageAggro;
+import com.talhanation.recruits.network.MessageClearTarget;
+import com.talhanation.recruits.network.MessageDismount;
 import com.talhanation.recruits.network.MessageFollow;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.widget.button.Button;
@@ -83,6 +85,12 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 2, group));
         }));
 
+        /*
+        //DISMOUNT
+        addButton(new Button(leftPos + 30 + imageWidth / 2, topPos + 120, 81, 20, new StringTextComponent("Dismount!"), button -> {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageDismount(player.getUUID(), group));
+        }));
+        */
 
         //GROUP
         addButton(new Button(leftPos - 5 + imageWidth / 2, topPos - 40 + imageHeight / 2, 11, 20, new StringTextComponent("+"), button -> {

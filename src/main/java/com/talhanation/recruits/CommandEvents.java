@@ -97,8 +97,12 @@ public class CommandEvents {
 
     public static void onYKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
         if (recruit.isTame() &&  Objects.equals(recruit.getOwnerUUID(), player_uuid) && recruit.getGroup() == group) {
-            LivingEntity owner = recruit.getOwner();
-            recruit.clearTarget();
+            recruit.stopBeingAngry();
+            recruit.setTarget(null);
+            recruit.forgetCurrentTargetAndRefreshUniversalAnger();
+            recruit.setPersistentAngerTarget(null);
+            recruit.getOwner().sendMessage(new StringTextComponent("DURDUM"), recruit.getOwner().getUUID());
+
         }
     }
 

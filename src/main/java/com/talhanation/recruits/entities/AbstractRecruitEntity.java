@@ -734,9 +734,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity impl
         super.die(dmg);
     }
 
-    public void clearTarget(){
-        this.setTarget(null);
-    }
 
     ////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////
 

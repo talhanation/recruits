@@ -19,6 +19,7 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue RenderNameTagforOwner;
     public static ForgeConfigSpec.BooleanValue OverrideIronGolemSpawn;
+    public static ForgeConfigSpec.IntValue MaxSpawnRecruitsInVillage;
 
     static{
         VERSION = BUILDER.comment("\n" +"##Version, do not change!##")

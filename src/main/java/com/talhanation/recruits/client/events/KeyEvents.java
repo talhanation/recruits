@@ -54,10 +54,6 @@ public class KeyEvents {
 
 
      */
-        if(Main.Y_KEY.isDown()){
-            clientPlayerEntity.sendMessage(new StringTextComponent("Stop!"), clientPlayerEntity.getUUID());
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTarget(clientPlayerEntity.getUUID(), 0));
-        }
 
          /*
         if (Main.X_KEY.isDown()) {
