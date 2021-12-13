@@ -40,7 +40,7 @@ public class RecruitsModConfig {
         OverrideIronGolemSpawn = BUILDER.comment("\n" + "----Should Recruits instead of Iron Golems spawn in Villages ----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: false")
-                .define("OverrideIronGolemSpawn", false);
+                .define("OverrideIronGolemSpawn", true);
 
 
     CONFIG = BUILDER.build();

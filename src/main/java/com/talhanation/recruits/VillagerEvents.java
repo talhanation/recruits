@@ -68,15 +68,17 @@ public class VillagerEvents {
             IronGolemEntity ironGolemEntity = (IronGolemEntity) entity;
 
             if (!ironGolemEntity.isPlayerCreated() && RecruitsModConfig.OverrideIronGolemSpawn.get()){
-                List<AbstractRecruitEntity> list1 = entity.level.getEntitiesOfClass(AbstractRecruitEntity.class, ironGolemEntity.getBoundingBox().inflate(24));
-                if (list1.size() >= 2) {
+                List<AbstractRecruitEntity> list1 = entity.level.getEntitiesOfClass(AbstractRecruitEntity.class, ironGolemEntity.getBoundingBox().inflate(32));
+                if (list1.size() > 1) {
                     ironGolemEntity.remove();
+                    //System.out.println("golem was removed");
                 }
                 else {
                     int i = this.random.nextInt(5);
                     if (i == 1) createBowmanIronGolem(ironGolemEntity);
                     else if (i == 0) createRecruitShieldmanIronGolem(ironGolemEntity);
                     else createRecruitIronGolem(ironGolemEntity);
+                    //System.out.println("Spawned new Recruit");
                 }
             }
         }
@@ -307,24 +309,5 @@ public class VillagerEvents {
         villager.remove();
         villager.level.addFreshEntity(bowman);
     }
-
-    @SubscribeEvent
-    public void handleGolemSpawnEvent(EntityJoinWorldEvent event) {
-/*
-        if (event.getEntity() instanceof IronGolemEntity) {
-            IronGolemEntity entity = (IronGolemEntity) event.getEntity();
-
-            BlockPos spawnPos = new BlockPos(entity.getX(), entity.getY(), entity.getZ());
-            AxisAlignedBB aabb = new AxisAlignedBB(spawnPos.east(16).above(16).north(16), spawnPos.west(16).below(16).south(16));
-            List<AbstractRecruitEntity> list1 = entity.level.getEntitiesOfClass(AbstractRecruitEntity.class, aabb);
-
-            if (list1.size() >= 1){
-            event.getEntity().remove();
-            }
-        }
-         */
-    }
-
-
 
 }
