@@ -96,16 +96,12 @@ public class CommandEvents {
     }
 
     public static void onYKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
-        if (recruit.isTame() &&  Objects.equals(recruit.getOwnerUUID(), player_uuid) && recruit.getGroup() == group) {
-            recruit.stopBeingAngry();
+        if (recruit.isTame() &&(recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
             recruit.setTarget(null);
-            recruit.forgetCurrentTargetAndRefreshUniversalAnger();
-            recruit.setPersistentAngerTarget(null);
-            recruit.getOwner().sendMessage(new StringTextComponent("DURDUM"), recruit.getOwner().getUUID());
-
+            if (recruit.getOwner() != null)
+            recruit.getOwner().sendMessage(new StringTextComponent("DURDUM AMK"), recruit.getOwner().getUUID());
         }
     }
-
 
     public static void openCommandScreen(PlayerEntity player) {
         if (player instanceof ServerPlayerEntity) {

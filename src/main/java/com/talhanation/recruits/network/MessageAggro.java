@@ -30,13 +30,6 @@ public class MessageAggro implements Message<MessageAggro> {
         this.recruit = null;
     }
 
-    public MessageAggro(UUID player, UUID recruit, int state, boolean fromGui) {
-        this.player = player;
-        this.recruit = recruit;
-        this.state = state;
-        this.fromGui = fromGui;
-    }
-
     public Dist getExecutingSide() {
         return Dist.DEDICATED_SERVER;
     }

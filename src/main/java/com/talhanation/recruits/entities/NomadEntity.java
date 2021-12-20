@@ -56,7 +56,7 @@ public class NomadEntity extends BowmanEntity{
         this.targetSelector.addGoal(4, new RecruitAggresiveNearestAttackableTargetGoal<>(this, LivingEntity.class, false));
         this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, AbstractIllagerEntity.class, false));
         this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, MonsterEntity.class, false));
-        this.targetSelector.addGoal(8, new ResetAngerGoal<>(this, true));
+        //this.targetSelector.addGoal(8, new ResetAngerGoal<>(this, true));
         this.targetSelector.addGoal(10, new RecruitDefendVillageGoal(this));
     }
 

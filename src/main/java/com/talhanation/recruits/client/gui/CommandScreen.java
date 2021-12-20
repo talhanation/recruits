@@ -4,6 +4,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.network.MessageAggro;
 import com.talhanation.recruits.network.MessageClearTarget;
@@ -18,6 +19,8 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+
+import java.util.List;
 
 
 @OnlyIn(Dist.CLIENT)
@@ -52,7 +55,6 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 0, group));
         }));
 
-
         //FOLLOW
         addButton(new Button(leftPos - 40 + imageWidth / 2, topPos + 10, 81, 20, new StringTextComponent("Follow me!"), button -> {
             CommandEvents.sendFollowCommandInChat(1, player);
@@ -65,7 +67,6 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             CommandEvents.sendFollowCommandInChat(2, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 2, group));
         }));
-
 
         //NEUTRAL
         addButton(new Button(leftPos - 40 + imageWidth / 2, topPos + 120, 81, 20, new StringTextComponent("Stay Neutral!"), button -> {
@@ -85,8 +86,8 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 2, group));
         }));
 
-        /*
         //DISMOUNT
+        /*
         addButton(new Button(leftPos + 30 + imageWidth / 2, topPos + 120, 81, 20, new StringTextComponent("Dismount!"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDismount(player.getUUID(), group));
         }));
@@ -109,9 +110,10 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
     @Override
     protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
-        int k = 78;//rechst links
+        int k = 48;//rechst links
         int l = 71;//höhe
         font.draw(matrixStack, "" +  handleGroupText(this.group), k , l, fontColor);
+        //font.draw(matrixStack, "" +  handleRecruitCountText(player), k , 0, fontColor);
     }
 
     protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
@@ -128,4 +130,17 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             return ("Group " + group);
     }
 
+    public static String handleRecruitCountText(PlayerEntity player){
+        int recCount = 0;
+        /*
+        List<AbstractRecruitEntity> list = player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(64.0D));
+        for (AbstractRecruitEntity recruits : list) {
+            if (recruits.getOwnerUUID() == player.getUUID())
+            recCount++;
+        }
+
+         */
+
+        return ("Recruits in Command: " + recCount);
+    }
 }

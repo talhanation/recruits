@@ -30,13 +30,6 @@ public class MessageFollow implements Message<MessageFollow> {
         this.recruit = null;
     }
 
-    public MessageFollow(UUID player, UUID recruit, int state, boolean fromGui) {
-        this.player = player;
-        this.recruit = recruit;
-        this.state  = state;
-        this.fromGui = fromGui;
-    }
-
     public Dist getExecutingSide() {
         return Dist.DEDICATED_SERVER;
     }

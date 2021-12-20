@@ -11,7 +11,6 @@ import net.minecraft.util.math.AxisAlignedBB;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
-import java.util.Objects;
 import java.util.function.Predicate;
 
 public class RecruitRaidNearestAttackableTargetGoal<T extends LivingEntity> extends TargetGoal {
@@ -39,31 +38,20 @@ public class RecruitRaidNearestAttackableTargetGoal<T extends LivingEntity> exte
     public boolean canUse() {
         int state = recruit.getState();
         if (state == 2) {
+            this.recruit.setTarget(null);
             this.findTarget();
 
-            //PLAYERS
-            if (target instanceof PlayerEntity) {
+            if (target instanceof PlayerEntity)
+                return isValidTargetPlayer((PlayerEntity)target);
 
-                if (target.getUUID() == recruit.getOwnerUUID()) {
-                    return false;
-                }
-
-                if (target.getTeam() == Objects.requireNonNull(recruit.getOwner()).getTeam()) {
-                    return false;
-                }
-            }
-            //OTHER RECRUITS
-            if (target instanceof AbstractRecruitEntity){
-                return ((AbstractRecruitEntity) target).getOwnerUUID() != recruit.getOwnerUUID();
-            }
             else
-                return true;
+                return isValidTarget(target);
         }
         return false;
     }
 
-    protected AxisAlignedBB getTargetSearchArea(double p_188511_1_) {
-        return this.mob.getBoundingBox().inflate(p_188511_1_, 8.0D, p_188511_1_);
+    protected AxisAlignedBB getTargetSearchArea(double area) {
+        return this.mob.getBoundingBox().inflate(area, 8.0D, area);
     }
 
     protected void findTarget() {
@@ -72,7 +60,6 @@ public class RecruitRaidNearestAttackableTargetGoal<T extends LivingEntity> exte
         } else {
             this.target = this.mob.level.getNearestPlayer(this.targetConditions, this.mob, this.mob.getX(), this.mob.getEyeY(), this.mob.getZ());
         }
-
     }
 
     public void start() {
@@ -80,4 +67,22 @@ public class RecruitRaidNearestAttackableTargetGoal<T extends LivingEntity> exte
         super.start();
     }
 
+    private boolean isValidTarget(LivingEntity living){
+        //OTHER RECRUITS RAID
+        if (living instanceof AbstractRecruitEntity){
+            AbstractRecruitEntity otherRecruit = (AbstractRecruitEntity) living;
+            if (otherRecruit.isTame())
+                return false;
+        }
+        return true;
+    }
+
+    private boolean isValidTargetPlayer(PlayerEntity player){
+        //RAID PLAYERS
+        if (player.getUUID() == recruit.getOwnerUUID()) {
+            return false;
+        }
+        else
+            return true;
+    }
 }

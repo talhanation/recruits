@@ -6,10 +6,17 @@ import com.talhanation.recruits.network.MessageRecruitGui;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ActionResultType;
+import net.minecraftforge.client.event.EntityViewRenderEvent;
+import net.minecraftforge.client.event.RenderNameplateEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class PlayerEvents {
+
+    public void RenderRecruitNameTag(EntityViewRenderEvent event){
+
+    }
+
     /*
     @SubscribeEvent
     public void onInteractwithPassenger(PlayerInteractEvent.EntityInteract event) {

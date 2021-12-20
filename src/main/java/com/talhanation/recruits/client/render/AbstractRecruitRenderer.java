@@ -13,6 +13,7 @@ public abstract class AbstractRecruitRenderer<E extends AbstractRecruitEntity> e
         super(mgr, new ManModel(), new ManModel(0.5F, true), new ManModel(1.0F, true), 0.5F);
     }
 
+    /*
     @Override
     protected boolean shouldShowName(E recruit) {
         LivingEntity owner = recruit.getOwner();
@@ -25,5 +26,7 @@ public abstract class AbstractRecruitRenderer<E extends AbstractRecruitEntity> e
         else
             return false;
     }
+
+     */
 
 }
