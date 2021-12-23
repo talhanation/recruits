@@ -4,23 +4,25 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.CommandContainer;
-import com.talhanation.recruits.network.MessageAggro;
-import com.talhanation.recruits.network.MessageClearTarget;
-import com.talhanation.recruits.network.MessageDismount;
-import com.talhanation.recruits.network.MessageFollow;
+import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.EntityRayTraceResult;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-
-import java.util.List;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 
 @OnlyIn(Dist.CLIENT)
@@ -30,6 +32,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
     private static final int fontColor = 16250871;
     private PlayerEntity player;
     private int group = 0;
+    private int recCount = 0;
 
     public CommandScreen(CommandContainer commandContainer, PlayerInventory playerInventory, ITextComponent title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, title);
@@ -68,12 +71,6 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 2, group));
         }));
 
-        //NEUTRAL
-        addButton(new Button(leftPos - 40 + imageWidth / 2, topPos + 120, 81, 20, new StringTextComponent("Stay Neutral!"), button -> {
-            CommandEvents.sendAggroCommandInChat(0, player);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 0, group));
-        }));
-
         //AGGRESSIVE
         addButton(new Button(leftPos - 40 - 70 + imageWidth / 2, topPos + 20 + 30 + 30, 81, 20, new StringTextComponent("Stay Aggressive!"), button -> {
             CommandEvents.sendAggroCommandInChat(1, player);
@@ -86,12 +83,23 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 2, group));
         }));
 
-        //DISMOUNT
         /*
-        addButton(new Button(leftPos + 30 + imageWidth / 2, topPos + 120, 81, 20, new StringTextComponent("Dismount!"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDismount(player.getUUID(), group));
+        //ATTACK TARGET
+        addButton(new Button(leftPos + 30 + imageWidth / 2, topPos + 150, 81, 20, new StringTextComponent("Attack!"), button -> {
+            this.onAttackButton();
         }));
         */
+
+        //NEUTRAL
+        addButton(new Button(leftPos - 40 - 50 + imageWidth / 2, topPos + 120, 81, 20, new StringTextComponent("Stay Neutral!"), button -> {
+            CommandEvents.sendAggroCommandInChat(0, player);
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 0, group));
+        }));
+
+        //CLEAR TARGET
+        addButton(new Button(leftPos + 10 + imageWidth / 2, topPos + 120, 81, 20, new StringTextComponent("Clear Targets!"), button -> {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTarget(player.getUUID(), group));
+        }));
 
         //GROUP
         addButton(new Button(leftPos - 5 + imageWidth / 2, topPos - 40 + imageHeight / 2, 11, 20, new StringTextComponent("+"), button -> {
@@ -110,10 +118,13 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
     @Override
     protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
-        int k = 48;//rechst links
+        this.recCount = CommandEvents.getRecruitsInCommand();
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageRecruitsInCommand(player.getUUID()));
+
+        int k = 78;//rechst links
         int l = 71;//höhe
         font.draw(matrixStack, "" +  handleGroupText(this.group), k , l, fontColor);
-        //font.draw(matrixStack, "" +  handleRecruitCountText(player), k , 0, fontColor);
+        //font.draw(matrixStack, "" +  handleRecruitCountText(recCount), k - 30 , 0, fontColor);
     }
 
     protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
@@ -130,17 +141,24 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             return ("Group " + group);
     }
 
-    public static String handleRecruitCountText(PlayerEntity player){
-        int recCount = 0;
-        /*
-        List<AbstractRecruitEntity> list = player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(64.0D));
-        for (AbstractRecruitEntity recruits : list) {
-            if (recruits.getOwnerUUID() == player.getUUID())
-            recCount++;
-        }
-
-         */
-
+    public static String handleRecruitCountText(int recCount){
         return ("Recruits in Command: " + recCount);
+    }
+
+
+    public void onAttackButton(){
+        Minecraft minecraft = Minecraft.getInstance();
+        ClientPlayerEntity clientPlayerEntity = minecraft.player;
+
+        RayTraceResult rayTraceResult = minecraft.hitResult;
+        if (rayTraceResult != null) {
+            if (rayTraceResult.getType() == RayTraceResult.Type.ENTITY) {
+                EntityRayTraceResult entityRayTraceResult = (EntityRayTraceResult) rayTraceResult;
+                if (entityRayTraceResult.getEntity() instanceof LivingEntity && clientPlayerEntity != null) {
+                    LivingEntity living = (LivingEntity) entityRayTraceResult.getEntity();
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAttackEntity(clientPlayerEntity.getUUID(), living.getUUID()));
+                }
+            }
+        }
     }
 }

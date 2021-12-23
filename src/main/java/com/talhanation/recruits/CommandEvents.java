@@ -19,6 +19,9 @@ import java.util.UUID;
 
 public class CommandEvents {
 
+    private static int recruitsInCommand;
+    private static int currentGroup;
+
     public static void onRKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit, int r_state, int group, boolean fromGui) {
         if (recruit.isTame() && (recruit.getListen() || fromGui) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
             int state = recruit.getFollowState();
@@ -95,14 +98,6 @@ public class CommandEvents {
 */
     }
 
-    public static void onYKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
-        if (recruit.isTame() &&(recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
-            recruit.setTarget(null);
-            if (recruit.getOwner() != null)
-            recruit.getOwner().sendMessage(new StringTextComponent("DURDUM AMK"), recruit.getOwner().getUUID());
-        }
-    }
-
     public static void openCommandScreen(PlayerEntity player) {
         if (player instanceof ServerPlayerEntity) {
             NetworkHooks.openGui((ServerPlayerEntity) player, new INamedContainerProvider() {
@@ -157,4 +152,19 @@ public class CommandEvents {
         }
     }
 
+    public static void setRecruitsInCommand(int count) {
+        recruitsInCommand = count;
+    }
+
+    public static int getRecruitsInCommand() {
+        return recruitsInCommand;
+    }
+
+    public static void setCurrentGroup(int group) {
+        currentGroup = group;
+    }
+
+    public static int getCurrentGroup() {
+        return currentGroup;
+    }
 }

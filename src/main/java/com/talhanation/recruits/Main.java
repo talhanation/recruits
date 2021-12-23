@@ -129,8 +129,12 @@ public class Main {
                 buf -> (new MessageAggroGui()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
-        SIMPLE_CHANNEL.registerMessage(11, MessageDismount.class, MessageDismount::toBytes,
-                buf -> (new MessageDismount()).fromBytes(buf),
+        SIMPLE_CHANNEL.registerMessage(11, MessageAttackEntity.class, MessageAttackEntity::toBytes,
+                buf -> (new MessageAttackEntity()).fromBytes(buf),
+                (msg, fun) -> msg.executeServerSide(fun.get()));
+
+        SIMPLE_CHANNEL.registerMessage(12, MessageRecruitsInCommand.class, MessageRecruitsInCommand::toBytes,
+                buf -> (new MessageRecruitsInCommand()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
         DeferredWorkQueue.runLater(() -> {
