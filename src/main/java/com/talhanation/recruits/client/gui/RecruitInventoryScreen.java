@@ -111,6 +111,13 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(this.group, recruit.getUUID()));
             }
         }));
+
+
+        //DISBAND
+        addButton(new Button(leftPos + 77 + 85, topPos + 4, 8, 12, new StringTextComponent("x"), button -> {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageDisband(recruit.getUUID()));
+            this.onClose();
+        }));
     }
 
     @Override

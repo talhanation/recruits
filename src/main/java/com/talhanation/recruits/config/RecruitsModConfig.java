@@ -13,13 +13,20 @@ public class RecruitsModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
-    public static final int NEW_VERSION = 2;
+    public static final int NEW_VERSION = 3;
 
 
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue RenderNameTagforOwner;
     public static ForgeConfigSpec.BooleanValue OverrideIronGolemSpawn;
+    public static ForgeConfigSpec.BooleanValue PillagerFriendlyFire;
+    public static ForgeConfigSpec.BooleanValue PillagerSpawn;
+    public static ForgeConfigSpec.BooleanValue PillagerAttackMonsters;
+    public static ForgeConfigSpec.BooleanValue ShouldPillagersRaidNaturally;
+    public static ForgeConfigSpec.BooleanValue MonstersAttackPillagers;
     public static ForgeConfigSpec.IntValue MaxSpawnRecruitsInVillage;
+    public static ForgeConfigSpec.IntValue MaxRecruitsForPlayer;
+    public static ForgeConfigSpec.IntValue RecruitsMaxXpForLevelUp;
 
     static{
         VERSION = BUILDER.comment("\n" +"##Version, do not change!##")
@@ -30,17 +37,62 @@ public class RecruitsModConfig {
         PlayVillagerAmbientSound = BUILDER.comment("\n" + "----Should Recruits Make Villager Huh? sound?----" + "\n" +
                 "\t" + "(takes effect after restart)" + "\n" +
                 "\t" + "default: true")
+                .worldRestart()
                 .define("PlayVillagerAmbientSound", true);
 
         RenderNameTagforOwner = BUILDER.comment("\n" + "----Should Recruits Name Tag Render for the owner----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: true")
+                .worldRestart()
                 .define("RenderNameTagforOwner", true);
 
         OverrideIronGolemSpawn = BUILDER.comment("\n" + "----Should Recruits instead of Iron Golems spawn in Villages ----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: false")
+                        "\t" + "default: true")
+                .worldRestart()
                 .define("OverrideIronGolemSpawn", true);
+
+        MaxSpawnRecruitsInVillage = BUILDER.comment("\n" +"Max Recruits in a Village Chunk to Spawn" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: 1")
+                .worldRestart()
+                .defineInRange("MaxSpawnRecruitsInVillage", 1, 1, 10);
+
+        PillagerFriendlyFire = BUILDER.comment("\n" + "----Should Pillagers do Friendlyfire ----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: false")
+                .worldRestart()
+                .define("PillagerFriendlyFire", false);
+
+        PillagerSpawn = BUILDER.comment("\n" + "----Should Pillagers Spawn naturally ----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: true")
+                .worldRestart()
+                .define("PillagerSpawn", true);
+
+        PillagerAttackMonsters= BUILDER.comment("\n" + "----Should Pillagers attack Monsters----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: true")
+                .worldRestart()
+                .define("PillagerAttackMonsters", true);
+
+        MonstersAttackPillagers= BUILDER.comment("\n" + "----Should Monsters attack Pillagers----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: true")
+                .worldRestart()
+                .define("MonstersAttackPillagers", true);
+
+        ShouldPillagersRaidNaturally= BUILDER.comment("\n" + "----Should Pillagers attack all Living----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: true")
+                .worldRestart()
+                .define("ShouldPillagersRaidNaturally", true);
+
+        RecruitsMaxXpForLevelUp = BUILDER.comment("\n" +"Max XP a Recruit needs to Level Up" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: 200")
+                .worldRestart()
+                .defineInRange("RecruitsMaxXpForLevelUp", 200, 50, 10000);
 
 
     CONFIG = BUILDER.build();
@@ -65,6 +117,5 @@ public class RecruitsModConfig {
             configData.save();
         }
     }
-
 }
 

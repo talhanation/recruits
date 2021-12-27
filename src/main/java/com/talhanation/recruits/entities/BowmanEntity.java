@@ -14,6 +14,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.pathfinding.GroundPathNavigator;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
@@ -103,7 +104,7 @@ public class BowmanEntity extends RecruitEntity implements IRangedAttackMob {
         double d2 = entity.getZ() - this.getZ();
         double d3 = MathHelper.sqrt(d0 * d0 + d2 * d2);
                                                         //angle                 //force     //accuracy
-        abstractarrowentity.shoot(d0, d1 + d3 * (double)0.2F, d2, 1.6F, (float)(5.2222));
+        abstractarrowentity.shoot(d0, d1 + d3 * (double)0.2F, d2, 1.6F, (float)(6.555));
         this.playSound(SoundEvents.ARROW_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
         this.level.addFreshEntity(abstractarrowentity);
     }
@@ -152,5 +153,18 @@ public class BowmanEntity extends RecruitEntity implements IRangedAttackMob {
     @Override
     public String getRecruitName() {
         return "Bowman";
+    }
+
+
+    public void fleeEntity(LivingEntity target) {
+        if (target != null) {
+            double fleeDistance = 10.0D;
+            Vector3d vecTarget = new Vector3d(target.getX(), target.getY(), target.getZ());
+            Vector3d vecBowman = new Vector3d(this.getX(), this.getY(), this.getZ());
+            Vector3d fleeDir = vecBowman.subtract(vecTarget);
+            fleeDir = fleeDir.normalize();
+            Vector3d fleePos = new Vector3d(vecBowman.x + fleeDir.x * fleeDistance, vecBowman.y + fleeDir.y * fleeDistance, vecBowman.z + fleeDir.z * fleeDistance);
+            this.getNavigation().moveTo(fleePos.x, fleePos.y, fleePos.z, 1.2D);
+        }
     }
 }

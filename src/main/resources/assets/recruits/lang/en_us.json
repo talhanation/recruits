@@ -15,6 +15,5 @@
   "block.recruits.nomad_block": "Nomad's Table",
 
   "category.recruits" : "Recruits",
-  "key.r_key": "Open Command Screen",
-  "key.y_key": "Recruits Stop Command"
+  "key.r_key": "Open Command Screen"
 }

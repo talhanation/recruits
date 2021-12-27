@@ -20,6 +20,9 @@ public class RecruitHoldPosGoal extends Goal {
         if (this.recruit.getHoldPos() == null) {
             return false;
         }
+        else if (recruit.getFleeing()) {
+            return false;
+        }
         else if (this.recruit.getHoldPos().closerThan(recruit.position(), 99) && this.recruit.getShouldHoldPos())
             return true;
         else

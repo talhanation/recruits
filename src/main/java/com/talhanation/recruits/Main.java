@@ -137,6 +137,10 @@ public class Main {
                 buf -> (new MessageRecruitsInCommand()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
+        SIMPLE_CHANNEL.registerMessage(13, MessageDisband.class, MessageDisband::toBytes,
+                buf -> (new MessageDisband()).fromBytes(buf),
+                (msg, fun) -> msg.executeServerSide(fun.get()));
+
         DeferredWorkQueue.runLater(() -> {
             GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT.get(), RecruitEntity.setAttributes().build());
             GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT_SHIELDMAN.get(), RecruitShieldmanEntity.setAttributes().build());
