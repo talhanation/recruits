@@ -1,19 +1,14 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.entities.ai.*;
+import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.entity.ai.goal.*;
-import net.minecraft.entity.monster.AbstractIllagerEntity;
-import net.minecraft.entity.monster.MonsterEntity;
-import net.minecraft.entity.passive.horse.HorseEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
+import net.minecraft.network.datasync.DataParameter;
+import net.minecraft.network.datasync.DataSerializers;
+import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.GroundPathNavigator;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
@@ -24,40 +19,41 @@ import javax.annotation.Nullable;
 
 public class NomadEntity extends BowmanEntity{
 
+    private static final DataParameter<Boolean> HAD_HORSE = EntityDataManager.defineId(NomadEntity.class, DataSerializers.BOOLEAN);
+
     public NomadEntity(EntityType<? extends AbstractRecruitEntity> entityType, World world) {
         super(entityType, world);
     }
 
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(HAD_HORSE, false);
+    }
+
     @Override
-    public void readAdditionalSaveData(CompoundNBT p_70037_1_) {
-        super.readAdditionalSaveData(p_70037_1_);
+    public void addAdditionalSaveData(CompoundNBT nbt) {
+        super.addAdditionalSaveData(nbt);
+        nbt.putBoolean("hadHorse", this.getHadHorse());
+    }
+
+    @Override
+    public void readAdditionalSaveData(CompoundNBT nbt) {
+        super.readAdditionalSaveData(nbt);
+        this.setHadHorse(nbt.getBoolean("hadHorse"));
         this.reassessWeaponGoal();
+    }
+
+    private void setHadHorse(boolean hadHorse) {
+        entityData.set(HAD_HORSE, hadHorse);
+    }
+
+    private boolean getHadHorse() {
+        return entityData.get(HAD_HORSE);
     }
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(1, new SwimGoal(this));
-        this.goalSelector.addGoal(2, new RecruitFollowOwnerGoal(this, 1.2D, 7.F, 4.0F));
-        this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
-        this.goalSelector.addGoal(4, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
-        this.goalSelector.addGoal(5, new ReturnToVillageGoal(this, 0.6D, false));
-        this.goalSelector.addGoal(6, new PatrolVillageGoal(this, 0.6D));
-        this.goalSelector.addGoal(7, new WaterAvoidingRandomWalkingGoal(this, 1.0D, 0F));
-        this.goalSelector.addGoal(8, new ReturnToVillageGoal(this, 0.6D, false));
-        this.goalSelector.addGoal(9, new PatrolVillageGoal(this, 0.6D));
-        this.goalSelector.addGoal(11, new LookAtGoal(this, PlayerEntity.class, 8.0F));
-        this.goalSelector.addGoal(12, new LookRandomlyGoal(this));
-
-        this.targetSelector.addGoal(1, new RecruitDefendVillageGoal(this));
-        this.targetSelector.addGoal(2, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
-        this.targetSelector.addGoal(3, new OwnerHurtByTargetGoal(this));
-        this.targetSelector.addGoal(4, new OwnerHurtTargetGoal(this));
-        this.targetSelector.addGoal(4, new RecruitRaidNearestAttackableTargetGoal<>(this, LivingEntity.class, false));
-        this.targetSelector.addGoal(4, new RecruitAggresiveNearestAttackableTargetGoal<>(this, LivingEntity.class, false));
-        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, AbstractIllagerEntity.class, false));
-        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, MonsterEntity.class, false));
-        //this.targetSelector.addGoal(8, new ResetAngerGoal<>(this, true));
-        this.targetSelector.addGoal(10, new RecruitDefendVillageGoal(this));
+        super.registerGoals();
     }
 
     //ATTRIBUTES
@@ -71,43 +67,36 @@ public class NomadEntity extends BowmanEntity{
 
     }
 
-
-
     @Nullable
     public ILivingEntityData finalizeSpawn(IServerWorld world, DifficultyInstance difficultyInstance, SpawnReason reason, @Nullable ILivingEntityData data, @Nullable CompoundNBT nbt) {
-        if (nbt == null) nbt = new CompoundNBT();
-        nbt.putString("id", "minecraft:horse");
+        ILivingEntityData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
+        ((GroundPathNavigator)this.getNavigation()).setCanOpenDoors(true);
+        this.populateDefaultEquipmentEnchantments(difficultyInstance);
+        this.setEquipment();
+        this.setCanPickUpLoot(true);
+        this.setGroup(4);
 
-        CompoundNBT passenger = new CompoundNBT();
-        passenger.putString("id", "recruits:nomad");
+        return ilivingentitydata;
+    }
 
-        ListNBT passengers = new ListNBT();
-        passengers.add(passenger);
+    @Override
+    public void tick() {
+        super.tick();
 
-        nbt.put("Passengers", passengers);
+        if (!getHadHorse()){
+            boolean hasHorse = this.getVehicle() != null && this.getVehicle() instanceof RecruitHorseEntity;
+            if (!hasHorse){
+                RecruitHorseEntity horse = new RecruitHorseEntity(ModEntityTypes.RECRUIT_HORSE.get(), this.level);
+                horse.setPos(this.getX(), this.getY(), this.getZ());
+                horse.setRandomVariant();
+                horse.setRandomSpawnBonus();
+                if (this.getOwner() != null) horse.setOwnerUUID(this.getOwnerUUID());
 
-        ServerWorld serverworld = world.getLevel();
-        HorseEntity horseentity = (HorseEntity) EntityType.loadEntityRecursive(nbt, serverworld, (entity) -> {
-            entity.moveTo(this.getX(), this.getY(), this.getZ(), this.yRot, this.xRot);
-            return entity;
-        });
-
-        this.remove();
-
-        assert horseentity != null;
-        horseentity.setTamed(true);
-        serverworld.addFreshEntityWithPassengers(horseentity);
-
-        NomadEntity that = (NomadEntity) horseentity.getPassengers().get(0);
-        (that.getNavigation()).moveTo(this.getNavigation().getPath(), 1D);
-        that.setEquipment();
-        that.populateDefaultEquipmentEnchantments(difficultyInstance);
-        that.setCanPickUpLoot(true);
-        that.dropEquipment();
-        that.reassessWeaponGoal();
-        that.setGroup(2);
-
-        return data;
+                this.startRiding(horse);
+                this.level.addFreshEntity(horse);
+                this.setHadHorse(true);
+            }
+        }
     }
 
     @Nullable
@@ -116,10 +105,16 @@ public class NomadEntity extends BowmanEntity{
         return null;
     }
 
-    public void setEquipment() {
-        this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.BOW));
-        this.setItemSlot(EquipmentSlotType.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));
-        this.setItemSlot(EquipmentSlotType.LEGS, new ItemStack(Items.LEATHER_LEGGINGS));
-        this.setItemSlot(EquipmentSlotType.FEET, new ItemStack(Items.LEATHER_BOOTS));
+    @Override
+    public void aiStep() {
+        super.aiStep();
+        this.level.getProfiler().push("looting");
+        if (!this.level.isClientSide && this.canPickUpLoot() && this.isAlive() && !this.dead && net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.level, this)) {
+            for(ItemEntity itementity : this.level.getEntitiesOfClass(ItemEntity.class, this.getBoundingBox().inflate(2.5D, 2.5D, 2.5D))) {
+                if (!itementity.removed && !itementity.getItem().isEmpty() && !itementity.hasPickUpDelay() && this.wantsToPickUp(itementity.getItem())) {
+                    this.pickUpItem(itementity);
+                }
+            }
+        }
     }
 }

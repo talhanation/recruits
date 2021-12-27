@@ -147,6 +147,7 @@ public class Main {
             GlobalEntityTypeAttributes.put(ModEntityTypes.BOWMAN.get(), BowmanEntity.setAttributes().build());
             GlobalEntityTypeAttributes.put(ModEntityTypes.CROSSBOWMAN.get(), BowmanEntity.setAttributes().build());
             GlobalEntityTypeAttributes.put(ModEntityTypes.NOMAD.get(), NomadEntity.setAttributes().build());
+            GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT_HORSE.get(), RecruitHorseEntity.setAttributes().build());
             //GlobalEntityTypeAttributes.put(ModEntityTypes.SCOUT.get(), ScoutEntity.setAttributes().build());
         });
     }

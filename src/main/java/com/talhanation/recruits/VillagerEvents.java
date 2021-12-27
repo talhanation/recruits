@@ -9,31 +9,17 @@ import net.minecraft.entity.*;
 import net.minecraft.entity.merchant.villager.VillagerEntity;
 import net.minecraft.entity.merchant.villager.VillagerProfession;
 import net.minecraft.entity.merchant.villager.VillagerTrades;
-import net.minecraft.entity.passive.GolemEntity;
 import net.minecraft.entity.passive.IronGolemEntity;
-import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.MerchantOffer;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ClassInheritanceMultiMap;
-import net.minecraft.util.DamageSource;
 import net.minecraft.util.IItemProvider;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -154,7 +140,19 @@ public class VillagerEvents {
         nomad.reassessWeaponGoal();
         nomad.setGroup(2);
         villager.remove();
+
+        RecruitHorseEntity horse = createHorse(nomad);
+        nomad.startRiding(horse);
+
         villager.level.addFreshEntity(nomad);
+    }
+
+    private static RecruitHorseEntity createHorse(LivingEntity entity) {
+        RecruitHorseEntity horse = ModEntityTypes.RECRUIT_HORSE.get().create(entity.level);
+        horse.setPos(entity.getX(), entity.getY(), entity.getZ());
+        horse.invulnerableTime = 60;
+        horse.setPersistenceRequired();
+        return horse;
     }
 
     @SubscribeEvent

@@ -647,6 +647,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 return false;
             } else if (target instanceof AbstractHorseEntity && ((AbstractHorseEntity)target).isTamed()) {
                 return false;
+            } else if (target instanceof RecruitHorseEntity) {
+                return false;
             } else {
                 return !(target instanceof TameableEntity) || !((TameableEntity)target).isTame();
             }
