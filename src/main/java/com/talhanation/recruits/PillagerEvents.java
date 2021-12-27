@@ -95,9 +95,9 @@ public class PillagerEvents {
             pillager.setCanPickUpLoot(true);
             pillager.setCanJoinRaid(true);
 
-            int i = this.random.nextInt(7);
+            int i = this.random.nextInt(6);
             if (i == 2) pillager.setItemInHand(Hand.MAIN_HAND, Items.IRON_AXE.getDefaultInstance());
-            else if (i == 1) pillager.setItemInHand(Hand.MAIN_HAND, Items.BOW.getDefaultInstance());
+            else if (i == 1) pillager.setItemInHand(Hand.MAIN_HAND, Items.CROSSBOW.getDefaultInstance());
             else if (i == 3 || i == 4) pillager.setItemInHand(Hand.MAIN_HAND, Items.CROSSBOW.getDefaultInstance());
             else {
                 pillager.setItemInHand(Hand.MAIN_HAND, Items.IRON_SWORD.getDefaultInstance());
@@ -124,7 +124,7 @@ public class PillagerEvents {
     public void onBiomeLoadingPillager(BiomeLoadingEvent event) {
         Biome.Category category = event.getCategory();
         if (category != Biome.Category.NETHER && category != Biome.Category.THEEND && category != Biome.Category.NONE && category != Biome.Category.OCEAN && category != Biome.Category.RIVER) {
-            event.getSpawns().getSpawner(EntityClassification.MONSTER).add(new MobSpawnInfo.Spawners(EntityType.VINDICATOR, 3, 1, 2));
+            //event.getSpawns().getSpawner(EntityClassification.MONSTER).add(new MobSpawnInfo.Spawners(EntityType.VINDICATOR, 3, 1, 2));
         }
     }
 

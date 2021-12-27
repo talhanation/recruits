@@ -506,6 +506,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             boolean flag = this.isOwnedBy(player) || this.isTame() || isInSittingPose() || item == Items.BONE && !this.isTame();
             return flag ? ActionResultType.CONSUME : ActionResultType.PASS;
         } else {
+                if (player.isCreative() && player.getItemInHand(Hand.MAIN_HAND).getItem().equals(Items.LEVER)){
+                getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.3D);
+                getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(1.3D);
+                getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.1D);
+                player.sendMessage(new StringTextComponent(this.getName().getString() + ": " +"Stats were reseted!"), player.getUUID());
+                    return ActionResultType.SUCCESS;
+                }
+
             if ((this.isTame() && player.getUUID().equals(this.getOwnerUUID()))) {
                 if (player.isCrouching()) {
                     checkItemsInInv();
@@ -562,13 +570,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                         player.sendMessage(new StringTextComponent(this.getName().getString() + ": " +"I will defend you from Monsters!"), player.getUUID());
                         break;
                 }
-            }
-
-            if (this.isTame() && player.isCreative() && player.getItemInHand(Hand.MAIN_HAND).getItem().equals(Items.LEVER)){
-                getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.3D);
-                getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(1.3D);
-                getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.1D);
-                player.sendMessage(new StringTextComponent(this.getName().getString() + ": " +"Stats were reseted!"), player.getUUID());
             }
 
             return super.mobInteract(player, hand);
