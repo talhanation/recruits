@@ -13,7 +13,7 @@ public class RecruitsModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
-    public static final int NEW_VERSION = 3;
+    public static final int NEW_VERSION = 4;
 
 
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
@@ -92,7 +92,7 @@ public class RecruitsModConfig {
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: 200")
                 .worldRestart()
-                .defineInRange("RecruitsMaxXpForLevelUp", 200, 50, 10000);
+                .defineInRange("RecruitsMaxXpForLevelUp", 250, 50, 10000);
 
 
     CONFIG = BUILDER.build();

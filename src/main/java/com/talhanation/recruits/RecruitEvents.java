@@ -1,14 +1,18 @@
 package com.talhanation.recruits;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.BowmanEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.merchant.villager.VillagerEntity;
 import net.minecraft.entity.monster.AbstractIllagerEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.List;
@@ -16,7 +20,6 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class RecruitEvents {
-
 
     @SubscribeEvent
     public void onProjectileImpact(ProjectileImpactEvent event) {
@@ -35,9 +38,11 @@ public class RecruitEvents {
                         if (!AbstractRecruitEntity.canDamageTarget(recruit, impactEntity)) {
                             event.setCanceled(true);
                         }
+
                         if (recruit.getOwner() == impactEntity) {
                             event.setCanceled(true);
-                        }
+                        } else
+                            recruit.addXp(2);
                     }
 
                     if (owner instanceof AbstractIllagerEntity) {
@@ -70,6 +75,30 @@ public class RecruitEvents {
     public static void onStopButton(AbstractRecruitEntity recruit, UUID owner, int group) {
         if (recruit.isTame() &&(recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), owner) && (recruit.getGroup() == group || group == 0)) {
             recruit.setTarget(null);
+        }
+    }
+
+    @SubscribeEvent
+    public void onVillagerLivingUpdate(LivingEvent.LivingUpdateEvent event) {
+        Entity entity = event.getEntityLiving();
+        if (entity instanceof AbstractRecruitEntity) {
+            AbstractRecruitEntity recruit = (AbstractRecruitEntity) entity;
+
+            double speed = recruit.getAttribute(Attributes.MOVEMENT_SPEED).getBaseValue();
+            double knock = recruit.getAttribute(Attributes.KNOCKBACK_RESISTANCE).getBaseValue();
+            double attack = recruit.getAttribute(Attributes.ATTACK_DAMAGE).getBaseValue();
+
+            if (speed > 0.4D) {
+                recruit.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.3D);
+            }
+
+            if (knock > 0.2D) {
+                recruit.getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.1D);
+            }
+
+            if (attack > 3.0D) {
+                recruit.getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(2.0D);
+            }
         }
     }
 

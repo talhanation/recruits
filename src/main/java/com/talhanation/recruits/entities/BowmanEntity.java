@@ -97,8 +97,8 @@ public class BowmanEntity extends RecruitEntity implements IRangedAttackMob {
     public void performRangedAttack(LivingEntity entity, float f) {
         ItemStack itemstack = this.getProjectile(this.getItemInHand(ProjectileHelper.getWeaponHoldingHand(this, Items.BOW)));
         AbstractArrowEntity abstractarrowentity = this.getArrow(itemstack, f);
-        if (this.getMainHandItem().getItem() instanceof net.minecraft.item.BowItem)
-            abstractarrowentity = ((net.minecraft.item.BowItem)this.getMainHandItem().getItem()).customArrow(abstractarrowentity);
+        if (this.getMainHandItem().getItem() instanceof BowItem)
+            abstractarrowentity = ((BowItem)this.getMainHandItem().getItem()).customArrow(abstractarrowentity);
         double d0 = entity.getX() - this.getX();
         double d1 = entity.getY(0.25D) - abstractarrowentity.getY();
         double d2 = entity.getZ() - this.getZ();

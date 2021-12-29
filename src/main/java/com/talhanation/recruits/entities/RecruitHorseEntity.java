@@ -138,7 +138,7 @@ public class RecruitHorseEntity extends TameableEntity {
         this.playSound(SoundEvents.HORSE_GALLOP, 0.15F, 1.0F);
     }
 
-
+    /*
     @Override
     public void tick() {
         super.tick();
@@ -152,4 +152,5 @@ public class RecruitHorseEntity extends TameableEntity {
                 this.getNavigation().moveTo(rider.getNavigation().getPath(), 1);
         }
     }
+    */
 }
