@@ -1,11 +1,10 @@
 package com.talhanation.recruits;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.entities.BowmanEntity;
+import com.talhanation.recruits.entities.RecruitEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.entity.merchant.villager.VillagerEntity;
 import net.minecraft.entity.monster.AbstractIllagerEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.util.math.EntityRayTraceResult;
@@ -81,24 +80,15 @@ public class RecruitEvents {
     @SubscribeEvent
     public void onVillagerLivingUpdate(LivingEvent.LivingUpdateEvent event) {
         Entity entity = event.getEntityLiving();
-        if (entity instanceof AbstractRecruitEntity) {
-            AbstractRecruitEntity recruit = (AbstractRecruitEntity) entity;
+        if (entity instanceof RecruitEntity) {
+            RecruitEntity recruit = (RecruitEntity) entity;
 
             double speed = recruit.getAttribute(Attributes.MOVEMENT_SPEED).getBaseValue();
-            double knock = recruit.getAttribute(Attributes.KNOCKBACK_RESISTANCE).getBaseValue();
-            double attack = recruit.getAttribute(Attributes.ATTACK_DAMAGE).getBaseValue();
 
-            if (speed > 0.4D) {
-                recruit.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.3D);
+            if (speed > 0.5D) {
+                recruit.kill();
             }
 
-            if (knock > 0.2D) {
-                recruit.getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.1D);
-            }
-
-            if (attack > 3.0D) {
-                recruit.getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(2.0D);
-            }
         }
     }
 

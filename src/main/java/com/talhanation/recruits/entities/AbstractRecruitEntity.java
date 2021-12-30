@@ -507,10 +507,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             return flag ? ActionResultType.CONSUME : ActionResultType.PASS;
         } else {
                 if (player.isCreative() && player.getItemInHand(Hand.MAIN_HAND).getItem().equals(Items.LEVER)){
-                getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.3D);
-                getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(1.3D);
-                getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(0.1D);
-                player.sendMessage(new StringTextComponent(this.getName().getString() + ": " +"Stats were reseted!"), player.getUUID());
+                getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5D);
+                 player.sendMessage(new StringTextComponent(this.getName().getString() + ": " +"Speed!"), player.getUUID());
                     return ActionResultType.SUCCESS;
                 }
 

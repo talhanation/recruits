@@ -9,15 +9,32 @@ import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.NearestAttackableTargetGoal;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.monster.*;
 import net.minecraft.entity.passive.AnimalEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.item.BannerItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.potion.EffectInstance;
+import net.minecraft.potion.Effects;
 import net.minecraft.util.Hand;
+import net.minecraft.util.datafix.fixes.OminousBannerRenameFix;
+import net.minecraft.util.datafix.fixes.OminousBannerTileEntityRenameFix;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.Explosion;
+import net.minecraft.world.GameRules;
+import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.MobSpawnInfo;
+import net.minecraft.world.raid.Raid;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.item.ItemEvent;
+import net.minecraftforge.event.village.VillageSiegeEvent;
 import net.minecraftforge.event.world.BiomeLoadingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -124,7 +141,7 @@ public class PillagerEvents {
     public void onBiomeLoadingPillager(BiomeLoadingEvent event) {
         Biome.Category category = event.getCategory();
         if (category != Biome.Category.NETHER && category != Biome.Category.THEEND && category != Biome.Category.NONE && category != Biome.Category.OCEAN && category != Biome.Category.RIVER) {
-            //event.getSpawns().getSpawner(EntityClassification.MONSTER).add(new MobSpawnInfo.Spawners(EntityType.VINDICATOR, 3, 1, 2));
+            event.getSpawns().getSpawner(EntityClassification.MONSTER).add(new MobSpawnInfo.Spawners(EntityType.PILLAGER, 1, 1, 2));
         }
     }
 
@@ -132,6 +149,41 @@ public class PillagerEvents {
         PillagerEntity pillager = EntityType.PILLAGER.create(entity.level);
         pillager.copyPosition(entity);
         entity.level.addFreshEntity(pillager);
+    }
+
+    @SubscribeEvent
+    public void raidStartOnBurningOminus(EntityEvent event) {
+        Entity entity = event.getEntity();
+
+        if (entity instanceof ItemEntity) {
+            ItemEntity itemEntity = (ItemEntity) event.getEntity();
+            ItemStack itemStack = itemEntity.getItem();
+
+            World level = entity.level;
+            if (itemStack.getItem().equals(Items.WHITE_BANNER)) {
+
+                if (entity.isOnFire() && ItemStack.matches(itemStack, Raid.getLeaderBannerInstance())) {
+                    PlayerEntity player = level.getNearestPlayer(entity, 16D);
+                    if (player != null) {
+                        EffectInstance effectinstance1 = player.getEffect(Effects.BAD_OMEN);
+                        int i = 1;
+                        if (effectinstance1 != null) {
+                            i += effectinstance1.getAmplifier();
+                            player.removeEffectNoUpdate(Effects.BAD_OMEN);
+                        } else {
+                            --i;
+                        }
+                        i = MathHelper.clamp(i, 0, 4);
+                        EffectInstance effectinstance = new EffectInstance(Effects.BAD_OMEN, 120000, i, false, false, true);
+                        if (!player.level.getGameRules().getBoolean(GameRules.RULE_DISABLE_RAIDS)) {
+                            player.addEffect(effectinstance);
+                        }
+                        level.explode(entity, entity.getX(), entity.getY(), entity.getZ(), 0.5F, Explosion.Mode.BREAK);
+                        entity.remove();
+                    }
+                }
+            }
+        }
     }
 }
 
