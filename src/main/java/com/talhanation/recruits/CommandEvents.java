@@ -3,14 +3,20 @@ package com.talhanation.recruits;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.network.MessageCommandScreen;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
@@ -20,7 +26,7 @@ import java.util.UUID;
 public class CommandEvents {
 
     private static int recruitsInCommand;
-    private static int currentGroup;
+    public static int currentGroup;
 
     public static void onRKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit, int r_state, int group, boolean fromGui) {
         if (recruit.isTame() && (recruit.getListen() || fromGui) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
@@ -152,8 +158,19 @@ public class CommandEvents {
         }
     }
 
-    public static void setRecruitsInCommand(int count) {
-        recruitsInCommand = count;
+    public static void setRecruitsInCommand(AbstractRecruitEntity recruit, int count) {
+        LivingEntity living = recruit.getOwner();
+        PlayerEntity player = (PlayerEntity) living;
+        if (player != null){
+
+            CompoundNBT playerNBT = player.getPersistentData();
+            CompoundNBT nbt = playerNBT.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
+
+            nbt.putInt( "RecruitsInCommand", count);
+            player.sendMessage(new StringTextComponent("EVENT int: " + count), player.getUUID());
+
+            playerNBT.put(PlayerEntity.PERSISTED_NBT_TAG, nbt);
+        }
     }
 
     public static int getRecruitsInCommand() {
@@ -167,4 +184,30 @@ public class CommandEvents {
     public static int getCurrentGroup() {
         return currentGroup;
     }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        CompoundNBT playerData = event.getPlayer().getPersistentData();
+        CompoundNBT data = playerData.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
+            if (!data.contains("CommandingGroup")) data.putInt("CommandingGroup", 0);
+            //if (!data.contains("RecruitsInCommand")) data.putInt("RecruitsInCommand", 0);
+
+            playerData.put(PlayerEntity.PERSISTED_NBT_TAG, data);
+    }
+    /*
+    @SubscribeEvent
+    public void onPlayerLivingUpdate(LivingEvent.LivingUpdateEvent event) {
+        Entity entity = event.getEntityLiving();
+        if (entity instanceof PlayerEntity) {
+            PlayerEntity player = (PlayerEntity) entity;
+
+            CompoundNBT playerData = player.getPersistentData();
+            CompoundNBT data = playerData.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
+
+            if (player.isCrouching())
+                player.sendMessage(new StringTextComponent("NBT: " + data.getInt("RecruitsInCommand")), player.getUUID());
+        }
+    }
+
+     */
 }

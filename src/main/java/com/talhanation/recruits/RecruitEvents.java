@@ -76,20 +76,4 @@ public class RecruitEvents {
             recruit.setTarget(null);
         }
     }
-
-    @SubscribeEvent
-    public void onVillagerLivingUpdate(LivingEvent.LivingUpdateEvent event) {
-        Entity entity = event.getEntityLiving();
-        if (entity instanceof RecruitEntity) {
-            RecruitEntity recruit = (RecruitEntity) entity;
-
-            double speed = recruit.getAttribute(Attributes.MOVEMENT_SPEED).getBaseValue();
-
-            if (speed > 0.5D) {
-                recruit.kill();
-            }
-
-        }
-    }
-
 }

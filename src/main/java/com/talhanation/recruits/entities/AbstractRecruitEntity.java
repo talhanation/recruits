@@ -157,6 +157,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new RecruitQuaffGoal(this));
         this.goalSelector.addGoal(0, new RecruitFleeTNT(this));
+        this.goalSelector.addGoal(0, new RecruitFleeFire(this));
         //this.goalSelector.addGoal(0, new (this));
         this.goalSelector.addGoal(1, new SwimGoal(this));
         this.goalSelector.addGoal(1, new RecruitEatGoal(this));
@@ -264,6 +265,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     ////////////////////////////////////GET////////////////////////////////////
 
+    public BlockPos getRecruitOnPos(){
+        return getOnPos();
+    }
 
     public boolean getFleeing() {
         return entityData.get(FLEEING);

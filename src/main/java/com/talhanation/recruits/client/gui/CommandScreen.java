@@ -13,6 +13,7 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
@@ -31,14 +32,15 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/command_gui.png");
     private static final int fontColor = 16250871;
     private PlayerEntity player;
-    private int group = 0;
-    private int recCount = 0;
+    private int group;
+    private int recCount;
 
     public CommandScreen(CommandContainer commandContainer, PlayerInventory playerInventory, ITextComponent title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, title);
         imageWidth = 201;
         imageHeight = 170;
         player = playerInventory.player;
+
     }
 
     @Override
@@ -51,7 +53,6 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
     @Override
     protected void init() {
         super.init();
-
         //WANDER
         addButton(new Button(leftPos - 70 - 40 + imageWidth / 2, topPos + 20 + 30, 81, 20, new StringTextComponent("Release!"), button -> {
             CommandEvents.sendFollowCommandInChat(0, player);
@@ -103,28 +104,41 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
         //GROUP
         addButton(new Button(leftPos - 5 + imageWidth / 2, topPos - 40 + imageHeight / 2, 11, 20, new StringTextComponent("+"), button -> {
+            this.group = getSavedCurrentGroup(player);
+
             if (this.group != 9) {
                 this.group ++;
+                this.saveCurrentGroup(player);
             }
         }));
 
         addButton(new Button(leftPos - 5 + imageWidth / 2, topPos + imageHeight / 2, 11, 20, new StringTextComponent("-"), button -> {
+            this.group = getSavedCurrentGroup(player);
+
             if (this.group != 0) {
                 this.group --;
+
+                this.saveCurrentGroup(player);
             }
+
         }));
     }
 
     @Override
     protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
-        this.recCount = CommandEvents.getRecruitsInCommand();
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageRecruitsInCommand(player.getUUID()));
+
+        //Main.SIMPLE_CHANNEL.sendToServer(new MessageRecruitsInCommand(player.getUUID()));
+
+        //this.recCount = getSavedRecruitCount(player);
+        this.group = getSavedCurrentGroup(player);
+        //player.sendMessage(new StringTextComponent("SCREEN int: " + recCount), player.getUUID());
 
         int k = 78;//rechst links
         int l = 71;//höhe
+
         font.draw(matrixStack, "" +  handleGroupText(this.group), k , l, fontColor);
-        //font.draw(matrixStack, "" +  handleRecruitCountText(recCount), k - 30 , 0, fontColor);
+        //font.draw(matrixStack, "" +  handleRecruitCountText(this.recCount), k - 30 , 0, fontColor);
     }
 
     protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
@@ -144,8 +158,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
     public static String handleRecruitCountText(int recCount){
         return ("Recruits in Command: " + recCount);
     }
-
-
+    /*
     public void onAttackButton(){
         Minecraft minecraft = Minecraft.getInstance();
         ClientPlayerEntity clientPlayerEntity = minecraft.player;
@@ -161,4 +174,38 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             }
         }
     }
+
+     */
+
+    public int getSavedCurrentGroup(PlayerEntity player) {
+        CompoundNBT playerNBT = player.getPersistentData();
+        CompoundNBT nbt = playerNBT.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
+
+        return nbt.getInt("CommandingGroup");
+    }
+
+    public void saveCurrentGroup(PlayerEntity player) {
+        CompoundNBT playerNBT = player.getPersistentData();
+        CompoundNBT nbt = playerNBT.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
+
+        nbt.putInt( "CommandingGroup", this.group);
+        playerNBT.put(PlayerEntity.PERSISTED_NBT_TAG, nbt);
+    }
+
+
+    public int getSavedRecruitCount(PlayerEntity player) {
+        CompoundNBT playerNBT = player.getPersistentData();
+        CompoundNBT nbt = playerNBT.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
+
+        return nbt.getInt("RecruitsInCommand");
+    }
+
+    public void saveRecruitCount(PlayerEntity player) {
+        CompoundNBT playerNBT = player.getPersistentData();
+        CompoundNBT nbt = playerNBT.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
+
+        nbt.putInt( "RecruitsInCommand", this.recCount);
+        playerNBT.put(PlayerEntity.PERSISTED_NBT_TAG, nbt);
+    }
+
 }

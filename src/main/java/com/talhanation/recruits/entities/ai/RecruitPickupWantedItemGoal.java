@@ -22,7 +22,7 @@ public class RecruitPickupWantedItemGoal extends Goal{
 
     @Override
     public void tick() {
-        List<ItemEntity> list = recruit.level.getEntitiesOfClass(ItemEntity.class, recruit.getBoundingBox().inflate(16.0D, 8.0D, 16.0D), recruit.getAllowedItems());
+        List<ItemEntity> list = recruit.level.getEntitiesOfClass(ItemEntity.class, recruit.getBoundingBox().inflate(6.0D, 3.0D, 6.0D), recruit.getAllowedItems());
         if (!list.isEmpty()) {
             recruit.getNavigation().moveTo(list.get(0), 1.15F);
         }

@@ -4,11 +4,10 @@ import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ai.pillager.PillagerMeleeAttackGoal;
 import com.talhanation.recruits.entities.ai.pillager.PillagerUseShield;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityClassification;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.*;
+import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.NearestAttackableTargetGoal;
+import net.minecraft.entity.ai.goal.RangedCrossbowAttackGoal;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.monster.*;
 import net.minecraft.entity.passive.AnimalEntity;
@@ -38,6 +37,7 @@ import net.minecraftforge.event.village.VillageSiegeEvent;
 import net.minecraftforge.event.world.BiomeLoadingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Random;
 
@@ -51,6 +51,8 @@ public class PillagerEvents {
         if (entity instanceof PillagerEntity) {
             PillagerEntity pillager = (PillagerEntity) entity;
             pillager.goalSelector.addGoal(0, new PillagerMeleeAttackGoal(pillager, 1.15D, true));
+            pillager.goalSelector.addGoal(2, new FindTargetGoal(pillager, 24.0F));
+            pillager.goalSelector.addGoal(2, new RangedCrossbowAttackGoal<>(pillager, 1.0D, 24.0F));
         }
 
         if (entity instanceof AbstractIllagerEntity) {
@@ -113,12 +115,28 @@ public class PillagerEvents {
             pillager.setCanJoinRaid(true);
 
             int i = this.random.nextInt(6);
-            if (i == 2) pillager.setItemInHand(Hand.MAIN_HAND, Items.IRON_AXE.getDefaultInstance());
-            else if (i == 1) pillager.setItemInHand(Hand.MAIN_HAND, Items.CROSSBOW.getDefaultInstance());
-            else if (i == 3 || i == 4) pillager.setItemInHand(Hand.MAIN_HAND, Items.CROSSBOW.getDefaultInstance());
-            else {
-                pillager.setItemInHand(Hand.MAIN_HAND, Items.IRON_SWORD.getDefaultInstance());
-                pillager.setItemInHand(Hand.OFF_HAND, Items.SHIELD.getDefaultInstance());
+            switch (i){
+                case 1:
+                    pillager.setItemInHand(Hand.MAIN_HAND, Items.CROSSBOW.getDefaultInstance());
+                    break;
+                case 2:
+                    pillager.setItemInHand(Hand.MAIN_HAND, Items.CROSSBOW.getDefaultInstance());
+                    break;
+                case 3:
+                    pillager.setItemInHand(Hand.MAIN_HAND, Items.CROSSBOW.getDefaultInstance());
+                    break;
+                case 4:
+                    pillager.setItemInHand(Hand.MAIN_HAND, Items.IRON_AXE.getDefaultInstance());
+                    pillager.setItemInHand(Hand.OFF_HAND, Items.SHIELD.getDefaultInstance());
+                    break;
+                case 5:
+                    pillager.setItemInHand(Hand.MAIN_HAND, Items.IRON_SWORD.getDefaultInstance());
+                    pillager.setItemInHand(Hand.OFF_HAND, Items.SHIELD.getDefaultInstance());
+                    break;
+                case 0:
+                    pillager.setItemInHand(Hand.MAIN_HAND, Items.IRON_SWORD.getDefaultInstance());
+                    pillager.setItemInHand(Hand.OFF_HAND, Items.SHIELD.getDefaultInstance());
+                    break;
             }
         }
         /*
@@ -187,3 +205,60 @@ public class PillagerEvents {
     }
 }
 
+class FindTargetGoal extends Goal {
+    private final AbstractRaiderEntity mob;
+    private final float hostileRadiusSqr;
+    private final Random random = new Random();
+    public final EntityPredicate shoutTargeting = (new EntityPredicate()).range(8.0D).allowNonAttackable().allowInvulnerable().allowSameTeam().allowUnseeable().ignoreInvisibilityTesting();
+
+    public FindTargetGoal(AbstractIllagerEntity p_i50573_2_, float p_i50573_3_) {
+        this.mob = p_i50573_2_;
+        this.hostileRadiusSqr = p_i50573_3_ * p_i50573_3_;
+        this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
+    }
+
+    public boolean canUse() {
+        LivingEntity livingentity = this.mob.getLastHurtByMob();
+        return this.mob.getCurrentRaid() == null && this.mob.getTarget() != null && !this.mob.isAggressive() && (livingentity == null || livingentity.getType() != EntityType.PLAYER);
+    }
+
+    public void start() {
+        super.start();
+        this.mob.getNavigation().stop();
+
+        for(AbstractRaiderEntity abstractraiderentity : this.mob.level.getNearbyEntities(AbstractRaiderEntity.class, this.shoutTargeting, this.mob, this.mob.getBoundingBox().inflate(8.0D, 8.0D, 8.0D))) {
+            abstractraiderentity.setTarget(this.mob.getTarget());
+        }
+
+    }
+
+    public void stop() {
+        super.stop();
+        LivingEntity livingentity = this.mob.getTarget();
+        if (livingentity != null) {
+            for(AbstractRaiderEntity abstractraiderentity : this.mob.level.getNearbyEntities(AbstractRaiderEntity.class, this.shoutTargeting, this.mob, this.mob.getBoundingBox().inflate(8.0D, 8.0D, 8.0D))) {
+                abstractraiderentity.setTarget(livingentity);
+                abstractraiderentity.setAggressive(true);
+            }
+
+            this.mob.setAggressive(true);
+        }
+
+    }
+
+    public void tick() {
+        LivingEntity livingentity = this.mob.getTarget();
+        if (livingentity != null) {
+            if (this.mob.distanceToSqr(livingentity) > (double)this.hostileRadiusSqr) {
+                this.mob.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
+                if (this.random.nextInt(50) == 0) {
+                    this.mob.playAmbientSound();
+                }
+            } else {
+                this.mob.setAggressive(true);
+            }
+
+            super.tick();
+        }
+    }
+}
