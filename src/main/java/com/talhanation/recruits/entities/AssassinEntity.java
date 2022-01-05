@@ -1,13 +1,14 @@
 package com.talhanation.recruits.entities;
 
-
-import com.talhanation.recruits.entities.ai.*;
+import com.talhanation.recruits.entities.ai.AssassinFleeSuccess;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.*;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.pathfinding.GroundPathNavigator;
 import net.minecraft.world.DifficultyInstance;
@@ -16,21 +17,22 @@ import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.function.Predicate;
 
-public class RecruitEntity extends AbstractRecruitEntity {
-
+public class AssassinEntity extends AbstractOrderAbleEntity {
+    private int despawnTimer = 0;
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
 
-    public RecruitEntity(EntityType<? extends AbstractRecruitEntity> entityType, World world) {
+    public AssassinEntity(EntityType<? extends AbstractOrderAbleEntity> entityType, World world) {
         super(entityType, world);
     }
 
     @Override
     protected void registerGoals() {
        super.registerGoals();
-        this.goalSelector.addGoal(2, new UseShield(this));
+        this.goalSelector.addGoal(0, new AssassinFleeSuccess(this));
     }
 
     //ATTRIBUTES
@@ -44,45 +46,49 @@ public class RecruitEntity extends AbstractRecruitEntity {
 
     }
 
+    @Override
+    public void tick() {
+        super.tick();
+
+        if (this.getIsInOrder()) {
+            despawnTimer ++;
+            }
+        if (despawnTimer > 24000) this.remove();
+    }
+
     @Nullable
     public ILivingEntityData finalizeSpawn(IServerWorld world, DifficultyInstance difficultyInstance, SpawnReason reason, @Nullable ILivingEntityData data, @Nullable CompoundNBT nbt) {
         ILivingEntityData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
         ((GroundPathNavigator)this.getNavigation()).setCanOpenDoors(true);
         this.populateDefaultEquipmentEnchantments(difficultyInstance);
         this.setEquipment();
-        //this.setDropEquipment();
+        this.setDropEquipment();
+        this.setPersistenceRequired();
         this.setCanPickUpLoot(true);
-        this.setGroup(1);
         return ilivingentitydata;
     }
     @Override
-    public void setEquipment() {// doppelt weil bug
-        // wenn nur setItemSlot = dann geht beim gui opening weg
-        // wenn nur setItem = dann geht beim gui opening rein
-        // wtf
-        this.setItemSlot(EquipmentSlotType.HEAD, new ItemStack(Items.LEATHER_HELMET));
-        this.setItemSlot(EquipmentSlotType.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));
-        this.setItemSlot(EquipmentSlotType.LEGS, new ItemStack(Items.LEATHER_LEGGINGS));
-        this.setItemSlot(EquipmentSlotType.FEET, new ItemStack(Items.LEATHER_BOOTS));
+    public void setEquipment() {
+        this.setItemSlot(EquipmentSlotType.OFFHAND, new ItemStack(Items.SHIELD));
+        this.setItemSlot(EquipmentSlotType.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
+        this.setItemSlot(EquipmentSlotType.LEGS, new ItemStack(Items.IRON_LEGGINGS));
+        this.setItemSlot(EquipmentSlotType.FEET, new ItemStack(Items.IRON_BOOTS));
 
-        inventory.setItem(11, new ItemStack(Items.LEATHER_HELMET));
-        inventory.setItem(12, new ItemStack(Items.LEATHER_CHESTPLATE));
-        inventory.setItem(13, new ItemStack(Items.LEATHER_LEGGINGS));
-        inventory.setItem(14, new ItemStack(Items.LEATHER_BOOTS));
         int i = this.random.nextInt(8);
         if (i == 0) {
-            inventory.setItem(9, new ItemStack(Items.STONE_AXE));
-            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_AXE));
+            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.IRON_AXE));
         } else  if (i == 1){
-            inventory.setItem(9, new ItemStack(Items.STONE_SWORD));
-            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_SWORD));
+            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.IRON_AXE));
         } else  if (i == 2){
-            inventory.setItem(9, new ItemStack(Items.STONE_SWORD));
-            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_SWORD));
+            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.IRON_AXE));
         }else{
-            inventory.setItem(9, new ItemStack(Items.WOODEN_SWORD));
-            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.WOODEN_SWORD));
+            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.IRON_SWORD));
         }
+    }
+
+    @Override
+    public int recruitCosts() {
+        return 0;
     }
 
     @Nullable
@@ -92,13 +98,18 @@ public class RecruitEntity extends AbstractRecruitEntity {
     }
 
     @Override
-    public int recruitCosts() {
-        return 3;
+    public String getRecruitName() {
+        return "Assassin";
     }
 
     @Override
-    public String getRecruitName() {
-        return "Recruit";
+    public void openGUI(PlayerEntity player) {
+
+    }
+
+    @Override
+    public void checkItemsInInv() {
+
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import net.minecraft.entity.CreatureEntity;
 import net.minecraft.entity.IRangedAttackMob;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.Attributes;
@@ -9,19 +10,27 @@ import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.item.*;
 import net.minecraft.util.Hand;
 
-public class RecruitUseShield extends Goal {
-    public final AbstractRecruitEntity recruit;
+import javax.swing.*;
+
+public class UseShield extends Goal {
+    public final CreatureEntity entity;
     public int usedTimer;
 
-    public RecruitUseShield(AbstractRecruitEntity recruit){
-        this.recruit = recruit;
+    public UseShield(CreatureEntity recruit){
+        this.entity = recruit;
     }
 
     public boolean canUse() {
-       return (this.recruit.getItemInHand(Hand.OFF_HAND).getItem().isShield(this.recruit.getItemInHand(Hand.OFF_HAND), this.recruit)
+        if (entity instanceof AbstractRecruitEntity){
+            AbstractRecruitEntity recruit = (AbstractRecruitEntity) entity;
+            return (recruit.getItemInHand(Hand.OFF_HAND).getItem().isShield(this.entity.getItemInHand(Hand.OFF_HAND), this.entity)
+                    && canRaiseShield()
+                    && !recruit.isFollowing()
+            );
+        }
+        else return (this.entity.getItemInHand(Hand.OFF_HAND).getItem().isShield(this.entity.getItemInHand(Hand.OFF_HAND), this.entity)
                && canRaiseShield()
-               && !recruit.isFollowing()
-               //&& recruit.canBlock
+
        );
     }
 
@@ -30,33 +39,33 @@ public class RecruitUseShield extends Goal {
     }
 
     public void start() {
-        if (this.recruit.getItemInHand(Hand.OFF_HAND).getItem().isShield(this.recruit.getItemInHand(Hand.OFF_HAND), recruit)){
-        this.recruit.startUsingItem(Hand.OFF_HAND);
-        this.recruit.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.12D);
+        if (this.entity.getItemInHand(Hand.OFF_HAND).getItem().isShield(this.entity.getItemInHand(Hand.OFF_HAND), entity)){
+        this.entity.startUsingItem(Hand.OFF_HAND);
+        this.entity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.12D);
         }
     }
 
     public  void stop(){
-        this.recruit.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.3D);
+        this.entity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.3D);
     }
 
     public void tick() {
-        if (this.recruit.getUsedItemHand() == Hand.OFF_HAND) {
-            this.recruit.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.16D);
+        if (this.entity.getUsedItemHand() == Hand.OFF_HAND) {
+            this.entity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.16D);
         } else {
-            this.recruit.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.3D);
+            this.entity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.3D);
         }
     }
 
     public boolean canRaiseShield() {
-        LivingEntity target = this.recruit.getTarget();
+        LivingEntity target = this.entity.getTarget();
 
         if (target != null) {
             ItemStack itemStackinHand = target.getItemInHand(Hand.MAIN_HAND);
             Item itemInHand = itemStackinHand.getItem();
-            boolean isClose = target.distanceTo(this.recruit) <= 3.75D;
-            boolean isFar = target.distanceTo(this.recruit) >= 20.0D;
-            boolean inRange =  !isFar && target.distanceTo(this.recruit) <= 15.0D;
+            boolean isClose = target.distanceTo(this.entity) <= 3.75D;
+            boolean isFar = target.distanceTo(this.entity) >= 20.0D;
+            boolean inRange =  !isFar && target.distanceTo(this.entity) <= 15.0D;
             boolean isDanger = itemInHand instanceof CrossbowItem && CrossbowItem.isCharged(itemStackinHand) || itemInHand instanceof AxeItem || itemInHand instanceof PickaxeItem || itemInHand instanceof SwordItem;
 
             if (target instanceof IRangedAttackMob && inRange ) {
@@ -75,10 +84,10 @@ public class RecruitUseShield extends Goal {
                 return true;
             }
 
-            recruit.stopUsingItem();
+            entity.stopUsingItem();
             return false;
         }
-        recruit.stopUsingItem();
+        entity.stopUsingItem();
         return false;
     }
 }

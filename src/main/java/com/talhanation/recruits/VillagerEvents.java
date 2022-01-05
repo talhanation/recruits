@@ -15,6 +15,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.MerchantOffer;
 import net.minecraft.util.IItemProvider;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -82,6 +85,7 @@ public class VillagerEvents {
         recruit.setGroup(1);
         villager.remove();
         villager.level.addFreshEntity(recruit);
+
     }
 
     private static void createRecruitShieldman(LivingEntity entity){

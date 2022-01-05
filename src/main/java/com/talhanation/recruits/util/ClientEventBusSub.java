@@ -2,10 +2,7 @@ package com.talhanation.recruits.util;
 
 
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.client.render.BowmanRenderer;
-import com.talhanation.recruits.client.render.CrossBowmanRenderer;
-import com.talhanation.recruits.client.render.RecruitHorseRenderer;
-import com.talhanation.recruits.client.render.RecruitRenderer;
+import com.talhanation.recruits.client.render.*;
 import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -24,6 +21,9 @@ public class ClientEventBusSub {
         RenderingRegistry.registerEntityRenderingHandler(ModEntityTypes.CROSSBOWMAN.get(), CrossBowmanRenderer::new );
         RenderingRegistry.registerEntityRenderingHandler(ModEntityTypes.RECRUIT_SHIELDMAN.get(), RecruitRenderer::new );
         RenderingRegistry.registerEntityRenderingHandler(ModEntityTypes.RECRUIT_HORSE.get(), RecruitHorseRenderer::new );
+
+        RenderingRegistry.registerEntityRenderingHandler(ModEntityTypes.ASSASSIN.get(), AssassinRenderer::new );
+        RenderingRegistry.registerEntityRenderingHandler(ModEntityTypes.ASSASSIN_LEADER.get(), AssassinRenderer::new );
     }
 
 }

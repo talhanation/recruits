@@ -2,6 +2,7 @@ package com.talhanation.recruits;
 
 import com.google.common.collect.ImmutableSet;
 import com.talhanation.recruits.client.events.*;
+import com.talhanation.recruits.client.gui.AssassinLeaderScreen;
 import com.talhanation.recruits.client.gui.CommandScreen;
 import com.talhanation.recruits.client.gui.RecruitInventoryScreen;
 import com.talhanation.recruits.config.RecruitsModConfig;
@@ -9,6 +10,7 @@ import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModItems;
+import com.talhanation.recruits.inventory.AssassinLeaderContainer;
 import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.inventory.RecruitInventoryContainer;
 import com.talhanation.recruits.network.*;
@@ -61,6 +63,7 @@ public class Main {
     public static KeyBinding R_KEY;
     public static ContainerType<RecruitInventoryContainer> RECRUIT_CONTAINER_TYPE;
     public static ContainerType<CommandContainer> COMMAND_CONTAINER_TYPE;
+    public static ContainerType<AssassinLeaderContainer> ASSASSIN_CONTAINER_TYPE;
 
     public Main() {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, RecruitsModConfig.CONFIG);
@@ -85,6 +88,7 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new VillagerEvents());
         MinecraftForge.EVENT_BUS.register(new PillagerEvents());
         MinecraftForge.EVENT_BUS.register(new CommandEvents());
+        MinecraftForge.EVENT_BUS.register(new AssassinEvents());
         MinecraftForge.EVENT_BUS.register(this);
         SIMPLE_CHANNEL = NetworkRegistry.newSimpleChannel(new ResourceLocation(MOD_ID, "default"), () -> "1.0.0", s -> true, s -> true);
 
@@ -141,6 +145,14 @@ public class Main {
                 buf -> (new MessageDisband()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
+        SIMPLE_CHANNEL.registerMessage(14, MessageAssassinate.class, MessageAssassinate::toBytes,
+                buf -> (new MessageAssassinate()).fromBytes(buf),
+                (msg, fun) -> msg.executeServerSide(fun.get()));
+
+        SIMPLE_CHANNEL.registerMessage(15, MessageAssassinGui.class, MessageAssassinGui::toBytes,
+                buf -> (new MessageAssassinGui()).fromBytes(buf),
+                (msg, fun) -> msg.executeServerSide(fun.get()));
+
         DeferredWorkQueue.runLater(() -> {
             GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT.get(), RecruitEntity.setAttributes().build());
             GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT_SHIELDMAN.get(), RecruitShieldmanEntity.setAttributes().build());
@@ -148,6 +160,8 @@ public class Main {
             GlobalEntityTypeAttributes.put(ModEntityTypes.CROSSBOWMAN.get(), BowmanEntity.setAttributes().build());
             GlobalEntityTypeAttributes.put(ModEntityTypes.NOMAD.get(), NomadEntity.setAttributes().build());
             GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT_HORSE.get(), RecruitHorseEntity.setAttributes().build());
+            GlobalEntityTypeAttributes.put(ModEntityTypes.ASSASSIN.get(), AssassinEntity.setAttributes().build());
+            GlobalEntityTypeAttributes.put(ModEntityTypes.ASSASSIN_LEADER.get(), AssassinLeaderEntity.setAttributes().build());
             //GlobalEntityTypeAttributes.put(ModEntityTypes.SCOUT.get(), ScoutEntity.setAttributes().build());
         });
     }
@@ -163,6 +177,7 @@ public class Main {
 
         ClientRegistry.registerScreen(Main.RECRUIT_CONTAINER_TYPE, RecruitInventoryScreen::new);
         ClientRegistry.registerScreen(Main.COMMAND_CONTAINER_TYPE, CommandScreen::new);
+        ClientRegistry.registerScreen(Main.ASSASSIN_CONTAINER_TYPE, AssassinLeaderScreen::new);
     }
 
     @SubscribeEvent
@@ -223,11 +238,29 @@ public class Main {
         });
         COMMAND_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "command_container"));
         event.getRegistry().register(COMMAND_CONTAINER_TYPE);
+
+
+        ASSASSIN_CONTAINER_TYPE = new ContainerType<>((IContainerFactory<AssassinLeaderContainer>) (windowId, inv, data) -> {
+            PlayerEntity playerEntity = inv.player;
+            AssassinLeaderEntity rec = getAssassinByUUID(inv.player, data.readUUID());
+            if (rec == null) {
+                return null;
+            }
+            return new AssassinLeaderContainer(windowId, rec, inv);
+        });
+        ASSASSIN_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "assassin_container"));
+        event.getRegistry().register(ASSASSIN_CONTAINER_TYPE);
     }
 
     @Nullable
     public static AbstractRecruitEntity getRecruitByUUID(PlayerEntity player, UUID uuid) {
         double distance = 10D;
         return player.level.getEntitiesOfClass(AbstractRecruitEntity.class, new AxisAlignedBB(player.getX() - distance, player.getY() - distance, player.getZ() - distance, player.getX() + distance, player.getY() + distance, player.getZ() + distance), entity -> entity.getUUID().equals(uuid)).stream().findAny().orElse(null);
+    }
+
+    @Nullable
+    public static AssassinLeaderEntity getAssassinByUUID(PlayerEntity player, UUID uuid) {
+        double distance = 10D;
+        return player.level.getEntitiesOfClass(AssassinLeaderEntity.class, new AxisAlignedBB(player.getX() - distance, player.getY() - distance, player.getZ() - distance, player.getX() + distance, player.getY() + distance, player.getZ() + distance), entity -> entity.getUUID().equals(uuid)).stream().findAny().orElse(null);
     }
 }

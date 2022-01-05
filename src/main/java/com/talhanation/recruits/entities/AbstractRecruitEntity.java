@@ -10,11 +10,8 @@ import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.goal.*;
-import net.minecraft.entity.item.TNTEntity;
 import net.minecraft.entity.monster.*;
-import net.minecraft.entity.passive.CatEntity;
 import net.minecraft.entity.passive.TameableEntity;
-import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.passive.horse.AbstractHorseEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -30,7 +27,6 @@ import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.particles.IParticleData;
 import net.minecraft.particles.ParticleTypes;
-import net.minecraft.scoreboard.Team;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -156,8 +152,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new RecruitQuaffGoal(this));
-        this.goalSelector.addGoal(0, new RecruitFleeTNT(this));
-        this.goalSelector.addGoal(0, new RecruitFleeFire(this));
+        this.goalSelector.addGoal(0, new FleeTNT(this));
+        this.goalSelector.addGoal(0, new FleeFire(this));
         //this.goalSelector.addGoal(0, new (this));
         this.goalSelector.addGoal(1, new SwimGoal(this));
         this.goalSelector.addGoal(1, new RecruitEatGoal(this));

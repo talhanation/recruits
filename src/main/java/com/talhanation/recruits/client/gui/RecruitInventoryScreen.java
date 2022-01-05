@@ -114,7 +114,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
 
         //DISBAND
-        addButton(new Button(leftPos + 77 + 85, topPos + 4, 8, 12, new StringTextComponent("x"), button -> {
+        addButton(new Button(leftPos + 77 + 65, topPos + 4, 30, 12, new StringTextComponent("Disband"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDisband(recruit.getUUID()));
             this.onClose();
         }));
@@ -139,6 +139,10 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         font.draw(matrixStack, "" + recruit.getXp(), k + 25, l + 20, fontColor);
         font.draw(matrixStack, "Kills:", k, l + 30, fontColor);
         font.draw(matrixStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
+        /*
+        font.draw(matrixStack, "Moral:", k, l + 30, fontColor);
+        font.draw(matrixStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
+        */
 
         // command
         String follow;

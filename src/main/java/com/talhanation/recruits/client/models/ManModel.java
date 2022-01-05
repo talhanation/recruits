@@ -2,13 +2,14 @@ package com.talhanation.recruits.client.models;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
+import com.talhanation.recruits.entities.AbstractInventoryEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.client.renderer.model.Model;
 import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.util.HandSide;
 import net.minecraft.util.math.MathHelper;
 
-public class ManModel<E extends AbstractRecruitEntity> extends RecruitsBipedModel<E>{
+public class ManModel<E extends AbstractInventoryEntity> extends RecruitsBipedModel<E>{
     public ModelRenderer bipedChest;
 
     public ManModel() {

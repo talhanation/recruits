@@ -2,11 +2,15 @@ package com.talhanation.recruits.init;
 
 import com.google.common.collect.Lists;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.items.HeldBannerItem;
 import com.talhanation.recruits.util.RegistryUtils;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.RegistryObject;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -26,4 +30,5 @@ public class ModItems {
     //public static final RegistryObject<BlockItem> NOMAD_BLOCK = ITEMS.register("nomad_block", () -> new BlockItem(ModBlocks.NOMAD_BLOCK.get(), (new Item.Properties()).tab(ItemGroup.TAB_DECORATIONS)));
     public static final RegistryObject<BlockItem> RECRUIT_SHIELD_BLOCK = ITEMS.register("recruit_shield_block", () -> new BlockItem(ModBlocks.RECRUIT_SHIELD_BLOCK.get(), (new Item.Properties()).tab(ItemGroup.TAB_DECORATIONS)));
 
+    //public static final RegistryObject<Item> HELD_BANNER_ITEM = ITEMS.register("held_banner_item",() -> new HeldBannerItem((new Item.Properties()).tab(ItemGroup.TAB_COMBAT)));
 }
