@@ -74,6 +74,7 @@ public class VillagerEvents {
 
     }
     private static void createRecruit(LivingEntity entity){
+        /*
         RecruitEntity recruit = ModEntityTypes.RECRUIT.get().create(entity.level);
         VillagerEntity villager = (VillagerEntity) entity;
         recruit.copyPosition(villager);
@@ -85,7 +86,7 @@ public class VillagerEvents {
         recruit.setGroup(1);
         villager.remove();
         villager.level.addFreshEntity(recruit);
-
+        */
     }
 
     private static void createRecruitShieldman(LivingEntity entity){

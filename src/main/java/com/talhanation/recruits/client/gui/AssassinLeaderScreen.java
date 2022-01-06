@@ -3,30 +3,21 @@ package com.talhanation.recruits.client.gui;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
 import com.talhanation.recruits.inventory.AssassinLeaderContainer;
-import com.talhanation.recruits.inventory.RecruitInventoryContainer;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
-import net.minecraft.client.gui.screen.inventory.InventoryScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.management.PlayerList;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.glfw.GLFW;
-
-import java.util.UUID;
 
 
 @OnlyIn(Dist.CLIENT)
@@ -44,44 +35,46 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderContainer> {
     private final AssassinLeaderEntity assassinLeaderEntity;
     private TextFieldWidget textField;
 
-    private UUID targetUUID;
-    private int count = 1;
+    private int count;
 
     public AssassinLeaderScreen(AssassinLeaderContainer container, PlayerInventory playerInventory, ITextComponent title) {
         super(RESOURCE_LOCATION, container, playerInventory, title);
         this.playerInventory = playerInventory;
         this.assassinLeaderEntity = container.getEntity();
+        this.count = assassinLeaderEntity.getCount();
         imageWidth = 176;
         imageHeight = 218;
     }
-
 
     @Override
     protected void init() {
         super.init();
         minecraft.keyboardHandler.setSendRepeatsToGui(true);
 
-
-        //GROUP
-        addButton(new Button(leftPos + 77, topPos + 100, 8, 12, new StringTextComponent("<"), button -> {
+        addButton(new Button(leftPos + 10, topPos + 60, 8, 12, new StringTextComponent("<"), button -> {
+            this.count = assassinLeaderEntity.getCount();
             if (this.count != 0) {
                 this.count--;
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageAssassinCount(this.count, assassinLeaderEntity.getUUID()));
             }
         }));
 
-        addButton(new Button(leftPos + 77 + 85, topPos + 100, 8, 12, new StringTextComponent(">"), button -> {
-            if (this.count != 16) {
+        addButton(new Button(leftPos + 10 + 30, topPos + 60, 8, 12, new StringTextComponent(">"), button -> {
+            this.count = assassinLeaderEntity.getCount();
+            if (this.count != assassinLeaderEntity.getMaxAssassinCount()) {
                 this.count++;
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageAssassinCount(this.count, assassinLeaderEntity.getUUID()));
             }
         }));
-
 
         //HUNT
         addButton(new Button(leftPos + 77 + 65, topPos + 4, 30, 12, new StringTextComponent("Hunt"), button -> {
-            playerInventory.player.sendMessage(new StringTextComponent("TEXT: " + textField.getValue()), playerInventory.player.getUUID());
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageAssassinate(textField.getValue(), this.count));
+            int assassinateCost = assassinLeaderEntity.calculateAssassinateCosts(assassinLeaderEntity.getAssassinCosts(), this.count);
+            if(assassinLeaderEntity.playerHasEnoughEmeralds(playerInventory.player, assassinateCost))
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageAssassinate(textField.getValue(), this.count));
+            else
+                playerInventory.player.sendMessage(new StringTextComponent("You dont have enough Emeralds"), playerInventory.player.getUUID());
         onClose();
-
         }));
 
         textField = new TextFieldWidget(font, leftPos + 30, topPos + 30, 116, 16, new StringTextComponent(""));
@@ -100,13 +93,10 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderContainer> {
 
         int k = 79;//rechst links
         int l = 19;//höhe
-        //Titles
-        //font.draw(matrixStack, recruit.getDisplayName().getVisualOrderText(), 8, 5, fontColor);
         font.draw(matrixStack, playerInventory.getDisplayName().getVisualOrderText(), 8, this.imageHeight - 96 + 2, fontColor);
-
-        //Info
-        //font.draw(matrixStack, "Lvl:" + assassin.getXpLevel(), k + 25, l + 10, fontColor);
-
+        String count = String.valueOf(assassinLeaderEntity.getCount());
+        font.draw(matrixStack, "Assassin Count:", k - 70, l + 35, fontColor);
+        font.draw(matrixStack, count, k - 55, l + 45, fontColor);
     }
 
     protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
@@ -115,7 +105,7 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderContainer> {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
 
-        //InventoryScreen.renderEntityInInventory(i + 50, j + 82, 30, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.recruit);
+        //InventoryScreen.renderEntityInInventory(i + 50, j + 82, 30, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.assassinLeaderEntity);
     }
 
 

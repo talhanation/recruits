@@ -52,11 +52,11 @@ public class FleeFire extends Goal {
         else
         if (entity instanceof AbstractRecruitEntity) {
             AbstractRecruitEntity recruit = (AbstractRecruitEntity) entity;
-            recruit.setFleeing(true);
+            recruit.setFleeing(false);
         }
         if (entity instanceof AssassinEntity) {
             AssassinEntity recruit = (AssassinEntity) entity;
-            recruit.setFleeing(true);
+            recruit.setFleeing(false);
         }
     }
 

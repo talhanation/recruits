@@ -153,6 +153,10 @@ public class Main {
                 buf -> (new MessageAssassinGui()).fromBytes(buf),
                 (msg, fun) -> msg.executeServerSide(fun.get()));
 
+        SIMPLE_CHANNEL.registerMessage(16, MessageAssassinCount.class, MessageAssassinCount::toBytes,
+                buf -> (new MessageAssassinCount()).fromBytes(buf),
+                (msg, fun) -> msg.executeServerSide(fun.get()));
+
         DeferredWorkQueue.runLater(() -> {
             GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT.get(), RecruitEntity.setAttributes().build());
             GlobalEntityTypeAttributes.put(ModEntityTypes.RECRUIT_SHIELDMAN.get(), RecruitShieldmanEntity.setAttributes().build());

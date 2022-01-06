@@ -644,6 +644,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 return false;
             } else if (target instanceof AbstractHorseEntity && ((AbstractHorseEntity)target).isTamed()) {
                 return false;
+            } else if (target instanceof AbstractOrderAbleEntity && ((AbstractOrderAbleEntity)target).getIsInOrder()) {
+                return true;
             } else if (target instanceof RecruitHorseEntity) {
                 return false;
             } else {

@@ -230,14 +230,6 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
         entityData.set(FLEEING, bool);
     }
 
-    public void deSpawn(){
-        //this.getOwner().sendMessage(new StringTextComponent(this.getName().getString() + ": " +"Then this is where we part ways."), this.getOwner().getUUID());
-        this.setTame(false);
-        this.setTarget(null);
-        this.setOwned(false);
-        this.setOwnerUUID(null);
-    }
-
     public void addXpLevel(int level){
         int currentLevel = this.getXpLevel();
         int newLevel = currentLevel + level;
@@ -275,9 +267,9 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     public void setEquipment(){}
 
 
-    private boolean playerHasEnoughEmeralds(PlayerEntity player) {
+    public boolean playerHasEnoughEmeralds(PlayerEntity player, int price) {
         int emeraldCount = playerGetEmeraldsInIventory(player);
-        if (emeraldCount >= 6){
+        if (emeraldCount >= price){
             return true;
         }
         if (player.isCreative()){
@@ -372,7 +364,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
 
     public void checkLevel(){
         int currentXp = this.getXp();
-        if (currentXp >= RecruitsModConfig.RecruitsMaxXpForLevelUp.get()){
+        if (currentXp >= 100){
             this.addXpLevel(1);
             this.setXp(0);
             this.addLevelBuffs();
@@ -389,9 +381,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     public boolean canBeLeashed(PlayerEntity player) {
         return false;
     }
-    public abstract int recruitCosts();
 
-    public abstract String getRecruitName();
 
 
     protected void hurtArmor(DamageSource damageSource, float damage) {

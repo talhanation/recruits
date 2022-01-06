@@ -1,11 +1,9 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinEntity;
 import net.minecraft.entity.CreatureEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.item.TNTEntity;
 import net.minecraft.util.math.vector.Vector3d;
 
 import java.util.List;
@@ -30,11 +28,11 @@ public class FleeTarget extends Goal {
     @Override
     public void tick() {
         super.tick();
-        List<LivingEntity> list = entity.level.getEntitiesOfClass(LivingEntity.class, entity.getBoundingBox().inflate(10D));
+        List<LivingEntity> list = entity.level.getEntitiesOfClass(LivingEntity.class, entity.getBoundingBox().inflate(32D));
         if (!list.isEmpty()) {
             for (LivingEntity living : list) {
                 if (living.equals(this.entity.getTarget())) {
-                    double fleeDistance = 32.0D;
+                    double fleeDistance = 64.0D;
                     Vector3d vecTarget = new Vector3d(living.getX(), living.getY(), living.getZ());
                     Vector3d vecRec = new Vector3d(entity.getX(), entity.getY(), entity.getZ());
                     Vector3d fleeDir = vecRec.subtract(vecTarget);

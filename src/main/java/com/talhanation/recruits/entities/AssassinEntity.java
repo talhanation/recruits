@@ -86,20 +86,11 @@ public class AssassinEntity extends AbstractOrderAbleEntity {
         }
     }
 
-    @Override
-    public int recruitCosts() {
-        return 0;
-    }
 
     @Nullable
     @Override
     public AgeableEntity getBreedOffspring(ServerWorld p_241840_1_, AgeableEntity p_241840_2_) {
         return null;
-    }
-
-    @Override
-    public String getRecruitName() {
-        return "Assassin";
     }
 
     @Override

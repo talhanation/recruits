@@ -13,7 +13,7 @@ public class RecruitsModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
-    public static final int NEW_VERSION = 5;
+    public static final int NEW_VERSION = 7;
 
 
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
@@ -30,6 +30,7 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.BooleanValue PillagerIncreasedCombatRange;
     public static ForgeConfigSpec.BooleanValue VindicatorSpawnItems;
     public static ForgeConfigSpec.BooleanValue PillagerSpawnItems;
+    public static ForgeConfigSpec.IntValue MaxAssassinCount;
 
     static{
         VERSION = BUILDER.comment("\n" +"##Version, do not change!##")
@@ -93,7 +94,7 @@ public class RecruitsModConfig {
 
         RecruitsMaxXpForLevelUp = BUILDER.comment("\n" +"Max XP a Recruit needs to Level Up" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: 200")
+                        "\t" + "default: 250")
                 .worldRestart()
                 .defineInRange("RecruitsMaxXpForLevelUp", 250, 50, 10000);
 
@@ -115,6 +116,11 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("PillagerSpawnItems", true);
 
+        MaxAssassinCount = BUILDER.comment("\n" +"WIP: Max Assassins to buy from the Assassin Leader" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: 16")
+                .worldRestart()
+                .defineInRange("MaxAssassinCount", 16, 1, 64);
 
     CONFIG = BUILDER.build();
 }

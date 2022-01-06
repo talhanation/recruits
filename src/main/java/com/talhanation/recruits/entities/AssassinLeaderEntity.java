@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.inventory.AssassinLeaderContainer;
 import com.talhanation.recruits.inventory.RecruitInventoryContainer;
 import com.talhanation.recruits.network.MessageAssassinGui;
@@ -32,13 +33,11 @@ import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.network.NetworkHooks;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.function.Predicate;
 
 public class AssassinLeaderEntity extends AbstractOrderAbleEntity {
-
-    private static final DataParameter<String> TEXT = EntityDataManager.defineId(AbstractOrderAbleEntity.class, DataSerializers.STRING);
+    private static final DataParameter<Integer> COUNT = EntityDataManager.defineId(AbstractOrderAbleEntity.class, DataSerializers.INT);
 
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
@@ -104,21 +103,10 @@ public class AssassinLeaderEntity extends AbstractOrderAbleEntity {
         }
     }
 
-    @Override
-    public int recruitCosts() {
-        return 0;
-    }
-
     @Nullable
     @Override
     public AgeableEntity getBreedOffspring(ServerWorld p_241840_1_, AgeableEntity p_241840_2_) {
         return null;
-    }
-
-
-    @Override
-    public String getRecruitName() {
-        return "Assassin Leader";
     }
 
     @Override
@@ -161,38 +149,44 @@ public class AssassinLeaderEntity extends AbstractOrderAbleEntity {
         return ALLOWED_ITEMS;
     }
 
-    public void setText(String text) {
-        this.entityData.set(TEXT, text);
-    }
-
-    @Nonnull
-    public static String getText(AssassinLeaderEntity entity) {
-        CompoundNBT compound = entity.getPersistentData();
-        if (!compound.contains("Text")) {
-            return "";
-        }
-        return compound.getString("Text");
-    }
 
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        this.entityData.define(TEXT, "Player Name Here");
+        this.entityData.define(COUNT, 1);
     }
 
     @Override
     public void addAdditionalSaveData(CompoundNBT nbt) {
         super.addAdditionalSaveData(nbt);
-        nbt.putString("Text", this.entityData.get(TEXT));
+        nbt.putInt("Count", this.getCount());
     }
 
     @Override
     public void readAdditionalSaveData(CompoundNBT nbt) {
         super.readAdditionalSaveData(nbt);
-        this.setText(nbt.getString("Text"));
+        this.setCount(nbt.getInt("Count"));
     }
 
+    public void setCount(int x){
+        entityData.set(COUNT, x);
+    }
 
+    public int getCount(){
+        return entityData.get(COUNT);
+    }
+
+    public int getAssassinCosts(){
+        return 12;
+    }
+
+    public int calculateAssassinateCosts(int count, int price){
+        return count * price;
+    }
+
+    public int getMaxAssassinCount(){
+        return RecruitsModConfig.MaxAssassinCount.get();
+    }
 }
 
 
