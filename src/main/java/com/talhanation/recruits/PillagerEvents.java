@@ -50,14 +50,14 @@ public class PillagerEvents {
 
         if (entity instanceof PillagerEntity) {
             PillagerEntity pillager = (PillagerEntity) entity;
-            pillager.goalSelector.addGoal(0, new PillagerMeleeAttackGoal(pillager, 1.15D, true));
-            pillager.goalSelector.addGoal(2, new FindTargetGoal(pillager, 24.0F));
-            pillager.goalSelector.addGoal(2, new RangedCrossbowAttackGoal<>(pillager, 1.0D, 24.0F));
+            if(RecruitsModConfig.PillagerIncreasedCombatRange.get()) {
+                pillager.goalSelector.addGoal(2, new FindTargetGoal(pillager, 24.0F));
+                pillager.goalSelector.addGoal(2, new RangedCrossbowAttackGoal<>(pillager, 1.0D, 24.0F));
+            }
         }
 
         if (entity instanceof AbstractIllagerEntity) {
             AbstractIllagerEntity illager = (AbstractIllagerEntity) entity;
-            illager.goalSelector.addGoal(0, new PillagerUseShield(illager));
             illager.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(illager, AbstractRecruitEntity.class, true));
             if (RecruitsModConfig.PillagerAttackMonsters.get()){
                 illager.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(illager, ZombieEntity.class, true));
@@ -93,9 +93,9 @@ public class PillagerEvents {
             }
         }
 
-        if (entity instanceof VindicatorEntity) {
+        if (entity instanceof VindicatorEntity && RecruitsModConfig.VindicatorSpawnItems.get()) {
             VindicatorEntity vindicator = (VindicatorEntity) entity;
-
+            vindicator.goalSelector.addGoal(0, new PillagerUseShield(vindicator));
             vindicator.setPersistenceRequired();
             vindicator.setCanPickUpLoot(true);
             vindicator.setCanJoinRaid(true);
@@ -107,8 +107,10 @@ public class PillagerEvents {
             }
         }
 
-        if (entity instanceof PillagerEntity) {
+        if (entity instanceof PillagerEntity && RecruitsModConfig.PillagerSpawnItems.get()) {
             PillagerEntity pillager = (PillagerEntity) entity;
+            pillager.goalSelector.addGoal(0, new PillagerMeleeAttackGoal(pillager, 1.15D, true));
+            pillager.goalSelector.addGoal(0, new PillagerUseShield(pillager));
 
             pillager.setPersistenceRequired();
             pillager.setCanPickUpLoot(true);

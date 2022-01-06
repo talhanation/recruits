@@ -13,7 +13,7 @@ public class RecruitsModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
-    public static final int NEW_VERSION = 4;
+    public static final int NEW_VERSION = 5;
 
 
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
@@ -27,6 +27,9 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.IntValue MaxSpawnRecruitsInVillage;
     public static ForgeConfigSpec.IntValue MaxRecruitsForPlayer;
     public static ForgeConfigSpec.IntValue RecruitsMaxXpForLevelUp;
+    public static ForgeConfigSpec.BooleanValue PillagerIncreasedCombatRange;
+    public static ForgeConfigSpec.BooleanValue VindicatorSpawnItems;
+    public static ForgeConfigSpec.BooleanValue PillagerSpawnItems;
 
     static{
         VERSION = BUILDER.comment("\n" +"##Version, do not change!##")
@@ -93,6 +96,24 @@ public class RecruitsModConfig {
                         "\t" + "default: 200")
                 .worldRestart()
                 .defineInRange("RecruitsMaxXpForLevelUp", 250, 50, 10000);
+
+        PillagerIncreasedCombatRange= BUILDER.comment("\n" + "----Should Pillagers have increased Combat Range, so they can shoot from far away----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: true")
+                .worldRestart()
+                .define("PillagerIncreasedCombatRange", true);
+
+        VindicatorSpawnItems= BUILDER.comment("\n" + "----Should Vindicators can spawn with shield and sword and AI to use these----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: true")
+                .worldRestart()
+                .define("VindicatorSpawnItems", true);
+
+        PillagerSpawnItems= BUILDER.comment("\n" + "----Should Pillagers can spawn with shield and sword and AI to use these----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: true")
+                .worldRestart()
+                .define("PillagerSpawnItems", true);
 
 
     CONFIG = BUILDER.build();
