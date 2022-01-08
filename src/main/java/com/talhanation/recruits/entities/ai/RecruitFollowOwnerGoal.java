@@ -16,11 +16,11 @@ public class RecruitFollowOwnerGoal extends Goal {
     private final double speedModifier;
     private final PathNavigator navigation;
     private int timeToRecalcPath;
-    private final float stopDistance;
-    private final float startDistance;
+    private final double stopDistance;
+    private final double startDistance;
     private float oldWaterCost;
 
-    public RecruitFollowOwnerGoal(AbstractRecruitEntity abstractRecruitEntity, double v, float startDistance, float stopDistance) {
+    public RecruitFollowOwnerGoal(AbstractRecruitEntity abstractRecruitEntity, double v, double startDistance, double stopDistance) {
         this.recruitEntity = abstractRecruitEntity;
         this.level = abstractRecruitEntity.level;
         this.speedModifier = v;

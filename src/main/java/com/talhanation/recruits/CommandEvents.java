@@ -1,5 +1,6 @@
 package com.talhanation.recruits;
 
+import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.network.MessageCommandScreen;
@@ -189,8 +190,9 @@ public class CommandEvents {
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         CompoundNBT playerData = event.getPlayer().getPersistentData();
         CompoundNBT data = playerData.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
+            if (!data.contains("MaxRecruits")) data.putInt("MaxRecruits", RecruitsModConfig.MaxRecruitsForPlayer.get());
             if (!data.contains("CommandingGroup")) data.putInt("CommandingGroup", 0);
-            //if (!data.contains("RecruitsInCommand")) data.putInt("RecruitsInCommand", 0);
+            if (!data.contains("TotalRecruits")) data.putInt("TotalRecruits", 0);
 
             playerData.put(PlayerEntity.PERSISTED_NBT_TAG, data);
     }
@@ -208,6 +210,21 @@ public class CommandEvents {
                 player.sendMessage(new StringTextComponent("NBT: " + data.getInt("RecruitsInCommand")), player.getUUID());
         }
     }
-
      */
+
+    public static int getSavedRecruitCount(PlayerEntity player) {
+        CompoundNBT playerNBT = player.getPersistentData();
+        CompoundNBT nbt = playerNBT.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
+        //player.sendMessage(new StringTextComponent("getSavedCount: " + nbt.getInt("TotalRecruits")), player.getUUID());
+        return nbt.getInt("TotalRecruits");
+    }
+
+    public static void saveRecruitCount(PlayerEntity player, int count) {
+        CompoundNBT playerNBT = player.getPersistentData();
+        CompoundNBT nbt = playerNBT.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
+        //player.sendMessage(new StringTextComponent("savedCount: " + count), player.getUUID());
+
+        nbt.putInt( "TotalRecruits", count);
+        playerNBT.put(PlayerEntity.PERSISTED_NBT_TAG, nbt);
+    }
 }

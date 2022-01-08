@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities;
 //ezgi&talha kantar
 
+import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.*;
@@ -38,6 +39,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.event.world.NoteBlockEvent;
 import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
@@ -159,7 +161,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(1, new RecruitEatGoal(this));
         //this.goalSelector.addGoal(2, new RecruitMountGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
-        this.goalSelector.addGoal(4, new RecruitFollowOwnerGoal(this, 1.2D, 9.0F, 3.0F));
+        this.goalSelector.addGoal(4, new RecruitFollowOwnerGoal(this, 1.2D, this.getFollowStartDistance(), 3.0F));
         this.goalSelector.addGoal(5, new RecruitMeleeAttackGoal(this, 1.15D, true));
         this.goalSelector.addGoal(6, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
         this.goalSelector.addGoal(7, new RecruitMoveTowardsTargetGoal(this, 1.15D, 24.0F));
@@ -179,6 +181,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, AbstractIllagerEntity.class, false));
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, MonsterEntity.class, false));
         this.targetSelector.addGoal(10, new RecruitDefendVillageGoal(this));
+    }
+
+    protected double getFollowStartDistance(){
+        return RecruitsModConfig.RecruitFollowStartDistance.get();
     }
 
     protected void defineSynchedData() {
@@ -372,12 +378,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         entityData.set(FLEEING, bool);
     }
 
-    public void disband(){
-        this.getOwner().sendMessage(new StringTextComponent(this.getName().getString() + ": " +"Then this is where we part ways."), this.getOwner().getUUID());
+    public void disband(PlayerEntity player){
+        player.sendMessage(new StringTextComponent(this.getName().getString() + ": " +"Then this is where we part ways."), player.getUUID());
         this.setTame(false);
         this.setTarget(null);
         this.setOwned(false);
         this.setOwnerUUID(null);
+        CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
     }
 
     public void addXpLevel(int level){
@@ -506,12 +513,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             boolean flag = this.isOwnedBy(player) || this.isTame() || isInSittingPose() || item == Items.BONE && !this.isTame();
             return flag ? ActionResultType.CONSUME : ActionResultType.PASS;
         } else {
-                if (player.isCreative() && player.getItemInHand(Hand.MAIN_HAND).getItem().equals(Items.LEVER)){
-                getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5D);
-                 player.sendMessage(new StringTextComponent(this.getName().getString() + ": " +"Speed!"), player.getUUID());
-                    return ActionResultType.SUCCESS;
-                }
-
             if ((this.isTame() && player.getUUID().equals(this.getOwnerUUID()))) {
                 if (player.isCrouching()) {
                     checkItemsInInv();
@@ -537,7 +538,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     return ActionResultType.SUCCESS;
                 }
 
-            } else if (item == Items.EMERALD && !this.isTame() && playerHasEnoughEmeralds(player)) {
+            } else if (item == Items.EMERALD && !this.isTame() && playerHasEnoughEmeralds(player) && playerCanRecruit(player)) {
                 if (!player.abilities.instabuild) {
                     if (!player.isCreative()) {
                         itemstack.shrink(recruitCosts());
@@ -549,13 +550,15 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 this.setOrderedToSit(false);
                 this.setFollowState(1);
                 this.setState(0);
+                int currentRecruits = CommandEvents.getSavedRecruitCount(player);
+                CommandEvents.saveRecruitCount(player,  currentRecruits + 1);
 
                 return ActionResultType.SUCCESS;
             }
-            else if (item == Items.EMERALD && !this.isTame() && !playerHasEnoughEmeralds(player)) {
+            else if (item == Items.EMERALD && !this.isTame() && !playerHasEnoughEmeralds(player) && playerCanRecruit(player)) {
                     player.sendMessage(new StringTextComponent(this.getName().getString() + ": " +"You need " + recruitCosts() + " Emeralds to recruit me!"), player.getUUID());
             }
-            else if (!this.isTame() && item != Items.EMERALD ) {
+            else if (!this.isTame() && item != Items.EMERALD && playerCanRecruit(player)) {
                 int i = this.random.nextInt(5);
                 switch (i) {
                     case 0:
@@ -568,6 +571,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                         player.sendMessage(new StringTextComponent(this.getName().getString() + ": " +"I will defend you from Monsters!"), player.getUUID());
                         break;
                 }
+            }
+            else if (!playerCanRecruit(player)) {
+                player.sendMessage(new StringTextComponent(this.getName().getString() + ": " +" You reached the maximum limit you can recruit."), player.getUUID());
             }
 
             return super.mobInteract(player, hand);
@@ -584,6 +590,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             return true;
         }
         else return false;
+    }
+
+    private boolean playerCanRecruit(PlayerEntity player) {
+        return  (CommandEvents.getSavedRecruitCount(player) < RecruitsModConfig.MaxRecruitsForPlayer.get());
     }
 
     ////////////////////////////////////ATTACK FUNCTIONS////////////////////////////////////
@@ -656,9 +666,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
-
     public void die(DamageSource dmg) {
         super.die(dmg);
+        LivingEntity owner = this.getOwner();
+        if (owner instanceof PlayerEntity){
+            PlayerEntity player = (PlayerEntity) owner;
+            CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
+        }
     }
 
 
@@ -692,7 +706,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public boolean canBeLeashed(PlayerEntity player) {
         return false;
     }
-    public abstract int recruitCosts() ;
+    public abstract int recruitCosts();
 
     public abstract String getRecruitName();
 
@@ -710,7 +724,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             double d2 = this.random.nextGaussian() * 0.02D;
             this.level.addParticle(iparticledata, this.getRandomX(1.0D), this.getRandomY() + 0.5D, this.getRandomZ(1.0D), d0, d1, d2);
         }
-
     }
 
     protected void hurtArmor(DamageSource damageSource, float damage) {
@@ -734,7 +747,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             itemstack.setDamageValue(1);
         }
     }
-
 
     @Override
     public void killed(ServerWorld p_241847_1_, LivingEntity p_241847_2_) {
@@ -798,6 +810,4 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             Main.SIMPLE_CHANNEL.sendToServer(new MessageRecruitGui(player, this.getUUID()));
         }
     }
-
-
 }

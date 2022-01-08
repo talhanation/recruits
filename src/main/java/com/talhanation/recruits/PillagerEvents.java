@@ -97,8 +97,7 @@ public class PillagerEvents {
             VindicatorEntity vindicator = (VindicatorEntity) entity;
             vindicator.goalSelector.addGoal(0, new PillagerUseShield(vindicator));
             vindicator.setPersistenceRequired();
-            vindicator.setCanPickUpLoot(true);
-            vindicator.setCanJoinRaid(true);
+
             int i = this.random.nextInt(3);
             if (i == 2) vindicator.setItemInHand(Hand.MAIN_HAND, Items.IRON_AXE.getDefaultInstance());
             else {
@@ -111,10 +110,7 @@ public class PillagerEvents {
             PillagerEntity pillager = (PillagerEntity) entity;
             pillager.goalSelector.addGoal(0, new PillagerMeleeAttackGoal(pillager, 1.15D, true));
             pillager.goalSelector.addGoal(0, new PillagerUseShield(pillager));
-
             pillager.setPersistenceRequired();
-            pillager.setCanPickUpLoot(true);
-            pillager.setCanJoinRaid(true);
 
             int i = this.random.nextInt(6);
             switch (i){
@@ -160,8 +156,10 @@ public class PillagerEvents {
     @SubscribeEvent
     public void onBiomeLoadingPillager(BiomeLoadingEvent event) {
         Biome.Category category = event.getCategory();
-        if (category != Biome.Category.NETHER && category != Biome.Category.THEEND && category != Biome.Category.NONE && category != Biome.Category.OCEAN && category != Biome.Category.RIVER) {
-            event.getSpawns().getSpawner(EntityClassification.MONSTER).add(new MobSpawnInfo.Spawners(EntityType.PILLAGER, 1, 1, 2));
+        if (RecruitsModConfig.PillagerSpawn.get()) {
+            if (category != Biome.Category.NETHER && category != Biome.Category.THEEND && category != Biome.Category.NONE && category != Biome.Category.OCEAN && category != Biome.Category.RIVER) {
+                event.getSpawns().getSpawner(EntityClassification.MONSTER).add(new MobSpawnInfo.Spawners(EntityType.PILLAGER, 1, 1, 2));
+            }
         }
     }
 

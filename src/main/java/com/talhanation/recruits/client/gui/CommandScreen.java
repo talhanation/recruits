@@ -138,7 +138,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         int l = 71;//höhe
 
         font.draw(matrixStack, "" +  handleGroupText(this.group), k , l, fontColor);
-        //font.draw(matrixStack, "" +  handleRecruitCountText(this.recCount), k - 30 , 0, fontColor);
+        //font.draw(matrixStack, "" +  handleRecruitCountText(currentRecruits), k - 30 , 0, fontColor);
     }
 
     protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
@@ -189,22 +189,6 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         CompoundNBT nbt = playerNBT.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
 
         nbt.putInt( "CommandingGroup", this.group);
-        playerNBT.put(PlayerEntity.PERSISTED_NBT_TAG, nbt);
-    }
-
-
-    public int getSavedRecruitCount(PlayerEntity player) {
-        CompoundNBT playerNBT = player.getPersistentData();
-        CompoundNBT nbt = playerNBT.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
-
-        return nbt.getInt("RecruitsInCommand");
-    }
-
-    public void saveRecruitCount(PlayerEntity player) {
-        CompoundNBT playerNBT = player.getPersistentData();
-        CompoundNBT nbt = playerNBT.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
-
-        nbt.putInt( "RecruitsInCommand", this.recCount);
         playerNBT.put(PlayerEntity.PERSISTED_NBT_TAG, nbt);
     }
 

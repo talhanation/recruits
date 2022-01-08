@@ -30,7 +30,7 @@ public class MessageDisband implements Message<MessageDisband> {
         for (AbstractRecruitEntity recruits : list){
 
             if (recruits.getUUID().equals(this.uuid))
-                recruits.disband();
+                recruits.disband(context.getSender());
         }
 
     }
