@@ -92,7 +92,6 @@ public class BowmanEntity extends RecruitEntity implements IRangedAttackMob {
         return null;
     }
 
-
     @Override
     public void performRangedAttack(LivingEntity entity, float f) {
         ItemStack itemstack = this.getProjectile(this.getItemInHand(ProjectileHelper.getWeaponHoldingHand(this, Items.BOW)));
@@ -104,7 +103,7 @@ public class BowmanEntity extends RecruitEntity implements IRangedAttackMob {
         double d2 = entity.getZ() - this.getZ();
         double d3 = MathHelper.sqrt(d0 * d0 + d2 * d2);
                                                         //angle                 //force     //accuracy
-        abstractarrowentity.shoot(d0, d1 + d3 * (double)0.2F, d2, 1.6F, (float)(6.555));
+        abstractarrowentity.shoot(d0, d1 + d3 * (double)0.2F, d2, 1.75F, (float)(5.555));
         this.playSound(SoundEvents.ARROW_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
         this.level.addFreshEntity(abstractarrowentity);
     }

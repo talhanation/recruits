@@ -20,7 +20,7 @@ public class RecruitHorseRenderer extends MobRenderer<RecruitHorseEntity, Recrui
 
 
     public RecruitHorseRenderer (EntityRendererManager p_i47205_1_) {
-        super(p_i47205_1_, new RecruitHorseModel(), 1);
+        super(p_i47205_1_, new RecruitHorseModel(0F), 1);
     }
 
     public ResourceLocation getTextureLocation(RecruitHorseEntity horse) {

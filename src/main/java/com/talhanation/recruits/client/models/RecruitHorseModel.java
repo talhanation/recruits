@@ -5,6 +5,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.talhanation.recruits.entities.RecruitHorseEntity;
 import net.minecraft.client.renderer.entity.model.EntityModel;
+import net.minecraft.client.renderer.entity.model.HorseModel;
 import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.util.math.MathHelper;
 
@@ -23,9 +24,8 @@ public class RecruitHorseModel extends EntityModel<RecruitHorseEntity> {
     private final ModelRenderer[] saddleParts;
     private final ModelRenderer[] ridingParts;
 
-    public RecruitHorseModel() {
-        super();
-        float p_i51065_1_ = 0;
+    public RecruitHorseModel(float p_i51065_1_) {
+        //super(true, 16.2F, 1.36F, 2.7272F, 2.0F, 20.0F);
         this.texWidth = 64;
         this.texHeight = 64;
         this.body = new ModelRenderer(this, 0, 32);
@@ -33,16 +33,16 @@ public class RecruitHorseModel extends EntityModel<RecruitHorseEntity> {
         this.body.setPos(0.0F, 11.0F, 5.0F);
         this.headParts = new ModelRenderer(this, 0, 35);
         this.headParts.addBox(-2.05F, -6.0F, -2.0F, 4.0F, 12.0F, 7.0F);
-        this.headParts.xRot = 0.5235988F;
-        ModelRenderer lvt_2_1_ = new ModelRenderer(this, 0, 13);
-        lvt_2_1_.addBox(-3.0F, -11.0F, -2.0F, 6.0F, 5.0F, 7.0F, p_i51065_1_);
-        ModelRenderer lvt_3_1_ = new ModelRenderer(this, 56, 36);
-        lvt_3_1_.addBox(-1.0F, -11.0F, 5.01F, 2.0F, 16.0F, 2.0F, p_i51065_1_);
-        ModelRenderer lvt_4_1_ = new ModelRenderer(this, 0, 25);
-        lvt_4_1_.addBox(-2.0F, -11.0F, -7.0F, 4.0F, 5.0F, 5.0F, p_i51065_1_);
-        this.headParts.addChild(lvt_2_1_);
-        this.headParts.addChild(lvt_3_1_);
-        this.headParts.addChild(lvt_4_1_);
+        this.headParts.xRot = ((float)Math.PI / 6F);
+        ModelRenderer modelrenderer = new ModelRenderer(this, 0, 13);
+        modelrenderer.addBox(-3.0F, -11.0F, -2.0F, 6.0F, 5.0F, 7.0F, p_i51065_1_);
+        ModelRenderer modelrenderer1 = new ModelRenderer(this, 56, 36);
+        modelrenderer1.addBox(-1.0F, -11.0F, 5.01F, 2.0F, 16.0F, 2.0F, p_i51065_1_);
+        ModelRenderer modelrenderer2 = new ModelRenderer(this, 0, 25);
+        modelrenderer2.addBox(-2.0F, -11.0F, -7.0F, 4.0F, 5.0F, 5.0F, p_i51065_1_);
+        this.headParts.addChild(modelrenderer);
+        this.headParts.addChild(modelrenderer1);
+        this.headParts.addChild(modelrenderer2);
         this.addEarModels(this.headParts);
         this.leg1 = new ModelRenderer(this, 48, 21);
         this.leg1.mirror = true;
@@ -58,7 +58,7 @@ public class RecruitHorseModel extends EntityModel<RecruitHorseEntity> {
         this.leg4 = new ModelRenderer(this, 48, 21);
         this.leg4.addBox(-1.0F, -1.01F, -1.9F, 4.0F, 11.0F, 4.0F, p_i51065_1_);
         this.leg4.setPos(-4.0F, 6.0F, -12.0F);
-        float lvt_5_1_ = 5.5F;
+        float f = 5.5F;
         this.babyLeg1 = new ModelRenderer(this, 48, 21);
         this.babyLeg1.mirror = true;
         this.babyLeg1.addBox(-3.0F, -1.01F, -1.0F, 4.0F, 11.0F, 4.0F, p_i51065_1_, p_i51065_1_ + 5.5F, p_i51065_1_);
@@ -76,63 +76,54 @@ public class RecruitHorseModel extends EntityModel<RecruitHorseEntity> {
         this.tail = new ModelRenderer(this, 42, 36);
         this.tail.addBox(-1.5F, 0.0F, 0.0F, 3.0F, 14.0F, 4.0F, p_i51065_1_);
         this.tail.setPos(0.0F, -5.0F, 2.0F);
-        this.tail.xRot = 0.5235988F;
+        this.tail.xRot = ((float)Math.PI / 6F);
         this.body.addChild(this.tail);
-        ModelRenderer lvt_6_1_ = new ModelRenderer(this, 26, 0);
-        lvt_6_1_.addBox(-5.0F, -8.0F, -9.0F, 10.0F, 9.0F, 9.0F, 0.5F);
-        this.body.addChild(lvt_6_1_);
-        ModelRenderer lvt_7_1_ = new ModelRenderer(this, 29, 5);
-        lvt_7_1_.addBox(2.0F, -9.0F, -6.0F, 1.0F, 2.0F, 2.0F, p_i51065_1_);
-        this.headParts.addChild(lvt_7_1_);
-        ModelRenderer lvt_8_1_ = new ModelRenderer(this, 29, 5);
-        lvt_8_1_.addBox(-3.0F, -9.0F, -6.0F, 1.0F, 2.0F, 2.0F, p_i51065_1_);
-        this.headParts.addChild(lvt_8_1_);
-        ModelRenderer lvt_9_1_ = new ModelRenderer(this, 32, 2);
-        lvt_9_1_.addBox(3.1F, -6.0F, -8.0F, 0.0F, 3.0F, 16.0F, p_i51065_1_);
-        lvt_9_1_.xRot = -0.5235988F;
-        this.headParts.addChild(lvt_9_1_);
-        ModelRenderer lvt_10_1_ = new ModelRenderer(this, 32, 2);
-        lvt_10_1_.addBox(-3.1F, -6.0F, -8.0F, 0.0F, 3.0F, 16.0F, p_i51065_1_);
-        lvt_10_1_.xRot = -0.5235988F;
-        this.headParts.addChild(lvt_10_1_);
-        ModelRenderer lvt_11_1_ = new ModelRenderer(this, 1, 1);
-        lvt_11_1_.addBox(-3.0F, -11.0F, -1.9F, 6.0F, 5.0F, 6.0F, 0.2F);
-        this.headParts.addChild(lvt_11_1_);
-        ModelRenderer lvt_12_1_ = new ModelRenderer(this, 19, 0);
-        lvt_12_1_.addBox(-2.0F, -11.0F, -4.0F, 4.0F, 5.0F, 2.0F, 0.2F);
-        this.headParts.addChild(lvt_12_1_);
-        this.saddleParts = new ModelRenderer[]{lvt_6_1_, lvt_7_1_, lvt_8_1_, lvt_11_1_, lvt_12_1_};
-        this.ridingParts = new ModelRenderer[]{lvt_9_1_, lvt_10_1_};
+        ModelRenderer modelrenderer3 = new ModelRenderer(this, 26, 0);
+        modelrenderer3.addBox(-5.0F, -8.0F, -9.0F, 10.0F, 9.0F, 9.0F, 0.5F);
+        this.body.addChild(modelrenderer3);
+        ModelRenderer modelrenderer4 = new ModelRenderer(this, 29, 5);
+        modelrenderer4.addBox(2.0F, -9.0F, -6.0F, 1.0F, 2.0F, 2.0F, p_i51065_1_);
+        this.headParts.addChild(modelrenderer4);
+        ModelRenderer modelrenderer5 = new ModelRenderer(this, 29, 5);
+        modelrenderer5.addBox(-3.0F, -9.0F, -6.0F, 1.0F, 2.0F, 2.0F, p_i51065_1_);
+        this.headParts.addChild(modelrenderer5);
+        ModelRenderer modelrenderer6 = new ModelRenderer(this, 32, 2);
+        modelrenderer6.addBox(3.1F, -6.0F, -8.0F, 0.0F, 3.0F, 16.0F, p_i51065_1_);
+        modelrenderer6.xRot = (-(float)Math.PI / 6F);
+        this.headParts.addChild(modelrenderer6);
+        ModelRenderer modelrenderer7 = new ModelRenderer(this, 32, 2);
+        modelrenderer7.addBox(-3.1F, -6.0F, -8.0F, 0.0F, 3.0F, 16.0F, p_i51065_1_);
+        modelrenderer7.xRot = (-(float)Math.PI / 6F);
+        this.headParts.addChild(modelrenderer7);
+        ModelRenderer modelrenderer8 = new ModelRenderer(this, 1, 1);
+        modelrenderer8.addBox(-3.0F, -11.0F, -1.9F, 6.0F, 5.0F, 6.0F, 0.2F);
+        this.headParts.addChild(modelrenderer8);
+        ModelRenderer modelrenderer9 = new ModelRenderer(this, 19, 0);
+        modelrenderer9.addBox(-2.0F, -11.0F, -4.0F, 4.0F, 5.0F, 2.0F, 0.2F);
+        this.headParts.addChild(modelrenderer9);
+        this.saddleParts = new ModelRenderer[]{modelrenderer3, modelrenderer4, modelrenderer5, modelrenderer8, modelrenderer9};
+        this.ridingParts = new ModelRenderer[]{modelrenderer6, modelrenderer7};
     }
 
     protected void addEarModels(ModelRenderer p_199047_1_) {
-        ModelRenderer lvt_2_1_ = new ModelRenderer(this, 19, 16);
-        lvt_2_1_.addBox(0.55F, -13.0F, 4.0F, 2.0F, 3.0F, 1.0F, -0.001F);
-        ModelRenderer lvt_3_1_ = new ModelRenderer(this, 19, 16);
-        lvt_3_1_.addBox(-2.55F, -13.0F, 4.0F, 2.0F, 3.0F, 1.0F, -0.001F);
-        p_199047_1_.addChild(lvt_2_1_);
-        p_199047_1_.addChild(lvt_3_1_);
+        ModelRenderer modelrenderer = new ModelRenderer(this, 19, 16);
+        modelrenderer.addBox(0.55F, -13.0F, 4.0F, 2.0F, 3.0F, 1.0F, -0.001F);
+        ModelRenderer modelrenderer1 = new ModelRenderer(this, 19, 16);
+        modelrenderer1.addBox(-2.55F, -13.0F, 4.0F, 2.0F, 3.0F, 1.0F, -0.001F);
+        p_199047_1_.addChild(modelrenderer);
+        p_199047_1_.addChild(modelrenderer1);
     }
 
     public void setupAnim(RecruitHorseEntity p_225597_1_, float p_225597_2_, float p_225597_3_, float p_225597_4_, float p_225597_5_, float p_225597_6_) {
-        boolean lvt_7_1_ = true;
-        boolean lvt_8_1_ = p_225597_1_.isVehicle();
-        ModelRenderer[] var9 = this.saddleParts;
-        int var10 = var9.length;
+        boolean flag = true;
+        boolean flag1 = p_225597_1_.isVehicle();
 
-        int var11;
-        ModelRenderer lvt_12_2_;
-        for(var11 = 0; var11 < var10; ++var11) {
-            lvt_12_2_ = var9[var11];
-            lvt_12_2_.visible = lvt_7_1_;
+        for(ModelRenderer modelrenderer : this.saddleParts) {
+            modelrenderer.visible = flag;
         }
 
-        var9 = this.ridingParts;
-        var10 = var9.length;
-
-        for(var11 = 0; var11 < var10; ++var11) {
-            lvt_12_2_ = var9[var11];
-            lvt_12_2_.visible = lvt_8_1_;
+        for(ModelRenderer modelrenderer1 : this.ridingParts) {
+            modelrenderer1.visible = flag1 && flag;
         }
 
         this.body.y = 11.0F;
@@ -146,62 +137,62 @@ public class RecruitHorseModel extends EntityModel<RecruitHorseEntity> {
         return ImmutableList.of(this.body, this.leg1, this.leg2, this.leg3, this.leg4, this.babyLeg1, this.babyLeg2, this.babyLeg3, this.babyLeg4);
     }
 
-    public void prepareMobModel(RecruitHorseEntity mount, float p_212843_2_, float p_212843_3_, float p_212843_4_) {
-        super.prepareMobModel(mount, p_212843_2_, p_212843_3_, p_212843_4_);
-        float lvt_5_1_ = MathHelper.rotlerp(mount.yBodyRotO, mount.yBodyRot, p_212843_4_);
-        float lvt_6_1_ = MathHelper.rotlerp(mount.yHeadRotO, mount.yHeadRot, p_212843_4_);
-        float lvt_7_1_ = MathHelper.lerp(p_212843_4_, mount.xRotO, mount.xRot);
-        float lvt_8_1_ = lvt_6_1_ - lvt_5_1_;
-        float lvt_9_1_ = lvt_7_1_ * 0.017453292F;
-        if (lvt_8_1_ > 20.0F) {
-            lvt_8_1_ = 20.0F;
+    public void prepareMobModel(RecruitHorseEntity p_212843_1_, float p_212843_2_, float p_212843_3_, float p_212843_4_) {
+        super.prepareMobModel(p_212843_1_, p_212843_2_, p_212843_3_, p_212843_4_);
+        float f = MathHelper.rotlerp(p_212843_1_.yBodyRotO, p_212843_1_.yBodyRot, p_212843_4_);
+        float f1 = MathHelper.rotlerp(p_212843_1_.yHeadRotO, p_212843_1_.yHeadRot, p_212843_4_);
+        float f2 = MathHelper.lerp(p_212843_4_, p_212843_1_.xRotO, p_212843_1_.xRot);
+        float f3 = f1 - f;
+        float f4 = f2 * ((float)Math.PI / 180F);
+        if (f3 > 20.0F) {
+            f3 = 20.0F;
         }
 
-        if (lvt_8_1_ < -20.0F) {
-            lvt_8_1_ = -20.0F;
+        if (f3 < -20.0F) {
+            f3 = -20.0F;
         }
 
         if (p_212843_3_ > 0.2F) {
-            lvt_9_1_ += MathHelper.cos(p_212843_2_ * 0.4F) * 0.15F * p_212843_3_;
+            f4 += MathHelper.cos(p_212843_2_ * 0.4F) * 0.15F * p_212843_3_;
         }
 
-        float lvt_10_1_ = 0; // p_212843_1_.getEatAnim(p_212843_4_);
-        float lvt_11_1_ = 0; // p_212843_1_.getStandAnim(p_212843_4_);
-        float lvt_12_1_ = 1.0F - lvt_11_1_;
-        float lvt_13_1_ = 0; // p_212843_1_.getMouthAnim(p_212843_4_);
-        boolean lvt_14_1_ = false; // p_212843_1_.tailCounter != 0;
-        float lvt_15_1_ = (float)mount.tickCount + p_212843_4_;
+        float f5 = 0;
+        float f6 = 0;
+        float f7 = 1.0F - f6;
+        float f8 = 0;
+        boolean flag = false;
+        float f9 = 0;
         this.headParts.y = 4.0F;
         this.headParts.z = -12.0F;
         this.body.xRot = 0.0F;
-        this.headParts.xRot = 0.5235988F + lvt_9_1_;
-        this.headParts.yRot = lvt_8_1_ * 0.017453292F;
-        float lvt_16_1_ = mount.isInWater() ? 0.2F : 1.0F;
-        float lvt_17_1_ = MathHelper.cos(lvt_16_1_ * p_212843_2_ * 0.6662F + 3.1415927F);
-        float lvt_18_1_ = lvt_17_1_ * 0.8F * p_212843_3_;
-        float lvt_19_1_ = (1.0F - Math.max(lvt_11_1_, lvt_10_1_)) * (0.5235988F + lvt_9_1_ + lvt_13_1_ * MathHelper.sin(lvt_15_1_) * 0.05F);
-        this.headParts.xRot = lvt_11_1_ * (0.2617994F + lvt_9_1_) + lvt_10_1_ * (2.1816616F + MathHelper.sin(lvt_15_1_) * 0.05F) + lvt_19_1_;
-        this.headParts.yRot = lvt_11_1_ * lvt_8_1_ * 0.017453292F + (1.0F - Math.max(lvt_11_1_, lvt_10_1_)) * this.headParts.yRot;
-        this.headParts.y = lvt_11_1_ * -4.0F + lvt_10_1_ * 11.0F + (1.0F - Math.max(lvt_11_1_, lvt_10_1_)) * this.headParts.y;
-        this.headParts.z = lvt_11_1_ * -4.0F + lvt_10_1_ * -12.0F + (1.0F - Math.max(lvt_11_1_, lvt_10_1_)) * this.headParts.z;
-        this.body.xRot = lvt_11_1_ * -0.7853982F + lvt_12_1_ * this.body.xRot;
-        float lvt_20_1_ = 0.2617994F * lvt_11_1_;
-        float lvt_21_1_ = MathHelper.cos(lvt_15_1_ * 0.6F + 3.1415927F);
-        this.leg3.y = 2.0F * lvt_11_1_ + 14.0F * lvt_12_1_;
-        this.leg3.z = -6.0F * lvt_11_1_ - 10.0F * lvt_12_1_;
+        this.headParts.xRot = ((float)Math.PI / 6F) + f4;
+        this.headParts.yRot = f3 * ((float)Math.PI / 180F);
+        float f10 = 1.0F;
+        float f11 = MathHelper.cos(f10 * p_212843_2_ * 0.6662F + (float)Math.PI);
+        float f12 = f11 * 0.8F * p_212843_3_;
+        float f13 = (1.0F - Math.max(f6, f5)) * (((float)Math.PI / 6F) + f4 + f8 * MathHelper.sin(f9) * 0.05F);
+        this.headParts.xRot = f6 * (0.2617994F + f4) + f5 * (2.1816616F + MathHelper.sin(f9) * 0.05F) + f13;
+        this.headParts.yRot = f6 * f3 * ((float)Math.PI / 180F) + (1.0F - Math.max(f6, f5)) * this.headParts.yRot;
+        this.headParts.y = f6 * -4.0F + f5 * 11.0F + (1.0F - Math.max(f6, f5)) * this.headParts.y;
+        this.headParts.z = f6 * -4.0F + f5 * -12.0F + (1.0F - Math.max(f6, f5)) * this.headParts.z;
+        this.body.xRot = f6 * (-(float)Math.PI / 4F) + f7 * this.body.xRot;
+        float f14 = 0.2617994F * f6;
+        float f15 = MathHelper.cos(f9 * 0.6F + (float)Math.PI);
+        this.leg3.y = 2.0F * f6 + 14.0F * f7;
+        this.leg3.z = -6.0F * f6 - 10.0F * f7;
         this.leg4.y = this.leg3.y;
         this.leg4.z = this.leg3.z;
-        float lvt_22_1_ = (-1.0471976F + lvt_21_1_) * lvt_11_1_ + lvt_18_1_ * lvt_12_1_;
-        float lvt_23_1_ = (-1.0471976F - lvt_21_1_) * lvt_11_1_ - lvt_18_1_ * lvt_12_1_;
-        this.leg1.xRot = lvt_20_1_ - lvt_17_1_ * 0.5F * p_212843_3_ * lvt_12_1_;
-        this.leg2.xRot = lvt_20_1_ + lvt_17_1_ * 0.5F * p_212843_3_ * lvt_12_1_;
-        this.leg3.xRot = lvt_22_1_;
-        this.leg4.xRot = lvt_23_1_;
-        this.tail.xRot = 0.5235988F + p_212843_3_ * 0.75F;
+        float f16 = ((-(float)Math.PI / 3F) + f15) * f6 + f12 * f7;
+        float f17 = ((-(float)Math.PI / 3F) - f15) * f6 - f12 * f7;
+        this.leg1.xRot = f14 - f11 * 0.5F * p_212843_3_ * f7;
+        this.leg2.xRot = f14 + f11 * 0.5F * p_212843_3_ * f7;
+        this.leg3.xRot = f16;
+        this.leg4.xRot = f17;
+        this.tail.xRot = ((float)Math.PI / 6F) + p_212843_3_ * 0.75F;
         this.tail.y = -5.0F + p_212843_3_;
         this.tail.z = 2.0F + p_212843_3_ * 2.0F;
-        if (lvt_14_1_) {
-            this.tail.yRot = MathHelper.cos(lvt_15_1_ * 0.7F);
+        if (flag) {
+            this.tail.yRot = MathHelper.cos(f9 * 0.7F);
         } else {
             this.tail.yRot = 0.0F;
         }
@@ -218,16 +209,16 @@ public class RecruitHorseModel extends EntityModel<RecruitHorseEntity> {
         this.babyLeg4.y = this.leg4.y;
         this.babyLeg4.z = this.leg4.z;
         this.babyLeg4.xRot = this.leg4.xRot;
-        boolean lvt_24_1_ = false; // p_212843_1_.isBaby();
-        this.leg1.visible = !lvt_24_1_;
-        this.leg2.visible = !lvt_24_1_;
-        this.leg3.visible = !lvt_24_1_;
-        this.leg4.visible = !lvt_24_1_;
-        this.babyLeg1.visible = lvt_24_1_;
-        this.babyLeg2.visible = lvt_24_1_;
-        this.babyLeg3.visible = lvt_24_1_;
-        this.babyLeg4.visible = lvt_24_1_;
-        this.body.y = lvt_24_1_ ? 10.8F : 0.0F;
+        boolean flag1 = false;
+        this.leg1.visible = !flag1;
+        this.leg2.visible = !flag1;
+        this.leg3.visible = !flag1;
+        this.leg4.visible = !flag1;
+        this.babyLeg1.visible = flag1;
+        this.babyLeg2.visible = flag1;
+        this.babyLeg3.visible = flag1;
+        this.babyLeg4.visible = flag1;
+        this.body.y = flag1 ? 10.8F : 0.0F;
     }
 
     @Override

@@ -51,7 +51,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     public AbstractOrderAbleEntity(EntityType<? extends TameableEntity> entityType, World world) {
         super(entityType, world);
         this.setOwned(false);
-        this.xpReward = 6;
+        this.xpReward = 12;
     }
 
     ///////////////////////////////////TICK/////////////////////////////////////////
@@ -364,7 +364,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
 
     public void checkLevel(){
         int currentXp = this.getXp();
-        if (currentXp >= 100){
+        if (currentXp >= 1000){
             this.addXpLevel(1);
             this.setXp(0);
             this.addLevelBuffs();

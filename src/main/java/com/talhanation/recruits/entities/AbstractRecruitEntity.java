@@ -97,6 +97,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateSwingTime();
         updateSwimming();
 
+        if (getOwner() != null) {
+            this.getOwner().sendMessage(new StringTextComponent("Health: " + getAttribute(Attributes.ATTACK_DAMAGE).getValue()), getOwner().getUUID());
+            this.getOwner().sendMessage(new StringTextComponent("Attack: " + getAttribute(Attributes.ATTACK_DAMAGE).getValue()), getOwner().getUUID());
+            this.getOwner().sendMessage(new StringTextComponent("Speed: " + getAttribute(Attributes.ATTACK_DAMAGE).getValue()), getOwner().getUUID());
+        }
         if (this.getIsEating() && !this.isUsingItem()) {
             if (beforeFoodItem != null) resetItemInHand();
             setIsEating(false);
@@ -139,10 +144,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return spawnData;
     }
     public void setRandomSpawnBonus(){
-        getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("heath_bonus", this.random.nextGaussian() * 0.10D, AttributeModifier.Operation.MULTIPLY_BASE));
-        getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(new AttributeModifier("attack_bonus", this.random.nextGaussian() * 0.10D, AttributeModifier.Operation.MULTIPLY_BASE));
-        getAttribute(Attributes.KNOCKBACK_RESISTANCE).addPermanentModifier(new AttributeModifier("knockback_bonus", this.random.nextGaussian() * 0.10D, AttributeModifier.Operation.MULTIPLY_BASE));
-        getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(new AttributeModifier("speed_bonus", this.random.nextGaussian() * 0.10D, AttributeModifier.Operation.MULTIPLY_BASE));
+        getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("heath_bonus", this.random.nextDouble() * 1.5, AttributeModifier.Operation.MULTIPLY_BASE));
+        getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(new AttributeModifier("attack_bonus", this.random.nextDouble(), AttributeModifier.Operation.MULTIPLY_BASE));
+        getAttribute(Attributes.KNOCKBACK_RESISTANCE).addPermanentModifier(new AttributeModifier("knockback_bonus", this.random.nextDouble() * 0.1D, AttributeModifier.Operation.MULTIPLY_BASE));
+        getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(new AttributeModifier("speed_bonus", this.random.nextDouble() * 0.1D, AttributeModifier.Operation.MULTIPLY_BASE));
 
     }
 
@@ -266,6 +271,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
 
     ////////////////////////////////////GET////////////////////////////////////
+
+    public float getAttackDamage(){
+        return (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE);
+    }
 
     public BlockPos getRecruitOnPos(){
         return getOnPos();

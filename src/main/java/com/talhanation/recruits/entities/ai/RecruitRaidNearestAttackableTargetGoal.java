@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.RecruitHorseEntity;
 import net.minecraft.entity.EntityPredicate;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
@@ -69,9 +70,12 @@ public class RecruitRaidNearestAttackableTargetGoal<T extends LivingEntity> exte
 
     private boolean isValidTarget(LivingEntity living){
         //OTHER RECRUITS RAID
-        if (living instanceof AbstractRecruitEntity){
+        if (living instanceof AbstractRecruitEntity) {
             AbstractRecruitEntity otherRecruit = (AbstractRecruitEntity) living;
             if (otherRecruit.isTame())
+                return false;
+        }
+        if (living instanceof RecruitHorseEntity){
                 return false;
         }
         return true;

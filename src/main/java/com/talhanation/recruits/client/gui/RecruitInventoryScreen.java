@@ -139,6 +139,8 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         font.draw(matrixStack, "" + recruit.getXp(), k + 25, l + 20, fontColor);
         font.draw(matrixStack, "Kills:", k, l + 30, fontColor);
         font.draw(matrixStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
+        font.draw(matrixStack, "A.Dmg:", k, l + 40, fontColor);
+        font.draw(matrixStack, ""+ recruit.getAttackDamage(), k + 35, l + 40, fontColor);
         /*
         font.draw(matrixStack, "Moral:", k, l + 30, fontColor);
         font.draw(matrixStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);

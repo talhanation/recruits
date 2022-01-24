@@ -1,13 +1,12 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.entities.ai.HorseAIRecruitRide;
-import com.talhanation.recruits.entities.ai.HorseFollowOwnerGoal;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.goal.*;
+import net.minecraft.entity.item.BoatEntity;
 import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.passive.horse.HorseEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -17,6 +16,7 @@ import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
@@ -24,14 +24,13 @@ import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 
 import javax.annotation.Nullable;
-import java.util.Objects;
 
 public class RecruitHorseEntity extends TameableEntity {
-
     private static final DataParameter<Integer> DATA_ID_TYPE_VARIANT = EntityDataManager.defineId(HorseEntity.class, DataSerializers.INT);
 
     public RecruitHorseEntity(EntityType<? extends TameableEntity> entityType, World world) {
         super(entityType, world);
+        this.maxUpStep = 1.0F;
     }
 
     @Override
@@ -52,6 +51,15 @@ public class RecruitHorseEntity extends TameableEntity {
         this.entityData.define(DATA_ID_TYPE_VARIANT, 0);
     }
 
+    protected void updateControlFlags() {
+        boolean flag = !(this.getControllingPassenger() instanceof MobEntity);
+        boolean flag1 = !(this.getVehicle() instanceof BoatEntity);
+        this.goalSelector.setControlFlag(Goal.Flag.MOVE, flag);
+        this.goalSelector.setControlFlag(Goal.Flag.JUMP, flag && flag1);
+        this.goalSelector.setControlFlag(Goal.Flag.LOOK, flag);
+        this.goalSelector.setControlFlag(Goal.Flag.TARGET, flag);
+    }
+
     @Override
     public ActionResultType mobInteract(PlayerEntity player, Hand hand) {
         player.sendMessage(new StringTextComponent("This is not your Horse!"), player.getUUID());
@@ -60,10 +68,7 @@ public class RecruitHorseEntity extends TameableEntity {
 
 
     protected void registerGoals() {
-        this.goalSelector.addGoal(1, new HorseAIRecruitRide(this, 1.6));
-        //this.goalSelector.addGoal(1, new HorseFollowOwnerGoal(this, 1.2D, 9.0F, 3.0F));
-        //this.goalSelector.addGoal(2, new PanicGoal(this, 1D));
-        //this.goalSelector.addGoal(6, new WaterAvoidingRandomWalkingGoal(this, 0.7D));
+        //this.goalSelector.addGoal(0, new HorseAIRecruitRide(this, 1.6));
         this.goalSelector.addGoal(7, new LookAtGoal(this, PlayerEntity.class, 6.0F));
         this.goalSelector.addGoal(8, new LookRandomlyGoal(this));
         this.addBehaviourGoals();
@@ -136,6 +141,24 @@ public class RecruitHorseEntity extends TameableEntity {
 
     protected void playStepSound(BlockPos blockpos, BlockState blockState) {
         this.playSound(SoundEvents.HORSE_GALLOP, 0.15F, 1.0F);
+    }
+
+    public void travel(Vector3d vec) {
+        if (this.isAlive()) {
+            if (this.isVehicle() && this.canBeControlledByRider()) {
+                LivingEntity livingentity = (LivingEntity)this.getControllingPassenger();
+                this.yRot = livingentity.yRot;
+                this.yRotO = this.yRot;
+                this.xRot = livingentity.xRot * 0.5F;
+                this.setRot(this.yRot, this.xRot);
+                this.yBodyRot = this.yRot;
+                this.yHeadRot = this.yBodyRot;
+
+            } else {
+                this.flyingSpeed = 0.02F;
+                super.travel(vec);
+            }
+        }
     }
 
     /*

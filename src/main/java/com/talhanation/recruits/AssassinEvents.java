@@ -2,6 +2,9 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.entities.AssassinEntity;
 import com.talhanation.recruits.init.ModEntityTypes;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.PlayerList;
@@ -19,25 +22,19 @@ public class AssassinEvents {
         double d0 = 0;
         double d1 = 0;
         double d2 = 0;
-        double d0min =0;
-        double d1min =0;
-        double d2min =0;
-        if (target != null) {
-            do {
-                BlockPos blockPos = new BlockPos(target.getX(), target.getY(), target.getZ());
-                d0 = (double) blockPos.getX() + (world.random.nextInt(16) + 32);
-                d1 = (blockPos.getY() + world.random.nextInt(10) - 1);
-                d2 = (double) blockPos.getZ() + (world.random.nextInt(16) + 32);
-                d0min = (double) blockPos.getX() + (world.random.nextInt(16) + 16);
-                d1min = (blockPos.getY() + world.random.nextInt(3));
-                d2min = (double) blockPos.getZ() + (world.random.nextInt(16) + 16);
+        BlockPos blockPos;
 
-                System.out.println("DEBUG: d0 = "+ d0);
+        if (target != null) {
+            blockPos = calculateSpawnPos(target);
+
+            while (!isFreeToSpawn(blockPos, target)){
+                blockPos = calculateSpawnPos(target);
             }
-            while (world.noCollision(new AxisAlignedBB(d0min, d1min, d2min, d0, d1, d2)));{
+
+            if (isFreeToSpawn(blockPos, target)){
                 for (int i = 0; i < count; i++) {
                     AssassinEntity assassin = ModEntityTypes.ASSASSIN.get().create(target.level);
-                    assassin.setPos(d0, d1, d2);
+                    assassin.setPos(blockPos.getX(), blockPos.getY() + 1, blockPos.getZ());
                     assassin.setEquipment();
                     assassin.setTame(false);
                     assassin.setIsInOrder(true);
@@ -49,5 +46,32 @@ public class AssassinEvents {
                 }
             }
         }
+
+    }
+
+    private static BlockPos calculateSpawnPos(PlayerEntity target){
+        BlockPos blockPos = new BlockPos(target.getX(), target.getY(), target.getZ());
+        double d0 = (double) blockPos.getX() + (target.level.random.nextInt(16) + 32);
+        double d1 = (blockPos.getY() + target.level.random.nextInt(10) - 1);
+        double d2 = (double) blockPos.getZ() + (target.level.random.nextInt(16) + 32);
+
+        System.out.println("DEBUG: d0 = " + d0);
+        System.out.println("DEBUG: d1 = " + d1);
+        System.out.println("DEBUG: d2 = " + d2);
+        return new BlockPos(d0, d1, d2);
+    }
+
+    private static boolean isFreeToSpawn(BlockPos blockPos, PlayerEntity targetPlayer){
+        for(int i = 0; i < 10; i++){
+            BlockPos pos = new BlockPos(blockPos.getX(), blockPos.getY() + i, blockPos.getZ());
+            BlockState blockstate = targetPlayer.level.getBlockState(pos);
+            Block block = blockstate.getBlock();
+
+            if(block.equals(Blocks.AIR)){
+                targetPlayer.level.setBlock(pos, Blocks.REDSTONE_BLOCK.defaultBlockState(), 3);
+                return true;
+            }
+        }
+        return false;
     }
 }

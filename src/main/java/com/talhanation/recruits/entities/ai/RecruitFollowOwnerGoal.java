@@ -1,8 +1,10 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.RecruitHorseEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.entity.passive.horse.AbstractHorseEntity;
 import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.world.IWorldReader;
@@ -82,12 +84,12 @@ public class RecruitFollowOwnerGoal extends Goal {
 
     public void tick() {
         this.recruitEntity.getLookControl().setLookAt(this.owner, 10.0F, (float)this.recruitEntity.getMaxHeadXRot());
+        if (this.recruitEntity.isPassenger() && (recruitEntity.getVehicle() instanceof RecruitHorseEntity))
+            this.navigation.moveTo(this.owner, this.speedModifier);
+
         if (--this.timeToRecalcPath <= 0) {
             this.timeToRecalcPath = 10;
-            if (!this.recruitEntity.isLeashed() && !this.recruitEntity.isPassenger()) {
-                    this.navigation.moveTo(this.owner, this.speedModifier);
-            }
-
+            this.navigation.moveTo(this.owner, this.speedModifier);
         }
     }
 }
