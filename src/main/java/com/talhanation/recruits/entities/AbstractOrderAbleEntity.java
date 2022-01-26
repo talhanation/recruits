@@ -115,7 +115,8 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
 
         this.targetSelector.addGoal(0, new OwnerHurtByTargetGoal(this));
         this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers());
-        this.targetSelector.addGoal(3, new OwnerHurtTargetGoal(this));
+        this.targetSelector.addGoal(2, new OwnerHurtTargetGoal(this));
+
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, AbstractIllagerEntity.class, false));
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, MonsterEntity.class, false));
     }
@@ -440,8 +441,6 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
             }
         }
     }
-
-
 
     @Override
     public abstract void openGUI(PlayerEntity player);

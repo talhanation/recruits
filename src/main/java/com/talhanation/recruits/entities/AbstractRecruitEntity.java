@@ -183,6 +183,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.targetSelector.addGoal(0, new OwnerHurtByTargetGoal(this));
         this.targetSelector.addGoal(1, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
         this.targetSelector.addGoal(3, new OwnerHurtTargetGoal(this));
+
+        this.targetSelector.addGoal(4, new RecruitNearestAttackableTargetGoal<>(this, AbstractOrderAbleEntity.class, false));
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, AbstractIllagerEntity.class, false));
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, MonsterEntity.class, false));
         this.targetSelector.addGoal(10, new RecruitDefendVillageGoal(this));
@@ -663,7 +665,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 return false;
             } else if (target instanceof AbstractHorseEntity && ((AbstractHorseEntity)target).isTamed()) {
                 return false;
-            } else if (target instanceof AbstractOrderAbleEntity && ((AbstractOrderAbleEntity)target).getIsInOrder()) {
+            } else if (target instanceof AbstractOrderAbleEntity && ((AbstractOrderAbleEntity)target).getIsInOrder() && ((AbstractOrderAbleEntity)target).getOwner() != owner) {
                 return true;
             } else if (target instanceof RecruitHorseEntity) {
                 return false;
