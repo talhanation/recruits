@@ -10,6 +10,7 @@ import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.*;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.pathfinding.GroundPathNavigator;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
 import net.minecraft.world.World;
@@ -49,12 +50,23 @@ public class RecruitEntity extends AbstractRecruitEntity {
         ILivingEntityData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
         ((GroundPathNavigator)this.getNavigation()).setCanOpenDoors(true);
         this.populateDefaultEquipmentEnchantments(difficultyInstance);
-        this.setEquipment();
-        //this.setDropEquipment();
-        this.setCanPickUpLoot(true);
-        this.setGroup(1);
+
+        this.initSpawn();
+
         return ilivingentitydata;
     }
+
+    @Override
+    public void initSpawn() {
+        this.setCustomName(new StringTextComponent("Recruit"));
+        this.setEquipment();
+        this.setDropEquipment();
+        this.setRandomSpawnBonus();
+        this.setPersistenceRequired();
+        this.setCanPickUpLoot(true);
+        this.setGroup(1);
+    }
+
     @Override
     public void setEquipment() {// doppelt weil bug
         // wenn nur setItemSlot = dann geht beim gui opening weg
@@ -94,11 +106,6 @@ public class RecruitEntity extends AbstractRecruitEntity {
     @Override
     public int recruitCosts() {
         return 3;
-    }
-
-    @Override
-    public String getRecruitName() {
-        return "Recruit";
     }
 
     @Override

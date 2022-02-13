@@ -184,7 +184,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.targetSelector.addGoal(1, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
         this.targetSelector.addGoal(3, new OwnerHurtTargetGoal(this));
 
-        this.targetSelector.addGoal(4, new RecruitNearestAttackableTargetGoal<>(this, AbstractOrderAbleEntity.class, false));
+        //this.targetSelector.addGoal(4, new RecruitNearestAttackableTargetGoal<>(this, AbstractOrderAbleEntity.class, false));
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, AbstractIllagerEntity.class, false));
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, MonsterEntity.class, false));
         this.targetSelector.addGoal(10, new RecruitDefendVillageGoal(this));
@@ -515,6 +515,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         entityData.set(MOUNT, Optional.of(uuid));
     }
 
+    public abstract void initSpawn();
+
     ////////////////////////////////////ON FUNCTIONS////////////////////////////////////
 
     public ActionResultType mobInteract(PlayerEntity player, Hand hand) {
@@ -718,8 +720,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return false;
     }
     public abstract int recruitCosts();
-
-    public abstract String getRecruitName();
 
     @Override
     @OnlyIn(Dist.CLIENT)

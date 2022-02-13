@@ -17,6 +17,7 @@ import net.minecraft.item.MerchantOffer;
 import net.minecraft.util.IItemProvider;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
@@ -74,31 +75,23 @@ public class VillagerEvents {
 
     }
     private static void createRecruit(LivingEntity entity){
-        /*
         RecruitEntity recruit = ModEntityTypes.RECRUIT.get().create(entity.level);
         VillagerEntity villager = (VillagerEntity) entity;
         recruit.copyPosition(villager);
-        recruit.setEquipment();
-        recruit.setDropEquipment();
-        recruit.setRandomSpawnBonus();
-        recruit.setPersistenceRequired();
-        recruit.setCanPickUpLoot(true);
-        recruit.setGroup(1);
+
+        recruit.initSpawn();
+
         villager.remove();
         villager.level.addFreshEntity(recruit);
-        */
     }
 
     private static void createRecruitShieldman(LivingEntity entity){
         RecruitShieldmanEntity recruitShieldman = ModEntityTypes.RECRUIT_SHIELDMAN.get().create(entity.level);
         VillagerEntity villager = (VillagerEntity) entity;
         recruitShieldman.copyPosition(villager);
-        recruitShieldman.setEquipment();
-        recruitShieldman.setDropEquipment();
-        recruitShieldman.setRandomSpawnBonus();
-        recruitShieldman.setPersistenceRequired();
-        recruitShieldman.setCanPickUpLoot(true);
-        recruitShieldman.setGroup(1);
+
+        recruitShieldman.initSpawn();
+
         villager.remove();
         villager.level.addFreshEntity(recruitShieldman);
     }
@@ -107,13 +100,9 @@ public class VillagerEvents {
         BowmanEntity bowman = ModEntityTypes.BOWMAN.get().create(entity.level);
         VillagerEntity villager = (VillagerEntity) entity;
         bowman.copyPosition(villager);
-        bowman.setEquipment();
-        bowman.setDropEquipment();
-        bowman.setRandomSpawnBonus();
-        bowman.setPersistenceRequired();
-        bowman.setCanPickUpLoot(true);
-        bowman.reassessWeaponGoal();
-        bowman.setGroup(2);
+
+        bowman.initSpawn();
+
         villager.remove();
         villager.level.addFreshEntity(bowman);
     }
@@ -137,13 +126,9 @@ public class VillagerEvents {
         NomadEntity nomad = ModEntityTypes.NOMAD.get().create(entity.level);
         VillagerEntity villager = (VillagerEntity) entity;
         nomad.copyPosition(villager);
-        nomad.setEquipment();
-        nomad.setDropEquipment();
-        nomad.setRandomSpawnBonus();
-        nomad.setPersistenceRequired();
-        nomad.setCanPickUpLoot(true);
-        nomad.reassessWeaponGoal();
-        nomad.setGroup(2);
+
+        nomad.initSpawn();
+
         villager.remove();
 
         RecruitHorseEntity horse = createHorse(nomad);

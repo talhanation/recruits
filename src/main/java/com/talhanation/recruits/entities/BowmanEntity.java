@@ -15,6 +15,7 @@ import net.minecraft.pathfinding.GroundPathNavigator;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
@@ -59,12 +60,8 @@ public class BowmanEntity extends RecruitEntity implements IRangedAttackMob {
     public ILivingEntityData finalizeSpawn(IServerWorld world, DifficultyInstance difficultyInstance, SpawnReason reason, @Nullable ILivingEntityData data, @Nullable CompoundNBT nbt) {
         ILivingEntityData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
         ((GroundPathNavigator)this.getNavigation()).setCanOpenDoors(true);
-        this.setEquipment();
         this.populateDefaultEquipmentEnchantments(difficultyInstance);
-        this.setCanPickUpLoot(true);
-        //this.dropEquipment();
-        this.reassessWeaponGoal();
-        this.setGroup(2);
+        this.initSpawn();
         return ilivingentitydata;
     }
 
@@ -79,6 +76,18 @@ public class BowmanEntity extends RecruitEntity implements IRangedAttackMob {
         inventory.setItem(13, new ItemStack(Items.LEATHER_LEGGINGS));
         inventory.setItem(14, new ItemStack(Items.LEATHER_BOOTS));
         inventory.setItem(9, new ItemStack(Items.BOW));
+    }
+
+    @Override
+    public void initSpawn() {
+        this.setCustomName(new StringTextComponent("Bowman"));
+        this.setEquipment();
+        this.setDropEquipment();
+        this.setRandomSpawnBonus();
+        this.setPersistenceRequired();
+        this.setCanPickUpLoot(true);
+        this.reassessWeaponGoal();
+        this.setGroup(2);
     }
 
     @Override
@@ -148,12 +157,6 @@ public class BowmanEntity extends RecruitEntity implements IRangedAttackMob {
     public int recruitCosts() {
         return 4;
     }
-
-    @Override
-    public String getRecruitName() {
-        return "Bowman";
-    }
-
 
     public void fleeEntity(LivingEntity target) {
         if (target != null) {

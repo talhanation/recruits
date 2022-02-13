@@ -160,20 +160,4 @@ public class RecruitHorseEntity extends TameableEntity {
             }
         }
     }
-
-    /*
-    @Override
-    public void tick() {
-        super.tick();
-
-        //null?? wtf
-        if (getPassengers().get(0) instanceof NomadEntity) {
-            System.out.println("PATHH");
-            NomadEntity rider = (NomadEntity) this.getControllingPassenger();
-
-            if (rider.getNavigation().getPath() != null)
-                this.getNavigation().moveTo(rider.getNavigation().getPath(), 1);
-        }
-    }
-    */
 }

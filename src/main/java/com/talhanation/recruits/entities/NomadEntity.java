@@ -14,6 +14,7 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.GroundPathNavigator;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
 import net.minecraft.world.World;
@@ -76,11 +77,21 @@ public class NomadEntity extends BowmanEntity{
         ILivingEntityData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
         ((GroundPathNavigator)this.getNavigation()).setCanOpenDoors(true);
         this.populateDefaultEquipmentEnchantments(difficultyInstance);
-        this.setEquipment();
-        this.setCanPickUpLoot(true);
-        this.setGroup(4);
+
+        this.initSpawn();
 
         return ilivingentitydata;
+    }
+
+    @Override
+    public void initSpawn() {
+        this.setEquipment();
+        this.setDropEquipment();
+        this.setRandomSpawnBonus();
+        this.setPersistenceRequired();
+        this.setCanPickUpLoot(true);
+        this.reassessWeaponGoal();
+        this.setGroup(2);
     }
 
     @Override
