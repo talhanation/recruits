@@ -97,11 +97,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateSwingTime();
         updateSwimming();
 
+        /*
         if (getOwner() != null) {
             this.getOwner().sendMessage(new StringTextComponent("Health: " + getAttribute(Attributes.ATTACK_DAMAGE).getValue()), getOwner().getUUID());
             this.getOwner().sendMessage(new StringTextComponent("Attack: " + getAttribute(Attributes.ATTACK_DAMAGE).getValue()), getOwner().getUUID());
             this.getOwner().sendMessage(new StringTextComponent("Speed: " + getAttribute(Attributes.ATTACK_DAMAGE).getValue()), getOwner().getUUID());
         }
+        */
         if (this.getIsEating() && !this.isUsingItem()) {
             if (beforeFoodItem != null) resetItemInHand();
             setIsEating(false);

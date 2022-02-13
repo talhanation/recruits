@@ -114,15 +114,14 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements ICrossbo
     }
 
     @Override
-    public int recruitCosts() {
-        return 5;
+    public void initSpawn() {
+
     }
 
     @Override
-    public String getRecruitName() {
-        return "Crossbowman";
+    public int recruitCosts() {
+        return 5;
     }
-
 
     @Override
     public boolean canHoldItem(ItemStack itemStack) {
