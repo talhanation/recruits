@@ -6,10 +6,16 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.PlayerList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
 
 public class AssassinEvents {
@@ -49,15 +55,16 @@ public class AssassinEvents {
 
     }
 
+
     private static BlockPos calculateSpawnPos(PlayerEntity target){
         BlockPos blockPos = new BlockPos(target.getX(), target.getY(), target.getZ());
         double d0 = (double) blockPos.getX() + (target.level.random.nextInt(16) + 32);
         double d1 = (blockPos.getY() + target.level.random.nextInt(10) - 1);
         double d2 = (double) blockPos.getZ() + (target.level.random.nextInt(16) + 32);
 
-        System.out.println("DEBUG: d0 = " + d0);
-        System.out.println("DEBUG: d1 = " + d1);
-        System.out.println("DEBUG: d2 = " + d2);
+        //System.out.println("DEBUG: d0 = " + d0);
+        //System.out.println("DEBUG: d1 = " + d1);
+        //System.out.println("DEBUG: d2 = " + d2);
         return new BlockPos(d0, d1, d2);
     }
 
@@ -73,5 +80,45 @@ public class AssassinEvents {
             }
         }
         return false;
+    }
+
+    public static void doPayment(PlayerEntity player, int costs){
+        PlayerInventory playerInv = player.inventory;
+        int playerEmeralds = 0;
+
+        //checkPlayerMoney
+        playerEmeralds = playerGetEmeraldsInInventory(player);
+        player.sendMessage(new StringTextComponent("PlayerEmeralds: " + playerEmeralds), player.getUUID());
+
+        playerEmeralds = playerEmeralds - costs;
+
+        //remove Player Emeralds
+        for (int i = 0; i < playerInv.getContainerSize(); i++){
+            ItemStack itemStackInSlot = playerInv.getItem(i);
+            Item itemInSlot = itemStackInSlot.getItem();
+            if (itemInSlot == Items.EMERALD){
+                playerInv.removeItemNoUpdate(i);
+            }
+        }
+
+        //add Player Emeralds what is left
+        ItemStack emeraldsLeft = Items.EMERALD.getDefaultInstance();
+
+        emeraldsLeft.setCount(playerEmeralds);
+        playerInv.add(emeraldsLeft);
+    }
+
+
+    public static int playerGetEmeraldsInInventory(PlayerEntity player) {
+        int emeralds = 0;
+        PlayerInventory playerInv = player.inventory;
+        for (int i = 0; i < playerInv.getContainerSize(); i++){
+            ItemStack itemStackInSlot = playerInv.getItem(i);
+            Item itemInSlot = itemStackInSlot.getItem();
+            if (itemInSlot == Items.EMERALD){
+                emeralds = emeralds + itemStackInSlot.getCount();
+            }
+        }
+        return emeralds;
     }
 }
