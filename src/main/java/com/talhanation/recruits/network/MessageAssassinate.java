@@ -17,14 +17,16 @@ public class MessageAssassinate implements Message<MessageAssassinate> {
 
     //private UUID target;
     private int count;
+    private int costs;
     private String name;
 
     public MessageAssassinate(){
     }
 
-    public MessageAssassinate(String name, int count) {
+    public MessageAssassinate(String name, int count, int costs) {
         //this.target = null;
         this.count = count;
+        this.costs = costs;
         this.name = name;
     }
 
@@ -42,16 +44,18 @@ public class MessageAssassinate implements Message<MessageAssassinate> {
             player.sendMessage(new StringTextComponent("Successfully found the Target"), player.getUUID());
             //this.target = targetPlayer.getUUID();
             AssassinEvents.createAssassin(name, count, world);
+            AssassinEvents.doPayment(player, costs);
         }
         else {
             player.sendMessage(new StringTextComponent("Could not found the Target"), player.getUUID());
-            player.sendMessage(new StringTextComponent("Text: " + this.name), player.getUUID());
+            //player.sendMessage(new StringTextComponent(": " + this.name), player.getUUID());
         }
     }
 
     public MessageAssassinate fromBytes(PacketBuffer buf) {
         //this.target = buf.readUUID();
         this.count = buf.readInt();
+        this.costs = buf.readInt();
         this.name = buf.readUtf();
         return this;
     }
@@ -59,6 +63,7 @@ public class MessageAssassinate implements Message<MessageAssassinate> {
     public void toBytes(PacketBuffer buf) {
         //buf.writeUUID(this.target);
         buf.writeInt(this.count);
+        buf.writeInt(this.costs);
         buf.writeUtf(this.name);
     }
 

@@ -68,12 +68,12 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderContainer> {
         }));
 
         //HUNT
-        addButton(new Button(leftPos + 77 + 65, topPos + 4, 30, 12, new StringTextComponent("Hunt"), button -> {
+        addButton(new Button(leftPos + 77 + 25, topPos + 4, 50, 12, new StringTextComponent("Assassinate"), button -> {
             int assassinateCost = assassinLeaderEntity.calculateAssassinateCosts(assassinLeaderEntity.getAssassinCosts(), this.count);
             if(assassinLeaderEntity.playerHasEnoughEmeralds(playerInventory.player, assassinateCost))
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageAssassinate(textField.getValue(), this.count));
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageAssassinate(textField.getValue(), this.count, assassinateCost));
             else
-                playerInventory.player.sendMessage(new StringTextComponent("You dont have enough Emeralds"), playerInventory.player.getUUID());
+                playerInventory.player.sendMessage(new StringTextComponent(assassinLeaderEntity.getName() + ": You dont have enough Emeralds"), playerInventory.player.getUUID());
         onClose();
         }));
 

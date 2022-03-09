@@ -1,7 +1,7 @@
 package com.talhanation.recruits.entities;
 //ezgi&talha kantar
 
-import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.AssassinEvents;
 import com.talhanation.recruits.entities.ai.*;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
@@ -269,7 +269,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
 
 
     public boolean playerHasEnoughEmeralds(PlayerEntity player, int price) {
-        int emeraldCount = playerGetEmeraldsInIventory(player);
+        int emeraldCount = AssassinEvents.playerGetEmeraldsInInventory(player);
         if (emeraldCount >= price){
             return true;
         }
@@ -277,20 +277,6 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
             return true;
         }
         else return false;
-    }
-
-    private int playerGetEmeraldsInIventory(PlayerEntity player) {
-        int emeralds = 0;
-        IInventory inventory = player.inventory;
-        for (int i = 0; i < inventory.getContainerSize(); i++) {
-            ItemStack itemStack = inventory.getItem(i);
-            if (itemStack.equals(Items.EMERALD)) {
-                for (int j = 0; j < itemStack.getCount(); j++) {
-                    emeralds++;
-                }
-            }
-        }
-        return emeralds;
     }
 
     ////////////////////////////////////ATTACK FUNCTIONS////////////////////////////////////
