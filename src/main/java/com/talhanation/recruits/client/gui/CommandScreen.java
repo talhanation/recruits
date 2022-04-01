@@ -7,23 +7,15 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.EntityRayTraceResult;
-import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 
 @OnlyIn(Dist.CLIENT)
@@ -57,31 +49,63 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         addButton(new Button(leftPos - 70 - 40 + imageWidth / 2, topPos + 20 + 30, 81, 20, new StringTextComponent("Release!"), button -> {
             CommandEvents.sendFollowCommandInChat(0, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 0, group));
+
+        },  (a, b, c, d) -> {
+            this.renderTooltip(b, new StringTextComponent("Allow the recruits to wander freely."), c, d);
         }));
 
         //FOLLOW
-        addButton(new Button(leftPos - 40 + imageWidth / 2, topPos + 10, 81, 20, new StringTextComponent("Follow me!"), button -> {
+        addButton(new Button(leftPos - 40 - 50 + imageWidth / 2, topPos + 10, 81, 20, new StringTextComponent("Follow me!"), button -> {
             CommandEvents.sendFollowCommandInChat(1, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 1, group));
 
+        },  (a, b, c, d) -> {
+            this.renderTooltip(b, new StringTextComponent("Make the recruits follow you."), c, d);
         }));
 
-        //HOLDPOS
-        addButton(new Button(leftPos + 30 + imageWidth / 2, topPos + 20 + 30, 81, 20, new StringTextComponent("Hold your Pos.!"), button -> {
+        //TO PLAYER POS
+        addButton(new Button(leftPos + 10 + imageWidth / 2, topPos + 10, 81, 20, new StringTextComponent("Hold here!"), button -> {
+            CommandEvents.sendFollowCommandInChat(4, player);
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 4, group));
+
+        },  (a, b, c, d) -> {
+            this.renderTooltip(b, new StringTextComponent("Make the recruits hold your current position."), c, d);
+        }));
+
+        //HOLD POS
+        addButton(new Button(leftPos + 71 + imageWidth / 2, topPos + 20 + 30, 40, 20, new StringTextComponent("Hold!"), button -> {
             CommandEvents.sendFollowCommandInChat(2, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 2, group));
+
+            },  (a, b, c, d) -> {
+            this.renderTooltip(b, new StringTextComponent("Make the recruits hold their current position."), c, d);
+        }));
+
+        //Back to POS
+        addButton(new Button(leftPos + 30 + imageWidth / 2, topPos + 20 + 30, 40, 20, new StringTextComponent("Back!"), button -> {
+            CommandEvents.sendFollowCommandInChat(3, player);
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 3, group));
+
+        },  (a, b, c, d) -> {
+            this.renderTooltip(b, new StringTextComponent("Make the recruits go back to their previously held position."), c, d);
         }));
 
         //AGGRESSIVE
         addButton(new Button(leftPos - 40 - 70 + imageWidth / 2, topPos + 20 + 30 + 30, 81, 20, new StringTextComponent("Stay Aggressive!"), button -> {
             CommandEvents.sendAggroCommandInChat(1, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 1, group));
+
+            },  (a, b, c, d) -> {
+            this.renderTooltip(b, new StringTextComponent("Make the recruits attack all enemy players on sight."), c, d);
         }));
 
         //RAID
         addButton(new Button(leftPos + 30 + imageWidth / 2, topPos + 20 + 30 + 30, 81, 20, new StringTextComponent("Raid!"), button -> {
             CommandEvents.sendAggroCommandInChat(2, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 2, group));
+
+        },  (a, b, c, d) -> {
+            this.renderTooltip(b, new StringTextComponent("Make the recruits attack all enemy living on sight."), c, d);
         }));
 
         /*
@@ -95,11 +119,17 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         addButton(new Button(leftPos - 40 - 50 + imageWidth / 2, topPos + 120, 81, 20, new StringTextComponent("Stay Neutral!"), button -> {
             CommandEvents.sendAggroCommandInChat(0, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 0, group));
+
+        },  (a, b, c, d) -> {
+            this.renderTooltip(b, new StringTextComponent("Make the recruits attack only hostile living."), c, d);
         }));
 
         //CLEAR TARGET
         addButton(new Button(leftPos + 10 + imageWidth / 2, topPos + 120, 81, 20, new StringTextComponent("Clear Targets!"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTarget(player.getUUID(), group));
+
+        },  (a, b, c, d) -> {
+            this.renderTooltip(b, new StringTextComponent("Clears current targets of the recruits."), c, d);
         }));
 
         //GROUP
@@ -108,6 +138,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
             if (this.group != 9) {
                 this.group ++;
+
                 this.saveCurrentGroup(player);
             }
         }));
@@ -120,7 +151,6 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
                 this.saveCurrentGroup(player);
             }
-
         }));
     }
 

@@ -6,6 +6,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.monster.AbstractIllagerEntity;
+import net.minecraft.entity.passive.IronGolemEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
@@ -70,6 +71,7 @@ public class RecruitEvents {
             }
         }
     }
+
 
     public static void onStopButton(AbstractRecruitEntity recruit, UUID owner, int group) {
         if (recruit.isTame() &&(recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), owner) && (recruit.getGroup() == group || group == 0)) {

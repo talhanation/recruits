@@ -6,24 +6,19 @@ import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntitySpawnPlacementRegistry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.PlayerList;
 import net.minecraft.util.math.BlockPos;
-
 import net.minecraft.world.IBlockReader;
-
 import net.minecraft.util.text.StringTextComponent;
-
 import net.minecraft.world.World;
 import net.minecraft.world.gen.Heightmap;
 import net.minecraft.world.spawner.WorldEntitySpawner;
 
 public class AssassinEvents {
-
 
     public static void createAssassin(String playerName, int count, World world) {
         MinecraftServer server = world.getServer();
@@ -56,7 +51,6 @@ public class AssassinEvents {
         }
     }
 
-
     private static BlockPos calculateSpawnPos(PlayerEntity target){
         BlockPos blockPos = null;
 
@@ -66,11 +60,6 @@ public class AssassinEvents {
             int d2 = (int) (target.getZ() + (target.level.random.nextInt(16) + 32));
             int d1 = target.level.getHeight(Heightmap.Type.WORLD_SURFACE, d0, d2);
 
-        //System.out.println("DEBUG: d0 = " + d0);
-        //System.out.println("DEBUG: d1 = " + d1);
-        //System.out.println("DEBUG: d2 = " + d2);
-        return new BlockPos(d0, d1, d2);
-    }
             System.out.println("DEBUG: x = " + d0);
             System.out.println("DEBUG: y = " + d1);
             System.out.println("DEBUG: z = " + d2);
@@ -101,7 +90,7 @@ public class AssassinEvents {
         //checkPlayerMoney
         playerEmeralds = playerGetEmeraldsInInventory(player);
         player.sendMessage(new StringTextComponent("PlayerEmeralds: " + playerEmeralds), player.getUUID());
-
+        player.sendMessage(new StringTextComponent("Costs: " + costs), player.getUUID());
         playerEmeralds = playerEmeralds - costs;
 
         //remove Player Emeralds

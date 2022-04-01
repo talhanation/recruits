@@ -7,9 +7,13 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.pathfinding.Path;
 import net.minecraft.util.EntityPredicates;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3d;
 
 public class RecruitMeleeAttackGoal extends Goal {
     protected final AbstractRecruitEntity mob;
@@ -39,45 +43,50 @@ public class RecruitMeleeAttackGoal extends Goal {
             return false;
         } else {
             this.lastCanUseCheck = i;
-            LivingEntity livingentity = this.mob.getTarget();
-            if (livingentity == null) {
+            LivingEntity target = this.mob.getTarget();
+            if (target == null) {
                 return false;
-            } else if (!livingentity.isAlive()) {
+            }
+            else if (!target.isAlive()) {
                 return false;
-            } else {
+            }
+            else {
                 if (canPenalize) {
                     if (--this.ticksUntilNextPathRecalculation <= 0) {
-                        this.path = this.mob.getNavigation().createPath(livingentity, 0);
+                        this.path = this.mob.getNavigation().createPath(target, 0);
                         this.ticksUntilNextPathRecalculation = 4 + this.mob.getRandom().nextInt(7);
                         return this.path != null;
                     } else {
                         return true;
                     }
                 }
-                this.path = this.mob.getNavigation().createPath(livingentity, 0);
+                this.path = this.mob.getNavigation().createPath(target, 0);
                 if (this.path != null) {
                     return true;
                 } else {
-                    return this.getAttackReachSqr(livingentity) >= this.mob.distanceToSqr(livingentity.getX(), livingentity.getY(), livingentity.getZ());
+                    return (this.getAttackReachSqr(target) >= this.mob.distanceToSqr(target.getX(), target.getY(), target.getZ())) && canAttackHoldPos();
                 }
             }
         }
     }
 
     public boolean canContinueToUse() {
-        LivingEntity livingentity = this.mob.getTarget();
-        if (livingentity == null) {
+        LivingEntity target = this.mob.getTarget();
+
+        if (target == null) {
             return false;
-        } else if (!livingentity.position().closerThan(mob.position(), 8D) && this.mob.getShouldHoldPos()) {
+        }
+        else if (!target.isAlive()) {
             return false;
-        } else if (!livingentity.isAlive()) {
-            return false;
-        } else if (!this.followingTargetEvenIfNotSeen) {
+        }
+        else if (!this.followingTargetEvenIfNotSeen) {
             return !this.mob.getNavigation().isDone();
-        } else if (!this.mob.isWithinRestriction(livingentity.blockPosition())) {
+        }
+        else if (!this.mob.isWithinRestriction(target.blockPosition())) {
             return false;
-        } else {
-            return !(livingentity instanceof PlayerEntity) || !livingentity.isSpectator() && !((PlayerEntity)livingentity).isCreative();
+        }
+        else {
+            return (!(target instanceof PlayerEntity) || !target.isSpectator() && !((PlayerEntity)target).isCreative()) && canAttackHoldPos();
         }
     }
 
@@ -165,6 +174,27 @@ public class RecruitMeleeAttackGoal extends Goal {
     }
 
     protected double getAttackReachSqr(LivingEntity p_179512_1_) {
-        return (double)(this.mob.getBbWidth() * 2.0F * this.mob.getBbWidth() * 2.0F + p_179512_1_.getBbWidth());
+        return (double)(this.mob.getBbWidth() * 2.1F * this.mob.getBbWidth() * 2.1F + p_179512_1_.getBbWidth());
     }
+
+    private boolean canAttackHoldPos() {
+        LivingEntity target = this.mob.getTarget();
+        BlockPos pos = mob.getHoldPos();
+
+        if (target != null && pos != null && mob.getShouldHoldPos()) {
+            boolean targetIsFar = target.distanceTo(this.mob) >= 10.0D;
+            boolean posIsClose = pos.distSqr(this.mob.position(), false) <= 8.0D;
+            boolean posIsFar = pos.distSqr(this.mob.position(),false) > 8.0D;
+
+            if (posIsFar) {
+                return false;
+            }
+
+            else if (posIsClose && targetIsFar){
+                return false;
+            }
+        }
+        return true;
+    }
+
 }

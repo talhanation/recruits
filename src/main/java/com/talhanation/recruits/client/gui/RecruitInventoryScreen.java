@@ -61,7 +61,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
         addButton(new Button(leftPos + 77 + 85, topPos + 74, 8, 12, new StringTextComponent(">"), button -> {
             this.followState = recruit.getFollowState();
-            if (this.followState != 2) {
+            if (this.followState != 3) {
                 this.followState++;
 
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(this.followState, recruit.getUUID()));
@@ -156,7 +156,10 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
             case 1:
                 follow = "Following";
                 break;
+
             case 2:
+            case 3:
+            case 4:
                 follow = "Holding Pos.";
                 break;
         }

@@ -36,18 +36,6 @@ public class MessageFollow implements Message<MessageFollow> {
 
     public void executeServerSide(NetworkEvent.Context context){
         if (fromGui) {
-            /*
-            ServerPlayerEntity player = context.getSender();
-            assert player != null;
-            player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
-                            .inflate(16.0D), v -> v
-                            .getUUID()
-                            .equals(this.recruit))
-                    .stream()
-                    .filter(AbstractRecruitEntity::isAlive)
-                    .findAny()
-                    .ifPresent(recruit -> recruit.setFollowState(this.state));
-            */
             List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
             for (AbstractRecruitEntity recruits : list){
 

@@ -7,6 +7,7 @@ import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.projectile.ProjectileHelper;
 import net.minecraft.item.BowItem;
 import net.minecraft.item.Items;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.EnumSet;
@@ -43,7 +44,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & IRangedAttackMo
         if (livingentity != null && livingentity.isAlive() && this.isHoldingBow()) {
             this.target = livingentity;
            // if (mob.getOwner() != null && mob.getShouldFollow() && mob.getOwner().distanceTo(this.mob) <= 25.00D && !(target.distanceTo(this.mob) <= 7.00D)) return false;
-                return true;
+                return canAttackHoldPos();
         } else {
             return false;
         }
@@ -130,5 +131,25 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & IRangedAttackMo
         } else if (--this.attackTime <= 0 && this.seeTime >= -60) {
             this.mob.startUsingItem(ProjectileHelper.getWeaponHoldingHand(this.mob, Items.BOW));
         }
+    }
+
+    private boolean canAttackHoldPos() {
+        LivingEntity target = this.mob.getTarget();
+        BlockPos pos = mob.getHoldPos();
+
+        if (target != null && pos != null && mob.getShouldHoldPos()) {
+            boolean targetIsFar = target.distanceTo(this.mob) >= 21.5D;
+            boolean posIsClose = pos.distSqr(this.mob.position(), false) <= 15.0D;
+            boolean posIsFar = pos.distSqr(this.mob.position(),false) > 15.0D;
+
+            if (posIsFar) {
+                return false;
+            }
+
+            else if (posIsClose && targetIsFar){
+                return false;
+            }
+        }
+        return true;
     }
 }

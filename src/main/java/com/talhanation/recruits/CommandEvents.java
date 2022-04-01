@@ -48,6 +48,16 @@ public class CommandEvents {
                     if (state != 2)
                         recruit.setFollowState(2);
                     break;
+
+                case 3:
+                    if (state != 3)
+                        recruit.setFollowState(3);
+                    break;
+
+                case 4:
+                    if (state != 4)
+                        recruit.setFollowState(4);
+                    break;
             }
         }
     }
@@ -139,6 +149,14 @@ public class CommandEvents {
 
             case 2:
                 owner.sendMessage(new StringTextComponent("Hold your Position!"), owner.getUUID());
+                break;
+
+            case 3:
+                owner.sendMessage(new StringTextComponent("Back to your Position!"), owner.getUUID());
+                break;
+
+            case 4:
+                owner.sendMessage(new StringTextComponent("To my Position!"), owner.getUUID());
                 break;
         }
     }

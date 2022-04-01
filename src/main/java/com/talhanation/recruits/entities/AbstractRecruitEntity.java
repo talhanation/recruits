@@ -188,7 +188,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         //this.targetSelector.addGoal(4, new RecruitNearestAttackableTargetGoal<>(this, AbstractOrderAbleEntity.class, false));
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, AbstractIllagerEntity.class, false));
-        this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, MonsterEntity.class, false));
+
+        this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, MonsterEntity.class, 10, true, false, (target) -> {
+            return !(target instanceof CreeperEntity);
+        }));
         this.targetSelector.addGoal(10, new RecruitDefendVillageGoal(this));
     }
 
@@ -383,8 +386,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
      */
 
-
-
     ////////////////////////////////////SET////////////////////////////////////
 
     public void setFleeing(boolean bool){
@@ -465,20 +466,31 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 setShouldFollow(false);
                 setShouldHoldPos(false);
                 break;
+
             case 1:
                 setShouldFollow(true);
                 setShouldHoldPos(false);
                 break;
+
             case 2:
                 setShouldFollow(false);
                 setShouldHoldPos(true);
                 clearHoldPos();
                 setHoldPos(getOnPos());
                 break;
+
             case 3:
                 setShouldFollow(false);
                 setShouldHoldPos(true);
+                break;
 
+            case 4:
+                setShouldFollow(false);
+                setShouldHoldPos(true);
+                clearHoldPos();
+                setHoldPos(this.getOwner().blockPosition());
+                state = 3;
+                break;
         }
         entityData.set(FOLLOW_STATE, state);
     }
