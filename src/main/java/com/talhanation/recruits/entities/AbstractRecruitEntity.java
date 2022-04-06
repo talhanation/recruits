@@ -228,6 +228,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         //1 = follow
         //2 = hold position
         //3 = back to position
+        //4 = hold my position
 
     }
     @Override
@@ -549,23 +550,25 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 if(!player.isCrouching()) {
                     int state = this.getFollowState();
                     switch (state) {
+                        default:
                         case 0:
                             setFollowState(1);
                             player.sendMessage(new StringTextComponent(this.getName().getString() + ": " +"I will follow you"), player.getUUID());
-                            break;
+                            return ActionResultType.SUCCESS;
                         case 1:
-                            setFollowState(2);
-                            player.sendMessage(new StringTextComponent(this.getName().getString() + ": " +"I will hold this Position"), player.getUUID());
-                            break;
-                        case 2:
+                            setFollowState(4);
+                            player.sendMessage(new StringTextComponent(this.getName().getString() + ": " +"I will hold your Position"), player.getUUID());
+                            return ActionResultType.SUCCESS;
+                        case 4:
                             setFollowState(0);
                             player.sendMessage(new StringTextComponent(this.getName().getString() + ": " +"I will stay here around"), player.getUUID());
-                            break;
+                            return ActionResultType.SUCCESS;
                     }
-                    return ActionResultType.SUCCESS;
                 }
 
-            } else if (item == Items.EMERALD && !this.isTame() && playerHasEnoughEmeralds(player) && playerCanRecruit(player)) {
+            }
+
+            else if (item == Items.EMERALD && !this.isTame() && playerHasEnoughEmeralds(player) && playerCanRecruit(player)) {
                 if (!player.abilities.instabuild) {
                     if (!player.isCreative()) {
                         itemstack.shrink(recruitCosts());
@@ -582,25 +585,31 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
                 return ActionResultType.SUCCESS;
             }
+
             else if (item == Items.EMERALD && !this.isTame() && !playerHasEnoughEmeralds(player) && playerCanRecruit(player)) {
-                    player.sendMessage(new StringTextComponent(this.getName().getString() + ": " +"You need " + recruitCosts() + " Emeralds to recruit me!"), player.getUUID());
+                player.sendMessage(new StringTextComponent(this.getName().getString() + ": " + "You need " + recruitCosts() + " Emeralds to recruit me!"), player.getUUID());
+                return ActionResultType.SUCCESS;
             }
+
             else if (!this.isTame() && item != Items.EMERALD && playerCanRecruit(player)) {
                 int i = this.random.nextInt(5);
                 switch (i) {
                     case 0:
                         player.sendMessage(new StringTextComponent(this.getName().getString() + ": " +" Hello my Friend."), player.getUUID());
-                        break;
+                        return ActionResultType.SUCCESS;
+
                     case 1:
                         player.sendMessage(new StringTextComponent(this.getName().getString() + ": " +"It's a honor for me to protect you."), player.getUUID());
-                        break;
+                        return ActionResultType.SUCCESS;
+
                         default:
                         player.sendMessage(new StringTextComponent(this.getName().getString() + ": " +"I will defend you from Monsters!"), player.getUUID());
-                        break;
+                        return ActionResultType.SUCCESS;
                 }
             }
             else if (!playerCanRecruit(player)) {
                 player.sendMessage(new StringTextComponent(this.getName().getString() + ": " +" You reached the maximum limit you can recruit."), player.getUUID());
+                return ActionResultType.SUCCESS;
             }
 
             return super.mobInteract(player, hand);

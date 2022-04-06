@@ -14,6 +14,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -22,6 +23,23 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class CommandScreen extends ScreenBase<CommandContainer> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/command_gui.png");
+
+
+    private static final ITextComponent TEXT_GROUP = new TranslationTextComponent("gui.recruits.command.group");
+
+    private static final ITextComponent TEXT_FOLLOW = new TranslationTextComponent("gui.recruits.command.follow");
+    private static final ITextComponent TEXT_WANDER = new TranslationTextComponent("gui.recruits.command.wander");
+    private static final ITextComponent TEXT_HOLD_MY_POS = new TranslationTextComponent("gui.recruits.command.holdMyPos");
+    private static final ITextComponent TEXT_HOLD_POS = new TranslationTextComponent("gui.recruits.command.holdPos");
+    private static final ITextComponent TEXT_BACK_TO_POS = new TranslationTextComponent("gui.recruits.command.backToPos");
+
+    private static final ITextComponent TEXT_PASSIVE = new TranslationTextComponent("gui.recruits.command.passive");
+    private static final ITextComponent TEXT_NEUTRAL = new TranslationTextComponent("gui.recruits.command.neutral");
+    private static final ITextComponent TEXT_AGGRESSIVE = new TranslationTextComponent("gui.recruits.command.aggressive");
+    private static final ITextComponent TEXT_RAID = new TranslationTextComponent("gui.recruits.command.raid");
+
+    private static final ITextComponent TEXT_CLEAR_TARGET = new TranslationTextComponent("gui.recruits.command.clearTargets");
+
     private static final int fontColor = 16250871;
     private PlayerEntity player;
     private int group;
@@ -51,7 +69,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 0, group));
 
         },  (a, b, c, d) -> {
-            this.renderTooltip(b, new StringTextComponent("Allow the recruits to wander freely."), c, d);
+            this.renderTooltip(b, TEXT_WANDER, c, d);
         }));
 
         //FOLLOW
@@ -60,7 +78,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 1, group));
 
         },  (a, b, c, d) -> {
-            this.renderTooltip(b, new StringTextComponent("Make the recruits follow you."), c, d);
+            this.renderTooltip(b, TEXT_FOLLOW, c, d);
         }));
 
         //TO PLAYER POS
@@ -69,7 +87,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 4, group));
 
         },  (a, b, c, d) -> {
-            this.renderTooltip(b, new StringTextComponent("Make the recruits hold your current position."), c, d);
+            this.renderTooltip(b, TEXT_HOLD_MY_POS, c, d);
         }));
 
         //HOLD POS
@@ -78,7 +96,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 2, group));
 
             },  (a, b, c, d) -> {
-            this.renderTooltip(b, new StringTextComponent("Make the recruits hold their current position."), c, d);
+            this.renderTooltip(b, TEXT_HOLD_POS, c, d);
         }));
 
         //Back to POS
@@ -87,7 +105,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 3, group));
 
         },  (a, b, c, d) -> {
-            this.renderTooltip(b, new StringTextComponent("Make the recruits go back to their previously held position."), c, d);
+            this.renderTooltip(b, TEXT_BACK_TO_POS, c, d);
         }));
 
         //AGGRESSIVE
@@ -96,7 +114,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 1, group));
 
             },  (a, b, c, d) -> {
-            this.renderTooltip(b, new StringTextComponent("Make the recruits attack all enemy players on sight."), c, d);
+            this.renderTooltip(b, TEXT_AGGRESSIVE, c, d);
         }));
 
         //RAID
@@ -105,7 +123,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 2, group));
 
         },  (a, b, c, d) -> {
-            this.renderTooltip(b, new StringTextComponent("Make the recruits attack all enemy living on sight."), c, d);
+            this.renderTooltip(b, TEXT_RAID, c, d);
         }));
 
         /*
@@ -121,7 +139,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 0, group));
 
         },  (a, b, c, d) -> {
-            this.renderTooltip(b, new StringTextComponent("Make the recruits attack only hostile living."), c, d);
+            this.renderTooltip(b, TEXT_NEUTRAL, c, d);
         }));
 
         //CLEAR TARGET
@@ -129,7 +147,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTarget(player.getUUID(), group));
 
         },  (a, b, c, d) -> {
-            this.renderTooltip(b, new StringTextComponent("Clears current targets of the recruits."), c, d);
+            this.renderTooltip(b, TEXT_CLEAR_TARGET, c, d);
         }));
 
         //GROUP
@@ -182,7 +200,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             return "Everyone";
         }
         else
-            return ("Group " + group);
+            return (TEXT_GROUP.getString()+ " " + group);
     }
 
     public static String handleRecruitCountText(int recCount){

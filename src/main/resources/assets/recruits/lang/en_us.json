@@ -15,5 +15,37 @@
   "block.recruits.nomad_block": "Nomad's Table",
 
   "category.recruits" : "Recruits",
-  "key.r_key": "Open Command Screen"
+  "key.r_key": "Open Command Screen",
+
+
+  "gui.recruits.inv.health" : "Hp:",
+  "gui.recruits.inv.level": "Lvl:",
+  "gui.recruits.inv.kills": "Kills:",
+
+  "gui.recruits.inv.group" : "Group",
+  "gui.recruits.inv.disband" : "Disband",
+
+  "gui.recruits.inv.follow" : "Make the recruits follow you.",
+  "gui.recruits.inv.wander" : "Allow the recruits to wander freely.",
+  "gui.recruits.inv.holdMyPos": "Make the recruits hold your current position.",
+  "gui.recruits.inv.holdPos" : "Make the recruits hold their current position.",
+  "gui.recruits.inv.backToPos" : "Make the recruits go back to their previously held position.",
+
+  "gui.recruits.inv.passive" : "Make the recruits not attacking a all.",
+  "gui.recruits.inv.neutral" : "Make the recruits attack only hostile living.",
+  "gui.recruits.inv.aggressive" : "Make the recruits attack all living on sight.",
+  "gui.recruits.inv.raid" : "Make the recruit attack all living on sight.",
+
+  "gui.recruits.command.follow" : "Make the recruits follow you.",
+  "gui.recruits.command.wander" : "Allow the recruits to wander freely.",
+  "gui.recruits.command.holdMyPos": "Make the recruits hold your current position.",
+  "gui.recruits.command.holdPos" : "Make the recruits hold their current position.",
+  "gui.recruits.command.backToPos" : "Make the recruits go back to their previously held position.",
+  "gui.recruits.command.patrol" : "Make the recruits patrol their previously held position.",
+  "gui.recruits.command.clearTarget" : "Make the recruits patrol their previously held position.",
+
+  "gui.recruits.command.passive" : "Make the recruits not attacking a all.",
+  "gui.recruits.command.neutral" : "Make the recruits attack only hostile living.",
+  "gui.recruits.command.aggressive" : "Make the recruits attack all living on sight.",
+  "gui.recruits.command.raid" : "Make the recruit attack all living on sight."
 }

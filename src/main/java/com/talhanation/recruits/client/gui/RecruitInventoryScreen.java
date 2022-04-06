@@ -21,18 +21,30 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/recruit_gui.png");
 
-    private static final ITextComponent TEXT_HEALTH = new TranslationTextComponent("gui.recruits.health");
-    private static final ITextComponent TEXT_LEVEL = new TranslationTextComponent("gui.recruits.level");
-    private static final ITextComponent TEXT_GROUP = new TranslationTextComponent("gui.recruits.group");
-    private static final ITextComponent TEXT_KILLS = new TranslationTextComponent("gui.recruits.kills");
+    private static final ITextComponent TEXT_HEALTH = new TranslationTextComponent("gui.recruits.inv.health");
+    private static final ITextComponent TEXT_LEVEL = new TranslationTextComponent("gui.recruits.inv.level");
+    private static final ITextComponent TEXT_KILLS = new TranslationTextComponent("gui.recruits.inv.kills");
+
+    private static final ITextComponent TEXT_GROUP = new TranslationTextComponent("gui.recruits.inv.group");
+    private static final ITextComponent TEXT_DISBAND = new TranslationTextComponent("gui.recruits.inv.disband");
+
+    private static final ITextComponent TEXT_FOLLOW = new TranslationTextComponent("gui.recruits.inv.follow");
+    private static final ITextComponent TEXT_WANDER = new TranslationTextComponent("gui.recruits.inv.wander");
+    private static final ITextComponent TEXT_HOLD_MY_POS = new TranslationTextComponent("gui.recruits.inv.holdMyPos");
+    private static final ITextComponent TEXT_HOLD_POS = new TranslationTextComponent("gui.recruits.inv.holdPos");
+    private static final ITextComponent TEXT_BACK_TO_POS = new TranslationTextComponent("gui.recruits.inv.backToPos");
+
+    private static final ITextComponent TEXT_PASSIVE = new TranslationTextComponent("gui.recruits.inv.passive");
+    private static final ITextComponent TEXT_NEUTRAL = new TranslationTextComponent("gui.recruits.inv.neutral");
+    private static final ITextComponent TEXT_AGGRESSIVE = new TranslationTextComponent("gui.recruits.inv.aggressive");
+    private static final ITextComponent TEXT_RAID = new TranslationTextComponent("gui.recruits.inv.raid");
+
 
     private static final int fontColor = 4210752;
 
     private final AbstractRecruitEntity recruit;
     private final PlayerInventory playerInventory;
 
-    private int followState;
-    private int aggroState;
     private int group;
 
     public RecruitInventoryScreen(RecruitInventoryContainer recruitContainer, PlayerInventory playerInventory, ITextComponent title) {
@@ -49,40 +61,44 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
     protected void init() {
         super.init();
 
+        //WANDER
+        addButton(new Button(leftPos + 77, topPos + 74, 8, 12, new StringTextComponent("Wander"), button -> {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(0, recruit.getUUID()));
+
+            },  (a, b, c, d) -> {
+            this.renderTooltip(b, TEXT_WANDER, c, d);
+        }));
+
         //FOLLOW
-        addButton(new Button(leftPos + 77, topPos + 74, 8, 12, new StringTextComponent("<"), button -> {
-            this.followState = recruit.getFollowState();
-            if (this.followState != 0){
-                this.followState --;
+        addButton(new Button(leftPos + 77, topPos + 74, 8, 12, new StringTextComponent("Follow"), button -> {
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(1, recruit.getUUID()));
 
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(this.followState, recruit.getUUID()));
-            }
+                },  (a, b, c, d) -> {
+            this.renderTooltip(b, TEXT_FOLLOW, c, d);
         }));
 
-        addButton(new Button(leftPos + 77 + 85, topPos + 74, 8, 12, new StringTextComponent(">"), button -> {
-            this.followState = recruit.getFollowState();
-            if (this.followState != 3) {
-                this.followState++;
+        //HOLD POS
+        addButton(new Button(leftPos + 77, topPos + 74, 8, 12, new StringTextComponent("Hold Pos"), button -> {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(2, recruit.getUUID()));
 
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(this.followState, recruit.getUUID()));
-            }
+        },  (a, b, c, d) -> {
+            this.renderTooltip(b, TEXT_HOLD_POS, c, d);
         }));
 
-        //AGGRO
-        addButton(new Button(leftPos + 77, topPos + 87, 8, 12, new StringTextComponent("<"), button -> {
-            this.aggroState = recruit.getState();
-            if (this.aggroState != 0){
-                this.aggroState --;
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(this.aggroState, recruit.getUUID()));
-            }
+        //BACK TO POS
+        addButton(new Button(leftPos + 77, topPos + 74, 8, 12, new StringTextComponent("Back to Pos"), button -> {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(3, recruit.getUUID()));
+
+        },  (a, b, c, d) -> {
+            this.renderTooltip(b, TEXT_BACK_TO_POS, c, d);
         }));
 
-        addButton(new Button(leftPos + + 77 + 85, topPos + 87, 8, 12, new StringTextComponent(">"), button -> {
-            this.aggroState = recruit.getState();
-            if (this.aggroState != 2){
-                this.aggroState ++;
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(this.aggroState, recruit.getUUID()));
-            }
+        //HOLD MY POS
+        addButton(new Button(leftPos + 77, topPos + 74, 8, 12, new StringTextComponent("Hold my Pos"), button -> {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(4, recruit.getUUID()));
+
+        },  (a, b, c, d) -> {
+            this.renderTooltip(b, TEXT_HOLD_MY_POS, c, d);
         }));
 
         //LISTEN
@@ -114,7 +130,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
 
         //DISBAND
-        addButton(new Button(leftPos + 77 + 65, topPos + 4, 30, 12, new StringTextComponent("Disband"), button -> {
+        addButton(new Button(leftPos + 77 + 55, topPos + 4, 40, 12, new StringTextComponent("Disband"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDisband(recruit.getUUID()));
             this.onClose();
         }));
@@ -126,6 +142,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         int health = MathHelper.ceil(recruit.getHealth());
         int k = 79;//rechst links
         int l = 19;//höhe
+
         //Titles
         font.draw(matrixStack, recruit.getDisplayName().getVisualOrderText(), 8, 5, fontColor);
         font.draw(matrixStack, playerInventory.getDisplayName().getVisualOrderText(), 8, this.imageHeight - 96 + 2, fontColor);

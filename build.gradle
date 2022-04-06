@@ -38,7 +38,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
             arg "-mixin.config=recruits.general.mixin.json"//////////////////////////
             Random rnd = new Random()
-            args = ['--username', 'Player' + rnd.nextInt(1000)]
+            //args = ['--username', 'Player' + rnd.nextInt(1000)]
 
             mods {
                 examplemod {

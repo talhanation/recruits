@@ -165,7 +165,8 @@ public class BowmanEntity extends RecruitEntity implements IRangedAttackMob {
             Vector3d vecBowman = new Vector3d(this.getX(), this.getY(), this.getZ());
             Vector3d fleeDir = vecBowman.subtract(vecTarget);
             fleeDir = fleeDir.normalize();
-            Vector3d fleePos = new Vector3d(vecBowman.x + fleeDir.x * fleeDistance, vecBowman.y + fleeDir.y * fleeDistance, vecBowman.z + fleeDir.z * fleeDistance);
+            double rnd = this.random.nextGaussian() * 1.2;
+            Vector3d fleePos = new Vector3d(vecBowman.x + rnd + fleeDir.x * fleeDistance, vecBowman.y + fleeDir.y * fleeDistance, vecBowman.z + rnd + fleeDir.z * fleeDistance);
             this.getNavigation().moveTo(fleePos.x, fleePos.y, fleePos.z, 1.2D);
         }
     }
