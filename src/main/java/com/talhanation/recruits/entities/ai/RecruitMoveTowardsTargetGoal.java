@@ -31,6 +31,10 @@ public class RecruitMoveTowardsTargetGoal extends Goal {
             return false;
         }
 
+        if (this.recruit.getState() == 3){
+            return false;
+        }
+
         if (this.target == null) {
             return false;
         } else if (this.target.distanceToSqr(this.recruit) > (double)(this.within * this.within)) {

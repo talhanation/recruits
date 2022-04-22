@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.entity.EntityPredicate;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
@@ -8,12 +9,12 @@ import net.minecraft.entity.ai.goal.TargetGoal;
 import java.util.EnumSet;
 /*
 public class RecruitOwnerHurtTargetGoal extends TargetGoal {
-    private final AbstractHoldingEntity recruitEntity;
+    private final AbstractRecruitEntity recruitEntity;
     private LivingEntity ownerLastHurt;
     private int timestamp;
 
 
-    public RecruitOwnerHurtTargetGoal(AbstractHoldingEntity recruitEntity) {
+    public RecruitOwnerHurtTargetGoal(AbstractRecruitEntity recruitEntity) {
     super(recruitEntity, false);
     this.recruitEntity = recruitEntity;
     this.setFlags(EnumSet.of(Goal.Flag.TARGET));
@@ -43,4 +44,5 @@ public class RecruitOwnerHurtTargetGoal extends TargetGoal {
 
         super.start();
     }
-}*/
+}
+*/

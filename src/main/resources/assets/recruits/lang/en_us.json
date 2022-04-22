@@ -17,7 +17,6 @@
   "category.recruits" : "Recruits",
   "key.r_key": "Open Command Screen",
 
-
   "gui.recruits.inv.health" : "Hp:",
   "gui.recruits.inv.level": "Lvl:",
   "gui.recruits.inv.kills": "Kills:",
@@ -25,27 +24,61 @@
   "gui.recruits.inv.group" : "Group",
   "gui.recruits.inv.disband" : "Disband",
 
-  "gui.recruits.inv.follow" : "Make the recruits follow you.",
-  "gui.recruits.inv.wander" : "Allow the recruits to wander freely.",
-  "gui.recruits.inv.holdMyPos": "Make the recruits hold your current position.",
-  "gui.recruits.inv.holdPos" : "Make the recruits hold their current position.",
-  "gui.recruits.inv.backToPos" : "Make the recruits go back to their previously held position.",
+  "gui.recruits.inv.tooltip.follow" : "Make the recruits follow you.",
+  "gui.recruits.inv.tooltip.wander" : "Allow the recruits to wander freely.",
+  "gui.recruits.inv.tooltip.holdMyPos": "Make the recruits hold your current position.",
+  "gui.recruits.inv.tooltip.holdPos" : "Make the recruits hold their current position.",
+  "gui.recruits.inv.tooltip.backToPos" : "Make the recruits go back to their previously held position.",
+  "gui.recruits.inv.tooltip.disband" : "Removes this recruit from you command",
 
-  "gui.recruits.inv.passive" : "Make the recruits not attacking a all.",
-  "gui.recruits.inv.neutral" : "Make the recruits attack only hostile living.",
-  "gui.recruits.inv.aggressive" : "Make the recruits attack all living on sight.",
-  "gui.recruits.inv.raid" : "Make the recruit attack all living on sight.",
+  "gui.recruits.inv.text.follow" : "Follow me!",
+  "gui.recruits.inv.text.wander" : "Wander freely!",
+  "gui.recruits.inv.text.holdMyPos": "Hold my Position!",
+  "gui.recruits.inv.text.holdPos" : "Hold your Position!",
+  "gui.recruits.inv.text.backToPos" : "Back to position!",
+  "gui.recruits.inv.text.patrol" : "Patrol!",
 
-  "gui.recruits.command.follow" : "Make the recruits follow you.",
-  "gui.recruits.command.wander" : "Allow the recruits to wander freely.",
-  "gui.recruits.command.holdMyPos": "Make the recruits hold your current position.",
-  "gui.recruits.command.holdPos" : "Make the recruits hold their current position.",
-  "gui.recruits.command.backToPos" : "Make the recruits go back to their previously held position.",
-  "gui.recruits.command.patrol" : "Make the recruits patrol their previously held position.",
-  "gui.recruits.command.clearTarget" : "Make the recruits patrol their previously held position.",
+  "gui.recruits.inv.text.passive" : "Passive!",
+  "gui.recruits.inv.text.neutral" : "Neutral!",
+  "gui.recruits.inv.text.aggressive": "Aggressive!",
+  "gui.recruits.inv.text.raid" : "Raid!",
+  "gui.recruits.inv.text.clearTarget" : "Clear Targets!",
 
-  "gui.recruits.command.passive" : "Make the recruits not attacking a all.",
-  "gui.recruits.command.neutral" : "Make the recruits attack only hostile living.",
-  "gui.recruits.command.aggressive" : "Make the recruits attack all living on sight.",
-  "gui.recruits.command.raid" : "Make the recruit attack all living on sight."
+  "gui.recruits.inv.text.disband" : "Disband",
+  "gui.recruits.inv.text.group" : "Group",
+
+  "gui.recruits.inv.tooltip.passive" : "Make this recruit not attacking a all.",
+  "gui.recruits.inv.tooltip.neutral" : "Make this recruit attack only hostile living.",
+  "gui.recruits.inv.tooltip.aggressive" : "Make the recruit attack all players on sight.",
+  "gui.recruits.inv.tooltip.raid" : "Make the recruit attack all living on sight.",
+
+  "gui.recruits.command.tooltip.follow" : "Make the recruits follow you.",
+  "gui.recruits.command.tooltip.wander" : "Allow the recruits to wander freely.",
+  "gui.recruits.command.tooltip.holdMyPos": "Make the recruits hold your current position.",
+  "gui.recruits.command.tooltip.holdPos" : "Make the recruits hold their current position.",
+  "gui.recruits.command.tooltip.backToPos" : "Make the recruits go back to their previously held position.",
+  "gui.recruits.command.tooltip.patrol" : "Make the recruits patrol their previously held position.",
+  "gui.recruits.command.tooltip.clearTarget" : "Make the recruits patrol their previously held position.",
+
+  "gui.recruits.command.tooltip.passive" : "Make the recruits not attacking a all.",
+  "gui.recruits.command.tooltip.neutral" : "Make the recruits attack only hostile living.",
+  "gui.recruits.command.tooltip.aggressive" : "Make the recruits attack all living on sight.",
+  "gui.recruits.command.tooltip.raid" : "Make the recruits attack all living on sight.",
+
+  "gui.recruits.command.text.follow" : "Follow me!",
+  "gui.recruits.command.text.wander" : "Wander freely!",
+  "gui.recruits.command.text.holdMyPos": "Hold my Position!",
+  "gui.recruits.command.text.holdPos" : "Hold your Position!",
+  "gui.recruits.command.text.backToPos" : "Back to Position!",
+  "gui.recruits.command.text.patrol" : "Patrol!",
+  "gui.recruits.command.text.clearTargets" : "Clear Targets!",
+  "gui.recruits.command.text.passive" : "Passive!",
+  "gui.recruits.command.text.neutral" : "Neutral!",
+  "gui.recruits.command.text.aggressive" : "Aggressive!",
+  "gui.recruits.command.text.raid" : "Raid!",
+
+  "gui.recruits.command.text.group" : "Group",
+  "gui.recruits.command.text.everyone" : "Everyone"
+
+
 }

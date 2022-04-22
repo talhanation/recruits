@@ -4,7 +4,6 @@ import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.network.MessageCommandScreen;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -14,8 +13,6 @@ import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.network.NetworkHooks;
@@ -80,6 +77,11 @@ public class CommandEvents {
                 case 2:
                     if (state != 2)
                         recruit.setState(2);
+                    break;
+
+                case 3:
+                    if (state != 3)
+                        recruit.setState(3);
                     break;
             }
         }
@@ -156,7 +158,7 @@ public class CommandEvents {
                 break;
 
             case 4:
-                owner.sendMessage(new StringTextComponent("To my Position!"), owner.getUUID());
+                owner.sendMessage(new StringTextComponent("Hold my Position!"), owner.getUUID());
                 break;
         }
     }
@@ -173,6 +175,10 @@ public class CommandEvents {
 
             case 2:
                 owner.sendMessage(new StringTextComponent("Raid!"), owner.getUUID());
+                break;
+
+            case 3:
+                owner.sendMessage(new StringTextComponent("Stay Passive!"), owner.getUUID());
                 break;
         }
     }

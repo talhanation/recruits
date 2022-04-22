@@ -48,7 +48,7 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
                     }
                 }
 
-                return this.canAttack(livingentity, HURT_BY_TARGETING);
+                return this.canAttack(livingentity, HURT_BY_TARGETING) && (recruit.getState() != 3);
             }
         } else {
             return false;

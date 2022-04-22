@@ -44,8 +44,9 @@ public class RecruitDefendVillageGoal extends TargetGoal {
         if (this.potentialTarget == null) {
             return false;
         } else {
-            return !(this.potentialTarget instanceof PlayerEntity) ||
-                    !this.potentialTarget.isSpectator() && !((PlayerEntity)this.potentialTarget).isCreative();
+            return (!(this.potentialTarget instanceof PlayerEntity) ||
+                    !this.potentialTarget.isSpectator() && !((PlayerEntity)this.potentialTarget).isCreative())
+                    && entity.getState() != 3;
         }
     }
 

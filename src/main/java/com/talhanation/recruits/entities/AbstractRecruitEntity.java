@@ -66,6 +66,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final DataParameter<Boolean> isEating = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
     private static final DataParameter<Boolean> FLEEING = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.BOOLEAN);
 
+    private static final DataParameter<String> OWNER_NAME = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.STRING);
+
     //private static final DataParameter<ItemStack> OFFHAND_ITEM_SAVE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.ITEM_STACK);
 
     public ItemStack beforeFoodItem;
@@ -182,15 +184,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.targetSelector.addGoal(2, new RecruitRaidNearestAttackableTargetGoal<>(this, LivingEntity.class, false));
         this.targetSelector.addGoal(2, new RecruitAggresiveNearestAttackableTargetGoal<>(this, PlayerEntity.class, false));
 
-        this.targetSelector.addGoal(0, new OwnerHurtByTargetGoal(this));
+        this.targetSelector.addGoal(0, new RecruitOwnerHurtByTargetGoal(this));
         this.targetSelector.addGoal(1, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
         this.targetSelector.addGoal(3, new OwnerHurtTargetGoal(this));
 
         //this.targetSelector.addGoal(4, new RecruitNearestAttackableTargetGoal<>(this, AbstractOrderAbleEntity.class, false));
-        this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, AbstractIllagerEntity.class, false));
+        this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, AbstractIllagerEntity.class, 10, true, false, (target) -> {
+            return (this.getState() != 3);
+        }));
 
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, MonsterEntity.class, 10, true, false, (target) -> {
-            return !(target instanceof CreeperEntity);
+            return !(target instanceof CreeperEntity) && (this.getState() != 3);
         }));
         this.targetSelector.addGoal(10, new RecruitDefendVillageGoal(this));
     }
@@ -273,7 +277,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     nbt.getInt("HoldPosX"),
                     nbt.getInt("HoldPosY"),
                     nbt.getInt("HoldPosZ")));
-
         }
     }
 
@@ -456,6 +459,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             case 1:
                 break;
             case 2:
+                break;
+            case 3:
+                setTarget(null);//wird nur 1x aufgerufen
                 break;
         }
         entityData.set(STATE, state);
@@ -643,8 +649,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if (entity != null && !(entity instanceof PlayerEntity) && !(entity instanceof AbstractArrowEntity)) {
                 amt = (amt + 1.0F) / 2.0F;
             }
-            this.addXp(1);
-            this.checkLevel();
+            //this.addXp(1);
+            //this.checkLevel();
 
             return super.hurt(dmg, amt);
         }
@@ -684,8 +690,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public boolean wantsToAttack(LivingEntity target, LivingEntity owner) {
         if (!(target instanceof CreeperEntity) && !(target instanceof GhastEntity)) {
             if (target instanceof AbstractRecruitEntity) {
+
                 AbstractRecruitEntity otherRecruit = (AbstractRecruitEntity)target;
-                return otherRecruit.getOwner() != owner;
+                // || otherRecruit.getOwner().getTeam() != owner.getTeam() fix
+                return otherRecruit.getOwner() != owner ;
             } else if (target instanceof PlayerEntity && owner instanceof PlayerEntity && !((PlayerEntity)owner).canHarmPlayer((PlayerEntity)target)) {
                 return false;
             } else if (target instanceof AbstractHorseEntity && ((AbstractHorseEntity)target).isTamed()) {
@@ -785,7 +793,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     @Override
     public void killed(ServerWorld p_241847_1_, LivingEntity p_241847_2_) {
         super.killed(p_241847_1_, p_241847_2_);
-        this.addXp(2);
+        this.addXp(5);
         this.setKills(this.getKills() + 1);
     }
 

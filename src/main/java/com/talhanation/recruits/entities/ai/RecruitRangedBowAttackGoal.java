@@ -119,7 +119,8 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & IRangedAttackMo
         if (this.mob.isUsingItem()) {
             if (!canSee && this.seeTime < -60) {
                 this.mob.stopUsingItem();
-            } else if (canSee) {
+            }
+            else if (canSee) {
                 int i = this.mob.getTicksUsingItem();
                 if (i >= 20) {
                     this.mob.stopUsingItem();
