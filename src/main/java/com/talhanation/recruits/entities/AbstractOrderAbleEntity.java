@@ -3,53 +3,38 @@ package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.AssassinEvents;
 import com.talhanation.recruits.entities.ai.*;
-import net.minecraft.entity.*;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.entity.ai.goal.*;
-import net.minecraft.entity.monster.AbstractIllagerEntity;
-import net.minecraft.entity.monster.CreeperEntity;
-import net.minecraft.entity.monster.GhastEntity;
-import net.minecraft.entity.monster.MonsterEntity;
-import net.minecraft.entity.passive.TameableEntity;
-import net.minecraft.entity.passive.horse.AbstractHorseEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.AbstractArrowEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.*;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.util.*;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.commands.data.EntityDataAccessor;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.monster.Ghast;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.DifficultyInstance;
-import net.minecraft.world.IServerWorld;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
 
 public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
-    private static final DataParameter<Integer> DATA_REMAINING_ANGER_TIME = EntityDataManager.defineId(AbstractOrderAbleEntity.class, DataSerializers.INT);
-    private static final DataParameter<Optional<BlockPos>> HOME_POS = EntityDataManager.defineId(AbstractOrderAbleEntity.class, DataSerializers.OPTIONAL_BLOCK_POS);
-    private static final DataParameter<Integer> XP = EntityDataManager.defineId(AbstractOrderAbleEntity.class, DataSerializers.INT);
-    private static final DataParameter<Integer> LEVEL = EntityDataManager.defineId(AbstractOrderAbleEntity.class, DataSerializers.INT);
-    private static final DataParameter<Integer> KILLS = EntityDataManager.defineId(AbstractOrderAbleEntity.class, DataSerializers.INT);
-    private static final DataParameter<Boolean> isEating = EntityDataManager.defineId(AbstractOrderAbleEntity.class, DataSerializers.BOOLEAN);
-    private static final DataParameter<Boolean> isInOrder = EntityDataManager.defineId(AbstractOrderAbleEntity.class, DataSerializers.BOOLEAN);
-    private static final DataParameter<Boolean> FLEEING = EntityDataManager.defineId(AbstractOrderAbleEntity.class, DataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> DATA_REMAINING_ANGER_TIME = EntityDataManager.defineId(AbstractOrderAbleEntity.class, DataSerializers.INT);
+    private static final EntityDataAccessor<Optional<BlockPos>> HOME_POS = EntityDataManager.defineId(AbstractOrderAbleEntity.class, DataSerializers.OPTIONAL_BLOCK_POS);
+    private static final EntityDataAccessor<Integer> XP = EntityDataManager.defineId(AbstractOrderAbleEntity.class, DataSerializers.INT);
+    private static final EntityDataAccessor<Integer> LEVEL = EntityDataManager.defineId(AbstractOrderAbleEntity.class, DataSerializers.INT);
+    private static final EntityDataAccessor<Integer> KILLS = EntityDataManager.defineId(AbstractOrderAbleEntity.class, DataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> isEating = EntityDataManager.defineId(AbstractOrderAbleEntity.class, DataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> isInOrder = EntityDataManager.defineId(AbstractOrderAbleEntity.class, DataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> FLEEING = EntityDataManager.defineId(AbstractOrderAbleEntity.class, DataSerializers.BOOLEAN);
 
-    //private static final DataParameter<ItemStack> OFFHAND_ITEM_SAVE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.ITEM_STACK);
+    //private static final EntityDataAccessor<ItemStack> OFFHAND_ITEM_SAVE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.ITEM_STACK);
 
     public ItemStack beforeFoodItem;
 
-    public AbstractOrderAbleEntity(EntityType<? extends TameableEntity> entityType, World world) {
-        super(entityType, world);
+    public AbstractOrderAbleEntity(EntityType<? extends > entityType, Level level) {
+        super(entityType, level);
         this.setOwned(false);
         this.xpReward = 12;
     }
@@ -110,7 +95,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(5, new MeleeAttackGoal(this, 1.15D, true));
         this.goalSelector.addGoal(7, new MoveTowardsTargetGoal(this, 1.15D, 32.0F));
         this.goalSelector.addGoal(8, new RecruitPickupWantedItemGoal(this));
-        this.goalSelector.addGoal(11, new LookAtGoal(this, PlayerEntity.class, 8.0F));
+        this.goalSelector.addGoal(11, new LookAtGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(12, new LookRandomlyGoal(this));
 
         this.targetSelector.addGoal(0, new OwnerHurtByTargetGoal(this));
@@ -268,7 +253,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     public void setEquipment(){}
 
 
-    public boolean playerHasEnoughEmeralds(PlayerEntity player, int price) {
+    public boolean playerHasEnoughEmeralds(Player player, int price) {
         int emeraldCount = AssassinEvents.playerGetEmeraldsInInventory(player);
         if (emeraldCount >= price){
             return true;
@@ -287,7 +272,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
         } else {
             Entity entity = dmg.getEntity();
             this.setOrderedToSit(false);
-            if (entity != null && !(entity instanceof PlayerEntity) && !(entity instanceof AbstractArrowEntity)) {
+            if (entity != null && !(entity instanceof Player) && !(entity instanceof AbstractArrowEntity)) {
                 amt = (amt + 1.0F) / 2.0F;
             }
             this.addXp(1);
@@ -322,11 +307,11 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     }
 
     public boolean wantsToAttack(LivingEntity target, LivingEntity owner) {
-        if (!(target instanceof CreeperEntity) && !(target instanceof GhastEntity)) {
+        if (!(target instanceof Creeper) && !(target instanceof Ghast)) {
             if (target instanceof AbstractOrderAbleEntity) {
                 AbstractOrderAbleEntity otherRecruit = (AbstractOrderAbleEntity)target;
                 return otherRecruit.getOwner() != owner;
-            } else if (target instanceof PlayerEntity && owner instanceof PlayerEntity && !((PlayerEntity)owner).canHarmPlayer((PlayerEntity)target)) {
+            } else if (target instanceof Player && owner instanceof Player && !((Player)owner).canHarmPlayer((Player)target)) {
                 return false;
             } else if (target instanceof AbstractHorseEntity && ((AbstractHorseEntity)target).isTamed()) {
                 return false;
@@ -365,7 +350,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     }
 
     @Override
-    public boolean canBeLeashed(PlayerEntity player) {
+    public boolean canBeLeashed(Player player) {
         return false;
     }
 
@@ -429,9 +414,9 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     }
 
     @Override
-    public abstract void openGUI(PlayerEntity player);
+    public abstract void openGUI(Player player);
 
-    public ActionResultType mobInteract(PlayerEntity player, Hand hand) {
+    public ActionResultType mobInteract(Player player, Hand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
         Item item = itemstack.getItem();
         if (this.level.isClientSide) {

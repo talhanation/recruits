@@ -2,10 +2,10 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.PacketBuffer;
+import de.maxhenkel.corelib.net.Message;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.List;
 import java.util.Objects;
@@ -51,7 +51,7 @@ public class MessageFollow implements Message<MessageFollow> {
         }
     }
 
-    public MessageFollow fromBytes(PacketBuffer buf) {
+    public MessageFollow fromBytes(FriendlyByteBuf buf) {
         this.player = buf.readUUID();
         this.state = buf.readInt();
         this.group = buf.readInt();
@@ -60,7 +60,7 @@ public class MessageFollow implements Message<MessageFollow> {
         return this;
     }
 
-    public void toBytes(PacketBuffer buf) {
+    public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(this.player);
         buf.writeInt(this.state);
         buf.writeInt(this.group);

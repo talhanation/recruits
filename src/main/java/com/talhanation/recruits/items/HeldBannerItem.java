@@ -1,7 +1,6 @@
 package com.talhanation.recruits.items;
 
-import net.minecraft.item.Item;
-import net.minecraft.item.ShieldItem;
+import net.minecraft.world.item.ShieldItem;
 
 
 public class HeldBannerItem extends ShieldItem {

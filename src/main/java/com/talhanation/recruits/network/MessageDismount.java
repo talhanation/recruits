@@ -1,5 +1,5 @@
 package com.talhanation.recruits.network;
-
+/*
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.api.distmarker.Dist;
@@ -48,3 +48,5 @@ public class MessageDismount implements Message<MessageDismount> {
     }
 
 }
+
+ */

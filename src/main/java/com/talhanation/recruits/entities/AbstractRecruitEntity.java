@@ -36,6 +36,9 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.IServerWorld;
 import net.minecraft.world.World;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -713,8 +716,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void die(DamageSource dmg) {
         super.die(dmg);
         LivingEntity owner = this.getOwner();
-        if (owner instanceof PlayerEntity){
-            PlayerEntity player = (PlayerEntity) owner;
+        if (owner instanceof Player){
+            Player player = (Player) owner;
             CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
         }
     }

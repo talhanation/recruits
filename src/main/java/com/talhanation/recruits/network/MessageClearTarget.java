@@ -2,15 +2,16 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.network.PacketBuffer;
+import de.maxhenkel.corelib.net.Message;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageClearTarget implements Message<MessageClearTarget>{
+public class MessageClearTarget implements Message<MessageClearTarget> {
     private UUID player;
     private int group;
 
@@ -32,13 +33,13 @@ public class MessageClearTarget implements Message<MessageClearTarget>{
             RecruitEvents.onStopButton(recruits, this.player, group);
         }
     }
-    public MessageClearTarget fromBytes(PacketBuffer buf) {
+    public MessageClearTarget fromBytes(FriendlyByteBuf buf) {
         this.player = buf.readUUID();
         this.group = buf.readInt();
         return this;
     }
 
-    public void toBytes(PacketBuffer buf) {
+    public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(this.player);
         buf.writeInt(this.group);
     }

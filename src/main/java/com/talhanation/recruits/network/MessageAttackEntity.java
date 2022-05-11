@@ -2,10 +2,14 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import de.maxhenkel.corelib.net.Message;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.List;
 import java.util.Objects;
@@ -37,18 +41,18 @@ public class MessageAttackEntity implements Message<MessageAttackEntity> {
 
             if (recruits.getUUID().equals(this.uuid))
                 RecruitEvents.onAttackButton(recruits,recruits.getOwner(),target, group);
-                context.getSender().sendMessage(new StringTextComponent("MESSAGE"), context.getSender().getUUID());
+                context.getSender().sendMessage(new TextComponent("MESSAGE"), context.getSender().getUUID());
         }
 
     }
-    public MessageAttackEntity fromBytes(PacketBuffer buf) {
+    public MessageAttackEntity fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();
         this.target = buf.readUUID();
         this.group = buf.readInt();
         return this;
     }
 
-    public void toBytes(PacketBuffer buf) {
+    public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(uuid);
         buf.writeUUID(target);
         buf.writeInt(group);

@@ -1,9 +1,11 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
-import net.minecraft.network.PacketBuffer;
+import de.maxhenkel.corelib.net.Message;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.network.NetworkEvent;
+
 
 import java.util.List;
 import java.util.Objects;
@@ -35,13 +37,13 @@ public class MessageAssassinCount implements Message<MessageAssassinCount> {
         }
 
     }
-    public MessageAssassinCount fromBytes(PacketBuffer buf) {
+    public MessageAssassinCount fromBytes(FriendlyByteBuf buf) {
         this.count = buf.readInt();
         this.uuid = buf.readUUID();
         return this;
     }
 
-    public void toBytes(PacketBuffer buf) {
+    public void toBytes(FriendlyByteBuf buf) {
         buf.writeInt(count);
         buf.writeUUID(uuid);
     }

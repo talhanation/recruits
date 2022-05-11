@@ -2,12 +2,13 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.PacketBuffer;
+import de.maxhenkel.corelib.net.Message;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.UUID;
 
@@ -21,7 +22,7 @@ public class MessageAssassinGui implements Message<MessageAssassinGui> {
         this.uuid = new UUID(0, 0);
     }
 
-    public MessageAssassinGui(PlayerEntity player, UUID recruit) {
+    public MessageAssassinGui(Player player, UUID recruit) {
         this.uuid = player.getUUID();
         this.recruit = recruit;
     }
@@ -37,7 +38,7 @@ public class MessageAssassinGui implements Message<MessageAssassinGui> {
             return;
         }
 
-        ServerPlayerEntity player = context.getSender();
+        ServerPlayer player = context.getSender();
         player.level.getEntitiesOfClass(AssassinLeaderEntity.class, player.getBoundingBox()
                         .inflate(16.0D), v -> v
                         .getUUID()
@@ -49,14 +50,14 @@ public class MessageAssassinGui implements Message<MessageAssassinGui> {
     }
 
     @Override
-    public MessageAssassinGui fromBytes(PacketBuffer buf) {
+    public MessageAssassinGui fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();
         this.recruit = buf.readUUID();
         return this;
     }
 
     @Override
-    public void toBytes(PacketBuffer buf) {
+    public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(uuid);
         buf.writeUUID(recruit);
     }
