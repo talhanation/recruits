@@ -1,19 +1,19 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.BowmanEntity;
-import net.minecraft.entity.IRangedAttackMob;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.projectile.ProjectileHelper;
-import net.minecraft.item.BowItem;
-import net.minecraft.item.Items;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.entity.monster.RangedAttackMob;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
+import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.Items;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
 
 import java.util.EnumSet;
 
 
-public class RecruitRangedBowAttackGoal<T extends BowmanEntity & IRangedAttackMob> extends Goal {
+public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob> extends Goal {
     private final T mob;
     private final double speedModifier;
     private int attackIntervalMin;
@@ -125,12 +125,12 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & IRangedAttackMo
                 if (i >= 20) {
                     this.mob.stopUsingItem();
                     this.mob.performRangedAttack(target, BowItem.getPowerForTime(i));
-                    float f = MathHelper.sqrt(d0) / this.attackRadius;
-                    this.attackTime = MathHelper.floor(f * (float)(this.attackIntervalMax - this.attackIntervalMin) + (float)this.attackIntervalMin);
+                    float f = Mth.sqrt(d0) / this.attackRadius;
+                    this.attackTime = Mth.floor(f * (float)(this.attackIntervalMax - this.attackIntervalMin) + (float)this.attackIntervalMin);
                 }
             }
         } else if (--this.attackTime <= 0 && this.seeTime >= -60) {
-            this.mob.startUsingItem(ProjectileHelper.getWeaponHoldingHand(this.mob, Items.BOW));
+            this.mob.startUsingItem(ProjectileUtil.getWeaponHoldingHand(this.mob, Items.BOW));
         }
     }
 

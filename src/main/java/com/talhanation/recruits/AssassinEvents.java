@@ -2,23 +2,25 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.entities.AssassinEntity;
 import com.talhanation.recruits.init.ModEntityTypes;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.players.PlayerList;
-import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Blocks;
-
-import java.util.logging.Level;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.NaturalSpawner;
 
 public class AssassinEvents {
 
-    public static void createAssassin(String playerName, int count, ServerLevel world) {
+    public static void createAssassin(String playerName, int count, Level world) {
         MinecraftServer server = world.getServer();
         PlayerList list = server.getPlayerList();
         Player target = list.getPlayerByName(playerName);
@@ -34,7 +36,7 @@ public class AssassinEvents {
             if (hasEnoughSpace(world, blockPos)){
                 world.setBlock(blockPos, Blocks.REDSTONE_BLOCK.defaultBlockState(), 3);
                 for (int i = 0; i < count; i++) {
-                    AssassinEntity assassin = ModEntityTypes.ASSASSIN.create(target.level);
+                    AssassinEntity assassin = ModEntityTypes.ASSASSIN.get().create(target.level);
                     assassin.setPos(blockPos.getX(), blockPos.getY() + 1, blockPos.getZ());
                     assassin.setEquipment();
                     assassin.setTame(false);
@@ -49,21 +51,21 @@ public class AssassinEvents {
         }
     }
 
-    private static BlockPos calculateSpawnPos(PlayerEntity target){
+    private static BlockPos calculateSpawnPos(Player target){
         BlockPos blockPos = null;
 
 
         for(int i = 0; i < 10; ++i) {
             int d0 = (int) (target.getX() + (target.level.random.nextInt(16) + 32));
             int d2 = (int) (target.getZ() + (target.level.random.nextInt(16) + 32));
-            int d1 = target.level.getHeight(Heightmap.Type.WORLD_SURFACE, d0, d2);
+            int d1 = target.level.getHeight(Heightmap.Types.WORLD_SURFACE, d0, d2);
 
             System.out.println("DEBUG: x = " + d0);
             System.out.println("DEBUG: y = " + d1);
             System.out.println("DEBUG: z = " + d2);
             BlockPos blockpos1 = new BlockPos(d0, d1, d2);
 
-            if (WorldEntitySpawner.isSpawnPositionOk(EntitySpawnPlacementRegistry.PlacementType.ON_GROUND, target.level, blockpos1, ModEntityTypes.ASSASSIN.get())) {
+            if (NaturalSpawner.isSpawnPositionOk(SpawnPlacements.Type.ON_GROUND, target.level, blockpos1, ModEntityTypes.ASSASSIN.get())) {
                 blockPos = blockpos1;
                 break;
             }
@@ -71,9 +73,9 @@ public class AssassinEvents {
         return blockPos;
     }
 
-    private static boolean hasEnoughSpace(ServerLevel level, BlockPos pos) {
+    private static boolean hasEnoughSpace(BlockGetter reader, BlockPos pos) {
         for(BlockPos blockpos : BlockPos.betweenClosed(pos, pos.offset(1, 2, 1))) {
-            if (!level.getBlockState(blockpos).getCollisionShape(level, blockpos).isEmpty()) {
+            if (!reader.getBlockState(blockpos).getCollisionShape(reader, blockpos).isEmpty()) {
                 return false;
             }
         }
@@ -82,7 +84,7 @@ public class AssassinEvents {
     }
 
     public static void doPayment(Player player, int costs){
-        Inventory playerInv = player.getInventory();
+        Inventory playerInv = player.inventory;
         int playerEmeralds = 0;
 
         //checkPlayerMoney
@@ -110,7 +112,7 @@ public class AssassinEvents {
 
     public static int playerGetEmeraldsInInventory(Player player) {
         int emeralds = 0;
-        Inventory playerInv = player.getInventory();
+        Inventory playerInv = player.inventory;
         for (int i = 0; i < playerInv.getContainerSize(); i++){
             ItemStack itemStackInSlot = playerInv.getItem(i);
             Item itemInSlot = itemStackInSlot.getItem();

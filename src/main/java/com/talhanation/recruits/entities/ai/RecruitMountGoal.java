@@ -1,12 +1,14 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ai.goal.Goal;
 
 import java.util.EnumSet;
 import java.util.List;
 import java.util.UUID;
+
+import net.minecraft.world.entity.ai.goal.Goal.Flag;
 
 public class RecruitMountGoal extends Goal {
     private final AbstractRecruitEntity recruit;

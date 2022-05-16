@@ -4,15 +4,15 @@ import java.util.EnumSet;
 import java.util.Objects;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.pathfinding.Path;
-import net.minecraft.util.EntityPredicates;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.pathfinder.Path;
+import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 
 public class RecruitMeleeAttackGoal extends Goal {
@@ -86,7 +86,7 @@ public class RecruitMeleeAttackGoal extends Goal {
             return false;
         }
         else {
-            return (!(target instanceof PlayerEntity) || !target.isSpectator() && !((PlayerEntity)target).isCreative()) && canAttackHoldPos();
+            return (!(target instanceof Player) || !target.isSpectator() && !((Player)target).isCreative()) && canAttackHoldPos();
         }
     }
 
@@ -102,7 +102,7 @@ public class RecruitMeleeAttackGoal extends Goal {
 
     public void stop() {
         LivingEntity livingentity = this.mob.getTarget();
-        if (!EntityPredicates.NO_CREATIVE_OR_SPECTATOR.test(livingentity)) {
+        if (!EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(livingentity)) {
             this.mob.setTarget(null);
         }
 
@@ -123,7 +123,7 @@ public class RecruitMeleeAttackGoal extends Goal {
             if (this.canPenalize) {
                 this.ticksUntilNextPathRecalculation += failedPathFindingPenalty;
                 if (this.mob.getNavigation().getPath() != null) {
-                    net.minecraft.pathfinding.PathPoint finalPathPoint = this.mob.getNavigation().getPath().getEndNode();
+                    net.minecraft.world.level.pathfinder.Node finalPathPoint = this.mob.getNavigation().getPath().getEndNode();
                     if (finalPathPoint != null && livingentity.distanceToSqr(finalPathPoint.x, finalPathPoint.y, finalPathPoint.z) < 1)
                         failedPathFindingPenalty = 0;
                     else
@@ -151,7 +151,7 @@ public class RecruitMeleeAttackGoal extends Goal {
         double d0 = this.getAttackReachSqr(p_190102_1_);
         if (p_190102_2_ <= d0 && this.ticksUntilNextAttack <= 0) {
             this.resetAttackCooldown();
-            this.mob.swing(Hand.MAIN_HAND);
+            this.mob.swing(InteractionHand.MAIN_HAND);
             this.mob.doHurtTarget(p_190102_1_);
         }
 

@@ -5,22 +5,22 @@ import com.talhanation.recruits.entities.AssassinEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.entity.CreatureEntity;
-import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.entity.item.TNTEntity;
 import net.minecraft.tags.FluidTags;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 import java.util.Random;
 
 public class FleeFire extends Goal {
 
-    CreatureEntity entity;
+    PathfinderMob entity;
     BlockPos fleePos;
 
-    public FleeFire(CreatureEntity entity) {
+    public FleeFire(PathfinderMob entity) {
     this.entity = entity;
     }
 
@@ -34,11 +34,11 @@ public class FleeFire extends Goal {
         super.tick();
         if (isNearLava()) {
             double fleeDistance = 4D;
-            Vector3d vecTarget = new Vector3d(fleePos.getX(), fleePos.getY(), fleePos.getZ());
-            Vector3d vecRec = new Vector3d(entity.getX(), entity.getY(), entity.getZ());
-            Vector3d fleeDir = vecRec.subtract(vecTarget);
+            Vec3 vecTarget = new Vec3(fleePos.getX(), fleePos.getY(), fleePos.getZ());
+            Vec3 vecRec = new Vec3(entity.getX(), entity.getY(), entity.getZ());
+            Vec3 fleeDir = vecRec.subtract(vecTarget);
             fleeDir = fleeDir.normalize();
-            Vector3d fleePos1 = new Vector3d(vecRec.x + fleeDir.x * fleeDistance, vecRec.y + fleeDir.y * fleeDistance, vecRec.z + fleeDir.z * fleeDistance);
+            Vec3 fleePos1 = new Vec3(vecRec.x + fleeDir.x * fleeDistance, vecRec.y + fleeDir.y * fleeDistance, vecRec.z + fleeDir.z * fleeDistance);
             entity.getNavigation().moveTo(fleePos1.x, fleePos1.y, fleePos1.z, 1.15D);
             if (entity instanceof AbstractRecruitEntity) {
                 AbstractRecruitEntity recruit = (AbstractRecruitEntity) entity;

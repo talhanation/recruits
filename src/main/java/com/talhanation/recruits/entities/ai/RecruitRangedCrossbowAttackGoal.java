@@ -2,19 +2,19 @@ package com.talhanation.recruits.entities.ai;
 
 import java.util.EnumSet;
 
-import net.minecraft.entity.CreatureEntity;
-import net.minecraft.entity.ICrossbowUser;
-import net.minecraft.entity.IRangedAttackMob;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.projectile.ProjectileHelper;
-import net.minecraft.item.CrossbowItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.util.RangedInteger;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.monster.CrossbowAttackMob;
+import net.minecraft.world.entity.monster.RangedAttackMob;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
+import net.minecraft.world.item.CrossbowItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.util.IntRange;
 
-public class RecruitRangedCrossbowAttackGoal<T extends CreatureEntity & IRangedAttackMob & ICrossbowUser> extends Goal {
-    public static final RangedInteger PATHFINDING_DELAY_RANGE = new RangedInteger(20, 40);
+public class RecruitRangedCrossbowAttackGoal<T extends PathfinderMob & RangedAttackMob & CrossbowAttackMob> extends Goal {
+    public static final IntRange PATHFINDING_DELAY_RANGE = new IntRange(20, 40);
     private final T mob;
     private CrossbowState crossbowState = CrossbowState.UNCHARGED;
     private final double speedModifier;
@@ -90,7 +90,7 @@ public class RecruitRangedCrossbowAttackGoal<T extends CreatureEntity & IRangedA
             this.mob.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
             if (this.crossbowState == CrossbowState.UNCHARGED) {
                 if (!flag2) {
-                    this.mob.startUsingItem(ProjectileHelper.getWeaponHoldingHand(this.mob, Items.CROSSBOW));
+                    this.mob.startUsingItem(ProjectileUtil.getWeaponHoldingHand(this.mob, Items.CROSSBOW));
                     this.crossbowState = CrossbowState.CHARGING;
                     this.mob.setChargingCrossbow(true);
                 }
@@ -114,7 +114,7 @@ public class RecruitRangedCrossbowAttackGoal<T extends CreatureEntity & IRangedA
                 }
             } else if (this.crossbowState == CrossbowState.READY_TO_ATTACK && flag) {
                 this.mob.performRangedAttack(livingentity, 1.0F);
-                ItemStack itemstack1 = this.mob.getItemInHand(ProjectileHelper.getWeaponHoldingHand(this.mob, Items.CROSSBOW));
+                ItemStack itemstack1 = this.mob.getItemInHand(ProjectileUtil.getWeaponHoldingHand(this.mob, Items.CROSSBOW));
                 CrossbowItem.setCharged(itemstack1, false);
                 this.crossbowState = CrossbowState.UNCHARGED;
             }

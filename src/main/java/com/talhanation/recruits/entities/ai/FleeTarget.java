@@ -1,18 +1,18 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AssassinEntity;
-import net.minecraft.entity.CreatureEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
 public class FleeTarget extends Goal {
 
-    CreatureEntity entity;
+    PathfinderMob entity;
 
-    public FleeTarget(CreatureEntity creatureEntity) {
+    public FleeTarget(PathfinderMob creatureEntity) {
     this.entity = creatureEntity;
     }
 
@@ -33,11 +33,11 @@ public class FleeTarget extends Goal {
             for (LivingEntity living : list) {
                 if (living.equals(this.entity.getTarget())) {
                     double fleeDistance = 64.0D;
-                    Vector3d vecTarget = new Vector3d(living.getX(), living.getY(), living.getZ());
-                    Vector3d vecRec = new Vector3d(entity.getX(), entity.getY(), entity.getZ());
-                    Vector3d fleeDir = vecRec.subtract(vecTarget);
+                    Vec3 vecTarget = new Vec3(living.getX(), living.getY(), living.getZ());
+                    Vec3 vecRec = new Vec3(entity.getX(), entity.getY(), entity.getZ());
+                    Vec3 fleeDir = vecRec.subtract(vecTarget);
                     fleeDir = fleeDir.normalize();
-                    Vector3d fleePos = new Vector3d(vecRec.x + fleeDir.x * fleeDistance, vecRec.y + fleeDir.y * fleeDistance, vecRec.z + fleeDir.z * fleeDistance);
+                    Vec3 fleePos = new Vec3(vecRec.x + fleeDir.x * fleeDistance, vecRec.y + fleeDir.y * fleeDistance, vecRec.z + fleeDir.z * fleeDistance);
                     entity.getNavigation().moveTo(fleePos.x, fleePos.y, fleePos.z, 1.25D);
                     if (entity instanceof AssassinEntity) {
                         AssassinEntity recruit = (AssassinEntity) entity;

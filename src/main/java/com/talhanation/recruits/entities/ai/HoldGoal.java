@@ -3,8 +3,8 @@ package com.talhanation.recruits.entities.ai;
 import java.util.EnumSet;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.goal.Goal;
 
 public class HoldGoal extends Goal {
     private final AbstractRecruitEntity entity;

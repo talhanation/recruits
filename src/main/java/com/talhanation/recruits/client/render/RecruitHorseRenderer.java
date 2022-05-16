@@ -2,10 +2,10 @@ package com.talhanation.recruits.client.render;
 
 import com.talhanation.recruits.client.models.RecruitHorseModel;
 import com.talhanation.recruits.entities.RecruitHorseEntity;
-import net.minecraft.client.renderer.entity.EntityRendererManager;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.entity.passive.horse.CoatColors;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 public class RecruitHorseRenderer extends MobRenderer<RecruitHorseEntity, RecruitHorseModel> {
     private static final ResourceLocation[] TEXTURE = new ResourceLocation[]{
@@ -19,7 +19,7 @@ public class RecruitHorseRenderer extends MobRenderer<RecruitHorseEntity, Recrui
             new ResourceLocation("textures/entity/horse/horse_darkbrown.png")};
 
 
-    public RecruitHorseRenderer (EntityRendererManager p_i47205_1_) {
+    public RecruitHorseRenderer (EntityRenderDispatcher p_i47205_1_) {
         super(p_i47205_1_, new RecruitHorseModel(0F), 1);
     }
 

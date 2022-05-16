@@ -1,20 +1,20 @@
 package com.talhanation.recruits.client.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -25,40 +25,40 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/command_gui.png");
 
 
-    private static final ITextComponent TEXT_GROUP = new TranslationTextComponent("gui.recruits.command.text.group");
-    private static final ITextComponent TEXT_EVERYONE = new TranslationTextComponent("gui.recruits.command.text.everyone");
+    private static final Component TEXT_GROUP = new TranslatableComponent("gui.recruits.command.text.group");
+    private static final Component TEXT_EVERYONE = new TranslatableComponent("gui.recruits.command.text.everyone");
 
-    private static final ITextComponent TOOLTIP_FOLLOW = new TranslationTextComponent("gui.recruits.command.tooltip.follow");
-    private static final ITextComponent TOOLTIP_WANDER = new TranslationTextComponent("gui.recruits.command.tooltip.wander");
-    private static final ITextComponent TOOLTIP_HOLD_MY_POS = new TranslationTextComponent("gui.recruits.command.tooltip.holdMyPos");
-    private static final ITextComponent TOOLTIP_HOLD_POS = new TranslationTextComponent("gui.recruits.command.tooltip.holdPos");
-    private static final ITextComponent TOOLTIP_BACK_TO_POS = new TranslationTextComponent("gui.recruits.command.tooltip.backToPos");
+    private static final Component TOOLTIP_FOLLOW = new TranslatableComponent("gui.recruits.command.tooltip.follow");
+    private static final Component TOOLTIP_WANDER = new TranslatableComponent("gui.recruits.command.tooltip.wander");
+    private static final Component TOOLTIP_HOLD_MY_POS = new TranslatableComponent("gui.recruits.command.tooltip.holdMyPos");
+    private static final Component TOOLTIP_HOLD_POS = new TranslatableComponent("gui.recruits.command.tooltip.holdPos");
+    private static final Component TOOLTIP_BACK_TO_POS = new TranslatableComponent("gui.recruits.command.tooltip.backToPos");
 
-    private static final ITextComponent TOOLTIP_PASSIVE = new TranslationTextComponent("gui.recruits.command.tooltip.passive");
-    private static final ITextComponent TOOLTIP_NEUTRAL = new TranslationTextComponent("gui.recruits.command.tooltip.neutral");
-    private static final ITextComponent TOOLTIP_AGGRESSIVE = new TranslationTextComponent("gui.recruits.command.tooltip.aggressive");
-    private static final ITextComponent TOOLTIP_RAID = new TranslationTextComponent("gui.recruits.command.tooltip.raid");
+    private static final Component TOOLTIP_PASSIVE = new TranslatableComponent("gui.recruits.command.tooltip.passive");
+    private static final Component TOOLTIP_NEUTRAL = new TranslatableComponent("gui.recruits.command.tooltip.neutral");
+    private static final Component TOOLTIP_AGGRESSIVE = new TranslatableComponent("gui.recruits.command.tooltip.aggressive");
+    private static final Component TOOLTIP_RAID = new TranslatableComponent("gui.recruits.command.tooltip.raid");
 
-    private static final ITextComponent TEXT_FOLLOW = new TranslationTextComponent("gui.recruits.command.text.follow");
-    private static final ITextComponent TEXT_WANDER = new TranslationTextComponent("gui.recruits.command.text.wander");
-    private static final ITextComponent TEXT_HOLD_MY_POS = new TranslationTextComponent("gui.recruits.command.text.holdMyPos");
-    private static final ITextComponent TEXT_HOLD_POS = new TranslationTextComponent("gui.recruits.command.text.holdPos");
-    private static final ITextComponent TEXT_BACK_TO_POS = new TranslationTextComponent("gui.recruits.command.text.backToPos");
+    private static final Component TEXT_FOLLOW = new TranslatableComponent("gui.recruits.command.text.follow");
+    private static final Component TEXT_WANDER = new TranslatableComponent("gui.recruits.command.text.wander");
+    private static final Component TEXT_HOLD_MY_POS = new TranslatableComponent("gui.recruits.command.text.holdMyPos");
+    private static final Component TEXT_HOLD_POS = new TranslatableComponent("gui.recruits.command.text.holdPos");
+    private static final Component TEXT_BACK_TO_POS = new TranslatableComponent("gui.recruits.command.text.backToPos");
 
-    private static final ITextComponent TEXT_PASSIVE = new TranslationTextComponent("gui.recruits.command.text.passive");
-    private static final ITextComponent TEXT_NEUTRAL = new TranslationTextComponent("gui.recruits.command.text.neutral");
-    private static final ITextComponent TEXT_AGGRESSIVE = new TranslationTextComponent("gui.recruits.command.text.aggressive");
-    private static final ITextComponent TEXT_RAID = new TranslationTextComponent("gui.recruits.command.text.raid");
+    private static final Component TEXT_PASSIVE = new TranslatableComponent("gui.recruits.command.text.passive");
+    private static final Component TEXT_NEUTRAL = new TranslatableComponent("gui.recruits.command.text.neutral");
+    private static final Component TEXT_AGGRESSIVE = new TranslatableComponent("gui.recruits.command.text.aggressive");
+    private static final Component TEXT_RAID = new TranslatableComponent("gui.recruits.command.text.raid");
 
-    private static final ITextComponent TOOLTIP_CLEAR_TARGET = new TranslationTextComponent("gui.recruits.command.tooltip.clearTargets");
-    private static final ITextComponent TEXT_CLEAR_TARGET = new TranslationTextComponent("gui.recruits.command.text.clearTargets");
+    private static final Component TOOLTIP_CLEAR_TARGET = new TranslatableComponent("gui.recruits.command.tooltip.clearTargets");
+    private static final Component TEXT_CLEAR_TARGET = new TranslatableComponent("gui.recruits.command.text.clearTargets");
 
     private static final int fontColor = 16250871;
-    private PlayerEntity player;
+    private Player player;
     private int group;
     private int recCount;
 
-    public CommandScreen(CommandContainer commandContainer, PlayerInventory playerInventory, ITextComponent title) {
+    public CommandScreen(CommandContainer commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, title);
         imageWidth = 201;
         imageHeight = 170;
@@ -272,7 +272,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         */
 
         //GROUP
-        addButton(new Button(leftPos - 4 + imageWidth / 2, topPos - 40 + imageHeight / 2, 11, 20, new StringTextComponent("+"), button -> {
+        addButton(new Button(leftPos - 4 + imageWidth / 2, topPos - 40 + imageHeight / 2, 11, 20, new TextComponent("+"), button -> {
             this.group = getSavedCurrentGroup(player);
 
             if (this.group != 9) {
@@ -282,7 +282,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             }
         }));
 
-        addButton(new Button(leftPos - 4 + imageWidth / 2, topPos + imageHeight / 2, 11, 20, new StringTextComponent("-"), button -> {
+        addButton(new Button(leftPos - 4 + imageWidth / 2, topPos + imageHeight / 2, 11, 20, new TextComponent("-"), button -> {
             this.group = getSavedCurrentGroup(player);
 
             if (this.group != 0) {
@@ -294,7 +294,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
     }
 
     @Override
-    protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
+    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
 
         //Main.SIMPLE_CHANNEL.sendToServer(new MessageRecruitsInCommand(player.getUUID()));
@@ -310,7 +310,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         //font.draw(matrixStack, "" +  handleRecruitCountText(currentRecruits), k - 30 , 0, fontColor);
     }
 
-    protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
         super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
 
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -346,19 +346,19 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
      */
 
-    public int getSavedCurrentGroup(PlayerEntity player) {
-        CompoundNBT playerNBT = player.getPersistentData();
-        CompoundNBT nbt = playerNBT.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
+    public int getSavedCurrentGroup(Player player) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
 
         return nbt.getInt("CommandingGroup");
     }
 
-    public void saveCurrentGroup(PlayerEntity player) {
-        CompoundNBT playerNBT = player.getPersistentData();
-        CompoundNBT nbt = playerNBT.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
+    public void saveCurrentGroup(Player player) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
 
         nbt.putInt( "CommandingGroup", this.group);
-        playerNBT.put(PlayerEntity.PERSISTED_NBT_TAG, nbt);
+        playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
 
 }

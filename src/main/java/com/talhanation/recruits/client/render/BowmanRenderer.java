@@ -2,8 +2,8 @@ package com.talhanation.recruits.client.render;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.BowmanEntity;
-import net.minecraft.client.renderer.entity.EntityRendererManager;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.resources.ResourceLocation;
 
 
 public class BowmanRenderer extends AbstractRecruitRenderer<BowmanEntity> {
@@ -12,7 +12,7 @@ public class BowmanRenderer extends AbstractRecruitRenderer<BowmanEntity> {
             new ResourceLocation(Main.MOD_ID,"textures/entity/recruit.png"),
     };
 
-    public BowmanRenderer(EntityRendererManager mgr) {
+    public BowmanRenderer(EntityRenderDispatcher mgr) {
         super(mgr);
     }
 

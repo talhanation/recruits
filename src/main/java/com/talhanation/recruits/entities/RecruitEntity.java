@@ -3,28 +3,35 @@ package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.entities.ai.*;
 import net.minecraft.entity.*;
-import net.minecraft.entity.ai.attributes.AttributeModifierMap;
-import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.item.*;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.pathfinding.GroundPathNavigator;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.DifficultyInstance;
-import net.minecraft.world.IServerWorld;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 
 import javax.annotation.Nullable;
 import java.util.function.Predicate;
+
+import net.minecraft.world.entity.AgableMob;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 public class RecruitEntity extends AbstractRecruitEntity {
 
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
 
-    public RecruitEntity(EntityType<? extends AbstractRecruitEntity> entityType, World world) {
+    public RecruitEntity(EntityType<? extends AbstractRecruitEntity> entityType, Level world) {
         super(entityType, world);
     }
 
@@ -35,7 +42,7 @@ public class RecruitEntity extends AbstractRecruitEntity {
     }
 
     //ATTRIBUTES
-    public static AttributeModifierMap.MutableAttribute setAttributes() {
+    public static AttributeSupplier.Builder setAttributes() {
         return createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
@@ -46,9 +53,9 @@ public class RecruitEntity extends AbstractRecruitEntity {
     }
 
     @Nullable
-    public ILivingEntityData finalizeSpawn(IServerWorld world, DifficultyInstance difficultyInstance, SpawnReason reason, @Nullable ILivingEntityData data, @Nullable CompoundNBT nbt) {
-        ILivingEntityData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
-        ((GroundPathNavigator)this.getNavigation()).setCanOpenDoors(true);
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data, @Nullable CompoundTag nbt) {
+        SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
+        ((GroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
         this.populateDefaultEquipmentEnchantments(difficultyInstance);
 
         this.initSpawn();
@@ -58,7 +65,7 @@ public class RecruitEntity extends AbstractRecruitEntity {
 
     @Override
     public void initSpawn() {
-        this.setCustomName(new StringTextComponent("Recruit"));
+        this.setCustomName(new TextComponent("Recruit"));
         this.setEquipment();
         this.setDropEquipment();
         this.setRandomSpawnBonus();
@@ -72,10 +79,10 @@ public class RecruitEntity extends AbstractRecruitEntity {
         // wenn nur setItemSlot = dann geht beim gui opening weg
         // wenn nur setItem = dann geht beim gui opening rein
         // wtf
-        this.setItemSlot(EquipmentSlotType.HEAD, new ItemStack(Items.LEATHER_HELMET));
-        this.setItemSlot(EquipmentSlotType.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));
-        this.setItemSlot(EquipmentSlotType.LEGS, new ItemStack(Items.LEATHER_LEGGINGS));
-        this.setItemSlot(EquipmentSlotType.FEET, new ItemStack(Items.LEATHER_BOOTS));
+        this.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.LEATHER_HELMET));
+        this.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));
+        this.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.LEATHER_LEGGINGS));
+        this.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.LEATHER_BOOTS));
 
         inventory.setItem(11, new ItemStack(Items.LEATHER_HELMET));
         inventory.setItem(12, new ItemStack(Items.LEATHER_CHESTPLATE));
@@ -84,22 +91,22 @@ public class RecruitEntity extends AbstractRecruitEntity {
         int i = this.random.nextInt(8);
         if (i == 0) {
             inventory.setItem(9, new ItemStack(Items.STONE_AXE));
-            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_AXE));
+            this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_AXE));
         } else  if (i == 1){
             inventory.setItem(9, new ItemStack(Items.STONE_SWORD));
-            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_SWORD));
+            this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
         } else  if (i == 2){
             inventory.setItem(9, new ItemStack(Items.STONE_SWORD));
-            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.STONE_SWORD));
+            this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
         }else{
             inventory.setItem(9, new ItemStack(Items.WOODEN_SWORD));
-            this.setItemSlot(EquipmentSlotType.MAINHAND, new ItemStack(Items.WOODEN_SWORD));
+            this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.WOODEN_SWORD));
         }
     }
 
     @Nullable
     @Override
-    public AgeableEntity getBreedOffspring(ServerWorld p_241840_1_, AgeableEntity p_241840_2_) {
+    public AgableMob getBreedOffspring(ServerLevel p_241840_1_, AgableMob p_241840_2_) {
         return null;
     }
 

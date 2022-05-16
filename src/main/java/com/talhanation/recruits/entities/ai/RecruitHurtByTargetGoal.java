@@ -2,19 +2,24 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.entity.*;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.ai.goal.HurtByTargetGoal;
-import net.minecraft.entity.passive.TameableEntity;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.world.GameRules;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
+import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.level.GameRules;
 
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
+
 public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
-    private static final EntityPredicate HURT_BY_TARGETING = (new EntityPredicate()).allowUnseeable().ignoreInvisibilityTesting();
+    private static final TargetingConditions HURT_BY_TARGETING = (new TargetingConditions()).allowUnseeable().ignoreInvisibilityTesting();
     private boolean alertSameType;
     private int timestamp;
     private final Class<?>[] toIgnoreDamage;
@@ -55,7 +60,7 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
         }
     }
 
-    public net.minecraft.entity.ai.goal.HurtByTargetGoal setAlertOthers(Class<?>... p_220794_1_) {
+    public net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal setAlertOthers(Class<?>... p_220794_1_) {
         this.alertSameType = true;
         this.toIgnoreAlert = p_220794_1_;
         return this;
@@ -75,19 +80,19 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
 
     protected void alertOthers() {
         double d0 = this.getFollowDistance();
-        AxisAlignedBB axisalignedbb = AxisAlignedBB.unitCubeFromLowerCorner(this.recruit.position()).inflate(d0, 10.0D, d0);
-        List<MobEntity> list = this.recruit.level.getLoadedEntitiesOfClass(this.recruit.getClass(), axisalignedbb);
+        AABB axisalignedbb = AABB.unitCubeFromLowerCorner(this.recruit.position()).inflate(d0, 10.0D, d0);
+        List<Mob> list = this.recruit.level.getLoadedEntitiesOfClass(this.recruit.getClass(), axisalignedbb);
         Iterator iterator = list.iterator();
 
         while (true) {
-            MobEntity mobentity;
+            Mob mobentity;
             while (true) {
                 if (!iterator.hasNext()) {
                     return;
                 }
 
-                mobentity = (MobEntity) iterator.next();
-                if (this.recruit != mobentity && mobentity.getTarget() == null && (this.recruit).getOwner() == ((TameableEntity) mobentity).getOwner() && !mobentity.isAlliedTo(this.recruit.getLastHurtByMob())) {
+                mobentity = (Mob) iterator.next();
+                if (this.recruit != mobentity && mobentity.getTarget() == null && (this.recruit).getOwner() == ((TamableAnimal) mobentity).getOwner() && !mobentity.isAlliedTo(this.recruit.getLastHurtByMob())) {
                     if (this.toIgnoreAlert == null) {
                         break;
                     }
@@ -111,7 +116,7 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
         }
     }
 
-    protected void alertOther(MobEntity p_220793_1_, LivingEntity p_220793_2_) {
+    protected void alertOther(Mob p_220793_1_, LivingEntity p_220793_2_) {
         p_220793_1_.setTarget(p_220793_2_);
     }
 }

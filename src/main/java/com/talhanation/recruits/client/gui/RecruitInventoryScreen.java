@@ -1,68 +1,72 @@
 package com.talhanation.recruits.client.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.RecruitInventoryContainer;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
-import net.minecraft.client.gui.screen.inventory.InventoryScreen;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.util.text.*;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+
 @OnlyIn(Dist.CLIENT)
 public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/recruit_gui.png" );
 
-    private static final ITextComponent TEXT_HEALTH = new TranslationTextComponent("gui.recruits.inv.health");
-    private static final ITextComponent TEXT_LEVEL = new TranslationTextComponent("gui.recruits.inv.level");
-    private static final ITextComponent TEXT_KILLS = new TranslationTextComponent("gui.recruits.inv.kills");
+    private static final Component TEXT_HEALTH = new TranslatableComponent("gui.recruits.inv.health");
+    private static final Component TEXT_LEVEL = new TranslatableComponent("gui.recruits.inv.level");
+    private static final Component TEXT_KILLS = new TranslatableComponent("gui.recruits.inv.kills");
 
-    private static final ITextComponent TEXT_DISBAND = new TranslationTextComponent("gui.recruits.inv.text.disband");
+    private static final Component TEXT_DISBAND = new TranslatableComponent("gui.recruits.inv.text.disband");
 
-    private static final ITextComponent TOOLTIP_DISBAND = new TranslationTextComponent("gui.recruits.inv.tooltip.disband");
+    private static final Component TOOLTIP_DISBAND = new TranslatableComponent("gui.recruits.inv.tooltip.disband");
 
-    private static final ITextComponent TOOLTIP_FOLLOW = new TranslationTextComponent("gui.recruits.inv.tooltip.follow");
-    private static final ITextComponent TOOLTIP_WANDER = new TranslationTextComponent("gui.recruits.inv.tooltip.wander");
-    private static final ITextComponent TOOLTIP_HOLD_MY_POS = new TranslationTextComponent("gui.recruits.inv.tooltip.holdMyPos");
-    private static final ITextComponent TOOLTIP_HOLD_POS = new TranslationTextComponent("gui.recruits.inv.tooltip.holdPos");
-    private static final ITextComponent TOOLTIP_BACK_TO_POS = new TranslationTextComponent("gui.recruits.inv.tooltip.backToPos");
+    private static final Component TOOLTIP_FOLLOW = new TranslatableComponent("gui.recruits.inv.tooltip.follow");
+    private static final Component TOOLTIP_WANDER = new TranslatableComponent("gui.recruits.inv.tooltip.wander");
+    private static final Component TOOLTIP_HOLD_MY_POS = new TranslatableComponent("gui.recruits.inv.tooltip.holdMyPos");
+    private static final Component TOOLTIP_HOLD_POS = new TranslatableComponent("gui.recruits.inv.tooltip.holdPos");
+    private static final Component TOOLTIP_BACK_TO_POS = new TranslatableComponent("gui.recruits.inv.tooltip.backToPos");
 
-    private static final ITextComponent TEXT_FOLLOW = new TranslationTextComponent("gui.recruits.inv.text.follow");
-    private static final ITextComponent TEXT_WANDER = new TranslationTextComponent("gui.recruits.inv.text.wander");
-    private static final ITextComponent TEXT_HOLD_MY_POS = new TranslationTextComponent("gui.recruits.inv.text.holdMyPos");
-    private static final ITextComponent TEXT_HOLD_POS = new TranslationTextComponent("gui.recruits.inv.text.holdPos");
-    private static final ITextComponent TEXT_BACK_TO_POS = new TranslationTextComponent("gui.recruits.inv.text.backToPos");
+    private static final Component TEXT_FOLLOW = new TranslatableComponent("gui.recruits.inv.text.follow");
+    private static final Component TEXT_WANDER = new TranslatableComponent("gui.recruits.inv.text.wander");
+    private static final Component TEXT_HOLD_MY_POS = new TranslatableComponent("gui.recruits.inv.text.holdMyPos");
+    private static final Component TEXT_HOLD_POS = new TranslatableComponent("gui.recruits.inv.text.holdPos");
+    private static final Component TEXT_BACK_TO_POS = new TranslatableComponent("gui.recruits.inv.text.backToPos");
 
 
-    private static final ITextComponent TEXT_PASSIVE = new TranslationTextComponent("gui.recruits.inv.text.passive");
-    private static final ITextComponent TEXT_NEUTRAL = new TranslationTextComponent("gui.recruits.inv.text.neutral");
-    private static final ITextComponent TEXT_AGGRESSIVE = new TranslationTextComponent("gui.recruits.inv.text.aggressive");
-    private static final ITextComponent TEXT_RAID = new TranslationTextComponent("gui.recruits.inv.text.raid");
-    private static final ITextComponent TEXT_CLEAR_TARGET = new TranslationTextComponent("gui.recruits.command.text.clearTargets");
+    private static final Component TEXT_PASSIVE = new TranslatableComponent("gui.recruits.inv.text.passive");
+    private static final Component TEXT_NEUTRAL = new TranslatableComponent("gui.recruits.inv.text.neutral");
+    private static final Component TEXT_AGGRESSIVE = new TranslatableComponent("gui.recruits.inv.text.aggressive");
+    private static final Component TEXT_RAID = new TranslatableComponent("gui.recruits.inv.text.raid");
+    private static final Component TEXT_CLEAR_TARGET = new TranslatableComponent("gui.recruits.command.text.clearTargets");
 
-    private static final ITextComponent TOOLTIP_PASSIVE = new TranslationTextComponent("gui.recruits.inv.tooltip.passive");
-    private static final ITextComponent TOOLTIP_NEUTRAL = new TranslationTextComponent("gui.recruits.inv.tooltip.neutral");
-    private static final ITextComponent TOOLTIP_AGGRESSIVE = new TranslationTextComponent("gui.recruits.inv.tooltip.aggressive");
-    private static final ITextComponent TOOLTIP_RAID = new TranslationTextComponent("gui.recruits.inv.tooltip.raid");
+    private static final Component TOOLTIP_PASSIVE = new TranslatableComponent("gui.recruits.inv.tooltip.passive");
+    private static final Component TOOLTIP_NEUTRAL = new TranslatableComponent("gui.recruits.inv.tooltip.neutral");
+    private static final Component TOOLTIP_AGGRESSIVE = new TranslatableComponent("gui.recruits.inv.tooltip.aggressive");
+    private static final Component TOOLTIP_RAID = new TranslatableComponent("gui.recruits.inv.tooltip.raid");
 
     private static final int fontColor = 4210752;
 
     private final AbstractRecruitEntity recruit;
-    private final PlayerInventory playerInventory;
+    private final Inventory playerInventory;
 
     private int group;
     private int follow;
     private int aggro;
 
-    public RecruitInventoryScreen(RecruitInventoryContainer recruitContainer, PlayerInventory playerInventory, ITextComponent title) {
+    public RecruitInventoryScreen(RecruitInventoryContainer recruitContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, recruitContainer, playerInventory, title);
         this.recruit = recruitContainer.getRecruit();
         this.playerInventory = playerInventory;
@@ -201,17 +205,17 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
 
         //LISTEN
-        addButton(new Button(leftPos + 77, topPos + 113, 8, 12, new StringTextComponent("<"), button -> {
+        addButton(new Button(leftPos + 77, topPos + 113, 8, 12, new TextComponent("<"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         }));
 
-        addButton(new Button(leftPos + 77 + 85, topPos + 113, 8, 12, new StringTextComponent(">"), button -> {
+        addButton(new Button(leftPos + 77 + 85, topPos + 113, 8, 12, new TextComponent(">"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         }));
 
 
         //GROUP
-        addButton(new Button(leftPos + 77, topPos + 100, 8, 12, new StringTextComponent("<"), button -> {
+        addButton(new Button(leftPos + 77, topPos + 100, 8, 12, new TextComponent("<"), button -> {
             this.group = recruit.getGroup();
             if (this.group != 0) {
                 this.group--;
@@ -219,7 +223,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
             }
         }));
 
-        addButton(new Button(leftPos + 77 + 85, topPos + 100, 8, 12, new StringTextComponent(">"), button -> {
+        addButton(new Button(leftPos + 77 + 85, topPos + 100, 8, 12, new TextComponent(">"), button -> {
             this.group = recruit.getGroup();
             if (this.group != 9) {
                 this.group++;
@@ -238,9 +242,9 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
     }
 
     @Override
-    protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
+    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
-        int health = MathHelper.ceil(recruit.getHealth());
+        int health = Mth.ceil(recruit.getHealth());
         this.follow = recruit.getFollowState();
         this.aggro = recruit.getState();
 
@@ -312,7 +316,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         font.draw(matrixStack, listen, k + 15, l + 56 + 41, fontColor);
     }
 
-    protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
         super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
         int i = (this.width - this.imageWidth) / 2;

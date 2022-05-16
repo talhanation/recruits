@@ -1,10 +1,12 @@
 package com.talhanation.recruits.items;
 
-import net.minecraft.entity.EntityType;
-import net.minecraft.item.SpawnEggItem;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.SpawnEggItem;
+import net.minecraft.nbt.CompoundTag;
 
 import java.util.function.Supplier;
+
+import net.minecraft.world.item.Item.Properties;
 
 public class RecruitSpawnEgg extends SpawnEggItem {
 
@@ -16,9 +18,9 @@ public class RecruitSpawnEgg extends SpawnEggItem {
     }
 
     @Override
-    public EntityType<?> getType(CompoundNBT compound){
+    public EntityType<?> getType(CompoundTag compound){
         if(compound != null && compound.contains("EntityTag", 10)) {
-            CompoundNBT entityTag = compound.getCompound("EntityTag");
+            CompoundTag entityTag = compound.getCompound("EntityTag");
 
             if(entityTag.contains("id", 8)) {
                 return EntityType.byString(entityTag.getString("id")).orElse(this.entityType.get());

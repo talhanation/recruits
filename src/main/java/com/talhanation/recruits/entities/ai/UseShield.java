@@ -1,34 +1,42 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.entity.CreatureEntity;
-import net.minecraft.entity.IRangedAttackMob;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.monster.MonsterEntity;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.monster.RangedAttackMob;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.item.*;
-import net.minecraft.util.Hand;
+import net.minecraft.world.InteractionHand;
 
 import javax.swing.*;
 
+import net.minecraft.world.item.AxeItem;
+import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.CrossbowItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.PickaxeItem;
+import net.minecraft.world.item.SwordItem;
+
 public class UseShield extends Goal {
-    public final CreatureEntity entity;
+    public final PathfinderMob entity;
     public int usedTimer;
 
-    public UseShield(CreatureEntity recruit){
+    public UseShield(PathfinderMob recruit){
         this.entity = recruit;
     }
 
     public boolean canUse() {
         if (entity instanceof AbstractRecruitEntity){
             AbstractRecruitEntity recruit = (AbstractRecruitEntity) entity;
-            return (recruit.getItemInHand(Hand.OFF_HAND).getItem().isShield(this.entity.getItemInHand(Hand.OFF_HAND), this.entity)
+            return (recruit.getItemInHand(InteractionHand.OFF_HAND).getItem().isShield(this.entity.getItemInHand(InteractionHand.OFF_HAND), this.entity)
                     && canRaiseShield()
                     && !recruit.isFollowing()
             );
         }
-        else return (this.entity.getItemInHand(Hand.OFF_HAND).getItem().isShield(this.entity.getItemInHand(Hand.OFF_HAND), this.entity)
+        else return (this.entity.getItemInHand(InteractionHand.OFF_HAND).getItem().isShield(this.entity.getItemInHand(InteractionHand.OFF_HAND), this.entity)
                && canRaiseShield()
 
        );
@@ -39,8 +47,8 @@ public class UseShield extends Goal {
     }
 
     public void start() {
-        if (this.entity.getItemInHand(Hand.OFF_HAND).getItem().isShield(this.entity.getItemInHand(Hand.OFF_HAND), entity)){
-        this.entity.startUsingItem(Hand.OFF_HAND);
+        if (this.entity.getItemInHand(InteractionHand.OFF_HAND).getItem().isShield(this.entity.getItemInHand(InteractionHand.OFF_HAND), entity)){
+        this.entity.startUsingItem(InteractionHand.OFF_HAND);
         this.entity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.12D);
         }
     }
@@ -50,7 +58,7 @@ public class UseShield extends Goal {
     }
 
     public void tick() {
-        if (this.entity.getUsedItemHand() == Hand.OFF_HAND) {
+        if (this.entity.getUsedItemHand() == InteractionHand.OFF_HAND) {
             this.entity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.16D);
         } else {
             this.entity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.3D);
@@ -61,18 +69,18 @@ public class UseShield extends Goal {
         LivingEntity target = this.entity.getTarget();
 
         if (target != null) {
-            ItemStack itemStackinHand = target.getItemInHand(Hand.MAIN_HAND);
+            ItemStack itemStackinHand = target.getItemInHand(InteractionHand.MAIN_HAND);
             Item itemInHand = itemStackinHand.getItem();
             boolean isClose = target.distanceTo(this.entity) <= 3.75D;
             boolean isFar = target.distanceTo(this.entity) >= 20.0D;
             boolean inRange =  !isFar && target.distanceTo(this.entity) <= 15.0D;
             boolean isDanger = itemInHand instanceof CrossbowItem && CrossbowItem.isCharged(itemStackinHand) || itemInHand instanceof AxeItem || itemInHand instanceof PickaxeItem || itemInHand instanceof SwordItem;
 
-            if (target instanceof IRangedAttackMob && inRange ) {
+            if (target instanceof RangedAttackMob && inRange ) {
                 return true;
             }
 
-            if (isClose && (isDanger || target instanceof MonsterEntity)) {
+            if (isClose && (isDanger || target instanceof Monster)) {
                 return true;
             }
 

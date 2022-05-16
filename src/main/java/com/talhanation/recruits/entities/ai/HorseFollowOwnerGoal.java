@@ -2,20 +2,22 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.RecruitHorseEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.pathfinding.PathNavigator;
-import net.minecraft.pathfinding.PathNodeType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.level.pathfinder.BlockPathTypes;
 
 import java.util.EnumSet;
 import java.util.Objects;
+
+import net.minecraft.world.entity.ai.goal.Goal.Flag;
 
 public class HorseFollowOwnerGoal extends Goal {
     private final RecruitHorseEntity recruitHorse;
     private LivingEntity owner;
     private AbstractRecruitEntity rider;
     private final double speedModifier;
-    private final PathNavigator navigation;
+    private final PathNavigation navigation;
     private int timeToRecalcPath;
     private final float stopDistance;
     private final float startDistance;
@@ -67,15 +69,15 @@ public class HorseFollowOwnerGoal extends Goal {
 
     public void start() {
         this.timeToRecalcPath = 0;
-        this.oldWaterCost = this.recruitHorse.getPathfindingMalus(PathNodeType.WATER);
-        this.recruitHorse.setPathfindingMalus(PathNodeType.WATER, 0.0F);
+        this.oldWaterCost = this.recruitHorse.getPathfindingMalus(BlockPathTypes.WATER);
+        this.recruitHorse.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
         //this.recruitHorse.setIsFollowing(true);
     }
 
     public void stop() {
         this.owner = null;
         this.navigation.stop();
-        this.recruitHorse.setPathfindingMalus(PathNodeType.WATER, this.oldWaterCost);
+        this.recruitHorse.setPathfindingMalus(BlockPathTypes.WATER, this.oldWaterCost);
         //this.recruitHorse.setIsFollowing(false);
     }
 

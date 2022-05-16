@@ -1,6 +1,6 @@
 package com.talhanation.recruits.client.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.config.RecruitsModConfig;
@@ -8,13 +8,13 @@ import com.talhanation.recruits.entities.AssassinLeaderEntity;
 import com.talhanation.recruits.inventory.AssassinLeaderContainer;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.glfw.GLFW;
@@ -24,20 +24,20 @@ import org.lwjgl.glfw.GLFW;
 public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderContainer> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/assassin_gui.png");
 
-    private static final ITextComponent TEXT_HEALTH = new TranslationTextComponent("gui.recruits.health");
-    private static final ITextComponent TEXT_LEVEL = new TranslationTextComponent("gui.recruits.level");
-    private static final ITextComponent TEXT_GROUP = new TranslationTextComponent("gui.recruits.group");
-    private static final ITextComponent TEXT_KILLS = new TranslationTextComponent("gui.recruits.kills");
+    private static final Component TEXT_HEALTH = new TranslatableComponent("gui.recruits.health");
+    private static final Component TEXT_LEVEL = new TranslatableComponent("gui.recruits.level");
+    private static final Component TEXT_GROUP = new TranslatableComponent("gui.recruits.group");
+    private static final Component TEXT_KILLS = new TranslatableComponent("gui.recruits.kills");
 
     private static final int fontColor = 4210752;
 
-    private final PlayerInventory playerInventory;
+    private final Inventory playerInventory;
     private final AssassinLeaderEntity assassinLeaderEntity;
-    private TextFieldWidget textField;
+    private EditBox textField;
 
     private int count;
 
-    public AssassinLeaderScreen(AssassinLeaderContainer container, PlayerInventory playerInventory, ITextComponent title) {
+    public AssassinLeaderScreen(AssassinLeaderContainer container, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, container, playerInventory, title);
         this.playerInventory = playerInventory;
         this.assassinLeaderEntity = container.getEntity();
@@ -51,7 +51,7 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderContainer> {
         super.init();
         minecraft.keyboardHandler.setSendRepeatsToGui(true);
 
-        addButton(new Button(leftPos + 10, topPos + 60, 8, 12, new StringTextComponent("<"), button -> {
+        addButton(new Button(leftPos + 10, topPos + 60, 8, 12, new TextComponent("<"), button -> {
             this.count = assassinLeaderEntity.getCount();
             if (this.count != 0) {
                 this.count--;
@@ -59,7 +59,7 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderContainer> {
             }
         }));
 
-        addButton(new Button(leftPos + 10 + 30, topPos + 60, 8, 12, new StringTextComponent(">"), button -> {
+        addButton(new Button(leftPos + 10 + 30, topPos + 60, 8, 12, new TextComponent(">"), button -> {
             this.count = assassinLeaderEntity.getCount();
             if (this.count != assassinLeaderEntity.getMaxAssassinCount()) {
                 this.count++;
@@ -68,16 +68,16 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderContainer> {
         }));
 
         //HUNT
-        addButton(new Button(leftPos + 77 + 25, topPos + 4, 50, 12, new StringTextComponent("Assassinate"), button -> {
+        addButton(new Button(leftPos + 77 + 25, topPos + 4, 50, 12, new TextComponent("Assassinate"), button -> {
             int assassinateCost = assassinLeaderEntity.calculateAssassinateCosts(assassinLeaderEntity.getAssassinCosts(), this.count);
             if(assassinLeaderEntity.playerHasEnoughEmeralds(playerInventory.player, assassinateCost))
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageAssassinate(textField.getValue(), this.count, assassinateCost));
             else
-                playerInventory.player.sendMessage(new StringTextComponent(assassinLeaderEntity.getName() + ": You dont have enough Emeralds"), playerInventory.player.getUUID());
+                playerInventory.player.sendMessage(new TextComponent(assassinLeaderEntity.getName() + ": You dont have enough Emeralds"), playerInventory.player.getUUID());
         onClose();
         }));
 
-        textField = new TextFieldWidget(font, leftPos + 30, topPos + 30, 116, 16, new StringTextComponent(""));
+        textField = new EditBox(font, leftPos + 30, topPos + 30, 116, 16, new TextComponent(""));
         textField.setTextColor(-1);
         textField.setTextColorUneditable(-1);
         textField.setBordered(true);
@@ -88,7 +88,7 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderContainer> {
     }
 
     @Override
-    protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
+    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
 
         int k = 79;//rechst links
@@ -99,7 +99,7 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderContainer> {
         font.draw(matrixStack, count, k - 55, l + 45, fontColor);
     }
 
-    protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
         super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
         int i = (this.width - this.imageWidth) / 2;

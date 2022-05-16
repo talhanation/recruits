@@ -4,17 +4,17 @@ import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
-import net.minecraft.block.Block;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.entity.*;
-import net.minecraft.entity.merchant.villager.VillagerEntity;
-import net.minecraft.entity.merchant.villager.VillagerProfession;
-import net.minecraft.entity.merchant.villager.VillagerTrades;
-import net.minecraft.entity.passive.IronGolemEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.MerchantOffer;
-import net.minecraft.util.IItemProvider;
+import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.VillagerTrades;
+import net.minecraft.world.entity.animal.IronGolem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.trading.MerchantOffer;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.StringTextComponent;
@@ -28,14 +28,17 @@ import java.util.List;
 import java.util.Random;
 
 
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+
 public class VillagerEvents {
     protected final Random random = new Random();
 
     @SubscribeEvent
     public void onVillagerLivingUpdate(LivingEvent.LivingUpdateEvent event) {
         Entity entity = event.getEntityLiving();
-        if (entity instanceof VillagerEntity) {
-            VillagerEntity villager = (VillagerEntity) entity;
+        if (entity instanceof Villager) {
+            Villager villager = (Villager) entity;
             VillagerProfession profession = villager.getVillagerData().getProfession();
 
             if (profession == Main.RECRUIT) {
@@ -54,8 +57,8 @@ public class VillagerEvents {
                 createRecruitShieldman(villager);
             }
         }
-        if (entity instanceof IronGolemEntity) {
-            IronGolemEntity ironGolemEntity = (IronGolemEntity) entity;
+        if (entity instanceof IronGolem) {
+            IronGolem ironGolemEntity = (IronGolem) entity;
 
             if (!ironGolemEntity.isPlayerCreated() && RecruitsModConfig.OverrideIronGolemSpawn.get()){
                 List<AbstractRecruitEntity> list1 = entity.level.getEntitiesOfClass(AbstractRecruitEntity.class, ironGolemEntity.getBoundingBox().inflate(32));
@@ -76,7 +79,7 @@ public class VillagerEvents {
     }
     private static void createRecruit(LivingEntity entity){
         RecruitEntity recruit = ModEntityTypes.RECRUIT.get().create(entity.level);
-        VillagerEntity villager = (VillagerEntity) entity;
+        Villager villager = (Villager) entity;
         recruit.copyPosition(villager);
 
         recruit.initSpawn();
@@ -87,7 +90,7 @@ public class VillagerEvents {
 
     private static void createRecruitShieldman(LivingEntity entity){
         RecruitShieldmanEntity recruitShieldman = ModEntityTypes.RECRUIT_SHIELDMAN.get().create(entity.level);
-        VillagerEntity villager = (VillagerEntity) entity;
+        Villager villager = (Villager) entity;
         recruitShieldman.copyPosition(villager);
 
         recruitShieldman.initSpawn();
@@ -98,7 +101,7 @@ public class VillagerEvents {
 
     private static void createBowman(LivingEntity entity){
         BowmanEntity bowman = ModEntityTypes.BOWMAN.get().create(entity.level);
-        VillagerEntity villager = (VillagerEntity) entity;
+        Villager villager = (Villager) entity;
         bowman.copyPosition(villager);
 
         bowman.initSpawn();
@@ -109,7 +112,7 @@ public class VillagerEvents {
 
     private static void createCrossBowman(LivingEntity entity){
         CrossBowmanEntity crossBowman = ModEntityTypes.CROSSBOWMAN.get().create(entity.level);
-        VillagerEntity villager = (VillagerEntity) entity;
+        Villager villager = (Villager) entity;
         crossBowman.copyPosition(villager);
         crossBowman.setEquipment();
         crossBowman.setDropEquipment();
@@ -124,7 +127,7 @@ public class VillagerEvents {
 
     private static void createNomad(LivingEntity entity){
         NomadEntity nomad = ModEntityTypes.NOMAD.get().create(entity.level);
-        VillagerEntity villager = (VillagerEntity) entity;
+        Villager villager = (Villager) entity;
         nomad.copyPosition(villager);
 
         nomad.initSpawn();
@@ -149,20 +152,20 @@ public class VillagerEvents {
     public void villagerTrades(VillagerTradesEvent event) {
 
         if (event.getType() == VillagerProfession.ARMORER) {
-            VillagerTrades.ITrade block_trade = new Trade(Items.EMERALD, 10, ModBlocks.RECRUIT_SHIELD_BLOCK.get(), 1, 4, 10);
+            VillagerTrades.ItemListing block_trade = new Trade(Items.EMERALD, 10, ModBlocks.RECRUIT_SHIELD_BLOCK.get(), 1, 4, 10);
             List list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
         if (event.getType() == VillagerProfession.WEAPONSMITH) {
-            VillagerTrades.ITrade block_trade = new Trade(Items.EMERALD, 3, ModBlocks.RECRUIT_BLOCK.get(), 1, 4, 10);
+            VillagerTrades.ItemListing block_trade = new Trade(Items.EMERALD, 3, ModBlocks.RECRUIT_BLOCK.get(), 1, 4, 10);
             List list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
 
         if (event.getType() == VillagerProfession.FLETCHER) {
-            VillagerTrades.ITrade block_trade = new Trade(Items.EMERALD, 4, ModBlocks.BOWMAN_BLOCK.get(), 1, 4, 10);
+            VillagerTrades.ItemListing block_trade = new Trade(Items.EMERALD, 4, ModBlocks.BOWMAN_BLOCK.get(), 1, 4, 10);
             List list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
@@ -170,15 +173,15 @@ public class VillagerEvents {
     }
 
     static class EmeraldForItemsTrade extends Trade {
-        public EmeraldForItemsTrade(IItemProvider buyingItem, int buyingAmount, int maxUses, int givenExp) {
+        public EmeraldForItemsTrade(ItemLike buyingItem, int buyingAmount, int maxUses, int givenExp) {
             super(buyingItem, buyingAmount, Items.EMERALD, 1, maxUses, givenExp);
         }
     }
 
-    static class MultiTrade implements VillagerTrades.ITrade {
-        private final VillagerTrades.ITrade[] trades;
+    static class MultiTrade implements VillagerTrades.ItemListing {
+        private final VillagerTrades.ItemListing[] trades;
 
-        public MultiTrade(VillagerTrades.ITrade... trades) {
+        public MultiTrade(VillagerTrades.ItemListing... trades) {
             this.trades = trades;
         }
 
@@ -189,7 +192,7 @@ public class VillagerEvents {
         }
     }
 
-    static class Trade implements VillagerTrades.ITrade {
+    static class Trade implements VillagerTrades.ItemListing {
         private final Item buyingItem;
         private final Item sellingItem;
         private final int buyingAmount;
@@ -198,7 +201,7 @@ public class VillagerEvents {
         private final int givenExp;
         private final float priceMultiplier;
 
-        public Trade(IItemProvider buyingItem, int buyingAmount, IItemProvider sellingItem, int sellingAmount, int maxUses, int givenExp) {
+        public Trade(ItemLike buyingItem, int buyingAmount, ItemLike sellingItem, int sellingAmount, int maxUses, int givenExp) {
             this.buyingItem = buyingItem.asItem();
             this.buyingAmount = buyingAmount;
             this.sellingItem = sellingItem.asItem();
@@ -213,7 +216,7 @@ public class VillagerEvents {
         }
     }
 
-    static class ItemsForEmeraldsTrade implements VillagerTrades.ITrade {
+    static class ItemsForEmeraldsTrade implements VillagerTrades.ItemListing {
         private final ItemStack itemStack;
         private final int emeraldCost;
         private final int numberOfItems;
@@ -254,7 +257,7 @@ public class VillagerEvents {
 
     private static void createRecruitIronGolem(LivingEntity entity){
         RecruitEntity recruit = ModEntityTypes.RECRUIT.get().create(entity.level);
-        IronGolemEntity villager = (IronGolemEntity) entity;
+        IronGolem villager = (IronGolem) entity;
         recruit.copyPosition(villager);
         recruit.setEquipment();
         recruit.setDropEquipment();
@@ -269,7 +272,7 @@ public class VillagerEvents {
 
     private void createRecruitShieldmanIronGolem(LivingEntity entity){
         RecruitShieldmanEntity recruitShieldman = ModEntityTypes.RECRUIT_SHIELDMAN.get().create(entity.level);
-        IronGolemEntity villager = (IronGolemEntity) entity;
+        IronGolem villager = (IronGolem) entity;
         recruitShieldman.copyPosition(villager);
         recruitShieldman.setEquipment();
         recruitShieldman.setDropEquipment();
@@ -284,7 +287,7 @@ public class VillagerEvents {
 
     private static void createBowmanIronGolem(LivingEntity entity){
         BowmanEntity bowman = ModEntityTypes.BOWMAN.get().create(entity.level);
-        IronGolemEntity villager = (IronGolemEntity) entity;
+        IronGolem villager = (IronGolem) entity;
         bowman.copyPosition(villager);
         bowman.setEquipment();
         bowman.setDropEquipment();
