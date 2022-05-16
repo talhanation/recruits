@@ -1,21 +1,11 @@
 package com.talhanation.recruits.inventory;
 
-import com.mojang.datafixers.util.Pair;
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
 import de.maxhenkel.corelib.inventory.ContainerBase;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.world.Container;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.container.PlayerContainer;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 
 public class AssassinLeaderContainer extends ContainerBase {
 
