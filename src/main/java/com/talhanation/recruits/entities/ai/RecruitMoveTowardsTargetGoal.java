@@ -2,10 +2,10 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.entity.CreatureEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.RandomPositionGenerator;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.util.RandomPos;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
 
@@ -40,7 +40,7 @@ public class RecruitMoveTowardsTargetGoal extends Goal {
         } else if (this.target.distanceToSqr(this.recruit) > (double)(this.within * this.within)) {
             return false;
         } else {
-            Vector3d vector3d = RandomPositionGenerator.getPosTowards(this.recruit, 16, 7, this.target.position());
+            Vec3 vector3d = RandomPos.getPosTowards(this.recruit, 16, 7, this.target.position());
             if (vector3d == null) {
                 return false;
             } else {

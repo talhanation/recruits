@@ -1,16 +1,15 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.AssassinEvents;
-import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.players.PlayerList;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.UUID;
 
@@ -42,14 +41,14 @@ public class MessageAssassinate implements Message<MessageAssassinate> {
         PlayerList list = server.getPlayerList();
         ServerPlayer targetPlayer = list.getPlayerByName(name);
         if (targetPlayer != null) {
-            player.sendMessage(new TextComponent("Successfully found the Target") {
-            }, player.getUUID());
+            player.sendMessage(new TextComponent("Successfully found the Target"), player.getUUID());
             //this.target = targetPlayer.getUUID();
             AssassinEvents.createAssassin(name, count, world);
             AssassinEvents.doPayment(player, costs);
         }
         else {
             player.sendMessage(new TextComponent("Could not found the Target"), player.getUUID());
+            //player.sendMessage(new StringTextComponent(": " + this.name), player.getUUID());
         }
     }
 

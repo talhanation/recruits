@@ -1,8 +1,8 @@
 package com.talhanation.recruits.client.render;
 
-import net.minecraft.client.renderer.model.RenderMaterial;
-import net.minecraft.client.renderer.texture.AtlasTexture;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.resources.model.Material;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.client.event.TextureStitchEvent;
 
 public class RenderInfo {
@@ -10,22 +10,22 @@ public class RenderInfo {
 
     protected final ResourceLocation texturePattern;
 
-    protected final RenderMaterial materialNoPattern;
+    protected final Material materialNoPattern;
 
-    protected final RenderMaterial materialPattern;
+    protected final Material materialPattern;
 
     public RenderInfo(ResourceLocation texNoPattern, ResourceLocation texPattern) {
         this.textureNoPattern = texNoPattern;
         this.texturePattern = texPattern;
-        this.materialNoPattern = new RenderMaterial(AtlasTexture.LOCATION_BLOCKS, this.textureNoPattern);
-        this.materialPattern = new RenderMaterial(AtlasTexture.LOCATION_BLOCKS, this.texturePattern);
+        this.materialNoPattern = new Material(TextureAtlas.LOCATION_BLOCKS, this.textureNoPattern);
+        this.materialPattern = new Material(TextureAtlas.LOCATION_BLOCKS, this.texturePattern);
     }
 
-    public RenderMaterial getMaterialNoPattern() {
+    public Material getMaterialNoPattern() {
         return this.materialNoPattern;
     }
 
-    public RenderMaterial getMaterialWithPattern() {
+    public Material getMaterialWithPattern() {
         return this.materialPattern;
     }
 

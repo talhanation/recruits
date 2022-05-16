@@ -4,18 +4,18 @@ import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.network.MessageCommandScreen;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.network.NetworkHooks;
+import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -129,8 +129,8 @@ public class CommandEvents {
 
                 @Nullable
                 @Override
-                public AbstractContainerMenu createMenu(int i, Inventory playerInventory, Player Player) {
-                    return new CommandContainer(i, Player);
+                public AbstractContainerMenu createMenu(int i, Inventory playerInventory, Player playerEntity) {
+                    return new CommandContainer(i, playerEntity);
                 }
             }, packetBuffer -> {packetBuffer.writeUUID(player.getUUID());});
         } else {
@@ -224,14 +224,14 @@ public class CommandEvents {
     @SubscribeEvent
     public void onPlayerLivingUpdate(LivingEvent.LivingUpdateEvent event) {
         Entity entity = event.getEntityLiving();
-        if (entity instanceof Player) {
-            Player player = (Player) entity;
+        if (entity instanceof PlayerEntity) {
+            PlayerEntity player = (PlayerEntity) entity;
 
-            CompoundTag playerData = player.getPersistentData();
-            CompoundTag data = playerData.getCompound(Player.PERSISTED_NBT_TAG);
+            CompoundNBT playerData = player.getPersistentData();
+            CompoundNBT data = playerData.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
 
             if (player.isCrouching())
-                player.sendMessage(new TextComponent("NBT: " + data.getInt("RecruitsInCommand")), player.getUUID());
+                player.sendMessage(new StringTextComponent("NBT: " + data.getInt("RecruitsInCommand")), player.getUUID());
         }
     }
      */
@@ -239,14 +239,14 @@ public class CommandEvents {
     public static int getSavedRecruitCount(Player player) {
         CompoundTag playerNBT = player.getPersistentData();
         CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
-        //player.sendMessage(new TextComponent("getSavedCount: " + nbt.getInt("TotalRecruits")), player.getUUID());
+        //player.sendMessage(new StringTextComponent("getSavedCount: " + nbt.getInt("TotalRecruits")), player.getUUID());
         return nbt.getInt("TotalRecruits");
     }
 
     public static void saveRecruitCount(Player player, int count) {
         CompoundTag playerNBT = player.getPersistentData();
         CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
-        //player.sendMessage(new TextComponent("savedCount: " + count), player.getUUID());
+        //player.sendMessage(new StringTextComponent("savedCount: " + count), player.getUUID());
 
         nbt.putInt( "TotalRecruits", count);
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);

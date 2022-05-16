@@ -1,20 +1,22 @@
 package com.talhanation.recruits.entities.ai.pillager;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.monster.PillagerEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.AxeItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.SwordItem;
-import net.minecraft.pathfinding.Path;
-import net.minecraft.util.EntityPredicates;
-import net.minecraft.util.Hand;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.monster.Pillager;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.AxeItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.level.pathfinder.Path;
+import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.world.InteractionHand;
 
 import java.util.EnumSet;
 
+import net.minecraft.world.entity.ai.goal.Goal.Flag;
+
 public class PillagerMeleeAttackGoal extends Goal {
-    protected final PillagerEntity mob;
+    protected final Pillager mob;
     private final double speedModifier;
     private final boolean followingTargetEvenIfNotSeen;
     private Path path;
@@ -28,7 +30,7 @@ public class PillagerMeleeAttackGoal extends Goal {
     private int failedPathFindingPenalty = 0;
     private boolean canPenalize = false;
 
-    public PillagerMeleeAttackGoal(PillagerEntity pillager, double speedModifier, boolean followingTargetEvenIfNotSeen) {
+    public PillagerMeleeAttackGoal(Pillager pillager, double speedModifier, boolean followingTargetEvenIfNotSeen) {
         this.mob = pillager;
         this.speedModifier = speedModifier;
         this.followingTargetEvenIfNotSeen = followingTargetEvenIfNotSeen;
@@ -37,7 +39,7 @@ public class PillagerMeleeAttackGoal extends Goal {
 
     public boolean canUse() {
         long i = this.mob.level.getGameTime();
-        Item itemInHand = mob.getItemInHand(Hand.MAIN_HAND).getItem();
+        Item itemInHand = mob.getItemInHand(InteractionHand.MAIN_HAND).getItem();
 
         if (!(itemInHand instanceof SwordItem) && !(itemInHand instanceof AxeItem)){
             return false;
@@ -83,7 +85,7 @@ public class PillagerMeleeAttackGoal extends Goal {
         } else if (!this.mob.isWithinRestriction(livingentity.blockPosition())) {
             return false;
         } else {
-            return !(livingentity instanceof PlayerEntity) || !livingentity.isSpectator() && !((PlayerEntity)livingentity).isCreative();
+            return !(livingentity instanceof Player) || !livingentity.isSpectator() && !((Player)livingentity).isCreative();
         }
     }
 
@@ -98,7 +100,7 @@ public class PillagerMeleeAttackGoal extends Goal {
 
     public void stop() {
         LivingEntity livingentity = this.mob.getTarget();
-        if (!EntityPredicates.NO_CREATIVE_OR_SPECTATOR.test(livingentity)) {
+        if (!EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(livingentity)) {
             this.mob.setTarget(null);
         }
 
@@ -119,7 +121,7 @@ public class PillagerMeleeAttackGoal extends Goal {
             if (this.canPenalize) {
                 this.ticksUntilNextPathRecalculation += failedPathFindingPenalty;
                 if (this.mob.getNavigation().getPath() != null) {
-                    net.minecraft.pathfinding.PathPoint finalPathPoint = this.mob.getNavigation().getPath().getEndNode();
+                    net.minecraft.world.level.pathfinder.Node finalPathPoint = this.mob.getNavigation().getPath().getEndNode();
                     if (finalPathPoint != null && livingentity.distanceToSqr(finalPathPoint.x, finalPathPoint.y, finalPathPoint.z) < 1)
                         failedPathFindingPenalty = 0;
                     else
@@ -147,7 +149,7 @@ public class PillagerMeleeAttackGoal extends Goal {
         double d0 = this.getAttackReachSqr(p_190102_1_);
         if (p_190102_2_ <= d0 && this.ticksUntilNextAttack <= 0) {
             this.resetAttackCooldown();
-            this.mob.swing(Hand.MAIN_HAND);
+            this.mob.swing(InteractionHand.MAIN_HAND);
             this.mob.doHurtTarget(p_190102_1_);
         }
 

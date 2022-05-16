@@ -1,7 +1,7 @@
 package com.talhanation.recruits.network;
-/*
+
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.network.NetworkEvent;
 
@@ -36,17 +36,15 @@ public class MessageDismount implements Message<MessageDismount> {
         }
 
     }
-    public MessageDismount fromBytes(PacketBuffer buf) {
+    public MessageDismount fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();
         this.group = buf.readInt();
         return this;
     }
 
-    public void toBytes(PacketBuffer buf) {
+    public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(uuid);
         buf.writeInt(group);
     }
 
 }
-
- */

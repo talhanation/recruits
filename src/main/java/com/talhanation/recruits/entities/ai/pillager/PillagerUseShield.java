@@ -1,27 +1,35 @@
 package com.talhanation.recruits.entities.ai.pillager;
 
-import net.minecraft.entity.IRangedAttackMob;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.monster.AbstractIllagerEntity;
-import net.minecraft.entity.monster.MonsterEntity;
+import net.minecraft.world.entity.monster.RangedAttackMob;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.monster.AbstractIllager;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.item.*;
-import net.minecraft.util.Hand;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.AxeItem;
+import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.CrossbowItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.PickaxeItem;
+import net.minecraft.world.item.SwordItem;
+
 /*
 code by talhanation all rights reserved
 contact: talhakantar@yahoo.com
  */
 
 public class PillagerUseShield extends Goal {
-    public final AbstractIllagerEntity pillager;
+    public final AbstractIllager pillager;
 
-    public PillagerUseShield(AbstractIllagerEntity pillager){
+    public PillagerUseShield(AbstractIllager pillager){
         this.pillager = pillager;
     }
 
     public boolean canUse() {
-       return (this.pillager.getItemInHand(Hand.OFF_HAND).getItem().isShield(this.pillager.getItemInHand(Hand.OFF_HAND), this.pillager)
+       return (this.pillager.getItemInHand(InteractionHand.OFF_HAND).getItem().isShield(this.pillager.getItemInHand(InteractionHand.OFF_HAND), this.pillager)
                && canRaiseShield()
        );
     }
@@ -31,8 +39,8 @@ public class PillagerUseShield extends Goal {
     }
 
     public void start() {
-        if (this.pillager.getItemInHand(Hand.OFF_HAND).getItem().isShield(this.pillager.getItemInHand(Hand.OFF_HAND), pillager)){
-        this.pillager.startUsingItem(Hand.OFF_HAND);
+        if (this.pillager.getItemInHand(InteractionHand.OFF_HAND).getItem().isShield(this.pillager.getItemInHand(InteractionHand.OFF_HAND), pillager)){
+        this.pillager.startUsingItem(InteractionHand.OFF_HAND);
         this.pillager.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.12D);
         }
     }
@@ -42,7 +50,7 @@ public class PillagerUseShield extends Goal {
     }
 
     public void tick() {
-        if (this.pillager.getUsedItemHand() == Hand.OFF_HAND) {
+        if (this.pillager.getUsedItemHand() == InteractionHand.OFF_HAND) {
             this.pillager.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.16D);
         } else {
             this.pillager.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.3D);
@@ -53,18 +61,18 @@ public class PillagerUseShield extends Goal {
         LivingEntity target = this.pillager.getTarget();
 
         if (target != null) {
-            ItemStack itemStackinHand = target.getItemInHand(Hand.MAIN_HAND);
+            ItemStack itemStackinHand = target.getItemInHand(InteractionHand.MAIN_HAND);
             Item itemInHand = itemStackinHand.getItem();
             boolean isClose = target.distanceTo(this.pillager) <= 3.75D;
             boolean isFar = target.distanceTo(this.pillager) >= 20.0D;
             boolean inRange =  !isFar && target.distanceTo(this.pillager) <= 15.0D;
             boolean isDanger = itemInHand instanceof CrossbowItem && CrossbowItem.isCharged(itemStackinHand) || itemInHand instanceof AxeItem || itemInHand instanceof PickaxeItem || itemInHand instanceof SwordItem;
 
-            if (target instanceof IRangedAttackMob && inRange ) {
+            if (target instanceof RangedAttackMob && inRange ) {
                 return true;
             }
 
-            if (isClose && (isDanger || target instanceof MonsterEntity)) {
+            if (isClose && (isDanger || target instanceof Monster)) {
                 return true;
             }
 

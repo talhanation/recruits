@@ -1,12 +1,12 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.potion.EffectType;
-import net.minecraft.potion.PotionUtils;
-import net.minecraft.util.Hand;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.InteractionHand;
 
 public class RecruitQuaffGoal extends Goal {
 
@@ -28,13 +28,13 @@ public class RecruitQuaffGoal extends Goal {
     @Override
     public void start() {
         if (hasPotionInInv()) {
-            recruit.beforeFoodItem = recruit.getItemInHand(Hand.OFF_HAND);
+            recruit.beforeFoodItem = recruit.getItemInHand(InteractionHand.OFF_HAND);
 
             recruit.setIsEating(true);
-            recruit.setItemInHand(Hand.OFF_HAND, potionItem);
+            recruit.setItemInHand(InteractionHand.OFF_HAND, potionItem);
             recruit.setSlot(10, recruit.beforeFoodItem);
 
-            recruit.startUsingItem(Hand.OFF_HAND);
+            recruit.startUsingItem(InteractionHand.OFF_HAND);
         }
     }
 
@@ -44,11 +44,11 @@ public class RecruitQuaffGoal extends Goal {
     }
 
     private boolean hasPotionInInv(){
-        Inventory inventory = recruit.getInventory();
+        SimpleContainer inventory = recruit.getInventory();
 
         for(int i = 0; i < inventory.getContainerSize(); i++){
             ItemStack itemStack = inventory.getItem(i);
-            if (PotionUtils.getMobEffects(itemStack).size() > 0 && PotionUtils.getMobEffects(itemStack).stream().noneMatch(instance -> instance.getEffect().getCategory().equals(EffectType.HARMFUL))) {
+            if (PotionUtils.getMobEffects(itemStack).size() > 0 && PotionUtils.getMobEffects(itemStack).stream().noneMatch(instance -> instance.getEffect().getCategory().equals(MobEffectCategory.HARMFUL))) {
                 potionItem = itemStack.copy();
                 itemStack.shrink(1);
 

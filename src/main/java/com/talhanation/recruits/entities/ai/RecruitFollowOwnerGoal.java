@@ -2,21 +2,21 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.RecruitHorseEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.entity.passive.horse.AbstractHorseEntity;
-import net.minecraft.pathfinding.PathNavigator;
-import net.minecraft.pathfinding.PathNodeType;
-import net.minecraft.world.IWorldReader;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.LevelReader;
 
 import java.util.EnumSet;
 
 public class RecruitFollowOwnerGoal extends Goal {
     private final AbstractRecruitEntity recruitEntity;
     private LivingEntity owner;
-    private final IWorldReader level;
+    private final LevelReader level;
     private final double speedModifier;
-    private final PathNavigator navigation;
+    private final PathNavigation navigation;
     private int timeToRecalcPath;
     private final double stopDistance;
     private final double startDistance;
@@ -70,15 +70,15 @@ public class RecruitFollowOwnerGoal extends Goal {
 
     public void start() {
         this.timeToRecalcPath = 0;
-        this.oldWaterCost = this.recruitEntity.getPathfindingMalus(PathNodeType.WATER);
-        this.recruitEntity.setPathfindingMalus(PathNodeType.WATER, 0.0F);
+        this.oldWaterCost = this.recruitEntity.getPathfindingMalus(BlockPathTypes.WATER);
+        this.recruitEntity.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
         this.recruitEntity.setIsFollowing(true);
     }
 
     public void stop() {
         this.owner = null;
         this.navigation.stop();
-        this.recruitEntity.setPathfindingMalus(PathNodeType.WATER, this.oldWaterCost);
+        this.recruitEntity.setPathfindingMalus(BlockPathTypes.WATER, this.oldWaterCost);
         this.recruitEntity.setIsFollowing(false);
     }
 

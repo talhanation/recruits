@@ -108,11 +108,10 @@ repositories {
 }
 
 dependencies {
-
+    minecraft 'net.minecraftforge:forge:1.18.2-40.1.0'
     shadow fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.0:api")
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.0")
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.0:javadoc")
-    minecraft 'net.minecraftforge:forge:1.18.2-40.1.0'
 }
 
 // Example for how to get properties into the manifest for reading at runtime.

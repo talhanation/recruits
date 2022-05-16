@@ -3,18 +3,18 @@ package com.talhanation.recruits.entities.ai;
 import com.talhanation.recruits.entities.AbstractOrderAbleEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinEntity;
-import net.minecraft.entity.CreatureEntity;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.item.TNTEntity;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.item.PrimedTnt;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
 public class FleeTNT extends Goal {
 
-    CreatureEntity entity;
+    PathfinderMob entity;
 
-    public FleeTNT(CreatureEntity creatureEntity) {
+    public FleeTNT(PathfinderMob creatureEntity) {
     this.entity = creatureEntity;
     }
 
@@ -26,15 +26,15 @@ public class FleeTNT extends Goal {
     @Override
     public void tick() {
         super.tick();
-        List<TNTEntity> tntEntities = entity.level.getEntitiesOfClass(TNTEntity.class, entity.getBoundingBox().inflate(10D));
+        List<PrimedTnt> tntEntities = entity.level.getEntitiesOfClass(PrimedTnt.class, entity.getBoundingBox().inflate(10D));
         if (!tntEntities.isEmpty()) {
-            for (TNTEntity tnt : tntEntities) {
+            for (PrimedTnt tnt : tntEntities) {
                 double fleeDistance = 10.0D;
-                Vector3d vecTarget = new Vector3d(tnt.getX(), tnt.getY(), tnt.getZ());
-                Vector3d vecRec = new Vector3d(entity.getX(), entity.getY(), entity.getZ());
-                Vector3d fleeDir = vecRec.subtract(vecTarget);
+                Vec3 vecTarget = new Vec3(tnt.getX(), tnt.getY(), tnt.getZ());
+                Vec3 vecRec = new Vec3(entity.getX(), entity.getY(), entity.getZ());
+                Vec3 fleeDir = vecRec.subtract(vecTarget);
                 fleeDir = fleeDir.normalize();
-                Vector3d fleePos = new Vector3d(vecRec.x + fleeDir.x * fleeDistance, vecRec.y + fleeDir.y * fleeDistance, vecRec.z + fleeDir.z * fleeDistance);
+                Vec3 fleePos = new Vec3(vecRec.x + fleeDir.x * fleeDistance, vecRec.y + fleeDir.y * fleeDistance, vecRec.z + fleeDir.z * fleeDistance);
                 entity.getNavigation().moveTo(fleePos.x, fleePos.y, fleePos.z, 1.25D);
                 if (entity instanceof AbstractRecruitEntity) {
                     AbstractRecruitEntity recruit = (AbstractRecruitEntity) entity;

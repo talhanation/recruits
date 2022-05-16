@@ -3,15 +3,15 @@ package com.talhanation.recruits.network;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.client.gui.CommandScreen;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-/*
+
 public class MessageRecruitsInCommand implements Message<MessageRecruitsInCommand> {
 
     private int count;
@@ -35,23 +35,21 @@ public class MessageRecruitsInCommand implements Message<MessageRecruitsInComman
             if (recruits.getOwnerUUID() != null && recruits.getOwnerUUID().equals(this.uuid)) {
                 this.count++;
                 CommandEvents.setRecruitsInCommand(recruits, this.count);
-                recruits.getOwner().sendMessage(new StringTextComponent("MESSAGE int: " + count), recruits.getOwnerUUID());
+                recruits.getOwner().sendMessage(new TextComponent("MESSAGE int: " + count), recruits.getOwnerUUID());
             }
 
         }
 
     }
-    public MessageRecruitsInCommand fromBytes(PacketBuffer buf) {
+    public MessageRecruitsInCommand fromBytes(FriendlyByteBuf buf) {
         this.count = buf.readInt();
         this.uuid = buf.readUUID();
         return this;
     }
 
-    public void toBytes(PacketBuffer buf) {
+    public void toBytes(FriendlyByteBuf buf) {
         buf.writeInt(count);
         buf.writeUUID(uuid);
     }
 
 }
-
- */

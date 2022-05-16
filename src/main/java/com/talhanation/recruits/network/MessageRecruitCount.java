@@ -1,8 +1,8 @@
 package com.talhanation.recruits.network;
-/*
+
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.network.NetworkEvent;
 
@@ -35,17 +35,15 @@ public class MessageRecruitCount implements Message<MessageRecruitCount> {
         }
 
     }
-    public MessageRecruitCount fromBytes(PacketBuffer buf) {
+    public MessageRecruitCount fromBytes(FriendlyByteBuf buf) {
         this.group = buf.readInt();
         this.uuid = buf.readUUID();
         return this;
     }
 
-    public void toBytes(PacketBuffer buf) {
+    public void toBytes(FriendlyByteBuf buf) {
         buf.writeInt(group);
         buf.writeUUID(uuid);
     }
 
 }
-
- */

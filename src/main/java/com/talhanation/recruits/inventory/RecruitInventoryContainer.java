@@ -4,35 +4,35 @@ import com.mojang.datafixers.util.Pair;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.inventory.ContainerBase;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.PlayerContainer;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class RecruitInventoryContainer extends ContainerBase {
 
-    private final IInventory recruitInventory;
+    private final Container recruitInventory;
     private final AbstractRecruitEntity recruit;
     private static final ResourceLocation[] TEXTURE_EMPTY_SLOTS = new ResourceLocation[]{
-            PlayerContainer.EMPTY_ARMOR_SLOT_BOOTS,
-            PlayerContainer.EMPTY_ARMOR_SLOT_LEGGINGS,
-            PlayerContainer.EMPTY_ARMOR_SLOT_CHESTPLATE,
-            PlayerContainer.EMPTY_ARMOR_SLOT_HELMET
+            InventoryMenu.EMPTY_ARMOR_SLOT_BOOTS,
+            InventoryMenu.EMPTY_ARMOR_SLOT_LEGGINGS,
+            InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE,
+            InventoryMenu.EMPTY_ARMOR_SLOT_HELMET
     };
-    private static final EquipmentSlotType[] SLOT_IDS = new EquipmentSlotType[]{
-            EquipmentSlotType.HEAD,
-            EquipmentSlotType.CHEST,
-            EquipmentSlotType.LEGS,
-            EquipmentSlotType.FEET
+    private static final EquipmentSlot[] SLOT_IDS = new EquipmentSlot[]{
+            EquipmentSlot.HEAD,
+            EquipmentSlot.CHEST,
+            EquipmentSlot.LEGS,
+            EquipmentSlot.FEET
     };
 
-    public RecruitInventoryContainer(int id, AbstractRecruitEntity recruit, PlayerInventory playerInventory) {
+    public RecruitInventoryContainer(int id, AbstractRecruitEntity recruit, Inventory playerInventory) {
         super(Main.RECRUIT_CONTAINER_TYPE, id, playerInventory, recruit.getInventory());
         this.recruit = recruit;
         this.recruitInventory = recruit.getInventory();
@@ -62,7 +62,7 @@ public class RecruitInventoryContainer extends ContainerBase {
 
     public void addRecruitEquipmentSlots() {
         for (int k = 0; k < 4; ++k) {
-            final EquipmentSlotType equipmentslottype = SLOT_IDS[k];
+            final EquipmentSlot equipmentslottype = SLOT_IDS[k];
             this.addSlot(new Slot(recruit.inventory, 11 + k, 8, 18 + k * 18) {
                 public int getMaxStackSize() {
                     return 1;
@@ -80,7 +80,7 @@ public class RecruitInventoryContainer extends ContainerBase {
 
                 @OnlyIn(Dist.CLIENT)
                 public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-                    return Pair.of(PlayerContainer.BLOCK_ATLAS, TEXTURE_EMPTY_SLOTS[equipmentslottype.getIndex()]);
+                    return Pair.of(InventoryMenu.BLOCK_ATLAS, TEXTURE_EMPTY_SLOTS[equipmentslottype.getIndex()]);
                 }
             });
         }
@@ -97,7 +97,7 @@ public class RecruitInventoryContainer extends ContainerBase {
             @Override
             public void set(ItemStack stack){
                 super.set(stack);
-                recruit.setItemSlot(EquipmentSlotType.MAINHAND, stack);
+                recruit.setItemSlot(EquipmentSlot.MAINHAND, stack);
             }
 
         });
@@ -111,24 +111,24 @@ public class RecruitInventoryContainer extends ContainerBase {
         @Override
         public void set(ItemStack stack){
             super.set(stack);
-            recruit.setItemSlot(EquipmentSlotType.OFFHAND, stack);
+            recruit.setItemSlot(EquipmentSlot.OFFHAND, stack);
         }
 
         @Override
         public Pair<ResourceLocation, ResourceLocation> getNoItemIcon () {
-            return Pair.of(PlayerContainer.BLOCK_ATLAS, PlayerContainer.EMPTY_ARMOR_SLOT_SHIELD);
+            return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD);
         }
         });
     }
 
 
     @Override
-    public boolean stillValid(PlayerEntity playerIn) {
+    public boolean stillValid(Player playerIn) {
         return this.recruitInventory.stillValid(playerIn) && this.recruit.isAlive() && this.recruit.distanceTo(playerIn) < 8.0F;
     }
 
     @Override
-    public void removed(PlayerEntity playerIn) {
+    public void removed(Player playerIn) {
         super.removed(playerIn);
     }
 }

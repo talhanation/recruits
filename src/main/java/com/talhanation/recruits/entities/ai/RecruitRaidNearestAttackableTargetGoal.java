@@ -2,13 +2,13 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.RecruitHorseEntity;
-import net.minecraft.entity.EntityPredicate;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.ai.goal.TargetGoal;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.target.TargetGoal;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
@@ -18,7 +18,7 @@ public class RecruitRaidNearestAttackableTargetGoal<T extends LivingEntity> exte
     protected final Class<T> targetType;
     public LivingEntity target;
     public AbstractRecruitEntity recruit;
-    public EntityPredicate targetConditions;
+    public TargetingConditions targetConditions;
 
     public RecruitRaidNearestAttackableTargetGoal(AbstractRecruitEntity recruit, Class<T> target, boolean p_i50313_3_) {
         this(recruit, target, p_i50313_3_, false);
@@ -33,7 +33,7 @@ public class RecruitRaidNearestAttackableTargetGoal<T extends LivingEntity> exte
         super(recruit, p_i50315_4_, p_i50315_5_);
         this.targetType = target;
         this.setFlags(EnumSet.of(Goal.Flag.TARGET));
-        this.targetConditions = (new EntityPredicate()).range(this.getFollowDistance()).selector(p_i50315_6_);
+        this.targetConditions = (new TargetingConditions()).range(this.getFollowDistance()).selector(p_i50315_6_);
     }
 
     public boolean canUse() {
@@ -42,8 +42,8 @@ public class RecruitRaidNearestAttackableTargetGoal<T extends LivingEntity> exte
             this.recruit.setTarget(null);
             this.findTarget();
 
-            if (target instanceof PlayerEntity)
-                return isValidTargetPlayer((PlayerEntity)target);
+            if (target instanceof Player)
+                return isValidTargetPlayer((Player)target);
 
             else
                 return isValidTarget(target);
@@ -51,12 +51,12 @@ public class RecruitRaidNearestAttackableTargetGoal<T extends LivingEntity> exte
         return false;
     }
 
-    protected AxisAlignedBB getTargetSearchArea(double area) {
+    protected AABB getTargetSearchArea(double area) {
         return this.mob.getBoundingBox().inflate(area, 8.0D, area);
     }
 
     protected void findTarget() {
-        if(this.targetType != PlayerEntity.class && this.targetType != ServerPlayerEntity.class) {
+        if(this.targetType != Player.class && this.targetType != ServerPlayer.class) {
             this.target = this.mob.level.getNearestLoadedEntity(this.targetType, this.targetConditions, this.mob, this.mob.getX(), this.mob.getEyeY(), this.mob.getZ(), this.getTargetSearchArea(this.getFollowDistance()));
         } else {
             this.target = this.mob.level.getNearestPlayer(this.targetConditions, this.mob, this.mob.getX(), this.mob.getEyeY(), this.mob.getZ());
@@ -81,7 +81,7 @@ public class RecruitRaidNearestAttackableTargetGoal<T extends LivingEntity> exte
         return true;
     }
 
-    private boolean isValidTargetPlayer(PlayerEntity player){
+    private boolean isValidTargetPlayer(Player player){
         //RAID PLAYERS
         if (player.getUUID() == recruit.getOwnerUUID()) {
             return false;

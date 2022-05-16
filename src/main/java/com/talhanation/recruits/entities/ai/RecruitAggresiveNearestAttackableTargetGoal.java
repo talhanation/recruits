@@ -1,20 +1,22 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.entity.EntityPredicate;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.TargetGoal;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.goal.target.TargetGoal;
+import net.minecraft.world.entity.player.Player;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.function.Predicate;
 
+import net.minecraft.world.entity.ai.goal.Goal.Flag;
+
 public class RecruitAggresiveNearestAttackableTargetGoal<T extends LivingEntity> extends TargetGoal {
     protected final Class<T> targetType;
-    public PlayerEntity target;
+    public Player target;
     public AbstractRecruitEntity recruit;
-    public EntityPredicate targetConditions;
+    public TargetingConditions targetConditions;
 
     public RecruitAggresiveNearestAttackableTargetGoal(AbstractRecruitEntity recruit, Class<T> target, boolean p_i50313_3_) {
         this(recruit, target, p_i50313_3_, false);
@@ -29,7 +31,7 @@ public class RecruitAggresiveNearestAttackableTargetGoal<T extends LivingEntity>
         super(recruit, p_i50315_4_, p_i50315_5_);
         this.targetType = target;
         this.setFlags(EnumSet.of(Flag.TARGET));
-        this.targetConditions = (new EntityPredicate()).range(this.getFollowDistance()).selector(p_i50315_6_);
+        this.targetConditions = (new TargetingConditions()).range(this.getFollowDistance()).selector(p_i50315_6_);
     }
 
     public boolean canUse() {
@@ -51,7 +53,7 @@ public class RecruitAggresiveNearestAttackableTargetGoal<T extends LivingEntity>
         super.start();
     }
 
-    private boolean isValidTargetPlayer(PlayerEntity player){
+    private boolean isValidTargetPlayer(Player player){
         //ATTACK PLAYERS
         if (player != null && player.getUUID() == recruit.getOwnerUUID()) {
             return false;

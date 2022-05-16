@@ -1,13 +1,13 @@
 package com.talhanation.recruits.client.models;
 
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.model.BipedModel;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.function.Function;
 
-public class RecruitsBipedModel<E extends LivingEntity> extends BipedModel<E> {
+public class RecruitsBipedModel<E extends LivingEntity> extends HumanoidModel<E> {
     public boolean showChest = false;
     public RecruitsBipedModel(float modelSize) {
         super(modelSize);

@@ -1,46 +1,62 @@
 package com.talhanation.recruits.entities;
 
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.entity.*;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.AttributeModifierMap;
-import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.goal.*;
-import net.minecraft.entity.item.BoatEntity;
-import net.minecraft.entity.passive.TameableEntity;
-import net.minecraft.entity.passive.horse.HorseEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.animal.horse.Horse;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.util.*;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.DifficultyInstance;
-import net.minecraft.world.IServerWorld;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 
 import javax.annotation.Nullable;
 
-public class RecruitHorseEntity extends TameableEntity {
-    private static final DataParameter<Integer> DATA_ID_TYPE_VARIANT = EntityDataManager.defineId(HorseEntity.class, DataSerializers.INT);
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.AgableMob;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 
-    public RecruitHorseEntity(EntityType<? extends TameableEntity> entityType, World world) {
+public class RecruitHorseEntity extends TamableAnimal {
+    private static final EntityDataAccessor<Integer> DATA_ID_TYPE_VARIANT = SynchedEntityData.defineId(Horse.class, EntityDataSerializers.INT);
+
+    public RecruitHorseEntity(EntityType<? extends TamableAnimal> entityType, Level world) {
         super(entityType, world);
         this.maxUpStep = 1.0F;
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundNBT nbt) {
+    public void addAdditionalSaveData(CompoundTag nbt) {
         super.addAdditionalSaveData(nbt);
         nbt.putInt("Variant", this.getTypeVariant());
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundNBT nbt) {
+    public void readAdditionalSaveData(CompoundTag nbt) {
         super.readAdditionalSaveData(nbt);
         this.setTypeVariant(nbt.getInt("Variant"));
 
@@ -52,8 +68,8 @@ public class RecruitHorseEntity extends TameableEntity {
     }
 
     protected void updateControlFlags() {
-        boolean flag = !(this.getControllingPassenger() instanceof MobEntity);
-        boolean flag1 = !(this.getVehicle() instanceof BoatEntity);
+        boolean flag = !(this.getControllingPassenger() instanceof Mob);
+        boolean flag1 = !(this.getVehicle() instanceof Boat);
         this.goalSelector.setControlFlag(Goal.Flag.MOVE, flag);
         this.goalSelector.setControlFlag(Goal.Flag.JUMP, flag && flag1);
         this.goalSelector.setControlFlag(Goal.Flag.LOOK, flag);
@@ -61,25 +77,25 @@ public class RecruitHorseEntity extends TameableEntity {
     }
 
     @Override
-    public ActionResultType mobInteract(PlayerEntity player, Hand hand) {
-        player.sendMessage(new StringTextComponent("This is not your Horse!"), player.getUUID());
-        return ActionResultType.SUCCESS;
+    public InteractionResult mobInteract(Player player, InteractionHand hand) {
+        player.sendMessage(new TextComponent("This is not your Horse!"), player.getUUID());
+        return InteractionResult.SUCCESS;
     }
 
 
     protected void registerGoals() {
         //this.goalSelector.addGoal(0, new HorseAIRecruitRide(this, 1.6));
-        this.goalSelector.addGoal(7, new LookAtGoal(this, PlayerEntity.class, 6.0F));
-        this.goalSelector.addGoal(8, new LookRandomlyGoal(this));
+        this.goalSelector.addGoal(7, new LookAtPlayerGoal(this, Player.class, 6.0F));
+        this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
         this.addBehaviourGoals();
     }
 
     protected void addBehaviourGoals() {
-        this.goalSelector.addGoal(0, new SwimGoal(this));
+        this.goalSelector.addGoal(0, new FloatGoal(this));
     }
 
     @Nullable
-    public ILivingEntityData finalizeSpawn(IServerWorld world, DifficultyInstance diff, SpawnReason reason, @Nullable ILivingEntityData spawnData, @Nullable CompoundNBT nbt) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance diff, MobSpawnType reason, @Nullable SpawnGroupData spawnData, @Nullable CompoundTag nbt) {
         setRandomSpawnBonus();
         setRandomVariant();
         return spawnData;
@@ -87,7 +103,7 @@ public class RecruitHorseEntity extends TameableEntity {
 
     @Nullable
     @Override
-    public AgeableEntity getBreedOffspring(ServerWorld p_241840_1_, AgeableEntity p_241840_2_) {
+    public AgableMob getBreedOffspring(ServerLevel p_241840_1_, AgableMob p_241840_2_) {
         return null;
     }
 
@@ -105,7 +121,7 @@ public class RecruitHorseEntity extends TameableEntity {
     }
 
     //ATTRIBUTES
-    public static AttributeModifierMap.MutableAttribute setAttributes() {
+    public static AttributeSupplier.Builder setAttributes() {
         return createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 30.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.35D)
@@ -143,7 +159,7 @@ public class RecruitHorseEntity extends TameableEntity {
         this.playSound(SoundEvents.HORSE_GALLOP, 0.15F, 1.0F);
     }
 
-    public void travel(Vector3d vec) {
+    public void travel(Vec3 vec) {
         if (this.isAlive()) {
             if (this.isVehicle() && this.canBeControlledByRider()) {
                 LivingEntity livingentity = (LivingEntity)this.getControllingPassenger();
