@@ -1,20 +1,19 @@
 package com.talhanation.recruits.client.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
 import com.talhanation.recruits.inventory.AssassinLeaderContainer;
-import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.network.MessageAssassinCount;
+import com.talhanation.recruits.network.MessageAssassinate;
 import de.maxhenkel.corelib.inventory.ScreenBase;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.glfw.GLFW;
@@ -51,7 +50,7 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderContainer> {
         super.init();
         minecraft.keyboardHandler.setSendRepeatsToGui(true);
 
-        addButton(new Button(leftPos + 10, topPos + 60, 8, 12, new TextComponent("<"), button -> {
+        addRenderableOnly(new Button(leftPos + 10, topPos + 60, 8, 12, new TextComponent("<"), button -> {
             this.count = assassinLeaderEntity.getCount();
             if (this.count != 0) {
                 this.count--;
@@ -59,7 +58,7 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderContainer> {
             }
         }));
 
-        addButton(new Button(leftPos + 10 + 30, topPos + 60, 8, 12, new TextComponent(">"), button -> {
+        addRenderableOnly(new Button(leftPos + 10 + 30, topPos + 60, 8, 12, new TextComponent(">"), button -> {
             this.count = assassinLeaderEntity.getCount();
             if (this.count != assassinLeaderEntity.getMaxAssassinCount()) {
                 this.count++;
@@ -68,7 +67,7 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderContainer> {
         }));
 
         //HUNT
-        addButton(new Button(leftPos + 77 + 25, topPos + 4, 50, 12, new TextComponent("Assassinate"), button -> {
+        addRenderableOnly(new Button(leftPos + 77 + 25, topPos + 4, 50, 12, new TextComponent("Assassinate"), button -> {
             int assassinateCost = assassinLeaderEntity.calculateAssassinateCosts(assassinLeaderEntity.getAssassinCosts(), this.count);
             if(assassinLeaderEntity.playerHasEnoughEmeralds(playerInventory.player, assassinateCost))
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageAssassinate(textField.getValue(), this.count, assassinateCost));
@@ -83,7 +82,7 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderContainer> {
         textField.setBordered(true);
         textField.setMaxLength(24);
 
-        addButton(textField);
+        addRenderableOnly(textField);
         setInitialFocus(textField);
     }
 
@@ -101,11 +100,7 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderContainer> {
 
     protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
         super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        int i = (this.width - this.imageWidth) / 2;
-        int j = (this.height - this.imageHeight) / 2;
 
-        //InventoryScreen.renderEntityInInventory(i + 50, j + 82, 30, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.assassinLeaderEntity);
     }
 
 

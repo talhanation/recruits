@@ -1,20 +1,21 @@
 package com.talhanation.recruits.client.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.inventory.CommandContainer;
-import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.network.MessageAggro;
+import com.talhanation.recruits.network.MessageClearTarget;
+import com.talhanation.recruits.network.MessageFollow;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -55,7 +56,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
     private static final int fontColor = 16250871;
     private Player player;
-    private Button addButton;
+
     private int group;
     private int recCount;
 
@@ -82,7 +83,8 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         int mirror = 240 - 60;
 
         //PASSIVE
-        addButton(new Button(zeroLeftPos - mirror + 40, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE, button -> {
+
+        addRenderableOnly(new Button(zeroLeftPos - mirror + 40, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE, button -> {
             CommandEvents.sendAggroCommandInChat(3, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 3, group));
 
@@ -91,7 +93,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         }));
 
         //NEUTRAL
-        addButton(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_NEUTRAL, button -> {
+        addRenderableOnly(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_NEUTRAL, button -> {
             CommandEvents.sendAggroCommandInChat(0, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 0, group));
 
@@ -100,7 +102,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         }));
 
         //AGGRESSIVE
-        addButton(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_AGGRESSIVE, button -> {
+        addRenderableOnly(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_AGGRESSIVE, button -> {
             CommandEvents.sendAggroCommandInChat(1, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 1, group));
 
@@ -109,7 +111,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         }));
 
         //RAID
-        addButton(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_RAID, button -> {
+        addRenderableOnly(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_RAID, button -> {
             CommandEvents.sendAggroCommandInChat(2, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 2, group));
 
@@ -118,7 +120,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         }));
 
         //CLEAR TARGET
-        addButton(new Button(zeroLeftPos - mirror + 40, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_CLEAR_TARGET, button -> {
+        addRenderableOnly(new Button(zeroLeftPos - mirror + 40, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_CLEAR_TARGET, button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTarget(player.getUUID(), this.group));
         }
         ));
@@ -126,7 +128,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
 
         //WANDER
-        addButton(new Button(zeroLeftPos - 40, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_WANDER, button -> {
+        addRenderableOnly(new Button(zeroLeftPos - 40, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_WANDER, button -> {
             CommandEvents.sendFollowCommandInChat(0, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 0, group));
 
@@ -136,7 +138,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
 
         //FOLLOW
-        addButton(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_FOLLOW, button -> {
+        addRenderableOnly(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_FOLLOW, button -> {
             CommandEvents.sendFollowCommandInChat(1, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 1, group));
 
@@ -147,7 +149,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
 
         //HOLD POS
-        addButton(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_HOLD_POS, button -> {
+        addRenderableOnly(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_HOLD_POS, button -> {
             CommandEvents.sendFollowCommandInChat(2, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 2, group));
 
@@ -157,7 +159,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
 
         //BACK TO POS
-        addButton(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_BACK_TO_POS, button -> {
+        addRenderableOnly(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_BACK_TO_POS, button -> {
             CommandEvents.sendFollowCommandInChat(3, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 3, group));
 
@@ -167,7 +169,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
 
         //HOLD MY POS
-        addButton(new Button(zeroLeftPos - 40, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_HOLD_MY_POS, button -> {
+        addRenderableOnly(new Button(zeroLeftPos - 40, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_HOLD_MY_POS, button -> {
             CommandEvents.sendFollowCommandInChat(4, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 4, group));
 
@@ -273,7 +275,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         */
 
         //GROUP
-        addButton(new Button(leftPos - 4 + imageWidth / 2, topPos - 40 + imageHeight / 2, 11, 20, new TextComponent("+"), button -> {
+        addRenderableOnly(new Button(leftPos - 4 + imageWidth / 2, topPos - 40 + imageHeight / 2, 11, 20, new TextComponent("+"), button -> {
             this.group = getSavedCurrentGroup(player);
 
             if (this.group != 9) {
@@ -283,7 +285,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             }
         }));
 
-        addButton(new Button(leftPos - 4 + imageWidth / 2, topPos + imageHeight / 2, 11, 20, new TextComponent("-"), button -> {
+        addRenderableOnly(new Button(leftPos - 4 + imageWidth / 2, topPos + imageHeight / 2, 11, 20, new TextComponent("-"), button -> {
             this.group = getSavedCurrentGroup(player);
 
             if (this.group != 0) {
@@ -313,8 +315,6 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
     protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
         super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
-
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     public static String handleGroupText(int group){

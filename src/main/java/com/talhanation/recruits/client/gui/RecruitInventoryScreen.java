@@ -1,25 +1,22 @@
 package com.talhanation.recruits.client.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.RecruitInventoryContainer;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
-import net.minecraft.util.text.*;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-
-
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer> {
@@ -86,7 +83,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
 
         //PASSIVE
-        addButton(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE, button -> {
+        addRenderableOnly(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE, button -> {
             this.aggro = recruit.getState();
             if (this.aggro != 3) {
                 this.aggro = 3;
@@ -97,7 +94,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         }));
 
         //NEUTRAL
-        addButton(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_NEUTRAL, button -> {
+        addRenderableOnly(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_NEUTRAL, button -> {
             this.aggro = recruit.getState();
             if (this.aggro != 0) {
                 this.aggro = 0;
@@ -108,7 +105,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         }));
 
         //AGGRESSIVE
-        addButton(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_AGGRESSIVE, button -> {
+        addRenderableOnly(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_AGGRESSIVE, button -> {
             this.aggro = recruit.getState();
             if (this.aggro != 1) {
                 this.aggro = 1;
@@ -120,7 +117,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         }));
 
         //RAID
-        addButton(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_RAID, button -> {
+        addRenderableOnly(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_RAID, button -> {
             this.aggro = recruit.getState();
             if (this.aggro != 2) {
                 this.aggro = 2;
@@ -132,13 +129,13 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         }));
 
         //CLEAR TARGET
-        addButton(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_CLEAR_TARGET, button -> {
+        addRenderableOnly(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_CLEAR_TARGET, button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTargetGui(recruit.getUUID()));
         }
         ));
 
         //WANDER
-        addButton(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_WANDER, button -> {
+        addRenderableOnly(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_WANDER, button -> {
             this.follow = recruit.getFollowState();
             if (this.follow != 0) {
                 this.follow = 0;
@@ -151,7 +148,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
 
         //FOLLOW
-        addButton(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_FOLLOW, button -> {
+        addRenderableOnly(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_FOLLOW, button -> {
             this.follow = recruit.getFollowState();
             if (this.follow != 1) {
                 this.follow = 1;
@@ -164,7 +161,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
 
         //HOLD POS
-        addButton(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_HOLD_POS, button -> {
+        addRenderableOnly(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_HOLD_POS, button -> {
             this.follow = recruit.getFollowState();
             if (this.follow != 2) {
                 this.follow = 2;
@@ -178,7 +175,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
 
         //BACK TO POS
-        addButton(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_BACK_TO_POS, button -> {
+        addRenderableOnly(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_BACK_TO_POS, button -> {
             this.follow = recruit.getFollowState();
             if (this.follow != 3) {
                 this.follow = 3;
@@ -192,7 +189,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
 
         //HOLD MY POS
-        addButton(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_HOLD_MY_POS, button -> {
+        addRenderableOnly(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_HOLD_MY_POS, button -> {
             this.follow = recruit.getFollowState();
             if (this.follow != 4) {
                 this.follow = 4;
@@ -205,17 +202,17 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
 
         //LISTEN
-        addButton(new Button(leftPos + 77, topPos + 113, 8, 12, new TextComponent("<"), button -> {
+        addRenderableOnly(new Button(leftPos + 77, topPos + 113, 8, 12, new TextComponent("<"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         }));
 
-        addButton(new Button(leftPos + 77 + 85, topPos + 113, 8, 12, new TextComponent(">"), button -> {
+        addRenderableOnly(new Button(leftPos + 77 + 85, topPos + 113, 8, 12, new TextComponent(">"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         }));
 
 
         //GROUP
-        addButton(new Button(leftPos + 77, topPos + 100, 8, 12, new TextComponent("<"), button -> {
+        addRenderableOnly(new Button(leftPos + 77, topPos + 100, 8, 12, new TextComponent("<"), button -> {
             this.group = recruit.getGroup();
             if (this.group != 0) {
                 this.group--;
@@ -223,7 +220,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
             }
         }));
 
-        addButton(new Button(leftPos + 77 + 85, topPos + 100, 8, 12, new TextComponent(">"), button -> {
+        addRenderableOnly(new Button(leftPos + 77 + 85, topPos + 100, 8, 12, new TextComponent(">"), button -> {
             this.group = recruit.getGroup();
             if (this.group != 9) {
                 this.group++;
@@ -233,7 +230,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
 
         //DISBAND
-        addButton(new Button(leftPos + 77 + 55, topPos + 4, 40, 12, TEXT_DISBAND, button -> {
+        addRenderableOnly(new Button(leftPos + 77 + 55, topPos + 4, 40, 12, TEXT_DISBAND, button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDisband(recruit.getUUID()));
             this.onClose();
         },  (a, b, c, d) -> {
@@ -318,7 +315,8 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
     protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
         super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+
+        RenderSystem.clearColor(1.0F, 1.0F, 1.0F, 1.0F);
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
 
