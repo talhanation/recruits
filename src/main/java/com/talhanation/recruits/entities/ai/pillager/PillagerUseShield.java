@@ -1,20 +1,13 @@
 package com.talhanation.recruits.entities.ai.pillager;
 
-import net.minecraft.world.entity.monster.RangedAttackMob;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.item.*;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.AxeItem;
-import net.minecraft.world.item.BowItem;
-import net.minecraft.world.item.CrossbowItem;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.PickaxeItem;
-import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.entity.monster.RangedAttackMob;
+import net.minecraft.world.item.*;
 
 /*
 code by talhanation all rights reserved
@@ -29,7 +22,7 @@ public class PillagerUseShield extends Goal {
     }
 
     public boolean canUse() {
-       return (this.pillager.getItemInHand(InteractionHand.OFF_HAND).getItem().isShield(this.pillager.getItemInHand(InteractionHand.OFF_HAND), this.pillager)
+       return (this.pillager.getItemInHand(InteractionHand.OFF_HAND).getItem() instanceof ShieldItem
                && canRaiseShield()
        );
     }
@@ -39,7 +32,7 @@ public class PillagerUseShield extends Goal {
     }
 
     public void start() {
-        if (this.pillager.getItemInHand(InteractionHand.OFF_HAND).getItem().isShield(this.pillager.getItemInHand(InteractionHand.OFF_HAND), pillager)){
+        if (this.pillager.getItemInHand(InteractionHand.OFF_HAND).getItem() instanceof ShieldItem){
         this.pillager.startUsingItem(InteractionHand.OFF_HAND);
         this.pillager.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.12D);
         }

@@ -1,12 +1,11 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.entities.ai.AssassinFleeSuccess;
-import net.minecraft.entity.*;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.nbt.CompoundTag;
@@ -17,13 +16,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.function.Predicate;
-
-import net.minecraft.world.entity.AgableMob;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.SpawnGroupData;
 
 public class AssassinEntity extends AbstractOrderAbleEntity {
     private int despawnTimer = 0;
@@ -58,7 +51,7 @@ public class AssassinEntity extends AbstractOrderAbleEntity {
         if (this.getIsInOrder()) {
             despawnTimer ++;
             }
-        if (despawnTimer > 24000) this.remove();
+        if (despawnTimer > 24000) this.remove(RemovalReason.UNLOADED_TO_CHUNK);
     }
 
     @Nullable
@@ -72,6 +65,12 @@ public class AssassinEntity extends AbstractOrderAbleEntity {
         this.setCanPickUpLoot(true);
         return ilivingentitydata;
     }
+
+    @Nullable
+    public AgeableMob getBreedOffspring(ServerLevel p_146743_, AgeableMob p_146744_) {
+        return null;
+    }
+
     @Override
     public void setEquipment() {
         this.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
@@ -91,12 +90,6 @@ public class AssassinEntity extends AbstractOrderAbleEntity {
         }
     }
 
-
-    @Nullable
-    @Override
-    public AgableMob getBreedOffspring(ServerLevel p_241840_1_, AgableMob p_241840_2_) {
-        return null;
-    }
 
     @Override
     public void openGUI(Player player) {

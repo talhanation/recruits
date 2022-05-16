@@ -3,23 +3,25 @@ package com.talhanation.recruits.entities;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.entity.*;
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.TamableAnimal;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.Containers;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
-import net.minecraft.network.protocol.game.ClientboundEntityEventPacket;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
-import net.minecraft.world.level.Level;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.network.protocol.game.ClientboundEntityEventPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Containers;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.SlotAccess;
+import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
@@ -28,8 +30,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-
-import net.minecraft.world.entity.EntityType;
 
 public abstract class AbstractInventoryEntity extends TamableAnimal {
 
@@ -141,11 +141,25 @@ public abstract class AbstractInventoryEntity extends TamableAnimal {
 
     ////////////////////////////////////SET////////////////////////////////////
 
-    @Override
-    public boolean setSlot(int id, ItemStack itemStack) {
-        super.setSlot(id, itemStack);
-        return true;
+    public SlotAccess getSlot(int slot) {
+        return slot == 499 ? new SlotAccess() {
+            public ItemStack get() {
+                return new ItemStack(Items.CHEST);
+            }
+
+            public boolean set(ItemStack stack) {
+                if (stack.isEmpty()) {
+
+                    AbstractInventoryEntity.this.createInventory();
+
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        } : super.getSlot(slot);
     }
+
 
 
     ////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////
@@ -186,7 +200,7 @@ public abstract class AbstractInventoryEntity extends TamableAnimal {
             this.take(itemEntity, itemstack.getCount());
             ItemStack itemstack1 = inventory.addItem(itemstack);
             if (itemstack1.isEmpty()) {
-                itemEntity.remove();
+                itemEntity.remove(RemovalReason.KILLED);
             } else {
                 itemstack.setCount(itemstack1.getCount());
             }
@@ -211,7 +225,7 @@ public abstract class AbstractInventoryEntity extends TamableAnimal {
     }
 
     @Override
-    protected void invalidateCaps() {
+    public void invalidateCaps() {
         super.invalidateCaps();
         if (itemHandler != null) {
             LazyOptional<?> oldHandler = itemHandler;
