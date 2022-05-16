@@ -21,7 +21,7 @@ public class RecruitMoveToPosGoal extends Goal {
         if (this.recruit.getMovePos() == null && recruit.getMove()) {
             return false;
         }
-        else return this.recruit.getMovePos().closerThan(recruit.position(), within);
+        else return this.recruit.getMovePos().closerThan(recruit.getOnPos(), within);
     }
 
     public boolean canContinueToUse() {
@@ -35,7 +35,7 @@ public class RecruitMoveToPosGoal extends Goal {
             this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
         }
 
-        if(blockpos.closerThan(recruit.position(), 3)){
+        if(blockpos.closerThan(recruit.getOnPos(), 3)){
             recruit.setShouldFollow(false);
             recruit.setMove(false);
         }

@@ -1,25 +1,23 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.entity.*;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
-import net.minecraft.world.entity.TamableAnimal;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.level.GameRules;
+import net.minecraft.world.phys.AABB;
 
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.ai.targeting.TargetingConditions;
-
 public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
-    private static final TargetingConditions HURT_BY_TARGETING = (new TargetingConditions()).allowUnseeable().ignoreInvisibilityTesting();
+    private static final TargetingConditions HURT_BY_TARGETING = TargetingConditions.forCombat().ignoreLineOfSight().ignoreInvisibilityTesting();;
     private boolean alertSameType;
     private int timestamp;
     private final Class<?>[] toIgnoreDamage;
@@ -81,7 +79,7 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
     protected void alertOthers() {
         double d0 = this.getFollowDistance();
         AABB axisalignedbb = AABB.unitCubeFromLowerCorner(this.recruit.position()).inflate(d0, 10.0D, d0);
-        List<Mob> list = this.recruit.level.getLoadedEntitiesOfClass(this.recruit.getClass(), axisalignedbb);
+        List<? extends AbstractRecruitEntity> list = this.recruit.level.getEntitiesOfClass(this.recruit.getClass(), axisalignedbb);
         Iterator iterator = list.iterator();
 
         while (true) {

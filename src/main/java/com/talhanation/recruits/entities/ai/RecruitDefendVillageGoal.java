@@ -1,42 +1,41 @@
 package com.talhanation.recruits.entities.ai;
 
-import java.util.EnumSet;
-import java.util.List;
-
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.target.TargetGoal;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 
-public class RecruitDefendVillageGoal extends TargetGoal {
-    private final AbstractRecruitEntity entity;
-    private LivingEntity potentialTarget;
-    private final TargetingConditions attackTargeting = (new TargetingConditions()).range(64.0D);
+import javax.annotation.Nullable;
+import java.util.EnumSet;
+import java.util.List;
 
-    public RecruitDefendVillageGoal(AbstractRecruitEntity entity) {
-        super(entity, false, true);
-        this.entity = entity;
-        this.setFlags(EnumSet.of(Goal.Flag.TARGET));
+public class RecruitDefendVillageGoal extends TargetGoal {
+    private final AbstractRecruitEntity recruit;
+    @Nullable
+    private LivingEntity potentialTarget;
+    private final TargetingConditions attackTargeting = TargetingConditions.forCombat().range(64.0D);
+
+    public RecruitDefendVillageGoal(AbstractRecruitEntity p_26029_) {
+        super(p_26029_, false, true);
+        this.recruit = p_26029_;
+        this.setFlags(EnumSet.of(Flag.TARGET));
     }
 
     public boolean canUse() {
-        AABB axisalignedbb = this.entity.getBoundingBox().inflate(40.0D, 8.0D, 40.0D);
-        List<LivingEntity> list = this.entity.level.getNearbyEntities(Villager.class, this.attackTargeting, this.entity, axisalignedbb);
-        List<Player> list1 = this.entity.level.getNearbyPlayers(this.attackTargeting, this.entity, axisalignedbb);
+        AABB aabb = this.recruit.getBoundingBox().inflate(10.0D, 8.0D, 10.0D);
+        List<? extends LivingEntity> list = this.recruit.level.getNearbyEntities(Villager.class, this.attackTargeting, this.recruit, aabb);
+        List<Player> list1 = this.recruit.level.getNearbyPlayers(this.attackTargeting, this.recruit, aabb);
 
         for(LivingEntity livingentity : list) {
-            Villager villagerentity = (Villager) livingentity;
+            Villager villager = (Villager)livingentity;
 
-            for (Player playerentity : list1) {
-                int i = villagerentity.getPlayerReputation(playerentity);
-                if ((playerentity.getUUID() != entity.getOwnerUUID())) {
-                    if (i <= -100) {
-                        this.potentialTarget = playerentity;
-                    }
+            for(Player player : list1) {
+                int i = villager.getPlayerReputation(player);
+                if (i <= -100) {
+                    this.potentialTarget = player;
                 }
             }
         }
@@ -44,14 +43,12 @@ public class RecruitDefendVillageGoal extends TargetGoal {
         if (this.potentialTarget == null) {
             return false;
         } else {
-            return (!(this.potentialTarget instanceof Player) ||
-                    !this.potentialTarget.isSpectator() && !((Player)this.potentialTarget).isCreative())
-                    && entity.getState() != 3;
+            return !(this.potentialTarget instanceof Player) || !this.potentialTarget.isSpectator() && !((Player)this.potentialTarget).isCreative();
         }
     }
 
     public void start() {
-        this.entity.setTarget(this.potentialTarget);
+        this.recruit.setTarget(this.potentialTarget);
         super.start();
     }
 }

@@ -1,16 +1,14 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.target.TargetGoal;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.player.Player;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.function.Predicate;
-
-import net.minecraft.world.entity.ai.goal.Goal.Flag;
 
 public class RecruitAggresiveNearestAttackableTargetGoal<T extends LivingEntity> extends TargetGoal {
     protected final Class<T> targetType;
@@ -27,11 +25,11 @@ public class RecruitAggresiveNearestAttackableTargetGoal<T extends LivingEntity>
         this(recruit, target, p_i50314_3_, p_i50314_4_, null);
     }
 
-    public RecruitAggresiveNearestAttackableTargetGoal(AbstractRecruitEntity recruit, Class<T> target, boolean p_i50315_4_, boolean p_i50315_5_, @Nullable Predicate<LivingEntity> p_i50315_6_) {
+    public RecruitAggresiveNearestAttackableTargetGoal(AbstractRecruitEntity recruit, Class<T> target, boolean p_i50315_4_, boolean p_i50315_5_, @Nullable Predicate<LivingEntity> p_26058_) {
         super(recruit, p_i50315_4_, p_i50315_5_);
         this.targetType = target;
         this.setFlags(EnumSet.of(Flag.TARGET));
-        this.targetConditions = (new TargetingConditions()).range(this.getFollowDistance()).selector(p_i50315_6_);
+        this.targetConditions = TargetingConditions.forCombat().range(this.getFollowDistance()).selector(p_26058_);
     }
 
     public boolean canUse() {

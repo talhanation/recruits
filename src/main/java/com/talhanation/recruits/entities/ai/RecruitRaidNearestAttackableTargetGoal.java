@@ -29,11 +29,11 @@ public class RecruitRaidNearestAttackableTargetGoal<T extends LivingEntity> exte
         this(recruit, target, p_i50314_3_, p_i50314_4_, (Predicate<LivingEntity>)null);
     }
 
-    public RecruitRaidNearestAttackableTargetGoal(AbstractRecruitEntity recruit, Class<T> target, boolean p_i50315_4_, boolean p_i50315_5_, @Nullable Predicate<LivingEntity> p_i50315_6_) {
+    public RecruitRaidNearestAttackableTargetGoal(AbstractRecruitEntity recruit, Class<T> target, boolean p_i50315_4_, boolean p_i50315_5_, @Nullable Predicate<LivingEntity> p_26058_) {
         super(recruit, p_i50315_4_, p_i50315_5_);
         this.targetType = target;
         this.setFlags(EnumSet.of(Goal.Flag.TARGET));
-        this.targetConditions = (new TargetingConditions()).range(this.getFollowDistance()).selector(p_i50315_6_);
+        this.targetConditions = TargetingConditions.forCombat().range(this.getFollowDistance()).selector(p_26058_);
     }
 
     public boolean canUse() {
@@ -57,7 +57,7 @@ public class RecruitRaidNearestAttackableTargetGoal<T extends LivingEntity> exte
 
     protected void findTarget() {
         if(this.targetType != Player.class && this.targetType != ServerPlayer.class) {
-            this.target = this.mob.level.getNearestLoadedEntity(this.targetType, this.targetConditions, this.mob, this.mob.getX(), this.mob.getEyeY(), this.mob.getZ(), this.getTargetSearchArea(this.getFollowDistance()));
+            this.target = this.mob.level.getNearestEntity(this.targetType, this.targetConditions, this.mob, this.mob.getX(), this.mob.getEyeY(), this.mob.getZ(), this.getTargetSearchArea(this.getFollowDistance()));
         } else {
             this.target = this.mob.level.getNearestPlayer(this.targetConditions, this.mob, this.mob.getX(), this.mob.getEyeY(), this.mob.getZ());
         }

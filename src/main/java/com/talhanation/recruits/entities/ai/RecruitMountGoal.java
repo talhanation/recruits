@@ -8,8 +8,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.UUID;
 
-import net.minecraft.world.entity.ai.goal.Goal.Flag;
-
 public class RecruitMountGoal extends Goal {
     private final AbstractRecruitEntity recruit;
     private final UUID mount;
@@ -27,7 +25,7 @@ public class RecruitMountGoal extends Goal {
         if (this.recruit.getMount() == null && recruit.getMove()) {
             return false;
         }
-        else if (this.recruit.getMovePos().closerThan(recruit.position(), within))
+        else if (this.recruit.getMovePos().closerThan(recruit.getOnPos(), within))
             return true;
         else
             return false;

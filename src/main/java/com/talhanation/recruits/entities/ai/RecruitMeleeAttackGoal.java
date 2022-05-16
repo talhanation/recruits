@@ -1,19 +1,16 @@
 package com.talhanation.recruits.entities.ai;
 
-import java.util.EnumSet;
-import java.util.Objects;
-
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.world.level.pathfinder.Path;
-import net.minecraft.world.entity.EntitySelector;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.core.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+
+import java.util.EnumSet;
+
 
 public class RecruitMeleeAttackGoal extends Goal {
     protected final AbstractRecruitEntity mob;
@@ -115,7 +112,7 @@ public class RecruitMeleeAttackGoal extends Goal {
         this.mob.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
         double d0 = this.mob.distanceToSqr(livingentity.getX(), livingentity.getY(), livingentity.getZ());
         this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
-        if ((this.followingTargetEvenIfNotSeen || this.mob.getSensing().canSee(livingentity)) && this.ticksUntilNextPathRecalculation <= 0 && (this.pathedTargetX == 0.0D && this.pathedTargetY == 0.0D && this.pathedTargetZ == 0.0D || livingentity.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) >= 1.0D || this.mob.getRandom().nextFloat() < 0.05F)) {
+        if ((this.followingTargetEvenIfNotSeen || this.mob.getSensing().hasLineOfSight(livingentity)) && this.ticksUntilNextPathRecalculation <= 0 && (this.pathedTargetX == 0.0D && this.pathedTargetY == 0.0D && this.pathedTargetZ == 0.0D || livingentity.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) >= 1.0D || this.mob.getRandom().nextFloat() < 0.05F)) {
             this.pathedTargetX = livingentity.getX();
             this.pathedTargetY = livingentity.getY();
             this.pathedTargetZ = livingentity.getZ();
@@ -161,18 +158,6 @@ public class RecruitMeleeAttackGoal extends Goal {
         this.ticksUntilNextAttack = 20;
     }
 
-    protected boolean isTimeToAttack() {
-        return this.ticksUntilNextAttack <= 0;
-    }
-
-    protected int getTicksUntilNextAttack() {
-        return this.ticksUntilNextAttack;
-    }
-
-    protected int getAttackInterval() {
-        return 20;
-    }
-
     protected double getAttackReachSqr(LivingEntity p_179512_1_) {
         return (double)(this.mob.getBbWidth() * 2.1F * this.mob.getBbWidth() * 2.1F + p_179512_1_.getBbWidth());
     }
@@ -183,8 +168,8 @@ public class RecruitMeleeAttackGoal extends Goal {
 
         if (target != null && pos != null && mob.getShouldHoldPos()) {
             boolean targetIsFar = target.distanceTo(this.mob) >= 10.0D;
-            boolean posIsClose = pos.distSqr(this.mob.position(), false) <= 8.0D;
-            boolean posIsFar = pos.distSqr(this.mob.position(),false) > 8.0D;
+            boolean posIsClose = pos.distSqr(this.mob.getOnPos()) <= 8.0D;
+            boolean posIsFar = pos.distSqr(this.mob.getOnPos()) > 8.0D;
 
             if (posIsFar) {
                 return false;

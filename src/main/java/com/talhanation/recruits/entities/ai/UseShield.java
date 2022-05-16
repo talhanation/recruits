@@ -7,18 +7,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.item.*;
 import net.minecraft.world.InteractionHand;
-
-import javax.swing.*;
-
-import net.minecraft.world.item.AxeItem;
-import net.minecraft.world.item.BowItem;
-import net.minecraft.world.item.CrossbowItem;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.PickaxeItem;
-import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.item.*;
 
 public class UseShield extends Goal {
     public final PathfinderMob entity;
@@ -31,12 +21,12 @@ public class UseShield extends Goal {
     public boolean canUse() {
         if (entity instanceof AbstractRecruitEntity){
             AbstractRecruitEntity recruit = (AbstractRecruitEntity) entity;
-            return (recruit.getItemInHand(InteractionHand.OFF_HAND).getItem().isShield(this.entity.getItemInHand(InteractionHand.OFF_HAND), this.entity)
+            return (recruit.getItemInHand(InteractionHand.OFF_HAND).getItem() instanceof ShieldItem
                     && canRaiseShield()
                     && !recruit.isFollowing()
             );
         }
-        else return (this.entity.getItemInHand(InteractionHand.OFF_HAND).getItem().isShield(this.entity.getItemInHand(InteractionHand.OFF_HAND), this.entity)
+        else return (this.entity.getItemInHand(InteractionHand.OFF_HAND).getItem() instanceof ShieldItem
                && canRaiseShield()
 
        );
@@ -47,7 +37,7 @@ public class UseShield extends Goal {
     }
 
     public void start() {
-        if (this.entity.getItemInHand(InteractionHand.OFF_HAND).getItem().isShield(this.entity.getItemInHand(InteractionHand.OFF_HAND), entity)){
+        if (this.entity.getItemInHand(InteractionHand.OFF_HAND).getItem() instanceof ShieldItem){
         this.entity.startUsingItem(InteractionHand.OFF_HAND);
         this.entity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.12D);
         }
