@@ -14,6 +14,7 @@ import com.talhanation.recruits.inventory.AssassinLeaderContainer;
 import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.inventory.RecruitInventoryContainer;
 import com.talhanation.recruits.network.*;
+import de.maxhenkel.corelib.CommonRegistry;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.entity.npc.VillagerProfession;
@@ -90,86 +91,33 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new CommandEvents());
         MinecraftForge.EVENT_BUS.register(new AssassinEvents());
         MinecraftForge.EVENT_BUS.register(this);
-        SIMPLE_CHANNEL = NetworkRegistry.newSimpleChannel(new ResourceLocation(MOD_ID, "default"), () -> "1.0.0", s -> true, s -> true);
+        SIMPLE_CHANNEL = CommonRegistry.registerChannel(Main.MOD_ID, "default");
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 0, MessageAggro.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 1, MessageAggroGui.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 2, MessageAssassinate.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 3, MessageAssassinCount.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 4, MessageAssassinGui.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 5, MessageAttackEntity.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 6, MessageClearTarget.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 7, MessageClearTargetGui.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 8, MessageCommandScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 9, MessageDisband.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 10, MessageFollow.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 11, MessageFollowGui.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 12, MessageGroup.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 13, MessageListen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 14, MessageMove.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 15, MessageRecruitGui.class);
 
-
-        SIMPLE_CHANNEL.registerMessage(1, MessageFollow.class, MessageFollow::toBytes,
-                buf -> (new MessageFollow()).fromBytes(buf),
-                (msg, fun) -> msg.executeServerSide(fun.get()));
-
-        SIMPLE_CHANNEL.registerMessage(2, MessageAggro.class, MessageAggro::toBytes,
-                buf -> (new MessageAggro()).fromBytes(buf),
-                (msg, fun) -> msg.executeServerSide(fun.get()));
-
-        SIMPLE_CHANNEL.registerMessage(3, MessageMove.class, MessageMove::toBytes,
-                buf -> (new MessageMove()).fromBytes(buf),
-                (msg, fun) -> msg.executeServerSide(fun.get()));
-
-        SIMPLE_CHANNEL.registerMessage(4, MessageClearTarget.class, MessageClearTarget::toBytes,
-                buf -> (new MessageClearTarget()).fromBytes(buf),
-                (msg, fun) -> msg.executeServerSide(fun.get()));
-
-        SIMPLE_CHANNEL.registerMessage(5, MessageListen.class, MessageListen::toBytes,
-                buf -> (new MessageListen()).fromBytes(buf),
-                (msg, fun) -> msg.executeServerSide(fun.get()));
-
-        SIMPLE_CHANNEL.registerMessage(6, MessageRecruitGui.class, MessageRecruitGui::toBytes,
-                buf -> (new MessageRecruitGui()).fromBytes(buf),
-                (msg, fun) -> msg.executeServerSide(fun.get()));
-
-        SIMPLE_CHANNEL.registerMessage(7, MessageCommandScreen.class, MessageCommandScreen::toBytes,
-                buf -> (new MessageCommandScreen()).fromBytes(buf),
-                (msg, fun) -> msg.executeServerSide(fun.get()));
-
-        SIMPLE_CHANNEL.registerMessage(8, MessageGroup.class, MessageGroup::toBytes,
-                buf -> (new MessageGroup()).fromBytes(buf),
-                (msg, fun) -> msg.executeServerSide(fun.get()));
-
-        SIMPLE_CHANNEL.registerMessage(9, MessageFollowGui.class, MessageFollowGui::toBytes,
-                buf -> (new MessageFollowGui()).fromBytes(buf),
-                (msg, fun) -> msg.executeServerSide(fun.get()));
-
-        SIMPLE_CHANNEL.registerMessage(10, MessageAggroGui.class, MessageAggroGui::toBytes,
-                buf -> (new MessageAggroGui()).fromBytes(buf),
-                (msg, fun) -> msg.executeServerSide(fun.get()));
-
-        SIMPLE_CHANNEL.registerMessage(11, MessageAttackEntity.class, MessageAttackEntity::toBytes,
-                buf -> (new MessageAttackEntity()).fromBytes(buf),
-                (msg, fun) -> msg.executeServerSide(fun.get()));
-
-        SIMPLE_CHANNEL.registerMessage(12, MessageRecruitsInCommand.class, MessageRecruitsInCommand::toBytes,
-                buf -> (new MessageRecruitsInCommand()).fromBytes(buf),
-                (msg, fun) -> msg.executeServerSide(fun.get()));
-
-        SIMPLE_CHANNEL.registerMessage(13, MessageDisband.class, MessageDisband::toBytes,
-                buf -> (new MessageDisband()).fromBytes(buf),
-                (msg, fun) -> msg.executeServerSide(fun.get()));
-
-        SIMPLE_CHANNEL.registerMessage(14, MessageAssassinate.class, MessageAssassinate::toBytes,
-                buf -> (new MessageAssassinate()).fromBytes(buf),
-                (msg, fun) -> msg.executeServerSide(fun.get()));
-
-        SIMPLE_CHANNEL.registerMessage(15, MessageAssassinGui.class, MessageAssassinGui::toBytes,
-                buf -> (new MessageAssassinGui()).fromBytes(buf),
-                (msg, fun) -> msg.executeServerSide(fun.get()));
-
-        SIMPLE_CHANNEL.registerMessage(16, MessageAssassinCount.class, MessageAssassinCount::toBytes,
-                buf -> (new MessageAssassinCount()).fromBytes(buf),
-                (msg, fun) -> msg.executeServerSide(fun.get()));
-
-        SIMPLE_CHANNEL.registerMessage(17, MessageClearTargetGui.class, MessageClearTargetGui::toBytes,
-                buf -> (new MessageClearTargetGui()).fromBytes(buf),
-                (msg, fun) -> msg.executeServerSide(fun.get()));
-
-        DeferredWorkQueue.runLater(() -> {
-            DefaultAttributes.put(ModEntityTypes.RECRUIT.get(), RecruitEntity.setAttributes().build());
-            DefaultAttributes.put(ModEntityTypes.RECRUIT_SHIELDMAN.get(), RecruitShieldmanEntity.setAttributes().build());
-            DefaultAttributes.put(ModEntityTypes.BOWMAN.get(), BowmanEntity.setAttributes().build());
-            DefaultAttributes.put(ModEntityTypes.CROSSBOWMAN.get(), BowmanEntity.setAttributes().build());
-            DefaultAttributes.put(ModEntityTypes.NOMAD.get(), NomadEntity.setAttributes().build());
-            DefaultAttributes.put(ModEntityTypes.RECRUIT_HORSE.get(), RecruitHorseEntity.setAttributes().build());
-            DefaultAttributes.put(ModEntityTypes.ASSASSIN.get(), AssassinEntity.setAttributes().build());
-            DefaultAttributes.put(ModEntityTypes.ASSASSIN_LEADER.get(), AssassinLeaderEntity.setAttributes().build());
+        DeferredWorkQueue.lookup(() -> {
+            DefaultAttributes.getSupplier(ModEntityTypes.RECRUIT.get(), RecruitEntity.setAttributes().build());
+            DefaultAttributes.getSupplier(ModEntityTypes.RECRUIT_SHIELDMAN.get(), RecruitShieldmanEntity.setAttributes().build());
+            DefaultAttributes.getSupplier(ModEntityTypes.BOWMAN.get(), BowmanEntity.setAttributes().build());
+            DefaultAttributes.getSupplier(ModEntityTypes.CROSSBOWMAN.get(), BowmanEntity.setAttributes().build());
+            DefaultAttributes.getSupplier(ModEntityTypes.NOMAD.get(), NomadEntity.setAttributes().build());
+            DefaultAttributes.getSupplier(ModEntityTypes.RECRUIT_HORSE.get(), RecruitHorseEntity.setAttributes().build());
+            DefaultAttributes.getSupplier(ModEntityTypes.ASSASSIN.get(), AssassinEntity.setAttributes().build());
+            DefaultAttributes.getSupplier(ModEntityTypes.ASSASSIN_LEADER.get(), AssassinLeaderEntity.setAttributes().build());
             //GlobalEntityTypeAttributes.put(ModEntityTypes.SCOUT.get(), ScoutEntity.setAttributes().build());
         });
     }

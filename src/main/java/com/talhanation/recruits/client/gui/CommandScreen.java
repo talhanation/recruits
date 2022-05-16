@@ -55,6 +55,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
     private static final int fontColor = 16250871;
     private Player player;
+    private Button addButton;
     private int group;
     private int recCount;
 
