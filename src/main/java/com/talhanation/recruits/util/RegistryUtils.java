@@ -3,9 +3,9 @@ package com.talhanation.recruits.util;
 import com.talhanation.recruits.init.ModItems;
 import com.talhanation.recruits.items.RecruitSpawnEgg;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraftforge.fml.RegistryObject;
+import net.minecraft.world.item.Item;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.function.Supplier;
 

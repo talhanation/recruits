@@ -202,7 +202,7 @@ public class PillagerEvents {
                             player.addEffect(effectinstance);
                         }
                         level.explode(entity, entity.getX(), entity.getY(), entity.getZ(), 0.5F, Explosion.BlockInteraction.BREAK);
-                        entity.remove();
+                        entity.remove(Entity.RemovalReason.DISCARDED);
                     }
                 }
             }
@@ -214,7 +214,7 @@ class FindTargetGoal extends Goal {
     private final Raider mob;
     private final float hostileRadiusSqr;
     private final Random random = new Random();
-    public final TargetingConditions shoutTargeting = (new TargetingConditions()).range(8.0D).allowNonAttackable().allowInvulnerable().allowSameTeam().allowUnseeable().ignoreInvisibilityTesting();
+    public final TargetingConditions shoutTargeting = ;
 
     public FindTargetGoal(AbstractIllager p_i50573_2_, float p_i50573_3_) {
         this.mob = p_i50573_2_;
