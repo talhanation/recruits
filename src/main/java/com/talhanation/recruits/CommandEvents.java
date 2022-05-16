@@ -4,18 +4,18 @@ import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.network.MessageCommandScreen;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraftforge.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -117,20 +117,20 @@ public class CommandEvents {
 */
     }
 
-    public static void openCommandScreen(PlayerEntity player) {
-        if (player instanceof ServerPlayerEntity) {
-            NetworkHooks.openGui((ServerPlayerEntity) player, new INamedContainerProvider() {
+    public static void openCommandScreen(Player player) {
+        if (player instanceof ServerPlayer) {
+            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
 
                 @Override
-                public ITextComponent getDisplayName() {
-                    return new StringTextComponent("command_screen") {
+                public Component getDisplayName() {
+                    return new TextComponent("command_screen") {
                     };
                 }
 
                 @Nullable
                 @Override
-                public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
-                    return new CommandContainer(i, playerEntity);
+                public AbstractContainerMenu createMenu(int i, Inventory playerInventory, Player Player) {
+                    return new CommandContainer(i, Player);
                 }
             }, packetBuffer -> {packetBuffer.writeUUID(player.getUUID());});
         } else {
@@ -142,23 +142,23 @@ public class CommandEvents {
     public static void sendFollowCommandInChat(int state, LivingEntity owner){
         switch (state) {
             case 0:
-                owner.sendMessage(new StringTextComponent("Release!"), owner.getUUID());
+                owner.sendMessage(new TextComponent("Release!"), owner.getUUID());
                 break;
 
             case 1:
-                owner.sendMessage(new StringTextComponent("Follow me!"), owner.getUUID());
+                owner.sendMessage(new TextComponent("Follow me!"), owner.getUUID());
                 break;
 
             case 2:
-                owner.sendMessage(new StringTextComponent("Hold your Position!"), owner.getUUID());
+                owner.sendMessage(new TextComponent("Hold your Position!"), owner.getUUID());
                 break;
 
             case 3:
-                owner.sendMessage(new StringTextComponent("Back to your Position!"), owner.getUUID());
+                owner.sendMessage(new TextComponent("Back to your Position!"), owner.getUUID());
                 break;
 
             case 4:
-                owner.sendMessage(new StringTextComponent("Hold my Position!"), owner.getUUID());
+                owner.sendMessage(new TextComponent("Hold my Position!"), owner.getUUID());
                 break;
         }
     }
@@ -166,35 +166,35 @@ public class CommandEvents {
     public static void sendAggroCommandInChat(int state, LivingEntity owner){
         switch (state) {
             case 0:
-                owner.sendMessage(new StringTextComponent("Stay Neutral!"), owner.getUUID());
+                owner.sendMessage(new TextComponent("Stay Neutral!"), owner.getUUID());
                 break;
 
             case 1:
-                owner.sendMessage(new StringTextComponent("Stay Aggressive!"), owner.getUUID());
+                owner.sendMessage(new TextComponent("Stay Aggressive!"), owner.getUUID());
                 break;
 
             case 2:
-                owner.sendMessage(new StringTextComponent("Raid!"), owner.getUUID());
+                owner.sendMessage(new TextComponent("Raid!"), owner.getUUID());
                 break;
 
             case 3:
-                owner.sendMessage(new StringTextComponent("Stay Passive!"), owner.getUUID());
+                owner.sendMessage(new TextComponent("Stay Passive!"), owner.getUUID());
                 break;
         }
     }
 
     public static void setRecruitsInCommand(AbstractRecruitEntity recruit, int count) {
         LivingEntity living = recruit.getOwner();
-        PlayerEntity player = (PlayerEntity) living;
+        Player player = (Player) living;
         if (player != null){
 
-            CompoundNBT playerNBT = player.getPersistentData();
-            CompoundNBT nbt = playerNBT.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
+            CompoundTag playerNBT = player.getPersistentData();
+            CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
 
             nbt.putInt( "RecruitsInCommand", count);
-            player.sendMessage(new StringTextComponent("EVENT int: " + count), player.getUUID());
+            player.sendMessage(new TextComponent("EVENT int: " + count), player.getUUID());
 
-            playerNBT.put(PlayerEntity.PERSISTED_NBT_TAG, nbt);
+            playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
         }
     }
 
@@ -212,43 +212,43 @@ public class CommandEvents {
 
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-        CompoundNBT playerData = event.getPlayer().getPersistentData();
-        CompoundNBT data = playerData.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
+        CompoundTag playerData = event.getPlayer().getPersistentData();
+        CompoundTag data = playerData.getCompound(Player.PERSISTED_NBT_TAG);
             if (!data.contains("MaxRecruits")) data.putInt("MaxRecruits", RecruitsModConfig.MaxRecruitsForPlayer.get());
             if (!data.contains("CommandingGroup")) data.putInt("CommandingGroup", 0);
             if (!data.contains("TotalRecruits")) data.putInt("TotalRecruits", 0);
 
-            playerData.put(PlayerEntity.PERSISTED_NBT_TAG, data);
+            playerData.put(Player.PERSISTED_NBT_TAG, data);
     }
     /*
     @SubscribeEvent
     public void onPlayerLivingUpdate(LivingEvent.LivingUpdateEvent event) {
         Entity entity = event.getEntityLiving();
-        if (entity instanceof PlayerEntity) {
-            PlayerEntity player = (PlayerEntity) entity;
+        if (entity instanceof Player) {
+            Player player = (Player) entity;
 
-            CompoundNBT playerData = player.getPersistentData();
-            CompoundNBT data = playerData.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
+            CompoundTag playerData = player.getPersistentData();
+            CompoundTag data = playerData.getCompound(Player.PERSISTED_NBT_TAG);
 
             if (player.isCrouching())
-                player.sendMessage(new StringTextComponent("NBT: " + data.getInt("RecruitsInCommand")), player.getUUID());
+                player.sendMessage(new TextComponent("NBT: " + data.getInt("RecruitsInCommand")), player.getUUID());
         }
     }
      */
 
-    public static int getSavedRecruitCount(PlayerEntity player) {
-        CompoundNBT playerNBT = player.getPersistentData();
-        CompoundNBT nbt = playerNBT.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
-        //player.sendMessage(new StringTextComponent("getSavedCount: " + nbt.getInt("TotalRecruits")), player.getUUID());
+    public static int getSavedRecruitCount(Player player) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
+        //player.sendMessage(new TextComponent("getSavedCount: " + nbt.getInt("TotalRecruits")), player.getUUID());
         return nbt.getInt("TotalRecruits");
     }
 
-    public static void saveRecruitCount(PlayerEntity player, int count) {
-        CompoundNBT playerNBT = player.getPersistentData();
-        CompoundNBT nbt = playerNBT.getCompound(PlayerEntity.PERSISTED_NBT_TAG);
-        //player.sendMessage(new StringTextComponent("savedCount: " + count), player.getUUID());
+    public static void saveRecruitCount(Player player, int count) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
+        //player.sendMessage(new TextComponent("savedCount: " + count), player.getUUID());
 
         nbt.putInt( "TotalRecruits", count);
-        playerNBT.put(PlayerEntity.PERSISTED_NBT_TAG, nbt);
+        playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
 }

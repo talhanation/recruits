@@ -2,9 +2,10 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.network.PacketBuffer;
+import de.maxhenkel.corelib.net.Message;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.List;
 import java.util.Objects;
@@ -33,13 +34,13 @@ public class MessageMove implements Message<MessageMove> {
                 CommandEvents.onCKeyPressed(this.player, recruits, group);
         }
     }
-    public MessageMove fromBytes(PacketBuffer buf) {
+    public MessageMove fromBytes(FriendlyByteBuf buf) {
         this.player = buf.readUUID();
         this.group = buf.readInt();
         return this;
     }
 
-    public void toBytes(PacketBuffer buf) {
+    public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(this.player);
         buf.writeInt(this.group);
     }

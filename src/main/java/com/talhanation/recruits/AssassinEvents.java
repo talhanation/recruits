@@ -2,28 +2,26 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.entities.AssassinEntity;
 import com.talhanation.recruits.init.ModEntityTypes;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.EntitySpawnPlacementRegistry;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.management.PlayerList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.World;
-import net.minecraft.world.gen.Heightmap;
-import net.minecraft.world.spawner.WorldEntitySpawner;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
+
+import java.util.logging.Level;
 
 public class AssassinEvents {
 
-    public static void createAssassin(String playerName, int count, World world) {
+    public static void createAssassin(String playerName, int count, ServerLevel world) {
         MinecraftServer server = world.getServer();
         PlayerList list = server.getPlayerList();
-        PlayerEntity target = list.getPlayerByName(playerName);
+        Player target = list.getPlayerByName(playerName);
         BlockPos blockPos;
 
         if (target != null) {
@@ -36,7 +34,7 @@ public class AssassinEvents {
             if (hasEnoughSpace(world, blockPos)){
                 world.setBlock(blockPos, Blocks.REDSTONE_BLOCK.defaultBlockState(), 3);
                 for (int i = 0; i < count; i++) {
-                    AssassinEntity assassin = ModEntityTypes.ASSASSIN.get().create(target.level);
+                    AssassinEntity assassin = ModEntityTypes.ASSASSIN.create(target.level);
                     assassin.setPos(blockPos.getX(), blockPos.getY() + 1, blockPos.getZ());
                     assassin.setEquipment();
                     assassin.setTame(false);
@@ -73,9 +71,9 @@ public class AssassinEvents {
         return blockPos;
     }
 
-    private static boolean hasEnoughSpace(IBlockReader reader, BlockPos pos) {
+    private static boolean hasEnoughSpace(ServerLevel level, BlockPos pos) {
         for(BlockPos blockpos : BlockPos.betweenClosed(pos, pos.offset(1, 2, 1))) {
-            if (!reader.getBlockState(blockpos).getCollisionShape(reader, blockpos).isEmpty()) {
+            if (!level.getBlockState(blockpos).getCollisionShape(level, blockpos).isEmpty()) {
                 return false;
             }
         }
@@ -83,14 +81,14 @@ public class AssassinEvents {
         return true;
     }
 
-    public static void doPayment(PlayerEntity player, int costs){
-        PlayerInventory playerInv = player.inventory;
+    public static void doPayment(Player player, int costs){
+        Inventory playerInv = player.getInventory();
         int playerEmeralds = 0;
 
         //checkPlayerMoney
         playerEmeralds = playerGetEmeraldsInInventory(player);
-        player.sendMessage(new StringTextComponent("PlayerEmeralds: " + playerEmeralds), player.getUUID());
-        player.sendMessage(new StringTextComponent("Costs: " + costs), player.getUUID());
+        player.sendMessage(new TextComponent("PlayerEmeralds: " + playerEmeralds), player.getUUID());
+        player.sendMessage(new TextComponent("Costs: " + costs), player.getUUID());
         playerEmeralds = playerEmeralds - costs;
 
         //remove Player Emeralds
@@ -110,9 +108,9 @@ public class AssassinEvents {
     }
 
 
-    public static int playerGetEmeraldsInInventory(PlayerEntity player) {
+    public static int playerGetEmeraldsInInventory(Player player) {
         int emeralds = 0;
-        PlayerInventory playerInv = player.inventory;
+        Inventory playerInv = player.getInventory();
         for (int i = 0; i < playerInv.getContainerSize(); i++){
             ItemStack itemStackInSlot = playerInv.getItem(i);
             Item itemInSlot = itemStackInSlot.getItem();

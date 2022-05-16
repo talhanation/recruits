@@ -1,5 +1,5 @@
 package com.talhanation.recruits.network;
-
+/*
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.network.PacketBuffer;
@@ -47,3 +47,5 @@ public class MessageRecruitCount implements Message<MessageRecruitCount> {
     }
 
 }
+
+ */

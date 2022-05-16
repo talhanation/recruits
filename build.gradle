@@ -1,42 +1,43 @@
 buildscript {
     repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
-        maven { url = 'https://repo.spongepowered.org/maven' }
-        jcenter()
+        // These repositories are only for Gradle plugins, put any other repositories in the repository block further below
+        maven { url = 'https://maven.minecraftforge.net' }
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
         classpath group: 'com.github.jengelman.gradle.plugins', name: 'shadow', version: '4.0.4'
-        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     }
 }
-
+// Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 plugins {
-    id "com.matthewprenger.cursegradle" version "1.4.0"
+    id 'eclipse'
+    id 'maven-publish'
 }
-
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'com.github.johnrengelman.shadow'
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
-apply plugin: 'org.spongepowered.mixin'
 
-version = '1.5.1'
+
+version = '1.6.0'
 group = 'com.talhanation.recruits'
-archivesBaseName = 'recruits-1.16.5'
+archivesBaseName = 'recruits-1.18.2'
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
+println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
 minecraft {
-    mappings channel: 'official', version: '1.16.5'
-    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+   mappings channel: 'official', version: '1.18.2'
+	accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
+
     runs {
         client {
             workingDirectory project.file('run')
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'debug'
-            arg "-mixin.config=recruits.general.mixin.json"//////////////////////////
+
+            property 'forge.logging.markers', 'REGISTRIES'
+			property 'forge.logging.console.level', 'debug'
+
+            property 'forge.enabledGameTestNamespaces', 'recruits'
+
             Random rnd = new Random()
             //args = ['--username', 'Player' + rnd.nextInt(1000)]
 
@@ -49,9 +50,25 @@ minecraft {
 
         server {
             workingDirectory project.file('run')
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
-            arg "-mixin.config=recruits.general.mixin.json"//////////////////////////
+			property 'forge.enabledGameTestNamespaces', 'examplemod'
+
+            mods {
+                examplemod {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        gameTestServer {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', 'REGISTRIES'
+
+            property 'forge.logging.console.level', 'debug'
+
+            property 'forge.enabledGameTestNamespaces', 'examplemod'
 
             mods {
                 examplemod {
@@ -62,9 +79,14 @@ minecraft {
 
         data {
             workingDirectory project.file('run')
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            property 'forge.logging.markers', 'REGISTRIES'
+
             property 'forge.logging.console.level', 'debug'
-             args '--mod', 'examplemod', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+
+            // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
+            args '--mod', 'examplemod', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+
             mods {
                 examplemod {
                     source sourceSets.main
@@ -74,6 +96,9 @@ minecraft {
     }
 }
 
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
 repositories {
     maven {
         name = "henkelmax.public"
@@ -82,45 +107,48 @@ repositories {
     mavenLocal()
 }
 
-sourceSets.main.resources {
-    srcDir 'src/generated/resources'
-}
-
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.16.5-36.1.0'
-    shadow fg.deobf("de.maxhenkel.corelib:corelib:1.16.5-1.0.5:api")
-    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.16.5-1.0.5")
-    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.16.5-1.0.5:javadoc")
 
-    annotationProcessor 'org.spongepowered:mixin:0.8.2:processor'
-    testAnnotationProcessor 'org.spongepowered:mixin:0.8.2:processor'
+    shadow fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.0:api")
+    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.0")
+    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.0:javadoc")
+    minecraft 'net.minecraftforge:forge:1.18.2-40.1.0'
 }
 
-mixin {
-    add sourceSets.main, "recruits.general.mixin-refmap.json"
-}
-
+// Example for how to get properties into the manifest for reading at runtime.
 jar {
     manifest {
         attributes([
-            "Specification-Title": "examplemod",
-            "Specification-Vendor": "examplemodsareus",
-            "Specification-Version": "1", // We are version 1 of ourselves
-            "Implementation-Title": project.name,
-            "Implementation-Version": "${version}",
-            "Implementation-Vendor" :"examplemodsareus",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                "Specification-Title"     : "examplemod",
+                "Specification-Vendor"    : "examplemodsareus",
+                "Specification-Version"   : "1", // We are version 1 of ourselves
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : project.jar.archiveVersion,
+                "Implementation-Vendor"   : "examplemodsareus",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
-        rename 'mixin.refmap.json', 'recruits.mixin-refmap.json'
     }
 }
 
+jar.finalizedBy('reobfJar')
+
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact jar
+        }
+    }
+    repositories {
+        maven {
+            url "file://${project.projectDir}/mcmodsrepo"
+        }
+    }
+}
 
 artifacts {
     archives shadowJar
 }
-
-jar.finalizedBy('reobfJar')
 
 shadowJar {
     project.configurations.shadow.setTransitive(true);
@@ -133,3 +161,6 @@ reobf {
     shadowJar {}
 }
 
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}

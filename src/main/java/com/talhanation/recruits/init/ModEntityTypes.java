@@ -2,11 +2,9 @@ package com.talhanation.recruits.init;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.*;
-import net.minecraft.entity.EntityClassification;
-import net.minecraft.entity.EntityType;
-import net.minecraft.item.ShieldItem;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.RegistryObject;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -16,7 +14,7 @@ public class ModEntityTypes {
 
 
     public static final RegistryObject<EntityType<RecruitEntity>> RECRUIT = ENTITY_TYPES.register("recruit",
-            () -> EntityType.Builder.of(RecruitEntity::new, EntityClassification.CREATURE)
+            () -> EntityType.Builder.of(RecruitEntity::new, MobCategory.CREATURE)
                     .sized(0.6F, 1.95F)
                     .canSpawnFarFromPlayer()
                     .setTrackingRange(32)
@@ -24,7 +22,7 @@ public class ModEntityTypes {
                     .build(new ResourceLocation(Main.MOD_ID, "recruit").toString()));
 
     public static final RegistryObject<EntityType<RecruitShieldmanEntity>> RECRUIT_SHIELDMAN = ENTITY_TYPES.register("recruit_shieldman",
-            () -> EntityType.Builder.of(RecruitShieldmanEntity::new, EntityClassification.CREATURE)
+            () -> EntityType.Builder.of(RecruitShieldmanEntity::new, MobCategory.CREATURE)
                     .sized(0.6F, 1.95F)
                     .canSpawnFarFromPlayer()
                     .setTrackingRange(32)
@@ -33,7 +31,7 @@ public class ModEntityTypes {
 
 
     public static final RegistryObject<EntityType<BowmanEntity>> BOWMAN = ENTITY_TYPES.register("bowman",
-            () -> EntityType.Builder.of(BowmanEntity::new, EntityClassification.CREATURE)
+            () -> EntityType.Builder.of(BowmanEntity::new, MobCategory.CREATURE)
                     .sized(0.6F, 1.95F)
                     .canSpawnFarFromPlayer()
                     .setTrackingRange(32)
@@ -41,7 +39,7 @@ public class ModEntityTypes {
                     .build(new ResourceLocation(Main.MOD_ID, "bowman").toString()));
 
     public static final RegistryObject<EntityType<CrossBowmanEntity>> CROSSBOWMAN = ENTITY_TYPES.register("crossbowman",
-            () -> EntityType.Builder.of(CrossBowmanEntity::new, EntityClassification.CREATURE)
+            () -> EntityType.Builder.of(CrossBowmanEntity::new, MobCategory.CREATURE)
                     .sized(0.6F, 1.95F)
                     .canSpawnFarFromPlayer()
                     .setTrackingRange(32)
@@ -57,7 +55,7 @@ public class ModEntityTypes {
                     .build(new ResourceLocation(Main.MOD_ID, "archer").toString()));
 */
     public static final RegistryObject<EntityType<NomadEntity>> NOMAD = ENTITY_TYPES.register("nomad",
-            () -> EntityType.Builder.of(NomadEntity::new, EntityClassification.CREATURE)
+            () -> EntityType.Builder.of(NomadEntity::new, MobCategory.CREATURE)
                     .sized(0.6F, 1.95F)
                     .canSpawnFarFromPlayer()
                     .setTrackingRange(32)
@@ -66,7 +64,7 @@ public class ModEntityTypes {
 
 
     public static final RegistryObject<EntityType<RecruitHorseEntity>> RECRUIT_HORSE = ENTITY_TYPES.register("recruit_horse",
-            () -> EntityType.Builder.of(RecruitHorseEntity::new, EntityClassification.CREATURE)
+            () -> EntityType.Builder.of(RecruitHorseEntity::new, MobCategory.CREATURE)
                     .sized(1.3964844F, 1.6F)
                     .canSpawnFarFromPlayer()
                     .setTrackingRange(32)
@@ -75,7 +73,7 @@ public class ModEntityTypes {
 
 
     public static final RegistryObject<EntityType<AssassinEntity>> ASSASSIN = ENTITY_TYPES.register("assassin",
-            () -> EntityType.Builder.of(AssassinEntity::new, EntityClassification.CREATURE)
+            () -> EntityType.Builder.of(AssassinEntity::new, MobCategory.CREATURE)
                     .sized(0.6F, 1.95F)
                     .canSpawnFarFromPlayer()
                     .setTrackingRange(32)
@@ -83,7 +81,7 @@ public class ModEntityTypes {
                     .build(new ResourceLocation(Main.MOD_ID, "assassin").toString()));
 
     public static final RegistryObject<EntityType<AssassinLeaderEntity>> ASSASSIN_LEADER = ENTITY_TYPES.register("assassin_leader",
-            () -> EntityType.Builder.of(AssassinLeaderEntity::new, EntityClassification.CREATURE)
+            () -> EntityType.Builder.of(AssassinLeaderEntity::new, MobCategory.CREATURE)
                     .sized(0.6F, 1.95F)
                     .canSpawnFarFromPlayer()
                     .setTrackingRange(32)

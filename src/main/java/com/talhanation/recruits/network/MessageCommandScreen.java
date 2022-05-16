@@ -4,12 +4,14 @@ import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.client.events.KeyEvents;
 import com.talhanation.recruits.client.gui.CommandScreen;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.PacketBuffer;
+import de.maxhenkel.corelib.net.Message;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.network.NetworkEvent;
+
 
 import java.util.UUID;
 
@@ -21,7 +23,7 @@ public class MessageCommandScreen implements Message<MessageCommandScreen> {
         this.uuid = new UUID(0, 0);
     }
 
-    public MessageCommandScreen(PlayerEntity player) {
+    public MessageCommandScreen(Player player) {
         this.uuid = player.getUUID();
     }
 
@@ -32,7 +34,7 @@ public class MessageCommandScreen implements Message<MessageCommandScreen> {
 
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayerEntity player = context.getSender();
+        ServerPlayer player = context.getSender();
         if (!player.getUUID().equals(uuid)) {
             return;
         }
@@ -40,13 +42,13 @@ public class MessageCommandScreen implements Message<MessageCommandScreen> {
     }
 
     @Override
-    public MessageCommandScreen fromBytes(PacketBuffer buf) {
+    public MessageCommandScreen fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();
         return this;
     }
 
     @Override
-    public void toBytes(PacketBuffer buf) {
+    public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(uuid);
     }
 
