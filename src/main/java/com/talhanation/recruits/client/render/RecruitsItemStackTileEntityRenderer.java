@@ -1,30 +1,6 @@
 package com.talhanation.recruits.client.render;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.datafixers.util.Pair;
-import com.talhanation.recruits.client.models.HeldBannerModel;
-import com.talhanation.recruits.items.HeldBannerItem;
-import net.minecraft.client.renderer.Sheets;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
-import net.minecraft.client.resources.model.ModelBakery;
-import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.resources.model.Material;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.item.*;
-import net.minecraft.world.level.block.entity.BannerPattern;
-import net.minecraft.world.level.block.entity.BannerBlockEntity;
-
-import java.util.List;
-
-
-import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ShieldItem;
+/*
 
 public class RecruitsItemStackTileEntityRenderer extends BlockEntityWithoutLevelRenderer {
     private final RenderInfo renderInfo;
@@ -65,3 +41,5 @@ public class RecruitsItemStackTileEntityRenderer extends BlockEntityWithoutLevel
 
 
 }
+
+ */

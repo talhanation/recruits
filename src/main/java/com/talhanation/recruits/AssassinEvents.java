@@ -84,7 +84,7 @@ public class AssassinEvents {
     }
 
     public static void doPayment(Player player, int costs){
-        Inventory playerInv = player.inventory;
+        Inventory playerInv = player.getInventory();
         int playerEmeralds = 0;
 
         //checkPlayerMoney
@@ -112,7 +112,7 @@ public class AssassinEvents {
 
     public static int playerGetEmeraldsInInventory(Player player) {
         int emeralds = 0;
-        Inventory playerInv = player.inventory;
+        Inventory playerInv = player.getInventory();
         for (int i = 0; i < playerInv.getContainerSize(); i++){
             ItemStack itemStackInSlot = playerInv.getItem(i);
             Item itemInSlot = itemStackInSlot.getItem();

@@ -1,19 +1,19 @@
 package com.talhanation.recruits.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
-import net.minecraft.world.entity.PathfinderMob;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
+import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.UseAnim;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.HumanoidArm;
 
 
 public class RecruitsBipedRenderer <E extends PathfinderMob, M extends HumanoidModel<E>> extends HumanoidMobRenderer<E, M>{
@@ -22,7 +22,7 @@ public class RecruitsBipedRenderer <E extends PathfinderMob, M extends HumanoidM
 
     protected static final float BIPED_SHADOW_SIZE = 0.5F;
 
-    public RecruitsBipedRenderer(EntityRenderDispatcher manager, M model, M leggingsModel, M mainArmorModel, float shadowSize) {
+    public RecruitsBipedRenderer(EntityRendererProvider.Context manager, M model, M leggingsModel, M mainArmorModel, float shadowSize) {
         super(manager, model, shadowSize);
         addLayer(new HumanoidArmorLayer(this, leggingsModel, mainArmorModel));
     }
