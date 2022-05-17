@@ -110,7 +110,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 15, MessageRecruitGui.class);
 
         DeferredWorkQueue.lookup(() -> {
-            DefaultAttributes.getSupplier(ModEntityTypes.RECRUIT.get(), RecruitEntity.setAttributes().build());
+            DefaultAttributes.hasSupplier(ModEntityTypes.RECRUIT.get(), RecruitEntity.setAttributes().build());
             DefaultAttributes.getSupplier(ModEntityTypes.RECRUIT_SHIELDMAN.get(), RecruitShieldmanEntity.setAttributes().build());
             DefaultAttributes.getSupplier(ModEntityTypes.BOWMAN.get(), BowmanEntity.setAttributes().build());
             DefaultAttributes.getSupplier(ModEntityTypes.CROSSBOWMAN.get(), BowmanEntity.setAttributes().build());

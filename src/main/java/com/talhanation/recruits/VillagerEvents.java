@@ -4,21 +4,18 @@ import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.entity.*;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerTrades;
-import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.ItemLike;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -26,10 +23,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Random;
-
-
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
 
 public class VillagerEvents {
     protected final Random random = new Random();
@@ -63,7 +56,7 @@ public class VillagerEvents {
             if (!ironGolemEntity.isPlayerCreated() && RecruitsModConfig.OverrideIronGolemSpawn.get()){
                 List<AbstractRecruitEntity> list1 = entity.level.getEntitiesOfClass(AbstractRecruitEntity.class, ironGolemEntity.getBoundingBox().inflate(32));
                 if (list1.size() > 1) {
-                    ironGolemEntity.remove();
+                    ironGolemEntity.remove(Entity.RemovalReason.KILLED);
                     //System.out.println("golem was removed");
                 }
                 else {
@@ -84,7 +77,7 @@ public class VillagerEvents {
 
         recruit.initSpawn();
 
-        villager.remove();
+        villager.remove(Entity.RemovalReason.DISCARDED);
         villager.level.addFreshEntity(recruit);
     }
 
@@ -95,7 +88,7 @@ public class VillagerEvents {
 
         recruitShieldman.initSpawn();
 
-        villager.remove();
+        villager.remove(Entity.RemovalReason.DISCARDED);
         villager.level.addFreshEntity(recruitShieldman);
     }
 
@@ -106,7 +99,7 @@ public class VillagerEvents {
 
         bowman.initSpawn();
 
-        villager.remove();
+        villager.remove(Entity.RemovalReason.DISCARDED);
         villager.level.addFreshEntity(bowman);
     }
 
@@ -121,7 +114,7 @@ public class VillagerEvents {
         crossBowman.setCanPickUpLoot(true);
         //crossBowman.reassessWeaponGoal();
         crossBowman.setGroup(2);
-        villager.remove();
+        villager.remove(Entity.RemovalReason.DISCARDED);
         villager.level.addFreshEntity(crossBowman);
     }
 
@@ -132,7 +125,7 @@ public class VillagerEvents {
 
         nomad.initSpawn();
 
-        villager.remove();
+        villager.remove(Entity.RemovalReason.DISCARDED);
 
         RecruitHorseEntity horse = createHorse(nomad);
         nomad.startRiding(horse);
@@ -266,7 +259,7 @@ public class VillagerEvents {
         recruit.setCanPickUpLoot(true);
         recruit.setGroup(1);
         recruit.getInventory().setItem(5, Items.BREAD.getDefaultInstance());
-        villager.remove();
+        villager.remove(Entity.RemovalReason.DISCARDED);
         villager.level.addFreshEntity(recruit);
     }
 
@@ -281,7 +274,7 @@ public class VillagerEvents {
         recruitShieldman.setCanPickUpLoot(true);
         recruitShieldman.setGroup(1);
         recruitShieldman.getInventory().setItem(5, Items.BREAD.getDefaultInstance());
-        villager.remove();
+        villager.remove(Entity.RemovalReason.DISCARDED);
         villager.level.addFreshEntity(recruitShieldman);
     }
 
@@ -297,7 +290,7 @@ public class VillagerEvents {
         bowman.reassessWeaponGoal();
         bowman.setGroup(2);
         bowman.getInventory().setItem(5, Items.BREAD.getDefaultInstance());
-        villager.remove();
+        villager.remove(Entity.RemovalReason.DISCARDED);
         villager.level.addFreshEntity(bowman);
     }
 
