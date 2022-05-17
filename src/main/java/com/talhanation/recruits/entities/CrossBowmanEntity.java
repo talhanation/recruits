@@ -80,13 +80,14 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
     }
 
     //ATTRIBUTES
-    public static AttributeSupplier.Builder setAttributes() {
-        return createMobAttributes()
+    public static AttributeSupplier setAttributes() {
+        return LivingEntity.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.30D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
                 .add(Attributes.ATTACK_DAMAGE, 1.5D)
-                .add(Attributes.FOLLOW_RANGE, 32.0D);
+                .add(Attributes.FOLLOW_RANGE, 32.0D)
+                .build();
 
     }
 

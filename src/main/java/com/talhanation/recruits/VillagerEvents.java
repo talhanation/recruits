@@ -293,5 +293,4 @@ public class VillagerEvents {
         villager.remove(Entity.RemovalReason.DISCARDED);
         villager.level.addFreshEntity(bowman);
     }
-
 }

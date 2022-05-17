@@ -22,13 +22,14 @@ public class RecruitShieldmanEntity extends RecruitEntity{
     }
 
     //ATTRIBUTES
-    public static AttributeSupplier.Builder setAttributes() {
-        return createMobAttributes()
+    public static AttributeSupplier setAttributes() {
+        return LivingEntity.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 25.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.2D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.2D)
                 .add(Attributes.ATTACK_DAMAGE, 1.5D)
-                .add(Attributes.FOLLOW_RANGE, 32.0D);
+                .add(Attributes.FOLLOW_RANGE, 32.0D)
+                .build();
 
     }
 

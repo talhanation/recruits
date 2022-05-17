@@ -6,7 +6,6 @@ import net.minecraft.nbt.CompoundTag;
 
 import java.util.function.Supplier;
 
-import net.minecraft.world.item.Item.Properties;
 
 public class RecruitSpawnEgg extends SpawnEggItem {
 

@@ -7,7 +7,8 @@ import com.talhanation.recruits.client.gui.AssassinLeaderScreen;
 import com.talhanation.recruits.client.gui.CommandScreen;
 import com.talhanation.recruits.client.gui.RecruitInventoryScreen;
 import com.talhanation.recruits.config.RecruitsModConfig;
-import com.talhanation.recruits.entities.*;
+import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.AssassinLeaderEntity;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModItems;
@@ -20,7 +21,6 @@ import de.maxhenkel.corelib.CommonRegistry;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.player.Player;
@@ -32,7 +32,6 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.DeferredWorkQueue;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -90,6 +89,7 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new PillagerEvents());
         MinecraftForge.EVENT_BUS.register(new CommandEvents());
         MinecraftForge.EVENT_BUS.register(new AssassinEvents());
+        MinecraftForge.EVENT_BUS.register(new AttributeEvent());
         MinecraftForge.EVENT_BUS.register(this);
         SIMPLE_CHANNEL = CommonRegistry.registerChannel(Main.MOD_ID, "default");
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 0, MessageAggro.class);
@@ -108,18 +108,6 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 13, MessageListen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 14, MessageMove.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 15, MessageRecruitGui.class);
-
-        DeferredWorkQueue.lookup(() -> {
-            DefaultAttributes.hasSupplier(ModEntityTypes.RECRUIT.get(), RecruitEntity.setAttributes().build());
-            DefaultAttributes.getSupplier(ModEntityTypes.RECRUIT_SHIELDMAN.get(), RecruitShieldmanEntity.setAttributes().build());
-            DefaultAttributes.getSupplier(ModEntityTypes.BOWMAN.get(), BowmanEntity.setAttributes().build());
-            DefaultAttributes.getSupplier(ModEntityTypes.CROSSBOWMAN.get(), BowmanEntity.setAttributes().build());
-            DefaultAttributes.getSupplier(ModEntityTypes.NOMAD.get(), NomadEntity.setAttributes().build());
-            DefaultAttributes.getSupplier(ModEntityTypes.RECRUIT_HORSE.get(), RecruitHorseEntity.setAttributes().build());
-            DefaultAttributes.getSupplier(ModEntityTypes.ASSASSIN.get(), AssassinEntity.setAttributes().build());
-            DefaultAttributes.getSupplier(ModEntityTypes.ASSASSIN_LEADER.get(), AssassinLeaderEntity.setAttributes().build());
-            //GlobalEntityTypeAttributes.put(ModEntityTypes.SCOUT.get(), ScoutEntity.setAttributes().build());
-        });
     }
 
     @SubscribeEvent
