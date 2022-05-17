@@ -1,15 +1,7 @@
 package com.talhanation.recruits.client.models;
 
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.model.Model;
-import net.minecraft.client.model.geom.ModelPart;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-
+/*
 @OnlyIn(Dist.CLIENT)
 public class HeldBannerModel extends Model {
 	private final ModelPart handle;
@@ -41,3 +33,5 @@ public class HeldBannerModel extends Model {
 		return this.handle;
 	}
 }
+
+ */

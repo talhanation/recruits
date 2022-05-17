@@ -2,17 +2,13 @@ package com.talhanation.recruits.init;
 
 import com.google.common.collect.Lists;
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.items.HeldBannerItem;
 import com.talhanation.recruits.util.RegistryUtils;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.RegistryObject;
-import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.List;
 

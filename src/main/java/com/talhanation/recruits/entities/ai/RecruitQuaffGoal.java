@@ -32,7 +32,7 @@ public class RecruitQuaffGoal extends Goal {
 
             recruit.setIsEating(true);
             recruit.setItemInHand(InteractionHand.OFF_HAND, potionItem);
-            recruit.setSlot(10, recruit.beforeFoodItem);
+            recruit.getSlot(10).set(recruit.beforeFoodItem);
 
             recruit.startUsingItem(InteractionHand.OFF_HAND);
         }

@@ -39,7 +39,7 @@ public class RecruitEatGoal extends Goal {
 
             recruit.setIsEating(true);
             recruit.setItemInHand(InteractionHand.OFF_HAND, foodItem);
-            recruit.setSlot(10, foodItem);
+            recruit.getSlot(10).set(foodItem);
 
             recruit.startUsingItem(InteractionHand.OFF_HAND);
 

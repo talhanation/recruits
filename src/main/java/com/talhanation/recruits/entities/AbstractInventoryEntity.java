@@ -283,11 +283,11 @@ public abstract class AbstractInventoryEntity extends TamableAnimal {
 
                 map.put(equipmentslottype, itemstack1);
                 if (!itemstack.isEmpty()) {
-                    this.getAttributes().removeAttributeModifiers(itemstack.getAttributeModifiers(equipmentslottype));
+                  //  this.getAttributes().removeAttributeModifiers(itemstack.getAttributeModifiers(equipmentslottype));
                 }
 
                 if (!itemstack1.isEmpty()) {
-                    this.getAttributes().addTransientAttributeModifiers(itemstack1.getAttributeModifiers(equipmentslottype));
+                  //  this.getAttributes().addTransientAttributeModifiers(itemstack1.getAttributeModifiers(equipmentslottype));
                 }
             }
         }

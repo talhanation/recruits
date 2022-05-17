@@ -1,5 +1,5 @@
 package com.talhanation.recruits.client.render;
-
+/*
 import com.talhanation.recruits.client.models.RecruitHorseModel;
 import com.talhanation.recruits.entities.RecruitHorseEntity;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -27,3 +27,6 @@ public class RecruitHorseRenderer extends MobRenderer<RecruitHorseEntity, Recrui
     }
 
 }
+
+
+ */

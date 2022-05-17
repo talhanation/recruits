@@ -1,11 +1,6 @@
 package com.talhanation.recruits.client.render;
 
-import com.talhanation.recruits.Main;
-import com.talhanation.recruits.entities.BowmanEntity;
-import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.resources.ResourceLocation;
-
-
+/*
 public class BowmanRenderer extends AbstractRecruitRenderer<BowmanEntity> {
 
     private static final ResourceLocation[] TEXTURE = {
@@ -21,3 +16,4 @@ public class BowmanRenderer extends AbstractRecruitRenderer<BowmanEntity> {
         return TEXTURE[0];
     }
 }
+*/

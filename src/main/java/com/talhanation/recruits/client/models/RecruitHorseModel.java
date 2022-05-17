@@ -5,10 +5,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.talhanation.recruits.entities.RecruitHorseEntity;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.renderer.entity.model.HorseModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.util.Mth;
-
+/*
 public class RecruitHorseModel extends EntityModel<RecruitHorseEntity> {
     protected final ModelPart body;
     protected final ModelPart headParts;
@@ -231,3 +230,5 @@ public class RecruitHorseModel extends EntityModel<RecruitHorseEntity> {
         });
     }
 }
+
+ */

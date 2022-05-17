@@ -1,14 +1,6 @@
 package com.talhanation.recruits.client.models;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.talhanation.recruits.entities.AbstractInventoryEntity;
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.client.model.Model;
-import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.world.entity.HumanoidArm;
-import net.minecraft.util.Mth;
-
+/*
 public class ManModel<E extends AbstractInventoryEntity> extends RecruitsBipedModel<E>{
     public ModelPart bipedChest;
 
@@ -58,4 +50,6 @@ public class ManModel<E extends AbstractInventoryEntity> extends RecruitsBipedMo
         }
     }
 }
+
+ */
 
