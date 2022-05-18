@@ -89,7 +89,6 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new PillagerEvents());
         MinecraftForge.EVENT_BUS.register(new CommandEvents());
         MinecraftForge.EVENT_BUS.register(new AssassinEvents());
-        MinecraftForge.EVENT_BUS.register(new AttributeEvent());
         MinecraftForge.EVENT_BUS.register(this);
         SIMPLE_CHANNEL = CommonRegistry.registerChannel(Main.MOD_ID, "default");
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 0, MessageAggro.class);
