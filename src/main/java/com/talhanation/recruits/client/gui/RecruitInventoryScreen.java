@@ -83,7 +83,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
 
         //PASSIVE
-        addRenderableOnly(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE, button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE, button -> {
             this.aggro = recruit.getState();
             if (this.aggro != 3) {
                 this.aggro = 3;
@@ -94,7 +94,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         }));
 
         //NEUTRAL
-        addRenderableOnly(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_NEUTRAL, button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_NEUTRAL, button -> {
             this.aggro = recruit.getState();
             if (this.aggro != 0) {
                 this.aggro = 0;
@@ -105,7 +105,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         }));
 
         //AGGRESSIVE
-        addRenderableOnly(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_AGGRESSIVE, button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_AGGRESSIVE, button -> {
             this.aggro = recruit.getState();
             if (this.aggro != 1) {
                 this.aggro = 1;
@@ -117,7 +117,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         }));
 
         //RAID
-        addRenderableOnly(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_RAID, button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_RAID, button -> {
             this.aggro = recruit.getState();
             if (this.aggro != 2) {
                 this.aggro = 2;
@@ -129,13 +129,13 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         }));
 
         //CLEAR TARGET
-        addRenderableOnly(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_CLEAR_TARGET, button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_CLEAR_TARGET, button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTargetGui(recruit.getUUID()));
         }
         ));
 
         //WANDER
-        addRenderableOnly(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_WANDER, button -> {
+        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_WANDER, button -> {
             this.follow = recruit.getFollowState();
             if (this.follow != 0) {
                 this.follow = 0;
@@ -148,7 +148,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
 
         //FOLLOW
-        addRenderableOnly(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_FOLLOW, button -> {
+        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_FOLLOW, button -> {
             this.follow = recruit.getFollowState();
             if (this.follow != 1) {
                 this.follow = 1;
@@ -161,7 +161,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
 
         //HOLD POS
-        addRenderableOnly(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_HOLD_POS, button -> {
+        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_HOLD_POS, button -> {
             this.follow = recruit.getFollowState();
             if (this.follow != 2) {
                 this.follow = 2;
@@ -175,7 +175,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
 
         //BACK TO POS
-        addRenderableOnly(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_BACK_TO_POS, button -> {
+        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_BACK_TO_POS, button -> {
             this.follow = recruit.getFollowState();
             if (this.follow != 3) {
                 this.follow = 3;
@@ -189,7 +189,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
 
         //HOLD MY POS
-        addRenderableOnly(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_HOLD_MY_POS, button -> {
+        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_HOLD_MY_POS, button -> {
             this.follow = recruit.getFollowState();
             if (this.follow != 4) {
                 this.follow = 4;
@@ -202,17 +202,17 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
 
         //LISTEN
-        addRenderableOnly(new Button(leftPos + 77, topPos + 113, 8, 12, new TextComponent("<"), button -> {
+        addRenderableWidget(new Button(leftPos + 77, topPos + 113, 8, 12, new TextComponent("<"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         }));
 
-        addRenderableOnly(new Button(leftPos + 77 + 85, topPos + 113, 8, 12, new TextComponent(">"), button -> {
+        addRenderableWidget(new Button(leftPos + 77 + 85, topPos + 113, 8, 12, new TextComponent(">"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         }));
 
 
         //GROUP
-        addRenderableOnly(new Button(leftPos + 77, topPos + 100, 8, 12, new TextComponent("<"), button -> {
+        addRenderableWidget(new Button(leftPos + 77, topPos + 100, 8, 12, new TextComponent("<"), button -> {
             this.group = recruit.getGroup();
             if (this.group != 0) {
                 this.group--;
@@ -220,7 +220,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
             }
         }));
 
-        addRenderableOnly(new Button(leftPos + 77 + 85, topPos + 100, 8, 12, new TextComponent(">"), button -> {
+        addRenderableWidget(new Button(leftPos + 77 + 85, topPos + 100, 8, 12, new TextComponent(">"), button -> {
             this.group = recruit.getGroup();
             if (this.group != 9) {
                 this.group++;
@@ -230,7 +230,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
 
         //DISBAND
-        addRenderableOnly(new Button(leftPos + 77 + 55, topPos + 4, 40, 12, TEXT_DISBAND, button -> {
+        addRenderableWidget(new Button(leftPos + 77 + 55, topPos + 4, 40, 12, TEXT_DISBAND, button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDisband(recruit.getUUID()));
             this.onClose();
         },  (a, b, c, d) -> {

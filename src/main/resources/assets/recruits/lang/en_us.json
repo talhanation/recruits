@@ -78,7 +78,17 @@
   "gui.recruits.command.text.raid" : "Raid!",
 
   "gui.recruits.command.text.group" : "Group",
-  "gui.recruits.command.text.everyone" : "Everyone"
+  "gui.recruits.command.text.everyone" : "Everyone",
 
-
+  "chat.recruits.command.follow" : "Follow me!",
+  "chat.recruits.command.wander" : "Wander freely!",
+  "chat.recruits.command.holdMyPos" : "Hold my Position!",
+  "chat.recruits.command.holdPos" : "Hold your Position!",
+  "chat.recruits.command.backToPos" : "Back to your Position!",
+  "chat.recruits.command.patrol" : "Patrol!",
+  "chat.recruits.command.clearTargets" : "Clear Targets!",
+  "chat.recruits.command.passive" : "Stay Passive!",
+  "chat.recruits.command.neutral" : "Stay Neutral!",
+  "chat.recruits.command.aggressive" : "Stay Aggressive!",
+  "chat.recruits.command.raid" : "Raid!"
 }

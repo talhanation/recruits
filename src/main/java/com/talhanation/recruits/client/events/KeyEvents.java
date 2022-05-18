@@ -10,6 +10,7 @@ import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 @OnlyIn(Dist.CLIENT)
+
 public class KeyEvents {
 
     @SubscribeEvent

@@ -7,6 +7,7 @@ import com.talhanation.recruits.network.MessageCommandScreen;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
@@ -142,23 +143,23 @@ public class CommandEvents {
     public static void sendFollowCommandInChat(int state, LivingEntity owner){
         switch (state) {
             case 0:
-                owner.sendMessage(new TextComponent("Release!"), owner.getUUID());
+                owner.sendMessage(new TranslatableComponent("chat.recruits.command.wander"), owner.getUUID());
                 break;
 
             case 1:
-                owner.sendMessage(new TextComponent("Follow me!"), owner.getUUID());
+                owner.sendMessage(new TranslatableComponent("chat.recruits.command.follow"), owner.getUUID());
                 break;
 
             case 2:
-                owner.sendMessage(new TextComponent("Hold your Position!"), owner.getUUID());
+                owner.sendMessage(new TranslatableComponent("chat.recruits.command.holdPos"), owner.getUUID());
                 break;
 
             case 3:
-                owner.sendMessage(new TextComponent("Back to your Position!"), owner.getUUID());
+                owner.sendMessage(new TranslatableComponent("chat.recruits.command.backToPos"), owner.getUUID());
                 break;
 
             case 4:
-                owner.sendMessage(new TextComponent("Hold my Position!"), owner.getUUID());
+                owner.sendMessage(new TranslatableComponent("chat.recruits.command.holdMyPos"), owner.getUUID());
                 break;
         }
     }
@@ -166,19 +167,19 @@ public class CommandEvents {
     public static void sendAggroCommandInChat(int state, LivingEntity owner){
         switch (state) {
             case 0:
-                owner.sendMessage(new TextComponent("Stay Neutral!"), owner.getUUID());
+                owner.sendMessage(new TranslatableComponent("chat.recruits.command.neutral"), owner.getUUID());
                 break;
 
             case 1:
-                owner.sendMessage(new TextComponent("Stay Aggressive!"), owner.getUUID());
+                owner.sendMessage(new TranslatableComponent("chat.recruits.command.aggressive"), owner.getUUID());
                 break;
 
             case 2:
-                owner.sendMessage(new TextComponent("Raid!"), owner.getUUID());
+                owner.sendMessage(new TranslatableComponent("chat.recruits.command.raid"), owner.getUUID());
                 break;
 
             case 3:
-                owner.sendMessage(new TextComponent("Stay Passive!"), owner.getUUID());
+                owner.sendMessage(new TranslatableComponent("chat.recruits.command.passive"), owner.getUUID());
                 break;
         }
     }

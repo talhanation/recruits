@@ -84,7 +84,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
         //PASSIVE
 
-        addRenderableOnly(new Button(zeroLeftPos - mirror + 40, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE, button -> {
+        addRenderableWidget(new Button(zeroLeftPos - mirror + 40, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE, button -> {
             CommandEvents.sendAggroCommandInChat(3, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 3, group));
 
@@ -93,7 +93,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         }));
 
         //NEUTRAL
-        addRenderableOnly(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_NEUTRAL, button -> {
+        addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_NEUTRAL, button -> {
             CommandEvents.sendAggroCommandInChat(0, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 0, group));
 
@@ -102,7 +102,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         }));
 
         //AGGRESSIVE
-        addRenderableOnly(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_AGGRESSIVE, button -> {
+        addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_AGGRESSIVE, button -> {
             CommandEvents.sendAggroCommandInChat(1, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 1, group));
 
@@ -111,7 +111,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         }));
 
         //RAID
-        addRenderableOnly(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_RAID, button -> {
+        addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_RAID, button -> {
             CommandEvents.sendAggroCommandInChat(2, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 2, group));
 
@@ -120,7 +120,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         }));
 
         //CLEAR TARGET
-        addRenderableOnly(new Button(zeroLeftPos - mirror + 40, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_CLEAR_TARGET, button -> {
+        addRenderableWidget(new Button(zeroLeftPos - mirror + 40, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_CLEAR_TARGET, button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTarget(player.getUUID(), this.group));
         }
         ));
@@ -128,7 +128,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
 
         //WANDER
-        addRenderableOnly(new Button(zeroLeftPos - 40, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_WANDER, button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 40, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_WANDER, button -> {
             CommandEvents.sendFollowCommandInChat(0, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 0, group));
 
@@ -138,7 +138,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
 
         //FOLLOW
-        addRenderableOnly(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_FOLLOW, button -> {
+        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_FOLLOW, button -> {
             CommandEvents.sendFollowCommandInChat(1, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 1, group));
 
@@ -149,7 +149,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
 
         //HOLD POS
-        addRenderableOnly(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_HOLD_POS, button -> {
+        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_HOLD_POS, button -> {
             CommandEvents.sendFollowCommandInChat(2, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 2, group));
 
@@ -159,7 +159,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
 
         //BACK TO POS
-        addRenderableOnly(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_BACK_TO_POS, button -> {
+        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_BACK_TO_POS, button -> {
             CommandEvents.sendFollowCommandInChat(3, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 3, group));
 
@@ -169,7 +169,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
 
         //HOLD MY POS
-        addRenderableOnly(new Button(zeroLeftPos - 40, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_HOLD_MY_POS, button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 40, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_HOLD_MY_POS, button -> {
             CommandEvents.sendFollowCommandInChat(4, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 4, group));
 
@@ -275,7 +275,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         */
 
         //GROUP
-        addRenderableOnly(new Button(leftPos - 4 + imageWidth / 2, topPos - 40 + imageHeight / 2, 11, 20, new TextComponent("+"), button -> {
+        addRenderableWidget(new Button(leftPos - 4 + imageWidth / 2, topPos - 40 + imageHeight / 2, 11, 20, new TextComponent("+"), button -> {
             this.group = getSavedCurrentGroup(player);
 
             if (this.group != 9) {
@@ -285,7 +285,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             }
         }));
 
-        addRenderableOnly(new Button(leftPos - 4 + imageWidth / 2, topPos + imageHeight / 2, 11, 20, new TextComponent("-"), button -> {
+        addRenderableWidget(new Button(leftPos - 4 + imageWidth / 2, topPos + imageHeight / 2, 11, 20, new TextComponent("-"), button -> {
             this.group = getSavedCurrentGroup(player);
 
             if (this.group != 0) {
