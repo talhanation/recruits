@@ -80,8 +80,8 @@
   "gui.recruits.command.text.group" : "Group",
   "gui.recruits.command.text.everyone" : "Everyone",
 
-  "chat.recruits.command.follow" : "Follow me!",
   "chat.recruits.command.wander" : "Wander freely!",
+  "chat.recruits.command.follow" : "Follow me!",
   "chat.recruits.command.holdMyPos" : "Hold my Position!",
   "chat.recruits.command.holdPos" : "Hold your Position!",
   "chat.recruits.command.backToPos" : "Back to your Position!",

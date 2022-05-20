@@ -26,33 +26,33 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/command_gui.png");
 
 
-    private static final Component TEXT_GROUP = new TranslatableComponent("gui.recruits.command.text.group");
-    private static final Component TEXT_EVERYONE = new TranslatableComponent("gui.recruits.command.text.everyone");
+    private static final TranslatableComponent TEXT_GROUP = new TranslatableComponent("gui.recruits.command.text.group");
+    private static final TranslatableComponent TEXT_EVERYONE = new TranslatableComponent("gui.recruits.command.text.everyone");
 
-    private static final Component TOOLTIP_FOLLOW = new TranslatableComponent("gui.recruits.command.tooltip.follow");
-    private static final Component TOOLTIP_WANDER = new TranslatableComponent("gui.recruits.command.tooltip.wander");
-    private static final Component TOOLTIP_HOLD_MY_POS = new TranslatableComponent("gui.recruits.command.tooltip.holdMyPos");
-    private static final Component TOOLTIP_HOLD_POS = new TranslatableComponent("gui.recruits.command.tooltip.holdPos");
-    private static final Component TOOLTIP_BACK_TO_POS = new TranslatableComponent("gui.recruits.command.tooltip.backToPos");
+    private static final TranslatableComponent TOOLTIP_FOLLOW = new TranslatableComponent("gui.recruits.command.tooltip.follow");
+    private static final TranslatableComponent TOOLTIP_WANDER = new TranslatableComponent("gui.recruits.command.tooltip.wander");
+    private static final TranslatableComponent TOOLTIP_HOLD_MY_POS = new TranslatableComponent("gui.recruits.command.tooltip.holdMyPos");
+    private static final TranslatableComponent TOOLTIP_HOLD_POS = new TranslatableComponent("gui.recruits.command.tooltip.holdPos");
+    private static final TranslatableComponent TOOLTIP_BACK_TO_POS = new TranslatableComponent("gui.recruits.command.tooltip.backToPos");
 
-    private static final Component TOOLTIP_PASSIVE = new TranslatableComponent("gui.recruits.command.tooltip.passive");
-    private static final Component TOOLTIP_NEUTRAL = new TranslatableComponent("gui.recruits.command.tooltip.neutral");
-    private static final Component TOOLTIP_AGGRESSIVE = new TranslatableComponent("gui.recruits.command.tooltip.aggressive");
-    private static final Component TOOLTIP_RAID = new TranslatableComponent("gui.recruits.command.tooltip.raid");
+    private static final TranslatableComponent TOOLTIP_PASSIVE = new TranslatableComponent("gui.recruits.command.tooltip.passive");
+    private static final TranslatableComponent TOOLTIP_NEUTRAL = new TranslatableComponent("gui.recruits.command.tooltip.neutral");
+    private static final TranslatableComponent TOOLTIP_AGGRESSIVE = new TranslatableComponent("gui.recruits.command.tooltip.aggressive");
+    private static final TranslatableComponent TOOLTIP_RAID = new TranslatableComponent("gui.recruits.command.tooltip.raid");
 
-    private static final Component TEXT_FOLLOW = new TranslatableComponent("gui.recruits.command.text.follow");
-    private static final Component TEXT_WANDER = new TranslatableComponent("gui.recruits.command.text.wander");
-    private static final Component TEXT_HOLD_MY_POS = new TranslatableComponent("gui.recruits.command.text.holdMyPos");
-    private static final Component TEXT_HOLD_POS = new TranslatableComponent("gui.recruits.command.text.holdPos");
-    private static final Component TEXT_BACK_TO_POS = new TranslatableComponent("gui.recruits.command.text.backToPos");
+    private static final TranslatableComponent TEXT_FOLLOW = new TranslatableComponent("gui.recruits.command.text.follow");
+    private static final TranslatableComponent TEXT_WANDER = new TranslatableComponent("gui.recruits.command.text.wander");
+    private static final TranslatableComponent TEXT_HOLD_MY_POS = new TranslatableComponent("gui.recruits.command.text.holdMyPos");
+    private static final TranslatableComponent TEXT_HOLD_POS = new TranslatableComponent("gui.recruits.command.text.holdPos");
+    private static final TranslatableComponent TEXT_BACK_TO_POS = new TranslatableComponent("gui.recruits.command.text.backToPos");
 
-    private static final Component TEXT_PASSIVE = new TranslatableComponent("gui.recruits.command.text.passive");
-    private static final Component TEXT_NEUTRAL = new TranslatableComponent("gui.recruits.command.text.neutral");
-    private static final Component TEXT_AGGRESSIVE = new TranslatableComponent("gui.recruits.command.text.aggressive");
-    private static final Component TEXT_RAID = new TranslatableComponent("gui.recruits.command.text.raid");
+    private static final TranslatableComponent TEXT_PASSIVE = new TranslatableComponent("gui.recruits.command.text.passive");
+    private static final TranslatableComponent TEXT_NEUTRAL = new TranslatableComponent("gui.recruits.command.text.neutral");
+    private static final TranslatableComponent TEXT_AGGRESSIVE = new TranslatableComponent("gui.recruits.command.text.aggressive");
+    private static final TranslatableComponent TEXT_RAID = new TranslatableComponent("gui.recruits.command.text.raid");
 
-    private static final Component TOOLTIP_CLEAR_TARGET = new TranslatableComponent("gui.recruits.command.tooltip.clearTargets");
-    private static final Component TEXT_CLEAR_TARGET = new TranslatableComponent("gui.recruits.command.text.clearTargets");
+    private static final TranslatableComponent TOOLTIP_CLEAR_TARGET = new TranslatableComponent("gui.recruits.command.tooltip.clearTargets");
+    private static final TranslatableComponent TEXT_CLEAR_TARGET = new TranslatableComponent("gui.recruits.command.text.clearTargets");
 
     private static final int fontColor = 16250871;
     private Player player;
