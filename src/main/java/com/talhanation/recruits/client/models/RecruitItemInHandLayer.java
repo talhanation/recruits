@@ -2,7 +2,7 @@ package com.talhanation.recruits.client.models;
 
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.AbstractInventoryEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ArmedModel;
 import net.minecraft.client.model.EntityModel;
@@ -22,7 +22,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class RecruitItemInHandLayer<T extends AbstractRecruitEntity, M extends EntityModel<T> & ArmedModel & HeadedModel> extends ItemInHandLayer<T, M> {
+public class RecruitItemInHandLayer<T extends AbstractInventoryEntity, M extends EntityModel<T> & ArmedModel & HeadedModel> extends ItemInHandLayer<T, M> {
     private static final float X_ROT_MIN = (-(float)Math.PI / 6F);
     private static final float X_ROT_MAX = ((float)Math.PI / 2F);
 
