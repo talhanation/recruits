@@ -17,6 +17,4 @@ public class CrossBowmanRenderer extends AbstractRecruitRenderer<CrossBowmanEnti
         return TEXTURE[0];
     }
 }
-
-
  */
