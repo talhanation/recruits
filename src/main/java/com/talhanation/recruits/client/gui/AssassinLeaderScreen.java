@@ -123,5 +123,6 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderContainer> {
     @Override
     public boolean isPauseScreen() {
         return false;
+
     }
 }

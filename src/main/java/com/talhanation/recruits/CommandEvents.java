@@ -124,7 +124,7 @@ public class CommandEvents {
 
                 @Override
                 public Component getDisplayName() {
-                    return new TextComponent("command_screen") {
+                    return new TranslatableComponent("command_screen") {
                     };
                 }
 

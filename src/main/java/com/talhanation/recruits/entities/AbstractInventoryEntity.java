@@ -138,7 +138,6 @@ public abstract class AbstractInventoryEntity extends TamableAnimal {
         return 3;
     }
 
-
     ////////////////////////////////////SET////////////////////////////////////
 
     public SlotAccess getSlot(int slot) {

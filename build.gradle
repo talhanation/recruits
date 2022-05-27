@@ -10,6 +10,7 @@ buildscript {
     }
 }
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
+
 plugins {
     id "com.matthewprenger.cursegradle" version "1.4.0"
     id "com.github.johnrengelman.shadow" version "7.1.0"
@@ -24,7 +25,7 @@ idea {
     }
 }
 
-version = '1.6.0'
+version = '1.6.1'
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.18.2'
 
@@ -32,7 +33,7 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 minecraft {
    mappings channel: 'official', version: '1.18.2'
-	accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
+	//accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
 
     runs {
         client {

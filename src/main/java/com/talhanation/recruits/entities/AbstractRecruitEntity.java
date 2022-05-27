@@ -26,6 +26,8 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -73,6 +75,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Boolean> FLEEING = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
 
     private static final EntityDataAccessor<String> OWNER_NAME = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.STRING);
+    private static final EntityDataAccessor<Float> HUNGER = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.FLOAT);
+
 
     //private static final DataParameter<ItemStack> OFFHAND_ITEM_SAVE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.ITEM_STACK);
 
@@ -104,6 +108,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         super.tick();
         updateSwingTime();
         updateSwimming();
+        updateHunger();
 
         /*
         if (getOwner() != null) {
@@ -227,7 +232,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(LISTEN, true);
         this.entityData.define(MOUNT, Optional.empty());
         this.entityData.define(isFollowing, false);
-        this.entityData.define(isEating, true);
+        this.entityData.define(isEating, false);
+        this.entityData.define(HUNGER, 50F);
         //STATE
         // 0 = NEUTRAL
         // 1 = AGGRESSIVE
@@ -289,6 +295,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     ////////////////////////////////////GET////////////////////////////////////
 
+    public float getHunger() {
+        return this.entityData.get(HUNGER);
+    }
     public float getAttackDamage(){
         return (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE);
     }
@@ -397,6 +406,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
      */
 
     ////////////////////////////////////SET////////////////////////////////////
+
+    public void setHunger(float value) {
+        this.entityData.set(HUNGER, value);
+    }
 
     public void setFleeing(boolean bool){
         entityData.set(FLEEING, bool);
@@ -726,6 +739,32 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
 
     ////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////
+
+    public void updateHunger(){
+        if(getHunger() > 0) {
+            setHunger((getHunger() - 0.0001F));
+        }
+        if (isStarving())
+            this.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 200, 0, false, false, true));
+
+        if (isSaturated()) {
+            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 10, 0, false, false, true));
+            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 10, 0, false, false, true));
+        }
+    }
+
+    public boolean needsToEat(){
+        return (getHunger() <= 50F);
+    }
+
+    public boolean isStarving(){
+        return (getHunger() <= 1F );
+    }
+
+    public boolean isSaturated(){
+        return (getHunger() >= 90F);
+    }
+
 
     @Override
     public void checkItemsInInv(){
