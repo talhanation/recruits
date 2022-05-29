@@ -753,11 +753,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 10, 0, false, false, true));
             this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 10, 0, false, false, true));
         }
-
-        if(getOwner() != null) {
-            getOwner().sendMessage(new TextComponent("Hunger: " + getHunger()), this.getOwnerUUID());
-            getOwner().sendMessage(new TextComponent("Health: " + getHealth()), this.getOwnerUUID());
-        }
     }
 
     public boolean needsToEat(){
