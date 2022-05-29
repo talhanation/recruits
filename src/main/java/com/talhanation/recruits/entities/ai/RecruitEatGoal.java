@@ -34,8 +34,8 @@ public class RecruitEatGoal extends Goal {
         recruit.setItemInHand(InteractionHand.OFF_HAND, foodStack);
         recruit.startUsingItem(InteractionHand.OFF_HAND);
 
-        recruit.heal(foodStack.getItem().getFoodProperties(foodStack, recruit).getSaturationModifier() * 10);
-        recruit.setHunger(recruit.getHunger() + foodStack.getItem().getFoodProperties(foodStack, recruit).getSaturationModifier() * 100);
+        recruit.heal(foodStack.getItem().getFoodProperties(foodStack, recruit).getSaturationModifier());
+        if(!recruit.isSaturated())recruit.setHunger(recruit.getHunger() + foodStack.getItem().getFoodProperties(foodStack, recruit).getSaturationModifier() * 100);
     }
 
     private boolean hasFoodInInv(){

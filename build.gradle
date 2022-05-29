@@ -33,7 +33,7 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 minecraft {
    mappings channel: 'official', version: '1.18.2'
-	//accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
+	accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
 
     runs {
         client {

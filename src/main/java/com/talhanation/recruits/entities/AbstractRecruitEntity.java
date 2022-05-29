@@ -260,6 +260,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putInt("Xp", this.getXp());
         nbt.putInt("Level", this.getXpLevel());
         nbt.putInt("Kills", this.getKills());
+        nbt.putFloat("Hunger", this.getHunger());
 
         if(this.getHoldPos() != null){
             nbt.putInt("HoldPosX", this.getHoldPos().getX());
@@ -282,6 +283,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setIsEating(nbt.getBoolean("isEating"));
         this.setXp(nbt.getInt("Xp"));
         this.setKills(nbt.getInt("Kills"));
+        this.setHunger(nbt.getFloat("Hunger"));
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
@@ -751,10 +753,15 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 10, 0, false, false, true));
             this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 10, 0, false, false, true));
         }
+
+        if(getOwner() != null) {
+            getOwner().sendMessage(new TextComponent("Hunger: " + getHunger()), this.getOwnerUUID());
+            getOwner().sendMessage(new TextComponent("Health: " + getHealth()), this.getOwnerUUID());
+        }
     }
 
     public boolean needsToEat(){
-        return (getHunger() <= 50F);
+        return (getHunger() <= 50F || getHealth() <= 18F);
     }
 
     public boolean isStarving(){
