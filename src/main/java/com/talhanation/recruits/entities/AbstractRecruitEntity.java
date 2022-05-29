@@ -159,8 +159,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return spawnData;
     }
     public void setRandomSpawnBonus(){
-        getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("heath_bonus", this.random.nextDouble() * 1.5, AttributeModifier.Operation.MULTIPLY_BASE));
-        getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(new AttributeModifier("attack_bonus", this.random.nextDouble(), AttributeModifier.Operation.MULTIPLY_BASE));
+        getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("heath_bonus", this.random.nextDouble() * 0.5D, AttributeModifier.Operation.MULTIPLY_BASE));
+        getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(new AttributeModifier("attack_bonus", this.random.nextDouble() * 0.5D, AttributeModifier.Operation.MULTIPLY_BASE));
         getAttribute(Attributes.KNOCKBACK_RESISTANCE).addPermanentModifier(new AttributeModifier("knockback_bonus", this.random.nextDouble() * 0.1D, AttributeModifier.Operation.MULTIPLY_BASE));
         getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(new AttributeModifier("speed_bonus", this.random.nextDouble() * 0.1D, AttributeModifier.Operation.MULTIPLY_BASE));
 
@@ -761,7 +761,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public boolean needsToEat(){
-        return (getHunger() <= 50F || getHealth() <= 18F);
+        return (getHunger() <= 50F || getHealth() <= (getMaxHealth() * 0.90));
     }
 
     public boolean isStarving(){
