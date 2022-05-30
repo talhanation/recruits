@@ -37,8 +37,11 @@ public class RecruitEvents {
 
                         if (recruit.getOwner() == impactEntity) {
                             event.setCanceled(true);
-                        } else
+                        } else{
                             recruit.addXp(2);
+                        }
+
+
                     }
 
                     if (owner instanceof AbstractIllager) {

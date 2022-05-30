@@ -76,6 +76,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     private static final EntityDataAccessor<String> OWNER_NAME = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<Float> HUNGER = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> MORAL = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.FLOAT);
+
 
 
     //private static final DataParameter<ItemStack> OFFHAND_ITEM_SAVE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.ITEM_STACK);
@@ -109,6 +111,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateSwingTime();
         updateSwimming();
         updateHunger();
+        updateMoral();
 
         /*
         if (getOwner() != null) {
@@ -234,6 +237,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(isFollowing, false);
         this.entityData.define(isEating, false);
         this.entityData.define(HUNGER, 50F);
+        this.entityData.define(MORAL, 50F);
         //STATE
         // 0 = NEUTRAL
         // 1 = AGGRESSIVE
@@ -261,6 +265,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putInt("Level", this.getXpLevel());
         nbt.putInt("Kills", this.getKills());
         nbt.putFloat("Hunger", this.getHunger());
+        nbt.putFloat("Moral", this.getMoral());
 
         if(this.getHoldPos() != null){
             nbt.putInt("HoldPosX", this.getHoldPos().getX());
@@ -284,6 +289,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setXp(nbt.getInt("Xp"));
         this.setKills(nbt.getInt("Kills"));
         this.setHunger(nbt.getFloat("Hunger"));
+        this.setMoral(nbt.getFloat("Moral"));
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
@@ -296,6 +302,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
 
     ////////////////////////////////////GET////////////////////////////////////
+
+    public float getMoral() {
+        return this.entityData.get(MORAL);
+    }
 
     public float getHunger() {
         return this.entityData.get(HUNGER);
@@ -404,10 +414,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public ItemStack getOffHandItemSave(){
         return  entityData.get(OFFHAND_ITEM_SAVE);
     }
-
      */
 
     ////////////////////////////////////SET////////////////////////////////////
+
+    public void setMoral(float value) {
+        this.entityData.set(MORAL, value);
+    }
 
     public void setHunger(float value) {
         this.entityData.set(HUNGER, value);
@@ -670,6 +683,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             }
             //this.addXp(1);
             //this.checkLevel();
+            if(this.getMoral() > 0) this.setMoral(this.getMoral() - 0.25F);
 
             return super.hurt(dmg, amt);
         }
@@ -683,6 +697,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         this.addXp(2);
         this.checkLevel();
+        if(this.getMoral() < 100) this.setMoral(this.getMoral() + 0.25F);
         this.damageMainHandItem();
         return true;
     }
@@ -742,16 +757,49 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     ////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////
 
+    public void updateMoral(){
+        if(this.getIsEating()){
+            if(getMoral() < 100) setMoral((getMoral() + 0.01F));
+        }
+
+        if (isStarving() && this.isTame()){
+            if(getMoral() > 0) setMoral((getMoral() - 0.01F));
+        }
+
+        if (this.isTame()){
+            if(getMoral() > 35) setMoral((getMoral() - 0.0001F));
+        }
+
+        if (isSaturated()){
+            if(getMoral() < 100) setMoral((getMoral() + 0.001F));
+        }
+
+        if (getMoral() <= 30)
+            if(!this.hasEffect(MobEffects.WEAKNESS)) {
+                this.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 200, 1, false, true, true));
+                this.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 1, false, true, true));
+            }
+
+        if (getMoral() <= 10) {
+            this.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 200, 3, false, true, true));
+            this.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 2, false, true, true));
+            this.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 200, 1, false, true, true));
+        }
+
+        if (getMoral() >= 80) {
+            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 200, 0, false, true, true));
+            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 200, 0, false, true, true));
+        }
+
+        if (getMoral() >= 95) {
+            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 200, 1, false, true, true));
+            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 200, 1, false, true, true));
+        }
+    }
+
     public void updateHunger(){
         if(getHunger() > 0) {
             setHunger((getHunger() - 0.0001F));
-        }
-        if (isStarving())
-            this.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 200, 0, false, false, true));
-
-        if (isSaturated()) {
-            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 10, 0, false, false, true));
-            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 10, 0, false, false, true));
         }
     }
 
@@ -780,6 +828,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setXp(0);
             this.addLevelBuffs();
             this.heal(10F);
+            if(this.getMoral() < 100) this.setMoral(getMoral() + 5F);
         }
     }
 
@@ -841,6 +890,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         super.killed(p_241847_1_, p_241847_2_);
         this.addXp(5);
         this.setKills(this.getKills() + 1);
+        if(this.getMoral() < 100) this.setMoral(this.getMoral() + 1);
     }
 
     @Override

@@ -241,6 +241,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
     protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
         int health = Mth.ceil(recruit.getHealth());
+        int moral = Mth.ceil(recruit.getMoral());
         this.follow = recruit.getFollowState();
         this.aggro = recruit.getState();
 
@@ -260,8 +261,8 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         font.draw(matrixStack, "" + recruit.getXp(), k + 25, l + 20, fontColor);
         font.draw(matrixStack, "Kills:", k, l + 30, fontColor);
         font.draw(matrixStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
-        //font.draw(matrixStack, "A.Dmg:", k, l + 40, fontColor);
-        //font.draw(matrixStack, ""+ recruit.getAttackDamage(), k + 35, l + 40, fontColor);
+        font.draw(matrixStack, "Moral:", k, l + 40, fontColor);
+        font.draw(matrixStack, ""+ moral, k + 35, l + 40, fontColor);
         /*
         font.draw(matrixStack, "Moral:", k, l + 30, fontColor);
         font.draw(matrixStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
