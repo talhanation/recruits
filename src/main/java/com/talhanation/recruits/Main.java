@@ -112,7 +112,6 @@ public class Main {
     @SubscribeEvent
     @OnlyIn(Dist.CLIENT)
     public void clientSetup(FMLClientSetupEvent event) {
-
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
         MinecraftForge.EVENT_BUS.register(new PlayerEvents());
 
@@ -176,7 +175,9 @@ public class Main {
 
         COMMAND_CONTAINER_TYPE = new MenuType<>((IContainerFactory<CommandContainer>) (windowId, inv, data) -> {
             Player playerEntity = inv.player;
-
+            if (playerEntity == null) {
+                return null;
+            }
             return new CommandContainer(windowId, playerEntity);
         });
         COMMAND_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "command_container"));

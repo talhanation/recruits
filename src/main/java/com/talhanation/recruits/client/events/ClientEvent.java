@@ -6,15 +6,14 @@ import com.talhanation.recruits.client.render.*;
 import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-
 @Mod.EventBusSubscriber(modid = Main.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD , value = Dist.CLIENT)
-public class ClientEvents {
+public class ClientEvent {
 
     @SubscribeEvent
-    public static void clientsetup(FMLClientSetupEvent event){
+    public static void clientSetup(EntityRenderersEvent.RegisterRenderers event){
         EntityRenderers.register(ModEntityTypes.RECRUIT.get(), RecruitRenderer::new );
         EntityRenderers.register(ModEntityTypes.BOWMAN.get(), BowmanRenderer::new );
         EntityRenderers.register(ModEntityTypes.NOMAD.get(), BowmanRenderer::new );

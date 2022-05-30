@@ -56,12 +56,11 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
     private static final int fontColor = 16250871;
     private Player player;
-
     private int group;
     private int recCount;
 
     public CommandScreen(CommandContainer commandContainer, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, commandContainer, playerInventory, title);
+        super(RESOURCE_LOCATION, commandContainer, playerInventory, new TextComponent(""));
         imageWidth = 201;
         imageHeight = 170;
         player = playerInventory.player;
@@ -77,6 +76,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
     @Override
     protected void init() {
         super.init();
+
         int zeroLeftPos = leftPos + 150;
         int zeroTopPos = topPos + 10;
         int topPosGab = 7;

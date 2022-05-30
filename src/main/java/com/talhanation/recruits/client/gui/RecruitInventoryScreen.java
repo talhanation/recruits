@@ -63,7 +63,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
     private int aggro;
 
     public RecruitInventoryScreen(RecruitInventoryContainer recruitContainer, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, recruitContainer, playerInventory, title);
+        super(RESOURCE_LOCATION, recruitContainer, playerInventory, new TextComponent(""));
         this.recruit = recruitContainer.getRecruit();
         this.playerInventory = playerInventory;
         imageWidth = 176;
@@ -262,7 +262,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         font.draw(matrixStack, "Kills:", k, l + 30, fontColor);
         font.draw(matrixStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
         font.draw(matrixStack, "Moral:", k, l + 40, fontColor);
-        font.draw(matrixStack, ""+ moral, k + 35, l + 40, fontColor);
+        font.draw(matrixStack, ""+ moral, k + 30, l + 40, fontColor);
         /*
         font.draw(matrixStack, "Moral:", k, l + 30, fontColor);
         font.draw(matrixStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);

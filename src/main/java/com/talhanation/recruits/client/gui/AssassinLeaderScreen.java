@@ -37,7 +37,7 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderContainer> {
     private int count;
 
     public AssassinLeaderScreen(AssassinLeaderContainer container, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, container, playerInventory, title);
+        super(RESOURCE_LOCATION, container, playerInventory, new TextComponent(""));
         this.playerInventory = playerInventory;
         this.assassinLeaderEntity = container.getEntity();
         this.count = assassinLeaderEntity.getCount();

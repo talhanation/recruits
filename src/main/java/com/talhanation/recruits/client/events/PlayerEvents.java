@@ -1,7 +1,9 @@
 package com.talhanation.recruits.client.events;
 
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
-
+@OnlyIn(Dist.CLIENT)
 public class PlayerEvents {
 
     public void RenderRecruitNameTag(EntityViewRenderEvent event){

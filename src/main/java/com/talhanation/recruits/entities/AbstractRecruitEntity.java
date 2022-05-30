@@ -138,10 +138,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }else
             canBlock = false;
 
+ */
+        //if (getOwner() != null)
+        //this.getOwner().sendMessage(new TextComponent("Last Hurt: " + hurtMarked), getOwner().getUUID());
 
-        if (getOwner() != null)
-        this.getOwner().sendMessage(new StringTextComponent("Block Timer: " + blockCooldown), getOwner().getUUID());
-        */
 
     }
 
@@ -759,7 +759,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void updateMoral(){
         if(this.getIsEating()){
-            if(getMoral() < 100) setMoral((getMoral() + 0.01F));
+            if(getMoral() < 100) setMoral((getMoral() + 0.001F));
         }
 
         if (isStarving() && this.isTame()){
@@ -804,7 +804,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public boolean needsToEat(){
-        return (getHunger() <= 50F || getHealth() <= (getMaxHealth() * 0.90));
+        //return (getHunger() <= 50F || ( hurtTime > 100 && getHealth() <= (getMaxHealth() * 0.90)) || getHealth() <= (getMaxHealth() * 0.20));
+        return (getHunger() <= 50F || getHealth() <= (getMaxHealth() * 0.40));
+
     }
 
     public boolean isStarving(){

@@ -141,7 +141,7 @@ public class CommandEvents {
 
 
     public static void sendFollowCommandInChat(int state, LivingEntity owner){
-        /*
+
         switch (state) {
             case 0 -> owner.sendMessage(new TranslatableComponent("chat.recruits.command.wander"), owner.getUUID());
             case 1 -> owner.sendMessage(new TranslatableComponent("chat.recruits.command.follow"), owner.getUUID());
@@ -149,20 +149,15 @@ public class CommandEvents {
             case 3 -> owner.sendMessage(new TranslatableComponent("chat.recruits.command.backToPos"), owner.getUUID());
             case 4 -> owner.sendMessage(new TranslatableComponent("chat.recruits.command.holdMyPos"), owner.getUUID());
         }
-
-         */
     }
 
     public static void sendAggroCommandInChat(int state, LivingEntity owner){
-        /*
         switch (state) {
             case 0 -> owner.sendMessage(new TranslatableComponent("chat.recruits.command.neutral"), owner.getUUID());
             case 1 -> owner.sendMessage(new TranslatableComponent("chat.recruits.command.aggressive"), owner.getUUID());
             case 2 -> owner.sendMessage(new TranslatableComponent("chat.recruits.command.raid"), owner.getUUID());
             case 3 -> owner.sendMessage(new TranslatableComponent("chat.recruits.command.passive"), owner.getUUID());
         }
-
-         */
     }
 
     public static void setRecruitsInCommand(AbstractRecruitEntity recruit, int count) {
