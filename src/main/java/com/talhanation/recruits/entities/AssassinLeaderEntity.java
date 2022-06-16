@@ -69,7 +69,7 @@ public class AssassinLeaderEntity extends AbstractOrderAbleEntity {
     }
 
     @Nullable
-    @Override
+    //@Override
     public AgeableMob getBreedOffspring(ServerLevel p_146743_, AgeableMob p_146744_) {
         return null;
     }

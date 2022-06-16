@@ -13,10 +13,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.SlotAccess;
-import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -31,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public abstract class AbstractInventoryEntity extends TamableAnimal {
+public abstract class AbstractInventoryEntity extends PathfinderMob {
 
 
     //iv slots
@@ -44,7 +41,7 @@ public abstract class AbstractInventoryEntity extends TamableAnimal {
     private final NonNullList<ItemStack> lastHandItemStacks = NonNullList.withSize(2, ItemStack.EMPTY);
     private final NonNullList<ItemStack> lastArmorItemStacks = NonNullList.withSize(4, ItemStack.EMPTY);
 
-    public AbstractInventoryEntity(EntityType<? extends TamableAnimal> entityType, Level world) {
+    public AbstractInventoryEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
         this.createInventory();
     }

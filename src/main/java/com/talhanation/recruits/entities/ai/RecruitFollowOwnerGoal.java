@@ -42,8 +42,6 @@ public class RecruitFollowOwnerGoal extends Goal {
             return false;
         } else if (!this.recruitEntity.getShouldFollow()) {
             return false;
-        } else if (this.recruitEntity.isOrderedToSit()) {
-            return false;
         } else if (this.recruitEntity.distanceToSqr(owner) < (double)(this.startDistance * this.startDistance)) {
             return false;
         }
@@ -55,8 +53,6 @@ public class RecruitFollowOwnerGoal extends Goal {
 
     public boolean canContinueToUse() {
         if (this.navigation.isDone()) {
-            return false;
-        } else if (this.recruitEntity.isOrderedToSit()) {
             return false;
         } else if (!this.recruitEntity.getShouldFollow()) {
             return false;

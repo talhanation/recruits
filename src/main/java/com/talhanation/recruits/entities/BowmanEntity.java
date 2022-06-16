@@ -4,7 +4,6 @@ package com.talhanation.recruits.entities;
 import com.talhanation.recruits.entities.ai.RecruitRangedBowAttackGoal;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TextComponent;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Difficulty;
@@ -62,12 +61,6 @@ public class BowmanEntity extends RecruitEntity implements RangedAttackMob {
         this.populateDefaultEquipmentEnchantments(difficultyInstance);
         this.initSpawn();
         return ilivingentitydata;
-    }
-
-    @Nullable
-    @Override
-    public AgeableMob getBreedOffspring(ServerLevel p_146743_, AgeableMob p_146744_) {
-        return null;
     }
 
     @Override

@@ -1,5 +1,4 @@
 package com.talhanation.recruits.entities;
-//ezgi&talha kantar
 
 import com.talhanation.recruits.AssassinEvents;
 import com.talhanation.recruits.entities.ai.*;
@@ -21,10 +20,7 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.OwnerHurtByTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.OwnerHurtTargetGoal;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.entity.monster.Creeper;
@@ -32,7 +28,10 @@ import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
@@ -53,9 +52,9 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
 
     public ItemStack beforeFoodItem;
 
-    public AbstractOrderAbleEntity(EntityType<? extends TamableAnimal> entityType, Level world) {
+    public AbstractOrderAbleEntity(EntityType<? extends AbstractOrderAbleEntity> entityType, Level world) {
         super(entityType, world);
-        this.setOwned(false);
+        //this.setOwned(false);
         this.xpReward = 12;
     }
 
@@ -117,11 +116,13 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(8, new RecruitPickupWantedItemGoal(this));
         this.goalSelector.addGoal(11, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(12, new RandomLookAroundGoal(this));
-
+        /*
         this.targetSelector.addGoal(0, new OwnerHurtByTargetGoal(this));
         this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers());
         this.targetSelector.addGoal(2, new OwnerHurtTargetGoal(this));
 
+
+         */
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, AbstractIllager.class, false));
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Monster.class, false));
     }
@@ -214,7 +215,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     }
 
     public int getMaxHeadXRot() {
-        return this.isInSittingPose() ? 20 : super.getMaxHeadXRot();
+        return super.getMaxHeadXRot();
     }
 
     public int getMaxSpawnClusterSize() {
@@ -266,10 +267,6 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
         entityData.set(isEating, bool);
     }
 
-    public void setOwned(boolean owned) {
-        super.setTame(owned);
-    }
-
     public void setEquipment(){}
 
 
@@ -291,7 +288,6 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
             return false;
         } else {
             Entity entity = dmg.getEntity();
-            this.setOrderedToSit(false);
             if (entity != null && !(entity instanceof Player) && !(entity instanceof AbstractArrow)) {
                 amt = (amt + 1.0F) / 2.0F;
             }
@@ -330,7 +326,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
         if (!(target instanceof Creeper) && !(target instanceof Ghast)) {
             if (target instanceof AbstractOrderAbleEntity) {
                 AbstractOrderAbleEntity otherRecruit = (AbstractOrderAbleEntity)target;
-                return otherRecruit.getOwner() != owner;
+                return false;// otherRecruit.getOwner() != owner;
             } else if (target instanceof Player && owner instanceof Player && !((Player)owner).canHarmPlayer((Player)target)) {
                 return false;
             } else if (target instanceof AbstractHorse && ((AbstractHorse)target).isTamed()) {
@@ -440,7 +436,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
         ItemStack itemstack = player.getItemInHand(hand);
         Item item = itemstack.getItem();
         if (this.level.isClientSide) {
-            boolean flag = this.isOwnedBy(player) || this.isTame() || isInSittingPose() || item == Items.BONE && !this.isTame();
+            boolean flag = false; //this.isOwnedBy(player) || this.isOwned() || item == Items.BONE && !this.isOwned();
             return flag ? InteractionResult.CONSUME : InteractionResult.PASS;
         } else {
                 if (player.isCrouching()) {

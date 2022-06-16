@@ -39,7 +39,7 @@ public class AssassinEvents {
                     AssassinEntity assassin = ModEntityTypes.ASSASSIN.get().create(target.level);
                     assassin.setPos(blockPos.getX(), blockPos.getY() + 1, blockPos.getZ());
                     assassin.setEquipment();
-                    assassin.setTame(false);
+                    //assassin.setIsOwned(false);
                     assassin.setIsInOrder(true);
                     assassin.setDropEquipment();
                     assassin.setPersistenceRequired();

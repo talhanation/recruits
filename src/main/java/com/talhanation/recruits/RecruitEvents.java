@@ -74,7 +74,7 @@ public class RecruitEvents {
 
 
     public static void onStopButton(AbstractRecruitEntity recruit, UUID owner, int group) {
-        if (recruit.isTame() &&(recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), owner) && (recruit.getGroup() == group || group == 0)) {
+        if (recruit.isOwned() &&(recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), owner) && (recruit.getGroup() == group || group == 0)) {
             recruit.setTarget(null);
         }
     }

@@ -4,7 +4,6 @@ package com.talhanation.recruits.entities;
 import com.talhanation.recruits.entities.ai.UseShield;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TextComponent;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -95,12 +94,6 @@ public class RecruitEntity extends AbstractRecruitEntity {
             inventory.setItem(9, new ItemStack(Items.WOODEN_SWORD));
             this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.WOODEN_SWORD));
         }
-    }
-
-    @Nullable
-    @Override
-    public AgeableMob getBreedOffspring(ServerLevel p_241840_1_, AgeableMob p_241840_2_) {
-        return null;
     }
 
     @Override

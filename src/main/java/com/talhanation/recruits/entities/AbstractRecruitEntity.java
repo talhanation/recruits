@@ -33,7 +33,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.OwnerHurtTargetGoal;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.entity.monster.Creeper;
@@ -78,6 +77,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Float> HUNGER = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> MORAL = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.FLOAT);
 
+    private static final EntityDataAccessor<Optional<UUID>> OWNER_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
+    private static final EntityDataAccessor<Boolean> OWNED = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
 
 
     //private static final DataParameter<ItemStack> OFFHAND_ITEM_SAVE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.ITEM_STACK);
@@ -86,7 +87,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
-        this.setOwned(false);
+        this.setIsOwned(false);
         this.xpReward = 6;
     }
 
@@ -199,8 +200,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.targetSelector.addGoal(2, new RecruitAggresiveNearestAttackableTargetGoal<>(this, Player.class, false));
 
         this.targetSelector.addGoal(0, new RecruitOwnerHurtByTargetGoal(this));
-        this.targetSelector.addGoal(1, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
-        this.targetSelector.addGoal(3, new OwnerHurtTargetGoal(this));
+        this.targetSelector.addGoal(1, (new RecruitHurtByTargetGoal(this)));//.setAlertOthers());
+        this.targetSelector.addGoal(3, new RecruitOwnerHurtTargetGoal(this));
 
         //this.targetSelector.addGoal(4, new RecruitNearestAttackableTargetGoal<>(this, AbstractOrderAbleEntity.class, false));
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, AbstractIllager.class, 10, true, false, (target) -> {
@@ -238,6 +239,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(isEating, false);
         this.entityData.define(HUNGER, 50F);
         this.entityData.define(MORAL, 50F);
+        this.entityData.define(OWNER_ID, Optional.empty());
+        this.entityData.define(OWNED, false);
         //STATE
         // 0 = NEUTRAL
         // 1 = AGGRESSIVE
@@ -266,12 +269,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putInt("Kills", this.getKills());
         nbt.putFloat("Hunger", this.getHunger());
         nbt.putFloat("Moral", this.getMoral());
+        nbt.putBoolean("isOwned", this.getIsOwned());
 
         if(this.getHoldPos() != null){
             nbt.putInt("HoldPosX", this.getHoldPos().getX());
             nbt.putInt("HoldPosY", this.getHoldPos().getY());
             nbt.putInt("HoldPosZ", this.getHoldPos().getZ());
             nbt.putBoolean("ShouldHoldPos", this.getShouldHoldPos());
+        }
+
+        if(this.getOwnerUUID() != null){
+            nbt.putUUID("OwnerUUID", this.getOwnerUUID());
         }
     }
 
@@ -290,6 +298,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setKills(nbt.getInt("Kills"));
         this.setHunger(nbt.getFloat("Hunger"));
         this.setMoral(nbt.getFloat("Moral"));
+        this.setIsOwned(nbt.getBoolean("isOwned"));
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
@@ -298,10 +307,31 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     nbt.getInt("HoldPosY"),
                     nbt.getInt("HoldPosZ")));
         }
+
+        if (nbt.contains("OwnerUUID")){
+            this.setOwnerUUID(nbt.getUUID("OwnerUUID"));
+        }
     }
 
 
     ////////////////////////////////////GET////////////////////////////////////
+    @Nullable
+    public Player getOwner(){
+        if (this.isOwned() && this.getOwnerUUID() != null){
+            UUID ownerID = this.getOwnerUUID();
+            return level.getPlayerByUUID(ownerID);
+        }
+        else
+        return null;
+    }
+
+    public UUID getOwnerUUID(){
+        return  this.entityData.get(OWNER_ID).orElse(null);
+    }
+
+    public boolean getIsOwned() {
+        return entityData.get(OWNED);
+    }
 
     public float getMoral() {
         return this.entityData.get(MORAL);
@@ -312,10 +342,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
     public float getAttackDamage(){
         return (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE);
-    }
-
-    public BlockPos getRecruitOnPos(){
-        return getOnPos();
     }
 
     public boolean getFleeing() {
@@ -381,7 +407,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public int getMaxHeadXRot() {
-        return this.isInSittingPose() ? 20 : super.getMaxHeadXRot();
+        return super.getMaxHeadXRot();
     }
 
     public int getMaxSpawnClusterSize() {
@@ -410,6 +436,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return entityData.get(MOUNT).orElse(null);
     }
 
+    @Override
+    @Nullable
+    public LivingEntity getLastHurtByMob() {
+        if (super.getLastHurtByMob() instanceof AbstractRecruitEntity otherRecruit){
+            if (otherRecruit.getOwnerUUID() == this.getOwnerUUID()) return null;
+        }
+
+        return super.getLastHurtByMob();
+    }
+    
     /*
     public ItemStack getOffHandItemSave(){
         return  entityData.get(OFFHAND_ITEM_SAVE);
@@ -417,6 +453,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
      */
 
     ////////////////////////////////////SET////////////////////////////////////
+
+    public void setIsOwned(boolean bool){
+        entityData.set(OWNED, bool);
+    }
+
+    public void setOwnerUUID(UUID id) {
+        this.entityData.set(OWNER_ID, Optional.of(id));
+    }
 
     public void setMoral(float value) {
         this.entityData.set(MORAL, value);
@@ -432,9 +476,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void disband(Player player){
         player.sendMessage(new TextComponent(this.getName().getString() + ": " +"Then this is where we part ways."), player.getUUID());
-        this.setTame(false);
         this.setTarget(null);
-        this.setOwned(false);
+        this.setIsOwned(false);
         this.setOwnerUUID(null);
         CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
     }
@@ -442,7 +485,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void addXpLevel(int level){
         int currentLevel = this.getXpLevel();
         int newLevel = currentLevel + level;
-        makelevelUpSound();
+        makeLevelUpSound();
         this.entityData.set(LEVEL, newLevel);
     }
 
@@ -493,6 +536,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             case 1:
                 break;
             case 2:
+                setFollowState(0);
                 break;
             case 3:
                 setTarget(null);//wird nur 1x aufgerufen
@@ -560,10 +604,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         entityData.set(LISTEN, bool);
     }
 
-    public void setOwned(boolean owned) {
-        super.setTame(owned);
-    }
-
     public void setEquipment(){}
 
     public void setMount(UUID uuid){
@@ -572,16 +612,29 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public abstract void initSpawn();
 
+    ////////////////////////////////////is FUNCTIONS////////////////////////////////////
+
+    public boolean isOwned(){
+        return getIsOwned();
+    }
+
+    public boolean isOwnedBy(Player player){
+       return player.getUUID() == this.getOwnerUUID() || player == this.getOwner();
+    }
+
     ////////////////////////////////////ON FUNCTIONS////////////////////////////////////
 
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
         Item item = itemstack.getItem();
         if (this.level.isClientSide) {
-            boolean flag = this.isOwnedBy(player) || this.isTame() || isInSittingPose() || item == Items.BONE && !this.isTame();
+            boolean flag = this.isOwnedBy(player) || this.isOwned() || item == Items.BONE && !this.isOwned();
             return flag ? InteractionResult.CONSUME : InteractionResult.PASS;
         } else {
-            if ((this.isTame() && player.getUUID().equals(this.getOwnerUUID()))) {
+            if ((this.isOwned() && player.getUUID().equals(this.getOwnerUUID()))) {
+
+                player.sendMessage(new TextComponent("OwnerUUID" + ": " + this.getOwnerUUID()), player.getUUID());
+
                 if (player.isCrouching()) {
                     checkItemsInInv();
                     openGUI(player);
@@ -604,18 +657,22 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                             player.sendMessage(new TextComponent(this.getName().getString() + ": " +"I will stay here around"), player.getUUID());
                             return InteractionResult.SUCCESS;
                     }
+
                 }
 
             }
 
-            else if (item == Items.EMERALD && !this.isTame() && playerHasEnoughEmeralds(player) && playerCanRecruit(player)) {
+            else if ((this.isOwned() && !player.getUUID().equals(this.getOwnerUUID()))) {
+                player.sendMessage(new TextComponent("OwnerUUID" + ": " + this.getOwnerUUID()), player.getUUID());
+            }
+
+            else if (item == Items.EMERALD && !this.isOwned() && playerHasEnoughEmeralds(player) && playerCanRecruit(player)) {
                 if (!player.isCreative()) {
                         itemstack.shrink(recruitCosts());
                 }
-                this.tame(player);
+                this.hire(player);
                 this.navigation.stop();
                 this.setTarget(null);
-                this.setOrderedToSit(false);
                 this.setFollowState(1);
                 this.setState(0);
                 int currentRecruits = CommandEvents.getSavedRecruitCount(player);
@@ -624,13 +681,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 return InteractionResult.SUCCESS;
             }
 
-            else if (item == Items.EMERALD && !this.isTame() && !playerHasEnoughEmeralds(player) && playerCanRecruit(player)) {
+            else if (item == Items.EMERALD && !this.isOwned() && !playerHasEnoughEmeralds(player) && playerCanRecruit(player)) {
                 player.sendMessage(new TextComponent(this.getName().getString() + ": " + "You need " + recruitCosts() + " Emeralds to recruit me!"), player.getUUID());
                 return InteractionResult.SUCCESS;
             }
 
-            else if (!this.isTame() && item != Items.EMERALD && playerCanRecruit(player)) {
+            else if (!this.isOwned() && item != Items.EMERALD && playerCanRecruit(player)) {
                 int i = this.random.nextInt(5);
+
                 switch (i) {
                     case 0:
                         player.sendMessage(new TextComponent(this.getName().getString() + ": " +" Hello my Friend."), player.getUUID());
@@ -652,6 +710,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
             return super.mobInteract(player, hand);
         }
+    }
+
+    public void hire(Player player) {
+        this.spawnHiringParticles();
+        this.makeLevelUpSound();
+        this.setOwnerUUID(player.getUUID());
+        this.setIsOwned(true);
     }
 
     private boolean playerHasEnoughEmeralds(Player player) {
@@ -677,7 +742,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             return false;
         } else {
             Entity entity = dmg.getEntity();
-            this.setOrderedToSit(false);
             if (entity != null && !(entity instanceof Player) && !(entity instanceof AbstractArrow)) {
                 amt = (amt + 1.0F) / 2.0F;
             }
@@ -733,8 +797,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 return false;
             } else if (target instanceof AbstractHorse && ((AbstractHorse)target).isTamed()) {
                 return false;
-            } else if (target instanceof AbstractOrderAbleEntity && ((AbstractOrderAbleEntity)target).getIsInOrder() && ((AbstractOrderAbleEntity)target).getOwner() != owner) {
-                return true;
+            //} else if (target instanceof AbstractOrderAbleEntity && ((AbstractOrderAbleEntity)target).getIsInOrder() && ((AbstractOrderAbleEntity)target).getOwner() != owner) {
+            //    return true;
             } else if (target instanceof RecruitHorseEntity) {
                 return false;
             } else {
@@ -762,11 +826,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if(getMoral() < 100) setMoral((getMoral() + 0.001F));
         }
 
-        if (isStarving() && this.isTame()){
+        if (isStarving() && this.isOwned()){
             if(getMoral() > 0) setMoral((getMoral() - 0.01F));
         }
 
-        if (this.isTame()){
+        if (this.isOwned()){
             if(getMoral() > 35) setMoral((getMoral() - 0.0001F));
         }
 
@@ -830,11 +894,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setXp(0);
             this.addLevelBuffs();
             this.heal(10F);
+            this.spawnHiringParticles();
             if(this.getMoral() < 100) this.setMoral(getMoral() + 5F);
         }
     }
 
-    public void makelevelUpSound() {
+    public void makeLevelUpSound() {
         this.level.playSound(null, this.getX(), this.getY() + 4 , this.getZ(), SoundEvents.VILLAGER_YES, this.getSoundSource(), 15.0F, 0.8F + 0.4F * this.random.nextFloat());
         this.level.playSound(null, this.getX(), this.getY() + 4 , this.getZ(), SoundEvents.PLAYER_LEVELUP, this.getSoundSource(), 15.0F, 0.8F + 0.4F * this.random.nextFloat());
     }
@@ -849,13 +914,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
     public abstract int recruitCosts();
 
-    @Override
+
     @OnlyIn(Dist.CLIENT)
-    protected void spawnTamingParticles(boolean p_70908_1_) {
+    protected void spawnHiringParticles() {
         ParticleOptions iparticledata = ParticleTypes.HAPPY_VILLAGER;
-        if (!p_70908_1_) {
-            iparticledata = ParticleTypes.SMOKE;
-        }
 
         for(int i = 0; i < 7; ++i) {
             double d0 = this.random.nextGaussian() * 0.02D;
@@ -923,7 +985,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public static boolean canDamageTarget(AbstractRecruitEntity recruit, LivingEntity target) {
-        if (recruit.isTame() && target instanceof AbstractRecruitEntity) {
+        if (recruit.isOwned() && target instanceof AbstractRecruitEntity) {
             return !Objects.equals(recruit.getOwnerUUID(), ((AbstractRecruitEntity) target).getOwnerUUID());
         } else
             return true;

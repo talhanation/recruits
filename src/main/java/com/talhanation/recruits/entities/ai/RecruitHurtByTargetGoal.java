@@ -4,7 +4,6 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
@@ -90,7 +89,7 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
                 }
 
                 mobentity = (Mob) iterator.next();
-                if (this.recruit != mobentity && mobentity.getTarget() == null && (this.recruit).getOwner() == ((TamableAnimal) mobentity).getOwner() && !mobentity.isAlliedTo(this.recruit.getLastHurtByMob())) {
+                if (this.recruit != mobentity && mobentity.getTarget() == null && (this.recruit).getOwnerUUID() == ((AbstractRecruitEntity) mobentity).getOwnerUUID() && !mobentity.isAlliedTo(this.recruit.getLastHurtByMob())) {
                     if (this.toIgnoreAlert == null) {
                         break;
                     }

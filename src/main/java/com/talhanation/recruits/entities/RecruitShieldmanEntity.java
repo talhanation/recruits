@@ -1,17 +1,16 @@
 package com.talhanation.recruits.entities;
 
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.world.DifficultyInstance;
-import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.Level;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ServerLevelAccessor;
 
 import javax.annotation.Nullable;
 
@@ -73,12 +72,6 @@ public class RecruitShieldmanEntity extends RecruitEntity{
         } else
             this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_AXE));
             inventory.setItem(9, new ItemStack(Items.STONE_AXE));
-    }
-
-    @Nullable
-    @Override
-    public AgeableMob getBreedOffspring(ServerLevel p_241840_1_, AgeableMob p_241840_2_) {
-        return null;
     }
 
     @Override

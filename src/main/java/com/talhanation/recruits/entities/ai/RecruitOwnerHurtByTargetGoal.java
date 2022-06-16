@@ -1,12 +1,12 @@
 package com.talhanation.recruits.entities.ai;
 
-import java.util.EnumSet;
-
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.target.TargetGoal;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
+
+import java.util.EnumSet;
 
 public class RecruitOwnerHurtByTargetGoal extends TargetGoal {
     private final AbstractRecruitEntity recruit;
@@ -20,7 +20,7 @@ public class RecruitOwnerHurtByTargetGoal extends TargetGoal {
     }
 
     public boolean canUse() {
-        if (this.recruit.isTame() && !this.recruit.isOrderedToSit()) {
+        if (this.recruit.isOwned()) {
             LivingEntity livingentity = this.recruit.getOwner();
             if (livingentity == null) {
                 return false;

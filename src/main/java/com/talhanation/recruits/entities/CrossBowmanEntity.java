@@ -5,15 +5,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.OwnerHurtByTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.OwnerHurtTargetGoal;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.AbstractIllager;
@@ -69,8 +66,8 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
 
         this.targetSelector.addGoal(1, new RecruitDefendVillageGoal(this));
         this.targetSelector.addGoal(2, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
-        this.targetSelector.addGoal(3, new OwnerHurtByTargetGoal(this));
-        this.targetSelector.addGoal(4, new OwnerHurtTargetGoal(this));
+        //this.targetSelector.addGoal(3, new OwnerHurtByTargetGoal(this));
+        //this.targetSelector.addGoal(4, new OwnerHurtTargetGoal(this));
         this.targetSelector.addGoal(4, new RecruitRaidNearestAttackableTargetGoal<>(this, LivingEntity.class, false));
         this.targetSelector.addGoal(4, new RecruitAggresiveNearestAttackableTargetGoal<>(this, LivingEntity.class, false));
         this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, AbstractIllager.class, false));
@@ -128,13 +125,6 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
     public boolean canHoldItem(ItemStack itemStack) {
         return !(itemStack.getItem() instanceof SwordItem ||  itemStack.getItem() instanceof ShieldItem || itemStack.getItem() instanceof BowItem);
     }
-
-    @Nullable
-    @Override
-    public AgeableMob getBreedOffspring(ServerLevel p_241840_1_, AgeableMob p_241840_2_) {
-        return null;
-    }
-
 
     public void shootCrossbowProjectile(LivingEntity livingEntity, ItemStack itemStack, Projectile projectile, float x) {
         this.shootCrossbowProjectile(this, livingEntity, projectile, x, 1.6F);

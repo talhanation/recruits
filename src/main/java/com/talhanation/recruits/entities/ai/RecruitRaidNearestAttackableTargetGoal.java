@@ -2,16 +2,18 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.RecruitHorseEntity;
-import net.minecraft.world.entity.ai.targeting.TargetingConditions;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.target.TargetGoal;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 public class RecruitRaidNearestAttackableTargetGoal<T extends LivingEntity> extends TargetGoal {
@@ -72,10 +74,17 @@ public class RecruitRaidNearestAttackableTargetGoal<T extends LivingEntity> exte
         //OTHER RECRUITS RAID
         if (living instanceof AbstractRecruitEntity) {
             AbstractRecruitEntity otherRecruit = (AbstractRecruitEntity) living;
-            if (otherRecruit.isTame())
-                return false;
+            if (otherRecruit.isOwned() && recruit.isOwned()){
+                UUID recruitOwnerUuid = recruit.getOwnerUUID();
+                UUID otherRecruitOwnerUuid = otherRecruit.getOwnerUUID();
+
+                if(recruitOwnerUuid != null && otherRecruitOwnerUuid != null){
+                    return recruitOwnerUuid != otherRecruitOwnerUuid;
+                }
+            }
+                //return this.recruit.getOwnerUUID() != otherRecruit.getOwnerUUID(); //funkt nicht
         }
-        if (living instanceof RecruitHorseEntity){
+        if (living instanceof RecruitHorseEntity || living instanceof AbstractHorse){
                 return false;
         }
         return true;
