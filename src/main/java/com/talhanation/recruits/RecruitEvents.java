@@ -39,6 +39,7 @@ public class RecruitEvents {
                             event.setCanceled(true);
                         } else{
                             recruit.addXp(2);
+                            recruit.checkLevel();
                         }
 
 
