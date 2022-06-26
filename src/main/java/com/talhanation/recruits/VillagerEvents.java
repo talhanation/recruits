@@ -30,8 +30,7 @@ public class VillagerEvents {
     @SubscribeEvent
     public void onVillagerLivingUpdate(LivingEvent.LivingUpdateEvent event) {
         Entity entity = event.getEntityLiving();
-        if (entity instanceof Villager) {
-            Villager villager = (Villager) entity;
+        if (entity instanceof Villager villager) {
             VillagerProfession profession = villager.getVillagerData().getProfession();
 
             if (profession == Main.RECRUIT) {
@@ -50,8 +49,7 @@ public class VillagerEvents {
                 createRecruitShieldman(villager);
             }
         }
-        if (entity instanceof IronGolem) {
-            IronGolem ironGolemEntity = (IronGolem) entity;
+        if (entity instanceof IronGolem ironGolemEntity) {
 
             if (!ironGolemEntity.isPlayerCreated() && RecruitsModConfig.OverrideIronGolemSpawn.get()){
                 List<AbstractRecruitEntity> list1 = entity.level.getEntitiesOfClass(AbstractRecruitEntity.class, ironGolemEntity.getBoundingBox().inflate(32));
@@ -102,7 +100,7 @@ public class VillagerEvents {
         villager.remove(Entity.RemovalReason.DISCARDED);
         villager.level.addFreshEntity(bowman);
     }
-
+    /*
     private static void createCrossBowman(LivingEntity entity){
         CrossBowmanEntity crossBowman = ModEntityTypes.CROSSBOWMAN.get().create(entity.level);
         Villager villager = (Villager) entity;
@@ -117,7 +115,7 @@ public class VillagerEvents {
         villager.remove(Entity.RemovalReason.DISCARDED);
         villager.level.addFreshEntity(crossBowman);
     }
-
+     */
     private static void createNomad(LivingEntity entity){
         NomadEntity nomad = ModEntityTypes.NOMAD.get().create(entity.level);
         Villager villager = (Villager) entity;
@@ -252,12 +250,10 @@ public class VillagerEvents {
         RecruitEntity recruit = ModEntityTypes.RECRUIT.get().create(entity.level);
         IronGolem villager = (IronGolem) entity;
         recruit.copyPosition(villager);
-        recruit.setEquipment();
-        recruit.setDropEquipment();
-        recruit.setRandomSpawnBonus();
-        recruit.setPersistenceRequired();
-        recruit.setCanPickUpLoot(true);
-        recruit.setGroup(1);
+
+        recruit.initSpawn();
+
+        villager.remove(Entity.RemovalReason.DISCARDED);
         recruit.getInventory().setItem(5, Items.BREAD.getDefaultInstance());
         villager.remove(Entity.RemovalReason.DISCARDED);
         villager.level.addFreshEntity(recruit);
@@ -267,12 +263,9 @@ public class VillagerEvents {
         RecruitShieldmanEntity recruitShieldman = ModEntityTypes.RECRUIT_SHIELDMAN.get().create(entity.level);
         IronGolem villager = (IronGolem) entity;
         recruitShieldman.copyPosition(villager);
-        recruitShieldman.setEquipment();
-        recruitShieldman.setDropEquipment();
-        recruitShieldman.setRandomSpawnBonus();
-        recruitShieldman.setPersistenceRequired();
-        recruitShieldman.setCanPickUpLoot(true);
-        recruitShieldman.setGroup(1);
+
+        recruitShieldman.initSpawn();
+
         recruitShieldman.getInventory().setItem(5, Items.BREAD.getDefaultInstance());
         villager.remove(Entity.RemovalReason.DISCARDED);
         villager.level.addFreshEntity(recruitShieldman);
@@ -282,13 +275,9 @@ public class VillagerEvents {
         BowmanEntity bowman = ModEntityTypes.BOWMAN.get().create(entity.level);
         IronGolem villager = (IronGolem) entity;
         bowman.copyPosition(villager);
-        bowman.setEquipment();
-        bowman.setDropEquipment();
-        bowman.setRandomSpawnBonus();
-        bowman.setPersistenceRequired();
-        bowman.setCanPickUpLoot(true);
-        bowman.reassessWeaponGoal();
-        bowman.setGroup(2);
+
+        bowman.initSpawn();
+
         bowman.getInventory().setItem(5, Items.BREAD.getDefaultInstance());
         villager.remove(Entity.RemovalReason.DISCARDED);
         villager.level.addFreshEntity(bowman);

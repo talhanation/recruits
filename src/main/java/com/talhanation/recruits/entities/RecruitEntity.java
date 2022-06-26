@@ -10,8 +10,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
@@ -108,6 +107,11 @@ public class RecruitEntity extends AbstractRecruitEntity {
 
     public Predicate<ItemEntity> getAllowedItems(){
         return ALLOWED_ITEMS;
+    }
+
+    @Override
+    public boolean canHoldItem(ItemStack itemStack){
+        return !(itemStack.getItem() instanceof CrossbowItem || itemStack.getItem() instanceof BowItem);
     }
 }
 

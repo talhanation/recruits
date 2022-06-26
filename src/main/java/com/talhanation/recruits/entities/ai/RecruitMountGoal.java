@@ -6,11 +6,10 @@ import net.minecraft.world.entity.ai.goal.Goal;
 
 import java.util.EnumSet;
 import java.util.List;
-import java.util.UUID;
+import java.util.function.Predicate;
 
 public class RecruitMountGoal extends Goal {
     private final AbstractRecruitEntity recruit;
-    private final UUID mount;
     private final double speedModifier;
     private final double within;
 
@@ -18,7 +17,6 @@ public class RecruitMountGoal extends Goal {
         this.recruit = recruit;
         this.speedModifier = v;
         this.within = within;
-        this.mount = recruit.getMount();
         this.setFlags(EnumSet.of(Flag.MOVE));
     }
     public boolean canUse() {
@@ -37,20 +35,20 @@ public class RecruitMountGoal extends Goal {
 
     public void tick() {
         List<Entity> list = recruit.level.getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(40.0D));
-        for (Entity mount : list) {
-            if (mount != null) {
-                this.recruit.getNavigation().moveTo(mount.getX(), mount.getY(), mount.getZ(), this.speedModifier);
+        list.stream()
+                .filter(Entity::isVehicle)
+                .filter(Predicate.not(Entity::isPassenger))
+                .filter(entity -> entity.getUUID().equals(recruit.getMount()))
+                .findAny()
+                .ifPresent(this::mountEntity);
+    }
 
-                if (mount.closerThan(this.recruit, 2)) {
-                    recruit.setShouldFollow(false);
+    private void mountEntity(Entity mount){
+        this.recruit.getNavigation().moveTo(mount.getX(), mount.getY(), mount.getZ(), this.speedModifier);
 
-                    recruit.startRiding(mount);
-                }
-
-            }
+        if (mount.closerThan(this.recruit, 2)) {
+            recruit.startRiding(mount);
         }
-
-
     }
 }
 

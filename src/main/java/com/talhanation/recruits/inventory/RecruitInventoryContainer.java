@@ -53,6 +53,11 @@ public class RecruitInventoryContainer extends ContainerBase {
         return 56;
     }
 
+    //iv slots
+    //9,10 = hand
+    //11,12,13,14 = armor
+    //0-8 = inv
+
     public void addRecruitInventorySlots() {
         for (int k = 0; k < 3; ++k) {
             for (int l = 0; l < 3; ++l) {
@@ -92,15 +97,15 @@ public class RecruitInventoryContainer extends ContainerBase {
         this.addSlot(new Slot(recruit.inventory, 9,26,90) {
             @Override
             public boolean mayPlace(ItemStack itemStack) {
-                return true;
+                return  recruit.canHoldItem(itemStack);
             }
 
             @Override
             public void set(ItemStack stack){
                 super.set(stack);
+
                 recruit.setItemSlot(EquipmentSlot.MAINHAND, stack);
             }
-
         });
 
         this.addSlot(new Slot(recruit.inventory, 10,44,90) {
@@ -113,6 +118,11 @@ public class RecruitInventoryContainer extends ContainerBase {
         public void set(ItemStack stack){
             super.set(stack);
             recruit.setItemSlot(EquipmentSlot.OFFHAND, stack);
+        }
+
+        @Override
+        public int getSlotIndex(){
+            return 10;
         }
 
         @Override

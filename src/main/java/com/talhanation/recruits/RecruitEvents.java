@@ -1,7 +1,6 @@
 package com.talhanation.recruits;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.AbstractIllager;
@@ -11,7 +10,6 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -59,6 +57,7 @@ public class RecruitEvents {
     }
 
     public static void onAttackButton(AbstractRecruitEntity recruit, LivingEntity owner, UUID target, int group) {
+       /*
         if (recruit.getGroup() == group || group == 0) {
             List<LivingEntity> list = recruit.level.getEntitiesOfClass(LivingEntity.class, recruit.getBoundingBox().inflate(64.0D));
             for (LivingEntity potTargets : list) {
@@ -70,6 +69,7 @@ public class RecruitEvents {
                 }
             }
         }
+        */
     }
 
 
@@ -77,5 +77,11 @@ public class RecruitEvents {
         if (recruit.isOwned() &&(recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), owner) && (recruit.getGroup() == group || group == 0)) {
             recruit.setTarget(null);
         }
+    }
+
+
+    @SubscribeEvent
+    public static void onPlayerLeaveTeam(){
+
     }
 }

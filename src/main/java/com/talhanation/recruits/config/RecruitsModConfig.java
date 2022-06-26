@@ -6,6 +6,8 @@ import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.Mod;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 @Mod.EventBusSubscriber
 public class RecruitsModConfig {
@@ -13,7 +15,7 @@ public class RecruitsModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
-    public static final int NEW_VERSION = 8;
+    public static final int NEW_VERSION = 9;
 
 
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
@@ -32,6 +34,8 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.BooleanValue PillagerSpawnItems;
     public static ForgeConfigSpec.IntValue MaxAssassinCount;
     public static ForgeConfigSpec.DoubleValue RecruitFollowStartDistance;
+    public static ForgeConfigSpec.ConfigValue<List<String>> TargetBlackList;
+
 
     static{
         VERSION = BUILDER.comment("\n" +"##Version, do not change!##")
@@ -135,6 +139,12 @@ public class RecruitsModConfig {
                         "\t" + "default: 64")
                 .worldRestart()
                 .defineInRange("MaxRecruitsForPlayer", 64, 1, 1280);
+
+        TargetBlackList = BUILDER.comment("\n" + "----Target Blacklist----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "Entities in this list won't be targeted at all, for example: [\"minecraft:creeper\", \"minecraft:sheep\"]")
+                .worldRestart()
+                .define("Target BlackList", new ArrayList<>());
 
     CONFIG = BUILDER.build();
 }

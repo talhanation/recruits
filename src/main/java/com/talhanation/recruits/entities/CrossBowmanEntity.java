@@ -68,8 +68,6 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
         this.targetSelector.addGoal(2, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
         //this.targetSelector.addGoal(3, new OwnerHurtByTargetGoal(this));
         //this.targetSelector.addGoal(4, new OwnerHurtTargetGoal(this));
-        this.targetSelector.addGoal(4, new RecruitRaidNearestAttackableTargetGoal<>(this, LivingEntity.class, false));
-        this.targetSelector.addGoal(4, new RecruitAggresiveNearestAttackableTargetGoal<>(this, LivingEntity.class, false));
         this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, AbstractIllager.class, false));
         this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Monster.class, false));
         //this.targetSelector.addGoal(8, new ResetAngerGoal<>(this, true));

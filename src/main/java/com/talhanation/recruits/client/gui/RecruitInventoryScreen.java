@@ -35,6 +35,8 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
     private static final TranslatableComponent TOOLTIP_HOLD_MY_POS = new TranslatableComponent("gui.recruits.inv.tooltip.holdMyPos");
     private static final TranslatableComponent TOOLTIP_HOLD_POS = new TranslatableComponent("gui.recruits.inv.tooltip.holdPos");
     private static final TranslatableComponent TOOLTIP_BACK_TO_POS = new TranslatableComponent("gui.recruits.inv.tooltip.backToPos");
+    private static final TranslatableComponent TOOLTIP_CLEAR_TARGET = new TranslatableComponent("gui.recruits.inv.tooltip.clearTargets");
+
 
     private static final TranslatableComponent TEXT_FOLLOW = new TranslatableComponent("gui.recruits.inv.text.follow");
     private static final TranslatableComponent TEXT_WANDER = new TranslatableComponent("gui.recruits.inv.text.wander");
@@ -46,7 +48,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
     private static final TranslatableComponent TEXT_NEUTRAL = new TranslatableComponent("gui.recruits.inv.text.neutral");
     private static final TranslatableComponent TEXT_AGGRESSIVE = new TranslatableComponent("gui.recruits.inv.text.aggressive");
     private static final TranslatableComponent TEXT_RAID = new TranslatableComponent("gui.recruits.inv.text.raid");
-    private static final TranslatableComponent TEXT_CLEAR_TARGET = new TranslatableComponent("gui.recruits.command.text.clearTargets");
+    private static final TranslatableComponent TEXT_CLEAR_TARGET = new TranslatableComponent("gui.recruits.inv.text.clearTargets");
 
     private static final TranslatableComponent TOOLTIP_PASSIVE = new TranslatableComponent("gui.recruits.inv.tooltip.passive");
     private static final TranslatableComponent TOOLTIP_NEUTRAL = new TranslatableComponent("gui.recruits.inv.tooltip.neutral");
@@ -130,8 +132,9 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         //CLEAR TARGET
         addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_CLEAR_TARGET, button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTargetGui(recruit.getUUID()));
-        }
-        ));
+        },  (a, b, c, d) -> {
+            this.renderTooltip(b, TOOLTIP_CLEAR_TARGET, c, d);
+        }));
 
         //WANDER
         addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_WANDER, button -> {

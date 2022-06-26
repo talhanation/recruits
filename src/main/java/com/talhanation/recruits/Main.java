@@ -42,6 +42,8 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.network.IContainerFactory;
 import net.minecraftforge.network.simple.SimpleChannel;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
@@ -64,6 +66,7 @@ public class Main {
     public static MenuType<RecruitInventoryContainer> RECRUIT_CONTAINER_TYPE;
     public static MenuType<CommandContainer> COMMAND_CONTAINER_TYPE;
     public static MenuType<AssassinLeaderContainer> ASSASSIN_CONTAINER_TYPE;
+    public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
     public Main() {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, RecruitsModConfig.CONFIG);

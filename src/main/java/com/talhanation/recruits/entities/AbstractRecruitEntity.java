@@ -7,12 +7,14 @@ import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.*;
 import com.talhanation.recruits.inventory.RecruitInventoryContainer;
 import com.talhanation.recruits.network.MessageRecruitGui;
+import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -32,23 +34,34 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.animal.AbstractFish;
+import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
+import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.*;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.Team;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.network.NetworkHooks;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
@@ -73,7 +86,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Boolean> isEating = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> FLEEING = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
 
-    private static final EntityDataAccessor<String> OWNER_NAME = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<Float> HUNGER = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> MORAL = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.FLOAT);
 
@@ -84,6 +96,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     //private static final DataParameter<ItemStack> OFFHAND_ITEM_SAVE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.ITEM_STACK);
 
     public ItemStack beforeFoodItem;
+    public int blockCoolDown;
+    public int eatCoolDown;
+
 
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
@@ -98,9 +113,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     @Override
-    public void aiStep() {
+    public void aiStep(){
         super.aiStep();
+        updateMoral();
+        updateShield();
     }
+
     private void resetItemInHand() {
         this.setItemInHand(InteractionHand.OFF_HAND, this.beforeFoodItem);
         this.getSlot(10).set(this.beforeFoodItem);
@@ -112,34 +130,24 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateSwingTime();
         updateSwimming();
         updateHunger();
-        updateMoral();
+        updateTeam();
 
-        /*
-        if (getOwner() != null) {
-            this.getOwner().sendMessage(new StringTextComponent("Health: " + getAttribute(Attributes.ATTACK_DAMAGE).getValue()), getOwner().getUUID());
-            this.getOwner().sendMessage(new StringTextComponent("Attack: " + getAttribute(Attributes.ATTACK_DAMAGE).getValue()), getOwner().getUUID());
-            this.getOwner().sendMessage(new StringTextComponent("Speed: " + getAttribute(Attributes.ATTACK_DAMAGE).getValue()), getOwner().getUUID());
+/*
+        if(hurtTimer <= 1000) {
+            hurtTimer++;
         }
-        */
+*/
+        if (getOwner() != null) {
+            //this.getOwner().sendMessage(new TextComponent("Last Hurt: " + hurtTimer + "Ticks ago"), getOwner().getUUID());
+            //this.getOwner().sendMessage(new StringTextComponent("Attack: " + getAttribute(Attributes.ATTACK_DAMAGE).getValue()), getOwner().getUUID());
+            //this.getOwner().sendMessage(new StringTextComponent("Speed: " + getAttribute(Attributes.ATTACK_DAMAGE).getValue()), getOwner().getUUID());
+        }
+
         if (this.getIsEating() && !this.isUsingItem()) {
             if (beforeFoodItem != null) resetItemInHand();
             setIsEating(false);
         }
-        /*
-        if (this.isBlocking()) {
-            this.blockCooldown++;
-        }
 
-        if (blockCooldown >= 100){
-            blockCooldown = 0;
-        }
-
-        if (blockCooldown < 50){
-            canBlock = true;
-        }else
-            canBlock = false;
-
- */
         //if (getOwner() != null)
         //this.getOwner().sendMessage(new TextComponent("Last Hurt: " + hurtMarked), getOwner().getUUID());
 
@@ -196,11 +204,21 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(11, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(12, new RandomLookAroundGoal(this));
 
-        this.targetSelector.addGoal(2, new RecruitRaidNearestAttackableTargetGoal<>(this, LivingEntity.class, false));
-        this.targetSelector.addGoal(2, new RecruitAggresiveNearestAttackableTargetGoal<>(this, Player.class, false));
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 10, true, false, (target) -> {
+            return (this.getState() == 2 && this.canAttack(target));
+        }));
+
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, false, (target) -> {
+            return (this.getState() == 1 && this.canAttack(target));
+        }));
+
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, AbstractRecruitEntity.class, 10, true, false, (target) -> {
+            return (this.getState() == 1 && this.canAttack(target));
+        }));
 
         this.targetSelector.addGoal(0, new RecruitOwnerHurtByTargetGoal(this));
-        this.targetSelector.addGoal(1, (new RecruitHurtByTargetGoal(this)));//.setAlertOthers());
+        this.targetSelector.addGoal(1, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
+        this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers());
         this.targetSelector.addGoal(3, new RecruitOwnerHurtTargetGoal(this));
 
         //this.targetSelector.addGoal(4, new RecruitNearestAttackableTargetGoal<>(this, AbstractOrderAbleEntity.class, false));
@@ -209,7 +227,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }));
 
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Monster.class, 10, true, false, (target) -> {
-            return !(target instanceof Creeper) && (this.getState() != 3);
+            return this.canAttack(target) && !(target instanceof Creeper) && (this.getState() != 3);
         }));
         this.targetSelector.addGoal(10, new RecruitDefendVillageGoal(this));
     }
@@ -245,6 +263,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         // 0 = NEUTRAL
         // 1 = AGGRESSIVE
         // 2 = RAID
+        // 3 = PASSIVE
 
         //FOLLOW
         //0 = wander
@@ -436,16 +455,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return entityData.get(MOUNT).orElse(null);
     }
 
-    @Override
-    @Nullable
-    public LivingEntity getLastHurtByMob() {
-        if (super.getLastHurtByMob() instanceof AbstractRecruitEntity otherRecruit){
-            if (otherRecruit.getOwnerUUID() == this.getOwnerUUID()) return null;
-        }
-
-        return super.getLastHurtByMob();
-    }
-    
     /*
     public ItemStack getOffHandItemSave(){
         return  entityData.get(OFFHAND_ITEM_SAVE);
@@ -475,7 +484,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void disband(Player player){
-        player.sendMessage(new TextComponent(this.getName().getString() + ": " +"Then this is where we part ways."), player.getUUID());
+        String name = this.getName().getString() + ": ";
+        String disband = TEXT_DISBAND.getString();
+        player.sendMessage(new TextComponent(name + disband), player.getUUID());
         this.setTarget(null);
         this.setIsOwned(false);
         this.setOwnerUUID(null);
@@ -627,54 +638,48 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
         Item item = itemstack.getItem();
+        String name = this.getName().getString() + ": ";
         if (this.level.isClientSide) {
             boolean flag = this.isOwnedBy(player) || this.isOwned() || item == Items.BONE && !this.isOwned();
             return flag ? InteractionResult.CONSUME : InteractionResult.PASS;
         } else {
             if ((this.isOwned() && player.getUUID().equals(this.getOwnerUUID()))) {
-
-                player.sendMessage(new TextComponent("OwnerUUID" + ": " + this.getOwnerUUID()), player.getUUID());
-
                 if (player.isCrouching()) {
                     checkItemsInInv();
                     openGUI(player);
                     return InteractionResult.SUCCESS;
                 }
                 if(!player.isCrouching()) {
-                    int state = this.getFollowState();
+                       int state = this.getFollowState();
                     switch (state) {
                         default:
                         case 0:
                             setFollowState(1);
-                            player.sendMessage(new TextComponent(this.getName().getString() + ": " +"I will follow you"), player.getUUID());
+                            String follow = TEXT_FOLLOW.getString();
+                            player.sendMessage(new TextComponent(name + follow), player.getUUID());
                             return InteractionResult.SUCCESS;
                         case 1:
                             setFollowState(4);
-                            player.sendMessage(new TextComponent(this.getName().getString() + ": " +"I will hold your Position"), player.getUUID());
+                            String holdyourpos = TEXT_HOLD_YOUR_POS.getString();
+                            player.sendMessage(new TextComponent(name + holdyourpos), player.getUUID());
                             return InteractionResult.SUCCESS;
                         case 4:
                             setFollowState(0);
-                            player.sendMessage(new TextComponent(this.getName().getString() + ": " +"I will stay here around"), player.getUUID());
+                            String wander = TEXT_WANDER.getString();
+                            player.sendMessage(new TextComponent(name + wander), player.getUUID());
                             return InteractionResult.SUCCESS;
                     }
 
                 }
 
             }
-
-            else if ((this.isOwned() && !player.getUUID().equals(this.getOwnerUUID()))) {
-                player.sendMessage(new TextComponent("OwnerUUID" + ": " + this.getOwnerUUID()), player.getUUID());
-            }
-
             else if (item == Items.EMERALD && !this.isOwned() && playerHasEnoughEmeralds(player) && playerCanRecruit(player)) {
                 if (!player.isCreative()) {
                         itemstack.shrink(recruitCosts());
                 }
+
                 this.hire(player);
-                this.navigation.stop();
-                this.setTarget(null);
-                this.setFollowState(1);
-                this.setState(0);
+
                 int currentRecruits = CommandEvents.getSavedRecruitCount(player);
                 CommandEvents.saveRecruitCount(player,  currentRecruits + 1);
 
@@ -682,7 +687,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             }
 
             else if (item == Items.EMERALD && !this.isOwned() && !playerHasEnoughEmeralds(player) && playerCanRecruit(player)) {
-                player.sendMessage(new TextComponent(this.getName().getString() + ": " + "You need " + recruitCosts() + " Emeralds to recruit me!"), player.getUUID());
+                String hire_costs = TEXT_HIRE_COSTS.getString();
+                String recruit_info = String.format(hire_costs,  recruitCosts());
+                player.sendMessage(new TextComponent(name + recruit_info), player.getUUID());
                 return InteractionResult.SUCCESS;
             }
 
@@ -691,20 +698,24 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
                 switch (i) {
                     case 0:
-                        player.sendMessage(new TextComponent(this.getName().getString() + ": " +" Hello my Friend."), player.getUUID());
+                        String hello1 = TEXT_HELLO_1.getString();
+                        player.sendMessage(new TextComponent(name + hello1), player.getUUID());
                         return InteractionResult.SUCCESS;
 
                     case 1:
-                        player.sendMessage(new TextComponent(this.getName().getString() + ": " +"It's a honor for me to protect you."), player.getUUID());
+                        String hello2 = TEXT_HELLO_2.getString();
+                        player.sendMessage(new TextComponent(name + hello2), player.getUUID());
                         return InteractionResult.SUCCESS;
 
                         default:
-                        player.sendMessage(new TextComponent(this.getName().getString() + ": " +"I will defend you from Monsters!"), player.getUUID());
+                        String hello3 = TEXT_HELLO_3.getString();
+                        player.sendMessage(new TextComponent(name + hello3), player.getUUID());
                         return InteractionResult.SUCCESS;
                 }
             }
             else if (!playerCanRecruit(player)) {
-                player.sendMessage(new TextComponent(this.getName().getString() + ": " +" You reached the maximum limit you can recruit."), player.getUUID());
+                String info_max = INFO_RECRUITING_MAX.getString();
+                player.sendMessage(new TextComponent(name + info_max), player.getUUID());
                 return InteractionResult.SUCCESS;
             }
 
@@ -712,11 +723,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
+
     public void hire(Player player) {
         this.spawnHiringParticles();
-        this.makeLevelUpSound();
+        this.makeHireSound();
         this.setOwnerUUID(player.getUUID());
         this.setIsOwned(true);
+        this.navigation.stop();
+        this.setTarget(null);
+        this.setFollowState(1);
+        this.setState(0);
     }
 
     private boolean playerHasEnoughEmeralds(Player player) {
@@ -748,7 +764,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             //this.addXp(1);
             //this.checkLevel();
             if(this.getMoral() > 0) this.setMoral(this.getMoral() - 0.25F);
-
+            //this.hurtTimer = 0;
             return super.hurt(dmg, amt);
         }
     }
@@ -787,37 +803,50 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     */
 
     public boolean wantsToAttack(LivingEntity target, LivingEntity owner) {
-        if (!(target instanceof Creeper) && !(target instanceof Ghast)) {
-            if (target instanceof AbstractRecruitEntity) {
+        if (target instanceof Player player && owner instanceof Player && !((Player)owner).canHarmPlayer((Player)target)) {
+            return isValidTargetPlayer(player);
 
-                AbstractRecruitEntity otherRecruit = (AbstractRecruitEntity)target;
-                // || otherRecruit.getOwner().getTeam() != owner.getTeam() fix
-                return otherRecruit.getOwner() != owner ;
-            } else if (target instanceof Player && owner instanceof Player && !((Player)owner).canHarmPlayer((Player)target)) {
-                return false;
-            } else if (target instanceof AbstractHorse && ((AbstractHorse)target).isTamed()) {
-                return false;
-            //} else if (target instanceof AbstractOrderAbleEntity && ((AbstractOrderAbleEntity)target).getIsInOrder() && ((AbstractOrderAbleEntity)target).getOwner() != owner) {
-            //    return true;
-            } else if (target instanceof RecruitHorseEntity) {
-                return false;
-            } else {
-                return !(target instanceof TamableAnimal) || !((TamableAnimal)target).isTame();
-            }
-        } else {
+        } else if (target instanceof AbstractHorse && ((AbstractHorse)target).isTamed()) {
             return false;
+        //} else if (target instanceof AbstractOrderAbleEntity && ((AbstractOrderAbleEntity)target).getIsInOrder() && ((AbstractOrderAbleEntity)target).getOwner() != owner) {
+        //    return true;
+        } else {
+            //return !(target instanceof TamableAnimal) || !((TamableAnimal)target).isTame();
+            return isValidTarget(target);
+        }
+    }
+
+    public boolean canHarmTeam(LivingEntity living) {
+        Team team = this.getTeam();
+        Team team1 = living.getTeam();
+        if (team == null) {
+            return true;
+        } else {
+            return !team.isAlliedTo(team1) || team.isAllowFriendlyFire();
         }
     }
 
     public void die(DamageSource dmg) {
+        net.minecraft.network.chat.Component deathMessage = this.getCombatTracker().getDeathMessage();
         super.die(dmg);
         LivingEntity owner = this.getOwner();
-        if (owner instanceof Player){
-            Player player = (Player) owner;
+        if (owner instanceof Player player){
             CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
         }
-    }
 
+        if(this.getTeam() != null) {
+            Team team = this.getTeam();
+            String teamName = team.getName();
+            PlayerTeam playerteam = this.level.getScoreboard().getPlayerTeam(teamName);
+            this.level.getScoreboard().removePlayerFromTeam(this.getStringUUID(), playerteam);
+        }
+
+        if (this.dead) {
+            if (!this.level.isClientSide && this.level.getGameRules().getBoolean(GameRules.RULE_SHOWDEATHMESSAGES) && this.getOwner() instanceof ServerPlayer) {
+                this.getOwner().sendMessage(deathMessage, Util.NIL_UUID);
+            }
+        }
+    }
 
     ////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////
 
@@ -830,12 +859,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if(getMoral() > 0) setMoral((getMoral() - 0.01F));
         }
 
-        if (this.isOwned()){
+        if (this.isOwned() && !isSaturated()){
             if(getMoral() > 35) setMoral((getMoral() - 0.0001F));
-        }
-
-        if (isSaturated()){
-            if(getMoral() < 100) setMoral((getMoral() + 0.001F));
         }
 
         if (getMoral() <= 30)
@@ -851,13 +876,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
 
         if (getMoral() >= 80) {
-            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 200, 0, false, true, true));
-            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 200, 0, false, true, true));
+            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 200, 0, false, false, true));
+            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 200, 0, false, false, true));
         }
 
         if (getMoral() >= 95) {
-            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 200, 1, false, true, true));
-            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 200, 1, false, true, true));
+            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 200, 1, false, false, true));
+            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 200, 1, false, false, true));
         }
     }
 
@@ -865,12 +890,22 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if(getHunger() > 0) {
             setHunger((getHunger() - 0.0001F));
         }
+        if(eatCoolDown > 0){
+            eatCoolDown--;
+        }
     }
 
     public boolean needsToEat(){
-        //return (getHunger() <= 50F || ( hurtTime > 100 && getHealth() <= (getMaxHealth() * 0.90)) || getHealth() <= (getMaxHealth() * 0.20));
-        return (getHunger() <= 50F || getHealth() <= (getMaxHealth() * 0.40));
-
+        if (getHunger() <= 50F){
+            return true;
+        }
+        else if(getHealth() <= (getMaxHealth() * 0.40) && eatCoolDown == 0) {
+            return true;
+        }
+        else if(getHealth() <= (getMaxHealth() * 0.90) && this.getTarget() == null){
+            return true;
+        }else
+            return false;
     }
 
     public boolean isStarving(){
@@ -881,10 +916,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return (getHunger() >= 90F);
     }
 
-
     @Override
     public void checkItemsInInv(){
-
     }
 
     public void checkLevel(){
@@ -904,16 +937,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.level.playSound(null, this.getX(), this.getY() + 4 , this.getZ(), SoundEvents.PLAYER_LEVELUP, this.getSoundSource(), 15.0F, 0.8F + 0.4F * this.random.nextFloat());
     }
 
-    public boolean isOwnedByThisPlayer(AbstractRecruitEntity recruit, Player player){
-        return  (recruit.getOwnerUUID() == player.getUUID());
+    public void makeHireSound() {
+        this.level.playSound(null, this.getX(), this.getY() + 4 , this.getZ(), SoundEvents.VILLAGER_TRADE, this.getSoundSource(), 15.0F, 0.8F + 0.4F * this.random.nextFloat());
     }
 
     @Override
     public boolean canBeLeashed(Player player) {
         return false;
     }
-    public abstract int recruitCosts();
 
+    public abstract int recruitCosts();
 
     @OnlyIn(Dist.CLIENT)
     protected void spawnHiringParticles() {
@@ -950,11 +983,68 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     @Override
-    public void killed(ServerLevel p_241847_1_, LivingEntity p_241847_2_) {
-        super.killed(p_241847_1_, p_241847_2_);
+    public void killed(ServerLevel level, LivingEntity living) {
+        super.killed(level, living);
         this.addXp(5);
         this.setKills(this.getKills() + 1);
         if(this.getMoral() < 100) this.setMoral(this.getMoral() + 1);
+
+        if(living instanceof Player){
+            this.addXp(45);
+            if(this.getMoral() < 100) this.setMoral(this.getMoral() + 9);
+        }
+
+        if(living instanceof Raider){
+            this.addXp(5);
+            if(this.getMoral() < 100) this.setMoral(this.getMoral() + 2);
+        }
+
+        if(living instanceof Villager villager){
+            if (villager.isBaby()) if(this.getMoral() > 0) this.setMoral(this.getMoral() - 10);
+            else {
+                if (this.getMoral() > 0) this.setMoral(this.getMoral() - 2);
+            }
+        }
+
+        if(living instanceof WitherBoss){
+            this.addXp(99);
+            if(this.getMoral() < 100) this.setMoral(this.getMoral() + 9);
+        }
+
+        if(living instanceof IronGolem){
+            this.addXp(49);
+            if(this.getMoral() > 0) this.setMoral(this.getMoral() - 1);
+        }
+
+        if(living instanceof EnderDragon){
+            this.addXp(999);
+            if(this.getMoral() < 100) this.setMoral(this.getMoral() + 49);
+        }
+
+        this.checkLevel();
+    }
+
+    @Override
+    protected void blockUsingShield(LivingEntity living) {
+        super.blockUsingShield(living);
+        if (living.getMainHandItem().canDisableShield(this.useItem, this, living))
+            this.disableShield();
+    }
+
+    public void disableShield() {
+            this.blockCoolDown = 100;
+            this.stopUsingItem();
+            this.level.broadcastEntityEvent(this, (byte) 30);
+    }
+
+    public boolean canBlock(){
+        return this.blockCoolDown == 0;
+    }
+
+    public void updateShield(){
+        if(this.blockCoolDown > 0){
+            this.blockCoolDown--;
+        }
     }
 
     @Override
@@ -983,12 +1073,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             }
         }
     }
-
+    //for friendly fire
     public static boolean canDamageTarget(AbstractRecruitEntity recruit, LivingEntity target) {
         if (recruit.isOwned() && target instanceof AbstractRecruitEntity) {
             return !Objects.equals(recruit.getOwnerUUID(), ((AbstractRecruitEntity) target).getOwnerUUID());
         } else
-            return true;
+            return recruit.canHarmTeam(target);
     }
 
     @Override
@@ -1012,4 +1102,84 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             Main.SIMPLE_CHANNEL.sendToServer(new MessageRecruitGui(player, this.getUUID()));
         }
     }
+
+    public boolean isValidTarget(LivingEntity living){
+        boolean notAllowed = living instanceof AbstractFish || living instanceof AbstractHorse || living instanceof Creeper || living instanceof RecruitHorseEntity || living instanceof Ghast;
+
+
+        if (living instanceof AbstractRecruitEntity otherRecruit) {
+            if (otherRecruit.isOwned() && this.isOwned()){
+                UUID recruitOwnerUuid = this.getOwnerUUID();
+                UUID otherRecruitOwnerUuid = otherRecruit.getOwnerUUID();
+
+                if(otherRecruit.getTeam() != null && this.getTeam() != null){
+                    return !otherRecruit.getTeam().isAlliedTo(this.getTeam());
+                }
+                else if(recruitOwnerUuid != null && otherRecruitOwnerUuid != null){
+                    return !recruitOwnerUuid.equals(otherRecruitOwnerUuid);
+                }
+            }
+            else
+                return canHarmTeam(living);
+            return false;
+        }
+        return !notAllowed && !RecruitsModConfig.TargetBlackList.get().contains(living.getEncodeId());
+    }
+
+    public boolean isValidTargetPlayer(Player player){
+        if(player.getUUID() == this.getOwnerUUID()) {
+            return false;
+        }
+        else
+            return canHarmTeam(player);
+    }
+
+    @Override
+    public boolean canAttack(@Nonnull LivingEntity target) {
+        if (target.canBeSeenAsEnemy()){
+            if (target instanceof Player player){
+                return this.isValidTargetPlayer(player);
+            }
+            else
+                return isValidTarget(target);
+        }
+        return false;
+    }
+
+    public void updateTeam(){
+        if(this.isOwned() && getOwner() != null){
+            Team team = this.getTeam();
+            Team ownerTeam = this.getOwner().getTeam();
+            if (team == ownerTeam) {
+                return;
+            }
+            else if(ownerTeam == null){
+                String teamName = team.getName();
+                PlayerTeam recruitTeam = this.level.getScoreboard().getPlayerTeam(teamName);
+                this.level.getScoreboard().removePlayerFromTeam(this.getStringUUID(), recruitTeam);
+            }
+            else{
+                String ownerTeamName = ownerTeam.getName();
+                PlayerTeam playerteam = this.level.getScoreboard().getPlayerTeam(ownerTeamName);
+
+                boolean flag = playerteam != null && this.level.getScoreboard().addPlayerToTeam(this.getStringUUID(), playerteam);
+                if (!flag) {
+                    Main.LOGGER.warn("Unable to add mob to team \"{}\" (that team probably doesn't exist)", ownerTeamName);
+                }else
+                    this.setTarget(null);// fix "if owner was other team and now same team und was target"
+            }
+        }
+    }
+
+    private static final TranslatableComponent TEXT_DISBAND = new TranslatableComponent("chat.recruits.text.disband");
+    private static final TranslatableComponent TEXT_HELLO_1 = new TranslatableComponent("chat.recruits.text.hello_1");
+    private static final TranslatableComponent TEXT_HELLO_2 = new TranslatableComponent("chat.recruits.text.hello_2");
+    private static final TranslatableComponent TEXT_HELLO_3 = new TranslatableComponent("chat.recruits.text.hello_3");
+    private static final TranslatableComponent TEXT_HIRE_COSTS = new TranslatableComponent("chat.recruits.text.hire_costs");
+
+    private static final TranslatableComponent INFO_RECRUITING_MAX = new TranslatableComponent("chat.recruits.info.reached_max");
+
+    private static final TranslatableComponent TEXT_FOLLOW = new TranslatableComponent("chat.recruits.text.follow");
+    private static final TranslatableComponent TEXT_HOLD_YOUR_POS = new TranslatableComponent("chat.recruits.text.hold_your_pos");
+    private static final TranslatableComponent TEXT_WANDER = new TranslatableComponent("chat.recruits.text.wander");
 }

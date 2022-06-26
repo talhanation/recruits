@@ -89,12 +89,12 @@ public class BowmanEntity extends RecruitEntity implements RangedAttackMob {
     }
 
     @Override
-    public boolean canHoldItem(ItemStack itemStack) {
-        return !(itemStack.getItem() instanceof SwordItem ||  itemStack.getItem() instanceof ShieldItem);
+    public boolean canHoldItem(ItemStack itemStack){
+        return !(itemStack.getItem() instanceof SwordItem || itemStack.getItem() instanceof ShieldItem || itemStack.getItem() instanceof CrossbowItem);
     }
 
     @Override
-    public void performRangedAttack(LivingEntity entity, float f) {
+    public void performRangedAttack(LivingEntity entity, float f){
         ItemStack itemstack = this.getProjectile(this.getItemInHand(ProjectileUtil.getWeaponHoldingHand(this, Items.BOW)));
         AbstractArrow abstractarrowentity = this.getArrow(itemstack, f);
         if (this.getMainHandItem().getItem() instanceof BowItem)

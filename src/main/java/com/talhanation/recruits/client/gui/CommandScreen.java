@@ -122,8 +122,9 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         //CLEAR TARGET
         addRenderableWidget(new Button(zeroLeftPos - mirror + 40, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_CLEAR_TARGET, button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTarget(player.getUUID(), this.group));
-        }
-        ));
+        },  (a, b, c, d) -> {
+            this.renderTooltip(b, TOOLTIP_CLEAR_TARGET, c, d);
+        }));
 
 
 

@@ -13,7 +13,6 @@ import net.minecraft.world.phys.AABB;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 
 public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
     private static final TargetingConditions HURT_BY_TARGETING = TargetingConditions.forCombat().ignoreLineOfSight().ignoreInvisibilityTesting();;
@@ -34,12 +33,6 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
         int i = this.recruit.getLastHurtByMobTimestamp();
         LivingEntity livingentity = this.recruit.getLastHurtByMob();
 
-        if (livingentity instanceof AbstractRecruitEntity) {
-            AbstractRecruitEntity targetRecruit = (AbstractRecruitEntity) livingentity;
-            if(Objects.equals(targetRecruit.getOwnerUUID(), this.recruit.getOwnerUUID()))
-            return false;
-        }
-
         if(i != this.timestamp && livingentity != null) {
             if (livingentity.getType() == EntityType.PLAYER && this.recruit.level.getGameRules().getBoolean(GameRules.RULE_UNIVERSAL_ANGER)) {
                 return false;
@@ -57,7 +50,7 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
         }
     }
 
-    public net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal setAlertOthers(Class<?>... p_220794_1_) {
+    public HurtByTargetGoal setAlertOthers(Class<?>... p_220794_1_) {
         this.alertSameType = true;
         this.toIgnoreAlert = p_220794_1_;
         return this;
@@ -77,19 +70,19 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
 
     protected void alertOthers() {
         double d0 = this.getFollowDistance();
-        AABB axisalignedbb = AABB.unitCubeFromLowerCorner(this.recruit.position()).inflate(d0, 10.0D, d0);
+        AABB axisalignedbb = AABB.unitCubeFromLowerCorner(this.recruit.position()).inflate(d0, 16.0D, d0);
         List<? extends AbstractRecruitEntity> list = this.recruit.level.getEntitiesOfClass(this.recruit.getClass(), axisalignedbb);
         Iterator iterator = list.iterator();
 
         while (true) {
-            Mob mobentity;
+            AbstractRecruitEntity recruitToAlert;
             while (true) {
                 if (!iterator.hasNext()) {
                     return;
                 }
 
-                mobentity = (Mob) iterator.next();
-                if (this.recruit != mobentity && mobentity.getTarget() == null && (this.recruit).getOwnerUUID() == ((AbstractRecruitEntity) mobentity).getOwnerUUID() && !mobentity.isAlliedTo(this.recruit.getLastHurtByMob())) {
+                recruitToAlert = (AbstractRecruitEntity) iterator.next();
+                if (this.recruit != recruitToAlert && recruitToAlert.getTarget() == null && (this.recruit).getOwnerUUID() == (recruitToAlert).getOwnerUUID() && !recruitToAlert.isAlliedTo(this.recruit.getLastHurtByMob())) {
                     if (this.toIgnoreAlert == null) {
                         break;
                     }
@@ -97,7 +90,7 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
                     boolean flag = false;
 
                     for (Class<?> oclass : this.toIgnoreAlert) {
-                        if (mobentity.getClass() == oclass) {
+                        if (recruitToAlert.getClass() == oclass) {
                             flag = true;
                             break;
                         }
@@ -109,11 +102,11 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
                 }
             }
 
-            this.alertOther(mobentity, this.recruit.getLastHurtByMob());
+            this.alertOther(recruitToAlert, this.recruit.getLastHurtByMob());
         }
     }
 
-    protected void alertOther(Mob p_220793_1_, LivingEntity p_220793_2_) {
-        p_220793_1_.setTarget(p_220793_2_);
+    protected void alertOther(Mob recruit, LivingEntity target) {
+        recruit.setTarget(target);
     }
 }

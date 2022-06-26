@@ -23,7 +23,7 @@ public class RecruitHoldPosGoal extends Goal {
         else if (recruit.getFleeing()) {
             return false;
         }
-        else if (this.recruit.getHoldPos().closerThan(recruit.getOnPos(), 99) && this.recruit.getShouldHoldPos())
+        else if (this.recruit.getHoldPos().distToCenterSqr(recruit.position()) >= 2D && this.recruit.getShouldHoldPos())
             return true;
         else
             return false;
