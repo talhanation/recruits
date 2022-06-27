@@ -725,7 +725,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
 
     public void hire(Player player) {
-        this.spawnHiringParticles();
+        //if (this.level.isClientSide()) this.spawnHiringParticles(); //notworking
         this.makeHireSound();
         this.setOwnerUUID(player.getUUID());
         this.setIsOwned(true);
@@ -927,7 +927,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setXp(0);
             this.addLevelBuffs();
             this.heal(10F);
-            this.spawnHiringParticles();
+            //if (this.level.isClientSide()) this.spawnHiringParticles(); //not working
             if(this.getMoral() < 100) this.setMoral(getMoral() + 5F);
         }
     }
