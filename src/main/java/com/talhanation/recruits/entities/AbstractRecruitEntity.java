@@ -656,6 +656,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
                 this.openHireGUI(player);
                 this.dialogue(name, player);
+                this.navigation.stop();
                 return InteractionResult.SUCCESS;
             }
             return super.mobInteract(player, hand);
@@ -677,7 +678,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setIsOwned(true);
             this.navigation.stop();
             this.setTarget(null);
-            this.setFollowState(1);
+            this.setFollowState(2);
             this.setState(0);
 
             int i = this.random.nextInt(4);

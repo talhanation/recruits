@@ -24,21 +24,15 @@ public class RecruitMoveTowardsTargetGoal extends Goal {
         this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
 
+
     public boolean canUse() {
         this.target = this.recruit.getTarget();
-        if (this.target != null && this.recruit.getShouldHoldPos() && this.target.distanceToSqr(this.recruit) > (double)(this.within * this.within)/2){
-            return false;
-        }
-
-        if (this.target != null && !this.recruit.getShouldHoldPos() && this.target.distanceToSqr(this.recruit) > (double)(this.within * this.within)){
-            return false;
-        }
-
         if (this.recruit.getState() == 3){
             return false;
         }
-
-        if (this.target == null) {
+        else if (this.target == null) {
+            return false;
+        } else if (this.target.distanceToSqr(this.recruit) > (double)(this.within * this.within)) {
             return false;
         } else {
             Vec3 vec3 = DefaultRandomPos.getPosTowards(this.recruit, 16, 7, this.target.position(), (double)((float)Math.PI / 2F));
