@@ -5,12 +5,12 @@ import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.*;
+import com.talhanation.recruits.inventory.RecruitHireContainer;
 import com.talhanation.recruits.inventory.RecruitInventoryContainer;
+import com.talhanation.recruits.network.MessageHireGui;
 import com.talhanation.recruits.network.MessageRecruitGui;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
@@ -57,8 +57,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.network.NetworkHooks;
 
 import javax.annotation.Nonnull;
@@ -75,7 +73,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Boolean> SHOULD_HOLD_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Optional<BlockPos>> HOLD_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Optional<BlockPos>> MOVE_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
-    private static final EntityDataAccessor<Boolean> MOVE = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> LISTEN = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> isFollowing = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Optional<UUID>> MOUNT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
@@ -196,7 +193,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(4, new RecruitFollowOwnerGoal(this, 1.2D, this.getFollowStartDistance(), 3.0F));
         this.goalSelector.addGoal(5, new RecruitMeleeAttackGoal(this, 1.15D, true));
         this.goalSelector.addGoal(6, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
-        this.goalSelector.addGoal(7, new RecruitMoveTowardsTargetGoal(this, 1.15D, 24.0F));
+        this.goalSelector.addGoal(7, new RecruitMoveTowardsTargetGoal(this, 1.15D, 32.0F));
         this.goalSelector.addGoal(8, new RecruitPickupWantedItemGoal(this));
         this.goalSelector.addGoal(9, new MoveBackToVillageGoal(this, 0.6D, false));
         this.goalSelector.addGoal(10, new GolemRandomStrollInVillageGoal(this, 0.6D));
@@ -221,7 +218,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers());
         this.targetSelector.addGoal(3, new RecruitOwnerHurtTargetGoal(this));
 
-        //this.targetSelector.addGoal(4, new RecruitNearestAttackableTargetGoal<>(this, AbstractOrderAbleEntity.class, false));
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, AbstractIllager.class, 10, true, false, (target) -> {
             return (this.getState() != 3);
         }));
@@ -250,7 +246,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(FOLLOW_STATE, 0);
         this.entityData.define(HOLD_POS, Optional.empty());
         this.entityData.define(MOVE_POS, Optional.empty());
-        this.entityData.define(MOVE, true);
         this.entityData.define(LISTEN, true);
         this.entityData.define(MOUNT, Optional.empty());
         this.entityData.define(isFollowing, false);
@@ -442,10 +437,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return entityData.get(MOVE_POS).orElse(null);
     }
 
-    public boolean getMove() {
-        return entityData.get(MOVE);
-    }
-
     public boolean getListen() {
         return entityData.get(LISTEN);
     }
@@ -599,18 +590,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.set(HOLD_POS, Optional.empty());
     }
 
-    public void setMovePos(BlockPos holdPos){
-        this.entityData.set(MOVE_POS, Optional.of(holdPos));
-    }
-
-    public void clearMovePos(){
-        this.entityData.set(MOVE_POS, Optional.empty());
-    }
-
-    public void setMove(boolean bool) {
-        entityData.set(MOVE, bool);
-    }
-
     public void setListen(boolean bool) {
         entityData.set(LISTEN, bool);
     }
@@ -636,11 +615,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     ////////////////////////////////////ON FUNCTIONS////////////////////////////////////
 
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
-        ItemStack itemstack = player.getItemInHand(hand);
-        Item item = itemstack.getItem();
         String name = this.getName().getString() + ": ";
+        boolean isPlayerTarget = this.getTarget() != null && getTarget().equals(player);
+
         if (this.level.isClientSide) {
-            boolean flag = this.isOwnedBy(player) || this.isOwned() || item == Items.BONE && !this.isOwned();
+            boolean flag = this.isOwnedBy(player) || this.isOwned() || !this.isOwned();
             return flag ? InteractionResult.CONSUME : InteractionResult.PASS;
         } else {
             if ((this.isOwned() && player.getUUID().equals(this.getOwnerUUID()))) {
@@ -657,98 +636,93 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                             setFollowState(1);
                             String follow = TEXT_FOLLOW.getString();
                             player.sendMessage(new TextComponent(name + follow), player.getUUID());
-                            return InteractionResult.SUCCESS;
+                            break;
                         case 1:
-                            setFollowState(4);
+                            setFollowState(2);
                             String holdyourpos = TEXT_HOLD_YOUR_POS.getString();
                             player.sendMessage(new TextComponent(name + holdyourpos), player.getUUID());
-                            return InteractionResult.SUCCESS;
-                        case 4:
+                            break;
+                        case 2:
                             setFollowState(0);
                             String wander = TEXT_WANDER.getString();
                             player.sendMessage(new TextComponent(name + wander), player.getUUID());
-                            return InteractionResult.SUCCESS;
+                            break;
                     }
-
-                }
-
-            }
-            else if (item == Items.EMERALD && !this.isOwned() && playerHasEnoughEmeralds(player) && playerCanRecruit(player)) {
-                if (!player.isCreative()) {
-                        itemstack.shrink(recruitCosts());
-                }
-
-                this.hire(player);
-
-                int currentRecruits = CommandEvents.getSavedRecruitCount(player);
-                CommandEvents.saveRecruitCount(player,  currentRecruits + 1);
-
-                return InteractionResult.SUCCESS;
-            }
-
-            else if (item == Items.EMERALD && !this.isOwned() && !playerHasEnoughEmeralds(player) && playerCanRecruit(player)) {
-                String hire_costs = TEXT_HIRE_COSTS.getString();
-                String recruit_info = String.format(hire_costs,  recruitCosts());
-                player.sendMessage(new TextComponent(name + recruit_info), player.getUUID());
-                return InteractionResult.SUCCESS;
-            }
-
-            else if (!this.isOwned() && item != Items.EMERALD && playerCanRecruit(player)) {
-                int i = this.random.nextInt(5);
-
-                switch (i) {
-                    case 0:
-                        String hello1 = TEXT_HELLO_1.getString();
-                        player.sendMessage(new TextComponent(name + hello1), player.getUUID());
-                        return InteractionResult.SUCCESS;
-
-                    case 1:
-                        String hello2 = TEXT_HELLO_2.getString();
-                        player.sendMessage(new TextComponent(name + hello2), player.getUUID());
-                        return InteractionResult.SUCCESS;
-
-                        default:
-                        String hello3 = TEXT_HELLO_3.getString();
-                        player.sendMessage(new TextComponent(name + hello3), player.getUUID());
-                        return InteractionResult.SUCCESS;
+                    return InteractionResult.SUCCESS;
                 }
             }
-            else if (!playerCanRecruit(player)) {
-                String info_max = INFO_RECRUITING_MAX.getString();
-                player.sendMessage(new TextComponent(name + info_max), player.getUUID());
+
+            else if (!this.isOwned() && CommandEvents.playerCanRecruit(player) && !isPlayerTarget) {
+
+                this.openHireGUI(player);
+                this.dialogue(name, player);
                 return InteractionResult.SUCCESS;
             }
-
             return super.mobInteract(player, hand);
         }
     }
 
 
-    public void hire(Player player) {
-        //if (this.level.isClientSide()) this.spawnHiringParticles(); //notworking
-        this.makeHireSound();
-        this.setOwnerUUID(player.getUUID());
-        this.setIsOwned(true);
-        this.navigation.stop();
-        this.setTarget(null);
-        this.setFollowState(1);
-        this.setState(0);
+    public boolean hire(Player player) {
+        String name = this.getName().getString() + ": ";
+        if (!CommandEvents.playerCanRecruit(player)) {
+
+            String info_max = INFO_RECRUITING_MAX.getString();
+            player.sendMessage(new TextComponent(name + info_max), player.getUUID());
+            return false;
+        }
+        else
+            this.makeHireSound();
+            this.setOwnerUUID(player.getUUID());
+            this.setIsOwned(true);
+            this.navigation.stop();
+            this.setTarget(null);
+            this.setFollowState(1);
+            this.setState(0);
+
+            int i = this.random.nextInt(4);
+            switch (i) {
+                default:
+                case 1:
+                    String recruited1 = TEXT_RECRUITED1.getString();
+                    player.sendMessage(new TextComponent(name + recruited1), player.getUUID());
+                    break;
+
+                case 2:
+                    String recruited2 = TEXT_RECRUITED2.getString();
+                    player.sendMessage(new TextComponent(name + recruited2), player.getUUID());
+                    break;
+
+                case 3:
+                    String recruited3 = TEXT_RECRUITED3.getString();
+                    player.sendMessage(new TextComponent(name + recruited3), player.getUUID());
+                    break;
+            }
+
+            int currentRecruits = CommandEvents.getSavedRecruitCount(player);
+            CommandEvents.saveRecruitCount(player,  currentRecruits + 1);
+            return true;
     }
 
-    private boolean playerHasEnoughEmeralds(Player player) {
-        int recruitCosts = this.recruitCosts();
-        int emeraldCount = player.getItemInHand(InteractionHand.MAIN_HAND).getCount();
-        if (emeraldCount >= recruitCosts){
-            return true;
-        }
-        if (player.isCreative()){
-            return true;
-        }
-        else return false;
-    }
+    public void dialogue(String name, Player player) {
+        int i = this.random.nextInt(4);
+        switch (i) {
+            default:
+            case 1:
+                String hello1 = TEXT_HELLO_1.getString();
+                player.sendMessage(new TextComponent(name + hello1), player.getUUID());
+                break;
 
-    private boolean playerCanRecruit(Player player) {
-        return  (CommandEvents.getSavedRecruitCount(player) < RecruitsModConfig.MaxRecruitsForPlayer.get());
+            case 2:
+                String hello2 = TEXT_HELLO_2.getString();
+                player.sendMessage(new TextComponent(name + hello2), player.getUUID());
+                break;
+
+            case 3:
+                String hello3 = TEXT_HELLO_3.getString();
+                player.sendMessage(new TextComponent(name + hello3), player.getUUID());
+                break;
+        }
     }
 
     ////////////////////////////////////ATTACK FUNCTIONS////////////////////////////////////
@@ -761,10 +735,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if (entity != null && !(entity instanceof Player) && !(entity instanceof AbstractArrow)) {
                 amt = (amt + 1.0F) / 2.0F;
             }
-            //this.addXp(1);
-            //this.checkLevel();
             if(this.getMoral() > 0) this.setMoral(this.getMoral() - 0.25F);
-            //this.hurtTimer = 0;
             return super.hurt(dmg, amt);
         }
     }
@@ -927,7 +898,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setXp(0);
             this.addLevelBuffs();
             this.heal(10F);
-            //if (this.level.isClientSide()) this.spawnHiringParticles(); //not working
             if(this.getMoral() < 100) this.setMoral(getMoral() + 5F);
         }
     }
@@ -938,7 +908,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void makeHireSound() {
-        this.level.playSound(null, this.getX(), this.getY() + 4 , this.getZ(), SoundEvents.VILLAGER_TRADE, this.getSoundSource(), 15.0F, 0.8F + 0.4F * this.random.nextFloat());
+        this.level.playSound(null, this.getX(), this.getY() + 4 , this.getZ(), SoundEvents.VILLAGER_AMBIENT, this.getSoundSource(), 15.0F, 0.8F + 0.4F * this.random.nextFloat());
     }
 
     @Override
@@ -947,18 +917,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public abstract int recruitCosts();
-
-    @OnlyIn(Dist.CLIENT)
-    protected void spawnHiringParticles() {
-        ParticleOptions iparticledata = ParticleTypes.HAPPY_VILLAGER;
-
-        for(int i = 0; i < 7; ++i) {
-            double d0 = this.random.nextGaussian() * 0.02D;
-            double d1 = this.random.nextGaussian() * 0.02D;
-            double d2 = this.random.nextGaussian() * 0.02D;
-            this.level.addParticle(iparticledata, this.getRandomX(1.0D), this.getRandomY() + 0.5D, this.getRandomZ(1.0D), d0, d1, d2);
-        }
-    }
 
     protected void hurtArmor(DamageSource damageSource, float damage) {
         if (damage >= 0.0F) {
@@ -1171,11 +1129,34 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
+    public void openHireGUI(Player player) {
+        this.navigation.stop();
+
+        if (player instanceof ServerPlayer) {
+            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+                @Override
+                public Component getDisplayName() {
+                    return getName();
+                }
+
+                @Nullable
+                @Override
+                public AbstractContainerMenu createMenu(int i, Inventory playerInventory, Player playerEntity) {
+                    return new RecruitHireContainer(i, playerInventory.player, AbstractRecruitEntity.this, playerInventory);
+                }
+            }, packetBuffer -> {packetBuffer.writeUUID(getUUID());});
+        } else {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageHireGui(player, this.getUUID()));
+        }
+    }
+
     private static final TranslatableComponent TEXT_DISBAND = new TranslatableComponent("chat.recruits.text.disband");
     private static final TranslatableComponent TEXT_HELLO_1 = new TranslatableComponent("chat.recruits.text.hello_1");
     private static final TranslatableComponent TEXT_HELLO_2 = new TranslatableComponent("chat.recruits.text.hello_2");
     private static final TranslatableComponent TEXT_HELLO_3 = new TranslatableComponent("chat.recruits.text.hello_3");
-    private static final TranslatableComponent TEXT_HIRE_COSTS = new TranslatableComponent("chat.recruits.text.hire_costs");
+    public static final TranslatableComponent TEXT_RECRUITED1 = new TranslatableComponent("chat.recruits.text.recruited1");
+    public static final TranslatableComponent TEXT_RECRUITED2 = new TranslatableComponent("chat.recruits.text.recruited2");
+    public static final TranslatableComponent TEXT_RECRUITED3 = new TranslatableComponent("chat.recruits.text.recruited3");
 
     private static final TranslatableComponent INFO_RECRUITING_MAX = new TranslatableComponent("chat.recruits.info.reached_max");
 

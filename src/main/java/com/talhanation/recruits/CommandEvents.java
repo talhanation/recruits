@@ -14,6 +14,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
@@ -26,6 +29,7 @@ public class CommandEvents {
 
     private static int recruitsInCommand;
     public static int currentGroup;
+    public static final TranslatableComponent TEXT_HIRE_COSTS = new TranslatableComponent("chat.recruits.text.hire_costs");
 
     public static void onRKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit, int r_state, int group, boolean fromGui) {
         if (recruit.isOwned() && (recruit.getListen() || fromGui) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
@@ -227,5 +231,65 @@ public class CommandEvents {
 
         nbt.putInt( "TotalRecruits", count);
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
+    }
+
+    public static boolean playerCanRecruit(Player player) {
+        return  (CommandEvents.getSavedRecruitCount(player) < RecruitsModConfig.MaxRecruitsForPlayer.get());
+    }
+
+    public static void handleRecruiting(Player player, AbstractRecruitEntity recruit){
+        String name = recruit.getName().getString() + ": ";
+        String hire_costs = TEXT_HIRE_COSTS.getString();
+        int costs = recruit.recruitCosts();
+
+        String recruit_info = String.format(hire_costs, costs);
+        Inventory playerInv = player.getInventory();
+
+        int playerEmeralds = 0;
+
+        ItemStack emeraldItemStack = Items.EMERALD.getDefaultInstance();
+        Item emerald = emeraldItemStack.getItem();//
+        int sollPrice = recruit.recruitCosts();
+
+
+        //checkPlayerMoney
+        for (int i = 0; i < playerInv.getContainerSize(); i++){
+            ItemStack itemStackInSlot = playerInv.getItem(i);
+            Item itemInSlot = itemStackInSlot.getItem();
+            if (itemInSlot == emerald){
+                playerEmeralds = playerEmeralds + itemStackInSlot.getCount();
+            }
+        }
+
+        boolean playerCanPay = playerEmeralds >= sollPrice;
+
+        if (playerCanPay){
+            if(recruit.hire(player)) {
+
+                //give player tradeGood
+                //remove playerEmeralds ->add left
+                //
+                playerEmeralds = playerEmeralds - sollPrice;
+
+                //merchantEmeralds = merchantEmeralds + sollPrice;
+
+                //remove playerEmeralds
+                for (int i = 0; i < playerInv.getContainerSize(); i++) {
+                    ItemStack itemStackInSlot = playerInv.getItem(i);
+                    Item itemInSlot = itemStackInSlot.getItem();
+                    if (itemInSlot == emerald) {
+                        playerInv.removeItemNoUpdate(i);
+                    }
+                }
+
+                //add leftEmeralds to playerInventory
+                ItemStack emeraldsLeft = emeraldItemStack.copy();
+                emeraldsLeft.setCount(playerEmeralds);
+                playerInv.add(emeraldsLeft);
+            }
+        }
+        else
+
+            player.sendMessage(new TextComponent(name + recruit_info), player.getUUID());
     }
 }

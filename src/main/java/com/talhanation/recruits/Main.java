@@ -5,6 +5,7 @@ import com.talhanation.recruits.client.events.KeyEvents;
 import com.talhanation.recruits.client.events.PlayerEvents;
 import com.talhanation.recruits.client.gui.AssassinLeaderScreen;
 import com.talhanation.recruits.client.gui.CommandScreen;
+import com.talhanation.recruits.client.gui.RecruitHireScreen;
 import com.talhanation.recruits.client.gui.RecruitInventoryScreen;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
@@ -14,6 +15,7 @@ import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModItems;
 import com.talhanation.recruits.inventory.AssassinLeaderContainer;
 import com.talhanation.recruits.inventory.CommandContainer;
+import com.talhanation.recruits.inventory.RecruitHireContainer;
 import com.talhanation.recruits.inventory.RecruitInventoryContainer;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.ClientRegistry;
@@ -65,6 +67,7 @@ public class Main {
     public static KeyMapping R_KEY;
     public static MenuType<RecruitInventoryContainer> RECRUIT_CONTAINER_TYPE;
     public static MenuType<CommandContainer> COMMAND_CONTAINER_TYPE;
+    public static MenuType<RecruitHireContainer> HIRE_CONTAINER_TYPE;
     public static MenuType<AssassinLeaderContainer> ASSASSIN_CONTAINER_TYPE;
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
@@ -110,6 +113,8 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 13, MessageListen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 14, MessageMove.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 15, MessageRecruitGui.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 16, MessageHireGui.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 17, MessageHire.class);
     }
 
     @SubscribeEvent
@@ -123,6 +128,7 @@ public class Main {
         ClientRegistry.registerScreen(Main.RECRUIT_CONTAINER_TYPE, RecruitInventoryScreen::new);
         ClientRegistry.registerScreen(Main.COMMAND_CONTAINER_TYPE, CommandScreen::new);
         ClientRegistry.registerScreen(Main.ASSASSIN_CONTAINER_TYPE, AssassinLeaderScreen::new);
+        ClientRegistry.registerScreen(Main.HIRE_CONTAINER_TYPE, RecruitHireScreen::new);
     }
 
     @SubscribeEvent
@@ -197,6 +203,17 @@ public class Main {
         });
         ASSASSIN_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "assassin_container"));
         event.getRegistry().register(ASSASSIN_CONTAINER_TYPE);
+
+        HIRE_CONTAINER_TYPE = new MenuType<>((IContainerFactory<RecruitHireContainer>) (windowId, inv, data) -> {
+            Player playerEntity = inv.player;
+            AbstractRecruitEntity rec = getRecruitByUUID(inv.player, data.readUUID());
+            if (playerEntity == null) {
+                return null;
+            }
+            return new RecruitHireContainer(windowId, playerEntity, rec, playerEntity.getInventory());
+        });
+        HIRE_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "hire_container"));
+        event.getRegistry().register(HIRE_CONTAINER_TYPE);
     }
 
     @Nullable

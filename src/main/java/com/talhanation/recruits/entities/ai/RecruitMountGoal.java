@@ -20,7 +20,7 @@ public class RecruitMountGoal extends Goal {
         this.setFlags(EnumSet.of(Flag.MOVE));
     }
     public boolean canUse() {
-        if (this.recruit.getMount() == null && recruit.getMove()) {
+        if (this.recruit.getMount() == null) {
             return false;
         }
         else if (this.recruit.getMovePos().closerThan(recruit.getOnPos(), within))

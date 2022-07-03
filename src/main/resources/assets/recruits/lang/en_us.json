@@ -48,6 +48,8 @@
   "gui.recruits.inv.text.disband" : "Disband",
   "gui.recruits.inv.text.group" : "Group",
 
+  "gui.recruits.hire_gui.text.hire" : "Hire",
+
   "gui.recruits.inv.tooltip.passive" : "Make this recruit not attacking at all.",
   "gui.recruits.inv.tooltip.neutral" : "Make this recruit attack only hostile living.",
   "gui.recruits.inv.tooltip.aggressive" : "Make the recruit attack all enemy players and recruits on sight.",
@@ -95,13 +97,19 @@
   "chat.recruits.command.raid" : "Raid!",
 
   "chat.recruits.text.hello_1": "Hello my friend.",
-  "chat.recruits.text.hello_2": "It's a honor for me to protect you.",
-  "chat.recruits.text.hello_3": "I will defend and attack if necessary!",
+  "chat.recruits.text.hello_2": "Everything all right?",
+  "chat.recruits.text.hello_3": "What is it?",
   "chat.recruits.text.follow": "I will follow you.",
   "chat.recruits.text.hold_your_pos": "I will hold your position.",
   "chat.recruits.text.wander": "I will wander around.",
   "chat.recruits.text.disband": "Then this is where we part ways.",
 
-  "chat.recruits.text.hire_costs":"You need %d Emeralds to recruit me!",
-  "chat.recruits.info.reached_max": "You reached the maximum limit you can recruit."
+  "chat.recruits.text.recruited1": "That's an honorable path you're on.",
+  "chat.recruits.text.recruited2": "How can i assist you?",
+  "chat.recruits.text.recruited3": "Your way is my way. Im honored.",
+
+  "chat.recruits.text.hire_costs": "You need %x Emeralds to recruit me!",
+  "chat.recruits.info.reached_max": "You reached the maximum limit you can recruit.",
+
+  "gui.recruits.text.recruited" : "It's a honor for me to protect you!"
 }

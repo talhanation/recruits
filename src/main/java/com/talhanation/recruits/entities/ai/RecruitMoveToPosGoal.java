@@ -18,7 +18,7 @@ public class RecruitMoveToPosGoal extends Goal {
         this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
     public boolean canUse() {
-        if (this.recruit.getMovePos() == null && recruit.getMove()) {
+        if (this.recruit.getMovePos() == null) {
             return false;
         }
         else return this.recruit.getMovePos().closerThan(recruit.getOnPos(), within);
@@ -31,13 +31,12 @@ public class RecruitMoveToPosGoal extends Goal {
     //maybe?? start(){
     public void tick() {
         BlockPos blockpos = this.recruit.getMovePos();
-        if (blockpos != null && recruit.getMove()) {
+        if (blockpos != null) {
             this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
         }
 
         if(blockpos.closerThan(recruit.getOnPos(), 3)){
             recruit.setShouldFollow(false);
-            recruit.setMove(false);
         }
     }
 }
