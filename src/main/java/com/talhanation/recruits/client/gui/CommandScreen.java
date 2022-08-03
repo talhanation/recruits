@@ -5,6 +5,7 @@ import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.network.MessageAggro;
+import com.talhanation.recruits.network.MessageMountEntity;
 import com.talhanation.recruits.network.MessageClearTarget;
 import com.talhanation.recruits.network.MessageFollow;
 import de.maxhenkel.corelib.inventory.ScreenBase;
@@ -14,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
@@ -82,8 +84,20 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         int topPosGab = 7;
         int mirror = 240 - 60;
 
-        //PASSIVE
+        addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos - 20, 80, 20,
+                new TextComponent("Mount"),
+                button -> {
+                    Entity entity = CommandEvents.getEntityByLooking();
+                    if (entity != null){
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntity(player.getUUID(), entity.getUUID(), group));
+                        Main.LOGGER.debug("Button():");
+                        Main.LOGGER.debug("---entity.getUUID(): " + entity.getUUID());
+                        Main.LOGGER.debug("---player.getUUID(): " + player.getUUID());
+                    }
+                }
+        ));
 
+        //PASSIVE
         addRenderableWidget(new Button(zeroLeftPos - mirror + 40, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE, button -> {
             CommandEvents.sendAggroCommandInChat(3, player);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 3, group));

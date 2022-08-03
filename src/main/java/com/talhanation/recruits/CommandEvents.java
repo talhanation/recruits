@@ -4,12 +4,14 @@ import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.network.MessageCommandScreen;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -17,6 +19,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
@@ -291,5 +295,41 @@ public class CommandEvents {
         else
 
             player.sendMessage(new TextComponent(name + recruit_info), player.getUUID());
+    }
+
+
+
+    @Nullable
+    public static Entity getEntityByLooking() {
+        //Entity pointedEntity = Minecraft.getInstance().crosshairPickEntity;// this only works for living and itemframe
+        HitResult hit = Minecraft.getInstance().hitResult;
+
+        if (hit instanceof EntityHitResult entityHitResult){
+            Entity pointedEntity = entityHitResult.getEntity();
+
+            //Main.LOGGER.debug("getEntityByLooking(): " + pointedEntity.getName().getString());
+            return pointedEntity;
+        }
+        else {
+            //Main.LOGGER.debug("getEntityByLooking(): NULL");
+        }
+        return null;
+    }
+
+
+    public static void onMountButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID mount_uuid, int group) {
+        if (recruit.isOwned() && (recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
+            recruit.shouldMount(true, mount_uuid);
+            Main.LOGGER.debug("onMountButton():");
+            Main.LOGGER.debug("---mount_uuid(): " + mount_uuid);
+        }
+    }
+
+
+
+    public static void onStopButton(AbstractRecruitEntity recruit, UUID owner, int group) {
+        if (recruit.isOwned() &&(recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), owner) && (recruit.getGroup() == group || group == 0)) {
+            recruit.setTarget(null);
+        }
     }
 }

@@ -1,10 +1,10 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.RecruitEvents;
+import com.talhanation.recruits.CommandEvents;
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -12,16 +12,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageAttackEntity implements Message<MessageAttackEntity> {
+public class MessageMountEntity implements Message<MessageMountEntity> {
 
     private UUID uuid;
     private UUID target;
     private int group;
 
-    public MessageAttackEntity(){
+    public MessageMountEntity(){
     }
 
-    public MessageAttackEntity(UUID uuid, UUID target) {
+    public MessageMountEntity(UUID uuid, UUID target,int group) {
         this.uuid = uuid;
         this.target = target;
         this.group = 0;
@@ -34,15 +34,15 @@ public class MessageAttackEntity implements Message<MessageAttackEntity> {
 
     public void executeServerSide(NetworkEvent.Context context){
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
-        for (AbstractRecruitEntity recruits : list){
-
-            if (recruits.getUUID().equals(this.uuid))
-                RecruitEvents.onAttackButton(recruits,recruits.getOwner(),target, group);
-                context.getSender().sendMessage(new TextComponent("MESSAGE"), context.getSender().getUUID());
+        for (AbstractRecruitEntity recruits : list) {
+            CommandEvents.onMountButton(uuid, recruits, target, group);
+            Main.LOGGER.debug("executeServerSide():");
+            Main.LOGGER.debug("---target: " + target);
+            Main.LOGGER.debug("---uuid: " + uuid);
         }
 
     }
-    public MessageAttackEntity fromBytes(FriendlyByteBuf buf) {
+    public MessageMountEntity fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();
         this.target = buf.readUUID();
         this.group = buf.readInt();

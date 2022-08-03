@@ -70,12 +70,15 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Integer> STATE = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> FOLLOW_STATE = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> SHOULD_FOLLOW = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> SHOULD_MOUNT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> SHOULD_HOLD_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Optional<BlockPos>> HOLD_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Optional<BlockPos>> MOVE_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Boolean> LISTEN = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> isFollowing = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Optional<UUID>> MOUNT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
+    private static final EntityDataAccessor<Optional<UUID>> ESCORT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
+
     private static final EntityDataAccessor<Integer> GROUP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> XP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> LEVEL = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
@@ -188,6 +191,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         //this.goalSelector.addGoal(0, new (this));
         this.goalSelector.addGoal(1, new FloatGoal(this));
         this.goalSelector.addGoal(1, new RecruitEatGoal(this));
+        this.goalSelector.addGoal(1, new RecruitMountEntity(this));
         //this.goalSelector.addGoal(2, new RecruitMountGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(4, new RecruitFollowOwnerGoal(this, 1.2D, this.getFollowStartDistance(), 3.0F));
@@ -237,6 +241,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(DATA_REMAINING_ANGER_TIME, 0);
         this.entityData.define(GROUP, 0);
         this.entityData.define(SHOULD_FOLLOW, false);
+        this.entityData.define(SHOULD_MOUNT, false);
         this.entityData.define(SHOULD_HOLD_POS, false);
         this.entityData.define(FLEEING, false);
         this.entityData.define(STATE, 0);
@@ -248,6 +253,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(MOVE_POS, Optional.empty());
         this.entityData.define(LISTEN, true);
         this.entityData.define(MOUNT, Optional.empty());
+        this.entityData.define(ESCORT, Optional.empty());
         this.entityData.define(isFollowing, false);
         this.entityData.define(isEating, false);
         this.entityData.define(HUNGER, 50F);
@@ -273,6 +279,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         super.addAdditionalSaveData(nbt);
         nbt.putInt("AggroState", this.getState());
         nbt.putBoolean("ShouldFollow", this.getShouldFollow());
+        nbt.putBoolean("ShouldMount", this.getShouldMount());
         nbt.putInt("Group", this.getGroup());
         nbt.putBoolean("Listen", this.getListen());
         nbt.putBoolean("Fleeing", this.getFleeing());
@@ -295,6 +302,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if(this.getOwnerUUID() != null){
             nbt.putUUID("OwnerUUID", this.getOwnerUUID());
         }
+
+        if(this.getMountUUID() != null){
+            nbt.putUUID("MountUUID", this.getMountUUID());
+        }
+
+        if(this.getEscortUUID() != null){
+            nbt.putUUID("EscortUUID", this.getEscortUUID());
+        }
     }
 
     @Override
@@ -303,6 +318,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setXpLevel(nbt.getInt("Level"));
         this.setState(nbt.getInt("AggroState"));
         this.setShouldFollow(nbt.getBoolean("ShouldFollow"));
+        this.setShouldMount(nbt.getBoolean("ShouldMount"));
         this.setFleeing(nbt.getBoolean("Fleeing"));
         this.setGroup(nbt.getInt("Group"));
         this.setListen(nbt.getBoolean("Listen"));
@@ -325,6 +341,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (nbt.contains("OwnerUUID")){
             this.setOwnerUUID(nbt.getUUID("OwnerUUID"));
         }
+
+        if (nbt.contains("EscortUUID")){
+            this.setOwnerUUID(nbt.getUUID("EscortUUID"));
+        }
+
+        if (nbt.contains("MountUUID")){
+            this.setOwnerUUID(nbt.getUUID("MountUUID"));
+        }
     }
 
 
@@ -341,6 +365,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public UUID getOwnerUUID(){
         return  this.entityData.get(OWNER_ID).orElse(null);
+    }
+
+    public UUID getEscortUUID(){
+        return  this.entityData.get(ESCORT).orElse(null);
+    }
+
+    public UUID getMountUUID(){
+        return  this.entityData.get(MOUNT).orElse(null);
     }
 
     public boolean getIsOwned() {
@@ -380,6 +412,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public boolean getShouldHoldPos() {
         return entityData.get(SHOULD_HOLD_POS);
+    }
+
+    public boolean getShouldMount() {
+        return entityData.get(SHOULD_MOUNT);
     }
 
     public boolean getShouldFollow() {
@@ -441,11 +477,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return entityData.get(LISTEN);
     }
 
-    @Nullable
-    public UUID getMount() {
-        return entityData.get(MOUNT).orElse(null);
-    }
-
     /*
     public ItemStack getOffHandItemSave(){
         return  entityData.get(OFFHAND_ITEM_SAVE);
@@ -460,6 +491,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void setOwnerUUID(UUID id) {
         this.entityData.set(OWNER_ID, Optional.of(id));
+    }
+
+    public void setEscortUUID(UUID id) {
+        this.entityData.set(ESCORT, Optional.of(id));
+    }
+
+    public void setMountUUID(Optional<UUID> id) {
+        this.entityData.set(MOUNT, id);
     }
 
     public void setMoral(float value) {
@@ -516,6 +555,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void setShouldHoldPos(boolean bool){
         entityData.set(SHOULD_HOLD_POS, bool);
+    }
+
+    public void setShouldMount(boolean bool){
+        entityData.set(SHOULD_MOUNT, bool);
     }
 
     public void setShouldFollow(boolean bool){
@@ -595,10 +638,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void setEquipment(){}
-
-    public void setMount(UUID uuid){
-        entityData.set(MOUNT, Optional.of(uuid));
-    }
 
     public abstract void initSpawn();
 
@@ -823,6 +862,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     ////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////
 
     public void updateMoral(){
+        boolean confused =  10 <= getMoral() && getMoral() < 30;
+        boolean lowMoral =  30 <= getMoral() && getMoral() < 45;
+        boolean highMoral =  80 <= getMoral() && getMoral() < 95;
+        boolean strong =  95 <= getMoral();
+
         if(this.getIsEating()){
             if(getMoral() < 100) setMoral((getMoral() + 0.001F));
         }
@@ -835,26 +879,34 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if(getMoral() > 35) setMoral((getMoral() - 0.0001F));
         }
 
-        if (getMoral() <= 30)
-            if(!this.hasEffect(MobEffects.WEAKNESS)) {
+        if (confused) {
+            if (!this.hasEffect(MobEffects.WEAKNESS))
+                this.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 200, 3, false, true, true));
+            if (!this.hasEffect(MobEffects.MOVEMENT_SLOWDOWN))
+                this.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 2, false, true, true));
+            if (!this.hasEffect(MobEffects.CONFUSION))
+                this.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 200, 1, false, true, true));
+        }
+
+        if (lowMoral) {
+            if (!this.hasEffect(MobEffects.WEAKNESS))
                 this.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 200, 1, false, true, true));
+            if (!this.hasEffect(MobEffects.MOVEMENT_SLOWDOWN))
                 this.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 1, false, true, true));
-            }
-
-        if (getMoral() <= 10) {
-            this.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 200, 3, false, true, true));
-            this.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 2, false, true, true));
-            this.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 200, 1, false, true, true));
         }
 
-        if (getMoral() >= 80) {
-            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 200, 0, false, false, true));
-            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 200, 0, false, false, true));
+        if (highMoral) {
+            if (!this.hasEffect(MobEffects.DAMAGE_BOOST))
+                this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 200, 0, false, false, true));
+            if (!this.hasEffect(MobEffects.DAMAGE_RESISTANCE))
+                this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 200, 0, false, false, true));
         }
 
-        if (getMoral() >= 95) {
-            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 200, 1, false, false, true));
-            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 200, 1, false, false, true));
+        if (strong) {
+            if (!this.hasEffect(MobEffects.DAMAGE_BOOST))
+                this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 200, 1, false, false, true));
+            if (!this.hasEffect(MobEffects.DAMAGE_RESISTANCE))
+                this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 200, 1, false, false, true));
         }
     }
 
@@ -899,7 +951,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setXp(0);
             this.addLevelBuffs();
             this.heal(10F);
-            if(this.getMoral() < 100) this.setMoral(getMoral() + 5F);
+
+            if(this.getMoral() < 100)
+                this.setMoral(getMoral() + 5F);
         }
     }
 
@@ -1164,4 +1218,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final TranslatableComponent TEXT_FOLLOW = new TranslatableComponent("chat.recruits.text.follow");
     private static final TranslatableComponent TEXT_HOLD_YOUR_POS = new TranslatableComponent("chat.recruits.text.hold_your_pos");
     private static final TranslatableComponent TEXT_WANDER = new TranslatableComponent("chat.recruits.text.wander");
+
+    public void shouldMount(boolean should, UUID mount_uuid) {
+        if (!this.isPassenger()){
+            this.setShouldMount(should);
+            this.setMountUUID(Optional.of(mount_uuid));
+        }
+        Main.LOGGER.debug("shouldMount():");
+        Main.LOGGER.debug("---setShouldMount(): " + should);
+        Main.LOGGER.debug("---setMountUUID(): " + mount_uuid);
+
+        Main.LOGGER.debug("---getShouldMount(): " + this.getShouldMount());
+        Main.LOGGER.debug("---getMountUUID(): " + this.getMountUUID());
+    }
 }

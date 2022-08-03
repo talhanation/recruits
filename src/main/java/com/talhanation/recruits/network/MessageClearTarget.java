@@ -1,6 +1,6 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.RecruitEvents;
+import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -30,7 +30,7 @@ public class MessageClearTarget implements Message<MessageClearTarget> {
     public void executeServerSide(NetworkEvent.Context context) {
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
         for (AbstractRecruitEntity recruits : list) {
-            RecruitEvents.onStopButton(recruits, this.player, group);
+            CommandEvents.onStopButton(recruits, this.player, group);
         }
     }
     public MessageClearTarget fromBytes(FriendlyByteBuf buf) {

@@ -10,9 +10,6 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
-import java.util.Objects;
-import java.util.UUID;
-
 public class RecruitEvents {
 
     @SubscribeEvent
@@ -53,29 +50,6 @@ public class RecruitEvents {
 
                 }
             }
-        }
-    }
-
-    public static void onAttackButton(AbstractRecruitEntity recruit, LivingEntity owner, UUID target, int group) {
-       /*
-        if (recruit.getGroup() == group || group == 0) {
-            List<LivingEntity> list = recruit.level.getEntitiesOfClass(LivingEntity.class, recruit.getBoundingBox().inflate(64.0D));
-            for (LivingEntity potTargets : list) {
-                recruit.getOwner().sendMessage(new TextComponent("FOR"), recruit.getOwner().getUUID());
-                if (potTargets.getUUID() == target) {
-                    if (recruit.getOwner() == owner && recruit.wantsToAttack(potTargets, owner))
-                        recruit.getOwner().sendMessage(new TextComponent("TARGET"), recruit.getOwner().getUUID());
-                        recruit.setTarget(potTargets);
-                }
-            }
-        }
-        */
-    }
-
-
-    public static void onStopButton(AbstractRecruitEntity recruit, UUID owner, int group) {
-        if (recruit.isOwned() &&(recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), owner) && (recruit.getGroup() == group || group == 0)) {
-            recruit.setTarget(null);
         }
     }
 
