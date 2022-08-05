@@ -7,6 +7,7 @@ import net.minecraftforge.fml.common.Mod;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Mod.EventBusSubscriber
@@ -15,7 +16,7 @@ public class RecruitsModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
-    public static final int NEW_VERSION = 9;
+    public static final int NEW_VERSION = 10;
 
 
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
@@ -35,7 +36,10 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.IntValue MaxAssassinCount;
     public static ForgeConfigSpec.DoubleValue RecruitFollowStartDistance;
     public static ForgeConfigSpec.ConfigValue<List<String>> TargetBlackList;
+    public static ForgeConfigSpec.ConfigValue<List<String>> MountWhiteList;
 
+    public static ArrayList<String> MOUNTS = new ArrayList<>(
+            Arrays.asList("\"minecraft:horse\"", "\"minecraft:pig\"", "\"minecraft:boat\"", "\"minecraft:minecart\"", "\"smallships:cog\"", "\"smallships:brigg\"", "\"camels:camel\""));
 
     static{
         VERSION = BUILDER.comment("\n" +"##Version, do not change!##")
@@ -146,8 +150,15 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("Target BlackList", new ArrayList<>());
 
-    CONFIG = BUILDER.build();
-}
+        MountWhiteList = BUILDER.comment("\n" + "----Mount Whitelist----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "Entities in this list won't be targeted at all, for example: [\"minecraft:boat\", \"smallships:cog\"]")
+                .worldRestart()
+                .define("Mount Whitelist", MOUNTS);
+
+
+        CONFIG = BUILDER.build();
+    }
 
     public static void loadConfig(ForgeConfigSpec spec, Path path) {
         CommentedFileConfig configData = CommentedFileConfig.builder(path)
