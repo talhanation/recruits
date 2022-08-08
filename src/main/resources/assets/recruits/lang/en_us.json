@@ -30,6 +30,7 @@
   "gui.recruits.inv.tooltip.holdPos" : "Make this recruit hold his current position.",
   "gui.recruits.inv.tooltip.backToPos" : "Make this recruit go back to his previously held position.",
   "gui.recruits.inv.tooltip.disband" : "Removes this recruit from your command.",
+  "gui.recruits.inv.tooltip.dismount" : "If possible, this recruit will dismount his current vehicle.",
   "gui.recruits.inv.tooltip.clearTargets" : "Clears this recruits current target to attack.",
 
   "gui.recruits.inv.text.follow" : "Follow me!",
@@ -46,6 +47,7 @@
   "gui.recruits.inv.text.clearTargets" : "Clear Targets!",
 
   "gui.recruits.inv.text.disband" : "Disband",
+  "gui.recruits.inv.text.dismount" : "Dismount",
   "gui.recruits.inv.text.group" : "Group",
 
   "gui.recruits.hire_gui.text.hire" : "Hire",
@@ -62,6 +64,9 @@
   "gui.recruits.command.tooltip.backToPos" : "Make the recruits go back to their previously held position.",
   "gui.recruits.command.tooltip.patrol" : "Make the recruits patrol their previously held position.",
   "gui.recruits.command.tooltip.clearTargets" : "Clears the recruits current targets to attack.",
+  "gui.recruits.command.tooltip.escort" : "Make the recruits escort the Mob you are looking at.",
+  "gui.recruits.command.tooltip.mount" : "If possible, the recruits will try to mount the Mob you are looking at.",
+  "gui.recruits.command.tooltip.dismount" : "If possible, the recruits will dismount their current vehicle.",
 
   "gui.recruits.command.tooltip.passive" : "Make the recruits not attacking at all.",
   "gui.recruits.command.tooltip.neutral" : "Make the recruits attack only hostile living.",
@@ -69,6 +74,9 @@
   "gui.recruits.command.tooltip.raid" : "Make the recruits attack all living on sight.",
 
 
+  "gui.recruits.command.text.mount" : "Mount!",
+  "gui.recruits.command.text.dismount" : "Dismount!",
+  "gui.recruits.command.text.escort" : "Escort!",
   "gui.recruits.command.text.follow" : "Follow me!",
   "gui.recruits.command.text.wander" : "Wander freely!",
   "gui.recruits.command.text.holdMyPos": "Hold my Position!",
@@ -84,6 +92,10 @@
   "gui.recruits.command.text.group" : "Group",
   "gui.recruits.command.text.everyone" : "Everyone",
 
+
+  "chat.recruits.command.escort" : "Escort this Mob!",
+  "chat.recruits.command.mount" : "Mount here!",
+  "chat.recruits.command.dismount" : "Dismount!",
   "chat.recruits.command.wander" : "Wander freely!",
   "chat.recruits.command.follow" : "Follow me!",
   "chat.recruits.command.holdMyPos" : "Hold my Position!",
@@ -111,5 +123,9 @@
   "chat.recruits.text.hire_costs": "You need %x Emeralds to recruit me!",
   "chat.recruits.info.reached_max": "You reached the maximum limit you can recruit.",
 
-  "gui.recruits.text.recruited" : "It's a honor for me to protect you!"
+  "chat.recruits.text.block_placing_warn": "You are not allowed to place or break blocks in our lands!",
+
+  "gui.recruits.text.recruited" : "It's a honor for me to protect you!",
+  "chat.recruits.text.group": "Group",
+  "chat.recruits.text.everyone": "Everyone"
 }

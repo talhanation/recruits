@@ -34,6 +34,23 @@ public class CommandEvents {
     private static int recruitsInCommand;
     public static int currentGroup;
     public static final TranslatableComponent TEXT_HIRE_COSTS = new TranslatableComponent("chat.recruits.text.hire_costs");
+    public static final TranslatableComponent TEXT_EVERYONE = new TranslatableComponent("chat.recruits.text.everyone");
+    public static final TranslatableComponent TEXT_GROUP = new TranslatableComponent("chat.recruits.text.group");
+
+    public static final TranslatableComponent TEXT_PASSIVE = new TranslatableComponent("chat.recruits.command.passive");
+    public static final TranslatableComponent TEXT_NEUTRAL = new TranslatableComponent("chat.recruits.command.neutral");
+    public static final TranslatableComponent TEXT_AGGRESSIVE = new TranslatableComponent("chat.recruits.command.aggressive");
+    public static final TranslatableComponent TEXT_RAID = new TranslatableComponent("chat.recruits.command.raid");
+
+    public static final TranslatableComponent TEXT_FOLLOW = new TranslatableComponent("chat.recruits.command.follow");
+    public static final TranslatableComponent TEXT_WANDER = new TranslatableComponent("chat.recruits.command.wander");
+    public static final TranslatableComponent TEXT_HOLD_POS = new TranslatableComponent("chat.recruits.command.holdPos");
+    public static final TranslatableComponent TEXT_HOLD_MY_POS = new TranslatableComponent("chat.recruits.command.holdMyPos");
+    public static final TranslatableComponent TEXT_BACK_TO_POS = new TranslatableComponent("chat.recruits.command.backToPos");
+    public static final TranslatableComponent TEXT_DISMOUNT = new TranslatableComponent("chat.recruits.command.dismount");
+    public static final TranslatableComponent TEXT_MOUNT = new TranslatableComponent("chat.recruits.command.mount");
+    public static final TranslatableComponent TEXT_ESCORT = new TranslatableComponent("chat.recruits.command.escort");
+
 
     public static void onRKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit, int r_state, int group, boolean fromGui) {
         if (recruit.isOwned() && (recruit.getListen() || fromGui) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
@@ -63,6 +80,11 @@ public class CommandEvents {
                 case 4:
                     if (state != 4)
                         recruit.setFollowState(4);
+                    break;
+
+                case 5:
+                    if (state != 5)
+                        recruit.setFollowState(5);
                     break;
             }
         }
@@ -148,23 +170,39 @@ public class CommandEvents {
     }
 
 
-    public static void sendFollowCommandInChat(int state, LivingEntity owner){
+    public static void sendFollowCommandInChat(int state, LivingEntity owner, int group){
+        String group_string = "";
+        if (group == 0){
+            group_string = TEXT_EVERYONE.getString() + ", ";
+        }else
+            group_string = TEXT_GROUP.getString() + " " + group + ", " ;
 
         switch (state) {
-            case 0 -> owner.sendMessage(new TranslatableComponent("chat.recruits.command.wander"), owner.getUUID());
-            case 1 -> owner.sendMessage(new TranslatableComponent("chat.recruits.command.follow"), owner.getUUID());
-            case 2 -> owner.sendMessage(new TranslatableComponent("chat.recruits.command.holdPos"), owner.getUUID());
-            case 3 -> owner.sendMessage(new TranslatableComponent("chat.recruits.command.backToPos"), owner.getUUID());
-            case 4 -> owner.sendMessage(new TranslatableComponent("chat.recruits.command.holdMyPos"), owner.getUUID());
+            case 0 -> owner.sendMessage(new TextComponent(group_string +  TEXT_WANDER.getString()), owner.getUUID());
+            case 1 -> owner.sendMessage(new TextComponent(group_string +  TEXT_FOLLOW.getString()), owner.getUUID());
+            case 2 -> owner.sendMessage(new TextComponent(group_string +  TEXT_HOLD_POS.getString()), owner.getUUID());
+            case 3 -> owner.sendMessage(new TextComponent(group_string +  TEXT_BACK_TO_POS.getString()), owner.getUUID());
+            case 4 -> owner.sendMessage(new TextComponent(group_string +  TEXT_HOLD_MY_POS.getString()), owner.getUUID());
+            case 5 -> owner.sendMessage(new TextComponent(group_string +  TEXT_ESCORT.getString()), owner.getUUID());
+
+            case 98 -> owner.sendMessage(new TextComponent(group_string +  TEXT_DISMOUNT.getString()), owner.getUUID());
+            case 99 -> owner.sendMessage(new TextComponent(group_string +  TEXT_MOUNT.getString()), owner.getUUID());
         }
     }
 
-    public static void sendAggroCommandInChat(int state, LivingEntity owner){
+    public static void sendAggroCommandInChat(int state, LivingEntity owner, int group){
+        String group_string = "";
+        if (group == 0){
+            group_string = TEXT_EVERYONE.getString() + ", ";
+        }else
+            group_string = TEXT_GROUP.getString() + " " + group + ", " ;
+
+
         switch (state) {
-            case 0 -> owner.sendMessage(new TranslatableComponent("chat.recruits.command.neutral"), owner.getUUID());
-            case 1 -> owner.sendMessage(new TranslatableComponent("chat.recruits.command.aggressive"), owner.getUUID());
-            case 2 -> owner.sendMessage(new TranslatableComponent("chat.recruits.command.raid"), owner.getUUID());
-            case 3 -> owner.sendMessage(new TranslatableComponent("chat.recruits.command.passive"), owner.getUUID());
+            case 0 -> owner.sendMessage(new TextComponent(group_string + TEXT_NEUTRAL.getString()), owner.getUUID());
+            case 1 -> owner.sendMessage(new TextComponent(group_string + TEXT_AGGRESSIVE.getString()), owner.getUUID());
+            case 2 -> owner.sendMessage(new TextComponent(group_string + TEXT_RAID.getString()), owner.getUUID());
+            case 3 -> owner.sendMessage(new TextComponent(group_string + TEXT_PASSIVE.getString()), owner.getUUID());
         }
     }
 
@@ -320,15 +358,29 @@ public class CommandEvents {
     public static void onMountButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID mount_uuid, int group) {
         if (recruit.isOwned() && (recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
             recruit.shouldMount(true, mount_uuid);
-            Main.LOGGER.debug("onMountButton():");
-            Main.LOGGER.debug("---mount_uuid(): " + mount_uuid);
         }
     }
 
+    public static void onDismountButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
+        Main.LOGGER.debug("Dismount: Event start");
+        Main.LOGGER.debug("Dismount: Event: player_uuid: "+ player_uuid);
+        if (recruit.isOwned() && (recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
+            recruit.shouldMount(false, null);
+            if(recruit.isPassenger()){
+                recruit.stopRiding();
+                Main.LOGGER.debug("Dismount: Event done");
+            }
+        }
+    }
 
+    public static void onEscortButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID escort_uuid, int group) {
+        if (recruit.isOwned() && (recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
+            recruit.shouldEscort(true, escort_uuid);
+        }
+    }
 
-    public static void onStopButton(AbstractRecruitEntity recruit, UUID owner, int group) {
-        if (recruit.isOwned() &&(recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), owner) && (recruit.getGroup() == group || group == 0)) {
+    public static void onStopButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
+        if (recruit.isOwned() && (recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
             recruit.setTarget(null);
         }
     }

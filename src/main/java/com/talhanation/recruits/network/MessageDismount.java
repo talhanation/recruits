@@ -1,5 +1,6 @@
 package com.talhanation.recruits.network;
 
+import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -30,12 +31,9 @@ public class MessageDismount implements Message<MessageDismount> {
 
     public void executeServerSide(NetworkEvent.Context context){
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
-        for (AbstractRecruitEntity recruits : list){
-
-            if (recruits.getUUID().equals(this.uuid) && recruits.getVehicle() != null && (group == recruits.getGroup() || group == 0))
-                recruits.stopRiding();
+        for (AbstractRecruitEntity recruits : list) {
+            CommandEvents.onDismountButton(uuid, recruits, group);
         }
-
     }
     public MessageDismount fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();

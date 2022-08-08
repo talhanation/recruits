@@ -42,7 +42,7 @@ public class RecruitFollowOwnerGoal extends Goal {
             return false;
         } else if (!this.recruitEntity.getShouldFollow()) {
             return false;
-        } else if (this.recruitEntity.distanceToSqr(owner) < (double)(this.startDistance * this.startDistance)) {
+        } else if (this.recruitEntity.distanceToSqr(owner) < (this.startDistance * this.startDistance)) {
             return false;
         }
         else {

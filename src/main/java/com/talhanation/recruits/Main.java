@@ -116,6 +116,8 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 16, MessageHireGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 17, MessageHire.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 18, MessageEscortEntity.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 19, MessageDismount.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 20, MessageDismountGui.class);
     }
 
     @SubscribeEvent

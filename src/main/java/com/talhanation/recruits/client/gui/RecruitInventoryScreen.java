@@ -27,9 +27,11 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
     private static final TranslatableComponent TEXT_KILLS = new TranslatableComponent("gui.recruits.inv.kills");
 
     private static final TranslatableComponent TEXT_DISBAND = new TranslatableComponent("gui.recruits.inv.text.disband");
+    private static final TranslatableComponent TEXT_DISMOUNT = new TranslatableComponent("gui.recruits.inv.text.dismount");
+
 
     private static final TranslatableComponent TOOLTIP_DISBAND = new TranslatableComponent("gui.recruits.inv.tooltip.disband");
-
+    private static final TranslatableComponent TOOLTIP_DISMOUNT = new TranslatableComponent("gui.recruits.inv.tooltip.dismount");
     private static final TranslatableComponent TOOLTIP_FOLLOW = new TranslatableComponent("gui.recruits.inv.tooltip.follow");
     private static final TranslatableComponent TOOLTIP_WANDER = new TranslatableComponent("gui.recruits.inv.tooltip.wander");
     private static final TranslatableComponent TOOLTIP_HOLD_MY_POS = new TranslatableComponent("gui.recruits.inv.tooltip.holdMyPos");
@@ -131,7 +133,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
 
         //CLEAR TARGET
         addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_CLEAR_TARGET, button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTargetGui(recruit.getUUID()));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTargetGui(playerInventory.player.getUUID(), recruit.getUUID()));
         },  (a, b, c, d) -> {
             this.renderTooltip(b, TOOLTIP_CLEAR_TARGET, c, d);
         }));
@@ -201,7 +203,19 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         },  (a, b, c, d) -> {
             this.renderTooltip(b, TOOLTIP_HOLD_MY_POS, c, d);
         }));
+    /*
 
+        //dont work idk why
+        //DISMOUNT
+        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 5, 80, 20, TEXT_DISMOUNT, button -> {
+                if(recruit.isPassenger()) {
+                    Main.LOGGER.debug("Dismount: Button");
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageDismountGui(playerInventory.player.getUUID(), recruit.getUUID()));
+                }
+        },  (a, b, c, d) -> {
+            this.renderTooltip(b, TOOLTIP_DISMOUNT, c, d);
+        }));
+*/
 
         //LISTEN
         addRenderableWidget(new Button(leftPos + 77, topPos + 113, 8, 12, new TextComponent("<"), button -> {
@@ -272,40 +286,22 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         */
 
         // command
-        String follow;
-        switch (this.follow){
-            default:
-            case 0:
-                follow = "Wandering";
-                break;
-            case 1:
-                follow = "Following";
-                break;
-
-            case 2:
-            case 3:
-            case 4:
-                follow = "Holding Pos.";
-                break;
-        }
+        String follow = switch (this.follow) {
+            case 0 -> "Wandering";
+            case 1 -> "Following";
+            case 2, 3, 4 -> "Holding Pos.";
+            case 5 -> "Escorting";
+            default -> throw new IllegalStateException("Unexpected value: " + this.follow);
+        };
         font.draw(matrixStack, follow, k + 15, l + 58 + 0, fontColor);
 
-        String aggro;
-        switch (this.aggro){
-            default:
-            case 0:
-                aggro = "Neutral";
-                break;
-            case 1:
-                aggro = "Aggressive";
-                break;
-            case 2:
-                aggro = "Raid";
-                break;
-            case 3:
-                aggro = "Passive";
-                break;
-        }
+        String aggro = switch (this.aggro) {
+            case 0 -> "Neutral";
+            case 1 -> "Aggressive";
+            case 2 -> "Raid";
+            case 3 -> "Passive";
+            default -> throw new IllegalStateException("Unexpected value: " + this.aggro);
+        };
         font.draw(matrixStack, aggro, k + 15, l + 56 + 15, fontColor);
 
         font.draw(matrixStack, CommandScreen.handleGroupText(recruit.getGroup()), k + 15, l + 56 + 28, fontColor);

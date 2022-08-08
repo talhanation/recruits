@@ -1,6 +1,7 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -11,21 +12,17 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageEscortEntity implements Message<MessageEscortEntity> {
+public class MessageDismountGui implements Message<MessageDismountGui> {
 
     private UUID uuid;
-    private UUID target;
-    private int group;
+    private UUID player;
 
-    public MessageEscortEntity(){
-
+    public MessageDismountGui(){
     }
 
-    public MessageEscortEntity(UUID uuid, UUID target, int group) {
+    public MessageDismountGui(UUID player, UUID uuid) {
+        this.player = uuid;
         this.uuid = uuid;
-        this.target = target;
-        this.group = 0;
-
     }
 
     public Dist getExecutingSide() {
@@ -33,23 +30,26 @@ public class MessageEscortEntity implements Message<MessageEscortEntity> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
+        Main.LOGGER.debug("Dismount: message start");
+        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
         for (AbstractRecruitEntity recruits : list) {
-            CommandEvents.onEscortButton(uuid, recruits, target, group);
-            CommandEvents.onRKeyPressed(uuid, recruits, 5, this.group, false);
+            if (recruits.getUUID().equals(this.uuid)){
+                CommandEvents.onDismountButton(player, recruits, 0);
+                Main.LOGGER.debug("Dismount: message done");
+            }
+
+
         }
     }
-    public MessageEscortEntity fromBytes(FriendlyByteBuf buf) {
+    public MessageDismountGui fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();
-        this.target = buf.readUUID();
-        this.group = buf.readInt();
+        this.player = buf.readUUID();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(uuid);
-        buf.writeUUID(target);
-        buf.writeInt(group);
+        buf.writeUUID(player);
     }
 
 }

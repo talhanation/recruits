@@ -110,28 +110,20 @@ public class PillagerEvents {
             pillager.setPersistenceRequired();
 
             int i = this.random.nextInt(6);
-            switch (i){
-                case 1:
-                    pillager.setItemInHand(InteractionHand.MAIN_HAND, Items.CROSSBOW.getDefaultInstance());
-                    break;
-                case 2:
-                    pillager.setItemInHand(InteractionHand.MAIN_HAND, Items.CROSSBOW.getDefaultInstance());
-                    break;
-                case 3:
-                    pillager.setItemInHand(InteractionHand.MAIN_HAND, Items.CROSSBOW.getDefaultInstance());
-                    break;
-                case 4:
+            switch (i) {
+                case 1, 2, 3 -> pillager.setItemInHand(InteractionHand.MAIN_HAND, Items.CROSSBOW.getDefaultInstance());
+                case 4 -> {
                     pillager.setItemInHand(InteractionHand.MAIN_HAND, Items.IRON_AXE.getDefaultInstance());
                     pillager.setItemInHand(InteractionHand.OFF_HAND, Items.SHIELD.getDefaultInstance());
-                    break;
-                case 5:
+                }
+                case 5 -> {
                     pillager.setItemInHand(InteractionHand.MAIN_HAND, Items.IRON_SWORD.getDefaultInstance());
                     pillager.setItemInHand(InteractionHand.OFF_HAND, Items.SHIELD.getDefaultInstance());
-                    break;
-                case 0:
+                }
+                case 0 -> {
                     pillager.setItemInHand(InteractionHand.MAIN_HAND, Items.IRON_SWORD.getDefaultInstance());
                     pillager.setItemInHand(InteractionHand.OFF_HAND, Items.SHIELD.getDefaultInstance());
-                    break;
+                }
             }
         }
         /*

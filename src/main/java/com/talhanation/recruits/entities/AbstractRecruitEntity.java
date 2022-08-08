@@ -3,6 +3,7 @@ package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.*;
 import com.talhanation.recruits.inventory.RecruitHireContainer;
@@ -51,17 +52,19 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.network.NetworkHooks;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -71,13 +74,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Integer> FOLLOW_STATE = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> SHOULD_FOLLOW = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> SHOULD_MOUNT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> SHOULD_ESCORT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> SHOULD_HOLD_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Optional<BlockPos>> HOLD_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Optional<BlockPos>> MOVE_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Boolean> LISTEN = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> isFollowing = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
-    private static final EntityDataAccessor<Optional<UUID>> MOUNT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
-    private static final EntityDataAccessor<Optional<UUID>> ESCORT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
+    private static final EntityDataAccessor<Optional<UUID>> MOUNT_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
+    private static final EntityDataAccessor<Optional<UUID>> ESCORT_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
 
     private static final EntityDataAccessor<Integer> GROUP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> XP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
@@ -188,10 +192,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(0, new RecruitQuaffGoal(this));
         this.goalSelector.addGoal(0, new FleeTNT(this));
         this.goalSelector.addGoal(0, new FleeFire(this));
+        this.goalSelector.addGoal(1, new RecruitEscortEntityGoal(this));
         //this.goalSelector.addGoal(0, new (this));
         this.goalSelector.addGoal(1, new FloatGoal(this));
         this.goalSelector.addGoal(1, new RecruitEatGoal(this));
-        this.goalSelector.addGoal(1, new RecruitMountEntity(this));
+        this.goalSelector.addGoal(2, new RecruitMountEntity(this));
         //this.goalSelector.addGoal(2, new RecruitMountGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(4, new RecruitFollowOwnerGoal(this, 1.2D, this.getFollowStartDistance(), 3.0F));
@@ -218,6 +223,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }));
 
         this.targetSelector.addGoal(0, new RecruitOwnerHurtByTargetGoal(this));
+        this.targetSelector.addGoal(0, new RecruitEscortHurtByTargetGoal(this));
         this.targetSelector.addGoal(1, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
         this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers());
         this.targetSelector.addGoal(3, new RecruitOwnerHurtTargetGoal(this));
@@ -242,6 +248,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(GROUP, 0);
         this.entityData.define(SHOULD_FOLLOW, false);
         this.entityData.define(SHOULD_MOUNT, false);
+        this.entityData.define(SHOULD_ESCORT, false);
         this.entityData.define(SHOULD_HOLD_POS, false);
         this.entityData.define(FLEEING, false);
         this.entityData.define(STATE, 0);
@@ -252,8 +259,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(HOLD_POS, Optional.empty());
         this.entityData.define(MOVE_POS, Optional.empty());
         this.entityData.define(LISTEN, true);
-        this.entityData.define(MOUNT, Optional.empty());
-        this.entityData.define(ESCORT, Optional.empty());
+        this.entityData.define(MOUNT_ID, Optional.empty());
+        this.entityData.define(ESCORT_ID, Optional.empty());
         this.entityData.define(isFollowing, false);
         this.entityData.define(isEating, false);
         this.entityData.define(HUNGER, 50F);
@@ -272,6 +279,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         //2 = hold position
         //3 = back to position
         //4 = hold my position
+        //5 = Escort
 
     }
     @Override
@@ -280,6 +288,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putInt("AggroState", this.getState());
         nbt.putBoolean("ShouldFollow", this.getShouldFollow());
         nbt.putBoolean("ShouldMount", this.getShouldMount());
+        nbt.putBoolean("ShouldEscort", this.getShouldEscort());
         nbt.putInt("Group", this.getGroup());
         nbt.putBoolean("Listen", this.getListen());
         nbt.putBoolean("Fleeing", this.getFleeing());
@@ -319,6 +328,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setState(nbt.getInt("AggroState"));
         this.setShouldFollow(nbt.getBoolean("ShouldFollow"));
         this.setShouldMount(nbt.getBoolean("ShouldMount"));
+        this.setShouldEscort(nbt.getBoolean("ShouldEscort"));
         this.setFleeing(nbt.getBoolean("Fleeing"));
         this.setGroup(nbt.getInt("Group"));
         this.setListen(nbt.getBoolean("Listen"));
@@ -339,15 +349,18 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
 
         if (nbt.contains("OwnerUUID")){
-            this.setOwnerUUID(nbt.getUUID("OwnerUUID"));
+            Optional<UUID> uuid = Optional.of(nbt.getUUID("OwnerUUID"));
+            this.setOwnerUUID(uuid);
         }
 
         if (nbt.contains("EscortUUID")){
-            this.setOwnerUUID(nbt.getUUID("EscortUUID"));
+            Optional<UUID> uuid = Optional.of(nbt.getUUID("EscortUUID"));
+            this.setEscortUUID(uuid);
         }
 
         if (nbt.contains("MountUUID")){
-            this.setOwnerUUID(nbt.getUUID("MountUUID"));
+            Optional<UUID> uuid = Optional.of(nbt.getUUID("MountUUID"));
+            this.setMountUUID(uuid);
         }
     }
 
@@ -360,7 +373,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             return level.getPlayerByUUID(ownerID);
         }
         else
-        return null;
+            return null;
     }
 
     public UUID getOwnerUUID(){
@@ -368,11 +381,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public UUID getEscortUUID(){
-        return  this.entityData.get(ESCORT).orElse(null);
+        return  this.entityData.get(ESCORT_ID).orElse(null);
     }
 
     public UUID getMountUUID(){
-        return  this.entityData.get(MOUNT).orElse(null);
+        return  this.entityData.get(MOUNT_ID).orElse(null);
     }
 
     public boolean getIsOwned() {
@@ -418,6 +431,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return entityData.get(SHOULD_MOUNT);
     }
 
+    public boolean getShouldEscort() {
+        return entityData.get(SHOULD_ESCORT);
+    }
+
     public boolean getShouldFollow() {
         return entityData.get(SHOULD_FOLLOW);
     }
@@ -438,7 +455,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return entityData.get(FOLLOW_STATE);
     }
 
-    public SoundEvent getHurtSound(DamageSource ds) {
+    public SoundEvent getHurtSound(@NotNull DamageSource ds) {
         if (this.isBlocking())
             return SoundEvents.SHIELD_BLOCK;
         return SoundEvents.VILLAGER_HURT;
@@ -452,7 +469,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return 0.4F;
     }
 
-    protected float getStandingEyeHeight(Pose pos, EntityDimensions size) {
+    protected float getStandingEyeHeight(@NotNull Pose pos, EntityDimensions size) {
         return size.height * 0.9F;
     }
 
@@ -489,16 +506,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         entityData.set(OWNED, bool);
     }
 
-    public void setOwnerUUID(UUID id) {
-        this.entityData.set(OWNER_ID, Optional.of(id));
+    public void setOwnerUUID(Optional<UUID> id) {
+        this.entityData.set(OWNER_ID,id);
     }
 
-    public void setEscortUUID(UUID id) {
-        this.entityData.set(ESCORT, Optional.of(id));
+    public void setEscortUUID(Optional<UUID> id) {
+        this.entityData.set(ESCORT_ID, id);
     }
 
     public void setMountUUID(Optional<UUID> id) {
-        this.entityData.set(MOUNT, id);
+        this.entityData.set(MOUNT_ID, id);
     }
 
     public void setMoral(float value) {
@@ -519,7 +536,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         player.sendMessage(new TextComponent(name + disband), player.getUUID());
         this.setTarget(null);
         this.setIsOwned(false);
-        this.setOwnerUUID(null);
+        this.setOwnerUUID(Optional.empty());
         CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
     }
 
@@ -556,6 +573,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void setShouldHoldPos(boolean bool){
         entityData.set(SHOULD_HOLD_POS, bool);
     }
+    public void setShouldEscort(boolean bool){
+        entityData.set(SHOULD_ESCORT, bool);
+    }
 
     public void setShouldMount(boolean bool){
         entityData.set(SHOULD_MOUNT, bool);
@@ -591,36 +611,42 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void setFollowState(int state){
-        switch (state){
-            case 0:
+        switch (state) {
+            case 0 -> {
                 setShouldFollow(false);
                 setShouldHoldPos(false);
-                break;
-
-            case 1:
+                setShouldEscort(false);
+            }
+            case 1 -> {
                 setShouldFollow(true);
                 setShouldHoldPos(false);
-                break;
-
-            case 2:
+                setShouldEscort(false);
+            }
+            case 2 -> {
                 setShouldFollow(false);
                 setShouldHoldPos(true);
                 clearHoldPos();
                 setHoldPos(getOnPos());
-                break;
-
-            case 3:
+                setShouldEscort(false);
+            }
+            case 3 -> {
                 setShouldFollow(false);
                 setShouldHoldPos(true);
-                break;
-
-            case 4:
+                setShouldEscort(false);
+            }
+            case 4 -> {
                 setShouldFollow(false);
                 setShouldHoldPos(true);
                 clearHoldPos();
                 setHoldPos(this.getOwner().blockPosition());
                 state = 3;
-                break;
+                setShouldEscort(false);
+            }
+            case 5 -> {
+                setShouldFollow(false);
+                setShouldHoldPos(false);
+                setShouldEscort(true);
+            }
         }
         entityData.set(FOLLOW_STATE, state);
     }
@@ -653,7 +679,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     ////////////////////////////////////ON FUNCTIONS////////////////////////////////////
 
-    public InteractionResult mobInteract(Player player, InteractionHand hand) {
+    public InteractionResult mobInteract(@NotNull Player player, @NotNull InteractionHand hand) {
         String name = this.getName().getString() + ": ";
         boolean isPlayerTarget = this.getTarget() != null && getTarget().equals(player);
 
@@ -713,7 +739,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
         else
             this.makeHireSound();
-            this.setOwnerUUID(player.getUUID());
+
+            this.setOwnerUUID(Optional.of(player.getUUID()));
             this.setIsOwned(true);
             this.navigation.stop();
             this.setTarget(null);
@@ -721,23 +748,20 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setState(0);
 
             int i = this.random.nextInt(4);
-            switch (i) {
-                default:
-                case 1:
-                    String recruited1 = TEXT_RECRUITED1.getString();
-                    player.sendMessage(new TextComponent(name + recruited1), player.getUUID());
-                    break;
-
-                case 2:
-                    String recruited2 = TEXT_RECRUITED2.getString();
-                    player.sendMessage(new TextComponent(name + recruited2), player.getUUID());
-                    break;
-
-                case 3:
-                    String recruited3 = TEXT_RECRUITED3.getString();
-                    player.sendMessage(new TextComponent(name + recruited3), player.getUUID());
-                    break;
+        switch (i) {
+            case 1 -> {
+                String recruited1 = TEXT_RECRUITED1.getString();
+                player.sendMessage(new TextComponent(name + recruited1), player.getUUID());
             }
+            case 2 -> {
+                String recruited2 = TEXT_RECRUITED2.getString();
+                player.sendMessage(new TextComponent(name + recruited2), player.getUUID());
+            }
+            case 3 -> {
+                String recruited3 = TEXT_RECRUITED3.getString();
+                player.sendMessage(new TextComponent(name + recruited3), player.getUUID());
+            }
+        }
 
             int currentRecruits = CommandEvents.getSavedRecruitCount(player);
             CommandEvents.saveRecruitCount(player,  currentRecruits + 1);
@@ -747,27 +771,24 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void dialogue(String name, Player player) {
         int i = this.random.nextInt(4);
         switch (i) {
-            default:
-            case 1:
+            case 1 -> {
                 String hello1 = TEXT_HELLO_1.getString();
                 player.sendMessage(new TextComponent(name + hello1), player.getUUID());
-                break;
-
-            case 2:
+            }
+            case 2 -> {
                 String hello2 = TEXT_HELLO_2.getString();
                 player.sendMessage(new TextComponent(name + hello2), player.getUUID());
-                break;
-
-            case 3:
+            }
+            case 3 -> {
                 String hello3 = TEXT_HELLO_3.getString();
                 player.sendMessage(new TextComponent(name + hello3), player.getUUID());
-                break;
+            }
         }
     }
 
     ////////////////////////////////////ATTACK FUNCTIONS////////////////////////////////////
 
-    public boolean hurt(DamageSource dmg, float amt) {
+    public boolean hurt(@NotNull DamageSource dmg, float amt) {
         if (this.isInvulnerableTo(dmg)) {
             return false;
         } else {
@@ -827,15 +848,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
-    public boolean canHarmTeam(LivingEntity living) {
-        Team team = this.getTeam();
-        Team team1 = living.getTeam();
-        if (team == null) {
-            return true;
-        } else {
-            return !team.isAlliedTo(team1) || team.isAllowFriendlyFire();
-        }
-    }
+
 
     public void die(DamageSource dmg) {
         net.minecraft.network.chat.Component deathMessage = this.getCombatTracker().getDeathMessage();
@@ -967,13 +980,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     @Override
-    public boolean canBeLeashed(Player player) {
+    public boolean canBeLeashed(@NotNull Player player) {
         return false;
     }
 
     public abstract int recruitCosts();
 
-    protected void hurtArmor(DamageSource damageSource, float damage) {
+    protected void hurtArmor(@NotNull DamageSource damageSource, float damage) {
         if (damage >= 0.0F) {
             damage = damage / 4.0F;
             if (damage < 1.0F) {
@@ -996,7 +1009,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     @Override
-    public void killed(ServerLevel level, LivingEntity living) {
+    public void killed(@NotNull ServerLevel level, @NotNull LivingEntity living) {
         super.killed(level, living);
         this.addXp(5);
         this.setKills(this.getKills() + 1);
@@ -1038,7 +1051,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     @Override
-    protected void blockUsingShield(LivingEntity living) {
+    protected void blockUsingShield(@NotNull LivingEntity living) {
         super.blockUsingShield(living);
         if (living.getMainHandItem().canDisableShield(this.useItem, this, living))
             this.disableShield();
@@ -1086,13 +1099,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             }
         }
     }
-    //for friendly fire
-    public static boolean canDamageTarget(AbstractRecruitEntity recruit, LivingEntity target) {
-        if (recruit.isOwned() && target instanceof AbstractRecruitEntity) {
-            return !Objects.equals(recruit.getOwnerUUID(), ((AbstractRecruitEntity) target).getOwnerUUID());
-        } else
-            return recruit.canHarmTeam(target);
-    }
 
     @Override
     public void openGUI(Player player) {
@@ -1107,7 +1113,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
                 @Nullable
                 @Override
-                public AbstractContainerMenu createMenu(int i, Inventory playerInventory, Player playerEntity) {
+                public AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
                     return new RecruitInventoryContainer(i, AbstractRecruitEntity.this, playerInventory);
                 }
             }, packetBuffer -> {packetBuffer.writeUUID(getUUID());});
@@ -1133,7 +1139,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 }
             }
             else
-                return canHarmTeam(living);
+                return RecruitEvents.canHarmTeam(this, living);
             return false;
         }
         return !notAllowed && !RecruitsModConfig.TargetBlackList.get().contains(living.getEncodeId());
@@ -1144,7 +1150,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             return false;
         }
         else
-            return canHarmTeam(player);
+            return RecruitEvents.canHarmTeam(this, player);
     }
 
     @Override
@@ -1196,7 +1202,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
                 @Nullable
                 @Override
-                public AbstractContainerMenu createMenu(int i, Inventory playerInventory, Player playerEntity) {
+                public AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
                     return new RecruitHireContainer(i, playerInventory.player, AbstractRecruitEntity.this, playerInventory);
                 }
             }, packetBuffer -> {packetBuffer.writeUUID(getUUID());});
@@ -1212,23 +1218,26 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public static final TranslatableComponent TEXT_RECRUITED1 = new TranslatableComponent("chat.recruits.text.recruited1");
     public static final TranslatableComponent TEXT_RECRUITED2 = new TranslatableComponent("chat.recruits.text.recruited2");
     public static final TranslatableComponent TEXT_RECRUITED3 = new TranslatableComponent("chat.recruits.text.recruited3");
-
     private static final TranslatableComponent INFO_RECRUITING_MAX = new TranslatableComponent("chat.recruits.info.reached_max");
-
     private static final TranslatableComponent TEXT_FOLLOW = new TranslatableComponent("chat.recruits.text.follow");
     private static final TranslatableComponent TEXT_HOLD_YOUR_POS = new TranslatableComponent("chat.recruits.text.hold_your_pos");
     private static final TranslatableComponent TEXT_WANDER = new TranslatableComponent("chat.recruits.text.wander");
 
     public void shouldMount(boolean should, UUID mount_uuid) {
+        Main.LOGGER.debug("MOUNT: Abstract Recruit");
         if (!this.isPassenger()){
             this.setShouldMount(should);
-            this.setMountUUID(Optional.of(mount_uuid));
+            if(mount_uuid != null) {
+                this.setMountUUID(Optional.of(mount_uuid));
+                Main.LOGGER.debug("MOUNT: Abstract Recruit setMountUUID done");
+            }
+            else this.setMountUUID(Optional.empty());
         }
-        Main.LOGGER.debug("shouldMount():");
-        Main.LOGGER.debug("---setShouldMount(): " + should);
-        Main.LOGGER.debug("---setMountUUID(): " + mount_uuid);
+    }
 
-        Main.LOGGER.debug("---getShouldMount(): " + this.getShouldMount());
-        Main.LOGGER.debug("---getMountUUID(): " + this.getMountUUID());
+    public void shouldEscort(boolean should, UUID escort_uuid) {
+        this.setShouldEscort(should);
+        if(escort_uuid != null) this.setEscortUUID(Optional.of(escort_uuid));
+        else this.setEscortUUID(Optional.empty());
     }
 }

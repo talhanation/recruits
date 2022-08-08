@@ -13,12 +13,14 @@ import java.util.UUID;
 
 public class MessageClearTargetGui implements Message<MessageClearTargetGui> {
     private UUID recruit;
+    private UUID player;
 
     public MessageClearTargetGui(){
     }
 
-    public MessageClearTargetGui(UUID player) {
-        this.recruit = player;
+    public MessageClearTargetGui(UUID player, UUID recruit) {
+        this.player = player;
+        this.recruit = recruit;
     }
 
     public Dist getExecutingSide() {
@@ -28,16 +30,18 @@ public class MessageClearTargetGui implements Message<MessageClearTargetGui> {
     public void executeServerSide(NetworkEvent.Context context) {
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
         for (AbstractRecruitEntity recruits : list) {
-            if (recruits.getUUID() == this.recruit)
-                CommandEvents.onStopButton(recruits, this.recruit, 0);
+            if (recruits.getUUID().equals(this.recruit))
+                CommandEvents.onStopButton(this.player, recruits,0);
         }
     }
     public MessageClearTargetGui fromBytes(FriendlyByteBuf buf) {
+        this.player = buf.readUUID();
         this.recruit = buf.readUUID();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
+        buf.writeUUID(this.player);
         buf.writeUUID(this.recruit);
     }
 

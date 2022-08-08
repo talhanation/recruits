@@ -16,8 +16,7 @@ public class RecruitsModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
-    public static final int NEW_VERSION = 10;
-
+    public static final int NEW_VERSION = 11;
 
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue RenderNameTagforOwner;
@@ -37,9 +36,12 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.DoubleValue RecruitFollowStartDistance;
     public static ForgeConfigSpec.ConfigValue<List<String>> TargetBlackList;
     public static ForgeConfigSpec.ConfigValue<List<String>> MountWhiteList;
+    public static ForgeConfigSpec.BooleanValue AggroRecruitsBlockEvents;
 
     public static ArrayList<String> MOUNTS = new ArrayList<>(
-            Arrays.asList("\"minecraft:horse\"", "\"minecraft:pig\"", "\"minecraft:boat\"", "\"minecraft:minecart\"", "\"smallships:cog\"", "\"smallships:brigg\"", "\"camels:camel\""));
+            Arrays.asList("minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "camels:camel"));
+
+    public static ArrayList<String> list = new ArrayList<>();
 
     static{
         VERSION = BUILDER.comment("\n" +"##Version, do not change!##")
@@ -156,11 +158,18 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("Mount Whitelist", MOUNTS);
 
+        AggroRecruitsBlockEvents= BUILDER.comment("\n" + "----Should Aggressive Recruits attack immediately enemy players that are placing or breaking blocks?----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: true")
+                .worldRestart()
+                .define("AggroRecruitsBlockEvents", true);
 
         CONFIG = BUILDER.build();
     }
 
     public static void loadConfig(ForgeConfigSpec spec, Path path) {
+
+
         CommentedFileConfig configData = CommentedFileConfig.builder(path)
                 .sync()
                 .autosave()

@@ -1,7 +1,6 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -21,10 +20,10 @@ public class MessageMountEntity implements Message<MessageMountEntity> {
     public MessageMountEntity(){
     }
 
-    public MessageMountEntity(UUID uuid, UUID target,int group) {
+    public MessageMountEntity(UUID uuid, UUID target, int group) {
         this.uuid = uuid;
         this.target = target;
-        this.group = 0;
+        this.group = group;
 
     }
 
@@ -36,11 +35,7 @@ public class MessageMountEntity implements Message<MessageMountEntity> {
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
         for (AbstractRecruitEntity recruits : list) {
             CommandEvents.onMountButton(uuid, recruits, target, group);
-            Main.LOGGER.debug("executeServerSide():");
-            Main.LOGGER.debug("---target: " + target);
-            Main.LOGGER.debug("---uuid: " + uuid);
         }
-
     }
     public MessageMountEntity fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();
