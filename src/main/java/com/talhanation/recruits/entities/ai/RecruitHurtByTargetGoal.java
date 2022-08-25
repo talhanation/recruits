@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -9,6 +10,7 @@ import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.phys.AABB;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
 import java.util.Iterator;
@@ -18,14 +20,12 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
     private static final TargetingConditions HURT_BY_TARGETING = TargetingConditions.forCombat().ignoreLineOfSight().ignoreInvisibilityTesting();;
     private boolean alertSameType;
     private int timestamp;
-    private final Class<?>[] toIgnoreDamage;
     private Class<?>[] toIgnoreAlert;
     private final AbstractRecruitEntity recruit;
 
-    public RecruitHurtByTargetGoal(AbstractRecruitEntity recruit, Class<?>... classes) {
-        super(recruit, classes);
+    public RecruitHurtByTargetGoal(AbstractRecruitEntity recruit) {
+        super(recruit);
         this.recruit = recruit;
-        this.toIgnoreDamage = classes;
         this.setFlags(EnumSet.of(Goal.Flag.TARGET));
     }
 
@@ -34,23 +34,12 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
         LivingEntity livingentity = this.recruit.getLastHurtByMob();
 
         if(i != this.timestamp && livingentity != null) {
-            if (livingentity.getType() == EntityType.PLAYER && this.recruit.level.getGameRules().getBoolean(GameRules.RULE_UNIVERSAL_ANGER)) {
-                return false;
-            } else {
-                for (Class<?> oclass : this.toIgnoreDamage) {
-                    if (oclass.isAssignableFrom(livingentity.getClass())) {
-                        return false;
-                    }
-                }
-
                 return this.canAttack(livingentity, HURT_BY_TARGETING) && (recruit.getState() != 3);
             }
-        } else {
-            return false;
-        }
+        return false;
     }
 
-    public HurtByTargetGoal setAlertOthers(Class<?>... p_220794_1_) {
+    public @NotNull HurtByTargetGoal setAlertOthers(Class<?>... p_220794_1_) {
         this.alertSameType = true;
         this.toIgnoreAlert = p_220794_1_;
         return this;

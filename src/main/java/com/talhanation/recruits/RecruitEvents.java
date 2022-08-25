@@ -2,8 +2,10 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.world.RecruitPatrolSpawn;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.AbstractIllager;
@@ -12,18 +14,32 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.scores.Team;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class RecruitEvents {
 
     int timestamp;
     public static final TranslatableComponent TEXT_BLOCK_WARN = new TranslatableComponent("chat.recruits.text.block_placing_warn");
+    private static final Map<ServerLevel, RecruitPatrolSpawn> RECRUIT_PATROL = new HashMap<>();
+    @SubscribeEvent
+    public void onServerTick(TickEvent.WorldTickEvent event) {
+        if (!event.world.isClientSide && event.world instanceof ServerLevel serverWorld) {
+            RECRUIT_PATROL.computeIfAbsent(serverWorld,
+                    k -> new RecruitPatrolSpawn(serverWorld));
+            RecruitPatrolSpawn spawner = RECRUIT_PATROL.get(serverWorld);
+            spawner.tick();
+        }
+
+    }
     @SubscribeEvent
     public void onProjectileImpact(ProjectileImpactEvent event) {
         Entity entity = event.getEntity();
@@ -118,7 +134,7 @@ public class RecruitEvents {
         }
     }
 
-    @SubscribeEvent
+
     public static void onPlayerLeaveTeam(){
 
     }
@@ -130,6 +146,11 @@ public class RecruitEvents {
             }
             //extra for safety
             else if (recruit.getTeam() != null && recruitEntityTarget.getTeam() != null && recruit.getTeam().equals(recruitEntityTarget.getTeam())){
+                return false;
+            }
+        }
+        else if (recruit.isOwned() && target instanceof Player player) {
+            if (recruit.getOwnerUUID().equals(player.getUUID())){
                 return false;
             }
         }
@@ -146,7 +167,10 @@ public class RecruitEvents {
             return !team.isAlliedTo(team1) || team.isAllowFriendlyFire();
             //attacker can Harm target when attacker has no team
             //or attacker and target are not allied
-            //or team friendlyfire is true
+            //or team friendly is true
         }
     }
+
+
+
 }

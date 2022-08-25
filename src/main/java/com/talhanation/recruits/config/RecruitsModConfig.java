@@ -37,6 +37,7 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.ConfigValue<List<String>> TargetBlackList;
     public static ForgeConfigSpec.ConfigValue<List<String>> MountWhiteList;
     public static ForgeConfigSpec.BooleanValue AggroRecruitsBlockEvents;
+    public static ForgeConfigSpec.BooleanValue ShouldRecruitPatrolsSpawn;
 
     public static ArrayList<String> MOUNTS = new ArrayList<>(
             Arrays.asList("minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "camels:camel"));
@@ -163,6 +164,12 @@ public class RecruitsModConfig {
                         "\t" + "default: true")
                 .worldRestart()
                 .define("AggroRecruitsBlockEvents", true);
+
+        ShouldRecruitPatrolsSpawn= BUILDER.comment("\n" + "----Should Recruits spawn as Patrols in the world?----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: true")
+                .worldRestart()
+                .define("ShouldRecruitPatrolsSpawn", true);
 
         CONFIG = BUILDER.build();
     }

@@ -95,6 +95,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     private static final EntityDataAccessor<Optional<UUID>> OWNER_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Boolean> OWNED = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> COST = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
+
 
 
     //private static final DataParameter<ItemStack> OFFHAND_ITEM_SAVE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.ITEM_STACK);
@@ -136,16 +138,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateHunger();
         updateTeam();
 
-/*
-        if(hurtTimer <= 1000) {
-            hurtTimer++;
-        }
-*/
-        if (getOwner() != null) {
-            //this.getOwner().sendMessage(new TextComponent("Last Hurt: " + hurtTimer + "Ticks ago"), getOwner().getUUID());
-            //this.getOwner().sendMessage(new StringTextComponent("Attack: " + getAttribute(Attributes.ATTACK_DAMAGE).getValue()), getOwner().getUUID());
-            //this.getOwner().sendMessage(new StringTextComponent("Speed: " + getAttribute(Attributes.ATTACK_DAMAGE).getValue()), getOwner().getUUID());
-        }
+        Main.LOGGER.debug("OwnerUUID: " + this.getOwnerUUID());
+        Main.LOGGER.debug("Owner: " + this.getOwner());
+
 
         if (this.getIsEating() && !this.isUsingItem()) {
             if (beforeFoodItem != null) resetItemInHand();
@@ -225,7 +220,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.targetSelector.addGoal(0, new RecruitOwnerHurtByTargetGoal(this));
         this.targetSelector.addGoal(0, new RecruitEscortHurtByTargetGoal(this));
         this.targetSelector.addGoal(1, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
-        this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers());
         this.targetSelector.addGoal(3, new RecruitOwnerHurtTargetGoal(this));
 
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, AbstractIllager.class, 10, true, false, (target) -> {
@@ -267,6 +261,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(MORAL, 50F);
         this.entityData.define(OWNER_ID, Optional.empty());
         this.entityData.define(OWNED, false);
+        this.entityData.define(COST, 1);
         //STATE
         // 0 = NEUTRAL
         // 1 = AGGRESSIVE
@@ -300,6 +295,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putFloat("Hunger", this.getHunger());
         nbt.putFloat("Moral", this.getMoral());
         nbt.putBoolean("isOwned", this.getIsOwned());
+        nbt.putInt("Cost", this.recruitCosts());
 
         if(this.getHoldPos() != null){
             nbt.putInt("HoldPosX", this.getHoldPos().getX());
@@ -339,6 +335,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setHunger(nbt.getFloat("Hunger"));
         this.setMoral(nbt.getFloat("Moral"));
         this.setIsOwned(nbt.getBoolean("isOwned"));
+        this.setCost(nbt.getInt("Cost"));
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
@@ -362,6 +359,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             Optional<UUID> uuid = Optional.of(nbt.getUUID("MountUUID"));
             this.setMountUUID(uuid);
         }
+    }
+
+    public void setCost(int cost){
+        entityData.set(COST, cost);
     }
 
 
@@ -1146,7 +1147,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public boolean isValidTargetPlayer(Player player){
-        if(player.getUUID() == this.getOwnerUUID()) {
+        if(player.getUUID().equals(this.getOwnerUUID())) {
             return false;
         }
         else

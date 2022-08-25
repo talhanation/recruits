@@ -331,7 +331,6 @@ public class CommandEvents {
             }
         }
         else
-
             player.sendMessage(new TextComponent(name + recruit_info), player.getUUID());
     }
 
@@ -339,17 +338,11 @@ public class CommandEvents {
 
     @Nullable
     public static Entity getEntityByLooking() {
-        //Entity pointedEntity = Minecraft.getInstance().crosshairPickEntity;// this only works for living and itemframe
         HitResult hit = Minecraft.getInstance().hitResult;
 
         if (hit instanceof EntityHitResult entityHitResult){
             Entity pointedEntity = entityHitResult.getEntity();
-
-            //Main.LOGGER.debug("getEntityByLooking(): " + pointedEntity.getName().getString());
             return pointedEntity;
-        }
-        else {
-            //Main.LOGGER.debug("getEntityByLooking(): NULL");
         }
         return null;
     }
@@ -362,13 +355,10 @@ public class CommandEvents {
     }
 
     public static void onDismountButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
-        Main.LOGGER.debug("Dismount: Event start");
-        Main.LOGGER.debug("Dismount: Event: player_uuid: "+ player_uuid);
         if (recruit.isOwned() && (recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
             recruit.shouldMount(false, null);
             if(recruit.isPassenger()){
                 recruit.stopRiding();
-                Main.LOGGER.debug("Dismount: Event done");
             }
         }
     }
