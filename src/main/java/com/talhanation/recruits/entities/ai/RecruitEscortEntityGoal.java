@@ -42,7 +42,7 @@ public class RecruitEscortEntityGoal extends Goal {
     public void tick() {
 
         if(this.escort != null) {
-            boolean isClose = escort.distanceTo(this.recruit) <= 5.50D;
+            boolean isClose = escort.distanceTo(this.recruit) <= 8.00D;
             if(!isClose){
                 recruit.getNavigation().moveTo(escort, 1.15F);
             }

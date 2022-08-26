@@ -2,6 +2,7 @@ package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.entities.ai.*;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -111,12 +112,14 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
 
     @Override
     public void initSpawn() {
-
-    }
-
-    @Override
-    public int recruitCosts() {
-        return 5;
+        this.setCustomName(new TextComponent("Crossbowman"));
+        this.setCost(5);
+        this.setEquipment();
+        this.setDropEquipment();
+        this.setRandomSpawnBonus();
+        this.setPersistenceRequired();
+        this.setCanPickUpLoot(true);
+        this.setGroup(2);
     }
 
     @Override

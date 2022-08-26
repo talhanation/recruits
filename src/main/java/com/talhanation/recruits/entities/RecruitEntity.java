@@ -57,6 +57,7 @@ public class RecruitEntity extends AbstractRecruitEntity {
     @Override
     public void initSpawn() {
         this.setCustomName(new TextComponent("Recruit"));
+        this.setCost(3);
         this.setEquipment();
         this.setDropEquipment();
         this.setRandomSpawnBonus();
@@ -93,11 +94,6 @@ public class RecruitEntity extends AbstractRecruitEntity {
             inventory.setItem(9, new ItemStack(Items.WOODEN_SWORD));
             this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.WOODEN_SWORD));
         }
-    }
-
-    @Override
-    public int recruitCosts() {
-        return 3;
     }
 
     @Override

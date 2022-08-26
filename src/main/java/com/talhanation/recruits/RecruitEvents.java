@@ -112,21 +112,52 @@ public class RecruitEvents {
                 }
             }
         }
+        if(RecruitsModConfig.NeutralRecruitsBlockEvents.get()) {
+            Player blockBreaker = event.getPlayer();
+
+            List<AbstractRecruitEntity> list = Objects.requireNonNull(blockBreaker.level.getEntitiesOfClass(AbstractRecruitEntity.class, blockBreaker.getBoundingBox().inflate(32.0D)));
+            for (AbstractRecruitEntity recruits : list) {
+                if (canDamageTarget(recruits, blockBreaker) && recruits.getState() == 0 && recruits.isOwned()) {
+                    recruits.setTarget(blockBreaker);
+                    timestamp++;
+                    if (timestamp < 2) {
+                        blockBreaker.sendMessage(new TextComponent(list.get(0).getName().getString() + ": " + TEXT_BLOCK_WARN.getString()), blockBreaker.getUUID());
+                        timestamp = -5;
+                    }
+                }
+            }
+        }
     }
 
     @SubscribeEvent
-    public void onBlockBreakEvent(BlockEvent.EntityPlaceEvent event) {
+    public void onBlockPlaceEvent(BlockEvent.EntityPlaceEvent event) {
         if(RecruitsModConfig.AggroRecruitsBlockEvents.get()) {
             Entity blockPlacer = event.getEntity();
-            timestamp = 0;
             if (blockPlacer instanceof LivingEntity livingBlockPlacer) {
                 List<AbstractRecruitEntity> list = Objects.requireNonNull(livingBlockPlacer.level.getEntitiesOfClass(AbstractRecruitEntity.class, livingBlockPlacer.getBoundingBox().inflate(32.0D)));
                 for (AbstractRecruitEntity recruits : list) {
                     if (canDamageTarget(recruits, livingBlockPlacer) && recruits.getState() == 1) {
                         recruits.setTarget(livingBlockPlacer);
-                        if (timestamp < 1) {
+                        timestamp++;
+                        if (timestamp > 2) {
                             livingBlockPlacer.sendMessage(new TextComponent(list.get(0).getName().getString() + ": " + TEXT_BLOCK_WARN.getString()), livingBlockPlacer.getUUID());
-                            timestamp++;
+                            timestamp = -5;
+                        }
+                    }
+                }
+            }
+        }
+        if(RecruitsModConfig.NeutralRecruitsBlockEvents.get()) {
+            Entity blockPlacer = event.getEntity();
+            if (blockPlacer instanceof LivingEntity livingBlockPlacer) {
+                List<AbstractRecruitEntity> list = Objects.requireNonNull(livingBlockPlacer.level.getEntitiesOfClass(AbstractRecruitEntity.class, livingBlockPlacer.getBoundingBox().inflate(32.0D)));
+                for (AbstractRecruitEntity recruits : list) {
+                    if (canDamageTarget(recruits, livingBlockPlacer) && recruits.getState() == 0 && recruits.isOwned()) {
+                        recruits.setTarget(livingBlockPlacer);
+                        timestamp++;
+                        if (timestamp < 2) {
+                            livingBlockPlacer.sendMessage(new TextComponent(list.get(0).getName().getString() + ": " + TEXT_BLOCK_WARN.getString()), livingBlockPlacer.getUUID());
+                            timestamp = -5;
                         }
                     }
                 }
@@ -154,6 +185,10 @@ public class RecruitEvents {
                 return false;
             }
         }
+        else if (target instanceof AbstractRecruitEntity recruitEntityTarget && recruit.getEscortUUID() != null && recruitEntityTarget.getEscortUUID() != null && recruit.getEscortUUID().equals(recruitEntityTarget.getEscortUUID())){
+            return false;
+        }
+
         return RecruitEvents.canHarmTeam(recruit, target);
 
     }

@@ -113,7 +113,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
         //this.goalSelector.addGoal(1, new RecruitEatGoal(this));
         this.goalSelector.addGoal(5, new MeleeAttackGoal(this, 1.15D, true));
         this.goalSelector.addGoal(7, new MoveTowardsTargetGoal(this, 1.15D, 32.0F));
-        this.goalSelector.addGoal(8, new RecruitPickupWantedItemGoal(this));
+        //this.goalSelector.addGoal(8, new RecruitPickupWantedItemGoal(this));
         this.goalSelector.addGoal(11, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(12, new RandomLookAroundGoal(this));
         /*

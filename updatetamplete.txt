@@ -1,0 +1,35 @@
+Update 1.8.1
+
+---------------------------------------------------------------------------------------------------------------------------
++ fixed recruits attack owner
+
++ made block event target also on neutral
+
++ added a feature that recruits of different teams can escort the same Mob, while in neutral mode, bowman will also make no "friendly fire" damage.
+
++ added recruit patrols (configurable default: true)
++ added recruit caravans, escorting villagers (configurable default: true)
+
++ added escorts/patrols of pillagers (configurable default: true)
+
++ fixed potential crash with holdpos command
++ maybe fixed crash when throwing a ominous banner into fire
+
+---------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+recruits mod update 1.8.1:
+
+
+
++ made block event target also on neutral (configurable default: true)
++ added a feature that recruits of different teams can escort the same Mob, while in neutral mode, bowman will also make no "friendly fire" damage.
++ added recruit patrols (configurable default: true)
+
+**+ fixed recruits attack owner on block event**
++ fixed potential crash with holdpos command
++ fixed crash when throwing a ominous banner into fire
+
+https://www.curseforge.com/minecraft/mc-mods/recruits/files

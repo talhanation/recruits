@@ -16,7 +16,7 @@ public class RecruitsModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
-    public static final int NEW_VERSION = 11;
+    public static final int NEW_VERSION = 12;
 
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue RenderNameTagforOwner;
@@ -37,7 +37,10 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.ConfigValue<List<String>> TargetBlackList;
     public static ForgeConfigSpec.ConfigValue<List<String>> MountWhiteList;
     public static ForgeConfigSpec.BooleanValue AggroRecruitsBlockEvents;
+    public static ForgeConfigSpec.BooleanValue NeutralRecruitsBlockEvents;
     public static ForgeConfigSpec.BooleanValue ShouldRecruitPatrolsSpawn;
+
+    public static ForgeConfigSpec.DoubleValue RecruitPatrolsSpawnChance;
 
     public static ArrayList<String> MOUNTS = new ArrayList<>(
             Arrays.asList("minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "camels:camel"));
@@ -165,11 +168,23 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("AggroRecruitsBlockEvents", true);
 
+        NeutralRecruitsBlockEvents= BUILDER.comment("\n" + "----Should Neutral Recruits attack immediately enemy players that are placing or breaking blocks?----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: true")
+                .worldRestart()
+                .define("NeutralRecruitsBlockEvents", true);
+
         ShouldRecruitPatrolsSpawn= BUILDER.comment("\n" + "----Should Recruits spawn as Patrols in the world?----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: true")
                 .worldRestart()
                 .define("ShouldRecruitPatrolsSpawn", true);
+
+        RecruitPatrolsSpawnChance= BUILDER.comment("\n" + "----Chance that a Recruit Patrol can spawn. (higher = higher chance to spawn)----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: 15.0")
+                .worldRestart()
+                .defineInRange("RecruitPatrolsSpawnChance", 15.0D, 0.0D, 100.0D);
 
         CONFIG = BUILDER.build();
     }

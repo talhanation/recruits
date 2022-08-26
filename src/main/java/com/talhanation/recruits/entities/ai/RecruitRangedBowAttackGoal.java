@@ -87,7 +87,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
 
         // movement
 
-        if (mob.getShouldHoldPos()) {
+        if (mob.getShouldHoldPos() && mob.getHoldPos() != null) {
             if ((!mob.getHoldPos().closerThan(mob.getOnPos(), 5D))){
                 if (inRange) this.mob.getNavigation().stop();
                 if (isFar) this.mob.getNavigation().moveTo(target, this.speedModifier);

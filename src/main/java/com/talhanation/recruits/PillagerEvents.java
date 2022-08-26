@@ -159,7 +159,7 @@ public class PillagerEvents {
     }
 
     @SubscribeEvent
-    public void raidStartOnBurningOminus(EntityEvent event) {
+    public void raidStartOnBurningOminous(EntityEvent event) {
         Entity entity = event.getEntity();
 
         if (entity instanceof ItemEntity) {
@@ -186,7 +186,7 @@ public class PillagerEvents {
                             player.addEffect(effectinstance);
                         }
                         level.explode(entity, entity.getX(), entity.getY(), entity.getZ(), 0.5F, Explosion.BlockInteraction.BREAK);
-                        entity.remove(Entity.RemovalReason.DISCARDED);
+                        entity.remove(Entity.RemovalReason.KILLED);
                     }
                 }
             }

@@ -282,7 +282,7 @@ public class CommandEvents {
     public static void handleRecruiting(Player player, AbstractRecruitEntity recruit){
         String name = recruit.getName().getString() + ": ";
         String hire_costs = TEXT_HIRE_COSTS.getString();
-        int costs = recruit.recruitCosts();
+        int costs = recruit.getCost();
 
         String recruit_info = String.format(hire_costs, costs);
         Inventory playerInv = player.getInventory();
@@ -291,7 +291,7 @@ public class CommandEvents {
 
         ItemStack emeraldItemStack = Items.EMERALD.getDefaultInstance();
         Item emerald = emeraldItemStack.getItem();//
-        int sollPrice = recruit.recruitCosts();
+        int sollPrice = recruit.getCost();
 
 
         //checkPlayerMoney

@@ -35,7 +35,6 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.AbstractFish;
 import net.minecraft.world.entity.animal.IronGolem;
@@ -79,7 +78,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Optional<BlockPos>> HOLD_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Optional<BlockPos>> MOVE_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Boolean> LISTEN = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
-    private static final EntityDataAccessor<Boolean> isFollowing = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_FOLLOWING = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Optional<UUID>> MOUNT_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Optional<UUID>> ESCORT_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
 
@@ -87,7 +86,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Integer> XP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> LEVEL = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> KILLS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Boolean> isEating = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_EATING = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> FLEEING = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
 
     private static final EntityDataAccessor<Float> HUNGER = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.FLOAT);
@@ -138,8 +137,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateHunger();
         updateTeam();
 
-        Main.LOGGER.debug("OwnerUUID: " + this.getOwnerUUID());
-        Main.LOGGER.debug("Owner: " + this.getOwner());
+        //Main.LOGGER.debug("OwnerUUID: " + this.getOwnerUUID());
+        //Main.LOGGER.debug("Owner: " + this.getOwner());
 
 
         if (this.getIsEating() && !this.isUsingItem()) {
@@ -218,7 +217,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }));
 
         this.targetSelector.addGoal(0, new RecruitOwnerHurtByTargetGoal(this));
-        this.targetSelector.addGoal(0, new RecruitEscortHurtByTargetGoal(this));
+        this.targetSelector.addGoal(0, new PatrolLeaderTargetAttackers(this));
         this.targetSelector.addGoal(1, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
         this.targetSelector.addGoal(3, new RecruitOwnerHurtTargetGoal(this));
 
@@ -255,13 +254,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(LISTEN, true);
         this.entityData.define(MOUNT_ID, Optional.empty());
         this.entityData.define(ESCORT_ID, Optional.empty());
-        this.entityData.define(isFollowing, false);
-        this.entityData.define(isEating, false);
+        this.entityData.define(IS_FOLLOWING, false);
+        this.entityData.define(IS_EATING, false);
         this.entityData.define(HUNGER, 50F);
         this.entityData.define(MORAL, 50F);
         this.entityData.define(OWNER_ID, Optional.empty());
         this.entityData.define(OWNED, false);
         this.entityData.define(COST, 1);
+
         //STATE
         // 0 = NEUTRAL
         // 1 = AGGRESSIVE
@@ -295,7 +295,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putFloat("Hunger", this.getHunger());
         nbt.putFloat("Moral", this.getMoral());
         nbt.putBoolean("isOwned", this.getIsOwned());
-        nbt.putInt("Cost", this.recruitCosts());
+        nbt.putInt("Cost", this.getCost());
 
         if(this.getHoldPos() != null){
             nbt.putInt("HoldPosX", this.getHoldPos().getX());
@@ -421,7 +421,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public boolean getIsEating() {
-        return entityData.get(isEating);
+        return entityData.get(IS_EATING);
     }
 
     public boolean getShouldHoldPos() {
@@ -441,12 +441,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public boolean isFollowing(){
-        return entityData.get(isFollowing);
+        return entityData.get(IS_FOLLOWING);
     }
 
     public int getState() {
         return entityData.get(STATE);
     }
+    //STATE
+    // 0 = NEUTRAL
+    // 1 = AGGRESSIVE
+    // 2 = RAID
+    // 3 = PASSIVE
 
     public int getGroup() {
         return entityData.get(GROUP);
@@ -568,7 +573,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void setIsEating(boolean bool){
-        entityData.set(isEating, bool);
+        entityData.set(IS_EATING, bool);
     }
 
     public void setShouldHoldPos(boolean bool){
@@ -587,7 +592,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void setIsFollowing(boolean bool){
-        entityData.set(isFollowing, bool);
+        entityData.set(IS_FOLLOWING, bool);
     }
 
     public void setGroup(int group){
@@ -818,15 +823,30 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void addLevelBuffs(){
         int level = getXpLevel();
         if(level <= 10){
-            getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("heath_bonus_level", 3D, AttributeModifier.Operation.ADDITION));
-            getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(new AttributeModifier("attack_bonus_level", 0.15D, AttributeModifier.Operation.ADDITION));
-            getAttribute(Attributes.KNOCKBACK_RESISTANCE).addPermanentModifier(new AttributeModifier("knockback_bonus_level", 0.01D, AttributeModifier.Operation.ADDITION));
-            getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(new AttributeModifier("speed_bonus_level", 0.01D, AttributeModifier.Operation.ADDITION));
+            getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("heath_bonus_level", 2D, AttributeModifier.Operation.ADDITION));
+            getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(new AttributeModifier("attack_bonus_level", 0.05D, AttributeModifier.Operation.ADDITION));
+            getAttribute(Attributes.KNOCKBACK_RESISTANCE).addPermanentModifier(new AttributeModifier("knockback_bonus_level", 0.0025D, AttributeModifier.Operation.ADDITION));
+            getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(new AttributeModifier("speed_bonus_level", 0.005D, AttributeModifier.Operation.ADDITION));
         }
         if(level > 10){
             getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("heath_bonus_level", 2D, AttributeModifier.Operation.ADDITION));
         }
     }
+
+    public void addLevelBuffsForLevel(int level){
+
+        for(int i = 0; i < level; i++) {
+            if (level <= 10) {
+                getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("heath_bonus_level", 2D, AttributeModifier.Operation.ADDITION));
+                getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(new AttributeModifier("attack_bonus_level", 0.05D, AttributeModifier.Operation.ADDITION));
+                getAttribute(Attributes.KNOCKBACK_RESISTANCE).addPermanentModifier(new AttributeModifier("knockback_bonus_level", 0.0025D, AttributeModifier.Operation.ADDITION));
+                getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(new AttributeModifier("speed_bonus_level", 0.005D, AttributeModifier.Operation.ADDITION));}
+            if (level > 10) {
+                getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("heath_bonus_level", 2D, AttributeModifier.Operation.ADDITION));
+            }
+        }
+    }
+
     /*
            .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
@@ -985,7 +1005,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return false;
     }
 
-    public abstract int recruitCosts();
+    public int getCost(){
+        return entityData.get(COST);
+    }
 
     protected void hurtArmor(@NotNull DamageSource damageSource, float damage) {
         if (damage >= 0.0F) {

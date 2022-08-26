@@ -79,6 +79,7 @@ public class BowmanEntity extends RecruitEntity implements RangedAttackMob {
     @Override
     public void initSpawn() {
         this.setCustomName(new TextComponent("Bowman"));
+        this.setCost(4);
         this.setEquipment();
         this.setDropEquipment();
         this.setRandomSpawnBonus();
@@ -144,11 +145,6 @@ public class BowmanEntity extends RecruitEntity implements RangedAttackMob {
             BowmanEntity.this.setAggressive(true);
         }
     };
-
-    @Override
-    public int recruitCosts() {
-        return 4;
-    }
 
     public void fleeEntity(LivingEntity target) {
         if (target != null) {

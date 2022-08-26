@@ -67,7 +67,7 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireContainer> {
         double speed = recruit.getAttributeBaseValue(Attributes.MOVEMENT_SPEED) / 0.3;
         DecimalFormat decimalformat = new DecimalFormat("##.##");
         double armor = recruit.getArmorValue();
-        int costs = recruit.recruitCosts();
+        int costs = recruit.getCost();
 
 
         int k = 79;//rechst links

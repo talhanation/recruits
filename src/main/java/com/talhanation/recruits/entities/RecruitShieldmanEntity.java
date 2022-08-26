@@ -46,7 +46,8 @@ public class RecruitShieldmanEntity extends RecruitEntity{
 
     @Override
     public void initSpawn() {
-        this.setCustomName(new TextComponent("Recruit"));
+        this.setCustomName(new TextComponent("Shieldman"));
+        this.setCost(10);
         this.setEquipment();
         this.setDropEquipment();
         this.setRandomSpawnBonus();
@@ -74,11 +75,6 @@ public class RecruitShieldmanEntity extends RecruitEntity{
         } else
             this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_AXE));
             inventory.setItem(9, new ItemStack(Items.STONE_AXE));
-    }
-
-    @Override
-    public int recruitCosts() {
-        return 10;
     }
 
     @Override
