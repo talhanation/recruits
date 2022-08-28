@@ -1,16 +1,19 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import java.util.Optional;
 
 public class RecruitEatGoal extends Goal {
 
-    AbstractRecruitEntity recruit;
-    ItemStack foodStack;
+    public AbstractRecruitEntity recruit;
+    public ItemStack foodStack;
+    public ItemStack beforeFoodItem;
 
     public RecruitEatGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -18,28 +21,35 @@ public class RecruitEatGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return hasFoodInInv() && recruit.needsToEat() && !recruit.isUsingItem();
+        return hasFoodInInv() && recruit.needsToEat() && !recruit.getIsEating();
     }
 
     @Override
     public boolean canContinueToUse() {
+        return recruit.getIsEating() && hasFoodInInv() && recruit.needsToEat();
+    }
+
+    public boolean isInterruptable() {
         return false;
+    }
+
+    public boolean requiresUpdateEveryTick() {
+        return true;
     }
 
     @Override
     public void start() {
-        recruit.beforeFoodItem = recruit.getItemInHand(InteractionHand.OFF_HAND);
-        foodStack = getFoodInInv();
+        beforeFoodItem = recruit.getItemInHand(InteractionHand.OFF_HAND);
         recruit.setIsEating(true);
-        recruit.setItemInHand(InteractionHand.OFF_HAND, foodStack);
-        recruit.getSlot(10).set(foodStack);
-        recruit.startUsingItem(InteractionHand.OFF_HAND);
+        this.foodStack = getFoodInInv();
 
-        recruit.heal(foodStack.getItem().getFoodProperties(foodStack, recruit).getSaturationModifier() * 10);
-        if(!recruit.isSaturated())recruit.setHunger(recruit.getHunger() + foodStack.getItem().getFoodProperties(foodStack, recruit).getSaturationModifier() * 100);
-        if(foodStack.getCount() == 1)foodStack.shrink(1);//fix infinite food?
-        recruit.eatCoolDown = 100;
+        Main.LOGGER.debug("Start: beforeFoodItem: " + beforeFoodItem);
+        Main.LOGGER.debug("Start: foodStack: " + foodStack);
+
+        recruit.setItemInHand(InteractionHand.OFF_HAND, foodStack);
+        recruit.startUsingItem(InteractionHand.OFF_HAND);
     }
+
 
     private boolean hasFoodInInv(){
         return recruit.getInventory().items
@@ -60,5 +70,28 @@ public class RecruitEatGoal extends Goal {
     @Override
     public void tick() {
         super.tick();
+
+        if(!recruit.isUsingItem() && recruit.getIsEating() && beforeFoodItem != null) stop();
+    }
+
+    @Override
+    public void stop() {
+        recruit.setIsEating(false);
+        recruit.stopUsingItem();
+
+        if(foodStack != null){
+            recruit.heal(foodStack.getItem().getFoodProperties(foodStack, recruit).getSaturationModifier());
+            if (!recruit.isSaturated())
+                recruit.setHunger(recruit.getHunger() + foodStack.getItem().getFoodProperties(foodStack, recruit).getSaturationModifier() * 100);
+            if (foodStack.getCount() == 1) foodStack.shrink(1);//fix infinite food?
+        }
+
+        resetItemInHand();
+        recruit.eatCoolDown = 100;
+    }
+
+    public void resetItemInHand() {
+        recruit.setItemInHand(InteractionHand.OFF_HAND, this.beforeFoodItem);
+        recruit.inventory.setItem(10, this.beforeFoodItem);
     }
 }

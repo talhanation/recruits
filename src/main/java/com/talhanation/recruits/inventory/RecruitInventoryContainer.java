@@ -144,57 +144,64 @@ public class RecruitInventoryContainer extends ContainerBase {
         super.removed(playerIn);
     }
 
-    public ItemStack quickMoveStack(Player playerIn, int index) {
+    public ItemStack quickMoveStack(Player p_39665_, int index) {
         ItemStack itemstack = ItemStack.EMPTY;
         Slot slot = this.slots.get(index);
-        if (slot.hasItem()) {
-            ItemStack stack = slot.getItem();
-            itemstack = stack.copy();
-            if (index < this.getInventorySize()) {
-                if (!this.moveItemStackTo(stack, this.getInventorySize(), this.slots.size(), true)) {
+        if (slot != null && slot.hasItem()) {
+            ItemStack itemstack1 = slot.getItem();
+            itemstack = itemstack1.copy();
+            int i = this.recruitInventory.getContainerSize();
+            if (index < i) {
+                if (!this.moveItemStackTo(itemstack1, i, this.slots.size(), true)) {
                     return ItemStack.EMPTY;
                 }
-            }
-            else if (this.getSlot(11).mayPlace(itemstack) && !this.getSlot(11).hasItem()) {
-                if (!this.moveItemStackTo(itemstack, 11, this.getInventorySize(), false)) {
+            } else if (this.getSlot(11).mayPlace(itemstack1) && !this.getSlot(11).hasItem()) {
+                if (!this.moveItemStackTo(itemstack1, 11, 12, false)) {
                     return ItemStack.EMPTY;
                 }
-            }
-            else if (this.getSlot(12).mayPlace(itemstack) && !this.getSlot(12).hasItem()) {
-                if (!this.moveItemStackTo(itemstack, 12, this.getInventorySize(), false)) {
+            } else if (this.getSlot(12).mayPlace(itemstack1) && !this.getSlot(12).hasItem()) {
+                if (!this.moveItemStackTo(itemstack1, 12, 13, false)) {
                     return ItemStack.EMPTY;
                 }
-            }
-            else if (this.getSlot(13).mayPlace(itemstack) && !this.getSlot(13).hasItem()) {
-                if (!this.moveItemStackTo(itemstack, 13, this.getInventorySize(), false)) {
+            } else if (this.getSlot(13).mayPlace(itemstack1) && !this.getSlot(13).hasItem()) {
+                if (!this.moveItemStackTo(itemstack1, 13, 14, false)) {
                     return ItemStack.EMPTY;
                 }
-            }
-            else if (this.getSlot(14).mayPlace(itemstack) && !this.getSlot(14).hasItem()) {
-                if (!this.moveItemStackTo(itemstack, 14, this.getInventorySize(), false)) {
+            } else if (this.getSlot(14).mayPlace(itemstack1) && !this.getSlot(14).hasItem()) {
+                if (!this.moveItemStackTo(itemstack1, 14, 15, false)) {
                     return ItemStack.EMPTY;
                 }
-            }
-            else if (this.getSlot(15).mayPlace(itemstack) && !this.getSlot(15).hasItem()) {
-                if (!this.moveItemStackTo(itemstack, 15, this.getInventorySize(), false)) {
+            } else if (this.getSlot(15).mayPlace(itemstack1) && !this.getSlot(15).hasItem()) {
+                if (!this.moveItemStackTo(itemstack1, 15, 16, false)) {
                     return ItemStack.EMPTY;
                 }
-            }
-            else if (this.getSlot(9).mayPlace(itemstack) && !this.getSlot(9).hasItem()) {
-                if (!this.moveItemStackTo(itemstack, 9, this.getInventorySize(), false)) {
+            } else if (this.getSlot(9).mayPlace(itemstack1) && !this.getSlot(9).hasItem()) {
+                if (!this.moveItemStackTo(itemstack1, 9, 10, false)) {
                     return ItemStack.EMPTY;
                 }
-            }
-            else if (this.getSlot(10).mayPlace(itemstack) && !this.getSlot(10).hasItem()) {
-                if (!this.moveItemStackTo(itemstack, 10, this.getInventorySize(), false)) {
+            } else if (this.getSlot(10).mayPlace(itemstack1) && !this.getSlot(10).hasItem()) {
+                if (!this.moveItemStackTo(itemstack1, 10, 11, false)) {
                     return ItemStack.EMPTY;
                 }
-            }
-            else if (!this.moveItemStackTo(stack, 0, this.getInventorySize(), false)) {
+            } else if (i <= 0 || !this.moveItemStackTo(itemstack1, 0, i, false)) {
+                int j = i + 27;
+                int k = j + 9;
+                if (index >= j && index < k) {
+                    if (!this.moveItemStackTo(itemstack1, i, j, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else if (index >= i && index < j) {
+                    if (!this.moveItemStackTo(itemstack1, j, k, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else if (!this.moveItemStackTo(itemstack1, j, j, false)) {
+                    return ItemStack.EMPTY;
+                }
+
                 return ItemStack.EMPTY;
             }
 
-            if (stack.isEmpty()) {
+            if (itemstack1.isEmpty()) {
                 slot.set(ItemStack.EMPTY);
             } else {
                 slot.setChanged();

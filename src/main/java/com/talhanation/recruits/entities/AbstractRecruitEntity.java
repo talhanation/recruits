@@ -53,6 +53,7 @@ import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
@@ -100,7 +101,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     //private static final DataParameter<ItemStack> OFFHAND_ITEM_SAVE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.ITEM_STACK);
 
-    public ItemStack beforeFoodItem;
     public int blockCoolDown;
     public int eatCoolDown;
 
@@ -124,12 +124,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateShield();
     }
 
-    private void resetItemInHand() {
-        this.setItemInHand(InteractionHand.OFF_HAND, this.beforeFoodItem);
-        this.getSlot(10).set(this.beforeFoodItem);
-        this.beforeFoodItem = null;
-    }
-
     public void tick() {
         super.tick();
         updateSwingTime();
@@ -141,10 +135,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         //Main.LOGGER.debug("Owner: " + this.getOwner());
 
 
-        if (this.getIsEating() && !this.isUsingItem()) {
-            if (beforeFoodItem != null) resetItemInHand();
-            setIsEating(false);
-        }
+
 
         //if (getOwner() != null)
         //this.getOwner().sendMessage(new TextComponent("Last Hurt: " + hurtMarked), getOwner().getUUID());
@@ -951,19 +942,37 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if(eatCoolDown > 0){
             eatCoolDown--;
         }
+        if(getHunger() >=  75F && getHealth() < getMaxHealth()){
+            this.heal(1.0F/40F);// 1 hp in 2s
+
+        }
     }
 
     public boolean needsToEat(){
         if (getHunger() <= 50F){
             return true;
         }
-        else if(getHealth() <= (getMaxHealth() * 0.40) && eatCoolDown == 0) {
+        else if(getHealth() <= (getMaxHealth() * 0.30) && this.getTarget() == null){
+            return true;
+        }
+        /*
+        else if(getHealth() <= (getMaxHealth() * 0.20) && eatCoolDown == 0) {
             return true;
         }
         else if(getHealth() <= (getMaxHealth() * 0.90) && this.getTarget() == null){
             return true;
-        }else
+        }
+         */
+        else
             return false;
+    }
+
+    public boolean needsToPotion(){
+        LivingEntity target = this.getTarget();
+        if(target != null){
+            return getHealth() <= (getMaxHealth() * 0.60) || target.getHealth() > this.getHealth();
+        }
+        return false;
     }
 
     public boolean isStarving(){

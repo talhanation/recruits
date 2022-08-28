@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.SimpleContainer;
@@ -8,10 +9,13 @@ import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.InteractionHand;
 
+import javax.annotation.Nullable;
+
 public class RecruitQuaffGoal extends Goal {
 
-    AbstractRecruitEntity recruit;
-    ItemStack potionItem;
+    public AbstractRecruitEntity recruit;
+    public ItemStack potionItem;
+    public ItemStack beforeItem;
 
     public RecruitQuaffGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -19,28 +23,33 @@ public class RecruitQuaffGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        if (recruit.isUsingItem()) return false;
-        if (recruit.beforeFoodItem != null) return false;
-
-        return recruit.getTarget() != null /*&& recruit.getActiveEffects().stream().noneMatch(instance -> instance.getEffect().getCategory().equals(EffectType.BENEFICIAL)) /* Comment out to make the recruit not quaff another potion if it already has a positive effect */;
-    }
-
-    @Override
-    public void start() {
-        if (hasPotionInInv()) {
-            recruit.beforeFoodItem = recruit.getItemInHand(InteractionHand.OFF_HAND);
-
-            recruit.setIsEating(true);
-            recruit.setItemInHand(InteractionHand.OFF_HAND, potionItem);
-            recruit.getSlot(10).set(recruit.beforeFoodItem);
-
-            recruit.startUsingItem(InteractionHand.OFF_HAND);
-        }
+        return hasPotionInInv() && recruit.needsToPotion() && recruit.getTarget() != null && !recruit.getIsEating();
     }
 
     @Override
     public boolean canContinueToUse() {
-        return canUse();
+        return recruit.getIsEating() && hasPotionInInv() && recruit.needsToPotion() && recruit.getTarget() != null;
+    }
+
+    public boolean isInterruptable() {
+        return false;
+    }
+
+    public boolean requiresUpdateEveryTick() {
+        return true;
+    }
+
+    @Override
+    public void start() {
+        this.beforeItem = recruit.getItemInHand(InteractionHand.OFF_HAND);
+        this.recruit.setIsEating(true);
+        this.potionItem = getPotionInInv();
+
+        Main.LOGGER.debug("Start: beforeItem: " + beforeItem);
+        Main.LOGGER.debug("Start: potionItem: " + potionItem);
+
+        recruit.setItemInHand(InteractionHand.OFF_HAND, potionItem);
+        recruit.startUsingItem(InteractionHand.OFF_HAND);
     }
 
     private boolean hasPotionInInv(){
@@ -49,12 +58,49 @@ public class RecruitQuaffGoal extends Goal {
         for(int i = 0; i < inventory.getContainerSize(); i++){
             ItemStack itemStack = inventory.getItem(i);
             if (PotionUtils.getMobEffects(itemStack).size() > 0 && PotionUtils.getMobEffects(itemStack).stream().noneMatch(instance -> instance.getEffect().getCategory().equals(MobEffectCategory.HARMFUL))) {
-                potionItem = itemStack.copy();
-                itemStack.shrink(1);
-
                 return true;
             }
         }
         return false;
+    }
+
+    @Nullable
+    private ItemStack getPotionInInv(){
+        SimpleContainer inventory = recruit.getInventory();
+        ItemStack itemStack = null;
+        for(int i = 0; i < inventory.getContainerSize(); i++){
+            itemStack = inventory.getItem(i);
+            if (PotionUtils.getMobEffects(itemStack).size() > 0 && PotionUtils.getMobEffects(itemStack).stream().noneMatch(instance -> instance.getEffect().getCategory().equals(MobEffectCategory.HARMFUL))) {
+                return itemStack;
+            }
+        }
+        return itemStack;
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+
+        if(!recruit.isUsingItem() && recruit.getIsEating() && beforeItem != null) stop();
+    }
+
+    @Override
+    public void stop() {
+        recruit.setIsEating(false);
+        potionItem.shrink(1);
+        if(potionItem.getCount() == 1) potionItem.shrink(1);//fix infinite food?
+
+        recruit.stopUsingItem();
+
+        Main.LOGGER.debug("Stop: beforeFoodItem: " + beforeItem);
+        Main.LOGGER.debug("Stop: foodStack: " + potionItem);
+
+        resetItemInHand();
+        recruit.eatCoolDown = 100;
+    }
+
+    public void resetItemInHand() {
+        recruit.setItemInHand(InteractionHand.OFF_HAND, this.beforeItem);
+        recruit.inventory.setItem(10, this.beforeItem);
     }
 }

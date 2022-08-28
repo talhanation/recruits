@@ -2,7 +2,7 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.world.RecruitPatrolSpawn;
+import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerLevel;
@@ -29,13 +29,13 @@ public class RecruitEvents {
 
     int timestamp;
     public static final TranslatableComponent TEXT_BLOCK_WARN = new TranslatableComponent("chat.recruits.text.block_placing_warn");
-    private static final Map<ServerLevel, RecruitPatrolSpawn> RECRUIT_PATROL = new HashMap<>();
+    private static final Map<ServerLevel, RecruitsPatrolSpawn> RECRUIT_PATROL = new HashMap<>();
     @SubscribeEvent
     public void onServerTick(TickEvent.WorldTickEvent event) {
         if (!event.world.isClientSide && event.world instanceof ServerLevel serverWorld) {
             RECRUIT_PATROL.computeIfAbsent(serverWorld,
-                    k -> new RecruitPatrolSpawn(serverWorld));
-            RecruitPatrolSpawn spawner = RECRUIT_PATROL.get(serverWorld);
+                    k -> new RecruitsPatrolSpawn(serverWorld));
+            RecruitsPatrolSpawn spawner = RECRUIT_PATROL.get(serverWorld);
             spawner.tick();
         }
 
@@ -188,6 +188,8 @@ public class RecruitEvents {
         else if (target instanceof AbstractRecruitEntity recruitEntityTarget && recruit.getEscortUUID() != null && recruitEntityTarget.getEscortUUID() != null && recruit.getEscortUUID().equals(recruitEntityTarget.getEscortUUID())){
             return false;
         }
+        else if (target instanceof Player player)
+            return !player.isCreative();
 
         return RecruitEvents.canHarmTeam(recruit, target);
 

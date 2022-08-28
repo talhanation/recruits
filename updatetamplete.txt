@@ -1,26 +1,26 @@
-Update 1.8.1
-
----------------------------------------------------------------------------------------------------------------------------
-+ fixed recruits attack owner
-
-+ made block event target also on neutral
-
-+ added a feature that recruits of different teams can escort the same Mob, while in neutral mode, bowman will also make no "friendly fire" damage.
-
-+ added recruit patrols (configurable default: true)
-+ added recruit caravans, escorting villagers (configurable default: true)
-
-+ added escorts/patrols of pillagers (configurable default: true)
-
-+ fixed potential crash with holdpos command
-+ maybe fixed crash when throwing a ominous banner into fire
+Update 1.8.2
 
 ---------------------------------------------------------------------------------------------------------------------------
 
++ added recruit caravans, villager escorts (configurable default: true)
++ added...
+
++improved vanilla pillager patrol spawns (configurable default: true)
++improved eating: now recruits will regenerate their health if they are saturated hunger is at 100%
++improved potion using
++improved...
+
++ fixed recruits holding food item after eating
++ fixed quick equip
++ fixed quick equip duplicate items
++ fixed...
+
+---------------------------------------------------------------------------------------------------------------------------
 
 
 
-recruits mod update 1.8.1:
+
+recruits mod update 1.8.2:
 
 
 

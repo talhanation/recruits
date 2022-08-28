@@ -27,24 +27,24 @@ import java.util.Iterator;
 import java.util.Optional;
 import java.util.Random;
 
-public class RecruitPatrolSpawn {
+public class RecruitsPatrolSpawn {
     private final Random random = new Random();
     private final ServerLevel world;
     private int timer;
     private int delay;
     private double chance;
 
-    public RecruitPatrolSpawn(ServerLevel level) {
+    public RecruitsPatrolSpawn(ServerLevel level) {
         this.world = level;
-        this.timer = 7000;
+        this.timer = 12000;//10 min
         this.delay = 3000;
         this.chance = RecruitsModConfig.RecruitPatrolsSpawnChance.get();
     }
 
     public void tick() {
         if (RecruitsModConfig.ShouldRecruitPatrolsSpawn.get() && --this.timer <= 0) {
-            this.timer = 7000;
-            this.delay -= 7000;
+            this.timer = 12000;
+            this.delay -= 12000;
             if(delay < 0){
                 delay = 0;
             }
@@ -75,17 +75,54 @@ public class RecruitPatrolSpawn {
                 BlockPos upPos = new BlockPos(blockpos2.getX(), blockpos2.getY() + 2, blockpos2.getZ());
 
 
-                int i = random.nextInt(5);
-                switch(i) {
-                    default -> spawnSmallPatrol(upPos);
-                    case 1,2 -> spawnMediumPatrol(upPos);
-                    case 3 -> spawnLargePatrol(upPos);
+                int t = random.nextInt(2);{
+                    switch(t) {
+                        case 0 -> {
+                            //spawn recruits patrol
+                            int i = random.nextInt(5);
+                            switch(i) {
+                                default -> spawnSmallPatrol(upPos);
+                                case 1,2 -> spawnMediumPatrol(upPos);
+                                case 3 -> spawnLargePatrol(upPos);
+                            }
+                        }
+                        case 1 -> {
+                            //spawn recruits caravan
+
+                        }
+                        case 2 -> {
+
+
+                        }
+                    }
+
                 }
-                Main.LOGGER.debug("PATROL SPAWNED");
+
+
+
+
                 return true;
             }
             return false;
         }
+    }
+
+    private void spawnCaravan(BlockPos upPos) {
+        RecruitEntity patrolLeader = this.createPatrolLeader(upPos);
+
+        this.createPatrolRecruit(upPos, patrolLeader);
+        this.createPatrolRecruit(upPos, patrolLeader);
+        this.createPatrolRecruit(upPos, patrolLeader);
+
+
+        this.createPatrolShieldman(upPos, patrolLeader, true);
+        this.createPatrolShieldman(upPos, patrolLeader, true);
+        this.createPatrolShieldman(upPos, patrolLeader, true);
+
+        this.createPatrolBowman(upPos, patrolLeader);
+        this.createPatrolBowman(upPos, patrolLeader);
+        this.createPatrolBowman(upPos, patrolLeader);
+
     }
 
     private void spawnLargePatrol(BlockPos upPos) {
