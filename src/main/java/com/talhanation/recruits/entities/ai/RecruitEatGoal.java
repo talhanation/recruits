@@ -7,6 +7,7 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public class RecruitEatGoal extends Goal {
@@ -43,8 +44,14 @@ public class RecruitEatGoal extends Goal {
         recruit.setIsEating(true);
         this.foodStack = getFoodInInv();
 
-        Main.LOGGER.debug("Start: beforeFoodItem: " + beforeFoodItem);
-        Main.LOGGER.debug("Start: foodStack: " + foodStack);
+
+        recruit.heal(Objects.requireNonNull(foodStack.getItem().getFoodProperties(foodStack, recruit)).getSaturationModifier() * 1);
+        if (!recruit.isSaturated())
+            recruit.setHunger(recruit.getHunger() + Objects.requireNonNull(foodStack.getItem().getFoodProperties(foodStack, recruit)).getSaturationModifier() * 100);
+        if (foodStack.getCount() == 1) foodStack.shrink(1);//fix infinite food?
+
+        //Main.LOGGER.debug("Start: beforeFoodItem: " + beforeFoodItem);
+        //Main.LOGGER.debug("Start: foodStack: " + foodStack);
 
         recruit.setItemInHand(InteractionHand.OFF_HAND, foodStack);
         recruit.startUsingItem(InteractionHand.OFF_HAND);
@@ -78,13 +85,6 @@ public class RecruitEatGoal extends Goal {
     public void stop() {
         recruit.setIsEating(false);
         recruit.stopUsingItem();
-
-        if(foodStack != null){
-            recruit.heal(foodStack.getItem().getFoodProperties(foodStack, recruit).getSaturationModifier());
-            if (!recruit.isSaturated())
-                recruit.setHunger(recruit.getHunger() + foodStack.getItem().getFoodProperties(foodStack, recruit).getSaturationModifier() * 100);
-            if (foodStack.getCount() == 1) foodStack.shrink(1);//fix infinite food?
-        }
 
         resetItemInHand();
         recruit.eatCoolDown = 100;

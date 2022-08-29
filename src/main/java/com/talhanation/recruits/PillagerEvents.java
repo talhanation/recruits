@@ -152,11 +152,7 @@ public class PillagerEvents {
         }
     }
 
-    private void createPillager(LivingEntity entity){
-        Pillager pillager = EntityType.PILLAGER.create(entity.level);
-        pillager.copyPosition(entity);
-        entity.level.addFreshEntity(pillager);
-    }
+
 
     @SubscribeEvent
     public void raidStartOnBurningOminous(EntityEvent event) {

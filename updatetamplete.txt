@@ -1,4 +1,4 @@
-Update 1.8.2
+Update 1.8.3
 
 ---------------------------------------------------------------------------------------------------------------------------
 
@@ -6,14 +6,11 @@ Update 1.8.2
 + added...
 
 +improved vanilla pillager patrol spawns (configurable default: true)
-+improved eating: now recruits will regenerate their health if they are saturated hunger is at 100%
-+improved potion using
 +improved...
 
-+ fixed recruits holding food item after eating
-+ fixed quick equip
-+ fixed quick equip duplicate items
-+ fixed...
++ fixed patrols don't spawn
++ fixed crash when recruits eating food
++ fixed log output
 
 ---------------------------------------------------------------------------------------------------------------------------
 
