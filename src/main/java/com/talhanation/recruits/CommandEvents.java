@@ -3,12 +3,17 @@ package com.talhanation.recruits;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.CommandContainer;
+import com.talhanation.recruits.inventory.TeamCreationContainer;
 import com.talhanation.recruits.network.MessageCommandScreen;
+import com.talhanation.recruits.network.MessageOpenTeamCreationScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
@@ -21,6 +26,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.scores.PlayerTeam;
+import net.minecraftforge.common.ForgeConfig;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
@@ -373,5 +380,42 @@ public class CommandEvents {
         if (recruit.isOwned() && (recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
             recruit.setTarget(null);
         }
+    }
+
+    public static void openTeamCreationGUI(Player player) {
+        if (player instanceof ServerPlayer) {
+            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+                @Override
+                public Component getDisplayName() {
+                    return new TextComponent("Team Creation") {
+                    };
+                }
+
+                @Override
+                public AbstractContainerMenu createMenu(int i, Inventory playerInventory, Player playerEntity) {
+                    return new TeamCreationContainer(i, playerInventory);
+                }
+            }, packetBuffer -> {
+                packetBuffer.writeUUID(player.getUUID());
+            });
+        } else {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamCreationScreen(player));
+        }
+    }
+
+
+    public static void createTeam(ServerLevel level, String teamName, String playerName) {
+        MinecraftServer server = level.getServer();
+        PlayerTeam team = new PlayerTeam(server.getScoreboard(), teamName);
+
+        server.getPlayerList().broadcastAll(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true));
+        Main.LOGGER.debug("Team should be created");
+        PlayerTeam team1 = server.getScoreboard().getPlayersTeam(teamName);
+        if (team1 != null){
+            server.getScoreboard().addPlayerToTeam(playerName, team1);
+            Main.LOGGER.debug("added Player to team");
+        }
+        else
+            Main.LOGGER.debug("Team is null");
     }
 }

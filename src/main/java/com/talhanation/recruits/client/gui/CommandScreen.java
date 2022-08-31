@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -86,6 +87,14 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         int zeroTopPos = topPos + 10;
         int topPosGab = 7;
         int mirror = 240 - 60;
+
+        //TEAM CREATION
+        addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 25, 80, 20, new TextComponent("TEAM"),
+                button -> {
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamCreationScreen(player));
+                }, (a, b, c, d) -> {
+            //this.renderTooltip(b, TOOLTIP_DISMOUNT, c, d);
+        }));
 
         //Dismount
         addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_DISMOUNT,
@@ -385,6 +394,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
     }
 
      */
+
 
     public int getSavedCurrentGroup(Player player) {
         CompoundTag playerNBT = player.getPersistentData();

@@ -3,20 +3,14 @@ package com.talhanation.recruits;
 import com.google.common.collect.ImmutableSet;
 import com.talhanation.recruits.client.events.KeyEvents;
 import com.talhanation.recruits.client.events.PlayerEvents;
-import com.talhanation.recruits.client.gui.AssassinLeaderScreen;
-import com.talhanation.recruits.client.gui.CommandScreen;
-import com.talhanation.recruits.client.gui.RecruitHireScreen;
-import com.talhanation.recruits.client.gui.RecruitInventoryScreen;
+import com.talhanation.recruits.client.gui.*;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModItems;
-import com.talhanation.recruits.inventory.AssassinLeaderContainer;
-import com.talhanation.recruits.inventory.CommandContainer;
-import com.talhanation.recruits.inventory.RecruitHireContainer;
-import com.talhanation.recruits.inventory.RecruitInventoryContainer;
+import com.talhanation.recruits.inventory.*;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.ClientRegistry;
 import de.maxhenkel.corelib.CommonRegistry;
@@ -69,6 +63,7 @@ public class Main {
     public static MenuType<CommandContainer> COMMAND_CONTAINER_TYPE;
     public static MenuType<RecruitHireContainer> HIRE_CONTAINER_TYPE;
     public static MenuType<AssassinLeaderContainer> ASSASSIN_CONTAINER_TYPE;
+    public static MenuType<TeamCreationContainer> TEAM_CREATION_TYPE;
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
     public Main() {
@@ -118,6 +113,8 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 18, MessageEscortEntity.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 19, MessageDismount.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 20, MessageDismountGui.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 21, MessageCreateTeam.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 22, MessageOpenTeamCreationScreen.class);
     }
 
     @SubscribeEvent
@@ -132,6 +129,7 @@ public class Main {
         ClientRegistry.registerScreen(Main.COMMAND_CONTAINER_TYPE, CommandScreen::new);
         ClientRegistry.registerScreen(Main.ASSASSIN_CONTAINER_TYPE, AssassinLeaderScreen::new);
         ClientRegistry.registerScreen(Main.HIRE_CONTAINER_TYPE, RecruitHireScreen::new);
+        ClientRegistry.registerScreen(Main.TEAM_CREATION_TYPE, TeamCreationScreen::new);
     }
 
     @SubscribeEvent
@@ -217,6 +215,12 @@ public class Main {
         });
         HIRE_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "hire_container"));
         event.getRegistry().register(HIRE_CONTAINER_TYPE);
+
+        TEAM_CREATION_TYPE = new MenuType<>((IContainerFactory<TeamCreationContainer>) (windowId, inv, data) -> {
+            return new TeamCreationContainer(windowId, inv);
+        });
+        TEAM_CREATION_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "team_creation"));
+        event.getRegistry().register(TEAM_CREATION_TYPE);
     }
 
     @Nullable
