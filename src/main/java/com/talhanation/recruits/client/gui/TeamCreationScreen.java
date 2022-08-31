@@ -105,7 +105,7 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     }
 
     public int getSavedTeamBanner(ServerLevel serverLevel) {
-        
+
 
         CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
 
