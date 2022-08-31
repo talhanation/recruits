@@ -6,6 +6,7 @@ import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.inventory.TeamCreationContainer;
 import com.talhanation.recruits.network.MessageCommandScreen;
 import com.talhanation.recruits.network.MessageOpenTeamCreationScreen;
+import com.talhanation.recruits.world.ModLevelData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -27,7 +28,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.scores.PlayerTeam;
-import net.minecraftforge.common.ForgeConfig;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
@@ -412,7 +412,11 @@ public class CommandEvents {
         Main.LOGGER.debug("Team should be created");
         PlayerTeam team1 = server.getScoreboard().getPlayersTeam(teamName);
         if (team1 != null){
+            ModLevelData data = new ModLevelData();
+
+            //data.setBannerAndTeam();
             server.getScoreboard().addPlayerToTeam(playerName, team1);
+
             Main.LOGGER.debug("added Player to team");
         }
         else

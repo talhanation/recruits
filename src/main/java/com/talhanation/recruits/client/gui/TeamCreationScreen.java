@@ -3,19 +3,14 @@ package com.talhanation.recruits.client.gui;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.inventory.TeamCreationContainer;
-import com.talhanation.recruits.network.MessageCreateTeam;
 import com.talhanation.recruits.network.MessageOpenTeamCreationScreen;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BannerItem;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -26,7 +21,7 @@ import org.lwjgl.glfw.GLFW;
 public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/assassin_gui.png");
 
-    private static final Component TEXT_NOT_ENOUGH_EMERALDS = new TranslatableComponent("gui.recruits.teamcreation.not_enough");
+    //private static final Component TEXT_NOT_ENOUGH_EMERALDS = new TranslatableComponent("gui.recruits.teamcreation.not_enough");
 
 
     private static final int fontColor = 4210752;
@@ -47,9 +42,10 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     protected void init() {
         super.init();
         minecraft.keyboardHandler.setSendRepeatsToGui(true);
-
+        Main.LOGGER.debug("Hello from Screen");
         addRenderableOnly(new Button(leftPos + 77 + 25, topPos + 4, 50, 12, new TextComponent("Create"),
                 button -> {
+                    Main.LOGGER.debug("Hello from Button");
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamCreationScreen(playerInventory.player));
                     this.onClose();
                 }, (a, b, c, d) -> {
@@ -102,21 +98,5 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     public boolean isPauseScreen() {
         return false;
 
-    }
-
-    public int getSavedTeamBanner(ServerLevel serverLevel) {
-
-
-        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
-
-        return nbt.getInt("CommandingGroup");
-    }
-
-    public void saveCurrentGroup(Player player) {
-        CompoundTag playerNBT = player.getPersistentData();
-        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
-
-        nbt.putInt( "CommandingGroup", this.group);
-        playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
 }

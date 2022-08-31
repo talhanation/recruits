@@ -20,7 +20,7 @@ public class TeamCreationContainer extends ContainerBase {
     }
 
     public TeamCreationContainer(int id, Container container, Inventory playerInventory) {
-        super(Main.TEAM_CREATION_TYPE, id, container, playerInventory);
+        super(Main.TEAM_CREATION_TYPE, id, playerInventory, container);
         checkContainerSize(container, 1);
         this.container = container;
         addBannerSlot();
