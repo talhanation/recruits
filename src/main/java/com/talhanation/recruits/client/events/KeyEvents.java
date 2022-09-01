@@ -20,36 +20,14 @@ public class KeyEvents {
         if (clientPlayerEntity == null)
             return;
 
-
         if (Main.R_KEY.isDown()) {
             CommandEvents.openCommandScreen(clientPlayerEntity);
         }
-    /*
-        if(Main.C_KEY.isDown()){
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageMove(clientPlayerEntity.getUUID(), 0));
-            //clientPlayerEntity.sendMessage(new StringTextComponent("Everyone! Move!"), clientPlayerEntity.getUUID());
-            //clientPlayerEntity.sendMessage(new StringTextComponent("Mount!"), clientPlayerEntity.getUUID());
+
+        if (Main.C_KEY.isDown()) {
+            CommandEvents.openTeamCreationGUI(clientPlayerEntity);
         }
 
-
-     */
-
-         /*
-        if (Main.X_KEY.isDown()) {
-
-            X_state++;
-            if (X_state > 3) X_state = 0;
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(clientPlayerEntity.getUUID(), X_state, group));
-            CommandEvents.sendAggroCommandInChat(X_state, clientPlayerEntity);
-        }
-
-
-        if(Main.V_KEY.isDown()){
-            group++;
-            if (group > 4) group = 0;
-            //CommandEvents.sendGroupInChat(group, clientPlayerEntity);
-        }
-        */
 
     }
 }

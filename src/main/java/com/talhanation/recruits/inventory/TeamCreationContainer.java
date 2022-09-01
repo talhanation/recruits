@@ -5,15 +5,17 @@ import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.*;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.BannerItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 
 public class TeamCreationContainer extends ContainerBase {
 
     private final Container container;
+    private Player player;
 
     public TeamCreationContainer(int id, Inventory playerInventory) {
         this(id, new SimpleContainer(1), playerInventory);
@@ -23,15 +25,20 @@ public class TeamCreationContainer extends ContainerBase {
         super(Main.TEAM_CREATION_TYPE, id, playerInventory, container);
         checkContainerSize(container, 1);
         this.container = container;
+        this.player = playerInventory.player;
         addBannerSlot();
         addPlayerInventorySlots();
     }
 
     public void addBannerSlot() {
-        this.addSlot(new Slot(container, 0,26,90) {
+        this.addSlot(new Slot(container, 0,120,50) {
             @Override
             public boolean mayPlace(@NotNull ItemStack itemStack) {
-                return  itemStack.equals(Items.WHITE_BANNER.getDefaultInstance());
+                Item item = itemStack.getItem();
+                return  item instanceof BannerItem;
+            }
+            public int getMaxStackSize() {
+                return 1;
             }
 
             @Override
@@ -45,7 +52,11 @@ public class TeamCreationContainer extends ContainerBase {
         return container;
     }
 
-    public BannerItem getBanner() {
-        return (BannerItem) container.getItem(0).getItem();
+    public ItemStack getBanner() {
+        return container.getItem(0).copy();
+    }
+
+    public void onClose(){
+       player.getInventory().add(getBanner());//buggy
     }
 }

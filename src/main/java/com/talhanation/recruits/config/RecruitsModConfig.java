@@ -16,7 +16,7 @@ public class RecruitsModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
-    public static final int NEW_VERSION = 12;
+    public static final int NEW_VERSION = 13;
 
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue RenderNameTagforOwner;
@@ -39,8 +39,8 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.BooleanValue AggroRecruitsBlockEvents;
     public static ForgeConfigSpec.BooleanValue NeutralRecruitsBlockEvents;
     public static ForgeConfigSpec.BooleanValue ShouldRecruitPatrolsSpawn;
-
     public static ForgeConfigSpec.DoubleValue RecruitPatrolsSpawnChance;
+    public static ForgeConfigSpec.IntValue TeamCreationCost;
 
     public static ArrayList<String> MOUNTS = new ArrayList<>(
             Arrays.asList("minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "camels:camel"));
@@ -187,6 +187,12 @@ public class RecruitsModConfig {
                 .defineInRange("RecruitPatrolsSpawnChance", 15.0D, 0.0D, 100.0D);
 
         CONFIG = BUILDER.build();
+
+        TeamCreationCost = BUILDER.comment("\n" +"The cost to create a team." + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: 32")
+                .worldRestart()
+                .defineInRange("TeamCreationCost", 32, 1, 200);
     }
 
     public static void loadConfig(ForgeConfigSpec spec, Path path) {

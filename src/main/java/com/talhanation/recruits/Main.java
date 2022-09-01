@@ -40,6 +40,7 @@ import net.minecraftforge.network.IContainerFactory;
 import net.minecraftforge.network.simple.SimpleChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
@@ -59,6 +60,7 @@ public class Main {
     public static PoiType POI_SCOUT;
     public static PoiType POI_NOMAD;
     public static KeyMapping R_KEY;
+    public static KeyMapping C_KEY;
     public static MenuType<RecruitInventoryContainer> RECRUIT_CONTAINER_TYPE;
     public static MenuType<CommandContainer> COMMAND_CONTAINER_TYPE;
     public static MenuType<RecruitHireContainer> HIRE_CONTAINER_TYPE;
@@ -123,7 +125,8 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
         MinecraftForge.EVENT_BUS.register(new PlayerEvents());
 
-        R_KEY = ClientRegistry.registerKeyBinding("key.r_key", "category.recruits", 82);
+        R_KEY = ClientRegistry.registerKeyBinding("key.r_key", "category.recruits", GLFW.GLFW_KEY_R);
+        C_KEY = ClientRegistry.registerKeyBinding("key.c_key", "category.recruits", GLFW.GLFW_KEY_C);
 
         ClientRegistry.registerScreen(Main.RECRUIT_CONTAINER_TYPE, RecruitInventoryScreen::new);
         ClientRegistry.registerScreen(Main.COMMAND_CONTAINER_TYPE, CommandScreen::new);

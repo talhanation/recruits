@@ -1,17 +1,20 @@
 package com.talhanation.recruits.client.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.talhanation.recruits.AssassinEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.inventory.TeamCreationContainer;
-import com.talhanation.recruits.network.MessageOpenTeamCreationScreen;
+import com.talhanation.recruits.network.MessageCreateTeam;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.BannerItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.glfw.GLFW;
@@ -25,14 +28,15 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
 
 
     private static final int fontColor = 4210752;
-
+    private TeamCreationContainer container;
     private final Inventory playerInventory;
     private EditBox textField;
-    private BannerItem banner;
+    private ItemStack banner;
 
     public TeamCreationScreen(TeamCreationContainer container, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, container, playerInventory, new TextComponent(""));
         this.playerInventory = playerInventory;
+        this.container = container;
         this.banner = null;
         imageWidth = 176;
         imageHeight = 218;
@@ -41,17 +45,38 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     @Override
     protected void init() {
         super.init();
+
         minecraft.keyboardHandler.setSendRepeatsToGui(true);
         Main.LOGGER.debug("Hello from Screen");
-        addRenderableOnly(new Button(leftPos + 77 + 25, topPos + 4, 50, 12, new TextComponent("Create"),
+        String create = "create";
+        if(playerInventory.player.getTeam() == null) {
+            addRenderableWidget(new Button(leftPos + 30, topPos + 50, 80, 20, new TextComponent(create),
                 button -> {
-                    Main.LOGGER.debug("Hello from Button");
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamCreationScreen(playerInventory.player));
-                    this.onClose();
-                }, (a, b, c, d) -> {
+                    this.banner = container.getBanner();
+                    if (!banner.equals(ItemStack.EMPTY)) {
+                        CompoundTag compoundtag = banner.serializeNBT();
+                        Main.LOGGER.debug(compoundtag);
+                        if(compoundtag != null){
+                            int creationCost = 10;
+                            if (AssassinEvents.playerHasEnoughEmeralds(playerInventory.player, creationCost)) {
+                                if (!textField.getValue().equals("")) {
+                                    Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(textField.getValue(), creationCost, banner));
+                                } else
+                                    playerInventory.player.sendMessage(new TranslatableComponent("chat.recruits.team_creation.noname"), playerInventory.player.getUUID());
 
-        }));
+                            } else
+                                playerInventory.player.sendMessage(new TranslatableComponent("chat.recruits.team_creation.noenoughMoney"), playerInventory.player.getUUID());
 
+                            this.onClose();
+                        }
+                        else
+                            playerInventory.player.sendMessage(new TranslatableComponent("chat.recruits.team_creation.wrongbanner"), playerInventory.player.getUUID());
+                    }
+                    else
+                        playerInventory.player.sendMessage(new TranslatableComponent("chat.recruits.team_creation.nobanner"), playerInventory.player.getUUID());
+                }
+            ));
+        }
 
         textField = new EditBox(font, leftPos + 30, topPos + 30, 116, 16, new TextComponent(""));
         textField.setTextColor(-1);
@@ -92,6 +117,7 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     public void onClose() {
         super.onClose();
         minecraft.keyboardHandler.setSendRepeatsToGui(false);
+        container.onClose();
     }
 
     @Override

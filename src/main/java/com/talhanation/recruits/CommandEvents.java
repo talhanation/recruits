@@ -6,13 +6,15 @@ import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.inventory.TeamCreationContainer;
 import com.talhanation.recruits.network.MessageCommandScreen;
 import com.talhanation.recruits.network.MessageOpenTeamCreationScreen;
-import com.talhanation.recruits.world.ModLevelData;
+import com.talhanation.recruits.world.ModSavedData;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.commands.CommandSource;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -25,12 +27,16 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -175,8 +181,6 @@ public class CommandEvents {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageCommandScreen(player));
         }
     }
-
-
     public static void sendFollowCommandInChat(int state, LivingEntity owner, int group){
         String group_string = "";
         if (group == 0){
@@ -404,22 +408,52 @@ public class CommandEvents {
     }
 
 
-    public static void createTeam(ServerLevel level, String teamName, String playerName) {
+    public static void createTeam(ServerPlayer serverPlayer, ServerLevel level, String teamName, String playerName, int cost, ItemStack banner) {
         MinecraftServer server = level.getServer();
-        PlayerTeam team = new PlayerTeam(server.getScoreboard(), teamName);
+        PlayerTeam team = server.getScoreboard().getPlayerTeam(teamName);
+        String createTeamCommand = "/team add " + teamName;
+        String joinTeamCommand = "/team join " + teamName + " " + playerName;
+        CommandSourceStack commandSourceStack = new CommandSourceStack(CommandSource.NULL, Vec3.atCenterOf(serverPlayer.getOnPos()), Vec2.ZERO, level, 2, playerName, new TextComponent(playerName), level.getServer(), serverPlayer);
 
-        server.getPlayerList().broadcastAll(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true));
-        Main.LOGGER.debug("Team should be created");
-        PlayerTeam team1 = server.getScoreboard().getPlayersTeam(teamName);
-        if (team1 != null){
-            ModLevelData data = new ModLevelData();
+        if(team == null){
+            CompoundTag saved_nbt = getSavedBannerNBTFromTeam(level, teamName);
 
-            //data.setBannerAndTeam();
-            server.getScoreboard().addPlayerToTeam(playerName, team1);
-
-            Main.LOGGER.debug("added Player to team");
+            if(!saved_nbt.equals(banner.serializeNBT())){
+                server.getCommands().performCommand(commandSourceStack, createTeamCommand);
+                server.getCommands().performCommand(commandSourceStack, joinTeamCommand);
+                AssassinEvents.doPayment(serverPlayer, cost);
+                saveBannerToTeam(level, teamName, banner);
+                Main.LOGGER.debug("A new Team has been created: " + teamName);
+            }
+            else
+                serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.banner_exists"), serverPlayer.getUUID());
         }
         else
-            Main.LOGGER.debug("Team is null");
+            serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
     }
+
+    public static int getTeamCreationCost() {
+        return RecruitsModConfig.TeamCreationCost.get();
+    }
+
+    public static CompoundTag getSavedBannerNBTFromTeam(ServerLevel level, String team) {
+
+        DimensionDataStorage storage = level.getDataStorage();
+        ModSavedData data = storage.get(ModSavedData::load, team + "Banner");// here new Class that extends SaveData
+
+        return data.getBannerNBT();
+    }
+
+    public static void saveBannerToTeam(ServerLevel level, String team, ItemStack banner) {
+        ModSavedData data = new ModSavedData() {
+            @Override
+            public @NotNull CompoundTag save(CompoundTag nbt) {
+                nbt.put(team + "Banner", banner.serializeNBT());
+                return nbt;
+            }
+        };
+
+        level.getDataStorage().set(team + "Banner", data);
+    }
+
 }

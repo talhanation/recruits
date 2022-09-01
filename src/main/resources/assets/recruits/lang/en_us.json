@@ -127,5 +127,13 @@
 
   "gui.recruits.text.recruited" : "It's a honor for me to protect you!",
   "chat.recruits.text.group": "Group",
-  "chat.recruits.text.everyone": "Everyone"
+  "chat.recruits.text.everyone": "Everyone",
+
+
+  "chat.recruits.team_creation.team_exists" :"A team already exists by that name!",
+  "chat.recruits.team_creation.banner_exists" :"A team already uses the same banner!",
+  "chat.recruits.team_creation.noenoughMoney": "You don't have enough emeralds to create a team!",
+  "chat.recruits.team_creation.noname": "You need to type a name for you team!",
+  "chat.recruits.team_creation.nobanner": "You need a banner to create a team!",
+  "chat.recruits.team_creation.wrongbanner": "You cant use a blank banner for your team."
 }

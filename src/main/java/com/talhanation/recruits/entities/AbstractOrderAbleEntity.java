@@ -1,7 +1,9 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.AssassinEvents;
-import com.talhanation.recruits.entities.ai.*;
+import com.talhanation.recruits.entities.ai.FleeFire;
+import com.talhanation.recruits.entities.ai.FleeTNT;
+import com.talhanation.recruits.entities.ai.FleeTarget;
+import com.talhanation.recruits.entities.ai.UseShield;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TextComponent;
@@ -270,16 +272,6 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     public void setEquipment(){}
 
 
-    public boolean playerHasEnoughEmeralds(Player player, int price) {
-        int emeraldCount = AssassinEvents.playerGetEmeraldsInInventory(player);
-        if (emeraldCount >= price){
-            return true;
-        }
-        if (player.isCreative()){
-            return true;
-        }
-        else return false;
-    }
 
     ////////////////////////////////////ATTACK FUNCTIONS////////////////////////////////////
 
