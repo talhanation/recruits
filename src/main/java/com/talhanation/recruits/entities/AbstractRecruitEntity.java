@@ -887,8 +887,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     ////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////
 
     public void updateMoral(){
-        boolean confused =  10 <= getMoral() && getMoral() < 30;
-        boolean lowMoral =  30 <= getMoral() && getMoral() < 45;
+        boolean confused =  10 <= getMoral() && getMoral() < 20;
+        boolean lowMoral =  20 <= getMoral() && getMoral() < 40;
         boolean highMoral =  80 <= getMoral() && getMoral() < 95;
         boolean strong =  95 <= getMoral();
 
@@ -904,20 +904,24 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if(getMoral() > 35) setMoral((getMoral() - 0.0001F));
         }
 
+        if(this.isSaturated() || getHealth() >= getMaxHealth()*0.85){
+            if(getMoral() < 65) setMoral((getMoral() + 0.0002F));
+        }
+
         if (confused) {
             if (!this.hasEffect(MobEffects.WEAKNESS))
-                this.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 200, 3, false, true, true));
+                this.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 200, 3, false, false, true));
             if (!this.hasEffect(MobEffects.MOVEMENT_SLOWDOWN))
-                this.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 2, false, true, true));
+                this.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 2, false, false, true));
             if (!this.hasEffect(MobEffects.CONFUSION))
-                this.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 200, 1, false, true, true));
+                this.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 200, 1, false, false, true));
         }
 
         if (lowMoral) {
             if (!this.hasEffect(MobEffects.WEAKNESS))
-                this.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 200, 1, false, true, true));
+                this.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 200, 1, false, false, true));
             if (!this.hasEffect(MobEffects.MOVEMENT_SLOWDOWN))
-                this.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 1, false, true, true));
+                this.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 1, false, false, true));
         }
 
         if (highMoral) {
@@ -1256,12 +1260,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final TranslatableComponent TEXT_WANDER = new TranslatableComponent("chat.recruits.text.wander");
 
     public void shouldMount(boolean should, UUID mount_uuid) {
-        Main.LOGGER.debug("MOUNT: Abstract Recruit");
         if (!this.isPassenger()){
             this.setShouldMount(should);
             if(mount_uuid != null) {
                 this.setMountUUID(Optional.of(mount_uuid));
-                Main.LOGGER.debug("MOUNT: Abstract Recruit setMountUUID done");
             }
             else this.setMountUUID(Optional.empty());
         }
