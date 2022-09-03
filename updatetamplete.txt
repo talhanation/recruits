@@ -1,4 +1,4 @@
-Update 1.8.3
+Update 1.8.4
 
 ---------------------------------------------------------------------------------------------------------------------------
 
@@ -8,8 +8,8 @@ Update 1.8.3
 +improved vanilla pillager patrol spawns (configurable default: true)
 +improved...
 
-+ fixed patrols don't spawn
-+ fixed crash when recruits eating food
++ fixed recruits dont make a eating animation when giving 1x food
++ fixed fixed moral issues
 + fixed log output
 
 ---------------------------------------------------------------------------------------------------------------------------
@@ -17,7 +17,7 @@ Update 1.8.3
 
 
 
-recruits mod update 1.8.2:
+recruits mod update 1.8.4:
 
 
 

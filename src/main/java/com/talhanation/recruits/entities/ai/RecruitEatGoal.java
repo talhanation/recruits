@@ -48,7 +48,7 @@ public class RecruitEatGoal extends Goal {
         recruit.heal(Objects.requireNonNull(foodStack.getItem().getFoodProperties(foodStack, recruit)).getSaturationModifier() * 1);
         if (!recruit.isSaturated())
             recruit.setHunger(recruit.getHunger() + Objects.requireNonNull(foodStack.getItem().getFoodProperties(foodStack, recruit)).getSaturationModifier() * 100);
-        if (foodStack.getCount() == 1) foodStack.shrink(1);//fix infinite food?
+
 
         //Main.LOGGER.debug("Start: beforeFoodItem: " + beforeFoodItem);
         //Main.LOGGER.debug("Start: foodStack: " + foodStack);
