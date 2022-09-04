@@ -1,11 +1,13 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
+import com.talhanation.recruits.TeamEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.scores.Team;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -32,7 +34,7 @@ public class MessageCreateTeam implements Message<MessageCreateTeam> {
         ServerPlayer player = context.getSender();
         ServerLevel world = player.getLevel();
 
-        CommandEvents.createTeam(context.getSender(), world, this.teamName, player.getName().getString(), this.cost, this.banner);
+        TeamEvents.createTeam(context.getSender(), world, this.teamName, player.getName().getString(), this.cost, this.banner);
     }
 
     public MessageCreateTeam fromBytes(FriendlyByteBuf buf) {

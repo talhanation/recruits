@@ -1,4 +1,4 @@
-package com.talhanation.recruits.client.gui;
+package com.talhanation.recruits.client.gui.team;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.AssassinEvents;

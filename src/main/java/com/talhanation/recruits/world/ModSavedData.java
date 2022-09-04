@@ -1,7 +1,9 @@
 package com.talhanation.recruits.world;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
@@ -13,19 +15,23 @@ import java.util.Map;
 public class ModSavedData extends SavedData {
     private ServerLevel level;
     private static final Map<Level, ModSavedData> dataMap = new HashMap<>();
-    private PlayerTeam team;
-    private CompoundTag banner;
+    public static String team;
+    public static CompoundTag banner;
 
     public ModSavedData(){
         super();
     }
 
     @Override
-    public CompoundTag save(CompoundTag p_77763_) {
-        return null;
+    public CompoundTag save(CompoundTag nbt) {
+        if(banner != null && team != null ) nbt.put(team + "Banner", banner);
+        return nbt;
     }
 
-    public static ModSavedData get(Level level){
+    public static ModSavedData get(Level level, String name, CompoundTag nbt){
+        if(name != null)setTeam(name);
+        if(nbt != null)setBannerNBT(nbt);
+
         if(level instanceof ServerLevel){
             ServerLevel serverLevel = level.getServer().getLevel(Level.OVERWORLD);
             ModSavedData fromMap = dataMap.get(serverLevel);
@@ -48,13 +54,25 @@ public class ModSavedData extends SavedData {
 
     public static ModSavedData load(CompoundTag nbt) {
         ModSavedData data = new ModSavedData();
-
-        //data.banner = nbt.get(getTeam().getName() + "_TeamBanner")
-
+        if (nbt.contains(team + "Banner")) {
+            banner = (CompoundTag) nbt.get(team + "Banner");
+        }
         return data;
     }
 
     public CompoundTag getBannerNBT() {
-        return this.banner;
+        return banner;
+    }
+
+    public String getTeam(){
+        return team;
+    }
+
+    public static void setTeam(String teamname) {
+        team = teamname;
+    }
+
+    public static void setBannerNBT(CompoundTag nbt) {
+        banner = nbt;
     }
 }

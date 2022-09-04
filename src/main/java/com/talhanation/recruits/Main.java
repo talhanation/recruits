@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import com.talhanation.recruits.client.events.KeyEvents;
 import com.talhanation.recruits.client.events.PlayerEvents;
 import com.talhanation.recruits.client.gui.*;
+import com.talhanation.recruits.client.gui.team.TeamCreationScreen;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinLeaderEntity;

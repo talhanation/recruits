@@ -1,11 +1,8 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.CommandEvents;
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.TeamEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
@@ -36,7 +33,7 @@ public class MessageOpenTeamCreationScreen implements Message<MessageOpenTeamCre
             return;
         }
         ServerPlayer player = context.getSender();
-        CommandEvents.openTeamCreationGUI(player);
+        TeamEvents.openTeamCreationScreen(player);
     }
 
     @Override

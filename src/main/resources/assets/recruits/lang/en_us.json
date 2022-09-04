@@ -135,5 +135,9 @@
   "chat.recruits.team_creation.noenoughMoney": "You don't have enough emeralds to create a team!",
   "chat.recruits.team_creation.noname": "You need to type a name for you team!",
   "chat.recruits.team_creation.nobanner": "You need a banner to create a team!",
-  "chat.recruits.team_creation.wrongbanner": "You cant use a blank banner for your team."
+  "chat.recruits.team_creation.wrongbanner": "You cant use a blank banner for your team.",
+  "gui.recruits.mainTeamTitle": "Team Menu",
+  "gui.recruits.teamcreation.edit_team": "Edit Team",
+  "gui.recruits.teamcreation.create_team": "Create Team",
+  "gui.recruits.teamcreation.inspect_team": "Inspect team"
 }

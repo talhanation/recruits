@@ -2,6 +2,7 @@ package com.talhanation.recruits.client.events;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.TeamEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraftforge.api.distmarker.Dist;
@@ -25,7 +26,7 @@ public class KeyEvents {
         }
 
         if (Main.C_KEY.isDown()) {
-            CommandEvents.openTeamCreationGUI(clientPlayerEntity);
+            TeamEvents.openTeamCreationScreen(clientPlayerEntity);
         }
 
 
