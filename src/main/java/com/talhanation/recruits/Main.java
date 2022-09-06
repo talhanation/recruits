@@ -118,6 +118,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 20, MessageDismountGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 21, MessageCreateTeam.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 22, MessageOpenTeamCreationScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 23, MessageLeaveTeam.class);
     }
 
     @SubscribeEvent

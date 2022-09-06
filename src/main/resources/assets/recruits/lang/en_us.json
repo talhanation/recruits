@@ -140,5 +140,7 @@
   "gui.recruits.teamcreation.edit_team": "Edit Team",
   "gui.recruits.teamcreation.create_team": "Create Team",
   "gui.recruits.teamcreation.inspect_team": "Inspect team",
-  "chat.recruits.team_creation.banner_is_blank": "You cant use a blank banner to create a team."
+  "chat.recruits.team_creation.banner_is_blank": "You cant use a blank banner to create a team.",
+  "gui.recruits.teamInspectTitle": "",
+  "gui.recruits.teamcreation.leave_team": "Leave Team"
 }

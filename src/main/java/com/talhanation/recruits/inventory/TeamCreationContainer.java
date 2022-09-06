@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 public class TeamCreationContainer extends ContainerBase {
 
     private final Container container;
-    private Player player;
+    private final Player player;
 
     public TeamCreationContainer(int id, Inventory playerInventory) {
         this(id, new SimpleContainer(1), playerInventory);
@@ -48,15 +48,12 @@ public class TeamCreationContainer extends ContainerBase {
         });
     }
 
-    public Container getContainer() {
-        return container;
-    }
-
     public ItemStack getBanner() {
-        return container.getItem(0).copy();
+        return container.getItem(0);
     }
 
     public void onClose(){
-       player.getInventory().add(getBanner());//buggy
+        player.spawnAtLocation(getBanner());
     }
+
 }

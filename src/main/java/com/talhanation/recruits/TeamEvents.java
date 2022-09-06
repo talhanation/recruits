@@ -23,6 +23,7 @@ import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.Team;
 import net.minecraftforge.network.NetworkHooks;
 
 import java.util.List;
@@ -34,10 +35,11 @@ public class TeamEvents {
         return player.getTeam() == null;
     }
 
-    public static boolean isPlayerTeamLeader(Player player, PlayerTeam team) {
-        RecruitsTeamSavedData data = new RecruitsTeamSavedData();
+    public static boolean isPlayerTeamLeader(Player player, Team team) {
+        DimensionDataStorage storage = player.level.getServer().overworld().getDataStorage();
+        RecruitsTeamSavedData data = storage.computeIfAbsent(RecruitsTeamSavedData::load, RecruitsTeamSavedData::new, "recruits_" +  team.getName() + "_data");
 
-        return false;
+        return data.getTeamLeader().equals(player.getUUID());
     }
 
     public static void openTeamCreationScreen(Player player) {
@@ -69,7 +71,6 @@ public class TeamEvents {
         String joinTeamCommand = "/team join " + teamName + " " + playerName;
         CommandSourceStack commandSourceStack = new CommandSourceStack(CommandSource.NULL, Vec3.atCenterOf(serverPlayer.getOnPos()), Vec2.ZERO, level, 2, playerName, new TextComponent(playerName), level.getServer(), serverPlayer);
 
-
         if(team == null){
             if (!isBannerBlank(banner)) {
                 if (!isBannerInUse(level, banner.serializeNBT())) {
@@ -92,7 +93,7 @@ public class TeamEvents {
 
     public static void saveDataToTeam(ServerLevel level, String teamName, UUID leaderUUID, CompoundTag bannerNbt) {
         DimensionDataStorage storage = level.getDataStorage();
-        RecruitsTeamSavedData data = storage.computeIfAbsent(RecruitsTeamSavedData::load, RecruitsTeamSavedData::new, "recruits_"+ teamName + "_data");
+        RecruitsTeamSavedData data = storage.computeIfAbsent(RecruitsTeamSavedData::load, RecruitsTeamSavedData::new, "recruits_" + teamName + "_data");
 
         RecruitsTeamSavedData.setTeam(teamName);
         RecruitsTeamSavedData.setTeamLeader(leaderUUID);
@@ -116,7 +117,7 @@ public class TeamEvents {
             String teamName = team.getName();
 
             DimensionDataStorage storage = level.getDataStorage();
-            RecruitsTeamSavedData data = storage.computeIfAbsent(RecruitsTeamSavedData::load, RecruitsTeamSavedData::new, "recruits_"+ teamName + "_data");
+            RecruitsTeamSavedData data = storage.computeIfAbsent(RecruitsTeamSavedData::load, RecruitsTeamSavedData::new, "recruits_" +  teamName + "_data");
             /*
             Main.LOGGER.debug("--------------");
             Main.LOGGER.debug("isBannerInUse Banner:" + bannerNbt);
@@ -134,5 +135,38 @@ public class TeamEvents {
     public static boolean isBannerBlank(ItemStack itemStack){
         CompoundTag compoundtag = BlockItem.getBlockEntityData(itemStack);
         return compoundtag == null || !compoundtag.contains("Patterns");
+    }
+
+    public static int getTeamPlayerMembersCount(Team team){
+        int x = 0;
+        List<String> names =  team.getPlayers().stream().toList();
+
+        for(String name : names){
+            if(name.length() < 25)
+                    x++;
+        }
+
+        return x;
+    }
+
+    public static int getTeamNPCMembersCount(Team team){
+        int x = 0;
+        List<String> names =  team.getPlayers().stream().toList();
+
+        for(String name : names){
+            if(name.length() > 25)
+                x++;
+        }
+
+        return x;
+    }
+
+    public static void leaveTeam(ServerPlayer player, ServerLevel level) {
+        MinecraftServer server = level.getServer();
+        String playerName = player.getName().getString();
+        String leaveTeamCommand = "/team leave " + playerName;
+        CommandSourceStack commandSourceStack = new CommandSourceStack(CommandSource.NULL, Vec3.atCenterOf(player.getOnPos()), Vec2.ZERO, level, 2, playerName, new TextComponent(playerName), level.getServer(), player);
+
+        server.getCommands().performCommand(commandSourceStack, leaveTeamCommand);
     }
 }
