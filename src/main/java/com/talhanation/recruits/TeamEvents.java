@@ -1,9 +1,8 @@
 package com.talhanation.recruits;
 
-import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.inventory.TeamCreationContainer;
 import com.talhanation.recruits.network.MessageOpenTeamCreationScreen;
-import com.talhanation.recruits.world.ModSavedData;
+import com.talhanation.recruits.world.RecruitsTeamSavedData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
@@ -18,13 +17,16 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraftforge.network.NetworkHooks;
-import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import java.util.UUID;
 
 public class TeamEvents {
 
@@ -33,7 +35,7 @@ public class TeamEvents {
     }
 
     public static boolean isPlayerTeamLeader(Player player, PlayerTeam team) {
-        ModSavedData data = new ModSavedData();
+        RecruitsTeamSavedData data = new RecruitsTeamSavedData();
 
         return false;
     }
@@ -69,57 +71,68 @@ public class TeamEvents {
 
 
         if(team == null){
-            //CompoundTag saved_nbt = null;
-            //if (getSavedBannerNBTFromTeam(level, teamName) != null){
-            // saved_nbt = getSavedBannerNBTFromTeam(level, teamName);
-            //}
+            if (!isBannerBlank(banner)) {
+                if (!isBannerInUse(level, banner.serializeNBT())) {
+                    server.getCommands().performCommand(commandSourceStack, createTeamCommand);
+                    server.getCommands().performCommand(commandSourceStack, joinTeamCommand);
+                    AssassinEvents.doPayment(serverPlayer, cost);
 
-            //if(!saved_nbt.equals(banner.serializeNBT())){
-                server.getCommands().performCommand(commandSourceStack, createTeamCommand);
-                server.getCommands().performCommand(commandSourceStack, joinTeamCommand);
-                AssassinEvents.doPayment(serverPlayer, cost);
-                saveBannerToTeam(level, teamName, banner);
-                Main.LOGGER.debug("A new Team has been created: " + teamName);
-            //}
-            //else
-            //    serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.banner_exists"), serverPlayer.getUUID());
+                    saveDataToTeam(level, teamName, serverPlayer.getUUID(), banner.serializeNBT());
+                    Main.LOGGER.debug("A new Team has been created: " + teamName);
+                } else
+                    serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.banner_exists"), serverPlayer.getUUID());
+            }
+            else
+                serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.banner_is_blank"), serverPlayer.getUUID());
 
         }
         else
             serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
-
-        getSavedBannerNBTFromTeam(level, teamName);
-
     }
 
-    public static int getTeamCreationCost() {
-        return RecruitsModConfig.TeamCreationCost.get();
-    }
+    public static void saveDataToTeam(ServerLevel level, String teamName, UUID leaderUUID, CompoundTag bannerNbt) {
+        DimensionDataStorage storage = level.getDataStorage();
+        RecruitsTeamSavedData data = storage.computeIfAbsent(RecruitsTeamSavedData::load, RecruitsTeamSavedData::new, "recruits_"+ teamName + "_data");
 
-    public static CompoundTag getSavedBannerNBTFromTeam(ServerLevel level, String team) {
-        ModSavedData data = ModSavedData.get(level, team, null);
+        RecruitsTeamSavedData.setTeam(teamName);
+        RecruitsTeamSavedData.setTeamLeader(leaderUUID);
+        RecruitsTeamSavedData.setBanner(bannerNbt);
 
-
+        /*
         Main.LOGGER.debug("--------------");
-        Main.LOGGER.debug("Team: " + team);
-        Main.LOGGER.debug("getSavedBanner: " + data.getBannerNBT());
+        Main.LOGGER.debug("saveDataToTeam Team:" + data.getTeam());
+        Main.LOGGER.debug("saveDataToTeam TeamLeader:" + data.getTeamLeader());
+        Main.LOGGER.debug("saveDataToTeam Banner:" + data.getBanner());
         Main.LOGGER.debug("--------------");
-
-
-
-        return data.getBannerNBT();
-    }
-
-    public static void saveBannerToTeam(ServerLevel level, String team, ItemStack banner) {
-        ModSavedData data = ModSavedData.get(level, team, banner.serializeNBT());
-
-
-        Main.LOGGER.debug("--------------");
-        Main.LOGGER.debug("saveBannerToTeam Team:" + data.getTeam());
-        Main.LOGGER.debug("saveBannerToTeam Banner:" + data.getBannerNBT());
-        Main.LOGGER.debug("--------------");
+        */
 
         data.setDirty();
     }
 
+    public static boolean isBannerInUse(ServerLevel level, CompoundTag bannerNbt){
+        List<PlayerTeam> teams = level.getScoreboard().getPlayerTeams().stream().toList();
+
+        for (PlayerTeam team : teams){
+            String teamName = team.getName();
+
+            DimensionDataStorage storage = level.getDataStorage();
+            RecruitsTeamSavedData data = storage.computeIfAbsent(RecruitsTeamSavedData::load, RecruitsTeamSavedData::new, "recruits_"+ teamName + "_data");
+            /*
+            Main.LOGGER.debug("--------------");
+            Main.LOGGER.debug("isBannerInUse Banner:" + bannerNbt);
+            Main.LOGGER.debug("isBannerInUse team:" + teamName);
+            Main.LOGGER.debug("--------------");
+            Main.LOGGER.debug("isBannerInUse team:" + data.getTeam());
+            Main.LOGGER.debug("isBannerInUse savedBanner:" + data.getBanner());
+            Main.LOGGER.debug("--------------");
+             */
+            return bannerNbt.equals(data.getBanner());
+        }
+        return false;
+    }
+
+    public static boolean isBannerBlank(ItemStack itemStack){
+        CompoundTag compoundtag = BlockItem.getBlockEntityData(itemStack);
+        return compoundtag == null || !compoundtag.contains("Patterns");
+    }
 }
