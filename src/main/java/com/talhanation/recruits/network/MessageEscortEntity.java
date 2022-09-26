@@ -36,7 +36,7 @@ public class MessageEscortEntity implements Message<MessageEscortEntity> {
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
         for (AbstractRecruitEntity recruits : list) {
             CommandEvents.onEscortButton(uuid, recruits, target, group);
-            CommandEvents.onRKeyPressed(uuid, recruits, 5, this.group, false);
+            CommandEvents.onFollowCommand(uuid, recruits, 5, this.group, false);
         }
     }
     public MessageEscortEntity fromBytes(FriendlyByteBuf buf) {

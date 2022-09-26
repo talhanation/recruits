@@ -46,7 +46,7 @@ public class MessageFollow implements Message<MessageFollow> {
         else{
             List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
             for (AbstractRecruitEntity recruits : list) {
-                CommandEvents.onRKeyPressed(this.player, recruits, this.state, this.group, fromGui);
+                CommandEvents.onFollowCommand(this.player, recruits, this.state, this.group, fromGui);
             }
         }
     }

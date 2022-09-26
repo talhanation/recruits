@@ -108,6 +108,15 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             this.renderTooltip(b, TOOLTIP_MOUNT, c, d);
         }));
 
+        //MOVE
+        addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 5 + 30, 80, 20, TEXT_ESCORT,
+                button -> {
+                    CommandEvents.sendFollowCommandInChat(97, player, group);
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageMove(player.getUUID(), 0));
+                },  (a, b, c, d) -> {
+            this.renderTooltip(b, TOOLTIP_ESCORT, c, d);
+        }));
+
         //Escort
         addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_ESCORT,
                 button -> {

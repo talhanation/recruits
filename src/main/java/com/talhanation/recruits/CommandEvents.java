@@ -5,6 +5,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.network.MessageCommandScreen;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
@@ -19,6 +20,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -52,7 +54,7 @@ public class CommandEvents {
     public static final TranslatableComponent TEXT_ESCORT = new TranslatableComponent("chat.recruits.command.escort");
 
 
-    public static void onRKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit, int r_state, int group, boolean fromGui) {
+    public static void onFollowCommand(UUID player_uuid, AbstractRecruitEntity recruit, int r_state, int group, boolean fromGui) {
         if (recruit.isOwned() && (recruit.getListen() || fromGui) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
             int state = recruit.getFollowState();
             switch (r_state) {
@@ -118,34 +120,35 @@ public class CommandEvents {
         }
     }
 
-    public static void onCKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
-        /*
+    public static void onMoveCommand(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
         Minecraft minecraft = Minecraft.getInstance();
-        LivingEntity owner = recruit.getOwner();
-        if (recruit.isTame() &&  Objects.equals(recruit.getOwnerUUID(), player_uuid)) {
-            int state = recruit.getFollow();
 
-            if (state != 2){
-                RayTraceResult rayTraceResult = minecraft.hitResult;
-                if (rayTraceResult != null) {
-                    if (rayTraceResult.getType() == RayTraceResult.Type.BLOCK) {
-                        BlockRayTraceResult blockraytraceresult = (BlockRayTraceResult) rayTraceResult;
-                        BlockPos blockpos = blockraytraceresult.getBlockPos();
+        if (recruit.isOwned() &&  Objects.equals(recruit.getOwnerUUID(), player_uuid)) {
+            int state = recruit.getFollowState();
+
+            if (state == 0){//maybe own state
+                HitResult hitResult = minecraft.hitResult;
+
+                if (hitResult != null) {
+                    if (hitResult.getType() == HitResult.Type.BLOCK) {
+                        BlockHitResult blockHitResult = (BlockHitResult) hitResult;
+                        BlockPos blockpos = blockHitResult.getBlockPos();
                         recruit.setMovePos(blockpos);
-                        recruit.setMove(true);
+                        recruit.setShouldMovePos(true);
                     }
-                    else if (rayTraceResult.getType() == RayTraceResult.Type.ENTITY){
+                    //mount maybe
+                    /*
+                    else if (hitResult.getType() == HitResult.Type.ENTITY){
                         Entity crosshairEntity = minecraft.crosshairPickEntity;
                         if (crosshairEntity != null){
                             recruit.setMount(crosshairEntity.getUUID());
                         }
-
                     }
+                    */
                 }
 
             }
         }
-*/
     }
 
     public static void openCommandScreen(Player player) {
@@ -185,6 +188,7 @@ public class CommandEvents {
             case 4 -> owner.sendMessage(new TextComponent(group_string +  TEXT_HOLD_MY_POS.getString()), owner.getUUID());
             case 5 -> owner.sendMessage(new TextComponent(group_string +  TEXT_ESCORT.getString()), owner.getUUID());
 
+            case 97 -> owner.sendMessage(new TextComponent(group_string +  TEXT_DISMOUNT.getString()), owner.getUUID());
             case 98 -> owner.sendMessage(new TextComponent(group_string +  TEXT_DISMOUNT.getString()), owner.getUUID());
             case 99 -> owner.sendMessage(new TextComponent(group_string +  TEXT_MOUNT.getString()), owner.getUUID());
         }

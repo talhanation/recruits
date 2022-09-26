@@ -53,7 +53,6 @@ import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
@@ -76,6 +75,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Boolean> SHOULD_MOUNT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> SHOULD_ESCORT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> SHOULD_HOLD_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> SHOULD_MOVE_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Optional<BlockPos>> HOLD_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Optional<BlockPos>> MOVE_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Boolean> LISTEN = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
@@ -234,6 +234,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(SHOULD_MOUNT, false);
         this.entityData.define(SHOULD_ESCORT, false);
         this.entityData.define(SHOULD_HOLD_POS, false);
+        this.entityData.define(SHOULD_MOVE_POS, false);
         this.entityData.define(FLEEING, false);
         this.entityData.define(STATE, 0);
         this.entityData.define(XP, 0);
@@ -295,6 +296,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             nbt.putBoolean("ShouldHoldPos", this.getShouldHoldPos());
         }
 
+        if(this.getMovePos() != null){
+            nbt.putInt("MovePosX", this.getMovePos().getX());
+            nbt.putInt("MovePosY", this.getMovePos().getY());
+            nbt.putInt("MovePosZ", this.getMovePos().getZ());
+            nbt.putBoolean("ShouldMovePos", this.getShouldMovePos());
+        }
+
         if(this.getOwnerUUID() != null){
             nbt.putUUID("OwnerUUID", this.getOwnerUUID());
         }
@@ -334,6 +342,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     nbt.getInt("HoldPosX"),
                     nbt.getInt("HoldPosY"),
                     nbt.getInt("HoldPosZ")));
+        }
+
+        if (nbt.contains("MovePosX") && nbt.contains("MovePosY") && nbt.contains("MovePosZ")) {
+            this.setShouldMovePos(nbt.getBoolean("ShouldMovePos"));
+            this.setMovePos(new BlockPos (
+                    nbt.getInt("MovePosX"),
+                    nbt.getInt("MovePosY"),
+                    nbt.getInt("MovePosZ")));
         }
 
         if (nbt.contains("OwnerUUID")){
@@ -415,6 +431,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return entityData.get(IS_EATING);
     }
 
+    public boolean getShouldMovePos() {
+        return entityData.get(SHOULD_MOVE_POS);
+    }
     public boolean getShouldHoldPos() {
         return entityData.get(SHOULD_HOLD_POS);
     }
@@ -570,6 +589,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void setShouldHoldPos(boolean bool){
         entityData.set(SHOULD_HOLD_POS, bool);
     }
+
+    public void setShouldMovePos(boolean bool){
+        entityData.set(SHOULD_MOVE_POS, bool);
+    }
     public void setShouldEscort(boolean bool){
         entityData.set(SHOULD_ESCORT, bool);
     }
@@ -651,9 +674,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void setHoldPos(BlockPos holdPos){
         this.entityData.set(HOLD_POS, Optional.of(holdPos));
     }
+    public void setMovePos(BlockPos holdPos){
+        this.entityData.set(MOVE_POS, Optional.of(holdPos));
+    }
 
     public void clearHoldPos(){
         this.entityData.set(HOLD_POS, Optional.empty());
+    }
+
+    public void clearMovePos(){
+        this.entityData.set(MOVE_POS, Optional.empty());
     }
 
     public void setListen(boolean bool) {
