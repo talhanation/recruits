@@ -29,7 +29,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
     private static final TranslatableComponent TEXT_DISBAND = new TranslatableComponent("gui.recruits.inv.text.disband");
     private static final TranslatableComponent TEXT_DISMOUNT = new TranslatableComponent("gui.recruits.inv.text.dismount");
 
-
+    private static final TranslatableComponent TEXT_UPKEEP = new TranslatableComponent("gui.recruits.inv.text.upkeep");
     private static final TranslatableComponent TOOLTIP_DISBAND = new TranslatableComponent("gui.recruits.inv.tooltip.disband");
     private static final TranslatableComponent TOOLTIP_DISMOUNT = new TranslatableComponent("gui.recruits.inv.tooltip.dismount");
     private static final TranslatableComponent TOOLTIP_FOLLOW = new TranslatableComponent("gui.recruits.inv.tooltip.follow");
@@ -216,6 +216,14 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
             this.renderTooltip(b, TOOLTIP_DISMOUNT, c, d);
         }));
 */
+        //UPKEEP
+        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 5, 80, 20, TEXT_UPKEEP, button -> {
+                Main.LOGGER.debug("Upkeep: Button");
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageUpkeepPos(playerInventory.player.getUUID(), recruit.getUUID()));
+
+        },  (a, b, c, d) -> {
+            this.renderTooltip(b, TOOLTIP_DISMOUNT, c, d);
+        }));
 
         //LISTEN
         addRenderableWidget(new Button(leftPos + 77, topPos + 113, 8, 12, new TextComponent("<"), button -> {

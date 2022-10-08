@@ -67,16 +67,21 @@
   "gui.recruits.command.tooltip.escort" : "Make the recruits escort the Mob you are looking at.",
   "gui.recruits.command.tooltip.mount" : "If possible, the recruits will try to mount the Mob you are looking at.",
   "gui.recruits.command.tooltip.dismount" : "If possible, the recruits will dismount their current vehicle.",
+  "gui.recruits.command.tooltip.move" : "If possible, the recruits will try to go to the position you are looking at.",
+  "gui.recruits.command.tooltip.arrows" : "Make your bowman perform a hail of arrows at the position you are looking at.",
+  "gui.recruits.command.tooltip.shields" : "Make the recruits raise/lower their shields.",
 
   "gui.recruits.command.tooltip.passive" : "Make the recruits not attacking at all.",
   "gui.recruits.command.tooltip.neutral" : "Make the recruits attack only hostile living.",
   "gui.recruits.command.tooltip.aggressive" : "Make the recruits attack all enemy players and recruits on sight.",
   "gui.recruits.command.tooltip.raid" : "Make the recruits attack all living on sight.",
 
-
   "gui.recruits.command.text.mount" : "Mount!",
   "gui.recruits.command.text.dismount" : "Dismount!",
   "gui.recruits.command.text.escort" : "Escort!",
+  "gui.recruits.command.text.move" : "Move!",
+  "gui.recruits.command.text.shields" : "Shields!",
+  "gui.recruits.command.text.arrow" : "Hail of Arrows!",
   "gui.recruits.command.text.follow" : "Follow me!",
   "gui.recruits.command.text.wander" : "Wander freely!",
   "gui.recruits.command.text.holdMyPos": "Hold my Position!",
@@ -92,10 +97,15 @@
   "gui.recruits.command.text.group" : "Group",
   "gui.recruits.command.text.everyone" : "Everyone",
 
-
   "chat.recruits.command.escort" : "Escort this Mob!",
   "chat.recruits.command.mount" : "Mount here!",
   "chat.recruits.command.dismount" : "Dismount!",
+  "chat.recruits.command.move" : "Move!",
+  "chat.recruits.command.shields" : "Shields Up!",
+  "chat.recruits.command.arrows" : "Make a Hail of Arrows!",
+  "chat.recruits.command.shields_off" : "Shields down!",
+  "chat.recruits.command.arrows_off" : "Hold the Hail!",
+
   "chat.recruits.command.wander" : "Wander freely!",
   "chat.recruits.command.follow" : "Follow me!",
   "chat.recruits.command.holdMyPos" : "Hold my Position!",

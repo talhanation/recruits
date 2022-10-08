@@ -12,17 +12,19 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageMove implements Message<MessageMove> {
+public class MessageShields implements Message<MessageShields> {
 
     private UUID player;
     private int group;
+    private boolean should;
 
-    public MessageMove(){
+    public MessageShields(){
     }
 
-    public MessageMove(UUID player, int group) {
+    public MessageShields(UUID player, int group, boolean shields) {
         this.player = player;
         this.group = group;
+        this.should = shields;
     }
 
     public Dist getExecutingSide() {
@@ -33,18 +35,20 @@ public class MessageMove implements Message<MessageMove> {
         ServerPlayer serverPlayer = context.getSender();
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
         for (AbstractRecruitEntity recruits : list) {
-                CommandEvents.onMoveCommand(serverPlayer, this.player, recruits, group);
+                CommandEvents.onShieldsCommand(serverPlayer, this.player, recruits, group, should);
         }
     }
-    public MessageMove fromBytes(FriendlyByteBuf buf) {
+    public MessageShields fromBytes(FriendlyByteBuf buf) {
         this.player = buf.readUUID();
         this.group = buf.readInt();
+        this.should = buf.readBoolean();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(this.player);
         buf.writeInt(this.group);
+        buf.writeBoolean(this.should);
     }
 
 }

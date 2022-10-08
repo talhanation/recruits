@@ -21,6 +21,7 @@ import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
+import net.minecraft.world.entity.animal.Pig;
 import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.Boat;
@@ -31,12 +32,12 @@ import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 
-public class RecruitHorseEntity extends TamableAnimal {
+public class RecruitHorseEntity extends PathfinderMob {
     private static final EntityDataAccessor<Integer> DATA_ID_TYPE_VARIANT = SynchedEntityData.defineId(Horse.class, EntityDataSerializers.INT);
 
-    public RecruitHorseEntity(EntityType<? extends TamableAnimal> entityType, Level world) {
+    public RecruitHorseEntity(EntityType<? extends PathfinderMob> entityType, Level world) {
         super(entityType, world);
-        this.maxUpStep = 1.0F;
+        this.maxUpStep = 1.25F;
     }
 
     @Override
@@ -58,12 +59,11 @@ public class RecruitHorseEntity extends TamableAnimal {
     }
 
     protected void updateControlFlags() {
-        boolean flag = !(this.getControllingPassenger() instanceof Mob);
-        boolean flag1 = !(this.getVehicle() instanceof Boat);
-        this.goalSelector.setControlFlag(Goal.Flag.MOVE, flag);
-        this.goalSelector.setControlFlag(Goal.Flag.JUMP, flag && flag1);
-        this.goalSelector.setControlFlag(Goal.Flag.LOOK, flag);
-        this.goalSelector.setControlFlag(Goal.Flag.TARGET, flag);
+        super.updateControlFlags();
+    }
+
+    public boolean canBeControlledByRider() {
+        return !this.isNoAi() && this.getControllingPassenger() instanceof LivingEntity;
     }
 
     @Override
@@ -92,7 +92,6 @@ public class RecruitHorseEntity extends TamableAnimal {
     }
 
     @Nullable
-    @Override
     public AgeableMob getBreedOffspring(ServerLevel p_146743_, AgeableMob p_146744_) {
         return null;
     }
@@ -153,20 +152,22 @@ public class RecruitHorseEntity extends TamableAnimal {
     }
 
     public void travel(Vec3 vec) {
+
         if (this.isAlive()) {
             if (this.isVehicle() && this.canBeControlledByRider()) {
-                LivingEntity livingentity = (LivingEntity)this.getControllingPassenger();
-                this.setYRot(livingentity.getYRot());
+                AbstractRecruitEntity recruitEntity = (AbstractRecruitEntity) this.getControllingPassenger();
+                this.setYRot(recruitEntity.getYRot());
                 this.yRotO = this.getYRot();
-                this.setXRot(livingentity.getXRot() * 0.5F);
+                this.setXRot(recruitEntity.getXRot() * 0.5F);
                 this.setRot(this.getYRot(), this.getXRot());
                 this.yBodyRot = this.getYRot();
                 this.yHeadRot = this.yBodyRot;
-
+                if (recruitEntity.getNavigation().isStuck()) this.jumpFromGround();
             } else {
                 this.flyingSpeed = 0.02F;
                 super.travel(vec);
             }
         }
     }
+
 }

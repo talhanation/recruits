@@ -1,10 +1,13 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -12,17 +15,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageMove implements Message<MessageMove> {
+public class MessageUpkeepPos implements Message<MessageUpkeepPos> {
 
     private UUID player;
-    private int group;
-
-    public MessageMove(){
+    private UUID recruit;
+    public MessageUpkeepPos(){
     }
 
-    public MessageMove(UUID player, int group) {
+    public MessageUpkeepPos(UUID player, UUID recruit) {
         this.player = player;
-        this.group = group;
+        this.recruit = recruit;
     }
 
     public Dist getExecutingSide() {
@@ -30,21 +32,25 @@ public class MessageMove implements Message<MessageMove> {
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer serverPlayer = context.getSender();
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
+        ServerPlayer player = context.getSender();
+        List<AbstractRecruitEntity> list = player.level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
         for (AbstractRecruitEntity recruits : list) {
-                CommandEvents.onMoveCommand(serverPlayer, this.player, recruits, group);
+
+            if (recruits.getUUID().equals(this.recruit))
+                CommandEvents.setRecruitUpkeep(recruits, player.getOnPos());
         }
+
+        Main.LOGGER.debug("new UpkeepPos: " + player.getOnPos());
     }
-    public MessageMove fromBytes(FriendlyByteBuf buf) {
+    public MessageUpkeepPos fromBytes(FriendlyByteBuf buf) {
         this.player = buf.readUUID();
-        this.group = buf.readInt();
+        this.recruit = buf.readUUID();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(this.player);
-        buf.writeInt(this.group);
+        buf.writeUUID(this.recruit);
     }
 
 }

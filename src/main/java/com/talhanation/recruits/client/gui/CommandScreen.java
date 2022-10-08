@@ -1,5 +1,6 @@
 package com.talhanation.recruits.client.gui;
 
+import com.google.common.collect.ImmutableMultimap;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
@@ -13,10 +14,13 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.ForgeMod;
 
 
 @OnlyIn(Dist.CLIENT)
@@ -30,7 +34,9 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
 
     private static final TranslatableComponent TOOLTIP_DISMOUNT = new TranslatableComponent("gui.recruits.command.tooltip.dismount");
     private static final TranslatableComponent TOOLTIP_MOUNT = new TranslatableComponent("gui.recruits.command.tooltip.mount");
+    private static final TranslatableComponent TOOLTIP_SHIELDS = new TranslatableComponent("gui.recruits.command.tooltip.shields");
     private static final TranslatableComponent TOOLTIP_ESCORT = new TranslatableComponent("gui.recruits.command.tooltip.escort");
+    private static final TranslatableComponent TOOLTIP_MOVE = new TranslatableComponent("gui.recruits.command.tooltip.move");
     private static final TranslatableComponent TOOLTIP_FOLLOW = new TranslatableComponent("gui.recruits.command.tooltip.follow");
     private static final TranslatableComponent TOOLTIP_WANDER = new TranslatableComponent("gui.recruits.command.tooltip.wander");
     private static final TranslatableComponent TOOLTIP_HOLD_MY_POS = new TranslatableComponent("gui.recruits.command.tooltip.holdMyPos");
@@ -42,7 +48,8 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
     private static final TranslatableComponent TOOLTIP_RAID = new TranslatableComponent("gui.recruits.command.tooltip.raid");
 
     private static final TranslatableComponent TEXT_ESCORT = new TranslatableComponent("gui.recruits.command.text.escort");
-
+    private static final TranslatableComponent TEXT_MOVE = new TranslatableComponent("gui.recruits.command.text.move");
+    private static final TranslatableComponent TEXT_SHIELDS = new TranslatableComponent("gui.recruits.command.text.shields");
     private static final TranslatableComponent TEXT_DISMOUNT = new TranslatableComponent("gui.recruits.command.text.dismount");
     private static final TranslatableComponent TEXT_MOUNT = new TranslatableComponent("gui.recruits.command.text.mount");
     private static final TranslatableComponent TEXT_FOLLOW = new TranslatableComponent("gui.recruits.command.text.follow");
@@ -55,7 +62,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
     private static final TranslatableComponent TEXT_NEUTRAL = new TranslatableComponent("gui.recruits.command.text.neutral");
     private static final TranslatableComponent TEXT_AGGRESSIVE = new TranslatableComponent("gui.recruits.command.text.aggressive");
     private static final TranslatableComponent TEXT_RAID = new TranslatableComponent("gui.recruits.command.text.raid");
-
+    private static final TranslatableComponent TEXT_HAILOFARROWS = new TranslatableComponent("gui.recruits.command.text.arrow");
     private static final TranslatableComponent TOOLTIP_CLEAR_TARGET = new TranslatableComponent("gui.recruits.command.tooltip.clearTargets");
     private static final TranslatableComponent TEXT_CLEAR_TARGET = new TranslatableComponent("gui.recruits.command.text.clearTargets");
 
@@ -63,6 +70,8 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
     private Player player;
     private int group;
     private int recCount;
+    private boolean shields;
+    private boolean hailOfArrows;
 
     public CommandScreen(CommandContainer commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, new TextComponent(""));
@@ -75,13 +84,13 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
     public boolean keyReleased(int x, int y, int z) {
         super.keyReleased(x,y,z);
         this.onClose();
+
         return true;
     }
 
     @Override
     protected void init() {
         super.init();
-
         int zeroLeftPos = leftPos + 150;
         int zeroTopPos = topPos + 10;
         int topPosGab = 7;
@@ -100,7 +109,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_MOUNT,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(99, player, group);
-                    Entity entity = CommandEvents.getEntityByLooking();
+                    Entity entity = CommandEvents.getEntityByLooking(player);
                     if (entity != null){
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntity(player.getUUID(), entity.getUUID(), group));
                     }
@@ -108,20 +117,54 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
             this.renderTooltip(b, TOOLTIP_MOUNT, c, d);
         }));
 
+        //ARROWS
+        addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_HAILOFARROWS,
+                button -> {
+                    this.hailOfArrows = !getSavedHailOfArrowsBool(player);
+
+                    if(hailOfArrows)
+                        CommandEvents.sendFollowCommandInChat(96, player, group);
+                        else
+                        CommandEvents.sendFollowCommandInChat(94, player, group);
+
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageHailOfArrows(player.getUUID(), group, hailOfArrows));
+
+                    saveHailOfArrowsBool(player);
+                },  (a, b, c, d) -> {
+            this.renderTooltip(b, TOOLTIP_MOVE, c, d);
+        }));
+
         //MOVE
-        addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 5 + 30, 80, 20, TEXT_ESCORT,
+        addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_MOVE,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(97, player, group);
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageMove(player.getUUID(), 0));
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageMove(player.getUUID(), group));
                 },  (a, b, c, d) -> {
-            this.renderTooltip(b, TOOLTIP_ESCORT, c, d);
+            this.renderTooltip(b, TOOLTIP_MOVE, c, d);
+        }));
+
+        //SHIELDS
+        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_SHIELDS,
+                button -> {
+                    this.shields = !getSavedShieldBool(player);
+
+                    if(shields)
+                        CommandEvents.sendFollowCommandInChat(95, player, group);
+                    else
+                        CommandEvents.sendFollowCommandInChat(93, player, group);
+
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageShields(player.getUUID(), group, shields));
+
+                    saveShieldBool(player);
+                },  (a, b, c, d) -> {
+            this.renderTooltip(b, TOOLTIP_SHIELDS, c, d);
         }));
 
         //Escort
         addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_ESCORT,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(5, player, group);
-                    Entity entity = CommandEvents.getEntityByLooking();
+                    Entity entity = CommandEvents.getEntityByLooking(player);
                     if (entity != null){
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageEscortEntity(player.getUUID(), entity.getUUID(), group));
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 5, group));
@@ -409,5 +452,36 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         nbt.putInt( "CommandingGroup", this.group);
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
+
+    public boolean getSavedShieldBool(Player player) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
+
+        return nbt.getBoolean("Shields");
+    }
+
+    public void saveShieldBool(Player player) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
+
+        nbt.putBoolean( "Shields", this.shields);
+        playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
+    }
+
+    public boolean getSavedHailOfArrowsBool(Player player) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
+
+        return nbt.getBoolean("HailOfArrows");
+    }
+
+    public void saveHailOfArrowsBool(Player player) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
+
+        nbt.putBoolean( "HailOfArrows", this.hailOfArrows);
+        playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
+    }
+
 
 }

@@ -47,7 +47,7 @@ public class RecruitEatGoal extends Goal {
 
         recruit.heal(Objects.requireNonNull(foodStack.getItem().getFoodProperties(foodStack, recruit)).getSaturationModifier() * 1);
         if (!recruit.isSaturated())
-            recruit.setHunger(recruit.getHunger() + Objects.requireNonNull(foodStack.getItem().getFoodProperties(foodStack, recruit)).getSaturationModifier() * 100);
+            recruit.setHunger(recruit.getHunger() + Objects.requireNonNull(foodStack.getItem().getFoodProperties(foodStack, recruit)).getSaturationModifier() * 10);
 
 
         //Main.LOGGER.debug("Start: beforeFoodItem: " + beforeFoodItem);

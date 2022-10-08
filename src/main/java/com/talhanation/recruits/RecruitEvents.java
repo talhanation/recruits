@@ -6,8 +6,10 @@ import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.Rabbit;
 import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -15,21 +17,47 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityTeleportEvent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
-public class RecruitEvents {
+import static com.google.common.base.Predicates.not;
 
-    int timestamp;
+public class   RecruitEvents {
+
+    public int timestamp;
     public static final TranslatableComponent TEXT_BLOCK_WARN = new TranslatableComponent("chat.recruits.text.block_placing_warn");
     private static final Map<ServerLevel, RecruitsPatrolSpawn> RECRUIT_PATROL = new HashMap<>();
+
+    @SubscribeEvent
+    public void onTeleportEvent(EntityTeleportEvent event) {
+
+
+        if (event.getEntity() instanceof ServerPlayer player && !(event instanceof EntityTeleportEvent.EnderPearl) && !(event instanceof EntityTeleportEvent.ChorusFruit) && !(event instanceof EntityTeleportEvent.EnderEntity)){
+
+            UUID player_uuid = player.getUUID();
+            double targetX = event.getTargetX();
+            double targetY = event.getTargetY();
+            double targetZ = event.getTargetZ();
+
+            List <AbstractRecruitEntity> recruits = player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
+                    .inflate(64, 32, 64), AbstractRecruitEntity::isAlive)
+                    .stream()
+                    .filter(recruit -> recruit.getFollowState() == 1)
+                    .filter(recruit -> recruit.getOwnerUUID().equals(player_uuid))
+                    .toList();
+
+            recruits.forEach(recruit -> recruit.teleportTo(targetX, targetY, targetZ));
+
+            //wip
+        }
+
+    }
     @SubscribeEvent
     public void onServerTick(TickEvent.WorldTickEvent event) {
         if (!event.world.isClientSide && event.world instanceof ServerLevel serverWorld) {
@@ -55,10 +83,7 @@ public class RecruitEvents {
                         if (!this.canDamageTarget(recruit, impactEntity)) {
                             event.setCanceled(true);
                         }
-
-                        if (recruit.getOwner() == impactEntity) {
-                            event.setCanceled(true);
-                        } else{
+                        else {
                             recruit.addXp(2);
                             recruit.checkLevel();
                         }

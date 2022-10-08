@@ -42,7 +42,7 @@ public class NomadEntity extends BowmanEntity{
     public void readAdditionalSaveData(CompoundTag nbt) {
         super.readAdditionalSaveData(nbt);
         this.setHadHorse(nbt.getBoolean("hadHorse"));
-        this.reassessWeaponGoal();
+        //this.reassessWeaponGoal();
     }
 
     private void setHadHorse(boolean hadHorse) {
@@ -87,7 +87,7 @@ public class NomadEntity extends BowmanEntity{
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
         this.setCanPickUpLoot(true);
-        this.reassessWeaponGoal();
+        //this.reassessWeaponGoal();
         this.setGroup(2);
     }
 
@@ -102,7 +102,7 @@ public class NomadEntity extends BowmanEntity{
                 horse.setPos(this.getX(), this.getY(), this.getZ());
                 horse.setRandomVariant();
                 horse.setRandomSpawnBonus();
-                if (this.getOwner() != null) horse.setOwnerUUID(this.getOwnerUUID());
+                //if (this.getOwner() != null) horse.setOwnerUUID(this.getOwnerUUID());
 
                 this.startRiding(horse);
                 this.level.addFreshEntity(horse);

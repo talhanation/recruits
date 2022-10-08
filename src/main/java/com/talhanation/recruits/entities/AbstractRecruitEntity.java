@@ -23,6 +23,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
@@ -72,12 +73,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Integer> STATE = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> FOLLOW_STATE = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> SHOULD_FOLLOW = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> SHOULD_BLOCK = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> SHOULD_MOUNT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> SHOULD_ESCORT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> SHOULD_HOLD_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> SHOULD_MOVE_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Optional<BlockPos>> HOLD_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Optional<BlockPos>> MOVE_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
+    private static final EntityDataAccessor<Optional<BlockPos>> UPKEEP_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Boolean> LISTEN = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_FOLLOWING = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Optional<UUID>> MOUNT_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
@@ -164,7 +167,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(new AttributeModifier("attack_bonus", this.random.nextDouble() * 0.5D, AttributeModifier.Operation.MULTIPLY_BASE));
         getAttribute(Attributes.KNOCKBACK_RESISTANCE).addPermanentModifier(new AttributeModifier("knockback_bonus", this.random.nextDouble() * 0.1D, AttributeModifier.Operation.MULTIPLY_BASE));
         getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(new AttributeModifier("speed_bonus", this.random.nextDouble() * 0.1D, AttributeModifier.Operation.MULTIPLY_BASE));
-
     }
 
     public void setDropEquipment(){
@@ -181,9 +183,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         //this.goalSelector.addGoal(0, new (this));
         this.goalSelector.addGoal(1, new FloatGoal(this));
         this.goalSelector.addGoal(1, new RecruitEatGoal(this));
+        this.goalSelector.addGoal(1, new RecruitUpkeepGoal(this));
         this.goalSelector.addGoal(2, new RecruitMountEntity(this));
         //this.goalSelector.addGoal(2, new RecruitMountGoal(this, 1.2D, 32.0F));
-        this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D, 32.0F));
+        this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D,  9.0F));
         this.goalSelector.addGoal(4, new RecruitFollowOwnerGoal(this, 1.2D, this.getFollowStartDistance(), 3.0F));
         this.goalSelector.addGoal(5, new RecruitMeleeAttackGoal(this, 1.15D, true));
         this.goalSelector.addGoal(6, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
@@ -231,6 +234,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(DATA_REMAINING_ANGER_TIME, 0);
         this.entityData.define(GROUP, 0);
         this.entityData.define(SHOULD_FOLLOW, false);
+        this.entityData.define(SHOULD_BLOCK, false);
         this.entityData.define(SHOULD_MOUNT, false);
         this.entityData.define(SHOULD_ESCORT, false);
         this.entityData.define(SHOULD_HOLD_POS, false);
@@ -242,6 +246,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(LEVEL, 1);
         this.entityData.define(FOLLOW_STATE, 0);
         this.entityData.define(HOLD_POS, Optional.empty());
+        this.entityData.define(UPKEEP_POS, Optional.empty());
         this.entityData.define(MOVE_POS, Optional.empty());
         this.entityData.define(LISTEN, true);
         this.entityData.define(MOUNT_ID, Optional.empty());
@@ -276,6 +281,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putBoolean("ShouldFollow", this.getShouldFollow());
         nbt.putBoolean("ShouldMount", this.getShouldMount());
         nbt.putBoolean("ShouldEscort", this.getShouldEscort());
+        nbt.putBoolean("ShouldBlock", this.getShouldBlock());
         nbt.putInt("Group", this.getGroup());
         nbt.putBoolean("Listen", this.getListen());
         nbt.putBoolean("Fleeing", this.getFleeing());
@@ -314,6 +320,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if(this.getEscortUUID() != null){
             nbt.putUUID("EscortUUID", this.getEscortUUID());
         }
+
+        if(this.getUpkeepPos() != null){
+            nbt.putInt("UpkeepPosX", this.getUpkeepPos().getX());
+            nbt.putInt("UpkeepPosY", this.getUpkeepPos().getY());
+            nbt.putInt("UpkeepPosZ", this.getUpkeepPos().getZ());
+        }
     }
 
     @Override
@@ -323,6 +335,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setState(nbt.getInt("AggroState"));
         this.setShouldFollow(nbt.getBoolean("ShouldFollow"));
         this.setShouldMount(nbt.getBoolean("ShouldMount"));
+        this.setShouldBlock(nbt.getBoolean("ShouldBlock"));
         this.setShouldEscort(nbt.getBoolean("ShouldEscort"));
         this.setFleeing(nbt.getBoolean("Fleeing"));
         this.setGroup(nbt.getInt("Group"));
@@ -366,6 +379,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             Optional<UUID> uuid = Optional.of(nbt.getUUID("MountUUID"));
             this.setMountUUID(uuid);
         }
+
+        if (nbt.contains("UpkeepPosX") && nbt.contains("UpkeepPosY") && nbt.contains("UpkeepPosZ")) {
+            this.setUpkeepPos(new BlockPos (
+                    nbt.getInt("UpkeepPosX"),
+                    nbt.getInt("UpkeepPosY"),
+                    nbt.getInt("UpkeepPosZ")));
+        }
     }
 
     public void setCost(int cost){
@@ -374,6 +394,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
 
     ////////////////////////////////////GET////////////////////////////////////
+
+    public BlockPos getUpkeepPos(){
+        return entityData.get(UPKEEP_POS).orElse(null);
+    }
+
     @Nullable
     public Player getOwner(){
         if (this.isOwned() && this.getOwnerUUID() != null){
@@ -450,6 +475,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return entityData.get(SHOULD_FOLLOW);
     }
 
+    public boolean getShouldBlock() {
+        return entityData.get(SHOULD_BLOCK);
+    }
+
     public boolean isFollowing(){
         return entityData.get(IS_FOLLOWING);
     }
@@ -467,6 +496,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return entityData.get(GROUP);
     }
 
+
+    //FOLLOW
+    //0 = wander
+    //1 = follow
+    //2 = hold position
+    //3 = back to position
+    //4 = hold my position
+    //5 = Escort
     public int getFollowState(){
         return entityData.get(FOLLOW_STATE);
     }
@@ -517,6 +554,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
      */
 
     ////////////////////////////////////SET////////////////////////////////////
+
+    public void setUpkeepPos(BlockPos pos){
+        this.entityData.set(HOLD_POS, Optional.of(pos));
+        Main.LOGGER.debug("setUpkeepPos: " + this.getUpkeepPos());
+    }
 
     public void setIsOwned(boolean bool){
         entityData.set(OWNED, bool);
@@ -605,6 +647,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             entityData.set(SHOULD_FOLLOW, bool);
     }
 
+    public void setShouldBlock(boolean bool){
+        entityData.set(SHOULD_BLOCK, bool);
+    }
+
     public void setIsFollowing(boolean bool){
         entityData.set(IS_FOLLOWING, bool);
     }
@@ -629,6 +675,20 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
         entityData.set(STATE, state);
     }
+
+    //STATE
+    // 0 = NEUTRAL
+    // 1 = AGGRESSIVE
+    // 2 = RAID
+    // 3 = PASSIVE
+
+    //FOLLOW
+    //0 = wander
+    //1 = follow
+    //2 = hold position
+    //3 = back to position
+    //4 = hold my position
+    //5 = Escort
 
     public void setFollowState(int state){
         switch (state) {
@@ -659,6 +719,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 setShouldHoldPos(true);
                 clearHoldPos();
                 setHoldPos(this.getOwner().blockPosition());
+                setUpkeepPos(this.getOwner().blockPosition());
                 state = 3;
                 setShouldEscort(false);
             }
@@ -978,17 +1039,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
         if(getHunger() >=  75F && getHealth() < getMaxHealth()){
             this.heal(1.0F/40F);// 1 hp in 2s
-
         }
     }
 
     public boolean needsToEat(){
-        if (getHunger() <= 50F){
-            return true;
-        }
-        else if(getHealth() <= (getMaxHealth() * 0.30) && this.getTarget() == null){
-            return true;
-        }
         /*
         else if(getHealth() <= (getMaxHealth() * 0.20) && eatCoolDown == 0) {
             return true;
@@ -997,8 +1051,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             return true;
         }
          */
-        else
-            return false;
+        //Main.LOGGER.debug(getHunger());
+        if (getHunger() <= 50F){
+            return true;
+        }
+        else return getHealth() <= (getMaxHealth() * 0.30) && this.getTarget() == null;
     }
 
     public boolean needsToPotion(){
@@ -1035,12 +1092,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void makeLevelUpSound() {
-        this.level.playSound(null, this.getX(), this.getY() + 4 , this.getZ(), SoundEvents.VILLAGER_YES, this.getSoundSource(), 15.0F, 0.8F + 0.4F * this.random.nextFloat());
-        this.level.playSound(null, this.getX(), this.getY() + 4 , this.getZ(), SoundEvents.PLAYER_LEVELUP, this.getSoundSource(), 15.0F, 0.8F + 0.4F * this.random.nextFloat());
+        this.playSound(SoundEvents.VILLAGER_YES, 15.0F, 0.8F + 0.4F * this.random.nextFloat());
+        this.playSound(SoundEvents.PLAYER_LEVELUP, 15.0F, 0.8F + 0.4F * this.random.nextFloat());
     }
 
     public void makeHireSound() {
-        this.level.playSound(null, this.getX(), this.getY() + 4 , this.getZ(), SoundEvents.VILLAGER_AMBIENT, this.getSoundSource(), 15.0F, 0.8F + 0.4F * this.random.nextFloat());
+        this.playSound(SoundEvents.VILLAGER_AMBIENT, 15.0F, 0.8F + 0.4F * this.random.nextFloat());
     }
 
     @Override

@@ -5,6 +5,7 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.core.BlockPos;
 
 import java.util.EnumSet;
+import java.util.Objects;
 
 public class RecruitMoveToPosGoal extends Goal {
     private final AbstractRecruitEntity recruit;
@@ -18,10 +19,7 @@ public class RecruitMoveToPosGoal extends Goal {
         this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
     public boolean canUse() {
-        if (this.recruit.getMovePos() == null) {
-            return false;
-        }
-        else return this.recruit.getMovePos().closerThan(recruit.getOnPos(), within);
+        return (recruit.getShouldMovePos() && Objects.requireNonNull(this.recruit.getMovePos()).closerThan(recruit.getOnPos(), within));
     }
 
     public boolean canContinueToUse() {
@@ -32,11 +30,11 @@ public class RecruitMoveToPosGoal extends Goal {
     public void tick() {
         BlockPos blockpos = this.recruit.getMovePos();
         if (blockpos != null) {
-            this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
-        }
+            boolean isClose = recruit.distanceToSqr(blockpos.getX(), blockpos.getY(), blockpos.getZ()) <= 7.00D;
 
-        if(blockpos.closerThan(recruit.getOnPos(), 3)){
-            recruit.setShouldFollow(false);
+            this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
+
+            if (isClose) recruit.setShouldMovePos(false);
         }
     }
 }

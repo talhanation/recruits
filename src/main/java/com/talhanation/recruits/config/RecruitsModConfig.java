@@ -16,7 +16,7 @@ public class RecruitsModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
-    public static final int NEW_VERSION = 12;
+    public static final int NEW_VERSION = 13;
 
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue RenderNameTagforOwner;
@@ -158,7 +158,7 @@ public class RecruitsModConfig {
 
         MountWhiteList = BUILDER.comment("\n" + "----Mount Whitelist----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "Entities in this list won't be targeted at all, for example: [\"minecraft:boat\", \"smallships:cog\"]")
+                        "\t" + "ONLY Entities in this list can be mounted by a recruit, for example: [\"minecraft:boat\", \"smallships:cog\"]")
                 .worldRestart()
                 .define("Mount Whitelist", MOUNTS);
 

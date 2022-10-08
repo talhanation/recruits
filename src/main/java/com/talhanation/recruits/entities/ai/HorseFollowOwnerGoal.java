@@ -34,6 +34,7 @@ public class HorseFollowOwnerGoal extends Goal {
     }
 
     public boolean canUse() {
+        /*
         LivingEntity owner = this.recruitHorse.getOwner();
         if (owner == null) {
             return false;
@@ -53,6 +54,8 @@ public class HorseFollowOwnerGoal extends Goal {
             this.owner = owner;
             return (rider.getShouldFollow());
         }
+        */
+        return false;
     }
 
     public boolean canContinueToUse() {

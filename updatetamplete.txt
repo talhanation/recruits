@@ -2,10 +2,11 @@ Update 1.8.4
 
 ---------------------------------------------------------------------------------------------------------------------------
 
-+ added recruit caravans, villager escorts (configurable default: true)
++ added dismount button to recruit inventory
++ added upkeep
 + added...
 
-+improved vanilla pillager patrol spawns (configurable default: true)
++improved recruits shield AI
 +improved...
 
 + fixed recruits dont make a eating animation when giving 1x food
