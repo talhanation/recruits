@@ -18,7 +18,6 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
     private final double speedModifier;
     private int attackIntervalMin;
     private LivingEntity target;
-    private final float attackRadiusSqr;
     private int attackTime = -1;
     private int seeTime;
     private final int attackIntervalMax;
@@ -29,7 +28,6 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
         this.speedModifier = speedModifier;
         this.attackIntervalMin = attackIntervalMin;
         this.attackIntervalMax = attackIntervalMax;
-        this.attackRadiusSqr = attackRadius * attackRadius;
         this.attackRadius = attackRadius;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
     }
@@ -158,7 +156,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
         LivingEntity target = this.mob.getTarget();
         BlockPos pos = mob.getMovePos();
 
-        if (target != null && pos != null && mob.getShouldHoldPos()) {
+        if (target != null && pos != null && mob.getShouldMovePos()) {
             boolean targetIsFar = target.distanceTo(this.mob) >= 21.5D;
             boolean posIsClose = pos.distSqr(this.mob.getOnPos()) <= 15.0D;
             boolean posIsFar = pos.distSqr(this.mob.getOnPos()) > 15.0D;
@@ -167,7 +165,9 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
                 return false;
             }
 
-            else return !posIsClose || !targetIsFar;
+            else if (posIsClose && targetIsFar){
+                return false;
+            }
         }
         return true;
     }

@@ -1,12 +1,10 @@
 package com.talhanation.recruits;
 
-import com.google.common.collect.ImmutableMultimap;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.BowmanEntity;
 import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.network.MessageCommandScreen;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -16,10 +14,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeMap;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -29,20 +23,15 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-import java.util.Objects;
 import java.util.UUID;
 
 public class CommandEvents {
-
-    private static int recruitsInCommand;
-    public static int currentGroup;
     public static final TranslatableComponent TEXT_HIRE_COSTS = new TranslatableComponent("chat.recruits.text.hire_costs");
     public static final TranslatableComponent TEXT_EVERYONE = new TranslatableComponent("chat.recruits.text.everyone");
     public static final TranslatableComponent TEXT_GROUP = new TranslatableComponent("chat.recruits.text.group");
@@ -65,10 +54,10 @@ public class CommandEvents {
     public static final TranslatableComponent TEXT_HAILOFARROWS_OFF = new TranslatableComponent("chat.recruits.command.arrows_off");
     public static final TranslatableComponent TEXT_MOUNT = new TranslatableComponent("chat.recruits.command.mount");
     public static final TranslatableComponent TEXT_ESCORT = new TranslatableComponent("chat.recruits.command.escort");
-
+    public static final TranslatableComponent TEXT_UPKEEP = new TranslatableComponent("chat.recruits.command.upkeep");
 
     public static void onFollowCommand(UUID player_uuid, AbstractRecruitEntity recruit, int r_state, int group, boolean fromGui) {
-        if (recruit.isOwned() && (recruit.getListen() || fromGui) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
+        if (recruit.isEffectedByCommand(player_uuid, group)){
             int state = recruit.getFollowState();
             switch (r_state) {
 
@@ -105,8 +94,8 @@ public class CommandEvents {
         }
     }
 
-    public static void onXKeyPressed(UUID player_uuid, AbstractRecruitEntity recruit, int x_state, int group, boolean fromGui) {
-        if (recruit.isOwned() &&(recruit.getListen() || fromGui) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
+    public static void onAggroCommand(UUID player_uuid, AbstractRecruitEntity recruit, int x_state, int group, boolean fromGui) {
+        if (recruit.isEffectedByCommand(player_uuid, group)){
             int state = recruit.getState();
             switch (x_state) {
 
@@ -134,7 +123,7 @@ public class CommandEvents {
     }
 
     public static void onArrowsCommand(Player player, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean should) {
-        if (recruit.isOwned() && (recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)){
+        if (recruit.isEffectedByCommand(player_uuid, group)){
 
             if (recruit instanceof BowmanEntity bowman){
                 HitResult hitResult = player.pick(100, 1F, false);
@@ -151,8 +140,7 @@ public class CommandEvents {
     }
 
     public static void onMoveCommand(Player player, UUID player_uuid, AbstractRecruitEntity recruit, int group) {
-        if (recruit.isOwned() && (recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)){
-            int state = recruit.getFollowState();
+        if (recruit.isEffectedByCommand(player_uuid, group)){
 
             HitResult hitResult = player.pick(100, 1F, false);
 
@@ -213,6 +201,7 @@ public class CommandEvents {
             case 4 -> owner.sendMessage(new TextComponent(group_string +  TEXT_HOLD_MY_POS.getString()), owner.getUUID());
             case 5 -> owner.sendMessage(new TextComponent(group_string +  TEXT_ESCORT.getString()), owner.getUUID());
 
+            case 92 -> owner.sendMessage(new TextComponent(group_string +  TEXT_UPKEEP.getString()), owner.getUUID());
             case 93 -> owner.sendMessage(new TextComponent(group_string +  TEXT_SHIELDS_OFF.getString()), owner.getUUID());
             case 94 -> owner.sendMessage(new TextComponent(group_string +  TEXT_HAILOFARROWS_OFF.getString()), owner.getUUID());
             case 95 -> owner.sendMessage(new TextComponent(group_string +  TEXT_SHIELDS.getString()), owner.getUUID());
@@ -251,18 +240,6 @@ public class CommandEvents {
 
             playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
         }
-    }
-
-    public static int getRecruitsInCommand() {
-        return recruitsInCommand;
-    }
-
-    public static void setCurrentGroup(int group) {
-        currentGroup = group;
-    }
-
-    public static int getCurrentGroup() {
-        return currentGroup;
     }
 
     @SubscribeEvent
@@ -365,13 +342,13 @@ public class CommandEvents {
 
 
     public static void onMountButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID mount_uuid, int group) {
-        if (recruit.isOwned() && (recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
+        if (recruit.isEffectedByCommand(player_uuid, group)){
             recruit.shouldMount(true, mount_uuid);
         }
     }
 
     public static void onDismountButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
-        if (recruit.isOwned() && (recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
+        if (recruit.isEffectedByCommand(player_uuid, group)){
             recruit.shouldMount(false, null);
             if(recruit.isPassenger()){
                 recruit.stopRiding();
@@ -380,23 +357,35 @@ public class CommandEvents {
     }
 
     public static void onEscortButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID escort_uuid, int group) {
-        if (recruit.isOwned() && (recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
+        if (recruit.isEffectedByCommand(player_uuid, group)){
             recruit.shouldEscort(true, escort_uuid);
         }
     }
 
     public static void onStopButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
-        if (recruit.isOwned() && (recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)) {
+        if (recruit.isEffectedByCommand(player_uuid, group)){
             recruit.setTarget(null);
         }
     }
 
-    public static void setRecruitUpkeep(AbstractRecruitEntity recruit, BlockPos pos) {
-        //recruit.setUpkeepPos(recruit.get);
+    public static void onUpkeepCommand(Player player, UUID player_uuid, AbstractRecruitEntity recruit, int group) {
+        if (recruit.isEffectedByCommand(player_uuid, group)){
+
+            HitResult hitResult = player.pick(100, 1F, false);
+
+            if (hitResult != null) {
+                if (hitResult.getType() == HitResult.Type.BLOCK) {
+                    BlockHitResult blockHitResult = (BlockHitResult) hitResult;
+                    BlockPos blockpos = blockHitResult.getBlockPos();
+                    recruit.setUpkeepPos(blockpos);
+                    Main.LOGGER.debug("Upkeep pos: " + blockpos);
+                }
+            }
+        }
     }
 
     public static void onShieldsCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean shields) {
-        if (recruit.isOwned() && (recruit.getListen()) && Objects.equals(recruit.getOwnerUUID(), player_uuid) && (recruit.getGroup() == group || group == 0)){
+        if (recruit.isEffectedByCommand(player_uuid, group)){
             recruit.setShouldBlock(shields);
         }
     }

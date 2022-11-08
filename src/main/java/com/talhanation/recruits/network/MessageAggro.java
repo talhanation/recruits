@@ -40,13 +40,13 @@ public class MessageAggro implements Message<MessageAggro> {
             List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
             for (AbstractRecruitEntity recruits : list) {
                 if (recruits.getUUID().equals(this.recruit))
-                CommandEvents.onXKeyPressed(this.player, recruits, this.state, group, fromGui);
+                CommandEvents.onAggroCommand(this.player, recruits, this.state, group, fromGui);
             }
         }
         else {
             List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
             for (AbstractRecruitEntity recruits : list) {
-                CommandEvents.onXKeyPressed(this.player, recruits, this.state, group, fromGui);
+                CommandEvents.onAggroCommand(this.player, recruits, this.state, group, fromGui);
             }
         }
     }

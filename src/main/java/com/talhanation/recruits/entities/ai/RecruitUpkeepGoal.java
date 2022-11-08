@@ -40,8 +40,6 @@ public class RecruitUpkeepGoal extends Goal {
     public void start() {
         super.start();
         Main.LOGGER.debug("upkeep started");
-
-
     }
 
     @Override
@@ -49,7 +47,7 @@ public class RecruitUpkeepGoal extends Goal {
         super.tick();
         this.chestPos = findInvPos();
         Main.LOGGER.debug("searching upkeep");
-        if (chestPos != null) {
+        if (chestPos != null && !this.hasFoodInInv()) {
             Main.LOGGER.debug("Moving to chest");
             this.recruit.getNavigation().moveTo(chestPos.getX(), chestPos.getY(), chestPos.getZ(), 1.15D);
             BlockEntity entity = recruit.level.getBlockEntity(chestPos);
@@ -64,11 +62,24 @@ public class RecruitUpkeepGoal extends Goal {
                 this.recruit.getLookControl().setLookAt(chestPos.getX(), chestPos.getY() + 1, chestPos.getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
 
                 Main.LOGGER.debug("Getting food from chest");
-                ItemStack foodItem = this.getFoodFromInv(container);
-                if(foodItem != null) recruit.getInventory().addItem(foodItem);
-                else Main.LOGGER.debug("Chest empty");
+
+                for(int i = 0; i < 3; i++) {
+                    ItemStack foodItem = this.getFoodFromInv(container);
+                    ItemStack food;
+                    if (foodItem != null) {
+                        food = foodItem.copy();
+                        food.setCount(1);
+                        recruit.getInventory().addItem(food);
+                        foodItem.shrink(1);
+                    }
+                    else{
+                        Main.LOGGER.debug("Chest empty");
+                        break;
+                    }
+                }
             }
-        }else {
+        }
+        else {
             this.chestPos = findInvPos();
             Main.LOGGER.debug("Chest not found");
         }
@@ -102,7 +113,6 @@ public class RecruitUpkeepGoal extends Goal {
         for(int i = 0; i < inv.getContainerSize(); i++){
             if(inv.getItem(i).isEdible()){
                 itemStack = inv.getItem(i);
-                itemStack.shrink(1);
                 break;
             }
         }

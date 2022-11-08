@@ -97,6 +97,7 @@
   "gui.recruits.command.text.group" : "Group",
   "gui.recruits.command.text.everyone" : "Everyone",
 
+  "chat.recruits.command.upkeep" : "Your upkeep is here!",
   "chat.recruits.command.escort" : "Escort this Mob!",
   "chat.recruits.command.mount" : "Mount here!",
   "chat.recruits.command.dismount" : "Dismount!",

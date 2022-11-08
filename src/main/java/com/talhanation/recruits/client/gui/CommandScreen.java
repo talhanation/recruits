@@ -66,6 +66,8 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
     private static final TranslatableComponent TOOLTIP_CLEAR_TARGET = new TranslatableComponent("gui.recruits.command.tooltip.clearTargets");
     private static final TranslatableComponent TEXT_CLEAR_TARGET = new TranslatableComponent("gui.recruits.command.text.clearTargets");
 
+    private static final TranslatableComponent TEXT_UPKEEP = new TranslatableComponent("gui.recruits.inv.text.upkeep");
+
     private static final int fontColor = 16250871;
     private Player player;
     private int group;
@@ -141,6 +143,17 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageMove(player.getUUID(), group));
                 },  (a, b, c, d) -> {
             this.renderTooltip(b, TOOLTIP_MOVE, c, d);
+        }));
+
+        //UPKEEP
+        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 5, 80, 20, TEXT_UPKEEP,
+                button -> {
+                    CommandEvents.sendFollowCommandInChat(92, player, group);
+                    Main.LOGGER.debug("Upkeep: Button");
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageUpkeepPos(player.getUUID(), group));
+
+             },  (a, b, c, d) -> {
+            this.renderTooltip(b, TOOLTIP_DISMOUNT, c, d);
         }));
 
         //SHIELDS

@@ -1,60 +1,33 @@
 package com.talhanation.recruits.client.render;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+import com.talhanation.recruits.client.events.ClientEvent;
+import com.talhanation.recruits.client.models.RecruitModel;
 import com.talhanation.recruits.entities.AbstractInventoryEntity;
+import com.talhanation.recruits.entities.RecruitEntity;
 import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.model.PlayerModel;
+import net.minecraft.client.model.ZombieModel;
 import net.minecraft.client.model.geom.ModelLayers;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.client.renderer.entity.layers.*;
+import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
+import net.minecraft.client.renderer.entity.layers.ArrowLayer;
+import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
+import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.UseAnim;
 
-public abstract class AbstractRecruitRenderer<Type extends AbstractInventoryEntity> extends MobRenderer<Type, PlayerModel<Type>> {
-
+public abstract class AbstractRecruitRenderer<T extends AbstractInventoryEntity, M extends RecruitModel<T>> extends HumanoidMobRenderer<T, M> {
     public AbstractRecruitRenderer(EntityRendererProvider.Context mgr) {
-        super(mgr, new PlayerModel<>((mgr.bakeLayer(ModelLayers.PLAYER)), false), 0.5F);
-        this.addLayer(new HumanoidArmorLayer<>(this, new HumanoidModel(mgr.bakeLayer(ModelLayers.PLAYER_INNER_ARMOR)), new HumanoidModel(mgr.bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR))));
-        this.addLayer(new ArrowLayer<>(mgr, this));
-        this.addLayer(new BeeStingerLayer<>(this));
-        this.addLayer(new CustomHeadLayer<>(this, mgr.getModelSet()));
-        this.addLayer(new ItemInHandLayer<>(this));
-    }
-
-    public void render(AbstractInventoryEntity recruit, float p_117789_, float p_117790_, PoseStack p_117791_, MultiBufferSource p_117792_, int p_117793_) {
-        this.setModelProperties(recruit);
-        super.render((Type) recruit, p_117789_, p_117790_, p_117791_, p_117792_, p_117793_);
-    }
-    
-    private void setModelProperties(AbstractInventoryEntity recruit) {
-        PlayerModel<AbstractInventoryEntity> model = (PlayerModel<AbstractInventoryEntity>) this.getModel();
-
-        model.setAllVisible(true);
-        model.hat.visible = true;
-        model.jacket.visible = false;
-        model.leftPants.visible = false;
-        model.rightPants.visible = false;
-        model.leftSleeve.visible = false;
-        model.rightSleeve.visible = false;
-        model.crouching = recruit.isCrouching();
-        HumanoidModel.ArmPose humanoidmodel$armpose = getArmPose(recruit, InteractionHand.MAIN_HAND);
-        HumanoidModel.ArmPose humanoidmodel$armpose1 = getArmPose(recruit, InteractionHand.OFF_HAND);
-        if (humanoidmodel$armpose.isTwoHanded()) {
-            humanoidmodel$armpose1 = recruit.getOffhandItem().isEmpty() ? HumanoidModel.ArmPose.EMPTY : HumanoidModel.ArmPose.ITEM;
-        }
-        if (recruit.getMainArm() == HumanoidArm.RIGHT) {
-            model.rightArmPose = humanoidmodel$armpose;
-            model.leftArmPose = humanoidmodel$armpose1;
-        } else {
-            model.rightArmPose = humanoidmodel$armpose1;
-            model.leftArmPose = humanoidmodel$armpose;
-        }
+        super(mgr, new RecruitModel (mgr.bakeLayer(ClientEvent.RECRUIT)), 0.5F);
+        //this.addLayer(new HumanoidArmorLayer<>(this, new RecruitModel(mgr.bakeLayer(ModelLayers.PLAYER_INNER_ARMOR)), new RecruitModel(mgr.bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR))));
+        //this.addLayer(new ArrowLayer<>(mgr, this));
+        //this.addLayer(new BeeStingerLayer<>(this));
+        //this.addLayer(new CustomHeadLayer<>(this, mgr.getModelSet()));
+        //this.addLayer(new ItemInHandLayer<>(this));
     }
 
     private static HumanoidModel.ArmPose getArmPose(AbstractInventoryEntity recruit, InteractionHand hand) {

@@ -56,7 +56,7 @@ public class RecruitHailOfArrows extends Goal {
             double d0 = this.bowman.distanceToSqr(pos.getX(), bowman.getY(), pos.getZ());
 
             this.bowman.getLookControl().setLookAt(pos.getX(), pos.getY() * 16, pos.getZ(), 30.0F, 30.0F);
-            Main.LOGGER.debug("d0: " + d0);
+            //Main.LOGGER.debug("d0: " + d0);
             if (this.bowman.isUsingItem()) {
 
                 int i = this.bowman.getTicksUsingItem();

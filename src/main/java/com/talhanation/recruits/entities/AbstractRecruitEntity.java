@@ -23,7 +23,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
@@ -65,6 +64,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -85,25 +85,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Boolean> IS_FOLLOWING = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Optional<UUID>> MOUNT_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Optional<UUID>> ESCORT_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
-
     private static final EntityDataAccessor<Integer> GROUP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> XP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> LEVEL = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> KILLS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_EATING = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> FLEEING = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
-
     private static final EntityDataAccessor<Float> HUNGER = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> MORAL = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.FLOAT);
-
     private static final EntityDataAccessor<Optional<UUID>> OWNER_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Boolean> OWNED = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> COST = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
-
-
-
-    //private static final DataParameter<ItemStack> OFFHAND_ITEM_SAVE = EntityDataManager.defineId(AbstractRecruitEntity.class, DataSerializers.ITEM_STACK);
-
     public int blockCoolDown;
     public int eatCoolDown;
 
@@ -186,7 +178,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(1, new RecruitUpkeepGoal(this));
         this.goalSelector.addGoal(2, new RecruitMountEntity(this));
         //this.goalSelector.addGoal(2, new RecruitMountGoal(this, 1.2D, 32.0F));
-        this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D,  9.0F));
+        this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D));
         this.goalSelector.addGoal(4, new RecruitFollowOwnerGoal(this, 1.2D, this.getFollowStartDistance(), 3.0F));
         this.goalSelector.addGoal(5, new RecruitMeleeAttackGoal(this, 1.15D, true));
         this.goalSelector.addGoal(6, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
@@ -556,7 +548,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     ////////////////////////////////////SET////////////////////////////////////
 
     public void setUpkeepPos(BlockPos pos){
-        this.entityData.set(HOLD_POS, Optional.of(pos));
+        this.entityData.set(UPKEEP_POS, Optional.of(pos));
         Main.LOGGER.debug("setUpkeepPos: " + this.getUpkeepPos());
     }
 
@@ -719,9 +711,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 setShouldHoldPos(true);
                 clearHoldPos();
                 setHoldPos(this.getOwner().blockPosition());
-                setUpkeepPos(this.getOwner().blockPosition());
-                state = 3;
                 setShouldEscort(false);
+                state = 3;
             }
             case 5 -> {
                 setShouldFollow(false);
@@ -757,6 +748,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     ////////////////////////////////////is FUNCTIONS////////////////////////////////////
 
+    public boolean isEffectedByCommand(UUID player_uuid, int group){
+        return (this.isOwned() && (this.getListen()) && Objects.equals(this.getOwnerUUID(), player_uuid) && (this.getGroup() == group || group == 0));
+    }
     public boolean isOwned(){
         return getIsOwned();
     }
@@ -1042,6 +1036,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
+    public boolean needsToGetFood(){
+        return this.needsToEat() && this.getUpkeepPos() != null;
+    }
     public boolean needsToEat(){
         /*
         else if(getHealth() <= (getMaxHealth() * 0.20) && eatCoolDown == 0) {
@@ -1360,5 +1357,19 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setShouldEscort(should);
         if(escort_uuid != null) this.setEscortUUID(Optional.of(escort_uuid));
         else this.setEscortUUID(Optional.empty());
+    }
+
+    public static enum ArmPose {
+        ATTACKING,
+        BLOCKING,
+        BOW_AND_ARROW,
+        CROSSBOW_HOLD,
+        CROSSBOW_CHARGE,
+        CELEBRATING,
+        NEUTRAL;
+    }
+
+    public AbstractRecruitEntity.ArmPose getArmPose() {
+        return AbstractRecruitEntity.ArmPose.NEUTRAL;
     }
 }

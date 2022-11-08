@@ -6,7 +6,7 @@ import com.talhanation.recruits.entities.BowmanEntity;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 
-public class BowmanRenderer extends AbstractRecruitRenderer<BowmanEntity> {
+public class BowmanRenderer extends AbstractRecruitRenderer{
 
     private static final ResourceLocation[] TEXTURE = {
             new ResourceLocation(Main.MOD_ID,"textures/entity/recruit.png"),
@@ -16,7 +16,7 @@ public class BowmanRenderer extends AbstractRecruitRenderer<BowmanEntity> {
         super(mgr);
     }
 
-    @Override
+
     public ResourceLocation getTextureLocation(BowmanEntity p_110775_1_) {
         return TEXTURE[0];
     }
