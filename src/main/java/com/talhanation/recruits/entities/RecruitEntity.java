@@ -76,22 +76,22 @@ public class RecruitEntity extends AbstractRecruitEntity {
         this.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.LEATHER_LEGGINGS));
         this.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.LEATHER_BOOTS));
 
-        inventory.setItem(11, new ItemStack(Items.LEATHER_HELMET));
-        inventory.setItem(12, new ItemStack(Items.LEATHER_CHESTPLATE));
-        inventory.setItem(13, new ItemStack(Items.LEATHER_LEGGINGS));
-        inventory.setItem(14, new ItemStack(Items.LEATHER_BOOTS));
+        //inventory.setItem(11, new ItemStack(Items.LEATHER_HELMET));
+        //inventory.setItem(12, new ItemStack(Items.LEATHER_CHESTPLATE));
+        //inventory.setItem(13, new ItemStack(Items.LEATHER_LEGGINGS));
+        //inventory.setItem(14, new ItemStack(Items.LEATHER_BOOTS));
         int i = this.random.nextInt(8);
         if (i == 0) {
-            inventory.setItem(9, new ItemStack(Items.STONE_AXE));
+            //inventory.setItem(9, new ItemStack(Items.STONE_AXE));
             this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_AXE));
         } else  if (i == 1){
-            inventory.setItem(9, new ItemStack(Items.STONE_SWORD));
+            //inventory.setItem(9, new ItemStack(Items.STONE_SWORD));
             this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
         } else  if (i == 2){
-            inventory.setItem(9, new ItemStack(Items.STONE_SWORD));
+            //inventory.setItem(9, new ItemStack(Items.STONE_SWORD));
             this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
         }else{
-            inventory.setItem(9, new ItemStack(Items.WOODEN_SWORD));
+            //inventory.setItem(9, new ItemStack(Items.WOODEN_SWORD));
             this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.WOODEN_SWORD));
         }
     }

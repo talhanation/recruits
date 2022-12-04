@@ -39,10 +39,17 @@ public class RecruitInventoryContainer extends ContainerBase {
         this.recruit = recruit;
         this.recruitInventory = recruit.getInventory();
 
-        addRecruitInventorySlots();
+
+
+        addRecruitEquipmentSlotHead();
+        addRecruitEquipmentSlotChest();
+        addRecruitEquipmentSlotLegs();
+        addRecruitEquipmentSlotFeet();
         addRecruitHandSlots();
-        addRecruitEquipmentSlots();
+
         addPlayerInventorySlots();
+        addRecruitInventorySlots();
+        //addRecruitEquipmentSlots();
     }
 
     public AbstractRecruitEntity getRecruit() {
@@ -57,8 +64,190 @@ public class RecruitInventoryContainer extends ContainerBase {
     //iv slots
     //9,10 = hand
     //11,12,13,14 = armor
-    //0-8 = inv
+    //0 = head
+    //1 = chest
+    //2 = legs
+    //3 = boots
+    //4 = main hand
+    //5 = sec hand
 
+    private void addRecruitEquipmentSlotHead(){
+        int x = 0;
+        this.addSlot(new Slot(recruitInventory, x, 2 * 18 + 82 + x * 18, 18 + x * 18) {
+
+        @Override
+        public int getMaxStackSize() {
+            return 1;
+        }
+
+        public boolean mayPlace(ItemStack itemStack) {
+            return itemStack.canEquip(EquipmentSlot.HEAD, recruit)
+                    || (itemStack.getItem() instanceof BannerItem);
+        }
+
+        @Override
+        public void set(ItemStack stack) {
+            super.set(stack);
+            recruit.setItemSlot(EquipmentSlot.HEAD, stack);
+        }
+
+        @Override
+        public boolean mayPickup(Player playerIn) {
+            return true;
+        }
+
+        @Override
+        public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+            return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_HELMET);
+        }
+        });
+    }
+
+    private void addRecruitEquipmentSlotChest() {
+        int x = 1;
+        this.addSlot(new Slot(recruitInventory, x, 2 * 18 + 82 + x * 18, 18 + x * 18) {
+
+            @Override
+            public int getMaxStackSize() {
+                return 1;
+            }
+
+            public boolean mayPlace(ItemStack itemStack) {
+                return itemStack.canEquip(EquipmentSlot.CHEST, recruit)
+                        || (itemStack.getItem() instanceof BannerItem);
+            }
+
+            @Override
+            public void set(ItemStack stack) {
+                super.set(stack);
+                recruit.setItemSlot(EquipmentSlot.CHEST, stack);
+            }
+
+            @Override
+            public boolean mayPickup(Player playerIn) {
+                return true;
+            }
+
+            @Override
+            public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+                return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE);
+            }
+        });
+    }
+    private void addRecruitEquipmentSlotLegs() {
+        int x = 2;
+        this.addSlot(new Slot(recruitInventory, x, 2 * 18 + 82 + x * 18, 18 + x * 18) {
+
+            @Override
+            public int getMaxStackSize() {
+                return 1;
+            }
+
+            public boolean mayPlace(ItemStack itemStack) {
+                return itemStack.canEquip(EquipmentSlot.LEGS, recruit);
+            }
+
+            @Override
+            public void set(ItemStack stack) {
+                super.set(stack);
+                recruit.setItemSlot(EquipmentSlot.LEGS, stack);
+            }
+
+            @Override
+            public boolean mayPickup(Player playerIn) {
+                return true;
+            }
+
+            @Override
+            public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+                return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE);
+            }
+        });
+    }
+
+    private void addRecruitEquipmentSlotFeet() {
+        int x = 3;
+        this.addSlot(new Slot(recruitInventory, x, 2 * 18 + 82 + x * 18, 18 + x * 18) {
+
+            @Override
+            public int getMaxStackSize() {
+                return 1;
+            }
+
+            public boolean mayPlace(ItemStack itemStack) {
+                return itemStack.canEquip(EquipmentSlot.FEET, recruit);
+            }
+
+            @Override
+            public void set(ItemStack stack) {
+                super.set(stack);
+                recruit.setItemSlot(EquipmentSlot.FEET, stack);
+            }
+
+            @Override
+            public boolean mayPickup(Player playerIn) {
+                return true;
+            }
+
+            @Override
+            public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+                return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE);
+            }
+        });
+    }
+
+
+    public void addRecruitHandSlots() {
+        this.addSlot(new Slot(recruit.inventory, 4,26,90) {
+            @Override
+            public boolean mayPlace(ItemStack itemStack) {
+                return  recruit.canHoldItem(itemStack);
+            }
+
+            @Override
+            public void set(ItemStack stack){
+                super.set(stack);
+
+                recruit.setItemSlot(EquipmentSlot.MAINHAND, stack);
+            }
+
+        });
+
+        this.addSlot(new Slot(recruit.inventory, 5,44,90) {
+            @Override
+            public boolean mayPlace(ItemStack stack){
+                return stack.getItem() instanceof ShieldItem;
+            }
+
+            @Override
+            public void set(ItemStack stack){
+                super.set(stack);
+                recruit.setItemSlot(EquipmentSlot.OFFHAND, stack);
+            }
+
+            @Override
+            public Pair<ResourceLocation, ResourceLocation> getNoItemIcon () {
+                return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD);
+            }
+        });
+    }
+
+    public void addRecruitInventorySlots() {
+        for (int k = 0; k < 3; ++k) {
+            for (int l = 0; l < 3; ++l) {
+                this.addSlot(new Slot(recruitInventory, 7 + l + k * recruit.getInventoryColumns(), 2 * 18 + 82 + l * 18,  18 + k * 18));
+            }
+        }
+    }
+
+
+    //OLD
+
+    //iv slots
+    //9,10 = hand
+    //11,12,13,14 = armor
+    //0-8 = inv
+    /*
     public void addRecruitInventorySlots() {
         for (int k = 0; k < 3; ++k) {
             for (int l = 0; l < 3; ++l) {
@@ -210,4 +399,6 @@ public class RecruitInventoryContainer extends ContainerBase {
 
         return itemstack;
     }
+
+     */
 }

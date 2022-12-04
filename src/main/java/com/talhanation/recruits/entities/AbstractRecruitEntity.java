@@ -746,6 +746,38 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public abstract void initSpawn();
 
+    @Override
+    public void setItemSlot(EquipmentSlot slotIn, ItemStack stack) {
+        super.setItemSlot(slotIn, stack);
+        switch (slotIn) {
+            case HEAD:
+                if (this.inventory.getItem(0).isEmpty())
+                    this.inventory.setItem(0, this.armorItems.get(slotIn.getIndex()));
+                break;
+            case CHEST:
+                if (this.inventory.getItem(1).isEmpty())
+                    this.inventory.setItem(1, this.armorItems.get(slotIn.getIndex()));
+                break;
+            case FEET:
+                if (this.inventory.getItem(3).isEmpty())
+                    this.inventory.setItem(3, this.armorItems.get(slotIn.getIndex()));
+                break;
+
+            case LEGS:
+                if (this.inventory.getItem(2).isEmpty())
+                    this.inventory.setItem(2, this.armorItems.get(slotIn.getIndex()));
+                break;
+            case MAINHAND:
+                if (this.inventory.getItem(5).isEmpty())
+                    this.inventory.setItem(5, this.handItems.get(slotIn.getIndex()));
+                break;
+            case OFFHAND:
+                if (this.inventory.getItem(4).isEmpty())
+                    this.inventory.setItem(4, this.handItems.get(slotIn.getIndex()));
+                break;
+        }
+    }
+
     ////////////////////////////////////is FUNCTIONS////////////////////////////////////
 
     public boolean isEffectedByCommand(UUID player_uuid, int group){

@@ -54,37 +54,9 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
     public void tick() {
         super.tick();
-        if (!level.isClientSide) recDetectEquipmentUpdates();
-
-        //updateRecruitInvSlots(); //funkt nicht
     }
 
     ////////////////////////////////////DATA////////////////////////////////////
-     // damit er automatisch immer das setzt was in dem equp hat
-    // jaaa eine for schleife wäre besser ... aber so sieht man welcher slot was sein soll
-    /*
-    public void updateRecruitInvSlots(){
-        ItemStack itemStack = getItemBySlot(EquipmentSlotType.HEAD);
-        setSlot(11, itemStack);
-
-        ItemStack itemStack2 = getItemBySlot(EquipmentSlotType.CHEST);
-        setSlot(12, itemStack2);
-
-        ItemStack itemStack3 = getItemBySlot(EquipmentSlotType.LEGS);
-        setSlot(13, itemStack3);
-
-        ItemStack itemStack4 = getItemBySlot(EquipmentSlotType.FEET);
-        setSlot(14, itemStack4);
-
-        ItemStack itemStack5 = getItemBySlot(EquipmentSlotType.MAINHAND);
-        setSlot(9, itemStack5);
-
-        ItemStack itemStack6 = getItemBySlot(EquipmentSlotType.OFFHAND);
-        setSlot(10, itemStack6);
-    }
-
-     */
-
 
     protected void defineSynchedData() {
         super.defineSynchedData();
@@ -108,7 +80,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
     public void readAdditionalSaveData(CompoundTag nbt) {
         super.readAdditionalSaveData(nbt);
-        ListTag listnbt = nbt.getList("Items", 10);//muss 10 sen amk sonst nix save
+        ListTag listnbt = nbt.getList("Items", 10);//muss 10 sein amk sonst nix save
         this.createInventory();
 
         for (int i = 0; i < listnbt.size(); ++i) {
@@ -116,6 +88,21 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
             int j = compoundnbt.getByte("Slot") & 255;
             if (j < this.inventory.getContainerSize()) {
                 this.inventory.setItem(j, ItemStack.of(compoundnbt));
+            }
+        }
+
+        if (nbt.contains("ArmorItems", 9)) {
+            ListTag armorItems = nbt.getList("ArmorItems", 10);
+            for (int i = 0; i < this.armorItems.size(); ++i) {
+                int index = this.getInventorySlotIndex(Mob.getEquipmentSlotForItem(ItemStack.of(armorItems.getCompound(i))));
+                this.inventory.setItem(index, ItemStack.of(armorItems.getCompound(i)));
+            }
+        }
+        if (nbt.contains("HandItems", 9)) {
+            ListTag handItems = nbt.getList("HandItems", 10);
+            for (int i = 0; i < this.handItems.size(); ++i) {
+                int handSlot = i == 0 ? 5 : 4;
+                this.inventory.setItem(handSlot, ItemStack.of(handItems.getCompound(i)));
             }
         }
 
@@ -133,6 +120,22 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
     public int getInventoryColumns() {
         return 3;
+    }
+
+    public int getInventorySlotIndex(EquipmentSlot slot) {
+        switch (slot) {
+            case HEAD:
+                return 0;
+            case CHEST:
+                return 1;
+            case LEGS:
+                return 2;
+            case FEET:
+                return 3;
+            default:
+                break;
+        }
+        return 0;
     }
 
     ////////////////////////////////////SET////////////////////////////////////
