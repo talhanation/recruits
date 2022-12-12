@@ -101,6 +101,5 @@ public class RecruitQuaffGoal extends Goal {
 
     public void resetItemInHand() {
         recruit.setItemInHand(InteractionHand.OFF_HAND, this.beforeItem);
-        recruit.inventory.setItem(10, this.beforeItem);
     }
 }

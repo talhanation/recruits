@@ -56,6 +56,7 @@ public class RecruitEntity extends AbstractRecruitEntity {
 
     @Override
     public void initSpawn() {
+        super.initSpawn();
         this.setCustomName(new TextComponent("Recruit"));
         this.setCost(3);
         this.setEquipment();

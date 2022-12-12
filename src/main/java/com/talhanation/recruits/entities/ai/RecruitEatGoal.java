@@ -5,8 +5,6 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-
 import java.util.Objects;
 import java.util.Optional;
 
@@ -40,10 +38,15 @@ public class RecruitEatGoal extends Goal {
 
     @Override
     public void start() {
-        beforeFoodItem = recruit.getItemInHand(InteractionHand.OFF_HAND);
+        beforeFoodItem = recruit.getOffhandItem();
         recruit.setIsEating(true);
         this.foodStack = getFoodInInv();
 
+        Main.LOGGER.debug("Start--------------: ");
+        Main.LOGGER.debug("beforeFoodItem: " + beforeFoodItem);
+        Main.LOGGER.debug("isEating: " + recruit.getIsEating());
+        Main.LOGGER.debug("foodStack: " + foodStack);
+        Main.LOGGER.debug("Start--------------:");
 
         recruit.heal(Objects.requireNonNull(foodStack.getItem().getFoodProperties(foodStack, recruit)).getSaturationModifier() * 1);
         if (!recruit.isSaturated())
@@ -54,6 +57,7 @@ public class RecruitEatGoal extends Goal {
         //Main.LOGGER.debug("Start: foodStack: " + foodStack);
 
         recruit.setItemInHand(InteractionHand.OFF_HAND, foodStack);
+        recruit.inventory.setItem(5, foodStack);
         recruit.startUsingItem(InteractionHand.OFF_HAND);
     }
 
@@ -86,12 +90,18 @@ public class RecruitEatGoal extends Goal {
         recruit.setIsEating(false);
         recruit.stopUsingItem();
 
-        resetItemInHand();
         recruit.eatCoolDown = 100;
+        resetItemInHand();
+
+        Main.LOGGER.debug("Stop--------------: ");
+        Main.LOGGER.debug("beforeFoodItem: " + beforeFoodItem);
+        Main.LOGGER.debug("isEating: " + recruit.getIsEating());
+        Main.LOGGER.debug("foodStack: " + foodStack);
+        Main.LOGGER.debug("Stop--------------:");
     }
 
     public void resetItemInHand() {
-        recruit.setItemInHand(InteractionHand.OFF_HAND, this.beforeFoodItem);
-        recruit.inventory.setItem(10, this.beforeFoodItem);
+        recruit.setItemInHand(InteractionHand.OFF_HAND, this.beforeFoodItem == null ? ItemStack.EMPTY : this.beforeFoodItem );
+        recruit.inventory.setItem(5, this.beforeFoodItem == null ? ItemStack.EMPTY : this.beforeFoodItem );
     }
 }

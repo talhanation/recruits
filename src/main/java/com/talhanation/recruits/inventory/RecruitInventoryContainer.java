@@ -20,6 +20,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class RecruitInventoryContainer extends ContainerBase {
 
     private final Container recruitInventory;
+    private final int SlotX = 8;
     private final AbstractRecruitEntity recruit;
     private static final ResourceLocation[] TEXTURE_EMPTY_SLOTS = new ResourceLocation[]{
             InventoryMenu.EMPTY_ARMOR_SLOT_BOOTS,
@@ -38,18 +39,10 @@ public class RecruitInventoryContainer extends ContainerBase {
         super(Main.RECRUIT_CONTAINER_TYPE, id, playerInventory, recruit.getInventory());
         this.recruit = recruit;
         this.recruitInventory = recruit.getInventory();
-
-
-
-        addRecruitEquipmentSlotHead();
-        addRecruitEquipmentSlotChest();
-        addRecruitEquipmentSlotLegs();
-        addRecruitEquipmentSlotFeet();
         addRecruitHandSlots();
-
         addPlayerInventorySlots();
         addRecruitInventorySlots();
-        //addRecruitEquipmentSlots();
+        addRecruitEquipmentSlots();
     }
 
     public AbstractRecruitEntity getRecruit() {
@@ -62,140 +55,13 @@ public class RecruitInventoryContainer extends ContainerBase {
     }
 
     //iv slots
-    //9,10 = hand
-    //11,12,13,14 = armor
     //0 = head
     //1 = chest
     //2 = legs
     //3 = boots
     //4 = main hand
     //5 = sec hand
-
-    private void addRecruitEquipmentSlotHead(){
-        int x = 0;
-        this.addSlot(new Slot(recruitInventory, x, 2 * 18 + 82 + x * 18, 18 + x * 18) {
-
-        @Override
-        public int getMaxStackSize() {
-            return 1;
-        }
-
-        public boolean mayPlace(ItemStack itemStack) {
-            return itemStack.canEquip(EquipmentSlot.HEAD, recruit)
-                    || (itemStack.getItem() instanceof BannerItem);
-        }
-
-        @Override
-        public void set(ItemStack stack) {
-            super.set(stack);
-            recruit.setItemSlot(EquipmentSlot.HEAD, stack);
-        }
-
-        @Override
-        public boolean mayPickup(Player playerIn) {
-            return true;
-        }
-
-        @Override
-        public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-            return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_HELMET);
-        }
-        });
-    }
-
-    private void addRecruitEquipmentSlotChest() {
-        int x = 1;
-        this.addSlot(new Slot(recruitInventory, x, 2 * 18 + 82 + x * 18, 18 + x * 18) {
-
-            @Override
-            public int getMaxStackSize() {
-                return 1;
-            }
-
-            public boolean mayPlace(ItemStack itemStack) {
-                return itemStack.canEquip(EquipmentSlot.CHEST, recruit)
-                        || (itemStack.getItem() instanceof BannerItem);
-            }
-
-            @Override
-            public void set(ItemStack stack) {
-                super.set(stack);
-                recruit.setItemSlot(EquipmentSlot.CHEST, stack);
-            }
-
-            @Override
-            public boolean mayPickup(Player playerIn) {
-                return true;
-            }
-
-            @Override
-            public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-                return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE);
-            }
-        });
-    }
-    private void addRecruitEquipmentSlotLegs() {
-        int x = 2;
-        this.addSlot(new Slot(recruitInventory, x, 2 * 18 + 82 + x * 18, 18 + x * 18) {
-
-            @Override
-            public int getMaxStackSize() {
-                return 1;
-            }
-
-            public boolean mayPlace(ItemStack itemStack) {
-                return itemStack.canEquip(EquipmentSlot.LEGS, recruit);
-            }
-
-            @Override
-            public void set(ItemStack stack) {
-                super.set(stack);
-                recruit.setItemSlot(EquipmentSlot.LEGS, stack);
-            }
-
-            @Override
-            public boolean mayPickup(Player playerIn) {
-                return true;
-            }
-
-            @Override
-            public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-                return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE);
-            }
-        });
-    }
-
-    private void addRecruitEquipmentSlotFeet() {
-        int x = 3;
-        this.addSlot(new Slot(recruitInventory, x, 2 * 18 + 82 + x * 18, 18 + x * 18) {
-
-            @Override
-            public int getMaxStackSize() {
-                return 1;
-            }
-
-            public boolean mayPlace(ItemStack itemStack) {
-                return itemStack.canEquip(EquipmentSlot.FEET, recruit);
-            }
-
-            @Override
-            public void set(ItemStack stack) {
-                super.set(stack);
-                recruit.setItemSlot(EquipmentSlot.FEET, stack);
-            }
-
-            @Override
-            public boolean mayPickup(Player playerIn) {
-                return true;
-            }
-
-            @Override
-            public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-                return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE);
-            }
-        });
-    }
-
+    //6 -> inventory
 
     public void addRecruitHandSlots() {
         this.addSlot(new Slot(recruit.inventory, 4,26,90) {
@@ -207,7 +73,6 @@ public class RecruitInventoryContainer extends ContainerBase {
             @Override
             public void set(ItemStack stack){
                 super.set(stack);
-
                 recruit.setItemSlot(EquipmentSlot.MAINHAND, stack);
             }
 
@@ -231,15 +96,108 @@ public class RecruitInventoryContainer extends ContainerBase {
             }
         });
     }
+    public void addRecruitEquipmentSlots() {
+        for (int slotIndex = 0; slotIndex < 4; ++slotIndex) {
+            final EquipmentSlot equipmentslottype = SLOT_IDS[slotIndex];
+            this.addSlot(new Slot(recruit.inventory, slotIndex, 8, 18 + slotIndex * 18) {
+                public int getMaxStackSize() {
+                    return 1;
+                }
+
+                public boolean mayPlace(ItemStack itemStack) {
+                    return itemStack.canEquip(equipmentslottype, recruit)
+                            || (itemStack.getItem() instanceof BannerItem && equipmentslottype.equals(EquipmentSlot.HEAD));
+                }
+
+                @Override
+                public void set(ItemStack stack){
+                    super.set(stack);
+                    recruit.setItemSlot(equipmentslottype, stack);
+                }
+
+                @OnlyIn(Dist.CLIENT)
+                public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+                    return Pair.of(InventoryMenu.BLOCK_ATLAS, TEXTURE_EMPTY_SLOTS[equipmentslottype.getIndex()]);
+                }
+            });
+        }
+
+    }
 
     public void addRecruitInventorySlots() {
         for (int k = 0; k < 3; ++k) {
             for (int l = 0; l < 3; ++l) {
-                this.addSlot(new Slot(recruitInventory, 7 + l + k * recruit.getInventoryColumns(), 2 * 18 + 82 + l * 18,  18 + k * 18));
+                this.addSlot(new Slot(recruitInventory, 6 + l + k * recruit.getInventoryColumns(), 2 * 18 + 82 + l * 18,  18 + k * 18));
             }
         }
     }
 
+    public ItemStack quickMoveStack(Player p_39665_, int index) {
+        ItemStack itemstack = ItemStack.EMPTY;
+        Slot slot = this.slots.get(index);
+        if (slot != null && slot.hasItem()) {
+            ItemStack itemstack1 = slot.getItem();
+            itemstack = itemstack1.copy();
+            int i = this.recruitInventory.getContainerSize();
+            if (index < i) {
+                if (!this.moveItemStackTo(itemstack1, i, this.slots.size(), true)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (this.getSlot(0).mayPlace(itemstack1) && !this.getSlot(0).hasItem()) {
+                if (!this.moveItemStackTo(itemstack1, 0, 0, false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (this.getSlot(1).mayPlace(itemstack1) && !this.getSlot(1).hasItem()) {
+                if (!this.moveItemStackTo(itemstack1, 1, 0, false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (this.getSlot(2).mayPlace(itemstack1) && !this.getSlot(2).hasItem()) {
+                if (!this.moveItemStackTo(itemstack1, 2, 0, false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (this.getSlot(3).mayPlace(itemstack1) && !this.getSlot(3).hasItem()) {
+                if (!this.moveItemStackTo(itemstack1, 3, 0, false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (this.getSlot(4).mayPlace(itemstack1) && !this.getSlot(4).hasItem()) {
+                if (!this.moveItemStackTo(itemstack1, 4, 0, false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (this.getSlot(5).mayPlace(itemstack1) && !this.getSlot(5).hasItem()) {
+                if (!this.moveItemStackTo(itemstack1, 5, 0, false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (this.getSlot(6).mayPlace(itemstack1) && !this.getSlot(6).hasItem()) {
+                if (!this.moveItemStackTo(itemstack1, 6, 0, false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (i <= 0 || !this.moveItemStackTo(itemstack1, 6, i, false)) {
+                int j = i + 27;
+                int k = j + 9;
+                if (index >= j && index < k) {
+                    if (!this.moveItemStackTo(itemstack1, i, j, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else if (index >= i && index < j) {
+                    if (!this.moveItemStackTo(itemstack1, j, k, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else if (!this.moveItemStackTo(itemstack1, j, j, false)) {
+                    return ItemStack.EMPTY;
+                }
+
+                return ItemStack.EMPTY;
+            }
+
+            if (itemstack1.isEmpty()) {
+                slot.set(ItemStack.EMPTY);
+            } else {
+                slot.setChanged();
+            }
+        }
+
+        return itemstack;
+    }
 
     //OLD
 

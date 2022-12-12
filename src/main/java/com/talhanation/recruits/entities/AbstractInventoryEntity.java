@@ -22,6 +22,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -91,22 +92,20 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
             }
         }
 
-        if (nbt.contains("ArmorItems", 9)) {
-            ListTag armorItems = nbt.getList("ArmorItems", 10);
-            for (int i = 0; i < this.armorItems.size(); ++i) {
-                int index = this.getInventorySlotIndex(Mob.getEquipmentSlotForItem(ItemStack.of(armorItems.getCompound(i))));
-                this.inventory.setItem(index, ItemStack.of(armorItems.getCompound(i)));
-            }
-        }
-        if (nbt.contains("HandItems", 9)) {
-            ListTag handItems = nbt.getList("HandItems", 10);
-            for (int i = 0; i < this.handItems.size(); ++i) {
-                int handSlot = i == 0 ? 5 : 4;
-                this.inventory.setItem(handSlot, ItemStack.of(handItems.getCompound(i)));
-            }
+
+        ListTag armorItems = nbt.getList("ArmorItems", 10);
+        for (int i = 0; i < this.armorItems.size(); ++i) {
+            int index = this.getInventorySlotIndex(Mob.getEquipmentSlotForItem(ItemStack.of(armorItems.getCompound(i))));
+            this.inventory.setItem(index, ItemStack.of(armorItems.getCompound(i)));
         }
 
+        ListTag handItems = nbt.getList("HandItems", 10);
+        for (int i = 0; i < this.handItems.size(); ++i) {
+            int index = i == 0 ? 4 : 5;
+            this.inventory.setItem(index, ItemStack.of(handItems.getCompound(i)));
+        }
     }
+
 
     ////////////////////////////////////GET////////////////////////////////////
 
@@ -140,7 +139,37 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
     ////////////////////////////////////SET////////////////////////////////////
 
-    public SlotAccess getSlot(int slot) {
+    @Override
+    public void setItemSlot(EquipmentSlot slotIn, ItemStack stack) {
+        super.setItemSlot(slotIn, stack);
+        switch (slotIn) {
+            case HEAD ->{
+                if (this.inventory.getItem(0).isEmpty())
+                    this.inventory.setItem(0, this.armorItems.get(slotIn.getIndex()));
+            }
+            case CHEST-> {
+                if (this.inventory.getItem(1).isEmpty())
+                    this.inventory.setItem(1, this.armorItems.get(slotIn.getIndex()));
+            }
+            case LEGS-> {
+                if (this.inventory.getItem(2).isEmpty())
+                    this.inventory.setItem(2, this.armorItems.get(slotIn.getIndex()));
+            }
+            case FEET-> {
+                if (this.inventory.getItem(3).isEmpty())
+                    this.inventory.setItem(3, this.armorItems.get(slotIn.getIndex()));
+            }
+            case MAINHAND-> {
+                if (this.inventory.getItem(4).isEmpty())
+                    this.inventory.setItem(4, this.handItems.get(slotIn.getIndex()));
+            }
+            case OFFHAND-> {
+                if (this.inventory.getItem(5).isEmpty())
+                    this.inventory.setItem(5, this.handItems.get(slotIn.getIndex()));
+            }
+        }
+    }
+    public @NotNull SlotAccess getSlot(int slot) {
         return slot == 499 ? new SlotAccess() {
             public ItemStack get() {
                 return new ItemStack(Items.CHEST);
@@ -231,99 +260,5 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
             itemHandler = null;
             oldHandler.invalidate();
         }
-    }
-
-    public void recDetectEquipmentUpdates() {
-        Map<EquipmentSlot, ItemStack> map = this.collectEquipmentChanges();
-        if (map != null) {
-            this.handleHandSwap(map);
-            if (!map.isEmpty()) {
-                this.handleEquipmentChanges(map);
-            }
-        }
-
-    }
-
-    private void handleHandSwap(Map<EquipmentSlot, ItemStack> p_241342_1_) {
-        ItemStack itemstack = p_241342_1_.get(EquipmentSlot.MAINHAND);
-        ItemStack itemstack1 = p_241342_1_.get(EquipmentSlot.OFFHAND);
-        if (itemstack != null && itemstack1 != null && ItemStack.matches(itemstack, this.getLastHandItem(EquipmentSlot.OFFHAND)) && ItemStack.matches(itemstack1, this.getLastHandItem(EquipmentSlot.MAINHAND))) {
-            ((ServerLevel)this.level).getChunkSource().broadcast(this, new ClientboundEntityEventPacket(this, (byte)55));
-            p_241342_1_.remove(EquipmentSlot.MAINHAND);
-            p_241342_1_.remove(EquipmentSlot.OFFHAND);
-            this.setLastHandItem(EquipmentSlot.MAINHAND, itemstack.copy());
-            this.setLastHandItem(EquipmentSlot.OFFHAND, itemstack1.copy());
-        }
-    }
-
-    @Nullable
-    private Map<EquipmentSlot, ItemStack> collectEquipmentChanges() {
-        Map<EquipmentSlot, ItemStack> map = null;
-
-        for(EquipmentSlot equipmentslottype : EquipmentSlot.values()) {
-            ItemStack itemstack;
-            switch(equipmentslottype.getType()) {
-                case HAND:
-                    itemstack = this.getLastHandItem(equipmentslottype);
-                    break;
-                case ARMOR:
-                    itemstack = this.getLastArmorItem(equipmentslottype);
-                    break;
-                default:
-                    continue;
-            }
-
-            ItemStack itemstack1 = this.getItemBySlot(equipmentslottype);
-            if (!ItemStack.matches(itemstack1, itemstack)) {
-                net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent(this, equipmentslottype, itemstack, itemstack1));
-                if (map == null) {
-                    map = Maps.newEnumMap(EquipmentSlot.class);
-                }
-
-                map.put(equipmentslottype, itemstack1);
-                if (!itemstack.isEmpty()) {
-                    this.getAttributes().removeAttributeModifiers(itemstack.getAttributeModifiers(equipmentslottype));
-                }
-
-                if (!itemstack1.isEmpty()) {
-                    this.getAttributes().addTransientAttributeModifiers(itemstack1.getAttributeModifiers(equipmentslottype));
-                }
-            }
-        }
-
-        return map;
-    }
-
-    private void handleEquipmentChanges(Map<EquipmentSlot, ItemStack> p_241344_1_) {
-        List<Pair<EquipmentSlot, ItemStack>> list = Lists.newArrayListWithCapacity(p_241344_1_.size());
-        p_241344_1_.forEach((p_241341_2_, p_241341_3_) -> {
-            ItemStack itemstack = p_241341_3_.copy();
-            list.add(Pair.of(p_241341_2_, itemstack));
-            switch(p_241341_2_.getType()) {
-                case HAND:
-                    this.setLastHandItem(p_241341_2_, itemstack);
-                    break;
-                case ARMOR:
-                    this.setLastArmorItem(p_241341_2_, itemstack);
-            }
-
-        });
-        ((ServerLevel)this.level).getChunkSource().broadcast(this, new ClientboundSetEquipmentPacket(this.getId(), list));
-    }
-
-    private ItemStack getLastHandItem(EquipmentSlot p_241347_1_) {
-        return this.lastHandItemStacks.get(p_241347_1_.getIndex());
-    }
-
-    private void setLastHandItem(EquipmentSlot p_241345_1_, ItemStack p_241345_2_) {
-        this.lastHandItemStacks.set(p_241345_1_.getIndex(), p_241345_2_);
-    }
-
-    private ItemStack getLastArmorItem(EquipmentSlot p_241346_1_) {
-        return this.lastArmorItemStacks.get(p_241346_1_.getIndex());
-    }
-
-    private void setLastArmorItem(EquipmentSlot p_241343_1_, ItemStack p_241343_2_) {
-        this.lastArmorItemStacks.set(p_241343_1_.getIndex(), p_241343_2_);
     }
 }

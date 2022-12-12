@@ -39,16 +39,16 @@ public class RecruitUpkeepGoal extends Goal {
     @Override
     public void start() {
         super.start();
-        Main.LOGGER.debug("upkeep started");
+        //Main.LOGGER.debug("upkeep started");
     }
 
     @Override
     public void tick() {
         super.tick();
         this.chestPos = findInvPos();
-        Main.LOGGER.debug("searching upkeep");
+        //Main.LOGGER.debug("searching upkeep");
         if (chestPos != null && !this.hasFoodInInv()) {
-            Main.LOGGER.debug("Moving to chest");
+            //Main.LOGGER.debug("Moving to chest");
             this.recruit.getNavigation().moveTo(chestPos.getX(), chestPos.getY(), chestPos.getZ(), 1.15D);
             BlockEntity entity = recruit.level.getBlockEntity(chestPos);
 
@@ -61,7 +61,7 @@ public class RecruitUpkeepGoal extends Goal {
                 this.recruit.getNavigation().stop();
                 this.recruit.getLookControl().setLookAt(chestPos.getX(), chestPos.getY() + 1, chestPos.getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
 
-                Main.LOGGER.debug("Getting food from chest");
+                //Main.LOGGER.debug("Getting food from chest");
 
                 for(int i = 0; i < 3; i++) {
                     ItemStack foodItem = this.getFoodFromInv(container);
@@ -73,7 +73,7 @@ public class RecruitUpkeepGoal extends Goal {
                         foodItem.shrink(1);
                     }
                     else{
-                        Main.LOGGER.debug("Chest empty");
+                        //Main.LOGGER.debug("Chest empty");
                         break;
                     }
                 }
@@ -81,14 +81,14 @@ public class RecruitUpkeepGoal extends Goal {
         }
         else {
             this.chestPos = findInvPos();
-            Main.LOGGER.debug("Chest not found");
+            //Main.LOGGER.debug("Chest not found");
         }
     }
 
     @Nullable
     private BlockPos findInvPos() {
         if(this.recruit.getUpkeepPos() != null) {
-            Main.LOGGER.debug("up keep pos not null");
+            //Main.LOGGER.debug("up keep pos not null");
             BlockPos chestPos;
             int range = 8;
 
@@ -103,7 +103,7 @@ public class RecruitUpkeepGoal extends Goal {
                 }
             }
         }
-        Main.LOGGER.debug("UpkeepPos NULL");
+        //Main.LOGGER.debug("UpkeepPos NULL");
         //else entity around upkeepPos
         return null;
     }

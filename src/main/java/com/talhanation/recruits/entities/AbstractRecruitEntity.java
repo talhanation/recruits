@@ -41,10 +41,7 @@ import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
-import net.minecraft.world.entity.monster.AbstractIllager;
-import net.minecraft.world.entity.monster.Creeper;
-import net.minecraft.world.entity.monster.Ghast;
-import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.*;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -744,39 +741,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void setEquipment(){}
 
-    public abstract void initSpawn();
-
-    @Override
-    public void setItemSlot(EquipmentSlot slotIn, ItemStack stack) {
-        super.setItemSlot(slotIn, stack);
-        switch (slotIn) {
-            case HEAD:
-                if (this.inventory.getItem(0).isEmpty())
-                    this.inventory.setItem(0, this.armorItems.get(slotIn.getIndex()));
-                break;
-            case CHEST:
-                if (this.inventory.getItem(1).isEmpty())
-                    this.inventory.setItem(1, this.armorItems.get(slotIn.getIndex()));
-                break;
-            case FEET:
-                if (this.inventory.getItem(3).isEmpty())
-                    this.inventory.setItem(3, this.armorItems.get(slotIn.getIndex()));
-                break;
-
-            case LEGS:
-                if (this.inventory.getItem(2).isEmpty())
-                    this.inventory.setItem(2, this.armorItems.get(slotIn.getIndex()));
-                break;
-            case MAINHAND:
-                if (this.inventory.getItem(5).isEmpty())
-                    this.inventory.setItem(5, this.handItems.get(slotIn.getIndex()));
-                break;
-            case OFFHAND:
-                if (this.inventory.getItem(4).isEmpty())
-                    this.inventory.setItem(4, this.handItems.get(slotIn.getIndex()));
-                break;
-        }
+    public void initSpawn(){
+        this.setCanPickUpLoot(true);
     }
+
 
     ////////////////////////////////////is FUNCTIONS////////////////////////////////////
 
@@ -1144,7 +1112,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if (damage < 1.0F) {
                 damage = 1.0F;
             }
-            for (int i = 11; i < 15; ++i) {//11,12,13,14 = armor
+            for (int i = 0; i < 4; ++i) {//0,1,2,3 armor
                 ItemStack itemstack = this.inventory.getItem(i);
                 if ((!damageSource.isFire() || !itemstack.getItem().isFireResistant()) && itemstack.getItem() instanceof ArmorItem) {
                     itemstack.setDamageValue((int) damage);
@@ -1154,7 +1122,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     protected void damageMainHandItem() {
-        ItemStack itemstack = this.inventory.getItem(9);// 10 = hoffhand slot
+        ItemStack itemstack = this.getMainHandItem();
         if (itemstack.getItem().isDamageable(itemstack)) {
             itemstack.setDamageValue(1);
         }
@@ -1234,18 +1202,15 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if (this.useItem.isEmpty()) {
                 if (hand == InteractionHand.MAIN_HAND) {
                     this.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
-                    this.getSlot(9).set(ItemStack.EMPTY);
                 } else {
                     this.setItemSlot(EquipmentSlot.OFFHAND, ItemStack.EMPTY);
-                    this.getSlot(10).set(ItemStack.EMPTY);
                 }
                 this.useItem = ItemStack.EMPTY;
                 this.setItemSlot(EquipmentSlot.OFFHAND, ItemStack.EMPTY);
-                this.getSlot(10).set(ItemStack.EMPTY);
                 this.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
             }
 
-            ItemStack itemstack = this.inventory.getItem(10);// 10 = hoffhand slot
+            ItemStack itemstack = this.getOffhandItem();
             if (itemstack.getItem() instanceof ShieldItem) {
                 itemstack.setDamageValue((int) damage);
             }
@@ -1404,4 +1369,5 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public AbstractRecruitEntity.ArmPose getArmPose() {
         return AbstractRecruitEntity.ArmPose.NEUTRAL;
     }
+
 }

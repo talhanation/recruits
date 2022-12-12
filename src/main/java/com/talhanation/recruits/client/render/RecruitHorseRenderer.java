@@ -29,4 +29,3 @@ public class RecruitHorseRenderer extends MobRenderer<RecruitHorseEntity, Recrui
     }
 
 }
-
