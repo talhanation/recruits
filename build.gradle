@@ -6,7 +6,7 @@ buildscript {
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-        //classpath group: 'com.github.jengelman.gradle.plugins', name: 'shadow', version: '6.1.0'
+        classpath group: 'com.github.jengelman.gradle.plugins', name: 'shadow', version: '6.1.0'
     }
 }
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
@@ -97,9 +97,9 @@ repositories {
 
 dependencies {
     minecraft 'net.minecraftforge:forge:1.18.2-40.1.0'
-    shadow fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.0:api")
-    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.0")
-    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.0:javadoc")
+    shadow fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.3:api")
+    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.3")
+    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.3:javadoc")
 }
 
 // Example for how to get properties into the manifest for reading at runtime.
