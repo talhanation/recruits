@@ -6,7 +6,7 @@ buildscript {
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-        //classpath group: 'com.github.jengelman.gradle.plugins', name: 'shadow', version: '6.1.0'
+        classpath group: 'com.github.jengelman.gradle.plugins', name: 'shadow', version: '6.1.0'
     }
 }
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.

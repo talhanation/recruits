@@ -146,10 +146,9 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         }));
 
         //UPKEEP
-        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 5, 80, 20, TEXT_UPKEEP,
+        addRenderableWidget(new Button(zeroLeftPos + 50, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_UPKEEP,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(92, player, group);
-                    Main.LOGGER.debug("Upkeep: Button");
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageUpkeepPos(player.getUUID(), group));
 
              },  (a, b, c, d) -> {

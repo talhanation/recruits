@@ -3,20 +3,14 @@ package com.talhanation.recruits;
 import com.google.common.collect.ImmutableSet;
 import com.talhanation.recruits.client.events.KeyEvents;
 import com.talhanation.recruits.client.events.PlayerEvents;
-import com.talhanation.recruits.client.gui.AssassinLeaderScreen;
-import com.talhanation.recruits.client.gui.CommandScreen;
-import com.talhanation.recruits.client.gui.RecruitHireScreen;
-import com.talhanation.recruits.client.gui.RecruitInventoryScreen;
+import com.talhanation.recruits.client.gui.*;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModItems;
-import com.talhanation.recruits.inventory.AssassinLeaderContainer;
-import com.talhanation.recruits.inventory.CommandContainer;
-import com.talhanation.recruits.inventory.RecruitHireContainer;
-import com.talhanation.recruits.inventory.RecruitInventoryContainer;
+import com.talhanation.recruits.inventory.*;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.ClientRegistry;
 import de.maxhenkel.corelib.CommonRegistry;
@@ -66,6 +60,7 @@ public class Main {
     public static PoiType POI_NOMAD;
     public static KeyMapping R_KEY;
     public static MenuType<RecruitInventoryContainer> RECRUIT_CONTAINER_TYPE;
+    public static MenuType<DebugInvContainer> DEBUG_CONTAINER_TYPE;
     public static MenuType<CommandContainer> COMMAND_CONTAINER_TYPE;
     public static MenuType<RecruitHireContainer> HIRE_CONTAINER_TYPE;
     public static MenuType<AssassinLeaderContainer> ASSASSIN_CONTAINER_TYPE;
@@ -95,6 +90,7 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new PillagerEvents());
         MinecraftForge.EVENT_BUS.register(new CommandEvents());
         MinecraftForge.EVENT_BUS.register(new AssassinEvents());
+        MinecraftForge.EVENT_BUS.register(new DebugEvents());
         MinecraftForge.EVENT_BUS.register(this);
         SIMPLE_CHANNEL = CommonRegistry.registerChannel(Main.MOD_ID, "default");
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 0, MessageAggro.class);
@@ -121,6 +117,8 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 21, MessageUpkeepPos.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 22, MessageHailOfArrows.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 23, MessageShields.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 24, MessageDebugGui.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 25, MessageDebugGui.class);
     }
 
     @SubscribeEvent
@@ -132,6 +130,7 @@ public class Main {
         R_KEY = ClientRegistry.registerKeyBinding("key.r_key", "category.recruits", 82);
 
         ClientRegistry.registerScreen(Main.RECRUIT_CONTAINER_TYPE, RecruitInventoryScreen::new);
+        ClientRegistry.registerScreen(Main.DEBUG_CONTAINER_TYPE, DebugInvScreen::new);
         ClientRegistry.registerScreen(Main.COMMAND_CONTAINER_TYPE, CommandScreen::new);
         ClientRegistry.registerScreen(Main.ASSASSIN_CONTAINER_TYPE, AssassinLeaderScreen::new);
         ClientRegistry.registerScreen(Main.HIRE_CONTAINER_TYPE, RecruitHireScreen::new);
@@ -218,8 +217,18 @@ public class Main {
             }
             return new RecruitHireContainer(windowId, playerEntity, rec, playerEntity.getInventory());
         });
-        HIRE_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "hire_container"));
+        HIRE_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "debug_container"));
         event.getRegistry().register(HIRE_CONTAINER_TYPE);
+
+        DEBUG_CONTAINER_TYPE = new MenuType<>((IContainerFactory<DebugInvContainer>) (windowId, inv, data) -> {
+            AbstractRecruitEntity rec = getRecruitByUUID(inv.player, data.readUUID());
+            if (rec == null) {
+                return null;
+            }
+            return new DebugInvContainer(windowId, rec, inv);
+        });
+        DEBUG_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "debug_container"));
+        event.getRegistry().register(DEBUG_CONTAINER_TYPE);
     }
 
     @Nullable

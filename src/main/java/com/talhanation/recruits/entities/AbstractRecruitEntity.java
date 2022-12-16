@@ -6,8 +6,11 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.*;
+import com.talhanation.recruits.init.ModItems;
+import com.talhanation.recruits.inventory.DebugInvContainer;
 import com.talhanation.recruits.inventory.RecruitHireContainer;
 import com.talhanation.recruits.inventory.RecruitInventoryContainer;
+import com.talhanation.recruits.network.MessageDebugScreen;
 import com.talhanation.recruits.network.MessageHireGui;
 import com.talhanation.recruits.network.MessageRecruitGui;
 import net.minecraft.Util;
@@ -773,6 +776,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 if (player.isCrouching()) {
                     checkItemsInInv();
                     openGUI(player);
+                    this.navigation.stop();
                     return InteractionResult.SUCCESS;
                 }
                 if(!player.isCrouching()) {
@@ -805,6 +809,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 this.dialogue(name, player);
                 this.navigation.stop();
                 return InteractionResult.SUCCESS;
+            }
+
+            else if (player.isCreative() && player.getItemInHand(hand).getItem().equals(ModItems.RECRUIT_SPAWN_EGG.get())){
+                openDebugScreen(player);
             }
             return super.mobInteract(player, hand);
         }
@@ -1219,7 +1227,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     @Override
     public void openGUI(Player player) {
-        this.navigation.stop();
 
         if (player instanceof ServerPlayer) {
             NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
@@ -1236,6 +1243,25 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             }, packetBuffer -> {packetBuffer.writeUUID(getUUID());});
         } else {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageRecruitGui(player, this.getUUID()));
+        }
+    }
+
+    public void openDebugScreen(Player player) {
+        if (player instanceof ServerPlayer) {
+            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+                @Override
+                public Component getDisplayName() {
+                    return getName();
+                }
+
+                @Nullable
+                @Override
+                public AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
+                    return new DebugInvContainer(i, AbstractRecruitEntity.this, playerInventory);
+                }
+            }, packetBuffer -> {packetBuffer.writeUUID(getUUID());});
+        } else {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugScreen(player, this.getUUID()));
         }
     }
 

@@ -1,15 +1,9 @@
 package com.talhanation.recruits.entities;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.network.protocol.game.ClientboundEntityEventPacket;
-import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.damagesource.DamageSource;
@@ -25,8 +19,6 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 
 public abstract class AbstractInventoryEntity extends PathfinderMob {
@@ -91,7 +83,6 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
                 this.inventory.setItem(j, ItemStack.of(compoundnbt));
             }
         }
-
 
         ListTag armorItems = nbt.getList("ArmorItems", 10);
         for (int i = 0; i < this.armorItems.size(); ++i) {
