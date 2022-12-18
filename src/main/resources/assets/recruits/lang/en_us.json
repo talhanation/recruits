@@ -138,5 +138,6 @@
 
   "gui.recruits.text.recruited" : "It's a honor for me to protect you!",
   "chat.recruits.text.group": "Group",
-  "chat.recruits.text.everyone": "Everyone"
+  "chat.recruits.text.everyone": "Everyone",
+  "gui.recruits.inv.text.upkeep": "Upkeep"
 }
