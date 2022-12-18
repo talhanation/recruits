@@ -68,7 +68,6 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireContainer> {
         DecimalFormat decimalformat = new DecimalFormat("##.##");
         double armor = recruit.getArmorValue();
         int costs = recruit.getCost();
-        double hunger = recruit.getHunger();
 
 
         int k = 79;//rechst links
@@ -108,10 +107,6 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireContainer> {
 
         font.draw(matrixStack, "Costs:", k + 43, l + 40, fontColor);
         font.draw(matrixStack, ""+ costs, k + 77, l + 40, fontColor);
-
-        font.draw(matrixStack, "Hunger:", k + 43, l + 50, fontColor);
-        font.draw(matrixStack, ""+ hunger, k + 77, l + 50, fontColor);
-
     }
 
     protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {

@@ -1,5 +1,6 @@
 package com.talhanation.recruits;
 
+import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinEntity;
 import com.talhanation.recruits.init.ModEntityTypes;
@@ -39,8 +40,8 @@ public class DebugEvents {
 
     public static void handleMessage(int id, AbstractRecruitEntity recruits) {
         switch (id){
-            case 0 -> {recruits.addXp(1);}
-            case 1 -> {recruits.addXpLevel(1);}
+            case 0 -> {recruits.addXp(1); recruits.checkLevel();}
+            case 1 -> {recruits.addXp(RecruitsModConfig.RecruitsMaxXpForLevelUp.get()); recruits.checkLevel();}
             case 2 -> {recruits.setCost(recruits.getCost() + 1);}
             case 3 -> {recruits.setCost(recruits.getCost() - 1);}
 

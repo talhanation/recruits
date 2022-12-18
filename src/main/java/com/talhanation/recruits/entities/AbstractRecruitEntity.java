@@ -588,6 +588,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setIsOwned(false);
         this.setOwnerUUID(Optional.empty());
         CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
+        this.recalculateCost();
     }
 
     public void addXpLevel(int level){
@@ -746,6 +747,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void initSpawn(){
         this.setCanPickUpLoot(true);
+        this.recalculateCost();
     }
 
 
@@ -772,6 +774,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             boolean flag = this.isOwnedBy(player) || this.isOwned() || !this.isOwned();
             return flag ? InteractionResult.CONSUME : InteractionResult.PASS;
         } else {
+            if (player.isCreative() && player.getItemInHand(hand).getItem().equals(ModItems.RECRUIT_SPAWN_EGG.get())){
+                openDebugScreen(player);
+                return InteractionResult.SUCCESS;
+            }
             if ((this.isOwned() && player.getUUID().equals(this.getOwnerUUID()))) {
                 if (player.isCrouching()) {
                     checkItemsInInv();
@@ -809,10 +815,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 this.dialogue(name, player);
                 this.navigation.stop();
                 return InteractionResult.SUCCESS;
-            }
-
-            else if (player.isCreative() && player.getItemInHand(hand).getItem().equals(ModItems.RECRUIT_SPAWN_EGG.get())){
-                openDebugScreen(player);
             }
             return super.mobInteract(player, hand);
         }
@@ -1090,10 +1092,18 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setXp(0);
             this.addLevelBuffs();
             this.heal(10F);
+            this.recalculateCost();
 
             if(this.getMoral() < 100)
                 this.setMoral(getMoral() + 5F);
         }
+    }
+
+    private void recalculateCost() {
+        int currCost = getCost();
+        int newCost = Math.abs((currCost + getXpLevel() * 2));
+
+        this.setCost(newCost);
     }
 
     public void makeLevelUpSound() {

@@ -39,7 +39,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvContainer> {
     public DebugInvScreen(DebugInvContainer commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, new TextComponent(""));
         imageWidth = 201;
-        imageHeight = 170;
+        imageHeight = 250;
         this.recruit = commandContainer.getRecruit();
         this.player = playerInventory.player;
         this.playerInventory = playerInventory;
@@ -49,7 +49,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvContainer> {
     protected void init() {
         super.init();
 
-        int zeroLeftPos = leftPos + 180;
+        int zeroLeftPos = leftPos + 140;
         int zeroTopPos = topPos + 10;
 
         int topPosGab = 5;
@@ -81,7 +81,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvContainer> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(2, recruit.getUUID()));
         }));
         //decrease cost
-        addRenderableWidget(new Button(zeroLeftPos - 190, zeroTopPos + (20 + 5) * 2, 23, 20, new TextComponent("-cost"), button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 2, 23, 20, new TextComponent("-cost"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(3, recruit.getUUID()));
         }));
     }
@@ -93,7 +93,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvContainer> {
         }));
 
         //decrease hunger
-        addRenderableWidget(new Button(zeroLeftPos - 190, zeroTopPos + (20 + 5) * 3, 23, 20, new TextComponent("-hunger"), button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 3, 23, 20, new TextComponent("-hunger"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(5, recruit.getUUID()));
         }));
     }
@@ -105,19 +105,19 @@ public class DebugInvScreen extends ScreenBase<DebugInvContainer> {
         }));
 
         //decrease moral
-        addRenderableWidget(new Button(zeroLeftPos - 190, zeroTopPos + (20 + 5) * 4, 23, 20, new TextComponent("-moral"), button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 4, 23, 20, new TextComponent("-moral"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(7, recruit.getUUID()));
         }));
     }
 
     private void healthButton(int zeroLeftPos, int zeroTopPos){
         //increase health
-        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 5, 23, 20, new TextComponent("+moral"), button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 5, 23, 20, new TextComponent("+health"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(8, recruit.getUUID()));
         }));
 
         //decrease health
-        addRenderableWidget(new Button(zeroLeftPos - 190, zeroTopPos + (20 + 5) * 5, 23, 20, new TextComponent("-moral"), button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 5, 23, 20, new TextComponent("-health"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(9, recruit.getUUID()));
         }));
     }
@@ -131,18 +131,17 @@ public class DebugInvScreen extends ScreenBase<DebugInvContainer> {
 
         double A_damage = Mth.ceil(recruit.getAttackDamage());
         double speed = recruit.getAttributeBaseValue(Attributes.MOVEMENT_SPEED) / 0.3;
-        DecimalFormat decimalformat = new DecimalFormat("##.##");
+        DecimalFormat decimalformat = new DecimalFormat("##.#");
         double armor = recruit.getArmorValue();
         int costs = recruit.getCost();
+        double hunger = recruit.getHunger();
 
-
-        int k = 79;//rechst links
-        int l = 19;//höhe
+        int k = 30;//rechst links
+        int l = 15;//höhe
 
         //Titles
         font.draw(matrixStack, recruit.getDisplayName().getVisualOrderText(), 8, 5, fontColor);
-        font.draw(matrixStack, player.getInventory().getDisplayName().getVisualOrderText(), 8, this.imageHeight - 96 + 2, fontColor);
-
+        font.draw(matrixStack, playerInventory.getDisplayName().getVisualOrderText(), 8, imageHeight - 148 + 18, FONT_COLOR);
         //Info
         font.draw(matrixStack, "Hp:", k, l, fontColor);
         font.draw(matrixStack, "" + health, k + 25, l , fontColor);
@@ -159,21 +158,27 @@ public class DebugInvScreen extends ScreenBase<DebugInvContainer> {
         font.draw(matrixStack, "Moral:", k, l + 40, fontColor);
         font.draw(matrixStack, ""+ moral, k + 30, l + 40, fontColor);
 
-        font.draw(matrixStack, "MaxHp:", k + 43, l, fontColor);
-        font.draw(matrixStack, ""+ maxHealth, k + 77, l, fontColor);
+        font.draw(matrixStack, "Hunger:", k, l + 50, fontColor);
+        font.draw(matrixStack, ""+ decimalformat.format(hunger), k + 40, l + 50, fontColor);
 
-        font.draw(matrixStack, "Attack:", k + 43, l + 10, fontColor);
-        font.draw(matrixStack, ""+ A_damage, k + 77, l + 10, fontColor);
+        font.draw(matrixStack, "Upkeep Pos:", k, l + 60, fontColor);
+        font.draw(matrixStack, ""+ recruit.getUpkeepPos(), k + 43 + 20, l + 60, fontColor);
 
-        font.draw(matrixStack, "Speed:", k +43, l + 20, fontColor);
-        font.draw(matrixStack, ""+ decimalformat.format(speed), k + 77, l + 20, fontColor);
 
-        font.draw(matrixStack, "Armor:", k + 43, l + 30, fontColor);
-        font.draw(matrixStack, ""+ armor, k + 77, l + 30, fontColor);
+        font.draw(matrixStack, "MaxHp:", k + 43 + 20, l, fontColor);
+        font.draw(matrixStack, ""+ maxHealth, k + 77 + 20, l, fontColor);
 
-        font.draw(matrixStack, "Cost:", k + 43, l + 40, fontColor);
-        font.draw(matrixStack, ""+ costs, k + 77, l + 40, fontColor);
+        font.draw(matrixStack, "Attack:", k + 43 + 20, l + 10, fontColor);
+        font.draw(matrixStack, ""+ A_damage, k + 77 + 20, l + 10, fontColor);
 
+        font.draw(matrixStack, "Speed:", k +43 + 20, l + 20, fontColor);
+        font.draw(matrixStack, ""+ decimalformat.format(speed), k + 77 + 20, l + 20, fontColor);
+
+        font.draw(matrixStack, "Armor:", k + 43 + 20, l + 30, fontColor);
+        font.draw(matrixStack, ""+ armor, k + 77 + 20, l + 30, fontColor);
+
+        font.draw(matrixStack, "Cost:", k + 43 + 20, l + 40, fontColor);
+        font.draw(matrixStack, ""+ costs, k + 77 + 20, l + 40, fontColor);
     }
 
 }

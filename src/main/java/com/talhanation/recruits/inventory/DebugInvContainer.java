@@ -4,9 +4,11 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 
 public class DebugInvContainer extends ContainerBase {
 
@@ -30,7 +32,18 @@ public class DebugInvContainer extends ContainerBase {
     public void addWorkerInventorySlots() {
         for (int k = 0; k < 2; ++k) {
             for (int l = 0; l < 9; ++l) {
-                this.addSlot(new Slot(container, l + k * 9, 8 + l * 18,  3 + 18 * 5 + k * 18));
+                if (k == 1 && l == 6)break;
+                int slot = l + k * 9;
+                this.addSlot(new Slot(container, slot, 8 + l * 18,  3 + 18 * 5 + k * 18){
+                    @Override
+                    public void set(ItemStack stack) {
+                        super.set(stack);
+                        if(slot <= 5) {
+                            EquipmentSlot equipmentSlot = recruit.getEquipmentSlotIndex(slot);
+                            recruit.setItemSlot(equipmentSlot, stack);
+                        }
+                    }
+                });
             }
         }
     }

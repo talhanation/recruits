@@ -199,7 +199,6 @@ public class Main {
 
 
         ASSASSIN_CONTAINER_TYPE = new MenuType<>((IContainerFactory<AssassinLeaderContainer>) (windowId, inv, data) -> {
-            Player playerEntity = inv.player;
             AssassinLeaderEntity rec = getAssassinByUUID(inv.player, data.readUUID());
             if (rec == null) {
                 return null;
@@ -217,7 +216,7 @@ public class Main {
             }
             return new RecruitHireContainer(windowId, playerEntity, rec, playerEntity.getInventory());
         });
-        HIRE_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "debug_container"));
+        HIRE_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "hire_container"));
         event.getRegistry().register(HIRE_CONTAINER_TYPE);
 
         DEBUG_CONTAINER_TYPE = new MenuType<>((IContainerFactory<DebugInvContainer>) (windowId, inv, data) -> {
