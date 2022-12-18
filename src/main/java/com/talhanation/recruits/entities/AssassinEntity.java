@@ -102,6 +102,7 @@ public class AssassinEntity extends AbstractOrderAbleEntity {
 
     @Override
     public boolean wantsToPickUp(ItemStack itemStack) {
+        super.wantsToPickUp(itemStack);
         return itemStack.isEdible();
     }
 

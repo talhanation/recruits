@@ -42,7 +42,8 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
 
     @Override
     public boolean wantsToPickUp(ItemStack itemStack) {
-        return false;
+        super.wantsToPickUp(itemStack);
+        return  itemStack.getItem() instanceof CrossbowItem || itemStack.getItem() instanceof ProjectileWeaponItem;
     }
 
     @Override

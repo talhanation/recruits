@@ -259,4 +259,10 @@ public class BowmanEntity extends RecruitEntity implements RangedAttackMob {
     public boolean getShouldArrow(){
         return this.entityData.get(SHOULD_ARROW);
     }
+
+    @Override
+    public boolean wantsToPickUp(ItemStack itemStack) {
+        super.wantsToPickUp(itemStack);
+        return itemStack.getItem() instanceof BowItem || itemStack.getItem() instanceof ProjectileWeaponItem;
+    }
 }

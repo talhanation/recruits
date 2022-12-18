@@ -9,9 +9,9 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
@@ -20,6 +20,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.function.Predicate;
+
+import static net.minecraft.world.entity.EquipmentSlot.*;
 
 public abstract class AbstractInventoryEntity extends PathfinderMob {
 
@@ -128,6 +130,26 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         return 0;
     }
 
+    public EquipmentSlot getEquipmentSlotIndex(int id) {
+        switch (id) {
+            case 0:
+                return HEAD;
+            case 1:
+                return CHEST;
+            case 2:
+                return LEGS;
+            case 3:
+                return FEET;
+            case 4:
+                return MAINHAND;
+            case 5:
+                return OFFHAND;
+            default:
+                break;
+        }
+        return OFFHAND;
+    }
+
     ////////////////////////////////////SET////////////////////////////////////
 
     @Override
@@ -226,11 +248,13 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         }
 
     }
-
     public abstract void checkItemsInInv();
 
     @Override
-    public abstract boolean wantsToPickUp(ItemStack itemStack);
+    public boolean wantsToPickUp(ItemStack itemStack){
+        super.wantsToPickUp(itemStack);
+        return (itemStack.getItem() instanceof ArmorItem) || itemStack.isEdible();
+    }
 
     public abstract Predicate<ItemEntity> getAllowedItems();
 

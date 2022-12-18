@@ -99,7 +99,8 @@ public class RecruitEntity extends AbstractRecruitEntity {
 
     @Override
     public boolean wantsToPickUp(ItemStack itemStack) {
-        return itemStack.isEdible();
+        super.wantsToPickUp(itemStack);
+        return itemStack.getItem() instanceof SwordItem || itemStack.getItem() instanceof AxeItem;
     }
 
     public Predicate<ItemEntity> getAllowedItems(){
