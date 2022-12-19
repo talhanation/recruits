@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.DebugInvContainer;
-import com.talhanation.recruits.network.MessageAggroGui;
 import com.talhanation.recruits.network.MessageDebugGui;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
@@ -12,15 +11,15 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.*;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.text.DecimalFormat;
-
-import static com.talhanation.recruits.CommandEvents.TEXT_PASSIVE;
 
 @OnlyIn(Dist.CLIENT)
 public class DebugInvScreen extends ScreenBase<DebugInvContainer> {
@@ -129,8 +128,8 @@ public class DebugInvScreen extends ScreenBase<DebugInvContainer> {
         int maxHealth = Mth.ceil(recruit.getMaxHealth());
         int moral = Mth.ceil(recruit.getMoral());
 
-        double A_damage = Mth.ceil(recruit.getAttackDamage());
-        double speed = recruit.getAttributeBaseValue(Attributes.MOVEMENT_SPEED) / 0.3;
+        double A_damage = this.calculateADamage();
+        double speed = recruit.getMovementSpeed();
         DecimalFormat decimalformat = new DecimalFormat("##.#");
         double armor = recruit.getArmorValue();
         int costs = recruit.getCost();
@@ -179,6 +178,22 @@ public class DebugInvScreen extends ScreenBase<DebugInvContainer> {
 
         font.draw(matrixStack, "Cost:", k + 43 + 20, l + 40, fontColor);
         font.draw(matrixStack, ""+ costs, k + 77 + 20, l + 40, fontColor);
+    }
+
+    private int calculateADamage() {
+        int damage = Math.round(recruit.getAttackDamage());
+        Main.LOGGER.debug(damage);
+        ItemStack handItem = recruit.getItemInHand(InteractionHand.MAIN_HAND);
+        if (handItem.getItem() instanceof SwordItem || handItem.getItem() instanceof AxeItem){
+            damage += handItem.getDamageValue();
+        }
+        if (handItem.getItem() instanceof BowItem bow){
+            damage += 8; // according to wiki
+        }
+        if (handItem.getItem() instanceof CrossbowItem bow){
+            damage += 11; // according to wiki
+        }
+        return damage;
     }
 
 }

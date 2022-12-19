@@ -428,6 +428,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE);
     }
 
+    public float getMovementSpeed(){
+        return (float) this.getAttributeValue(Attributes.MOVEMENT_SPEED);
+    }
+
     public boolean getFleeing() {
         return entityData.get(FLEEING);
     }
@@ -1101,7 +1105,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     private void recalculateCost() {
         int currCost = getCost();
-        int newCost = Math.abs((currCost + getXpLevel() * 2));
+        int armorBonus = this.getArmorValue() * 2;
+        int weaponBonus = this.getMainHandItem().getMaxDamage() * 2;
+        int speedBonus = (int) (this.getSpeed() * 2);
+        int shieldBonus = this.getOffhandItem().getItem() instanceof ShieldItem ? 10 : 0;
+        int newCost = Math.abs((shieldBonus + speedBonus + weaponBonus + armorBonus + currCost + getXpLevel() * 2));
 
         this.setCost(newCost);
     }
