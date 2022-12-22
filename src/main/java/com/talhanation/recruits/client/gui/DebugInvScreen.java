@@ -182,16 +182,21 @@ public class DebugInvScreen extends ScreenBase<DebugInvContainer> {
 
     private int calculateADamage() {
         int damage = Math.round(recruit.getAttackDamage());
-        Main.LOGGER.debug(damage);
+        Main.LOGGER.debug("damage: " + damage);
         ItemStack handItem = recruit.getItemInHand(InteractionHand.MAIN_HAND);
         if (handItem.getItem() instanceof SwordItem || handItem.getItem() instanceof AxeItem){
+
             damage += handItem.getDamageValue();
+            Main.LOGGER.debug("Sword damage: " + handItem.getDamageValue());
+            Main.LOGGER.debug("Sword damage: " + damage);
         }
         if (handItem.getItem() instanceof BowItem bow){
             damage += 8; // according to wiki
+            Main.LOGGER.debug("Bow damage: " + damage);
         }
         if (handItem.getItem() instanceof CrossbowItem bow){
             damage += 11; // according to wiki
+            Main.LOGGER.debug("Cross damage: " + damage);
         }
         return damage;
     }

@@ -16,6 +16,8 @@ import com.talhanation.recruits.network.MessageRecruitGui;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -51,15 +53,15 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ShieldItem;
+import net.minecraft.world.item.*;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.network.NetworkHooks;
+import org.apache.commons.lang3.mutable.MutableFloat;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -126,6 +128,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateHunger();
         updateTeam();
 
+        if (this.getMainHandItem() != null) {
+            ItemStack handItem = getMainHandItem();
+            if (handItem.getItem() instanceof SwordItem sword) {
+                CompoundTag tag = sword.proper
+                Main.LOGGER.debug("tag: " + tag);
+            }
+        }
         //Main.LOGGER.debug("OwnerUUID: " + this.getOwnerUUID());
         //Main.LOGGER.debug("Owner: " + this.getOwner());
 
@@ -1106,11 +1115,18 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private void recalculateCost() {
         int currCost = getCost();
         int armorBonus = this.getArmorValue() * 2;
-        int weaponBonus = this.getMainHandItem().getMaxDamage() * 2;
-        int speedBonus = (int) (this.getSpeed() * 2);
-        int shieldBonus = this.getOffhandItem().getItem() instanceof ShieldItem ? 10 : 0;
-        int newCost = Math.abs((shieldBonus + speedBonus + weaponBonus + armorBonus + currCost + getXpLevel() * 2));
+        Main.LOGGER.debug("armorBonus: " + armorBonus);
 
+        int weaponBonus = 4;
+        Main.LOGGER.debug("weaponBonus: " + weaponBonus);
+
+        int speedBonus = (int) (this.getSpeed() * 2);
+        Main.LOGGER.debug("speedBonus: " + speedBonus);
+
+        int shieldBonus = this.getOffhandItem().getItem() instanceof ShieldItem ? 10 : 0;
+        Main.LOGGER.debug("shieldBonus: " + shieldBonus);
+
+        int newCost = Math.abs((shieldBonus + speedBonus + weaponBonus + armorBonus + currCost + getXpLevel() * 2));
         this.setCost(newCost);
     }
 
