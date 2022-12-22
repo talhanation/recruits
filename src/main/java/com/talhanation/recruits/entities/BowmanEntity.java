@@ -1,8 +1,15 @@
 package com.talhanation.recruits.entities;
 
 
+import com.mojang.brigadier.CommandDispatcher;
+import com.talhanation.recruits.CommandEvents;
+import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.RecruitHailOfArrows;
 import com.talhanation.recruits.entities.ai.RecruitRangedBowAttackGoal;
+import com.talhanation.recruits.inventory.CommandContainer;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.item.ItemArgument;
+import net.minecraft.commands.arguments.item.ItemInput;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TextComponent;
@@ -27,11 +34,11 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Optional;
 
 public class BowmanEntity extends RecruitEntity implements RangedAttackMob {
@@ -107,15 +114,19 @@ public class BowmanEntity extends RecruitEntity implements RangedAttackMob {
 
     @Override
     public void setEquipment() {
-        this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
-        this.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));
-        this.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.LEATHER_LEGGINGS));
-        this.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.LEATHER_BOOTS));
+        //Armor
 
-        inventory.setItem(12, new ItemStack(Items.LEATHER_CHESTPLATE));
-        inventory.setItem(13, new ItemStack(Items.LEATHER_LEGGINGS));
-        inventory.setItem(14, new ItemStack(Items.LEATHER_BOOTS));
-        inventory.setItem(9, new ItemStack(Items.BOW));
+        //Hand
+        List<String> list = RecruitsModConfig.BowmanHandEquipment.get();
+        if(list.get(0).isEmpty()){
+            this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
+        }
+        else {
+            this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
+            this.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));
+            this.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.LEATHER_LEGGINGS));
+            this.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.LEATHER_BOOTS));
+        }
     }
 
     @Override

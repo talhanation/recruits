@@ -128,11 +128,19 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateHunger();
         updateTeam();
 
+        if(isOwned()){
+            ItemStack stack = getOwner().getItemBySlot(EquipmentSlot.OFFHAND);
+            if (stack != null){
+                Main.LOGGER.debug("getDescriptionId: " + stack.getDescriptionId());
+                Main.LOGGER.debug("getDescription: " + stack.getItem().getDescription().getString());
+            }
+        }
+
         if (this.getMainHandItem() != null) {
             ItemStack handItem = getMainHandItem();
             if (handItem.getItem() instanceof SwordItem sword) {
-                CompoundTag tag = sword.proper
-                Main.LOGGER.debug("tag: " + tag);
+                //CompoundTag tag = sword.proper
+                //Main.LOGGER.debug("tag: " + tag);
             }
         }
         //Main.LOGGER.debug("OwnerUUID: " + this.getOwnerUUID());
@@ -867,10 +875,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 player.sendMessage(new TextComponent(name + recruited3), player.getUUID());
             }
         }
-
-            int currentRecruits = CommandEvents.getSavedRecruitCount(player);
-            CommandEvents.saveRecruitCount(player,  currentRecruits + 1);
-            return true;
+        int currentRecruits = CommandEvents.getSavedRecruitCount(player);
+        CommandEvents.saveRecruitCount(player,  currentRecruits + 1);
+        return true;
     }
 
     public void dialogue(String name, Player player) {
