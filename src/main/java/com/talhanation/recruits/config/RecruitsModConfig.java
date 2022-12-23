@@ -16,7 +16,7 @@ public class RecruitsModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
-    public static final int NEW_VERSION = 13;
+    public static final int NEW_VERSION = 14;
 
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue RenderNameTagforOwner;
@@ -229,7 +229,7 @@ public class RecruitsModConfig {
 
         RecruitCurrency = BUILDER.comment("\n" + "----Currency----" + "\n" +
                 "\t" + "(takes effect after restart)" + "\n" +
-                "\t" + "The Item defined here will be used to hire recruits, for example: [\"minecraft:diamond\",")
+                "\t" + "The Ite m defined here, will be used to hire recruits. For example: [\"minecraft:diamond\"]")
                 .worldRestart()
                 .define("RecruitCurrency", "minecraft:emerald");
 

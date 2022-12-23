@@ -131,7 +131,8 @@
   "chat.recruits.text.recruited2": "How can i assist you?",
   "chat.recruits.text.recruited3": "Your way is my way. Im honored.",
 
-  "chat.recruits.text.hire_costs": "You need %x Emeralds to recruit me!",
+  "chat.recruits.text.hire_costs_1": "You need",
+  "chat.recruits.text.hire_costs_2": "to recruit me!",
   "chat.recruits.info.reached_max": "You reached the maximum limit you can recruit.",
 
   "chat.recruits.text.block_placing_warn": "You are not allowed to place or break blocks in our lands!",

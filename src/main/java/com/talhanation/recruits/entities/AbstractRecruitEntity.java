@@ -60,7 +60,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
+import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.extensions.IForgeItem;
+import net.minecraftforge.common.extensions.IForgeItemStack;
 import net.minecraftforge.network.NetworkHooks;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.commons.lang3.mutable.MutableFloat;
 import org.jetbrains.annotations.NotNull;
 
@@ -128,13 +132,19 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateHunger();
         updateTeam();
 
-        if(isOwned()){
+        /*
+        if(getOwner() != null){
             ItemStack stack = getOwner().getItemBySlot(EquipmentSlot.OFFHAND);
             if (stack != null){
-                Main.LOGGER.debug("getDescriptionId: " + stack.getDescriptionId());
-                Main.LOGGER.debug("getDescription: " + stack.getItem().getDescription().getString());
+                Main.LOGGER.debug("getOrCreateTag: " + stack.getOrCreateTag());
+                Main.LOGGER.debug("toString: " + toString());
+                Main.LOGGER.debug("stack.getItem(): " + stack.getItem());
+                Main.LOGGER.debug("getItem().getDescriptionID: " + stack.getItem().getDescriptionId());
+                Main.LOGGER.debug("ForgeHooks.getDefaultCreatorModId: " + ForgeHooks.getDefaultCreatorModId(stack));
+                Main.LOGGER.debug("ForgeRegistries.ITEMS.getKey: " + ForgeRegistries.ITEMS.getKey(stack.getItem()));
             }
         }
+         */
 
         if (this.getMainHandItem() != null) {
             ItemStack handItem = getMainHandItem();
