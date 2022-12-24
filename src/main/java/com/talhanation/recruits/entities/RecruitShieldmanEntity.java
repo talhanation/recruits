@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities;
 
+import com.talhanation.recruits.config.RecruitsModConfig;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.DifficultyInstance;
@@ -58,23 +59,8 @@ public class RecruitShieldmanEntity extends RecruitEntity{
 
     @Override
     public void setEquipment() {
-        this.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));
-        this.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.LEATHER_LEGGINGS));
-        this.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.LEATHER_BOOTS));
-        this.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
-
-        inventory.setItem(12, new ItemStack(Items.LEATHER_CHESTPLATE));
-        inventory.setItem(13, new ItemStack(Items.LEATHER_LEGGINGS));
-        inventory.setItem(14, new ItemStack(Items.LEATHER_BOOTS));
-        inventory.setItem(10, new ItemStack(Items.SHIELD));
-
-        int i = this.random.nextInt(10);
-        if (i == 0) {
-            this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE));
-            inventory.setItem(9, new ItemStack(Items.IRON_AXE));
-        } else
-            this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_AXE));
-            inventory.setItem(9, new ItemStack(Items.STONE_AXE));
+        super.setEquipment();
+        setHandEquipment(RecruitsModConfig.ShieldmanHandEquipment.get());
     }
 
     @Override

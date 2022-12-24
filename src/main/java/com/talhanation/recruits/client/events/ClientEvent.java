@@ -5,13 +5,20 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.models.RecruitModel;
 import com.talhanation.recruits.client.render.*;
 import com.talhanation.recruits.init.ModEntityTypes;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+
+import javax.annotation.Nullable;
+
 @Mod.EventBusSubscriber(modid = Main.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD , value = Dist.CLIENT)
 public class ClientEvent {
 
@@ -32,5 +39,16 @@ public class ClientEvent {
     @SubscribeEvent
     public static void layerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(ClientEvent.RECRUIT, RecruitModel::defineLayer);
+    }
+
+
+    @Nullable
+    public static Entity getEntityByLooking() {
+        HitResult hit = Minecraft.getInstance().hitResult;
+
+        if (hit instanceof EntityHitResult entityHitResult){
+            return entityHitResult.getEntity();
+        }
+        return null;
     }
 }

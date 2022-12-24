@@ -15,15 +15,15 @@ import com.talhanation.recruits.network.MessageHireGui;
 import com.talhanation.recruits.network.MessageRecruitGui;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -54,25 +54,18 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.*;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
-import net.minecraftforge.common.ForgeHooks;
-import net.minecraftforge.common.extensions.IForgeItem;
-import net.minecraftforge.common.extensions.IForgeItemStack;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.apache.commons.lang3.mutable.MutableFloat;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Integer> DATA_REMAINING_ANGER_TIME = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
@@ -102,6 +95,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Optional<UUID>> OWNER_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Boolean> OWNED = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> COST = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Optional<UUID>> UPKEEP_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     public int blockCoolDown;
     public int eatCoolDown;
 
@@ -202,7 +196,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         //this.goalSelector.addGoal(0, new (this));
         this.goalSelector.addGoal(1, new FloatGoal(this));
         this.goalSelector.addGoal(1, new RecruitEatGoal(this));
-        this.goalSelector.addGoal(1, new RecruitUpkeepGoal(this));
+        this.goalSelector.addGoal(1, new RecruitUpkeepPosGoal(this));
+        this.goalSelector.addGoal(1, new RecruitUpkeepEntityGoal(this));
         this.goalSelector.addGoal(2, new RecruitMountEntity(this));
         //this.goalSelector.addGoal(2, new RecruitMountGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D));
@@ -275,6 +270,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(HUNGER, 50F);
         this.entityData.define(MORAL, 50F);
         this.entityData.define(OWNER_ID, Optional.empty());
+        this.entityData.define(UPKEEP_ID, Optional.empty());
         this.entityData.define(OWNED, false);
         this.entityData.define(COST, 1);
 
@@ -399,6 +395,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setMountUUID(uuid);
         }
 
+        if (nbt.contains("UpkeepUUID")){
+            Optional<UUID> uuid = Optional.of(nbt.getUUID("UpkeepUUID"));
+            this.setUpkeepUUID(uuid);
+        }
+
         if (nbt.contains("UpkeepPosX") && nbt.contains("UpkeepPosY") && nbt.contains("UpkeepPosZ")) {
             this.setUpkeepPos(new BlockPos (
                     nbt.getInt("UpkeepPosX"),
@@ -407,13 +408,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
-    public void setCost(int cost){
-        entityData.set(COST, cost);
-    }
-
 
     ////////////////////////////////////GET////////////////////////////////////
 
+    public UUID getUpkeepUUID(){
+        return  this.entityData.get(UPKEEP_ID).orElse(null);
+    }
     public BlockPos getUpkeepPos(){
         return entityData.get(UPKEEP_POS).orElse(null);
     }
@@ -578,9 +578,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     ////////////////////////////////////SET////////////////////////////////////
 
+    public void setUpkeepUUID(Optional<UUID> id) {
+        this.entityData.set(UPKEEP_ID, id);
+    }
+    public void setCost(int cost){
+        entityData.set(COST, cost);
+    }
     public void setUpkeepPos(BlockPos pos){
         this.entityData.set(UPKEEP_POS, Optional.of(pos));
-        Main.LOGGER.debug("setUpkeepPos: " + this.getUpkeepPos());
     }
 
     public void setIsOwned(boolean bool){
@@ -774,7 +779,42 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         entityData.set(LISTEN, bool);
     }
 
-    public void setEquipment(){}
+    public void setEquipment(){
+        //Armor
+        List<String> armor = RecruitsModConfig.StartArmorList.get();
+        List<ItemStack> itemStackArmor = new ArrayList<>(Arrays.asList(new ItemStack(Items.LEATHER_HELMET), new ItemStack(Items.LEATHER_CHESTPLATE), new ItemStack(Items.LEATHER_LEGGINGS), new ItemStack(Items.LEATHER_BOOTS)));
+        List<EquipmentSlot> equipmentslot = new ArrayList<>(Arrays.asList(EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET));
+
+        for(int i = 0; i < armor.size(); i++){
+            String str = armor.get(i);
+            Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
+            if (holder.isPresent()){
+                this.setItemSlot(equipmentslot.get(i), holder.get().value().getDefaultInstance());
+            }
+        }
+    }
+
+    public void setHandEquipment(List<String> hand) {
+        RecruitsModConfig.RecruitHandEquipment.get();
+
+        if(!hand.get(0).isEmpty()){
+            String str = hand.get(0);
+            Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
+            holder.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.MAINHAND, itemHolder.value().getDefaultInstance()));
+        }
+        else {
+            this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
+        }
+
+        if(!hand.get(1).isEmpty()){
+            String str = hand.get(1);
+            Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
+            holder.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.OFFHAND, itemHolder.value().getDefaultInstance()));
+        }
+        else {
+            this.setItemSlot(EquipmentSlot.OFFHAND, ItemStack.EMPTY);
+        }
+    }
 
     public void initSpawn(){
         this.setCanPickUpLoot(true);

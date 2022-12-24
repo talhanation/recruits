@@ -70,6 +70,7 @@
   "gui.recruits.command.tooltip.move" : "If possible, the recruits will try to go to the position you are looking at.",
   "gui.recruits.command.tooltip.arrows" : "Make your bowman perform a hail of arrows at the position you are looking at.",
   "gui.recruits.command.tooltip.shields" : "Make the recruits raise/lower their shields.",
+  "gui.recruits.command.tooltip.upkeep" : "Sets the block or entity for the upkeep of your recruits you are looking at.",
 
   "gui.recruits.command.tooltip.passive" : "Make the recruits not attacking at all.",
   "gui.recruits.command.tooltip.neutral" : "Make the recruits attack only hostile living.",

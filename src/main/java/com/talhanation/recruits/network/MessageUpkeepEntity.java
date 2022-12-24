@@ -5,7 +5,6 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -13,15 +12,18 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageUpkeepPos implements Message<MessageUpkeepPos> {
+public class MessageUpkeepEntity implements Message<MessageUpkeepEntity> {
 
-    private UUID player;
+    private UUID player_uuid;
+    private UUID target;
     private int group;
-    public MessageUpkeepPos(){
+
+    public MessageUpkeepEntity(){
     }
 
-    public MessageUpkeepPos(UUID player, int group) {
-        this.player = player;
+    public MessageUpkeepEntity(UUID player_uuid, UUID target, int group) {
+        this.player_uuid = player_uuid;
+        this.target = target;
         this.group = group;
     }
 
@@ -29,23 +31,24 @@ public class MessageUpkeepPos implements Message<MessageUpkeepPos> {
         return Dist.DEDICATED_SERVER;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer serverPlayer = context.getSender();
+    public void executeServerSide(NetworkEvent.Context context){
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
         for (AbstractRecruitEntity recruits : list) {
-
-            CommandEvents.onUpkeepCommand(serverPlayer, this.player, recruits, group, false, null);
+            Main.LOGGER.debug("message: uuid: " + target);
+            CommandEvents.onUpkeepCommand(context.getSender(), player_uuid, recruits, group, true, target);
         }
     }
-    public MessageUpkeepPos fromBytes(FriendlyByteBuf buf) {
-        this.player = buf.readUUID();
+    public MessageUpkeepEntity fromBytes(FriendlyByteBuf buf) {
+        this.player_uuid = buf.readUUID();
+        this.target = buf.readUUID();
         this.group = buf.readInt();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
-        buf.writeUUID(this.player);
-        buf.writeInt(this.group);
+        buf.writeUUID(player_uuid);
+        buf.writeUUID(target);
+        buf.writeInt(group);
     }
 
 }

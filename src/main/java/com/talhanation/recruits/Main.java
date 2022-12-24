@@ -118,7 +118,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 22, MessageHailOfArrows.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 23, MessageShields.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 24, MessageDebugGui.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 25, MessageDebugGui.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 25, MessageUpkeepEntity.class);
     }
 
     @SubscribeEvent

@@ -1,6 +1,5 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Container;
@@ -10,20 +9,20 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 
-public class RecruitUpkeepGoal extends Goal {
+public class RecruitUpkeepPosGoal extends Goal {
     public AbstractRecruitEntity recruit;
     public BlockPos chestPos;
     public Entity mobInv;
     public Container container;
 
-    public RecruitUpkeepGoal(AbstractRecruitEntity recruit) {
+    public RecruitUpkeepPosGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
     }
 
     @Override
     public boolean canUse() {
-        return true;
-    } // && recruit.needsToEat()
+        return recruit.needsToEat();
+    }
 
     @Override
     public boolean canContinueToUse() {
@@ -37,17 +36,11 @@ public class RecruitUpkeepGoal extends Goal {
     }
 
     @Override
-    public void start() {
-        super.start();
-        //Main.LOGGER.debug("upkeep started");
-    }
-
-    @Override
     public void tick() {
         super.tick();
         this.chestPos = findInvPos();
         //Main.LOGGER.debug("searching upkeep");
-        if (chestPos != null && !this.hasFoodInInv()) {
+        if (chestPos != null && !this.hasFoodInInv() && chestPos.distSqr(recruit.getOnPos()) <= 64) {
             //Main.LOGGER.debug("Moving to chest");
             this.recruit.getNavigation().moveTo(chestPos.getX(), chestPos.getY(), chestPos.getZ(), 1.15D);
             BlockEntity entity = recruit.level.getBlockEntity(chestPos);

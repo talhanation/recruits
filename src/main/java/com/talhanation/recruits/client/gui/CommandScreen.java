@@ -1,9 +1,9 @@
 package com.talhanation.recruits.client.gui;
 
-import com.google.common.collect.ImmutableMultimap;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.events.ClientEvent;
 import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
@@ -20,7 +20,10 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.common.ForgeMod;
+
+import java.util.UUID;
 
 
 @OnlyIn(Dist.CLIENT)
@@ -65,8 +68,8 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
     private static final TranslatableComponent TEXT_HAILOFARROWS = new TranslatableComponent("gui.recruits.command.text.arrow");
     private static final TranslatableComponent TOOLTIP_CLEAR_TARGET = new TranslatableComponent("gui.recruits.command.tooltip.clearTargets");
     private static final TranslatableComponent TEXT_CLEAR_TARGET = new TranslatableComponent("gui.recruits.command.text.clearTargets");
-
     private static final TranslatableComponent TEXT_UPKEEP = new TranslatableComponent("gui.recruits.inv.text.upkeep");
+    private static final TranslatableComponent TOOLTIP_UPKEEP = new TranslatableComponent("gui.recruits.command.tooltip.upkeep");
 
     private static final int fontColor = 16250871;
     private Player player;
@@ -111,7 +114,8 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_MOUNT,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(99, player, group);
-                    Entity entity = CommandEvents.getEntityByLooking(player);
+                    Entity entity = ClientEvent.getEntityByLooking();
+                    Main.LOGGER.debug("client: entity: " + entity);
                     if (entity != null){
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntity(player.getUUID(), entity.getUUID(), group));
                     }
@@ -137,7 +141,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         }));
 
         //MOVE
-        addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_MOVE,
+        addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos - (20 + topPosGab), 80, 20, TEXT_MOVE,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(97, player, group);
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageMove(player.getUUID(), group));
@@ -146,13 +150,21 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         }));
 
         //UPKEEP
-        addRenderableWidget(new Button(zeroLeftPos + 50, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_UPKEEP,
+        addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_UPKEEP,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(92, player, group);
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageUpkeepPos(player.getUUID(), group));
+                    Entity entity = ClientEvent.getEntityByLooking();
+                    //Main.LOGGER.debug("client: entity: " + entity);
+
+                    if (entity != null) {
+                        //Main.LOGGER.debug("client: uuid: " + entity.getUUID());
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpkeepEntity(player.getUUID(), entity.getUUID(), group));
+                    }
+                    else
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpkeepPos(player.getUUID(), group));
 
              },  (a, b, c, d) -> {
-            this.renderTooltip(b, TOOLTIP_DISMOUNT, c, d);
+            this.renderTooltip(b, TOOLTIP_UPKEEP, c, d);
         }));
 
         //SHIELDS
@@ -176,7 +188,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_ESCORT,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(5, player, group);
-                    Entity entity = CommandEvents.getEntityByLooking(player);
+                    Entity entity = ClientEvent.getEntityByLooking();
                     if (entity != null){
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageEscortEntity(player.getUUID(), entity.getUUID(), group));
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 5, group));
@@ -227,7 +239,6 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         },  (a, b, c, d) -> {
             this.renderTooltip(b, TOOLTIP_CLEAR_TARGET, c, d);
         }));
-
 
 
         //WANDER

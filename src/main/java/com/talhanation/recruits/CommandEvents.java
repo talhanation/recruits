@@ -5,6 +5,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.BowmanEntity;
 import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.network.MessageCommandScreen;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -353,18 +354,6 @@ public class CommandEvents {
     }
 
 
-
-    @Nullable
-    public static Entity getEntityByLooking(Player player) {
-        HitResult hit = player.pick(32, 1F, false);;
-
-        if (hit instanceof EntityHitResult entityHitResult){
-            return entityHitResult.getEntity();
-        }
-        return null;
-    }
-
-
     public static void onMountButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID mount_uuid, int group) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             recruit.shouldMount(true, mount_uuid);
@@ -392,17 +381,22 @@ public class CommandEvents {
         }
     }
 
-    public static void onUpkeepCommand(Player player, UUID player_uuid, AbstractRecruitEntity recruit, int group) {
+    public static void onUpkeepCommand(Player player, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean isEntity, UUID entity_uuid) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
-
-            HitResult hitResult = player.pick(100, 1F, false);
-
-            if (hitResult != null) {
-                if (hitResult.getType() == HitResult.Type.BLOCK) {
-                    BlockHitResult blockHitResult = (BlockHitResult) hitResult;
-                    BlockPos blockpos = blockHitResult.getBlockPos();
-                    recruit.setUpkeepPos(blockpos);
-                    Main.LOGGER.debug("Upkeep pos: " + blockpos);
+            if (isEntity) {
+                Main.LOGGER.debug("server: entity_uuid: " + entity_uuid);
+                recruit.setUpkeepUUID(Optional.of(entity_uuid));
+                recruit.setUpkeepPos(BlockPos.ZERO);
+            }
+            else {
+                HitResult hitResult = player.pick(100, 1F, false);
+                if (hitResult != null) {
+                    if (hitResult.getType().equals(HitResult.Type.BLOCK)) {
+                        BlockHitResult blockHitResult = (BlockHitResult) hitResult;
+                        BlockPos blockpos = blockHitResult.getBlockPos();
+                        recruit.setUpkeepPos(blockpos);
+                        recruit.setUpkeepUUID(Optional.empty());
+                    }
                 }
             }
         }
