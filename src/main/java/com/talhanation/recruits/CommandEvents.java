@@ -378,13 +378,16 @@ public class CommandEvents {
     public static void onStopButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             recruit.setTarget(null);
+            recruit.setLastHurtByPlayer(null);
+            recruit.setLastHurtMob(null);
+            recruit.setLastHurtByMob(null);
         }
     }
 
     public static void onUpkeepCommand(Player player, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean isEntity, UUID entity_uuid) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             if (isEntity) {
-                Main.LOGGER.debug("server: entity_uuid: " + entity_uuid);
+                //Main.LOGGER.debug("server: entity_uuid: " + entity_uuid);
                 recruit.setUpkeepUUID(Optional.of(entity_uuid));
                 recruit.setUpkeepPos(BlockPos.ZERO);
             }
