@@ -1111,7 +1111,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if(eatCoolDown > 0){
             eatCoolDown--;
         }
-        if(getHunger() >=  75F && getHealth() < getMaxHealth()){
+        if(getHunger() >=  70F && getHealth() < getMaxHealth()){
             this.heal(1.0F/40F);// 1 hp in 2s
         }
     }
@@ -1120,16 +1120,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return this.needsToEat() && this.getUpkeepPos() != null;
     }
     public boolean needsToEat(){
-        /*
-        else if(getHealth() <= (getMaxHealth() * 0.20) && eatCoolDown == 0) {
-            return true;
-        }
-        else if(getHealth() <= (getMaxHealth() * 0.90) && this.getTarget() == null){
-            return true;
-        }
-         */
         //Main.LOGGER.debug(getHunger());
         if (getHunger() <= 50F){
+            return true;
+        }
+        else if (getHunger() <= 70F && getHealth() != getMaxHealth() && this.getTarget() == null){
             return true;
         }
         else return getHealth() <= (getMaxHealth() * 0.30) && this.getTarget() == null;
