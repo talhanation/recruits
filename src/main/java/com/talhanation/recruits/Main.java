@@ -99,7 +99,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 3, MessageAssassinCount.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 4, MessageAssassinGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 5, MessageMountEntity.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 6, MessageClearTarget.class);
+
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 7, MessageClearTargetGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 8, MessageCommandScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 9, MessageDisband.class);
@@ -119,6 +119,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 23, MessageShields.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 24, MessageDebugGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 25, MessageUpkeepEntity.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 26, MessageClearTarget.class);
     }
 
     @SubscribeEvent
