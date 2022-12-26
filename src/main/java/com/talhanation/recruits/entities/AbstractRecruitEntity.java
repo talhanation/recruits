@@ -336,6 +336,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             nbt.putUUID("EscortUUID", this.getEscortUUID());
         }
 
+        if(this.getUpkeepUUID() != null){
+            nbt.putUUID("UpkeepUUID", this.getUpkeepUUID());
+        }
+
         if(this.getUpkeepPos() != null){
             nbt.putInt("UpkeepPosX", this.getUpkeepPos().getX());
             nbt.putInt("UpkeepPosY", this.getUpkeepPos().getY());
@@ -1117,7 +1121,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public boolean needsToGetFood(){
-        return this.needsToEat() && this.getUpkeepPos() != null;
+        boolean isChest = this.getUpkeepPos() != null;
+        boolean isEntity = this.getUpkeepUUID() != null;
+
+        return this.needsToEat() && (isChest || isEntity);
     }
     public boolean needsToEat(){
         //Main.LOGGER.debug(getHunger());

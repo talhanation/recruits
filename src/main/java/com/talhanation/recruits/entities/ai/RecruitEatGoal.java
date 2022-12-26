@@ -44,12 +44,14 @@ public class RecruitEatGoal extends Goal {
         beforeFoodItem = recruit.getOffhandItem().copy();
         recruit.setIsEating(true);
         this.foodStack = getAndRemoveFoodInInv().copy();
-
+        /*
         Main.LOGGER.debug("Start--------------: ");
         Main.LOGGER.debug("beforeFoodItem: " + beforeFoodItem.copy());
         Main.LOGGER.debug("isEating: " + recruit.getIsEating());
         Main.LOGGER.debug("foodStack: " + foodStack.copy());
         Main.LOGGER.debug("Start--------------:");
+
+         */
 
         recruit.heal(Objects.requireNonNull(foodStack.getItem().getFoodProperties(foodStack, recruit)).getSaturationModifier() * 1);
         if (!recruit.isSaturated())
@@ -68,12 +70,14 @@ public class RecruitEatGoal extends Goal {
 
         recruit.eatCoolDown = 100;
         resetItemInHand();
-
+        /*
         Main.LOGGER.debug("Stop--------------: ");
         Main.LOGGER.debug("beforeFoodItem: " + beforeFoodItem);
         Main.LOGGER.debug("isEating: " + recruit.getIsEating());
         Main.LOGGER.debug("foodStack: " + foodStack.copy());
         Main.LOGGER.debug("Stop--------------:");
+
+         */
     }
 
     public void resetItemInHand() {

@@ -1,6 +1,8 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -15,6 +17,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
     public AbstractRecruitEntity recruit;
     public Optional<Entity> entity;
     public Container container;
+    public boolean message;
 
     public RecruitUpkeepEntityGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -22,7 +25,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return recruit.needsToEat();
+        return recruit.needsToEat() && recruit.getUpkeepUUID() != null;
     }
 
     @Override
@@ -34,6 +37,22 @@ public class RecruitUpkeepEntityGoal extends Goal {
         return recruit.getInventory().items
                 .stream()
                 .anyMatch(ItemStack::isEdible);
+    }
+
+    private boolean isFoodInEntity(Container container){
+        for(int i = 0; i < container.getContainerSize(); i++) {
+            ItemStack foodItem = container.getItem(i);
+            if(foodItem.isEdible()){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void start() {
+        super.start();
+        message = true;
     }
 
     @Override
@@ -58,33 +77,39 @@ public class RecruitUpkeepEntityGoal extends Goal {
                 //Main.LOGGER.debug("found containerEntity");
             }
 
-            this.recruit.getNavigation().moveTo(entity.get().getX(), entity.get().getY(), entity.get().getZ(), 1.15D);
-            //Main.LOGGER.debug("Moving to entity");
-            if (entity.get().closerThan(recruit, 3) && container != null) {
+                this.recruit.getNavigation().moveTo(entity.get().getX(), entity.get().getY(), entity.get().getZ(), 1.15D);
+                //Main.LOGGER.debug("Moving to entity");
+                if (entity.get().closerThan(recruit, 3) && container != null) {
 
-                this.recruit.getNavigation().stop();
-                this.recruit.getLookControl().setLookAt(entity.get().getX(), entity.get().getY() + 1, entity.get().getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
+                    this.recruit.getNavigation().stop();
+                    this.recruit.getLookControl().setLookAt(entity.get().getX(), entity.get().getY() + 1, entity.get().getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
 
-                //Main.LOGGER.debug("Getting food from inv");
-
-                for(int i = 0; i < 3; i++) {
-                    ItemStack foodItem = this.getFoodFromInv(container);
-                    ItemStack food;
-                    if (foodItem != null) {
-                        food = foodItem.copy();
-                        food.setCount(1);
-                        recruit.getInventory().addItem(food);
-                        foodItem.shrink(1);
+                    //Main.LOGGER.debug("Getting food from inv");
+                    if(isFoodInEntity(container)) {
+                        for (int i = 0; i < 3; i++) {
+                            ItemStack foodItem = this.getFoodFromInv(container);
+                            ItemStack food;
+                            if (foodItem != null) {
+                                food = foodItem.copy();
+                                food.setCount(1);
+                                recruit.getInventory().addItem(food);
+                                foodItem.shrink(1);
+                            } else {
+                                //Main.LOGGER.debug("Chest empty");
+                                break;
+                            }
+                        }
                     }
-                    else{
-                        //Main.LOGGER.debug("Chest empty");
-                        break;
+                    else {
+                        if(recruit.getOwner() != null && message){
+                            String name = recruit.getName().getString() + ": ";
+                            String str = TEXT_NOFOOD.getString();
+                            recruit.getOwner().sendMessage(new TextComponent(name + str), recruit.getOwner().getUUID());
+                            message = false;
+                        }
                     }
                 }
-            }
-        }
-        else {
-            //Main.LOGGER.debug("Entity not found");
+            else stop();
         }
     }
 
@@ -109,4 +134,6 @@ public class RecruitUpkeepEntityGoal extends Goal {
         }
         return itemStack;
     }
+
+    private final TranslatableComponent TEXT_NOFOOD = new TranslatableComponent("chat.recruits.text.noFoodInUpkeep");
 }
