@@ -5,7 +5,6 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.BowmanEntity;
 import com.talhanation.recruits.inventory.CommandContainer;
 import com.talhanation.recruits.network.MessageCommandScreen;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -15,7 +14,6 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -24,7 +22,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -32,7 +29,6 @@ import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -375,8 +371,9 @@ public class CommandEvents {
         }
     }
 
-    public static void onStopButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
+    public static void onClearTargetButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
+            //Main.LOGGER.debug("event: clear");
             recruit.setTarget(null);
             recruit.setLastHurtByPlayer(null);
             recruit.setLastHurtMob(null);

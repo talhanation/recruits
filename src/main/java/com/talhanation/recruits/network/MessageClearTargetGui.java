@@ -31,7 +31,7 @@ public class MessageClearTargetGui implements Message<MessageClearTargetGui> {
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
         for (AbstractRecruitEntity recruits : list) {
             if (recruits.getUUID().equals(this.recruit))
-                CommandEvents.onStopButton(this.player, recruits,0);
+                CommandEvents.onClearTargetButton(this.player, recruits,0);
         }
     }
     public MessageClearTargetGui fromBytes(FriendlyByteBuf buf) {
