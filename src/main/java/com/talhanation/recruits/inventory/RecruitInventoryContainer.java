@@ -132,60 +132,17 @@ public class RecruitInventoryContainer extends ContainerBase {
         }
     }
 
-    public ItemStack quickMoveStack(Player p_39665_, int index) {
+    public ItemStack quickMoveStack(Player p_39253_, int p_39254_) {
         ItemStack itemstack = ItemStack.EMPTY;
-        Slot slot = this.slots.get(index);
+        Slot slot = this.slots.get(p_39254_);
         if (slot != null && slot.hasItem()) {
             ItemStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
-            int i = this.recruitInventory.getContainerSize();
-            if (index < i) {
-                if (!this.moveItemStackTo(itemstack1, i, this.slots.size(), true)) {
+            if (p_39254_ < 3 * 3) {
+                if (!this.moveItemStackTo(itemstack1, 3 * 3, this.slots.size(), true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (this.getSlot(0).mayPlace(itemstack1) && !this.getSlot(0).hasItem()) {
-                if (!this.moveItemStackTo(itemstack1, 0, 0, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (this.getSlot(1).mayPlace(itemstack1) && !this.getSlot(1).hasItem()) {
-                if (!this.moveItemStackTo(itemstack1, 1, 0, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (this.getSlot(2).mayPlace(itemstack1) && !this.getSlot(2).hasItem()) {
-                if (!this.moveItemStackTo(itemstack1, 2, 0, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (this.getSlot(3).mayPlace(itemstack1) && !this.getSlot(3).hasItem()) {
-                if (!this.moveItemStackTo(itemstack1, 3, 0, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (this.getSlot(4).mayPlace(itemstack1) && !this.getSlot(4).hasItem()) {
-                if (!this.moveItemStackTo(itemstack1, 4, 0, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (this.getSlot(5).mayPlace(itemstack1) && !this.getSlot(5).hasItem()) {
-                if (!this.moveItemStackTo(itemstack1, 5, 0, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (this.getSlot(6).mayPlace(itemstack1) && !this.getSlot(6).hasItem()) {
-                if (!this.moveItemStackTo(itemstack1, 6, 0, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (i <= 0 || !this.moveItemStackTo(itemstack1, 6, i, false)) {
-                int j = i + 27;
-                int k = j + 9;
-                if (index >= j && index < k) {
-                    if (!this.moveItemStackTo(itemstack1, i, j, false)) {
-                        return ItemStack.EMPTY;
-                    }
-                } else if (index >= i && index < j) {
-                    if (!this.moveItemStackTo(itemstack1, j, k, false)) {
-                        return ItemStack.EMPTY;
-                    }
-                } else if (!this.moveItemStackTo(itemstack1, j, j, false)) {
-                    return ItemStack.EMPTY;
-                }
-
+            } else if (!this.moveItemStackTo(itemstack1, 0, 3 * 3, false)) {
                 return ItemStack.EMPTY;
             }
 
