@@ -1213,7 +1213,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     protected void hurtArmor(@NotNull DamageSource damageSource, float damage) {
-        //if a item breaks hurt s
+        //if a item breaks hurt sound loop
 
         ItemStack headArmor = this.getItemBySlot(EquipmentSlot.HEAD);
             if ((!damageSource.isFire() || !headArmor.getItem().isFireResistant()) && headArmor.getItem() instanceof ArmorItem) {
@@ -1221,57 +1221,55 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 headArmor.hurtAndBreak(1, this, (p_43296_) -> {
                     p_43296_.broadcastBreakEvent(EquipmentSlot.HEAD);
                 });
-                if (this.getItemBySlot(EquipmentSlot.HEAD).isEmpty()) {
-                    this.inventory.setItem(0, ItemStack.EMPTY);
-                    this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
-                }
             }
 
-
+        if (this.getItemBySlot(EquipmentSlot.HEAD).isEmpty()) {
+            this.inventory.setItem(0, ItemStack.EMPTY);
+            this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+        }
 
         ItemStack chestArmor = this.getItemBySlot(EquipmentSlot.CHEST);
 
-            if ((!damageSource.isFire() || !chestArmor.getItem().isFireResistant()) && chestArmor.getItem() instanceof ArmorItem) {
-                //damage
-                chestArmor.hurtAndBreak(1, this, (p_43296_) -> {
-                    p_43296_.broadcastBreakEvent(EquipmentSlot.CHEST);
-                });
-                if (this.getItemBySlot(EquipmentSlot.CHEST).isEmpty()) {
-                    this.inventory.setItem(1, ItemStack.EMPTY);
-                    this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
-                }
-            }
-
+        if ((!damageSource.isFire() || !chestArmor.getItem().isFireResistant()) && chestArmor.getItem() instanceof ArmorItem) {
+            //damage
+            chestArmor.hurtAndBreak(1, this, (p_43296_) -> {
+                p_43296_.broadcastBreakEvent(EquipmentSlot.CHEST);
+            });
+        }
+        if (this.getItemBySlot(EquipmentSlot.CHEST).isEmpty()) {
+            this.inventory.setItem(1, ItemStack.EMPTY);
+            this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+        }
 
 
 
         ItemStack legsArmor = this.getItemBySlot(EquipmentSlot.LEGS);
 
-            if ((!damageSource.isFire() || !legsArmor.getItem().isFireResistant()) && legsArmor.getItem() instanceof ArmorItem) {
-                //damage
-                legsArmor.hurtAndBreak(1, this, (p_43296_) -> {
-                    p_43296_.broadcastBreakEvent(EquipmentSlot.LEGS);
-                });
-                if (this.getItemBySlot(EquipmentSlot.LEGS).isEmpty()) {
-                    this.inventory.setItem(2, ItemStack.EMPTY);
-                    this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
-                }
-            }
-
+        if ((!damageSource.isFire() || !legsArmor.getItem().isFireResistant()) && legsArmor.getItem() instanceof ArmorItem) {
+            //damage
+            legsArmor.hurtAndBreak(1, this, (p_43296_) -> {
+                p_43296_.broadcastBreakEvent(EquipmentSlot.LEGS);
+            });
+        }
+        if (this.getItemBySlot(EquipmentSlot.LEGS).isEmpty()) {
+            this.inventory.setItem(2, ItemStack.EMPTY);
+            this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+        }
 
 
         ItemStack feetArmor = this.getItemBySlot(EquipmentSlot.FEET);
 
-            if ((!damageSource.isFire() || !feetArmor.getItem().isFireResistant()) && feetArmor.getItem() instanceof ArmorItem) {
-                //damage
-                feetArmor.hurtAndBreak(1, this, (p_43296_) -> {
-                    p_43296_.broadcastBreakEvent(EquipmentSlot.FEET);
-                });
-                if (this.getItemBySlot(EquipmentSlot.FEET).isEmpty()) {
-                    this.inventory.setItem(3, ItemStack.EMPTY);
-                    this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
-                }
-            }
+        if ((!damageSource.isFire() || !feetArmor.getItem().isFireResistant()) && feetArmor.getItem() instanceof ArmorItem) {
+            //damage
+            feetArmor.hurtAndBreak(1, this, (p_43296_) -> {
+                p_43296_.broadcastBreakEvent(EquipmentSlot.FEET);
+            });
+
+        }
+        if (this.getItemBySlot(EquipmentSlot.FEET).isEmpty()) {
+            this.inventory.setItem(3, ItemStack.EMPTY);
+            this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+        }
 
     }
 
