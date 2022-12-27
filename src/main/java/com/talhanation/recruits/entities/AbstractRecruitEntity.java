@@ -57,6 +57,7 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.network.NetworkHooks;
@@ -626,10 +627,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         player.sendMessage(new TextComponent(name + disband), player.getUUID());
         this.setTarget(null);
         this.setIsOwned(false);
+        this.setUpkeepPos(BlockPos.ZERO);
+        this.setUpkeepUUID(Optional.empty());
         this.setOwnerUUID(Optional.empty());
         CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
         this.recalculateCost();
     }
+
 
     public void addXpLevel(int level){
         int currentLevel = this.getXpLevel();
@@ -963,6 +967,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 amt = (amt + 1.0F) / 2.0F;
             }
             if(this.getMoral() > 0) this.setMoral(this.getMoral() - 0.25F);
+            if(isBlocking()) hurtCurrentlyUsedShield(amt);
             return super.hurt(dmg, amt);
         }
     }
@@ -1208,24 +1213,81 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     protected void hurtArmor(@NotNull DamageSource damageSource, float damage) {
-        if (damage >= 0.0F) {
-            damage = damage / 4.0F;
-            if (damage < 1.0F) {
-                damage = 1.0F;
-            }
-            for (int i = 0; i < 4; ++i) {//0,1,2,3 armor
-                ItemStack itemstack = this.inventory.getItem(i);
-                if ((!damageSource.isFire() || !itemstack.getItem().isFireResistant()) && itemstack.getItem() instanceof ArmorItem) {
-                    itemstack.setDamageValue((int) damage);
+        //if a item breaks hurt s
+
+        ItemStack headArmor = this.getItemBySlot(EquipmentSlot.HEAD);
+            if ((!damageSource.isFire() || !headArmor.getItem().isFireResistant()) && headArmor.getItem() instanceof ArmorItem) {
+                //damage
+                headArmor.hurtAndBreak(1, this, (p_43296_) -> {
+                    p_43296_.broadcastBreakEvent(EquipmentSlot.HEAD);
+                });
+                if (this.getItemBySlot(EquipmentSlot.HEAD).isEmpty()) {
+                    this.inventory.setItem(0, ItemStack.EMPTY);
+                    this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
                 }
             }
-        }
+
+
+
+        ItemStack chestArmor = this.getItemBySlot(EquipmentSlot.CHEST);
+
+            if ((!damageSource.isFire() || !chestArmor.getItem().isFireResistant()) && chestArmor.getItem() instanceof ArmorItem) {
+                //damage
+                chestArmor.hurtAndBreak(1, this, (p_43296_) -> {
+                    p_43296_.broadcastBreakEvent(EquipmentSlot.CHEST);
+                });
+                if (this.getItemBySlot(EquipmentSlot.CHEST).isEmpty()) {
+                    this.inventory.setItem(1, ItemStack.EMPTY);
+                    this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+                }
+            }
+
+
+
+
+        ItemStack legsArmor = this.getItemBySlot(EquipmentSlot.LEGS);
+
+            if ((!damageSource.isFire() || !legsArmor.getItem().isFireResistant()) && legsArmor.getItem() instanceof ArmorItem) {
+                //damage
+                legsArmor.hurtAndBreak(1, this, (p_43296_) -> {
+                    p_43296_.broadcastBreakEvent(EquipmentSlot.LEGS);
+                });
+                if (this.getItemBySlot(EquipmentSlot.LEGS).isEmpty()) {
+                    this.inventory.setItem(2, ItemStack.EMPTY);
+                    this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+                }
+            }
+
+
+
+        ItemStack feetArmor = this.getItemBySlot(EquipmentSlot.FEET);
+
+            if ((!damageSource.isFire() || !feetArmor.getItem().isFireResistant()) && feetArmor.getItem() instanceof ArmorItem) {
+                //damage
+                feetArmor.hurtAndBreak(1, this, (p_43296_) -> {
+                    p_43296_.broadcastBreakEvent(EquipmentSlot.FEET);
+                });
+                if (this.getItemBySlot(EquipmentSlot.FEET).isEmpty()) {
+                    this.inventory.setItem(3, ItemStack.EMPTY);
+                    this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+                }
+            }
+
     }
 
     protected void damageMainHandItem() {
-        ItemStack itemstack = this.getMainHandItem();
-        if (itemstack.getItem().isDamageable(itemstack)) {
-            itemstack.setDamageValue(1);
+        //dont know why the fuck i cant assign this mainhand slot to inventory slot 4
+        //therefor i need to make this twice
+        this.getMainHandItem().hurtAndBreak(1, this, (p_43296_) -> {
+            p_43296_.broadcastBreakEvent(EquipmentSlot.MAINHAND);
+        });
+        this.inventory.getItem(4).hurtAndBreak(1, this, (p_43296_) -> {
+            p_43296_.broadcastBreakEvent(EquipmentSlot.MAINHAND);
+        });
+
+        if (this.getMainHandItem().isEmpty()) {
+            this.inventory.setItem(4, ItemStack.EMPTY);
+            this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
         }
     }
 
@@ -1296,25 +1358,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     @Override
     protected void hurtCurrentlyUsedShield(float damage) {
-        if (this.useItem.getItem() instanceof ShieldItem) {
-            int i = 1 + Mth.floor(damage);
-            InteractionHand hand = this.getUsedItemHand();
-            this.useItem.hurtAndBreak(i, this, (entity) -> entity.broadcastBreakEvent(hand));
-            if (this.useItem.isEmpty()) {
-                if (hand == InteractionHand.MAIN_HAND) {
-                    this.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
-                } else {
-                    this.setItemSlot(EquipmentSlot.OFFHAND, ItemStack.EMPTY);
-                }
-                this.useItem = ItemStack.EMPTY;
-                this.setItemSlot(EquipmentSlot.OFFHAND, ItemStack.EMPTY);
-                this.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
-            }
-
-            ItemStack itemstack = this.getOffhandItem();
-            if (itemstack.getItem() instanceof ShieldItem) {
-                itemstack.setDamageValue((int) damage);
-            }
+        //dont know why the fuck i cant assign this offhand slot to inventory slot 5
+        //therefor i need to make this twice
+        this.getOffhandItem().hurtAndBreak(1, this, (p_43296_) -> {
+            p_43296_.broadcastBreakEvent(EquipmentSlot.OFFHAND);
+        });
+        this.inventory.getItem(5).hurtAndBreak(1, this, (p_43296_) -> {
+            p_43296_.broadcastBreakEvent(EquipmentSlot.OFFHAND);
+        });
+        if (this.getOffhandItem().isEmpty()) {
+            this.inventory.setItem(5, ItemStack.EMPTY);
+            this.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
         }
     }
 

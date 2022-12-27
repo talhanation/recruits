@@ -1,23 +1,14 @@
 package com.talhanation.recruits.entities;
 
-
-import com.mojang.brigadier.CommandDispatcher;
-import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.RecruitHailOfArrows;
 import com.talhanation.recruits.entities.ai.RecruitRangedBowAttackGoal;
-import com.talhanation.recruits.inventory.CommandContainer;
-import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.item.ItemArgument;
-import net.minecraft.commands.arguments.item.ItemInput;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Difficulty;
@@ -28,6 +19,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
@@ -37,16 +29,16 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
-public class BowmanEntity extends RecruitEntity implements RangedAttackMob {
+public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackMob {
+
+    private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
+            (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
 
     private static final EntityDataAccessor<Optional<BlockPos>> ARROW_POS = SynchedEntityData.defineId(BowmanEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Boolean> SHOULD_ARROW = SynchedEntityData.defineId(BowmanEntity.class, EntityDataSerializers.BOOLEAN);
@@ -117,11 +109,6 @@ public class BowmanEntity extends RecruitEntity implements RangedAttackMob {
         return ilivingentitydata;
     }
 
-    @Override
-    public void setEquipment() {
-        super.setEquipment();
-        setHandEquipment(RecruitsModConfig.BowmanHandEquipment.get());
-    }
 
     @Override
     public void initSpawn() {
@@ -167,7 +154,9 @@ public class BowmanEntity extends RecruitEntity implements RangedAttackMob {
 
             this.playSound(SoundEvents.ARROW_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
             this.level.addFreshEntity(arrow);
-            //hand.hurtAndBreak(1, this, (entity) -> entity.broadcastBreakEvent(EquipmentSlot.MAINHAND));
+
+
+            this.damageMainHandItem();
         }
     }
 
@@ -198,7 +187,9 @@ public class BowmanEntity extends RecruitEntity implements RangedAttackMob {
 
             this.playSound(SoundEvents.ARROW_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
             this.level.addFreshEntity(arrow);
-            //hand.hurtAndBreak(1, this, (entity) -> entity.broadcastBreakEvent(EquipmentSlot.MAINHAND));
+
+
+            this.damageMainHandItem();
         }
     }
 
@@ -269,5 +260,16 @@ public class BowmanEntity extends RecruitEntity implements RangedAttackMob {
     public boolean wantsToPickUp(ItemStack itemStack) {
         super.wantsToPickUp(itemStack);
         return itemStack.getItem() instanceof BowItem || itemStack.getItem() instanceof ProjectileWeaponItem;
+    }
+
+    @Override
+    public Predicate<ItemEntity> getAllowedItems() {
+        return ALLOWED_ITEMS;
+    }
+
+    @Override
+    public void setEquipment() {
+        super.setEquipment();
+        setHandEquipment(RecruitsModConfig.BowmanHandEquipment.get());
     }
 }
