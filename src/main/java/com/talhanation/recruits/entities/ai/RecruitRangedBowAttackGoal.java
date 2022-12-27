@@ -42,7 +42,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
         if (livingentity != null && livingentity.isAlive() && this.isHoldingBow()) {
             this.target = livingentity;
            // if (mob.getOwner() != null && mob.getShouldFollow() && mob.getOwner().distanceTo(this.mob) <= 25.00D && !(target.distanceTo(this.mob) <= 7.00D)) return false;
-                return canAttackHoldPos() && canAttackMovePos();
+                return canAttackHoldPos() && canAttackMovePos() && !mob.needsToGetFood();
         } else {
             return false;
         }

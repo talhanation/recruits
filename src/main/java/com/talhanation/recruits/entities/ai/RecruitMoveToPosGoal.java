@@ -17,7 +17,7 @@ public class RecruitMoveToPosGoal extends Goal {
         this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
     public boolean canUse() {
-        return recruit.getShouldMovePos();
+        return recruit.getShouldMovePos() && !recruit.needsToGetFood();
     }
 
     public boolean canContinueToUse() {
