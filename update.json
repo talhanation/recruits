@@ -1,15 +1,10 @@
 {
   "homepage": "https://www.curseforge.com/minecraft/mc-mods/recruits/files",
-  "1.16.5": {
-    "promos": {
-      "1.16.5-latest": "1.5.1",
-      "1.16.5-recommended": "1.5.1"
-    }
+  "promos": {
+    "1.16.5-recommended": "1.5.1",
+    "1.18.2-recommended": "1.9.0"
   },
   "1.18.2": {
-    "promos": {
-      "1.18.2-latest": "1.8.4",
-      "1.18.2-recommended": "1.8.4"
-    }
+    "1.9.0": "added a bunch of things"
   }
 }
