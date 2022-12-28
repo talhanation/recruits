@@ -3,7 +3,7 @@ package com.talhanation.recruits.client.gui;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.inventory.DebugInvContainer;
+import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.network.MessageDebugGui;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
@@ -12,7 +12,6 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
@@ -22,7 +21,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.text.DecimalFormat;
 
 @OnlyIn(Dist.CLIENT)
-public class DebugInvScreen extends ScreenBase<DebugInvContainer> {
+public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/debug_gui.png" );
 
@@ -35,7 +34,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvContainer> {
     private int group;
     private int follow;
     private int aggro;
-    public DebugInvScreen(DebugInvContainer commandContainer, Inventory playerInventory, Component title) {
+    public DebugInvScreen(DebugInvMenu commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, new TextComponent(""));
         imageWidth = 201;
         imageHeight = 250;

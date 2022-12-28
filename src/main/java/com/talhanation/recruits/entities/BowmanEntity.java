@@ -258,8 +258,11 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
 
     @Override
     public boolean wantsToPickUp(ItemStack itemStack) {
-        super.wantsToPickUp(itemStack);
-        return itemStack.getItem() instanceof BowItem || itemStack.getItem() instanceof ProjectileWeaponItem;
+        if (itemStack.getItem() instanceof BowItem || itemStack.getItem() instanceof ProjectileWeaponItem){
+            return true;
+        }
+        else
+            return super.wantsToPickUp(itemStack);
     }
 
     @Override

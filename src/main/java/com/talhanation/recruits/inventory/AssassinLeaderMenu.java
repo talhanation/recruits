@@ -7,13 +7,12 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 
-public class AssassinLeaderContainer extends ContainerBase {
-
+public class AssassinLeaderMenu extends ContainerBase {
 
     private final Container recruitInventory;
     private final AssassinLeaderEntity assassinLeaderEntity;
 
-    public AssassinLeaderContainer(int id, AssassinLeaderEntity assassinLeaderEntity, Inventory playerInventory) {
+    public AssassinLeaderMenu(int id, AssassinLeaderEntity assassinLeaderEntity, Inventory playerInventory) {
         super(Main.ASSASSIN_CONTAINER_TYPE, id, playerInventory, assassinLeaderEntity.getInventory());
         this.assassinLeaderEntity = assassinLeaderEntity;
         this.recruitInventory = assassinLeaderEntity.getInventory();

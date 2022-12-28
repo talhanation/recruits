@@ -59,11 +59,11 @@ public class Main {
     public static PoiType POI_SCOUT;
     public static PoiType POI_NOMAD;
     public static KeyMapping R_KEY;
-    public static MenuType<RecruitInventoryContainer> RECRUIT_CONTAINER_TYPE;
-    public static MenuType<DebugInvContainer> DEBUG_CONTAINER_TYPE;
-    public static MenuType<CommandContainer> COMMAND_CONTAINER_TYPE;
-    public static MenuType<RecruitHireContainer> HIRE_CONTAINER_TYPE;
-    public static MenuType<AssassinLeaderContainer> ASSASSIN_CONTAINER_TYPE;
+    public static MenuType<RecruitInventoryMenu> RECRUIT_CONTAINER_TYPE;
+    public static MenuType<DebugInvMenu> DEBUG_CONTAINER_TYPE;
+    public static MenuType<CommandMenu> COMMAND_CONTAINER_TYPE;
+    public static MenuType<RecruitHireMenu> HIRE_CONTAINER_TYPE;
+    public static MenuType<AssassinLeaderMenu> ASSASSIN_CONTAINER_TYPE;
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
     public Main() {
@@ -177,55 +177,55 @@ public class Main {
 
     @SubscribeEvent
     public void registerContainers(RegistryEvent.Register<MenuType<?>> event) {
-        RECRUIT_CONTAINER_TYPE = new MenuType<>((IContainerFactory<RecruitInventoryContainer>) (windowId, inv, data) -> {
+        RECRUIT_CONTAINER_TYPE = new MenuType<>((IContainerFactory<RecruitInventoryMenu>) (windowId, inv, data) -> {
             AbstractRecruitEntity rec = getRecruitByUUID(inv.player, data.readUUID());
             if (rec == null) {
                 return null;
             }
-            return new RecruitInventoryContainer(windowId, rec, inv);
+            return new RecruitInventoryMenu(windowId, rec, inv);
         });
         RECRUIT_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "recruit_container"));
         event.getRegistry().register(RECRUIT_CONTAINER_TYPE);
 
 
-        COMMAND_CONTAINER_TYPE = new MenuType<>((IContainerFactory<CommandContainer>) (windowId, inv, data) -> {
+        COMMAND_CONTAINER_TYPE = new MenuType<>((IContainerFactory<CommandMenu>) (windowId, inv, data) -> {
             Player playerEntity = inv.player;
             if (playerEntity == null) {
                 return null;
             }
-            return new CommandContainer(windowId, playerEntity);
+            return new CommandMenu(windowId, playerEntity);
         });
         COMMAND_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "command_container"));
         event.getRegistry().register(COMMAND_CONTAINER_TYPE);
 
 
-        ASSASSIN_CONTAINER_TYPE = new MenuType<>((IContainerFactory<AssassinLeaderContainer>) (windowId, inv, data) -> {
+        ASSASSIN_CONTAINER_TYPE = new MenuType<>((IContainerFactory<AssassinLeaderMenu>) (windowId, inv, data) -> {
             AssassinLeaderEntity rec = getAssassinByUUID(inv.player, data.readUUID());
             if (rec == null) {
                 return null;
             }
-            return new AssassinLeaderContainer(windowId, rec, inv);
+            return new AssassinLeaderMenu(windowId, rec, inv);
         });
         ASSASSIN_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "assassin_container"));
         event.getRegistry().register(ASSASSIN_CONTAINER_TYPE);
 
-        HIRE_CONTAINER_TYPE = new MenuType<>((IContainerFactory<RecruitHireContainer>) (windowId, inv, data) -> {
+        HIRE_CONTAINER_TYPE = new MenuType<>((IContainerFactory<RecruitHireMenu>) (windowId, inv, data) -> {
             Player playerEntity = inv.player;
             AbstractRecruitEntity rec = getRecruitByUUID(inv.player, data.readUUID());
             if (playerEntity == null) {
                 return null;
             }
-            return new RecruitHireContainer(windowId, playerEntity, rec, playerEntity.getInventory());
+            return new RecruitHireMenu(windowId, playerEntity, rec, playerEntity.getInventory());
         });
         HIRE_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "hire_container"));
         event.getRegistry().register(HIRE_CONTAINER_TYPE);
 
-        DEBUG_CONTAINER_TYPE = new MenuType<>((IContainerFactory<DebugInvContainer>) (windowId, inv, data) -> {
+        DEBUG_CONTAINER_TYPE = new MenuType<>((IContainerFactory<DebugInvMenu>) (windowId, inv, data) -> {
             AbstractRecruitEntity rec = getRecruitByUUID(inv.player, data.readUUID());
             if (rec == null) {
                 return null;
             }
-            return new DebugInvContainer(windowId, rec, inv);
+            return new DebugInvMenu(windowId, rec, inv);
         });
         DEBUG_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "debug_container"));
         event.getRegistry().register(DEBUG_CONTAINER_TYPE);

@@ -4,7 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.inventory.RecruitInventoryContainer;
+import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
@@ -19,7 +19,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer> {
+public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/recruit_gui.png" );
 
     private static final TranslatableComponent TEXT_HEALTH = new TranslatableComponent("gui.recruits.inv.health");
@@ -65,7 +65,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
     private int follow;
     private int aggro;
 
-    public RecruitInventoryScreen(RecruitInventoryContainer recruitContainer, Inventory playerInventory, Component title) {
+    public RecruitInventoryScreen(RecruitInventoryMenu recruitContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, recruitContainer, playerInventory, new TextComponent(""));
         this.recruit = recruitContainer.getRecruit();
         this.playerInventory = playerInventory;

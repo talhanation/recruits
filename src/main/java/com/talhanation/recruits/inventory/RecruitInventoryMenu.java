@@ -17,7 +17,7 @@ import net.minecraft.world.item.ShieldItem;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class RecruitInventoryContainer extends ContainerBase {
+public class RecruitInventoryMenu extends ContainerBase {
 
     private final Container recruitInventory;
     private final int SlotX = 8;
@@ -28,14 +28,14 @@ public class RecruitInventoryContainer extends ContainerBase {
             InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE,
             InventoryMenu.EMPTY_ARMOR_SLOT_HELMET
     };
-    private static final EquipmentSlot[] SLOT_IDS = new EquipmentSlot[]{
+    public static final EquipmentSlot[] SLOT_IDS = new EquipmentSlot[]{
             EquipmentSlot.HEAD,
             EquipmentSlot.CHEST,
             EquipmentSlot.LEGS,
             EquipmentSlot.FEET
     };
 
-    public RecruitInventoryContainer(int id, AbstractRecruitEntity recruit, Inventory playerInventory) {
+    public RecruitInventoryMenu(int id, AbstractRecruitEntity recruit, Inventory playerInventory) {
         super(Main.RECRUIT_CONTAINER_TYPE, id, playerInventory, recruit.getInventory());
         this.recruit = recruit;
         this.recruitInventory = recruit.getInventory();
@@ -64,10 +64,10 @@ public class RecruitInventoryContainer extends ContainerBase {
     //6 -> inventory
 
     public void addRecruitHandSlots() {
-        this.addSlot(new Slot(recruit.inventory, 4,26,90) {
+        this.addSlot(new Slot(recruit.inventory, 5,26,90) {
             @Override
             public boolean mayPlace(ItemStack itemStack) {
-                return  recruit.canHoldItem(itemStack);
+                return recruit.canHoldItem(itemStack);
             }
 
             @Override
@@ -78,7 +78,7 @@ public class RecruitInventoryContainer extends ContainerBase {
 
         });
 
-        this.addSlot(new Slot(recruit.inventory, 5,44,90) {
+        this.addSlot(new Slot(recruit.inventory, 4,44,90) {
             @Override
             public boolean mayPlace(ItemStack stack){
                 return stack.getItem() instanceof ShieldItem;

@@ -1,11 +1,10 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.ai.goal.Goal;
 
 import java.util.EnumSet;
-import java.util.Objects;
 
 public class RecruitMoveToPosGoal extends Goal {
     private final AbstractRecruitEntity recruit;
@@ -17,7 +16,7 @@ public class RecruitMoveToPosGoal extends Goal {
         this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
     public boolean canUse() {
-        return recruit.getShouldMovePos() && !recruit.needsToGetFood();
+        return recruit.getShouldMovePos() && !recruit.needsToGetFood() && !recruit.getShouldMount();
     }
 
     public boolean canContinueToUse() {

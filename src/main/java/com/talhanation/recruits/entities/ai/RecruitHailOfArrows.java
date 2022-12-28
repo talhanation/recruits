@@ -1,6 +1,5 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.BowmanEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -8,8 +7,6 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.Items;
-
-import java.util.Optional;
 
 public class RecruitHailOfArrows extends Goal {
 
@@ -27,7 +24,7 @@ public class RecruitHailOfArrows extends Goal {
 
     @Override
     public boolean canUse() {
-        if(bowman.getTarget() == null && bowman.getShouldArrow() && this.isHoldingBow() && bowman.getFollowState() != 1 && bowman.getFollowState() != 5 && !bowman.needsToGetFood()){
+        if(bowman.getTarget() == null && bowman.getShouldArrow() && this.isHoldingBow() && bowman.getFollowState() != 1 && bowman.getFollowState() != 5 && !bowman.needsToGetFood() && !bowman.getShouldMount()){
             return true;
         }
         else{

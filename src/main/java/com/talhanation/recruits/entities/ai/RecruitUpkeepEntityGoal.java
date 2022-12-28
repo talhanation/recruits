@@ -25,7 +25,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return recruit.needsToEat() && recruit.getUpkeepUUID() != null;
+        return recruit.needsToEat() && recruit.getUpkeepUUID() != null && !recruit.getShouldMount();
     }
 
     @Override

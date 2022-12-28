@@ -7,9 +7,9 @@ import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.*;
 import com.talhanation.recruits.init.ModItems;
-import com.talhanation.recruits.inventory.DebugInvContainer;
-import com.talhanation.recruits.inventory.RecruitHireContainer;
-import com.talhanation.recruits.inventory.RecruitInventoryContainer;
+import com.talhanation.recruits.inventory.DebugInvMenu;
+import com.talhanation.recruits.inventory.RecruitHireMenu;
+import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.MessageDebugScreen;
 import com.talhanation.recruits.network.MessageHireGui;
 import com.talhanation.recruits.network.MessageRecruitGui;
@@ -28,7 +28,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -57,7 +56,6 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.network.NetworkHooks;
@@ -98,6 +96,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Integer> COST = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Optional<UUID>> UPKEEP_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     public int blockCoolDown;
+    public int mountTimer;
     public int eatCoolDown;
 
 
@@ -125,7 +124,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateSwingTime();
         updateSwimming();
         updateHunger();
-        updateTeam();
+        updateTeam();// performance -> trigger when team event
+        updateMountTimer();
 
         /*
         if(getOwner() != null){
@@ -153,10 +153,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
 
 
-
-        //if (getOwner() != null)
-        //this.getOwner().sendMessage(new TextComponent("Last Hurt: " + hurtMarked), getOwner().getUUID());
-
+        /*
+        if (getOwner() != null)
+            this.getOwner().sendMessage(new TextComponent("Timer: " + mountTimer), getOwner().getUUID());
+         */
 
     }
 
@@ -416,6 +416,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     ////////////////////////////////////GET////////////////////////////////////
 
+    public int getBlockCoolDown(){
+        return 200;
+    }
     public UUID getUpkeepUUID(){
         return  this.entityData.get(UPKEEP_ID).orElse(null);
     }
@@ -874,7 +877,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                             player.sendMessage(new TextComponent(name + follow), player.getUUID());
                             break;
                         case 1:
-                            setFollowState(2);
+                            setFollowState(4);
                             String holdyourpos = TEXT_HOLD_YOUR_POS.getString();
                             player.sendMessage(new TextComponent(name + holdyourpos), player.getUUID());
                             break;
@@ -1216,6 +1219,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         //if a item breaks hurt sound loop
 
         ItemStack headArmor = this.getItemBySlot(EquipmentSlot.HEAD);
+        boolean hasHeadArmor = !headArmor.isEmpty();
+        Main.LOGGER.debug("headArmor :" + headArmor);
+        Main.LOGGER.debug("hasHeadArmor: " + hasHeadArmor);
             if ((!damageSource.isFire() || !headArmor.getItem().isFireResistant()) && headArmor.getItem() instanceof ArmorItem) {
                 //damage
                 headArmor.hurtAndBreak(1, this, (p_43296_) -> {
@@ -1223,20 +1229,20 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 });
             }
 
-        if (this.getItemBySlot(EquipmentSlot.HEAD).isEmpty()) {
+        if (this.getItemBySlot(EquipmentSlot.HEAD).isEmpty() && hasHeadArmor) {
             this.inventory.setItem(0, ItemStack.EMPTY);
             this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
         }
 
         ItemStack chestArmor = this.getItemBySlot(EquipmentSlot.CHEST);
-
+        boolean hasChestArmor = !chestArmor.isEmpty();
         if ((!damageSource.isFire() || !chestArmor.getItem().isFireResistant()) && chestArmor.getItem() instanceof ArmorItem) {
             //damage
             chestArmor.hurtAndBreak(1, this, (p_43296_) -> {
                 p_43296_.broadcastBreakEvent(EquipmentSlot.CHEST);
             });
         }
-        if (this.getItemBySlot(EquipmentSlot.CHEST).isEmpty()) {
+        if (this.getItemBySlot(EquipmentSlot.CHEST).isEmpty() && hasChestArmor) {
             this.inventory.setItem(1, ItemStack.EMPTY);
             this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
         }
@@ -1244,6 +1250,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
 
         ItemStack legsArmor = this.getItemBySlot(EquipmentSlot.LEGS);
+        boolean hasLegsArmor = !legsArmor.isEmpty();
 
         if ((!damageSource.isFire() || !legsArmor.getItem().isFireResistant()) && legsArmor.getItem() instanceof ArmorItem) {
             //damage
@@ -1251,13 +1258,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 p_43296_.broadcastBreakEvent(EquipmentSlot.LEGS);
             });
         }
-        if (this.getItemBySlot(EquipmentSlot.LEGS).isEmpty()) {
+        if (this.getItemBySlot(EquipmentSlot.LEGS).isEmpty() && hasLegsArmor) {
             this.inventory.setItem(2, ItemStack.EMPTY);
             this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
         }
 
 
         ItemStack feetArmor = this.getItemBySlot(EquipmentSlot.FEET);
+        boolean hasFeetArmor = !feetArmor.isEmpty();
 
         if ((!damageSource.isFire() || !feetArmor.getItem().isFireResistant()) && feetArmor.getItem() instanceof ArmorItem) {
             //damage
@@ -1266,7 +1274,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             });
 
         }
-        if (this.getItemBySlot(EquipmentSlot.FEET).isEmpty()) {
+        if (this.getItemBySlot(EquipmentSlot.FEET).isEmpty() && hasFeetArmor) {
             this.inventory.setItem(3, ItemStack.EMPTY);
             this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
         }
@@ -1276,15 +1284,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     protected void damageMainHandItem() {
         //dont know why the fuck i cant assign this mainhand slot to inventory slot 4
         //therefor i need to make this twice
+        ItemStack handItem = this.getItemBySlot(EquipmentSlot.MAINHAND);
+        boolean hasHandItem = !handItem.isEmpty();
         this.getMainHandItem().hurtAndBreak(1, this, (p_43296_) -> {
             p_43296_.broadcastBreakEvent(EquipmentSlot.MAINHAND);
         });
-        this.inventory.getItem(4).hurtAndBreak(1, this, (p_43296_) -> {
+        this.inventory.getItem(5).hurtAndBreak(1, this, (p_43296_) -> {
             p_43296_.broadcastBreakEvent(EquipmentSlot.MAINHAND);
         });
 
-        if (this.getMainHandItem().isEmpty()) {
-            this.inventory.setItem(4, ItemStack.EMPTY);
+        if (this.getMainHandItem().isEmpty() && hasHandItem) {
+            this.inventory.setItem(5, ItemStack.EMPTY);
             this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
         }
     }
@@ -1339,7 +1349,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void disableShield() {
-            this.blockCoolDown = 100;
+            this.blockCoolDown = this.getBlockCoolDown();
             this.stopUsingItem();
             this.level.broadcastEntityEvent(this, (byte) 30);
     }
@@ -1354,18 +1364,23 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
+    public void updateMountTimer(){
+        if(this.mountTimer > 0){
+            this.mountTimer--;
+        }
+    }
     @Override
     protected void hurtCurrentlyUsedShield(float damage) {
-        //dont know why the fuck i cant assign this offhand slot to inventory slot 5
+        //dont know why the fuck i cant assign this offhand slot to inventory slot 4
         //therefor i need to make this twice
         this.getOffhandItem().hurtAndBreak(1, this, (p_43296_) -> {
             p_43296_.broadcastBreakEvent(EquipmentSlot.OFFHAND);
         });
-        this.inventory.getItem(5).hurtAndBreak(1, this, (p_43296_) -> {
+        this.inventory.getItem(4).hurtAndBreak(1, this, (p_43296_) -> {
             p_43296_.broadcastBreakEvent(EquipmentSlot.OFFHAND);
         });
         if (this.getOffhandItem().isEmpty()) {
-            this.inventory.setItem(5, ItemStack.EMPTY);
+            this.inventory.setItem(4, ItemStack.EMPTY);
             this.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
         }
     }
@@ -1383,7 +1398,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 @Nullable
                 @Override
                 public AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
-                    return new RecruitInventoryContainer(i, AbstractRecruitEntity.this, playerInventory);
+                    return new RecruitInventoryMenu(i, AbstractRecruitEntity.this, playerInventory);
                 }
             }, packetBuffer -> {packetBuffer.writeUUID(getUUID());});
         } else {
@@ -1402,7 +1417,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 @Nullable
                 @Override
                 public AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
-                    return new DebugInvContainer(i, AbstractRecruitEntity.this, playerInventory);
+                    return new DebugInvMenu(i, AbstractRecruitEntity.this, playerInventory);
                 }
             }, packetBuffer -> {packetBuffer.writeUUID(getUUID());});
         } else {
@@ -1491,7 +1506,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 @Nullable
                 @Override
                 public AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
-                    return new RecruitHireContainer(i, playerInventory.player, AbstractRecruitEntity.this, playerInventory);
+                    return new RecruitHireMenu(i, playerInventory.player, AbstractRecruitEntity.this, playerInventory);
                 }
             }, packetBuffer -> {packetBuffer.writeUUID(getUUID());});
         } else {

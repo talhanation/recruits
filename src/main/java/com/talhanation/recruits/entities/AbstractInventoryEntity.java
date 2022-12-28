@@ -1,7 +1,7 @@
 package com.talhanation.recruits.entities;
 
+import com.talhanation.recruits.inventory.RecruitSimpleContainer;
 import net.minecraft.core.Direction;
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.Containers;
@@ -9,7 +9,6 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
@@ -27,14 +26,13 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
 
     //iv slots
-    //9,10 = hand
-    //11,12,13,14 = armor
-    //0-8 = inv
+    //4 = offhand
+    //5 = mainhand
+    //0,1,2,3 = armor
+    //rest = inv
 
     public SimpleContainer inventory;
     private net.minecraftforge.common.util.LazyOptional<?> itemHandler = null;
-    private final NonNullList<ItemStack> lastHandItemStacks = NonNullList.withSize(2, ItemStack.EMPTY);
-    private final NonNullList<ItemStack> lastArmorItemStacks = NonNullList.withSize(4, ItemStack.EMPTY);
 
     public AbstractInventoryEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
@@ -94,7 +92,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
         ListTag handItems = nbt.getList("HandItems", 10);
         for (int i = 0; i < this.handItems.size(); ++i) {
-            int index = i == 0 ? 4 : 5;
+            int index = i == 0 ? 5 : 4; //5 = mainhand 4 = offhand
             this.inventory.setItem(index, ItemStack.of(handItems.getCompound(i)));
         }
     }
@@ -129,25 +127,17 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         }
         return 0;
     }
-
+    @Nullable
     public EquipmentSlot getEquipmentSlotIndex(int id) {
         switch (id) {
-            case 0:
-                return HEAD;
-            case 1:
-                return CHEST;
-            case 2:
-                return LEGS;
-            case 3:
-                return FEET;
-            case 4:
-                return MAINHAND;
-            case 5:
-                return OFFHAND;
-            default:
-                break;
+            case 0 -> {return HEAD;}
+            case 1 -> {return CHEST;}
+            case 2 -> {return LEGS;}
+            case 3 -> {return FEET;}
+            case 4 -> {return OFFHAND;}
+            case 5 -> {return MAINHAND;}
         }
-        return OFFHAND;
+        return null;
     }
 
     ////////////////////////////////////SET////////////////////////////////////
@@ -172,15 +162,16 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
                 if (this.inventory.getItem(3).isEmpty())
                     this.inventory.setItem(3, this.armorItems.get(slotIn.getIndex()));
             }
-            case MAINHAND-> {
+            case OFFHAND-> {
                 if (this.inventory.getItem(4).isEmpty())
                     this.inventory.setItem(4, this.handItems.get(slotIn.getIndex()));
             }
-            case OFFHAND-> {
+            case MAINHAND-> {
                 if (this.inventory.getItem(5).isEmpty())
                     this.inventory.setItem(5, this.handItems.get(slotIn.getIndex()));
             }
         }
+
     }
     public @NotNull SlotAccess getSlot(int slot) {
         return slot == 499 ? new SlotAccess() {
@@ -207,7 +198,9 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
     protected void createInventory() {
         SimpleContainer inventory = this.inventory;
-        this.inventory = new SimpleContainer(this.getInventorySize());
+        this.inventory = new RecruitSimpleContainer(this.getInventorySize(), this){
+
+        };
         if (inventory != null) {
             int i = Math.min(inventory.getContainerSize(), this.inventory.getContainerSize());
 
@@ -228,8 +221,18 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     }
 
     protected void pickUpItem(ItemEntity itemEntity) {
+
         ItemStack itemstack = itemEntity.getItem();
-        if (this.wantsToPickUp(itemstack)) {
+        /*
+        //Equip and upgrade method:
+
+        Main.LOGGER.debug("itemstack: " + itemstack);
+        if (this.equipItemIfPossible(itemstack)) {
+            this.onItemPickup(itemEntity);
+            this.take(itemEntity, itemstack.getCount());
+            itemEntity.discard();
+        }
+        else {
             SimpleContainer inventory = this.inventory;
             boolean flag = inventory.canAddItem(itemstack);
             if (!flag) {
@@ -246,14 +249,56 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
                 itemstack.setCount(itemstack1.getCount());
             }
         }
+        */
 
+        if (this.wantsToPickUp(itemstack)) {
+            boolean flag = this.inventory.canAddItem(itemstack);
+            if (!flag) {
+                return;
+            }
+            //this.recDetectEquipmentUpdates();
+            this.checkItemsInInv();
+            this.onItemPickup(itemEntity);
+            this.take(itemEntity, itemstack.getCount());
+            ItemStack itemstack1 = inventory.addItem(itemstack);
+            if (itemstack1.isEmpty()) {
+                itemEntity.remove(RemovalReason.KILLED);
+            } else {
+                itemstack.setCount(itemstack1.getCount());
+            }
+        }
     }
+    /*
+    @Override
+    public boolean equipItemIfPossible(ItemStack itemStack) {
+        EquipmentSlot equipmentslot = getEquipmentSlotForItem(itemStack);
+        ItemStack currentArmor = this.getItemBySlot(equipmentslot);
+        boolean flag = this.canReplaceCurrentItem(itemStack, currentArmor);
+        if (flag && this.canHoldItem(itemStack)) {
+            if (!currentArmor.isEmpty()) {
+                this.spawnAtLocation(currentArmor);
+            }
+
+            this.setItemSlot(equipmentslot, itemStack);
+            this.inventory.setItem(getInventorySlotIndex(equipmentslot), itemStack);
+            this.equipEventAndSound(itemStack);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+     */
     public abstract void checkItemsInInv();
 
     @Override
-    public boolean wantsToPickUp(ItemStack itemStack){
-        super.wantsToPickUp(itemStack);
-        return (itemStack.getItem() instanceof ArmorItem) || itemStack.isEdible();
+    public boolean wantsToPickUp(@NotNull ItemStack itemStack){
+        if(itemStack.getItem() instanceof ArmorItem armorItem){
+            for(i=0//has armor ...
+        }
+
+
+        return itemStack.isEdible() || itemStack.getItem() instanceof ArmorItem;
     }
 
     public abstract Predicate<ItemEntity> getAllowedItems();

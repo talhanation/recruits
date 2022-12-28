@@ -10,12 +10,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-public class DebugInvContainer extends ContainerBase {
+public class DebugInvMenu extends ContainerBase {
 
     private final Container container;
     private final AbstractRecruitEntity recruit;
 
-    public DebugInvContainer(int id, AbstractRecruitEntity recruit, Inventory playerInventory) {
+    public DebugInvMenu(int id, AbstractRecruitEntity recruit, Inventory playerInventory) {
         super(Main.DEBUG_CONTAINER_TYPE, id, playerInventory, recruit.getInventory());
         this.recruit = recruit;
         this.container = recruit.getInventory();

@@ -3,7 +3,7 @@ package com.talhanation.recruits.client.gui;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
-import com.talhanation.recruits.inventory.AssassinLeaderContainer;
+import com.talhanation.recruits.inventory.AssassinLeaderMenu;
 import com.talhanation.recruits.network.MessageAssassinCount;
 import com.talhanation.recruits.network.MessageAssassinate;
 import de.maxhenkel.corelib.inventory.ScreenBase;
@@ -20,7 +20,7 @@ import org.lwjgl.glfw.GLFW;
 
 
 @OnlyIn(Dist.CLIENT)
-public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderContainer> {
+public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderMenu> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/assassin_gui.png");
 
     private static final Component TEXT_HEALTH = new TranslatableComponent("gui.recruits.health");
@@ -36,7 +36,7 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderContainer> {
 
     private int count;
 
-    public AssassinLeaderScreen(AssassinLeaderContainer container, Inventory playerInventory, Component title) {
+    public AssassinLeaderScreen(AssassinLeaderMenu container, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, container, playerInventory, new TextComponent(""));
         this.playerInventory = playerInventory;
         this.assassinLeaderEntity = container.getEntity();

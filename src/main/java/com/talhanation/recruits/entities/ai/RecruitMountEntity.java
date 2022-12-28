@@ -28,6 +28,7 @@ public class RecruitMountEntity extends Goal {
 
     public void start(){
         this.findMount();
+        recruit.mountTimer = 150;
     }
 
     public boolean requiresUpdateEveryTick() {
@@ -36,16 +37,20 @@ public class RecruitMountEntity extends Goal {
 
     public void tick() {
         if(this.recruit.getVehicle() == null && this.mount != null) {
-            recruit.getNavigation().moveTo(mount, 1.15F);
-            if(recruit.distanceTo(mount) < 2D){
-                recruit.startRiding(mount);
+            //if(mount.canAddPassenger()) {
+            if(recruit.mountTimer > 0){
+                recruit.getNavigation().moveTo(mount, 1.15F);
+                if (recruit.distanceTo(mount) < 2D) {
+                    recruit.startRiding(mount);
+                }
+            }
+            else {
+                clearMount();
             }
         }
 
         if (this.recruit.getVehicle() != null && recruit.getVehicle().equals(mount)) {
-            recruit.setShouldMount(false);
-            this.mount = null;
-            recruit.setMountUUID(Optional.empty());
+            clearMount();
         }
     }
 
@@ -56,5 +61,11 @@ public class RecruitMountEntity extends Goal {
                 this.mount = mount;
             }
         }
+    }
+
+    private void clearMount(){
+        recruit.setShouldMount(false);
+        this.mount = null;
+        recruit.setMountUUID(Optional.empty());
     }
 }

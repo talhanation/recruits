@@ -3,7 +3,7 @@ package com.talhanation.recruits;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.BowmanEntity;
-import com.talhanation.recruits.inventory.CommandContainer;
+import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.MessageCommandScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -179,7 +179,7 @@ public class CommandEvents {
 
                 @Override
                 public @NotNull AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
-                    return new CommandContainer(i, playerEntity);
+                    return new CommandMenu(i, playerEntity);
                 }
             }, packetBuffer -> {packetBuffer.writeUUID(player.getUUID());});
         } else {

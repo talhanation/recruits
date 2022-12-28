@@ -22,7 +22,7 @@ public class RecruitHoldPosGoal extends Goal {
             return false;
         }
         else
-            return this.recruit.getShouldHoldPos() && !recruit.getFleeing() && !recruit.needsToGetFood();
+            return this.recruit.getShouldHoldPos() && !recruit.getFleeing() && !recruit.needsToGetFood() && !recruit.getShouldMount();
     }
 
     public boolean canContinueToUse() {
