@@ -17,9 +17,10 @@ import net.minecraft.world.item.ShieldItem;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class RecruitInventoryContainer extends ContainerBase {
+public class RecruitInventoryMenu extends ContainerBase {
 
     private final Container recruitInventory;
+    private final int SlotX = 8;
     private final AbstractRecruitEntity recruit;
     private static final ResourceLocation[] TEXTURE_EMPTY_SLOTS = new ResourceLocation[]{
             InventoryMenu.EMPTY_ARMOR_SLOT_BOOTS,
@@ -27,29 +28,23 @@ public class RecruitInventoryContainer extends ContainerBase {
             InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE,
             InventoryMenu.EMPTY_ARMOR_SLOT_HELMET
     };
-    private static final EquipmentSlot[] SLOT_IDS = new EquipmentSlot[]{
+    public static final EquipmentSlot[] SLOT_IDS = new EquipmentSlot[]{
             EquipmentSlot.HEAD,
             EquipmentSlot.CHEST,
             EquipmentSlot.LEGS,
-            EquipmentSlot.FEET
+            EquipmentSlot.FEET,
+            EquipmentSlot.OFFHAND,
+            EquipmentSlot.MAINHAND
     };
 
-    public RecruitInventoryContainer(int id, AbstractRecruitEntity recruit, Inventory playerInventory) {
+    public RecruitInventoryMenu(int id, AbstractRecruitEntity recruit, Inventory playerInventory) {
         super(Main.RECRUIT_CONTAINER_TYPE, id, playerInventory, recruit.getInventory());
         this.recruit = recruit;
         this.recruitInventory = recruit.getInventory();
-
-
-
-        addRecruitEquipmentSlotHead();
-        addRecruitEquipmentSlotChest();
-        addRecruitEquipmentSlotLegs();
-        addRecruitEquipmentSlotFeet();
         addRecruitHandSlots();
-
         addPlayerInventorySlots();
         addRecruitInventorySlots();
-        //addRecruitEquipmentSlots();
+        addRecruitEquipmentSlots();
     }
 
     public AbstractRecruitEntity getRecruit() {
@@ -62,158 +57,30 @@ public class RecruitInventoryContainer extends ContainerBase {
     }
 
     //iv slots
-    //9,10 = hand
-    //11,12,13,14 = armor
     //0 = head
     //1 = chest
     //2 = legs
     //3 = boots
-    //4 = main hand
-    //5 = sec hand
-
-    private void addRecruitEquipmentSlotHead(){
-        int x = 0;
-        this.addSlot(new Slot(recruitInventory, x, 2 * 18 + 82 + x * 18, 18 + x * 18) {
-
-        @Override
-        public int getMaxStackSize() {
-            return 1;
-        }
-
-        public boolean mayPlace(ItemStack itemStack) {
-            return itemStack.canEquip(EquipmentSlot.HEAD, recruit)
-                    || (itemStack.getItem() instanceof BannerItem);
-        }
-
-        @Override
-        public void set(ItemStack stack) {
-            super.set(stack);
-            recruit.setItemSlot(EquipmentSlot.HEAD, stack);
-        }
-
-        @Override
-        public boolean mayPickup(Player playerIn) {
-            return true;
-        }
-
-        @Override
-        public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-            return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_HELMET);
-        }
-        });
-    }
-
-    private void addRecruitEquipmentSlotChest() {
-        int x = 1;
-        this.addSlot(new Slot(recruitInventory, x, 2 * 18 + 82 + x * 18, 18 + x * 18) {
-
-            @Override
-            public int getMaxStackSize() {
-                return 1;
-            }
-
-            public boolean mayPlace(ItemStack itemStack) {
-                return itemStack.canEquip(EquipmentSlot.CHEST, recruit)
-                        || (itemStack.getItem() instanceof BannerItem);
-            }
-
-            @Override
-            public void set(ItemStack stack) {
-                super.set(stack);
-                recruit.setItemSlot(EquipmentSlot.CHEST, stack);
-            }
-
-            @Override
-            public boolean mayPickup(Player playerIn) {
-                return true;
-            }
-
-            @Override
-            public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-                return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE);
-            }
-        });
-    }
-    private void addRecruitEquipmentSlotLegs() {
-        int x = 2;
-        this.addSlot(new Slot(recruitInventory, x, 2 * 18 + 82 + x * 18, 18 + x * 18) {
-
-            @Override
-            public int getMaxStackSize() {
-                return 1;
-            }
-
-            public boolean mayPlace(ItemStack itemStack) {
-                return itemStack.canEquip(EquipmentSlot.LEGS, recruit);
-            }
-
-            @Override
-            public void set(ItemStack stack) {
-                super.set(stack);
-                recruit.setItemSlot(EquipmentSlot.LEGS, stack);
-            }
-
-            @Override
-            public boolean mayPickup(Player playerIn) {
-                return true;
-            }
-
-            @Override
-            public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-                return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE);
-            }
-        });
-    }
-
-    private void addRecruitEquipmentSlotFeet() {
-        int x = 3;
-        this.addSlot(new Slot(recruitInventory, x, 2 * 18 + 82 + x * 18, 18 + x * 18) {
-
-            @Override
-            public int getMaxStackSize() {
-                return 1;
-            }
-
-            public boolean mayPlace(ItemStack itemStack) {
-                return itemStack.canEquip(EquipmentSlot.FEET, recruit);
-            }
-
-            @Override
-            public void set(ItemStack stack) {
-                super.set(stack);
-                recruit.setItemSlot(EquipmentSlot.FEET, stack);
-            }
-
-            @Override
-            public boolean mayPickup(Player playerIn) {
-                return true;
-            }
-
-            @Override
-            public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-                return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE);
-            }
-        });
-    }
-
+    //4 = offhand
+    //5 = mainhand
+    //6 -> inventory
 
     public void addRecruitHandSlots() {
-        this.addSlot(new Slot(recruit.inventory, 4,26,90) {
+        this.addSlot(new Slot(recruit.inventory, 5,26,90) {
             @Override
             public boolean mayPlace(ItemStack itemStack) {
-                return  recruit.canHoldItem(itemStack);
+                return recruit.canHoldItem(itemStack);
             }
 
             @Override
             public void set(ItemStack stack){
                 super.set(stack);
-
                 recruit.setItemSlot(EquipmentSlot.MAINHAND, stack);
             }
 
         });
 
-        this.addSlot(new Slot(recruit.inventory, 5,44,90) {
+        this.addSlot(new Slot(recruit.inventory, 4,44,90) {
             @Override
             public boolean mayPlace(ItemStack stack){
                 return stack.getItem() instanceof ShieldItem;
@@ -231,15 +98,65 @@ public class RecruitInventoryContainer extends ContainerBase {
             }
         });
     }
+    public void addRecruitEquipmentSlots() {
+        for (int slotIndex = 0; slotIndex < 4; ++slotIndex) {
+            final EquipmentSlot equipmentslottype = SLOT_IDS[slotIndex];
+            this.addSlot(new Slot(recruit.inventory, slotIndex, 8, 18 + slotIndex * 18) {
+                public int getMaxStackSize() {
+                    return 1;
+                }
+
+                public boolean mayPlace(ItemStack itemStack) {
+                    return itemStack.canEquip(equipmentslottype, recruit)
+                            || (itemStack.getItem() instanceof BannerItem && equipmentslottype.equals(EquipmentSlot.HEAD));
+                }
+
+                @Override
+                public void set(ItemStack stack){
+                    super.set(stack);
+                    recruit.setItemSlot(equipmentslottype, stack);
+                }
+
+                @OnlyIn(Dist.CLIENT)
+                public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+                    return Pair.of(InventoryMenu.BLOCK_ATLAS, TEXTURE_EMPTY_SLOTS[equipmentslottype.getIndex()]);
+                }
+            });
+        }
+
+    }
 
     public void addRecruitInventorySlots() {
         for (int k = 0; k < 3; ++k) {
             for (int l = 0; l < 3; ++l) {
-                this.addSlot(new Slot(recruitInventory, 7 + l + k * recruit.getInventoryColumns(), 2 * 18 + 82 + l * 18,  18 + k * 18));
+                this.addSlot(new Slot(recruitInventory, 6 + l + k * recruit.getInventoryColumns(), 2 * 18 + 82 + l * 18,  18 + k * 18));
             }
         }
     }
 
+    public ItemStack quickMoveStack(Player p_39253_, int p_39254_) {
+        ItemStack itemstack = ItemStack.EMPTY;
+        Slot slot = this.slots.get(p_39254_);
+        if (slot != null && slot.hasItem()) {
+            ItemStack itemstack1 = slot.getItem();
+            itemstack = itemstack1.copy();
+            if (p_39254_ < 3 * 3) {
+                if (!this.moveItemStackTo(itemstack1, 3 * 3, this.slots.size(), true)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (!this.moveItemStackTo(itemstack1, 0, 3 * 3, false)) {
+                return ItemStack.EMPTY;
+            }
+
+            if (itemstack1.isEmpty()) {
+                slot.set(ItemStack.EMPTY);
+            } else {
+                slot.setChanged();
+            }
+        }
+
+        return itemstack;
+    }
 
     //OLD
 

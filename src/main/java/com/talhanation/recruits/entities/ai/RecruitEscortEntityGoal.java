@@ -18,7 +18,7 @@ public class RecruitEscortEntityGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return recruit.getShouldEscort();
+        return recruit.getShouldEscort() && !recruit.needsToGetFood();
     }
 
     public boolean canContinueToUse() {

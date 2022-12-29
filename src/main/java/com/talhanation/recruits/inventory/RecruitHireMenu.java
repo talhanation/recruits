@@ -7,13 +7,13 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 
-public class RecruitHireContainer extends ContainerBase {
+public class RecruitHireMenu extends ContainerBase {
 
 
     private final Player playerEntity;
     private final AbstractRecruitEntity recruit;
 
-    public RecruitHireContainer(int id, Player playerEntity, AbstractRecruitEntity recruit, Inventory playerInventory) {
+    public RecruitHireMenu(int id, Player playerEntity, AbstractRecruitEntity recruit, Inventory playerInventory) {
         super(Main.HIRE_CONTAINER_TYPE, id, null, new SimpleContainer(0));
         this.playerEntity = playerEntity;
         this.recruit = recruit;

@@ -61,7 +61,7 @@ public class RecruitMeleeAttackGoal extends Goal {
                 if (this.path != null) {
                     return true;
                 } else {
-                    return (this.getAttackReachSqr(target) >= this.mob.distanceToSqr(target.getX(), target.getY(), target.getZ())) && canAttackHoldPos() && mob.getState() != 3;
+                    return (this.getAttackReachSqr(target) >= this.mob.distanceToSqr(target.getX(), target.getY(), target.getZ())) && canAttackHoldPos() && mob.getState() != 3 && !mob.needsToGetFood() && !mob.getShouldMount();
                 }
             }
         }
@@ -89,7 +89,7 @@ public class RecruitMeleeAttackGoal extends Goal {
 
     public void start() {
         LivingEntity target = this.mob.getTarget();
-        if ((!mob.getShouldHoldPos()) || target.position().closerThan(mob.position(), 8D)) {
+        if ((!mob.getShouldHoldPos()) || target.position().closerThan(mob.position(), 12D)) {
             this.mob.getNavigation().moveTo(this.path, this.speedModifier);
             this.mob.setAggressive(true);
             this.ticksUntilNextPathRecalculation = 0;
@@ -168,16 +168,9 @@ public class RecruitMeleeAttackGoal extends Goal {
 
         if (target != null && pos != null && mob.getShouldHoldPos()) {
             boolean targetIsFar = target.distanceTo(this.mob) >= 10.0D;
-            boolean posIsClose = pos.distSqr(this.mob.getOnPos()) <= 8.0D;
-            boolean posIsFar = pos.distSqr(this.mob.getOnPos()) > 8.0D;
-
-            if (posIsFar) {
-                return false;
-            }
-
-            else if (posIsClose && targetIsFar){
-                return false;
-            }
+            boolean isFarToPos = !mob.getHoldPos().closerThan(mob.getOnPos(), 12D);
+            if(targetIsFar) return false;
+            else return !isFarToPos;
         }
         return true;
     }

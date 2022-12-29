@@ -38,7 +38,7 @@ public class RecruitFollowOwnerGoal extends Goal {
         } else if (owner.isSpectator()) {
             return false;
         }
-        else if (recruitEntity.getFleeing() || recruitEntity.needsToGetFood()) {
+        else if (recruitEntity.getFleeing() || recruitEntity.needsToGetFood() || recruitEntity.getShouldMount()) {
             return false;
         } else if (!this.recruitEntity.getShouldFollow()) {
             return false;

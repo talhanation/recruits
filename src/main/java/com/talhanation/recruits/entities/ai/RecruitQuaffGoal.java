@@ -1,11 +1,11 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.InteractionHand;
 
@@ -16,6 +16,7 @@ public class RecruitQuaffGoal extends Goal {
     public AbstractRecruitEntity recruit;
     public ItemStack potionItem;
     public ItemStack beforeItem;
+    public int slotID;
 
     public RecruitQuaffGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -23,12 +24,12 @@ public class RecruitQuaffGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return hasPotionInInv() && recruit.needsToPotion() && recruit.getTarget() != null && !recruit.getIsEating();
+        return hasPotionInInv() && recruit.needsToPotion() && !recruit.getIsEating() && !recruit.isUsingItem();
     }
 
     @Override
     public boolean canContinueToUse() {
-        return recruit.getIsEating() && hasPotionInInv() && recruit.needsToPotion() && recruit.getTarget() != null;
+        return recruit.isUsingItem();
     }
 
     public boolean isInterruptable() {
@@ -41,15 +42,18 @@ public class RecruitQuaffGoal extends Goal {
 
     @Override
     public void start() {
-        this.beforeItem = recruit.getItemInHand(InteractionHand.OFF_HAND);
-        this.recruit.setIsEating(true);
-        this.potionItem = getPotionInInv();
-
+        slotID = 0;
+        beforeItem = recruit.getOffhandItem().copy();
+        recruit.setIsEating(true);
+        this.potionItem = getPotionInInvAndRemove();
+        /*
         Main.LOGGER.debug("Start: beforeItem: " + beforeItem);
         Main.LOGGER.debug("Start: potionItem: " + potionItem);
+         */
 
-        recruit.setItemInHand(InteractionHand.OFF_HAND, potionItem);
+        recruit.setItemInHand(InteractionHand.OFF_HAND, potionItem.copy());
         recruit.startUsingItem(InteractionHand.OFF_HAND);
+        recruit.inventory.addItem(Items.GLASS_BOTTLE.getDefaultInstance());
     }
 
     private boolean hasPotionInInv(){
@@ -65,12 +69,14 @@ public class RecruitQuaffGoal extends Goal {
     }
 
     @Nullable
-    private ItemStack getPotionInInv(){
+    private ItemStack getPotionInInvAndRemove(){
         SimpleContainer inventory = recruit.getInventory();
         ItemStack itemStack = null;
         for(int i = 0; i < inventory.getContainerSize(); i++){
             itemStack = inventory.getItem(i);
             if (PotionUtils.getMobEffects(itemStack).size() > 0 && PotionUtils.getMobEffects(itemStack).stream().noneMatch(instance -> instance.getEffect().getCategory().equals(MobEffectCategory.HARMFUL))) {
+                slotID = i;
+                recruit.inventory.removeItemNoUpdate(i);
                 return itemStack;
             }
         }
@@ -78,29 +84,25 @@ public class RecruitQuaffGoal extends Goal {
     }
 
     @Override
-    public void tick() {
-        super.tick();
-
-        if(!recruit.isUsingItem() && recruit.getIsEating() && beforeItem != null) stop();
-    }
-
-    @Override
     public void stop() {
         recruit.setIsEating(false);
-        potionItem.shrink(1);
-        if(potionItem.getCount() == 1) potionItem.shrink(1);//fix infinite food?
-
         recruit.stopUsingItem();
 
-        Main.LOGGER.debug("Stop: beforeFoodItem: " + beforeItem);
-        Main.LOGGER.debug("Stop: foodStack: " + potionItem);
-
-        resetItemInHand();
         recruit.eatCoolDown = 100;
+        resetItemInHand();
+        /*
+        Main.LOGGER.debug("Stop--------------: ");
+        Main.LOGGER.debug("beforeFoodItem: " + beforeFoodItem);
+        Main.LOGGER.debug("isEating: " + recruit.getIsEating());
+        Main.LOGGER.debug("foodStack: " + foodStack.copy());
+        Main.LOGGER.debug("Stop--------------:");
+         */
     }
 
     public void resetItemInHand() {
-        recruit.setItemInHand(InteractionHand.OFF_HAND, this.beforeItem);
-        recruit.inventory.setItem(10, this.beforeItem);
+        recruit.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
+        recruit.inventory.setItem(4, ItemStack.EMPTY);
+
+        recruit.setItemInHand(InteractionHand.OFF_HAND, this.beforeItem.copy());
     }
 }

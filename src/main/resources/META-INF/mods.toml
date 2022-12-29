@@ -11,7 +11,7 @@ modId="recruits"
 version="1.8.4"
 
 displayName="Recruits Mod"
-updateJSONURL="https://github.com/talhanation/recruits/blob/main/update.json"
+updateJSONURL="https://raw.githubusercontent.com/talhanation/recruits/main/update.json"
 displayURL="https://www.curseforge.com/minecraft/mc-mods/recruits"
 
 logoFile="logo.png"

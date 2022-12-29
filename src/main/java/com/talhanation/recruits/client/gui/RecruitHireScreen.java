@@ -4,7 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.inventory.RecruitHireContainer;
+import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.network.MessageHire;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
@@ -23,7 +23,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.text.DecimalFormat;
 
 @OnlyIn(Dist.CLIENT)
-public class RecruitHireScreen extends ScreenBase<RecruitHireContainer> {
+public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/hire_gui.png" );
 
     private static final TranslatableComponent TEXT_HIRE = new TranslatableComponent("gui.recruits.hire_gui.text.hire");
@@ -33,7 +33,7 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireContainer> {
     private final AbstractRecruitEntity recruit;
     private final Player player;
 
-    public RecruitHireScreen(RecruitHireContainer recruitContainer, Inventory playerInventory, Component title) {
+    public RecruitHireScreen(RecruitHireMenu recruitContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, recruitContainer, playerInventory, new TextComponent(""));
         this.recruit = recruitContainer.getRecruitEntity();
         this.player = playerInventory.player;
@@ -107,7 +107,6 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireContainer> {
 
         font.draw(matrixStack, "Costs:", k + 43, l + 40, fontColor);
         font.draw(matrixStack, ""+ costs, k + 77, l + 40, fontColor);
-
     }
 
     protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {

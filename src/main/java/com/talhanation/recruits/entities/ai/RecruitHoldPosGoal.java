@@ -8,6 +8,7 @@ import java.util.EnumSet;
 
 public class RecruitHoldPosGoal extends Goal {
     private final AbstractRecruitEntity recruit;
+
     private final double speedModifier;
 
     public RecruitHoldPosGoal(AbstractRecruitEntity recruit, double v, double within) {
@@ -20,10 +21,8 @@ public class RecruitHoldPosGoal extends Goal {
         if (this.recruit.getHoldPos() == null) {
             return false;
         }
-        else if (this.recruit.getShouldHoldPos() && !recruit.getFleeing() && !recruit.needsToGetFood())//this.recruit.getHoldPos().distToCenterSqr(recruit.position()) >= 4D &&
-            return true;
         else
-            return false;
+            return this.recruit.getShouldHoldPos() && !recruit.getFleeing() && !recruit.needsToGetFood() && !recruit.getShouldMount();
     }
 
     public boolean canContinueToUse() {
@@ -32,7 +31,7 @@ public class RecruitHoldPosGoal extends Goal {
 
     public void tick() {
         BlockPos blockpos = this.recruit.getHoldPos();
-        if (this.recruit.getHoldPos() != null && canUse()) {
+        if (this.recruit.getHoldPos() != null) {
             this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
         }
     }

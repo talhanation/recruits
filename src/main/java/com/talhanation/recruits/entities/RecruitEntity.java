@@ -1,11 +1,15 @@
 package com.talhanation.recruits.entities;
 
 
+import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.UseShield;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.DifficultyInstance;
-import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
@@ -56,6 +60,7 @@ public class RecruitEntity extends AbstractRecruitEntity {
 
     @Override
     public void initSpawn() {
+        super.initSpawn();
         this.setCustomName(new TextComponent("Recruit"));
         this.setCost(3);
         this.setEquipment();
@@ -67,38 +72,9 @@ public class RecruitEntity extends AbstractRecruitEntity {
     }
 
     @Override
-    public void setEquipment() {// doppelt weil bug
-        // wenn nur setItemSlot = dann geht beim gui opening weg
-        // wenn nur setItem = dann geht beim gui opening rein
-        // wtf
-        this.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.LEATHER_HELMET));
-        this.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));
-        this.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.LEATHER_LEGGINGS));
-        this.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.LEATHER_BOOTS));
-
-        //inventory.setItem(11, new ItemStack(Items.LEATHER_HELMET));
-        //inventory.setItem(12, new ItemStack(Items.LEATHER_CHESTPLATE));
-        //inventory.setItem(13, new ItemStack(Items.LEATHER_LEGGINGS));
-        //inventory.setItem(14, new ItemStack(Items.LEATHER_BOOTS));
-        int i = this.random.nextInt(8);
-        if (i == 0) {
-            //inventory.setItem(9, new ItemStack(Items.STONE_AXE));
-            this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_AXE));
-        } else  if (i == 1){
-            //inventory.setItem(9, new ItemStack(Items.STONE_SWORD));
-            this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
-        } else  if (i == 2){
-            //inventory.setItem(9, new ItemStack(Items.STONE_SWORD));
-            this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
-        }else{
-            //inventory.setItem(9, new ItemStack(Items.WOODEN_SWORD));
-            this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.WOODEN_SWORD));
-        }
-    }
-
-    @Override
     public boolean wantsToPickUp(ItemStack itemStack) {
-        return itemStack.isEdible();
+        if(itemStack.getItem() instanceof SwordItem || itemStack.getItem() instanceof ShieldItem) return true;
+            else return super.wantsToPickUp(itemStack);
     }
 
     public Predicate<ItemEntity> getAllowedItems(){
@@ -108,6 +84,12 @@ public class RecruitEntity extends AbstractRecruitEntity {
     @Override
     public boolean canHoldItem(ItemStack itemStack){
         return !(itemStack.getItem() instanceof CrossbowItem || itemStack.getItem() instanceof BowItem);
+    }
+
+    @Override
+    public void setEquipment() {
+        super.setEquipment();
+        setHandEquipment(RecruitsModConfig.RecruitHandEquipment.get());
     }
 }
 

@@ -70,6 +70,7 @@
   "gui.recruits.command.tooltip.move" : "If possible, the recruits will try to go to the position you are looking at.",
   "gui.recruits.command.tooltip.arrows" : "Make your bowman perform a hail of arrows at the position you are looking at.",
   "gui.recruits.command.tooltip.shields" : "Make the recruits raise/lower their shields.",
+  "gui.recruits.command.tooltip.upkeep" : "Sets the block or entity for the upkeep of your recruits you are looking at.",
 
   "gui.recruits.command.tooltip.passive" : "Make the recruits not attacking at all.",
   "gui.recruits.command.tooltip.neutral" : "Make the recruits attack only hostile living.",
@@ -126,17 +127,20 @@
   "chat.recruits.text.hold_your_pos": "I will hold your position.",
   "chat.recruits.text.wander": "I will wander around.",
   "chat.recruits.text.disband": "Then this is where we part ways.",
+  "chat.recruits.text.noFoodInUpkeep": "There is no food in my upkeep.",
 
   "chat.recruits.text.recruited1": "That's an honorable path you're on.",
   "chat.recruits.text.recruited2": "How can i assist you?",
   "chat.recruits.text.recruited3": "Your way is my way. Im honored.",
 
-  "chat.recruits.text.hire_costs": "You need %x Emeralds to recruit me!",
+  "chat.recruits.text.hire_costs_1": "You need",
+  "chat.recruits.text.hire_costs_2": "to recruit me!",
   "chat.recruits.info.reached_max": "You reached the maximum limit you can recruit.",
 
   "chat.recruits.text.block_placing_warn": "You are not allowed to place or break blocks in our lands!",
 
   "gui.recruits.text.recruited" : "It's a honor for me to protect you!",
   "chat.recruits.text.group": "Group",
-  "chat.recruits.text.everyone": "Everyone"
+  "chat.recruits.text.everyone": "Everyone",
+  "gui.recruits.inv.text.upkeep": "Upkeep"
 }

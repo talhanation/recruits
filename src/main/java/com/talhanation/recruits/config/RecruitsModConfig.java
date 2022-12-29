@@ -16,7 +16,7 @@ public class RecruitsModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
-    public static final int NEW_VERSION = 13;
+    public static final int NEW_VERSION = 14;
 
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue RenderNameTagforOwner;
@@ -36,14 +36,31 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.DoubleValue RecruitFollowStartDistance;
     public static ForgeConfigSpec.ConfigValue<List<String>> TargetBlackList;
     public static ForgeConfigSpec.ConfigValue<List<String>> MountWhiteList;
+
+    public static ForgeConfigSpec.ConfigValue<List<String>> StartArmorList;
+    public static ForgeConfigSpec.ConfigValue<List<String>> RecruitHandEquipment;
+    public static ForgeConfigSpec.ConfigValue<List<String>> ShieldmanHandEquipment;
+    public static ForgeConfigSpec.ConfigValue<List<String>> BowmanHandEquipment;
     public static ForgeConfigSpec.BooleanValue AggroRecruitsBlockEvents;
     public static ForgeConfigSpec.BooleanValue NeutralRecruitsBlockEvents;
     public static ForgeConfigSpec.BooleanValue ShouldRecruitPatrolsSpawn;
-
     public static ForgeConfigSpec.DoubleValue RecruitPatrolsSpawnChance;
-
+    public static ForgeConfigSpec.ConfigValue<String> RecruitCurrency;
     public static ArrayList<String> MOUNTS = new ArrayList<>(
             Arrays.asList("minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "camels:camel"));
+
+    public static ArrayList<String> START_ARMOR = new ArrayList<>(
+            Arrays.asList("minecraft:leather_helmet", "minecraft:leather_chestplate", "minecraft:leather_leggings", "minecraft:leather_boots"));
+
+    public static ArrayList<String> RECRUIT_HAND = new ArrayList<>(
+            Arrays.asList("minecraft:wooden_sword", ""));
+
+    public static ArrayList<String> SHIELDMAN_HAND = new ArrayList<>(
+            Arrays.asList("minecraft:wooden_axe", "minecraft:shield"));
+
+    public static ArrayList<String> BOWMAN_HAND = new ArrayList<>(
+            Arrays.asList("minecraft:bow", ""));
+
 
     public static ArrayList<String> list = new ArrayList<>();
 
@@ -185,6 +202,36 @@ public class RecruitsModConfig {
                         "\t" + "default: 15.0")
                 .worldRestart()
                 .defineInRange("RecruitPatrolsSpawnChance", 15.0D, 0.0D, 100.0D);
+
+        StartArmorList = BUILDER.comment("\n" + "----Start armor ----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "Items in this list will be equipped to a new spawned recruits, for example: [\"head\", \"chest\", \"legs\", \"feet\"]")
+                .worldRestart()
+                .define("StartArmorList", START_ARMOR);
+
+        RecruitHandEquipment = BUILDER.comment("\n" + "----Recruit start hand equipment ----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "Items in this list will be equipped to a new spawned recruit, in this following order: [\"main-hand\", \"off-hand\"]")
+                .worldRestart()
+                .define("RecruitStartHandEquipment", RECRUIT_HAND);
+
+        ShieldmanHandEquipment = BUILDER.comment("\n" + "----Shieldman start hand equipment ----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "Items in this list will be equipped to a new spawned shieldman, in this following order: [\"main-hand\", \"off-hand\" ]")
+                .worldRestart()
+                .define("ShieldmanStartHandEquipment", SHIELDMAN_HAND);
+
+        BowmanHandEquipment = BUILDER.comment("\n" + "----Bowman start hand equipment ----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "Items in this list will be equipped to a new spawned bowman, in this following order: [\"main-hand\", \"off-hand\" ]")
+                .worldRestart()
+                .define("BowmanStartHandEquipment", BOWMAN_HAND);
+
+        RecruitCurrency = BUILDER.comment("\n" + "----Currency----" + "\n" +
+                "\t" + "(takes effect after restart)" + "\n" +
+                "\t" + "The Ite m defined here, will be used to hire recruits. For example: [\"minecraft:diamond\"]")
+                .worldRestart()
+                .define("RecruitCurrency", "minecraft:emerald");
 
         CONFIG = BUILDER.build();
     }

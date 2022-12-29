@@ -95,15 +95,6 @@ public class AssassinEntity extends AbstractOrderAbleEntity {
 
     }
 
-    @Override
-    public void checkItemsInInv() {
-
-    }
-
-    @Override
-    public boolean wantsToPickUp(ItemStack itemStack) {
-        return itemStack.isEdible();
-    }
 
     public Predicate<ItemEntity> getAllowedItems(){
         return ALLOWED_ITEMS;

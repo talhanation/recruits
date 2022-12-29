@@ -1,6 +1,6 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.CommandEvents;
+import com.talhanation.recruits.DebugEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -11,16 +11,17 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageClearTargetGui implements Message<MessageClearTargetGui> {
-    private UUID recruit;
-    private UUID player;
+public class MessageDebugGui implements Message<MessageDebugGui> {
 
-    public MessageClearTargetGui(){
+    private int id;
+    private UUID uuid;
+
+    public MessageDebugGui() {
     }
 
-    public MessageClearTargetGui(UUID player, UUID recruit) {
-        this.player = player;
-        this.recruit = recruit;
+    public MessageDebugGui(int id, UUID uuid) {
+        this.id = id;
+        this.uuid = uuid;
     }
 
     public Dist getExecutingSide() {
@@ -30,20 +31,21 @@ public class MessageClearTargetGui implements Message<MessageClearTargetGui> {
     public void executeServerSide(NetworkEvent.Context context) {
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
         for (AbstractRecruitEntity recruits : list) {
-            if (recruits.getUUID().equals(this.recruit))
-                CommandEvents.onClearTargetButton(this.player, recruits,0);
+
+            if (recruits.getUUID().equals(this.uuid))
+                DebugEvents.handleMessage(id, recruits);
         }
+
     }
-    public MessageClearTargetGui fromBytes(FriendlyByteBuf buf) {
-        this.player = buf.readUUID();
-        this.recruit = buf.readUUID();
+
+    public MessageDebugGui fromBytes(FriendlyByteBuf buf) {
+        this.id = buf.readInt();
+        this.uuid = buf.readUUID();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
-        buf.writeUUID(this.player);
-        buf.writeUUID(this.recruit);
+        buf.writeInt(id);
+        buf.writeUUID(uuid);
     }
-
 }
-

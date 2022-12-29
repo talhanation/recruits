@@ -2,7 +2,7 @@ package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.config.RecruitsModConfig;
-import com.talhanation.recruits.inventory.AssassinLeaderContainer;
+import com.talhanation.recruits.inventory.AssassinLeaderMenu;
 import com.talhanation.recruits.network.MessageAssassinGui;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -118,7 +118,7 @@ public class AssassinLeaderEntity extends AbstractOrderAbleEntity {
                 @Nullable
                 @Override
                 public AbstractContainerMenu createMenu(int i, Inventory playerInventory, Player playerEntity) {
-                    return new AssassinLeaderContainer(i, AssassinLeaderEntity.this, playerInventory);
+                    return new AssassinLeaderMenu(i, AssassinLeaderEntity.this, playerInventory);
                 }
             }, packetBuffer -> {packetBuffer.writeUUID(getUUID());});
         } else {
@@ -130,10 +130,6 @@ public class AssassinLeaderEntity extends AbstractOrderAbleEntity {
         return true;
     }
 
-    @Override
-    public void checkItemsInInv() {
-
-    }
 
     @Override
     public boolean wantsToPickUp(ItemStack itemStack) {

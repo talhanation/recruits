@@ -3,16 +3,17 @@ package com.talhanation.recruits;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.BowmanEntity;
-import com.talhanation.recruits.inventory.CommandContainer;
+import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.MessageCommandScreen;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -21,18 +22,19 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
+import java.util.Optional;
 import java.util.UUID;
 
 public class CommandEvents {
-    public static final TranslatableComponent TEXT_HIRE_COSTS = new TranslatableComponent("chat.recruits.text.hire_costs");
+    public static final TranslatableComponent TEXT_HIRE_COSTS_1 = new TranslatableComponent("chat.recruits.text.hire_costs_1");
+    public static final TranslatableComponent TEXT_HIRE_COSTS_2 = new TranslatableComponent("chat.recruits.text.hire_costs_2");
     public static final TranslatableComponent TEXT_EVERYONE = new TranslatableComponent("chat.recruits.text.everyone");
     public static final TranslatableComponent TEXT_GROUP = new TranslatableComponent("chat.recruits.text.group");
 
@@ -177,7 +179,7 @@ public class CommandEvents {
 
                 @Override
                 public @NotNull AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
-                    return new CommandContainer(i, playerEntity);
+                    return new CommandMenu(i, playerEntity);
                 }
             }, packetBuffer -> {packetBuffer.writeUUID(player.getUUID());});
         } else {
@@ -275,24 +277,43 @@ public class CommandEvents {
 
     public static void handleRecruiting(Player player, AbstractRecruitEntity recruit){
         String name = recruit.getName().getString() + ": ";
-        String hire_costs = TEXT_HIRE_COSTS.getString();
-        int costs = recruit.getCost();
+        String hire_costs_1 = TEXT_HIRE_COSTS_1.getString();
+        String hire_costs_2 = TEXT_HIRE_COSTS_2.getString();
 
-        String recruit_info = String.format(hire_costs, costs);
+        int sollPrice = recruit.getCost();
         Inventory playerInv = player.getInventory();
 
         int playerEmeralds = 0;
 
-        ItemStack emeraldItemStack = Items.EMERALD.getDefaultInstance();
-        Item emerald = emeraldItemStack.getItem();//
-        int sollPrice = recruit.getCost();
+        String str = RecruitsModConfig.RecruitCurrency.get();
+        //Main.LOGGER.debug("str: " + str);
+        ItemStack currencyItemStack;
+        Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
+        //Main.LOGGER.debug("holder: " + holder);
+
+        if (holder.isPresent()){
+            currencyItemStack = holder.get().value().getDefaultInstance();
+            //Main.LOGGER.debug("currencyItemStack: " + currencyItemStack);
+        }
+        else
+            currencyItemStack = Items.EMERALD.getDefaultInstance();
+
+
+        Item currency = currencyItemStack.getItem();//
+        //Main.LOGGER.debug("currency: " + currency);
+
+        String recruit_info_1 = String.format(hire_costs_1 + " " + sollPrice + " ");
+        String recruit_info_2 = String.format(currency.getDescription().getString() + " " + hire_costs_2);
+        //Main.LOGGER.debug("currency.getDescription().getString(): " + currency.getDescription().getString());
+
+
 
 
         //checkPlayerMoney
         for (int i = 0; i < playerInv.getContainerSize(); i++){
             ItemStack itemStackInSlot = playerInv.getItem(i);
             Item itemInSlot = itemStackInSlot.getItem();
-            if (itemInSlot == emerald){
+            if (itemInSlot.equals(currency)){
                 playerEmeralds = playerEmeralds + itemStackInSlot.getCount();
             }
         }
@@ -313,31 +334,19 @@ public class CommandEvents {
                 for (int i = 0; i < playerInv.getContainerSize(); i++) {
                     ItemStack itemStackInSlot = playerInv.getItem(i);
                     Item itemInSlot = itemStackInSlot.getItem();
-                    if (itemInSlot == emerald) {
+                    if (itemInSlot.equals(currency)) {
                         playerInv.removeItemNoUpdate(i);
                     }
                 }
 
                 //add leftEmeralds to playerInventory
-                ItemStack emeraldsLeft = emeraldItemStack.copy();
+                ItemStack emeraldsLeft = currencyItemStack.copy();
                 emeraldsLeft.setCount(playerEmeralds);
                 playerInv.add(emeraldsLeft);
             }
         }
         else
-            player.sendMessage(new TextComponent(name + recruit_info), player.getUUID());
-    }
-
-
-
-    @Nullable
-    public static Entity getEntityByLooking(Player player) {
-        HitResult hit = player.pick(32, 1F, false);;
-
-        if (hit instanceof EntityHitResult entityHitResult){
-            return entityHitResult.getEntity();
-        }
-        return null;
+            player.sendMessage(new TextComponent(name + recruit_info_1 + recruit_info_2), player.getUUID());
     }
 
 
@@ -362,23 +371,32 @@ public class CommandEvents {
         }
     }
 
-    public static void onStopButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
+    public static void onClearTargetButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
+            //Main.LOGGER.debug("event: clear");
             recruit.setTarget(null);
+            recruit.setLastHurtByPlayer(null);
+            recruit.setLastHurtMob(null);
+            recruit.setLastHurtByMob(null);
         }
     }
 
-    public static void onUpkeepCommand(Player player, UUID player_uuid, AbstractRecruitEntity recruit, int group) {
+    public static void onUpkeepCommand(Player player, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean isEntity, UUID entity_uuid) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
-
-            HitResult hitResult = player.pick(100, 1F, false);
-
-            if (hitResult != null) {
-                if (hitResult.getType() == HitResult.Type.BLOCK) {
-                    BlockHitResult blockHitResult = (BlockHitResult) hitResult;
-                    BlockPos blockpos = blockHitResult.getBlockPos();
-                    recruit.setUpkeepPos(blockpos);
-                    Main.LOGGER.debug("Upkeep pos: " + blockpos);
+            if (isEntity) {
+                //Main.LOGGER.debug("server: entity_uuid: " + entity_uuid);
+                recruit.setUpkeepUUID(Optional.of(entity_uuid));
+                recruit.setUpkeepPos(BlockPos.ZERO);
+            }
+            else {
+                HitResult hitResult = player.pick(100, 1F, false);
+                if (hitResult != null) {
+                    if (hitResult.getType().equals(HitResult.Type.BLOCK)) {
+                        BlockHitResult blockHitResult = (BlockHitResult) hitResult;
+                        BlockPos blockpos = blockHitResult.getBlockPos();
+                        recruit.setUpkeepPos(blockpos);
+                        recruit.setUpkeepUUID(Optional.empty());
+                    }
                 }
             }
         }

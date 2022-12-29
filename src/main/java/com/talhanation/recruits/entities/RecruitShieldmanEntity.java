@@ -1,25 +1,42 @@
 package com.talhanation.recruits.entities;
 
+import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.entities.ai.UseShield;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.DifficultyInstance;
-import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
-import net.minecraft.world.item.BowItem;
-import net.minecraft.world.item.CrossbowItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 import javax.annotation.Nullable;
+import java.util.function.Predicate;
 
-public class RecruitShieldmanEntity extends RecruitEntity{
+public class RecruitShieldmanEntity extends AbstractRecruitEntity{
 
-    public RecruitShieldmanEntity(EntityType<? extends RecruitEntity> entityType, Level world) {
+    private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
+            (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
+
+    public RecruitShieldmanEntity(EntityType<? extends AbstractRecruitEntity> entityType, Level world) {
         super(entityType, world);
+    }
+
+    @Override
+    protected void registerGoals() {
+        super.registerGoals();
+        this.goalSelector.addGoal(2, new UseShield(this));
+    }
+    @Override
+    public int getBlockCoolDown(){
+        return 100;
     }
 
     //ATTRIBUTES
@@ -58,27 +75,23 @@ public class RecruitShieldmanEntity extends RecruitEntity{
 
     @Override
     public void setEquipment() {
-        this.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));
-        this.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.LEATHER_LEGGINGS));
-        this.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.LEATHER_BOOTS));
-        this.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
-
-        inventory.setItem(12, new ItemStack(Items.LEATHER_CHESTPLATE));
-        inventory.setItem(13, new ItemStack(Items.LEATHER_LEGGINGS));
-        inventory.setItem(14, new ItemStack(Items.LEATHER_BOOTS));
-        inventory.setItem(10, new ItemStack(Items.SHIELD));
-
-        int i = this.random.nextInt(10);
-        if (i == 0) {
-            this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE));
-            inventory.setItem(9, new ItemStack(Items.IRON_AXE));
-        } else
-            this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_AXE));
-            inventory.setItem(9, new ItemStack(Items.STONE_AXE));
+        super.setEquipment();
+        setHandEquipment(RecruitsModConfig.ShieldmanHandEquipment.get());
     }
 
     @Override
     public boolean canHoldItem(ItemStack itemStack){
         return !(itemStack.getItem() instanceof CrossbowItem || itemStack.getItem() instanceof BowItem);
+    }
+
+    @Override
+    public Predicate<ItemEntity> getAllowedItems() {
+        return ALLOWED_ITEMS;
+    }
+
+    @Override
+    public boolean wantsToPickUp(ItemStack itemStack) {
+        if(itemStack.getItem() instanceof SwordItem || itemStack.getItem() instanceof ShieldItem || itemStack.getItem() instanceof AxeItem) return true;
+        else return super.wantsToPickUp(itemStack);
     }
 }
