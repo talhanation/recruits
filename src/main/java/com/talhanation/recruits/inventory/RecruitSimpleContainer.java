@@ -6,6 +6,10 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ShieldItem;
 
+import java.util.Objects;
+
+import static net.minecraft.world.entity.LivingEntity.getEquipmentSlotForItem;
+
 public class RecruitSimpleContainer extends SimpleContainer {
     private AbstractInventoryEntity recruit;
     private int size;
@@ -31,7 +35,9 @@ public class RecruitSimpleContainer extends SimpleContainer {
             ItemStack itemstack = this.getItem(i);
             if (itemstack.isEmpty() && canPlaceItem(i, itemStack)) {
                 this.setItem(i, itemStack.copy());
-                if(i < 6) recruit.setItemSlot(recruit.getEquipmentSlotIndex(i), itemStack);
+                if(i < 6) {
+                    recruit.setItemSlot(Objects.requireNonNull(recruit.getEquipmentSlotIndex(i)), itemStack);
+                }
                 itemStack.setCount(0);
                 return;
             }
@@ -67,7 +73,6 @@ public class RecruitSimpleContainer extends SimpleContainer {
             return itemStack.canEquip(equipmentslottype, recruit); //|| (itemStack.getItem() instanceof BannerItem && equipmentslottype.equals(EquipmentSlot.HEAD))
         }
         else if(slot == 4)//offhand
-
             return (itemStack.getItem() instanceof ShieldItem);
 
         else if (slot == 5)//mainhand

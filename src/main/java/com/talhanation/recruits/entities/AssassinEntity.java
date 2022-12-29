@@ -95,10 +95,6 @@ public class AssassinEntity extends AbstractOrderAbleEntity {
 
     }
 
-    @Override
-    public void checkItemsInInv() {
-
-    }
 
     public Predicate<ItemEntity> getAllowedItems(){
         return ALLOWED_ITEMS;

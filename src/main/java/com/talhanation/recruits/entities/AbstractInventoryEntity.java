@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities;
 
+import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.inventory.RecruitSimpleContainer;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -31,7 +32,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     //0,1,2,3 = armor
     //rest = inv
 
-    public SimpleContainer inventory;
+    public RecruitSimpleContainer inventory;
     private net.minecraftforge.common.util.LazyOptional<?> itemHandler = null;
 
     public AbstractInventoryEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
@@ -114,18 +115,26 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
     public int getInventorySlotIndex(EquipmentSlot slot) {
         switch (slot) {
-            case HEAD:
+            case HEAD -> {
                 return 0;
-            case CHEST:
+            }
+            case CHEST -> {
                 return 1;
-            case LEGS:
+            }
+            case LEGS -> {
                 return 2;
-            case FEET:
+            }
+            case FEET -> {
                 return 3;
-            default:
-                break;
+            }
+            case OFFHAND -> {
+                return 4;
+            }
+            case MAINHAND -> {
+                return 5;
+            }
         }
-        return 0;
+        return 6;
     }
     @Nullable
     public EquipmentSlot getEquipmentSlotIndex(int id) {
@@ -223,23 +232,21 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     protected void pickUpItem(ItemEntity itemEntity) {
 
         ItemStack itemstack = itemEntity.getItem();
-        /*
+
         //Equip and upgrade method:
 
-        Main.LOGGER.debug("itemstack: " + itemstack);
+        //Main.LOGGER.debug("itemstack: " + itemstack);
         if (this.equipItemIfPossible(itemstack)) {
             this.onItemPickup(itemEntity);
             this.take(itemEntity, itemstack.getCount());
             itemEntity.discard();
         }
         else {
-            SimpleContainer inventory = this.inventory;
+            RecruitSimpleContainer inventory = this.inventory;
             boolean flag = inventory.canAddItem(itemstack);
             if (!flag) {
                 return;
             }
-            //this.recDetectEquipmentUpdates();
-            this.checkItemsInInv();
             this.onItemPickup(itemEntity);
             this.take(itemEntity, itemstack.getCount());
             ItemStack itemstack1 = inventory.addItem(itemstack);
@@ -249,26 +256,27 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
                 itemstack.setCount(itemstack1.getCount());
             }
         }
-        */
-
+        /*
         if (this.wantsToPickUp(itemstack)) {
             boolean flag = this.inventory.canAddItem(itemstack);
             if (!flag) {
                 return;
             }
             //this.recDetectEquipmentUpdates();
-            this.checkItemsInInv();
             this.onItemPickup(itemEntity);
             this.take(itemEntity, itemstack.getCount());
-            ItemStack itemstack1 = inventory.addItem(itemstack);
+
+            ItemStack itemstack1 = this.inventory.addItem(itemstack);
             if (itemstack1.isEmpty()) {
                 itemEntity.remove(RemovalReason.KILLED);
             } else {
                 itemstack.setCount(itemstack1.getCount());
             }
         }
+
+         */
     }
-    /*
+
     @Override
     public boolean equipItemIfPossible(ItemStack itemStack) {
         EquipmentSlot equipmentslot = getEquipmentSlotForItem(itemStack);
@@ -288,16 +296,16 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         }
     }
 
-     */
-    public abstract void checkItemsInInv();
-
     @Override
     public boolean wantsToPickUp(@NotNull ItemStack itemStack){
-        if(itemStack.getItem() instanceof ArmorItem armorItem){
-            for(i=0//has armor ...
+        /*
+        for(int i = 0; i < 4; i++){
+            EquipmentSlot equipmentslottype = RecruitInventoryMenu.SLOT_IDS[i];
+            if (itemStack.canEquip(equipmentslottype, this)){
+                return true;
+            }
         }
-
-
+        */
         return itemStack.isEdible() || itemStack.getItem() instanceof ArmorItem;
     }
 

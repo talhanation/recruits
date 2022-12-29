@@ -32,7 +32,9 @@ public class RecruitInventoryMenu extends ContainerBase {
             EquipmentSlot.HEAD,
             EquipmentSlot.CHEST,
             EquipmentSlot.LEGS,
-            EquipmentSlot.FEET
+            EquipmentSlot.FEET,
+            EquipmentSlot.OFFHAND,
+            EquipmentSlot.MAINHAND
     };
 
     public RecruitInventoryMenu(int id, AbstractRecruitEntity recruit, Inventory playerInventory) {
@@ -59,8 +61,8 @@ public class RecruitInventoryMenu extends ContainerBase {
     //1 = chest
     //2 = legs
     //3 = boots
-    //4 = main hand
-    //5 = sec hand
+    //4 = offhand
+    //5 = mainhand
     //6 -> inventory
 
     public void addRecruitHandSlots() {

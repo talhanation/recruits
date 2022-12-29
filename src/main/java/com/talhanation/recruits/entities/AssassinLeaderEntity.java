@@ -130,10 +130,6 @@ public class AssassinLeaderEntity extends AbstractOrderAbleEntity {
         return true;
     }
 
-    @Override
-    public void checkItemsInInv() {
-
-    }
 
     @Override
     public boolean wantsToPickUp(ItemStack itemStack) {

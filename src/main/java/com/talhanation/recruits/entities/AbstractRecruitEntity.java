@@ -862,7 +862,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             }
             if ((this.isOwned() && player.getUUID().equals(this.getOwnerUUID()))) {
                 if (player.isCrouching()) {
-                    checkItemsInInv();
                     openGUI(player);
                     this.navigation.stop();
                     return InteractionResult.SUCCESS;
@@ -1037,8 +1036,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
-
-
     public void die(DamageSource dmg) {
         net.minecraft.network.chat.Component deathMessage = this.getCombatTracker().getDeathMessage();
         super.die(dmg);
@@ -1159,10 +1156,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public boolean isSaturated(){
         return (getHunger() >= 90F);
-    }
-
-    @Override
-    public void checkItemsInInv(){
     }
 
     public void checkLevel(){

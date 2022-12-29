@@ -1,19 +1,16 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.animal.Fox;
 import net.minecraft.world.item.ItemStack;
 import java.util.Objects;
-import java.util.Optional;
 
 public class RecruitEatGoal extends Goal {
 
     public AbstractRecruitEntity recruit;
     public ItemStack foodStack;
-    public ItemStack beforeFoodItem;
+    public ItemStack beforeItem;
     public int slotID;
 
     public RecruitEatGoal(AbstractRecruitEntity recruit) {
@@ -41,7 +38,7 @@ public class RecruitEatGoal extends Goal {
     @Override
     public void start() {
         slotID = 0;
-        beforeFoodItem = recruit.getOffhandItem().copy();
+        beforeItem = recruit.getOffhandItem().copy();
         recruit.setIsEating(true);
         this.foodStack = getAndRemoveFoodInInv().copy();
         /*
@@ -50,8 +47,7 @@ public class RecruitEatGoal extends Goal {
         Main.LOGGER.debug("isEating: " + recruit.getIsEating());
         Main.LOGGER.debug("foodStack: " + foodStack.copy());
         Main.LOGGER.debug("Start--------------:");
-
-         */
+        */
 
         recruit.heal(Objects.requireNonNull(foodStack.getItem().getFoodProperties(foodStack, recruit)).getSaturationModifier() * 1);
         if (!recruit.isSaturated())
@@ -60,8 +56,6 @@ public class RecruitEatGoal extends Goal {
         recruit.setItemInHand(InteractionHand.OFF_HAND, foodStack);
         recruit.startUsingItem(InteractionHand.OFF_HAND);
     }
-
-    // start {copy,  delete} // stop { place}
 
     @Override
     public void stop() {
@@ -82,10 +76,11 @@ public class RecruitEatGoal extends Goal {
 
     public void resetItemInHand() {
         recruit.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
-        recruit.inventory.setItem(5, ItemStack.EMPTY);
+        recruit.inventory.setItem(4, ItemStack.EMPTY);
 
-        recruit.setItemInHand(InteractionHand.OFF_HAND, this.beforeFoodItem.copy());
+        recruit.setItemInHand(InteractionHand.OFF_HAND, this.beforeItem.copy());
         recruit.inventory.setItem(slotID, foodStack.copy());
+
     }
 
     private boolean hasFoodInInv(){
