@@ -7,6 +7,8 @@ import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.IronGolem;
+import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.ZombieVillager;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerTrades;
@@ -33,19 +35,19 @@ public class VillagerEvents {
         if (entity instanceof Villager villager) {
             VillagerProfession profession = villager.getVillagerData().getProfession();
 
-            if (profession == Main.RECRUIT) {
+            if (profession.equals(Main.RECRUIT)) {
                 createRecruit(villager);
             }
 
-            if (profession == Main.BOWMAN){
+            if (profession.equals(Main.BOWMAN)){
                 createBowman(villager);
             }
 
-            if (profession == Main.NOMAD){
+            if (profession.equals(Main.NOMAD)){
                 createNomad(villager);
             }
 
-            if (profession == Main.RECRUIT_SHIELDMAN){
+            if (profession.equals(Main.RECRUIT_SHIELDMAN)){
                 createRecruitShieldman(villager);
             }
         }
@@ -67,6 +69,26 @@ public class VillagerEvents {
             }
         }
 
+
+        if (entity instanceof ZombieVillager zombie){
+            VillagerProfession profession = zombie.getVillagerData().getProfession();
+
+            if (profession.equals(Main.RECRUIT)) {
+                zombie.remove(Entity.RemovalReason.DISCARDED);
+            }
+
+            if (profession.equals(Main.BOWMAN)){
+                zombie.remove(Entity.RemovalReason.DISCARDED);
+            }
+
+            if (profession.equals(Main.NOMAD)){
+                zombie.remove(Entity.RemovalReason.DISCARDED);
+            }
+
+            if (profession.equals(Main.RECRUIT_SHIELDMAN)){
+                zombie.remove(Entity.RemovalReason.DISCARDED);
+            }
+        }
     }
     private static void createRecruit(LivingEntity entity){
         RecruitEntity recruit = ModEntityTypes.RECRUIT.get().create(entity.level);
