@@ -2,23 +2,17 @@ package com.talhanation.recruits.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.entities.AbstractInventoryEntity;
 import net.minecraft.client.model.HumanoidModel;
-<<<<<<< HEAD
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.world.InteractionHand;
-=======
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.layers.ArrowLayer;
 import net.minecraft.client.renderer.entity.layers.BeeStingerLayer;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
->>>>>>> idk-new-things
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -27,14 +21,6 @@ import net.minecraft.world.item.UseAnim;
 public abstract class AbstractRecruitRenderer<Type extends AbstractInventoryEntity> extends MobRenderer<Type, PlayerModel<Type>> {
 
     public AbstractRecruitRenderer(EntityRendererProvider.Context mgr) {
-<<<<<<< HEAD
-        super(mgr, (M) new RecruitModel (mgr.bakeLayer(ClientEvent.RECRUIT)), 0.5F);
-        //this.addLayer(new HumanoidArmorLayer<>(this, new RecruitModel(mgr.bakeLayer(ModelLayers.PLAYER_INNER_ARMOR)), new RecruitModel(mgr.bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR))));
-        //this.addLayer(new ArrowLayer<>(mgr, this));
-        //this.addLayer(new BeeStingerLayer<>(this));
-        //this.addLayer(new CustomHeadLayer<>(this, mgr.getModelSet()));
-        //this.addLayer(new ItemInHandLayer<>(this));
-=======
         super(mgr, new PlayerModel<>((mgr.bakeLayer(ModelLayers.PLAYER)), false), 0.5F);
         this.addLayer(new HumanoidArmorLayer<>(this, new HumanoidModel(mgr.bakeLayer(ModelLayers.PLAYER_INNER_ARMOR)), new HumanoidModel(mgr.bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR))));
         this.addLayer(new ArrowLayer<>(mgr, this));
@@ -70,7 +56,6 @@ public abstract class AbstractRecruitRenderer<Type extends AbstractInventoryEnti
             model.rightArmPose = humanoidmodel$armpose1;
             model.leftArmPose = humanoidmodel$armpose;
         }
->>>>>>> idk-new-things
     }
 
     private static HumanoidModel.ArmPose getArmPose(AbstractInventoryEntity recruit, InteractionHand hand) {

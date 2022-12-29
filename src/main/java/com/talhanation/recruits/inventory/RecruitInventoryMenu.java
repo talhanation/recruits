@@ -7,8 +7,11 @@ import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.DispenserMenu;
+import net.minecraft.world.inventory.HorseInventoryMenu;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.BannerItem;
@@ -133,22 +136,63 @@ public class RecruitInventoryMenu extends ContainerBase {
             }
         }
     }
-
-    public ItemStack quickMoveStack(Player p_39253_, int p_39254_) {
+    //DispenserMenu
+    public ItemStack quickMoveStack(Player p_39665_, int index) {
         ItemStack itemstack = ItemStack.EMPTY;
-        Slot slot = this.slots.get(p_39254_);
+        Slot slot = this.slots.get(index);
         if (slot != null && slot.hasItem()) {
-            ItemStack itemstack1 = slot.getItem();
-            itemstack = itemstack1.copy();
-            if (p_39254_ < 3 * 3) {
-                if (!this.moveItemStackTo(itemstack1, 3 * 3, this.slots.size(), true)) {
+            ItemStack slotItem = slot.getItem();
+            itemstack = slotItem.copy();
+            int i = this.inventory.getContainerSize();
+            if (index < i) {
+                if (!this.moveItemStackTo(slotItem, i, this.slots.size(), true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.moveItemStackTo(itemstack1, 0, 3 * 3, false)) {
+            }
+            else if (this.getSlot(0).mayPlace(slotItem) && !this.getSlot(0).hasItem()) {
+                if (!this.moveItemStackTo(slotItem, 0, this.slots.size(), false)) {
+                    return ItemStack.EMPTY;
+                }
+            }
+            else if (this.getSlot(1).mayPlace(slotItem) && !this.getSlot(1).hasItem()) {
+                if (!this.moveItemStackTo(slotItem, 1, this.slots.size(), false)) {
+                    return ItemStack.EMPTY;
+                }
+            }
+            else if (this.getSlot(2).mayPlace(slotItem) && !this.getSlot(2).hasItem()) {
+                if (!this.moveItemStackTo(slotItem, 2, this.slots.size(), false)) {
+                    return ItemStack.EMPTY;
+                }
+            }
+            else if (this.getSlot(3).mayPlace(slotItem) && !this.getSlot(3).hasItem()) {
+                if (!this.moveItemStackTo(slotItem, 3, this.slots.size(), false)) {
+                    return ItemStack.EMPTY;
+                }
+            }
+            else if (this.getSlot(4).mayPlace(slotItem) && !this.getSlot(4).hasItem()) {
+                if (!this.moveItemStackTo(slotItem, 4, this.slots.size(), false)) {
+                    return ItemStack.EMPTY;
+                }
+            }
+            else if (!this.moveItemStackTo(slotItem, 1, i, false)) {
+                int j = i + 27;
+                int k = j + 15;
+                if (index >= j && index < k) {
+                    if (!this.moveItemStackTo(slotItem, i, j, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else if (index >= i && index < j) {
+                    if (!this.moveItemStackTo(slotItem, j, k, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else if (!this.moveItemStackTo(slotItem, j, j, false)) {
+                    return ItemStack.EMPTY;
+                }
+
                 return ItemStack.EMPTY;
             }
 
-            if (itemstack1.isEmpty()) {
+            if (slotItem.isEmpty()) {
                 slot.set(ItemStack.EMPTY);
             } else {
                 slot.setChanged();
