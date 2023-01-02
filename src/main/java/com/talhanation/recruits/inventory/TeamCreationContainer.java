@@ -51,9 +51,4 @@ public class TeamCreationContainer extends ContainerBase {
     public ItemStack getBanner() {
         return container.getItem(0);
     }
-
-    public void onClose(){
-        player.spawnAtLocation(getBanner());
-    }
-
 }

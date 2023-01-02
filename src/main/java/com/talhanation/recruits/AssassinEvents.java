@@ -128,9 +128,6 @@ public class AssassinEvents {
         if (emeraldCount >= price){
             return true;
         }
-        if (player.isCreative()){
-            return true;
-        }
-        else return false;
+        return player.isCreative();
     }
 }

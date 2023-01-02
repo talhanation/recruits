@@ -26,7 +26,7 @@ public class KeyEvents {
         }
 
         if (Main.C_KEY.isDown()) {
-            TeamEvents.openTeamCreationScreen(clientPlayerEntity);
+            TeamEvents.openTeamMainScreen(clientPlayerEntity);
         }
 
 

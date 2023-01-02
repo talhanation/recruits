@@ -1,30 +1,23 @@
 package com.talhanation.recruits.client.gui.team;
 
-import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Quaternion;
-import com.mojang.math.Vector3f;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.TeamEvents;
-import net.minecraft.client.Minecraft;
+import com.talhanation.recruits.inventory.TeamMainContainer;
+import com.talhanation.recruits.network.MessageServerUpdateTeamInspectMenu;
+import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BannerRenderer;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
-import net.minecraft.world.scores.Team;
 
-public class TeamMainScreen extends Screen {
+public class TeamMainScreen extends ScreenBase<TeamMainContainer> {
 
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/assassin_gui.png");
@@ -37,10 +30,13 @@ public class TeamMainScreen extends Screen {
 
     private static final Component CREATE_TEAM = new TranslatableComponent("gui.recruits.teamcreation.create_team");
     private static final Component INSPECT_TEAM = new TranslatableComponent("gui.recruits.teamcreation.inspect_team");
-    private static final Component EDIT_TEAM = new TranslatableComponent("gui.recruits.teamcreation.edit_team");
+    private static final Component TEAMS_LIST = new TranslatableComponent("gui.recruits.teamcreation.teams_list");
 
-    protected TeamMainScreen() {
-        super(new TranslatableComponent("gui.recruits.mainTeamTitle"));
+    public TeamMainScreen(TeamMainContainer commandContainer, Inventory playerInventory, Component title) {
+        super(RESOURCE_LOCATION, commandContainer, playerInventory, new TextComponent(""));
+        imageWidth = 201;
+        imageHeight = 170;
+        player = playerInventory.player;
     }
 
     @Override
@@ -49,30 +45,27 @@ public class TeamMainScreen extends Screen {
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
         boolean isInTeam = TeamEvents.isPlayerInTeam(player);
-        boolean isTeamLeader = TeamEvents.isPlayerTeamLeader(player, player.getTeam());
 
-        String create;
-        if(!isTeamLeader)
-        create = isInTeam ? INSPECT_TEAM.getString() : CREATE_TEAM.getString();
-        else
-            create = EDIT_TEAM.getString();
+        Main.LOGGER.debug("---------TeamMainScreen--------");
+        Main.LOGGER.debug("isInTeam: " + isInTeam);
 
-        String list =
 
-        addRenderableWidget(new Button(leftPos + 30, topPos + 30, 80, 20, new TextComponent(create), btn -> {
-            if (isInTeam && !isTeamLeader) {
-                minecraft.setScreen(new TeamInspectScreen(player, player.getTeam()));
-            } else if (isTeamLeader) {
-                TeamEvents.openTeamEditorScreen(player);
+        String string = isInTeam ? INSPECT_TEAM.getString() : CREATE_TEAM.getString();
+        Main.LOGGER.debug("string: " + string);
+        addRenderableWidget(new Button(leftPos + 30, topPos + 30, 80, 20, new TextComponent(string), btn -> {
+            if (isInTeam && player.getTeam() != null) {
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateTeamInspectMenu(player.getTeam()));
+                TeamEvents.openTeamInspectionScreen(player, player.getTeam());
             }
-            else{
+            else {
                 TeamEvents.openTeamCreationScreen(player);
             }
         }));
 
-        addRenderableWidget(new Button(leftPos + 30, topPos + 50, 80, 20, new TextComponent(create), btn -> {
-            minecraft.setScreen(new ScreenTeamList(this));
+        addRenderableWidget(new Button(leftPos + 30, topPos + 50, 80, 20, TEAMS_LIST, btn -> {
+            TeamEvents.openTeamListScreen(player);
         }));
+        Main.LOGGER.debug("--------------------------------");
     }
 
     protected void render(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
@@ -80,15 +73,6 @@ public class TeamMainScreen extends Screen {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
         this.blit(matrixStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
-
-
-        RenderSystem.clearColor(1.0F, 1.0F, 1.0F, 1.0F);
-        int i = (this.width - this.imageWidth) / 2;
-        int j = (this.height - this.imageHeight) / 2;
-
-        MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
-        RenderBanner.renderBanner(matrixStack, partialTicks, buffer, )InInventory();
-        BannerRenderer.renderPatterns(matrixStack, buffer, pac);
     }
 
 }

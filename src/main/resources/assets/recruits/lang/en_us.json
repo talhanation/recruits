@@ -131,16 +131,24 @@
 
 
   "chat.recruits.team_creation.team_exists" :"A team already exists by that name!",
+  "chat.recruits.team_creation.addPlayer" :"Add Player",
   "chat.recruits.team_creation.banner_exists" :"A team already uses the same banner!",
   "chat.recruits.team_creation.noenoughMoney": "You don't have enough emeralds to create a team!",
-  "chat.recruits.team_creation.noname": "You need to type a name for you team!",
+  "chat.recruits.team_creation.noname": "You need to type a name for your team!",
   "chat.recruits.team_creation.nobanner": "You need a banner to create a team!",
   "chat.recruits.team_creation.wrongbanner": "You cant use a blank banner for your team.",
   "gui.recruits.mainTeamTitle": "Team Menu",
   "gui.recruits.teamcreation.edit_team": "Edit Team",
+  "gui.recruits.teamcreation.add_player": "Add Player",
   "gui.recruits.teamcreation.create_team": "Create Team",
-  "gui.recruits.teamcreation.inspect_team": "Inspect team",
+  "gui.recruits.teamcreation.inspect_team": "Inspect Team",
+  "gui.recruits.teamcreation.teams_list": "List of Teams",
   "chat.recruits.team_creation.banner_is_blank": "You cant use a blank banner to create a team.",
   "gui.recruits.teamInspectTitle": "",
-  "gui.recruits.teamcreation.leave_team": "Leave Team"
+  "gui.recruits.teamcreation.leave_team": "Leave Team",
+  "chat.recruits.team_creation.addedPlayer": "You are now a member of ",
+  "chat.recruits.team_creation.addedPlayerLeader": " joined your Team successfully.",
+  "chat.recruits.team_creation.player_already_in_Team": "This player is already in a Team.",
+  "chat.recruits.team_creation.player_need_to_request": "This player must first request to join your Team.",
+  "chat.recruits.team_creation.could_not_find": "Could not find player %s."
 }

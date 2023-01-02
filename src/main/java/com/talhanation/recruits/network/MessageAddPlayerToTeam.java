@@ -9,19 +9,17 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
-public class MessageCreateTeam implements Message<MessageCreateTeam> {
+public class MessageAddPlayerToTeam implements Message<MessageAddPlayerToTeam> {
 
-    private int cost;
     private String teamName;
-    private ItemStack banner;
+    private String playerName;
 
-    public MessageCreateTeam(){
+    public MessageAddPlayerToTeam(){
     }
 
-    public MessageCreateTeam(String name, int cost, ItemStack banner) {
-        this.teamName = name;
-        this.cost = cost;
-        this.banner = banner;
+    public MessageAddPlayerToTeam(String teamName, String playerName) {
+        this.teamName = teamName;
+        this.playerName = playerName;
     }
 
     public Dist getExecutingSide() {
@@ -32,19 +30,17 @@ public class MessageCreateTeam implements Message<MessageCreateTeam> {
         ServerPlayer player = context.getSender();
         ServerLevel world = player.getLevel();
 
-        TeamEvents.createTeam(context.getSender(), world, this.teamName, player.getName().getString(), this.cost, this.banner);
+        TeamEvents.addPlayerToTeam(context.getSender(), world, this.teamName, this.playerName);
     }
 
-    public MessageCreateTeam fromBytes(FriendlyByteBuf buf) {
+    public MessageAddPlayerToTeam fromBytes(FriendlyByteBuf buf) {
         this.teamName = buf.readUtf();
-        this.cost = buf.readInt();
-        this.banner = buf.readItem();
+        this.playerName = buf.readUtf();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUtf(this.teamName);
-        buf.writeInt(this.cost);
-        buf.writeItemStack(this.banner, false);
+        buf.writeUtf(this.playerName);
     }
 }
