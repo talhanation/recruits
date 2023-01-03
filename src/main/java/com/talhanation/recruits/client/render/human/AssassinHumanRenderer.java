@@ -1,17 +1,18 @@
-package com.talhanation.recruits.client.render;
+package com.talhanation.recruits.client.render.human;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.render.AbstractRecruitHumanRenderer;
 import com.talhanation.recruits.entities.AbstractOrderAbleEntity;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 
-public class AssassinRenderer extends AbstractRecruitRenderer<AbstractOrderAbleEntity> {
+public class AssassinHumanRenderer extends AbstractRecruitHumanRenderer<AbstractOrderAbleEntity> {
 
     private static final ResourceLocation[] TEXTURE = {
             new ResourceLocation(Main.MOD_ID,"textures/entity/assassin.png"),
     };
 
-    public AssassinRenderer(EntityRendererProvider.Context mgr) {
+    public AssassinHumanRenderer(EntityRendererProvider.Context mgr) {
         super(mgr);
     }
 

@@ -1175,16 +1175,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private void recalculateCost() {
         int currCost = getCost();
         int armorBonus = this.getArmorValue() * 2;
-        Main.LOGGER.debug("armorBonus: " + armorBonus);
+        //Main.LOGGER.debug("armorBonus: " + armorBonus);
 
         int weaponBonus = 4;
-        Main.LOGGER.debug("weaponBonus: " + weaponBonus);
+        //Main.LOGGER.debug("weaponBonus: " + weaponBonus);
 
         int speedBonus = (int) (this.getSpeed() * 2);
-        Main.LOGGER.debug("speedBonus: " + speedBonus);
+        //Main.LOGGER.debug("speedBonus: " + speedBonus);
 
         int shieldBonus = this.getOffhandItem().getItem() instanceof ShieldItem ? 10 : 0;
-        Main.LOGGER.debug("shieldBonus: " + shieldBonus);
+        //Main.LOGGER.debug("shieldBonus: " + shieldBonus);
 
         int newCost = Math.abs((shieldBonus + speedBonus + weaponBonus + armorBonus + currCost + getXpLevel() * 2));
         this.setCost(newCost);
@@ -1213,8 +1213,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         ItemStack headArmor = this.getItemBySlot(EquipmentSlot.HEAD);
         boolean hasHeadArmor = !headArmor.isEmpty();
-        Main.LOGGER.debug("headArmor :" + headArmor);
-        Main.LOGGER.debug("hasHeadArmor: " + hasHeadArmor);
+        //Main.LOGGER.debug("headArmor :" + headArmor);
+        //Main.LOGGER.debug("hasHeadArmor: " + hasHeadArmor);
             if ((!damageSource.isFire() || !headArmor.getItem().isFireResistant()) && headArmor.getItem() instanceof ArmorItem) {
                 //damage
                 headArmor.hurtAndBreak(1, this, (p_43296_) -> {

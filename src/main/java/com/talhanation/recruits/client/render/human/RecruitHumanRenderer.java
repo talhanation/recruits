@@ -1,11 +1,12 @@
-package com.talhanation.recruits.client.render;
+package com.talhanation.recruits.client.render.human;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.render.AbstractRecruitHumanRenderer;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 
-public class RecruitRenderer extends AbstractRecruitRenderer<AbstractRecruitEntity> {
+public class RecruitHumanRenderer extends AbstractRecruitHumanRenderer<AbstractRecruitEntity> {
 
     private static final ResourceLocation[] TEXTURE = {
             new ResourceLocation(Main.MOD_ID,"textures/entity/recruit.png"),
@@ -16,7 +17,7 @@ public class RecruitRenderer extends AbstractRecruitRenderer<AbstractRecruitEnti
         return TEXTURE[0];
     }
 
-    public RecruitRenderer(EntityRendererProvider.Context mgr) {
+    public RecruitHumanRenderer(EntityRendererProvider.Context mgr) {
         super(mgr);
     }
 

@@ -1,5 +1,6 @@
 package com.talhanation.recruits.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.talhanation.recruits.client.events.ClientEvent;
 import com.talhanation.recruits.entities.AbstractInventoryEntity;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -18,11 +19,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.UseAnim;
 
-public abstract class AbstractRecruitRenderer<Type extends AbstractInventoryEntity> extends MobRenderer<Type, PlayerModel<Type>> {
+public abstract class AbstractRecruitHumanRenderer<Type extends AbstractInventoryEntity> extends MobRenderer<Type, PlayerModel<Type>> {
 
-    public AbstractRecruitRenderer(EntityRendererProvider.Context mgr) {
+    public AbstractRecruitHumanRenderer(EntityRendererProvider.Context mgr) {
         super(mgr, new PlayerModel<>((mgr.bakeLayer(ModelLayers.PLAYER)), false), 0.5F);
-        this.addLayer(new HumanoidArmorLayer<>(this, new HumanoidModel(mgr.bakeLayer(ModelLayers.PLAYER_INNER_ARMOR)), new HumanoidModel(mgr.bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR))));
+        this.addLayer(new HumanoidArmorLayer<>(this, new HumanoidModel(mgr.bakeLayer(ModelLayers.PLAYER_INNER_ARMOR)), new HumanoidModel(mgr.bakeLayer(ClientEvent.RECRUIT_OUTER_ARMOR))));
         this.addLayer(new ArrowLayer<>(mgr, this));
         this.addLayer(new BeeStingerLayer<>(this));
         this.addLayer(new ItemInHandLayer<>(this));
