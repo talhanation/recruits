@@ -1,6 +1,5 @@
 package com.talhanation.recruits.world;
 
-import com.mojang.datafixers.types.templates.CompoundList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +17,6 @@ public class RecruitsTeamSavedData extends SavedData {
     public RecruitsTeamSavedData(){
         super();
     }
-
 
     @Override
     public @NotNull CompoundTag save(CompoundTag nbt) {
@@ -44,7 +42,7 @@ public class RecruitsTeamSavedData extends SavedData {
         if (nbt.contains("TeamBanner")) {
             banner = (CompoundTag) nbt.get("TeamBanner");
         }
-        //Compaunt List load
+        //BeehiveBlock //for ListTag example
         return data;
     }
 
@@ -82,7 +80,7 @@ public class RecruitsTeamSavedData extends SavedData {
         joinRequests.add(player);
     }
 
-    public static List<String> getJoinRequests() {
+    public List<String> getJoinRequests() {
         return joinRequests;
     }
 }

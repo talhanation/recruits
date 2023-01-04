@@ -56,6 +56,7 @@ public class TeamMainScreen extends ScreenBase<TeamMainContainer> {
             if (isInTeam && player.getTeam() != null) {
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateTeamInspectMenu(player.getTeam()));
                 TeamEvents.openTeamInspectionScreen(player, player.getTeam());
+                onClose();
             }
             else {
                 TeamEvents.openTeamCreationScreen(player);

@@ -254,7 +254,7 @@ public class TeamEvents {
         DimensionDataStorage storage = level.getServer().overworld().getDataStorage();
         RecruitsTeamSavedData data = storage.computeIfAbsent(RecruitsTeamSavedData::load, RecruitsTeamSavedData::new, "recruits_" +  team + "_data");
         ItemStack bannerStack = ItemStack.of(data.getBanner());
-
+        List<String> joinRequests = data.getJoinRequests();
         Main.LOGGER.debug("-----------TeamEvents----------");
         Main.LOGGER.debug("teamName: " + team);
         Main.LOGGER.debug("leaderName: " + data.getTeamLeaderName());
@@ -263,7 +263,7 @@ public class TeamEvents {
         Main.LOGGER.debug("RequestList:" + data.getJoinRequests());
         Main.LOGGER.debug("-------------------------------");
 
-        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageClientUpdateTeam(player.getUUID(), data.getTeamLeaderName(), data.getTeamLeaderID(), bannerStack));
+        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateTeam(player.getUUID(), data.getTeamLeaderName(), data.getTeamLeaderID(), bannerStack, joinRequests));
     }
 
     public static void leaveTeam(ServerPlayer player, ServerLevel level) {

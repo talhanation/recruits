@@ -10,20 +10,18 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.UUID;
 
-public class MessageClientUpdateTeam implements Message<MessageClientUpdateTeam> {
+public class MessageToClientGetWorldTeams implements Message<MessageToClientGetWorldTeams> {
 
     public String leaderName;
     public UUID playerUUID;
-    public UUID leaderUUID;
     public ItemStack banner;
 
-    public MessageClientUpdateTeam() {
+    public MessageToClientGetWorldTeams() {
     }
 
-    public MessageClientUpdateTeam(UUID playerUUID, String leaderName, UUID leaderUUID, ItemStack banner) {
-        this.leaderName = leaderName;
+    public MessageToClientGetWorldTeams(UUID playerUUID, String leadername, ItemStack banner) {
+        this.leaderName = leadername;
         this.playerUUID = playerUUID;
-        this.leaderUUID = leaderUUID;
         this.banner = banner;
     }
 
@@ -34,20 +32,20 @@ public class MessageClientUpdateTeam implements Message<MessageClientUpdateTeam>
 
     @Override
     public void executeClientSide(NetworkEvent.Context context) {
+        //context.getSender().sendMessage(new TextComponent(leaderName), playerUUID);
         Main.LOGGER.debug("-----------MessageClientGetTeamLeader----------");
         Main.LOGGER.debug("leaderName: " + leaderName);
         Main.LOGGER.debug("banner: " + banner);
         TeamInspectionScreen.leader = leaderName;
         TeamInspectionScreen.bannerItem = banner;
-        TeamInspectionScreen.leaderUUID = leaderUUID;
+        //ClientAccess.setTeamLeaderName(leaderName);
         Main.LOGGER.debug("-----------------------------------------------");
     }
 
     @Override
-    public MessageClientUpdateTeam fromBytes(FriendlyByteBuf buf) {
+    public MessageToClientGetWorldTeams fromBytes(FriendlyByteBuf buf) {
         this.leaderName = buf.readUtf();
         this.playerUUID = buf.readUUID();
-        this.leaderUUID = buf.readUUID();
         this.banner = buf.readItem();
         return this;
     }
@@ -56,7 +54,6 @@ public class MessageClientUpdateTeam implements Message<MessageClientUpdateTeam>
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUtf(leaderName);
         buf.writeUUID(playerUUID);
-        buf.writeUUID(leaderUUID);
         buf.writeItem(banner);
     }
 

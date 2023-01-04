@@ -46,7 +46,7 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
     private ModelPart flag;
     private int leftPos;
     private int topPos;
-    protected int imageWidth = 176;
+    protected int imageWidth = 220;
     protected int imageHeight = 250;
     private int players;
     private int npcs;
@@ -55,6 +55,8 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
     private List<Pair<BannerPattern, DyeColor>> resultBannerPatterns;
     public static ItemStack bannerItem;
     public static String leader;
+
+    public static List<String> playerMembers;
 
     public TeamInspectionScreen(TeamInspectionContainer container, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, container, playerInventory, new TextComponent(""));
@@ -65,6 +67,7 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
     @Override
     protected void init() {
         super.init();
+        playerMembers = player.getTeam().getPlayers().stream().filter((name) -> name.length() <= 16).toList();
         this.flag = this.minecraft.getEntityModels().bakeLayer(ModelLayers.BANNER).getChild("flag");
         this.resultBannerPatterns = BannerBlockEntity.createPatterns(((BannerItem)bannerItem.getItem()).getColor(), BannerBlockEntity.getItemPatterns(bannerItem));
 
@@ -87,7 +90,7 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
             //Add Player
             addRenderableWidget(new Button(leftPos + 118, topPos + 220, 50, 18, ADD_PLAYER_TEAM, button -> {
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamAddPlayerScreen(player));
-                this.onClose();
+                //this.onClose();
             }));
         }
 
@@ -104,6 +107,7 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
         //team count npc members
 
         //send message to team members
+        /*
         Main.LOGGER.debug("---------TeamInspectScreen--------");
         Main.LOGGER.debug("team: " + team.getName());
         Main.LOGGER.debug("leader: " + leader);
@@ -113,6 +117,7 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
         Main.LOGGER.debug("bannerItem: " + bannerItem);
         Main.LOGGER.debug("resultBannerPatterns: " + resultBannerPatterns);
         Main.LOGGER.debug("--------------------------------");
+        */
     }
 
     protected void render(PoseStack matrixStack, int partialTicks, int mouseX, int mouseY) {
@@ -125,18 +130,17 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
 
     protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
         super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
-
+        //LoomScreen
         int k = (int)(41.0F);//                                                 (this.displayPatterns ? 0 : 12)
-        this.blit(matrixStack, leftPos + 65, topPos + 22 + k, 232 + 0, 0, 12, 15);
+        this.blit(matrixStack, leftPos + 119, topPos + 13 + k, 232 + 0, 0, 12, 15);
         Lighting.setupForFlatItems();
 
         MultiBufferSource.BufferSource multibuffersource$buffersource = this.minecraft.renderBuffers().bufferSource();
         matrixStack.pushPose();
-        matrixStack.translate((double)(leftPos), (double)(topPos), 0.0D);
-        matrixStack.scale(32.0F, -32.0F, 1.0F);
-        matrixStack.translate(1D, 1D, 1D);
+        matrixStack.translate((double)(leftPos) + 132, (double)(topPos) + 136, 0.0D);
+        matrixStack.scale(54.0F, -54.0F, 1.0F);
         float f = 0.6666667F;
-        matrixStack.scale(0.6666667F, -0.6666667F, -0.6666667F);
+        matrixStack.scale(f, -f, -f);
         this.flag.xRot = 0.0F;
         this.flag.y = -32.0F;
         BannerRenderer.renderPatterns(matrixStack, multibuffersource$buffersource, 15728880, OverlayTexture.NO_OVERLAY, this.flag, ModelBakery.BANNER_BASE, true, this.resultBannerPatterns);
@@ -149,18 +153,29 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
         super.renderLabels(matrixStack, mouseX, mouseY);
         //Info
         int fontColor = 4210752;
-        font.draw(matrixStack, "" + team.getName(), 65, 10, fontColor);
+        int fontColorLeader;
+        if (player.getTeam().getColor().getColor() != null) fontColorLeader = player.getTeam().getColor().getColor();
+        else fontColorLeader = fontColor;
 
-        font.draw(matrixStack, "Leader:", 15 , 100, fontColor);
-        font.draw(matrixStack, "" + leader, 15 + 50 ,  100, fontColor);
 
-        font.draw(matrixStack, "Members:",  15  ,  115, fontColor);
-        font.draw(matrixStack, "" + members, 15  + 50 , 115, fontColor);
+        font.draw(matrixStack, "" + team.getName(), 78, 10, fontColor);
 
-        font.draw(matrixStack, "Players:", 15  , 130, fontColor);
-        font.draw(matrixStack, "" + players, 15 + 50 , 130, fontColor);
+        font.draw(matrixStack, "Leader:", 18 , 25, fontColor);
+        font.draw(matrixStack, "" + leader, 18 ,  25 + 15, fontColorLeader);
 
-        font.draw(matrixStack, "NPCs:", 15  , 145, fontColor);
-        font.draw(matrixStack, "" + npcs, 15 + 50 , 145, fontColor);
+        font.draw(matrixStack, "Players:", 18  , 135, fontColor);
+
+        for(int i = 0; i < playerMembers.size(); i ++){
+            String name = playerMembers.get(i);
+            font.draw(matrixStack, "- " + name, 18, 150 + (12 * i), fontColor);
+        }
+        font.draw(matrixStack, "Members:",  135  ,  25, fontColor);
+        font.draw(matrixStack, "" + members, 135 + 50 , 25, fontColor);
+
+        font.draw(matrixStack, "Players:",  135, 40, fontColor);
+        font.draw(matrixStack, "" + players, 135 + 50, 40, fontColor);
+
+        font.draw(matrixStack, "NPCs:", 135  , 55, fontColor);
+        font.draw(matrixStack, "" + npcs, 135 + 50 , 55, fontColor);
     }
 }

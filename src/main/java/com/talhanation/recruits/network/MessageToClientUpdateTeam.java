@@ -1,6 +1,7 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.gui.team.TeamAddPlayerScreen;
 import com.talhanation.recruits.client.gui.team.TeamInspectionScreen;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -8,21 +9,26 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.List;
 import java.util.UUID;
 
-public class MessageClientGetWorldTeams implements Message<MessageClientGetWorldTeams> {
+public class MessageToClientUpdateTeam implements Message<MessageToClientUpdateTeam> {
 
     public String leaderName;
     public UUID playerUUID;
+    public UUID leaderUUID;
     public ItemStack banner;
+    public List<String> joinRequests;
 
-    public MessageClientGetWorldTeams() {
+    public MessageToClientUpdateTeam() {
     }
 
-    public MessageClientGetWorldTeams(UUID playerUUID, String leadername, ItemStack banner) {
-        this.leaderName = leadername;
+    public MessageToClientUpdateTeam(UUID playerUUID, String leaderName, UUID leaderUUID, ItemStack banner, List<String> joinRequests) {
+        this.leaderName = leaderName;
         this.playerUUID = playerUUID;
+        this.leaderUUID = leaderUUID;
         this.banner = banner;
+        this.joinRequests = joinRequests;
     }
 
     @Override
@@ -32,21 +38,24 @@ public class MessageClientGetWorldTeams implements Message<MessageClientGetWorld
 
     @Override
     public void executeClientSide(NetworkEvent.Context context) {
-        //context.getSender().sendMessage(new TextComponent(leaderName), playerUUID);
         Main.LOGGER.debug("-----------MessageClientGetTeamLeader----------");
         Main.LOGGER.debug("leaderName: " + leaderName);
         Main.LOGGER.debug("banner: " + banner);
         TeamInspectionScreen.leader = leaderName;
         TeamInspectionScreen.bannerItem = banner;
-        //ClientAccess.setTeamLeaderName(leaderName);
+        TeamInspectionScreen.leaderUUID = leaderUUID;
+        TeamAddPlayerScreen.joinRequests = joinRequests;
         Main.LOGGER.debug("-----------------------------------------------");
     }
 
     @Override
-    public MessageClientGetWorldTeams fromBytes(FriendlyByteBuf buf) {
+    public MessageToClientUpdateTeam fromBytes(FriendlyByteBuf buf) {
         this.leaderName = buf.readUtf();
         this.playerUUID = buf.readUUID();
+        this.leaderUUID = buf.readUUID();
         this.banner = buf.readItem();
+
+        this.joinRequests = buf.readList(FriendlyByteBuf::readUtf);
         return this;
     }
 
@@ -54,7 +63,9 @@ public class MessageClientGetWorldTeams implements Message<MessageClientGetWorld
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUtf(leaderName);
         buf.writeUUID(playerUUID);
+        buf.writeUUID(leaderUUID);
         buf.writeItem(banner);
+        buf.writeCollection(joinRequests, FriendlyByteBuf::writeUtf);
     }
 
 }

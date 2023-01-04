@@ -129,7 +129,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 25, MessageOpenTeamInspectionScreen.class);
 
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 26, MessageServerUpdateTeamInspectMenu.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 27, MessageClientUpdateTeam.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 27, MessageToClientUpdateTeam.class);
 
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 28, MessageOpenTeamInspectionScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 29, MessageAddPlayerToTeam.class);

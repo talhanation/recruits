@@ -1,10 +1,7 @@
 package com.talhanation.recruits.client.gui.team;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.inventory.TeamAddPlayerContainer;
-import com.talhanation.recruits.inventory.TeamCreationContainer;
 import com.talhanation.recruits.network.MessageAddPlayerToTeam;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
@@ -16,9 +13,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 
+import java.util.List;
+
 public class TeamAddPlayerScreen extends ScreenBase<TeamAddPlayerContainer> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/assassin_gui.png");
+    public static List<String> joinRequests;
     private EditBox textField;
     public Player player;
     private int leftPos;
@@ -51,8 +51,10 @@ public class TeamAddPlayerScreen extends ScreenBase<TeamAddPlayerContainer> {
 
         addRenderableWidget(new Button(leftPos + 30, topPos + 50, 80, 20, new TranslatableComponent("chat.recruits.team_creation.addPlayer"),
                 button -> {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAddPlayerToTeam(player.getTeam().getName(), textField.getValue()));
-                    this.onClose();
+                    if(joinRequests.contains(textField.getValue())) {
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAddPlayerToTeam(player.getTeam().getName(), textField.getValue()));
+                        this.onClose();
+                    }
                 }
         ));
     }

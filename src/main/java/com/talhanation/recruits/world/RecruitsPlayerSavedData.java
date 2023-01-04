@@ -24,7 +24,7 @@ public class RecruitsPlayerSavedData extends SavedData {
         return data;
     }
 
-    public static void setTeamLeader(int x) {
+    public static void setRecruits(int x) {
         recruits = x;
     }
 
