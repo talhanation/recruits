@@ -161,11 +161,11 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
         font.draw(matrixStack, "Leader:", 18 , 25, fontColor);
         font.draw(matrixStack, "" + leader, 18 ,  25 + 15, fontColorLeader);
 
-        font.draw(matrixStack, "Players:", 18  , 120, fontColor);
+        font.draw(matrixStack, "Players:", 18  , 116, fontColor);
 
         for(int i = 0; i < playerMembers.size(); i ++){
             String name = playerMembers.get(i);
-            font.draw(matrixStack, "- " + name, 18, 132 + (12 * i), fontColor);
+            font.draw(matrixStack, "- " + name, 18, 135 + (12 * i), fontColor);
         }
 
         font.draw(matrixStack, "Members:",  135  ,  25, fontColor);

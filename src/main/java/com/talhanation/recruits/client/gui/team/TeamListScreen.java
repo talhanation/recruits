@@ -4,9 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.inventory.TeamListContainer;
-import com.talhanation.recruits.network.MessageAddPlayerToTeam;
 import de.maxhenkel.corelib.inventory.ScreenBase;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
@@ -14,10 +12,8 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.block.entity.BannerBlockEntity;
 import net.minecraft.world.scores.PlayerTeam;
-import net.minecraft.world.scores.Team;
-
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 import java.util.List;
 
 public class TeamListScreen extends ScreenBase<TeamListContainer> {
@@ -28,6 +24,7 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
     public List<PlayerTeam> teams;
     private int leftPos;
     private int topPos;
+    ExtendedButton joinButton;
 
     public TeamListScreen(TeamListContainer commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, new TextComponent(""));
@@ -47,19 +44,13 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
         this.topPos = (this.height - this.imageHeight) / 2;
 
 
-        for(PlayerTeam team : teams){
+        for(int i = 0; i < 9; i++){
+            PlayerTeam team = teams.get(i);
             String teamName = team.getName();
-            if(!player.getTeam().equals(team)) {
-                addRenderableWidget(new Button(leftPos + 140, topPos + 30 + (25 * teams.indexOf(team)), 30, 20, new TranslatableComponent("chat.recruits.team_creation.join"),
-                        button -> {
-                            //if(joinRequests.contains(textField.getValue())) {
-                            //Main.SIMPLE_CHANNEL.sendToServer(new MessageSendJoinRequest(player, teamName));
-                            this.onClose();
-                            //}
-                        }
-                ));
+            joinButton = createJoinButton(team, teamName);
+            if(player.getTeam().equals(team)) {
+                joinButton.active = false;
             }
-            //Widget button pressed
         }
     }
 
@@ -92,15 +83,22 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
                 int members = allMembers.size();
                 int players = allMembers.stream().filter((str) -> str.chars().count() <= 16).toList().size();
                 int x = 18;
-                int y = 40 + (25 * i);
+                int y = 32 + (23 * i);
 
                 font.draw(matrixStack, "" + name, x, y, teamFontColor);
-                font.draw(matrixStack, "" + members + "/" + players, x + 60, y, fontColor);
+                font.draw(matrixStack, "" + members + "/" + players, x + 80, y, fontColor);
             }
         }
         else
-            font.draw(matrixStack, "There are no Teams in this world.", 18, 150, fontColor);
+            font.draw(matrixStack, "There are no Teams in this world.", 20, 26, fontColor);
     }
 
-
+    public ExtendedButton createJoinButton(PlayerTeam team, String teamName) {
+        return addRenderableWidget(new ExtendedButton(leftPos + 150, topPos + 25 + (23 * teams.indexOf(team)), 30, 15, new TranslatableComponent("chat.recruits.team_creation.join"),
+                button -> {
+                    //Main.SIMPLE_CHANNEL.sendToServer(new MessageSendJoinRequest(player, teamName));
+                    this.onClose();
+                }
+        ));
+    }
 }

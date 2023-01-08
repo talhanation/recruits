@@ -7,7 +7,6 @@ import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.inventory.TeamMainContainer;
 import com.talhanation.recruits.network.MessageServerUpdateTeamInspectMenu;
 import de.maxhenkel.corelib.inventory.ScreenBase;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
@@ -16,26 +15,24 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 public class TeamMainScreen extends ScreenBase<TeamMainContainer> {
 
 
-    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/assassin_gui.png");
+    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/team/team_main_gui.png");
     Player player;
     BannerBlockEntity bannerBlockEntity;
     private int leftPos;
     private int topPos;
-    protected int imageWidth = 176;
-    protected int imageHeight = 166;
-
     private static final Component CREATE_TEAM = new TranslatableComponent("gui.recruits.teamcreation.create_team");
     private static final Component INSPECT_TEAM = new TranslatableComponent("gui.recruits.teamcreation.inspect_team");
     private static final Component TEAMS_LIST = new TranslatableComponent("gui.recruits.teamcreation.teams_list");
 
     public TeamMainScreen(TeamMainContainer commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, new TextComponent(""));
-        imageWidth = 201;
-        imageHeight = 170;
+        imageWidth = 250;
+        imageHeight = 83;
         player = playerInventory.player;
     }
 
@@ -46,13 +43,9 @@ public class TeamMainScreen extends ScreenBase<TeamMainContainer> {
         this.topPos = (this.height - this.imageHeight) / 2;
         boolean isInTeam = TeamEvents.isPlayerInATeam(player);
 
-        Main.LOGGER.debug("---------TeamMainScreen--------");
-        Main.LOGGER.debug("isInTeam: " + isInTeam);
-
 
         String string = isInTeam ? INSPECT_TEAM.getString() : CREATE_TEAM.getString();
-        Main.LOGGER.debug("string: " + string);
-        addRenderableWidget(new Button(leftPos + 30, topPos + 30, 80, 20, new TextComponent(string), btn -> {
+        addRenderableWidget(new ExtendedButton(leftPos + 20, topPos + 29, 100, 20, new TextComponent(string), btn -> {
             if (isInTeam && player.getTeam() != null) {
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateTeamInspectMenu(player.getTeam()));
                 TeamEvents.openTeamInspectionScreen(player, player.getTeam());
@@ -63,10 +56,9 @@ public class TeamMainScreen extends ScreenBase<TeamMainContainer> {
             }
         }));
 
-        addRenderableWidget(new Button(leftPos + 30, topPos + 50, 80, 20, TEAMS_LIST, btn -> {
+        addRenderableWidget(new ExtendedButton(leftPos + 130, topPos + 29, 100, 20, TEAMS_LIST, btn -> {
             TeamEvents.openTeamListScreen(player);
         }));
-        Main.LOGGER.debug("--------------------------------");
     }
 
     protected void render(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
