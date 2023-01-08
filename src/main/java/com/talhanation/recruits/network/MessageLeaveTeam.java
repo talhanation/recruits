@@ -10,8 +10,7 @@ import net.minecraftforge.network.NetworkEvent;
 
 public class MessageLeaveTeam implements Message<MessageLeaveTeam> {
 
-    public MessageLeaveTeam() {
-
+    public MessageLeaveTeam(){
     }
 
     public Dist getExecutingSide() {

@@ -8,6 +8,7 @@ import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.*;
 import com.talhanation.recruits.inventory.RecruitHireContainer;
 import com.talhanation.recruits.inventory.RecruitInventoryContainer;
+import com.talhanation.recruits.network.MessageAddRecruitToTeam;
 import com.talhanation.recruits.network.MessageHireGui;
 import com.talhanation.recruits.network.MessageRecruitGui;
 import net.minecraft.Util;
@@ -53,7 +54,6 @@ import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
@@ -535,6 +535,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setIsOwned(false);
         this.setOwnerUUID(Optional.empty());
         CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
+        if (this.getTeam() != null) Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
     }
 
     public void addXpLevel(int level){
@@ -734,7 +735,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             player.sendMessage(new TextComponent(name + info_max), player.getUUID());
             return false;
         }
-        else
+        else {
             this.makeHireSound();
 
             this.setOwnerUUID(Optional.of(player.getUUID()));
@@ -744,25 +745,29 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setFollowState(2);
             this.setState(0);
 
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getOwner().getName().getString(), 1));
+
+
             int i = this.random.nextInt(4);
-        switch (i) {
-            case 1 -> {
-                String recruited1 = TEXT_RECRUITED1.getString();
-                player.sendMessage(new TextComponent(name + recruited1), player.getUUID());
+            switch (i) {
+                case 1 -> {
+                    String recruited1 = TEXT_RECRUITED1.getString();
+                    player.sendMessage(new TextComponent(name + recruited1), player.getUUID());
+                }
+                case 2 -> {
+                    String recruited2 = TEXT_RECRUITED2.getString();
+                    player.sendMessage(new TextComponent(name + recruited2), player.getUUID());
+                }
+                case 3 -> {
+                    String recruited3 = TEXT_RECRUITED3.getString();
+                    player.sendMessage(new TextComponent(name + recruited3), player.getUUID());
+                }
             }
-            case 2 -> {
-                String recruited2 = TEXT_RECRUITED2.getString();
-                player.sendMessage(new TextComponent(name + recruited2), player.getUUID());
-            }
-            case 3 -> {
-                String recruited3 = TEXT_RECRUITED3.getString();
-                player.sendMessage(new TextComponent(name + recruited3), player.getUUID());
-            }
-        }
 
             int currentRecruits = CommandEvents.getSavedRecruitCount(player);
-            CommandEvents.saveRecruitCount(player,  currentRecruits + 1);
+            CommandEvents.saveRecruitCount(player, currentRecruits + 1);
             return true;
+        }
     }
 
     public void dialogue(String name, Player player) {
@@ -860,8 +865,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
-
-
     public void die(DamageSource dmg) {
         net.minecraft.network.chat.Component deathMessage = this.getCombatTracker().getDeathMessage();
         super.die(dmg);
@@ -870,16 +873,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
         }
 
-        if(this.getTeam() != null) {
-            Team team = this.getTeam();
-            String teamName = team.getName();
-            PlayerTeam playerteam = this.level.getScoreboard().getPlayerTeam(teamName);
-            this.level.getScoreboard().removePlayerFromTeam(this.getStringUUID(), playerteam);
-        }
-
         if (this.dead) {
             if (!this.level.isClientSide && this.level.getGameRules().getBoolean(GameRules.RULE_SHOWDEATHMESSAGES) && this.getOwner() instanceof ServerPlayer) {
                 this.getOwner().sendMessage(deathMessage, Util.NIL_UUID);
+                if (this.getTeam() != null) Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
             }
         }
     }

@@ -64,7 +64,7 @@
   "gui.recruits.command.tooltip.backToPos" : "Make the recruits go back to their previously held position.",
   "gui.recruits.command.tooltip.patrol" : "Make the recruits patrol their previously held position.",
   "gui.recruits.command.tooltip.clearTargets" : "Clears the recruits current targets to attack.",
-  "gui.recruits.command.tooltip.escort" : "Make the recruits escort the Mob you are looking at.",
+  "gui.recruits.command.tooltip.escort" : "Make the recruits guard and follow the Mob you are looking at.",
   "gui.recruits.command.tooltip.mount" : "If possible, the recruits will try to mount the Mob you are looking at.",
   "gui.recruits.command.tooltip.dismount" : "If possible, the recruits will dismount their current vehicle.",
 
@@ -76,7 +76,7 @@
 
   "gui.recruits.command.text.mount" : "Mount!",
   "gui.recruits.command.text.dismount" : "Dismount!",
-  "gui.recruits.command.text.escort" : "Escort!",
+  "gui.recruits.command.text.escort" : "Guard this!",
   "gui.recruits.command.text.follow" : "Follow me!",
   "gui.recruits.command.text.wander" : "Wander freely!",
   "gui.recruits.command.text.holdMyPos": "Hold my Position!",
@@ -93,7 +93,7 @@
   "gui.recruits.command.text.everyone" : "Everyone",
 
 
-  "chat.recruits.command.escort" : "Escort this Mob!",
+  "chat.recruits.command.escort" : "Guard this Mob!",
   "chat.recruits.command.mount" : "Mount here!",
   "chat.recruits.command.dismount" : "Dismount!",
   "chat.recruits.command.wander" : "Wander freely!",
@@ -150,5 +150,6 @@
   "chat.recruits.team_creation.addedPlayerLeader": " joined your Team successfully.",
   "chat.recruits.team_creation.player_already_in_Team": "This player is already in a Team.",
   "chat.recruits.team_creation.player_need_to_request": "This player must first request to join your Team.",
-  "chat.recruits.team_creation.could_not_find": "Could not find player %s."
+  "chat.recruits.team_creation.could_not_find": "Could not find player %s.",
+  "chat.recruits.team_creation.join": "Join"
 }

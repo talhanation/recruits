@@ -38,7 +38,7 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireContainer> {
         this.recruit = recruitContainer.getRecruitEntity();
         this.player = playerInventory.player;
         imageWidth = 176;
-        imageHeight = 218;
+        imageHeight = 223;
     }
 
     @Override

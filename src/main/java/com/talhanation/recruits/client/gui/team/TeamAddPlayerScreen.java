@@ -1,5 +1,6 @@
 package com.talhanation.recruits.client.gui.team;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.inventory.TeamAddPlayerContainer;
 import com.talhanation.recruits.network.MessageAddPlayerToTeam;
@@ -17,19 +18,17 @@ import java.util.List;
 
 public class TeamAddPlayerScreen extends ScreenBase<TeamAddPlayerContainer> {
 
-    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/assassin_gui.png");
+    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/team/team_add_player_gui.png");
     public static List<String> joinRequests;
     private EditBox textField;
     public Player player;
     private int leftPos;
     private int topPos;
-    protected int imageWidth = 176;
-    protected int imageHeight = 166;
 
     public TeamAddPlayerScreen(TeamAddPlayerContainer container, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, container, playerInventory, new TextComponent(""));
         imageWidth = 176;
-        imageHeight = 218;
+        imageHeight = 225;
         player = playerInventory.player;
     }
 
@@ -40,7 +39,7 @@ public class TeamAddPlayerScreen extends ScreenBase<TeamAddPlayerContainer> {
         this.topPos = (this.height - this.imageHeight) / 2;
 
         minecraft.keyboardHandler.setSendRepeatsToGui(true);
-        textField = new EditBox(font, leftPos + 30, topPos + 30, 116, 16, new TextComponent(""));
+        textField = new EditBox(font, leftPos + 18, topPos + 25, 140, 20, new TextComponent(""));
         textField.setTextColor(-1);
         textField.setTextColorUneditable(-1);
         textField.setBordered(true);
@@ -49,14 +48,30 @@ public class TeamAddPlayerScreen extends ScreenBase<TeamAddPlayerContainer> {
         addRenderableOnly(textField);
         setInitialFocus(textField);
 
-        addRenderableWidget(new Button(leftPos + 30, topPos + 50, 80, 20, new TranslatableComponent("chat.recruits.team_creation.addPlayer"),
+        addRenderableWidget(new Button(leftPos + 18, topPos + 55, 140, 20, new TranslatableComponent("chat.recruits.team_creation.addPlayer"),
                 button -> {
-                    if(joinRequests.contains(textField.getValue())) {
+                    //if(joinRequests.contains(textField.getValue())) {
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageAddPlayerToTeam(player.getTeam().getName(), textField.getValue()));
                         this.onClose();
-                    }
+                    //}
                 }
         ));
     }
 
+    @Override
+    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
+        super.renderLabels(matrixStack, mouseX, mouseY);
+        //Info
+        int fontColor = 4210752;
+        font.draw(matrixStack, "Add Player to your Team:", 18  , 11, fontColor);
+
+        font.draw(matrixStack, "Team Join Requests:", 18  , 82, fontColor);
+
+        /*
+        for(int i = 0; i < joinRequests.size(); i ++){
+            String name = joinRequests.get(i);
+            font.draw(matrixStack, "- " + name, 18, 92 + (12 * i), fontColor);
+        }
+         */
+    }
 }

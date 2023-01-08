@@ -44,7 +44,7 @@ public class TeamMainScreen extends ScreenBase<TeamMainContainer> {
         super.init();
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
-        boolean isInTeam = TeamEvents.isPlayerInTeam(player);
+        boolean isInTeam = TeamEvents.isPlayerInATeam(player);
 
         Main.LOGGER.debug("---------TeamMainScreen--------");
         Main.LOGGER.debug("isInTeam: " + isInTeam);

@@ -71,7 +71,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryContainer
         this.recruit = recruitContainer.getRecruit();
         this.playerInventory = playerInventory;
         imageWidth = 176;
-        imageHeight = 218;
+        imageHeight = 223;
     }
 
 

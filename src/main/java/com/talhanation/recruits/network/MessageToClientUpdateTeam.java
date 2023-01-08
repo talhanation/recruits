@@ -1,7 +1,5 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.Main;
-import com.talhanation.recruits.client.gui.team.TeamAddPlayerScreen;
 import com.talhanation.recruits.client.gui.team.TeamInspectionScreen;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -18,17 +16,21 @@ public class MessageToClientUpdateTeam implements Message<MessageToClientUpdateT
     public UUID playerUUID;
     public UUID leaderUUID;
     public ItemStack banner;
-    public List<String> joinRequests;
+    public int players;
+    public int npcs;
+    //public List<String> joinRequests;
 
     public MessageToClientUpdateTeam() {
     }
 
-    public MessageToClientUpdateTeam(UUID playerUUID, String leaderName, UUID leaderUUID, ItemStack banner, List<String> joinRequests) {
+    public MessageToClientUpdateTeam(UUID playerUUID, String leaderName, UUID leaderUUID, ItemStack banner, List<String> joinRequests, int players, int npcs) {
         this.leaderName = leaderName;
         this.playerUUID = playerUUID;
         this.leaderUUID = leaderUUID;
         this.banner = banner;
-        this.joinRequests = joinRequests;
+        this.players = players;
+        this.npcs = npcs;
+        //this.joinRequests = joinRequests;
     }
 
     @Override
@@ -38,14 +40,12 @@ public class MessageToClientUpdateTeam implements Message<MessageToClientUpdateT
 
     @Override
     public void executeClientSide(NetworkEvent.Context context) {
-        Main.LOGGER.debug("-----------MessageClientGetTeamLeader----------");
-        Main.LOGGER.debug("leaderName: " + leaderName);
-        Main.LOGGER.debug("banner: " + banner);
         TeamInspectionScreen.leader = leaderName;
         TeamInspectionScreen.bannerItem = banner;
         TeamInspectionScreen.leaderUUID = leaderUUID;
-        TeamAddPlayerScreen.joinRequests = joinRequests;
-        Main.LOGGER.debug("-----------------------------------------------");
+        TeamInspectionScreen.players = players;
+        TeamInspectionScreen.npcs = npcs;
+        //TeamAddPlayerScreen.joinRequests = joinRequests;
     }
 
     @Override
@@ -54,8 +54,10 @@ public class MessageToClientUpdateTeam implements Message<MessageToClientUpdateT
         this.playerUUID = buf.readUUID();
         this.leaderUUID = buf.readUUID();
         this.banner = buf.readItem();
+        this.players = buf.readInt();
+        this.npcs = buf.readInt();
 
-        this.joinRequests = buf.readList(FriendlyByteBuf::readUtf);
+        //this.joinRequests = buf.readList(FriendlyByteBuf::readUtf);
         return this;
     }
 
@@ -65,7 +67,9 @@ public class MessageToClientUpdateTeam implements Message<MessageToClientUpdateT
         buf.writeUUID(playerUUID);
         buf.writeUUID(leaderUUID);
         buf.writeItem(banner);
-        buf.writeCollection(joinRequests, FriendlyByteBuf::writeUtf);
+        buf.writeInt(players);
+        buf.writeInt(npcs);
+        //buf.writeCollection(joinRequests, FriendlyByteBuf::writeUtf);
     }
 
 }

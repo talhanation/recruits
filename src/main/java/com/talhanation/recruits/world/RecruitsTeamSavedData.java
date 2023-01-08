@@ -13,6 +13,8 @@ public class RecruitsTeamSavedData extends SavedData {
     public static String teamLeaderName;
     public static CompoundTag banner;
     public static List<String> joinRequests;
+    public static int players;
+    public static int npcs;
 
     public RecruitsTeamSavedData(){
         super();
@@ -24,7 +26,23 @@ public class RecruitsTeamSavedData extends SavedData {
         nbt.putUUID("TeamLeaderID", teamLeaderID);
         nbt.putString("TeamLeaderName", teamLeaderName);
         nbt.put("TeamBanner", banner);
+        nbt.putInt("Players", players);
+        nbt.putInt("NPCs", npcs);
 
+        /*
+        ListTag listtag = new ListTag();
+        for(int i = 0; i < joinRequests.size(); ++i) {
+            String requestedPlayer = joinRequests.get(i);
+
+            CompoundTag compoundtag = new CompoundTag();
+            compoundtag.putString("RequestedPlayer", requestedPlayer);
+            listtag.add(compoundtag);
+        }
+
+        if (!listtag.isEmpty()) {
+            nbt.put("JoinRequests", listtag);
+        }
+         */
         // compaund list save
         return nbt;
     }
@@ -42,7 +60,25 @@ public class RecruitsTeamSavedData extends SavedData {
         if (nbt.contains("TeamBanner")) {
             banner = (CompoundTag) nbt.get("TeamBanner");
         }
+        if (nbt.contains("Players")) {
+            players = nbt.getInt("Players");
+        }
+        if (nbt.contains("NPCs")) {
+            npcs = nbt.getInt("NPCs");
+        }
         //BeehiveBlock //for ListTag example
+        //ShulkerBoxBlockEntity
+
+
+        /*
+        ListTag listtag = nbt.getList("JoinRequests", 10);
+        for(int i = 0; i < listtag.size(); ++i) {
+            CompoundTag compoundtag = listtag.getCompound(i);
+            joinRequests.add(compoundtag.getString("RequestedPlayer"));
+        }
+
+         */
+
         return data;
     }
 
@@ -82,5 +118,21 @@ public class RecruitsTeamSavedData extends SavedData {
 
     public List<String> getJoinRequests() {
         return joinRequests;
+    }
+
+    public int getNpcs() {
+        return npcs;
+    }
+
+    public int getPlayers() {
+        return players;
+    }
+
+    public static void addNpcs(int x) {
+        npcs += x;
+    }
+
+    public static void addPlayer(int x){
+        players += x;
     }
 }

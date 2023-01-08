@@ -12,7 +12,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -88,10 +87,10 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
         int topPosGab = 7;
         int mirror = 240 - 60;
 
-        //TEAM CREATION
+        //TEAM SCREEN
         addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 25, 80, 20, new TextComponent("TEAM"),
                 button -> {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamCreationScreen(player));
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageTeamMainScreen(player));
                 }, (a, b, c, d) -> {
             //this.renderTooltip(b, TOOLTIP_DISMOUNT, c, d);
         }));
@@ -123,7 +122,7 @@ public class CommandScreen extends ScreenBase<CommandContainer> {
                     CommandEvents.sendFollowCommandInChat(5, player, group);
                     Entity entity = CommandEvents.getEntityByLooking();
                     if (entity != null){
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageEscortEntity(player.getUUID(), entity.getUUID(), group));
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageGuardEntity(player.getUUID(), entity.getUUID(), group));
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 5, group));
                     }
                 },  (a, b, c, d) -> {

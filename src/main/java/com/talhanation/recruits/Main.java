@@ -119,7 +119,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 15, MessageRecruitGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 16, MessageHireGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 17, MessageHire.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 18, MessageEscortEntity.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 18, MessageGuardEntity.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 19, MessageDismount.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 20, MessageDismountGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 21, MessageCreateTeam.class);
@@ -131,9 +131,10 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 26, MessageServerUpdateTeamInspectMenu.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 27, MessageToClientUpdateTeam.class);
 
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 28, MessageOpenTeamInspectionScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 28, MessageOpenTeamListScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 29, MessageAddPlayerToTeam.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 30, MessageOpenTeamAddPlayerScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 31, MessageAddRecruitToTeam.class);
     }
 
     @SubscribeEvent
@@ -154,6 +155,7 @@ public class Main {
         ClientRegistry.registerScreen(Main.TEAM_INSPECTION_TYPE, TeamInspectionScreen::new);
         ClientRegistry.registerScreen(Main.TEAM_LIST_TYPE, TeamListScreen::new);
         ClientRegistry.registerScreen(Main.TEAM_ADD_PLAYER_TYPE, TeamAddPlayerScreen::new);
+
     }
 
     @SubscribeEvent

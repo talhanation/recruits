@@ -30,8 +30,17 @@ public class TeamCreationContainer extends ContainerBase {
         addPlayerInventorySlots();
     }
 
+    public void removed(Player p_39881_) {
+        super.removed(p_39881_);
+    }
+
+    @Override
+    public int getInvOffset() {
+        return 56;
+    }
+
     public void addBannerSlot() {
-        this.addSlot(new Slot(container, 0,120,50) {
+        this.addSlot(new Slot(container, 0,80,28) {
             @Override
             public boolean mayPlace(@NotNull ItemStack itemStack) {
                 Item item = itemStack.getItem();
@@ -47,6 +56,7 @@ public class TeamCreationContainer extends ContainerBase {
             }
         });
     }
+
 
     public ItemStack getBanner() {
         return container.getItem(0);

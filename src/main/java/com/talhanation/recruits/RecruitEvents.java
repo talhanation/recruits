@@ -17,6 +17,7 @@ import net.minecraft.world.scores.Team;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -165,11 +166,6 @@ public class RecruitEvents {
         }
     }
 
-
-    public static void onPlayerLeaveTeam(){
-
-    }
-
     public boolean canDamageTarget(AbstractRecruitEntity recruit, LivingEntity target) {
         if (recruit.isOwned() && target instanceof AbstractRecruitEntity recruitEntityTarget) {
             if (recruit.getOwnerUUID().equals(recruitEntityTarget.getOwnerUUID())){
@@ -207,7 +203,4 @@ public class RecruitEvents {
             //or team friendly is true
         }
     }
-
-
-
 }
