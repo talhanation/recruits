@@ -25,9 +25,9 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
     public List<PlayerTeam> teams;
     private int leftPos;
     private int topPos;
-    ExtendedButton joinButton;
-    private static final Component TEAMS_LIST = new TranslatableComponent("gui.recruits.teamcreation.teams_list");
-    private static final Component NO_TEAMS = new TranslatableComponent("gui.recruits.teamcreation.teams_list");
+    private ExtendedButton joinButton;
+    private static final Component TEAMS_LIST = new TranslatableComponent("gui.recruits.team_creation.teams_list");
+    private static final Component NO_TEAMS = new TranslatableComponent("gui.recruits.team_creation.no_teams");
     public TeamListScreen(TeamListContainer commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, new TextComponent(""));
         imageWidth = 197;
@@ -46,14 +46,17 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
         this.topPos = (this.height - this.imageHeight) / 2;
 
 
-        for(int i = 0; i < 9; i++){
-            PlayerTeam team = teams.get(i);
-            String teamName = team.getName();
-            joinButton = createJoinButton(team, teamName);
-            if(player.getTeam() != null) {
-                joinButton.active = false;
+        for(int i = 0; i < teams.size(); i++) {
+            if (i < 9) {
+                PlayerTeam team = teams.get(i);
+                String teamName = team.getName();
+                joinButton = createJoinButton(team, teamName);
+                if (player.getTeam() != null) {
+                    joinButton.active = false;
+                }
             }
         }
+
     }
 
     protected void render(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
@@ -88,7 +91,7 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
                 int y = 32 + (23 * i);
 
                 font.draw(matrixStack, "" + name, x, y, teamFontColor);
-                font.draw(matrixStack, "" + members + "/" + players, x + 80, y, fontColor);
+                font.draw(matrixStack, "" + members + "/" + players, x + 80, y, teamFontColor);
             }
         }
         else

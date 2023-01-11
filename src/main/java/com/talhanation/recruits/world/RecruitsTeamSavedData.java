@@ -1,10 +1,12 @@
 package com.talhanation.recruits.world;
 
+import com.talhanation.recruits.Main;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,18 +33,15 @@ public class RecruitsTeamSavedData extends SavedData {
         nbt.putInt("NPCs", npcs);
 
 
-        ListTag listtag = new ListTag();
-        for(int i = 0; i < joinRequests.size(); ++i) {
-            String requestedPlayer = joinRequests.get(i);
-
-            CompoundTag compoundtag = new CompoundTag();
-            compoundtag.putString("Request", requestedPlayer);
-            listtag.add(compoundtag);
+        if(joinRequests != null) {
+            ListTag listtag = new ListTag();
+            for (String requestedPlayer : joinRequests) {
+                CompoundTag compoundtag = new CompoundTag();
+                compoundtag.putString("Request", requestedPlayer);
+                listtag.add(compoundtag);
+            }
+            nbt.put("JoinRequests", listtag);
         }
-        nbt.put("JoinRequests", listtag);
-
-
-        // compaund list save
         return nbt;
     }
     public static RecruitsTeamSavedData load(CompoundTag nbt) {
@@ -72,6 +71,7 @@ public class RecruitsTeamSavedData extends SavedData {
             ListTag listtag = nbt.getList("JoinRequests", 10);
             for (int i = 0; i < listtag.size(); ++i) {
                 CompoundTag compoundtag = listtag.getCompound(i);
+                if(joinRequests == null) joinRequests = new ArrayList<>();
                 joinRequests.add(compoundtag.getString("Request"));
             }
         }
@@ -109,7 +109,15 @@ public class RecruitsTeamSavedData extends SavedData {
     }
 
     public static void addPlayerAsJoinRequest(String player) {
-        joinRequests.add(player);
+        if(joinRequests == null) joinRequests = new ArrayList<>();
+
+        if(!joinRequests.contains(player)) joinRequests.add(player);
+    }
+
+    public static void removeJoinRequest(String player){
+        if(joinRequests == null) joinRequests = new ArrayList<>();
+
+        joinRequests.remove(player);
     }
 
     public List<String> getJoinRequests() {

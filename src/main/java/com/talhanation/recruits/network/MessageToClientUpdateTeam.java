@@ -1,5 +1,6 @@
 package com.talhanation.recruits.network;
 
+import com.talhanation.recruits.client.gui.team.TeamManagePlayerScreen;
 import com.talhanation.recruits.client.gui.team.TeamInspectionScreen;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -18,7 +19,7 @@ public class MessageToClientUpdateTeam implements Message<MessageToClientUpdateT
     public ItemStack banner;
     public int players;
     public int npcs;
-    //public List<String> joinRequests;
+    public List<String> joinRequests;
 
     public MessageToClientUpdateTeam() {
     }
@@ -30,7 +31,7 @@ public class MessageToClientUpdateTeam implements Message<MessageToClientUpdateT
         this.banner = banner;
         this.players = players;
         this.npcs = npcs;
-        //this.joinRequests = joinRequests;
+        this.joinRequests = joinRequests;
     }
 
     @Override
@@ -45,7 +46,7 @@ public class MessageToClientUpdateTeam implements Message<MessageToClientUpdateT
         TeamInspectionScreen.leaderUUID = leaderUUID;
         TeamInspectionScreen.players = players;
         TeamInspectionScreen.npcs = npcs;
-        //TeamAddPlayerScreen.joinRequests = joinRequests;
+        TeamManagePlayerScreen.joinRequests = joinRequests;
     }
 
     @Override
@@ -57,7 +58,7 @@ public class MessageToClientUpdateTeam implements Message<MessageToClientUpdateT
         this.players = buf.readInt();
         this.npcs = buf.readInt();
 
-        //this.joinRequests = buf.readList(FriendlyByteBuf::readUtf);
+        this.joinRequests = buf.readList(FriendlyByteBuf::readUtf);
         return this;
     }
 
@@ -69,7 +70,7 @@ public class MessageToClientUpdateTeam implements Message<MessageToClientUpdateT
         buf.writeItem(banner);
         buf.writeInt(players);
         buf.writeInt(npcs);
-        //buf.writeCollection(joinRequests, FriendlyByteBuf::writeUtf);
+        buf.writeCollection(joinRequests, FriendlyByteBuf::writeUtf);
     }
 
 }

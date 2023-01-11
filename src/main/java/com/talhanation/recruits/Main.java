@@ -70,7 +70,7 @@ public class Main {
     public static MenuType<TeamMainContainer> TEAM_MAIN_TYPE;
     public static MenuType<TeamInspectionContainer> TEAM_INSPECTION_TYPE;
     public static MenuType<TeamListContainer> TEAM_LIST_TYPE;
-    public static MenuType<TeamAddPlayerContainer> TEAM_ADD_PLAYER_TYPE;
+    public static MenuType<TeamManagePlayerContainer> TEAM_ADD_PLAYER_TYPE;
 
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
@@ -135,6 +135,8 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 29, MessageAddPlayerToTeam.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 30, MessageOpenTeamAddPlayerScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 31, MessageAddRecruitToTeam.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 32, MessageSendJoinRequestTeam.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 33, MessageRemoveFromTeam.class);
     }
 
     @SubscribeEvent
@@ -154,7 +156,7 @@ public class Main {
         ClientRegistry.registerScreen(Main.TEAM_MAIN_TYPE, TeamMainScreen::new);
         ClientRegistry.registerScreen(Main.TEAM_INSPECTION_TYPE, TeamInspectionScreen::new);
         ClientRegistry.registerScreen(Main.TEAM_LIST_TYPE, TeamListScreen::new);
-        ClientRegistry.registerScreen(Main.TEAM_ADD_PLAYER_TYPE, TeamAddPlayerScreen::new);
+        ClientRegistry.registerScreen(Main.TEAM_ADD_PLAYER_TYPE, TeamManagePlayerScreen::new);
 
     }
 
@@ -269,9 +271,9 @@ public class Main {
         event.getRegistry().register(TEAM_LIST_TYPE);
 
 
-        TEAM_ADD_PLAYER_TYPE = new MenuType<>((IContainerFactory<TeamAddPlayerContainer>) (windowId, inv, data) -> {
+        TEAM_ADD_PLAYER_TYPE = new MenuType<>((IContainerFactory<TeamManagePlayerContainer>) (windowId, inv, data) -> {
             Player playerEntity = inv.player;
-            return new TeamAddPlayerContainer(windowId, playerEntity);
+            return new TeamManagePlayerContainer(windowId, playerEntity);
         });
         TEAM_ADD_PLAYER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "team_add_player_container"));
         event.getRegistry().register(TEAM_ADD_PLAYER_TYPE);

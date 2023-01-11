@@ -1,5 +1,6 @@
 package com.talhanation.recruits.network;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.TeamEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -28,19 +29,18 @@ public class MessageSendJoinRequestTeam implements Message<MessageSendJoinReques
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = context.getSender();
-        if(player_uuid != player.getUUID()) return;
-
         ServerLevel level = player.getLevel();
         TeamEvents.sendJoinRequest(level, player, teamName);
     }
 
     public MessageSendJoinRequestTeam fromBytes(FriendlyByteBuf buf) {
-        player_uuid = buf.readUUID();
-        teamName = buf.readUtf();
+        this.player_uuid = buf.readUUID();
+        this.teamName = buf.readUtf();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
-
+        buf.writeUUID(player_uuid);
+        buf.writeUtf(teamName);
     }
 }

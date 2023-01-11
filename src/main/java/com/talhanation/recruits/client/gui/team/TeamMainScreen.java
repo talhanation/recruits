@@ -25,9 +25,9 @@ public class TeamMainScreen extends ScreenBase<TeamMainContainer> {
     BannerBlockEntity bannerBlockEntity;
     private int leftPos;
     private int topPos;
-    private static final Component CREATE_TEAM = new TranslatableComponent("gui.recruits.teamcreation.create_team");
-    private static final Component INSPECT_TEAM = new TranslatableComponent("gui.recruits.teamcreation.inspect_team");
-    private static final Component TEAMS_LIST = new TranslatableComponent("gui.recruits.teamcreation.teams_list");
+    private static final Component CREATE_TEAM = new TranslatableComponent("gui.recruits.team_creation.create_team");
+    private static final Component INSPECT_TEAM = new TranslatableComponent("gui.recruits.team_creation.inspect_team");
+    private static final Component TEAMS_LIST = new TranslatableComponent("gui.recruits.team_creation.teams_list");
 
     public TeamMainScreen(TeamMainContainer commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, new TextComponent(""));

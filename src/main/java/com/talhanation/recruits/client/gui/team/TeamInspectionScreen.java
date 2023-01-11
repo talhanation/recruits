@@ -36,9 +36,9 @@ import java.util.UUID;
 public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/team/team_inspect_gui.png");
-    private static final TranslatableComponent LEAVE_TEAM = new TranslatableComponent("gui.recruits.teamcreation.leave_team");
-    private static final TranslatableComponent EDIT_TEAM = new TranslatableComponent("gui.recruits.teamcreation.edit_team");
-    private static final TranslatableComponent ADD_PLAYER_TEAM = new TranslatableComponent("gui.recruits.teamcreation.add_player");
+    private static final TranslatableComponent LEAVE_TEAM = new TranslatableComponent("gui.recruits.team_creation.leave_team");
+    private static final TranslatableComponent EDIT_TEAM = new TranslatableComponent("gui.recruits.team_creation.edit_team");
+    private static final TranslatableComponent ADD_PLAYER_TEAM = new TranslatableComponent("gui.recruits.team_creation.add_player");
     public static UUID leaderUUID;
     private final Player player;
     private final Team team;
@@ -152,7 +152,7 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
         //Info
         int fontColor = 4210752;
         int fontColorLeader;
-        if (player.getTeam().getColor().getColor() != null) fontColorLeader = player.getTeam().getColor().getColor();
+        if(player.getTeam() != null && player.getTeam().getColor().getColor() != null) fontColorLeader = player.getTeam().getColor().getColor();
         else fontColorLeader = fontColor;
 
 
