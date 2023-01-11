@@ -151,5 +151,6 @@
   "chat.recruits.team_creation.player_already_in_Team": "This player is already in a Team.",
   "chat.recruits.team_creation.player_need_to_request": "This player must first request to join your Team.",
   "chat.recruits.team_creation.could_not_find": "Could not find player %s.",
-  "chat.recruits.team_creation.join": "Join"
+  "chat.recruits.team_creation.join": "Join",
+  "gui.recruits.teamcreation.no_teams": "There are no Teams."
 }

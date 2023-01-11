@@ -1,6 +1,7 @@
 package com.talhanation.recruits.world;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,20 +30,18 @@ public class RecruitsTeamSavedData extends SavedData {
         nbt.putInt("Players", players);
         nbt.putInt("NPCs", npcs);
 
-        /*
+
         ListTag listtag = new ListTag();
         for(int i = 0; i < joinRequests.size(); ++i) {
             String requestedPlayer = joinRequests.get(i);
 
             CompoundTag compoundtag = new CompoundTag();
-            compoundtag.putString("RequestedPlayer", requestedPlayer);
+            compoundtag.putString("Request", requestedPlayer);
             listtag.add(compoundtag);
         }
+        nbt.put("JoinRequests", listtag);
 
-        if (!listtag.isEmpty()) {
-            nbt.put("JoinRequests", listtag);
-        }
-         */
+
         // compaund list save
         return nbt;
     }
@@ -69,16 +68,13 @@ public class RecruitsTeamSavedData extends SavedData {
         //BeehiveBlock //for ListTag example
         //ShulkerBoxBlockEntity
 
-
-        /*
-        ListTag listtag = nbt.getList("JoinRequests", 10);
-        for(int i = 0; i < listtag.size(); ++i) {
-            CompoundTag compoundtag = listtag.getCompound(i);
-            joinRequests.add(compoundtag.getString("RequestedPlayer"));
+        if (nbt.contains("JoinRequests")) {
+            ListTag listtag = nbt.getList("JoinRequests", 10);
+            for (int i = 0; i < listtag.size(); ++i) {
+                CompoundTag compoundtag = listtag.getCompound(i);
+                joinRequests.add(compoundtag.getString("Request"));
+            }
         }
-
-         */
-
         return data;
     }
 

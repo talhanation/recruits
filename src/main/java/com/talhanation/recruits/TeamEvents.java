@@ -329,5 +329,13 @@ public class TeamEvents {
         data.setDirty();
     }
 
+    public static void sendJoinRequest(ServerLevel level, Player player, String teamName) {
+        MinecraftServer server = level.getServer();
+        DimensionDataStorage storage = server.overworld().getDataStorage();
+        RecruitsTeamSavedData data = storage.computeIfAbsent(RecruitsTeamSavedData::load, RecruitsTeamSavedData::new, "recruits_" +  teamName + "_data");
+
+        RecruitsTeamSavedData.addPlayerAsJoinRequest(player.getName().getString());
+        data.setDirty();
+    }
 
 }
