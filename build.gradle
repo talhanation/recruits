@@ -45,7 +45,7 @@ minecraft {
             property 'forge.enabledGameTestNamespaces', 'recruits'
 
             Random rnd = new Random()
-            args = ['--username', 'Player1']//rnd.nextInt(1000)]
+            args = ['--username', 'tester']//rnd.nextInt(1000)]
 
             mods {
                 'recruits' {
