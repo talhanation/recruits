@@ -29,6 +29,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
 import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.scores.Team;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 import java.util.List;
 import java.util.UUID;
@@ -38,7 +39,9 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/team/team_inspect_gui.png");
     private static final TranslatableComponent LEAVE_TEAM = new TranslatableComponent("gui.recruits.team_creation.leave_team");
     private static final TranslatableComponent EDIT_TEAM = new TranslatableComponent("gui.recruits.team_creation.edit_team");
-    private static final TranslatableComponent ADD_PLAYER_TEAM = new TranslatableComponent("gui.recruits.team_creation.add_player");
+    private static final TranslatableComponent MANAGE_TEAM = new TranslatableComponent("gui.recruits.team_creation.add_player");
+
+    private static final TranslatableComponent TOOLTIP_COMING_SOON = new TranslatableComponent("gui.recruits.team_creation.coming_soon");
     public static UUID leaderUUID;
     private final Player player;
     private final Team team;
@@ -54,6 +57,7 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
     public static String leader;
 
     public static List<String> playerMembers;
+    private Button editButton;
 
     public TeamInspectionScreen(TeamInspectionContainer container, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, container, playerInventory, new TextComponent(""));
@@ -75,45 +79,21 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
         this.members = players + npcs;
         boolean isTeamLeader = player.getUUID().equals(leaderUUID);
 
-
         if(isTeamLeader){
+            editButton = createEditButton();
+            editButton.active = false;
 
-            //Edit Team
-            addRenderableWidget(new Button(leftPos + 15, topPos + 218, 50, 20, EDIT_TEAM, button -> {
-                //ain.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
-                this.onClose();
-            }));
-
-            //Add Player
-            addRenderableWidget(new Button(leftPos + 155, topPos + 218, 50, 20, ADD_PLAYER_TEAM, button -> {
+            //Manage
+            addRenderableWidget(new Button(leftPos + 155, topPos + 218, 50, 18, MANAGE_TEAM, button -> {
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamAddPlayerScreen(player));
             }));
         }
 
         //leave team
-        addRenderableWidget(new Button(leftPos + 85, topPos + 218, 50, 20, LEAVE_TEAM, button -> {
+        addRenderableWidget(new Button(leftPos + 85, topPos + 218, 50, 18, LEAVE_TEAM, button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
             this.onClose();
         }));
-
-        //inspect banner
-
-        //team members
-        //team count player members
-        //team count npc members
-
-        //send message to team members
-        /*
-        Main.LOGGER.debug("---------TeamInspectScreen--------");
-        Main.LOGGER.debug("team: " + team.getName());
-        Main.LOGGER.debug("leader: " + leader);
-        Main.LOGGER.debug("total members: " + members);
-        Main.LOGGER.debug("players: " + players);
-        Main.LOGGER.debug("npcs: " + npcs);
-        Main.LOGGER.debug("bannerItem: " + bannerItem);
-        Main.LOGGER.debug("resultBannerPatterns: " + resultBannerPatterns);
-        Main.LOGGER.debug("--------------------------------");
-        */
     }
 
     protected void render(PoseStack matrixStack, int partialTicks, int mouseX, int mouseY) {
@@ -176,5 +156,13 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
 
         font.draw(matrixStack, "NPCs:", 135  , 55, fontColor);
         font.draw(matrixStack, "" + npcs, 135 + 50 , 55, fontColor);
+    }
+
+    private Button createEditButton(){
+        //Edit Team
+        return addRenderableWidget(new Button(leftPos + 15, topPos + 218, 50, 18, EDIT_TEAM,
+            button -> {
+            }, (a, b, c, d) -> { this.renderTooltip(b, TOOLTIP_COMING_SOON, c, d);
+        }));
     }
 }

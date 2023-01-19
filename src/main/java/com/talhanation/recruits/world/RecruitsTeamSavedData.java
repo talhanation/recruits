@@ -1,142 +1,137 @@
 package com.talhanation.recruits.world;
 
+import com.google.common.collect.Maps;
 import com.talhanation.recruits.Main;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.storage.DimensionDataStorage;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 
 public class RecruitsTeamSavedData extends SavedData {
-    public static String teamName;
-    public static UUID teamLeaderID;
-    public static String teamLeaderName;
-    public static CompoundTag banner;
-    public static List<String> joinRequests;
-    public static int players;
-    public static int npcs;
+
+    public static final String FILE_ID = "recruitsTeamSaveData";
+
+    private static final Map<String, RecruitsTeam> teams = Maps.newHashMap();
 
     public RecruitsTeamSavedData(){
-        super();
+        this.setDirty();
     }
 
-    @Override
-    public @NotNull CompoundTag save(CompoundTag nbt) {
-        nbt.putString("TeamName", teamName);
-        nbt.putUUID("TeamLeaderID", teamLeaderID);
-        nbt.putString("TeamLeaderName", teamLeaderName);
-        nbt.put("TeamBanner", banner);
-        nbt.putInt("Players", players);
-        nbt.putInt("NPCs", npcs);
-
-
-        if(joinRequests != null) {
-            ListTag listtag = new ListTag();
-            for (String requestedPlayer : joinRequests) {
-                CompoundTag compoundtag = new CompoundTag();
-                compoundtag.putString("Request", requestedPlayer);
-                listtag.add(compoundtag);
-            }
-            nbt.put("JoinRequests", listtag);
-        }
-        return nbt;
+    public static RecruitsTeamSavedData get(ServerLevel level){
+        DimensionDataStorage storage = level.getDataStorage();
+        return storage.computeIfAbsent(RecruitsTeamSavedData::load, RecruitsTeamSavedData::new, FILE_ID);
     }
+
     public static RecruitsTeamSavedData load(CompoundTag nbt) {
         RecruitsTeamSavedData data = new RecruitsTeamSavedData();
-        if (nbt.contains("TeamName")) {
-            teamName = nbt.getString("TeamName");
-        }
-        if (nbt.contains("TeamLeaderID")) {
-            teamLeaderID = nbt.getUUID("TeamLeaderID");
-        }
-        if (nbt.contains("TeamLeaderName")) {
-            teamLeaderName = nbt.getString("TeamLeaderName");
-        }
-        if (nbt.contains("TeamBanner")) {
-            banner = (CompoundTag) nbt.get("TeamBanner");
-        }
-        if (nbt.contains("Players")) {
-            players = nbt.getInt("Players");
-        }
-        if (nbt.contains("NPCs")) {
-            npcs = nbt.getInt("NPCs");
-        }
-        //BeehiveBlock //for ListTag example
-        //ShulkerBoxBlockEntity
-
-        if (nbt.contains("JoinRequests")) {
-            ListTag listtag = nbt.getList("JoinRequests", 10);
-            for (int i = 0; i < listtag.size(); ++i) {
-                CompoundTag compoundtag = listtag.getCompound(i);
-                if(joinRequests == null) joinRequests = new ArrayList<>();
-                joinRequests.add(compoundtag.getString("Request"));
-            }
+        if (nbt.contains("Teams", 9)) {
+            data.loadTeams(nbt.getList("Teams", 10));
         }
         return data;
     }
 
-    public CompoundTag getBanner() {
-        return banner;
+    private static void loadTeams(ListTag list) {
+        for(int i = 0; i < list.size(); ++i) {
+            CompoundTag nbt = list.getCompound(i);
+            String s = nbt.getString("TeamName");
+            RecruitsTeam recruitsTeam = addPlayerTeam(s);
+
+            if (nbt.contains("TeamName")) {
+                recruitsTeam.setTeamName(nbt.getString("TeamName"));
+            }
+            if (nbt.contains("TeamLeaderID")) {
+                recruitsTeam.setTeamLeaderID(nbt.getUUID("TeamLeaderID"));
+            }
+            if (nbt.contains("TeamLeaderName")) {
+                recruitsTeam.setTeamLeaderName(nbt.getString("TeamLeaderName"));
+            }
+            if (nbt.contains("TeamBanner")) {
+                recruitsTeam.setBanner((CompoundTag) nbt.get("TeamBanner"));
+
+            }
+            if (nbt.contains("Players")) {
+                recruitsTeam.setPlayers(nbt.getInt("Players"));
+            }
+            if (nbt.contains("NPCs")) {
+                recruitsTeam.setNPCs(nbt.getInt("NPCs"));
+            }
+
+            if (nbt.contains("JoinRequests")) {
+                ListTag listtag = nbt.getList("JoinRequests", 10);
+                for (int j = 0; j < listtag.size(); ++j) {
+                    CompoundTag compoundtag = listtag.getCompound(j);
+                        recruitsTeam.getJoinRequests().add(compoundtag.getString("Request"));
+                }
+            }
+        }
     }
 
-    public UUID getTeamLeaderID(){
-        return teamLeaderID;
+    private static RecruitsTeam addPlayerTeam(String s) {
+        RecruitsTeam recruitsTeam = getTeamByName(s);
+        if (recruitsTeam == null) {
+            recruitsTeam = new RecruitsTeam();
+            teams.put(s, recruitsTeam);
+
+            return recruitsTeam;
+        }
+        else
+            return recruitsTeam;
     }
 
-    public String getTeam(){
-        return teamName;
+    @Override
+    public @NotNull CompoundTag save(CompoundTag nbt) {
+        nbt.put("Teams", this.saveTeams());;
+        return nbt;
     }
-    public String getTeamLeaderName(){
-        return teamLeaderName;
+    //ScoreboardSaveData
+    private ListTag saveTeams() {
+        ListTag listtag = new ListTag();
+
+        for(RecruitsTeam recruitsTeam : teams.values()){
+
+            CompoundTag nbt = new CompoundTag();
+            nbt.putString("TeamName", recruitsTeam.getTeamName());
+            nbt.putUUID("TeamLeaderID", recruitsTeam.getTeamLeaderUUID());
+            nbt.putString("TeamLeaderName", recruitsTeam.getTeamLeaderName());
+            nbt.put("TeamBanner", recruitsTeam.getBanner());
+            nbt.putInt("Players", recruitsTeam.getPlayers());
+            nbt.putInt("NPCs", recruitsTeam.getNPCs());
+
+            ListTag listtag1 = new ListTag();
+            for(String s : recruitsTeam.getJoinRequests()) {
+                listtag1.add(StringTag.valueOf(s));
+            }
+            nbt.put("JoinRequests", listtag1);
+
+            listtag.add(nbt);
+        }
+        return listtag;
     }
-
-    public static void setTeam(String teamname) {
-        teamName = teamname;
+    @Nullable
+    public static RecruitsTeam getTeamByName(String teamName) {
+        Main.LOGGER.debug("get Teams" + teams.values());
+        Main.LOGGER.debug("getTeamByName: Team: " + teams.get(teamName));
+        return teams.get(teamName);
     }
-
-    public static void setTeamLeaderID(UUID uuid) {
-        teamLeaderID = uuid;
-    }
-    public static void setTeamLeaderName(String leaderName) {
-        teamLeaderName = leaderName;
-    }
-
-    public static void setBanner(CompoundTag nbt) {
-        banner = nbt;
-    }
-
-    public static void addPlayerAsJoinRequest(String player) {
-        if(joinRequests == null) joinRequests = new ArrayList<>();
-
-        if(!joinRequests.contains(player)) joinRequests.add(player);
-    }
-
-    public static void removeJoinRequest(String player){
-        if(joinRequests == null) joinRequests = new ArrayList<>();
-
-        joinRequests.remove(player);
-    }
-
-    public List<String> getJoinRequests() {
-        return joinRequests;
-    }
-
-    public int getNpcs() {
-        return npcs;
+    public Collection<RecruitsTeam> getTeams() {
+        return teams.values();
     }
 
-    public int getPlayers() {
-        return players;
-    }
+    public void addTeam(String teamName, UUID leaderUUID, String leaderName, CompoundTag bannerNbt) {
+        RecruitsTeam recruitsTeam = new RecruitsTeam();
+        recruitsTeam.setTeamName(teamName);
+        recruitsTeam.setTeamLeaderID(leaderUUID);
+        recruitsTeam.setTeamLeaderName(leaderName);
+        recruitsTeam.setBanner(bannerNbt);
 
-    public static void addNpcs(int x) {
-        npcs += x;
-    }
-
-    public static void addPlayer(int x){
-        players += x;
+        teams.put(teamName, recruitsTeam);
     }
 }

@@ -101,10 +101,10 @@ public class TeamManagePlayerScreen extends ScreenBase<TeamManagePlayerContainer
         }
     }
 
-    public ExtendedButton createAddButton(String playerName, String teamName) {
-        return addRenderableWidget(new ExtendedButton(leftPos + 110, topPos + 93 + (23 * onlinePlayerJoinRequests.indexOf(playerName)), 30, 15, new TranslatableComponent(  "gui.recruits.team_creation.add_player_Button"),
+    public ExtendedButton createAddButton(String playerNameToAdd, String teamName) {
+        return addRenderableWidget(new ExtendedButton(leftPos + 110, topPos + 93 + (23 * onlinePlayerJoinRequests.indexOf(playerNameToAdd)), 30, 15, new TranslatableComponent(  "gui.recruits.team_creation.add_player_Button"),
             button -> {
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageAddPlayerToTeam(teamName, playerName));
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageAddPlayerToTeam(teamName, playerNameToAdd));
                 this.onClose();
             }
         ));

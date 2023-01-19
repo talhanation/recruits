@@ -27,8 +27,4 @@ public class RecruitsPlayerSavedData extends SavedData {
     public static void setRecruits(int x) {
         recruits = x;
     }
-
-    public static int getBanner() {
-        return recruits;
-    }
 }

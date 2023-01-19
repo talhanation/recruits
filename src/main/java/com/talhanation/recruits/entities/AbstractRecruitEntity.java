@@ -1209,10 +1209,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 String teamName = team.getName();
                 PlayerTeam recruitTeam = this.level.getScoreboard().getPlayerTeam(teamName);
                 this.level.getScoreboard().removePlayerFromTeam(this.getStringUUID(), recruitTeam);
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
             }
             else{
                 String ownerTeamName = ownerTeam.getName();
                 PlayerTeam playerteam = this.level.getScoreboard().getPlayerTeam(ownerTeamName);
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(ownerTeamName, 1));
 
                 boolean flag = playerteam != null && this.level.getScoreboard().addPlayerToTeam(this.getStringUUID(), playerteam);
                 if (!flag) {
