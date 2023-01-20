@@ -745,9 +745,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setFollowState(2);
             this.setState(0);
 
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getOwner().getName().getString(), 1));
-
-
             int i = this.random.nextInt(4);
             switch (i) {
                 case 1 -> {
@@ -766,6 +763,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
             int currentRecruits = CommandEvents.getSavedRecruitCount(player);
             CommandEvents.saveRecruitCount(player, currentRecruits + 1);
+
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getOwner().getName().getString(), 1));
+
             return true;
         }
     }
@@ -876,7 +876,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (this.dead) {
             if (!this.level.isClientSide && this.level.getGameRules().getBoolean(GameRules.RULE_SHOWDEATHMESSAGES) && this.getOwner() instanceof ServerPlayer) {
                 this.getOwner().sendMessage(deathMessage, Util.NIL_UUID);
-                if (this.getTeam() != null) Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
             }
         }
     }
@@ -1209,12 +1208,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 String teamName = team.getName();
                 PlayerTeam recruitTeam = this.level.getScoreboard().getPlayerTeam(teamName);
                 this.level.getScoreboard().removePlayerFromTeam(this.getStringUUID(), recruitTeam);
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
             }
             else{
                 String ownerTeamName = ownerTeam.getName();
                 PlayerTeam playerteam = this.level.getScoreboard().getPlayerTeam(ownerTeamName);
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(ownerTeamName, 1));
+
 
                 boolean flag = playerteam != null && this.level.getScoreboard().addPlayerToTeam(this.getStringUUID(), playerteam);
                 if (!flag) {

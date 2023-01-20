@@ -279,7 +279,7 @@ public class TeamEvents {
 
     public static void addPlayerToData(ServerLevel level, String teamName, int x, String namePlayerToAdd){
         RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
-        RecruitsTeam recruitsTeam = data.getTeamByName(teamName);
+        RecruitsTeam recruitsTeam = RecruitsTeamSavedData.getTeamByName(teamName);
 
         recruitsTeam.addPlayer(x);
 

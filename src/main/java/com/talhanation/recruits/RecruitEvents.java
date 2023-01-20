@@ -2,6 +2,7 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.network.MessageAddRecruitToTeam;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -201,6 +202,18 @@ public class RecruitEvents {
             //attacker can Harm target when attacker has no team
             //or attacker and target are not allied
             //or team friendly is true
+        }
+    }
+
+    @SubscribeEvent
+    public void onRecruitDeath(LivingDeathEvent event) {
+        Entity target = event.getEntity();
+
+        if(target instanceof AbstractRecruitEntity recruit){
+            if (recruit.getTeam() != null){
+                Main.LOGGER.debug("recruit in team died: " + recruit.getTeam().getName());
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(recruit.getTeam().getName(), -1));
+            }
         }
     }
 }
