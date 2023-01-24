@@ -64,7 +64,7 @@
   "gui.recruits.command.tooltip.backToPos" : "Make the recruits go back to their previously held position.",
   "gui.recruits.command.tooltip.patrol" : "Make the recruits patrol their previously held position.",
   "gui.recruits.command.tooltip.clearTargets" : "Clears the recruits current targets to attack.",
-  "gui.recruits.command.tooltip.escort" : "Make the recruits escort the Mob you are looking at.",
+  "gui.recruits.command.tooltip.escort" : "Make the recruits guard and follow the Mob you are looking at.",
   "gui.recruits.command.tooltip.mount" : "If possible, the recruits will try to mount the Mob you are looking at.",
   "gui.recruits.command.tooltip.dismount" : "If possible, the recruits will dismount their current vehicle.",
   "gui.recruits.command.tooltip.move" : "If possible, the recruits will try to go to the position you are looking at.",
@@ -79,10 +79,13 @@
 
   "gui.recruits.command.text.mount" : "Mount!",
   "gui.recruits.command.text.dismount" : "Dismount!",
+
   "gui.recruits.command.text.escort" : "Escort!",
   "gui.recruits.command.text.move" : "Move!",
   "gui.recruits.command.text.shields" : "Shields!",
   "gui.recruits.command.text.arrow" : "Hail of Arrows!",
+
+  "gui.recruits.command.text.escort" : "Guard this!",
   "gui.recruits.command.text.follow" : "Follow me!",
   "gui.recruits.command.text.wander" : "Wander freely!",
   "gui.recruits.command.text.holdMyPos": "Hold my Position!",
@@ -100,6 +103,8 @@
 
   "chat.recruits.command.upkeep" : "Your upkeep is here!",
   "chat.recruits.command.escort" : "Escort this Mob!",
+
+  "chat.recruits.command.escort" : "Guard this Mob!",
   "chat.recruits.command.mount" : "Mount here!",
   "chat.recruits.command.dismount" : "Dismount!",
   "chat.recruits.command.move" : "Move!",
@@ -142,5 +147,34 @@
   "gui.recruits.text.recruited" : "It's a honor for me to protect you!",
   "chat.recruits.text.group": "Group",
   "chat.recruits.text.everyone": "Everyone",
+
   "gui.recruits.inv.text.upkeep": "Upkeep"
+
+
+
+  "chat.recruits.team_creation.team_exists" :"A team already exists by that name!",
+  "chat.recruits.team_creation.removePlayer": "Remove Player",
+  "chat.recruits.team_creation.removePlayerTitle": "Remove a Player",
+  "chat.recruits.team_creation.addPlayerTitle": "Add a Player",
+  "chat.recruits.team_creation.no_Requests": "There are no join requests.",
+  "chat.recruits.team_creation.banner_exists" :"A team already uses the same banner!",
+  "chat.recruits.team_creation.noenough_money": "You don't have enough emeralds to create a team!",
+  "chat.recruits.team_creation.noname": "You need to type a name for your team!",
+  "chat.recruits.team_creation.nobanner": "You need a banner to create a team!",
+  "chat.recruits.team_creation.wrongbanner": "You cant use a blank banner for your team.",
+  "gui.recruits.team_creation.edit_team": "Edit",
+  "gui.recruits.team_creation.coming_soon": "Coming Soon",
+  "gui.recruits.team_creation.add_player": "Manage",
+  "gui.recruits.team_creation.add_player_Button": "Add",
+  "gui.recruits.team_creation.create_team": "Create Team",
+  "gui.recruits.team_creation.inspect_team": "Inspect Team",
+  "gui.recruits.team_creation.teams_list": "List of Teams",
+  "gui.recruits.teamInspectTitle": "",
+  "gui.recruits.team_creation.leave_team": "Leave",
+  "chat.recruits.team_creation.addedPlayer": "You are now a member of ",
+  "chat.recruits.team_creation.removedPlayer": "You were removed from the Team",
+  "chat.recruits.team_creation.addedPlayerLeader": " joined your Team successfully.",
+  "chat.recruits.team_creation.could_not_find": "Could not find player ",
+  "chat.recruits.team_creation.join": "Join",
+  "gui.recruits.team_creation.no_teams": "There are no Teams."
 }

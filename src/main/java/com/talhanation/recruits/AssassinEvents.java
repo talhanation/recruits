@@ -122,4 +122,12 @@ public class AssassinEvents {
         }
         return emeralds;
     }
+
+    public static boolean playerHasEnoughEmeralds(Player player, int price) {
+        int emeraldCount = AssassinEvents.playerGetEmeraldsInInventory(player);
+        if (emeraldCount >= price){
+            return true;
+        }
+        return player.isCreative();
+    }
 }

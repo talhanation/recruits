@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import com.talhanation.recruits.client.events.KeyEvents;
 import com.talhanation.recruits.client.events.PlayerEvents;
 import com.talhanation.recruits.client.gui.*;
+import com.talhanation.recruits.client.gui.team.*;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
@@ -40,6 +41,7 @@ import net.minecraftforge.network.IContainerFactory;
 import net.minecraftforge.network.simple.SimpleChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
@@ -64,6 +66,16 @@ public class Main {
     public static MenuType<CommandMenu> COMMAND_CONTAINER_TYPE;
     public static MenuType<RecruitHireMenu> HIRE_CONTAINER_TYPE;
     public static MenuType<AssassinLeaderMenu> ASSASSIN_CONTAINER_TYPE;
+    public static KeyMapping C_KEY;
+    public static MenuType<RecruitInventoryContainer> RECRUIT_CONTAINER_TYPE;
+    public static MenuType<CommandContainer> COMMAND_CONTAINER_TYPE;
+    public static MenuType<RecruitHireContainer> HIRE_CONTAINER_TYPE;
+    public static MenuType<AssassinLeaderContainer> ASSASSIN_CONTAINER_TYPE;
+    public static MenuType<TeamCreationContainer> TEAM_CREATION_TYPE;
+    public static MenuType<TeamMainContainer> TEAM_MAIN_TYPE;
+    public static MenuType<TeamInspectionContainer> TEAM_INSPECTION_TYPE;
+    public static MenuType<TeamListContainer> TEAM_LIST_TYPE;
+    public static MenuType<TeamManagePlayerContainer> TEAM_ADD_PLAYER_TYPE;
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
     public Main() {
@@ -90,7 +102,11 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new PillagerEvents());
         MinecraftForge.EVENT_BUS.register(new CommandEvents());
         MinecraftForge.EVENT_BUS.register(new AssassinEvents());
+
         MinecraftForge.EVENT_BUS.register(new DebugEvents());
+
+        MinecraftForge.EVENT_BUS.register(new TeamEvents());
+
         MinecraftForge.EVENT_BUS.register(this);
         SIMPLE_CHANNEL = CommonRegistry.registerChannel(Main.MOD_ID, "default");
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 0, MessageAggro.class);
@@ -111,15 +127,32 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 15, MessageRecruitGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 16, MessageHireGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 17, MessageHire.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 18, MessageEscortEntity.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 18, MessageGuardEntity.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 19, MessageDismount.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 20, MessageDismountGui.class);
+		
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 21, MessageUpkeepPos.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 22, MessageHailOfArrows.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 23, MessageShields.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 24, MessageDebugGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 25, MessageUpkeepEntity.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 26, MessageClearTarget.class);
+
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 21, MessageCreateTeam.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 22, MessageOpenTeamCreationScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 23, MessageLeaveTeam.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 24, MessageTeamMainScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 25, MessageOpenTeamInspectionScreen.class);
+
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 26, MessageServerUpdateTeamInspectMenu.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 27, MessageToClientUpdateTeam.class);
+
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 28, MessageOpenTeamListScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 29, MessageAddPlayerToTeam.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 30, MessageOpenTeamAddPlayerScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 31, MessageAddRecruitToTeam.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 32, MessageSendJoinRequestTeam.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 33, MessageRemoveFromTeam.class);
     }
 
     @SubscribeEvent
@@ -128,13 +161,20 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
         MinecraftForge.EVENT_BUS.register(new PlayerEvents());
 
-        R_KEY = ClientRegistry.registerKeyBinding("key.r_key", "category.recruits", 82);
+        R_KEY = ClientRegistry.registerKeyBinding("key.r_key", "category.recruits", GLFW.GLFW_KEY_R);
+        C_KEY = ClientRegistry.registerKeyBinding("key.c_key", "category.recruits", GLFW.GLFW_KEY_C);
 
         ClientRegistry.registerScreen(Main.RECRUIT_CONTAINER_TYPE, RecruitInventoryScreen::new);
         ClientRegistry.registerScreen(Main.DEBUG_CONTAINER_TYPE, DebugInvScreen::new);
         ClientRegistry.registerScreen(Main.COMMAND_CONTAINER_TYPE, CommandScreen::new);
         ClientRegistry.registerScreen(Main.ASSASSIN_CONTAINER_TYPE, AssassinLeaderScreen::new);
         ClientRegistry.registerScreen(Main.HIRE_CONTAINER_TYPE, RecruitHireScreen::new);
+        ClientRegistry.registerScreen(Main.TEAM_CREATION_TYPE, TeamCreationScreen::new);
+        ClientRegistry.registerScreen(Main.TEAM_MAIN_TYPE, TeamMainScreen::new);
+        ClientRegistry.registerScreen(Main.TEAM_INSPECTION_TYPE, TeamInspectionScreen::new);
+        ClientRegistry.registerScreen(Main.TEAM_LIST_TYPE, TeamListScreen::new);
+        ClientRegistry.registerScreen(Main.TEAM_ADD_PLAYER_TYPE, TeamManagePlayerScreen::new);
+
     }
 
     @SubscribeEvent
@@ -194,6 +234,8 @@ public class Main {
                 return null;
             }
             return new CommandMenu(windowId, playerEntity);
+            return new CommandContainer(windowId, playerEntity);
+
         });
         COMMAND_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "command_container"));
         event.getRegistry().register(COMMAND_CONTAINER_TYPE);
@@ -216,9 +258,16 @@ public class Main {
                 return null;
             }
             return new RecruitHireMenu(windowId, playerEntity, rec, playerEntity.getInventory());
+
+
+        HIRE_CONTAINER_TYPE = new MenuType<>((IContainerFactory<RecruitHireContainer>) (windowId, inv, data) -> {
+            Player playerEntity = inv.player;
+            AbstractRecruitEntity rec = getRecruitByUUID(inv.player, data.readUUID());
+            return new RecruitHireContainer(windowId, playerEntity, rec, playerEntity.getInventory());
         });
         HIRE_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "hire_container"));
         event.getRegistry().register(HIRE_CONTAINER_TYPE);
+
 
         DEBUG_CONTAINER_TYPE = new MenuType<>((IContainerFactory<DebugInvMenu>) (windowId, inv, data) -> {
             AbstractRecruitEntity rec = getRecruitByUUID(inv.player, data.readUUID());
@@ -229,6 +278,44 @@ public class Main {
         });
         DEBUG_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "debug_container"));
         event.getRegistry().register(DEBUG_CONTAINER_TYPE);
+
+        TEAM_CREATION_TYPE = new MenuType<>((IContainerFactory<TeamCreationContainer>) (windowId, inv, data) -> {
+            return new TeamCreationContainer(windowId, inv);
+        });
+        TEAM_CREATION_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "team_creation"));
+        event.getRegistry().register(TEAM_CREATION_TYPE);
+
+
+        TEAM_MAIN_TYPE = new MenuType<>((IContainerFactory<TeamMainContainer>) (windowId, inv, data) -> {
+            Player playerEntity = inv.player;
+            return new TeamMainContainer(windowId, playerEntity);
+        });
+        TEAM_MAIN_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "team_main_container"));
+        event.getRegistry().register(TEAM_MAIN_TYPE);
+
+
+        TEAM_INSPECTION_TYPE = new MenuType<>((IContainerFactory<TeamInspectionContainer>) (windowId, inv, data) -> {
+            Player playerEntity = inv.player;
+            return new TeamInspectionContainer(windowId, playerEntity);
+        });
+        TEAM_INSPECTION_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "team_inspection_container"));
+        event.getRegistry().register(TEAM_INSPECTION_TYPE);
+
+
+        TEAM_LIST_TYPE = new MenuType<>((IContainerFactory<TeamListContainer>) (windowId, inv, data) -> {
+            Player playerEntity = inv.player;
+            return new TeamListContainer(windowId, playerEntity);
+        });
+        TEAM_LIST_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "team_list_container"));
+        event.getRegistry().register(TEAM_LIST_TYPE);
+
+
+        TEAM_ADD_PLAYER_TYPE = new MenuType<>((IContainerFactory<TeamManagePlayerContainer>) (windowId, inv, data) -> {
+            Player playerEntity = inv.player;
+            return new TeamManagePlayerContainer(windowId, playerEntity);
+        });
+        TEAM_ADD_PLAYER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "team_add_player_container"));
+        event.getRegistry().register(TEAM_ADD_PLAYER_TYPE);
     }
 
     @Nullable

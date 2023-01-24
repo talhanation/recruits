@@ -2,6 +2,7 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.network.MessageAddRecruitToTeam;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -20,6 +21,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityTeleportEvent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -276,5 +278,14 @@ public class   RecruitEvents {
     }
 
 
+    public void onRecruitDeath(LivingDeathEvent event) {
+        Entity target = event.getEntity();
 
+        if(target instanceof AbstractRecruitEntity recruit){
+            if (recruit.getTeam() != null){
+                Main.LOGGER.debug("recruit in team died: " + recruit.getTeam().getName());
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(recruit.getTeam().getName(), -1));
+            }
+        }
+    }
 }

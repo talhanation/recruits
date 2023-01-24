@@ -11,6 +11,9 @@ import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.MessageDebugScreen;
+import com.talhanation.recruits.inventory.RecruitHireContainer;
+import com.talhanation.recruits.inventory.RecruitInventoryContainer;
+import com.talhanation.recruits.network.MessageAddRecruitToTeam;
 import com.talhanation.recruits.network.MessageHireGui;
 import com.talhanation.recruits.network.MessageRecruitGui;
 import net.minecraft.Util;
@@ -52,7 +55,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+
 import net.minecraft.world.item.*;
+
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ShieldItem;
+
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -634,7 +643,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setUpkeepUUID(Optional.empty());
         this.setOwnerUUID(Optional.empty());
         CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
+
         this.recalculateCost();
+        if (this.getTeam() != null) Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
+
     }
 
 
@@ -910,7 +922,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             player.sendMessage(new TextComponent(name + info_max), player.getUUID());
             return false;
         }
-        else
+        else {
             this.makeHireSound();
 
             this.setOwnerUUID(Optional.of(player.getUUID()));
@@ -921,23 +933,32 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setState(0);
 
             int i = this.random.nextInt(4);
-        switch (i) {
-            case 1 -> {
-                String recruited1 = TEXT_RECRUITED1.getString();
-                player.sendMessage(new TextComponent(name + recruited1), player.getUUID());
-            }
-            case 2 -> {
-                String recruited2 = TEXT_RECRUITED2.getString();
-                player.sendMessage(new TextComponent(name + recruited2), player.getUUID());
-            }
-            case 3 -> {
-                String recruited3 = TEXT_RECRUITED3.getString();
-                player.sendMessage(new TextComponent(name + recruited3), player.getUUID());
+            switch (i) {
+                case 1 -> {
+                    String recruited1 = TEXT_RECRUITED1.getString();
+                    player.sendMessage(new TextComponent(name + recruited1), player.getUUID());
+                }
+                case 2 -> {
+                    String recruited2 = TEXT_RECRUITED2.getString();
+                    player.sendMessage(new TextComponent(name + recruited2), player.getUUID());
+                }
+                case 3 -> {
+                    String recruited3 = TEXT_RECRUITED3.getString();
+                    player.sendMessage(new TextComponent(name + recruited3), player.getUUID());
+                }
             }
         }
         int currentRecruits = CommandEvents.getSavedRecruitCount(player);
         CommandEvents.saveRecruitCount(player,  currentRecruits + 1);
         return true;
+
+
+            int currentRecruits = CommandEvents.getSavedRecruitCount(player);
+            CommandEvents.saveRecruitCount(player, currentRecruits + 1);
+
+            return true;
+        }
+
     }
 
     public void dialogue(String name, Player player) {
@@ -1042,13 +1063,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         LivingEntity owner = this.getOwner();
         if (owner instanceof Player player){
             CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
-        }
-
-        if(this.getTeam() != null) {
-            Team team = this.getTeam();
-            String teamName = team.getName();
-            PlayerTeam playerteam = this.level.getScoreboard().getPlayerTeam(teamName);
-            this.level.getScoreboard().removePlayerFromTeam(this.getStringUUID(), playerteam);
         }
 
         if (this.dead) {
@@ -1472,10 +1486,18 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 String teamName = team.getName();
                 PlayerTeam recruitTeam = this.level.getScoreboard().getPlayerTeam(teamName);
                 this.level.getScoreboard().removePlayerFromTeam(this.getStringUUID(), recruitTeam);
+
+                /*
+                if(recruitTeam.getPlayers().contains(this.getStringUUID())){
+                    Main.LOGGER.debug("Removing: " + this.getStringUUID());
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(recruitTeam.getName(), -1));
+                }
+                */
             }
             else{
                 String ownerTeamName = ownerTeam.getName();
                 PlayerTeam playerteam = this.level.getScoreboard().getPlayerTeam(ownerTeamName);
+
 
                 boolean flag = playerteam != null && this.level.getScoreboard().addPlayerToTeam(this.getStringUUID(), playerteam);
                 if (!flag) {

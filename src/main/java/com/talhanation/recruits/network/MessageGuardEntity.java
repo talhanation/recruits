@@ -11,17 +11,17 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageEscortEntity implements Message<MessageEscortEntity> {
+public class MessageGuardEntity implements Message<MessageGuardEntity> {
 
     private UUID uuid;
     private UUID target;
     private int group;
 
-    public MessageEscortEntity(){
+    public MessageGuardEntity(){
 
     }
 
-    public MessageEscortEntity(UUID uuid, UUID target, int group) {
+    public MessageGuardEntity(UUID uuid, UUID target, int group) {
         this.uuid = uuid;
         this.target = target;
         this.group = 0;
@@ -39,7 +39,7 @@ public class MessageEscortEntity implements Message<MessageEscortEntity> {
             CommandEvents.onFollowCommand(uuid, recruits, 5, this.group, false);
         }
     }
-    public MessageEscortEntity fromBytes(FriendlyByteBuf buf) {
+    public MessageGuardEntity fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();
         this.target = buf.readUUID();
         this.group = buf.readInt();

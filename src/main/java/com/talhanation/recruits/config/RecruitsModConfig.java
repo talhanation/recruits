@@ -16,8 +16,8 @@ public class RecruitsModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
-    public static final int NEW_VERSION = 15;
 
+    public static final int NEW_VERSION = 15;
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue RenderNameTagforOwner;
     public static ForgeConfigSpec.BooleanValue OverrideIronGolemSpawn;
@@ -47,6 +47,8 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.DoubleValue RecruitPatrolsSpawnChance;
     public static ForgeConfigSpec.ConfigValue<String> RecruitCurrency;
     public static ForgeConfigSpec.BooleanValue RecruitsLookLikeVillagers;
+    public static ForgeConfigSpec.IntValue TeamCreationCost;
+
     public static ArrayList<String> MOUNTS = new ArrayList<>(
             Arrays.asList("minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "camels:camel"));
 
@@ -241,6 +243,12 @@ public class RecruitsModConfig {
                 .define("RecruitsLookLikeVillagers", false);
 
         CONFIG = BUILDER.build();
+
+        TeamCreationCost = BUILDER.comment("\n" +"The cost to create a team." + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: 32")
+                .worldRestart()
+                .defineInRange("TeamCreationCost", 32, 1, 200);
     }
 
     public static void loadConfig(ForgeConfigSpec spec, Path path) {

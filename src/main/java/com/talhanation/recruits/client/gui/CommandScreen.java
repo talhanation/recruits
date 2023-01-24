@@ -95,6 +95,14 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         int topPosGab = 7;
         int mirror = 240 - 60;
 
+        //TEAM SCREEN
+        addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 25, 80, 20, new TextComponent("TEAM"),
+                button -> {
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageTeamMainScreen(player));
+                }, (a, b, c, d) -> {
+            //this.renderTooltip(b, TOOLTIP_DISMOUNT, c, d);
+        }));
+
         //Dismount
         addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_DISMOUNT,
                 button -> {
@@ -184,7 +192,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                     CommandEvents.sendFollowCommandInChat(5, player, group);
                     Entity entity = ClientEvent.getEntityByLooking();
                     if (entity != null){
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageEscortEntity(player.getUUID(), entity.getUUID(), group));
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageGuardEntity(player.getUUID(), entity.getUUID(), group));
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 5, group));
                     }
                 },  (a, b, c, d) -> {
@@ -455,6 +463,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     }
 
      */
+
 
     public int getSavedCurrentGroup(Player player) {
         CompoundTag playerNBT = player.getPersistentData();

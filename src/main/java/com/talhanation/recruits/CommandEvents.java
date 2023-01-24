@@ -2,8 +2,8 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.entities.BowmanEntity;
-import com.talhanation.recruits.inventory.CommandMenu;
+import com.talhanation.recruits.inventory.CommandContainer;
+import com.talhanation.recruits.network.MessageAddRecruitToTeam;
 import com.talhanation.recruits.network.MessageCommandScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -186,8 +186,6 @@ public class CommandEvents {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageCommandScreen(player));
         }
     }
-
-
     public static void sendFollowCommandInChat(int state, LivingEntity owner, int group){
         String group_string = "";
         if (group == 0){
@@ -322,7 +320,9 @@ public class CommandEvents {
 
         if (playerCanPay){
             if(recruit.hire(player)) {
-
+                if(player.getTeam() != null){
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(player.getTeam().getName(), 1));
+                }
                 //give player tradeGood
                 //remove playerEmeralds ->add left
                 //
@@ -407,4 +407,5 @@ public class CommandEvents {
             recruit.setShouldBlock(shields);
         }
     }
+
 }
