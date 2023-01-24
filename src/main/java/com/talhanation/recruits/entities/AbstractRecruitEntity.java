@@ -764,8 +764,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             int currentRecruits = CommandEvents.getSavedRecruitCount(player);
             CommandEvents.saveRecruitCount(player, currentRecruits + 1);
 
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getOwner().getName().getString(), 1));
-
             return true;
         }
     }
@@ -1208,6 +1206,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 String teamName = team.getName();
                 PlayerTeam recruitTeam = this.level.getScoreboard().getPlayerTeam(teamName);
                 this.level.getScoreboard().removePlayerFromTeam(this.getStringUUID(), recruitTeam);
+
+                /*
+                if(recruitTeam.getPlayers().contains(this.getStringUUID())){
+                    Main.LOGGER.debug("Removing: " + this.getStringUUID());
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(recruitTeam.getName(), -1));
+                }
+                */
             }
             else{
                 String ownerTeamName = ownerTeam.getName();

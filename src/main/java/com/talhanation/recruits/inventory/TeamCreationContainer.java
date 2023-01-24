@@ -32,6 +32,7 @@ public class TeamCreationContainer extends ContainerBase {
 
     public void removed(Player p_39881_) {
         super.removed(p_39881_);
+        player.getInventory().add(getBanner());
     }
 
     @Override
@@ -56,7 +57,6 @@ public class TeamCreationContainer extends ContainerBase {
             }
         });
     }
-
 
     public ItemStack getBanner() {
         return container.getItem(0);

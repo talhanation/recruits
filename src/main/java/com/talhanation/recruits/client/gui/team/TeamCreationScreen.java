@@ -54,10 +54,7 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
                     this.banner = container.getBanner();
                     if (!banner.equals(ItemStack.EMPTY)) {
                         int creationCost = 10;
-                        if (!textField.getValue().equals("")) {
-                            Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(textField.getValue(), creationCost, banner));
-                        } else
-                            playerInventory.player.sendMessage(new TranslatableComponent("chat.recruits.team_creation.noname"), playerInventory.player.getUUID());
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(textField.getValue(), creationCost, banner));
                     }
                 this.onClose();
             }));

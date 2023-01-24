@@ -22,11 +22,13 @@ public class RecruitsTeamSavedData extends SavedData {
     private static final Map<String, RecruitsTeam> teams = Maps.newHashMap();
 
     public RecruitsTeamSavedData(){
+        teams.clear();
         this.setDirty();
     }
 
     public static RecruitsTeamSavedData get(ServerLevel level){
         DimensionDataStorage storage = level.getDataStorage();
+
         return storage.computeIfAbsent(RecruitsTeamSavedData::load, RecruitsTeamSavedData::new, FILE_ID);
     }
 
@@ -55,7 +57,6 @@ public class RecruitsTeamSavedData extends SavedData {
             }
             if (nbt.contains("TeamBanner")) {
                 recruitsTeam.setBanner((CompoundTag) nbt.get("TeamBanner"));
-
             }
             if (nbt.contains("Players")) {
                 recruitsTeam.setPlayers(nbt.getInt("Players"));
@@ -63,7 +64,6 @@ public class RecruitsTeamSavedData extends SavedData {
             if (nbt.contains("NPCs")) {
                 recruitsTeam.setNPCs(nbt.getInt("NPCs"));
             }
-
             if (nbt.contains("JoinRequests")) {
                 ListTag listtag = nbt.getList("JoinRequests", 10);
                 for (int j = 0; j < listtag.size(); ++j) {
@@ -117,8 +117,6 @@ public class RecruitsTeamSavedData extends SavedData {
     }
     @Nullable
     public static RecruitsTeam getTeamByName(String teamName) {
-        Main.LOGGER.debug("get Teams" + teams.values());
-        Main.LOGGER.debug("getTeamByName: Team: " + teams.get(teamName));
         return teams.get(teamName);
     }
     public Collection<RecruitsTeam> getTeams() {

@@ -7,6 +7,7 @@ import com.talhanation.recruits.world.RecruitsTeamSavedData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
@@ -37,6 +38,13 @@ public class TeamEvents {
         return player.getTeam() != null;
     }
 
+    /*
+    @SubscribeEvent
+    public void onCommandEvent(CommandEvent event){
+        String command = event.getParseResults().getReader().getString();
+        Main.LOGGER.debug("Command: " + command);
+    }
+    */
 
     public static void openTeamListScreen(Player player) {
         if (player instanceof ServerPlayer) {
@@ -142,8 +150,6 @@ public class TeamEvents {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamAddPlayerScreen(player));
         }
     }
-
-
     public static void createTeam(ServerPlayer serverPlayer, ServerLevel level, String teamName, String playerName, int cost, ItemStack banner) {
         MinecraftServer server = level.getServer();
         PlayerTeam team = server.getScoreboard().getPlayerTeam(teamName);
@@ -151,42 +157,50 @@ public class TeamEvents {
         String createTeamCommand = "/team add " + teamName;
         String joinTeamCommand = "/team join " + teamName + " " + playerName;
         CommandSourceStack commandSourceStack = new CommandSourceStack(CommandSource.NULL, Vec3.atCenterOf(serverPlayer.getOnPos()), Vec2.ZERO, level, 2, playerName, new TextComponent(playerName), level.getServer(), serverPlayer);
-        //re add banner to player
-        //serverPlayer.getInventory().add(banner.copy());
+        //Commands
 
-        if(team == null){
-            if(AssassinEvents.playerHasEnoughEmeralds(serverPlayer, cost)){
-                if (!isBannerBlank(banner)) {
-                    if (!isBannerInUse(level, banner.serializeNBT())) {
-                        server.getCommands().performCommand(commandSourceStack, createTeamCommand);
-                        server.getCommands().performCommand(commandSourceStack, joinTeamCommand);
-                        AssassinEvents.doPayment(serverPlayer, cost);
+        if (team == null) {
+            if (!(teamName.isBlank() || teamName.isEmpty())) {
+                if (!isNameInUse(level, teamName)) {
+                    if (AssassinEvents.playerHasEnoughEmeralds(serverPlayer, cost)) {
+                        if (!isBannerBlank(banner)) {
+                            if (!isBannerInUse(level, banner.serializeNBT())) {
+                                server.getCommands().performCommand(commandSourceStack, createTeamCommand);
+                                server.getCommands().performCommand(commandSourceStack, joinTeamCommand);
+                                AssassinEvents.doPayment(serverPlayer, cost);
 
-                        saveDataToTeam(level, teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT());
-                        addPlayerToData(level, teamName, 1, playerName);
-                        Main.LOGGER.debug("The Team "+ teamName + " has been created by " + playerName + ".");
+                                saveDataToTeam(level, teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT());
+                                addPlayerToData(level, teamName, 1, playerName);
+                                Main.LOGGER.debug("The Team " + teamName + " has been created by " + playerName + ".");
+                            } else
+                                serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.banner_exists"), serverPlayer.getUUID());
+                        } else
+                            serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.wrongbanner"), serverPlayer.getUUID());
                     } else
-                        serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.banner_exists"), serverPlayer.getUUID());
-                }
-                else
-                    serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.wrongbanner"), serverPlayer.getUUID());
-
-            }
-            else
-                serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.noenough_money").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
-        }
-        else
+                        serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.noenough_money").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
+                } else
+                    serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.team_exists"), serverPlayer.getUUID());
+            } else
+                serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.noname"), serverPlayer.getUUID());
+        }else
             serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.team_exists"), serverPlayer.getUUID());
+    }
+
+    private static boolean isNameInUse(ServerLevel level, String teamName) {
+        RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
+        List<RecruitsTeam> list = data.getTeams().stream().toList();
+        boolean equ = false;
+        for(RecruitsTeam recruitsTeam : list){
+            equ = recruitsTeam.getTeamName().toLowerCase().equals(teamName.toLowerCase());
+        }
+        return equ;
     }
 
     public static void saveDataToTeam(ServerLevel level, String teamName, UUID leaderUUID, String leaderName, CompoundTag bannerNbt) {
         RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
 
-        Main.LOGGER.debug("Before Teams: " + data.getTeams());
         data.addTeam(teamName, leaderUUID, leaderName, bannerNbt);
         data.setDirty();
-
-        Main.LOGGER.debug("After Teams: " + data.getTeams());
     }
 
     public static boolean isBannerInUse(ServerLevel level, CompoundTag bannerNbt){
@@ -205,7 +219,6 @@ public class TeamEvents {
     public static void updateTeamInspectMenu(ServerPlayer player, ServerLevel level, String team){
         RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
         RecruitsTeam recruitsTeam = data.getTeamByName(team);
-        Main.LOGGER.debug("updateTeamInspectMenu: Team: " + recruitsTeam);
 
         if(recruitsTeam != null){
             ItemStack bannerStack = ItemStack.of(recruitsTeam.getBanner());
@@ -237,14 +250,17 @@ public class TeamEvents {
         CommandSourceStack commandSourceStack = new CommandSourceStack(CommandSource.NULL, Vec3.atCenterOf(player.getOnPos()), Vec2.ZERO, level, 2, playerName, new TextComponent(playerName), level.getServer(), player);
 
         if(isLeader){
+            removeRecruitsTeamData(level, teamName);
             server.getCommands().performCommand(commandSourceStack, emptyTeam);
             server.getCommands().performCommand(commandSourceStack, removeTeam);
-            removeRecruitsTeamData(level, teamName);
+
+            data.getTeams().removeIf(team -> team.getTeamName().equals(teamName));
+            data.setDirty();
         }
         else {
             server.getCommands().performCommand(commandSourceStack, leaveTeamCommand);
+            addPlayerToData(level,teamName,-1, playerName);
         }
-        addPlayerToData(level,teamName,-1, playerName);
     }
 
     private static void removeRecruitsTeamData(ServerLevel level, String teamName) {
