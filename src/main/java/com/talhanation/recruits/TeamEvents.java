@@ -1,5 +1,6 @@
 package com.talhanation.recruits;
 
+import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.inventory.*;
 import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.world.RecruitsTeam;
@@ -7,11 +8,12 @@ import com.talhanation.recruits.world.RecruitsTeamSavedData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
+import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,16 +22,20 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class TeamEvents {
@@ -162,12 +168,12 @@ public class TeamEvents {
         if (team == null) {
             if (!(teamName.isBlank() || teamName.isEmpty())) {
                 if (!isNameInUse(level, teamName)) {
-                    if (AssassinEvents.playerHasEnoughEmeralds(serverPlayer, cost)) {
+                    if (playerHasEnoughEmeralds(serverPlayer, cost)) {
                         if (!isBannerBlank(banner)) {
                             if (!isBannerInUse(level, banner.serializeNBT())) {
                                 server.getCommands().performCommand(commandSourceStack, createTeamCommand);
                                 server.getCommands().performCommand(commandSourceStack, joinTeamCommand);
-                                AssassinEvents.doPayment(serverPlayer, cost);
+                                doPayment(serverPlayer, cost);
 
                                 saveDataToTeam(level, teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT());
                                 addPlayerToData(level, teamName, 1, playerName);
@@ -331,5 +337,71 @@ public class TeamEvents {
         }
     }
 
+    public static ItemStack getCurrency(){
+        ItemStack currencyItemStack;
+        String str = RecruitsModConfig.RecruitCurrency.get();
+        Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
+
+        currencyItemStack = holder.map(itemHolder -> itemHolder.value().getDefaultInstance()).orElseGet(Items.EMERALD::getDefaultInstance);
+
+        return currencyItemStack;
+    }
+    public static boolean playerHasEnoughEmeralds(ServerPlayer player, int price){
+        Inventory playerInv = player.getInventory();
+        int playerEmeralds = 0;
+
+        Item currency = getCurrency().getItem();
+
+        //checkPlayerMoney
+        for (int i = 0; i < playerInv.getContainerSize(); i++){
+            ItemStack itemStackInSlot = playerInv.getItem(i);
+            Item itemInSlot = itemStackInSlot.getItem();
+            if (itemInSlot.equals(currency)){
+                playerEmeralds = playerEmeralds + itemStackInSlot.getCount();
+            }
+        }
+
+        return playerEmeralds >= price;
+    }
+
+    public static void doPayment(Player player, int costs){
+        Inventory playerInv = player.getInventory();
+        int playerEmeralds = 0;
+
+        ItemStack currencyItemStack = getCurrency();
+
+
+        //checkPlayerMoney
+        playerEmeralds = playerGetEmeraldsInInventory(player, currencyItemStack.getItem());
+        playerEmeralds = playerEmeralds - costs;
+
+        //remove Player Emeralds
+        for (int i = 0; i < playerInv.getContainerSize(); i++){
+            ItemStack itemStackInSlot = playerInv.getItem(i);
+            Item itemInSlot = itemStackInSlot.getItem();
+            if (itemInSlot == currencyItemStack.getItem()){
+                playerInv.removeItemNoUpdate(i);
+            }
+        }
+
+        //add Player Emeralds what is left
+        ItemStack emeraldsLeft = getCurrency();
+
+        emeraldsLeft.setCount(playerEmeralds);
+        playerInv.add(emeraldsLeft);
+    }
+
+    public static int playerGetEmeraldsInInventory(Player player, Item currency) {
+        int emeralds = 0;
+        Inventory playerInv = player.getInventory();
+        for (int i = 0; i < playerInv.getContainerSize(); i++){
+            ItemStack itemStackInSlot = playerInv.getItem(i);
+            Item itemInSlot = itemStackInSlot.getItem();
+            if (itemInSlot == currency){
+                emeralds = emeralds + itemStackInSlot.getCount();
+            }
+        }
+        return emeralds;
+    }
     private static final TranslatableComponent PLAYER_REMOVED = new TranslatableComponent("chat.recruits.team_creation.removedPlayer");
 }

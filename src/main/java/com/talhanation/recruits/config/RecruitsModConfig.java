@@ -232,7 +232,7 @@ public class RecruitsModConfig {
 
         RecruitCurrency = BUILDER.comment("\n" + "----Currency----" + "\n" +
                 "\t" + "(takes effect after restart)" + "\n" +
-                "\t" + "The Ite m defined here, will be used to hire recruits. For example: [\"minecraft:diamond\"]")
+                "\t" + "The Item defined here, will be used to hire recruits. For example: [\"minecraft:diamond\"]")
                 .worldRestart()
                 .define("RecruitCurrency", "minecraft:emerald");
 

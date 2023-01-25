@@ -1,7 +1,10 @@
 package com.talhanation.recruits;
 
+import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AssassinEntity;
 import com.talhanation.recruits.init.ModEntityTypes;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.player.Player;
@@ -17,6 +20,9 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.NaturalSpawner;
+import net.minecraftforge.registries.ForgeRegistries;
+
+import java.util.Optional;
 
 public class AssassinEvents {
 
@@ -86,18 +92,27 @@ public class AssassinEvents {
     public static void doPayment(Player player, int costs){
         Inventory playerInv = player.getInventory();
         int playerEmeralds = 0;
+        String str = RecruitsModConfig.RecruitCurrency.get();
+        ItemStack currencyItemStack;
+        Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
+
+        if (holder.isPresent()){
+            currencyItemStack = holder.get().value().getDefaultInstance();
+        }
+        else
+            currencyItemStack = Items.EMERALD.getDefaultInstance();
 
         //checkPlayerMoney
         playerEmeralds = playerGetEmeraldsInInventory(player);
-        player.sendMessage(new TextComponent("PlayerEmeralds: " + playerEmeralds), player.getUUID());
-        player.sendMessage(new TextComponent("Costs: " + costs), player.getUUID());
+        //player.sendMessage(new TextComponent("PlayerEmeralds: " + playerEmeralds), player.getUUID());
+        //player.sendMessage(new TextComponent("Costs: " + costs), player.getUUID());
         playerEmeralds = playerEmeralds - costs;
 
         //remove Player Emeralds
         for (int i = 0; i < playerInv.getContainerSize(); i++){
             ItemStack itemStackInSlot = playerInv.getItem(i);
             Item itemInSlot = itemStackInSlot.getItem();
-            if (itemInSlot == Items.EMERALD){
+            if (itemInSlot.equals(currencyItemStack)){
                 playerInv.removeItemNoUpdate(i);
             }
         }

@@ -1,10 +1,8 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.TeamEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
@@ -27,8 +25,8 @@ public class MessageServerUpdateTeamInspectMenu implements Message<MessageServer
 
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
-        Main.LOGGER.debug("---------MessageServerUpdateTeamInspectMenu--------");
-        Main.LOGGER.debug("teamName: " + teamName);
+        //Main.LOGGER.debug("---------MessageServerUpdateTeamInspectMenu--------");
+        //Main.LOGGER.debug("teamName: " + teamName);
         TeamEvents.updateTeamInspectMenu(context.getSender(), context.getSender().getLevel(), teamName);
 
     }
