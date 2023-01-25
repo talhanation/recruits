@@ -80,7 +80,6 @@
   "gui.recruits.command.text.mount" : "Mount!",
   "gui.recruits.command.text.dismount" : "Dismount!",
 
-  "gui.recruits.command.text.escort" : "Escort!",
   "gui.recruits.command.text.move" : "Move!",
   "gui.recruits.command.text.shields" : "Shields!",
   "gui.recruits.command.text.arrow" : "Hail of Arrows!",
@@ -102,7 +101,6 @@
   "gui.recruits.command.text.everyone" : "Everyone",
 
   "chat.recruits.command.upkeep" : "Your upkeep is here!",
-  "chat.recruits.command.escort" : "Escort this Mob!",
 
   "chat.recruits.command.escort" : "Guard this Mob!",
   "chat.recruits.command.mount" : "Mount here!",
@@ -148,7 +146,7 @@
   "chat.recruits.text.group": "Group",
   "chat.recruits.text.everyone": "Everyone",
 
-  "gui.recruits.inv.text.upkeep": "Upkeep"
+  "gui.recruits.inv.text.upkeep": "Upkeep",
 
 
 

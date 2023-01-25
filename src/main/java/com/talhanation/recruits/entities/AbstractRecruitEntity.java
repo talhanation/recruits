@@ -11,8 +11,6 @@ import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.MessageDebugScreen;
-import com.talhanation.recruits.inventory.RecruitHireContainer;
-import com.talhanation.recruits.inventory.RecruitInventoryContainer;
 import com.talhanation.recruits.network.MessageAddRecruitToTeam;
 import com.talhanation.recruits.network.MessageHireGui;
 import com.talhanation.recruits.network.MessageRecruitGui;
@@ -951,14 +949,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         int currentRecruits = CommandEvents.getSavedRecruitCount(player);
         CommandEvents.saveRecruitCount(player,  currentRecruits + 1);
         return true;
-
-
-            int currentRecruits = CommandEvents.getSavedRecruitCount(player);
-            CommandEvents.saveRecruitCount(player, currentRecruits + 1);
-
-            return true;
-        }
-
     }
 
     public void dialogue(String name, Player player) {

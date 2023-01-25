@@ -45,11 +45,9 @@ minecraft {
             property 'forge.enabledGameTestNamespaces', 'recruits'
 
             Random rnd = new Random()
-<<<<<<< HEAD
-            //args = ['--username', 'Player' + rnd.nextInt(1000)]
-=======
+
             args = ['--username', 'tester']//rnd.nextInt(1000)]
->>>>>>> TeamScreen
+
 
             mods {
                 'recruits' {

@@ -67,10 +67,6 @@ public class Main {
     public static MenuType<RecruitHireMenu> HIRE_CONTAINER_TYPE;
     public static MenuType<AssassinLeaderMenu> ASSASSIN_CONTAINER_TYPE;
     public static KeyMapping C_KEY;
-    public static MenuType<RecruitInventoryContainer> RECRUIT_CONTAINER_TYPE;
-    public static MenuType<CommandContainer> COMMAND_CONTAINER_TYPE;
-    public static MenuType<RecruitHireContainer> HIRE_CONTAINER_TYPE;
-    public static MenuType<AssassinLeaderContainer> ASSASSIN_CONTAINER_TYPE;
     public static MenuType<TeamCreationContainer> TEAM_CREATION_TYPE;
     public static MenuType<TeamMainContainer> TEAM_MAIN_TYPE;
     public static MenuType<TeamInspectionContainer> TEAM_INSPECTION_TYPE;
@@ -102,9 +98,7 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new PillagerEvents());
         MinecraftForge.EVENT_BUS.register(new CommandEvents());
         MinecraftForge.EVENT_BUS.register(new AssassinEvents());
-
         MinecraftForge.EVENT_BUS.register(new DebugEvents());
-
         MinecraftForge.EVENT_BUS.register(new TeamEvents());
 
         MinecraftForge.EVENT_BUS.register(this);
@@ -115,7 +109,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 3, MessageAssassinCount.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 4, MessageAssassinGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 5, MessageMountEntity.class);
-
+        //6
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 7, MessageClearTargetGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 8, MessageCommandScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 9, MessageDisband.class);
@@ -130,29 +124,25 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 18, MessageGuardEntity.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 19, MessageDismount.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 20, MessageDismountGui.class);
-		
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 21, MessageUpkeepPos.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 22, MessageHailOfArrows.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 23, MessageShields.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 24, MessageDebugGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 25, MessageUpkeepEntity.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 26, MessageClearTarget.class);
-
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 21, MessageCreateTeam.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 22, MessageOpenTeamCreationScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 23, MessageLeaveTeam.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 24, MessageTeamMainScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 25, MessageOpenTeamInspectionScreen.class);
-
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 26, MessageServerUpdateTeamInspectMenu.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 27, MessageToClientUpdateTeam.class);
-
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 28, MessageOpenTeamListScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 29, MessageAddPlayerToTeam.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 30, MessageOpenTeamAddPlayerScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 31, MessageAddRecruitToTeam.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 32, MessageSendJoinRequestTeam.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 33, MessageRemoveFromTeam.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 27, MessageCreateTeam.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 28, MessageOpenTeamCreationScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 29, MessageLeaveTeam.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 30, MessageTeamMainScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 31, MessageOpenTeamInspectionScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 32, MessageServerUpdateTeamInspectMenu.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 33, MessageToClientUpdateTeam.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 34, MessageOpenTeamListScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 35, MessageAddPlayerToTeam.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 36, MessageOpenTeamAddPlayerScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 37, MessageAddRecruitToTeam.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 38, MessageSendJoinRequestTeam.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 39, MessageRemoveFromTeam.class);
     }
 
     @SubscribeEvent
@@ -234,8 +224,6 @@ public class Main {
                 return null;
             }
             return new CommandMenu(windowId, playerEntity);
-            return new CommandContainer(windowId, playerEntity);
-
         });
         COMMAND_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "command_container"));
         event.getRegistry().register(COMMAND_CONTAINER_TYPE);
@@ -258,12 +246,12 @@ public class Main {
                 return null;
             }
             return new RecruitHireMenu(windowId, playerEntity, rec, playerEntity.getInventory());
+        });
 
-
-        HIRE_CONTAINER_TYPE = new MenuType<>((IContainerFactory<RecruitHireContainer>) (windowId, inv, data) -> {
+        HIRE_CONTAINER_TYPE = new MenuType<>((IContainerFactory<RecruitHireMenu>) (windowId, inv, data) -> {
             Player playerEntity = inv.player;
             AbstractRecruitEntity rec = getRecruitByUUID(inv.player, data.readUUID());
-            return new RecruitHireContainer(windowId, playerEntity, rec, playerEntity.getInventory());
+            return new RecruitHireMenu(windowId, playerEntity, rec, playerEntity.getInventory());
         });
         HIRE_CONTAINER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "hire_container"));
         event.getRegistry().register(HIRE_CONTAINER_TYPE);
@@ -317,6 +305,7 @@ public class Main {
         TEAM_ADD_PLAYER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "team_add_player_container"));
         event.getRegistry().register(TEAM_ADD_PLAYER_TYPE);
     }
+
 
     @Nullable
     public static AbstractRecruitEntity getRecruitByUUID(Player player, UUID uuid) {
