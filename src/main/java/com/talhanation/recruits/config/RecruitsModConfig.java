@@ -240,7 +240,7 @@ public class RecruitsModConfig {
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: false")
                 .worldRestart()
-                .define("RecruitsLookLikeVillagers", false);
+                .define("RecruitsLookLikeVillagers", true);
 
         CONFIG = BUILDER.build();
 

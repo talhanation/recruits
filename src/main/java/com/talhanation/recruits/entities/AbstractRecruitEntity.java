@@ -102,6 +102,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Boolean> OWNED = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> COST = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Optional<UUID>> UPKEEP_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
+
+    private static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     public int blockCoolDown;
     public int mountTimer;
     public int eatCoolDown;
@@ -263,6 +265,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(SHOULD_MOVE_POS, false);
         this.entityData.define(FLEEING, false);
         this.entityData.define(STATE, 0);
+        this.entityData.define(VARIANT, 0);
         this.entityData.define(XP, 0);
         this.entityData.define(KILLS, 0);
         this.entityData.define(LEVEL, 1);
@@ -306,6 +309,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putBoolean("ShouldEscort", this.getShouldEscort());
         nbt.putBoolean("ShouldBlock", this.getShouldBlock());
         nbt.putInt("Group", this.getGroup());
+        nbt.putInt("Variant", this.getVariant());
         nbt.putBoolean("Listen", this.getListen());
         nbt.putBoolean("Fleeing", this.getFleeing());
         nbt.putBoolean("isFollowing", this.isFollowing());
@@ -371,6 +375,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setIsEating(nbt.getBoolean("isEating"));
         this.setXp(nbt.getInt("Xp"));
         this.setKills(nbt.getInt("Kills"));
+        this.setVariant(nbt.getInt("Variant"));
         this.setHunger(nbt.getFloat("Hunger"));
         this.setMoral(nbt.getFloat("Moral"));
         this.setIsOwned(nbt.getBoolean("isOwned"));
@@ -420,9 +425,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
-
     ////////////////////////////////////GET////////////////////////////////////
 
+    public int getVariant() {
+        return entityData.get(VARIANT);
+    }
     public int getBlockCoolDown(){
         return 200;
     }
@@ -549,11 +556,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public SoundEvent getHurtSound(@NotNull DamageSource ds) {
         if (this.isBlocking())
             return SoundEvents.SHIELD_BLOCK;
-        return SoundEvents.VILLAGER_HURT;
+        return RecruitsModConfig.RecruitsLookLikeVillagers.get() ? SoundEvents.VILLAGER_HURT : SoundEvents.GENERIC_HURT;
     }
 
     protected SoundEvent getDeathSound() {
-        return SoundEvents.VILLAGER_DEATH;
+        return RecruitsModConfig.RecruitsLookLikeVillagers.get() ? SoundEvents.VILLAGER_DEATH : SoundEvents.GENERIC_DEATH;
     }
 
     protected float getSoundVolume() {
@@ -592,7 +599,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
      */
 
     ////////////////////////////////////SET////////////////////////////////////
-
+    public void setVariant(int variant){
+        entityData.set(VARIANT, variant);
+    }
     public void setUpkeepUUID(Optional<UUID> id) {
         this.entityData.set(UPKEEP_ID, id);
     }
@@ -840,6 +849,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void initSpawn(){
         this.setCanPickUpLoot(true);
         this.recalculateCost();
+        this.setVariant(random.nextInt(3));
     }
 
 
@@ -1195,12 +1205,15 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void makeLevelUpSound() {
-        this.playSound(SoundEvents.VILLAGER_YES, 15.0F, 0.8F + 0.4F * this.random.nextFloat());
+        if(RecruitsModConfig.RecruitsLookLikeVillagers.get())
+            this.playSound(SoundEvents.VILLAGER_YES, 15.0F, 0.8F + 0.4F * this.random.nextFloat());
+
         this.playSound(SoundEvents.PLAYER_LEVELUP, 15.0F, 0.8F + 0.4F * this.random.nextFloat());
     }
 
     public void makeHireSound() {
-        this.playSound(SoundEvents.VILLAGER_AMBIENT, 15.0F, 0.8F + 0.4F * this.random.nextFloat());
+        if(RecruitsModConfig.RecruitsLookLikeVillagers.get())
+            this.playSound(SoundEvents.VILLAGER_AMBIENT, 15.0F, 0.8F + 0.4F * this.random.nextFloat());
     }
 
     @Override

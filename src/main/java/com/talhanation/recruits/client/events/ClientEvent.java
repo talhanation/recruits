@@ -51,7 +51,6 @@ public class ClientEvent {
 
     @SubscribeEvent
     public static void layerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
-        //event.registerLayerDefinition(ClientEvent.RECRUIT, RecruitHumanModel::createLayerDefinition);
         event.registerLayerDefinition(ClientEvent.RECRUIT, RecruitVillagerModel::createLayerDefinition);
         event.registerLayerDefinition(ClientEvent.RECRUIT_OUTER_ARMOR, RecruitArmorLayer::createOuterArmorLayer);
     }

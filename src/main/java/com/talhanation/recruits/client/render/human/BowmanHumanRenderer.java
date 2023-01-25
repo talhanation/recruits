@@ -10,7 +10,10 @@ import net.minecraft.resources.ResourceLocation;
 public class BowmanHumanRenderer extends AbstractRecruitHumanRenderer<BowmanEntity> {
 
     private static final ResourceLocation[] TEXTURE = {
-            new ResourceLocation(Main.MOD_ID,"textures/entity/recruit.png"),
+            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_bowman_1.png"),
+            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_bowman_2.png"),
+            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_bowman_3.png"),
+            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_bowman_4.png"),
     };
 
     public BowmanHumanRenderer(EntityRendererProvider.Context mgr) {
@@ -18,7 +21,7 @@ public class BowmanHumanRenderer extends AbstractRecruitHumanRenderer<BowmanEnti
     }
 
     @Override
-    public ResourceLocation getTextureLocation(BowmanEntity p_110775_1_) {
-        return TEXTURE[0];
+    public ResourceLocation getTextureLocation(BowmanEntity bowmanEntity) {
+        return TEXTURE[bowmanEntity.getVariant()];
     }
 }

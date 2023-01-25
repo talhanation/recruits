@@ -31,7 +31,7 @@ import javax.annotation.Nullable;
 import java.util.function.Predicate;
 
 public class AssassinLeaderEntity extends AbstractOrderAbleEntity {
-    private static final EntityDataAccessor<Integer> COUNT = SynchedEntityData.defineId(AbstractOrderAbleEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> COUNT = SynchedEntityData.defineId(AssassinLeaderEntity.class, EntityDataSerializers.INT);
 
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
