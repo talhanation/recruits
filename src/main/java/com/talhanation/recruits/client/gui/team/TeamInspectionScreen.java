@@ -38,6 +38,7 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/team/team_inspect_gui.png");
     private static final TranslatableComponent LEAVE_TEAM = new TranslatableComponent("gui.recruits.team_creation.leave_team");
+    private static final TranslatableComponent DELETE_TEAM = new TranslatableComponent("gui.recruits.team_creation.delete_team");
     private static final TranslatableComponent EDIT_TEAM = new TranslatableComponent("gui.recruits.team_creation.edit_team");
     private static final TranslatableComponent MANAGE_TEAM = new TranslatableComponent("gui.recruits.team_creation.add_player");
 
@@ -90,7 +91,7 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
         }
 
         //leave team
-        addRenderableWidget(new Button(leftPos + 85, topPos + 218, 50, 18, LEAVE_TEAM, button -> {
+        addRenderableWidget(new Button(leftPos + 85, topPos + 218, 50, 18, isTeamLeader ? DELETE_TEAM : LEAVE_TEAM, button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
             this.onClose();
         }));

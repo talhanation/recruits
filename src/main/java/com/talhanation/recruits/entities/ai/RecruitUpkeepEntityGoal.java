@@ -89,7 +89,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
                         for (int i = 0; i < 3; i++) {
                             ItemStack foodItem = this.getFoodFromInv(container);
                             ItemStack food;
-                            if (foodItem != null) {
+                            if (foodItem != null && recruit.getInventory().canAddItem(foodItem)){
                                 food = foodItem.copy();
                                 food.setCount(1);
                                 recruit.getInventory().addItem(food);

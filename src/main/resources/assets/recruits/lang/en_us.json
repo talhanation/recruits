@@ -16,6 +16,7 @@
 
   "category.recruits" : "Recruits",
   "key.r_key": "Open Command Screen",
+  "key.c_key": "Open Team Screen",
 
   "gui.recruits.inv.health" : "Hp:",
   "gui.recruits.inv.level": "Lvl:",
@@ -174,5 +175,8 @@
   "chat.recruits.team_creation.addedPlayerLeader": " joined your Team successfully.",
   "chat.recruits.team_creation.could_not_find": "Could not find player ",
   "chat.recruits.team_creation.join": "Join",
-  "gui.recruits.team_creation.no_teams": "There are no Teams."
+  "gui.recruits.team_creation.no_teams": "There are no Teams.",
+  "gui.recruits.team_creation.delete_team": "Delete",
+  "gui.recruits.command.tooltip.team": "Opens the team screen",
+  "gui.recruits.command.text.team": "Team"
 }

@@ -1,6 +1,5 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.AssassinEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.TextComponent;
@@ -41,8 +40,8 @@ public class MessageAssassinate implements Message<MessageAssassinate> {
         if (targetPlayer != null) {
             player.sendMessage(new TextComponent("Successfully found the Target"), player.getUUID());
             //this.target = targetPlayer.getUUID();
-            AssassinEvents.createAssassin(name, count, world);
-            AssassinEvents.doPayment(player, costs);
+            //AssassinEvents.createAssassin(name, count, world);
+            //AssassinEvents.doPayment(player, costs);
         }
         else {
             player.sendMessage(new TextComponent("Could not found the Target"), player.getUUID());

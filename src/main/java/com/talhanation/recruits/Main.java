@@ -97,7 +97,7 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new VillagerEvents());
         MinecraftForge.EVENT_BUS.register(new PillagerEvents());
         MinecraftForge.EVENT_BUS.register(new CommandEvents());
-        MinecraftForge.EVENT_BUS.register(new AssassinEvents());
+        //MinecraftForge.EVENT_BUS.register(new AssassinEventsOLD());
         MinecraftForge.EVENT_BUS.register(new DebugEvents());
         MinecraftForge.EVENT_BUS.register(new TeamEvents());
 

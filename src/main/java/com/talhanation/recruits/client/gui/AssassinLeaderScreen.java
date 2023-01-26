@@ -1,7 +1,6 @@
 package com.talhanation.recruits.client.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.talhanation.recruits.AssassinEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
 import com.talhanation.recruits.inventory.AssassinLeaderMenu;
@@ -24,10 +23,10 @@ import org.lwjgl.glfw.GLFW;
 public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderMenu> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/assassin_gui.png");
 
-    private static final Component TEXT_HEALTH = new TranslatableComponent("gui.recruits.health");
-    private static final Component TEXT_LEVEL = new TranslatableComponent("gui.recruits.level");
-    private static final Component TEXT_GROUP = new TranslatableComponent("gui.recruits.group");
-    private static final Component TEXT_KILLS = new TranslatableComponent("gui.recruits.kills");
+    private static final Component TEXT_HEALTH = new TranslatableComponent("gui.recruits.inv.health");
+    private static final Component TEXT_LEVEL = new TranslatableComponent("gui.recruits.inv.level");
+    private static final Component TEXT_GROUP = new TranslatableComponent("gui.recruits.inv.group");
+    private static final Component TEXT_KILLS = new TranslatableComponent("gui.recruits.inv.kills");
 
     private static final int fontColor = 4210752;
 
@@ -70,9 +69,9 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderMenu> {
         //HUNT
         addRenderableWidget(new Button(leftPos + 77 + 25, topPos + 4, 50, 12, new TextComponent("Assassinate"), button -> {
             int assassinateCost = assassinLeaderEntity.calculateAssassinateCosts(assassinLeaderEntity.getAssassinCosts(), this.count);
-            if(AssassinEvents.playerHasEnoughEmeralds(playerInventory.player, assassinateCost))
+            //if(AssassinEvents.playerHasEnoughEmeralds(playerInventory.player, assassinateCost))
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageAssassinate(textField.getValue(), this.count, assassinateCost));
-            else
+            //else
                 playerInventory.player.sendMessage(new TextComponent(assassinLeaderEntity.getName() + ": You dont have enough Emeralds"), playerInventory.player.getUUID());
         onClose();
         }));

@@ -18,6 +18,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 
 @OnlyIn(Dist.CLIENT)
@@ -64,7 +65,8 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final TranslatableComponent TEXT_CLEAR_TARGET = new TranslatableComponent("gui.recruits.command.text.clearTargets");
     private static final TranslatableComponent TEXT_UPKEEP = new TranslatableComponent("gui.recruits.inv.text.upkeep");
     private static final TranslatableComponent TOOLTIP_UPKEEP = new TranslatableComponent("gui.recruits.command.tooltip.upkeep");
-
+    private static final TranslatableComponent TOOLTIP_TEAM = new TranslatableComponent("gui.recruits.command.tooltip.team");
+    private static final TranslatableComponent TEXT_TEAM = new TranslatableComponent("gui.recruits.command.text.team");
     private static final int fontColor = 16250871;
     private Player player;
     private int group;
@@ -96,11 +98,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         int mirror = 240 - 60;
 
         //TEAM SCREEN
-        addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 25, 80, 20, new TextComponent("TEAM"),
+        addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 60,80, 20, TEXT_TEAM,
                 button -> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageTeamMainScreen(player));
                 }, (a, b, c, d) -> {
-            //this.renderTooltip(b, TOOLTIP_DISMOUNT, c, d);
+            this.renderTooltip(b, TOOLTIP_TEAM, c, d);
         }));
 
         //Dismount
@@ -125,7 +127,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             this.renderTooltip(b, TOOLTIP_MOUNT, c, d);
         }));
 
-        //ARROWS
+        //HAIL OF ARROWS
         addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_HAILOFARROWS,
                 button -> {
                     this.hailOfArrows = !getSavedHailOfArrowsBool(player);
@@ -186,7 +188,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             this.renderTooltip(b, TOOLTIP_SHIELDS, c, d);
         }));
 
-        //Escort
+        //Guard
         addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_ESCORT,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(5, player, group);
@@ -392,7 +394,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         */
 
         //GROUP
-        addRenderableWidget(new Button(leftPos - 4 + imageWidth / 2, topPos - 40 + imageHeight / 2, 11, 20, new TextComponent("+"), button -> {
+        addRenderableWidget(new ExtendedButton(leftPos - 4 + imageWidth / 2, topPos - 40 + imageHeight / 2, 11, 20, new TextComponent("+"), button -> {
             this.group = getSavedCurrentGroup(player);
 
             if (this.group != 9) {
@@ -402,7 +404,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             }
         }));
 
-        addRenderableWidget(new Button(leftPos - 4 + imageWidth / 2, topPos + imageHeight / 2, 11, 20, new TextComponent("-"), button -> {
+        addRenderableWidget(new ExtendedButton(leftPos - 4 + imageWidth / 2, topPos + imageHeight / 2, 11, 20, new TextComponent("-"), button -> {
             this.group = getSavedCurrentGroup(player);
 
             if (this.group != 0) {
