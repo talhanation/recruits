@@ -39,7 +39,7 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
         return false;
     }
 
-    public @NotNull HurtByTargetGoal setAlertOthers(Class<?>... p_220794_1_) {
+    public @NotNull HurtByTargetGoal setAlertOthers(Class<?> @NotNull ... p_220794_1_) {
         this.alertSameType = true;
         this.toIgnoreAlert = p_220794_1_;
         return this;
@@ -71,7 +71,13 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
                 }
 
                 recruitToAlert = (AbstractRecruitEntity) iterator.next();
-                if (this.recruit != recruitToAlert && recruitToAlert.getTarget() == null && (this.recruit).getOwnerUUID() == (recruitToAlert).getOwnerUUID() && !recruitToAlert.isAlliedTo(this.recruit.getLastHurtByMob())) {
+                if (this.recruit != recruitToAlert &&
+                        recruitToAlert.getTarget() == null &&
+                        this.recruit.getLastHurtByMob() != null &&
+                        recruitToAlert.getOwnerUUID() != null &&
+                        this.recruit.getOwnerUUID() != null &&
+                        this.recruit.getOwnerUUID().equals((recruitToAlert).getOwnerUUID()) &&
+                        !recruitToAlert.isAlliedTo(this.recruit.getLastHurtByMob())) {
                     if (this.toIgnoreAlert == null) {
                         break;
                     }
