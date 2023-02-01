@@ -1242,6 +1242,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (this.getItemBySlot(EquipmentSlot.HEAD).isEmpty() && hasHeadArmor) {
             this.inventory.setItem(0, ItemStack.EMPTY);
             this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+            this.tryToReequip(EquipmentSlot.HEAD);
         }
 
         ItemStack chestArmor = this.getItemBySlot(EquipmentSlot.CHEST);
@@ -1255,6 +1256,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (this.getItemBySlot(EquipmentSlot.CHEST).isEmpty() && hasChestArmor) {
             this.inventory.setItem(1, ItemStack.EMPTY);
             this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+            this.tryToReequip(EquipmentSlot.CHEST);
         }
 
 
@@ -1271,6 +1273,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (this.getItemBySlot(EquipmentSlot.LEGS).isEmpty() && hasLegsArmor) {
             this.inventory.setItem(2, ItemStack.EMPTY);
             this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+            this.tryToReequip(EquipmentSlot.LEGS);
         }
 
 
@@ -1287,6 +1290,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (this.getItemBySlot(EquipmentSlot.FEET).isEmpty() && hasFeetArmor) {
             this.inventory.setItem(3, ItemStack.EMPTY);
             this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+            this.tryToReequip(EquipmentSlot.FEET);
         }
 
     }
@@ -1296,9 +1300,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         //therefor i need to make this twice
         ItemStack handItem = this.getItemBySlot(EquipmentSlot.MAINHAND);
         boolean hasHandItem = !handItem.isEmpty();
+        /*//Fixes damage duplication
         this.getMainHandItem().hurtAndBreak(1, this, (p_43296_) -> {
             p_43296_.broadcastBreakEvent(EquipmentSlot.MAINHAND);
         });
+         */
         this.inventory.getItem(5).hurtAndBreak(1, this, (p_43296_) -> {
             p_43296_.broadcastBreakEvent(EquipmentSlot.MAINHAND);
         });
@@ -1306,6 +1312,30 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (this.getMainHandItem().isEmpty() && hasHandItem) {
             this.inventory.setItem(5, ItemStack.EMPTY);
             this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+            this.tryToReequip(EquipmentSlot.MAINHAND);
+        }
+    }
+
+    public void tryToReequip(EquipmentSlot equipmentSlot){
+        for(int i = 6; i < 14; i++){
+            ItemStack itemStack = this.getInventory().getItem(i);
+            if(canEquipItem(itemStack)) {
+                this.playEquipSound(itemStack);
+                this.setItemSlot(equipmentSlot, itemStack);
+                this.inventory.setItem(getInventorySlotIndex(equipmentSlot), itemStack);
+                this.inventory.removeItemNoUpdate(i);
+            }
+        }
+    }
+
+    public void tryToReequipShield(){
+        for(ItemStack itemStack : this.getInventory().items){
+            if(itemStack.getItem() instanceof ShieldItem){
+                this.setItemSlot(EquipmentSlot.OFFHAND, itemStack);
+                this.inventory.setItem(getInventorySlotIndex(EquipmentSlot.OFFHAND), itemStack);
+                this.playEquipSound(itemStack);
+                itemStack.shrink(1);
+            }
         }
     }
 

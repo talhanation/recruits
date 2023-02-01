@@ -233,10 +233,8 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
         ItemStack itemstack = itemEntity.getItem();
 
-        //Equip and upgrade method:
-
-        //Main.LOGGER.debug("itemstack: " + itemstack);
-        if (this.equipItemIfPossible(itemstack)) {
+        if (this.canEquipItem(itemstack)) {
+            this.equipItem(itemstack);
             this.onItemPickup(itemEntity);
             this.take(itemEntity, itemstack.getCount());
             itemEntity.discard();
@@ -256,57 +254,32 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
                 itemstack.setCount(itemstack1.getCount());
             }
         }
-        /*
-        if (this.wantsToPickUp(itemstack)) {
-            boolean flag = this.inventory.canAddItem(itemstack);
-            if (!flag) {
-                return;
-            }
-            //this.recDetectEquipmentUpdates();
-            this.onItemPickup(itemEntity);
-            this.take(itemEntity, itemstack.getCount());
-
-            ItemStack itemstack1 = this.inventory.addItem(itemstack);
-            if (itemstack1.isEmpty()) {
-                itemEntity.remove(RemovalReason.KILLED);
-            } else {
-                itemstack.setCount(itemstack1.getCount());
-            }
-        }
-
-         */
     }
 
-    @Override
-    public boolean equipItemIfPossible(ItemStack itemStack) {
+    public void equipItem(ItemStack itemStack) {
+        EquipmentSlot equipmentslot = getEquipmentSlotForItem(itemStack);
+        ItemStack currentArmor = this.getItemBySlot(equipmentslot);
+        this.spawnAtLocation(currentArmor);
+        this.setItemSlot(equipmentslot, itemStack);
+        this.inventory.setItem(getInventorySlotIndex(equipmentslot), itemStack);
+        this.playEquipSound(itemStack);
+    }
+
+    public boolean canEquipItem(@NotNull ItemStack itemStack) {
         EquipmentSlot equipmentslot = getEquipmentSlotForItem(itemStack);
         ItemStack currentArmor = this.getItemBySlot(equipmentslot);
         boolean flag = this.canReplaceCurrentItem(itemStack, currentArmor);
-        if (flag && this.canHoldItem(itemStack)) {
-            if (!currentArmor.isEmpty()) {
-                this.spawnAtLocation(currentArmor);
-            }
 
-            this.setItemSlot(equipmentslot, itemStack);
-            this.inventory.setItem(getInventorySlotIndex(equipmentslot), itemStack);
-            this.equipEventAndSound(itemStack);
-            return true;
-        } else {
-            return false;
-        }
+        return flag && this.canHoldItem(itemStack);
     }
 
     @Override
     public boolean wantsToPickUp(@NotNull ItemStack itemStack){
-        /*
-        for(int i = 0; i < 4; i++){
-            EquipmentSlot equipmentslottype = RecruitInventoryMenu.SLOT_IDS[i];
-            if (itemStack.canEquip(equipmentslottype, this)){
-                return true;
-            }
-        }
-        */
-        return itemStack.isEdible() || itemStack.getItem() instanceof ArmorItem;
+       if (itemStack.getItem() instanceof ArmorItem){
+               return canEquipItem(itemStack);
+       }
+       else
+           return itemStack.isEdible();
     }
 
     public abstract Predicate<ItemEntity> getAllowedItems();
