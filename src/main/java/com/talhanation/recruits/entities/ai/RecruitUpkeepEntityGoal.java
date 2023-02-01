@@ -102,12 +102,13 @@ public class RecruitUpkeepEntityGoal extends Goal {
                     }
                     else {
                         if(recruit.getOwner() != null && message){
-                            recruit.getOwner().sendSystemMessage(TEXT_FOOD(recruit.getName().getString()));
+                            String name = recruit.getName().getString() + ": ";
+                            String str = TEXT_NOFOOD.getString();
+                            recruit.getOwner().sendMessage(new TextComponent(name + str), recruit.getOwner().getUUID());
                             message = false;
                         }
                     }
                 }
-            else stop();
                 else stop();
         }
     }

@@ -1320,7 +1320,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         for(int i = 6; i < 14; i++){
             ItemStack itemStack = this.getInventory().getItem(i);
             if(canEquipItem(itemStack)) {
-                this.playEquipSound(itemStack);
+                this.equipEventAndSound(itemStack);
                 this.setItemSlot(equipmentSlot, itemStack);
                 this.inventory.setItem(getInventorySlotIndex(equipmentSlot), itemStack);
                 this.inventory.removeItemNoUpdate(i);
@@ -1333,7 +1333,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if(itemStack.getItem() instanceof ShieldItem){
                 this.setItemSlot(EquipmentSlot.OFFHAND, itemStack);
                 this.inventory.setItem(getInventorySlotIndex(EquipmentSlot.OFFHAND), itemStack);
-                this.playEquipSound(itemStack);
+                this.equipEventAndSound(itemStack);
                 itemStack.shrink(1);
             }
         }

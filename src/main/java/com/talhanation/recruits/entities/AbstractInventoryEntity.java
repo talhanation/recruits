@@ -262,7 +262,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         this.spawnAtLocation(currentArmor);
         this.setItemSlot(equipmentslot, itemStack);
         this.inventory.setItem(getInventorySlotIndex(equipmentslot), itemStack);
-        this.playEquipSound(itemStack);
+        this.equipEventAndSound(itemStack);
     }
 
     public boolean canEquipItem(@NotNull ItemStack itemStack) {
@@ -292,6 +292,8 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
             return itemHandler.cast();
         return super.getCapability(capability, facing);
     }
+
+
 
     @Override
     public void invalidateCaps() {
