@@ -1,8 +1,6 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.inventory.RecruitSimpleContainer;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.Containers;
@@ -13,9 +11,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.CapabilityItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -230,7 +225,6 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     }
 
     protected void pickUpItem(ItemEntity itemEntity) {
-
         ItemStack itemstack = itemEntity.getItem();
 
         if (this.canEquipItem(itemstack)) {
@@ -282,13 +276,13 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
            return itemStack.isEdible();
     }
 
+
     public abstract Predicate<ItemEntity> getAllowedItems();
 
     public abstract void openGUI(Player player);
 
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable Direction facing) {
-        if (this.isAlive() && capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && itemHandler != null)
+    public <T> net.minecraftforge.common.util.LazyOptional<T> getCapability(net.minecraftforge.common.capabilities.Capability<T> capability, @Nullable net.minecraft.core.Direction facing) {
+        if (this.isAlive() && capability == net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER && itemHandler != null)
             return itemHandler.cast();
         return super.getCapability(capability, facing);
     }
@@ -297,7 +291,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     public void invalidateCaps() {
         super.invalidateCaps();
         if (itemHandler != null) {
-            LazyOptional<?> oldHandler = itemHandler;
+            net.minecraftforge.common.util.LazyOptional<?> oldHandler = itemHandler;
             itemHandler = null;
             oldHandler.invalidate();
         }

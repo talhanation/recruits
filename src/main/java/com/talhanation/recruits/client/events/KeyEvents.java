@@ -13,9 +13,8 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 @OnlyIn(Dist.CLIENT)
 
 public class KeyEvents {
-
     @SubscribeEvent
-    public void onKeyInput(InputEvent.KeyInputEvent event) {
+    public void onKeyInput(InputEvent.Key event) {
         Minecraft minecraft = Minecraft.getInstance();
         LocalPlayer clientPlayerEntity = minecraft.player;
         if (clientPlayerEntity == null)
@@ -28,7 +27,5 @@ public class KeyEvents {
         if (Main.C_KEY.isDown()) {
             TeamEvents.openTeamMainScreen(clientPlayerEntity);
         }
-
-
     }
 }

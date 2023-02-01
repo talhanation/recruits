@@ -11,8 +11,8 @@ import java.util.Objects;
 import static net.minecraft.world.entity.LivingEntity.getEquipmentSlotForItem;
 
 public class RecruitSimpleContainer extends SimpleContainer {
-    private AbstractInventoryEntity recruit;
-    private int size;
+    private final AbstractInventoryEntity recruit;
+    private final int size;
     public RecruitSimpleContainer(int inventorySize, AbstractInventoryEntity abstractInventoryEntity) {
         super(inventorySize);
         this.size = inventorySize;

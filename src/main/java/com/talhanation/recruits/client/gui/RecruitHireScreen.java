@@ -10,8 +10,8 @@ import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -19,6 +19,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 import java.text.DecimalFormat;
 
@@ -26,15 +27,16 @@ import java.text.DecimalFormat;
 public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/hire_gui.png" );
 
-    private static final TranslatableComponent TEXT_HIRE = new TranslatableComponent("gui.recruits.hire_gui.text.hire");
+    private static final MutableComponent TEXT_HIRE = Component.translatable("gui.recruits.hire_gui.text.hire");
 
     private static final int fontColor = 4210752;
 
     private final AbstractRecruitEntity recruit;
     private final Player player;
+    private ExtendedButton hireButton;
 
     public RecruitHireScreen(RecruitHireMenu recruitContainer, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, recruitContainer, playerInventory, new TextComponent(""));
+        super(RESOURCE_LOCATION, recruitContainer, playerInventory, Component.literal(""));
         this.recruit = recruitContainer.getRecruitEntity();
         this.player = playerInventory.player;
         imageWidth = 176;
@@ -44,21 +46,25 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
     @Override
     protected void init() {
         super.init();
+
+        hireButton = createHireButton();
+
+    }
+
+    private ExtendedButton createHireButton() {
         int zeroLeftPos = leftPos + 180;
         int zeroTopPos = topPos + 10;
-
-
         int mirror = 240 - 60;
-
-        addRenderableWidget(new Button(zeroLeftPos - mirror + 40, zeroTopPos + 85, 100, 20, TEXT_HIRE, button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageHire(player.getUUID(), recruit.getUUID()));
-            this.onClose();
+        return addRenderableWidget(new ExtendedButton(zeroLeftPos - mirror + 40, zeroTopPos + 85, 100, 20, TEXT_HIRE,
+                button -> {
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageHire(player.getUUID(), recruit.getUUID()));
+                    this.onClose();
         }));
     }
 
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
-        super.renderLabels(matrixStack, mouseX, mouseY);
+    protected void renderLabels(PoseStack poseStack, int mouseX, int mouseY) {
+        super.renderLabels(poseStack, mouseX, mouseY);
         int health = Mth.ceil(recruit.getHealth());
         int maxHealth = Mth.ceil(recruit.getMaxHealth());
         int moral = Mth.ceil(recruit.getMoral());
@@ -74,43 +80,43 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
         int l = 19;//höhe
 
         //Titles
-        font.draw(matrixStack, recruit.getDisplayName().getVisualOrderText(), 8, 5, fontColor);
-        font.draw(matrixStack, player.getInventory().getDisplayName().getVisualOrderText(), 8, this.imageHeight - 96 + 2, fontColor);
+        font.draw(poseStack, recruit.getDisplayName().getVisualOrderText(), 8, 5, fontColor);
+        font.draw(poseStack, player.getInventory().getDisplayName().getVisualOrderText(), 8, this.imageHeight - 96 + 2, fontColor);
 
         //Info
-        font.draw(matrixStack, "Hp:", k, l, fontColor);
-        font.draw(matrixStack, "" + health, k + 25, l , fontColor);
+        font.draw(poseStack, "Hp:", k, l, fontColor);
+        font.draw(poseStack, "" + health, k + 25, l , fontColor);
 
-        font.draw(matrixStack, "Lvl:", k , l  + 10, fontColor);
-        font.draw(matrixStack, "" + recruit.getXpLevel(), k + 25 , l + 10, fontColor);
+        font.draw(poseStack, "Lvl:", k , l  + 10, fontColor);
+        font.draw(poseStack, "" + recruit.getXpLevel(), k + 25 , l + 10, fontColor);
 
-        font.draw(matrixStack, "Exp:", k, l + 20, fontColor);
-        font.draw(matrixStack, "" + recruit.getXp(), k + 25, l + 20, fontColor);
+        font.draw(poseStack, "Exp:", k, l + 20, fontColor);
+        font.draw(poseStack, "" + recruit.getXp(), k + 25, l + 20, fontColor);
 
-        font.draw(matrixStack, "Kills:", k, l + 30, fontColor);
-        font.draw(matrixStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
+        font.draw(poseStack, "Kills:", k, l + 30, fontColor);
+        font.draw(poseStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
 
-        font.draw(matrixStack, "Moral:", k, l + 40, fontColor);
-        font.draw(matrixStack, ""+ moral, k + 30, l + 40, fontColor);
+        font.draw(poseStack, "Moral:", k, l + 40, fontColor);
+        font.draw(poseStack, ""+ moral, k + 30, l + 40, fontColor);
 
-        font.draw(matrixStack, "MaxHp:", k + 43, l, fontColor);
-        font.draw(matrixStack, ""+ maxHealth, k + 77, l, fontColor);
+        font.draw(poseStack, "MaxHp:", k + 43, l, fontColor);
+        font.draw(poseStack, ""+ maxHealth, k + 77, l, fontColor);
 
-        font.draw(matrixStack, "Attack:", k + 43, l + 10, fontColor);
-        font.draw(matrixStack, ""+ A_damage, k + 77, l + 10, fontColor);
+        font.draw(poseStack, "Attack:", k + 43, l + 10, fontColor);
+        font.draw(poseStack, ""+ A_damage, k + 77, l + 10, fontColor);
 
-        font.draw(matrixStack, "Speed:", k +43, l + 20, fontColor);
-        font.draw(matrixStack, ""+ decimalformat.format(speed), k + 77, l + 20, fontColor);
+        font.draw(poseStack, "Speed:", k +43, l + 20, fontColor);
+        font.draw(poseStack, ""+ decimalformat.format(speed), k + 77, l + 20, fontColor);
 
-        font.draw(matrixStack, "Armor:", k + 43, l + 30, fontColor);
-        font.draw(matrixStack, ""+ armor, k + 77, l + 30, fontColor);
+        font.draw(poseStack, "Armor:", k + 43, l + 30, fontColor);
+        font.draw(poseStack, ""+ armor, k + 77, l + 30, fontColor);
 
-        font.draw(matrixStack, "Costs:", k + 43, l + 40, fontColor);
-        font.draw(matrixStack, ""+ costs, k + 77, l + 40, fontColor);
+        font.draw(poseStack, "Costs:", k + 43, l + 40, fontColor);
+        font.draw(poseStack, ""+ costs, k + 77, l + 40, fontColor);
     }
 
-    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
+    protected void renderBg(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
+        super.renderBg(poseStack, partialTicks, mouseX, mouseY);
 
         RenderSystem.clearColor(1.0F, 1.0F, 1.0F, 1.0F);
         int i = (this.width - this.imageWidth) / 2;

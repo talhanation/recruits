@@ -4,10 +4,11 @@ import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
+import com.talhanation.recruits.init.ModProfessions;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.IronGolem;
-import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.monster.ZombieVillager;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
@@ -21,8 +22,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Random;
 
@@ -30,24 +31,24 @@ public class VillagerEvents {
     protected final Random random = new Random();
 
     @SubscribeEvent
-    public void onVillagerLivingUpdate(LivingEvent.LivingUpdateEvent event) {
-        Entity entity = event.getEntityLiving();
+    public void onVillagerLivingUpdate(LivingEvent.LivingTickEvent event) {
+        Entity entity = event.getEntity();
         if (entity instanceof Villager villager) {
             VillagerProfession profession = villager.getVillagerData().getProfession();
 
-            if (profession.equals(Main.RECRUIT)) {
+            if (profession.equals(ModProfessions.RECRUIT.get())) {
                 createRecruit(villager);
             }
 
-            if (profession.equals(Main.BOWMAN)){
+            if (profession.equals(ModProfessions.BOWMAN.get())){
                 createBowman(villager);
             }
 
-            if (profession.equals(Main.NOMAD)){
-                createNomad(villager);
-            }
+            //if (profession.equals(ModProfessions.NOMAD.get())){
+            //    createNomad(villager);
+            //}
 
-            if (profession.equals(Main.RECRUIT_SHIELDMAN)){
+            if (profession.equals(ModProfessions.SHIELDMAN.get())){
                 createRecruitShieldman(villager);
             }
         }
@@ -73,19 +74,19 @@ public class VillagerEvents {
         if (entity instanceof ZombieVillager zombie){
             VillagerProfession profession = zombie.getVillagerData().getProfession();
 
-            if (profession.equals(Main.RECRUIT)) {
+            if (profession.equals(ModProfessions.RECRUIT.get())) {
                 zombie.remove(Entity.RemovalReason.DISCARDED);
             }
 
-            if (profession.equals(Main.BOWMAN)){
+            if (profession.equals(ModProfessions.BOWMAN.get())){
                 zombie.remove(Entity.RemovalReason.DISCARDED);
             }
-
-            if (profession.equals(Main.NOMAD)){
+            /*
+            if (profession.equals(ModProfessions.NOMAD.get())){
                 zombie.remove(Entity.RemovalReason.DISCARDED);
             }
-
-            if (profession.equals(Main.RECRUIT_SHIELDMAN)){
+            */
+            if (profession.equals(ModProfessions.SHIELDMAN.get())){
                 zombie.remove(Entity.RemovalReason.DISCARDED);
             }
         }
@@ -185,26 +186,6 @@ public class VillagerEvents {
         }
     }
 
-    static class EmeraldForItemsTrade extends Trade {
-        public EmeraldForItemsTrade(ItemLike buyingItem, int buyingAmount, int maxUses, int givenExp) {
-            super(buyingItem, buyingAmount, Items.EMERALD, 1, maxUses, givenExp);
-        }
-    }
-
-    static class MultiTrade implements VillagerTrades.ItemListing {
-        private final VillagerTrades.ItemListing[] trades;
-
-        public MultiTrade(VillagerTrades.ItemListing... trades) {
-            this.trades = trades;
-        }
-
-        @Nullable
-        @Override
-        public MerchantOffer getOffer(Entity entity, Random random) {
-            return trades[random.nextInt(trades.length)].getOffer(entity, random);
-        }
-    }
-
     static class Trade implements VillagerTrades.ItemListing {
         private final Item buyingItem;
         private final Item sellingItem;
@@ -226,6 +207,12 @@ public class VillagerEvents {
 
         public MerchantOffer getOffer(Entity entity, Random random) {
             return new MerchantOffer(new ItemStack(this.buyingItem, this.buyingAmount), new ItemStack(sellingItem, sellingAmount), maxUses, givenExp, priceMultiplier);
+        }
+
+        @Nullable
+        @Override
+        public MerchantOffer getOffer(Entity p_219693_, RandomSource p_219694_) {
+            return null;
         }
     }
 
@@ -264,6 +251,12 @@ public class VillagerEvents {
 
         public MerchantOffer getOffer(Entity p_221182_1_, Random p_221182_2_) {
             return new MerchantOffer(new ItemStack(Items.EMERALD, this.emeraldCost), new ItemStack(this.itemStack.getItem(), this.numberOfItems), this.maxUses, this.villagerXp, this.priceMultiplier);
+        }
+
+        @Nullable
+        @Override
+        public MerchantOffer getOffer(Entity p_219693_, RandomSource p_219694_) {
+            return null;
         }
     }
 

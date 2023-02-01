@@ -4,13 +4,12 @@ import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.network.MessageAddRecruitToTeam;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.animal.Rabbit;
 import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -22,18 +21,15 @@ import net.minecraftforge.event.entity.EntityTeleportEvent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.world.BlockEvent;
+import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Predicates.not;
 
 public class   RecruitEvents {
 
     public int timestamp;
-    public static final TranslatableComponent TEXT_BLOCK_WARN = new TranslatableComponent("chat.recruits.text.block_placing_warn");
+    public static final TranslatableContents TEXT_BLOCK_WARN = new TranslatableContents("chat.recruits.text.block_placing_warn");
     private static final Map<ServerLevel, RecruitsPatrolSpawn> RECRUIT_PATROL = new HashMap<>();
 
     @SubscribeEvent
@@ -61,8 +57,8 @@ public class   RecruitEvents {
 
     }
     @SubscribeEvent
-    public void onServerTick(TickEvent.WorldTickEvent event) {
-        if (!event.world.isClientSide && event.world instanceof ServerLevel serverWorld) {
+    public void onServerTick(TickEvent.LevelTickEvent event) {
+        if (!event.level.isClientSide && event.level instanceof ServerLevel serverWorld) {
             RECRUIT_PATROL.computeIfAbsent(serverWorld,
                     k -> new RecruitsPatrolSpawn(serverWorld));
             RecruitsPatrolSpawn spawner = RECRUIT_PATROL.get(serverWorld);
@@ -132,7 +128,7 @@ public class   RecruitEvents {
             for (AbstractRecruitEntity recruits : list) {
                 if (canDamageTargetBlockEvent(recruits, blockBreaker) && recruits.getState() == 1) {
                     recruits.setTarget(blockBreaker);
-                        blockBreaker.sendMessage(new TextComponent(list.get(0).getName().getString() + ": " + TEXT_BLOCK_WARN.getString()), blockBreaker.getUUID());
+                        blockBreaker.sendSystemMessage(Component.literal(list.get(0).getName().getString() + ": " + TEXT_BLOCK_WARN));
                 }
             }
         }
@@ -144,7 +140,7 @@ public class   RecruitEvents {
             for (AbstractRecruitEntity recruits : list) {
                 if (canDamageTargetBlockEvent(recruits, blockBreaker) && recruits.getState() == 0 && recruits.isOwned()) {
                     recruits.setTarget(blockBreaker);
-                        blockBreaker.sendMessage(new TextComponent(list.get(0).getName().getString() + ": " + TEXT_BLOCK_WARN.getString()), blockBreaker.getUUID());
+                        blockBreaker.sendSystemMessage(Component.literal(list.get(0).getName().getString() + ": " + TEXT_BLOCK_WARN));
                 }
             }
         }
@@ -159,7 +155,7 @@ public class   RecruitEvents {
                 for (AbstractRecruitEntity recruits : list) {
                     if (canDamageTargetBlockEvent(recruits, livingBlockPlacer) && recruits.getState() == 1) {
                         recruits.setTarget(livingBlockPlacer);
-                            livingBlockPlacer.sendMessage(new TextComponent(list.get(0).getName().getString() + ": " + TEXT_BLOCK_WARN.getString()), livingBlockPlacer.getUUID());
+                            livingBlockPlacer.sendSystemMessage(Component.literal(list.get(0).getName().getString() + ": " + TEXT_BLOCK_WARN));
                     }
                 }
             }
@@ -171,7 +167,7 @@ public class   RecruitEvents {
                 for (AbstractRecruitEntity recruits : list) {
                     if (canDamageTargetBlockEvent(recruits, livingBlockPlacer) && recruits.getState() == 0 && recruits.isOwned()) {
                         recruits.setTarget(livingBlockPlacer);
-                        livingBlockPlacer.sendMessage(new TextComponent(list.get(0).getName().getString() + ": " + TEXT_BLOCK_WARN.getString()), livingBlockPlacer.getUUID());
+                        livingBlockPlacer.sendSystemMessage(Component.literal(list.get(0).getName().getString() + ": " + TEXT_BLOCK_WARN));
                     }
                 }
             }
@@ -187,7 +183,7 @@ public class   RecruitEvents {
             for (AbstractRecruitEntity recruits : list) {
                 if (canDamageTargetBlockEvent(recruits, interacter) && recruits.getState() == 1) {
                     recruits.setTarget(interacter);
-                    interacter.sendMessage(new TextComponent(list.get(0).getName().getString() + ": " + TEXT_BLOCK_WARN.getString()), interacter.getUUID());
+                    interacter.sendSystemMessage(Component.literal(list.get(0).getName().getString() + ": " + TEXT_BLOCK_WARN));
                 }
             }
         }
@@ -198,7 +194,7 @@ public class   RecruitEvents {
             for (AbstractRecruitEntity recruits : list) {
                 if (canDamageTargetBlockEvent(recruits, interacter) && recruits.getState() == 0 && recruits.isOwned()) {
                     recruits.setTarget(interacter);
-                    interacter.sendMessage(new TextComponent(list.get(0).getName().getString() + ": " + TEXT_BLOCK_WARN.getString()), interacter.getUUID());
+                    interacter.sendSystemMessage(Component.literal(list.get(0).getName().getString() + ": " + TEXT_BLOCK_WARN));
                 }
             }
         }

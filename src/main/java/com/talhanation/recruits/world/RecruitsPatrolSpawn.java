@@ -7,7 +7,7 @@ import com.talhanation.recruits.entities.RecruitShieldmanEntity;
 import com.talhanation.recruits.entities.ai.PatrolLeaderTargetAttackers;
 import com.talhanation.recruits.entities.ai.villager.FollowCaravanOwner;
 import com.talhanation.recruits.init.ModEntityTypes;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SpawnPlacements.Type;
@@ -104,7 +104,7 @@ public class RecruitsPatrolSpawn {
     private void spawnPillagerPatrol(BlockPos upPos, BlockPos targetPos) {
         Pillager pillagerLeader = createPillager(upPos, targetPos);
         pillagerLeader.setAggressive(true);
-        pillagerLeader.setCustomName(new TextComponent("Pillager Leader"));
+        pillagerLeader.setCustomName(Component.literal("Pillager Leader"));
         pillagerLeader.setPatrolLeader(true);
         pillagerLeader.setCanJoinRaid(true);
         pillagerLeader.setCanPickUpLoot(true);
@@ -507,7 +507,7 @@ public class RecruitsPatrolSpawn {
         patrolLeader.setMoral(100);
         patrolLeader.setCost(55);
         patrolLeader.setXp(random.nextInt(200));
-        patrolLeader.setCustomName(new TextComponent(name));
+        patrolLeader.setCustomName(Component.literal(name));
 
         patrolLeader.setEscortUUID(Optional.of(patrolLeader.getUUID()));
 
@@ -533,7 +533,7 @@ public class RecruitsPatrolSpawn {
         recruitEntity.setShouldEscort(true);
         recruitEntity.setXp(random.nextInt(80));
 
-        recruitEntity.setCustomName(new TextComponent(name));
+        recruitEntity.setCustomName(Component.literal(name));
 
 
         world.addFreshEntity(recruitEntity);
@@ -556,7 +556,7 @@ public class RecruitsPatrolSpawn {
         bowman.setShouldEscort(true);
         bowman.setXp(random.nextInt(120));
 
-        bowman.setCustomName(new TextComponent("Patrol"));
+        bowman.setCustomName(Component.literal("Patrol"));
 
 
 
@@ -579,7 +579,7 @@ public class RecruitsPatrolSpawn {
         shieldmanEntity.setShouldEscort(true);
         shieldmanEntity.setXp(random.nextInt(120));
 
-        shieldmanEntity.setCustomName(new TextComponent(name));
+        shieldmanEntity.setCustomName(Component.literal(name));
 
 
 
