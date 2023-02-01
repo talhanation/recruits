@@ -66,7 +66,7 @@ public class Main {
     public static MenuType<CommandMenu> COMMAND_CONTAINER_TYPE;
     public static MenuType<RecruitHireMenu> HIRE_CONTAINER_TYPE;
     public static MenuType<AssassinLeaderMenu> ASSASSIN_CONTAINER_TYPE;
-    public static KeyMapping C_KEY;
+    public static KeyMapping U_KEY;
     public static MenuType<TeamCreationContainer> TEAM_CREATION_TYPE;
     public static MenuType<TeamMainContainer> TEAM_MAIN_TYPE;
     public static MenuType<TeamInspectionContainer> TEAM_INSPECTION_TYPE;
@@ -151,8 +151,8 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
         MinecraftForge.EVENT_BUS.register(new PlayerEvents());
 
-        R_KEY = ClientRegistry.registerKeyBinding("key.r_key", "category.recruits", GLFW.GLFW_KEY_R);
-        C_KEY = ClientRegistry.registerKeyBinding("key.c_key", "category.recruits", GLFW.GLFW_KEY_C);
+        R_KEY = ClientRegistry.registerKeyBinding("key.recruits.r_key", "category.recruits", GLFW.GLFW_KEY_R);
+        U_KEY = ClientRegistry.registerKeyBinding("key.recruits.u_key", "category.recruits", GLFW.GLFW_KEY_U);
 
         ClientRegistry.registerScreen(Main.RECRUIT_CONTAINER_TYPE, RecruitInventoryScreen::new);
         ClientRegistry.registerScreen(Main.DEBUG_CONTAINER_TYPE, DebugInvScreen::new);

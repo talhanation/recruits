@@ -25,7 +25,7 @@ public class KeyEvents {
             CommandEvents.openCommandScreen(clientPlayerEntity);
         }
 
-        if (Main.C_KEY.isDown()) {
+        if (Main.U_KEY.isDown()) {
             TeamEvents.openTeamMainScreen(clientPlayerEntity);
         }
 

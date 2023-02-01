@@ -15,8 +15,8 @@
   "block.recruits.nomad_block": "Nomad's Table",
 
   "category.recruits" : "Recruits",
-  "key.r_key": "Open Command Screen",
-  "key.c_key": "Open Team Screen",
+  "key.recruits.r_key": "Open Command Screen",
+  "key.recruits.u_key": "Open Team Screen",
 
   "gui.recruits.inv.health" : "Hp:",
   "gui.recruits.inv.level": "Lvl:",

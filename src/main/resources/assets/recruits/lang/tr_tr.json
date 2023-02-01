@@ -15,8 +15,8 @@
   "block.recruits.nomad_block": "Göçebe Masası",
 
   "category.recruits": "Piyadeler",
-  "key.r_key": "Komut Ekranını Aç",
-  "key.c_key": "Takım Ekranını Aç",
+  "key.recruits.r_key": "Komut Ekranını Aç",
+  "key.recruits.u_key": "Takım Ekranını Aç",
 
   "gui.recruits.inv.health": "Can:",
   "gui.recruits.inv.level": "Seviye:",
