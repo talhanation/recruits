@@ -1422,6 +1422,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (this.getOffhandItem().isEmpty()) {
             this.inventory.setItem(4, ItemStack.EMPTY);
             this.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+            this.tryToReequipShield();
         }
     }
 
