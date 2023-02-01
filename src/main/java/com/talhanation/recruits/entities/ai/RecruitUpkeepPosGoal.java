@@ -76,7 +76,8 @@ public class RecruitUpkeepPosGoal extends Goal {
                         for (int i = 0; i < 3; i++) {
                             ItemStack foodItem = this.getFoodFromInv(container);
                             ItemStack food;
-                            if (foodItem != null && recruit.getInventory().canAddItem(foodItem)){
+                            if (foodItem != null && canAddFood()){
+
                                 food = foodItem.copy();
                                 food.setCount(1);
                                 recruit.getInventory().addItem(food);
@@ -140,4 +141,11 @@ public class RecruitUpkeepPosGoal extends Goal {
     }
 
     private final TranslatableComponent TEXT_NOFOOD = new TranslatableComponent("chat.recruits.text.noFoodInUpkeep");
+    private boolean canAddFood(){
+        for(int i = 6; i < 14; i++){
+            if(recruit.getInventory().getItem(i).isEmpty())
+                return true;
+        }
+        return false;
+    }
 }

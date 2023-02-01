@@ -89,7 +89,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
                         for (int i = 0; i < 3; i++) {
                             ItemStack foodItem = this.getFoodFromInv(container);
                             ItemStack food;
-                            if (foodItem != null && recruit.getInventory().canAddItem(foodItem)){
+                            if (foodItem != null && canAddFood()){
                                 food = foodItem.copy();
                                 food.setCount(1);
                                 recruit.getInventory().addItem(food);
@@ -102,14 +102,13 @@ public class RecruitUpkeepEntityGoal extends Goal {
                     }
                     else {
                         if(recruit.getOwner() != null && message){
-                            String name = recruit.getName().getString() + ": ";
-                            String str = TEXT_NOFOOD.getString();
-                            recruit.getOwner().sendMessage(new TextComponent(name + str), recruit.getOwner().getUUID());
+                            recruit.getOwner().sendSystemMessage(TEXT_FOOD(recruit.getName().getString()));
                             message = false;
                         }
                     }
                 }
             else stop();
+                else stop();
         }
     }
 
@@ -136,4 +135,11 @@ public class RecruitUpkeepEntityGoal extends Goal {
     }
 
     private final TranslatableComponent TEXT_NOFOOD = new TranslatableComponent("chat.recruits.text.noFoodInUpkeep");
+    private boolean canAddFood(){
+        for(int i = 6; i < 14; i++){
+            if(recruit.getInventory().getItem(i).isEmpty())
+                return true;
+        }
+        return false;
+    }
 }
