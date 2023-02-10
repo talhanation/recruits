@@ -1,6 +1,5 @@
 package com.talhanation.recruits;
 
-import com.mojang.blaze3d.platform.InputConstants;
 import com.talhanation.recruits.client.events.KeyEvents;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.init.*;
@@ -13,7 +12,6 @@ import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -26,14 +24,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.Vector;
 
 @Mod(Main.MOD_ID)
 public class Main {
     public static final String MOD_ID = "recruits";
     public static SimpleChannel SIMPLE_CHANNEL;
-    public static KeyMapping R_KEY;
-    public static KeyMapping C_KEY;
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
     public Main() {
@@ -42,19 +37,20 @@ public class Main {
 
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         modEventBus.addListener(this::setup);
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-            FMLJavaModLoadingContext.get().getModEventBus().addListener(Main.this::clientSetup);
-            FMLJavaModLoadingContext.get().getModEventBus().addListener(Main.this::onRegisterKeyBinds);        });
-
         ModBlocks.BLOCKS.register(modEventBus);
         ModPois.POIS.register(modEventBus);
         ModProfessions.PROFESSIONS.register(modEventBus);
+        ModScreens.MENU_TYPES.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
         ModEntityTypes.ENTITY_TYPES.register(modEventBus);
-        ModScreens.MENU_TYPES.register(modEventBus);
-        MinecraftForge.EVENT_BUS.register(this);
-    }
 
+        modEventBus.addListener(this::clientSetup);
+        modEventBus.addListener(ModShortcuts::registerBindings);
+
+        MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(new KeyEvents());
+    }
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private void setup(final FMLCommonSetupEvent event) {
         MinecraftForge.EVENT_BUS.register(new RecruitEvents());
         MinecraftForge.EVENT_BUS.register(new VillagerEvents());
@@ -109,18 +105,7 @@ public class Main {
 
     @SubscribeEvent
     @OnlyIn(Dist.CLIENT)
-    public void onRegisterKeyBinds(RegisterKeyMappingsEvent event){
-        R_KEY = new KeyMapping("key.recruits.r_key", GLFW.GLFW_KEY_R, "category.recruits");
-        C_KEY = new KeyMapping("key.recruits.c_key", GLFW.GLFW_KEY_U, "category.recruits");
-
-        event.register(R_KEY);
-        event.register(C_KEY);
-    }
-
-    @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
     public void clientSetup(FMLClientSetupEvent event) {
-        MinecraftForge.EVENT_BUS.register(new KeyEvents());
         event.enqueueWork(ModScreens::registerMenus);
     }
 

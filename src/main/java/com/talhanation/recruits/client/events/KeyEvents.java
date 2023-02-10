@@ -3,6 +3,7 @@ package com.talhanation.recruits.client.events;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.init.ModShortcuts;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraftforge.api.distmarker.Dist;
@@ -20,11 +21,11 @@ public class KeyEvents {
         if (clientPlayerEntity == null)
             return;
 
-        if (Main.R_KEY.isDown()) {
+        if (ModShortcuts.COMMAND_SCREEN_KEY.isDown()) {
             CommandEvents.openCommandScreen(clientPlayerEntity);
         }
 
-        if (Main.C_KEY.isDown()) {
+        if (ModShortcuts.TEAM_SCREEN_KEY.isDown()) {
             TeamEvents.openTeamMainScreen(clientPlayerEntity);
         }
     }
