@@ -48,8 +48,7 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
                 button -> {
                     this.banner = container.getBanner();
                     if (!banner.equals(ItemStack.EMPTY)) {
-                        int creationCost = 10;
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(textField.getValue(), creationCost, banner));
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(textField.getValue().strip(), banner));
                     }
                 this.onClose();
             }));

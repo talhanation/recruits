@@ -156,13 +156,14 @@ public class TeamEvents {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamAddPlayerScreen(player));
         }
     }
-    public static void createTeam(ServerPlayer serverPlayer, ServerLevel level, String teamName, String playerName, int cost, ItemStack banner) {
+    public static void createTeam(ServerPlayer serverPlayer, ServerLevel level, String teamName, String playerName, ItemStack banner) {
         MinecraftServer server = level.getServer();
         PlayerTeam team = server.getScoreboard().getPlayerTeam(teamName);
         server.getScoreboard().getPlayerTeams();
         String createTeamCommand = "/team add " + teamName;
         String joinTeamCommand = "/team join " + teamName + " " + playerName;
         CommandSourceStack commandSourceStack = new CommandSourceStack(CommandSource.NULL, Vec3.atCenterOf(serverPlayer.getOnPos()), Vec2.ZERO, level, 2, playerName, new TextComponent(playerName), level.getServer(), serverPlayer);
+        int cost = RecruitsModConfig.TeamCreationCost.get();
         //Commands
 
         if (team == null) {
@@ -197,7 +198,7 @@ public class TeamEvents {
         List<RecruitsTeam> list = data.getTeams().stream().toList();
         boolean equ = false;
         for(RecruitsTeam recruitsTeam : list){
-            equ = recruitsTeam.getTeamName().toLowerCase().equals(teamName.toLowerCase());
+            equ = recruitsTeam.getTeamName().toLowerCase().strip().equals(teamName.toLowerCase());
         }
         return equ;
     }

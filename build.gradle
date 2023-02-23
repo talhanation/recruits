@@ -26,7 +26,7 @@ idea {
     }
 }
 
-version = '1.9.2.1'
+version = '1.9.3'
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.18.2'
 
@@ -47,7 +47,7 @@ minecraft {
 
             Random rnd = new Random()
 
-            args = ['--username', 'talhanation']//rnd.nextInt(1000)]
+            args = ['--username', 'talhanation' + rnd.nextInt(1000)]
 
 
             mods {

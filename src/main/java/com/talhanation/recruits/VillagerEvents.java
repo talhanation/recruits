@@ -7,8 +7,6 @@ import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.IronGolem;
-import net.minecraft.world.entity.monster.Zombie;
-import net.minecraft.world.entity.monster.ZombieVillager;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerTrades;
@@ -66,27 +64,6 @@ public class VillagerEvents {
                     else createRecruitIronGolem(ironGolemEntity);
                     //System.out.println("Spawned new Recruit");
                 }
-            }
-        }
-
-
-        if (entity instanceof ZombieVillager zombie){
-            VillagerProfession profession = zombie.getVillagerData().getProfession();
-
-            if (profession.equals(Main.RECRUIT)) {
-                zombie.remove(Entity.RemovalReason.DISCARDED);
-            }
-
-            if (profession.equals(Main.BOWMAN)){
-                zombie.remove(Entity.RemovalReason.DISCARDED);
-            }
-
-            if (profession.equals(Main.NOMAD)){
-                zombie.remove(Entity.RemovalReason.DISCARDED);
-            }
-
-            if (profession.equals(Main.RECRUIT_SHIELDMAN)){
-                zombie.remove(Entity.RemovalReason.DISCARDED);
             }
         }
     }
