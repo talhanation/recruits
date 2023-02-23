@@ -2,8 +2,7 @@ package com.talhanation.recruits.network;
 
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
-
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -39,13 +38,13 @@ public class MessageAssassinate implements Message<MessageAssassinate> {
         PlayerList list = server.getPlayerList();
         ServerPlayer targetPlayer = list.getPlayerByName(name);
         if (targetPlayer != null) {
-            player.sendSystemMessage(Component.literal("Successfully found the Target"));
+            player.sendMessage(new TextComponent("Successfully found the Target"), player.getUUID());
             //this.target = targetPlayer.getUUID();
             //AssassinEvents.createAssassin(name, count, world);
             //AssassinEvents.doPayment(player, costs);
         }
         else {
-            player.sendSystemMessage(Component.literal("Could not found the Target"));
+            player.sendMessage(new TextComponent("Could not found the Target"), player.getUUID());
             //player.sendMessage(new StringTextComponent(": " + this.name), player.getUUID());
         }
     }

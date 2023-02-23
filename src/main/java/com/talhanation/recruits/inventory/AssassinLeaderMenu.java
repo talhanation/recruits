@@ -2,7 +2,6 @@ package com.talhanation.recruits.inventory;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
-import com.talhanation.recruits.init.ModScreens;
 import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
@@ -14,7 +13,7 @@ public class AssassinLeaderMenu extends ContainerBase {
     private final AssassinLeaderEntity assassinLeaderEntity;
 
     public AssassinLeaderMenu(int id, AssassinLeaderEntity assassinLeaderEntity, Inventory playerInventory) {
-        super(ModScreens.ASSASSIN_CONTAINER_TYPE.get(), id, playerInventory, assassinLeaderEntity.getInventory());
+        super(Main.ASSASSIN_CONTAINER_TYPE, id, playerInventory, assassinLeaderEntity.getInventory());
         this.assassinLeaderEntity = assassinLeaderEntity;
         this.recruitInventory = assassinLeaderEntity.getInventory();
 

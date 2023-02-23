@@ -7,7 +7,7 @@ import com.talhanation.recruits.entities.RecruitShieldmanEntity;
 import com.talhanation.recruits.entities.ai.PatrolLeaderTargetAttackers;
 import com.talhanation.recruits.entities.ai.villager.FollowCaravanOwner;
 import com.talhanation.recruits.init.ModEntityTypes;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SpawnPlacements.Type;
@@ -85,14 +85,16 @@ public class RecruitsPatrolSpawn {
             if (blockpos2 != null && this.func_226559_a_(blockpos2) && blockpos2.distSqr(blockpos) > 200) {
                 BlockPos upPos = new BlockPos(blockpos2.getX(), blockpos2.getY() + 2, blockpos2.getZ());
 
-                int i = random.nextInt(10);
+                int i = random.nextInt(13);
                 switch(i) {
                     default -> spawnPillagerPatrol(upPos, blockpos);
                     case 8,9 -> spawnSmallPatrol(upPos);
                     case 1,2 -> spawnMediumPatrol(upPos);
                     case 3,4 -> spawnLargePatrol(upPos);
-                    case 5,6,7 -> spawnCaravan(upPos);
+                    case 5,6 -> spawnCaravan(upPos);
                 }
+
+                //Main.LOGGER.debug("PatrolSpawned");
                 return true;
             }
             return false;
@@ -102,7 +104,7 @@ public class RecruitsPatrolSpawn {
     private void spawnPillagerPatrol(BlockPos upPos, BlockPos targetPos) {
         Pillager pillagerLeader = createPillager(upPos, targetPos);
         pillagerLeader.setAggressive(true);
-        pillagerLeader.setCustomName(Component.literal("Pillager Leader"));
+        pillagerLeader.setCustomName(new TextComponent("Pillager Leader"));
         pillagerLeader.setPatrolLeader(true);
         pillagerLeader.setCanJoinRaid(true);
         pillagerLeader.setCanPickUpLoot(true);
@@ -333,6 +335,10 @@ public class RecruitsPatrolSpawn {
         recruit.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
         recruit.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.IRON_LEGGINGS));
         recruit.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.IRON_BOOTS));
+        recruit.inventory.setItem(11, new ItemStack(Items.IRON_HELMET));
+        recruit.inventory.setItem(12, new ItemStack(Items.IRON_CHESTPLATE));
+        recruit.inventory.setItem(13, new ItemStack(Items.IRON_LEGGINGS));
+        recruit.inventory.setItem(14, new ItemStack(Items.IRON_BOOTS));
 
         int j = random.nextInt(32);
         ItemStack item = new ItemStack(Items.EMERALD);
@@ -342,16 +348,20 @@ public class RecruitsPatrolSpawn {
         int i = random.nextInt(8);
         if (i == 1) {
             recruit.inventory.setItem(9, new ItemStack(Items.IRON_AXE));
+            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE));
         }
         else if (i == 2 || i == 3) {
             recruit.inventory.setItem(9, new ItemStack(Items.GOLDEN_AXE));
+            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_AXE));
         }
         else if(i == 4 || i == 5) {
             recruit.inventory.setItem(9, new ItemStack(Items.GOLDEN_SWORD));
+            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_SWORD));
         }
 
         else {
             recruit.inventory.setItem(9, new ItemStack(Items.IRON_SWORD));
+            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
         }
 
         int k = random.nextInt(8);
@@ -373,14 +383,22 @@ public class RecruitsPatrolSpawn {
         recruit.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.CHAINMAIL_LEGGINGS));
         recruit.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.CHAINMAIL_BOOTS));
 
+        recruit.inventory.setItem(12, new ItemStack(Items.IRON_CHESTPLATE));
+        recruit.inventory.setItem(13, new ItemStack(Items.CHAINMAIL_LEGGINGS));
+        recruit.inventory.setItem(14, new ItemStack(Items.CHAINMAIL_BOOTS));
+
+
         int i = random.nextInt(8);
         if (i == 1) {
+            recruit.inventory.setItem(9, new ItemStack(Items.STONE_AXE));
             recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_AXE));
         }
         else if (i == 2 || i == 3) {
+            recruit.inventory.setItem(9, new ItemStack(Items.IRON_SWORD));
             recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
         }
         else {
+            recruit.inventory.setItem(9, new ItemStack(Items.STONE_SWORD));
             recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
         }
 
@@ -399,6 +417,7 @@ public class RecruitsPatrolSpawn {
         int j = random.nextInt(8);
 
         if (j >= 4){
+            recruit.inventory.setItem(10, new ItemStack(Items.SHIELD));
             recruit.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
         }
 
@@ -411,14 +430,22 @@ public class RecruitsPatrolSpawn {
         recruit.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.CHAINMAIL_LEGGINGS));
         recruit.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.CHAINMAIL_BOOTS));
 
+        recruit.inventory.setItem(12, new ItemStack(Items.IRON_CHESTPLATE));
+        recruit.inventory.setItem(13, new ItemStack(Items.CHAINMAIL_LEGGINGS));
+        recruit.inventory.setItem(14, new ItemStack(Items.CHAINMAIL_BOOTS));
+
+
         int i = random.nextInt(8);
         if (i == 1) {
+            recruit.inventory.setItem(9, new ItemStack(Items.STONE_AXE));
             recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_AXE));
         }
         else if (i == 2 || i == 3) {
+            recruit.inventory.setItem(9, new ItemStack(Items.IRON_SWORD));
             recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
         }
         else {
+            recruit.inventory.setItem(9, new ItemStack(Items.STONE_SWORD));
             recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
         }
 
@@ -441,6 +468,11 @@ public class RecruitsPatrolSpawn {
         recruit.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.CHAINMAIL_LEGGINGS));
         recruit.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.CHAINMAIL_BOOTS));
 
+        recruit.inventory.setItem(12, new ItemStack(Items.CHAINMAIL_CHESTPLATE));
+        recruit.inventory.setItem(13, new ItemStack(Items.CHAINMAIL_LEGGINGS));
+        recruit.inventory.setItem(14, new ItemStack(Items.CHAINMAIL_BOOTS));
+
+        recruit.inventory.setItem(9, new ItemStack(Items.BOW));
         recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
 
         int i = random.nextInt(13);
@@ -475,7 +507,7 @@ public class RecruitsPatrolSpawn {
         patrolLeader.setMoral(100);
         patrolLeader.setCost(55);
         patrolLeader.setXp(random.nextInt(200));
-        patrolLeader.setCustomName(Component.literal(name));
+        patrolLeader.setCustomName(new TextComponent(name));
 
         patrolLeader.setEscortUUID(Optional.of(patrolLeader.getUUID()));
 
@@ -501,7 +533,7 @@ public class RecruitsPatrolSpawn {
         recruitEntity.setShouldEscort(true);
         recruitEntity.setXp(random.nextInt(80));
 
-        recruitEntity.setCustomName(Component.literal(name));
+        recruitEntity.setCustomName(new TextComponent(name));
 
 
         world.addFreshEntity(recruitEntity);
@@ -524,7 +556,7 @@ public class RecruitsPatrolSpawn {
         bowman.setShouldEscort(true);
         bowman.setXp(random.nextInt(120));
 
-        bowman.setCustomName(Component.literal("Patrol"));
+        bowman.setCustomName(new TextComponent("Patrol"));
 
 
 
@@ -547,7 +579,7 @@ public class RecruitsPatrolSpawn {
         shieldmanEntity.setShouldEscort(true);
         shieldmanEntity.setXp(random.nextInt(120));
 
-        shieldmanEntity.setCustomName(Component.literal(name));
+        shieldmanEntity.setCustomName(new TextComponent(name));
 
 
 
@@ -556,6 +588,7 @@ public class RecruitsPatrolSpawn {
             stack.setCount(1);
 
             shieldmanEntity.setItemSlot(EquipmentSlot.HEAD, stack);
+            shieldmanEntity.inventory.setItem(11, stack);
 
         }
 

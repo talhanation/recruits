@@ -3,9 +3,15 @@ package com.talhanation.recruits.network;
 import com.talhanation.recruits.TeamEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
+
+import java.util.List;
+
+import static com.talhanation.recruits.TeamEvents.NO_PLAYER;
 
 public class MessageRemoveFromTeam implements Message<MessageRemoveFromTeam> {
 

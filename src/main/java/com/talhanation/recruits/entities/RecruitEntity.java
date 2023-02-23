@@ -4,8 +4,7 @@ package com.talhanation.recruits.entities;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.UseShield;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.util.RandomSource;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -50,10 +49,9 @@ public class RecruitEntity extends AbstractRecruitEntity {
 
     @Nullable
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data, @Nullable CompoundTag nbt) {
-        RandomSource randomsource = world.getRandom();
         SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
         ((GroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
-        this.populateDefaultEquipmentEnchantments(randomsource, difficultyInstance);
+        this.populateDefaultEquipmentEnchantments(difficultyInstance);
 
         this.initSpawn();
 
@@ -63,7 +61,7 @@ public class RecruitEntity extends AbstractRecruitEntity {
     @Override
     public void initSpawn() {
         super.initSpawn();
-        this.setCustomName(Component.literal("Recruit"));
+        this.setCustomName(new TextComponent("Recruit"));
         this.setCost(3);
         this.setEquipment();
         this.setDropEquipment();
