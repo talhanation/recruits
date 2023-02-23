@@ -8,8 +8,6 @@ import com.talhanation.recruits.network.MessageRemoveFromTeam;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -31,7 +29,7 @@ public class TeamManagePlayerScreen extends ScreenBase<TeamManagePlayerContainer
     private ExtendedButton addButton;
 
     public TeamManagePlayerScreen(TeamManagePlayerContainer container, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, container, playerInventory, new TextComponent(""));
+        super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""));
         imageWidth = 176;
         imageHeight = 225;
         player = playerInventory.player;
@@ -58,7 +56,7 @@ public class TeamManagePlayerScreen extends ScreenBase<TeamManagePlayerContainer
         }
 
         minecraft.keyboardHandler.setSendRepeatsToGui(true);
-        textField = new EditBox(font, leftPos + 18, topPos + 25, 140, 20, new TextComponent(""));
+        textField = new EditBox(font, leftPos + 18, topPos + 25, 140, 20, Component.literal(""));
         textField.setTextColor(-1);
         textField.setTextColorUneditable(-1);
         textField.setBordered(true);
@@ -67,7 +65,7 @@ public class TeamManagePlayerScreen extends ScreenBase<TeamManagePlayerContainer
         addRenderableOnly(textField);
         setInitialFocus(textField);
 
-        addRenderableWidget(new ExtendedButton(leftPos + 18, topPos + 55, 140, 20, new TranslatableComponent("chat.recruits.team_creation.removePlayer"),
+        addRenderableWidget(new ExtendedButton(leftPos + 18, topPos + 55, 140, 20, Component.translatable("chat.recruits.team_creation.removePlayer"),
                 button -> {
                     if(!textField.getValue().isEmpty()) {
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageRemoveFromTeam(textField.getValue()));
@@ -90,8 +88,8 @@ public class TeamManagePlayerScreen extends ScreenBase<TeamManagePlayerContainer
         super.renderLabels(matrixStack, mouseX, mouseY);
         //Info
         int fontColor = 4210752;
-        font.draw(matrixStack, new TranslatableComponent("chat.recruits.team_creation.removePlayerTitle"), 18  , 11, fontColor);
-        font.draw(matrixStack,  new TranslatableComponent("chat.recruits.team_creation.addPlayerTitle"), 18  , 82, fontColor);
+        font.draw(matrixStack, Component.translatable("chat.recruits.team_creation.removePlayerTitle"), 18  , 11, fontColor);
+        font.draw(matrixStack,  Component.translatable("chat.recruits.team_creation.addPlayerTitle"), 18  , 82, fontColor);
 
         for(int i = 0; i < onlinePlayerJoinRequests.size(); i ++){
             String requestName = onlinePlayerJoinRequests.get(i);
@@ -102,7 +100,7 @@ public class TeamManagePlayerScreen extends ScreenBase<TeamManagePlayerContainer
     }
 
     public ExtendedButton createAddButton(String playerNameToAdd, String teamName) {
-        return addRenderableWidget(new ExtendedButton(leftPos + 110, topPos + 93 + (23 * onlinePlayerJoinRequests.indexOf(playerNameToAdd)), 30, 15, new TranslatableComponent(  "gui.recruits.team_creation.add_player_Button"),
+        return addRenderableWidget(new ExtendedButton(leftPos + 110, topPos + 93 + (23 * onlinePlayerJoinRequests.indexOf(playerNameToAdd)), 30, 15, Component.translatable(  "gui.recruits.team_creation.add_player_Button"),
             button -> {
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageAddPlayerToTeam(teamName, playerNameToAdd));
                 this.onClose();

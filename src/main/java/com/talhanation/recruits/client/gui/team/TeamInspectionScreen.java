@@ -17,9 +17,9 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BannerRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.ModelBakery;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -37,12 +37,12 @@ import java.util.UUID;
 public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/team/team_inspect_gui.png");
-    private static final TranslatableComponent LEAVE_TEAM = new TranslatableComponent("gui.recruits.team_creation.leave_team");
-    private static final TranslatableComponent DELETE_TEAM = new TranslatableComponent("gui.recruits.team_creation.delete_team");
-    private static final TranslatableComponent EDIT_TEAM = new TranslatableComponent("gui.recruits.team_creation.edit_team");
-    private static final TranslatableComponent MANAGE_TEAM = new TranslatableComponent("gui.recruits.team_creation.add_player");
+    private static final MutableComponent LEAVE_TEAM = Component.translatable("gui.recruits.team_creation.leave_team");
+    private static final MutableComponent DELETE_TEAM = Component.translatable("gui.recruits.team_creation.delete_team");
+    private static final MutableComponent EDIT_TEAM = Component.translatable("gui.recruits.team_creation.edit_team");
+    private static final MutableComponent MANAGE_TEAM = Component.translatable("gui.recruits.team_creation.add_player");
 
-    private static final TranslatableComponent TOOLTIP_COMING_SOON = new TranslatableComponent("gui.recruits.team_creation.coming_soon");
+    private static final MutableComponent TOOLTIP_COMING_SOON = Component.translatable("gui.recruits.team_creation.coming_soon");
     public static UUID leaderUUID;
     private final Player player;
     private final Team team;
@@ -52,8 +52,7 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
     public static int players;
     public static int npcs;
     private int members;
-
-    private List<Pair<BannerPattern, DyeColor>> resultBannerPatterns;
+    private List<Pair<Holder<BannerPattern>, DyeColor>> resultBannerPatterns;
     public static ItemStack bannerItem;
     public static String leader;
 
@@ -61,14 +60,13 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
     private Button editButton;
 
     public TeamInspectionScreen(TeamInspectionContainer container, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, container, playerInventory, new TextComponent(""));
+        super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""));
         player = container.getPlayerEntity();
         team = player.getTeam();
         imageWidth = 220;
         imageHeight = 250;
     }
 
-    @Override
     protected void init() {
         super.init();
         playerMembers = player.getTeam().getPlayers().stream().filter((name) -> name.length() <= 16).toList();
@@ -91,7 +89,7 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
         }
 
         //leave team
-        addRenderableWidget(new Button(leftPos + 85, topPos + 218, 50, 18, isTeamLeader ? DELETE_TEAM : LEAVE_TEAM, button -> {
+        addRenderableWidget(new Button(leftPos + 85, topPos + 218, 50, 18, (isTeamLeader ? DELETE_TEAM : LEAVE_TEAM), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
             this.onClose();
         }));
@@ -161,9 +159,10 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
 
     private Button createEditButton(){
         //Edit Team
-        return addRenderableWidget(new Button(leftPos + 15, topPos + 218, 50, 18, EDIT_TEAM,
+        return addRenderableWidget(new ExtendedButton(leftPos + 15, topPos + 218, 50, 18, EDIT_TEAM,
             button -> {
-            }, (a, b, c, d) -> { this.renderTooltip(b, TOOLTIP_COMING_SOON, c, d);
-        }));
+            }
+        ));
+
     }
 }

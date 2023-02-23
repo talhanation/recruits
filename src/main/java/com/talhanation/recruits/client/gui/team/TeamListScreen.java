@@ -8,9 +8,10 @@ import com.talhanation.recruits.network.MessageSendJoinRequestTeam;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.scores.PlayerTeam;
@@ -26,10 +27,10 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
     private int leftPos;
     private int topPos;
     private ExtendedButton joinButton;
-    private static final Component TEAMS_LIST = new TranslatableComponent("gui.recruits.team_creation.teams_list");
-    private static final Component NO_TEAMS = new TranslatableComponent("gui.recruits.team_creation.no_teams");
+    private static final MutableComponent TEAMS_LIST = Component.translatable("gui.recruits.team_creation.teams_list");
+    private static final MutableComponent NO_TEAMS = Component.translatable("gui.recruits.team_creation.no_teams");
     public TeamListScreen(TeamListContainer commandContainer, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, commandContainer, playerInventory, new TextComponent(""));
+        super(RESOURCE_LOCATION, commandContainer, playerInventory, Component.literal(""));
         imageWidth = 197;
         imageHeight = 250;
         player = playerInventory.player;
@@ -99,7 +100,7 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
     }
 
     public ExtendedButton createJoinButton(PlayerTeam team, String teamName) {
-        return addRenderableWidget(new ExtendedButton(leftPos + 150, topPos + 25 + (23 * teams.indexOf(team)), 30, 15, new TranslatableComponent("chat.recruits.team_creation.join"),
+        return addRenderableWidget(new ExtendedButton(leftPos + 150, topPos + 25 + (23 * teams.indexOf(team)), 30, 15, Component.translatable("chat.recruits.team_creation.join"),
                 button -> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageSendJoinRequestTeam(player.getUUID(), teamName));
                     this.onClose();

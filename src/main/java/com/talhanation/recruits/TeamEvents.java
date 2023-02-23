@@ -1,23 +1,25 @@
 package com.talhanation.recruits;
 
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.ParseResults;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.inventory.*;
 import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.world.RecruitsTeam;
 import com.talhanation.recruits.world.RecruitsTeamSavedData;
 import net.minecraft.ChatFormatting;
-import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -25,8 +27,6 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.phys.Vec2;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.network.NetworkHooks;
@@ -54,11 +54,10 @@ public class TeamEvents {
 
     public static void openTeamListScreen(Player player) {
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public Component getDisplayName() {
-                    return new TextComponent("Team List") {
-                    };
+                    return Component.literal("team_list_screen");
                 }
 
                 @Override
@@ -75,11 +74,10 @@ public class TeamEvents {
 
     public static void openTeamInspectionScreen(Player player, Team team) {
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public Component getDisplayName() {
-                    return new TextComponent("Team Inspection") {
-                    };
+                    return Component.literal("team_inspection_screen");
                 }
 
                 @Override
@@ -96,11 +94,10 @@ public class TeamEvents {
 
     public static void openTeamCreationScreen(Player player) {
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public Component getDisplayName() {
-                    return new TextComponent("Team Creation") {
-                    };
+                    return Component.literal("team_creation_screen");
                 }
 
                 @Override
@@ -117,12 +114,11 @@ public class TeamEvents {
 
     public static void openTeamMainScreen(Player player) {
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
 
                 @Override
                 public Component getDisplayName() {
-                    return new TranslatableComponent("team_main_screen") {
-                    };
+                    return Component.literal("team_main_screen");
                 }
 
                 @Nullable
@@ -138,12 +134,11 @@ public class TeamEvents {
 
     public static void openTeamAddPlayerScreen(Player player) {
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
 
                 @Override
                 public Component getDisplayName() {
-                    return new TranslatableComponent("team_add_player_screen") {
-                    };
+                    return Component.literal("team_add_player_screen");
                 }
 
                 @Nullable
@@ -156,14 +151,17 @@ public class TeamEvents {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamAddPlayerScreen(player));
         }
     }
-    public static void createTeam(ServerPlayer serverPlayer, ServerLevel level, String teamName, String playerName, int cost, ItemStack banner) {
+    public static void createTeam(ServerPlayer serverPlayer, ServerLevel level, String teamName, String playerName, ItemStack banner) {
         MinecraftServer server = level.getServer();
         PlayerTeam team = server.getScoreboard().getPlayerTeam(teamName);
         server.getScoreboard().getPlayerTeams();
-        String createTeamCommand = "/team add " + teamName;
-        String joinTeamCommand = "/team join " + teamName + " " + playerName;
-        CommandSourceStack commandSourceStack = new CommandSourceStack(CommandSource.NULL, Vec3.atCenterOf(serverPlayer.getOnPos()), Vec2.ZERO, level, 2, playerName, new TextComponent(playerName), level.getServer(), serverPlayer);
-        //Commands
+        String createTeamCommand = "team add " + teamName;
+        String joinTeamCommand = "team join " + teamName + " " + playerName;
+        int cost = RecruitsModConfig.TeamCreationCost.get();
+
+        CommandDispatcher<CommandSourceStack> commanddispatcher = server.getCommands().getDispatcher();
+        ParseResults<CommandSourceStack> parseresultscreateTeamCommand = commanddispatcher.parse(createTeamCommand, createCommandSourceStack(serverPlayer, server));
+        ParseResults<CommandSourceStack> parseresultsjoinTeamCommand = commanddispatcher.parse(joinTeamCommand, createCommandSourceStack(serverPlayer, server));
 
         if (team == null) {
             if (!(teamName.isBlank() || teamName.isEmpty())) {
@@ -171,25 +169,25 @@ public class TeamEvents {
                     if (playerHasEnoughEmeralds(serverPlayer, cost)) {
                         if (!isBannerBlank(banner)) {
                             if (!isBannerInUse(level, banner.serializeNBT())) {
-                                server.getCommands().performCommand(commandSourceStack, createTeamCommand);
-                                server.getCommands().performCommand(commandSourceStack, joinTeamCommand);
+                                server.getCommands().performCommand(parseresultscreateTeamCommand, createTeamCommand);
+                                server.getCommands().performCommand(parseresultsjoinTeamCommand, joinTeamCommand);
                                 doPayment(serverPlayer, cost);
 
                                 saveDataToTeam(level, teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT());
                                 addPlayerToData(level, teamName, 1, playerName);
                                 Main.LOGGER.debug("The Team " + teamName + " has been created by " + playerName + ".");
                             } else
-                                serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.banner_exists"), serverPlayer.getUUID());
+                                serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.banner_exists"));
                         } else
-                            serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.wrongbanner"), serverPlayer.getUUID());
+                            serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.wrongbanner"));
                     } else
-                        serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.noenough_money").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
+                        serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.noenough_money").withStyle(ChatFormatting.RED));
                 } else
-                    serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.team_exists"), serverPlayer.getUUID());
+                    serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.team_exists"));
             } else
-                serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.noname"), serverPlayer.getUUID());
+                serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.noname"));
         }else
-            serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.team_exists"), serverPlayer.getUUID());
+            serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.team_exists"));
     }
 
     private static boolean isNameInUse(ServerLevel level, String teamName) {
@@ -197,7 +195,7 @@ public class TeamEvents {
         List<RecruitsTeam> list = data.getTeams().stream().toList();
         boolean equ = false;
         for(RecruitsTeam recruitsTeam : list){
-            equ = recruitsTeam.getTeamName().toLowerCase().equals(teamName.toLowerCase());
+            equ = recruitsTeam.getTeamName().toLowerCase().strip().equals(teamName.toLowerCase());
         }
         return equ;
     }
@@ -250,21 +248,26 @@ public class TeamEvents {
 
         boolean isLeader = recruitsTeam.getTeamLeaderUUID().equals(player.getUUID());
 
-        String leaveTeamCommand = "/team leave " + playerName;
-        String emptyTeam = "/team empty " + teamName;
-        String removeTeam = "/team remove " + teamName;
-        CommandSourceStack commandSourceStack = new CommandSourceStack(CommandSource.NULL, Vec3.atCenterOf(player.getOnPos()), Vec2.ZERO, level, 2, playerName, new TextComponent(playerName), level.getServer(), player);
+        String leaveTeamCommand = "team leave " + playerName;
+        String emptyTeam = "team empty " + teamName;
+        String removeTeam = "team remove " + teamName;
+
+        CommandDispatcher<CommandSourceStack> commanddispatcher = server.getCommands().getDispatcher();
+        ParseResults<CommandSourceStack> parseresultsemptyTeam = commanddispatcher.parse(emptyTeam, createCommandSourceStack(player, server));
+        ParseResults<CommandSourceStack> parseresultsremoveTeam = commanddispatcher.parse(removeTeam, createCommandSourceStack(player, server));
+        ParseResults<CommandSourceStack> parseresultsleaveTeamCommand = commanddispatcher.parse(leaveTeamCommand, createCommandSourceStack(player, server));
+
 
         if(isLeader){
             removeRecruitsTeamData(level, teamName);
-            server.getCommands().performCommand(commandSourceStack, emptyTeam);
-            server.getCommands().performCommand(commandSourceStack, removeTeam);
+            server.getCommands().performCommand(parseresultsemptyTeam, emptyTeam);
+            server.getCommands().performCommand(parseresultsremoveTeam, removeTeam);
 
             data.getTeams().removeIf(team -> team.getTeamName().equals(teamName));
             data.setDirty();
         }
         else {
-            server.getCommands().performCommand(commandSourceStack, leaveTeamCommand);
+            server.getCommands().performCommand(parseresultsleaveTeamCommand, leaveTeamCommand);
             addPlayerToData(level,teamName,-1, playerName);
         }
     }
@@ -278,26 +281,27 @@ public class TeamEvents {
 
     public static void addPlayerToTeam(ServerPlayer player, ServerLevel level, String teamName, String namePlayerToAdd) {
         MinecraftServer server = level.getServer();
-        String playerName = player.getName().getString();
-        String joinTeamCommand = "/team join " + teamName + " " + namePlayerToAdd;
-
-        String string_addedPlayer = ADDED_PLAYER.getString() + teamName;
-        String string_addedPlayerLeader = namePlayerToAdd + ADDED_PLAYER_LEADER.getString();
-
-
         ServerPlayer playerToAdd = server.getPlayerList().getPlayerByName(namePlayerToAdd);
-        CommandSourceStack commandSourceStack = new CommandSourceStack(CommandSource.NULL, Vec3.atCenterOf(player.getOnPos()), Vec2.ZERO, level, 2, playerName, new TextComponent(playerName), level.getServer(), player);
+
+        String joinTeamCommand = "team join " + teamName + " " + namePlayerToAdd;
+        String string_addedPlayer = ADDED_PLAYER + teamName;
+        String string_addedPlayerLeader = namePlayerToAdd + ADDED_PLAYER_LEADER;
 
 
-        server.getCommands().performCommand(commandSourceStack, joinTeamCommand);
-        playerToAdd.sendMessage(new TextComponent(string_addedPlayer), playerToAdd.getUUID());
-        player.sendMessage(new TextComponent(string_addedPlayerLeader), player.getUUID());
+
+        CommandDispatcher<CommandSourceStack> commanddispatcher = server.getCommands().getDispatcher();
+        ParseResults<CommandSourceStack> parseresults = commanddispatcher.parse(joinTeamCommand, createCommandSourceStack(player, server));
+
+
+        server.getCommands().performCommand(parseresults, joinTeamCommand);
+        playerToAdd.sendSystemMessage(Component.literal(string_addedPlayer));
+        player.sendSystemMessage(Component.literal(string_addedPlayerLeader));
 
         addPlayerToData(level,teamName,1, namePlayerToAdd);
     }
-    public static final TranslatableComponent NO_PLAYER = new TranslatableComponent("chat.recruits.team_creation.could_not_find");
-    private static final TranslatableComponent ADDED_PLAYER = new TranslatableComponent("chat.recruits.team_creation.addedPlayer");
-    private static final TranslatableComponent ADDED_PLAYER_LEADER = new TranslatableComponent("chat.recruits.team_creation.addedPlayerLeader");
+    public static final MutableComponent NO_PLAYER = Component.translatable("chat.recruits.team_creation.could_not_find");
+    private static final MutableComponent ADDED_PLAYER = Component.translatable("chat.recruits.team_creation.addedPlayer");
+    private static final MutableComponent ADDED_PLAYER_LEADER = Component.translatable("chat.recruits.team_creation.addedPlayerLeader");
 
     public static void addPlayerToData(ServerLevel level, String teamName, int x, String namePlayerToAdd){
         RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
@@ -332,7 +336,7 @@ public class TeamEvents {
             boolean isPlayerToRemove = serverPlayer.getName().getString().equals(nameToRemove);
             if (isPlayerToRemove) {
                 TeamEvents.leaveTeam(serverPlayer, level);
-                serverPlayer.sendMessage(PLAYER_REMOVED, serverPlayer.getUUID());
+                serverPlayer.sendSystemMessage((Component) PLAYER_REMOVED);
             }
         }
     }
@@ -403,5 +407,9 @@ public class TeamEvents {
         }
         return emeralds;
     }
-    private static final TranslatableComponent PLAYER_REMOVED = new TranslatableComponent("chat.recruits.team_creation.removedPlayer");
+
+    private static CommandSourceStack createCommandSourceStack(Entity entity, MinecraftServer server) {
+        return new CommandSourceStack(entity, entity.position(), entity.getRotationVector(), entity.level instanceof ServerLevel ? (ServerLevel)entity.level : null, 2, entity.getName().getString(), entity.getDisplayName(), server, entity);
+    }
+    private static final TranslatableContents PLAYER_REMOVED = new TranslatableContents("chat.recruits.team_creation.removedPlayer");
 }

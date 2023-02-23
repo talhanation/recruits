@@ -11,6 +11,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.*;
@@ -58,9 +59,10 @@ public class AssassinLeaderEntity extends AbstractOrderAbleEntity {
 
     @Nullable
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data, @Nullable CompoundTag nbt) {
+        RandomSource randomsource = world.getRandom();
         SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
         ((GroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
-        this.populateDefaultEquipmentEnchantments(difficultyInstance);
+        this.populateDefaultEquipmentEnchantments(randomsource, difficultyInstance);
         this.setEquipment();
         //this.setDropEquipment();
         this.setPersistenceRequired();
@@ -109,7 +111,7 @@ public class AssassinLeaderEntity extends AbstractOrderAbleEntity {
         this.navigation.stop();
 
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public Component getDisplayName() {
                     return getName();

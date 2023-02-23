@@ -17,9 +17,8 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
 
-    public static final int NEW_VERSION = 15;
+    public static final int NEW_VERSION = 16;
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
-    public static ForgeConfigSpec.BooleanValue RenderNameTagforOwner;
     public static ForgeConfigSpec.BooleanValue OverrideIronGolemSpawn;
     public static ForgeConfigSpec.BooleanValue PillagerFriendlyFire;
     public static ForgeConfigSpec.BooleanValue PillagerSpawn;
@@ -79,11 +78,6 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("PlayVillagerAmbientSound", true);
 
-        RenderNameTagforOwner = BUILDER.comment("\n" + "----Should Recruits Name Tag Render for the owner----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: true")
-                .worldRestart()
-                .define("RenderNameTagforOwner", true);
 
         OverrideIronGolemSpawn = BUILDER.comment("\n" + "----Should Recruits instead of Iron Golems spawn in Villages ----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
@@ -99,33 +93,33 @@ public class RecruitsModConfig {
 
         PillagerFriendlyFire = BUILDER.comment("\n" + "----Should Pillagers do Friendlyfire ----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: false")
+                        "\t" + "default: true")
                 .worldRestart()
-                .define("PillagerFriendlyFire", false);
+                .define("PillagerFriendlyFire", true);
 
         PillagerSpawn = BUILDER.comment("\n" + "----Should Pillagers Spawn naturally ----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: true")
+                        "\t" + "default: false")
                 .worldRestart()
-                .define("PillagerSpawn", true);
+                .define("PillagerSpawn", false);
 
         PillagerAttackMonsters= BUILDER.comment("\n" + "----Should Pillagers attack Monsters----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: true")
+                        "\t" + "default: false")
                 .worldRestart()
-                .define("PillagerAttackMonsters", true);
+                .define("PillagerAttackMonsters", false);
 
         MonstersAttackPillagers= BUILDER.comment("\n" + "----Should Monsters attack Pillagers----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: true")
+                        "\t" + "default: false")
                 .worldRestart()
-                .define("MonstersAttackPillagers", true);
+                .define("MonstersAttackPillagers", false);
 
         ShouldPillagersRaidNaturally= BUILDER.comment("\n" + "----Should Pillagers attack all Living----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: true")
+                        "\t" + "default: false")
                 .worldRestart()
-                .define("ShouldPillagersRaidNaturally", true);
+                .define("ShouldPillagersRaidNaturally", false);
 
         RecruitsMaxXpForLevelUp = BUILDER.comment("\n" +"Max XP a Recruit needs to Level Up" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
@@ -135,21 +129,21 @@ public class RecruitsModConfig {
 
         PillagerIncreasedCombatRange= BUILDER.comment("\n" + "----Should Pillagers have increased Combat Range, so they can shoot from far away----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: true")
+                        "\t" + "default: false")
                 .worldRestart()
-                .define("PillagerIncreasedCombatRange", true);
+                .define("PillagerIncreasedCombatRange", false);
 
         VindicatorSpawnItems= BUILDER.comment("\n" + "----Should Vindicators can spawn with shield and sword and AI to use these----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: true")
+                        "\t" + "default: false")
                 .worldRestart()
-                .define("VindicatorSpawnItems", true);
+                .define("VindicatorSpawnItems", false);
 
         PillagerSpawnItems= BUILDER.comment("\n" + "----Should Pillagers can spawn with shield and sword and AI to use these----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: true")
                 .worldRestart()
-                .define("PillagerSpawnItems", true);
+                .define("PillagerSpawnItems", false);
 
         MaxAssassinCount = BUILDER.comment("\n" +"WIP: Max Assassins to buy from the Assassin Leader" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
@@ -200,7 +194,7 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("ShouldRecruitPatrolsSpawn", true);
 
-        RecruitPatrolsSpawnChance= BUILDER.comment("\n" + "----Chance that a Recruit Patrol can spawn. (higher = higher chance to spawn)----" + "\n" +
+        RecruitPatrolsSpawnChance= BUILDER.comment("\n" + "----Chance that a Recruit Patrol can spawn. (higher values = higher chance to spawn)----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: 15.0")
                 .worldRestart()
@@ -244,11 +238,11 @@ public class RecruitsModConfig {
 
         CONFIG = BUILDER.build();
 
-        TeamCreationCost = BUILDER.comment("\n" +"The cost to create a team." + "\n" +
+        TeamCreationCost = BUILDER.comment("\n" +"----The cost to create a team.----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: 32")
+                        "\t" + "default: 10")
                 .worldRestart()
-                .defineInRange("TeamCreationCost", 32, 1, 200);
+                .defineInRange("TeamCreationCost", 10, 1, 200);
     }
 
     public static void loadConfig(ForgeConfigSpec spec, Path path) {
