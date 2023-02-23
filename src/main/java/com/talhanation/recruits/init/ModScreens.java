@@ -28,7 +28,7 @@ public class ModScreens {
     private static final Logger logger = LogManager.getLogger(Main.MOD_ID);
     public static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(ForgeRegistries.MENU_TYPES, Main.MOD_ID);
 
-    public static final void registerMenus() {
+    public static void registerMenus() {
         registerMenu(RECRUIT_CONTAINER_TYPE.get(), RecruitInventoryScreen::new);
         registerMenu(DEBUG_CONTAINER_TYPE.get(), DebugInvScreen::new);
         registerMenu(COMMAND_CONTAINER_TYPE.get(), CommandScreen::new);
@@ -243,8 +243,7 @@ public class ModScreens {
      *
      * It has a try/catch block because the Forge screen constructor fails silently.
      */
-    private static <M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>> void registerMenu(
-            MenuType<? extends M> menuType, MenuScreens.ScreenConstructor<M, U> screenConstructor) {
+    private static <M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>> void registerMenu(MenuType<? extends M> menuType, MenuScreens.ScreenConstructor<M, U> screenConstructor) {
         MenuScreens.register(menuType, (MenuScreens.ScreenConstructor<M, U>) (menu, inventory, title) -> {
             try {
                 return screenConstructor.create(menu, inventory, title);
