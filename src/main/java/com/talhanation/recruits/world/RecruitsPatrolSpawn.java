@@ -337,21 +337,21 @@ public class RecruitsPatrolSpawn {
         int j = random.nextInt(32);
         ItemStack item = new ItemStack(Items.EMERALD);
         item.setCount(8 + j);
-        recruit.inventory.setItem(5, item);
+        recruit.inventory.setItem(8, item);
 
         int i = random.nextInt(8);
         if (i == 1) {
-            recruit.inventory.setItem(9, new ItemStack(Items.IRON_AXE));
+            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE));
         }
         else if (i == 2 || i == 3) {
-            recruit.inventory.setItem(9, new ItemStack(Items.GOLDEN_AXE));
+            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_AXE));
         }
         else if(i == 4 || i == 5) {
-            recruit.inventory.setItem(9, new ItemStack(Items.GOLDEN_SWORD));
+            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_SWORD));
         }
 
         else {
-            recruit.inventory.setItem(9, new ItemStack(Items.IRON_SWORD));
+            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
         }
 
         int k = random.nextInt(8);
@@ -363,7 +363,7 @@ public class RecruitsPatrolSpawn {
             case 3 -> food = new ItemStack(Items.COOKED_MUTTON);
         }
         food.setCount(16 + k);
-        recruit.inventory.setItem(5, food);
+        recruit.inventory.setItem(7, food);
     }
 
     public static void setPatrolRecruitEquipment(RecruitEntity recruit) {
@@ -393,7 +393,7 @@ public class RecruitsPatrolSpawn {
             case 3 -> food = new ItemStack(Items.BAKED_POTATO);
         }
         food.setCount(6 + k);
-        recruit.inventory.setItem(5, food);
+        recruit.inventory.setItem(7, food);
 
 
         int j = random.nextInt(8);
@@ -431,7 +431,7 @@ public class RecruitsPatrolSpawn {
             case 3 -> food = new ItemStack(Items.BAKED_POTATO);
         }
         food.setCount(6 + k);
-        recruit.inventory.setItem(5, food);
+        recruit.inventory.setItem(7, food);
     }
 
     public static void setPatrolBowmanEquipment(BowmanEntity recruit) {
@@ -457,7 +457,7 @@ public class RecruitsPatrolSpawn {
             case 3 -> food = new ItemStack(Items.COOKED_RABBIT);
         }
         food.setCount(6 + k);
-        recruit.inventory.setItem(5, food);
+        recruit.inventory.setItem(7, food);
     }
 
 
