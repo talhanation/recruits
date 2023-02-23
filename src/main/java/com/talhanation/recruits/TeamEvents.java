@@ -12,6 +12,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -150,12 +151,13 @@ public class TeamEvents {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamAddPlayerScreen(player));
         }
     }
-    public static void createTeam(ServerPlayer serverPlayer, ServerLevel level, String teamName, String playerName, int cost, ItemStack banner) {
+    public static void createTeam(ServerPlayer serverPlayer, ServerLevel level, String teamName, String playerName, ItemStack banner) {
         MinecraftServer server = level.getServer();
         PlayerTeam team = server.getScoreboard().getPlayerTeam(teamName);
         server.getScoreboard().getPlayerTeams();
         String createTeamCommand = "team add " + teamName;
         String joinTeamCommand = "team join " + teamName + " " + playerName;
+        int cost = RecruitsModConfig.TeamCreationCost.get();
 
         CommandDispatcher<CommandSourceStack> commanddispatcher = server.getCommands().getDispatcher();
         ParseResults<CommandSourceStack> parseresultscreateTeamCommand = commanddispatcher.parse(createTeamCommand, createCommandSourceStack(serverPlayer, server));
@@ -175,17 +177,17 @@ public class TeamEvents {
                                 addPlayerToData(level, teamName, 1, playerName);
                                 Main.LOGGER.debug("The Team " + teamName + " has been created by " + playerName + ".");
                             } else
-                                serverPlayer.sendSystemMessage(Component.literal("chat.recruits.team_creation.banner_exists"));
+                                serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.banner_exists"));
                         } else
-                            serverPlayer.sendSystemMessage(Component.literal("chat.recruits.team_creation.wrongbanner"));
+                            serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.wrongbanner"));
                     } else
-                        serverPlayer.sendSystemMessage(Component.literal("chat.recruits.team_creation.noenough_money").withStyle(ChatFormatting.RED));
+                        serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.noenough_money").withStyle(ChatFormatting.RED));
                 } else
-                    serverPlayer.sendSystemMessage(Component.literal("chat.recruits.team_creation.team_exists"));
+                    serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.team_exists"));
             } else
-                serverPlayer.sendSystemMessage(Component.literal("chat.recruits.team_creation.noname"));
+                serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.noname"));
         }else
-            serverPlayer.sendSystemMessage(Component.literal("chat.recruits.team_creation.team_exists"));
+            serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.team_exists"));
     }
 
     private static boolean isNameInUse(ServerLevel level, String teamName) {
@@ -193,7 +195,7 @@ public class TeamEvents {
         List<RecruitsTeam> list = data.getTeams().stream().toList();
         boolean equ = false;
         for(RecruitsTeam recruitsTeam : list){
-            equ = recruitsTeam.getTeamName().toLowerCase().equals(teamName.toLowerCase());
+            equ = recruitsTeam.getTeamName().toLowerCase().strip().equals(teamName.toLowerCase());
         }
         return equ;
     }
@@ -297,9 +299,9 @@ public class TeamEvents {
 
         addPlayerToData(level,teamName,1, namePlayerToAdd);
     }
-    public static final TranslatableContents NO_PLAYER = new TranslatableContents("chat.recruits.team_creation.could_not_find");
-    private static final TranslatableContents ADDED_PLAYER = new TranslatableContents("chat.recruits.team_creation.addedPlayer");
-    private static final TranslatableContents ADDED_PLAYER_LEADER = new TranslatableContents("chat.recruits.team_creation.addedPlayerLeader");
+    public static final MutableComponent NO_PLAYER = Component.translatable("chat.recruits.team_creation.could_not_find");
+    private static final MutableComponent ADDED_PLAYER = Component.translatable("chat.recruits.team_creation.addedPlayer");
+    private static final MutableComponent ADDED_PLAYER_LEADER = Component.translatable("chat.recruits.team_creation.addedPlayerLeader");
 
     public static void addPlayerToData(ServerLevel level, String teamName, int x, String namePlayerToAdd){
         RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);

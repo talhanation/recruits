@@ -21,6 +21,7 @@ import net.minecraft.world.entity.monster.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.raid.Raid;
 import net.minecraft.world.entity.raid.Raider;
+import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Explosion;
@@ -150,21 +151,20 @@ public class PillagerEvents {
 
  */
 
-
+    //Raider
 
     @SubscribeEvent
     public void raidStartOnBurningOminous(EntityEvent event) {
         Entity entity = event.getEntity();
 
-        if (entity instanceof ItemEntity) {
-            ItemEntity itemEntity = (ItemEntity) event.getEntity();
+        if (entity instanceof ItemEntity itemEntity) {
             ItemStack itemStack = itemEntity.getItem();
 
-            Level level = entity.level;
-            if (itemStack.getItem().equals(Items.WHITE_BANNER)) {
+            Level level = itemEntity.level;
+            if (itemStack.getItem() instanceof BannerItem) {
 
-                if (entity.isOnFire() && ItemStack.matches(itemStack, Raid.getLeaderBannerInstance())) {
-                    Player player = level.getNearestPlayer(entity, 16D);
+                if (itemEntity.isOnFire() && ItemStack.matches(itemStack, Raid.getLeaderBannerInstance())) {
+                    Player player = level.getNearestPlayer(itemEntity, 16D);
                     if (player != null) {
                         MobEffectInstance effectinstance1 = player.getEffect(MobEffects.BAD_OMEN);
                         int i = 1;
@@ -178,9 +178,9 @@ public class PillagerEvents {
                         MobEffectInstance effectinstance = new MobEffectInstance(MobEffects.BAD_OMEN, 120000, i, false, false, true);
                         if (!player.level.getGameRules().getBoolean(GameRules.RULE_DISABLE_RAIDS)) {
                             player.addEffect(effectinstance);
+                            level.explode(itemEntity, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), 0.5F, Explosion.BlockInteraction.BREAK);
+
                         }
-                        level.explode(entity, entity.getX(), entity.getY(), entity.getZ(), 0.5F, Explosion.BlockInteraction.BREAK);
-                        entity.remove(Entity.RemovalReason.KILLED);
                     }
                 }
             }

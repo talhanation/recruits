@@ -25,9 +25,6 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/command_gui.png");
 
-
-    private static final MutableComponent TEXT_EVERYONE = Component.translatable("gui.recruits.command.text.everyone");
-
     private static final MutableComponent TOOLTIP_DISMOUNT = Component.translatable("gui.recruits.command.tooltip.dismount");
     private static final MutableComponent TOOLTIP_MOUNT = Component.translatable("gui.recruits.command.tooltip.mount");
     private static final MutableComponent TOOLTIP_SHIELDS = Component.translatable("gui.recruits.command.tooltip.shields");
@@ -42,7 +39,10 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TOOLTIP_NEUTRAL = Component.translatable("gui.recruits.command.tooltip.neutral");
     private static final MutableComponent TOOLTIP_AGGRESSIVE = Component.translatable("gui.recruits.command.tooltip.aggressive");
     private static final MutableComponent TOOLTIP_RAID = Component.translatable("gui.recruits.command.tooltip.raid");
-
+    private static final MutableComponent TOOLTIP_UPKEEP = Component.translatable("gui.recruits.command.tooltip.upkeep");
+    private static final MutableComponent TOOLTIP_TEAM = Component.translatable("gui.recruits.command.tooltip.team");
+    private static final MutableComponent TOOLTIP_CLEAR_TARGET = Component.translatable("gui.recruits.command.tooltip.clearTargets");
+    private static final MutableComponent TEXT_EVERYONE = Component.translatable("gui.recruits.command.text.everyone");
     private static final MutableComponent TEXT_ESCORT = Component.translatable("gui.recruits.command.text.escort");
     private static final MutableComponent TEXT_MOVE = Component.translatable("gui.recruits.command.text.move");
     private static final MutableComponent TEXT_SHIELDS = Component.translatable("gui.recruits.command.text.shields");
@@ -59,11 +59,8 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TEXT_AGGRESSIVE = Component.translatable("gui.recruits.command.text.aggressive");
     private static final MutableComponent TEXT_RAID = Component.translatable("gui.recruits.command.text.raid");
     private static final MutableComponent TEXT_HAILOFARROWS = Component.translatable("gui.recruits.command.text.arrow");
-    private static final MutableComponent TOOLTIP_CLEAR_TARGET = Component.translatable("gui.recruits.command.tooltip.clearTargets");
     private static final MutableComponent TEXT_CLEAR_TARGET = Component.translatable("gui.recruits.command.text.clearTargets");
     private static final MutableComponent TEXT_UPKEEP = Component.translatable("gui.recruits.command.text.upkeep");
-    private static final MutableComponent TOOLTIP_UPKEEP = Component.translatable("gui.recruits.command.tooltip.upkeep");
-    private static final MutableComponent TOOLTIP_TEAM = Component.translatable("gui.recruits.command.tooltip.team");
     private static final MutableComponent TEXT_TEAM = Component.translatable("gui.recruits.command.text.team");
     private static final int fontColor = 16250871;
     private Player player;

@@ -52,7 +52,7 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
-import net.minecraft.world.inventory.Slot;
+
 import net.minecraft.world.item.*;
 
 import net.minecraft.world.item.ArmorItem;

@@ -73,7 +73,7 @@ public class VillagerEvents {
 
         if (entity instanceof ZombieVillager zombie){
             VillagerProfession profession = zombie.getVillagerData().getProfession();
-
+            /*
             if (profession.equals(ModProfessions.RECRUIT.get())) {
                 zombie.remove(Entity.RemovalReason.DISCARDED);
             }
@@ -85,10 +85,11 @@ public class VillagerEvents {
             if (profession.equals(ModProfessions.NOMAD.get())){
                 zombie.remove(Entity.RemovalReason.DISCARDED);
             }
-            */
+
             if (profession.equals(ModProfessions.SHIELDMAN.get())){
                 zombie.remove(Entity.RemovalReason.DISCARDED);
             }
+             */
         }
     }
     private static void createRecruit(Villager villager, EntityType<? extends AbstractRecruitEntity> recruitType){

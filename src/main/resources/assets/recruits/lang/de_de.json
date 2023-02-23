@@ -1,7 +1,7 @@
 {
   "entity.recruits.recruit": "Rekrut",
   "entity.recruits.bowman": "Bogenschütze",
-  "entity.recruits.recruit_shieldman": "Rekrut Schildmann",
+  "entity.recruits.recruit_shieldman": "Schildmann",
   "entity.recruits.nomad": "Nomade",
 
   "item.recruits.recruit_spawn_egg": "Recruit Spawn Egg",
@@ -15,8 +15,8 @@
   "block.recruits.nomad_block": "Nomad's Table",
 
   "category.recruits": "Recruits",
-  "key.recruits.r_key": "Befehlsbildschirm öffnen",
-  "key.recruits.c_key": "Team-Bildschirm öffnen",
+  "key.recruits.command_screen_key": "Befehlsbildschirm öffnen",
+  "key.recruits.team_screen_key": "Team-Bildschirm öffnen",
 
   "gui.recruits.inv.health": "LP:",
   "gui.recruits.inv.level": "Lvl:",
@@ -97,7 +97,7 @@
   "gui.recruits.command.text.neutral": "Neutral!",
   "gui.recruits.command.text.aggressive": "Aggressiv!",
   "gui.recruits.command.text.raid": "Überfall!",
-  "gui.recruits.command.text.upkeep": "Upkeep",
+  "gui.recruits.command.text.upkeep": "Versorgung",
 
   "gui.recruits.command.text.group": "Gruppe",
   "gui.recruits.command.text.everyone": "Alle",
@@ -173,8 +173,5 @@
   "gui.recruits.team_creation.delete_team": "Löschen",
   "gui.recruits.command.tooltip.team": "Öffnet den Teambilschirm",
   "gui.recruits.command.text.team": "Team",
-  "chat.recruits.text.hire_costs_1": "Du brauchst ",
-  "chat.recruits.text.hire_costs_2": "um mich zu rekrutieren me!",
-  "chat.recruits.text.hold_your_pos": "Ich werde Ihre Position halten.",
-  "gui.recruits.inv.text.upkeep": "Versorgung "
+  "Recruits": "Villager Recruits"
 }
