@@ -32,6 +32,7 @@ import net.minecraft.world.scores.Team;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -151,13 +152,13 @@ public class TeamEvents {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamAddPlayerScreen(player));
         }
     }
-    public static void createTeam(ServerPlayer serverPlayer, ServerLevel level, String teamName, String playerName, ItemStack banner) {
+    public static void createTeam(ServerPlayer serverPlayer, @NotNull ServerLevel level, String teamName, String playerName, ItemStack banner) {
         MinecraftServer server = level.getServer();
         PlayerTeam team = server.getScoreboard().getPlayerTeam(teamName);
         server.getScoreboard().getPlayerTeams();
         String createTeamCommand = "team add " + teamName;
         String joinTeamCommand = "team join " + teamName + " " + playerName;
-        int cost = RecruitsModConfig.TeamCreationCost.get();
+        int cost = 10;
 
         CommandDispatcher<CommandSourceStack> commanddispatcher = server.getCommands().getDispatcher();
         ParseResults<CommandSourceStack> parseresultscreateTeamCommand = commanddispatcher.parse(createTeamCommand, createCommandSourceStack(serverPlayer, server));
@@ -177,17 +178,17 @@ public class TeamEvents {
                                 addPlayerToData(level, teamName, 1, playerName);
                                 Main.LOGGER.debug("The Team " + teamName + " has been created by " + playerName + ".");
                             } else
-                                serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.banner_exists"));
+                                serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.banner_exists").withStyle(ChatFormatting.RED));
                         } else
                             serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.wrongbanner"));
                     } else
                         serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.noenough_money").withStyle(ChatFormatting.RED));
                 } else
-                    serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.team_exists"));
+                    serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED));
             } else
-                serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.noname"));
+                serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.noname").withStyle(ChatFormatting.RED));
         }else
-            serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.team_exists"));
+            serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED));
     }
 
     private static boolean isNameInUse(ServerLevel level, String teamName) {
@@ -256,7 +257,6 @@ public class TeamEvents {
         ParseResults<CommandSourceStack> parseresultsemptyTeam = commanddispatcher.parse(emptyTeam, createCommandSourceStack(player, server));
         ParseResults<CommandSourceStack> parseresultsremoveTeam = commanddispatcher.parse(removeTeam, createCommandSourceStack(player, server));
         ParseResults<CommandSourceStack> parseresultsleaveTeamCommand = commanddispatcher.parse(leaveTeamCommand, createCommandSourceStack(player, server));
-
 
         if(isLeader){
             removeRecruitsTeamData(level, teamName);

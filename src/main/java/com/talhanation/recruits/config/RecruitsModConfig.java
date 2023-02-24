@@ -17,7 +17,7 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
 
-    public static final int NEW_VERSION = 16;
+    public static final int NEW_VERSION = 17;
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue OverrideIronGolemSpawn;
     public static ForgeConfigSpec.BooleanValue PillagerFriendlyFire;
@@ -28,6 +28,7 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.IntValue MaxSpawnRecruitsInVillage;
     public static ForgeConfigSpec.IntValue MaxRecruitsForPlayer;
     public static ForgeConfigSpec.IntValue RecruitsMaxXpForLevelUp;
+    public static ForgeConfigSpec.IntValue TeamCreationCost;
     public static ForgeConfigSpec.BooleanValue PillagerIncreasedCombatRange;
     public static ForgeConfigSpec.BooleanValue VindicatorSpawnItems;
     public static ForgeConfigSpec.BooleanValue PillagerSpawnItems;
@@ -46,7 +47,6 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.DoubleValue RecruitPatrolsSpawnChance;
     public static ForgeConfigSpec.ConfigValue<String> RecruitCurrency;
     public static ForgeConfigSpec.BooleanValue RecruitsLookLikeVillagers;
-    public static ForgeConfigSpec.IntValue TeamCreationCost;
 
     public static ArrayList<String> MOUNTS = new ArrayList<>(
             Arrays.asList("minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "camels:camel"));
@@ -145,13 +145,6 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("PillagerSpawnItems", false);
 
-        MaxAssassinCount = BUILDER.comment("\n" +"WIP: Max Assassins to buy from the Assassin Leader" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: 16")
-                .worldRestart()
-                .defineInRange("MaxAssassinCount", 16, 1, 64);
-
-
         RecruitFollowStartDistance = BUILDER.comment("\n" +"Distance Recruits will start to follow its owner" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: 9.0")
@@ -176,13 +169,13 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("Mount Whitelist", MOUNTS);
 
-        AggroRecruitsBlockEvents= BUILDER.comment("\n" + "----Should Aggressive Recruits attack immediately enemy players that are placing or breaking blocks?----" + "\n" +
+        AggroRecruitsBlockEvents= BUILDER.comment("\n" + "----Should Aggressive Recruits attack enemy players that are placing or breaking blocks immediately?----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: true")
                 .worldRestart()
                 .define("AggroRecruitsBlockEvents", true);
 
-        NeutralRecruitsBlockEvents= BUILDER.comment("\n" + "----Should Neutral Recruits attack immediately enemy players that are placing or breaking blocks?----" + "\n" +
+        NeutralRecruitsBlockEvents= BUILDER.comment("\n" + "----Should Neutral Recruits attack enemy players that are placing or breaking blocks immediately?----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: true")
                 .worldRestart()
@@ -232,7 +225,7 @@ public class RecruitsModConfig {
 
         RecruitsLookLikeVillagers = BUILDER.comment("\n" + "----Should Recruits look like Villagers?----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: false")
+                        "\t" + "default: true")
                 .worldRestart()
                 .define("RecruitsLookLikeVillagers", true);
 
@@ -243,6 +236,12 @@ public class RecruitsModConfig {
                         "\t" + "default: 10")
                 .worldRestart()
                 .defineInRange("TeamCreationCost", 10, 1, 200);
+
+        MaxAssassinCount = BUILDER.comment("\n" +"WIP: Max Assassins to buy from the Assassin Leader" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: 16")
+                .worldRestart()
+                .defineInRange("MaxAssassinCount", 16, 1, 64);
     }
 
     public static void loadConfig(ForgeConfigSpec spec, Path path) {

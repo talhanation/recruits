@@ -48,8 +48,8 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
                     this.banner = container.getBanner();
                     if (!banner.equals(ItemStack.EMPTY)) {
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(textField.getValue().strip(), banner));
+                        this.onClose();
                     }
-                this.onClose();
             }));
         }
 

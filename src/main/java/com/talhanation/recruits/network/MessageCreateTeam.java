@@ -1,6 +1,7 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.config.RecruitsModConfig;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
@@ -29,7 +30,6 @@ public class MessageCreateTeam implements Message<MessageCreateTeam> {
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = context.getSender();
         ServerLevel world = player.getLevel();
-
         TeamEvents.createTeam(context.getSender(), world, this.teamName, player.getName().getString(), this.banner);
     }
 

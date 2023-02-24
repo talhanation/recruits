@@ -42,7 +42,11 @@ public class Main {
         ModItems.ITEMS.register(modEventBus);
         ModEntityTypes.ENTITY_TYPES.register(modEventBus);
 
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().addListener(Main.this::clientSetup));
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
+            FMLJavaModLoadingContext.get().getModEventBus().addListener(Main.this::clientSetup);
+            FMLJavaModLoadingContext.get().getModEventBus().addListener(ModShortcuts::registerBindings);
+            }
+        );
 
         MinecraftForge.EVENT_BUS.register(this);
 
@@ -104,8 +108,6 @@ public class Main {
     @OnlyIn(Dist.CLIENT)
     public void clientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(ModScreens::registerMenus);
-
-        MinecraftForge.EVENT_BUS.register(new ModShortcuts());
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
     }
 
