@@ -1,7 +1,7 @@
 {
   "homepage": "https://www.curseforge.com/minecraft/mc-mods/recruits/files",
   "promos": {
-    "1.19.2-recommended": "1.9.3.1",
+    "1.19.2-recommended": "1.9.3.2",
     "1.18.2-recommended": "1.9.3",
     "1.16.5-recommended": "1.5.1"
   },
@@ -13,6 +13,7 @@
     "1.9.0": "Team Screen, Hail of Arrows, Upkeep, Configurations and more!"
   },
   "1.19.2": {
+    "1.9.3.2": "fixed keybind and team creation.",
     "1.9.3.1": "fixed crash on servers.",
     "1.9.3": "fixed poi and trades.",
     "1.9.2": "added modded armor support."
