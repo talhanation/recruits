@@ -163,7 +163,7 @@ public class TeamEvents {
         String createTeamCommand = "/team add " + teamName;
         String joinTeamCommand = "/team join " + teamName + " " + playerName;
         CommandSourceStack commandSourceStack = new CommandSourceStack(CommandSource.NULL, Vec3.atCenterOf(serverPlayer.getOnPos()), Vec2.ZERO, level, 2, playerName, new TextComponent(playerName), level.getServer(), serverPlayer);
-        int cost = RecruitsModConfig.TeamCreationCost.get();
+        int cost = 10;
         //Commands
 
         if (team == null) {
