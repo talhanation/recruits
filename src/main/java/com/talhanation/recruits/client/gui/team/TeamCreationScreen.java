@@ -47,7 +47,7 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
                 button -> {
                     this.banner = container.getBanner();
                     if (!banner.equals(ItemStack.EMPTY)) {
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(textField.getValue().strip(), banner));
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(this.getCorrectFormat(textField.getValue().strip()), banner));
                         this.onClose();
                     }
             }));
@@ -96,5 +96,12 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+    
+    private String getCorrectFormat(String input) {
+        input = input.replaceAll(" ", "");
+        input = input.replaceAll("[^a-zA-Z0-9\\s]+", "");
+
+        return input;
     }
 }
