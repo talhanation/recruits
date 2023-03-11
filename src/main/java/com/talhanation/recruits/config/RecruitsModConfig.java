@@ -28,7 +28,6 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.IntValue MaxSpawnRecruitsInVillage;
     public static ForgeConfigSpec.IntValue MaxRecruitsForPlayer;
     public static ForgeConfigSpec.IntValue RecruitsMaxXpForLevelUp;
-    public static ForgeConfigSpec.IntValue TeamCreationCost;
     public static ForgeConfigSpec.BooleanValue PillagerIncreasedCombatRange;
     public static ForgeConfigSpec.BooleanValue VindicatorSpawnItems;
     public static ForgeConfigSpec.BooleanValue PillagerSpawnItems;
@@ -78,7 +77,6 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("PlayVillagerAmbientSound", true);
 
-
         OverrideIronGolemSpawn = BUILDER.comment("\n" + "----Should Recruits instead of Iron Golems spawn in Villages ----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: true")
@@ -111,9 +109,9 @@ public class RecruitsModConfig {
 
         MonstersAttackPillagers= BUILDER.comment("\n" + "----Should Monsters attack Pillagers----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: false")
+                        "\t" + "default: true")
                 .worldRestart()
-                .define("MonstersAttackPillagers", false);
+                .define("MonstersAttackPillagers", true);
 
         ShouldPillagersRaidNaturally= BUILDER.comment("\n" + "----Should Pillagers attack all Living----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
@@ -141,9 +139,16 @@ public class RecruitsModConfig {
 
         PillagerSpawnItems= BUILDER.comment("\n" + "----Should Pillagers can spawn with shield and sword and AI to use these----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: true")
+                        "\t" + "default: false")
                 .worldRestart()
                 .define("PillagerSpawnItems", false);
+
+        MaxAssassinCount = BUILDER.comment("\n" +"WIP: Max Assassins to buy from the Assassin Leader" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: 16")
+                .worldRestart()
+                .defineInRange("MaxAssassinCount", 16, 1, 64);
+
 
         RecruitFollowStartDistance = BUILDER.comment("\n" +"Distance Recruits will start to follow its owner" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
@@ -169,13 +174,13 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("Mount Whitelist", MOUNTS);
 
-        AggroRecruitsBlockEvents= BUILDER.comment("\n" + "----Should Aggressive Recruits attack enemy players that are placing or breaking blocks immediately?----" + "\n" +
+        AggroRecruitsBlockEvents= BUILDER.comment("\n" + "----Should Aggressive Recruits attack immediately enemy players that are placing or breaking blocks?----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: true")
                 .worldRestart()
                 .define("AggroRecruitsBlockEvents", true);
 
-        NeutralRecruitsBlockEvents= BUILDER.comment("\n" + "----Should Neutral Recruits attack enemy players that are placing or breaking blocks immediately?----" + "\n" +
+        NeutralRecruitsBlockEvents= BUILDER.comment("\n" + "----Should Neutral Recruits attack immediately enemy players that are placing or breaking blocks?----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: true")
                 .worldRestart()
@@ -187,7 +192,7 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("ShouldRecruitPatrolsSpawn", true);
 
-        RecruitPatrolsSpawnChance= BUILDER.comment("\n" + "----Chance that a Recruit Patrol can spawn. (higher values = higher chance to spawn)----" + "\n" +
+        RecruitPatrolsSpawnChance= BUILDER.comment("\n" + "----Chance that a Recruit Patrol can spawn. (higher = higher chance to spawn)----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: 15.0")
                 .worldRestart()
@@ -225,23 +230,11 @@ public class RecruitsModConfig {
 
         RecruitsLookLikeVillagers = BUILDER.comment("\n" + "----Should Recruits look like Villagers?----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: true")
+                        "\t" + "default: false")
                 .worldRestart()
                 .define("RecruitsLookLikeVillagers", true);
 
         CONFIG = BUILDER.build();
-
-        TeamCreationCost = BUILDER.comment("\n" +"----The cost to create a team.----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: 10")
-                .worldRestart()
-                .defineInRange("TeamCreationCost", 10, 1, 200);
-
-        MaxAssassinCount = BUILDER.comment("\n" +"WIP: Max Assassins to buy from the Assassin Leader" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: 16")
-                .worldRestart()
-                .defineInRange("MaxAssassinCount", 16, 1, 64);
     }
 
     public static void loadConfig(ForgeConfigSpec spec, Path path) {

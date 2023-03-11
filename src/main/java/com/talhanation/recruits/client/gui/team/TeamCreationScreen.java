@@ -7,7 +7,9 @@ import com.talhanation.recruits.network.MessageCreateTeam;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -21,13 +23,13 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/team/team_create_gui.png");
 
     private static final int fontColor = 4210752;
-    private final TeamCreationContainer container;
+    private TeamCreationContainer container;
     private final Inventory playerInventory;
     private EditBox textField;
     private ItemStack banner;
 
     public TeamCreationScreen(TeamCreationContainer container, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""));
+        super(RESOURCE_LOCATION, container, playerInventory, new TextComponent(""));
         this.playerInventory = playerInventory;
         this.container = container;
         this.banner = null;
@@ -43,17 +45,17 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
         //Main.LOGGER.debug("Hello from Screen");
         String create = "create";
         if(playerInventory.player.getTeam() == null) {
-            addRenderableWidget(new Button(leftPos + 18, topPos + 80, 140, 20, Component.literal(create),
+            addRenderableWidget(new Button(leftPos + 18, topPos + 80, 140, 20, new TextComponent(create),
                 button -> {
                     this.banner = container.getBanner();
                     if (!banner.equals(ItemStack.EMPTY)) {
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(textField.getValue().strip(), banner));
-                        this.onClose();
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(this.getCorrectFormat(textField.getValue().strip()), banner));
                     }
+                this.onClose();
             }));
         }
 
-        textField = new EditBox(font, leftPos + 18, topPos + 50, 140, 20, Component.literal(""));
+        textField = new EditBox(font, leftPos + 18, topPos + 50, 140, 20, new TextComponent(""));
         textField.setTextColor(-1);
         textField.setTextColorUneditable(-1);
         textField.setBordered(true);
@@ -96,5 +98,12 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    private String getCorrectFormat(String input) {
+        input = input.replaceAll(" ", "");
+        input = input.replaceAll("[^a-zA-Z0-9\\s]+", "");
+
+        return input;
     }
 }

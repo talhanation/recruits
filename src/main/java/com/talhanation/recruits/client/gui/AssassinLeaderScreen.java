@@ -10,24 +10,23 @@ import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.glfw.GLFW;
 
-import java.awt.*;
-
 
 @OnlyIn(Dist.CLIENT)
 public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderMenu> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/assassin_gui.png");
 
-    private static final MutableComponent TEXT_HEALTH = Component.literal("gui.recruits.inv.health");
-    private static final MutableComponent TEXT_LEVEL = Component.literal("gui.recruits.inv.level");
-    private static final MutableComponent TEXT_GROUP = Component.literal("gui.recruits.inv.group");
-    private static final MutableComponent TEXT_KILLS = Component.literal("gui.recruits.inv.kills");
+    private static final Component TEXT_HEALTH = new TranslatableComponent("gui.recruits.inv.health");
+    private static final Component TEXT_LEVEL = new TranslatableComponent("gui.recruits.inv.level");
+    private static final Component TEXT_GROUP = new TranslatableComponent("gui.recruits.inv.group");
+    private static final Component TEXT_KILLS = new TranslatableComponent("gui.recruits.inv.kills");
 
     private static final int fontColor = 4210752;
 
@@ -38,7 +37,7 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderMenu> {
     private int count;
 
     public AssassinLeaderScreen(AssassinLeaderMenu container, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""));
+        super(RESOURCE_LOCATION, container, playerInventory, new TextComponent(""));
         this.playerInventory = playerInventory;
         this.assassinLeaderEntity = container.getEntity();
         this.count = assassinLeaderEntity.getCount();
@@ -51,7 +50,7 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderMenu> {
         super.init();
         minecraft.keyboardHandler.setSendRepeatsToGui(true);
 
-        addRenderableWidget(new Button(leftPos + 10, topPos + 60, 8, 12, Component.literal("<"), button -> {
+        addRenderableWidget(new Button(leftPos + 10, topPos + 60, 8, 12, new TextComponent("<"), button -> {
             this.count = assassinLeaderEntity.getCount();
             if (this.count != 0) {
                 this.count--;
@@ -59,7 +58,7 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderMenu> {
             }
         }));
 
-        addRenderableWidget(new Button(leftPos + 10 + 30, topPos + 60, 8, 12, Component.literal(">"), button -> {
+        addRenderableWidget(new Button(leftPos + 10 + 30, topPos + 60, 8, 12, new TextComponent(">"), button -> {
             this.count = assassinLeaderEntity.getCount();
             if (this.count != assassinLeaderEntity.getMaxAssassinCount()) {
                 this.count++;
@@ -68,16 +67,16 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderMenu> {
         }));
 
         //HUNT
-        addRenderableWidget(new Button(leftPos + 77 + 25, topPos + 4, 50, 12, Component.literal("Assassinate"), button -> {
+        addRenderableWidget(new Button(leftPos + 77 + 25, topPos + 4, 50, 12, new TextComponent("Assassinate"), button -> {
             int assassinateCost = assassinLeaderEntity.calculateAssassinateCosts(assassinLeaderEntity.getAssassinCosts(), this.count);
             //if(AssassinEvents.playerHasEnoughEmeralds(playerInventory.player, assassinateCost))
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageAssassinate(textField.getValue(), this.count, assassinateCost));
             //else
-                playerInventory.player.sendSystemMessage(Component.literal(assassinLeaderEntity.getName() + ": You dont have enough Emeralds"));
+                playerInventory.player.sendMessage(new TextComponent(assassinLeaderEntity.getName() + ": You dont have enough Emeralds"), playerInventory.player.getUUID());
         onClose();
         }));
 
-        textField = new EditBox(font, leftPos + 30, topPos + 30, 116, 16, Component.literal(("")));
+        textField = new EditBox(font, leftPos + 30, topPos + 30, 116, 16, new TextComponent(""));
         textField.setTextColor(-1);
         textField.setTextColorUneditable(-1);
         textField.setBordered(true);

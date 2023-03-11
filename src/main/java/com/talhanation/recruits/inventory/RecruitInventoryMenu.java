@@ -3,7 +3,6 @@ package com.talhanation.recruits.inventory;
 import com.mojang.datafixers.util.Pair;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.init.ModScreens;
 import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
@@ -42,7 +41,7 @@ public class RecruitInventoryMenu extends ContainerBase {
     };
 
     public RecruitInventoryMenu(int id, AbstractRecruitEntity recruit, Inventory playerInventory) {
-        super(ModScreens.RECRUIT_CONTAINER_TYPE.get(), id, playerInventory, recruit.getInventory());
+        super(Main.RECRUIT_CONTAINER_TYPE, id, playerInventory, recruit.getInventory());
         this.recruit = recruit;
         this.recruitInventory = recruit.getInventory();
         addRecruitHandSlots();

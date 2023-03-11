@@ -1,5 +1,8 @@
 package com.talhanation.recruits;
 
+
+import java.util.UUID;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -17,7 +20,7 @@ public class DamageEvent {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onEntityHurt(LivingHurtEvent event) {
         if (!event.isCanceled()) {
-            LivingEntity entity = event.getEntity();
+            LivingEntity entity = event.getEntityLiving();
             if (entity.getLevel().isClientSide()) {
                 return;
             }
@@ -60,7 +63,7 @@ public class DamageEvent {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onPlayerAttack(AttackEntityEvent event) {
         if (!event.isCanceled()) {
-            Player player = event.getEntity();
+            Player player = event.getPlayer();
             if (player.getLevel().isClientSide()) {
                 return;
             }
@@ -82,7 +85,7 @@ public class DamageEvent {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onKnockback(LivingKnockBackEvent event) {
         if (!event.isCanceled()) {
-            LivingEntity entity = event.getEntity();
+            LivingEntity entity = event.getEntityLiving();
             if (entity.swinging) {
                 event.setCanceled(true);
                 entity.swinging = false;

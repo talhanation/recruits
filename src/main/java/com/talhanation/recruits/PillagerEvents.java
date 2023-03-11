@@ -11,6 +11,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.RangedCrossbowAttackGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
@@ -27,8 +28,11 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraftforge.event.entity.EntityEvent;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.world.BiomeLoadingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.EnumSet;
@@ -38,7 +42,7 @@ public class PillagerEvents {
     protected final Random random = new Random();
 
     @SubscribeEvent
-    public void attackRecruit(EntityJoinLevelEvent event) {
+    public void attackRecruit(EntityJoinWorldEvent event) {
         Entity entity = event.getEntity();
 
         if (entity instanceof Pillager) {
@@ -138,20 +142,18 @@ public class PillagerEvents {
         }
         */
     }
-/*
+
     @SubscribeEvent
-    public void onBiomeLoadingPillager(ForgeBiomeModifiers event) {
-        ForgeBiomeTagsProvider tagProvider = event.;
+    public void onBiomeLoadingPillager(BiomeLoadingEvent event) {
+        Biome.BiomeCategory category = event.getCategory();
         if (RecruitsModConfig.PillagerSpawn.get()) {
-            if (category != Biomes.BiomeCategory.NETHER && category != Biome.BiomeCategory.THEEND && category != Biome.BiomeCategory.NONE && category != Biome.BiomeBuilder.OCEAN && category != Biome.BiomeCategory.RIVER) {
+            if (category != Biome.BiomeCategory.NETHER && category != Biome.BiomeCategory.THEEND && category != Biome.BiomeCategory.NONE && category != Biome.BiomeCategory.OCEAN && category != Biome.BiomeCategory.RIVER) {
                 event.getSpawns().getSpawner(MobCategory.MONSTER).add(new MobSpawnSettings.SpawnerData(EntityType.PILLAGER, 1, 1, 2));
             }
         }
     }
 
- */
 
-    //Raider
 
     @SubscribeEvent
     public void raidStartOnBurningOminous(EntityEvent event) {
@@ -179,7 +181,6 @@ public class PillagerEvents {
                         if (!player.level.getGameRules().getBoolean(GameRules.RULE_DISABLE_RAIDS)) {
                             player.addEffect(effectinstance);
                             level.explode(itemEntity, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), 0.5F, Explosion.BlockInteraction.BREAK);
-
                         }
                     }
                 }

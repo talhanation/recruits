@@ -2,7 +2,6 @@ package com.talhanation.recruits.inventory;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.init.ModScreens;
 import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -17,7 +16,7 @@ public class DebugInvMenu extends ContainerBase {
     private final AbstractRecruitEntity recruit;
 
     public DebugInvMenu(int id, AbstractRecruitEntity recruit, Inventory playerInventory) {
-        super(ModScreens.DEBUG_CONTAINER_TYPE.get(), id, playerInventory, recruit.getInventory());
+        super(Main.DEBUG_CONTAINER_TYPE, id, playerInventory, recruit.getInventory());
         this.recruit = recruit;
         this.container = recruit.getInventory();
 

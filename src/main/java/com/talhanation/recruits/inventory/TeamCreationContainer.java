@@ -1,7 +1,6 @@
 package com.talhanation.recruits.inventory;
 
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.init.ModScreens;
 import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -23,7 +22,7 @@ public class TeamCreationContainer extends ContainerBase {
     }
 
     public TeamCreationContainer(int id, Container container, Inventory playerInventory) {
-        super(ModScreens.TEAM_CREATION_TYPE.get(), id, playerInventory, container);
+        super(Main.TEAM_CREATION_TYPE, id, playerInventory, container);
         checkContainerSize(container, 1);
         this.container = container;
         this.player = playerInventory.player;
