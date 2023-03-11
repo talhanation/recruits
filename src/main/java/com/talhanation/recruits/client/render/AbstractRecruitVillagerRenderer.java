@@ -5,6 +5,7 @@ import com.talhanation.recruits.client.events.ClientEvent;
 import com.talhanation.recruits.client.models.RecruitVillagerModel;
 import com.talhanation.recruits.entities.AbstractInventoryEntity;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;

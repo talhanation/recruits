@@ -8,7 +8,6 @@ import com.talhanation.recruits.network.MessageDebugGui;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -35,7 +34,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
     private int follow;
     private int aggro;
     public DebugInvScreen(DebugInvMenu commandContainer, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, commandContainer, playerInventory, new TextComponent(""));
+        super(RESOURCE_LOCATION, commandContainer, playerInventory, Component.literal(""));
         imageWidth = 201;
         imageHeight = 250;
         this.recruit = commandContainer.getRecruit();
@@ -62,60 +61,60 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
     }
 
     private void xpButton(int zeroLeftPos, int zeroTopPos){
-        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 0, 23, 20, new TextComponent("+xp"), button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 0, 23, 20, Component.literal("+xp"), button -> {
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(0, recruit.getUUID()));
         }));
     }
 
     private void lvlButton(int zeroLeftPos, int zeroTopPos){
-        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 1, 23, 20, new TextComponent("+lvl"), button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 1, 23, 20, Component.literal("+lvl"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(1, recruit.getUUID()));
         }));
     }
 
     private void costButton(int zeroLeftPos, int zeroTopPos){
         //increase cost
-        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 2, 23, 20, new TextComponent("+cost"), button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 2, 23, 20, Component.literal("+cost"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(2, recruit.getUUID()));
         }));
         //decrease cost
-        addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 2, 23, 20, new TextComponent("-cost"), button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 2, 23, 20, Component.literal("-cost"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(3, recruit.getUUID()));
         }));
     }
 
     private void hungerButton(int zeroLeftPos, int zeroTopPos){
         //increase hunger
-        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 3, 23, 20, new TextComponent("+hunger"), button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 3, 23, 20, Component.literal("+hunger"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(4, recruit.getUUID()));
         }));
 
         //decrease hunger
-        addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 3, 23, 20, new TextComponent("-hunger"), button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 3, 23, 20, Component.literal("-hunger"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(5, recruit.getUUID()));
         }));
     }
 
     private void moralButton(int zeroLeftPos, int zeroTopPos){
         //increase moral
-        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 4, 23, 20, new TextComponent("+moral"), button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 4, 23, 20, Component.literal("+moral"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(6, recruit.getUUID()));
         }));
 
         //decrease moral
-        addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 4, 23, 20, new TextComponent("-moral"), button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 4, 23, 20, Component.literal("-moral"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(7, recruit.getUUID()));
         }));
     }
 
     private void healthButton(int zeroLeftPos, int zeroTopPos){
         //increase health
-        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 5, 23, 20, new TextComponent("+health"), button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 5, 23, 20, Component.literal("+health"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(8, recruit.getUUID()));
         }));
 
         //decrease health
-        addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 5, 23, 20, new TextComponent("-health"), button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 5, 23, 20, Component.literal("-health"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(9, recruit.getUUID()));
         }));
     }

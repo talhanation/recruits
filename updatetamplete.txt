@@ -1,0 +1,33 @@
+Update 1.8.4
+
+---------------------------------------------------------------------------------------------------------------------------
+
++ added dismount button to recruit inventory
++ added upkeep
++ added...
+
++improved recruits shield AI
++improved...
+
++ fixed recruits dont make a eating animation when giving 1x food
++ fixed fixed moral issues
++ fixed log output
+
+---------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+recruits mod update 1.8.4:
+
+
+
++ made block event target also on neutral (configurable default: true)
++ added a feature that recruits of different teams can escort the same Mob, while in neutral mode, bowman will also make no "friendly fire" damage.
++ added recruit patrols (configurable default: true)
+
+**+ fixed recruits attack owner on block event**
++ fixed potential crash with holdpos command
++ fixed crash when throwing a ominous banner into fire
+
+https://www.curseforge.com/minecraft/mc-mods/recruits/files

@@ -1,7 +1,7 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 
@@ -50,7 +50,7 @@ public class RecruitEscortEntityGoal extends Goal {
 
         if (this.escort == null || !escort.isAlive()) {
             if(this.escort != null && !escort.isAlive()){
-                if (recruit.getOwner() != null)recruit.getOwner().sendMessage(new TextComponent(recruit.getName().getString() + ": The Escort died."), recruit.getOwner().getUUID());
+                if (recruit.getOwner() != null)recruit.getOwner().sendSystemMessage(Component.literal(recruit.getName().getString() + ": The Escort died."));
             }
             stop();
         }

@@ -16,7 +16,7 @@
 
   "category.recruits": "Piyadeler",
   "key.recruits.r_key": "Komut Ekranını Aç",
-  "key.recruits.u_key": "Takım Ekranını Aç",
+  "key.recruits.c_key": "Takım Ekranını Aç",
 
   "gui.recruits.inv.health": "Can:",
   "gui.recruits.inv.level": "Seviye:",

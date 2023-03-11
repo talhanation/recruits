@@ -2,15 +2,16 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.helpers.NOPLogger;
+
+
 
 public class RecruitUpkeepPosGoal extends Goal {
     public AbstractRecruitEntity recruit;
@@ -83,7 +84,10 @@ public class RecruitUpkeepPosGoal extends Goal {
                                 recruit.getInventory().addItem(food);
                                 foodItem.shrink(1);
                             } else {
-
+                                if(recruit.getOwner() != null && message){
+                                    recruit.getOwner().sendSystemMessage(TEXT_NO_PLACE(recruit.getName().getString()));
+                                    message = false;
+                                }
                                 //Main.LOGGER.debug("Chest empty");
                                 break;
                             }
@@ -91,9 +95,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                     }
                     else {
                        if(recruit.getOwner() != null && message){
-                           String name = recruit.getName().getString() + ": ";
-                           String str = TEXT_NOFOOD.getString();
-                           recruit.getOwner().sendMessage(new TextComponent(name + str), recruit.getOwner().getUUID());
+                           recruit.getOwner().sendSystemMessage(TEXT_FOOD(recruit.getName().getString()));
                            message = false;
                        }
                     }
@@ -105,6 +107,8 @@ public class RecruitUpkeepPosGoal extends Goal {
             //Main.LOGGER.debug("Chest not found");
         }
     }
+
+
 
     @Nullable
     private BlockPos findInvPos() {
@@ -140,12 +144,19 @@ public class RecruitUpkeepPosGoal extends Goal {
         return itemStack;
     }
 
-    private final TranslatableComponent TEXT_NOFOOD = new TranslatableComponent("chat.recruits.text.noFoodInUpkeep");
     private boolean canAddFood(){
         for(int i = 6; i < 14; i++){
             if(recruit.getInventory().getItem(i).isEmpty())
                 return true;
         }
         return false;
+    }
+
+    private MutableComponent TEXT_NO_PLACE(String name) {
+        return Component.translatable("chat.recruits.text.noPlaceInInv", name);
+    }
+
+    private MutableComponent TEXT_FOOD(String name) {
+        return Component.translatable("chat.recruits.text.noFoodInUpkeep", name);
     }
 }

@@ -4,7 +4,7 @@ import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -35,7 +35,7 @@ public class MessageRecruitsInCommand implements Message<MessageRecruitsInComman
             if (recruits.getOwnerUUID() != null && recruits.getOwnerUUID().equals(this.uuid)) {
                 this.count++;
                 CommandEvents.setRecruitsInCommand(recruits, this.count);
-                recruits.getOwner().sendMessage(new TextComponent("MESSAGE int: " + count), recruits.getOwnerUUID());
+                //recruits.getOwner().sendSystemMessage(Component.literal("MESSAGE int: " + count));
             }
 
         }

@@ -10,8 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
@@ -34,30 +33,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class CommandEvents {
-    public static final TranslatableComponent TEXT_HIRE_COSTS_1 = new TranslatableComponent("chat.recruits.text.hire_costs_1");
-    public static final TranslatableComponent TEXT_HIRE_COSTS_2 = new TranslatableComponent("chat.recruits.text.hire_costs_2");
-    public static final TranslatableComponent TEXT_EVERYONE = new TranslatableComponent("chat.recruits.text.everyone");
-    public static final TranslatableComponent TEXT_GROUP = new TranslatableComponent("chat.recruits.text.group");
+    public static final MutableComponent TEXT_EVERYONE = Component.translatable("chat.recruits.text.everyone");
+    public static final MutableComponent TEXT_GROUP = Component.translatable("chat.recruits.text.group");
 
-    public static final TranslatableComponent TEXT_PASSIVE = new TranslatableComponent("chat.recruits.command.passive");
-    public static final TranslatableComponent TEXT_NEUTRAL = new TranslatableComponent("chat.recruits.command.neutral");
-    public static final TranslatableComponent TEXT_AGGRESSIVE = new TranslatableComponent("chat.recruits.command.aggressive");
-    public static final TranslatableComponent TEXT_RAID = new TranslatableComponent("chat.recruits.command.raid");
-
-    public static final TranslatableComponent TEXT_FOLLOW = new TranslatableComponent("chat.recruits.command.follow");
-    public static final TranslatableComponent TEXT_WANDER = new TranslatableComponent("chat.recruits.command.wander");
-    public static final TranslatableComponent TEXT_HOLD_POS = new TranslatableComponent("chat.recruits.command.holdPos");
-    public static final TranslatableComponent TEXT_HOLD_MY_POS = new TranslatableComponent("chat.recruits.command.holdMyPos");
-    public static final TranslatableComponent TEXT_BACK_TO_POS = new TranslatableComponent("chat.recruits.command.backToPos");
-    public static final TranslatableComponent TEXT_DISMOUNT = new TranslatableComponent("chat.recruits.command.dismount");
-    public static final TranslatableComponent TEXT_MOVE = new TranslatableComponent("chat.recruits.command.move");
-    public static final TranslatableComponent TEXT_HAILOFARROWS = new TranslatableComponent("chat.recruits.command.arrows");
-    public static final TranslatableComponent TEXT_SHIELDS = new TranslatableComponent("chat.recruits.command.shields");
-    public static final TranslatableComponent TEXT_SHIELDS_OFF = new TranslatableComponent("chat.recruits.command.shields_off");
-    public static final TranslatableComponent TEXT_HAILOFARROWS_OFF = new TranslatableComponent("chat.recruits.command.arrows_off");
-    public static final TranslatableComponent TEXT_MOUNT = new TranslatableComponent("chat.recruits.command.mount");
-    public static final TranslatableComponent TEXT_ESCORT = new TranslatableComponent("chat.recruits.command.escort");
-    public static final TranslatableComponent TEXT_UPKEEP = new TranslatableComponent("chat.recruits.command.upkeep");
 
     public static void onFollowCommand(UUID player_uuid, AbstractRecruitEntity recruit, int r_state, int group, boolean fromGui) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
@@ -170,12 +148,11 @@ public class CommandEvents {
 
     public static void openCommandScreen(Player player) {
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
 
                 @Override
                 public @NotNull Component getDisplayName() {
-                    return new TranslatableComponent("command_screen") {
-                    };
+                    return Component.literal("command_screen");
                 }
 
                 @Override
@@ -195,22 +172,78 @@ public class CommandEvents {
             group_string = TEXT_GROUP.getString() + " " + group + ", " ;
 
         switch (state) {
-            case 0 -> owner.sendMessage(new TextComponent(group_string +  TEXT_WANDER.getString()), owner.getUUID());
-            case 1 -> owner.sendMessage(new TextComponent(group_string +  TEXT_FOLLOW.getString()), owner.getUUID());
-            case 2 -> owner.sendMessage(new TextComponent(group_string +  TEXT_HOLD_POS.getString()), owner.getUUID());
-            case 3 -> owner.sendMessage(new TextComponent(group_string +  TEXT_BACK_TO_POS.getString()), owner.getUUID());
-            case 4 -> owner.sendMessage(new TextComponent(group_string +  TEXT_HOLD_MY_POS.getString()), owner.getUUID());
-            case 5 -> owner.sendMessage(new TextComponent(group_string +  TEXT_ESCORT.getString()), owner.getUUID());
+            case 0 -> owner.sendSystemMessage(TEXT_WANDER(group_string));
+            case 1 -> owner.sendSystemMessage(TEXT_FOLLOW(group_string));
+            case 2 -> owner.sendSystemMessage(TEXT_HOLD_POS(group_string));
+            case 3 -> owner.sendSystemMessage(TEXT_BACK_TO_POS(group_string));
+            case 4 -> owner.sendSystemMessage(TEXT_HOLD_MY_POS(group_string));
+            case 5 -> owner.sendSystemMessage(TEXT_ESCORT(group_string));
 
-            case 92 -> owner.sendMessage(new TextComponent(group_string +  TEXT_UPKEEP.getString()), owner.getUUID());
-            case 93 -> owner.sendMessage(new TextComponent(group_string +  TEXT_SHIELDS_OFF.getString()), owner.getUUID());
-            case 94 -> owner.sendMessage(new TextComponent(group_string +  TEXT_HAILOFARROWS_OFF.getString()), owner.getUUID());
-            case 95 -> owner.sendMessage(new TextComponent(group_string +  TEXT_SHIELDS.getString()), owner.getUUID());
-            case 96 -> owner.sendMessage(new TextComponent(group_string +  TEXT_HAILOFARROWS.getString()), owner.getUUID());
-            case 97 -> owner.sendMessage(new TextComponent(group_string +  TEXT_MOVE.getString()), owner.getUUID());
-            case 98 -> owner.sendMessage(new TextComponent(group_string +  TEXT_DISMOUNT.getString()), owner.getUUID());
-            case 99 -> owner.sendMessage(new TextComponent(group_string +  TEXT_MOUNT.getString()), owner.getUUID());
+            case 92 -> owner.sendSystemMessage(TEXT_UPKEEP(group_string));
+            case 93 -> owner.sendSystemMessage(TEXT_SHIELDS_OFF(group_string));
+            case 94 -> owner.sendSystemMessage(TEXT_HAILOFARROWS_OFF(group_string));
+            case 95 -> owner.sendSystemMessage(TEXT_SHIELDS(group_string));
+            case 96 -> owner.sendSystemMessage(TEXT_HAILOFARROWS(group_string));
+            case 97 -> owner.sendSystemMessage(TEXT_MOVE(group_string));
+            case 98 -> owner.sendSystemMessage(TEXT_DISMOUNT(group_string));
+            case 99 -> owner.sendSystemMessage(TEXT_MOUNT(group_string));
         }
+    }
+
+    private static MutableComponent TEXT_WANDER(String group_string) {
+        return Component.translatable("chat.recruits.command.wander", group_string);
+    }
+
+    private static MutableComponent TEXT_FOLLOW(String group_string) {
+        return Component.translatable("chat.recruits.command.follow", group_string);
+    }
+
+    private static MutableComponent TEXT_HOLD_POS(String group_string) {
+        return Component.translatable("chat.recruits.command.holdPos", group_string);
+    }
+
+    private static MutableComponent TEXT_BACK_TO_POS(String group_string) {
+        return Component.translatable("chat.recruits.command.backToPos", group_string);
+    }
+
+    private static MutableComponent TEXT_HOLD_MY_POS(String group_string) {
+        return Component.translatable("chat.recruits.command.holdMyPos", group_string);
+    }
+
+    private static MutableComponent TEXT_ESCORT(String group_string) {
+        return Component.translatable("chat.recruits.command.escort", group_string);
+    }
+
+    private static MutableComponent TEXT_UPKEEP(String group_string) {
+        return Component.translatable("chat.recruits.command.upkeep", group_string);
+    }
+
+    private static MutableComponent TEXT_SHIELDS_OFF(String group_string) {
+        return Component.translatable("chat.recruits.command.shields_off", group_string);
+    }
+
+    private static MutableComponent TEXT_HAILOFARROWS_OFF(String group_string) {
+        return Component.translatable("chat.recruits.command.arrows_off", group_string);
+    }
+
+    private static MutableComponent TEXT_SHIELDS(String group_string) {
+        return Component.translatable("chat.recruits.command.shields", group_string);
+    }
+
+    private static MutableComponent TEXT_HAILOFARROWS(String group_string) {
+        return Component.translatable("chat.recruits.command.arrows", group_string);
+    }
+
+    private static MutableComponent TEXT_MOVE(String group_string) {
+        return Component.translatable("chat.recruits.command.move", group_string);
+    }
+
+    private static MutableComponent TEXT_DISMOUNT(String group_string) {
+        return Component.translatable("chat.recruits.command.dismount", group_string);
+    }
+
+    private static MutableComponent TEXT_MOUNT(String group_string) {
+        return Component.translatable("chat.recruits.command.mount", group_string);
     }
 
     public static void sendAggroCommandInChat(int state, LivingEntity owner, int group){
@@ -222,10 +255,10 @@ public class CommandEvents {
 
 
         switch (state) {
-            case 0 -> owner.sendMessage(new TextComponent(group_string + TEXT_NEUTRAL.getString()), owner.getUUID());
-            case 1 -> owner.sendMessage(new TextComponent(group_string + TEXT_AGGRESSIVE.getString()), owner.getUUID());
-            case 2 -> owner.sendMessage(new TextComponent(group_string + TEXT_RAID.getString()), owner.getUUID());
-            case 3 -> owner.sendMessage(new TextComponent(group_string + TEXT_PASSIVE.getString()), owner.getUUID());
+            case 0 -> owner.sendSystemMessage(TEXT_NEUTRAL(group_string));
+            case 1 -> owner.sendSystemMessage(TEXT_AGGRESSIVE(group_string));
+            case 2 -> owner.sendSystemMessage(TEXT_RAID(group_string));
+            case 3 -> owner.sendSystemMessage(TEXT_PASSIVE(group_string));
         }
     }
 
@@ -237,7 +270,7 @@ public class CommandEvents {
             CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
 
             nbt.putInt( "RecruitsInCommand", count);
-            living.sendMessage(new TextComponent("EVENT int: " + count), living.getUUID());
+            living.sendSystemMessage(Component.literal("EVENT int: " + count));
 
             playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
         }
@@ -245,7 +278,7 @@ public class CommandEvents {
 
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-        CompoundTag playerData = event.getPlayer().getPersistentData();
+        CompoundTag playerData = event.getEntity().getPersistentData();
         CompoundTag data = playerData.getCompound(Player.PERSISTED_NBT_TAG);
             if (!data.contains("MaxRecruits")) data.putInt("MaxRecruits", RecruitsModConfig.MaxRecruitsForPlayer.get());
             if (!data.contains("CommandingGroup")) data.putInt("CommandingGroup", 0);
@@ -257,14 +290,14 @@ public class CommandEvents {
     public static int getSavedRecruitCount(Player player) {
         CompoundTag playerNBT = player.getPersistentData();
         CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
-        //player.sendMessage(new StringTextComponent("getSavedCount: " + nbt.getInt("TotalRecruits")), player.getUUID());
+        //player.sendSystemMessage(new StringTextComponent("getSavedCount: " + nbt.getInt("TotalRecruits")), player.getUUID());
         return nbt.getInt("TotalRecruits");
     }
 
     public static void saveRecruitCount(Player player, int count) {
         CompoundTag playerNBT = player.getPersistentData();
         CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
-        //player.sendMessage(new StringTextComponent("savedCount: " + count), player.getUUID());
+        //player.sendSystemMessage(new StringTextComponent("savedCount: " + count), player.getUUID());
 
         nbt.putInt( "TotalRecruits", count);
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
@@ -276,37 +309,17 @@ public class CommandEvents {
 
     public static void handleRecruiting(Player player, AbstractRecruitEntity recruit){
         String name = recruit.getName().getString() + ": ";
-        String hire_costs_1 = TEXT_HIRE_COSTS_1.getString();
-        String hire_costs_2 = TEXT_HIRE_COSTS_2.getString();
-
         int sollPrice = recruit.getCost();
         Inventory playerInv = player.getInventory();
-
         int playerEmeralds = 0;
 
         String str = RecruitsModConfig.RecruitCurrency.get();
-        //Main.LOGGER.debug("str: " + str);
         ItemStack currencyItemStack;
         Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
-        //Main.LOGGER.debug("holder: " + holder);
 
-        if (holder.isPresent()){
-            currencyItemStack = holder.get().value().getDefaultInstance();
-            //Main.LOGGER.debug("currencyItemStack: " + currencyItemStack);
-        }
-        else
-            currencyItemStack = Items.EMERALD.getDefaultInstance();
-
+        currencyItemStack = holder.map(itemHolder -> itemHolder.value().getDefaultInstance()).orElseGet(Items.EMERALD::getDefaultInstance);
 
         Item currency = currencyItemStack.getItem();//
-        //Main.LOGGER.debug("currency: " + currency);
-
-        String recruit_info_1 = String.format(hire_costs_1 + " " + sollPrice + " ");
-        String recruit_info_2 = String.format(currency.getDescription().getString() + " " + hire_costs_2);
-        //Main.LOGGER.debug("currency.getDescription().getString(): " + currency.getDescription().getString());
-
-
-
 
         //checkPlayerMoney
         for (int i = 0; i < playerInv.getContainerSize(); i++){
@@ -347,9 +360,8 @@ public class CommandEvents {
             }
         }
         else
-            player.sendMessage(new TextComponent(name + recruit_info_1 + recruit_info_2), player.getUUID());
+            player.sendSystemMessage(TEXT_HIRE_COSTS(name, sollPrice, currency));
     }
-
 
     public static void onMountButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID mount_uuid, int group) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
@@ -408,5 +420,26 @@ public class CommandEvents {
             recruit.setShouldBlock(shields);
         }
     }
+
+    private static MutableComponent TEXT_PASSIVE(String group_string) {
+        return Component.translatable("chat.recruits.command.passive", group_string);
+    }
+
+    private static MutableComponent TEXT_RAID(String group_string) {
+        return Component.translatable("chat.recruits.command.raid", group_string);
+    }
+
+    private static MutableComponent TEXT_AGGRESSIVE(String group_string) {
+        return Component.translatable("chat.recruits.command.aggressive", group_string);
+    }
+
+    private static MutableComponent TEXT_NEUTRAL(String group_string) {
+        return Component.translatable("chat.recruits.command.neutral", group_string);
+    }
+
+    private static MutableComponent TEXT_HIRE_COSTS(String name, int sollPrice, Item item) {
+        return Component.translatable("chat.recruits.text.hire_costs", name, String.valueOf(sollPrice), item.getDescription().getString());
+    }
+
 
 }

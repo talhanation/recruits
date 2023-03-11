@@ -2,6 +2,7 @@ package com.talhanation.recruits.inventory;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.init.ModScreens;
 import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -14,7 +15,7 @@ public class RecruitHireMenu extends ContainerBase {
     private final AbstractRecruitEntity recruit;
 
     public RecruitHireMenu(int id, Player playerEntity, AbstractRecruitEntity recruit, Inventory playerInventory) {
-        super(Main.HIRE_CONTAINER_TYPE, id, null, new SimpleContainer(0));
+        super(ModScreens.HIRE_CONTAINER_TYPE.get(), id, null, new SimpleContainer(0));
         this.playerEntity = playerEntity;
         this.recruit = recruit;
         this.playerInventory = playerInventory;
