@@ -12,6 +12,7 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
@@ -267,8 +268,8 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
     public boolean canEquipItem(@NotNull ItemStack itemStack) {
         EquipmentSlot equipmentslot = getEquipmentSlotForItem(itemStack);
-        ItemStack currentArmor = this.getItemBySlot(equipmentslot);
-        boolean flag = this.canReplaceCurrentItem(itemStack, currentArmor);
+        ItemStack current = this.getItemBySlot(equipmentslot);
+        boolean flag = this.canReplaceCurrentItem(itemStack, current);
 
         return flag && this.canHoldItem(itemStack);
     }
@@ -302,6 +303,76 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
             LazyOptional<?> oldHandler = itemHandler;
             itemHandler = null;
             oldHandler.invalidate();
+        }
+    }
+    @Override
+    protected boolean canReplaceCurrentItem(@NotNull ItemStack replacer, ItemStack current) {
+        if (current.isEmpty()) {
+            return true;
+        } else if (current.getItem() instanceof DiggerItem digger && replacer.getItem() instanceof SwordItem sword) {
+
+            if (digger.getAttackDamage() != sword.getDamage()) {
+                return digger.getAttackDamage() < sword.getDamage();
+            }
+            return this.canReplaceEqualItem(replacer, current);
+        }
+
+        else if (replacer.getItem() instanceof SwordItem) {
+            if (!(current.getItem() instanceof SwordItem)) {
+                return true;
+            } else {
+                SwordItem sworditem = (SwordItem)replacer.getItem();
+                SwordItem sworditem1 = (SwordItem)current.getItem();
+                if (sworditem.getDamage() != sworditem1.getDamage()) {
+                    return sworditem.getDamage() > sworditem1.getDamage();
+                } else {
+                    return this.canReplaceEqualItem(replacer, current);
+                }
+            }
+        }
+
+        else if (replacer.getItem() instanceof BowItem && current.getItem() instanceof BowItem) {
+            return this.canReplaceEqualItem(replacer, current);
+        }
+
+        else if (replacer.getItem() instanceof CrossbowItem && current.getItem() instanceof CrossbowItem) {
+            return this.canReplaceEqualItem(replacer, current);
+        }
+
+        else if (replacer.getItem() instanceof ArmorItem) {
+            if (EnchantmentHelper.hasBindingCurse(current)) {
+                return false;
+            } else if (!(current.getItem() instanceof ArmorItem)) {
+                return true;
+            } else {
+                ArmorItem armoritem = (ArmorItem)replacer.getItem();
+                ArmorItem armoritem1 = (ArmorItem)current.getItem();
+                if (armoritem.getDefense() != armoritem1.getDefense()) {
+                    return armoritem.getDefense() > armoritem1.getDefense();
+                } else if (armoritem.getToughness() != armoritem1.getToughness()) {
+                    return armoritem.getToughness() > armoritem1.getToughness();
+                } else {
+                    return this.canReplaceEqualItem(replacer, current);
+                }
+            }
+        } else {
+            if (replacer.getItem() instanceof DiggerItem) {
+                if (current.getItem() instanceof BlockItem) {
+                    return true;
+                }
+
+                if (current.getItem() instanceof DiggerItem) {
+                    DiggerItem diggeritem = (DiggerItem)replacer.getItem();
+                    DiggerItem diggeritem1 = (DiggerItem)current.getItem();
+                    if (diggeritem.getAttackDamage() != diggeritem1.getAttackDamage()) {
+                        return diggeritem.getAttackDamage() > diggeritem1.getAttackDamage();
+                    }
+
+                    return this.canReplaceEqualItem(replacer, current);
+                }
+            }
+
+            return false;
         }
     }
 }
