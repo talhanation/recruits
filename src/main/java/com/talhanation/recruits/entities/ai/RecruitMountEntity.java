@@ -2,6 +2,8 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.RecruitHorseEntity;
+import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.goal.Goal;
 
@@ -57,7 +59,7 @@ public class RecruitMountEntity extends Goal {
     private void findMount(){
         List<Entity> list = recruit.level.getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(32D));
         for(Entity mount : list){
-            if (recruit.getMountUUID() != null && mount.getUUID().equals(recruit.getMountUUID()) && RecruitsModConfig.MountWhiteList.get().contains(mount.getEncodeId())){
+            if (recruit.getMountUUID() != null && mount.getUUID().equals(recruit.getMountUUID()) && (RecruitsModConfig.MountWhiteList.get().contains(mount.getEncodeId()) || mount instanceof RecruitHorseEntity)){
                 this.mount = mount;
             }
         }

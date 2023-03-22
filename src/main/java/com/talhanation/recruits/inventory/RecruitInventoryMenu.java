@@ -22,9 +22,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class RecruitInventoryMenu extends ContainerBase {
-
     private final Container recruitInventory;
-    private final int SlotX = 8;
     private final AbstractRecruitEntity recruit;
     private static final ResourceLocation[] TEXTURE_EMPTY_SLOTS = new ResourceLocation[]{
             InventoryMenu.EMPTY_ARMOR_SLOT_BOOTS,
@@ -138,19 +136,16 @@ public class RecruitInventoryMenu extends ContainerBase {
         }
     }
     //DispenserMenu
-    public ItemStack quickMoveStack(Player p_39665_, int index) {
+
+    @Override
+    public ItemStack quickMoveStack(Player player, int index) {
         ItemStack itemstack = ItemStack.EMPTY;
         Slot slot = this.slots.get(index);
         if (slot != null && slot.hasItem()) {
             ItemStack slotItem = slot.getItem();
             itemstack = slotItem.copy();
             int i = this.inventory.getContainerSize();
-            if (index < i) {
-                if (!this.moveItemStackTo(slotItem, i, this.slots.size(), true)) {
-                    return ItemStack.EMPTY;
-                }
-            }
-            else if (this.getSlot(0).mayPlace(slotItem) && !this.getSlot(0).hasItem()) {
+            if (this.getSlot(0).mayPlace(slotItem) && !this.getSlot(0).hasItem()) {
                 if (!this.moveItemStackTo(slotItem, 0, this.slots.size(), false)) {
                     return ItemStack.EMPTY;
                 }
@@ -174,10 +169,9 @@ public class RecruitInventoryMenu extends ContainerBase {
                 if (!this.moveItemStackTo(slotItem, 4, this.slots.size(), false)) {
                     return ItemStack.EMPTY;
                 }
-            }
-            else if (!this.moveItemStackTo(slotItem, 1, i, false)) {
+            } else if (i <= 0 || !this.moveItemStackTo(slotItem, 0, i, false)) {
                 int j = i + 27;
-                int k = j + 15;
+                int k = j + 9;
                 if (index >= j && index < k) {
                     if (!this.moveItemStackTo(slotItem, i, j, false)) {
                         return ItemStack.EMPTY;
@@ -202,6 +196,7 @@ public class RecruitInventoryMenu extends ContainerBase {
 
         return itemstack;
     }
+
 
     //OLD
 

@@ -314,10 +314,9 @@ public class CommandEvents {
         int playerEmeralds = 0;
 
         String str = RecruitsModConfig.RecruitCurrency.get();
-        ItemStack currencyItemStack;
         Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
 
-        currencyItemStack = holder.map(itemHolder -> itemHolder.value().getDefaultInstance()).orElseGet(Items.EMERALD::getDefaultInstance);
+        ItemStack currencyItemStack = holder.map(itemHolder -> itemHolder.value().getDefaultInstance()).orElseGet(Items.EMERALD::getDefaultInstance);
 
         Item currency = currencyItemStack.getItem();//
 
@@ -334,9 +333,6 @@ public class CommandEvents {
 
         if (playerCanPay){
             if(recruit.hire(player)) {
-                if(player.getTeam() != null){
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(player.getTeam().getName(), 1));
-                }
                 //give player tradeGood
                 //remove playerEmeralds ->add left
                 //
@@ -357,6 +353,17 @@ public class CommandEvents {
                 ItemStack emeraldsLeft = currencyItemStack.copy();
                 emeraldsLeft.setCount(playerEmeralds);
                 playerInv.add(emeraldsLeft);
+
+
+                if(player.getTeam() != null){
+                    if(player.getCommandSenderWorld().isClientSide){
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(player.getTeam().getName(), 1));
+                    }
+                    else {
+                        ServerPlayer serverPlayer = (ServerPlayer) player;
+                        TeamEvents.addNPCToData(serverPlayer.getLevel(), player.getTeam().getName(), 1);
+                    }
+                }
             }
         }
         else
