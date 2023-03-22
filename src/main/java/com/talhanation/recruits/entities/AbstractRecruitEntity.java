@@ -1432,13 +1432,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (player instanceof ServerPlayer) {
             NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
                 @Override
-                public Component getDisplayName() {
+                public @NotNull Component getDisplayName() {
                     return getName();
                 }
 
-                @Nullable
                 @Override
-                public AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
+                public @NotNull AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
                     return new RecruitInventoryMenu(i, AbstractRecruitEntity.this, playerInventory);
                 }
             }, packetBuffer -> {packetBuffer.writeUUID(getUUID());});
@@ -1451,13 +1450,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (player instanceof ServerPlayer) {
             NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
                 @Override
-                public Component getDisplayName() {
+                public @NotNull Component getDisplayName() {
                     return getName();
                 }
 
-                @Nullable
                 @Override
-                public AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
+                public @NotNull AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
                     return new DebugInvMenu(i, AbstractRecruitEntity.this, playerInventory);
                 }
             }, packetBuffer -> {packetBuffer.writeUUID(getUUID());});
