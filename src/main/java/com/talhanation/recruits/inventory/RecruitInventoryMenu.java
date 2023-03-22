@@ -8,11 +8,8 @@ import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.DispenserMenu;
-import net.minecraft.world.inventory.HorseInventoryMenu;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.BannerItem;
@@ -47,6 +44,7 @@ public class RecruitInventoryMenu extends ContainerBase {
         addPlayerInventorySlots();
         addRecruitInventorySlots();
         addRecruitEquipmentSlots();
+        Main.LOGGER.debug("---RecruitInventoryMenu---");
     }
 
     public AbstractRecruitEntity getRecruit() {
@@ -79,7 +77,6 @@ public class RecruitInventoryMenu extends ContainerBase {
                 super.set(stack);
                 recruit.setItemSlot(EquipmentSlot.MAINHAND, stack);
             }
-
         });
 
         this.addSlot(new Slot(recruit.inventory, 4,44,90) {
@@ -125,7 +122,6 @@ public class RecruitInventoryMenu extends ContainerBase {
                 }
             });
         }
-
     }
 
     public void addRecruitInventorySlots() {
@@ -135,59 +131,47 @@ public class RecruitInventoryMenu extends ContainerBase {
             }
         }
     }
-    //DispenserMenu
 
-    @Override
-    public ItemStack quickMoveStack(Player player, int index) {
+    public ItemStack quickMoveStack(Player playerIn, int index) {
         ItemStack itemstack = ItemStack.EMPTY;
-        Slot slot = this.slots.get(index);
+        Slot slot = (Slot)this.slots.get(index);
         if (slot != null && slot.hasItem()) {
-            ItemStack slotItem = slot.getItem();
-            itemstack = slotItem.copy();
-            int i = this.inventory.getContainerSize();
-            if (this.getSlot(0).mayPlace(slotItem) && !this.getSlot(0).hasItem()) {
-                if (!this.moveItemStackTo(slotItem, 0, this.slots.size(), false)) {
+            ItemStack stack = slot.getItem();
+            itemstack = stack.copy();
+            if (index < this.getInventorySize()) {
+                if (!this.moveItemStackTo(stack, this.getInventorySize(), this.slots.size(), true)) {
                     return ItemStack.EMPTY;
                 }
-            }
-            else if (this.getSlot(1).mayPlace(slotItem) && !this.getSlot(1).hasItem()) {
-                if (!this.moveItemStackTo(slotItem, 1, this.slots.size(), false)) {
-                    return ItemStack.EMPTY;
-                }
-            }
-            else if (this.getSlot(2).mayPlace(slotItem) && !this.getSlot(2).hasItem()) {
-                if (!this.moveItemStackTo(slotItem, 2, this.slots.size(), false)) {
-                    return ItemStack.EMPTY;
-                }
-            }
-            else if (this.getSlot(3).mayPlace(slotItem) && !this.getSlot(3).hasItem()) {
-                if (!this.moveItemStackTo(slotItem, 3, this.slots.size(), false)) {
-                    return ItemStack.EMPTY;
-                }
-            }
-            else if (this.getSlot(4).mayPlace(slotItem) && !this.getSlot(4).hasItem()) {
-                if (!this.moveItemStackTo(slotItem, 4, this.slots.size(), false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (i <= 0 || !this.moveItemStackTo(slotItem, 0, i, false)) {
-                int j = i + 27;
-                int k = j + 9;
-                if (index >= j && index < k) {
-                    if (!this.moveItemStackTo(slotItem, i, j, false)) {
+                else if (this.getSlot(0).mayPlace(stack) && !this.getSlot(0).hasItem()) {
+                    if (!this.moveItemStackTo(stack, 0, this.slots.size(), false)) {
                         return ItemStack.EMPTY;
                     }
-                } else if (index >= i && index < j) {
-                    if (!this.moveItemStackTo(slotItem, j, k, false)) {
+                }
+                else if (this.getSlot(1).mayPlace(stack) && !this.getSlot(1).hasItem()) {
+                    if (!this.moveItemStackTo(stack, 1, this.slots.size(), false)) {
                         return ItemStack.EMPTY;
                     }
-                } else if (!this.moveItemStackTo(slotItem, j, j, false)) {
-                    return ItemStack.EMPTY;
                 }
-
+                else if (this.getSlot(2).mayPlace(stack) && !this.getSlot(2).hasItem()) {
+                    if (!this.moveItemStackTo(stack, 2, this.slots.size(), false)) {
+                        return ItemStack.EMPTY;
+                    }
+                }
+                else if (this.getSlot(3).mayPlace(stack) && !this.getSlot(3).hasItem()) {
+                    if (!this.moveItemStackTo(stack, 3, this.slots.size(), false)) {
+                        return ItemStack.EMPTY;
+                    }
+                }
+                else if (this.getSlot(4).mayPlace(stack) && !this.getSlot(4).hasItem()) {
+                    if (!this.moveItemStackTo(stack, 4, this.slots.size(), false)) {
+                        return ItemStack.EMPTY;
+                    }
+                }
+            } else if (!this.moveItemStackTo(stack, 0, this.getInventorySize(), false)) {
                 return ItemStack.EMPTY;
             }
 
-            if (slotItem.isEmpty()) {
+            if (stack.isEmpty()) {
                 slot.set(ItemStack.EMPTY);
             } else {
                 slot.setChanged();
@@ -196,7 +180,6 @@ public class RecruitInventoryMenu extends ContainerBase {
 
         return itemstack;
     }
-
 
     //OLD
 

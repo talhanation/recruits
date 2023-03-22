@@ -883,7 +883,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             }
             if ((this.isOwned() && player.getUUID().equals(this.getOwnerUUID()))) {
                 if (player.isCrouching()) {
-                    openGUI(player);
+                    this.openGUI(player);
                     this.navigation.stop();
                     return InteractionResult.SUCCESS;
                 }
@@ -1421,13 +1421,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (player instanceof ServerPlayer) {
             NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
                 @Override
-                public Component getDisplayName() {
+                public @NotNull Component getDisplayName() {
                     return getName();
                 }
 
-                @Nullable
                 @Override
-                public AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
+                public @NotNull AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
                     return new RecruitInventoryMenu(i, AbstractRecruitEntity.this, playerInventory);
                 }
             }, packetBuffer -> {packetBuffer.writeUUID(getUUID());});
