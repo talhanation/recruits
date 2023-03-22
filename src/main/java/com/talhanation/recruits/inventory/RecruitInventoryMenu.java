@@ -44,7 +44,6 @@ public class RecruitInventoryMenu extends ContainerBase {
         addPlayerInventorySlots();
         addRecruitInventorySlots();
         addRecruitEquipmentSlots();
-        Main.LOGGER.debug("---RecruitInventoryMenu---");
     }
 
     public AbstractRecruitEntity getRecruit() {
