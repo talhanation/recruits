@@ -1,31 +1,16 @@
 package com.talhanation.recruits.world;
 
 import com.talhanation.recruits.config.RecruitsModConfig;
-import com.talhanation.recruits.entities.BowmanEntity;
-import com.talhanation.recruits.entities.RecruitEntity;
-import com.talhanation.recruits.entities.RecruitShieldmanEntity;
-import com.talhanation.recruits.entities.ai.PatrolLeaderTargetAttackers;
-import com.talhanation.recruits.entities.ai.villager.FollowCaravanOwner;
-import com.talhanation.recruits.init.ModEntityTypes;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.entity.SpawnPlacements.Type;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.animal.horse.Horse;
-import net.minecraft.world.entity.animal.horse.Llama;
-import net.minecraft.world.entity.animal.horse.Mule;
 import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.entity.monster.Vindicator;
 import net.minecraft.world.entity.monster.Witch;
-import net.minecraft.world.entity.npc.Villager;
-import net.minecraft.world.entity.npc.WanderingTrader;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.levelgen.Heightmap.Types;
 import net.minecraft.server.level.ServerLevel;
@@ -33,7 +18,6 @@ import net.minecraft.world.level.NaturalSpawner;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;
-import java.util.Optional;
 import java.util.Random;
 
 public class PillagerPatrolSpawn {
@@ -101,7 +85,7 @@ public class PillagerPatrolSpawn {
     private void spawnPillagerPatrol(BlockPos upPos, BlockPos targetPos) {
         Pillager pillagerLeader = createPillager(upPos, targetPos);
         pillagerLeader.setAggressive(true);
-        pillagerLeader.setCustomName(Component.literal("Pillager Leader"));
+        pillagerLeader.setCustomName(new TextComponent("Pillager Leader"));
         pillagerLeader.setPatrolLeader(true);
         pillagerLeader.setCanJoinRaid(true);
         pillagerLeader.setCanPickUpLoot(true);
@@ -154,7 +138,7 @@ public class PillagerPatrolSpawn {
     private void spawnLargePillagerPatrol(BlockPos upPos, BlockPos targetPos) {
         Pillager pillagerLeader = createPillager(upPos, targetPos);
         pillagerLeader.setAggressive(true);
-        pillagerLeader.setCustomName(Component.literal("Pillager Leader"));
+        pillagerLeader.setCustomName(new TextComponent("Pillager Leader"));
         pillagerLeader.setPatrolLeader(true);
         pillagerLeader.setCanJoinRaid(true);
         pillagerLeader.setCanPickUpLoot(true);
@@ -189,7 +173,7 @@ public class PillagerPatrolSpawn {
     private void spawnMediumPillagerPatrol(BlockPos upPos, BlockPos targetPos) {
         Pillager pillagerLeader = createPillager(upPos, targetPos);
         pillagerLeader.setAggressive(true);
-        pillagerLeader.setCustomName(Component.literal("Pillager Leader"));
+        pillagerLeader.setCustomName(new TextComponent("Pillager Leader"));
         pillagerLeader.setPatrolLeader(true);
         pillagerLeader.setCanJoinRaid(true);
         pillagerLeader.setCanPickUpLoot(true);
@@ -209,7 +193,7 @@ public class PillagerPatrolSpawn {
     private void spawnSmallPillagerPatrol(BlockPos upPos, BlockPos targetPos) {
         Pillager pillagerLeader = createPillager(upPos, targetPos);
         pillagerLeader.setAggressive(true);
-        pillagerLeader.setCustomName(Component.literal("Pillager Leader"));
+        pillagerLeader.setCustomName(new TextComponent("Pillager Leader"));
         pillagerLeader.setPatrolLeader(true);
         pillagerLeader.setCanJoinRaid(true);
         pillagerLeader.setCanPickUpLoot(true);

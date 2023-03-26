@@ -16,7 +16,7 @@ public class DamageEvent {
     @SubscribeEvent
     public static void onPlayerAttack(AttackEntityEvent event) {
         if (!event.isCanceled()) {
-            Player player = event.getEntity();
+            Player player = event.getPlayer();
             if (player.getLevel().isClientSide()) {
                 return;
             }
@@ -38,7 +38,7 @@ public class DamageEvent {
     @SubscribeEvent
     public static void onKnockback(LivingKnockBackEvent event) {
         if (!event.isCanceled()) {
-            LivingEntity entity = event.getEntity();
+            LivingEntity entity = event.getEntityLiving();
             if (entity.swinging) {
                 event.setCanceled(true);
                 entity.swinging = false;
@@ -49,7 +49,7 @@ public class DamageEvent {
     @SubscribeEvent
     public void onEntityHurt(LivingHurtEvent event) {
         if (!event.isCanceled()) {
-            LivingEntity entity = event.getEntity();
+            LivingEntity entity = event.getEntityLiving();
             if (entity.getLevel().isClientSide()) {
                 return;
             }

@@ -67,7 +67,7 @@ public class RecruitsModConfig {
             Arrays.asList("minecraft:bow", ""));
 
     public static ArrayList<String> DAMAGESOURCE = new ArrayList<>(
-            Arrays.asList("inFire", "lava", "sweetBerryBush", "cactus", "lightningBolt", "inWall", "hotFloor", "outOfWorld", "drown"));//add drowning
+            Arrays.asList("inFire", "lava", "sweetBerryBush", "cactus", "lightningBolt", "inWall", "hotFloor", "outOfWorld", "drown"));
 
 
     public static ArrayList<String> list = new ArrayList<>();

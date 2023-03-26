@@ -4,6 +4,7 @@ import com.talhanation.recruits.client.events.ClientEvent;
 import com.talhanation.recruits.entities.AbstractInventoryEntity;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.layers.*;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelLayers;
@@ -22,8 +23,8 @@ public abstract class AbstractRecruitHumanRenderer<Type extends AbstractInventor
         this.addLayer(new HumanoidArmorLayer<>(this, new HumanoidModel(mgr.bakeLayer(ModelLayers.PLAYER_INNER_ARMOR)), new HumanoidModel(mgr.bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR))));
         this.addLayer(new ArrowLayer<>(mgr, this));
         this.addLayer(new BeeStingerLayer<>(this));
-        this.addLayer(new ItemInHandLayer<>(this, mgr.getItemInHandRenderer()));
-        this.addLayer(new CustomHeadLayer<>(this, mgr.getModelSet(), mgr.getItemInHandRenderer()));
+        this.addLayer(new ItemInHandLayer<>(this));
+        this.addLayer(new CustomHeadLayer<>(this, mgr.getModelSet()));
     }
 
     public void render(AbstractInventoryEntity recruit, float p_117789_, float p_117790_, PoseStack p_117791_, MultiBufferSource p_117792_, int p_117793_) {
