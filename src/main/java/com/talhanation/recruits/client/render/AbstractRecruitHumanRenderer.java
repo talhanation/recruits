@@ -3,16 +3,13 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.entities.AbstractInventoryEntity;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.layers.*;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.client.renderer.entity.layers.ArrowLayer;
-import net.minecraft.client.renderer.entity.layers.BeeStingerLayer;
-import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
-import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
@@ -27,6 +24,7 @@ public abstract class AbstractRecruitHumanRenderer<Type extends AbstractInventor
         this.addLayer(new ArrowLayer<>(mgr, this));
         this.addLayer(new BeeStingerLayer<>(this));
         this.addLayer(new ItemInHandLayer<>(this, mgr.getItemInHandRenderer()));
+        this.addLayer(new CustomHeadLayer<>(this, mgr.getModelSet(), mgr.getItemInHandRenderer()));
     }
 
     public void render(AbstractInventoryEntity recruit, float p_117789_, float p_117790_, PoseStack p_117791_, MultiBufferSource p_117792_, int p_117793_) {

@@ -17,7 +17,7 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
 
-    public static final int NEW_VERSION = 17;
+    public static final int NEW_VERSION = 18;
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue OverrideIronGolemSpawn;
     public static ForgeConfigSpec.BooleanValue PillagerFriendlyFire;
@@ -36,17 +36,20 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.DoubleValue RecruitFollowStartDistance;
     public static ForgeConfigSpec.ConfigValue<List<String>> TargetBlackList;
     public static ForgeConfigSpec.ConfigValue<List<String>> MountWhiteList;
-
     public static ForgeConfigSpec.ConfigValue<List<String>> StartArmorList;
     public static ForgeConfigSpec.ConfigValue<List<String>> RecruitHandEquipment;
     public static ForgeConfigSpec.ConfigValue<List<String>> ShieldmanHandEquipment;
     public static ForgeConfigSpec.ConfigValue<List<String>> BowmanHandEquipment;
+    public static ForgeConfigSpec.ConfigValue<List<String>> AcceptedDamagesourceImmunity;
     public static ForgeConfigSpec.BooleanValue AggroRecruitsBlockEvents;
     public static ForgeConfigSpec.BooleanValue NeutralRecruitsBlockEvents;
     public static ForgeConfigSpec.BooleanValue ShouldRecruitPatrolsSpawn;
+    public static ForgeConfigSpec.BooleanValue ShouldPillagerPatrolsSpawn;
     public static ForgeConfigSpec.DoubleValue RecruitPatrolsSpawnChance;
+    public static ForgeConfigSpec.DoubleValue PillagerPatrolsSpawnChance;
     public static ForgeConfigSpec.ConfigValue<String> RecruitCurrency;
     public static ForgeConfigSpec.BooleanValue RecruitsLookLikeVillagers;
+    public static ForgeConfigSpec.BooleanValue NoDamageImmunity;
 
     public static ArrayList<String> MOUNTS = new ArrayList<>(
             Arrays.asList("minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "camels:camel"));
@@ -62,6 +65,9 @@ public class RecruitsModConfig {
 
     public static ArrayList<String> BOWMAN_HAND = new ArrayList<>(
             Arrays.asList("minecraft:bow", ""));
+
+    public static ArrayList<String> DAMAGESOURCE = new ArrayList<>(
+            Arrays.asList("inFire", "lava", "sweetBerryBush", "cactus", "lightningBolt", "inWall", "hotFloor", "outOfWorld", "drown"));//add drowning
 
 
     public static ArrayList<String> list = new ArrayList<>();
@@ -97,7 +103,7 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("PillagerFriendlyFire", true);
 
-        PillagerSpawn = BUILDER.comment("\n" + "----Should Pillagers Spawn naturally ----" + "\n" +
+        PillagerSpawn = BUILDER.comment("\n" + "----Should Pillagers spawn naturally ----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: false")
                 .worldRestart()
@@ -187,7 +193,7 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("ShouldRecruitPatrolsSpawn", true);
 
-        RecruitPatrolsSpawnChance= BUILDER.comment("\n" + "----Chance that a Recruit Patrol can spawn. (higher values = higher chance to spawn)----" + "\n" +
+        RecruitPatrolsSpawnChance= BUILDER.comment("\n" + "----Chance that a Recruit Patrol can spawn in every 10 min. (higher values = higher chance to spawn)----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: 15.0")
                 .worldRestart()
@@ -229,19 +235,40 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("RecruitsLookLikeVillagers", true);
 
-        CONFIG = BUILDER.build();
-
-        TeamCreationCost = BUILDER.comment("\n" +"----The cost to create a team.----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: 10")
-                .worldRestart()
-                .defineInRange("TeamCreationCost", 10, 1, 200);
-
         MaxAssassinCount = BUILDER.comment("\n" +"WIP: Max Assassins to buy from the Assassin Leader" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: 16")
                 .worldRestart()
                 .defineInRange("MaxAssassinCount", 16, 1, 64);
+
+        NoDamageImmunity = BUILDER.comment("\n" + "----No damage Immunity----" + "\n" +
+                        "\t" + "Should Immunity between hits be dsiabled?" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: false")
+                .worldRestart()
+                .define("NoDamageImmunity", false);
+
+        AcceptedDamagesourceImmunity = BUILDER.comment("\n" + "----List of damagesource that accept immunity ----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "Damagesource in this list will apply a immunity of 0.5s to the entity like normal.")
+                .worldRestart()
+                .define("AcceptedDamagesourceImmunity", DAMAGESOURCE);
+
+        PillagerPatrolsSpawnChance = BUILDER.comment("\n" + "----Chance that a modded Pillager Patrol can spawn in every 15min. (higher values = higher chance to spawn)----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: 25.0")
+                .worldRestart()
+                .defineInRange("PillagerPatrolsSpawnChance", 25.0D, 0.0D, 100.0D);
+
+        ShouldPillagerPatrolsSpawn = BUILDER.comment("\n" + "----Should modded Pillager Patrols spawn in the world?----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: false")
+                .worldRestart()
+                .define("ShouldPillagerPatrolsSpawn", false);
+
+
+
+        CONFIG = BUILDER.build();
     }
 
     public static void loadConfig(ForgeConfigSpec spec, Path path) {

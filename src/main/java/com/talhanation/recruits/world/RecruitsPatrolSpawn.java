@@ -51,8 +51,6 @@ public class RecruitsPatrolSpawn {
     }
 
     public void tick() {
-        //Main.LOGGER.debug("Timer: " + timer);
-
         if (RecruitsModConfig.ShouldRecruitPatrolsSpawn.get() && --this.timer <= 0) {
             this.timer = 12000;
             this.delay -= 12000;
