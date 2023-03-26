@@ -234,6 +234,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             return (this.getState() == 1 && this.canAttack(target));
         }));
 
+        this.targetSelector.addGoal(0, new RecruitEscortHurtByTargetGoal(this));
         this.targetSelector.addGoal(0, new RecruitOwnerHurtByTargetGoal(this));
         this.targetSelector.addGoal(0, new PatrolLeaderTargetAttackers(this));
         this.targetSelector.addGoal(1, (new RecruitHurtByTargetGoal(this)).setAlertOthers());

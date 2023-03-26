@@ -17,7 +17,7 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
 
-    public static final int NEW_VERSION = 17;
+    public static final int NEW_VERSION = 18;
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue OverrideIronGolemSpawn;
     public static ForgeConfigSpec.BooleanValue PillagerFriendlyFire;
@@ -28,6 +28,7 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.IntValue MaxSpawnRecruitsInVillage;
     public static ForgeConfigSpec.IntValue MaxRecruitsForPlayer;
     public static ForgeConfigSpec.IntValue RecruitsMaxXpForLevelUp;
+    public static ForgeConfigSpec.IntValue TeamCreationCost;
     public static ForgeConfigSpec.BooleanValue PillagerIncreasedCombatRange;
     public static ForgeConfigSpec.BooleanValue VindicatorSpawnItems;
     public static ForgeConfigSpec.BooleanValue PillagerSpawnItems;
@@ -35,17 +36,20 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.DoubleValue RecruitFollowStartDistance;
     public static ForgeConfigSpec.ConfigValue<List<String>> TargetBlackList;
     public static ForgeConfigSpec.ConfigValue<List<String>> MountWhiteList;
-
     public static ForgeConfigSpec.ConfigValue<List<String>> StartArmorList;
     public static ForgeConfigSpec.ConfigValue<List<String>> RecruitHandEquipment;
     public static ForgeConfigSpec.ConfigValue<List<String>> ShieldmanHandEquipment;
     public static ForgeConfigSpec.ConfigValue<List<String>> BowmanHandEquipment;
+    public static ForgeConfigSpec.ConfigValue<List<String>> AcceptedDamagesourceImmunity;
     public static ForgeConfigSpec.BooleanValue AggroRecruitsBlockEvents;
     public static ForgeConfigSpec.BooleanValue NeutralRecruitsBlockEvents;
     public static ForgeConfigSpec.BooleanValue ShouldRecruitPatrolsSpawn;
+    public static ForgeConfigSpec.BooleanValue ShouldPillagerPatrolsSpawn;
     public static ForgeConfigSpec.DoubleValue RecruitPatrolsSpawnChance;
+    public static ForgeConfigSpec.DoubleValue PillagerPatrolsSpawnChance;
     public static ForgeConfigSpec.ConfigValue<String> RecruitCurrency;
     public static ForgeConfigSpec.BooleanValue RecruitsLookLikeVillagers;
+    public static ForgeConfigSpec.BooleanValue NoDamageImmunity;
 
     public static ArrayList<String> MOUNTS = new ArrayList<>(
             Arrays.asList("minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "camels:camel"));
@@ -62,6 +66,9 @@ public class RecruitsModConfig {
     public static ArrayList<String> BOWMAN_HAND = new ArrayList<>(
             Arrays.asList("minecraft:bow", ""));
 
+    public static ArrayList<String> DAMAGESOURCE = new ArrayList<>(
+            Arrays.asList("inFire", "lava", "sweetBerryBush", "cactus", "lightningBolt", "inWall", "hotFloor", "outOfWorld", "drown"));//add drowning
+
 
     public static ArrayList<String> list = new ArrayList<>();
 
@@ -76,6 +83,7 @@ public class RecruitsModConfig {
                 "\t" + "default: true")
                 .worldRestart()
                 .define("PlayVillagerAmbientSound", true);
+
 
         OverrideIronGolemSpawn = BUILDER.comment("\n" + "----Should Recruits instead of Iron Golems spawn in Villages ----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
@@ -95,7 +103,7 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("PillagerFriendlyFire", true);
 
-        PillagerSpawn = BUILDER.comment("\n" + "----Should Pillagers Spawn naturally ----" + "\n" +
+        PillagerSpawn = BUILDER.comment("\n" + "----Should Pillagers spawn naturally ----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: false")
                 .worldRestart()
@@ -109,9 +117,9 @@ public class RecruitsModConfig {
 
         MonstersAttackPillagers= BUILDER.comment("\n" + "----Should Monsters attack Pillagers----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: true")
+                        "\t" + "default: false")
                 .worldRestart()
-                .define("MonstersAttackPillagers", true);
+                .define("MonstersAttackPillagers", false);
 
         ShouldPillagersRaidNaturally= BUILDER.comment("\n" + "----Should Pillagers attack all Living----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
@@ -139,16 +147,9 @@ public class RecruitsModConfig {
 
         PillagerSpawnItems= BUILDER.comment("\n" + "----Should Pillagers can spawn with shield and sword and AI to use these----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: false")
+                        "\t" + "default: true")
                 .worldRestart()
                 .define("PillagerSpawnItems", false);
-
-        MaxAssassinCount = BUILDER.comment("\n" +"WIP: Max Assassins to buy from the Assassin Leader" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: 16")
-                .worldRestart()
-                .defineInRange("MaxAssassinCount", 16, 1, 64);
-
 
         RecruitFollowStartDistance = BUILDER.comment("\n" +"Distance Recruits will start to follow its owner" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
@@ -174,13 +175,13 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("Mount Whitelist", MOUNTS);
 
-        AggroRecruitsBlockEvents= BUILDER.comment("\n" + "----Should Aggressive Recruits attack immediately enemy players that are placing or breaking blocks?----" + "\n" +
+        AggroRecruitsBlockEvents= BUILDER.comment("\n" + "----Should Aggressive Recruits attack enemy players that are placing or breaking blocks immediately?----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: true")
                 .worldRestart()
                 .define("AggroRecruitsBlockEvents", true);
 
-        NeutralRecruitsBlockEvents= BUILDER.comment("\n" + "----Should Neutral Recruits attack immediately enemy players that are placing or breaking blocks?----" + "\n" +
+        NeutralRecruitsBlockEvents= BUILDER.comment("\n" + "----Should Neutral Recruits attack enemy players that are placing or breaking blocks immediately?----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: true")
                 .worldRestart()
@@ -192,7 +193,7 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("ShouldRecruitPatrolsSpawn", true);
 
-        RecruitPatrolsSpawnChance= BUILDER.comment("\n" + "----Chance that a Recruit Patrol can spawn. (higher = higher chance to spawn)----" + "\n" +
+        RecruitPatrolsSpawnChance= BUILDER.comment("\n" + "----Chance that a Recruit Patrol can spawn in every 10 min. (higher values = higher chance to spawn)----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: 15.0")
                 .worldRestart()
@@ -230,9 +231,42 @@ public class RecruitsModConfig {
 
         RecruitsLookLikeVillagers = BUILDER.comment("\n" + "----Should Recruits look like Villagers?----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: false")
+                        "\t" + "default: true")
                 .worldRestart()
                 .define("RecruitsLookLikeVillagers", true);
+
+        MaxAssassinCount = BUILDER.comment("\n" +"WIP: Max Assassins to buy from the Assassin Leader" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: 16")
+                .worldRestart()
+                .defineInRange("MaxAssassinCount", 16, 1, 64);
+
+        NoDamageImmunity = BUILDER.comment("\n" + "----No damage Immunity----" + "\n" +
+                        "\t" + "Should Immunity between hits be dsiabled?" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: false")
+                .worldRestart()
+                .define("NoDamageImmunity", false);
+
+        AcceptedDamagesourceImmunity = BUILDER.comment("\n" + "----List of damagesource that accept immunity ----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "Damagesource in this list will apply a immunity of 0.5s to the entity like normal.")
+                .worldRestart()
+                .define("AcceptedDamagesourceImmunity", DAMAGESOURCE);
+
+        PillagerPatrolsSpawnChance = BUILDER.comment("\n" + "----Chance that a modded Pillager Patrol can spawn in every 15min. (higher values = higher chance to spawn)----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: 25.0")
+                .worldRestart()
+                .defineInRange("PillagerPatrolsSpawnChance", 25.0D, 0.0D, 100.0D);
+
+        ShouldPillagerPatrolsSpawn = BUILDER.comment("\n" + "----Should modded Pillager Patrols spawn in the world?----" + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: false")
+                .worldRestart()
+                .define("ShouldPillagerPatrolsSpawn", false);
+
+
 
         CONFIG = BUILDER.build();
     }

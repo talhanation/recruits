@@ -17,6 +17,10 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 
 @OnlyIn(Dist.CLIENT)
 public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
@@ -27,6 +31,10 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     private final Inventory playerInventory;
     private EditBox textField;
     private ItemStack banner;
+    private int color_index;
+    private String color;
+    private final ArrayList<String> COLORS = new ArrayList<>(
+            Arrays.asList("white", "aqua", "black", "blue", "dark_aqua", "dark_blue", "dark_gray", "dark_green", "dark_purple", "dark_red", "gold", "green", "light_purple", "red", "yellow"));
 
     public TeamCreationScreen(TeamCreationContainer container, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, container, playerInventory, new TextComponent(""));

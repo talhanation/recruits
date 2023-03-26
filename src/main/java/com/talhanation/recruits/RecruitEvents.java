@@ -3,6 +3,7 @@ package com.talhanation.recruits;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.network.MessageAddRecruitToTeam;
+import com.talhanation.recruits.world.PillagerPatrolSpawn;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TextComponent;
@@ -33,6 +34,7 @@ public class   RecruitEvents {
     public int timestamp;
     public static final TranslatableComponent TEXT_BLOCK_WARN = new TranslatableComponent("chat.recruits.text.block_placing_warn");
     private static final Map<ServerLevel, RecruitsPatrolSpawn> RECRUIT_PATROL = new HashMap<>();
+    private static final Map<ServerLevel, PillagerPatrolSpawn> PILLAGER_PATROL = new HashMap<>();
 
     @SubscribeEvent
     public void onTeleportEvent(EntityTeleportEvent event) {
@@ -65,6 +67,11 @@ public class   RecruitEvents {
                     k -> new RecruitsPatrolSpawn(serverWorld));
             RecruitsPatrolSpawn spawner = RECRUIT_PATROL.get(serverWorld);
             spawner.tick();
+
+            PILLAGER_PATROL.computeIfAbsent(serverWorld,
+                    k -> new PillagerPatrolSpawn(serverWorld));
+            PillagerPatrolSpawn pillagerSpawner = PILLAGER_PATROL.get(serverWorld);
+            pillagerSpawner.tick();
         }
 
     }

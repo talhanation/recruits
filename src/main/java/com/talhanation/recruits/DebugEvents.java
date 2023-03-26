@@ -4,8 +4,6 @@ import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 
 public class DebugEvents {
-
-
     public static void handleMessage(int id, AbstractRecruitEntity recruits) {
         switch (id){
             case 0 -> {recruits.addXp(1); recruits.checkLevel();}
