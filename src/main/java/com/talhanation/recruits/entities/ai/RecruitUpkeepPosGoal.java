@@ -11,6 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
 
 
 public class RecruitUpkeepPosGoal extends Goal {
@@ -26,7 +27,7 @@ public class RecruitUpkeepPosGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return recruit.needsToEat() && recruit.getUpkeepPos() != null;
+        return recruit.getShouldUpkeep() && recruit.needsToGetFood() && recruit.getUpkeepPos() != null;
     }
 
     @Override
@@ -98,6 +99,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                            recruit.getOwner().sendSystemMessage(TEXT_FOOD(recruit.getName().getString()));
                            message = false;
                        }
+
                     }
                 }
                 else stop();
