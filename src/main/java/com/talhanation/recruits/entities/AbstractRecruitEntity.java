@@ -41,6 +41,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.animal.AbstractFish;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
@@ -102,17 +103,36 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Boolean> OWNED = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> COST = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Optional<UUID>> UPKEEP_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
-
     private static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> mountTimer = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> SHOULD_UPKEEP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
+
     public int blockCoolDown;
-    public int mountTimer;
     public int eatCoolDown;
+    protected GroundPathNavigation navigation;
 
 
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
         this.setIsOwned(false);
         this.xpReward = 6;
+        this.navigation = this.createNavigation(world);
+        this.navigation.setCanOpenDoors(true);
+    }
+
+    ///////////////////////////////////NAVIGATION/////////////////////////////////////////
+    @NotNull
+    protected GroundPathNavigation createNavigation(@NotNull Level level) {
+        return new GroundPathNavigation(this, level);
+    }
+
+    @NotNull
+    public GroundPathNavigation getNavigation() {
+        if (super.getNavigation() instanceof GroundPathNavigation navigation) {
+            return navigation;
+        } else {
+            throw new IllegalStateException("Invalid worker entity navigation, not a GroundPathNavigation");
+        }
     }
 
     ///////////////////////////////////TICK/////////////////////////////////////////
@@ -135,54 +155,18 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateHunger();
         updateTeam();// performance -> trigger when team event
         updateMountTimer();
-
-        /*
-        if(getOwner() != null){
-            ItemStack stack = getOwner().getItemBySlot(EquipmentSlot.OFFHAND);
-            if (stack != null){
-                Main.LOGGER.debug("getOrCreateTag: " + stack.getOrCreateTag());
-                Main.LOGGER.debug("toString: " + toString());
-                Main.LOGGER.debug("stack.getItem(): " + stack.getItem());
-                Main.LOGGER.debug("getItem().getDescriptionID: " + stack.getItem().getDescriptionId());
-                Main.LOGGER.debug("ForgeHooks.getDefaultCreatorModId: " + ForgeHooks.getDefaultCreatorModId(stack));
-                Main.LOGGER.debug("ForgeRegistries.ITEMS.getKey: " + ForgeRegistries.ITEMS.getKey(stack.getItem()));
-            }
-        }
-         */
-
-        if (this.getMainHandItem() != null) {
-            ItemStack handItem = getMainHandItem();
-            if (handItem.getItem() instanceof SwordItem sword) {
-                //CompoundTag tag = sword.proper
-                //Main.LOGGER.debug("tag: " + tag);
-            }
-        }
-        //Main.LOGGER.debug("OwnerUUID: " + this.getOwnerUUID());
-        //Main.LOGGER.debug("Owner: " + this.getOwner());
-
-
-
-        /*
-        if (getOwner() != null)
-            this.getOwner().sendMessage(new TextComponent("Timer: " + mountTimer), getOwner().getUUID());
-         */
-
     }
 
     public void rideTick() {
         super.rideTick();
-        /*
-        if (this.getVehicle() instanceof CreatureEntity) {
-            CreatureEntity creatureentity = (CreatureEntity)this.getVehicle();
-            this.yBodyRot = creatureentity.yBodyRot;
-        }
-        */
-
     }
 
     @Nullable
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance diff, MobSpawnType reason, @Nullable SpawnGroupData spawnData, @Nullable CompoundTag nbt) {
         setRandomSpawnBonus();
+        GroundPathNavigation navigation = this.getNavigation();
+        navigation.setCanOpenDoors(true);
+        navigation.setCanPassDoors(true);
         return spawnData;
     }
     public void setRandomSpawnBonus(){
@@ -202,6 +186,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(0, new RecruitQuaffGoal(this));
         this.goalSelector.addGoal(0, new FleeTNT(this));
         this.goalSelector.addGoal(0, new FleeFire(this));
+        this.goalSelector.addGoal(0, new OpenDoorGoal(this, true) {
+        });
         this.goalSelector.addGoal(1, new RecruitEscortEntityGoal(this));
         //this.goalSelector.addGoal(0, new (this));
         this.goalSelector.addGoal(1, new FloatGoal(this));
@@ -285,6 +271,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(UPKEEP_ID, Optional.empty());
         this.entityData.define(OWNED, false);
         this.entityData.define(COST, 1);
+        this.entityData.define(SHOULD_UPKEEP, false);
+        this.entityData.define(mountTimer, 0);
 
         //STATE
         // 0 = NEUTRAL
@@ -322,6 +310,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putFloat("Moral", this.getMoral());
         nbt.putBoolean("isOwned", this.getIsOwned());
         nbt.putInt("Cost", this.getCost());
+        nbt.putBoolean("ShouldUpkeep", this.getShouldUpkeep());
+        nbt.putInt("mountTimer", this.getMountTimer());
 
         if(this.getHoldPos() != null){
             nbt.putInt("HoldPosX", this.getHoldPos().getX());
@@ -381,6 +371,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setMoral(nbt.getFloat("Moral"));
         this.setIsOwned(nbt.getBoolean("isOwned"));
         this.setCost(nbt.getInt("Cost"));
+        this.setShouldUpkeep(nbt.getBoolean("ShouldUpkeep"));
+        this.setMountTimer(nbt.getInt("mountTimer"));
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
@@ -524,6 +516,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public boolean getShouldBlock() {
         return entityData.get(SHOULD_BLOCK);
     }
+    public boolean getShouldUpkeep() {
+        return entityData.get(SHOULD_UPKEEP);
+    }
 
     public boolean isFollowing(){
         return entityData.get(IS_FOLLOWING);
@@ -593,12 +588,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return entityData.get(LISTEN);
     }
 
-    /*
-    public ItemStack getOffHandItemSave(){
-        return  entityData.get(OFFHAND_ITEM_SAVE);
-    }
-     */
-
     ////////////////////////////////////SET////////////////////////////////////
     public void setVariant(int variant){
         entityData.set(VARIANT, variant);
@@ -639,6 +628,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void setFleeing(boolean bool){
         entityData.set(FLEEING, bool);
+    }
+    public void setMountTimer(int x){
+        entityData.set(mountTimer, x);
+    }
+    public void setShouldUpkeep(boolean x){
+        entityData.set(SHOULD_UPKEEP, x);
     }
 
     public void disband(Player player){
@@ -722,15 +717,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void setState(int state) {
         switch (state){
             case 0:
+            case 3:
                 setTarget(null);//wird nur 1x aufgerufen
                 break;
             case 1:
                 break;
             case 2:
                 setFollowState(0);
-                break;
-            case 3:
-                setTarget(null);//wird nur 1x aufgerufen
                 break;
         }
         entityData.set(STATE, state);
@@ -788,6 +781,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 setShouldEscort(true);
             }
         }
+        this.setShouldUpkeep(false);
         entityData.set(FOLLOW_STATE, state);
     }
 
@@ -804,6 +798,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void clearMovePos(){
         this.entityData.set(MOVE_POS, Optional.empty());
+    }
+
+    public void clearUpkeepPos(){
+        this.entityData.set(UPKEEP_POS, Optional.empty());
     }
 
     public void setListen(boolean bool) {
@@ -890,8 +888,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 if(!player.isCrouching()) {
                        int state = this.getFollowState();
                     switch (state) {
-                        default:
-                        case 0:
+                        case 0 -> {
                             setFollowState(1);
                             String follow = TEXT_FOLLOW.getString();
                             player.sendMessage(new TextComponent(name + follow), player.getUUID());
@@ -1144,8 +1141,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         boolean isChest = this.getUpkeepPos() != null;
         boolean isEntity = this.getUpkeepUUID() != null;
 
-        return this.needsToEat() && (isChest || isEntity);
+        return (this.needsToEat() && (isChest || isEntity));
     }
+
     public boolean needsToEat(){
         //Main.LOGGER.debug(getHunger());
         if (getHunger() <= 50F){
@@ -1406,10 +1404,15 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void updateMountTimer(){
-        if(this.mountTimer > 0){
-            this.mountTimer--;
+        if(getMountTimer() > 0){
+            setMountTimer(getMountTimer() - 1);
         }
     }
+
+    public int getMountTimer() {
+        return entityData.get(mountTimer);
+    }
+
     @Override
     protected void hurtCurrentlyUsedShield(float damage) {
         //dont know why the fuck i cant assign this offhand slot to inventory slot 4
@@ -1547,11 +1550,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (player instanceof ServerPlayer) {
             NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
                 @Override
-                public Component getDisplayName() {
+                public @NotNull Component getDisplayName() {
                     return getName();
                 }
 
-                @Nullable
                 @Override
                 public AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
                     return new RecruitHireMenu(i, playerInventory.player, AbstractRecruitEntity.this, playerInventory);
@@ -1580,7 +1582,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if(mount_uuid != null) {
                 this.setMountUUID(Optional.of(mount_uuid));
             }
-            else this.setMountUUID(Optional.empty());
+            else
+                this.setMountUUID(Optional.empty());
         }
     }
 

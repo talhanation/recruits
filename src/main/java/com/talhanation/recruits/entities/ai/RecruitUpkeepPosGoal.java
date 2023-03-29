@@ -10,7 +10,9 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.helpers.NOPLogger;
+
+import java.util.Optional;
+
 
 public class RecruitUpkeepPosGoal extends Goal {
     public AbstractRecruitEntity recruit;
@@ -25,7 +27,7 @@ public class RecruitUpkeepPosGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return recruit.needsToEat() && recruit.getUpkeepPos() != null;
+        return recruit.getShouldUpkeep() && recruit.needsToGetFood() && recruit.getUpkeepPos() != null;
     }
 
     @Override
@@ -96,6 +98,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                            recruit.getOwner().sendMessage(new TextComponent(name + str), recruit.getOwner().getUUID());
                            message = false;
                        }
+
                     }
                 }
                 else stop();

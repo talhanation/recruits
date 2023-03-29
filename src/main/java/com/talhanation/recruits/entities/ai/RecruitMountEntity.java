@@ -28,7 +28,7 @@ public class RecruitMountEntity extends Goal {
 
     public void start(){
         this.findMount();
-        recruit.mountTimer = 150;
+        this.recruit.setMountTimer(150);
     }
 
     public boolean requiresUpdateEveryTick() {
@@ -38,7 +38,7 @@ public class RecruitMountEntity extends Goal {
     public void tick() {
         if(this.recruit.getVehicle() == null && this.mount != null) {
             //if(mount.canAddPassenger()) {
-            if(recruit.mountTimer > 0){
+            if(recruit.getMountTimer() > 0){
                 recruit.getNavigation().moveTo(mount, 1.15F);
                 if (recruit.distanceTo(mount) < 2D) {
                     recruit.startRiding(mount);
