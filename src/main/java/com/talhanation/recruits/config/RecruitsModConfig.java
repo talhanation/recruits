@@ -226,7 +226,8 @@ public class RecruitsModConfig {
 
         RecruitCurrency = BUILDER.comment("\n" + "----Currency----" + "\n" +
                 "\t" + "(takes effect after restart)" + "\n" +
-                "\t" + "The Item defined here, will be used to hire recruits. For example: [\"minecraft:diamond\"]")
+                "\t" + "The Item defined here, will be used to hire recruits. For example: [\"minecraft:diamond\"]" +
+                "\t" + "default: [\"minecraft:emerald\"]")
                 .worldRestart()
                 .define("RecruitCurrency", "minecraft:emerald");
 
@@ -271,13 +272,13 @@ public class RecruitsModConfig {
 
         RecruitPatrolSpawnInterval = BUILDER.comment("\n" +"The interval in minutes a Recruit Patrol and Caravan can spawn." + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: 250")
+                        "\t" + "default: 15")
                 .worldRestart()
                 .defineInRange("RecruitPatrolSpawnInterval", 15, 1, 60);
 
         PillagerPatrolSpawnInterval = BUILDER.comment("\n" +"The interval in minutes a Pillager Patrol can spawn." + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: 250")
+                        "\t" + "default: 15")
                 .worldRestart()
                 .defineInRange("PillagerPatrolSpawnInterval", 15, 1, 60);
 
