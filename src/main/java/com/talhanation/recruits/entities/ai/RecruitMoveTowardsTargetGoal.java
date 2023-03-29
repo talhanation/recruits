@@ -27,7 +27,7 @@ public class RecruitMoveTowardsTargetGoal extends Goal {
 
     public boolean canUse() {
         this.target = this.recruit.getTarget();
-        if (this.recruit.getState() == 3 || recruit.getShouldMount() || recruit.needsToGetFood()){
+        if (this.recruit.getState() == 3 || recruit.getShouldMount() || recruit.getShouldUpkeep()){
             return false;
         }
         else if (this.target == null) {

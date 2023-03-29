@@ -40,6 +40,10 @@ public class CommandEvents {
     public static void onFollowCommand(UUID player_uuid, AbstractRecruitEntity recruit, int r_state, int group, boolean fromGui) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             int state = recruit.getFollowState();
+
+            if(recruit.getShouldUpkeep()) recruit.setShouldUpkeep(false);
+            if(recruit.getShouldMount()) recruit.setShouldMount(false);
+
             switch (r_state) {
 
                 case 0:
@@ -407,6 +411,7 @@ public class CommandEvents {
                 //Main.LOGGER.debug("server: entity_uuid: " + entity_uuid);
                 recruit.setUpkeepUUID(Optional.of(entity_uuid));
                 recruit.setUpkeepPos(BlockPos.ZERO);
+                recruit.setShouldUpkeep(true);
             }
             else {
                 HitResult hitResult = player.pick(100, 1F, false);
@@ -416,6 +421,7 @@ public class CommandEvents {
                         BlockPos blockpos = blockHitResult.getBlockPos();
                         recruit.setUpkeepPos(blockpos);
                         recruit.setUpkeepUUID(Optional.empty());
+                        recruit.setShouldUpkeep(true);
                     }
                 }
             }
