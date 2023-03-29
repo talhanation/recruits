@@ -1,5 +1,6 @@
 package com.talhanation.recruits.world;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.BowmanEntity;
 import com.talhanation.recruits.entities.RecruitEntity;
@@ -16,9 +17,6 @@ import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.entity.animal.horse.Mule;
-import net.minecraft.world.entity.monster.Pillager;
-import net.minecraft.world.entity.monster.Vindicator;
-import net.minecraft.world.entity.monster.Witch;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.WanderingTrader;
 import net.minecraft.world.entity.player.Player;
@@ -40,43 +38,31 @@ public class RecruitsPatrolSpawn {
     private final Random random = new Random();
     private final ServerLevel world;
     private int timer;
-    private int delay;
     private double chance;
 
     public RecruitsPatrolSpawn(ServerLevel level) {
         this.world = level;
-        this.timer = 12000;//12000 == 10 min
-        this.delay = 3000;
-        this.chance =  RecruitsModConfig.RecruitPatrolsSpawnChance.get();
+        this.timer = getSpawnInterval();
+        this.chance = RecruitsModConfig.RecruitPatrolsSpawnChance.get();
     }
 
     public void tick() {
-        if (RecruitsModConfig.ShouldRecruitPatrolsSpawn.get() && --this.timer <= 0) {
-            this.timer = 12000;
-            this.delay -= 12000;
-            if(delay < 0){
-                delay = 0;
-            }
-            if (this.delay <= 0) {
-                this.delay = 12000;
-                if (this.world.getGameRules().getBoolean(GameRules.RULE_DO_PATROL_SPAWNING)) {
-                    double i = this.chance;
-                    this.chance = Mth.clamp(this.chance, 5, 100);
-                    if (this.random.nextInt(100) <= i && this.attemptSpawnPatrol()) {
-                        this.chance = RecruitsModConfig.RecruitPatrolsSpawnChance.get();
-                    }
-                }
-            }
-        }
+        if(timer > 0) --this.timer;
 
+        if(this.timer <= 0){
+            if (this.world.getGameRules().getBoolean(GameRules.RULE_DO_PATROL_SPAWNING)) {
+                double rnd = this.random.nextInt(100);
+
+                if (rnd <= this.chance && this.attemptSpawnPatrol()){}//To avoid multiple method call
+            }
+            this.timer = getSpawnInterval();
+        }
     }
 
     private boolean attemptSpawnPatrol() {
         Player player = this.world.getRandomPlayer();
         if (player == null) {
             return true;
-        } else if (this.random.nextInt(5) != 0) {
-            return false;
         } else {
             BlockPos blockpos = new BlockPos(player.position());
             BlockPos blockpos2 = this.func_221244_a(blockpos, 90);
@@ -85,72 +71,23 @@ public class RecruitsPatrolSpawn {
 
                 int i = random.nextInt(10);
                 switch(i) {
-                    default -> spawnPillagerPatrol(upPos, blockpos);
+                    default -> spawnCaravan(upPos);
                     case 8,9 -> spawnSmallPatrol(upPos);
                     case 1,2 -> spawnMediumPatrol(upPos);
                     case 3,4 -> spawnLargePatrol(upPos);
-                    case 5,6,7 -> spawnCaravan(upPos);
                 }
+                Main.LOGGER.info("New Recruit Patrol spawned at "+ upPos);
                 return true;
             }
             return false;
         }
     }
 
-    private void spawnPillagerPatrol(BlockPos upPos, BlockPos targetPos) {
-        Pillager pillagerLeader = createPillager(upPos, targetPos);
-        pillagerLeader.setAggressive(true);
-        pillagerLeader.setCustomName(Component.literal("Pillager Leader"));
-        pillagerLeader.setPatrolLeader(true);
-        pillagerLeader.setCanJoinRaid(true);
-        pillagerLeader.setCanPickUpLoot(true);
-
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-
-        this.createWitch(upPos, targetPos);
-
-        this.createVindicator(upPos, targetPos);
-        this.createVindicator(upPos, targetPos);
-        this.createVindicator(upPos, targetPos);
-        this.createVindicator(upPos, targetPos);
+    private int getSpawnInterval(){
+        //1200 == 1 min
+        int minutes = RecruitsModConfig.RecruitPatrolSpawnInterval.get(); //minutes
+        return 1200 * minutes;
     }
-
-    private Pillager createPillager(BlockPos upPos, BlockPos targetPos){
-        Pillager pillager = EntityType.PILLAGER.create(world);
-        pillager.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
-        pillager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
-        pillager.setPersistenceRequired();
-        pillager.setPatrolTarget(targetPos);
-
-        world.addFreshEntity(pillager);
-        return pillager;
-    }
-
-    private Witch createWitch(BlockPos upPos, BlockPos targetPos) {
-        Witch pillager = EntityType.WITCH.create(world);
-        pillager.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
-        pillager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
-        pillager.setPersistenceRequired();
-        pillager.setPatrolTarget(targetPos);
-        world.addFreshEntity(pillager);
-        return pillager;
-    }
-
-    private Vindicator createVindicator(BlockPos upPos, BlockPos targetPos){
-        Vindicator pillager = EntityType.VINDICATOR.create(world);
-        pillager.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
-        pillager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
-        pillager.setPersistenceRequired();
-        pillager.setPatrolTarget(targetPos);
-        world.addFreshEntity(pillager);
-        return pillager;
-    }
-
     private void spawnCaravan(BlockPos upPos) {
         RecruitEntity patrolLeader = this.createPatrolLeader(upPos, "Caravan Leader");
         this.createVillager(upPos, patrolLeader);

@@ -62,15 +62,19 @@ public class   RecruitEvents {
     @SubscribeEvent
     public void onServerTick(TickEvent.LevelTickEvent event) {
         if (!event.level.isClientSide && event.level instanceof ServerLevel serverWorld) {
-            RECRUIT_PATROL.computeIfAbsent(serverWorld,
-                    k -> new RecruitsPatrolSpawn(serverWorld));
-            RecruitsPatrolSpawn spawner = RECRUIT_PATROL.get(serverWorld);
-            spawner.tick();
+            if (RecruitsModConfig.ShouldRecruitPatrolsSpawn.get()) {
+                RECRUIT_PATROL.computeIfAbsent(serverWorld,
+                    serverLevel -> new RecruitsPatrolSpawn(serverWorld));
+                    RecruitsPatrolSpawn spawner = RECRUIT_PATROL.get(serverWorld);
+                    spawner.tick();
+            }
 
-            PILLAGER_PATROL.computeIfAbsent(serverWorld,
-                    k -> new PillagerPatrolSpawn(serverWorld));
-            PillagerPatrolSpawn pillagerSpawner = PILLAGER_PATROL.get(serverWorld);
-            pillagerSpawner.tick();
+            if (RecruitsModConfig.ShouldPillagerPatrolsSpawn.get()) {
+                PILLAGER_PATROL.computeIfAbsent(serverWorld,
+                    serverLevel -> new PillagerPatrolSpawn(serverWorld));
+                    PillagerPatrolSpawn pillagerSpawner = PILLAGER_PATROL.get(serverWorld);
+                    pillagerSpawner.tick();
+            }
         }
 
     }
