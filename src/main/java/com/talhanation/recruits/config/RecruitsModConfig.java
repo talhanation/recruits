@@ -17,7 +17,7 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
 
-    public static final int NEW_VERSION = 18;
+    public static final int NEW_VERSION = 19;
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue OverrideIronGolemSpawn;
     public static ForgeConfigSpec.BooleanValue PillagerFriendlyFire;
@@ -28,7 +28,6 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.IntValue MaxSpawnRecruitsInVillage;
     public static ForgeConfigSpec.IntValue MaxRecruitsForPlayer;
     public static ForgeConfigSpec.IntValue RecruitsMaxXpForLevelUp;
-    public static ForgeConfigSpec.IntValue TeamCreationCost;
     public static ForgeConfigSpec.BooleanValue PillagerIncreasedCombatRange;
     public static ForgeConfigSpec.BooleanValue VindicatorSpawnItems;
     public static ForgeConfigSpec.BooleanValue PillagerSpawnItems;
@@ -50,6 +49,8 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.ConfigValue<String> RecruitCurrency;
     public static ForgeConfigSpec.BooleanValue RecruitsLookLikeVillagers;
     public static ForgeConfigSpec.BooleanValue NoDamageImmunity;
+    public static ForgeConfigSpec.IntValue PillagerPatrolSpawnInterval;
+    public static ForgeConfigSpec.IntValue RecruitPatrolSpawnInterval;
 
     public static ArrayList<String> MOUNTS = new ArrayList<>(
             Arrays.asList("minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "camels:camel"));
@@ -193,7 +194,7 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("ShouldRecruitPatrolsSpawn", true);
 
-        RecruitPatrolsSpawnChance= BUILDER.comment("\n" + "----Chance that a Recruit Patrol can spawn in every 10 min. (higher values = higher chance to spawn)----" + "\n" +
+        RecruitPatrolsSpawnChance= BUILDER.comment("\n" + "----Chance that a Recruit Patrol can spawn. (higher values = higher chance to spawn)----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: 15.0")
                 .worldRestart()
@@ -234,12 +235,14 @@ public class RecruitsModConfig {
                         "\t" + "default: true")
                 .worldRestart()
                 .define("RecruitsLookLikeVillagers", true);
-
+        /*
         MaxAssassinCount = BUILDER.comment("\n" +"WIP: Max Assassins to buy from the Assassin Leader" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: 16")
                 .worldRestart()
                 .defineInRange("MaxAssassinCount", 16, 1, 64);
+
+         */
 
         NoDamageImmunity = BUILDER.comment("\n" + "----No damage Immunity----" + "\n" +
                         "\t" + "Should Immunity between hits be dsiabled?" + "\n" +
@@ -254,7 +257,7 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("AcceptedDamagesourceImmunity", DAMAGESOURCE);
 
-        PillagerPatrolsSpawnChance = BUILDER.comment("\n" + "----Chance that a modded Pillager Patrol can spawn in every 15min. (higher values = higher chance to spawn)----" + "\n" +
+        PillagerPatrolsSpawnChance = BUILDER.comment("\n" + "----Chance that a modded Pillager Patrol can spawn. (higher values = higher chance to spawn)----" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: 25.0")
                 .worldRestart()
@@ -266,7 +269,17 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("ShouldPillagerPatrolsSpawn", false);
 
+        RecruitPatrolSpawnInterval = BUILDER.comment("\n" +"The interval in minutes a Recruit Patrol and Caravan can spawn." + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: 250")
+                .worldRestart()
+                .defineInRange("RecruitPatrolSpawnInterval", 15, 1, 60);
 
+        PillagerPatrolSpawnInterval = BUILDER.comment("\n" +"The interval in minutes a Pillager Patrol can spawn." + "\n" +
+                        "\t" + "(takes effect after restart)" + "\n" +
+                        "\t" + "default: 250")
+                .worldRestart()
+                .defineInRange("PillagerPatrolSpawnInterval", 15, 1, 60);
 
         CONFIG = BUILDER.build();
     }

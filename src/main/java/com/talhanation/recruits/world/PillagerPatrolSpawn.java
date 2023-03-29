@@ -1,7 +1,11 @@
 package com.talhanation.recruits.world;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.config.RecruitsModConfig;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.datafix.fixes.GoatHornIdFix;
 import net.minecraft.world.entity.SpawnPlacements.Type;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
@@ -24,85 +28,83 @@ public class PillagerPatrolSpawn {
     private final Random random = new Random();
     private final ServerLevel world;
     private int timer;
-    private int delay;
-    private double chance;
+    private final double chance;
+
 
     public PillagerPatrolSpawn(ServerLevel level) {
         this.world = level;
-        this.timer = 18000;//12000 == 10 min
-        this.delay = 3000;
-        this.chance =  RecruitsModConfig.PillagerPatrolsSpawnChance.get();
+        this.timer = getSpawnInterval();
+        this.chance = RecruitsModConfig.PillagerPatrolsSpawnChance.get();
     }
 
     public void tick() {
-        //Main.LOGGER.debug("Timer: " + timer);
+        if(timer > 0) --this.timer;
 
-        if (RecruitsModConfig.ShouldPillagerPatrolsSpawn.get() && --this.timer <= 0) {
-            this.timer = 12000;
-            this.delay -= 12000;
-            if(delay < 0){
-                delay = 0;
+        if(this.timer <= 0){
+            if (this.world.getGameRules().getBoolean(GameRules.RULE_DO_PATROL_SPAWNING)) {
+                double rnd = this.random.nextInt(100);
+
+                if (rnd <= this.chance && this.attemptSpawnPatrol()){}//To avoid multiple method call
             }
-            if (this.delay <= 0) {
-                this.delay = 12000;
-                if (this.world.getGameRules().getBoolean(GameRules.RULE_DO_PATROL_SPAWNING)) {
-                    double i = this.chance;
-                    this.chance = Mth.clamp(this.chance, 5, 100);
-                    if (this.random.nextInt(100) <= i && this.attemptSpawnPatrol()) {
-                        this.chance = RecruitsModConfig.PillagerPatrolsSpawnChance.get();
-                    }
-                }
-            }
+            this.timer = getSpawnInterval();
         }
-
     }
 
     private boolean attemptSpawnPatrol() {
         Player player = this.world.getRandomPlayer();
         if (player == null) {
             return true;
-        } else if (this.random.nextInt(5) != 0) {
-            return false;
-        } else {
+        }
+        else{
             BlockPos blockpos = new BlockPos(player.position());
             BlockPos blockpos2 = this.func_221244_a(blockpos, 90);
             if (blockpos2 != null && this.func_226559_a_(blockpos2) && blockpos2.distSqr(blockpos) > 200) {
                 BlockPos upPos = new BlockPos(blockpos2.getX(), blockpos2.getY() + 2, blockpos2.getZ());
 
                 int i = random.nextInt(10);
-                switch(i) {
+                switch (i) {
                     default -> spawnPillagerPatrol(upPos, blockpos);
-                    case 8,9 -> spawnSmallPillagerPatrol(upPos, blockpos);
-                    case 1,2 -> spawnMediumPillagerPatrol(upPos, blockpos);
-                    case 3,4 -> spawnLargePillagerPatrol(upPos, blockpos);
+                    case 8, 9 -> spawnSmallPillagerPatrol(upPos, blockpos);
+                    case 1, 2 -> spawnMediumPillagerPatrol(upPos, blockpos);
+                    case 3, 4 -> spawnLargePillagerPatrol(upPos, blockpos);
                 }
+                this.world.playSound(null, upPos, SoundEvents.RAID_HORN, SoundSource.HOSTILE, 15F, 0.8F + 0.4F * this.random.nextFloat());
+                Main.LOGGER.info("New Pillager Patrol Spawned at "+ upPos);
                 return true;
             }
-            return false;
         }
+        return false;
+    }
+
+    private int getSpawnInterval(){
+        //1200 == 1 min
+        int minutes = RecruitsModConfig.PillagerPatrolSpawnInterval.get(); //minutes
+
+        return 1200 * minutes;
     }
 
     private void spawnPillagerPatrol(BlockPos upPos, BlockPos targetPos) {
         Pillager pillagerLeader = createPillager(upPos, targetPos);
         pillagerLeader.setAggressive(true);
-        pillagerLeader.setCustomName(new TextComponent("Pillager Leader"));
+        pillagerLeader.setCustomName(Component.literal("Pillager Leader"));
         pillagerLeader.setPatrolLeader(true);
         pillagerLeader.setCanJoinRaid(true);
         pillagerLeader.setCanPickUpLoot(true);
 
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
+        createPillager(upPos, targetPos);
+        createPillager(upPos, targetPos);
+        createPillager(upPos, targetPos);
+        createPillager(upPos, targetPos);
+        createPillager(upPos, targetPos);
+        createPillager(upPos, targetPos);
 
-        this.createWitch(upPos, targetPos);
+        createWitch(upPos, targetPos);
 
-        this.createVindicator(upPos, targetPos);
-        this.createVindicator(upPos, targetPos);
-        this.createVindicator(upPos, targetPos);
-        this.createVindicator(upPos, targetPos);
+        createVindicator(upPos, targetPos);
+        createVindicator(upPos, targetPos);
+        createVindicator(upPos, targetPos);
+        createVindicator(upPos, targetPos);
+
     }
 
     private Pillager createPillager(BlockPos upPos, BlockPos targetPos){
@@ -138,7 +140,7 @@ public class PillagerPatrolSpawn {
     private void spawnLargePillagerPatrol(BlockPos upPos, BlockPos targetPos) {
         Pillager pillagerLeader = createPillager(upPos, targetPos);
         pillagerLeader.setAggressive(true);
-        pillagerLeader.setCustomName(new TextComponent("Pillager Leader"));
+        pillagerLeader.setCustomName(Component.literal("Pillager Leader"));
         pillagerLeader.setPatrolLeader(true);
         pillagerLeader.setCanJoinRaid(true);
         pillagerLeader.setCanPickUpLoot(true);
@@ -169,11 +171,12 @@ public class PillagerPatrolSpawn {
         this.createVindicator(upPos, targetPos);
         this.createVindicator(upPos, targetPos);
         this.createVindicator(upPos, targetPos);
+
     }
     private void spawnMediumPillagerPatrol(BlockPos upPos, BlockPos targetPos) {
         Pillager pillagerLeader = createPillager(upPos, targetPos);
         pillagerLeader.setAggressive(true);
-        pillagerLeader.setCustomName(new TextComponent("Pillager Leader"));
+        pillagerLeader.setCustomName(Component.literal("Pillager Leader"));
         pillagerLeader.setPatrolLeader(true);
         pillagerLeader.setCanJoinRaid(true);
         pillagerLeader.setCanPickUpLoot(true);
@@ -188,12 +191,13 @@ public class PillagerPatrolSpawn {
         this.createVindicator(upPos, targetPos);
         this.createVindicator(upPos, targetPos);
         this.createVindicator(upPos, targetPos);
+
     }
 
     private void spawnSmallPillagerPatrol(BlockPos upPos, BlockPos targetPos) {
         Pillager pillagerLeader = createPillager(upPos, targetPos);
         pillagerLeader.setAggressive(true);
-        pillagerLeader.setCustomName(new TextComponent("Pillager Leader"));
+        pillagerLeader.setCustomName(Component.literal("Pillager Leader"));
         pillagerLeader.setPatrolLeader(true);
         pillagerLeader.setCanJoinRaid(true);
         pillagerLeader.setCanPickUpLoot(true);
@@ -203,6 +207,7 @@ public class PillagerPatrolSpawn {
         this.createPillager(upPos, targetPos);
         this.createPillager(upPos, targetPos);
         this.createWitch(upPos, targetPos);
+
     }
 
     @Nullable
