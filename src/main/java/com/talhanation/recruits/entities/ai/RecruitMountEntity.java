@@ -45,13 +45,18 @@ public class RecruitMountEntity extends Goal {
                 }
             }
             else {
-                clearMount();
+                this.clearMount();
             }
         }
 
         if (this.recruit.getVehicle() != null && recruit.getVehicle().equals(mount)) {
-            clearMount();
+            this.clearMount();
         }
+    }
+
+    private void clearMount() {
+        recruit.clearMount();
+        this.mount = null;
     }
 
     private void findMount(){
@@ -61,11 +66,5 @@ public class RecruitMountEntity extends Goal {
                 this.mount = mount;
             }
         }
-    }
-
-    private void clearMount(){
-        recruit.setShouldMount(false);
-        this.mount = null;
-        recruit.setMountUUID(Optional.empty());
     }
 }

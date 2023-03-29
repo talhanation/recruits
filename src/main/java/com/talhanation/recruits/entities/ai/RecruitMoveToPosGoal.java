@@ -16,7 +16,7 @@ public class RecruitMoveToPosGoal extends Goal {
         this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
     public boolean canUse() {
-        return recruit.getShouldMovePos() && !recruit.needsToGetFood() && !recruit.getShouldMount();
+        return recruit.getShouldMovePos() && !recruit.getShouldUpkeep() && !recruit.getShouldMount();
     }
 
     public boolean canContinueToUse() {
@@ -31,7 +31,10 @@ public class RecruitMoveToPosGoal extends Goal {
 
             this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
 
-            if (isClose) recruit.setShouldMovePos(false);
+            if (isClose) {
+                recruit.setShouldMovePos(false);
+                recruit.clearMovePos();
+            }
         }
     }
 }

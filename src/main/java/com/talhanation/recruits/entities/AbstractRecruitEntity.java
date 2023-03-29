@@ -781,7 +781,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 setShouldEscort(true);
             }
         }
-        this.setShouldUpkeep(false);
+
         entityData.set(FOLLOW_STATE, state);
     }
 
@@ -798,10 +798,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void clearMovePos(){
         this.entityData.set(MOVE_POS, Optional.empty());
-    }
-
-    public void clearUpkeepPos(){
-        this.entityData.set(UPKEEP_POS, Optional.empty());
     }
 
     public void setListen(boolean bool) {
@@ -886,7 +882,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     return InteractionResult.SUCCESS;
                 }
                 if(!player.isCrouching()) {
-                       int state = this.getFollowState();
+
+                    if(this.getShouldUpkeep()) this.setShouldUpkeep(false);
+                    if(this.getShouldMount()) this.setShouldMount(false);
+
+                    int state = this.getFollowState();
                     switch (state) {
                         case 0 -> {
                             setFollowState(1);
@@ -1591,6 +1591,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setShouldEscort(should);
         if(escort_uuid != null) this.setEscortUUID(Optional.of(escort_uuid));
         else this.setEscortUUID(Optional.empty());
+    }
+
+    public void clearMount() {
+        this.setShouldMount(false);
+        this.setMountUUID(Optional.empty());
     }
 
     public static enum ArmPose {
