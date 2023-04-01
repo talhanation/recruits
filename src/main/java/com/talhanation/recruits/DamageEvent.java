@@ -53,6 +53,8 @@ public class DamageEvent {
             if (entity.getLevel().isClientSide()) {
                 return;
             }
+            if(!RecruitsModConfig.NoDamageImmunity.get()) return;
+
             DamageSource source = event.getSource();
 
             if (source != null && RecruitsModConfig.AcceptedDamagesourceImmunity.get().contains(source.getMsgId())) {

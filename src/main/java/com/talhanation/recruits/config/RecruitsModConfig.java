@@ -246,7 +246,7 @@ public class RecruitsModConfig {
          */
 
         NoDamageImmunity = BUILDER.comment("\n" + "----No damage Immunity----" + "\n" +
-                        "\t" + "Should Immunity between hits be dsiabled?" + "\n" +
+                        "\t" + "Should Immunity between hits be disabled?" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
                         "\t" + "default: false")
                 .worldRestart()
