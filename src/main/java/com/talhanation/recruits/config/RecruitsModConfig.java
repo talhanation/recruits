@@ -17,7 +17,7 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
 
-    public static final int NEW_VERSION = 19;
+    public static final int NEW_VERSION = 20;
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue OverrideIronGolemSpawn;
     public static ForgeConfigSpec.BooleanValue PillagerFriendlyFire;
@@ -286,8 +286,6 @@ public class RecruitsModConfig {
     }
 
     public static void loadConfig(ForgeConfigSpec spec, Path path) {
-
-
         CommentedFileConfig configData = CommentedFileConfig.builder(path)
                 .sync()
                 .autosave()
