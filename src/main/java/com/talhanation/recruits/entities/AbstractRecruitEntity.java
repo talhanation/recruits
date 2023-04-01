@@ -63,6 +63,7 @@ import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.block.AbstractSkullBlock;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.network.NetworkHooks;
@@ -1301,9 +1302,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void tryToReequip(EquipmentSlot equipmentSlot){
-        for(int i = 6; i < 14; i++){
+        for(int i = 6; i < 15; i++){
             ItemStack itemStack = this.getInventory().getItem(i);
-            if(canEquipItem(itemStack)) {
+            if(canEquipItemToSlot(itemStack, equipmentSlot)) {
                 this.playEquipSound(itemStack);
                 this.setItemSlot(equipmentSlot, itemStack);
                 this.inventory.setItem(getInventorySlotIndex(equipmentSlot), itemStack);

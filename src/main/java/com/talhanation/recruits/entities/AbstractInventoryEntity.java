@@ -12,6 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.AbstractSkullBlock;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -259,14 +260,26 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         this.inventory.setItem(getInventorySlotIndex(equipmentslot), itemStack);
         this.playEquipSound(itemStack);
     }
-
     public boolean canEquipItem(@NotNull ItemStack itemStack) {
-        EquipmentSlot equipmentslot = getEquipmentSlotForItem(itemStack);
-        ItemStack currentArmor = this.getItemBySlot(equipmentslot);
-        boolean flag = this.canReplaceCurrentItem(itemStack, currentArmor);
-
-        return flag && this.canHoldItem(itemStack);
+        if(!itemStack.isEmpty()) {
+            EquipmentSlot equipmentslot = getEquipmentSlotForItem(itemStack);
+                ItemStack currentArmor = this.getItemBySlot(equipmentslot);
+                boolean flag = this.canReplaceCurrentItem(itemStack, currentArmor);
+                return flag && this.canHoldItem(itemStack);
+        }
+        return false;
     }
+
+    public boolean canEquipItemToSlot(@NotNull ItemStack itemStack, EquipmentSlot slot) {
+        if(!itemStack.isEmpty()) {
+            ItemStack currentArmor = this.getItemBySlot(slot);
+            boolean flag = this.canReplaceCurrentItem(itemStack, currentArmor);
+
+            return flag && this.canHoldItem(itemStack) && itemStack.canEquip(slot, this);
+        }
+        return false;
+    }
+
 
     @Override
     public boolean wantsToPickUp(@NotNull ItemStack itemStack){
