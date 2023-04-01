@@ -1,11 +1,12 @@
 {
   "homepage": "https://www.curseforge.com/minecraft/mc-mods/recruits/files",
   "promos": {
-    "1.19.2-recommended": "1.9.3.5",
-    "1.18.2-recommended": "1.9.3.5",
+    "1.19.2-recommended": "1.9.3.6",
+    "1.18.2-recommended": "1.9.3.6",
     "1.16.5-recommended": "1.5.1"
   },
   "1.18.2": {
+    "1.9.3.6": "fixed config for damage immunity and commanding recruits.",
     "1.9.3.5": "fixed config descriptions and guarding AI.",
     "1.9.3.4": "fixed item duplication bug and fixed hire in multipalyer.",
     "1.9.3.3": "fixed name formating for team creation.",
@@ -17,6 +18,7 @@
     "1.9.0": "Team Screen, Hail of Arrows, Upkeep, Configurations and more!"
   },
   "1.19.2": {
+    "1.9.3.6": "fixed config for damage immunity and commanding recruits.",
     "1.9.3.5": "fixed config descriptions and guarding AI.",
     "1.9.3.4": "fixed item duplication bug and fixed hire in multipalyer.",
     "1.9.3.3": "fixed name formating for team creation.",
