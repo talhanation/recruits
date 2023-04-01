@@ -1,8 +1,6 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.inventory.RecruitSimpleContainer;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.Containers;
@@ -14,9 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraft.world.level.block.AbstractSkullBlock;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -231,7 +227,6 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     }
 
     protected void pickUpItem(ItemEntity itemEntity) {
-
         ItemStack itemstack = itemEntity.getItem();
 
         if (this.canEquipItem(itemstack)) {
@@ -263,16 +258,28 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         this.spawnAtLocation(currentArmor);
         this.setItemSlot(equipmentslot, itemStack);
         this.inventory.setItem(getInventorySlotIndex(equipmentslot), itemStack);
-        this.equipEventAndSound(itemStack);
+        this.playEquipSound(itemStack);
     }
-
     public boolean canEquipItem(@NotNull ItemStack itemStack) {
-        EquipmentSlot equipmentslot = getEquipmentSlotForItem(itemStack);
-        ItemStack current = this.getItemBySlot(equipmentslot);
-        boolean flag = this.canReplaceCurrentItem(itemStack, current);
-
-        return flag && this.canHoldItem(itemStack);
+        if(!itemStack.isEmpty()) {
+            EquipmentSlot equipmentslot = getEquipmentSlotForItem(itemStack);
+                ItemStack currentArmor = this.getItemBySlot(equipmentslot);
+                boolean flag = this.canReplaceCurrentItem(itemStack, currentArmor);
+                return flag && this.canHoldItem(itemStack);
+        }
+        return false;
     }
+
+    public boolean canEquipItemToSlot(@NotNull ItemStack itemStack, EquipmentSlot slot) {
+        if(!itemStack.isEmpty()) {
+            ItemStack currentArmor = this.getItemBySlot(slot);
+            boolean flag = this.canReplaceCurrentItem(itemStack, currentArmor);
+
+            return flag && this.canHoldItem(itemStack) && itemStack.canEquip(slot, this);
+        }
+        return false;
+    }
+
 
     @Override
     public boolean wantsToPickUp(@NotNull ItemStack itemStack){
@@ -283,28 +290,6 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
            return itemStack.isEdible();
     }
 
-    public abstract Predicate<ItemEntity> getAllowedItems();
-
-    public abstract void openGUI(Player player);
-
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable Direction facing) {
-        if (this.isAlive() && capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && itemHandler != null)
-            return itemHandler.cast();
-        return super.getCapability(capability, facing);
-    }
-
-
-
-    @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        if (itemHandler != null) {
-            LazyOptional<?> oldHandler = itemHandler;
-            itemHandler = null;
-            oldHandler.invalidate();
-        }
-    }
     @Override
     protected boolean canReplaceCurrentItem(@NotNull ItemStack replacer, ItemStack current) {
         if (current.isEmpty()) {
@@ -373,6 +358,27 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
             }
 
             return false;
+        }
+    }
+
+
+    public abstract Predicate<ItemEntity> getAllowedItems();
+
+    public abstract void openGUI(Player player);
+
+    public <T> net.minecraftforge.common.util.LazyOptional<T> getCapability(net.minecraftforge.common.capabilities.Capability<T> capability, @Nullable net.minecraft.core.Direction facing) {
+        if (this.isAlive() && capability == net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER && itemHandler != null)
+            return itemHandler.cast();
+        return super.getCapability(capability, facing);
+    }
+
+    @Override
+    public void invalidateCaps() {
+        super.invalidateCaps();
+        if (itemHandler != null) {
+            net.minecraftforge.common.util.LazyOptional<?> oldHandler = itemHandler;
+            itemHandler = null;
+            oldHandler.invalidate();
         }
     }
 }
