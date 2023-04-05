@@ -196,7 +196,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(1, new RecruitUpkeepPosGoal(this));
         this.goalSelector.addGoal(1, new RecruitUpkeepEntityGoal(this));
         this.goalSelector.addGoal(2, new RecruitMountEntity(this));
-        //this.goalSelector.addGoal(2, new RecruitMountGoal(this, 1.2D, 32.0F));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D));
         this.goalSelector.addGoal(4, new RecruitFollowOwnerGoal(this, 1.2D, this.getFollowStartDistance(), 3.0F));
         this.goalSelector.addGoal(5, new RecruitMeleeAttackGoal(this, 1.15D, true));
@@ -979,6 +978,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             }
             if(this.getMoral() > 0) this.setMoral(this.getMoral() - 0.25F);
             if(isBlocking()) hurtCurrentlyUsedShield(amt);
+
+            if(entity instanceof LivingEntity living && RecruitEvents.canDamageTarget(this, living)){
+                if(this.getTarget() != null){
+                    double d1 = this.distanceToSqr(this.getTarget());
+                    double d2 = this.distanceToSqr(living);
+                    if(d2 < d1) this.setTarget(living);
+                }
+                else
+                    this.setTarget(living);
+            }
+
             return super.hurt(dmg, amt);
         }
     }

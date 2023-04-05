@@ -263,7 +263,7 @@ public class   RecruitEvents {
         return RecruitEvents.canHarmTeamNoFriendlyFire(recruit, target);
     }
 
-    public boolean canDamageTarget(AbstractRecruitEntity recruit, LivingEntity target) {
+    public static boolean canDamageTarget(AbstractRecruitEntity recruit, LivingEntity target) {
         if (recruit.isOwned() && target instanceof AbstractRecruitEntity recruitEntityTarget) {
             if (recruit.getOwnerUUID().equals(recruitEntityTarget.getOwnerUUID())){
                 return false;
