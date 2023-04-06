@@ -185,7 +185,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(0, new OpenDoorGoal(this, true) {
         });
         this.goalSelector.addGoal(1, new RecruitEscortEntityGoal(this));
-        this.goalSelector.addGoal(1, new RecruitSwapTarget(this));
 
         //this.goalSelector.addGoal(0, new (this));
         this.goalSelector.addGoal(1, new FloatGoal(this));
@@ -779,8 +778,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 setShouldEscort(true);
             }
         }
+        if(this.getMovePos() != null) this.clearMovePos();
 
-        entityData.set(FOLLOW_STATE, state);
+        this.entityData.set(FOLLOW_STATE, state);
     }
 
     public void setHoldPos(BlockPos holdPos){
@@ -896,7 +896,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                             String holdyourpos = TEXT_HOLD_YOUR_POS.getString();
                             player.sendMessage(new TextComponent(name + holdyourpos), player.getUUID());
                         }
-                        case 2 -> {
+                        case 4 -> {
                             setFollowState(0);
                             String wander = TEXT_WANDER.getString();
                             player.sendMessage(new TextComponent(name + wander), player.getUUID());
@@ -986,6 +986,18 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             }
             if(this.getMoral() > 0) this.setMoral(this.getMoral() - 0.25F);
             if(isBlocking()) hurtCurrentlyUsedShield(amt);
+
+            if(entity instanceof LivingEntity living && RecruitEvents.canDamageTarget(this, living)){
+                if(this.getTarget() != null){
+                    double d1 = this.distanceToSqr(this.getTarget());
+                    double d2 = this.distanceToSqr(living);
+
+                    if(d2 < d1) this.setTarget(living);
+                }
+                else
+                    this.setTarget(living);
+            }
+
             return super.hurt(dmg, amt);
         }
     }
