@@ -249,7 +249,12 @@ public class TeamEvents {
         RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
         RecruitsTeam recruitsTeam = data.getTeamByName(teamName);
 
-        boolean isLeader = recruitsTeam.getTeamLeaderUUID().equals(player.getUUID());
+        boolean isLeader;
+        if(recruitsTeam != null) {
+            isLeader = recruitsTeam.getTeamLeaderUUID().equals(player.getUUID());
+        }
+        else
+            isLeader = false;
 
         String leaveTeamCommand = "/team leave " + playerName;
         String emptyTeam = "/team empty " + teamName;
