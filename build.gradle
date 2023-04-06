@@ -26,7 +26,8 @@ idea {
     }
 }
 
-version = '1.9.3.6'
+version = '1.9.3.7'
+
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.19.2'
 

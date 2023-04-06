@@ -188,7 +188,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(0, new OpenDoorGoal(this, true) {
         });
         this.goalSelector.addGoal(1, new RecruitEscortEntityGoal(this));
-        this.goalSelector.addGoal(1, new RecruitSwapTarget(this));
 
         //this.goalSelector.addGoal(0, new (this));
         this.goalSelector.addGoal(1, new FloatGoal(this));
@@ -780,8 +779,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 setShouldEscort(true);
             }
         }
+        if(this.getMovePos() != null) this.clearMovePos();
 
-        entityData.set(FOLLOW_STATE, state);
+        this.entityData.set(FOLLOW_STATE, state);
     }
 
     public void setHoldPos(BlockPos holdPos){
@@ -895,7 +895,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                             setFollowState(4);
                             player.sendSystemMessage(TEXT_HOLD_YOUR_POS(name));
                         }
-                        case 2 -> {
+                        case 4 -> {
                             setFollowState(0);
                             player.sendSystemMessage(TEXT_WANDER(name));
                         }
@@ -983,6 +983,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 if(this.getTarget() != null){
                     double d1 = this.distanceToSqr(this.getTarget());
                     double d2 = this.distanceToSqr(living);
+
                     if(d2 < d1) this.setTarget(living);
                 }
                 else
