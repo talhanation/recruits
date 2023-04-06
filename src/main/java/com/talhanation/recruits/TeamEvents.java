@@ -152,17 +152,21 @@ public class TeamEvents {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamAddPlayerScreen(player));
         }
     }
-    public static void createTeam(ServerPlayer serverPlayer, @NotNull ServerLevel level, String teamName, String playerName, ItemStack banner) {
+    public static void createTeam(ServerPlayer serverPlayer, @NotNull ServerLevel level, String teamName, String playerName, ItemStack banner, String color) {
         MinecraftServer server = level.getServer();
         PlayerTeam team = server.getScoreboard().getPlayerTeam(teamName);
         server.getScoreboard().getPlayerTeams();
         String createTeamCommand = "team add " + teamName;
         String joinTeamCommand = "team join " + teamName + " " + playerName;
+        String teamColorCommand ="team modify " + teamName + " color " + color;
         int cost = 10;
 
         CommandDispatcher<CommandSourceStack> commanddispatcher = server.getCommands().getDispatcher();
         ParseResults<CommandSourceStack> parseresultscreateTeamCommand = commanddispatcher.parse(createTeamCommand, createCommandSourceStack(serverPlayer, server));
         ParseResults<CommandSourceStack> parseresultsjoinTeamCommand = commanddispatcher.parse(joinTeamCommand, createCommandSourceStack(serverPlayer, server));
+        ParseResults<CommandSourceStack> parseresultsTeamColorCommand = commanddispatcher.parse(teamColorCommand, createCommandSourceStack(serverPlayer, server));
+
+
 
         if (team == null) {
             if (!(teamName.isBlank() || teamName.isEmpty())) {
@@ -172,10 +176,14 @@ public class TeamEvents {
                             if (!isBannerInUse(level, banner.serializeNBT())) {
                                 server.getCommands().performCommand(parseresultscreateTeamCommand, createTeamCommand);
                                 server.getCommands().performCommand(parseresultsjoinTeamCommand, joinTeamCommand);
+                                server.getCommands().performCommand(parseresultsTeamColorCommand, joinTeamCommand);
                                 doPayment(serverPlayer, cost);
 
                                 saveDataToTeam(level, teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT());
                                 addPlayerToData(level, teamName, 1, playerName);
+
+
+
                                 Main.LOGGER.debug("The Team " + teamName + " has been created by " + playerName + ".");
                             } else
                                 serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.banner_exists").withStyle(ChatFormatting.RED));
