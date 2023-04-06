@@ -746,11 +746,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 setShouldFollow(false);
                 setShouldHoldPos(false);
                 setShouldEscort(false);
+                setShouldMovePos(false);
             }
             case 1 -> {
                 setShouldFollow(true);
                 setShouldHoldPos(false);
                 setShouldEscort(false);
+                setShouldMovePos(false);
             }
             case 2 -> {
                 setShouldFollow(false);
@@ -758,11 +760,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 clearHoldPos();
                 setHoldPos(getOnPos());
                 setShouldEscort(false);
+                setShouldMovePos(false);
             }
             case 3 -> {
                 setShouldFollow(false);
                 setShouldHoldPos(true);
                 setShouldEscort(false);
+                setShouldMovePos(false);
             }
             case 4 -> {
                 setShouldFollow(false);
@@ -770,15 +774,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 clearHoldPos();
                 setHoldPos(this.getOwner().blockPosition());
                 setShouldEscort(false);
+                setShouldMovePos(false);
                 state = 3;
             }
             case 5 -> {
                 setShouldFollow(false);
                 setShouldHoldPos(false);
                 setShouldEscort(true);
+                setShouldMovePos(false);
             }
         }
-        if(this.getMovePos() != null) this.clearMovePos();
 
         this.entityData.set(FOLLOW_STATE, state);
     }
