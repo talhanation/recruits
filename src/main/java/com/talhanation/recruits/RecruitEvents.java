@@ -12,7 +12,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.animal.Rabbit;
 import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -61,8 +60,8 @@ public class   RecruitEvents {
 
     }
     @SubscribeEvent
-    public void onServerTick(TickEvent.LevelTickEvent event) {
-        if (!event.level.isClientSide && event.level instanceof ServerLevel serverWorld) {
+    public void onServerTick(TickEvent.WorldTickEvent event) {
+        if (!event.world.isClientSide && event.world instanceof ServerLevel serverWorld) {
             if (RecruitsModConfig.ShouldRecruitPatrolsSpawn.get()) {
                 RECRUIT_PATROL.computeIfAbsent(serverWorld,
                     serverLevel -> new RecruitsPatrolSpawn(serverWorld));

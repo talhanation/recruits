@@ -8,26 +8,25 @@ import com.talhanation.recruits.entities.RecruitShieldmanEntity;
 import com.talhanation.recruits.entities.ai.PatrolLeaderTargetAttackers;
 import com.talhanation.recruits.entities.ai.villager.FollowCaravanOwner;
 import com.talhanation.recruits.init.ModEntityTypes;
-import net.minecraft.network.chat.Component;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.SpawnPlacements.Type;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnPlacements.Type;
 import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.entity.animal.horse.Mule;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.WanderingTrader;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.core.BlockPos;
-import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameRules;
-import net.minecraft.world.level.levelgen.Heightmap.Types;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.NaturalSpawner;
+import net.minecraft.world.level.levelgen.Heightmap.Types;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;
@@ -410,7 +409,7 @@ public class RecruitsPatrolSpawn {
         patrolLeader.setMoral(100);
         patrolLeader.setCost(55);
         patrolLeader.setXp(random.nextInt(200));
-        patrolLeader.setCustomName(Component.literal(name));
+        patrolLeader.setCustomName(new TextComponent(name));
 
         patrolLeader.setEscortUUID(Optional.of(patrolLeader.getUUID()));
 
@@ -436,7 +435,7 @@ public class RecruitsPatrolSpawn {
         recruitEntity.setShouldEscort(true);
         recruitEntity.setXp(random.nextInt(80));
 
-        recruitEntity.setCustomName(Component.literal(name));
+        recruitEntity.setCustomName(new TextComponent(name));
 
 
         world.addFreshEntity(recruitEntity);
@@ -459,7 +458,7 @@ public class RecruitsPatrolSpawn {
         bowman.setShouldEscort(true);
         bowman.setXp(random.nextInt(120));
 
-        bowman.setCustomName(Component.literal("Patrol"));
+        bowman.setCustomName(new TextComponent("Patrol"));
 
 
 
@@ -482,7 +481,7 @@ public class RecruitsPatrolSpawn {
         shieldmanEntity.setShouldEscort(true);
         shieldmanEntity.setXp(random.nextInt(120));
 
-        shieldmanEntity.setCustomName(Component.literal(name));
+        shieldmanEntity.setCustomName(new TextComponent(name));
 
 
 

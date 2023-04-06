@@ -10,15 +10,17 @@ import com.talhanation.recruits.init.ModItems;
 import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
-import com.talhanation.recruits.network.MessageDebugScreen;
 import com.talhanation.recruits.network.MessageAddRecruitToTeam;
+import com.talhanation.recruits.network.MessageDebugScreen;
 import com.talhanation.recruits.network.MessageHireGui;
 import com.talhanation.recruits.network.MessageRecruitGui;
+import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -45,25 +47,20 @@ import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
-import net.minecraft.world.entity.monster.*;
+import net.minecraft.world.entity.monster.AbstractIllager;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.monster.Ghast;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-
-
 import net.minecraft.world.item.*;
-
-import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ShieldItem;
-
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.level.block.AbstractSkullBlock;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.network.NetworkHooks;
@@ -638,8 +635,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void disband(Player player){
-        String name = this.getName().getString();
-        player.sendSystemMessage(TEXT_DISBAND(name));
+        String name = this.getName().getString() + ": ";
+        String disband = TEXT_DISBAND.getString();
+        player.sendMessage(new TextComponent(name + disband), player.getUUID());
         this.setTarget(null);
         this.setIsOwned(false);
         this.setUpkeepPos(BlockPos.ZERO);
@@ -890,15 +888,18 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     switch (state) {
                         case 0 -> {
                             setFollowState(1);
-                            player.sendSystemMessage(TEXT_FOLLOW(name));
+                            String follow = TEXT_FOLLOW.getString();
+                            player.sendMessage(new TextComponent(name + follow), player.getUUID());
                         }
                         case 1 -> {
                             setFollowState(4);
-                            player.sendSystemMessage(TEXT_HOLD_YOUR_POS(name));
+                            String holdyourpos = TEXT_HOLD_YOUR_POS.getString();
+                            player.sendMessage(new TextComponent(name + holdyourpos), player.getUUID());
                         }
                         case 2 -> {
                             setFollowState(0);
-                            player.sendSystemMessage(TEXT_WANDER(name));
+                            String wander = TEXT_WANDER.getString();
+                            player.sendMessage(new TextComponent(name + wander), player.getUUID());
                         }
                     }
                     return InteractionResult.SUCCESS;
@@ -920,7 +921,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         String name = this.getName().getString() + ": ";
         if (!CommandEvents.playerCanRecruit(player)) {
 
-            player.sendSystemMessage(INFO_RECRUITING_MAX(name));
+            String info_max = INFO_RECRUITING_MAX.getString();
+            player.sendMessage(new TextComponent(name + info_max), player.getUUID());
             return false;
         }
         else {
@@ -936,14 +938,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             int i = this.random.nextInt(4);
             switch (i) {
                 case 1 -> {
-
-                    player.sendSystemMessage(TEXT_RECRUITED1(name));
+                    String recruited1 = TEXT_RECRUITED1.getString();
+                    player.sendMessage(new TextComponent(name + recruited1), player.getUUID());
                 }
                 case 2 -> {
-                    player.sendSystemMessage(TEXT_RECRUITED2(name));
+                    String recruited2 = TEXT_RECRUITED2.getString();
+                    player.sendMessage(new TextComponent(name + recruited2), player.getUUID());
                 }
                 case 3 -> {
-                    player.sendSystemMessage(TEXT_RECRUITED3(name));
+                    String recruited3 = TEXT_RECRUITED3.getString();
+                    player.sendMessage(new TextComponent(name + recruited3), player.getUUID());
                 }
             }
         }
@@ -956,13 +960,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         int i = this.random.nextInt(4);
         switch (i) {
             case 1 -> {
-                player.sendSystemMessage(TEXT_HELLO_1(name));
+                String hello1 = TEXT_HELLO_1.getString();
+                player.sendMessage(new TextComponent(name + hello1), player.getUUID());
             }
             case 2 -> {
-                player.sendSystemMessage(TEXT_HELLO_2(name));
+                String hello2 = TEXT_HELLO_2.getString();
+                player.sendMessage(new TextComponent(name + hello2), player.getUUID());
             }
             case 3 -> {
-                player.sendSystemMessage(TEXT_HELLO_3(name));
+                String hello3 = TEXT_HELLO_3.getString();
+                player.sendMessage(new TextComponent(name + hello3), player.getUUID());
             }
         }
     }
@@ -1055,7 +1062,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         if (this.dead) {
             if (!this.level.isClientSide && this.level.getGameRules().getBoolean(GameRules.RULE_SHOWDEATHMESSAGES) && this.getOwner() instanceof ServerPlayer) {
-                this.getOwner().sendSystemMessage(deathMessage);
+                this.getOwner().sendMessage(deathMessage, Util.NIL_UUID);
             }
         }
     }
@@ -1305,7 +1312,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         for(int i = 6; i < 15; i++){
             ItemStack itemStack = this.getInventory().getItem(i);
             if(canEquipItemToSlot(itemStack, equipmentSlot)) {
-                this.playEquipSound(itemStack);
+                this.equipEventAndSound(itemStack);
                 this.setItemSlot(equipmentSlot, itemStack);
                 this.inventory.setItem(getInventorySlotIndex(equipmentSlot), itemStack);
                 this.inventory.removeItemNoUpdate(i);
@@ -1318,15 +1325,15 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if(itemStack.getItem() instanceof ShieldItem){
                 this.setItemSlot(EquipmentSlot.OFFHAND, itemStack);
                 this.inventory.setItem(getInventorySlotIndex(EquipmentSlot.OFFHAND), itemStack);
-                this.playEquipSound(itemStack);
+                this.equipEventAndSound(itemStack);
                 itemStack.shrink(1);
             }
         }
     }
 
     @Override
-    public boolean wasKilled(@NotNull ServerLevel level, @NotNull LivingEntity living) {
-        super.wasKilled(level, living);
+    public void killed(@NotNull ServerLevel level, @NotNull LivingEntity living) {
+        super.killed(level, living);
 
         this.addXp(5);
         this.setKills(this.getKills() + 1);
@@ -1365,7 +1372,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
 
         this.checkLevel();
-        return true;
     }
 
     @Override
@@ -1422,7 +1428,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void openGUI(Player player) {
 
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
+            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {
                     return getName();
@@ -1440,7 +1446,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void openDebugScreen(Player player) {
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
+            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {
                     return getName();
@@ -1536,7 +1542,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.navigation.stop();
 
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
+            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {
                     return getName();
@@ -1588,48 +1594,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return AbstractRecruitEntity.ArmPose.NEUTRAL;
     }
 
-    private MutableComponent TEXT_RECRUITED1(String name) {
-        return Component.translatable("chat.recruits.text.recruited1", name);
-    }
-
-    private MutableComponent TEXT_RECRUITED2(String name) {
-        return Component.translatable("chat.recruits.text.recruited2", name);
-    }
-
-    private MutableComponent TEXT_RECRUITED3(String name) {
-        return Component.translatable("chat.recruits.text.recruited3", name);
-    }
-
-    private Component INFO_RECRUITING_MAX(String name) {
-        return Component.translatable("chat.recruits.info.reached_max", name);
-    }
-
-    private MutableComponent TEXT_DISBAND(String name) {
-        return Component.translatable("chat.recruits.text.disband", name);
-    }
-
-    private MutableComponent TEXT_WANDER(String name) {
-        return Component.translatable("chat.recruits.text.wander", name);
-    }
-
-    private MutableComponent TEXT_HOLD_YOUR_POS(String name) {
-        return Component.translatable("chat.recruits.text.holdPos", name);
-    }
-
-    private MutableComponent TEXT_FOLLOW(String name) {
-        return Component.translatable("chat.recruits.text.follow", name);
-    }
-
-    private MutableComponent TEXT_HELLO_1(String name) {
-        return Component.translatable("chat.recruits.text.hello_1", name);
-    }
-
-    private MutableComponent TEXT_HELLO_2(String name) {
-        return Component.translatable("chat.recruits.text.hello_2", name);
-    }
-
-    private MutableComponent TEXT_HELLO_3(String name) {
-        return Component.translatable("chat.recruits.text.hello_3", name);
-    }
+    private static final TranslatableComponent TEXT_DISBAND = new TranslatableComponent("chat.recruits.text.disband");
+    private static final TranslatableComponent TEXT_HELLO_1 = new TranslatableComponent("chat.recruits.text.hello_1");
+    private static final TranslatableComponent TEXT_HELLO_2 = new TranslatableComponent("chat.recruits.text.hello_2");
+    private static final TranslatableComponent TEXT_HELLO_3 = new TranslatableComponent("chat.recruits.text.hello_3");
+    public static final TranslatableComponent TEXT_RECRUITED1 = new TranslatableComponent("chat.recruits.text.recruited1");
+    public static final TranslatableComponent TEXT_RECRUITED2 = new TranslatableComponent("chat.recruits.text.recruited2");
+    public static final TranslatableComponent TEXT_RECRUITED3 = new TranslatableComponent("chat.recruits.text.recruited3");
+    private static final TranslatableComponent INFO_RECRUITING_MAX = new TranslatableComponent("chat.recruits.info.reached_max");
+    private static final TranslatableComponent TEXT_FOLLOW = new TranslatableComponent("chat.recruits.text.follow");
+    private static final TranslatableComponent TEXT_HOLD_YOUR_POS = new TranslatableComponent("chat.recruits.text.hold_your_pos");
+    private static final TranslatableComponent TEXT_WANDER = new TranslatableComponent("chat.recruits.text.wander");
 
 }

@@ -2,21 +2,21 @@ package com.talhanation.recruits.world;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.config.RecruitsModConfig;
-import net.minecraft.network.chat.Component;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.SpawnPlacements.Type;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnPlacements.Type;
 import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.entity.monster.Vindicator;
 import net.minecraft.world.entity.monster.Witch;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.GameRules;
-import net.minecraft.world.level.levelgen.Heightmap.Types;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.NaturalSpawner;
+import net.minecraft.world.level.levelgen.Heightmap.Types;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;
@@ -84,7 +84,7 @@ public class PillagerPatrolSpawn {
     private void spawnPillagerPatrol(BlockPos upPos, BlockPos targetPos) {
         Pillager pillagerLeader = createPillager(upPos, targetPos);
         pillagerLeader.setAggressive(true);
-        pillagerLeader.setCustomName(Component.literal("Pillager Leader"));
+        pillagerLeader.setCustomName(new TextComponent("Pillager Leader"));
         pillagerLeader.setPatrolLeader(true);
         pillagerLeader.setCanJoinRaid(true);
         pillagerLeader.setCanPickUpLoot(true);
@@ -138,7 +138,7 @@ public class PillagerPatrolSpawn {
     private void spawnLargePillagerPatrol(BlockPos upPos, BlockPos targetPos) {
         Pillager pillagerLeader = createPillager(upPos, targetPos);
         pillagerLeader.setAggressive(true);
-        pillagerLeader.setCustomName(Component.literal("Pillager Leader"));
+        pillagerLeader.setCustomName(new TextComponent("Pillager Leader"));
         pillagerLeader.setPatrolLeader(true);
         pillagerLeader.setCanJoinRaid(true);
         pillagerLeader.setCanPickUpLoot(true);
@@ -174,7 +174,7 @@ public class PillagerPatrolSpawn {
     private void spawnMediumPillagerPatrol(BlockPos upPos, BlockPos targetPos) {
         Pillager pillagerLeader = createPillager(upPos, targetPos);
         pillagerLeader.setAggressive(true);
-        pillagerLeader.setCustomName(Component.literal("Pillager Leader"));
+        pillagerLeader.setCustomName(new TextComponent("Pillager Leader"));
         pillagerLeader.setPatrolLeader(true);
         pillagerLeader.setCanJoinRaid(true);
         pillagerLeader.setCanPickUpLoot(true);
@@ -195,7 +195,7 @@ public class PillagerPatrolSpawn {
     private void spawnSmallPillagerPatrol(BlockPos upPos, BlockPos targetPos) {
         Pillager pillagerLeader = createPillager(upPos, targetPos);
         pillagerLeader.setAggressive(true);
-        pillagerLeader.setCustomName(Component.literal("Pillager Leader"));
+        pillagerLeader.setCustomName(new TextComponent("Pillager Leader"));
         pillagerLeader.setPatrolLeader(true);
         pillagerLeader.setCanJoinRaid(true);
         pillagerLeader.setCanPickUpLoot(true);

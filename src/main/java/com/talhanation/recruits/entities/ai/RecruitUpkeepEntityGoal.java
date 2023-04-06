@@ -33,16 +33,16 @@ public class RecruitUpkeepEntityGoal extends Goal {
         return canUse();
     }
 
-    private boolean hasFoodInInv(){
+    private boolean hasFoodInInv() {
         return recruit.getInventory().items
                 .stream()
                 .anyMatch(ItemStack::isEdible);
     }
 
-    private boolean isFoodInEntity(Container container){
-        for(int i = 0; i < container.getContainerSize(); i++) {
+    private boolean isFoodInEntity(Container container) {
+        for (int i = 0; i < container.getContainerSize(); i++) {
             ItemStack foodItem = container.getItem(i);
-            if(foodItem.isEdible()){
+            if (foodItem.isEdible()) {
                 return true;
             }
         }
@@ -85,35 +85,33 @@ public class RecruitUpkeepEntityGoal extends Goal {
                 this.recruit.getNavigation().stop();
                 this.recruit.getLookControl().setLookAt(entity.get().getX(), entity.get().getY() + 1, entity.get().getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
 
-                    //Main.LOGGER.debug("Getting food from inv");
-                    if(isFoodInEntity(container)) {
-                        for (int i = 0; i < 3; i++) {
-                            ItemStack foodItem = this.getFoodFromInv(container);
-                            ItemStack food;
-                            if (foodItem != null && canAddFood()){
-                                food = foodItem.copy();
-                                food.setCount(1);
-                                recruit.getInventory().addItem(food);
-                                foodItem.shrink(1);
-                            } else {
-                                //Main.LOGGER.debug("Chest empty");
-                                break;
-                            }
+                //Main.LOGGER.debug("Getting food from inv");
+                if (isFoodInEntity(container)) {
+                    for (int i = 0; i < 3; i++) {
+                        ItemStack foodItem = this.getFoodFromInv(container);
+                        ItemStack food;
+                        if (foodItem != null && canAddFood()) {
+                            food = foodItem.copy();
+                            food.setCount(1);
+                            recruit.getInventory().addItem(food);
+                            foodItem.shrink(1);
+                        } else {
+                            //Main.LOGGER.debug("Chest empty");
                             break;
                         }
+                        break;
                     }
-                    else {
-                        if(recruit.getOwner() != null && message){
-                            String name = recruit.getName().getString() + ": ";
-                            String str = TEXT_NOFOOD.getString();
-                            recruit.getOwner().sendMessage(new TextComponent(name + str), recruit.getOwner().getUUID());
-                            message = false;
-                        }
+                } else {
+                    if (recruit.getOwner() != null && message) {
+                        String name = recruit.getName().getString() + ": ";
+                        String str = TEXT_NOFOOD.getString();
+                        recruit.getOwner().sendMessage(new TextComponent(name + str), recruit.getOwner().getUUID());
+                        message = false;
                     }
                 }
-            } else stop();
+            }
+            else stop();
         }
-
     }
 
 
