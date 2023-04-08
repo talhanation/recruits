@@ -891,7 +891,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
                     int state = this.getFollowState();
                     switch (state) {
-                        default -> {
+                        case 0 -> {
                             setFollowState(1);
                             String follow = TEXT_FOLLOW.getString();
                             player.sendMessage(new TextComponent(name + follow), player.getUUID());
@@ -901,7 +901,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                             String holdyourpos = TEXT_HOLD_YOUR_POS.getString();
                             player.sendMessage(new TextComponent(name + holdyourpos), player.getUUID());
                         }
-                        case 3 -> {
+                        case 4 -> {
                             setFollowState(0);
                             String wander = TEXT_WANDER.getString();
                             player.sendMessage(new TextComponent(name + wander), player.getUUID());

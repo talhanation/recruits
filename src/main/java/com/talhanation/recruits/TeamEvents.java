@@ -292,7 +292,6 @@ public class TeamEvents {
 
 
         ServerPlayer playerToAdd = server.getPlayerList().getPlayerByName(namePlayerToAdd);
-
         CommandSourceStack commandSourceStack = new CommandSourceStack(CommandSource.NULL, Vec3.atCenterOf(player.getOnPos()), Vec2.ZERO, level, 2, playerName, new TextComponent(playerName), level.getServer(), player);
 
 
@@ -305,7 +304,6 @@ public class TeamEvents {
     public static final TranslatableComponent NO_PLAYER = new TranslatableComponent("chat.recruits.team_creation.could_not_find");
     private static final TranslatableComponent ADDED_PLAYER = new TranslatableComponent("chat.recruits.team_creation.addedPlayer");
     private static final TranslatableComponent ADDED_PLAYER_LEADER = new TranslatableComponent("chat.recruits.team_creation.addedPlayerLeader");
-
 
     public static void addPlayerToData(ServerLevel level, String teamName, int x, String namePlayerToAdd){
         RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
@@ -335,14 +333,12 @@ public class TeamEvents {
         data.setDirty();
     }
 
-    public static void tryToRemoveFromTeam(ServerPlayer leader, ServerPlayer potentialRemovePlayer, ServerLevel level, String nameToRemove) {
-        if (potentialRemovePlayer != null) {
-            boolean isPlayerToRemove = potentialRemovePlayer.getName().getString().equals(nameToRemove);
-
+    public static void tryToRemoveFromTeam(ServerPlayer serverPlayer, ServerLevel level, String nameToRemove) {
+        if (serverPlayer != null) {
+            boolean isPlayerToRemove = serverPlayer.getName().getString().equals(nameToRemove);
             if (isPlayerToRemove) {
                 TeamEvents.leaveTeam(serverPlayer, level);
                 serverPlayer.sendMessage(PLAYER_REMOVED, serverPlayer.getUUID());
-				leader.sendSystemMessage(REMOVE_PLAYER_LEADER(potentialRemovePlayer.getDisplayName().getString()));
             }
         }
     }
@@ -413,7 +409,5 @@ public class TeamEvents {
         }
         return emeralds;
     }
-
     private static final TranslatableComponent PLAYER_REMOVED = new TranslatableComponent("chat.recruits.team_creation.removedPlayer");
-
 }

@@ -26,15 +26,14 @@ idea {
     }
 }
 
-version = '1.9.3.8'
-
+version = '1.9.3.7'
 group = 'com.talhanation.recruits'
-archivesBaseName = 'recruits-1.19.2'
+archivesBaseName = 'recruits-1.18.2'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 minecraft {
-   mappings channel: 'official', version: '1.19.2'
+   mappings channel: 'official', version: '1.18.2'
 	accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
 
     runs {
@@ -48,7 +47,7 @@ minecraft {
 
             Random rnd = new Random()
 
-            args = ['--username', 'talhanation']//rnd.nextInt(1000)]
+            args = ['--username', 'talhanation' + rnd.nextInt(1000)]
 
 
             mods {
@@ -100,13 +99,10 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.19.2-43.2.0'
-    shadow fg.deobf("de.maxhenkel.corelib:corelib:1.19.2-1.0.0:api")
-    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.19.2-1.0.0")
-    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.19.2-1.0.0:javadoc")
-
-    annotationProcessor 'org.spongepowered:mixin:0.8.2:processor'
-    testAnnotationProcessor 'org.spongepowered:mixin:0.8.2:processor'
+    minecraft 'net.minecraftforge:forge:1.18.2-40.1.0'
+    shadow fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.3:api")
+    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.3")
+    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.3:javadoc")
 }
 
 // Example for how to get properties into the manifest for reading at runtime.

@@ -156,9 +156,8 @@ public class CommandEvents {
                     BlockHitResult blockHitResult = (BlockHitResult) hitResult;
                     BlockPos blockpos = blockHitResult.getBlockPos();
                     recruit.setMovePos(blockpos);
-                    recruit.setFollowState(0);// needs to be above setShouldMovePos
                     recruit.setShouldMovePos(true);
-
+                    recruit.setFollowState(0);
                 }
                 //mount maybe
                 /*
