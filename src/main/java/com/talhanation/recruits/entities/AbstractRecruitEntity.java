@@ -106,6 +106,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> mountTimer = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> SHOULD_UPKEEP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> WANDER_RADIUS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     public int blockCoolDown;
     public int eatCoolDown;
     protected GroundPathNavigation navigation;
@@ -195,6 +196,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(1, new RecruitUpkeepPosGoal(this));
         this.goalSelector.addGoal(1, new RecruitUpkeepEntityGoal(this));
         this.goalSelector.addGoal(2, new RecruitMountEntity(this));
+        this.goalSelector.addGoal(2, new RecruitWanderFreelyGoal(this));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D));
         this.goalSelector.addGoal(4, new RecruitFollowOwnerGoal(this, 1.2D, this.getFollowStartDistance(), 3.0F));
         this.goalSelector.addGoal(5, new RecruitMeleeAttackGoal(this, 1.15D, true));
@@ -311,6 +313,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putInt("Cost", this.getCost());
         nbt.putBoolean("ShouldUpkeep", this.getShouldUpkeep());
         nbt.putInt("mountTimer", this.getMountTimer());
+        nbt.putInt("WanderRadius", this.getWanderRadius());
 
         if(this.getHoldPos() != null){
             nbt.putInt("HoldPosX", this.getHoldPos().getX());
@@ -372,6 +375,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setCost(nbt.getInt("Cost"));
         this.setShouldUpkeep(nbt.getBoolean("ShouldUpkeep"));
         this.setMountTimer(nbt.getInt("mountTimer"));
+        this.setWanderRadius(nbt.getInt("WanderRadius"));
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
@@ -548,6 +552,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return entityData.get(FOLLOW_STATE);
     }
 
+    public int getWanderRadius(){
+        return entityData.get(WANDER_RADIUS);
+    }
+
     public SoundEvent getHurtSound(@NotNull DamageSource ds) {
         if (this.isBlocking())
             return SoundEvents.SHIELD_BLOCK;
@@ -588,6 +596,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     ////////////////////////////////////SET////////////////////////////////////
+    public void setWanderRadius(int radius){
+        entityData.set(WANDER_RADIUS, radius);
+    }
     public void setVariant(int variant){
         entityData.set(VARIANT, variant);
     }
