@@ -333,12 +333,14 @@ public class TeamEvents {
         data.setDirty();
     }
 
-    public static void tryToRemoveFromTeam(ServerPlayer serverPlayer, ServerLevel level, String nameToRemove) {
-        if (serverPlayer != null) {
-            boolean isPlayerToRemove = serverPlayer.getName().getString().equals(nameToRemove);
+    public static void tryToRemoveFromTeam(ServerPlayer leader, ServerPlayer potentialRemovePlayer, ServerLevel level, String nameToRemove) {
+        if (potentialRemovePlayer != null) {
+            boolean isPlayerToRemove = potentialRemovePlayer.getName().getString().equals(nameToRemove);
+
             if (isPlayerToRemove) {
                 TeamEvents.leaveTeam(serverPlayer, level);
                 serverPlayer.sendMessage(PLAYER_REMOVED, serverPlayer.getUUID());
+				leader.sendSystemMessage(REMOVE_PLAYER_LEADER(potentialRemovePlayer.getDisplayName().getString()));
             }
         }
     }
@@ -409,5 +411,6 @@ public class TeamEvents {
         }
         return emeralds;
     }
+
     private static final TranslatableComponent PLAYER_REMOVED = new TranslatableComponent("chat.recruits.team_creation.removedPlayer");
 }

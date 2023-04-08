@@ -99,7 +99,7 @@ public class   RecruitEvents {
                         }
                     }
 
-                    if (owner instanceof AbstractIllager illager) {
+                    if (owner instanceof AbstractIllager illager && !RecruitsModConfig.PillagerFriendlyFire.get()) {
 
                         if (illager.isAlliedTo(impactEntity)) {
                             event.setCanceled(true);

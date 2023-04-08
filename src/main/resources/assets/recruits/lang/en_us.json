@@ -172,6 +172,7 @@
   "gui.recruits.team_creation.leave_team": "Leave",
   "chat.recruits.team_creation.addedPlayer": "You are now a member of ",
   "chat.recruits.team_creation.removedPlayer": "You were removed from the Team",
+  "chat.recruits.team_creation.removedPlayerLeader": "You removed %s from the Team.",
   "chat.recruits.team_creation.addedPlayerLeader": " joined your Team successfully.",
   "chat.recruits.team_creation.could_not_find": "Could not find player ",
   "chat.recruits.team_creation.join": "Join",
