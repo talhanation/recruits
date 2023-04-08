@@ -338,9 +338,9 @@ public class TeamEvents {
             boolean isPlayerToRemove = potentialRemovePlayer.getName().getString().equals(nameToRemove);
 
             if (isPlayerToRemove) {
-                TeamEvents.leaveTeam(serverPlayer, level);
-                serverPlayer.sendMessage(PLAYER_REMOVED, serverPlayer.getUUID());
-				leader.sendSystemMessage(REMOVE_PLAYER_LEADER(potentialRemovePlayer.getDisplayName().getString()));
+                TeamEvents.leaveTeam(potentialRemovePlayer, level);
+                potentialRemovePlayer.sendMessage(PLAYER_REMOVED, potentialRemovePlayer.getUUID());
+				leader.sendMessage(PLAYER_REMOVED_LEADER(potentialRemovePlayer.getDisplayName().getString()), leader.getUUID());
             }
         }
     }
@@ -413,4 +413,7 @@ public class TeamEvents {
     }
 
     private static final TranslatableComponent PLAYER_REMOVED = new TranslatableComponent("chat.recruits.team_creation.removedPlayer");
+    private static TranslatableComponent PLAYER_REMOVED_LEADER(String s){
+        return new TranslatableComponent("chat.recruits.team_creation.removedPlayerLeader", s);
+    }
 }
