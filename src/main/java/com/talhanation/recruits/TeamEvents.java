@@ -20,6 +20,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -289,24 +290,29 @@ public class TeamEvents {
         ServerPlayer playerToAdd = server.getPlayerList().getPlayerByName(namePlayerToAdd);
 
         String joinTeamCommand = "team join " + teamName + " " + namePlayerToAdd;
-        String string_addedPlayer = ADDED_PLAYER + teamName;
-        String string_addedPlayerLeader = namePlayerToAdd + ADDED_PLAYER_LEADER;
-
-
 
         CommandDispatcher<CommandSourceStack> commanddispatcher = server.getCommands().getDispatcher();
         ParseResults<CommandSourceStack> parseresults = commanddispatcher.parse(joinTeamCommand, createCommandSourceStack(player, server));
 
-
         server.getCommands().performCommand(parseresults, joinTeamCommand);
-        playerToAdd.sendSystemMessage(Component.literal(string_addedPlayer));
-        player.sendSystemMessage(Component.literal(string_addedPlayerLeader));
+        playerToAdd.sendSystemMessage(ADDED_PLAYER(teamName));
+        player.sendSystemMessage(ADDED_PLAYER_LEADER(namePlayerToAdd));
 
         addPlayerToData(level,teamName,1, namePlayerToAdd);
     }
-    public static final MutableComponent NO_PLAYER = Component.translatable("chat.recruits.team_creation.could_not_find");
-    private static final MutableComponent ADDED_PLAYER = Component.translatable("chat.recruits.team_creation.addedPlayer");
-    private static final MutableComponent ADDED_PLAYER_LEADER = Component.translatable("chat.recruits.team_creation.addedPlayerLeader");
+    public static Component REMOVE_PLAYER_LEADER(String player){
+        return Component.translatable("chat.recruits.team_creation.removedPlayerLeader", player);
+    }
+
+    public static final Component PLAYER_REMOVED = Component.translatable("chat.recruits.team_creation.removedPlayer");
+
+    public static Component ADDED_PLAYER(String s){
+        return Component.translatable("chat.recruits.team_creation.addedPlayer", s);
+    }
+
+    public static Component ADDED_PLAYER_LEADER(String s){
+        return Component.translatable("chat.recruits.team_creation.addedPlayerLeader", s);
+    }
 
     public static void addPlayerToData(ServerLevel level, String teamName, int x, String namePlayerToAdd){
         RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
@@ -336,12 +342,14 @@ public class TeamEvents {
         data.setDirty();
     }
 
-    public static void tryToRemoveFromTeam(ServerPlayer serverPlayer, ServerLevel level, String nameToRemove) {
-        if (serverPlayer != null) {
-            boolean isPlayerToRemove = serverPlayer.getName().getString().equals(nameToRemove);
+    public static void tryToRemoveFromTeam(ServerPlayer leader, ServerPlayer potentialRemovePlayer, ServerLevel level, String nameToRemove) {
+        if (potentialRemovePlayer != null) {
+            boolean isPlayerToRemove = potentialRemovePlayer.getName().getString().equals(nameToRemove);
+
             if (isPlayerToRemove) {
-                TeamEvents.leaveTeam(serverPlayer, level);
-                serverPlayer.sendSystemMessage((Component) PLAYER_REMOVED);
+                TeamEvents.leaveTeam(potentialRemovePlayer, level);
+                potentialRemovePlayer.sendSystemMessage(PLAYER_REMOVED);
+                leader.sendSystemMessage(REMOVE_PLAYER_LEADER(potentialRemovePlayer.getDisplayName().getString()));
             }
         }
     }
@@ -416,5 +424,11 @@ public class TeamEvents {
     private static CommandSourceStack createCommandSourceStack(Entity entity, MinecraftServer server) {
         return new CommandSourceStack(entity, entity.position(), entity.getRotationVector(), entity.level instanceof ServerLevel ? (ServerLevel)entity.level : null, 2, entity.getName().getString(), entity.getDisplayName(), server, entity);
     }
-    private static final TranslatableContents PLAYER_REMOVED = new TranslatableContents("chat.recruits.team_creation.removedPlayer");
+
+    private void tellPlayer(LivingEntity player, Component message) {
+        Component dialogue = Component.literal("")
+                //.append(": ")
+                .append(message);
+        player.sendSystemMessage(dialogue);
+    }
 }
