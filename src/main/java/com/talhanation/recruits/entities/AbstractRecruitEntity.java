@@ -1095,6 +1095,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         boolean highMoral =  80 <= getMoral() && getMoral() < 95;
         boolean strong =  95 <= getMoral();
 
+        //fast recovery
+        if(this.getIsEating() && lowMoral || confused){
+            if(getMoral() < 100) setMoral((getMoral() + 0.004F));
+        }
+
         if(this.getIsEating()){
             if(getMoral() < 100) setMoral((getMoral() + 0.001F));
         }
