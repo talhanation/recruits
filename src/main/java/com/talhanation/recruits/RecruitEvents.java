@@ -5,16 +5,25 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.network.MessageAddRecruitToTeam;
 import com.talhanation.recruits.world.PillagerPatrolSpawn;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.Container;
+import net.minecraft.world.Containers;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LeverBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.scores.Team;
@@ -23,6 +32,7 @@ import net.minecraftforge.event.entity.EntityTeleportEvent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -204,39 +214,57 @@ public class   RecruitEvents {
             }
         }
     }
-    /*
+
     @SubscribeEvent
-    public void onBlockInteract(BlockEvent.BlockToolModificationEvent event) {
-        if(RecruitsModConfig.AggroRecruitsBlockEvents.get()) {
-            Player interacter = event.getPlayer();
+    public void onBlockInteract(PlayerInteractEvent.RightClickBlock event) {
+        BlockPos pos = event.getHitVec().getBlockPos();
+        Player player = event.getEntity();
 
-            if(interacter != null){
-                List<AbstractRecruitEntity> list = interacter.level.getEntitiesOfClass(AbstractRecruitEntity.class, interacter.getBoundingBox().inflate(32.0D));
+        BlockState selectedBlock = player.level.getBlockState(pos);
+        BlockEntity blockEntity = player.level.getBlockEntity(pos);
+
+        if (selectedBlock.is(BlockTags.BUTTONS) ||
+            selectedBlock.is(BlockTags.DOORS) ||
+            selectedBlock.is(BlockTags.WOODEN_TRAPDOORS) ||
+            selectedBlock.is(BlockTags.WOODEN_BUTTONS) ||
+            selectedBlock.is(BlockTags.WOODEN_DOORS) ||
+            selectedBlock.is(BlockTags.SHULKER_BOXES) ||
+            selectedBlock.is(BlockTags.FENCE_GATES) ||
+            selectedBlock.is(BlockTags.ANVIL) ||
+            (blockEntity instanceof Container)
+        ) {
+
+
+            if(RecruitsModConfig.AggroRecruitsBlockEvents.get()) {
+                List<AbstractRecruitEntity> list = Objects.requireNonNull(player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(32.0D)));
                 for (AbstractRecruitEntity recruits : list) {
-                    if (canDamageTargetBlockEvent(recruits, interacter) && recruits.getState() == 1) {
-                        recruits.setTarget(interacter);
+                    if (canDamageTargetBlockEvent(recruits, player) && recruits.getState() == 1) {
+                        recruits.setTarget(player);
                     }
                 }
-                warnPlayer(interacter, Component.literal(list.get(0).getName().getString() + ": " + TEXT_BLOCK_WARN), list);
+
+                if(list.stream().anyMatch(recruit -> canDamageTargetBlockEvent(recruit, player) && recruit.getState() == 0 && recruit.isOwned())){
+                    warnPlayer(player, TEXT_BLOCK_WARN(list.get(0).getName().getString()), list);
+                }
+            }
+
+            if(RecruitsModConfig.NeutralRecruitsBlockEvents.get()) {
+                List<AbstractRecruitEntity> list = Objects.requireNonNull(player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(32.0D)));
+                for (AbstractRecruitEntity recruits : list) {
+                    if (canDamageTargetBlockEvent(recruits, player) && recruits.getState() == 0 && recruits.isOwned()) {
+                        recruits.setTarget(player);
+                    }
+                }
+
+                if(list.stream().anyMatch(recruit -> canDamageTargetBlockEvent(recruit, player) && recruit.getState() == 0 && recruit.isOwned())){
+                    warnPlayer(player, TEXT_BLOCK_WARN(list.get(0).getName().getString()), list);
+                }
             }
         }
 
-        if(RecruitsModConfig.NeutralRecruitsBlockEvents.get()) {
-            Player interacter = event.getPlayer();
-
-            if(interacter != null) {
-                List<AbstractRecruitEntity> list = interacter.level.getEntitiesOfClass(AbstractRecruitEntity.class, interacter.getBoundingBox().inflate(32.0D));
-                for (AbstractRecruitEntity recruits : list) {
-                    if (canDamageTargetBlockEvent(recruits, interacter) && recruits.getState() == 0 && recruits.isOwned()) {
-                        recruits.setTarget(interacter);
-                    }
-                }
-                warnPlayer(interacter, Component.literal(list.get(0).getName().getString() + ": " + TEXT_BLOCK_WARN), list);
-            }
-        }
     }
 
-     */
+
 
     public static void onPlayerLeaveTeam(){
 
