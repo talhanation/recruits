@@ -10,8 +10,8 @@ import com.talhanation.recruits.init.ModItems;
 import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
-import com.talhanation.recruits.network.MessageDebugScreen;
 import com.talhanation.recruits.network.MessageAddRecruitToTeam;
+import com.talhanation.recruits.network.MessageDebugScreen;
 import com.talhanation.recruits.network.MessageHireGui;
 import com.talhanation.recruits.network.MessageRecruitGui;
 import net.minecraft.core.BlockPos;
@@ -45,25 +45,20 @@ import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
-import net.minecraft.world.entity.monster.*;
+import net.minecraft.world.entity.monster.AbstractIllager;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.monster.Ghast;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-
-
 import net.minecraft.world.item.*;
-
-import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ShieldItem;
-
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.level.block.AbstractSkullBlock;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.network.NetworkHooks;
@@ -143,16 +138,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     @Override
     public void aiStep(){
         super.aiStep();
+        updateSwingTime();
         updateMoral();
         updateShield();
+
+        //if(this.getNavigation().isStuck()) this.jumpFromGround();
     }
 
     public void tick() {
         super.tick();
-        updateSwingTime();
-        updateSwimming();
-        updateHunger();
-        updateTeam();// performance -> trigger when team event
+        updateHunger();//TODO: performance -> trigger when new day in the morning
+        updateTeam();//TODO: performance -> trigger when team event
         updateMountTimer();
     }
 
