@@ -140,16 +140,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     @Override
     public void aiStep(){
         super.aiStep();
+        updateSwingTime();
         updateMoral();
         updateShield();
+
+        //if(this.getNavigation().isStuck()) this.jumpFromGround();
     }
 
     public void tick() {
         super.tick();
-        updateSwingTime();
-        updateSwimming();
-        updateHunger();
-        updateTeam();// performance -> trigger when team event
+        updateHunger();//TODO: performance -> trigger when new day in the morning
+        updateTeam();//TODO: performance -> trigger when team event
         updateMountTimer();
     }
 
