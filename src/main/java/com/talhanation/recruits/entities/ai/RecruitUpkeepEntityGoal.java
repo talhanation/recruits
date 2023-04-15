@@ -25,7 +25,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return recruit.getShouldUpkeep() && recruit.needsToGetFood() && recruit.getUpkeepUUID() != null && !recruit.getShouldMount();
+        return recruit.needsToGetFood();
     }
 
     @Override
@@ -59,61 +59,72 @@ public class RecruitUpkeepEntityGoal extends Goal {
     public void tick() {
         super.tick();
         this.entity = findEntityPos();
+        if (recruit.getUpkeepTimer() == 0) {
+            //Main.LOGGER.debug("searching upkeep entity");
+            if (entity.isPresent() && !this.hasFoodInInv()) {
 
-        //Main.LOGGER.debug("searching upkeep entity");
-        if (entity.isPresent() && !this.hasFoodInInv()) {
+                if (entity.get() instanceof AbstractHorse horse) {
+                    this.container = horse.inventory;
+                    //Main.LOGGER.debug("found horse");
+                }
 
-            if (entity.get() instanceof AbstractHorse horse) {
-                this.container = horse.inventory;
-                //Main.LOGGER.debug("found horse");
-            }
+                if (entity.get() instanceof InventoryCarrier carrier) {
+                    this.container = carrier.getInventory();
+                    //Main.LOGGER.debug("found carrier");
+                }
 
-            if (entity.get() instanceof InventoryCarrier carrier) {
-                this.container = carrier.getInventory();
-                //Main.LOGGER.debug("found carrier");
-            }
+                if (entity.get() instanceof Container containerEntity) {
+                    this.container = containerEntity;
+                    //Main.LOGGER.debug("found containerEntity");
+                }
 
-            if (entity.get() instanceof Container containerEntity) {
-                this.container = containerEntity;
-                //Main.LOGGER.debug("found containerEntity");
-            }
+                this.recruit.getNavigation().moveTo(entity.get().getX(), entity.get().getY(), entity.get().getZ(), 1.15D);
+                //Main.LOGGER.debug("Moving to entity");
+                if (entity.get().closerThan(recruit, 3) && container != null) {
 
-            this.recruit.getNavigation().moveTo(entity.get().getX(), entity.get().getY(), entity.get().getZ(), 1.15D);
-            //Main.LOGGER.debug("Moving to entity");
-            if (entity.get().closerThan(recruit, 3) && container != null) {
+                    this.recruit.getNavigation().stop();
+                    this.recruit.getLookControl().setLookAt(entity.get().getX(), entity.get().getY() + 1, entity.get().getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
 
-                this.recruit.getNavigation().stop();
-                this.recruit.getLookControl().setLookAt(entity.get().getX(), entity.get().getY() + 1, entity.get().getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
-
-                //Main.LOGGER.debug("Getting food from inv");
-                if (isFoodInEntity(container)) {
-                    for (int i = 0; i < 3; i++) {
-                        ItemStack foodItem = this.getFoodFromInv(container);
-                        ItemStack food;
-                        if (foodItem != null && canAddFood()) {
-                            food = foodItem.copy();
-                            food.setCount(1);
-                            recruit.getInventory().addItem(food);
-                            foodItem.shrink(1);
-                        } else {
-                            if (recruit.getOwner() != null && message) {
-                                recruit.getOwner().sendSystemMessage(TEXT_NO_PLACE(recruit.getName().getString()));
-                                message = false;
+                    //Main.LOGGER.debug("Getting food from inv");
+                    if (isFoodInEntity(container)) {
+                        for (int i = 0; i < 3; i++) {
+                            ItemStack foodItem = this.getFoodFromInv(container);
+                            ItemStack food;
+                            if (foodItem != null && canAddFood()) {
+                                food = foodItem.copy();
+                                food.setCount(1);
+                                recruit.getInventory().addItem(food);
+                                foodItem.shrink(1);
+                            } else {
+                                if (recruit.getOwner() != null && message) {
+                                    recruit.getOwner().sendSystemMessage(TEXT_NO_PLACE(recruit.getName().getString()));
+                                    message = false;
+                                }
+                                this.stop();
                             }
-                            break;
                         }
                     }
-                } else {
-                    if (recruit.getOwner() != null && message) {
-                        recruit.getOwner().sendSystemMessage(TEXT_FOOD(recruit.getName().getString()));
-                        message = false;
+                    else {
+                        if (recruit.getOwner() != null && message) {
+                            recruit.getOwner().sendSystemMessage(TEXT_FOOD(recruit.getName().getString()));
+                            message = false;
+                            this.stop();
+                        }
                     }
+                    this.stop();
                 }
-            } else stop();
+            }
+            else {
+                this.entity = findEntityPos();
+            }
         }
-
     }
 
+    @Override
+    public void stop() {
+        super.stop();
+        recruit.setUpkeepTimer(150);
+    }
 
     private Optional<Entity> findEntityPos() {
         if(this.recruit.getUpkeepUUID() != null) {

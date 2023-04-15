@@ -61,7 +61,7 @@ public class RecruitMeleeAttackGoal extends Goal {
                 if (this.path != null) {
                     return true;
                 } else {
-                    return (this.getAttackReachSqr(target) >= this.mob.distanceToSqr(target.getX(), target.getY(), target.getZ())) && canAttackHoldPos() && mob.getState() != 3 && !mob.getShouldUpkeep() && !mob.getShouldMount();
+                    return (this.getAttackReachSqr(target) >= this.mob.distanceToSqr(target.getX(), target.getY(), target.getZ())) && canAttackHoldPos() && mob.getState() != 3 && !mob.needsToGetFood() && !mob.getShouldMount();
                 }
             }
         }
