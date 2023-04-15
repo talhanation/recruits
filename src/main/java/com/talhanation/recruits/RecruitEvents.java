@@ -244,7 +244,7 @@ public class   RecruitEvents {
                 }
 
                 if(list.stream().anyMatch(recruit -> canDamageTargetBlockEvent(recruit, player) && recruit.getState() == 0 && recruit.isOwned())){
-                    warnPlayer(player, TEXT_BLOCK_WARN(list.get(0).getName().getString()), list);
+                    warnPlayer(player, TEXT_INTERACT_WARN(list.get(0).getName().getString()), list);
                 }
             }
 
@@ -257,7 +257,7 @@ public class   RecruitEvents {
                 }
 
                 if(list.stream().anyMatch(recruit -> canDamageTargetBlockEvent(recruit, player) && recruit.getState() == 0 && recruit.isOwned())){
-                    warnPlayer(player, TEXT_BLOCK_WARN(list.get(0).getName().getString()), list);
+                    warnPlayer(player, TEXT_INTERACT_WARN(list.get(0).getName().getString()), list);
                 }
             }
         }
@@ -376,5 +376,9 @@ public class   RecruitEvents {
 
     public static MutableComponent TEXT_BLOCK_WARN(String name) {
         return Component.translatable("chat.recruits.text.block_placing_warn", name);
+    }
+
+    public static MutableComponent TEXT_INTERACT_WARN(String name) {
+        return Component.translatable("chat.recruits.text.block_interact_warn", name);
     }
 }

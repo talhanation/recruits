@@ -139,6 +139,7 @@
   "chat.recruits.text.hire_costs": "%s: You need %s %s to recruit me!",
   "chat.recruits.info.reached_max": "You reached the maximum limit you can recruit.",
   "chat.recruits.text.block_placing_warn": "%s: You are not allowed to place or break blocks in our lands!",
+  "chat.recruits.text.block_interact_warn": "%s: You are not allowed to interact with blocks in our lands!",
   "gui.recruits.text.recruited" : "%s: It's a honor for me to protect you!",
 
 
