@@ -890,7 +890,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 }
                 if(!player.isCrouching()) {
 
-                    this.setUpkeepTimer(150);
+                    this.setUpkeepTimer(this.getUpkeepCooldown());
                     if(this.getShouldMount()) this.setShouldMount(false);
 
                     int state = this.getFollowState();
@@ -1602,6 +1602,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void clearMount() {
         this.setShouldMount(false);
         this.setMountUUID(Optional.empty());
+    }
+
+    public int getUpkeepCooldown() {
+        return 3000;
     }
 
     public static enum ArmPose {
