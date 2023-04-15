@@ -116,7 +116,7 @@ public class RecruitUpkeepPosGoal extends Goal {
     @Override
     public void stop() {
         super.stop();
-        recruit.setUpkeepTimer(150);
+        recruit.setUpkeepTimer(recruit.getUpkeepCooldown());
     }
 
     @Nullable

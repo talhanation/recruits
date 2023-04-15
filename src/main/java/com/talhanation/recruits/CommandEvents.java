@@ -41,7 +41,7 @@ public class CommandEvents {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             int state = recruit.getFollowState();
 
-            recruit.setUpkeepTimer(150);
+            recruit.setUpkeepTimer(recruit.getUpkeepCooldown());
             if(recruit.getShouldMount()) recruit.setShouldMount(false);
 
             switch (r_state) {
