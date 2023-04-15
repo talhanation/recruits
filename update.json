@@ -1,7 +1,7 @@
 {
   "homepage": "https://www.curseforge.com/minecraft/mc-mods/recruits/files",
   "promos": {
-    "1.19.2-recommended": "1.9.3.8",
+    "1.19.2-recommended": "1.9.3.9",
     "1.18.2-recommended": "1.9.3.8",
     "1.16.5-recommended": "1.5.1"
   },
@@ -20,6 +20,7 @@
     "1.9.0": "Team Screen, Hail of Arrows, Upkeep, Configurations and more!"
   },
   "1.19.2": {
+    "1.9.3.8": "fixed recruits upkeep ai, fixed block interacting not triggering recruits.",
     "1.9.3.8": "fixed team leave button and recruit move command does not work.",
     "1.9.3.7": "fixed recruit target swapping and interacting not working correctly.",
     "1.9.3.6": "fixed config for damage immunity and commanding recruits.",
