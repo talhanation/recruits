@@ -27,7 +27,7 @@ public class RecruitUpkeepPosGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return recruit.getShouldUpkeep() && recruit.needsToGetFood() && recruit.getUpkeepPos() != null;
+        return recruit.needsToGetFood();
     }
 
     @Override
@@ -61,13 +61,14 @@ public class RecruitUpkeepPosGoal extends Goal {
     public void tick() {
         super.tick();
         this.chestPos = findInvPos();
+        if(recruit.getUpkeepTimer() == 0){
 
-        if (chestPos != null && !this.hasFoodInInv()){
-            BlockEntity entity = recruit.level.getBlockEntity(chestPos);
+            if (chestPos != null && !this.hasFoodInInv()){
+                BlockEntity entity = recruit.level.getBlockEntity(chestPos);
 
-            if (entity instanceof Container containerEntity) {
-                this.container = containerEntity;
-            }
+                if (entity instanceof Container containerEntity) {
+                    this.container = containerEntity;
+                }
 
                 this.recruit.getNavigation().moveTo(chestPos.getX(), chestPos.getY(), chestPos.getZ(), 1.15D);
 
@@ -85,13 +86,22 @@ public class RecruitUpkeepPosGoal extends Goal {
                                 recruit.getInventory().addItem(food);
                                 foodItem.shrink(1);
                             } else {
+//<<<<<<< HEAD
 
+//=======
+                                if(recruit.getOwner() != null && message){
+                                    recruit.getOwner().sendSystemMessage(TEXT_NO_PLACE(recruit.getName().getString()));
+                                    message = false;
+
+                                }
+//>>>>>>> 649df22 (fixed recruits dont get food from upkeep)
                                 //Main.LOGGER.debug("Chest empty");
-                                break;
+                                this.stop();
                             }
                         }
                     }
                     else {
+//<<<<<<< HEAD
                        if(recruit.getOwner() != null && message){
                            String name = recruit.getName().getString() + ": ";
                            String str = TEXT_NOFOOD.getString();
@@ -99,38 +109,30 @@ public class RecruitUpkeepPosGoal extends Goal {
                            message = false;
                        }
 
+//=======
+                        if(recruit.getOwner() != null && message){
+                            recruit.getOwner().sendSystemMessage(TEXT_FOOD(recruit.getName().getString()));
+                            message = false;
+                            this.stop();
+                        }
+//>>>>>>> 649df22 (fixed recruits dont get food from upkeep)
                     }
-                }
-                else stop();
-        }
-        else {
-            this.chestPos = findInvPos();
-            //Main.LOGGER.debug("Chest not found");
-        }
-    }
-
-    @Nullable
-    private BlockPos findInvPos() {
-        if(this.recruit.getUpkeepPos() != null) {
-            //Main.LOGGER.debug("up keep pos not null");
-            BlockPos chestPos;
-            int range = 8;
-
-            for (int x = -range; x < range; x++) {
-                for (int y = -range; y < range; y++) {
-                    for (int z = -range; z < range; z++) {
-                        chestPos = recruit.getUpkeepPos().offset(x, y, z);
-                        BlockEntity block = recruit.level.getBlockEntity(chestPos);
-                        if (block instanceof Container)
-                            return chestPos;
-                    }
+                    this.stop();
                 }
             }
+            else {
+                this.chestPos = findInvPos();
+                //Main.LOGGER.debug("Chest not found");
+            }
         }
-        //Main.LOGGER.debug("UpkeepPos NULL");
-        //else entity around upkeepPos
-        return null;
     }
+
+    @Override
+    public void stop() {
+        super.stop();
+        recruit.setUpkeepTimer(150);
+    }
+
     @Nullable
     private ItemStack getFoodFromInv(Container inv){
         ItemStack itemStack = null;

@@ -102,7 +102,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Optional<UUID>> UPKEEP_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> mountTimer = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Boolean> SHOULD_UPKEEP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> UpkeepTimer = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     public int blockCoolDown;
     public int eatCoolDown;
     protected GroundPathNavigation navigation;
@@ -152,6 +152,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateHunger();//TODO: performance -> trigger when new day in the morning
         updateTeam();//TODO: performance -> trigger when team event
         updateMountTimer();
+        updateUpkeepTimer();
     }
 
     public void rideTick() {
@@ -269,8 +270,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(UPKEEP_ID, Optional.empty());
         this.entityData.define(OWNED, false);
         this.entityData.define(COST, 1);
-        this.entityData.define(SHOULD_UPKEEP, false);
         this.entityData.define(mountTimer, 0);
+        this.entityData.define(UpkeepTimer, 0);
 
         //STATE
         // 0 = NEUTRAL
@@ -308,8 +309,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putFloat("Moral", this.getMoral());
         nbt.putBoolean("isOwned", this.getIsOwned());
         nbt.putInt("Cost", this.getCost());
-        nbt.putBoolean("ShouldUpkeep", this.getShouldUpkeep());
         nbt.putInt("mountTimer", this.getMountTimer());
+        nbt.putInt("upkeepTimer", this.getUpkeepTimer());
 
         if(this.getHoldPos() != null){
             nbt.putInt("HoldPosX", this.getHoldPos().getX());
@@ -369,8 +370,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setMoral(nbt.getFloat("Moral"));
         this.setIsOwned(nbt.getBoolean("isOwned"));
         this.setCost(nbt.getInt("Cost"));
-        this.setShouldUpkeep(nbt.getBoolean("ShouldUpkeep"));
         this.setMountTimer(nbt.getInt("mountTimer"));
+        this.setUpkeepTimer(nbt.getInt("UpkeepTimer"));
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
@@ -417,6 +418,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     ////////////////////////////////////GET////////////////////////////////////
+
+    public int getUpkeepTimer(){
+        return this.entityData.get(UpkeepTimer);
+    }
 
     public int getVariant() {
         return entityData.get(VARIANT);
@@ -514,9 +519,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public boolean getShouldBlock() {
         return entityData.get(SHOULD_BLOCK);
     }
-    public boolean getShouldUpkeep() {
-        return entityData.get(SHOULD_UPKEEP);
-    }
 
     public boolean isFollowing(){
         return entityData.get(IS_FOLLOWING);
@@ -587,6 +589,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     ////////////////////////////////////SET////////////////////////////////////
+
+    public void setUpkeepTimer(int x){
+        this.entityData.set(UpkeepTimer, x);
+    }
     public void setVariant(int variant){
         entityData.set(VARIANT, variant);
     }
@@ -629,9 +635,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
     public void setMountTimer(int x){
         entityData.set(mountTimer, x);
-    }
-    public void setShouldUpkeep(boolean x){
-        entityData.set(SHOULD_UPKEEP, x);
     }
 
     public void disband(Player player){
@@ -887,7 +890,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 }
                 if(!player.isCrouching()) {
 
-                    if(this.getShouldUpkeep()) this.setShouldUpkeep(false);
+                    this.setUpkeepTimer(150);
                     if(this.getShouldMount()) this.setShouldMount(false);
 
                     int state = this.getFollowState();
@@ -1155,8 +1158,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public boolean needsToGetFood(){
         boolean isChest = this.getUpkeepPos() != null;
         boolean isEntity = this.getUpkeepUUID() != null;
-
-        return (this.needsToEat() && (isChest || isEntity));
+        return (this.getUpkeepTimer() == 0 && this.needsToEat() && (isChest || isEntity));
     }
 
     public boolean needsToEat(){
@@ -1419,6 +1421,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if(getMountTimer() > 0){
             setMountTimer(getMountTimer() - 1);
         }
+    }
+
+    public void updateUpkeepTimer(){
+        if(getUpkeepTimer() > 0) setUpkeepTimer(getUpkeepTimer() - 1);
     }
 
     public int getMountTimer() {
