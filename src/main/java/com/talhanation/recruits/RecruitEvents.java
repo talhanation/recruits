@@ -13,15 +13,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.Container;
-import net.minecraft.world.Containers;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.LeverBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.EntityHitResult;
@@ -32,6 +28,7 @@ import net.minecraftforge.event.entity.EntityTeleportEvent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -41,6 +38,8 @@ public class   RecruitEvents {
 
     public int timestamp;
     public static final TranslatableComponent TEXT_BLOCK_WARN = new TranslatableComponent("chat.recruits.text.block_placing_warn");
+    public static final TranslatableComponent TEXT_INTERACT_WARN = new TranslatableComponent("chat.recruits.text.block_interact_warn");
+
     private static final Map<ServerLevel, RecruitsPatrolSpawn> RECRUIT_PATROL = new HashMap<>();
     private static final Map<ServerLevel, PillagerPatrolSpawn> PILLAGER_PATROL = new HashMap<>();
 
@@ -217,7 +216,7 @@ public class   RecruitEvents {
     @SubscribeEvent
     public void onBlockInteract(PlayerInteractEvent.RightClickBlock event) {
         BlockPos pos = event.getHitVec().getBlockPos();
-        Player player = event.getEntity();
+        Player player = event.getPlayer();
 
         BlockState selectedBlock = player.level.getBlockState(pos);
         BlockEntity blockEntity = player.level.getBlockEntity(pos);
@@ -243,7 +242,7 @@ public class   RecruitEvents {
                 }
 
                 if(list.stream().anyMatch(recruit -> canDamageTargetBlockEvent(recruit, player) && recruit.getState() == 0 && recruit.isOwned())){
-                    warnPlayer(player, TEXT_INTERACT_WARN(list.get(0).getName().getString()), list);
+                    warnPlayer(player, new TextComponent(list.get(0).getName().getString() +": " + TEXT_INTERACT_WARN.getString()), list);
                 }
             }
 
@@ -256,7 +255,7 @@ public class   RecruitEvents {
                 }
 
                 if(list.stream().anyMatch(recruit -> canDamageTargetBlockEvent(recruit, player) && recruit.getState() == 0 && recruit.isOwned())){
-                    warnPlayer(player, TEXT_INTERACT_WARN(list.get(0).getName().getString()), list);
+                    warnPlayer(player, new TextComponent(list.get(0).getName().getString() +": " + TEXT_INTERACT_WARN.getString()), list);
                 }
             }
         }
@@ -369,13 +368,5 @@ public class   RecruitEvents {
             player.sendMessage(component, player.getUUID());
             saveCurrentWarning(player, (byte) -10);
         }
-    }
-
-    public static MutableComponent TEXT_BLOCK_WARN(String name) {
-        return Component.translatable("chat.recruits.text.block_placing_warn", name);
-    }
-
-    public static MutableComponent TEXT_INTERACT_WARN(String name) {
-        return Component.translatable("chat.recruits.text.block_interact_warn", name);
     }
 }

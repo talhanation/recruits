@@ -11,8 +11,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-
 
 public class RecruitUpkeepPosGoal extends Goal {
     public AbstractRecruitEntity recruit;
@@ -86,36 +84,24 @@ public class RecruitUpkeepPosGoal extends Goal {
                                 recruit.getInventory().addItem(food);
                                 foodItem.shrink(1);
                             } else {
-//<<<<<<< HEAD
-
-//=======
                                 if(recruit.getOwner() != null && message){
-                                    recruit.getOwner().sendSystemMessage(TEXT_NO_PLACE(recruit.getName().getString()));
+                                    String name = recruit.getName().getString() + ": ";
+                                    String str = TEXT_NO_PLACE.getString();
+                                    recruit.getOwner().sendMessage(new TextComponent(name + str), recruit.getOwner().getUUID());
                                     message = false;
-
                                 }
-//>>>>>>> 649df22 (fixed recruits dont get food from upkeep)
-                                //Main.LOGGER.debug("Chest empty");
                                 this.stop();
                             }
                         }
                     }
                     else {
-//<<<<<<< HEAD
                        if(recruit.getOwner() != null && message){
                            String name = recruit.getName().getString() + ": ";
                            String str = TEXT_NOFOOD.getString();
                            recruit.getOwner().sendMessage(new TextComponent(name + str), recruit.getOwner().getUUID());
                            message = false;
+                           this.stop();
                        }
-
-//=======
-                        if(recruit.getOwner() != null && message){
-                            recruit.getOwner().sendSystemMessage(TEXT_FOOD(recruit.getName().getString()));
-                            message = false;
-                            this.stop();
-                        }
-//>>>>>>> 649df22 (fixed recruits dont get food from upkeep)
                     }
                     this.stop();
                 }
@@ -134,6 +120,29 @@ public class RecruitUpkeepPosGoal extends Goal {
     }
 
     @Nullable
+    private BlockPos findInvPos() {
+        if(this.recruit.getUpkeepPos() != null) {
+            //Main.LOGGER.debug("up keep pos not null");
+            BlockPos chestPos;
+            int range = 8;
+
+            for (int x = -range; x < range; x++) {
+                for (int y = -range; y < range; y++) {
+                    for (int z = -range; z < range; z++) {
+                        chestPos = recruit.getUpkeepPos().offset(x, y, z);
+                        BlockEntity block = recruit.level.getBlockEntity(chestPos);
+                        if (block instanceof Container)
+                            return chestPos;
+                    }
+                }
+            }
+        }
+        //Main.LOGGER.debug("UpkeepPos NULL");
+        //else entity around upkeepPos
+        return null;
+    }
+
+    @Nullable
     private ItemStack getFoodFromInv(Container inv){
         ItemStack itemStack = null;
         for(int i = 0; i < inv.getContainerSize(); i++){
@@ -146,6 +155,7 @@ public class RecruitUpkeepPosGoal extends Goal {
     }
 
     private final TranslatableComponent TEXT_NOFOOD = new TranslatableComponent("chat.recruits.text.noFoodInUpkeep");
+    private final TranslatableComponent TEXT_NO_PLACE = new TranslatableComponent("chat.recruits.text.noPlaceInInv");
     private boolean canAddFood(){
         for(int i = 6; i < 14; i++){
             if(recruit.getInventory().getItem(i).isEmpty())

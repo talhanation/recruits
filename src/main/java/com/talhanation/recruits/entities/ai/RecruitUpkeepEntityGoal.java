@@ -85,24 +85,6 @@ public class RecruitUpkeepEntityGoal extends Goal {
                     this.recruit.getNavigation().stop();
                     this.recruit.getLookControl().setLookAt(entity.get().getX(), entity.get().getY() + 1, entity.get().getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
 
-//<<<<<<< HEAD
-                this.recruit.getNavigation().stop();
-                this.recruit.getLookControl().setLookAt(entity.get().getX(), entity.get().getY() + 1, entity.get().getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
-
-                //Main.LOGGER.debug("Getting food from inv");
-                if (isFoodInEntity(container)) {
-                    for (int i = 0; i < 3; i++) {
-                        ItemStack foodItem = this.getFoodFromInv(container);
-                        ItemStack food;
-                        if (foodItem != null && canAddFood()) {
-                            food = foodItem.copy();
-                            food.setCount(1);
-                            recruit.getInventory().addItem(food);
-                            foodItem.shrink(1);
-                        } else {
-                            //Main.LOGGER.debug("Chest empty");
-                            break;
-/=======
                     //Main.LOGGER.debug("Getting food from inv");
                     if (isFoodInEntity(container)) {
                         for (int i = 0; i < 3; i++) {
@@ -115,41 +97,27 @@ public class RecruitUpkeepEntityGoal extends Goal {
                                 foodItem.shrink(1);
                             } else {
                                 if (recruit.getOwner() != null && message) {
-                                    recruit.getOwner().sendSystemMessage(TEXT_NO_PLACE(recruit.getName().getString()));
+                                    String name = recruit.getName().getString() + ": ";
+                                    String str = TEXT_NO_PLACE.getString();
+                                    recruit.getOwner().sendMessage(new TextComponent(name + str), recruit.getOwner().getUUID());
                                     message = false;
                                 }
                                 this.stop();
                             }
-//>>>>>>> 649df22 (fixed recruits dont get food from upkeep)
+                            break;
                         }
-                        break;
-                    }
-//<<<<<<< HEAD
-                } else {
-                    if (recruit.getOwner() != null && message) {
-                        String name = recruit.getName().getString() + ": ";
-                        String str = TEXT_NOFOOD.getString();
-                        recruit.getOwner().sendMessage(new TextComponent(name + str), recruit.getOwner().getUUID());
-                        message = false;
-//=======
-                    else {
+                    } else {
                         if (recruit.getOwner() != null && message) {
-                            recruit.getOwner().sendSystemMessage(TEXT_FOOD(recruit.getName().getString()));
+                            String name = recruit.getName().getString() + ": ";
+                            String str = TEXT_NOFOOD.getString();
+                            recruit.getOwner().sendMessage(new TextComponent(name + str), recruit.getOwner().getUUID());
                             message = false;
                             this.stop();
                         }
-//>>>>>>> 649df22 (fixed recruits dont get food from upkeep)
+                        this.stop();
                     }
-                    this.stop();
-                }
+                } else stop();
             }
-//<<<<<<< HEAD
-            else stop();
-//=======
-            else {
-                this.entity = findEntityPos();
-            }
-//>>>>>>> 649df22 (fixed recruits dont get food from upkeep)
         }
     }
 
@@ -181,6 +149,9 @@ public class RecruitUpkeepEntityGoal extends Goal {
     }
 
     private final TranslatableComponent TEXT_NOFOOD = new TranslatableComponent("chat.recruits.text.noFoodInUpkeep");
+    private final TranslatableComponent TEXT_NO_PLACE = new TranslatableComponent("chat.recruits.text.noPlaceInInv");
+
+
     private boolean canAddFood(){
         for(int i = 6; i < 14; i++){
             if(recruit.getInventory().getItem(i).isEmpty())

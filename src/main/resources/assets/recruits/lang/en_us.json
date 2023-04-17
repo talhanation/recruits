@@ -132,6 +132,7 @@
   "chat.recruits.text.wander": "I will wander around.",
   "chat.recruits.text.disband": "Then this is where we part ways.",
   "chat.recruits.text.noFoodInUpkeep": "There is no food in my upkeep.",
+  "chat.recruits.text.noPlaceInInv": "There is no place to store food in my inventory.",
 
   "chat.recruits.text.recruited1": "That's an honorable path you're on.",
   "chat.recruits.text.recruited2": "How can i assist you?",
@@ -140,9 +141,7 @@
   "chat.recruits.text.hire_costs_1": "You need",
   "chat.recruits.text.hire_costs_2": "to recruit me!",
   "chat.recruits.info.reached_max": "You reached the maximum limit you can recruit.",
-  "chat.recruits.text.block_placing_warn": "%s: You are not allowed to place or break blocks in our lands!",
   "chat.recruits.text.block_interact_warn": "%s: You are not allowed to interact with blocks in our lands!",
-  "gui.recruits.text.recruited" : "%s: It's a honor for me to protect you!",
   "chat.recruits.text.block_placing_warn": "You are not allowed to place or break blocks in our lands!",
 
   "gui.recruits.text.recruited" : "It's a honor for me to protect you!",
