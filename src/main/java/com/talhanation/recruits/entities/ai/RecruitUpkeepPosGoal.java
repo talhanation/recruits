@@ -27,7 +27,7 @@ public class RecruitUpkeepPosGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return recruit.getShouldUpkeep() && recruit.needsToGetFood() && recruit.getUpkeepPos() != null;
+        return recruit.needsToGetFood();
     }
 
     @Override
@@ -61,13 +61,14 @@ public class RecruitUpkeepPosGoal extends Goal {
     public void tick() {
         super.tick();
         this.chestPos = findInvPos();
+        if(recruit.getUpkeepTimer() == 0){
 
-        if (chestPos != null && !this.hasFoodInInv()){
-            BlockEntity entity = recruit.level.getBlockEntity(chestPos);
+            if (chestPos != null && !this.hasFoodInInv()){
+                BlockEntity entity = recruit.level.getBlockEntity(chestPos);
 
-            if (entity instanceof Container containerEntity) {
-                this.container = containerEntity;
-            }
+                if (entity instanceof Container containerEntity) {
+                    this.container = containerEntity;
+                }
 
                 this.recruit.getNavigation().moveTo(chestPos.getX(), chestPos.getY(), chestPos.getZ(), 1.15D);
 
@@ -88,29 +89,35 @@ public class RecruitUpkeepPosGoal extends Goal {
                                 if(recruit.getOwner() != null && message){
                                     recruit.getOwner().sendSystemMessage(TEXT_NO_PLACE(recruit.getName().getString()));
                                     message = false;
+
                                 }
                                 //Main.LOGGER.debug("Chest empty");
-                                break;
+                                this.stop();
                             }
                         }
                     }
                     else {
-                       if(recruit.getOwner() != null && message){
-                           recruit.getOwner().sendSystemMessage(TEXT_FOOD(recruit.getName().getString()));
-                           message = false;
-                       }
-
+                        if(recruit.getOwner() != null && message){
+                            recruit.getOwner().sendSystemMessage(TEXT_FOOD(recruit.getName().getString()));
+                            message = false;
+                            this.stop();
+                        }
                     }
+                    this.stop();
                 }
-                else stop();
-        }
-        else {
-            this.chestPos = findInvPos();
-            //Main.LOGGER.debug("Chest not found");
+            }
+            else {
+                this.chestPos = findInvPos();
+                //Main.LOGGER.debug("Chest not found");
+            }
         }
     }
 
-
+    @Override
+    public void stop() {
+        super.stop();
+        recruit.setUpkeepTimer(recruit.getUpkeepCooldown());
+    }
 
     @Nullable
     private BlockPos findInvPos() {

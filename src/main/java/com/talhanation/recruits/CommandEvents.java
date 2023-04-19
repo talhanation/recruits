@@ -41,7 +41,7 @@ public class CommandEvents {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             int state = recruit.getFollowState();
 
-            if(recruit.getShouldUpkeep()) recruit.setShouldUpkeep(false);
+            recruit.setUpkeepTimer(recruit.getUpkeepCooldown());
             if(recruit.getShouldMount()) recruit.setShouldMount(false);
 
             switch (r_state) {
@@ -134,8 +134,9 @@ public class CommandEvents {
                     BlockHitResult blockHitResult = (BlockHitResult) hitResult;
                     BlockPos blockpos = blockHitResult.getBlockPos();
                     recruit.setMovePos(blockpos);
+                    recruit.setFollowState(0);// needs to be above setShouldMovePos
                     recruit.setShouldMovePos(true);
-                    recruit.setFollowState(0);
+
                 }
                 //mount maybe
                 /*
@@ -411,7 +412,7 @@ public class CommandEvents {
                 //Main.LOGGER.debug("server: entity_uuid: " + entity_uuid);
                 recruit.setUpkeepUUID(Optional.of(entity_uuid));
                 recruit.setUpkeepPos(BlockPos.ZERO);
-                recruit.setShouldUpkeep(true);
+                recruit.setUpkeepTimer(0);
             }
             else {
                 HitResult hitResult = player.pick(100, 1F, false);
@@ -421,7 +422,7 @@ public class CommandEvents {
                         BlockPos blockpos = blockHitResult.getBlockPos();
                         recruit.setUpkeepPos(blockpos);
                         recruit.setUpkeepUUID(Optional.empty());
-                        recruit.setShouldUpkeep(true);
+                        recruit.setUpkeepTimer(0);
                     }
                 }
             }

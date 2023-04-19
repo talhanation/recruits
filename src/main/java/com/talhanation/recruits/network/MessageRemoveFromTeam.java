@@ -4,6 +4,7 @@ import com.talhanation.recruits.TeamEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -23,9 +24,10 @@ public class MessageRemoveFromTeam implements Message<MessageRemoveFromTeam> {
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerLevel level = context.getSender().getLevel();
+        ServerPlayer sender = context.getSender();
+        ServerLevel level = sender.getLevel();
 
-        level.players().stream().toList().forEach(serverPlayer -> TeamEvents.tryToRemoveFromTeam(serverPlayer, level, player));
+        level.players().stream().toList().forEach(serverPlayer -> TeamEvents.tryToRemoveFromTeam(sender, serverPlayer, level, player));
     }
 
     public MessageRemoveFromTeam fromBytes(FriendlyByteBuf buf) {
