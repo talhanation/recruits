@@ -8,27 +8,32 @@ import java.util.EnumSet;
 
 public class RecruitWanderFreelyGoal extends Goal {
     private final AbstractRecruitEntity recruit;
+    private BlockPos pos;
 
     public RecruitWanderFreelyGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
         this.setFlags(EnumSet.of(Flag.MOVE));
     }
     public boolean canUse() {
-        return recruit.getFollowState() == 0 && recruit.getHoldPos() != null && !recruit.getShouldUpkeep() && !recruit.getShouldMount();
+        return recruit.getTarget() != null && recruit.getFollowState() == 0 && !recruit.needsToGetFood() && !recruit.getShouldMount();
     }
 
     public boolean canContinueToUse() {
         return this.canUse();
     }
 
-    //maybe?? start(){
+    public void start(){
+    super.start();
+    this.pos = recruit.getOnPos();
+
+    }
     public void tick() {
-        BlockPos blockpos = this.recruit.getHoldPos();
-        if (blockpos != null) {
-            boolean isClose = recruit.distanceToSqr(blockpos.getX(), blockpos.getY(), blockpos.getZ()) <= this.recruit.getWanderRadius();
+
+        if (pos != null) {
+            boolean isClose = recruit.distanceToSqr(pos.getX(), pos.getY(), pos.getZ()) <= this.recruit.getWanderRadius();
 
             if (!isClose) {
-                this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), 1F);
+                this.recruit.getNavigation().moveTo(pos.getX(), pos.getY(), pos.getZ(), 1F);
             }
         }
     }
