@@ -131,5 +131,6 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
         //IDLE,
         SELECT_TARGET,
         CHARGE_TARGET,
+        MOVE_TO_POS
     }
 }
