@@ -100,12 +100,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Optional<UUID>> UPKEEP_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> mountTimer = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
-//<<<<<<< HEAD
+
     private static final EntityDataAccessor<Boolean> SHOULD_UPKEEP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> WANDER_RADIUS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
-//=======
+
     private static final EntityDataAccessor<Integer> UpkeepTimer = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
-//>>>>>>> 1.19.2
+
     public int blockCoolDown;
     public int eatCoolDown;
     protected GroundPathNavigation navigation;
@@ -200,7 +200,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(2, new RecruitWanderFreelyGoal(this));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D));
         this.goalSelector.addGoal(4, new RecruitFollowOwnerGoal(this, 1.2D, this.getFollowStartDistance(), 3.0F));
-        this.goalSelector.addGoal(5, new RecruitMeleeAttackGoal(this, 1.15D, true));
+        this.goalSelector.addGoal(5, new RecruitMeleeAttackGoal(this, 1.15D, false));
         this.goalSelector.addGoal(6, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
         this.goalSelector.addGoal(7, new RecruitMoveTowardsTargetGoal(this, 1.15D, 32.0F));
         this.goalSelector.addGoal(8, new RecruitPickupWantedItemGoal(this));
@@ -260,6 +260,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(LEVEL, 1);
         this.entityData.define(FOLLOW_STATE, 0);
         this.entityData.define(HOLD_POS, Optional.empty());
+        this.entityData.define(WANDER_RADIUS, 25);
         this.entityData.define(UPKEEP_POS, Optional.empty());
         this.entityData.define(MOVE_POS, Optional.empty());
         this.entityData.define(LISTEN, true);
@@ -313,11 +314,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putBoolean("isOwned", this.getIsOwned());
         nbt.putInt("Cost", this.getCost());
         nbt.putInt("mountTimer", this.getMountTimer());
-//<<<<<<< HEAD
         nbt.putInt("WanderRadius", this.getWanderRadius());
-//=======
         nbt.putInt("upkeepTimer", this.getUpkeepTimer());
-//>>>>>>> 1.19.2
 
         if(this.getHoldPos() != null){
             nbt.putInt("HoldPosX", this.getHoldPos().getX());
@@ -378,11 +376,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setIsOwned(nbt.getBoolean("isOwned"));
         this.setCost(nbt.getInt("Cost"));
         this.setMountTimer(nbt.getInt("mountTimer"));
-//<<<<<<< HEAD
         this.setWanderRadius(nbt.getInt("WanderRadius"));
-//=======
         this.setUpkeepTimer(nbt.getInt("UpkeepTimer"));
-//>>>>>>> 1.19.2
+
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
@@ -604,14 +600,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     ////////////////////////////////////SET////////////////////////////////////
-//<<<<<<< HEAD
-    public void setWanderRadius(int radius){
-        entityData.set(WANDER_RADIUS, radius);
-//=======
 
+    public void setWanderRadius(int radius) {
+        this.entityData.set(WANDER_RADIUS, radius);
+
+    }
     public void setUpkeepTimer(int x){
         this.entityData.set(UpkeepTimer, x);
-//>>>>>>> 1.19.2
+
     }
     public void setVariant(int variant){
         entityData.set(VARIANT, variant);
@@ -1021,11 +1017,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
-    public boolean doHurtTarget(Entity entity) {
-        boolean flag = entity.hurt(DamageSource.mobAttack(this), (float)((int)this.getAttributeValue(Attributes.ATTACK_DAMAGE)));
-        if (flag) {
-            this.doEnchantDamageEffects(this, entity);
-        }
+    public boolean doHurtTarget(@NotNull Entity entity) {
+        super.doHurtTarget(entity);
 
         this.addXp(2);
         this.checkLevel();

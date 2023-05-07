@@ -15,7 +15,7 @@ public class RecruitWanderFreelyGoal extends Goal {
         this.setFlags(EnumSet.of(Flag.MOVE));
     }
     public boolean canUse() {
-        return recruit.getTarget() != null && recruit.getFollowState() == 0 && !recruit.needsToGetFood() && !recruit.getShouldMount();
+        return recruit.getTarget() == null && recruit.getFollowState() == 0 && !recruit.needsToGetFood() && !recruit.getShouldMount();
     }
 
     public boolean canContinueToUse() {

@@ -20,6 +20,7 @@ public class ModItems {
     public static final RegistryObject<Item> BOWMAN_SPAWN_EGG = RegistryUtils.createSpawnEggItem("bowman", ModEntityTypes.BOWMAN::get, 16755200, 16777045);
     public static final RegistryObject<Item> NOMAD_SPAWN_EGG = RegistryUtils.createSpawnEggItem("nomad", ModEntityTypes.NOMAD::get, 16755200, 16777045);
     public static final RegistryObject<Item> RECRUIT_SHIELD_SPAWN_EGG = RegistryUtils.createSpawnEggItem("recruit_shieldman", ModEntityTypes.RECRUIT_SHIELDMAN::get, 16755200, 16777045);
+    public static final RegistryObject<Item> HORSEMAN_SPAWN_EGG = RegistryUtils.createSpawnEggItem("horseman", ModEntityTypes.HORSEMAN::get, 16755200, 16777045);
 
     public static final RegistryObject<BlockItem> RECRUIT_BLOCK = ITEMS.register("recruit_block", () -> new BlockItem(ModBlocks.RECRUIT_BLOCK.get(), (new Item.Properties()).tab(CreativeModeTab.TAB_DECORATIONS)));
     public static final RegistryObject<BlockItem> BOWMAN_BLOCK = ITEMS.register("bowman_block", () -> new BlockItem(ModBlocks.BOWMAN_BLOCK.get(), (new Item.Properties()).tab(CreativeModeTab.TAB_DECORATIONS)));

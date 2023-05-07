@@ -24,7 +24,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.Optional;
 
 public class AssassinEvents {
-
+    /*
     public static void createAssassin(String playerName, int count, Level world) {
         MinecraftServer server = world.getServer();
         PlayerList list = server.getPlayerList();
@@ -37,7 +37,7 @@ public class AssassinEvents {
             while (!hasEnoughSpace(world, blockPos)){
                 blockPos = calculateSpawnPos(target);
             }
-
+            /*
             if (hasEnoughSpace(world, blockPos)){
                 world.setBlock(blockPos, Blocks.REDSTONE_BLOCK.defaultBlockState(), 3);
                 for (int i = 0; i < count; i++) {
@@ -54,6 +54,7 @@ public class AssassinEvents {
                 }
             }
         }
+
     }
 
     private static BlockPos calculateSpawnPos(Player target){
@@ -144,4 +145,5 @@ public class AssassinEvents {
         }
         return player.isCreative();
     }
+     */
 }

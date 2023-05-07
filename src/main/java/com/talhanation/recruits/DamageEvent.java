@@ -4,6 +4,7 @@ import com.talhanation.recruits.config.RecruitsModConfig;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
@@ -49,19 +50,36 @@ public class DamageEvent {
     @SubscribeEvent
     public void onEntityHurt(LivingHurtEvent event) {
         if (!event.isCanceled()) {
-            LivingEntity entity = event.getEntity();
-            if (entity.getLevel().isClientSide()) {
+            LivingEntity target = event.getEntity();
+            DamageSource source = event.getSource();
+
+            if (target.getLevel().isClientSide()) {
                 return;
             }
+            //Velocity Damage
+            if(source != null && source.getEntity() != null){
+                Entity entity = source.getEntity();
+                if(entity instanceof LivingEntity attacker){
+                    float speed = attacker.getSpeed();
+
+
+                    Main.LOGGER.info("Entity Speed: " + speed);
+                    Main.LOGGER.info("Damage: " + event.getAmount());
+                    event.setAmount(event.getAmount() + speed);
+                    Main.LOGGER.info("Damage: " + event.getAmount());
+                }
+
+            }
+
+            //NO Damage Immunity
             if(!RecruitsModConfig.NoDamageImmunity.get()) return;
 
-            DamageSource source = event.getSource();
+
 
             if (source != null && RecruitsModConfig.AcceptedDamagesourceImmunity.get().contains(source.getMsgId())) {
                 return;
             }
-
-            entity.invulnerableTime = 0;
+            target.invulnerableTime = 0;
         }
     }
 }

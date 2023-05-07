@@ -101,18 +101,18 @@ public class RecruitHorseEntity extends PathfinderMob {
     }
 
     public void setRandomSpawnBonus(){
-        getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("heath_bonus", this.random.nextGaussian() * 0.20D, AttributeModifier.Operation.MULTIPLY_BASE));
+        getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("heath_bonus", this.random.nextGaussian() * 0.50D, AttributeModifier.Operation.MULTIPLY_BASE));
         getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(new AttributeModifier("attack_bonus", this.random.nextGaussian() * 0.20D, AttributeModifier.Operation.MULTIPLY_BASE));
         getAttribute(Attributes.KNOCKBACK_RESISTANCE).addPermanentModifier(new AttributeModifier("knockback_bonus", this.random.nextGaussian() * 0.20D, AttributeModifier.Operation.MULTIPLY_BASE));
-        getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(new AttributeModifier("speed_bonus", this.random.nextGaussian() * 0.20D, AttributeModifier.Operation.MULTIPLY_BASE));
+        getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(new AttributeModifier("speed_bonus", this.random.nextGaussian() * 0.10D, AttributeModifier.Operation.MULTIPLY_BASE));
 
     }
 
     //ATTRIBUTES
     public static AttributeSupplier setAttributes() {
         return LivingEntity.createLivingAttributes()
-                .add(Attributes.MAX_HEALTH, 30.0D)
-                .add(Attributes.MOVEMENT_SPEED, 0.35D)
+                .add(Attributes.MAX_HEALTH, 50.0D)
+                .add(Attributes.MOVEMENT_SPEED, 0.425D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.2D)
                 .add(Attributes.ATTACK_DAMAGE, 0.0D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D)

@@ -38,12 +38,14 @@ public class ClientEvent {
             EntityRenderers.register(ModEntityTypes.RECRUIT.get(), RecruitVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.BOWMAN.get(), BowmanVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.NOMAD.get(), BowmanVillagerRenderer::new );
+            EntityRenderers.register(ModEntityTypes.HORSEMAN.get(), RecruitVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.RECRUIT_SHIELDMAN.get(), RecruitVillagerRenderer::new );
         }
         else{
             EntityRenderers.register(ModEntityTypes.RECRUIT.get(), RecruitHumanRenderer::new );
             EntityRenderers.register(ModEntityTypes.BOWMAN.get(), BowmanHumanRenderer::new );
             EntityRenderers.register(ModEntityTypes.NOMAD.get(), BowmanHumanRenderer::new );
+            EntityRenderers.register(ModEntityTypes.HORSEMAN.get(), RecruitHumanRenderer::new );
             EntityRenderers.register(ModEntityTypes.RECRUIT_SHIELDMAN.get(), RecruitHumanRenderer::new );
         }
 

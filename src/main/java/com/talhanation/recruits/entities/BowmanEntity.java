@@ -236,7 +236,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
             fleeDir = fleeDir.normalize();
             double rnd = this.random.nextGaussian() * 1.2;
             Vec3 fleePos = new Vec3(vecBowman.x + rnd + fleeDir.x * fleeDistance, vecBowman.y + fleeDir.y * fleeDistance, vecBowman.z + rnd + fleeDir.z * fleeDistance);
-            this.getNavigation().moveTo(fleePos.x, fleePos.y, fleePos.z, 1.2D);
+            this.getNavigation().moveTo(fleePos.x, fleePos.y, fleePos.z, 1.1D);
         }
     }
 

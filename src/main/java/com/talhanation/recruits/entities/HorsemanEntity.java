@@ -1,6 +1,6 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.entities.ai.NomadAttackAI;
+import com.talhanation.recruits.entities.ai.HorsemanAttackAI;
 import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -21,11 +21,11 @@ import net.minecraft.world.level.ServerLevelAccessor;
 
 import javax.annotation.Nullable;
 
-public class NomadEntity extends BowmanEntity {
+public class HorsemanEntity extends RecruitShieldmanEntity {
 
-    private static final EntityDataAccessor<Boolean> HAD_HORSE = SynchedEntityData.defineId(NomadEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> HAD_HORSE = SynchedEntityData.defineId(HorsemanEntity.class, EntityDataSerializers.BOOLEAN);
 
-    public NomadEntity(EntityType<? extends AbstractRecruitEntity> entityType, Level world) {
+    public HorsemanEntity(EntityType<? extends AbstractRecruitEntity> entityType, Level world) {
         super(entityType, world);
     }
 
@@ -58,7 +58,7 @@ public class NomadEntity extends BowmanEntity {
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        this.goalSelector.addGoal(2, new NomadAttackAI(this));
+        this.goalSelector.addGoal(2, new HorsemanAttackAI(this));
     }
 
     //ATTRIBUTES
@@ -91,8 +91,7 @@ public class NomadEntity extends BowmanEntity {
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
         this.setCanPickUpLoot(true);
-        //this.reassessWeaponGoal();
-        this.setGroup(2);
+        this.setGroup(3);
     }
 
     @Override
@@ -130,7 +129,7 @@ public class NomadEntity extends BowmanEntity {
 
     public enum State {
         //IDLE,
-        SELECT_TARGET, // Der Bogenschütze richtet seine Waffe auf das ausgewählte Ziel aus
-        CIRCLE_TARGET, // Der Bogenschütze bewegt sich um das Ziel herum, um es aus verschiedenen Winkeln anzugreifen
+        SELECT_TARGET,
+        CHARGE_TARGET,
     }
 }
