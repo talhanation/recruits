@@ -144,7 +144,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void aiStep(){
         super.aiStep();
         updateSwingTime();
-        updateMoral();
+        //updateMoral();
         updateShield();
 
         //if(this.getNavigation().isStuck()) this.jumpFromGround();
@@ -152,7 +152,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void tick() {
         super.tick();
-        updateHunger();//TODO: performance -> trigger when new day in the morning
+        //updateHunger();//TODO: performance -> trigger when new day in the morning
         updateTeam();//TODO: performance -> trigger when team event
         updateMountTimer();
         updateUpkeepTimer();
@@ -1174,7 +1174,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (getHunger() <= 50F){
             return true;
         }
-        else if (getHunger() <= 70F && getHealth() != getMaxHealth() && this.getTarget() == null){
+        else if (getHunger() <= 70F && getHealth() != getMaxHealth() && this.getTarget() == null && this.getIsOwned()){
             return true;
         }
         else return getHealth() <= (getMaxHealth() * 0.30) && this.getTarget() == null;
