@@ -344,8 +344,21 @@ public class   RecruitEvents {
 
         if(target instanceof AbstractRecruitEntity recruit){
             if (recruit.getTeam() != null){
-                Main.LOGGER.debug("recruit in team died: " + recruit.getTeam().getName());
+                //Main.LOGGER.debug("recruit in team died: " + recruit.getTeam().getName());
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(recruit.getTeam().getName(), -1));
+                
+            }
+            //Morale loss when recruits friend die
+            if(recruit.getIsOwned()){
+                UUID owner = recruit.getOwnerUUID();
+                List<AbstractRecruitEntity> recruits = recruit.level.getEntitiesOfClass(AbstractRecruitEntity.class, recruit.getBoundingBox().inflate(64.0D));
+    
+                for (AbstractRecruitEntity recruit2 : recruits) {
+                    if(recruit2.getOwnerUUID().equals(owner)){
+                        float currentMoral = recruit2.getMoral();
+                        if(currentMoral > 0) recruit2.setMoral(currentMoral - 1F)
+                    }
+                } 
             }
         }
     }
