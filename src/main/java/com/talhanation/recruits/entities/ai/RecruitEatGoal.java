@@ -53,6 +53,10 @@ public class RecruitEatGoal extends Goal {
         if (!recruit.isSaturated())
             recruit.setHunger(recruit.getHunger() + Objects.requireNonNull(foodStack.getItem().getFoodProperties(foodStack, recruit)).getSaturationModifier() * 10);
 
+        if(recruit.getMoral() < 100){
+            recruit.setMoral(recruit.getMoral() + 0.5F);   
+        }
+        
         recruit.setItemInHand(InteractionHand.OFF_HAND, foodStack);
         recruit.startUsingItem(InteractionHand.OFF_HAND);
     }
