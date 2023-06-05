@@ -5,28 +5,27 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.network.MessageAddRecruitToTeam;
 import com.talhanation.recruits.world.PillagerPatrolSpawn;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.Container;
-import net.minecraft.world.Containers;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.LeverBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.scores.Team;
+import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityTeleportEvent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
@@ -34,6 +33,7 @@ import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.*;
@@ -45,10 +45,15 @@ public class   RecruitEvents {
     private static final Map<ServerLevel, RecruitsPatrolSpawn> RECRUIT_PATROL = new HashMap<>();
     private static final Map<ServerLevel, PillagerPatrolSpawn> PILLAGER_PATROL = new HashMap<>();
 
+    public static MinecraftServer server;
+
+    @SubscribeEvent
+    public void onServerStarting(ServerStartingEvent event) {
+        server = event.getServer();
+    }
+
     @SubscribeEvent
     public void onTeleportEvent(EntityTeleportEvent event) {
-
-
         if (event.getEntity() instanceof ServerPlayer player && !(event instanceof EntityTeleportEvent.EnderPearl) && !(event instanceof EntityTeleportEvent.ChorusFruit) && !(event instanceof EntityTeleportEvent.EnderEntity)){
 
             UUID player_uuid = player.getUUID();
@@ -100,7 +105,7 @@ public class   RecruitEvents {
 
                     if (owner instanceof AbstractRecruitEntity recruit) {
 
-                        if (!this.canDamageTarget(recruit, impactEntity)) {
+                        if (!canDamageTarget(recruit, impactEntity)) {
                             event.setCanceled(true);
                         }
                         else {
@@ -155,7 +160,7 @@ public class   RecruitEvents {
                 }
 
                 if(list.stream().anyMatch(recruit -> canDamageTargetBlockEvent(recruit, blockBreaker) && recruit.getState() == 0 && recruit.isOwned())){
-                    warnPlayer(blockBreaker, TEXT_BLOCK_WARN(list.get(0).getName().getString()), list);
+                    warnPlayer(blockBreaker, TEXT_BLOCK_WARN(list.get(0).getName().getString()));
                 }
             }
         }
@@ -172,7 +177,7 @@ public class   RecruitEvents {
                 }
 
                 if(list.stream().anyMatch(recruit -> canDamageTargetBlockEvent(recruit, blockBreaker) && recruit.getState() == 0 && recruit.isOwned())){
-                    warnPlayer(blockBreaker, TEXT_BLOCK_WARN(list.get(0).getName().getString()), list);
+                    warnPlayer(blockBreaker, TEXT_BLOCK_WARN(list.get(0).getName().getString()));
                 }
             }
         }
@@ -192,7 +197,7 @@ public class   RecruitEvents {
                 }
 
                 if(blockPlacer instanceof Player player && list.stream().anyMatch(recruit -> canDamageTargetBlockEvent(recruit, livingBlockPlacer) && recruit.getState() == 0 && recruit.isOwned())){
-                    warnPlayer(player, TEXT_BLOCK_WARN(list.get(0).getName().getString()), list);
+                    warnPlayer(player, TEXT_BLOCK_WARN(list.get(0).getName().getString()));
                 }
             }
         }
@@ -209,7 +214,7 @@ public class   RecruitEvents {
                 }
 
                 if(blockPlacer instanceof Player player && list.stream().anyMatch(recruit -> canDamageTargetBlockEvent(recruit, livingBlockPlacer) && recruit.getState() == 0 && recruit.isOwned())){
-                    warnPlayer(player, TEXT_BLOCK_WARN(list.get(0).getName().getString()), list);
+                    warnPlayer(player, TEXT_BLOCK_WARN(list.get(0).getName().getString()));
                 }
             }
         }
@@ -244,7 +249,7 @@ public class   RecruitEvents {
                 }
 
                 if(list.stream().anyMatch(recruit -> canDamageTargetBlockEvent(recruit, player) && recruit.getState() == 0 && recruit.isOwned())){
-                    warnPlayer(player, TEXT_INTERACT_WARN(list.get(0).getName().getString()), list);
+                    warnPlayer(player, TEXT_INTERACT_WARN(list.get(0).getName().getString()));
                 }
             }
 
@@ -257,16 +262,10 @@ public class   RecruitEvents {
                 }
 
                 if(list.stream().anyMatch(recruit -> canDamageTargetBlockEvent(recruit, player) && recruit.getState() == 0 && recruit.isOwned())){
-                    warnPlayer(player, TEXT_INTERACT_WARN(list.get(0).getName().getString()), list);
+                    warnPlayer(player, TEXT_INTERACT_WARN(list.get(0).getName().getString()));
                 }
             }
         }
-
-    }
-
-
-
-    public static void onPlayerLeaveTeam(){
 
     }
 
@@ -338,15 +337,14 @@ public class   RecruitEvents {
         }
     }
 
-
+    @SubscribeEvent
     public void onRecruitDeath(LivingDeathEvent event) {
         Entity target = event.getEntity();
 
         if(target instanceof AbstractRecruitEntity recruit){
             if (recruit.getTeam() != null){
                 //Main.LOGGER.debug("recruit in team died: " + recruit.getTeam().getName());
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(recruit.getTeam().getName(), -1));
-                
+                TeamEvents.addNPCToData(server.overworld(), recruit.getTeam().getName(), -1);
             }
             //Morale loss when recruits friend die
             if(recruit.getIsOwned()){
@@ -354,9 +352,11 @@ public class   RecruitEvents {
                 List<AbstractRecruitEntity> recruits = recruit.level.getEntitiesOfClass(AbstractRecruitEntity.class, recruit.getBoundingBox().inflate(64.0D));
     
                 for (AbstractRecruitEntity recruit2 : recruits) {
-                    if(recruit2.getOwnerUUID().equals(owner)){
+                    if(recruit2.getOwnerUUID() != null && recruit2.getOwnerUUID().equals(owner)){
                         float currentMoral = recruit2.getMoral();
-                        if(currentMoral > 0) recruit2.setMoral(currentMoral - 1F)
+                        if(currentMoral > 0) recruit2.setMoral(currentMoral - 0.5F);
+
+                        //add to target list
                     }
                 } 
             }
@@ -378,7 +378,7 @@ public class   RecruitEvents {
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
 
-    private void warnPlayer(Player player, Component component, List<AbstractRecruitEntity> list){
+    private void warnPlayer(Player player, Component component){
         saveCurrentWarning(player, (byte) (getSavedWarning(player) + 1));
 
         if(getSavedWarning(player) >= 0){
