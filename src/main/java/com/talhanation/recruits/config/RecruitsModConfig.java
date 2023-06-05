@@ -17,7 +17,7 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
 
-    public static final int NEW_VERSION = 20;
+    public static final int NEW_VERSION = 21;
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue OverrideIronGolemSpawn;
     public static ForgeConfigSpec.BooleanValue PillagerFriendlyFire;
@@ -28,8 +28,10 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.IntValue MaxSpawnRecruitsInVillage;
     public static ForgeConfigSpec.IntValue MaxRecruitsForPlayer;
     public static ForgeConfigSpec.IntValue RecruitsMaxXpForLevelUp;
+    public static ForgeConfigSpec.IntValue RecruitsMaxXpLevel;
     public static ForgeConfigSpec.BooleanValue PillagerIncreasedCombatRange;
     public static ForgeConfigSpec.BooleanValue VindicatorSpawnItems;
+    public static ForgeConfigSpec.BooleanValue DisableVanillaTeamCommands;
     public static ForgeConfigSpec.BooleanValue PillagerSpawnItems;
     public static ForgeConfigSpec.IntValue MaxAssassinCount;
     public static ForgeConfigSpec.DoubleValue RecruitFollowStartDistance;
@@ -52,8 +54,17 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.IntValue PillagerPatrolSpawnInterval;
     public static ForgeConfigSpec.IntValue RecruitPatrolSpawnInterval;
 
+    public static ForgeConfigSpec.BooleanValue GlobalTeamFriendlyFireSetting;
+
+    public static ForgeConfigSpec.BooleanValue GlobalTeamSeeFriendlyInvisibleSetting;
+
+    public static ForgeConfigSpec.BooleanValue GlobalTeamSetting;
+
+    public static ArrayList<String> BLACKLIST = new ArrayList<>(
+            Arrays.asList("minecraft:creeper", "minecraft:ghast"));
+
     public static ArrayList<String> MOUNTS = new ArrayList<>(
-            Arrays.asList("minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "camels:camel"));
+            Arrays.asList("minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "smallships:galley", "camels:camel"));
 
     public static ArrayList<String> START_ARMOR = new ArrayList<>(
             Arrays.asList("minecraft:leather_helmet", "minecraft:leather_chestplate", "minecraft:leather_leggings", "minecraft:leather_boots"));
@@ -77,165 +88,290 @@ public class RecruitsModConfig {
         VERSION = BUILDER.comment("\n" +"##Version, do not change!##")
                 .defineInRange("Version", 0, 0, Integer.MAX_VALUE);
 
+        /*
+        Recruits Config
+         */
+
         BUILDER.comment("Recruits Config:").push("Recruits");
 
-        PlayVillagerAmbientSound = BUILDER.comment("\n" + "----Should Recruits Make Villager Huh? sound?----" + "\n" +
-                "\t" + "(takes effect after restart)" + "\n" +
-                "\t" + "default: true")
-                .worldRestart()
-                .define("PlayVillagerAmbientSound", true);
+        RecruitCurrency = BUILDER.comment("""
 
-
-        OverrideIronGolemSpawn = BUILDER.comment("\n" + "----Should Recruits instead of Iron Golems spawn in Villages ----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: true")
-                .worldRestart()
-                .define("OverrideIronGolemSpawn", true);
-
-        MaxSpawnRecruitsInVillage = BUILDER.comment("\n" +"Max Recruits in a Village Chunk to Spawn" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: 1")
-                .worldRestart()
-                .defineInRange("MaxSpawnRecruitsInVillage", 1, 1, 10);
-
-        PillagerFriendlyFire = BUILDER.comment("\n" + "----Should Pillagers do Friendlyfire ----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: true")
-                .worldRestart()
-                .define("PillagerFriendlyFire", true);
-
-        PillagerSpawn = BUILDER.comment("\n" + "----Should Pillagers spawn naturally ----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: false")
-                .worldRestart()
-                .define("PillagerSpawn", false);
-
-        PillagerAttackMonsters= BUILDER.comment("\n" + "----Should Pillagers attack Monsters----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: false")
-                .worldRestart()
-                .define("PillagerAttackMonsters", false);
-
-        MonstersAttackPillagers= BUILDER.comment("\n" + "----Should Monsters attack Pillagers----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: false")
-                .worldRestart()
-                .define("MonstersAttackPillagers", false);
-
-        ShouldPillagersRaidNaturally= BUILDER.comment("\n" + "----Should Pillagers attack all Living----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: false")
-                .worldRestart()
-                .define("ShouldPillagersRaidNaturally", false);
-
-        RecruitsMaxXpForLevelUp = BUILDER.comment("\n" +"Max XP a Recruit needs to Level Up" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: 250")
-                .worldRestart()
-                .defineInRange("RecruitsMaxXpForLevelUp", 250, 50, 10000);
-
-        PillagerIncreasedCombatRange= BUILDER.comment("\n" + "----Should Pillagers have increased Combat Range, so they can shoot from far away----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: false")
-                .worldRestart()
-                .define("PillagerIncreasedCombatRange", false);
-
-        VindicatorSpawnItems= BUILDER.comment("\n" + "----Should Vindicators can spawn with shield and sword and AI to use these----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: false")
-                .worldRestart()
-                .define("VindicatorSpawnItems", false);
-
-        PillagerSpawnItems= BUILDER.comment("\n" + "----Should Pillagers can spawn with shield and sword and AI to use these----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: true")
-                .worldRestart()
-                .define("PillagerSpawnItems", false);
-
-        RecruitFollowStartDistance = BUILDER.comment("\n" +"Distance Recruits will start to follow its owner" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: 9.0")
-                .worldRestart()
-                .defineInRange("RecruitFollowStartDistance", 9.0, 4.0, 16.0);
-
-        MaxRecruitsForPlayer = BUILDER.comment("\n" +"Max amount a player can recruit" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: 64")
-                .worldRestart()
-                .defineInRange("MaxRecruitsForPlayer", 64, 1, 1280);
-
-        TargetBlackList = BUILDER.comment("\n" + "----Target Blacklist----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "Entities in this list won't be targeted at all, for example: [\"minecraft:creeper\", \"minecraft:sheep\"]")
-                .worldRestart()
-                .define("Target BlackList", new ArrayList<>());
-
-        MountWhiteList = BUILDER.comment("\n" + "----Mount Whitelist----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "ONLY Entities in this list can be mounted by a recruit, for example: [\"minecraft:boat\", \"smallships:cog\"]")
-                .worldRestart()
-                .define("Mount Whitelist", MOUNTS);
-
-        AggroRecruitsBlockEvents= BUILDER.comment("\n" + "----Should Aggressive Recruits attack enemy players that are placing or breaking blocks immediately?----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: true")
-                .worldRestart()
-                .define("AggroRecruitsBlockEvents", true);
-
-        NeutralRecruitsBlockEvents= BUILDER.comment("\n" + "----Should Neutral Recruits attack enemy players that are placing or breaking blocks immediately?----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: true")
-                .worldRestart()
-                .define("NeutralRecruitsBlockEvents", true);
-
-        ShouldRecruitPatrolsSpawn= BUILDER.comment("\n" + "----Should Recruits spawn as Patrols in the world?----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: true")
-                .worldRestart()
-                .define("ShouldRecruitPatrolsSpawn", true);
-
-        RecruitPatrolsSpawnChance= BUILDER.comment("\n" + "----Chance that a Recruit Patrol can spawn. (higher values = higher chance to spawn)----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: 15.0")
-                .worldRestart()
-                .defineInRange("RecruitPatrolsSpawnChance", 15.0D, 0.0D, 100.0D);
-
-        StartArmorList = BUILDER.comment("\n" + "----Start armor ----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "Items in this list will be equipped to a new spawned recruits, for example: [\"head\", \"chest\", \"legs\", \"feet\"]")
-                .worldRestart()
-                .define("StartArmorList", START_ARMOR);
-
-        RecruitHandEquipment = BUILDER.comment("\n" + "----Recruit start hand equipment ----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "Items in this list will be equipped to a new spawned recruit, in this following order: [\"main-hand\", \"off-hand\"]")
-                .worldRestart()
-                .define("RecruitStartHandEquipment", RECRUIT_HAND);
-
-        ShieldmanHandEquipment = BUILDER.comment("\n" + "----Shieldman start hand equipment ----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "Items in this list will be equipped to a new spawned shieldman, in this following order: [\"main-hand\", \"off-hand\" ]")
-                .worldRestart()
-                .define("ShieldmanStartHandEquipment", SHIELDMAN_HAND);
-
-        BowmanHandEquipment = BUILDER.comment("\n" + "----Bowman start hand equipment ----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "Items in this list will be equipped to a new spawned bowman, in this following order: [\"main-hand\", \"off-hand\" ]")
-                .worldRestart()
-                .define("BowmanStartHandEquipment", BOWMAN_HAND);
-
-        RecruitCurrency = BUILDER.comment("\n" + "----Currency----" + "\n" +
-                "\t" + "(takes effect after restart)" + "\n" +
-                "\t" + "The Item defined here, will be used to hire recruits. For example: [\"minecraft:diamond\"]" +
-                "\t" + "default: [\"minecraft:emerald\"]")
+                        ----Currency----
+                        \t(takes effect after restart)
+                        \tThe Item defined here, will be used to hire recruits. For example: ["minecraft:diamond"]\tdefault: ["minecraft:emerald"]""")
                 .worldRestart()
                 .define("RecruitCurrency", "minecraft:emerald");
 
-        RecruitsLookLikeVillagers = BUILDER.comment("\n" + "----Should Recruits look like Villagers?----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: true")
+        RecruitsLookLikeVillagers = BUILDER.comment("""
+
+                        ----Should Recruits look like Villagers?----
+                        \t(takes effect after restart)
+                        \tdefault: true""")
                 .worldRestart()
                 .define("RecruitsLookLikeVillagers", true);
+
+        PlayVillagerAmbientSound = BUILDER.comment("""
+
+                        ----Should Recruits Make Villager "Huh?" sound?----
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("PlayVillagerAmbientSound", true);
+
+        RecruitsMaxXpForLevelUp = BUILDER.comment("""
+
+                        Max XP a Recruit needs to Level Up
+                        \t(takes effect after restart)
+                        \tdefault: 250""")
+                .worldRestart()
+                .defineInRange("RecruitsMaxXpForLevelUp", 250, 50, 10000);
+
+        RecruitsMaxXpLevel = BUILDER.comment("""
+                        ----The max. Level a recruit can get.-----
+                        \t(takes effect after restart)
+                        \tdefault: 20""")
+                .worldRestart()
+                .defineInRange("RecruitsMaxXpLevel", 20, 10, 9999);
+
+        RecruitFollowStartDistance = BUILDER.comment("""
+
+                        Distance Recruits will start to follow its owner
+                        \t(takes effect after restart)
+                        \tdefault: 9.0""")
+                .worldRestart()
+                .defineInRange("RecruitFollowStartDistance", 9.0, 4.0, 16.0);
+
+        MaxRecruitsForPlayer = BUILDER.comment("""
+                        Max amount a player can recruit
+                        \t(takes effect after restart)
+                        \tdefault: 64""")
+                .worldRestart()
+                .defineInRange("MaxRecruitsForPlayer", 64, 1, 1280);
+
+        TargetBlackList = BUILDER.comment("""
+                        ----Target Blacklist----
+                        \t(takes effect after restart)
+                        \tEntities in this list won't be targeted at all, for example: ["minecraft:creeper", "minecraft:sheep"]""")
+                .worldRestart()
+                .define("Target BlackList", BLACKLIST);
+
+        MountWhiteList = BUILDER.comment("""
+                        ----Mount Whitelist----
+                        \t(takes effect after restart)
+                        \tONLY Entities in this list can be mounted by a recruit, for example: ["minecraft:boat", "smallships:cog"]""")
+                .worldRestart()
+                .define("Mount Whitelist", MOUNTS);
+
+        /*
+        Village Config
+         */
+        BUILDER.pop();
+        BUILDER.comment("Recruit Village Config:").push("Villages");
+
+        OverrideIronGolemSpawn = BUILDER.comment("""
+
+                        ----Should Recruits instead of Iron Golems spawn in Villages ----
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("OverrideIronGolemSpawn", true);
+
+        MaxSpawnRecruitsInVillage = BUILDER.comment("""
+
+                        Max Recruits in a Village Chunk to Spawn
+                        \t(takes effect after restart)
+                        \tdefault: 1""")
+                .worldRestart()
+                .defineInRange("MaxSpawnRecruitsInVillage", 1, 1, 10);
+
+         /*
+        Equipment Config
+         */
+        BUILDER.pop();
+        BUILDER.comment("Recruit Equipment Config:").push("Equipment");
+
+        StartArmorList = BUILDER.comment("""
+
+                        ----Start armor ----
+                        \t(takes effect after restart)
+                        \tItems in this list will be equipped to a new spawned recruits, for example: ["head", "chest", "legs", "feet"]""")
+                .worldRestart()
+                .define("StartArmorList", START_ARMOR);
+
+        RecruitHandEquipment = BUILDER.comment("""
+
+                        ----Recruit start hand equipment ----
+                        \t(takes effect after restart)
+                        \tItems in this list will be equipped to a new spawned recruit, in this following order: ["main-hand", "off-hand"]""")
+                .worldRestart()
+                .define("RecruitStartHandEquipment", RECRUIT_HAND);
+
+        ShieldmanHandEquipment = BUILDER.comment("""
+
+                        ----Shieldman start hand equipment ----
+                        \t(takes effect after restart)
+                        \tItems in this list will be equipped to a new spawned shieldman, in this following order: ["main-hand", "off-hand" ]""")
+                .worldRestart()
+                .define("ShieldmanStartHandEquipment", SHIELDMAN_HAND);
+
+        BowmanHandEquipment = BUILDER.comment("""
+
+                        ----Bowman start hand equipment ----
+                        \t(takes effect after restart)
+                        \tItems in this list will be equipped to a new spawned bowman, in this following order: ["main-hand", "off-hand" ]""")
+                .worldRestart()
+                .define("BowmanStartHandEquipment", BOWMAN_HAND);
+
+        /*
+        Pillager Config
+         */
+
+        BUILDER.pop();
+        BUILDER.comment("Monster and Pillager Config:").push("Hostiles");
+
+        PillagerFriendlyFire = BUILDER.comment("""
+
+                        ----Should Pillagers do friendly fire ----
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("PillagerFriendlyFire", true);
+
+        PillagerSpawn = BUILDER.comment("""
+
+                        ----Should Pillagers spawn naturally ----
+                        \t(takes effect after restart)
+                        \tdefault: false""")
+                .worldRestart()
+                .define("PillagerSpawn", false);
+
+        PillagerAttackMonsters= BUILDER.comment("""
+
+                        ----Should Pillagers attack Monsters----
+                        \t(takes effect after restart)
+                        \tdefault: false""")
+                .worldRestart()
+                .define("PillagerAttackMonsters", false);
+
+        MonstersAttackPillagers= BUILDER.comment("""
+
+                        ----Should Monsters attack Pillagers----
+                        \t(takes effect after restart)
+                        \tdefault: false""")
+                .worldRestart()
+                .define("MonstersAttackPillagers", false);
+
+        ShouldPillagersRaidNaturally= BUILDER.comment("""
+
+                        ----Should Pillagers attack all Living----
+                        \t(takes effect after restart)
+                        \tdefault: false""")
+                .worldRestart()
+                .define("ShouldPillagersRaidNaturally", false);
+
+        PillagerIncreasedCombatRange= BUILDER.comment("""
+
+                        ----Should Pillagers have increased Combat Range, so they can shoot from far away----
+                        \t(takes effect after restart)
+                        \tdefault: false""")
+                .worldRestart()
+                .define("PillagerIncreasedCombatRange", false);
+
+        VindicatorSpawnItems= BUILDER.comment("""
+
+                        ----Should Vindicators can spawn with shield and sword and AI to use these----
+                        \t(takes effect after restart)
+                        \tdefault: false""")
+                .worldRestart()
+                .define("VindicatorSpawnItems", false);
+
+        PillagerSpawnItems= BUILDER.comment("""
+
+                        ----Should Pillagers can spawn with shield and sword and AI to use these----
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("PillagerSpawnItems", false);
+
+        /*
+        Block Event Config
+         */
+
+        BUILDER.pop();
+        BUILDER.comment("Block Event Config:").push("BlockEvents");
+
+        AggroRecruitsBlockEvents= BUILDER.comment("""
+
+                        ----Should Aggressive Recruits attack enemy players that are placing, interacting or breaking blocks immediately?----
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("AggroRecruitsBlockEvents", true);
+
+        NeutralRecruitsBlockEvents= BUILDER.comment("""
+
+                        ----Should Neutral Recruits attack enemy players that are placing, interacting or breaking blocks immediately?----
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("NeutralRecruitsBlockEvents", true);
+
+        /*
+        Patrol Config
+         */
+
+        BUILDER.pop();
+        BUILDER.comment("Recruit Patrols Config:").push("Patrols");
+
+        ShouldRecruitPatrolsSpawn= BUILDER.comment("""
+
+                        ----Should Recruits spawn as Patrols in the world?----
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("ShouldRecruitPatrolsSpawn", true);
+
+        RecruitPatrolsSpawnChance= BUILDER.comment("""
+
+                        ----Chance that a Recruit Patrol can spawn. (higher values = higher chance to spawn)----
+                        \t(takes effect after restart)
+                        \tdefault: 15.0""")
+                .worldRestart()
+                .defineInRange("RecruitPatrolsSpawnChance", 15.0D, 0.0D, 100.0D);
+
+        RecruitPatrolSpawnInterval = BUILDER.comment("""
+
+                        The interval in minutes a Recruit Patrol and Caravan can spawn.
+                        \t(takes effect after restart)
+                        \tdefault: 15""")
+                .worldRestart()
+                .defineInRange("RecruitPatrolSpawnInterval", 15, 1, 60);
+
+        ShouldPillagerPatrolsSpawn = BUILDER.comment("""
+
+                        ----Should modded Pillager Patrols spawn in the world?----
+                        \t(takes effect after restart)
+                        \tdefault: false""")
+                .worldRestart()
+                .define("ShouldPillagerPatrolsSpawn", false);
+
+        PillagerPatrolsSpawnChance = BUILDER.comment("""
+
+                        ----Chance that a modded Pillager Patrol can spawn. (higher values = higher chance to spawn)----
+                        \t(takes effect after restart)
+                        \tdefault: 25.0""")
+                .worldRestart()
+                .defineInRange("PillagerPatrolsSpawnChance", 25.0D, 0.0D, 100.0D);
+
+        PillagerPatrolSpawnInterval = BUILDER.comment("""
+
+                        The interval in minutes a Pillager Patrol can spawn.
+                        \t(takes effect after restart)
+                        \tdefault: 15""")
+                .worldRestart()
+                .defineInRange("PillagerPatrolSpawnInterval", 15, 1, 60);
+
+
         /*
         MaxAssassinCount = BUILDER.comment("\n" +"WIP: Max Assassins to buy from the Assassin Leader" + "\n" +
                         "\t" + "(takes effect after restart)" + "\n" +
@@ -245,42 +381,64 @@ public class RecruitsModConfig {
 
          */
 
-        NoDamageImmunity = BUILDER.comment("\n" + "----No damage Immunity----" + "\n" +
-                        "\t" + "Should Immunity between hits be disabled?" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: false")
+        /*
+        Equipment Config
+         */
+
+        BUILDER.pop();
+        BUILDER.comment("General Damage Config:").push("Damage");
+
+        NoDamageImmunity = BUILDER.comment("""
+                        ----No damage Immunity----
+                        \tShould Immunity between hits be disabled?
+                        \t(takes effect after restart)
+                        \tdefault: false""")
                 .worldRestart()
                 .define("NoDamageImmunity", false);
 
-        AcceptedDamagesourceImmunity = BUILDER.comment("\n" + "----List of damagesource that accept immunity ----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "Damagesource in this list will apply a immunity of 0.5s to the entity like normal.")
+        AcceptedDamagesourceImmunity = BUILDER.comment("""
+                        ----List of damagesource that accept immunity ----
+                        \t(takes effect after restart)
+                        \tDamagesource in this list will apply a immunity of 0.5s to the entity like normal.""")
                 .worldRestart()
                 .define("AcceptedDamagesourceImmunity", DAMAGESOURCE);
+       /*
+        Teams Config
+        */
 
-        PillagerPatrolsSpawnChance = BUILDER.comment("\n" + "----Chance that a modded Pillager Patrol can spawn. (higher values = higher chance to spawn)----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: 25.0")
-                .worldRestart()
-                .defineInRange("PillagerPatrolsSpawnChance", 25.0D, 0.0D, 100.0D);
+        BUILDER.pop();
+        BUILDER.comment("Recruit Teams Config:").push("Teams");
 
-        ShouldPillagerPatrolsSpawn = BUILDER.comment("\n" + "----Should modded Pillager Patrols spawn in the world?----" + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: false")
+        DisableVanillaTeamCommands = BUILDER.comment("""
+                        ----Should specific vanilla team commands be disabled?----
+                        \t(takes effect after restart)
+                        \tdefault: true""")
                 .worldRestart()
-                .define("ShouldPillagerPatrolsSpawn", false);
+                .define("DisableVanillaTeamCommands", true);
 
-        RecruitPatrolSpawnInterval = BUILDER.comment("\n" +"The interval in minutes a Recruit Patrol and Caravan can spawn." + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: 15")
-                .worldRestart()
-                .defineInRange("RecruitPatrolSpawnInterval", 15, 1, 60);
+        BUILDER.comment("Global Team Settings").push("Global Team Settings");
 
-        PillagerPatrolSpawnInterval = BUILDER.comment("\n" +"The interval in minutes a Pillager Patrol can spawn." + "\n" +
-                        "\t" + "(takes effect after restart)" + "\n" +
-                        "\t" + "default: 15")
+        GlobalTeamSetting = BUILDER.comment("""
+
+                        ----Should Recruits override following team settings on world start for all teams?----
+                        \t(takes effect after restart)
+                        \tdefault: true""")
                 .worldRestart()
-                .defineInRange("PillagerPatrolSpawnInterval", 15, 1, 60);
+                .define("GlobalTeamSetting", true);
+
+        GlobalTeamFriendlyFireSetting = BUILDER.comment("""
+                        ----Override Friendly fire true/false for all teams on world start----
+                        \t(takes effect after restart)
+                        \tdefault: false""")
+                .worldRestart()
+                .define("GlobalTeamFriendlyFireSetting", false);
+
+        GlobalTeamSeeFriendlyInvisibleSetting = BUILDER.comment("""
+                        ----Override SeeFriendlyInvisible true/false for all teams on world start----
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("GlobalTeamSeeFriendlyInvisibleSetting", true);
 
         CONFIG = BUILDER.build();
     }

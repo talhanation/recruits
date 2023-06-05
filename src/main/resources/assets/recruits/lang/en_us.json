@@ -146,6 +146,10 @@
   "chat.recruits.text.group": "Group",
   "chat.recruits.text.everyone": "Everyone",
 
+  "chat.recruits.team_creation.warnVanillaCommand" :"Using Vanilla Team-Commands will break recruits mod!",
+  "chat.recruits.team_creation.isDisabledInConfig" :"Specific Team-Commands are disabled by recruits mod, use the team screen instead!",
+  "chat.recruits.team_creation.canEnableInConfig" :"The Team-Commands can be enabled in the recruits config.",
+  
   "chat.recruits.team_creation.team_exists" :"A team already exists by that name!",
   "chat.recruits.team_creation.removePlayer": "Remove Player",
   "chat.recruits.team_creation.removePlayerTitle": "Remove a Player",
@@ -176,4 +180,6 @@
   "gui.recruits.command.tooltip.team": "Opens the team screen",
   "gui.recruits.command.text.team": "Team",
   "Recruits": ""
+  
+  
 }
