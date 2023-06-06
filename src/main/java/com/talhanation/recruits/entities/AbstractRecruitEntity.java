@@ -589,6 +589,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return entityData.get(LISTEN);
     }
 
+    @Nullable
+    public LivingEntity getEscort(){
+        List<LivingEntity> list = this.level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(32D));
+        for(LivingEntity living : list){
+            if (this.getEscortUUID() != null && living.getUUID().equals(this.getEscortUUID()) && living.isAlive()){
+                return living;
+            }
+        }
+        return null;
+    }
+
     ////////////////////////////////////SET////////////////////////////////////
 
     public void setUpkeepTimer(int x){
@@ -997,6 +1008,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 }
                 else
                     this.setTarget(living);
+                
+                if(this.getShouldEscort() && this.getEscort() instanceof AbstractRecruitEntity patrolLeader){
+                    patrolLeader.setTarget(living);
+                }
             }
 
             return super.hurt(dmg, amt);
