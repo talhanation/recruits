@@ -42,6 +42,7 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.animal.AbstractFish;
 import net.minecraft.world.entity.animal.IronGolem;
+import net.minecraft.world.entity.animal.Squid;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
@@ -107,6 +108,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public int blockCoolDown;
     public int eatCoolDown;
     protected GroundPathNavigation navigation;
+    private boolean needsTeamUpdate = true;
 
 
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
@@ -144,14 +146,15 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateSwingTime();
         //updateMoral();
         updateShield();
-
+        if(needsTeamUpdate) updateTeam();//TODO: performance -> trigger when team event
         //if(this.getNavigation().isStuck()) this.jumpFromGround();
     }
 
     public void tick() {
         super.tick();
-        //updateHunger();//TODO: performance -> trigger when new day in the morning
-        updateTeam();//TODO: performance -> trigger when team event
+        updateHunger();
+        //Team team = this.getTeam();
+        //Main.LOGGER.info("Team: " + team);
         updateMountTimer();
         updateUpkeepTimer();
     }
@@ -233,6 +236,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             return this.canAttack(target) && !(target instanceof Creeper) && (this.getState() != 3);
         }));
         this.targetSelector.addGoal(10, new RecruitDefendVillageGoal(this));
+
+        this.updateTeam();
     }
 
     protected double getFollowStartDistance(){
@@ -663,13 +668,22 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.recalculateCost();
         if (this.getTeam() != null) Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
 
+        this.updateTeam();
     }
 
 
     public void addXpLevel(int level){
         int currentLevel = this.getXpLevel();
         int newLevel = currentLevel + level;
-        makeLevelUpSound();
+
+        if(newLevel > RecruitsModConfig.RecruitsMaxXpLevel.get()){
+            newLevel = RecruitsModConfig.RecruitsMaxXpLevel.get();
+        }
+        else{
+            this.makeLevelUpSound();
+            this.addLevelBuffs();
+        }
+
         this.entityData.set(LEVEL, newLevel);
     }
 
@@ -951,6 +965,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setTarget(null);
             this.setFollowState(2);
             this.setState(0);
+            this.updateTeam();
 
             int i = this.random.nextInt(4);
             switch (i) {
@@ -1008,12 +1023,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 }
                 else
                     this.setTarget(living);
-                
+
                 if(this.getShouldEscort() && this.getEscort() instanceof AbstractRecruitEntity patrolLeader){
                     patrolLeader.setTarget(living);
                 }
             }
-
             return super.hurt(dmg, amt);
         }
     }
@@ -1202,7 +1216,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (currentXp >= RecruitsModConfig.RecruitsMaxXpForLevelUp.get()){
             this.addXpLevel(1);
             this.setXp(0);
-            this.addLevelBuffs();
             this.heal(10F);
             this.recalculateCost();
 
@@ -1497,8 +1510,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public boolean isValidTarget(LivingEntity living){
-        boolean notAllowed = living instanceof AbstractFish || living instanceof AbstractHorse || living instanceof Creeper || living instanceof RecruitHorseEntity || living instanceof Ghast;
-
+        boolean notAllowed = living instanceof AbstractFish || living instanceof Squid || living instanceof AbstractHorse || living instanceof RecruitHorseEntity;
 
         if (living instanceof AbstractRecruitEntity otherRecruit) {
             if (otherRecruit.isOwned() && this.isOwned()){
@@ -1540,34 +1552,48 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void updateTeam(){
-        if(this.isOwned() && getOwner() != null){
-            Team team = this.getTeam();
-            Team ownerTeam = this.getOwner().getTeam();
-            if (team == ownerTeam) {
-                return;
-            }
-            else if(ownerTeam == null){
-                String teamName = team.getName();
-                PlayerTeam recruitTeam = this.level.getScoreboard().getPlayerTeam(teamName);
-                this.level.getScoreboard().removePlayerFromTeam(this.getStringUUID(), recruitTeam);
-
+        if(this.isOwned()){
+            if(getOwner() != null) {
+                Team team = this.getTeam();
+                Team ownerTeam = this.getOwner().getTeam();
+                if (team == ownerTeam) {
+                    needsTeamUpdate = false;
+                    return;
+                }
+                else if (ownerTeam == null) {
+                    String teamName = team.getName();
+                    PlayerTeam recruitTeam = this.level.getScoreboard().getPlayerTeam(teamName);
+                    this.level.getScoreboard().removePlayerFromTeam(this.getStringUUID(), recruitTeam);
+                    needsTeamUpdate = false;
                 /*
                 if(recruitTeam.getPlayers().contains(this.getStringUUID())){
                     Main.LOGGER.debug("Removing: " + this.getStringUUID());
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(recruitTeam.getName(), -1));
                 }
                 */
+                }
+                else {
+                    String ownerTeamName = ownerTeam.getName();
+                    PlayerTeam playerteam = this.level.getScoreboard().getPlayerTeam(ownerTeamName);
+
+
+                    boolean flag = playerteam != null && this.level.getScoreboard().addPlayerToTeam(this.getStringUUID(), playerteam);
+                    if (!flag) {
+                        Main.LOGGER.warn("Unable to add mob to team \"{}\" (that team probably doesn't exist)", ownerTeamName);
+                    } else
+                        this.setTarget(null);// fix "if owner was other team and now same team und was target"
+
+                    needsTeamUpdate = false;
+                }
+
             }
-            else{
-                String ownerTeamName = ownerTeam.getName();
-                PlayerTeam playerteam = this.level.getScoreboard().getPlayerTeam(ownerTeamName);
-
-
-                boolean flag = playerteam != null && this.level.getScoreboard().addPlayerToTeam(this.getStringUUID(), playerteam);
-                if (!flag) {
-                    Main.LOGGER.warn("Unable to add mob to team \"{}\" (that team probably doesn't exist)", ownerTeamName);
-                }else
-                    this.setTarget(null);// fix "if owner was other team and now same team und was target"
+        }
+        else{
+            Team team = this.getTeam();
+            if(team != null){
+                PlayerTeam recruitTeam = this.level.getScoreboard().getPlayerTeam(team.getName());
+                this.level.getScoreboard().removePlayerFromTeam(this.getStringUUID(), recruitTeam);
+                needsTeamUpdate = false;
             }
         }
     }
