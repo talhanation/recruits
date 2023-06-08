@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.events.ClientEvent;
+import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
@@ -79,7 +80,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     @Override
     public boolean keyReleased(int x, int y, int z) {
         super.keyReleased(x, y, z);
-        this.onClose();
+        if(!RecruitsModConfig.CommandScreenToggle.get())this.onClose();
 
         return true;
     }

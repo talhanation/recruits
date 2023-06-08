@@ -59,6 +59,7 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.BooleanValue GlobalTeamSeeFriendlyInvisibleSetting;
 
     public static ForgeConfigSpec.BooleanValue GlobalTeamSetting;
+    public static ForgeConfigSpec.BooleanValue CommandScreenToggle;
 
     public static ArrayList<String> BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast"));
@@ -120,7 +121,7 @@ public class RecruitsModConfig {
 
         RecruitsMaxXpForLevelUp = BUILDER.comment("""
 
-                        Max XP a Recruit needs to Level Up
+                        ----Max XP a Recruit needs to Level Up.----
                         \t(takes effect after restart)
                         \tdefault: 250""")
                 .worldRestart()
@@ -135,14 +136,14 @@ public class RecruitsModConfig {
 
         RecruitFollowStartDistance = BUILDER.comment("""
 
-                        Distance Recruits will start to follow its owner
+                        ----Distance Recruits will start to follow its owner----
                         \t(takes effect after restart)
                         \tdefault: 9.0""")
                 .worldRestart()
                 .defineInRange("RecruitFollowStartDistance", 9.0, 4.0, 16.0);
 
         MaxRecruitsForPlayer = BUILDER.comment("""
-                        Max amount a player can recruit
+                        ----Max amount a player can recruit----
                         \t(takes effect after restart)
                         \tdefault: 64""")
                 .worldRestart()
@@ -161,6 +162,16 @@ public class RecruitsModConfig {
                         \tONLY Entities in this list can be mounted by a recruit, for example: ["minecraft:boat", "smallships:cog"]""")
                 .worldRestart()
                 .define("Mount Whitelist", MOUNTS);
+
+        CommandScreenToggle = BUILDER.comment("""
+                        ----CommandScreenToggle----      
+                        \t(takes effect after restart)
+                        \t
+                        Should the key to open the command screen be toggled instead of held?""
+                        default: false""")
+
+                .worldRestart()
+                .define("CommandScreenToggle", false);
 
         /*
         Village Config
