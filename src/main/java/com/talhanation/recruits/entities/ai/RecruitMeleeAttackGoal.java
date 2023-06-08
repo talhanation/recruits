@@ -2,12 +2,18 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.AxeItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.level.pathfinder.Path;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
 
@@ -22,7 +28,7 @@ public class RecruitMeleeAttackGoal extends Goal {
     private double pathedTargetZ;
     private int ticksUntilNextPathRecalculation;
     private int ticksUntilNextAttack;
-    private final int attackInterval = 20;
+    private int ticksUntilMove;
     private long lastCanUseCheck;
     private int failedPathFindingPenalty = 0;
     private boolean canPenalize = false;
@@ -94,6 +100,7 @@ public class RecruitMeleeAttackGoal extends Goal {
             this.recruit.setAggressive(true);
             this.ticksUntilNextPathRecalculation = 0;
             this.ticksUntilNextAttack = 0;
+            this.ticksUntilMove = 15;
         }
     }
 
@@ -108,20 +115,20 @@ public class RecruitMeleeAttackGoal extends Goal {
     }
 
     public void tick() {
-        LivingEntity livingentity = this.recruit.getTarget();
-        this.recruit.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
-        double d0 = this.recruit.distanceToSqr(livingentity.getX(), livingentity.getY(), livingentity.getZ());
+        LivingEntity target = this.recruit.getTarget();
+        this.recruit.getLookControl().setLookAt(target, 30.0F, 30.0F);
+        double d0 = this.recruit.distanceToSqr(target.getX(), target.getY(), target.getZ());
         this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
-        if ((this.followingTargetEvenIfNotSeen || this.recruit.getSensing().hasLineOfSight(livingentity)) && this.ticksUntilNextPathRecalculation <= 0 && (this.pathedTargetX == 0.0D && this.pathedTargetY == 0.0D && this.pathedTargetZ == 0.0D || livingentity.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) >= 1.0D || this.recruit.getRandom().nextFloat() < 0.05F)) {
-            this.pathedTargetX = livingentity.getX();
-            this.pathedTargetY = livingentity.getY();
-            this.pathedTargetZ = livingentity.getZ();
+        if ((this.followingTargetEvenIfNotSeen || this.recruit.getSensing().hasLineOfSight(target)) && this.ticksUntilNextPathRecalculation <= 0 && (this.pathedTargetX == 0.0D && this.pathedTargetY == 0.0D && this.pathedTargetZ == 0.0D || target.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) >= 1.0D || this.recruit.getRandom().nextFloat() < 0.05F)) {
+            this.pathedTargetX = target.getX();
+            this.pathedTargetY = target.getY();
+            this.pathedTargetZ = target.getZ();
             this.ticksUntilNextPathRecalculation = 4 + this.recruit.getRandom().nextInt(7);
             if (this.canPenalize) {
                 this.ticksUntilNextPathRecalculation += failedPathFindingPenalty;
                 if (this.recruit.getNavigation().getPath() != null) {
                     net.minecraft.world.level.pathfinder.Node finalPathPoint = this.recruit.getNavigation().getPath().getEndNode();
-                    if (finalPathPoint != null && livingentity.distanceToSqr(finalPathPoint.x, finalPathPoint.y, finalPathPoint.z) < 1)
+                    if (finalPathPoint != null && target.distanceToSqr(finalPathPoint.x, finalPathPoint.y, finalPathPoint.z) < 1)
                         failedPathFindingPenalty = 0;
                     else
                         failedPathFindingPenalty += 10;
@@ -134,32 +141,39 @@ public class RecruitMeleeAttackGoal extends Goal {
             } else if (d0 > 256.0D) {
                 this.ticksUntilNextPathRecalculation += 5;
             }
-
-            if (!this.recruit.getNavigation().moveTo(livingentity, this.speedModifier)) {
-                this.ticksUntilNextPathRecalculation += 15;
-            }
         }
 
-        this.ticksUntilNextAttack = Math.max(this.ticksUntilNextAttack - 1, 0);
-        this.checkAndPerformAttack(livingentity, d0);
+        this.checkAndPerformAttack(target, d0);
     }
 
-    protected void checkAndPerformAttack(LivingEntity p_190102_1_, double p_190102_2_) {
-        double d0 = this.getAttackReachSqr(p_190102_1_);
-        if (p_190102_2_ <= d0 && this.ticksUntilNextAttack <= 0) {
-            this.resetAttackCooldown();
-            this.recruit.swing(InteractionHand.MAIN_HAND);
-            this.recruit.doHurtTarget(p_190102_1_);
+    protected void checkAndPerformAttack(LivingEntity target, double distance) {
+        double d0 = this.getAttackReachSqr(target);
+        if (distance <= d0){
+            if(this.ticksUntilNextAttack <= 0) {
+                this.resetAttackCooldown();
+                this.recruit.swing(InteractionHand.MAIN_HAND);
+                this.recruit.doHurtTarget(target);
+            }
+
+            this.ticksUntilNextAttack = Math.max(this.ticksUntilNextAttack - 1, 0);
         }
 
     }
 
     protected void resetAttackCooldown() {
-        this.ticksUntilNextAttack = 20;
+        Item item = recruit.getMainHandItem().getItem();
+        //SwordItem
+        //AxeItem
+        if(item instanceof SwordItem) this.ticksUntilNextAttack = 15;
+        else this.ticksUntilNextAttack = 20;
     }
 
-    protected double getAttackReachSqr(LivingEntity p_179512_1_) {
-        return (double)(this.recruit.getBbWidth() * 2.1F * this.recruit.getBbWidth() * 2.1F + p_179512_1_.getBbWidth());
+    protected double getAttackReachSqr(LivingEntity target) {
+        float weaponWidth = 2F;
+        ItemStack stack = recruit.getMainHandItem();
+        //CompoundTag tag = stack.getTag().getFloat("reach");
+
+        return (double)(weaponWidth + this.recruit.getBbWidth() * 2.1F * this.recruit.getBbWidth() * 2.1F + target.getBbWidth());
     }
 
     private boolean canAttackHoldPos() {
