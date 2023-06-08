@@ -2,6 +2,7 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.HorsemanEntity;
+import com.talhanation.recruits.entities.RecruitHorseEntity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -24,8 +25,7 @@ public class HorsemanAttackAI extends Goal {
     }
 
     public boolean canUse() {
-
-        return horseman.getFollowState() == 0 && !horseman.needsToGetFood() && !horseman.getShouldMount();
+        return horseman.getVehicle() instanceof RecruitHorseEntity && horseman.getFollowState() == 0 && !horseman.needsToGetFood() && !horseman.getShouldMount();
     }
 
     public boolean canContinueToUse() {
@@ -39,8 +39,6 @@ public class HorsemanAttackAI extends Goal {
     }
 
     public void tick() {
-        Main.LOGGER.info("State: " + state);
-
         switch (state) {
             case SELECT_TARGET -> {
                 this.target = horseman.getTarget();

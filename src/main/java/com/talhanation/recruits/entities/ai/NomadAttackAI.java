@@ -3,6 +3,7 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.NomadEntity;
+import com.talhanation.recruits.entities.RecruitHorseEntity;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -27,7 +28,7 @@ public class NomadAttackAI extends Goal {
         this.setFlags(EnumSet.of(Flag.MOVE));
     }
     public boolean canUse() {
-        return nomad.getTarget() != null && nomad.getFollowState() == 0 && !nomad.needsToGetFood() && !nomad.getShouldMount();
+        return nomad.getVehicle() instanceof RecruitHorseEntity && nomad.getTarget() != null && nomad.getFollowState() == 0 && !nomad.needsToGetFood() && !nomad.getShouldMount();
     }
 
     public boolean canContinueToUse() {
@@ -41,8 +42,6 @@ public class NomadAttackAI extends Goal {
     }
 
     public void tick() {
-        Main.LOGGER.info("State: " + state);
-
         switch (state) {
             case SELECT_TARGET -> {
                 this.target = nomad.getTarget();
