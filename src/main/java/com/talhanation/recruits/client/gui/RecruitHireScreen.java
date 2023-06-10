@@ -96,7 +96,7 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
         font.draw(poseStack, "Kills:", k, l + 30, fontColor);
         font.draw(poseStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
 
-        font.draw(poseStack, "Moral:", k, l + 40, fontColor);
+        font.draw(poseStack, "Morale:", k, l + 40, fontColor);
         font.draw(poseStack, ""+ moral, k + 30, l + 40, fontColor);
 
         font.draw(poseStack, "MaxHp:", k + 43, l, fontColor);

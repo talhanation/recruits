@@ -6,6 +6,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
@@ -58,16 +60,6 @@ public class DamageEvent {
             }
             //Velocity Damage
             if(source != null && source.getEntity() != null){
-                Entity entity = source.getEntity();
-                if(entity instanceof LivingEntity attacker){
-                    float speed = attacker.getSpeed();
-
-
-                    Main.LOGGER.info("Entity Speed: " + speed);
-                    Main.LOGGER.info("Damage: " + event.getAmount());
-                    event.setAmount(event.getAmount() + speed);
-                    Main.LOGGER.info("Damage: " + event.getAmount());
-                }
 
             }
 

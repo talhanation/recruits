@@ -57,6 +57,7 @@
   "gui.recruits.inv.tooltip.neutral" : "Make this recruit attack only hostile living.",
   "gui.recruits.inv.tooltip.aggressive" : "Make the recruit attack all enemy players and recruits on sight.",
   "gui.recruits.inv.tooltip.raid" : "Make the recruit attack all living on sight.",
+  "gui.recruits.inv.tooltip.assignToTeamMate": "Assign this recruit to a nearby teammate.",
 
   "gui.recruits.command.tooltip.follow" : "Make the recruits follow you.",
   "gui.recruits.command.tooltip.wander" : "Allow the recruits to wander freely.",
@@ -77,6 +78,12 @@
   "gui.recruits.command.tooltip.neutral" : "Make the recruits attack only hostile living.",
   "gui.recruits.command.tooltip.aggressive" : "Make the recruits attack all enemy players and recruits on sight.",
   "gui.recruits.command.tooltip.raid" : "Make the recruits attack all living on sight.",
+  
+  "gui.recruits.team_creation.no_teams": "There are no Teams.",
+  "gui.recruits.team_creation.delete_team": "Delete",
+  "gui.recruits.team.assignNewOwner": "Assign to teammate",
+  "gui.recruits.command.tooltip.team": "Opens the team screen",
+  "gui.recruits.command.text.team": "Team",
 
   "gui.recruits.command.text.mount" : "Mount!",
   "gui.recruits.command.text.dismount" : "Dismount!",
@@ -169,17 +176,13 @@
   "gui.recruits.team_creation.teams_list": "List of Teams",
   "gui.recruits.teamInspectTitle": "",
   "gui.recruits.team_creation.leave_team": "Leave",
+  "chat.recruits.team_creation.join": "Join",
   "chat.recruits.team_creation.addedPlayer": "You are now a member of %s.",
   "chat.recruits.team_creation.removedPlayer": "You were removed from the Team.",
   "chat.recruits.team_creation.removedPlayerLeader": "You removed %s from the Team.",
   "chat.recruits.team_creation.addedPlayerLeader": "%s joined your Team successfully.",
   "chat.recruits.team_creation.could_not_find": "Could not find player.",
-  "chat.recruits.team_creation.join": "Join",
-  "gui.recruits.team_creation.no_teams": "There are no Teams.",
-  "gui.recruits.team_creation.delete_team": "Delete",
-  "gui.recruits.command.tooltip.team": "Opens the team screen",
-  "gui.recruits.command.text.team": "Team",
+  "chat.recruits.team.assignNewOwnerNoTeam": "You need to be in a team to assign this recruit a new owner!",
+  "chat.recruits.team.assignNewOwnerNotFound": "No team mate nearby to assign this recruit to.",
   "Recruits": ""
-  
-  
 }

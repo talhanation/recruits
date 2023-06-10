@@ -35,6 +35,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.apache.logging.log4j.core.jmx.Server;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -48,6 +49,25 @@ public class TeamEvents {
         return player.getTeam() != null;
     }
 
+    public static void openDisbandingScreen(Player player, UUID recruit) {
+        if (player instanceof ServerPlayer) {
+            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
+                @Override
+                public Component getDisplayName() {
+                    return Component.literal("disband_screen");
+                }
+
+                @Override
+                public AbstractContainerMenu createMenu(int i, Inventory playerInventory, Player playerEntity) {
+                    return new DisbandContainer(i, playerEntity, recruit);
+                }
+            }, packetBuffer -> {
+                packetBuffer.writeUUID(recruit);
+            });
+        } else {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenDisbandScreen(player, recruit));
+        }
+    }
     public static void openTeamListScreen(Player player) {
         if (player instanceof ServerPlayer) {
             NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
@@ -437,6 +457,40 @@ public class TeamEvents {
             recruit.updateTeam();
         }
     }
+
+    public static void assignToTeamMate(ServerPlayer oldOwner, AbstractRecruitEntity recruit) {
+        ServerLevel level = oldOwner.getLevel();
+        Team team = oldOwner.getTeam();
+
+        if(team != null){
+            Collection<String> list = team.getPlayers().stream().toList();
+            List<ServerPlayer> playerList = level.getEntitiesOfClass(ServerPlayer.class, oldOwner.getBoundingBox().inflate(32D));
+
+            playerList.sort(Comparator.comparing(serverPlayer -> serverPlayer.distanceTo(oldOwner)));
+            playerList.remove(0);// 0 is oldOwner
+
+            boolean playerNotFound = false;
+            ServerPlayer newOwner = null;
+            if(!playerList.isEmpty()) newOwner = playerList.get(0);
+
+
+            if(newOwner != null){
+                if(list.contains(newOwner.getName().getString())){
+                    recruit.disband(oldOwner);
+                    recruit.hire(newOwner);
+                }
+                else
+                    playerNotFound = true;
+            }
+            else
+                playerNotFound = true;
+
+            if(playerNotFound) oldOwner.sendSystemMessage(Component.translatable("chat.recruits.team.assignNewOwnerNotFound"));
+        }
+        else
+            oldOwner.sendSystemMessage(Component.translatable("chat.recruits.team.assignNewOwnerNoTeam"));
+    }
+
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         this.server = event.getServer();

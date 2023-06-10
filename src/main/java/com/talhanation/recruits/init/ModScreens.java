@@ -39,6 +39,7 @@ public class ModScreens {
         registerMenu(TEAM_INSPECTION_TYPE.get(), TeamInspectionScreen::new);
         registerMenu(TEAM_LIST_TYPE.get(), TeamListScreen::new);
         registerMenu(TEAM_ADD_PLAYER_TYPE.get(), TeamManagePlayerScreen::new);
+        registerMenu(DISBAND.get(), DisbandScreen::new);
 
         logger.info("MenuScreens registered");
     }
@@ -237,6 +238,22 @@ public class ModScreens {
                 }
             }));
 
+    public static final RegistryObject<MenuType<DisbandContainer>> DISBAND =
+            MENU_TYPES.register("disband_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
+                try {
+                    UUID workerId = data.readUUID();
+                    Player playerEntity = inv.player;
+                    AbstractRecruitEntity rec = getRecruitByUUID(playerEntity, workerId);
+
+                    return new DisbandContainer(windowId, playerEntity, rec.getUUID());
+
+                } catch (Exception e) {
+                    logger.error("Error in disband_container: ");
+                    logger.error(e.getMessage());
+                    logger.error(e.getStackTrace().toString());
+                    return null;
+                }
+            }));
 
     /**
      * Registers a menuType/container with a screen constructor.
@@ -255,7 +272,6 @@ public class ModScreens {
             }
         });
     }
-
 
 
     @Nullable

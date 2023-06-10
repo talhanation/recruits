@@ -12,13 +12,13 @@ import java.util.UUID;
 
 public class MessageDisband implements Message<MessageDisband> {
 
-    private UUID uuid;
+    private UUID recruit;
 
     public MessageDisband(){
     }
 
-    public MessageDisband(UUID uuid) {
-        this.uuid = uuid;
+    public MessageDisband(UUID recruit) {
+        this.recruit = recruit;
 
     }
 
@@ -30,18 +30,18 @@ public class MessageDisband implements Message<MessageDisband> {
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(8D));
         for (AbstractRecruitEntity recruits : list){
 
-            if (recruits.getUUID().equals(this.uuid))
+            if (recruits.getUUID().equals(this.recruit))
                 recruits.disband(context.getSender());
         }
 
     }
     public MessageDisband fromBytes(FriendlyByteBuf buf) {
-        this.uuid = buf.readUUID();
+        this.recruit = buf.readUUID();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
-        buf.writeUUID(uuid);
+        buf.writeUUID(recruit);
     }
 
 }
