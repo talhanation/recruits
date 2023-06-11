@@ -25,7 +25,7 @@ import net.minecraftforge.client.gui.widget.ExtendedButton;
 public class CommandScreen extends ScreenBase<CommandMenu> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/command_gui.png");
-
+    private static final MutableComponent TOOLTIP_HAIL_OF_ARROWS = Component.translatable("gui.recruits.command.tooltip.arrows");
     private static final MutableComponent TOOLTIP_DISMOUNT = Component.translatable("gui.recruits.command.tooltip.dismount");
     private static final MutableComponent TOOLTIP_MOUNT = Component.translatable("gui.recruits.command.tooltip.mount");
     private static final MutableComponent TOOLTIP_SHIELDS = Component.translatable("gui.recruits.command.tooltip.shields");
@@ -129,7 +129,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageHailOfArrows(player.getUUID(), group, hailOfArrows));
 
                     saveHailOfArrowsBool(player);
-                }));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_HAIL_OF_ARROWS, i, i1);
+                }
+        ));
 
         //MOVE
         addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos - (20 + topPosGab), 80, 20, TEXT_MOVE,
