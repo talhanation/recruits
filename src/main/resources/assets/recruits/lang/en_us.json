@@ -79,6 +79,8 @@
   "gui.recruits.command.tooltip.aggressive" : "Make the recruits attack all enemy players and recruits on sight.",
   "gui.recruits.command.tooltip.raid" : "Make the recruits attack all living on sight.",
   
+  "gui.recruits.team.tooltip.add" : "Adds this Player to the team within sight.",
+  
   "gui.recruits.team_creation.no_teams": "There are no Teams.",
   "gui.recruits.team_creation.delete_team": "Delete",
   "gui.recruits.team.assignNewOwner": "Assign to teammate",
@@ -160,7 +162,7 @@
   "chat.recruits.team_creation.team_exists" :"A team already exists by that name!",
   "chat.recruits.team_creation.removePlayer": "Remove Player",
   "chat.recruits.team_creation.removePlayerTitle": "Remove a Player",
-  "chat.recruits.team_creation.addPlayerTitle": "Add a Player",
+  "chat.recruits.team_creation.addPlayerTitle": "Add Players within sight: ",
   "chat.recruits.team_creation.no_Requests": "There are no join requests.",
   "chat.recruits.team_creation.banner_exists" :"A team already uses the same banner!",
   "chat.recruits.team_creation.noenough_money": "You don't have enough emeralds to create a team!",
