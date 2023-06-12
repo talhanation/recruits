@@ -64,9 +64,9 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TEXT_UPKEEP = Component.translatable("gui.recruits.command.text.upkeep");
     private static final MutableComponent TEXT_TEAM = Component.translatable("gui.recruits.command.text.team");
     private static final int fontColor = 16250871;
-    private Player player;
+    private final Player player;
     private int group;
-    private int recCount;
+    public static int recruitsInCommand;
     private boolean shields;
     private boolean hailOfArrows;
 
@@ -81,7 +81,6 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     public boolean keyReleased(int x, int y, int z) {
         super.keyReleased(x, y, z);
         if(!RecruitsModConfig.CommandScreenToggle.get())this.onClose();
-
         return true;
     }
 
@@ -92,7 +91,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         int zeroTopPos = topPos + 10;
         int topPosGab = 7;
         int mirror = 240 - 60;
-
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen(this.group));
         //TEAM SCREEN
         addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 60, 80, 20, TEXT_TEAM,
                 button -> {
@@ -332,27 +331,31 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         ));
 
         //GROUP
-        addRenderableWidget(new ExtendedButton(leftPos - 4 + imageWidth / 2, topPos - 40 + imageHeight / 2, 11, 20, Component.literal("+"),
-                button -> {
-            this.group = getSavedCurrentGroup(player);
+        addRenderableWidget(new ExtendedButton(leftPos - 5 + imageWidth / 2, topPos - 50 + imageHeight / 2, 12, 20, Component.literal("+"),
+            button -> {
+                this.group = getSavedCurrentGroup(player);
+                if (this.group != 9) {
+                    this.group++;
 
-            if (this.group != 9) {
-                this.group++;
+                    this.saveCurrentGroup(player);
+                }
 
-                this.saveCurrentGroup(player);
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen(this.group));
             }
-        }));
+        ));
 
-        addRenderableWidget(new ExtendedButton(leftPos - 4 + imageWidth / 2, topPos + imageHeight / 2, 11, 20, Component.literal("-"),
-                button -> {
-            this.group = getSavedCurrentGroup(player);
+        addRenderableWidget(new ExtendedButton(leftPos - 5 + imageWidth / 2, topPos - 10 + imageHeight / 2, 12, 20, Component.literal("-"),
+            button -> {
+                this.group = getSavedCurrentGroup(player);
+                if (this.group != 0) {
+                    this.group--;
 
-            if (this.group != 0) {
-                this.group--;
+                    this.saveCurrentGroup(player);
+                }
 
-                this.saveCurrentGroup(player);
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen(this.group));
             }
-        }));
+        ));
     }
 
     @Override
@@ -369,7 +372,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         int l = 71;//höhe
 
         font.draw(matrixStack, "" + handleGroupText(this.group), k, l, fontColor);
-        //font.draw(matrixStack, "" +  handleRecruitCountText(currentRecruits), k - 30 , 0, fontColor);
+        font.draw(matrixStack, "Recruits: " + recruitsInCommand, k + 10 , k, fontColor);
     }
 
     protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {

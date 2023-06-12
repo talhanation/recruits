@@ -6,6 +6,8 @@ import com.talhanation.recruits.entities.BowmanEntity;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.MessageAddRecruitToTeam;
 import com.talhanation.recruits.network.MessageCommandScreen;
+import com.talhanation.recruits.network.MessageToClientUpdateCommandScreen;
+import com.talhanation.recruits.network.MessageToClientUpdateTeam;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -26,11 +28,11 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
+import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public class CommandEvents {
     public static final MutableComponent TEXT_EVERYONE = Component.translatable("chat.recruits.text.everyone");
@@ -267,20 +269,6 @@ public class CommandEvents {
         }
     }
 
-    public static void setRecruitsInCommand(AbstractRecruitEntity recruit, int count) {
-        Player living = recruit.getOwner();
-        if (living != null){
-
-            CompoundTag playerNBT = living.getPersistentData();
-            CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
-
-            nbt.putInt( "RecruitsInCommand", count);
-            living.sendSystemMessage(Component.literal("EVENT int: " + count));
-
-            playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
-        }
-    }
-
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         CompoundTag playerData = event.getEntity().getPersistentData();
@@ -456,4 +444,21 @@ public class CommandEvents {
     }
 
 
+    public static void updateCommandScreen(ServerPlayer player, int group) {
+
+        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateCommandScreen(getRecruitsInCommand(player, group)));
+    }
+
+    public static int getRecruitsInCommand(ServerPlayer player, int group){
+        List<AbstractRecruitEntity> list = Objects.requireNonNull(player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(100)));
+        List<AbstractRecruitEntity> loyals = new ArrayList<>();
+
+        for (AbstractRecruitEntity recruit : list){
+            if(recruit.isEffectedByCommand(player.getUUID(), group)){
+                loyals.add(recruit);
+            }
+        }
+
+        return loyals.size();
+    }
 }
