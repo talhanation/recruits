@@ -20,24 +20,23 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.animal.horse.Horse;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 
-public class RecruitHorseEntity extends PathfinderMob {
-    private static final EntityDataAccessor<Integer> DATA_ID_TYPE_VARIANT = SynchedEntityData.defineId(Horse.class, EntityDataSerializers.INT);
+public class RecruitHorseEntity extends Animal {
+    private static final EntityDataAccessor<Integer> DATA_ID_TYPE_VARIANT = SynchedEntityData.defineId(RecruitHorseEntity.class, EntityDataSerializers.INT);
 
-    public RecruitHorseEntity(EntityType<? extends PathfinderMob> entityType, Level world) {
+    public RecruitHorseEntity(EntityType<? extends RecruitHorseEntity> entityType, Level world) {
         super(entityType, world);
-        this.maxUpStep = 1.25F;
     }
 
-    @Override
     public void addAdditionalSaveData(CompoundTag nbt) {
         super.addAdditionalSaveData(nbt);
         nbt.putInt("Variant", this.getTypeVariant());
@@ -47,20 +46,15 @@ public class RecruitHorseEntity extends PathfinderMob {
     public void readAdditionalSaveData(CompoundTag nbt) {
         super.readAdditionalSaveData(nbt);
         this.setTypeVariant(nbt.getInt("Variant"));
-
     }
 
     protected void defineSynchedData() {
         super.defineSynchedData();
-        this.entityData.define(DATA_ID_TYPE_VARIANT, 0);
+       this.entityData.define(DATA_ID_TYPE_VARIANT, 0);
     }
 
     protected void updateControlFlags() {
         super.updateControlFlags();
-    }
-
-    public boolean canBeControlledByRider() {
-        return !this.isNoAi() && this.getControllingPassenger() instanceof LivingEntity;
     }
 
     @Override
@@ -94,7 +88,6 @@ public class RecruitHorseEntity extends PathfinderMob {
     }
 
 
-
     public void setRandomVariant() {
         int variant = this.random.nextInt(7);
         this.setTypeVariant(variant);
@@ -108,6 +101,11 @@ public class RecruitHorseEntity extends PathfinderMob {
 
     }
 
+    @Override
+    public double getPassengersRidingOffset() {
+        return super.getPassengersRidingOffset() + 2D;
+    }
+
     //ATTRIBUTES
     public static AttributeSupplier setAttributes() {
         return LivingEntity.createLivingAttributes()
@@ -117,7 +115,6 @@ public class RecruitHorseEntity extends PathfinderMob {
                 .add(Attributes.ATTACK_DAMAGE, 0.0D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D)
                 .build();
-
     }
 
     public void setTypeVariant(int variant) {
@@ -148,23 +145,15 @@ public class RecruitHorseEntity extends PathfinderMob {
         this.playSound(SoundEvents.HORSE_GALLOP, 0.15F, 1.0F);
     }
 
-    public void travel(Vec3 vec) {
-
-        if (this.isAlive()) {
-            if (this.isVehicle() && this.canBeControlledByRider()) {
-                AbstractRecruitEntity recruitEntity = (AbstractRecruitEntity) this.getControllingPassenger();
-                this.setYRot(recruitEntity.getYRot());
-                this.yRotO = this.getYRot();
-                this.setXRot(recruitEntity.getXRot() * 0.5F);
-                this.setRot(this.getYRot(), this.getXRot());
-                this.yBodyRot = this.getYRot();
-                this.yHeadRot = this.yBodyRot;
-                if (recruitEntity.getNavigation().isStuck()) this.jumpFromGround();
-            } else {
-                this.flyingSpeed = 0.02F;
-                super.travel(vec);
-            }
-        }
+    public boolean isPushable() {
+        return !this.isVehicle();
     }
 
+    public void travel(@NotNull Vec3 vec3) {
+        if (this.isAlive()){
+            if(this.isVehicle()) this.maxUpStep = 1.0F;
+
+            super.travel(vec3);
+        }
+    }
 }

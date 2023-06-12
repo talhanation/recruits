@@ -62,10 +62,8 @@ public class ModEntityTypes {
                     .build(new ResourceLocation(Main.MOD_ID, "horseman").toString()));
     public static final RegistryObject<EntityType<RecruitHorseEntity>> RECRUIT_HORSE = ENTITY_TYPES.register("recruit_horse",
             () -> EntityType.Builder.of(RecruitHorseEntity::new, MobCategory.CREATURE)
-                    .sized(1.3964844F, 1.6F)
-                    .canSpawnFarFromPlayer()
-                    .setTrackingRange(32)
-                    .setShouldReceiveVelocityUpdates(true)
+                    .sized(0.9F, 0.9F)
+                    .setTrackingRange(10)
                     .build(new ResourceLocation(Main.MOD_ID, "recruit_horse").toString()));
 
     /*
