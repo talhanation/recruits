@@ -103,7 +103,7 @@ public class RecruitHorseEntity extends Animal {
 
     @Override
     public double getPassengersRidingOffset() {
-        return super.getPassengersRidingOffset() + 2D;
+        return super.getPassengersRidingOffset() + 0.5D;
     }
 
     //ATTRIBUTES
