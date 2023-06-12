@@ -6,6 +6,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.*;
+import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModItems;
 import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
@@ -14,6 +15,7 @@ import com.talhanation.recruits.network.MessageAddRecruitToTeam;
 import com.talhanation.recruits.network.MessageDebugScreen;
 import com.talhanation.recruits.network.MessageHireGui;
 import com.talhanation.recruits.network.MessageRecruitGui;
+import net.minecraft.client.renderer.entity.HorseRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -27,7 +29,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -45,11 +46,11 @@ import net.minecraft.world.entity.animal.AbstractFish;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.animal.Squid;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.entity.monster.Creeper;
-import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Inventory;
@@ -147,6 +148,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         //updateMoral();
         updateShield();
         if(needsTeamUpdate) updateTeam();//TODO: performance -> trigger when team event
+        if(this.getVehicle() != null) updateMount();
         //if(this.getNavigation().isStuck()) this.jumpFromGround();
     }
 
@@ -1457,6 +1459,22 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
+    public void updateMount() {
+        if(this.getVehicle() instanceof Horse horse){
+            RecruitHorseEntity recHorse = ModEntityTypes.RECRUIT_HORSE.get().create(this.level);
+            recHorse.setPos(this.getX(), this.getY(), this.getZ());
+            recHorse.invulnerableTime = 60;
+            recHorse.setPersistenceRequired();
+            recHorse.setTypeVariant(horse.getVariant().getId());
+
+            this.startRiding(recHorse);
+            this.level.addFreshEntity(recHorse);
+
+            horse.discard();
+        }
+
+    }
+
     public void updateMountTimer(){
         if(getMountTimer() > 0){
             setMountTimer(getMountTimer() - 1);
@@ -1582,12 +1600,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     PlayerTeam recruitTeam = this.level.getScoreboard().getPlayerTeam(teamName);
                     this.level.getScoreboard().removePlayerFromTeam(this.getStringUUID(), recruitTeam);
                     needsTeamUpdate = false;
-                /*
-                if(recruitTeam.getPlayers().contains(this.getStringUUID())){
-                    Main.LOGGER.debug("Removing: " + this.getStringUUID());
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(recruitTeam.getName(), -1));
-                }
-                */
                 }
                 else {
                     String ownerTeamName = ownerTeam.getName();
