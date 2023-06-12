@@ -344,7 +344,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             }
         ));
 
-        addRenderableWidget(new ExtendedButton(leftPos - 5 + imageWidth / 2, topPos - 10 + imageHeight / 2, 12, 20, Component.literal("-"),
+        addRenderableWidget(new ExtendedButton(leftPos - 5 + imageWidth / 2, topPos - 20 + imageHeight / 2, 12, 20, Component.literal("-"),
             button -> {
                 this.group = getSavedCurrentGroup(player);
                 if (this.group != 0) {
@@ -369,10 +369,10 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         //player.sendMessage(new StringTextComponent("SCREEN int: " + recCount), player.getUUID());
 
         int k = 78;//rechst links
-        int l = 71;//höhe
+        int l = 61;//höhe
 
         font.draw(matrixStack, "" + handleGroupText(this.group), k, l, fontColor);
-        font.draw(matrixStack, "Recruits: " + recruitsInCommand, k + 10 , k, fontColor);
+        font.draw(matrixStack, "Recruits: " + recruitsInCommand, k , l + 10, fontColor);
     }
 
     protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
