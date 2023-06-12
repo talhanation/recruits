@@ -16,7 +16,6 @@ public class RecruitsModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
-
     public static final int NEW_VERSION = 21;
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue OverrideIronGolemSpawn;
@@ -41,6 +40,8 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.ConfigValue<List<String>> RecruitHandEquipment;
     public static ForgeConfigSpec.ConfigValue<List<String>> ShieldmanHandEquipment;
     public static ForgeConfigSpec.ConfigValue<List<String>> BowmanHandEquipment;
+    public static ForgeConfigSpec.ConfigValue<List<String>> HorsemanHandEquipment;
+    public static ForgeConfigSpec.ConfigValue<List<String>> NomadHandEquipment;
     public static ForgeConfigSpec.ConfigValue<List<String>> AcceptedDamagesourceImmunity;
     public static ForgeConfigSpec.BooleanValue AggroRecruitsBlockEvents;
     public static ForgeConfigSpec.BooleanValue NeutralRecruitsBlockEvents;
@@ -53,30 +54,27 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.BooleanValue NoDamageImmunity;
     public static ForgeConfigSpec.IntValue PillagerPatrolSpawnInterval;
     public static ForgeConfigSpec.IntValue RecruitPatrolSpawnInterval;
-
     public static ForgeConfigSpec.BooleanValue GlobalTeamFriendlyFireSetting;
-
     public static ForgeConfigSpec.BooleanValue GlobalTeamSeeFriendlyInvisibleSetting;
-
     public static ForgeConfigSpec.BooleanValue GlobalTeamSetting;
     public static ForgeConfigSpec.BooleanValue CommandScreenToggle;
-
     public static ArrayList<String> BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast"));
-
     public static ArrayList<String> MOUNTS = new ArrayList<>(
             Arrays.asList("minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "smallships:galley", "camels:camel"));
-
     public static ArrayList<String> START_ARMOR = new ArrayList<>(
             Arrays.asList("minecraft:leather_helmet", "minecraft:leather_chestplate", "minecraft:leather_leggings", "minecraft:leather_boots"));
-
     public static ArrayList<String> RECRUIT_HAND = new ArrayList<>(
             Arrays.asList("minecraft:wooden_sword", ""));
-
     public static ArrayList<String> SHIELDMAN_HAND = new ArrayList<>(
             Arrays.asList("minecraft:wooden_axe", "minecraft:shield"));
 
+    public static ArrayList<String> HORSEMAN_HAND = new ArrayList<>(
+            Arrays.asList("minecraft:stone_sword", "minecraft:shield"));
     public static ArrayList<String> BOWMAN_HAND = new ArrayList<>(
+            Arrays.asList("minecraft:bow", ""));
+
+    public static ArrayList<String> NOMAD_HAND = new ArrayList<>(
             Arrays.asList("minecraft:bow", ""));
 
     public static ArrayList<String> DAMAGESOURCE = new ArrayList<>(
@@ -232,6 +230,22 @@ public class RecruitsModConfig {
                         \tItems in this list will be equipped to a new spawned bowman, in this following order: ["main-hand", "off-hand" ]""")
                 .worldRestart()
                 .define("BowmanStartHandEquipment", BOWMAN_HAND);
+
+        HorsemanHandEquipment = BUILDER.comment("""
+
+                        ----Horseman start hand equipment ----
+                        \t(takes effect after restart)
+                        \tItems in this list will be equipped to a new spawned shieldman, in this following order: ["main-hand", "off-hand" ]""")
+                .worldRestart()
+                .define("ShieldmanStartHandEquipment", HORSEMAN_HAND);
+
+        NomadHandEquipment = BUILDER.comment("""
+
+                        ----Nomad start hand equipment ----
+                        \t(takes effect after restart)
+                        \tItems in this list will be equipped to a new spawned bowman, in this following order: ["main-hand", "off-hand" ]""")
+                .worldRestart()
+                .define("BowmanStartHandEquipment", NOMAD_HAND);
 
         /*
         Pillager Config

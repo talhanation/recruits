@@ -59,8 +59,13 @@ public class RecruitHorseEntity extends Animal {
 
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
-        player.sendSystemMessage(Component.literal("This is not your Horse!"));
-        return InteractionResult.SUCCESS;
+        if(this.getFirstPassenger() instanceof AbstractRecruitEntity recruit){
+            return recruit.mobInteract(player, hand);
+        }
+        else{
+            player.sendSystemMessage(Component.literal("This is not your Horse!"));
+            return InteractionResult.SUCCESS;
+        }
     }
 
 
@@ -125,6 +130,15 @@ public class RecruitHorseEntity extends Animal {
         return this.entityData.get(DATA_ID_TYPE_VARIANT);
     }
 
+    @Override
+    public boolean hurt(@NotNull DamageSource damageSource, float amount) {
+        if(getControllingPassenger() instanceof AbstractRecruitEntity recruit){
+            if(damageSource.getDirectEntity() instanceof LivingEntity target)
+                recruit.setTarget(target);
+        }
+
+        return super.hurt(damageSource, amount);
+    }
 
     protected SoundEvent getAmbientSound() {
         super.getAmbientSound();

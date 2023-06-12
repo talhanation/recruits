@@ -344,7 +344,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             }
         ));
 
-        addRenderableWidget(new ExtendedButton(leftPos - 5 + imageWidth / 2, topPos - 20 + imageHeight / 2, 12, 20, Component.literal("-"),
+        addRenderableWidget(new ExtendedButton(leftPos - 5 + imageWidth / 2, topPos + 10 + imageHeight / 2, 12, 20, Component.literal("-"),
             button -> {
                 this.group = getSavedCurrentGroup(player);
                 if (this.group != 0) {

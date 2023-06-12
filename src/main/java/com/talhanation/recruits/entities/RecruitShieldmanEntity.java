@@ -19,6 +19,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.function.Predicate;
 
 public class RecruitShieldmanEntity extends AbstractRecruitEntity{
@@ -75,10 +76,8 @@ public class RecruitShieldmanEntity extends AbstractRecruitEntity{
         this.setGroup(1);
     }
 
-    @Override
-    public void setEquipment() {
-        super.setEquipment();
-        setHandEquipment(RecruitsModConfig.ShieldmanHandEquipment.get());
+    public List<String> getHandEquipment(){
+        return RecruitsModConfig.ShieldmanHandEquipment.get();
     }
 
     @Override

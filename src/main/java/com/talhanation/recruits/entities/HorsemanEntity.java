@@ -1,8 +1,11 @@
 package com.talhanation.recruits.entities;
 
+import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.HorsemanAttackAI;
+import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -20,9 +23,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.function.Predicate;
 
 public class HorsemanEntity extends RecruitShieldmanEntity {
 
+    private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
+            (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
     private static final EntityDataAccessor<Boolean> HAD_HORSE = SynchedEntityData.defineId(HorsemanEntity.class, EntityDataSerializers.BOOLEAN);
 
     public HorsemanEntity(EntityType<? extends AbstractRecruitEntity> entityType, Level world) {
@@ -44,7 +51,6 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
     public void readAdditionalSaveData(CompoundTag nbt) {
         super.readAdditionalSaveData(nbt);
         this.setHadHorse(nbt.getBoolean("hadHorse"));
-        //this.reassessWeaponGoal();
     }
 
     private void setHadHorse(boolean hadHorse) {
@@ -58,7 +64,8 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        this.goalSelector.addGoal(2, new HorsemanAttackAI(this));
+        this.goalSelector.addGoal(2, new UseShield(this));
+        this.goalSelector.addGoal(1, new HorsemanAttackAI(this));
     }
 
     //ATTRIBUTES
@@ -86,12 +93,18 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
 
     @Override
     public void initSpawn() {
+        this.setCustomName(Component.literal("Horseman"));
+        this.setCost(17);
         this.setEquipment();
         this.setDropEquipment();
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
         this.setCanPickUpLoot(true);
         this.setGroup(3);
+    }
+
+    public List<String> getHandEquipment(){
+        return RecruitsModConfig.HorsemanHandEquipment.get();
     }
 
     @Override
@@ -125,6 +138,11 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
                 }
             }
         }
+    }
+
+    @Override
+    public Predicate<ItemEntity> getAllowedItems() {
+        return ALLOWED_ITEMS;
     }
 
     public enum State {

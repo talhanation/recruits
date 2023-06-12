@@ -20,6 +20,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.function.Predicate;
 
 public class RecruitEntity extends AbstractRecruitEntity {
@@ -88,10 +89,8 @@ public class RecruitEntity extends AbstractRecruitEntity {
         return !(itemStack.getItem() instanceof CrossbowItem || itemStack.getItem() instanceof BowItem);
     }
 
-    @Override
-    public void setEquipment() {
-        super.setEquipment();
-        setHandEquipment(RecruitsModConfig.RecruitHandEquipment.get());
+    public List<String> getHandEquipment(){
+        return RecruitsModConfig.RecruitHandEquipment.get();
     }
 }
 

@@ -33,6 +33,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -272,9 +273,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
         return ALLOWED_ITEMS;
     }
 
-    @Override
-    public void setEquipment() {
-        super.setEquipment();
-        setHandEquipment(RecruitsModConfig.BowmanHandEquipment.get());
+    public List<String> getHandEquipment(){
+        return RecruitsModConfig.BowmanHandEquipment.get();
     }
 }

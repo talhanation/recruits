@@ -842,6 +842,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void setEquipment(){
+        this.setHandEquipment(getHandEquipment());
         //Armor
         List<String> armor = RecruitsModConfig.StartArmorList.get();
         List<ItemStack> itemStackArmor = new ArrayList<>(Arrays.asList(new ItemStack(Items.LEATHER_HELMET), new ItemStack(Items.LEATHER_CHESTPLATE), new ItemStack(Items.LEATHER_LEGGINGS), new ItemStack(Items.LEATHER_BOOTS)));
@@ -854,18 +855,20 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 this.setItemSlot(equipmentslot.get(i), holder.get().value().getDefaultInstance());
             }
         }
+
+
     }
 
-    public void setHandEquipment(List<String> hand) {
-        RecruitsModConfig.RecruitHandEquipment.get();
+    public abstract List<String> getHandEquipment();
 
+    public void setHandEquipment(List<String> hand) {
         if(!hand.get(0).isEmpty()){
             String str = hand.get(0);
             Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
             holder.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.MAINHAND, itemHolder.value().getDefaultInstance()));
         }
         else {
-            this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
+            this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.WOODEN_SWORD));
         }
 
         if(!hand.get(1).isEmpty()){

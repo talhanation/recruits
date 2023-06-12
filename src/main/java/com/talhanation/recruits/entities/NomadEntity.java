@@ -1,8 +1,10 @@
 package com.talhanation.recruits.entities;
 
+import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.NomadAttackAI;
 import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -20,6 +22,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 public class NomadEntity extends BowmanEntity {
 
@@ -86,13 +89,18 @@ public class NomadEntity extends BowmanEntity {
 
     @Override
     public void initSpawn() {
+        this.setCustomName(Component.literal("Nomad"));
+        this.setCost(20);
         this.setEquipment();
         this.setDropEquipment();
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
         this.setCanPickUpLoot(true);
-        //this.reassessWeaponGoal();
         this.setGroup(2);
+    }
+
+    public List<String> getHandEquipment(){
+        return RecruitsModConfig.NomadHandEquipment.get();
     }
 
     @Override
