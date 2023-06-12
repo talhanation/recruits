@@ -12,7 +12,6 @@ import net.minecraft.resources.ResourceLocation;
 public class RecruitHorseRenderer extends MobRenderer<RecruitHorseEntity, RecruitHorseModel<RecruitHorseEntity>> {
     private static final ResourceLocation[] TEXTURE = new ResourceLocation[]{
             new ResourceLocation("textures/entity/horse/horse_white.png"),
-            new ResourceLocation("textures/entity/horse/horse_white.png"),
             new ResourceLocation("textures/entity/horse/horse_creamy.png"),
             new ResourceLocation("textures/entity/horse/horse_chestnut.png"),
             new ResourceLocation("textures/entity/horse/horse_brown.png"),
