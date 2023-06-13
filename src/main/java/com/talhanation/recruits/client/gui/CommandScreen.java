@@ -91,6 +91,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         int zeroTopPos = topPos + 10;
         int topPosGab = 7;
         int mirror = 240 - 60;
+        this.group = getSavedCurrentGroup(player);
         Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen(this.group));
         //TEAM SCREEN
         addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 60, 80, 20, TEXT_TEAM,
@@ -340,7 +341,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                     this.saveCurrentGroup(player);
                 }
 
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen(getSavedCurrentGroup(player)));
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen(this.group));
             }
         ));
 
@@ -353,7 +354,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                     this.saveCurrentGroup(player);
                 }
 
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen(getSavedCurrentGroup(player)));
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen(this.group));
             }
         ));
     }
