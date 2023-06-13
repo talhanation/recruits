@@ -25,7 +25,7 @@ import net.minecraftforge.client.gui.widget.ExtendedButton;
 public class CommandScreen extends ScreenBase<CommandMenu> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/command_gui.png");
-    private static final MutableComponent TOOLTIP_HAIL_OF_ARROWS = Component.translatable("gui.recruits.command.tooltip.arrows");
+    private static final MutableComponent TOOLTIP_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.tooltip.strategic_fire");
     private static final MutableComponent TOOLTIP_DISMOUNT = Component.translatable("gui.recruits.command.tooltip.dismount");
     private static final MutableComponent TOOLTIP_MOUNT = Component.translatable("gui.recruits.command.tooltip.mount");
     private static final MutableComponent TOOLTIP_SHIELDS = Component.translatable("gui.recruits.command.tooltip.shields");
@@ -59,7 +59,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TEXT_NEUTRAL = Component.translatable("gui.recruits.command.text.neutral");
     private static final MutableComponent TEXT_AGGRESSIVE = Component.translatable("gui.recruits.command.text.aggressive");
     private static final MutableComponent TEXT_RAID = Component.translatable("gui.recruits.command.text.raid");
-    private static final MutableComponent TEXT_HAILOFARROWS = Component.translatable("gui.recruits.command.text.arrow");
+    private static final MutableComponent TEXT_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.text.strategic_fire");
     private static final MutableComponent TEXT_CLEAR_TARGET = Component.translatable("gui.recruits.command.text.clearTargets");
     private static final MutableComponent TEXT_UPKEEP = Component.translatable("gui.recruits.command.text.upkeep");
     private static final MutableComponent TEXT_TEAM = Component.translatable("gui.recruits.command.text.team");
@@ -68,7 +68,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private int group;
     public static int recruitsInCommand;
     private boolean shields;
-    private boolean hailOfArrows;
+    private boolean strategicFire;
 
     public CommandScreen(CommandMenu commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, Component.literal(""));
@@ -127,22 +127,22 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 }
         ));
 
-        //HAIL OF ARROWS
-        addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_HAILOFARROWS,
+        //STRATEGIC FIRE
+        addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_STRATEGIC_FIRE,
                 button -> {
-                    this.hailOfArrows = !getSavedHailOfArrowsBool(player);
+                    this.strategicFire = !getSavedStrategicFireBool(player);
 
-                    if (hailOfArrows)
+                    if (strategicFire)
                         CommandEvents.sendFollowCommandInChat(96, player, group);
                     else
                         CommandEvents.sendFollowCommandInChat(94, player, group);
 
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageHailOfArrows(player.getUUID(), group, hailOfArrows));
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageStrategicFire(player.getUUID(), group, strategicFire));
 
-                    saveHailOfArrowsBool(player);
+                    saveStrategicFireBool(player);
                 },
                 (button1, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_HAIL_OF_ARROWS, i, i1);
+                    this.renderTooltip(poseStack, TOOLTIP_STRATEGIC_FIRE, i, i1);
                 }
         ));
 
@@ -340,7 +340,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                     this.saveCurrentGroup(player);
                 }
 
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen(this.group));
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen(getSavedCurrentGroup(player)));
             }
         ));
 
@@ -353,7 +353,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                     this.saveCurrentGroup(player);
                 }
 
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen(this.group));
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen(getSavedCurrentGroup(player)));
             }
         ));
     }
@@ -416,18 +416,18 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
 
-    public boolean getSavedHailOfArrowsBool(Player player) {
+    public boolean getSavedStrategicFireBool(Player player) {
         CompoundTag playerNBT = player.getPersistentData();
         CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
 
-        return nbt.getBoolean("HailOfArrows");
+        return nbt.getBoolean("StrategicFire");
     }
 
-    public void saveHailOfArrowsBool(Player player) {
+    public void saveStrategicFireBool(Player player) {
         CompoundTag playerNBT = player.getPersistentData();
         CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
 
-        nbt.putBoolean("HailOfArrows", this.hailOfArrows);
+        nbt.putBoolean("StrategicFire", this.strategicFire);
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
 

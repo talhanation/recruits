@@ -70,7 +70,7 @@
   "gui.recruits.command.tooltip.mount" : "If possible, the recruits will try to mount the Mob you are looking at.",
   "gui.recruits.command.tooltip.dismount" : "If possible, the recruits will dismount their current vehicle.",
   "gui.recruits.command.tooltip.move" : "If possible, the recruits will try to go to the position you are looking at.",
-  "gui.recruits.command.tooltip.arrows" : "Make your bowman perform a hail of arrows at the position you are looking at.",
+  "gui.recruits.command.tooltip.strategic_fire" : "Order ranged troops to concentrate their fire on a specific area you are looking at.",
   "gui.recruits.command.tooltip.shields" : "Make the recruits raise/lower their shields.",
   "gui.recruits.command.tooltip.upkeep" : "Sets the block or entity for the upkeep of your recruits you are looking at.",
 
@@ -92,7 +92,7 @@
 
   "gui.recruits.command.text.move" : "Move!",
   "gui.recruits.command.text.shields" : "Shields!",
-  "gui.recruits.command.text.arrow" : "Hail of Arrows!",
+  "gui.recruits.command.text.strategic_fire" : "Strategic Fire",
 
   "gui.recruits.command.text.escort" : "Guard this!",
   "gui.recruits.command.text.follow" : "Follow me!",
@@ -117,9 +117,9 @@
   "chat.recruits.command.dismount" : "%s Dismount!",
   "chat.recruits.command.move" : "%s Move!",
   "chat.recruits.command.shields" : "%s Shields Up!",
-  "chat.recruits.command.arrows" : "%s Make a Hail of Arrows!",
+  "chat.recruits.command.strategic_fire" : "%s Strategic Fire to that position!",
   "chat.recruits.command.shields_off" : "%s Shields down!",
-  "chat.recruits.command.arrows_off" : "%s Hold the Hail!",
+  "chat.recruits.command.strategic_fire_off" : "%s Hold the Fire!",
   "chat.recruits.command.wander" : "%s Wander freely!",
   "chat.recruits.command.follow" : "%s Follow me!",
   "chat.recruits.command.holdMyPos" : "%s Hold my Position!",

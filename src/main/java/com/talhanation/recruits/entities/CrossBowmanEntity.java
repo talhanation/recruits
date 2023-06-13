@@ -27,6 +27,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.function.Predicate;
 
 public class CrossBowmanEntity extends AbstractRecruitEntity implements CrossbowAttackMob{
@@ -111,6 +112,11 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
         this.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.LEATHER_CHESTPLATE));
         this.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.LEATHER_LEGGINGS));
         this.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.LEATHER_BOOTS));
+    }
+
+    @Override
+    public List<String> getHandEquipment() {
+        return null;
     }
 
     @Override

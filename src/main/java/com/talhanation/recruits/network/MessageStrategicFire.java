@@ -12,16 +12,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageHailOfArrows implements Message<MessageHailOfArrows> {
+public class MessageStrategicFire implements Message<MessageStrategicFire> {
 
     private UUID player;
     private int group;
     private boolean should;
 
-    public MessageHailOfArrows(){
+    public MessageStrategicFire(){
     }
 
-    public MessageHailOfArrows(UUID player, int group, boolean should) {
+    public MessageStrategicFire(UUID player, int group, boolean should) {
         this.player = player;
         this.group = group;
         this.should = should;
@@ -35,10 +35,10 @@ public class MessageHailOfArrows implements Message<MessageHailOfArrows> {
         ServerPlayer serverPlayer = context.getSender();
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
         for (AbstractRecruitEntity recruits : list) {
-                CommandEvents.onArrowsCommand(serverPlayer, this.player, recruits, group, should);
+                CommandEvents.onStrategicFireCommand(serverPlayer, this.player, recruits, group, should);
         }
     }
-    public MessageHailOfArrows fromBytes(FriendlyByteBuf buf) {
+    public MessageStrategicFire fromBytes(FriendlyByteBuf buf) {
         this.player = buf.readUUID();
         this.group = buf.readInt();
         this.should = buf.readBoolean();

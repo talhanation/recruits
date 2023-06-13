@@ -1,7 +1,7 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.config.RecruitsModConfig;
-import com.talhanation.recruits.entities.ai.RecruitHailOfArrows;
+import com.talhanation.recruits.entities.ai.RecruitStrategicFire;
 import com.talhanation.recruits.entities.ai.RecruitRangedBowAttackGoal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -42,8 +42,8 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
 
-    private static final EntityDataAccessor<Optional<BlockPos>> ARROW_POS = SynchedEntityData.defineId(BowmanEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
-    private static final EntityDataAccessor<Boolean> SHOULD_ARROW = SynchedEntityData.defineId(BowmanEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Optional<BlockPos>> STRATEGIC_FIRE_POS = SynchedEntityData.defineId(BowmanEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
+    private static final EntityDataAccessor<Boolean> SHOULD_STRATEGIC_FIRE = SynchedEntityData.defineId(BowmanEntity.class, EntityDataSerializers.BOOLEAN);
     public BowmanEntity(EntityType<? extends AbstractRecruitEntity> entityType, Level world) {
         super(entityType, world);
         this.reassessWeaponGoal();
@@ -51,20 +51,20 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
 
     protected void defineSynchedData() {
         super.defineSynchedData();
-        this.entityData.define(ARROW_POS, Optional.empty());
-        this.entityData.define(SHOULD_ARROW, false);
+        this.entityData.define(STRATEGIC_FIRE_POS, Optional.empty());
+        this.entityData.define(SHOULD_STRATEGIC_FIRE, false);
     }
 
     @Override
     public void addAdditionalSaveData(CompoundTag nbt) {
         super.addAdditionalSaveData(nbt);
 
-        if(this.getArrowPos() != null){
+        if(this.StrategicFirePos() != null){
 
-            nbt.putInt("ArrowPosX", this.getArrowPos().getX());
-            nbt.putInt("ArrowPosY", this.getArrowPos().getY());
-            nbt.putInt("ArrowPosZ", this.getArrowPos().getZ());
-            nbt.putBoolean("ShouldArrow", this.getShouldArrow());
+            nbt.putInt("StrategicFirePosX", this.StrategicFirePos().getX());
+            nbt.putInt("StrategicFirePosY", this.StrategicFirePos().getY());
+            nbt.putInt("StrategicFirePosZ", this.StrategicFirePos().getZ());
+            nbt.putBoolean("ShouldStrategicFire", this.getShouldStrategicFire());
         }
     }
 
@@ -73,12 +73,12 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
         super.readAdditionalSaveData(nbt);
         this.reassessWeaponGoal();
 
-        if (nbt.contains("ArrowPosX") && nbt.contains("ArrowPosY") && nbt.contains("ArrowPosZ")) {
-            this.setArrowPos(new BlockPos (
-                    nbt.getInt("ArrowPosX"),
-                    nbt.getInt("ArrowPosY"),
-                    nbt.getInt("ArrowPosZ")));
-            this.setShouldArrow(nbt.getBoolean("ShouldArrow"));
+        if (nbt.contains("StrategicFirePosX") && nbt.contains("StrategicFirePosY") && nbt.contains("StrategicFirePosZ")) {
+            this.setStrategicFirePos(new BlockPos (
+                    nbt.getInt("StrategicFirePosX"),
+                    nbt.getInt("StrategicFirePosY"),
+                    nbt.getInt("StrategicFirePosZ")));
+            this.setShouldStrategicFire(nbt.getBoolean("ShouldStrategicFire"));
         }
     }
 
@@ -86,7 +86,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        this.goalSelector.addGoal(2, new RecruitHailOfArrows(this, 10, 20));
+        this.goalSelector.addGoal(2, new RecruitStrategicFire(this, 10, 20));
     }
 
 
@@ -186,7 +186,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
 
 
                                          //angle            //force             //accuracy 0 = 100%
-            arrow.shoot(d0, d1 + d3 * angle, d2, force + 1.95F, (float) (2.5));
+            arrow.shoot(d0, d1 + d3 + angle, d2, force + 1.95F, (float) (2.5));
 
             this.playSound(SoundEvents.ARROW_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
             this.level.addFreshEntity(arrow);
@@ -241,22 +241,22 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
         }
     }
 
-    public void setArrowPos(BlockPos pos) {
-        this.entityData.set(ARROW_POS, Optional.of(pos));
+    public void setStrategicFirePos(BlockPos pos) {
+        this.entityData.set(STRATEGIC_FIRE_POS, Optional.of(pos));
     }
-    public BlockPos getArrowPos(){
-        return this.entityData.get(ARROW_POS).orElse(null);
+    public BlockPos StrategicFirePos(){
+        return this.entityData.get(STRATEGIC_FIRE_POS).orElse(null);
     }
 
     public void clearArrowsPos(){
-        this.entityData.set(ARROW_POS, Optional.empty());
+        this.entityData.set(STRATEGIC_FIRE_POS, Optional.empty());
     }
 
-    public void setShouldArrow(boolean bool) {
-        this.entityData.set(SHOULD_ARROW, bool);
+    public void setShouldStrategicFire(boolean bool) {
+        this.entityData.set(SHOULD_STRATEGIC_FIRE, bool);
     }
-    public boolean getShouldArrow(){
-        return this.entityData.get(SHOULD_ARROW);
+    public boolean getShouldStrategicFire(){
+        return this.entityData.get(SHOULD_STRATEGIC_FIRE);
     }
 
     @Override
