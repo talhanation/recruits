@@ -1,5 +1,8 @@
 package com.talhanation.recruits.entities;
 
+import com.talhanation.recruits.init.ModEntityTypes;
+import net.minecraft.Util;
+import net.minecraft.client.renderer.entity.HorseRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -21,17 +24,22 @@ import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.horse.Horse;
+import net.minecraft.world.entity.animal.horse.Markings;
+import net.minecraft.world.entity.animal.horse.Variant;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.Tags;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 
 public class RecruitHorseEntity extends Animal {
     private static final EntityDataAccessor<Integer> DATA_ID_TYPE_VARIANT = SynchedEntityData.defineId(RecruitHorseEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DATA_ID_TYPE_MARKING = SynchedEntityData.defineId(RecruitHorseEntity.class, EntityDataSerializers.INT);
 
     public RecruitHorseEntity(EntityType<? extends RecruitHorseEntity> entityType, Level world) {
         super(entityType, world);
@@ -40,17 +48,20 @@ public class RecruitHorseEntity extends Animal {
     public void addAdditionalSaveData(CompoundTag nbt) {
         super.addAdditionalSaveData(nbt);
         nbt.putInt("Variant", this.getTypeVariant());
+        nbt.putInt("Marking", this.getTypeMarking());
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag nbt) {
         super.readAdditionalSaveData(nbt);
         this.setTypeVariant(nbt.getInt("Variant"));
+        this.setTypeMarking(nbt.getInt("Marking"));
     }
 
     protected void defineSynchedData() {
         super.defineSynchedData();
-       this.entityData.define(DATA_ID_TYPE_VARIANT, 0);
+        this.entityData.define(DATA_ID_TYPE_VARIANT, 0);
+        this.entityData.define(DATA_ID_TYPE_MARKING, 0);
     }
 
     protected void updateControlFlags() {
@@ -130,6 +141,14 @@ public class RecruitHorseEntity extends Animal {
         return this.entityData.get(DATA_ID_TYPE_VARIANT);
     }
 
+    public void setTypeMarking(int marking) {
+        this.entityData.set(DATA_ID_TYPE_MARKING, marking);
+    }
+
+    public int getTypeMarking() {
+        return this.entityData.get(DATA_ID_TYPE_MARKING);
+    }
+
     @Override
     public boolean hurt(@NotNull DamageSource damageSource, float amount) {
         if(getControllingPassenger() instanceof AbstractRecruitEntity recruit){
@@ -168,6 +187,23 @@ public class RecruitHorseEntity extends Animal {
             if(this.isVehicle()) this.maxUpStep = 1.0F;
 
             super.travel(vec3);
+        }
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if(!this.isVehicle() && this.isAlive()){
+            Horse horse = EntityType.HORSE.create(this.level);
+            horse.setPos(this.getX(), this.getY(), this.getZ());
+            horse.invulnerableTime = 60;
+            horse.setPersistenceRequired();
+            Markings markings = Markings.byId(this.getTypeMarking());
+            Variant variant = Variant.byId(this.getTypeVariant());
+            horse.setVariantAndMarkings(variant, markings);
+            horse.equipSaddle(null);
+            this.level.addFreshEntity(horse);
+            this.discard();
         }
     }
 }

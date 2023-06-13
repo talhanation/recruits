@@ -44,6 +44,10 @@ public class HorsemanAttackAI extends Goal {
                 this.target = horseman.getTarget();
                 if (target != null) {
                     Vec3 moveVec = target.position().subtract(horseman.position()).normalize();
+                    Main.LOGGER.info("moveVec: " + moveVec.length());
+                    if(moveVec.length() > 20){
+                        moveVec.subtract(moveVec.scale(-2));
+                    }
                     this.movePos = target.position().add(moveVec.scale(25D));
                     this.state = CHARGE_TARGET;
                 }
@@ -102,7 +106,6 @@ public class HorsemanAttackAI extends Goal {
             }
         }
     }
-
 
     protected void checkAndPerformAttack(LivingEntity target) {
         if(!horseman.swinging) {

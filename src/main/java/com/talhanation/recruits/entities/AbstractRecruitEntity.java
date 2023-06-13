@@ -1469,6 +1469,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             recHorse.invulnerableTime = 60;
             recHorse.setPersistenceRequired();
             recHorse.setTypeVariant(horse.getVariant().getId());
+            recHorse.setTypeMarking(horse.getMarkings().getId());
 
             this.startRiding(recHorse);
             this.level.addFreshEntity(recHorse);
