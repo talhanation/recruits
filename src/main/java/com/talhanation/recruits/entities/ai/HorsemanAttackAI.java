@@ -1,11 +1,13 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.HorsemanEntity;
 import com.talhanation.recruits.entities.RecruitHorseEntity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.item.AxeItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.TieredItem;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
@@ -18,6 +20,7 @@ public class HorsemanAttackAI extends Goal {
     private LivingEntity target;
     private HorsemanEntity.State state;
     private Vec3 movePos;
+    private int ticksUntilNextAttack;
 
     public HorsemanAttackAI(HorsemanEntity recruit) {
         this.horseman = recruit;
@@ -36,19 +39,18 @@ public class HorsemanAttackAI extends Goal {
         super.start();
         this.target = horseman.getTarget();
         this.state = SELECT_TARGET;
+        this.ticksUntilNextAttack = 10 + getCooldownModifier();
     }
 
     public void tick() {
+        if(ticksUntilNextAttack > 0) ticksUntilNextAttack--;
         switch (state) {
             case SELECT_TARGET -> {
                 this.target = horseman.getTarget();
                 if (target != null) {
                     Vec3 moveVec = target.position().subtract(horseman.position()).normalize();
-                    Main.LOGGER.info("moveVec: " + moveVec.length());
-                    if(moveVec.length() > 20){
-                        moveVec.subtract(moveVec.scale(-2));
-                    }
-                    this.movePos = target.position().add(moveVec.scale(25D));
+
+                    this.movePos = target.position().add(moveVec.scale(10D));
                     this.state = CHARGE_TARGET;
                 }
             }
@@ -70,7 +72,9 @@ public class HorsemanAttackAI extends Goal {
 
                 //Perform Attack
                 if (horseman.distanceToSqr(target) < 5F) {
-                    checkAndPerformAttack(target);
+                    if(this.ticksUntilNextAttack <= 0) {
+                        this.checkAndPerformAttack(target);
+                    }
                 }
 
                 this.attackOthers();
@@ -101,7 +105,9 @@ public class HorsemanAttackAI extends Goal {
 
             if (horseman.distanceToSqr(entity) < 5F) {
                 if(horseman.canAttack(entity) && !entity.equals(horseman) && !entity.equals(target)){
-                    checkAndPerformAttack(entity);
+                    if(this.ticksUntilNextAttack <= 0) {
+                        this.checkAndPerformAttack(entity);
+                    }
                 }
             }
         }
@@ -111,6 +117,26 @@ public class HorsemanAttackAI extends Goal {
         if(!horseman.swinging) {
             this.horseman.swing(InteractionHand.MAIN_HAND);
             this.horseman.doHurtTarget(target);
+            this.resetAttackCooldown();
         }
+    }
+
+    protected void resetAttackCooldown() {
+        this.ticksUntilNextAttack = 15 + getCooldownModifier();
+    }
+
+    private int getCooldownModifier(){
+        int modifier = 0;
+        Item item = horseman.getMainHandItem().getItem();
+
+        if(item instanceof TieredItem tieredItem){
+            modifier = 5 - (int) tieredItem.getTier().getSpeed();
+        }
+
+        if (item instanceof AxeItem){
+            modifier += 3;
+        }
+
+        return modifier;
     }
 }

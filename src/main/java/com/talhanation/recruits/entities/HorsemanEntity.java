@@ -64,7 +64,6 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        this.goalSelector.addGoal(2, new UseShield(this));
         this.goalSelector.addGoal(1, new HorsemanAttackAI(this));
     }
 
