@@ -67,7 +67,7 @@ public class RecruitShieldmanEntity extends AbstractRecruitEntity{
     @Override
     public void initSpawn() {
         this.setCustomName(Component.literal("Shieldman"));
-        this.setCost(10);
+        this.setCost(RecruitsModConfig.ShieldmanCost.get());
         this.setEquipment();
         this.setDropEquipment();
         this.setRandomSpawnBonus();

@@ -65,7 +65,7 @@ public class RecruitEntity extends AbstractRecruitEntity {
     public void initSpawn() {
         super.initSpawn();
         this.setCustomName(Component.literal("Recruit"));
-        this.setCost(3);
+        this.setCost(RecruitsModConfig.RecruitCost.get());
         this.setEquipment();
         this.setDropEquipment();
         this.setRandomSpawnBonus();

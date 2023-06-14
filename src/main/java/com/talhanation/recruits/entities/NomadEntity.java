@@ -90,7 +90,7 @@ public class NomadEntity extends BowmanEntity {
     @Override
     public void initSpawn() {
         this.setCustomName(Component.literal("Nomad"));
-        this.setCost(20);
+        this.setCost(RecruitsModConfig.NomadCost.get());
         this.setEquipment();
         this.setDropEquipment();
         this.setRandomSpawnBonus();

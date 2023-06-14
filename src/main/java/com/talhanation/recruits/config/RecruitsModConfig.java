@@ -33,6 +33,12 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.BooleanValue DisableVanillaTeamCommands;
     public static ForgeConfigSpec.BooleanValue PillagerSpawnItems;
     public static ForgeConfigSpec.IntValue MaxAssassinCount;
+    public static ForgeConfigSpec.IntValue RecruitCost;
+    public static ForgeConfigSpec.IntValue BowmanCost;
+    public static ForgeConfigSpec.IntValue ShieldmanCost;
+    public static ForgeConfigSpec.IntValue NomadCost;
+    public static ForgeConfigSpec.IntValue HorsemanCost;
+    public static ForgeConfigSpec.IntValue CrossbowmanCost;
     public static ForgeConfigSpec.DoubleValue RecruitFollowStartDistance;
     public static ForgeConfigSpec.ConfigValue<List<String>> TargetBlackList;
     public static ForgeConfigSpec.ConfigValue<List<String>> MountWhiteList;
@@ -87,19 +93,15 @@ public class RecruitsModConfig {
         VERSION = BUILDER.comment("\n" +"##Version, do not change!##")
                 .defineInRange("Version", 0, 0, Integer.MAX_VALUE);
 
-        /*
-        Recruits Config
-         */
+        BUILDER.comment("Recruits Config Client Side:").push("Recruits Clkient Side");
 
-        BUILDER.comment("Recruits Config:").push("Recruits");
+        PlayVillagerAmbientSound = BUILDER.comment("""
 
-        RecruitCurrency = BUILDER.comment("""
-
-                        ----Currency----
+                        ----Should Recruits Make Villager "Huh?" sound?----
                         \t(takes effect after restart)
-                        \tThe Item defined here, will be used to hire recruits. For example: ["minecraft:diamond"]\tdefault: ["minecraft:emerald"]""")
+                        \tdefault: true""")
                 .worldRestart()
-                .define("RecruitCurrency", "minecraft:emerald");
+                .define("PlayVillagerAmbientSound", true);
 
         RecruitsLookLikeVillagers = BUILDER.comment("""
 
@@ -109,13 +111,29 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("RecruitsLookLikeVillagers", true);
 
-        PlayVillagerAmbientSound = BUILDER.comment("""
-
-                        ----Should Recruits Make Villager "Huh?" sound?----
+        CommandScreenToggle = BUILDER.comment("""
+                        ----CommandScreenToggle----      
                         \t(takes effect after restart)
-                        \tdefault: true""")
+                        \t
+                        Should the key to open the command screen be toggled instead of held?""
+                        default: false""")
+
                 .worldRestart()
-                .define("PlayVillagerAmbientSound", true);
+                .define("CommandScreenToggle", false);
+
+        /*
+        Recruits Config
+         */
+        BUILDER.pop();
+        BUILDER.comment("Recruits Config:").push("Recruits");
+
+        RecruitCurrency = BUILDER.comment("""
+
+                        ----Currency----
+                        \t(takes effect after restart)
+                        \tThe Item defined here, will be used to hire recruits. For example: ["minecraft:diamond"]\tdefault: ["minecraft:emerald"]""")
+                .worldRestart()
+                .define("RecruitCurrency", "minecraft:emerald");
 
         RecruitsMaxXpForLevelUp = BUILDER.comment("""
 
@@ -161,15 +179,53 @@ public class RecruitsModConfig {
                 .worldRestart()
                 .define("Mount Whitelist", MOUNTS);
 
-        CommandScreenToggle = BUILDER.comment("""
-                        ----CommandScreenToggle----      
-                        \t(takes effect after restart)
-                        \t
-                        Should the key to open the command screen be toggled instead of held?""
-                        default: false""")
+        RecruitCost = BUILDER.comment("""
 
+                        The amount of currency required to hire a recruit.
+                        \t(takes effect after restart)
+                        \tdefault: 15""")
                 .worldRestart()
-                .define("CommandScreenToggle", false);
+                .defineInRange("RecruitCost", 4, 0, 999);
+
+        BowmanCost = BUILDER.comment("""
+
+                        The amount of currency required to hire a bowman.
+                        \t(takes effect after restart)
+                        \tdefault: 15""")
+                .worldRestart()
+                .defineInRange("BowmanCost", 6, 0, 999);
+
+        CrossbowmanCost = BUILDER.comment("""
+
+                        The amount of currency required to hire a crossbowman.
+                        \t(takes effect after restart)
+                        \tdefault: 15""")
+                .worldRestart()
+                .defineInRange("CrossbowmanCost", 8, 0, 999);
+
+        ShieldmanCost = BUILDER.comment("""
+
+                        The amount of currency required to hire a shieldman.
+                        \t(takes effect after restart)
+                        \tdefault: 15""")
+                .worldRestart()
+                .defineInRange("ShieldmanCost", 10, 0, 999);
+
+        HorsemanCost = BUILDER.comment("""
+
+                        The amount of currency required to hire a horseman.
+                        \t(takes effect after restart)
+                        \tdefault: 15""")
+                .worldRestart()
+                .defineInRange("HorsemanCost", 20, 0, 999);
+
+        NomadCost = BUILDER.comment("""
+
+                        The amount of currency required to hire a nomad.
+                        \t(takes effect after restart)
+                        \tdefault: 15""")
+                .worldRestart()
+                .defineInRange("NomadCost", 19, 0, 999);
 
         /*
         Village Config

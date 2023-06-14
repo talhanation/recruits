@@ -116,7 +116,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
     @Override
     public void initSpawn() {
         this.setCustomName(Component.literal("Bowman"));
-        this.setCost(4);
+        this.setCost(RecruitsModConfig.BowmanCost.get());
         this.setEquipment();
         this.setDropEquipment();
         this.setRandomSpawnBonus();

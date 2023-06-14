@@ -93,7 +93,7 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
     @Override
     public void initSpawn() {
         this.setCustomName(Component.literal("Horseman"));
-        this.setCost(17);
+        this.setCost(RecruitsModConfig.HorsemanCost.get());
         this.setEquipment();
         this.setDropEquipment();
         this.setRandomSpawnBonus();
