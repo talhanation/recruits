@@ -53,10 +53,7 @@ public class RecruitEatGoal extends Goal {
         if (!recruit.isSaturated())
             recruit.setHunger(recruit.getHunger() + Objects.requireNonNull(foodStack.getItem().getFoodProperties(foodStack, recruit)).getSaturationModifier() * 10);
 
-        if(recruit.getMoral() < 100){
-            recruit.setMoral(recruit.getMoral() + 0.5F);   
-        }
-        
+
         recruit.setItemInHand(InteractionHand.OFF_HAND, foodStack);
         recruit.startUsingItem(InteractionHand.OFF_HAND);
     }
@@ -66,7 +63,10 @@ public class RecruitEatGoal extends Goal {
         recruit.setIsEating(false);
         recruit.stopUsingItem();
 
-        recruit.eatCoolDown = 100;
+        if(recruit.getMoral() < 100){
+            recruit.setMoral(recruit.getMoral() + 1.5F);
+        }
+
         resetItemInHand();
         /*
         Main.LOGGER.debug("Stop--------------: ");

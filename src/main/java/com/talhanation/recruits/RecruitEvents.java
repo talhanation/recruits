@@ -43,6 +43,8 @@ public class   RecruitEvents {
     private static final Map<ServerLevel, PillagerPatrolSpawn> PILLAGER_PATROL = new HashMap<>();
 
     public static MinecraftServer server;
+    public boolean needsUpdateHungerDay = true;
+    public boolean needsUpdateHungerNight = true;
 
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
@@ -89,7 +91,35 @@ public class   RecruitEvents {
             }
         }
 
+
+        //HUNGER
+        if (!event.level.isClientSide && event.level instanceof ServerLevel serverWorld) {
+            if(serverWorld.getLevel().isDay() && this.needsUpdateHungerDay){
+                serverSideUpdateRecruitHunger(serverWorld);
+                this.needsUpdateHungerNight = true;
+                this.needsUpdateHungerDay = false;
+            }
+            else if (serverWorld.getLevel().isNight() && this.needsUpdateHungerNight){
+
+                serverSideUpdateRecruitHunger(serverWorld);
+                this.needsUpdateHungerNight = false;
+                this.needsUpdateHungerDay = true;
+            }
+        }
+
     }
+
+    public void serverSideUpdateRecruitHunger(ServerLevel level){
+        List<AbstractRecruitEntity> recruitList = new ArrayList<>();
+        for(Entity entity : level.getEntities().getAll()){
+            if(entity instanceof AbstractRecruitEntity recruit)
+                recruitList.add(recruit);
+        }
+        for(AbstractRecruitEntity recruit : recruitList){
+            recruit.updateHunger();
+        }
+    }
+
     @SubscribeEvent
     public void onProjectileImpact(ProjectileImpactEvent event) {
         Entity entity = event.getEntity();
@@ -340,9 +370,9 @@ public class   RecruitEvents {
 
         if(target instanceof AbstractRecruitEntity recruit){
             if (recruit.getTeam() != null){
-                //Main.LOGGER.debug("recruit in team died: " + recruit.getTeam().getName());
                 TeamEvents.addNPCToData(server.overworld(), recruit.getTeam().getName(), -1);
             }
+
             //Morale loss when recruits friend die
             if(recruit.getIsOwned()){
                 UUID owner = recruit.getOwnerUUID();

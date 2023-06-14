@@ -2,6 +2,7 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.AssassinEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
@@ -14,6 +15,7 @@ import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
+import java.util.List;
 
 
 public class RecruitMeleeAttackGoal extends Goal {
@@ -97,7 +99,7 @@ public class RecruitMeleeAttackGoal extends Goal {
             this.recruit.getNavigation().moveTo(this.path, this.speedModifier);
             this.recruit.setAggressive(true);
             this.ticksUntilNextPathRecalculation = 0;
-            this.ticksUntilNextAttack = 10 + getCooldownModifier();
+            this.ticksUntilNextAttack = getCooldownModifier();
             this.ticksUntilMove = 15;
         }
     }
@@ -157,7 +159,7 @@ public class RecruitMeleeAttackGoal extends Goal {
     }
 
     protected void resetAttackCooldown() {
-        this.ticksUntilNextAttack = 15 + getCooldownModifier();
+        this.ticksUntilNextAttack = 5 + getCooldownModifier();
     }
 
     private int getCooldownModifier(){

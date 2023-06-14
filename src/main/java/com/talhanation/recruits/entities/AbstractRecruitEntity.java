@@ -107,7 +107,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Integer> UpkeepTimer = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
 
     public int blockCoolDown;
-    public int eatCoolDown;
     protected GroundPathNavigation navigation;
     private boolean needsTeamUpdate = true;
 
@@ -145,20 +144,19 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void aiStep(){
         super.aiStep();
         updateSwingTime();
-        //updateMoral();
         updateShield();
-        if(needsTeamUpdate) updateTeam();//TODO: performance -> trigger when team event
+        if(needsTeamUpdate) updateTeam();
         if(this.getVehicle() != null) updateMount();
-        //if(this.getNavigation().isStuck()) this.jumpFromGround();
     }
 
     public void tick() {
         super.tick();
-        updateHunger();
-        //Team team = this.getTeam();
-        //Main.LOGGER.info("Team: " + team);
-        updateMountTimer();
-        updateUpkeepTimer();
+        if(getMountTimer() > 0) setMountTimer(getMountTimer() - 1);
+        if(getUpkeepTimer() > 0) setUpkeepTimer(getUpkeepTimer() - 1);
+        if(getHunger() >=  70F && getHealth() < getMaxHealth()){
+            this.heal(1.0F/50F);// 1 hp in 2.5s
+        }
+
     }
 
     public void rideTick() {
@@ -646,6 +644,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void setMoral(float value) {
         this.entityData.set(MORAL, value);
+        this.applyMoralEffects();
     }
 
     public void setHunger(float value) {
@@ -1131,31 +1130,24 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     ////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////
 
     public void updateMoral(){
-        boolean confused =  10 <= getMoral() && getMoral() < 20;
-        boolean lowMoral =  20 <= getMoral() && getMoral() < 40;
-        boolean highMoral =  80 <= getMoral() && getMoral() < 95;
-        boolean strong =  95 <= getMoral();
-
         //fast recovery
-        if(this.getIsEating() && lowMoral || confused){
-            if(getMoral() < 100) setMoral((getMoral() + 0.004F));
-        }
-
-        if(this.getIsEating()){
-            if(getMoral() < 100) setMoral((getMoral() + 0.001F));
-        }
-
         if (isStarving() && this.isOwned()){
-            if(getMoral() > 0) setMoral((getMoral() - 0.01F));
+            if(getMoral() > 0) setMoral((getMoral() - 2F));
         }
 
         if (this.isOwned() && !isSaturated()){
-            if(getMoral() > 35) setMoral((getMoral() - 0.0001F));
+            if(getMoral() > 35) setMoral((getMoral() - 1F));
         }
 
-        if(this.isSaturated() || getHealth() >= getMaxHealth()*0.85){
-            if(getMoral() < 65) setMoral((getMoral() + 0.0002F));
+        if(this.isSaturated() || getHealth() >= getMaxHealth() * 0.85){
+            if(getMoral() < 65) setMoral((getMoral() + 2F));
         }
+    }
+
+    public void applyMoralEffects(){
+        boolean confused =  0 <= getMoral() && getMoral() < 20;
+        boolean lowMoral =  20 <= getMoral() && getMoral() < 40;
+        boolean highMoral =  90 <= getMoral() && getMoral() <= 100;
 
         if (confused) {
             if (!this.hasEffect(MobEffects.WEAKNESS))
@@ -1179,25 +1171,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if (!this.hasEffect(MobEffects.DAMAGE_RESISTANCE))
                 this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 200, 0, false, false, true));
         }
-
-        if (strong) {
-            if (!this.hasEffect(MobEffects.DAMAGE_BOOST))
-                this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 200, 1, false, false, true));
-            if (!this.hasEffect(MobEffects.DAMAGE_RESISTANCE))
-                this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 200, 1, false, false, true));
-        }
     }
 
     public void updateHunger(){
         if(getHunger() > 0) {
-            setHunger((getHunger() - 0.0001F));
+            setHunger((getHunger() - 15F));
         }
-        if(eatCoolDown > 0){
-            eatCoolDown--;
-        }
-        if(getHunger() >=  70F && getHealth() < getMaxHealth()){
-            this.heal(1.0F/40F);// 1 hp in 2s
-        }
+        this.updateMoral();
     }
 
     public boolean needsToGetFood(){
@@ -1477,16 +1457,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             horse.discard();
         }
 
-    }
-
-    public void updateMountTimer(){
-        if(getMountTimer() > 0){
-            setMountTimer(getMountTimer() - 1);
-        }
-    }
-
-    public void updateUpkeepTimer(){
-        if(getUpkeepTimer() > 0) setUpkeepTimer(getUpkeepTimer() - 1);
     }
 
     public int getMountTimer() {
