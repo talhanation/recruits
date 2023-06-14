@@ -93,7 +93,7 @@ public class RecruitsModConfig {
         VERSION = BUILDER.comment("\n" +"##Version, do not change!##")
                 .defineInRange("Version", 0, 0, Integer.MAX_VALUE);
 
-        BUILDER.comment("Recruits Config Client Side:").push("Recruits Clkient Side");
+        BUILDER.comment("Recruits Config Client Side:").push("Recruits Client Side");
 
         PlayVillagerAmbientSound = BUILDER.comment("""
 
@@ -112,7 +112,7 @@ public class RecruitsModConfig {
                 .define("RecruitsLookLikeVillagers", true);
 
         CommandScreenToggle = BUILDER.comment("""
-                        ----CommandScreenToggle----      
+                        ----CommandScreenToggle----
                         \t(takes effect after restart)
                         \t
                         Should the key to open the command screen be toggled instead of held?""

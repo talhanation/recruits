@@ -183,7 +183,7 @@ public class CommandEvents {
             case 2 -> owner.sendSystemMessage(TEXT_HOLD_POS(group_string));
             case 3 -> owner.sendSystemMessage(TEXT_BACK_TO_POS(group_string));
             case 4 -> owner.sendSystemMessage(TEXT_HOLD_MY_POS(group_string));
-            case 5 -> owner.sendSystemMessage(TEXT_ESCORT(group_string));
+            case 5 -> owner.sendSystemMessage(TEXT_PROTECT(group_string));
 
             case 92 -> owner.sendSystemMessage(TEXT_UPKEEP(group_string));
             case 93 -> owner.sendSystemMessage(TEXT_SHIELDS_OFF(group_string));
@@ -216,8 +216,8 @@ public class CommandEvents {
         return Component.translatable("chat.recruits.command.holdMyPos", group_string);
     }
 
-    private static MutableComponent TEXT_ESCORT(String group_string) {
-        return Component.translatable("chat.recruits.command.escort", group_string);
+    private static MutableComponent TEXT_PROTECT(String group_string) {
+        return Component.translatable("chat.recruits.command.protect", group_string);
     }
 
     private static MutableComponent TEXT_UPKEEP(String group_string) {
@@ -377,9 +377,9 @@ public class CommandEvents {
         }
     }
 
-    public static void onEscortButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID escort_uuid, int group) {
+    public static void onProtectButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID protect_uuid, int group) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
-            recruit.shouldEscort(true, escort_uuid);
+            recruit.shouldProtect(true, protect_uuid);
         }
     }
 

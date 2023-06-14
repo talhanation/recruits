@@ -80,7 +80,7 @@
   "gui.recruits.command.tooltip.backToPos" : "Make the recruits go back to their previously held position.",
   "gui.recruits.command.tooltip.patrol" : "Make the recruits patrol their previously held position.",
   "gui.recruits.command.tooltip.clearTargets" : "Clears the recruits current targets to attack.",
-  "gui.recruits.command.tooltip.escort" : "Make the recruits guard and follow the Mob you are looking at.",
+  "gui.recruits.command.tooltip.protect" : "Make the recruits protect and follow the Mob you are looking at.",
   "gui.recruits.command.tooltip.mount" : "If possible, the recruits will try to mount the Mob you are looking at.",
   "gui.recruits.command.tooltip.dismount" : "If possible, the recruits will dismount their current vehicle.",
   "gui.recruits.command.tooltip.move" : "If possible, the recruits will try to go to the position you are looking at.",
@@ -108,7 +108,7 @@
   "gui.recruits.command.text.shields" : "Shields!",
   "gui.recruits.command.text.strategic_fire" : "Strategic Fire",
 
-  "gui.recruits.command.text.escort" : "Guard this!",
+  "gui.recruits.command.text.protect" : "Protect this!",
   "gui.recruits.command.text.follow" : "Follow me!",
   "gui.recruits.command.text.wander" : "Wander freely!",
   "gui.recruits.command.text.holdMyPos": "Hold my Position!",
@@ -126,7 +126,7 @@
   "gui.recruits.command.text.everyone" : "Everyone",
 
   "chat.recruits.command.upkeep" : "%s Your upkeep is here!",
-  "chat.recruits.command.escort" : "%s Guard this Mob!",
+  "chat.recruits.command.protect" : "%s Protect this Mob!",
   "chat.recruits.command.mount" : "%s Mount here!",
   "chat.recruits.command.dismount" : "%s Dismount!",
   "chat.recruits.command.move" : "%s Move!",
@@ -158,6 +158,7 @@
   "chat.recruits.text.recruited1": "%s: That's an honorable path you're on.",
   "chat.recruits.text.recruited2": "%s: How can i assist you?",
   "chat.recruits.text.recruited3": "%s: Your way is my way. Im honored.",
+  "chat.recruits.text.protect_died": "%s: The Mob under protection has been killed.",
 
   "chat.recruits.text.hire_costs": "%s: You need %s %s to recruit me!",
   "chat.recruits.info.reached_max": "You reached the maximum limit you can recruit.",

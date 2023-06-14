@@ -11,20 +11,20 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageGuardEntity implements Message<MessageGuardEntity> {
+public class MessageProtectEntity implements Message<MessageProtectEntity> {
 
     private UUID uuid;
     private UUID target;
     private int group;
 
-    public MessageGuardEntity(){
+    public MessageProtectEntity(){
 
     }
 
-    public MessageGuardEntity(UUID uuid, UUID target, int group) {
+    public MessageProtectEntity(UUID uuid, UUID target, int group) {
         this.uuid = uuid;
         this.target = target;
-        this.group = 0;
+        this.group = group;
 
     }
 
@@ -35,11 +35,11 @@ public class MessageGuardEntity implements Message<MessageGuardEntity> {
     public void executeServerSide(NetworkEvent.Context context){
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
         for (AbstractRecruitEntity recruits : list) {
-            CommandEvents.onEscortButton(uuid, recruits, target, group);
+            CommandEvents.onProtectButton(uuid, recruits, target, group);
             CommandEvents.onFollowCommand(uuid, recruits, 5, this.group, false);
         }
     }
-    public MessageGuardEntity fromBytes(FriendlyByteBuf buf) {
+    public MessageProtectEntity fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();
         this.target = buf.readUUID();
         this.group = buf.readInt();

@@ -29,7 +29,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TOOLTIP_DISMOUNT = Component.translatable("gui.recruits.command.tooltip.dismount");
     private static final MutableComponent TOOLTIP_MOUNT = Component.translatable("gui.recruits.command.tooltip.mount");
     private static final MutableComponent TOOLTIP_SHIELDS = Component.translatable("gui.recruits.command.tooltip.shields");
-    private static final MutableComponent TOOLTIP_ESCORT = Component.translatable("gui.recruits.command.tooltip.escort");
+    private static final MutableComponent TOOLTIP_PROTECT = Component.translatable("gui.recruits.command.tooltip.protect");
     private static final MutableComponent TOOLTIP_MOVE = Component.translatable("gui.recruits.command.tooltip.move");
     private static final MutableComponent TOOLTIP_FOLLOW = Component.translatable("gui.recruits.command.tooltip.follow");
     private static final MutableComponent TOOLTIP_WANDER = Component.translatable("gui.recruits.command.tooltip.wander");
@@ -44,7 +44,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TOOLTIP_TEAM = Component.translatable("gui.recruits.command.tooltip.team");
     private static final MutableComponent TOOLTIP_CLEAR_TARGET = Component.translatable("gui.recruits.command.tooltip.clearTargets");
     private static final MutableComponent TEXT_EVERYONE = Component.translatable("gui.recruits.command.text.everyone");
-    private static final MutableComponent TEXT_ESCORT = Component.translatable("gui.recruits.command.text.escort");
+    private static final MutableComponent TEXT_PROTECT = Component.translatable("gui.recruits.command.text.protect");
     private static final MutableComponent TEXT_MOVE = Component.translatable("gui.recruits.command.text.move");
     private static final MutableComponent TEXT_SHIELDS = Component.translatable("gui.recruits.command.text.shields");
     private static final MutableComponent TEXT_DISMOUNT = Component.translatable("gui.recruits.command.text.dismount");
@@ -194,18 +194,18 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 }
         ));
 
-        //Guard
-        addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_ESCORT,
+        //PROTECT
+        addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_PROTECT,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(5, player, group);
                     Entity entity = ClientEvent.getEntityByLooking();
                     if (entity != null) {
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageGuardEntity(player.getUUID(), entity.getUUID(), group));
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageProtectEntity(player.getUUID(), entity.getUUID(), group));
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 5, group));
                     }
                 },
                 (button1, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_ESCORT, i, i1);
+                    this.renderTooltip(poseStack, TOOLTIP_PROTECT, i, i1);
                 }
         ));
 

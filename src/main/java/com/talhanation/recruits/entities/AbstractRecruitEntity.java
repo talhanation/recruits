@@ -15,7 +15,6 @@ import com.talhanation.recruits.network.MessageAddRecruitToTeam;
 import com.talhanation.recruits.network.MessageDebugScreen;
 import com.talhanation.recruits.network.MessageHireGui;
 import com.talhanation.recruits.network.MessageRecruitGui;
-import net.minecraft.client.renderer.entity.HorseRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -80,7 +79,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Boolean> SHOULD_FOLLOW = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> SHOULD_BLOCK = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> SHOULD_MOUNT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
-    private static final EntityDataAccessor<Boolean> SHOULD_ESCORT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> SHOULD_PROTECT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> SHOULD_HOLD_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> SHOULD_MOVE_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Optional<BlockPos>> HOLD_POS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
@@ -89,7 +88,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Boolean> LISTEN = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_FOLLOWING = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Optional<UUID>> MOUNT_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
-    private static final EntityDataAccessor<Optional<UUID>> ESCORT_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
+    private static final EntityDataAccessor<Optional<UUID>> PROTECT_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Integer> GROUP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> XP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> LEVEL = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
@@ -190,7 +189,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(0, new FleeFire(this));
         this.goalSelector.addGoal(0, new OpenDoorGoal(this, true) {
         });
-        this.goalSelector.addGoal(1, new RecruitEscortEntityGoal(this));
+        this.goalSelector.addGoal(1, new RecruitProtectEntityGoal(this));
 
         //this.goalSelector.addGoal(0, new (this));
 
@@ -199,7 +198,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(1, new RecruitUpkeepPosGoal(this));
         this.goalSelector.addGoal(1, new RecruitUpkeepEntityGoal(this));
         this.goalSelector.addGoal(2, new RecruitMountEntity(this));
-        this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D));
+        this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.05D));
         this.goalSelector.addGoal(4, new RecruitFollowOwnerGoal(this, 1.05D, RecruitsModConfig.RecruitFollowStartDistance.get()));
         this.goalSelector.addGoal(5, new RecruitMeleeAttackGoal(this, 1.15D, false));
         this.goalSelector.addGoal(6, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
@@ -224,7 +223,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             return (this.getState() == 1 && this.canAttack(target));
         }));
 
-        this.targetSelector.addGoal(0, new RecruitEscortHurtByTargetGoal(this));
+        this.targetSelector.addGoal(0, new RecruitProtectHurtByTargetGoal(this));
         this.targetSelector.addGoal(0, new RecruitOwnerHurtByTargetGoal(this));
         this.targetSelector.addGoal(0, new PatrolLeaderTargetAttackers(this));
         this.targetSelector.addGoal(1, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
@@ -242,10 +241,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.updateTeam();
     }
 
-    protected double getFollowStartDistance(){
-        return RecruitsModConfig.RecruitFollowStartDistance.get();
-    }
-
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(DATA_REMAINING_ANGER_TIME, 0);
@@ -253,7 +248,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(SHOULD_FOLLOW, false);
         this.entityData.define(SHOULD_BLOCK, false);
         this.entityData.define(SHOULD_MOUNT, false);
-        this.entityData.define(SHOULD_ESCORT, false);
+        this.entityData.define(SHOULD_PROTECT, false);
         this.entityData.define(SHOULD_HOLD_POS, false);
         this.entityData.define(SHOULD_MOVE_POS, false);
         this.entityData.define(FLEEING, false);
@@ -268,7 +263,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(MOVE_POS, Optional.empty());
         this.entityData.define(LISTEN, true);
         this.entityData.define(MOUNT_ID, Optional.empty());
-        this.entityData.define(ESCORT_ID, Optional.empty());
+        this.entityData.define(PROTECT_ID, Optional.empty());
         this.entityData.define(IS_FOLLOWING, false);
         this.entityData.define(IS_EATING, false);
         this.entityData.define(HUNGER, 50F);
@@ -292,7 +287,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         //2 = hold position
         //3 = back to position
         //4 = hold my position
-        //5 = Escort
+        //5 = Protect
 
     }
     @Override
@@ -301,7 +296,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putInt("AggroState", this.getState());
         nbt.putBoolean("ShouldFollow", this.getShouldFollow());
         nbt.putBoolean("ShouldMount", this.getShouldMount());
-        nbt.putBoolean("ShouldEscort", this.getShouldEscort());
+        nbt.putBoolean("ShouldProtect", this.getShouldProtect());
         nbt.putBoolean("ShouldBlock", this.getShouldBlock());
         nbt.putInt("Group", this.getGroup());
         nbt.putInt("Variant", this.getVariant());
@@ -341,8 +336,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             nbt.putUUID("MountUUID", this.getMountUUID());
         }
 
-        if(this.getEscortUUID() != null){
-            nbt.putUUID("EscortUUID", this.getEscortUUID());
+        if(this.getProtectUUID() != null){
+            nbt.putUUID("ProtectUUID", this.getProtectUUID());
         }
 
         if(this.getUpkeepUUID() != null){
@@ -364,7 +359,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setShouldFollow(nbt.getBoolean("ShouldFollow"));
         this.setShouldMount(nbt.getBoolean("ShouldMount"));
         this.setShouldBlock(nbt.getBoolean("ShouldBlock"));
-        this.setShouldEscort(nbt.getBoolean("ShouldEscort"));
+        this.setShouldProtect(nbt.getBoolean("ShouldProtect"));
         this.setFleeing(nbt.getBoolean("Fleeing"));
         this.setGroup(nbt.getInt("Group"));
         this.setListen(nbt.getBoolean("Listen"));
@@ -402,9 +397,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setOwnerUUID(uuid);
         }
 
-        if (nbt.contains("EscortUUID")){
-            Optional<UUID> uuid = Optional.of(nbt.getUUID("EscortUUID"));
-            this.setEscortUUID(uuid);
+        if (nbt.contains("ProtectUUID")){
+            Optional<UUID> uuid = Optional.of(nbt.getUUID("ProtectUUID"));
+            this.setProtectUUID(uuid);
         }
 
         if (nbt.contains("MountUUID")){
@@ -458,8 +453,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return  this.entityData.get(OWNER_ID).orElse(null);
     }
 
-    public UUID getEscortUUID(){
-        return  this.entityData.get(ESCORT_ID).orElse(null);
+    public UUID getProtectUUID(){
+        return  this.entityData.get(PROTECT_ID).orElse(null);
     }
 
     public UUID getMountUUID(){
@@ -516,8 +511,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return entityData.get(SHOULD_MOUNT);
     }
 
-    public boolean getShouldEscort() {
-        return entityData.get(SHOULD_ESCORT);
+    public boolean getShouldProtect() {
+        return entityData.get(SHOULD_PROTECT);
     }
 
     public boolean getShouldFollow() {
@@ -552,7 +547,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     //2 = hold position
     //3 = back to position
     //4 = hold my position
-    //5 = Escort
+    //5 = Protect
     public int getFollowState(){
         return entityData.get(FOLLOW_STATE);
     }
@@ -597,10 +592,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     @Nullable
-    public LivingEntity getEscort(){
+    public LivingEntity getProtectingMob(){
         List<LivingEntity> list = this.level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(32D));
         for(LivingEntity living : list){
-            if (this.getEscortUUID() != null && living.getUUID().equals(this.getEscortUUID()) && living.isAlive()){
+            if (this.getProtectUUID() != null && living.getUUID().equals(this.getProtectUUID()) && living.isAlive()){
                 return living;
             }
         }
@@ -634,8 +629,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.set(OWNER_ID,id);
     }
 
-    public void setEscortUUID(Optional<UUID> id) {
-        this.entityData.set(ESCORT_ID, id);
+    public void setProtectUUID(Optional<UUID> id) {
+        this.entityData.set(PROTECT_ID, id);
     }
 
     public void setMountUUID(Optional<UUID> id) {
@@ -720,8 +715,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void setShouldMovePos(boolean bool){
         entityData.set(SHOULD_MOVE_POS, bool);
     }
-    public void setShouldEscort(boolean bool){
-        entityData.set(SHOULD_ESCORT, bool);
+    public void setShouldProtect(boolean bool){
+        entityData.set(SHOULD_PROTECT, bool);
     }
 
     public void setShouldMount(boolean bool){
@@ -771,20 +766,20 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     //2 = hold position
     //3 = back to position
     //4 = hold my position
-    //5 = Escort
+    //5 = Protect
 
     public void setFollowState(int state){
         switch (state) {
             case 0 -> {
                 setShouldFollow(false);
                 setShouldHoldPos(false);
-                setShouldEscort(false);
+                setShouldProtect(false);
                 setShouldMovePos(false);
             }
             case 1 -> {
                 setShouldFollow(true);
                 setShouldHoldPos(false);
-                setShouldEscort(false);
+                setShouldProtect(false);
                 setShouldMovePos(false);
             }
             case 2 -> {
@@ -792,13 +787,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 setShouldHoldPos(true);
                 clearHoldPos();
                 setHoldPos(getOnPos());
-                setShouldEscort(false);
+                setShouldProtect(false);
                 setShouldMovePos(false);
             }
             case 3 -> {
                 setShouldFollow(false);
                 setShouldHoldPos(true);
-                setShouldEscort(false);
+                setShouldProtect(false);
                 setShouldMovePos(false);
             }
             case 4 -> {
@@ -806,14 +801,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 setShouldHoldPos(true);
                 clearHoldPos();
                 setHoldPos(this.getOwner().blockPosition());
-                setShouldEscort(false);
+                setShouldProtect(false);
                 setShouldMovePos(false);
                 state = 3;
             }
             case 5 -> {
                 setShouldFollow(false);
                 setShouldHoldPos(false);
-                setShouldEscort(true);
+                setShouldProtect(true);
                 setShouldMovePos(false);
             }
         }
@@ -1029,7 +1024,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 else
                     this.setTarget(living);
 
-                if(this.getShouldEscort() && this.getEscort() instanceof AbstractRecruitEntity patrolLeader){
+                if(this.getShouldProtect() && this.getProtectingMob() instanceof AbstractRecruitEntity patrolLeader){
                     patrolLeader.setTarget(living);
                 }
             }
@@ -1634,10 +1629,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
-    public void shouldEscort(boolean should, UUID escort_uuid) {
-        this.setShouldEscort(should);
-        if(escort_uuid != null) this.setEscortUUID(Optional.of(escort_uuid));
-        else this.setEscortUUID(Optional.empty());
+    public void shouldProtect(boolean should, UUID protect_uuid) {
+        this.setShouldProtect(should);
+        if(protect_uuid != null) this.setProtectUUID(Optional.of(protect_uuid));
+        else this.setProtectUUID(Optional.empty());
     }
 
     public void clearMount() {

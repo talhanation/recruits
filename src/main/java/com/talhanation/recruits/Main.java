@@ -81,7 +81,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 15, MessageRecruitGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 16, MessageHireGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 17, MessageHire.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 18, MessageGuardEntity.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 18, MessageProtectEntity.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 19, MessageDismount.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 20, MessageDismountGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 21, MessageUpkeepPos.class);

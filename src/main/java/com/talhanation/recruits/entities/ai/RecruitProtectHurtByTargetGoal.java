@@ -6,32 +6,30 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.target.TargetGoal;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 
-import javax.annotation.Nullable;
 import java.util.EnumSet;
-import java.util.List;
 
-public class RecruitEscortHurtByTargetGoal extends TargetGoal {
+public class RecruitProtectHurtByTargetGoal extends TargetGoal {
     private final AbstractRecruitEntity recruit;
-    private LivingEntity escortLastHurtBy;
+    private LivingEntity protectLastHurtBy;
     private int timestamp;
 
-    public RecruitEscortHurtByTargetGoal(AbstractRecruitEntity recruit) {
+    public RecruitProtectHurtByTargetGoal(AbstractRecruitEntity recruit) {
         super(recruit, false);
         this.recruit = recruit;
         this.setFlags(EnumSet.of(Goal.Flag.TARGET));
     }
 
     public boolean canUse() {
-        if(recruit.getShouldEscort()) {
-            LivingEntity escort = this.recruit.getEscort();
-            if (escort == null) {
+        if(recruit.getShouldProtect()) {
+            LivingEntity protectingMob = this.recruit.getProtectingMob();
+            if (protectingMob == null) {
                 return false;
             } else {
-                this.escortLastHurtBy = escort.getLastHurtByMob();
-                int i = escort.getLastHurtByMobTimestamp();
+                this.protectLastHurtBy = protectingMob.getLastHurtByMob();
+                int i = protectingMob.getLastHurtByMobTimestamp();
                 return i != this.timestamp
-                        && this.canAttack(this.escortLastHurtBy, TargetingConditions.DEFAULT)
-                        && this.recruit.wantsToAttack(this.escortLastHurtBy, escort)
+                        && this.canAttack(this.protectLastHurtBy, TargetingConditions.DEFAULT)
+                        && this.recruit.wantsToAttack(this.protectLastHurtBy, protectingMob)
                         && recruit.getState() != 3;
             }
         }
@@ -40,9 +38,9 @@ public class RecruitEscortHurtByTargetGoal extends TargetGoal {
     }
 
     public void start() {
-        this.mob.setTarget(this.escortLastHurtBy);
-        this.mob.setLastHurtMob(this.escortLastHurtBy);
-        LivingEntity livingentity = this.recruit.getEscort();
+        this.mob.setTarget(this.protectLastHurtBy);
+        this.mob.setLastHurtMob(this.protectLastHurtBy);
+        LivingEntity livingentity = this.recruit.getProtectingMob();
         if (livingentity != null) {
             this.timestamp = livingentity.getLastHurtByMobTimestamp();
         }

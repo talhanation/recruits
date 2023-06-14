@@ -311,7 +311,7 @@ public class   RecruitEvents {
                 return false;
             }
         }
-        else if (target instanceof AbstractRecruitEntity recruitEntityTarget && recruit.getEscortUUID() != null && recruitEntityTarget.getEscortUUID() != null && recruit.getEscortUUID().equals(recruitEntityTarget.getEscortUUID())){
+        else if (target instanceof AbstractRecruitEntity recruitEntityTarget && recruit.getProtectUUID() != null && recruitEntityTarget.getProtectUUID() != null && recruit.getProtectUUID().equals(recruitEntityTarget.getProtectUUID())){
             return false;
         }
         return RecruitEvents.canHarmTeamNoFriendlyFire(recruit, target);
@@ -332,7 +332,7 @@ public class   RecruitEvents {
                 return false;
             }
         }
-        else if (target instanceof AbstractRecruitEntity recruitEntityTarget && recruit.getEscortUUID() != null && recruitEntityTarget.getEscortUUID() != null && recruit.getEscortUUID().equals(recruitEntityTarget.getEscortUUID())){
+        else if (target instanceof AbstractRecruitEntity recruitEntityTarget && recruit.getProtectUUID() != null && recruitEntityTarget.getProtectUUID() != null && recruit.getProtectUUID().equals(recruitEntityTarget.getProtectUUID())){
             return false;
         }
         return RecruitEvents.canHarmTeam(recruit, target);

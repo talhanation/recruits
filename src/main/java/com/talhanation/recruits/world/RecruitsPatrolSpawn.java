@@ -21,7 +21,6 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.WanderingTrader;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameRules;
@@ -412,7 +411,7 @@ public class RecruitsPatrolSpawn {
         patrolLeader.setXp(random.nextInt(200));
         patrolLeader.setCustomName(Component.literal(name));
 
-        patrolLeader.setEscortUUID(Optional.of(patrolLeader.getUUID()));
+        patrolLeader.setProtectUUID(Optional.of(patrolLeader.getUUID()));
 
         patrolLeader.targetSelector.addGoal(2, new PatrolLeaderTargetAttackers(patrolLeader));
 
@@ -432,8 +431,8 @@ public class RecruitsPatrolSpawn {
         recruitEntity.setHunger(80);
         recruitEntity.setMoral(65);
         recruitEntity.setCost(18);
-        recruitEntity.setEscortUUID(Optional.of(patrolLeader.getUUID()));
-        recruitEntity.setShouldEscort(true);
+        recruitEntity.setProtectUUID(Optional.of(patrolLeader.getUUID()));
+        recruitEntity.setShouldProtect(true);
         recruitEntity.setXp(random.nextInt(80));
 
         recruitEntity.setCustomName(Component.literal(name));
@@ -455,8 +454,8 @@ public class RecruitsPatrolSpawn {
         bowman.setHunger(80);
         bowman.setMoral(65);
         bowman.setCost(32);
-        bowman.setEscortUUID(Optional.of(patrolLeader.getUUID()));
-        bowman.setShouldEscort(true);
+        bowman.setProtectUUID(Optional.of(patrolLeader.getUUID()));
+        bowman.setShouldProtect(true);
         bowman.setXp(random.nextInt(120));
 
         bowman.setCustomName(Component.literal("Patrol"));
@@ -478,8 +477,8 @@ public class RecruitsPatrolSpawn {
         shieldmanEntity.setHunger(80);
         shieldmanEntity.setMoral(65);
         shieldmanEntity.setCost(24);
-        shieldmanEntity.setEscortUUID(Optional.of(patrolLeader.getUUID()));
-        shieldmanEntity.setShouldEscort(true);
+        shieldmanEntity.setProtectUUID(Optional.of(patrolLeader.getUUID()));
+        shieldmanEntity.setShouldProtect(true);
         shieldmanEntity.setXp(random.nextInt(120));
 
         shieldmanEntity.setCustomName(Component.literal(name));
