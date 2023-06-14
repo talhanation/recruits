@@ -106,7 +106,9 @@ public class RecruitHorseEntity extends Animal {
 
     public void setRandomVariant() {
         int variant = this.random.nextInt(7);
+        int marking = this.random.nextInt(3);
         this.setTypeVariant(variant);
+        this.setTypeMarking(marking);
     }
 
     public void setRandomSpawnBonus(){
