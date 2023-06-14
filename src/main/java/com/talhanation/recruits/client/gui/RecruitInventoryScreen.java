@@ -26,8 +26,18 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TEXT_LEVEL = Component.translatable("gui.recruits.inv.level");
     private static final MutableComponent TEXT_KILLS = Component.translatable("gui.recruits.inv.kills");
     private static final MutableComponent TEXT_DISBAND = Component.translatable("gui.recruits.inv.text.disband");
-    private static final MutableComponent TEXT_DISMOUNT = Component.translatable("gui.recruits.inv.text.dismount");
 
+    private static final MutableComponent TEXT_INFO_FOLLOW = Component.translatable("gui.recruits.inv.info.text.follow");
+    private static final MutableComponent TEXT_INFO_WANDER = Component.translatable("gui.recruits.inv.info.text.wander");
+    private static final MutableComponent TEXT_INFO_HOLD_POS = Component.translatable("gui.recruits.inv.info.text.hold_pos");
+    private static final MutableComponent TEXT_INFO_PASSIVE = Component.translatable("gui.recruits.inv.info.text.passive");
+    private static final MutableComponent TEXT_INFO_NEUTRAL = Component.translatable("gui.recruits.inv.info.text.neutral");
+    private static final MutableComponent TEXT_INFO_AGGRESSIVE = Component.translatable("gui.recruits.inv.info.text.aggressive");
+    private static final MutableComponent TEXT_INFO_LISTEN = Component.translatable("gui.recruits.inv.info.text.listen");
+    private static final MutableComponent TEXT_INFO_IGNORE = Component.translatable("gui.recruits.inv.info.text.ignore");
+    private static final MutableComponent TEXT_INFO_RAID = Component.translatable("gui.recruits.inv.info.text.raid");
+    private static final MutableComponent TEXT_INFO_PROTECT = Component.translatable("gui.recruits.inv.info.text.protect");
+    private static final MutableComponent TEXT_DISMOUNT = Component.translatable("gui.recruits.inv.text.dismount");
     private static final MutableComponent TOOLTIP_DISMOUNT = Component.translatable("gui.recruits.inv.tooltip.dismount");
     private static final MutableComponent TOOLTIP_FOLLOW = Component.translatable("gui.recruits.inv.tooltip.follow");
     private static final MutableComponent TOOLTIP_WANDER = Component.translatable("gui.recruits.inv.tooltip.wander");
@@ -218,6 +228,20 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                 }
         ));
 
+        //HOLD MY POS
+        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 5, 80, 20, TEXT_DISMOUNT,
+                button -> {
+                    this.follow = recruit.getFollowState();
+                    if (this.follow != 4) {
+                        this.follow = 4;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageDismountGui(playerInventory.player.getUUID(), recruit.getUUID()));
+                    }
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_DISMOUNT, i, i1);
+                }
+        ));
+
         //LISTEN
         addRenderableWidget(new Button(leftPos + 77, topPos + 113, 8, 12, Component.literal("<"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
@@ -276,10 +300,10 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         font.draw(matrixStack, "" + recruit.getXpLevel(), k + 25 , l + 10, fontColor);
         font.draw(matrixStack, "Exp:", k, l + 20, fontColor);
         font.draw(matrixStack, "" + recruit.getXp(), k + 25, l + 20, fontColor);
-        font.draw(matrixStack, "Kills:", k, l + 30, fontColor);
+        font.draw(matrixStack, "Kls:", k, l + 30, fontColor);
         font.draw(matrixStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
-        font.draw(matrixStack, "Morale:", k, l + 40, fontColor);
-        font.draw(matrixStack, ""+ moral, k + 30, l + 44, fontColor);
+        font.draw(matrixStack, "Mrl:", k, l + 40, fontColor);
+        font.draw(matrixStack, ""+ moral, k + 25, l + 40, fontColor);
         /*
         font.draw(matrixStack, "Moral:", k, l + 30, fontColor);
         font.draw(matrixStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
@@ -287,19 +311,19 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
 
         // command
         String follow = switch (this.follow) {
-            case 0 -> "Wandering";
-            case 1 -> "Following";
-            case 2, 3, 4 -> "Holding Pos.";
-            case 5 -> "Guarding";
+            case 0 -> TEXT_INFO_WANDER.getString();
+            case 1 -> TEXT_INFO_FOLLOW.getString();
+            case 2, 3, 4 -> TEXT_INFO_HOLD_POS.getString();
+            case 5 -> TEXT_INFO_PROTECT.getString();
             default -> throw new IllegalStateException("Unexpected value: " + this.follow);
         };
         font.draw(matrixStack, follow, k + 15, l + 58 + 0, fontColor);
 
         String aggro = switch (this.aggro) {
-            case 0 -> "Neutral";
-            case 1 -> "Aggressive";
-            case 2 -> "Raid";
-            case 3 -> "Passive";
+            case 0 -> TEXT_INFO_NEUTRAL.getString();
+            case 1 -> TEXT_INFO_AGGRESSIVE.getString();
+            case 2 -> TEXT_INFO_RAID.getString();
+            case 3 -> TEXT_INFO_PASSIVE.getString();
             default -> throw new IllegalStateException("Unexpected value: " + this.aggro);
         };
         font.draw(matrixStack, aggro, k + 15, l + 56 + 15, fontColor);
@@ -307,8 +331,8 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         font.draw(matrixStack, CommandScreen.handleGroupText(recruit.getGroup()), k + 15, l + 56 + 28, fontColor);
 
         String listen;
-        if (recruit.getListen()) listen = "Listening";
-        else listen = "Ignoring";
+        if (recruit.getListen()) listen = TEXT_INFO_LISTEN.getString();
+        else listen = TEXT_INFO_IGNORE.getString();
         font.draw(matrixStack, listen, k + 15, l + 56 + 41, fontColor);
     }
 

@@ -52,6 +52,18 @@
   "gui.recruits.inv.text.disband" : "Disband",
   "gui.recruits.inv.text.dismount" : "Dismount",
   "gui.recruits.inv.text.group" : "Group",
+  
+  "gui.recruits.inv.info.text.neutral" : "Neutral",
+  "gui.recruits.inv.info.text.aggressive" : "Aggressive",
+  "gui.recruits.inv.info.text.raid" : "Raid",
+  "gui.recruits.inv.info.text.passive" : "Passive",
+  "gui.recruits.inv.info.text.wander" : "Wandering",
+  "gui.recruits.inv.info.text.follow" : "Following",
+  "gui.recruits.inv.info.text.hold_pos" : "Holding Position",
+  "gui.recruits.inv.info.text.protect" : "Protecting",
+  "gui.recruits.inv.info.text.listen" : "Listening",
+  "gui.recruits.inv.info.text.ignore" : "Ignoring",
+
 
   "gui.recruits.hire_gui.text.hire" : "Hire",
 
