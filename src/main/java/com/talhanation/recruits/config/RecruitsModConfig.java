@@ -154,9 +154,9 @@ public class RecruitsModConfig {
 
                         ----Distance Recruits will start to follow its owner----
                         \t(takes effect after restart)
-                        \tdefault: 9.0""")
+                        \tdefault: 20.0""")
                 .worldRestart()
-                .defineInRange("RecruitFollowStartDistance", 9.0, 4.0, 16.0);
+                .defineInRange("RecruitFollowStartDistance", 20.0, 0, 100.0);
 
         MaxRecruitsForPlayer = BUILDER.comment("""
                         ----Max amount a player can recruit----

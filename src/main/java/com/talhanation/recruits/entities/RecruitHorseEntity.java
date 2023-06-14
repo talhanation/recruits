@@ -117,11 +117,6 @@ public class RecruitHorseEntity extends Animal {
 
     }
 
-    @Override
-    public double getPassengersRidingOffset() {
-        return super.getPassengersRidingOffset() + 0.5D;
-    }
-
     //ATTRIBUTES
     public static AttributeSupplier setAttributes() {
         return LivingEntity.createLivingAttributes()
@@ -151,8 +146,8 @@ public class RecruitHorseEntity extends Animal {
 
     @Override
     public boolean hurt(@NotNull DamageSource damageSource, float amount) {
-        if(getControllingPassenger() instanceof AbstractRecruitEntity recruit){
-            if(damageSource.getDirectEntity() instanceof LivingEntity target)
+        if(getFirstPassenger() instanceof AbstractRecruitEntity recruit){
+            if(damageSource.getEntity() instanceof LivingEntity target)
                 recruit.setTarget(target);
         }
 

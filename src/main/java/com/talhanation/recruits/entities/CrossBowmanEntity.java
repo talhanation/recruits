@@ -56,7 +56,7 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new FloatGoal(this));
-        this.goalSelector.addGoal(2, new RecruitFollowOwnerGoal(this, 1.2D, 7.F, 4.0F));
+        //this.goalSelector.addGoal(2, new RecruitFollowOwnerGoal(this, 1.2D, 7.F, 4.0F));
         this.goalSelector.addGoal(3, new RecruitRangedCrossbowAttackGoal<>(this, 1.0D, 8.0F));
         this.goalSelector.addGoal(4, new RecruitMoveToPosGoal(this, 1.2D));
         this.goalSelector.addGoal(5, new RecruitHoldPosGoal(this, 1.0D, 32.0F));

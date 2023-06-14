@@ -200,7 +200,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(1, new RecruitUpkeepEntityGoal(this));
         this.goalSelector.addGoal(2, new RecruitMountEntity(this));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.2D));
-        this.goalSelector.addGoal(4, new RecruitFollowOwnerGoal(this, 1.2D, this.getFollowStartDistance(), 3.0F));
+        this.goalSelector.addGoal(4, new RecruitFollowOwnerGoal(this, 1.05D, RecruitsModConfig.RecruitFollowStartDistance.get()));
         this.goalSelector.addGoal(5, new RecruitMeleeAttackGoal(this, 1.15D, false));
         this.goalSelector.addGoal(6, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
         this.goalSelector.addGoal(7, new RecruitMoveTowardsTargetGoal(this, 1.15D, 32.0F));
@@ -885,7 +885,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.recalculateCost();
         this.setVariant(random.nextInt(3));
     }
-
 
     ////////////////////////////////////is FUNCTIONS////////////////////////////////////
 
