@@ -1,10 +1,7 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.entities.AssassinEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
@@ -12,10 +9,8 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.pathfinder.Path;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
-import java.util.List;
 
 
 public class RecruitMeleeAttackGoal extends Goal {
@@ -115,7 +110,7 @@ public class RecruitMeleeAttackGoal extends Goal {
     }
 
     public void tick() {
-        Main.LOGGER.info("this.ticksUntilNextAttack: " + this.ticksUntilNextAttack);
+        //Main.LOGGER.info("this.ticksUntilNextAttack: " + this.ticksUntilNextAttack);
         LivingEntity target = this.recruit.getTarget();
         this.recruit.getLookControl().setLookAt(target, 30.0F, 30.0F);
         double d0 = this.recruit.distanceToSqr(target.getX(), target.getY(), target.getZ());
