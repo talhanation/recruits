@@ -1530,6 +1530,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     return !otherRecruit.getProtectUUID().equals(this.getProtectUUID());
                 }
             }
+            else if(otherRecruit.getProtectUUID() != null && this.getProtectUUID() != null){
+                return !otherRecruit.getProtectUUID().equals(this.getProtectUUID());
+            }
             else
                 return RecruitEvents.canHarmTeam(this, living);
             return false;
