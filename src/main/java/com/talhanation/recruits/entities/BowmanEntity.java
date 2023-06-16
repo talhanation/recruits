@@ -1,8 +1,11 @@
 package com.talhanation.recruits.entities;
 
+import com.talhanation.recruits.compat.IWeapon;
+import com.talhanation.recruits.compat.MusketWeapon;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.RecruitStrategicFire;
 import com.talhanation.recruits.entities.ai.RecruitRangedBowAttackGoal;
+import com.talhanation.recruits.entities.ai.compat.RecruitRangedMusketAttackGoal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -82,14 +85,11 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
         }
     }
 
-
     @Override
     protected void registerGoals() {
         super.registerGoals();
         this.goalSelector.addGoal(2, new RecruitStrategicFire(this, 10, 20));
     }
-
-
 
     //ATTRIBUTES
     public static AttributeSupplier.Builder setAttributes() {

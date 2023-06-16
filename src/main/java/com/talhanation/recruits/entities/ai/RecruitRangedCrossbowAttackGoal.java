@@ -1,138 +1,186 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.compat.CrossbowWeapon;
+import com.talhanation.recruits.compat.IWeapon;
+import com.talhanation.recruits.compat.MusketWeapon;
+import com.talhanation.recruits.compat.PistolWeapon;
 import com.talhanation.recruits.entities.CrossBowmanEntity;
-import net.minecraft.util.TimeUtil;
-import net.minecraft.util.valueproviders.UniformInt;
+import com.talhanation.recruits.entities.ai.compat.RecruitRangedMusketAttackGoal;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.monster.CrossbowAttackMob;
-import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
-
 import java.util.EnumSet;
 
-public class RecruitRangedCrossbowAttackGoal<T extends CrossBowmanEntity & CrossbowAttackMob> extends Goal {
-    public static final UniformInt PATHFINDING_DELAY_RANGE = TimeUtil.rangeOfSeconds(1, 2);
-    private final T recruit;
-    private RecruitRangedCrossbowAttackGoal.CrossbowState crossbowState = RecruitRangedCrossbowAttackGoal.CrossbowState.UNCHARGED;
+public class RecruitRangedCrossbowAttackGoal extends Goal {
+    private final CrossBowmanEntity crossBowman;
     private final double speedModifier;
-    private final float attackRadiusSqr;
     private int seeTime;
-    private int attackDelay;
-    private int updatePathDelay;
+    private State state;
+    private IWeapon weapon;
 
-    public RecruitRangedCrossbowAttackGoal(T p_25814_, double p_25815_, float p_25816_) {
-        this.recruit = p_25814_;
-        this.speedModifier = p_25815_;
-        this.attackRadiusSqr = p_25816_ * p_25816_;
-        this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
+    public RecruitRangedCrossbowAttackGoal(CrossBowmanEntity crossBowman) {
+        this.weapon = new MusketWeapon();
+        this.crossBowman = crossBowman;
+        this.speedModifier = this.weapon.getMoveSpeedAmp();
+        this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
 
+    @Override
     public boolean canUse() {
-        return this.isValidTarget() && this.isHoldingCrossbow();
+        return this.crossBowman.getTarget() != null && this.isWeaponInMainHand();
     }
 
-    private boolean isHoldingCrossbow() {
-        return this.recruit.isHolding(is -> is.getItem() instanceof CrossbowItem);
-    }
-
+    @Override
     public boolean canContinueToUse() {
-        return this.isValidTarget() && (this.canUse() || !this.recruit.getNavigation().isDone()) && this.isHoldingCrossbow();
+        return (this.canUse() || this.crossBowman.getNavigation().getPath() != null) && this.isWeaponInMainHand();
     }
 
-    private boolean isValidTarget() {
-        return this.recruit.getTarget() != null && this.recruit.getTarget().isAlive();
+    @Override
+    public void start() {
+        super.start();
+        this.crossBowman.setAggressive(true);
+        this.state = State.RELOAD;
     }
 
+    @Override
     public void stop() {
         super.stop();
-        this.recruit.setAggressive(false);
-        this.recruit.setTarget((LivingEntity)null);
         this.seeTime = 0;
-        if (this.recruit.isUsingItem()) {
-            this.recruit.stopUsingItem();
-            this.recruit.setChargingCrossbow(false);
-            CrossbowItem.setCharged(this.recruit.getUseItem(), false);
-        }
-
+        this.crossBowman.stopUsingItem();
+        this.crossBowman.setAggressive(false);
     }
 
-    public boolean requiresUpdateEveryTick() {
-        return true;
+    protected boolean isWeaponInMainHand() {
+        ItemStack itemStack = crossBowman.getItemBySlot(crossBowman.getEquipmentSlotIndex(5));
+        if(itemStack.getItem() instanceof CrossbowItem) {
+            this.weapon = new CrossbowWeapon();
+            return true;
+        }
+        else
+            return false;
     }
 
     public void tick() {
-        LivingEntity livingentity = this.recruit.getTarget();
-        if (livingentity != null) {
-            boolean flag = this.recruit.getSensing().hasLineOfSight(livingentity);
-            boolean flag1 = this.seeTime > 0;
-            if (flag != flag1) {
-                this.seeTime = 0;
+        LivingEntity target = this.crossBowman.getTarget();
+
+        if (target != null) {
+            double distanceToTarget = target.distanceTo(this.crossBowman);
+            boolean isClose = distanceToTarget <= 7.00D;
+            boolean isFar = distanceToTarget >= 21.5D;
+            boolean inRange =  !isFar && distanceToTarget <= 15.0D;
+
+            // movement
+            if (crossBowman.getShouldHoldPos() && crossBowman.getHoldPos() != null) {
+                if ((!crossBowman.getHoldPos().closerThan(crossBowman.getOnPos(), 5D))){
+                    if (inRange) this.crossBowman.getNavigation().stop();
+                    if (isFar) this.crossBowman.getNavigation().moveTo(target, this.speedModifier);
+                    if (isClose) this.crossBowman.fleeEntity(target);
+                }
             }
 
-            if (flag) {
-                ++this.seeTime;
-            } else {
-                --this.seeTime;
+            else if (crossBowman.getShouldFollow() && crossBowman.getOwner() != null){
+                boolean playerClose = crossBowman.getOwner().distanceTo(this.crossBowman) <= 15.00D;
+
+                if (playerClose){
+                    if (inRange) this.crossBowman.getNavigation().stop();
+                    if (isFar) this.crossBowman.getNavigation().moveTo(target, this.speedModifier);
+                    if (isClose) this.crossBowman.fleeEntity(target);
+                }
+                if (!playerClose) {
+                    this.crossBowman.getNavigation().moveTo(crossBowman.getOwner(), this.speedModifier);
+                }
             }
 
-            double d0 = this.recruit.distanceToSqr(livingentity);
-            boolean flag2 = (d0 > (double)this.attackRadiusSqr || this.seeTime < 5) && this.attackDelay == 0;
-            if (flag2) {
-                --this.updatePathDelay;
-                if (this.updatePathDelay <= 0) {
-                    this.recruit.getNavigation().moveTo(livingentity, this.canRun() ? this.speedModifier : this.speedModifier * 0.5D);
-                    this.updatePathDelay = PATHFINDING_DELAY_RANGE.sample(this.recruit.getRandom());
-                }
-            } else {
-                this.updatePathDelay = 0;
-                this.recruit.getNavigation().stop();
+            else {
+                if (inRange) this.crossBowman.getNavigation().stop();
+                if (isFar) this.crossBowman.getNavigation().moveTo(target, this.speedModifier);
+                if (isClose) this.crossBowman.fleeEntity(target);
             }
+        }
 
-            this.recruit.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
-            if (this.crossbowState == RecruitRangedCrossbowAttackGoal.CrossbowState.UNCHARGED) {
-                if (!flag2) {
-                    this.recruit.startUsingItem(ProjectileUtil.getWeaponHoldingHand(this.recruit, item -> item instanceof CrossbowItem));
-                    this.crossbowState = RecruitRangedCrossbowAttackGoal.CrossbowState.CHARGING;
-                    this.recruit.setChargingCrossbow(true);
-                }
-            } else if (this.crossbowState == RecruitRangedCrossbowAttackGoal.CrossbowState.CHARGING) {
-                if (!this.recruit.isUsingItem()) {
-                    this.crossbowState = RecruitRangedCrossbowAttackGoal.CrossbowState.UNCHARGED;
+        //WEAPON HANDLING
+        if(isWeaponInMainHand()) {
+            switch (state) {
+                case RELOAD -> {
+                    if (weapon.isLoaded(crossBowman.getMainHandItem())) {
+                        if (target != null && target.isAlive()) {
+                            this.state = State.AIMING;
+                        }
+                    } else {
+                        this.crossBowman.startUsingItem(InteractionHand.MAIN_HAND);
+
+                        int i = this.crossBowman.getTicksUsingItem();
+                        if (i >= weapon.getWeaponLoadTime()) {
+                            this.crossBowman.releaseUsingItem();
+                            this.crossBowman.playSound(this.weapon.getLoadSound(), 1.0F, 1.0F / (crossBowman.getRandom().nextFloat() * 0.4F + 0.8F));
+                            CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), true);
+
+                            this.state = State.AIMING;
+                        }
+                    }
                 }
 
-                int i = this.recruit.getTicksUsingItem();
-                ItemStack itemstack = this.recruit.getUseItem();
-                if (i >= CrossbowItem.getChargeDuration(itemstack)) {
-                    this.recruit.releaseUsingItem();
-                    this.crossbowState = RecruitRangedCrossbowAttackGoal.CrossbowState.CHARGED;
-                    this.attackDelay = 20 + this.recruit.getRandom().nextInt(20);
-                    this.recruit.setChargingCrossbow(false);
+                case AIMING -> {
+                    if (target != null && target.isAlive()) {
+                        boolean canSee = this.crossBowman.getSensing().hasLineOfSight(target);
+                        this.crossBowman.setAggressive(true);
+                        this.crossBowman.getLookControl().setLookAt(target);
+
+                        if (canSee) {
+                            this.seeTime++;
+
+                            if (this.seeTime >= 15 + crossBowman.getRandom().nextInt(8)) {
+                                this.state = State.SHOOT;
+                                this.seeTime = 0;
+                            }
+                        } else if (crossBowman.getShouldHoldPos()) {
+                            this.crossBowman.setTarget(null);
+                        }
+                    } else {
+                        this.crossBowman.setAggressive(false);
+                        seeTime = 0;
+                    }
                 }
-            } else if (this.crossbowState == RecruitRangedCrossbowAttackGoal.CrossbowState.CHARGED) {
-                --this.attackDelay;
-                if (this.attackDelay == 0) {
-                    this.crossbowState = RecruitRangedCrossbowAttackGoal.CrossbowState.READY_TO_ATTACK;
+
+                case SHOOT -> {
+                    if (target != null && target.isAlive()) {
+                        this.crossBowman.getLookControl().setLookAt(target);
+                        this.weapon.performRangedAttackIWeapon(this.crossBowman, target, weapon.getProjectileSpeed());
+                        CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), false);
+                    }
+                    this.state = State.RELOAD;
                 }
-            } else if (this.crossbowState == RecruitRangedCrossbowAttackGoal.CrossbowState.READY_TO_ATTACK && flag) {
-                this.recruit.performRangedAttack(livingentity, 1.0F);
-                ItemStack itemstack1 = this.recruit.getItemInHand(ProjectileUtil.getWeaponHoldingHand(this.recruit, item -> item instanceof CrossbowItem));
-                CrossbowItem.setCharged(itemstack1, false);
-                this.crossbowState = RecruitRangedCrossbowAttackGoal.CrossbowState.UNCHARGED;
             }
-
         }
     }
 
-    private boolean canRun() {
-        return this.crossbowState == RecruitRangedCrossbowAttackGoal.CrossbowState.UNCHARGED;
+
+    enum State{
+        RELOAD,
+        AIMING,
+        SHOOT,
     }
 
-    static enum CrossbowState {
-        UNCHARGED,
-        CHARGING,
-        CHARGED,
-        READY_TO_ATTACK;
-    }
+
+    /*
+    if (this.crossBowman.isUsingItem()) {
+                if (!canSee && this.seeTime < -60) {
+                    this.crossBowman.releaseUsingItem();
+                    this.crossBowman.setAggressive(false);
+                } else if (canSee) {
+                    this.crossBowman.setAggressive(true);
+                    int i = this.crossBowman.getTicksUsingItem();
+                    if (i >= weapon.getWeaponLoadTime()) {
+                        this.crossBowman.releaseUsingItem();
+                        this.weapon.performRangedAttackIWeapon(this.crossBowman, target, weapon.getProjectileSpeed(i));
+
+                        this.attackTime = this.attackCooldown;
+                    }
+                }
+            } else if (--this.attackTime <= 0 && this.seeTime >= -60) {
+                this.crossBowman.startUsingItem(ProjectileUtil.getWeaponHoldingHand(this.crossBowman, weapon.getWeapon()));
+            }
+     */
 }

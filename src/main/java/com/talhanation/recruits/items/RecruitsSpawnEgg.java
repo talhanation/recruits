@@ -9,11 +9,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Supplier;
 
 
-public class RecruitSpawnEgg extends SpawnEggItem {
-
+public class RecruitsSpawnEgg extends SpawnEggItem {
     private final Supplier<EntityType<?>> entityType;
 
-    public RecruitSpawnEgg(Supplier<EntityType<?>> entityType, int primaryColor, int secondaryColor, Properties properties){
+
+
+    public RecruitsSpawnEgg(Supplier<EntityType<?>> entityType, int primaryColor, int secondaryColor, Properties properties){
         super(ModEntityTypes.RECRUIT.get(), primaryColor, secondaryColor, properties);
         this.entityType = entityType;
     }
@@ -26,6 +27,7 @@ public class RecruitSpawnEgg extends SpawnEggItem {
                 return EntityType.byString(entityTag.getString("id")).orElse(this.entityType.get());
             }
             //TODO: add recruit nbt here
+
         }
         return this.entityType.get();
     }

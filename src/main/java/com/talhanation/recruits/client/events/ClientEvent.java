@@ -5,9 +5,11 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.models.RecruitVillagerModel;
 import com.talhanation.recruits.client.render.human.BowmanHumanRenderer;
 import com.talhanation.recruits.client.render.RecruitHorseRenderer;
+import com.talhanation.recruits.client.render.human.CrossbowmanHumanRenderer;
 import com.talhanation.recruits.client.render.human.RecruitHumanRenderer;
 import com.talhanation.recruits.client.render.layer.RecruitArmorLayer;
 import com.talhanation.recruits.client.render.villager.BowmanVillagerRenderer;
+import com.talhanation.recruits.client.render.villager.CrossbowmanVillagerRenderer;
 import com.talhanation.recruits.client.render.villager.RecruitVillagerRenderer;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.init.ModEntityTypes;
@@ -39,6 +41,7 @@ public class ClientEvent {
             EntityRenderers.register(ModEntityTypes.BOWMAN.get(), BowmanVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.NOMAD.get(), BowmanVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.HORSEMAN.get(), RecruitVillagerRenderer::new );
+            EntityRenderers.register(ModEntityTypes.CROSSBOWMAN.get(), CrossbowmanVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.RECRUIT_SHIELDMAN.get(), RecruitVillagerRenderer::new );
         }
         else{
@@ -46,6 +49,7 @@ public class ClientEvent {
             EntityRenderers.register(ModEntityTypes.BOWMAN.get(), BowmanHumanRenderer::new );
             EntityRenderers.register(ModEntityTypes.NOMAD.get(), BowmanHumanRenderer::new );
             EntityRenderers.register(ModEntityTypes.HORSEMAN.get(), RecruitHumanRenderer::new );
+            EntityRenderers.register(ModEntityTypes.CROSSBOWMAN.get(), CrossbowmanHumanRenderer::new );
             EntityRenderers.register(ModEntityTypes.RECRUIT_SHIELDMAN.get(), RecruitHumanRenderer::new );
         }
 

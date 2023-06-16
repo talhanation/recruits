@@ -133,7 +133,6 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         }
         return 6;
     }
-    @Nullable
     public EquipmentSlot getEquipmentSlotIndex(int id) {
         switch (id) {
             case 0 -> {return HEAD;}
@@ -149,8 +148,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     ////////////////////////////////////SET////////////////////////////////////
 
     @Override
-    public void setItemSlot(EquipmentSlot slotIn, ItemStack stack) {
-        super.setItemSlot(slotIn, stack);
+    public void setItemSlot(@NotNull EquipmentSlot slotIn, @NotNull ItemStack stack) {
         switch (slotIn) {
             case HEAD ->{
                 if (this.inventory.getItem(0).isEmpty())
@@ -177,6 +175,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
                     this.inventory.setItem(5, this.handItems.get(slotIn.getIndex()));
             }
         }
+        super.setItemSlot(slotIn, stack);
 
     }
     public @NotNull SlotAccess getSlot(int slot) {

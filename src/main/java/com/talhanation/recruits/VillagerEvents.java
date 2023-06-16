@@ -10,7 +10,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.IronGolem;
-import net.minecraft.world.entity.monster.ZombieVillager;
+import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerTrades;
@@ -71,9 +71,19 @@ public class VillagerEvents {
         }
 
 
-        if (entity instanceof ZombieVillager zombie){
-            VillagerProfession profession = zombie.getVillagerData().getProfession();
+        if (entity instanceof AbstractRecruitEntity recruit && recruit.getVehicle() instanceof Horse horse){
             /*
+            //TODO: Cavalry Update!
+
+            if(horse.isSaddled()){
+
+                RecruitHorseEntity recruitHorse = createHorse(horse, horse.getVariant().getId());
+                horse.discard();
+                recruit.startRiding(recruitHorse);
+            }
+            */
+            /*
+
             if (profession.equals(ModProfessions.RECRUIT.get())) {
                 zombie.remove(Entity.RemovalReason.DISCARDED);
             }
@@ -111,17 +121,18 @@ public class VillagerEvents {
 
         villager.remove(Entity.RemovalReason.DISCARDED);
 
-        RecruitHorseEntity horse = createHorse(nomad);
+        RecruitHorseEntity horse = createHorse(nomad, nomad.getRandom().nextInt(7));
         nomad.startRiding(horse);
 
         villager.level.addFreshEntity(nomad);
     }
 
-    private static RecruitHorseEntity createHorse(LivingEntity entity) {
+    private static RecruitHorseEntity createHorse(LivingEntity entity, int variant) {
         RecruitHorseEntity horse = ModEntityTypes.RECRUIT_HORSE.get().create(entity.level);
         horse.setPos(entity.getX(), entity.getY(), entity.getZ());
         horse.invulnerableTime = 60;
         horse.setPersistenceRequired();
+        horse.setTypeVariant(variant);
         return horse;
     }
 

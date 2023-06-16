@@ -66,9 +66,7 @@ public class AssassinEvents {
             int d2 = (int) (target.getZ() + (target.level.random.nextInt(16) + 32));
             int d1 = target.level.getHeight(Heightmap.Types.WORLD_SURFACE, d0, d2);
 
-            System.out.println("DEBUG: x = " + d0);
-            System.out.println("DEBUG: y = " + d1);
-            System.out.println("DEBUG: z = " + d2);
+
             BlockPos blockpos1 = new BlockPos(d0, d1, d2);
 
             if (NaturalSpawner.isSpawnPositionOk(SpawnPlacements.Type.ON_GROUND, target.level, blockpos1, ModEntityTypes.ASSASSIN.get())) {
