@@ -1325,7 +1325,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     }
 
-    protected void damageMainHandItem() {
+    public void damageMainHandItem() {
         //dont know why the fuck i cant assign this mainhand slot to inventory slot 4
         //therefor i need to make this twice
         ItemStack handItem = this.getItemBySlot(EquipmentSlot.MAINHAND);
@@ -1438,6 +1438,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void updateMount() {
         if(this.getVehicle() instanceof Horse horse){
+
+
             RecruitHorseEntity recHorse = ModEntityTypes.RECRUIT_HORSE.get().create(this.level);
             recHorse.setPos(this.getX(), this.getY(), this.getZ());
             recHorse.invulnerableTime = 60;
@@ -1447,7 +1449,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
             this.startRiding(recHorse);
             this.level.addFreshEntity(recHorse);
-
             horse.discard();
         }
 

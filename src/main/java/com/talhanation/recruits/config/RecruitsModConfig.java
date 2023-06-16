@@ -46,6 +46,7 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.ConfigValue<List<String>> RecruitHandEquipment;
     public static ForgeConfigSpec.ConfigValue<List<String>> ShieldmanHandEquipment;
     public static ForgeConfigSpec.ConfigValue<List<String>> BowmanHandEquipment;
+    public static ForgeConfigSpec.ConfigValue<List<String>> CrossbowmanHandEquipment;
     public static ForgeConfigSpec.ConfigValue<List<String>> HorsemanHandEquipment;
     public static ForgeConfigSpec.ConfigValue<List<String>> NomadHandEquipment;
     public static ForgeConfigSpec.ConfigValue<List<String>> AcceptedDamagesourceImmunity;
@@ -74,14 +75,15 @@ public class RecruitsModConfig {
             Arrays.asList("minecraft:wooden_sword", ""));
     public static ArrayList<String> SHIELDMAN_HAND = new ArrayList<>(
             Arrays.asList("minecraft:wooden_axe", "minecraft:shield"));
-
     public static ArrayList<String> HORSEMAN_HAND = new ArrayList<>(
             Arrays.asList("minecraft:stone_sword", "minecraft:shield"));
     public static ArrayList<String> BOWMAN_HAND = new ArrayList<>(
             Arrays.asList("minecraft:bow", ""));
-
     public static ArrayList<String> NOMAD_HAND = new ArrayList<>(
             Arrays.asList("minecraft:bow", ""));
+
+    public static ArrayList<String> CROSSBOWMAN_HAND = new ArrayList<>(
+            Arrays.asList("minecraft:crossbow", ""));
 
     public static ArrayList<String> DAMAGESOURCE = new ArrayList<>(
             Arrays.asList("inFire", "lava", "sweetBerryBush", "cactus", "lightningBolt", "inWall", "hotFloor", "outOfWorld", "drown"));//add drowning
@@ -286,6 +288,14 @@ public class RecruitsModConfig {
                         \tItems in this list will be equipped to a new spawned bowman, in this following order: ["main-hand", "off-hand" ]""")
                 .worldRestart()
                 .define("BowmanStartHandEquipment", BOWMAN_HAND);
+
+        CrossbowmanHandEquipment = BUILDER.comment("""
+
+                        ----Crossbowman start hand equipment ----
+                        \t(takes effect after restart)
+                        \tItems in this list will be equipped to a new spawned crossbowman, in this following order: ["main-hand", "off-hand" ]""")
+                .worldRestart()
+                .define("CrossbowmanStartHandEquipment", CROSSBOWMAN_HAND);
 
         HorsemanHandEquipment = BUILDER.comment("""
 

@@ -25,6 +25,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.function.Predicate;
 
 import static com.talhanation.recruits.Main.isMusketModLoaded;
@@ -130,11 +131,11 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
         return ALLOWED_ITEMS;
     }
 
-    @Override
-    public void setEquipment() {
-        super.setEquipment();
-        setHandEquipment(RecruitsModConfig.CrossbowmanHandEquipment.get());
+
+    public List<String> getHandEquipment(){
+        return RecruitsModConfig.CrossbowmanHandEquipment.get();
     }
+
     //Pillager
     @Override
     public void shootCrossbowProjectile(@NotNull LivingEntity target, @NotNull ItemStack stack, @NotNull Projectile projectile, float f) {
