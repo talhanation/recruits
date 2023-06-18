@@ -1438,8 +1438,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void updateMount() {
         if(this.getVehicle() instanceof Horse horse){
-
-
             RecruitHorseEntity recHorse = ModEntityTypes.RECRUIT_HORSE.get().create(this.level);
             recHorse.setPos(this.getX(), this.getY(), this.getZ());
             recHorse.invulnerableTime = 60;
@@ -1451,7 +1449,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.level.addFreshEntity(recHorse);
             horse.discard();
         }
-
     }
 
     public int getMountTimer() {

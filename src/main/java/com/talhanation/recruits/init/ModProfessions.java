@@ -22,6 +22,12 @@ public class ModProfessions {
     public static final RegistryObject<VillagerProfession> SHIELDMAN = makeProfession("shieldman", ModPois.POI_SHIELDMAN);
     public static final RegistryObject<VillagerProfession> BOWMAN = makeProfession("bowman", ModPois.POI_BOWMAN);
 
+    public static final RegistryObject<VillagerProfession> CROSSBOWMAN = makeProfession("crossbowman", ModPois.POI_CROSSBOWMAN);
+
+    public static final RegistryObject<VillagerProfession> HORSEMAN = makeProfession("horseman", ModPois.POI_HORSEMAN);
+
+    public static final RegistryObject<VillagerProfession> NOMAD = makeProfession("nomad", ModPois.POI_NOMAD);
+
     private static RegistryObject<VillagerProfession> makeProfession(String name, RegistryObject<PoiType> pointOfInterest) {
         logger.info("Registering profession for {} with POI {}", name, pointOfInterest);
         return PROFESSIONS.register(name,

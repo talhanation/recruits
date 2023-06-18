@@ -107,6 +107,8 @@ dependencies {
 
     annotationProcessor 'org.spongepowered:mixin:0.8.2:processor'
     testAnnotationProcessor 'org.spongepowered:mixin:0.8.2:processor'
+
+    //implementation fg.deobf('curse.maven:musketmod-354562:4030979')
 }
 
 // Example for how to get properties into the manifest for reading at runtime.
