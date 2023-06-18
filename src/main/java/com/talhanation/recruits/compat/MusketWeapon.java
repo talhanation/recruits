@@ -7,6 +7,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.projectile.AbstractHurtingProjectile;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -111,8 +112,7 @@ public class MusketWeapon implements IWeapon {
 
     @Override
     public Entity shoot(LivingEntity shooter, Entity projectile, double x, double y, double z) {
-        Vec3 forward = new Vec3(x, y, z).normalize();
-        Vec3 origin = new Vec3(shooter.getX(), shooter.getEyeY(), shooter.getZ());
+        Entity bulletEntity = null;
         double d3 = Mth.sqrt((float) (x * x + z * z));
         Vec3 vec3 = (new Vec3(x, y + d3 * (double) 0.065, z)).normalize().scale(10F);
         try {
@@ -120,32 +120,59 @@ public class MusketWeapon implements IWeapon {
             if (bulletClass.isInstance(projectile)) {
                 Object bullet = bulletClass.cast(projectile);
 
-                Method bulletClassSetDeltaMovementMethod = bullet.getClass().getMethod("setDeltaMovement", Vec3.class);
-                Method bulletClassSetInitialSpeedMethod = bullet.getClass().getMethod("setInitialSpeed", float.class);
                 Field bulletDamageField = bullet.getClass().getField("damageMultiplier");
                 bulletDamageField.setAccessible(true);
 
-                bulletClassSetDeltaMovementMethod.invoke(bullet, vec3);
+                Method bulletClassSetInitialSpeedMethod = bullet.getClass().getMethod("setInitialSpeed", float.class);
+                //Method bulletClassSetDeltaMovementMethod = bullet.getClass().getMethod("setDeltaMovement", Vec3.class);
+
                 bulletClassSetInitialSpeedMethod.invoke(bullet, 5F);
-                bulletDamageField.setFloat(bullet, 1F);
+                //bulletClassSetDeltaMovementMethod.invoke(bullet, vec3);
+                bulletDamageField.setFloat(bullet, 1.5F);
 
 
-                if(projectile instanceof Projectile bulletproj){
+                if(projectile instanceof AbstractHurtingProjectile bulletproj){
+                    bulletproj.setDeltaMovement(vec3);
                     bulletproj.shoot(x, y + d3 * (double) 0.065, z, 4.5F, (float) (0));
+
+                    bulletEntity = bulletproj;
                 }
-
-                Class<?> musketModClass = Class.forName("ewewukek.musketmod.MusketMod");
-                Method sendSmokeEffectMethod = musketModClass.getMethod("sendSmokeEffect", LivingEntity.class, Vec3.class, Vec3.class);
-                sendSmokeEffectMethod.invoke(musketModClass, shooter, origin, forward);
-
-                return (Entity) bullet;
             }
 
+        } catch (NoSuchFieldException e) {
+            Main.LOGGER.error("bulletDamageField was not found (NoSuchFieldException)");
+        } catch (ClassNotFoundException e) {
+            Main.LOGGER.error("BulletEntity.class was not found (ClassNotFoundException)");
+        } catch (InvocationTargetException e) {
+            Main.LOGGER.error("bulletClassSetInitialSpeedMethod was not found (InvocationTargetException)");
+        } catch (NoSuchMethodException e) {
+            Main.LOGGER.error("bulletClassSetDeltaMovementMethod was not found (NoSuchMethodException)");
+        } catch (IllegalAccessException e) {
+            Main.LOGGER.error("BulletEntity.class was not found (IllegalAccessException)");
         }
-        catch (ClassNotFoundException | IllegalAccessException | NoSuchFieldException | InvocationTargetException | NoSuchMethodException e) {
-            Main.LOGGER.info("BulletEntity was not found");
+
+        Vec3 forward = new Vec3(x, y, z).normalize();
+        Vec3 origin = new Vec3(shooter.getX(), shooter.getEyeY(), shooter.getZ());
+
+        try{
+            Class<?> musketModClass = Class.forName("ewewukek.musketmod.MusketMod");
+            Method sendSmokeEffectMethod = musketModClass.getMethod("sendSmokeEffect", LivingEntity.class, Vec3.class, Vec3.class);
+            sendSmokeEffectMethod.invoke(musketModClass, shooter, origin, forward);
+
+        } catch (ClassNotFoundException e) {
+            Main.LOGGER.error("MusketMod.class was not found (ClassNotFoundException)");
+
+        } catch (InvocationTargetException e) {
+            Main.LOGGER.error("sendSmokeEffectMethod was not found (InvocationTargetException)");
+
+        } catch (NoSuchMethodException e) {
+            Main.LOGGER.error("sendSmokeEffectMethod was not found (NoSuchMethodException)");
+
+        } catch (IllegalAccessException e) {
+            Main.LOGGER.error("MusketMod.class was not found (IllegalAccessException)");
+
         }
-        return null;
+        return bulletEntity;
     }
 
     @Override
@@ -163,7 +190,7 @@ public class MusketWeapon implements IWeapon {
             return null;
         }
     }
-    
+
     @Override
     public SoundEvent getLoadSound() {
         try {

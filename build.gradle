@@ -97,6 +97,10 @@ repositories {
         url = 'https://maven.maxhenkel.de/repository/public'
     }
     mavenLocal()
+    maven {
+
+        url "https://www.cursemaven.com"
+    }
 }
 
 dependencies {
