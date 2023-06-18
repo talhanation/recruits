@@ -1,27 +1,26 @@
 package com.talhanation.recruits.entities.ai.villager;
 
-import com.talhanation.recruits.entities.RecruitEntity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.npc.AbstractVillager;
-import net.minecraft.world.entity.npc.Villager;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
 
 public class FollowCaravanOwner extends Goal {
 
-    public AbstractVillager villager;
+    public PathfinderMob mob;
     public UUID uuid;
-    public RecruitEntity patrolOwner;
+    public LivingEntity patrolOwner;
 
-    public FollowCaravanOwner(AbstractVillager villager, UUID uuid) {
-        this.villager = villager;
+    public FollowCaravanOwner(PathfinderMob mob, UUID uuid) {
+        this.mob = mob;
         this.uuid = uuid;
     }
 
     @Override
     public boolean canUse() {
-        return true;
+        return this.getPatrolOwner() != null;
     }
 
     @Override
@@ -31,8 +30,8 @@ public class FollowCaravanOwner extends Goal {
     }
 
     @Nullable
-    private RecruitEntity getPatrolOwner() {
-        return villager.level.getEntitiesOfClass(RecruitEntity.class, villager.getBoundingBox().inflate(16D))
+    private LivingEntity getPatrolOwner() {
+        return mob.level.getEntitiesOfClass(LivingEntity.class, mob.getBoundingBox().inflate(16D))
                 .stream().filter(recruit -> recruit.getUUID().equals(uuid))
                 .findAny().get();
     }
@@ -41,8 +40,8 @@ public class FollowCaravanOwner extends Goal {
     public void tick() {
         super.tick();
 
-        if (patrolOwner != null && villager.distanceTo(patrolOwner) > 8F){
-            villager.getNavigation().moveTo(patrolOwner, 1.05D);
+        if (patrolOwner != null && patrolOwner.isAlive() && mob.distanceTo(patrolOwner) > 12F){
+            mob.getNavigation().moveTo(patrolOwner, 1.05D);
         }
     }
 }
