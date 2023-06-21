@@ -45,33 +45,31 @@ public class NomadAttackAI extends Goal {
         switch (state) {
             case SELECT_TARGET -> {
                 this.target = nomad.getTarget();
-                if (target != null) {
+                if (target != null && target.isAlive()) {
 
                     this.state = CIRCLE_TARGET;
                 }
             }
 
             case CIRCLE_TARGET -> {
-                Vec3 toTarget;
-                if (target == null || !target.isAlive()) {
-                    // Wenn das Ziel nicht mehr vorhanden ist oder tot ist, beende den Angriff
-                    toTarget = null;
-                    state = SELECT_TARGET;
-                    return;
+                if (target != null && target.isAlive()) {
+                    Vec3 toTarget = target.position().subtract(nomad.position()).normalize();
+                    Vec3 moveVec = toTarget.yRot(-90).normalize();
+                    Vec3 movePos = target.position().add(moveVec.scale(20D));
+
+                    if (nomad.distanceToSqr(movePos) > 3F)
+                        nomad.getNavigation().moveTo(movePos.x, movePos.y, movePos.z, 1);
+
+                    nomad.getLookControl().setLookAt(target, 30.0F, 30.0F);
                 }
-
-                toTarget = target.position().subtract(nomad.position()).normalize();
-                Vec3 moveVec = toTarget.yRot(-90).normalize();
-                Vec3 movePos = target.position().add(moveVec.scale(20D));
-
-                if (nomad.distanceToSqr(movePos) > 3F)
-                    nomad.getNavigation().moveTo(movePos.x, movePos.y, movePos.z, 1);
-
-                nomad.getLookControl().setLookAt(target, 30.0F, 30.0F);
+                else
+                {
+                    state = SELECT_TARGET;
+                }
             }
         }
 
-        if (target != null) {
+        if (target != null && target.isAlive()) {
             boolean canSee = this.nomad.getSensing().hasLineOfSight(target);
             if (canSee) {
                 ++this.seeTime;

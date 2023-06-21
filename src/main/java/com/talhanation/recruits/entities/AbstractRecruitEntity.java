@@ -1548,7 +1548,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     @Override
     public boolean canAttack(@Nonnull LivingEntity target) {
-        if (target.canBeSeenAsEnemy()){
+        if (target.canBeSeenAsEnemy() && target.isAlive()){
             if (target instanceof Player player){
                 return this.isValidTargetPlayer(player);
             }
