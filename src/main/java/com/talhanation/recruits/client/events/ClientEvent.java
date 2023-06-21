@@ -3,14 +3,10 @@ package com.talhanation.recruits.client.events;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.models.RecruitVillagerModel;
-import com.talhanation.recruits.client.render.human.BowmanHumanRenderer;
+import com.talhanation.recruits.client.render.human.*;
 import com.talhanation.recruits.client.render.RecruitHorseRenderer;
-import com.talhanation.recruits.client.render.human.CrossbowmanHumanRenderer;
-import com.talhanation.recruits.client.render.human.RecruitHumanRenderer;
 import com.talhanation.recruits.client.render.layer.RecruitArmorLayer;
-import com.talhanation.recruits.client.render.villager.BowmanVillagerRenderer;
-import com.talhanation.recruits.client.render.villager.CrossbowmanVillagerRenderer;
-import com.talhanation.recruits.client.render.villager.RecruitVillagerRenderer;
+import com.talhanation.recruits.client.render.villager.*;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.client.Minecraft;
@@ -39,18 +35,18 @@ public class ClientEvent {
         if(RecruitsModConfig.RecruitsLookLikeVillagers.get()){
             EntityRenderers.register(ModEntityTypes.RECRUIT.get(), RecruitVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.BOWMAN.get(), BowmanVillagerRenderer::new );
-            EntityRenderers.register(ModEntityTypes.NOMAD.get(), BowmanVillagerRenderer::new );
-            EntityRenderers.register(ModEntityTypes.HORSEMAN.get(), RecruitVillagerRenderer::new );
+            EntityRenderers.register(ModEntityTypes.NOMAD.get(), NomadVillagerRenderer::new );
+            EntityRenderers.register(ModEntityTypes.HORSEMAN.get(), HorsemanVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.CROSSBOWMAN.get(), CrossbowmanVillagerRenderer::new );
-            EntityRenderers.register(ModEntityTypes.RECRUIT_SHIELDMAN.get(), RecruitVillagerRenderer::new );
+            EntityRenderers.register(ModEntityTypes.RECRUIT_SHIELDMAN.get(), ShieldmanVillagerRenderer::new );
         }
         else{
             EntityRenderers.register(ModEntityTypes.RECRUIT.get(), RecruitHumanRenderer::new );
             EntityRenderers.register(ModEntityTypes.BOWMAN.get(), BowmanHumanRenderer::new );
-            EntityRenderers.register(ModEntityTypes.NOMAD.get(), BowmanHumanRenderer::new );
-            EntityRenderers.register(ModEntityTypes.HORSEMAN.get(), RecruitHumanRenderer::new );
+            EntityRenderers.register(ModEntityTypes.NOMAD.get(), NomadHumanRenderer::new );
+            EntityRenderers.register(ModEntityTypes.HORSEMAN.get(), HorsemanHumanRenderer::new );
             EntityRenderers.register(ModEntityTypes.CROSSBOWMAN.get(), CrossbowmanHumanRenderer::new );
-            EntityRenderers.register(ModEntityTypes.RECRUIT_SHIELDMAN.get(), RecruitHumanRenderer::new );
+            EntityRenderers.register(ModEntityTypes.RECRUIT_SHIELDMAN.get(), ShieldmanHumanRenderer::new );
         }
 
         EntityRenderers.register(ModEntityTypes.RECRUIT_HORSE.get(), RecruitHorseRenderer::new );

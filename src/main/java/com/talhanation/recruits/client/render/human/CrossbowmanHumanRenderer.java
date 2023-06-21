@@ -11,10 +11,10 @@ import net.minecraft.resources.ResourceLocation;
 public class CrossbowmanHumanRenderer extends AbstractRecruitHumanRenderer<CrossBowmanEntity> {
 
     private static final ResourceLocation[] TEXTURE = {
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_bowman_1.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_bowman_2.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_bowman_3.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_bowman_4.png"),
+            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_crossbowman_1.png"),
+            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_crossbowman_2.png"),
+            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_crossbowman_3.png"),
+            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_crossbowman_4.png"),
     };
 
     public CrossbowmanHumanRenderer(EntityRendererProvider.Context mgr) {

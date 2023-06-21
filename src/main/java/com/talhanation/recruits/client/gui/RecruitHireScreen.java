@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.RecruitHorseEntity;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.network.MessageHire;
 import de.maxhenkel.corelib.inventory.ScreenBase;
@@ -76,7 +77,7 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
         int costs = recruit.getCost();
 
 
-        int k = 79;//rechst links
+        int k = 60;//rechst links
         int l = 19;//höhe
 
         //Titles
@@ -97,22 +98,22 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
         font.draw(poseStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
 
         font.draw(poseStack, "Morale:", k, l + 40, fontColor);
-        font.draw(poseStack, ""+ moral, k + 40, l + 40, fontColor);
+        font.draw(poseStack, ""+ moral, k + 37, l + 40, fontColor);
 
-        font.draw(poseStack, "MaxHp:", k + 43, l, fontColor);
-        font.draw(poseStack, ""+ maxHealth, k + 77, l, fontColor);
+        font.draw(poseStack, "MaxHp:", k + 55, l, fontColor);
+        font.draw(poseStack, ""+ maxHealth, k + 90, l, fontColor);
 
-        font.draw(poseStack, "Attack:", k + 43, l + 10, fontColor);
-        font.draw(poseStack, ""+ A_damage, k + 77, l + 10, fontColor);
+        font.draw(poseStack, "Attack:", k + 55, l + 10, fontColor);
+        font.draw(poseStack, ""+ A_damage, k + 90, l + 10, fontColor);
 
-        font.draw(poseStack, "Speed:", k +43, l + 20, fontColor);
-        font.draw(poseStack, ""+ decimalformat.format(speed), k + 77, l + 20, fontColor);
+        font.draw(poseStack, "Speed:", k + 55, l + 20, fontColor);
+        font.draw(poseStack, ""+ decimalformat.format(speed), k + 90, l + 20, fontColor);
 
-        font.draw(poseStack, "Armor:", k + 43, l + 30, fontColor);
-        font.draw(poseStack, ""+ armor, k + 77, l + 30, fontColor);
+        font.draw(poseStack, "Armor:", k + 55, l + 30, fontColor);
+        font.draw(poseStack, ""+ armor, k + 90, l + 30, fontColor);
 
-        font.draw(poseStack, "Costs:", k + 43, l + 40, fontColor);
-        font.draw(poseStack, ""+ costs, k + 77, l + 40, fontColor);
+        font.draw(poseStack, "Cost:", k + 55, l + 40, fontColor);
+        font.draw(poseStack, ""+ costs, k + 88, l + 40, fontColor);
     }
 
     protected void renderBg(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
@@ -122,6 +123,8 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
 
-        InventoryScreen.renderEntityInInventory(i + 40, j + 72, 20, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.recruit);
+        InventoryScreen.renderEntityInInventory(i + 30, j + 60, 15, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.recruit);
+        if(recruit.getVehicle() instanceof RecruitHorseEntity horse) InventoryScreen.renderEntityInInventory(i + 30, j + 72, 15, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, horse);
+
     }
 }
