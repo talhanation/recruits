@@ -25,7 +25,7 @@ public class RecruitStrategicFire extends Goal {
 
     @Override
     public boolean canUse() {
-        if(bowman.getTarget() == null && bowman.getShouldStrategicFire() && this.isHoldingBow() && bowman.getFollowState() != 1 && bowman.getFollowState() != 5 && !bowman.needsToGetFood() && !bowman.getShouldMount()){
+        if(bowman.getTarget() == null && bowman.getShouldStrategicFire() && this.isHoldingBow() && bowman.getFollowState() != 5 && !bowman.needsToGetFood() && !bowman.getShouldMount()){
             return true;
         }
         else{
