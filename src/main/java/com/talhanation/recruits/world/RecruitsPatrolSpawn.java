@@ -7,6 +7,7 @@ import com.talhanation.recruits.entities.ai.PatrolLeaderTargetAttackers;
 import com.talhanation.recruits.entities.ai.villager.FollowCaravanOwner;
 import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SpawnPlacements.Type;
@@ -74,7 +75,6 @@ public class RecruitsPatrolSpawn {
                     case 1,2 -> spawnMediumPatrol(upPos);
                     case 3,4 -> spawnLargePatrol(upPos);
                 }
-                Main.LOGGER.info("New Recruit Patrol spawned at "+ upPos);
                 return true;
             }
             return false;
@@ -158,7 +158,10 @@ public class RecruitsPatrolSpawn {
         llama.setPersistenceRequired();
         llama.setTamed(true);
         llama.setChest(true);
+        llama.getPersistentData().putInt("Strength", 5);
+        llama.createInventory();
         llama.setLeashedTo(villager, true);
+        llama.getPersistentData().putBoolean("Caravan", true);
         world.addFreshEntity(llama);
 
         for(int x = 0; x < 4; x++){
@@ -228,7 +231,9 @@ public class RecruitsPatrolSpawn {
         mule.setPersistenceRequired();
         mule.setTamed(true);
         mule.setChest(true);
+        mule.createInventory();
         mule.setLeashedTo(villager, true);
+        mule.getPersistentData().putBoolean("Caravan", true);
 
         for(int x = 0; x < 4; x++){
             int k = random.nextInt(4);
@@ -241,12 +246,12 @@ public class RecruitsPatrolSpawn {
                 case 3 -> food = new ItemStack(Items.COOKED_MUTTON);
             }
             food.setCount(count);
-            mule.inventory.addItem(food);
+            mule.inventory.setItem(16 - x, food);
         }
 
 
         for(int x = 0; x < 4; x++) {
-            int j = random.nextInt(4);
+            int j = random.nextInt(5);
             int count = random.nextInt(64);
             ItemStack resources;
             switch (j) {
@@ -254,9 +259,10 @@ public class RecruitsPatrolSpawn {
                 case 1 -> resources = new ItemStack(Items.IRON_INGOT);
                 case 2 -> resources = new ItemStack(Items.COPPER_INGOT);
                 case 3 -> resources = new ItemStack(Items.EMERALD);
+                case 4 -> resources = new ItemStack(Items.LEAD);
             }
             resources.setCount(count);
-            mule.inventory.addItem(resources);
+            mule.inventory.setItem(12 - x, resources);
         }
 
         for(int x = 0; x < 4; x++) {
@@ -270,7 +276,21 @@ public class RecruitsPatrolSpawn {
                 case 3 -> resources = new ItemStack(Items.BRICK);
             }
             resources.setCount(count);
-            mule.inventory.addItem(resources);
+            mule.inventory.setItem(8 - x, resources);
+        }
+
+        for(int x = 0; x < 3; x++) {
+            int j = random.nextInt(4);
+            ItemStack resources;
+            int count = random.nextInt(64);
+            switch (j) {
+                default -> resources = new ItemStack(Items.SAND);
+                case 1 -> resources = new ItemStack(Items.SANDSTONE);
+                case 2 -> resources = new ItemStack(Items.GLASS);
+                case 3 -> resources = new ItemStack(Items.BARREL);
+            }
+            resources.setCount(count);
+            mule.inventory.setItem(4 -x, resources);
         }
 
         mule.goalSelector.addGoal(0, new FollowCaravanOwner(mule, villager.getUUID()));
@@ -576,7 +596,6 @@ public class RecruitsPatrolSpawn {
 
 
         world.addFreshEntity(recruitEntity);
-        //Main.LOGGER.debug("SpawnPatrol: patrol spawned");
     }
 
     private void createPatrolBowman(BlockPos upPos, RecruitEntity patrolLeader) {
@@ -687,7 +706,7 @@ public class RecruitsPatrolSpawn {
         CrossBowmanEntity crossBowman = ModEntityTypes.CROSSBOWMAN.get().create(world);
         crossBowman.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         crossBowman.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
-        setPatrolBowmanEquipment(crossBowman);
+        setPatrolCrossbowmanEquipment(crossBowman);
         crossBowman.setPersistenceRequired();
 
         crossBowman.setXpLevel(1 + random.nextInt(3));

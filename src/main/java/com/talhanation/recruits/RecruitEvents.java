@@ -2,8 +2,6 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.entities.RecruitEntity;
-import com.talhanation.recruits.entities.ai.villager.FollowCaravanOwner;
 import com.talhanation.recruits.world.PillagerPatrolSpawn;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import net.minecraft.core.BlockPos;
@@ -17,11 +15,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.ai.goal.WrappedGoal;
-import net.minecraft.world.entity.animal.horse.AbstractHorse;
-import net.minecraft.world.entity.animal.horse.Llama;
-import net.minecraft.world.entity.animal.horse.Mule;
+import net.minecraft.world.entity.animal.horse.AbstractChestedHorse;
 import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -43,9 +37,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import java.util.*;
 
 public class   RecruitEvents {
-
-    public int timestamp;
-
     private static final Map<ServerLevel, RecruitsPatrolSpawn> RECRUIT_PATROL = new HashMap<>();
     private static final Map<ServerLevel, PillagerPatrolSpawn> PILLAGER_PATROL = new HashMap<>();
 
@@ -169,32 +160,10 @@ public class   RecruitEvents {
     public void onPlayerInteractWithCaravan(PlayerInteractEvent.EntityInteract entityInteract){
         Player player = entityInteract.getEntity();
         Entity interacting = entityInteract.getTarget();
-        boolean isUsingSpecificAI = false;
-        if(interacting instanceof Mule mule){
-            for (Goal goal : mule.goalSelector.getAvailableGoals()) {
-                if (goal instanceof FollowCaravanOwner) {
-                    isUsingSpecificAI = true;
-                    break;
-                }
-            }
-            if(isUsingSpecificAI && mule.hasChest()){
-                List<AbstractRecruitEntity> recruits = player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(64F));
-                for(AbstractRecruitEntity recruit : recruits){
-                    if(!recruit.isOwned() && (recruit.getName().getString().equals("Caravan Leader") || recruit.getName().getString().equals("Caravan Guard"))){
-                        recruit.setTarget(player);
-                    }
-                }
-            }
-        }
 
-        if(interacting instanceof Llama llama){
-            for (Goal goal : llama.goalSelector.getAvailableGoals()) {// keine goals?
-                if (goal instanceof FollowCaravanOwner) {
-                    isUsingSpecificAI = true;
-                    break;
-                }
-            }
-            if(isUsingSpecificAI && llama.hasChest()){
+        if(interacting instanceof AbstractChestedHorse chestedHorse){
+            CompoundTag nbt = chestedHorse.getPersistentData();
+            if(nbt.contains("Caravan") && chestedHorse.hasChest()){
                 List<AbstractRecruitEntity> recruits = player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(64F));
                 for(AbstractRecruitEntity recruit : recruits){
                     if(!recruit.isOwned() && (recruit.getName().getString().equals("Caravan Leader") || recruit.getName().getString().equals("Caravan Guard"))){

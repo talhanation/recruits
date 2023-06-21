@@ -5,6 +5,7 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.Goal;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.UUID;
 
 public class FollowCaravanOwner extends Goal {
@@ -31,9 +32,13 @@ public class FollowCaravanOwner extends Goal {
 
     @Nullable
     private LivingEntity getPatrolOwner() {
-        return mob.level.getEntitiesOfClass(LivingEntity.class, mob.getBoundingBox().inflate(16D))
-                .stream().filter(recruit -> recruit.getUUID().equals(uuid))
-                .findAny().get();
+        List<LivingEntity> livings = mob.level.getEntitiesOfClass(LivingEntity.class, mob.getBoundingBox().inflate(16D));
+        for (LivingEntity living : livings){
+            if(living.isAlive() && living.getUUID().equals(uuid)){
+                return living;
+            }
+        }
+        return null;
     }
 
     @Override
