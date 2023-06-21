@@ -83,7 +83,7 @@ public class RecruitRangedMusketAttackGoal extends Goal {
     public void tick() {
         LivingEntity target = this.crossBowman.getTarget();
 
-        if (target != null) {
+        if (target != null && target.isAlive()) {
             double distanceToTarget = target.distanceTo(this.crossBowman);
             boolean isClose = distanceToTarget <= 7.00D;
             boolean isFar = distanceToTarget >= 21.5D;
@@ -248,25 +248,4 @@ public class RecruitRangedMusketAttackGoal extends Goal {
         AIMING,
         SHOOT,
     }
-
-
-    /*
-    if (this.crossBowman.isUsingItem()) {
-                if (!canSee && this.seeTime < -60) {
-                    this.crossBowman.releaseUsingItem();
-                    this.crossBowman.setAggressive(false);
-                } else if (canSee) {
-                    this.crossBowman.setAggressive(true);
-                    int i = this.crossBowman.getTicksUsingItem();
-                    if (i >= weapon.getWeaponLoadTime()) {
-                        this.crossBowman.releaseUsingItem();
-                        this.weapon.performRangedAttackIWeapon(this.crossBowman, target, weapon.getProjectileSpeed(i));
-
-                        this.attackTime = this.attackCooldown;
-                    }
-                }
-            } else if (--this.attackTime <= 0 && this.seeTime >= -60) {
-                this.crossBowman.startUsingItem(ProjectileUtil.getWeaponHoldingHand(this.crossBowman, weapon.getWeapon()));
-            }
-     */
 }

@@ -124,10 +124,8 @@ public class MusketWeapon implements IWeapon {
                 bulletDamageField.setAccessible(true);
 
                 Method bulletClassSetInitialSpeedMethod = bullet.getClass().getMethod("setInitialSpeed", float.class);
-                //Method bulletClassSetDeltaMovementMethod = bullet.getClass().getMethod("setDeltaMovement", Vec3.class);
 
                 bulletClassSetInitialSpeedMethod.invoke(bullet, 5F);
-                //bulletClassSetDeltaMovementMethod.invoke(bullet, vec3);
                 bulletDamageField.setFloat(bullet, 1.5F);
 
 
