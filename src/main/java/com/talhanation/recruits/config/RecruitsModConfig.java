@@ -95,7 +95,7 @@ public class RecruitsModConfig {
         VERSION = BUILDER.comment("\n" +"##Version, do not change!##")
                 .defineInRange("Version", 0, 0, Integer.MAX_VALUE);
 
-        BUILDER.comment("Recruits Config Client Side:").push("Recruits Client Side");
+        BUILDER.comment("Recruits Config Client Side:").push("RecruitsClientSide");
 
         PlayVillagerAmbientSound = BUILDER.comment("""
 
