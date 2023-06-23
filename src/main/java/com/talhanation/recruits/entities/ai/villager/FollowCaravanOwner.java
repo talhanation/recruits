@@ -1,27 +1,27 @@
 package com.talhanation.recruits.entities.ai.villager;
 
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.PathfinderMob;
+import com.talhanation.recruits.entities.RecruitEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.npc.AbstractVillager;
+import net.minecraft.world.entity.npc.Villager;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.UUID;
 
 public class FollowCaravanOwner extends Goal {
 
-    public PathfinderMob mob;
+    public AbstractVillager villager;
     public UUID uuid;
-    public LivingEntity patrolOwner;
+    public RecruitEntity patrolOwner;
 
-    public FollowCaravanOwner(PathfinderMob mob, UUID uuid) {
-        this.mob = mob;
+    public FollowCaravanOwner(AbstractVillager villager, UUID uuid) {
+        this.villager = villager;
         this.uuid = uuid;
     }
 
     @Override
     public boolean canUse() {
-        return this.getPatrolOwner() != null;
+        return true;
     }
 
     @Override
@@ -31,22 +31,18 @@ public class FollowCaravanOwner extends Goal {
     }
 
     @Nullable
-    private LivingEntity getPatrolOwner() {
-        List<LivingEntity> livings = mob.level.getEntitiesOfClass(LivingEntity.class, mob.getBoundingBox().inflate(16D));
-        for (LivingEntity living : livings){
-            if(living.isAlive() && living.getUUID().equals(uuid)){
-                return living;
-            }
-        }
-        return null;
+    private RecruitEntity getPatrolOwner() {
+        return villager.level.getEntitiesOfClass(RecruitEntity.class, villager.getBoundingBox().inflate(16D))
+                .stream().filter(recruit -> recruit.getUUID().equals(uuid))
+                .findAny().get();
     }
 
     @Override
     public void tick() {
         super.tick();
 
-        if (patrolOwner != null && patrolOwner.isAlive() && mob.distanceTo(patrolOwner) > 12F){
-            mob.getNavigation().moveTo(patrolOwner, 1.05D);
+        if (patrolOwner != null && villager.distanceTo(patrolOwner) > 8F){
+            villager.getNavigation().moveTo(patrolOwner, 1.05D);
         }
     }
 }
