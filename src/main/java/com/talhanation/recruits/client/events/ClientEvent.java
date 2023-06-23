@@ -8,20 +8,33 @@ import com.talhanation.recruits.client.render.RecruitHorseRenderer;
 import com.talhanation.recruits.client.render.layer.RecruitArmorLayer;
 import com.talhanation.recruits.client.render.villager.*;
 import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.init.ModEntityTypes;
+import com.talhanation.recruits.init.ModItems;
+import com.talhanation.recruits.network.MessageWriteSpawnEgg;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.entity.EntityRenderers;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Mod.EventBusSubscriber(modid = Main.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD , value = Dist.CLIENT)
 public class ClientEvent {
@@ -60,6 +73,16 @@ public class ClientEvent {
 
     }
 
+    @SubscribeEvent
+    public void onPlayerPick(InputEvent.InteractionKeyMappingTriggered event){
+        if(event.isPickBlock()){
+            Entity target = getEntityByLooking();
+            if(target instanceof AbstractRecruitEntity recruitEntity){
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageWriteSpawnEgg(recruitEntity.getUUID()));
+                event.setCanceled(true);
+            }
+        }
+    }
 
     @Nullable
     public static Entity getEntityByLooking() {

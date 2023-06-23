@@ -12,7 +12,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.AbstractSkullBlock;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -200,7 +199,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
     ////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////
 
-    protected void createInventory() {
+    public void createInventory() {
         SimpleContainer inventory = this.inventory;
         this.inventory = new RecruitSimpleContainer(this.getInventorySize(), this){
 
