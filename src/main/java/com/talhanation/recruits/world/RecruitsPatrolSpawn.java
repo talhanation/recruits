@@ -293,7 +293,7 @@ public class RecruitsPatrolSpawn {
             mule.inventory.setItem(4 -x, resources);
         }
 
-        mule.goalSelector.addGoal(0, new FollowCaravanOwner(mule, villager.getUUID()));
+        //mule.goalSelector.addGoal(0, new FollowCaravanOwner(mule, villager.getUUID()));
         world.addFreshEntity(mule);
 
         return mule;
