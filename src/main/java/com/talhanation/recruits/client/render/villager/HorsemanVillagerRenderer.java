@@ -5,6 +5,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.render.AbstractRecruitVillagerRenderer;
 import com.talhanation.recruits.entities.AbstractInventoryEntity;
 import com.talhanation.recruits.entities.BowmanEntity;
+import com.talhanation.recruits.entities.HorsemanEntity;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 
@@ -22,7 +23,7 @@ public class HorsemanVillagerRenderer extends AbstractRecruitVillagerRenderer{
     }
 
     @Override
-    public ResourceLocation getTextureLocation(AbstractInventoryEntity bowman) {
-        return TEXTURE[((BowmanEntity) bowman).getVariant()];
+    public ResourceLocation getTextureLocation(AbstractInventoryEntity horseman) {
+        return TEXTURE[((HorsemanEntity) horseman).getVariant()];
     }
 }

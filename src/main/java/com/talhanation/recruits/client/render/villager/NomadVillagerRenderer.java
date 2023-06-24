@@ -4,6 +4,7 @@ package com.talhanation.recruits.client.render.villager;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.render.AbstractRecruitVillagerRenderer;
 import com.talhanation.recruits.entities.AbstractInventoryEntity;
+import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.BowmanEntity;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
@@ -23,6 +24,6 @@ public class NomadVillagerRenderer extends AbstractRecruitVillagerRenderer{
 
     @Override
     public ResourceLocation getTextureLocation(AbstractInventoryEntity bowman) {
-        return TEXTURE[((BowmanEntity) bowman).getVariant()];
+        return TEXTURE[((AbstractRecruitEntity) bowman).getVariant()];
     }
 }
