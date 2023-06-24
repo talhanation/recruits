@@ -63,7 +63,7 @@ public class RecruitsSpawnEgg extends SpawnEggItem {
 
                 recruit.setXpLevel(nbt.getInt("Level"));
                 recruit.setState(nbt.getInt("AggroState"));
-                recruit.setState(nbt.getInt("FollowState"));
+                recruit.setFollowState(nbt.getInt("FollowState"));
                 recruit.setShouldFollow(nbt.getBoolean("ShouldFollow"));
                 recruit.setShouldMount(nbt.getBoolean("ShouldMount"));
                 recruit.setShouldBlock(nbt.getBoolean("ShouldBlock"));
