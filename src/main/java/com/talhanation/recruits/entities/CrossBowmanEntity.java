@@ -120,7 +120,7 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
         if(isMusketModLoaded && IWeapon.isMusketModWeapon(itemStack)) return true;
 
         if (itemStack.getItem() instanceof CrossbowItem || itemStack.getItem() instanceof ProjectileWeaponItem){
-            return true;
+            return !hasSameTypeOfItem(itemStack);
         }
         else
             return super.wantsToPickUp(itemStack);

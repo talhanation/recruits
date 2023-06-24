@@ -267,6 +267,10 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         return false;
     }
 
+    public boolean hasSameTypeOfItem(ItemStack stack) {
+        return this.getInventory().items.stream().anyMatch(itemStack -> itemStack.getDescriptionId().equals(stack.getDescriptionId()));
+    }
+
     public boolean canEquipItemToSlot(@NotNull ItemStack itemStack, EquipmentSlot slot) {
         if(!itemStack.isEmpty()) {
             ItemStack currentArmor = this.getItemBySlot(slot);
@@ -280,7 +284,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
     @Override
     public boolean wantsToPickUp(@NotNull ItemStack itemStack){
-       if (itemStack.getItem() instanceof ArmorItem){
+       if (itemStack.getItem() instanceof ArmorItem && !hasSameTypeOfItem(itemStack)){
                return canEquipItem(itemStack);
        }
        else

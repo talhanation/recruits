@@ -26,15 +26,7 @@ public class RecruitPickupWantedItemGoal extends Goal{
 
     @Override
     public boolean canUse() {
-        if(!this.recruit.isFollowing() && !recruit.getFleeing() && !recruit.needsToGetFood() && !recruit.getShouldMount() && !recruit.getShouldMovePos()){
-            if(recruit.getTarget() != null){
-                return !recruit.getTarget().isAlive();
-            }
-            else
-                return true;
-
-        }
-        else return false;
+        return recruit.getTarget() == null && !this.recruit.isFollowing() && !recruit.getFleeing() && !recruit.needsToGetFood() && !recruit.getShouldMount() && !recruit.getShouldMovePos();
     }
     @Override
     public void start(){
@@ -52,13 +44,12 @@ public class RecruitPickupWantedItemGoal extends Goal{
 
     @Override
     public void tick() {
-        Main.LOGGER.info("State: " + state);
         switch (state){
             case SEARCH -> {
                 List<ItemEntity> list = recruit.level.getEntitiesOfClass(ItemEntity.class, recruit.getBoundingBox().inflate(16.0D, 3.0D, 16.0D), recruit.getAllowedItems());
                 if (!list.isEmpty()) {
                     for(ItemEntity itemEntity : list){
-                        if((itemEntity.getItem().isEdible() && recruit.getHunger() < 30) || (recruit.canEquipItem(itemEntity.getItem()))){
+                        if((itemEntity.getItem().isEdible() && recruit.getHunger() < 30) || (recruit.wantsToPickUp(itemEntity.getItem()))){
                             this.itemEntityList.add(itemEntity);
                         }
                     }
@@ -94,7 +85,7 @@ public class RecruitPickupWantedItemGoal extends Goal{
             }
 
             case PICKUP -> {
-                recruit.getMoveControl().setWantedPosition(itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), 1F);
+                recruit.getNavigation().moveTo(itemEntity, 1F);
                 this.recruit.setCanPickUpLoot(true);
                 if(++this.timer > 30){
                     this.itemEntityList.remove(0);

@@ -139,7 +139,7 @@ public class RecruitMeleeAttackGoal extends Goal {
             }
         }
         if(ticksUntilNextAttack > 0) ticksUntilNextAttack--;
-        if(this.ticksUntilNextAttack <= 0) {
+        if(this.ticksUntilNextAttack <= 0 && !this.recruit.swinging) {
             this.checkAndPerformAttack(target, d0);
         }
     }
