@@ -121,7 +121,6 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
         this.setDropEquipment();
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
-        this.setCanPickUpLoot(true);
         this.reassessWeaponGoal();
         this.setGroup(2);
     }

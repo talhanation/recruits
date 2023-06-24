@@ -70,7 +70,7 @@ public class RecruitEntity extends AbstractRecruitEntity {
         this.setDropEquipment();
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
-        this.setCanPickUpLoot(true);
+
         this.setGroup(1);
     }
 

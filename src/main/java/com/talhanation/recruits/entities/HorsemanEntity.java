@@ -98,7 +98,7 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
         this.setDropEquipment();
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
-        this.setCanPickUpLoot(true);
+
         this.setGroup(3);
     }
 

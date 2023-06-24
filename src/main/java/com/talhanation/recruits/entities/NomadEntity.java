@@ -95,7 +95,7 @@ public class NomadEntity extends BowmanEntity {
         this.setDropEquipment();
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
-        this.setCanPickUpLoot(true);
+
         this.setGroup(2);
     }
 

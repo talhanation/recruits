@@ -89,7 +89,7 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
         this.setDropEquipment();
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
-        this.setCanPickUpLoot(true);
+
         this.setGroup(2);
     }
 
