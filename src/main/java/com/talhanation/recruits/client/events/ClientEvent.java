@@ -73,17 +73,6 @@ public class ClientEvent {
 
     }
 
-    @SubscribeEvent
-    public void onPlayerPick(InputEvent.InteractionKeyMappingTriggered event){
-        if(event.isPickBlock()){
-            Entity target = getEntityByLooking();
-            if(target instanceof AbstractRecruitEntity recruitEntity){
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageWriteSpawnEgg(recruitEntity.getUUID()));
-                event.setCanceled(true);
-            }
-        }
-    }
-
     @Nullable
     public static Entity getEntityByLooking() {
         HitResult hit = Minecraft.getInstance().hitResult;

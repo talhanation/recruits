@@ -2,6 +2,7 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.network.MessageWriteSpawnEgg;
 import com.talhanation.recruits.world.PillagerPatrolSpawn;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import net.minecraft.core.BlockPos;
@@ -389,7 +390,7 @@ public class   RecruitEvents {
             }
 
             //Morale loss when recruits friend die
-            if(recruit.getIsOwned()){
+            if(recruit.getIsOwned() && !server.overworld().isClientSide()){
                 UUID owner = recruit.getOwnerUUID();
                 List<AbstractRecruitEntity> recruits = recruit.level.getEntitiesOfClass(AbstractRecruitEntity.class, recruit.getBoundingBox().inflate(64.0D));
     
@@ -436,4 +437,7 @@ public class   RecruitEvents {
     public static MutableComponent TEXT_INTERACT_WARN(String name) {
         return Component.translatable("chat.recruits.text.block_interact_warn", name);
     }
+
+
+
 }
