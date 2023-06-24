@@ -294,6 +294,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void addAdditionalSaveData(CompoundTag nbt) {
         super.addAdditionalSaveData(nbt);
         nbt.putInt("AggroState", this.getState());
+        nbt.putInt("FollowState", this.getFollowState());
         nbt.putBoolean("ShouldFollow", this.getShouldFollow());
         nbt.putBoolean("ShouldMount", this.getShouldMount());
         nbt.putBoolean("ShouldProtect", this.getShouldProtect());
@@ -356,6 +357,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         super.readAdditionalSaveData(nbt);
         this.setXpLevel(nbt.getInt("Level"));
         this.setState(nbt.getInt("AggroState"));
+        this.setFollowState(nbt.getInt("FollowState"));
         this.setShouldFollow(nbt.getBoolean("ShouldFollow"));
         this.setShouldMount(nbt.getBoolean("ShouldMount"));
         this.setShouldBlock(nbt.getBoolean("ShouldBlock"));
