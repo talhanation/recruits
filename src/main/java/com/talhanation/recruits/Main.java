@@ -109,7 +109,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 41, MessageAssignToTeamMate.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 42, MessageServerUpdateCommandScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 43, MessageToClientUpdateCommandScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 43, MessageWriteSpawnEgg.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 44, MessageWriteSpawnEgg.class);
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
 
     }
