@@ -259,7 +259,7 @@ public class RecruitsPatrolSpawn {
                 case 1 -> resources = new ItemStack(Items.IRON_INGOT);
                 case 2 -> resources = new ItemStack(Items.COPPER_INGOT);
                 case 3 -> resources = new ItemStack(Items.EMERALD);
-                case 4 -> resources = new ItemStack(Items.LEAD);
+                case 4 -> resources = new ItemStack(Items.CLAY);
             }
             resources.setCount(count);
             mule.inventory.setItem(12 - x, resources);

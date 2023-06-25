@@ -69,8 +69,7 @@ public class RecruitsModConfig {
             Arrays.asList("minecraft:creeper", "minecraft:ghast"));
     public static ArrayList<String> MOUNTS = new ArrayList<>(
             Arrays.asList("minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "smallships:galley", "camels:camel"));
-    public static ArrayList<String> START_ARMOR = new ArrayList<>(
-            Arrays.asList("minecraft:leather_helmet", "minecraft:leather_chestplate", "minecraft:leather_leggings", "minecraft:leather_boots"));
+    public static ArrayList<String> START_ARMOR = new ArrayList<>();
     public static ArrayList<String> RECRUIT_HAND = new ArrayList<>(
             Arrays.asList("minecraft:wooden_sword", ""));
     public static ArrayList<String> SHIELDMAN_HAND = new ArrayList<>(
@@ -261,7 +260,8 @@ public class RecruitsModConfig {
 
                         ----Start armor ----
                         \t(takes effect after restart)
-                        \tItems in this list will be equipped to a new spawned recruits, for example: ["head", "chest", "legs", "feet"]""")
+                        \tItems in this list will be equipped to a new spawned recruits in this order: ["head", "chest", "legs", "feet"]
+                        \tFor example: ["minecraft:leather_helmet", "minecraft:leather_chestplate", "minecraft:leather_leggings", "minecraft:leather_boots"]""")
                 .worldRestart()
                 .define("StartArmorList", START_ARMOR);
 

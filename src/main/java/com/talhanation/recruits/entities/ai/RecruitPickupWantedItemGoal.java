@@ -1,6 +1,5 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -18,7 +17,6 @@ public class RecruitPickupWantedItemGoal extends Goal{
     public List<ItemEntity> itemEntityList = new ArrayList<>();
     public ItemEntity itemEntity;
     private byte timer;
-    public boolean wasHoldingPos;
 
     public RecruitPickupWantedItemGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -26,14 +24,13 @@ public class RecruitPickupWantedItemGoal extends Goal{
 
     @Override
     public boolean canUse() {
-        return recruit.getTarget() == null && !this.recruit.isFollowing() && !recruit.getFleeing() && !recruit.needsToGetFood() && !recruit.getShouldMount() && !recruit.getShouldMovePos();
+        return recruit.getTarget() == null && !this.recruit.isFollowing() && !recruit.getFleeing() && !recruit.needsToGetFood() && !recruit.getShouldMount() && !recruit.getShouldMovePos() && !recruit.getShouldHoldPos();
     }
     @Override
     public void start(){
         super.start();
         timer = 0;
         state = SEARCH;
-        wasHoldingPos = recruit.getShouldHoldPos();
     }
 
     @Override
@@ -71,7 +68,6 @@ public class RecruitPickupWantedItemGoal extends Goal{
             }
 
             case MOVE -> {
-                if(wasHoldingPos) recruit.setShouldHoldPos(false);
                 if(itemEntity != null){
                     recruit.getNavigation().moveTo(itemEntity, 1F);
                     recruit.maxUpStep = 1.25F;
@@ -91,7 +87,6 @@ public class RecruitPickupWantedItemGoal extends Goal{
                     this.itemEntityList.remove(0);
                     this.recruit.setCanPickUpLoot(false);
                     this.timer = 0;
-                    if(wasHoldingPos) recruit.setShouldHoldPos(true);
                     this.state = SELECT;
                 }
             }
