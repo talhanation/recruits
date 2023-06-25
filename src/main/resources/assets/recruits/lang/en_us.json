@@ -16,6 +16,8 @@
   "block.recruits.recruit_shield_block": "Recruit Shieldman's Table",
   "block.recruits.bowman_block": "Bowman's Table",
   "block.recruits.nomad_block": "Nomad's Table",
+  "block.recruits.horseman_block": "Horseman's Table",
+  "block.recruits.crossbowman_block": "Crossbowman's Table",
 
   "category.recruits" : "Recruits",
   "key.recruits.command_screen_key": "Open Command Screen",
