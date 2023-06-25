@@ -1,6 +1,7 @@
 package com.talhanation.recruits.items;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.BowmanEntity;
 import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.ListTag;
@@ -151,6 +152,8 @@ public class RecruitsSpawnEgg extends SpawnEggItem {
                 }
 
                 recruit.setPos(pos.getX() + 0.5, pos.getY() + 1 , pos.getZ() + 0.5);
+                if(recruit instanceof BowmanEntity bowman) bowman.reassessWeaponGoal();
+
                 world.addFreshEntity(recruit);
 
                 if (!context.getPlayer().isCreative()) {

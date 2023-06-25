@@ -878,8 +878,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void initSpawn(){
-        this.setCanPickUpLoot(true);
-        this.recalculateCost();
         this.setVariant(random.nextInt(3));
     }
 
