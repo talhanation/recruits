@@ -58,6 +58,7 @@ public class VillagerEvents {
             put(ModProfessions.SHIELDMAN.get(), ModEntityTypes.RECRUIT_SHIELDMAN.get());
             put(ModProfessions.HORSEMAN.get(), ModEntityTypes.HORSEMAN.get());
             put(ModProfessions.NOMAD.get(), ModEntityTypes.NOMAD.get());
+            put(ModProfessions.CROSSBOWMAN.get(), ModEntityTypes.CROSSBOWMAN.get());
             }
         };
 
