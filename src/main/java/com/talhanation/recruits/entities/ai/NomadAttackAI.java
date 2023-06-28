@@ -1,12 +1,11 @@
 package com.talhanation.recruits.entities.ai;
 
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.NomadEntity;
-import com.talhanation.recruits.entities.RecruitHorseEntity;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.Items;
@@ -28,7 +27,7 @@ public class NomadAttackAI extends Goal {
         this.setFlags(EnumSet.of(Flag.MOVE));
     }
     public boolean canUse() {
-        return nomad.getVehicle() instanceof RecruitHorseEntity && nomad.getTarget() != null && nomad.getFollowState() == 0 && !nomad.needsToGetFood() && !nomad.getShouldMount();
+        return nomad.getVehicle() instanceof AbstractHorse && nomad.getTarget() != null && !nomad.needsToGetFood() && !nomad.getShouldMount();
     }
 
     public boolean canContinueToUse() {
@@ -42,29 +41,29 @@ public class NomadAttackAI extends Goal {
     }
 
     public void tick() {
-        switch (state) {
-            case SELECT_TARGET -> {
-                this.target = nomad.getTarget();
-                if (target != null && target.isAlive()) {
+        if(nomad.getFollowState() == 0) {
+            switch (state) {
+                case SELECT_TARGET -> {
+                    this.target = nomad.getTarget();
+                    if (target != null && target.isAlive()) {
 
-                    this.state = CIRCLE_TARGET;
+                        this.state = CIRCLE_TARGET;
+                    }
                 }
-            }
 
-            case CIRCLE_TARGET -> {
-                if (target != null && target.isAlive()) {
-                    Vec3 toTarget = target.position().subtract(nomad.position()).normalize();
-                    Vec3 moveVec = toTarget.yRot(-90).normalize();
-                    Vec3 movePos = target.position().add(moveVec.scale(20D));
+                case CIRCLE_TARGET -> {
+                    if (target != null && target.isAlive()) {
+                        Vec3 toTarget = target.position().subtract(nomad.position()).normalize();
+                        Vec3 moveVec = toTarget.yRot(-90).normalize();
+                        Vec3 movePos = target.position().add(moveVec.scale(20D));
 
-                    if (nomad.distanceToSqr(movePos) > 3F)
-                        nomad.getNavigation().moveTo(movePos.x, movePos.y, movePos.z, 1);
+                        if (nomad.distanceToSqr(movePos) > 3F)
+                            nomad.getNavigation().moveTo(movePos.x, movePos.y, movePos.z, 1);
 
-                    nomad.getLookControl().setLookAt(target, 30.0F, 30.0F);
-                }
-                else
-                {
-                    state = SELECT_TARGET;
+                        nomad.getLookControl().setLookAt(target, 30.0F, 30.0F);
+                    } else {
+                        state = SELECT_TARGET;
+                    }
                 }
             }
         }

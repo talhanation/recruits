@@ -1,12 +1,12 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.HorsemanEntity;
-import com.talhanation.recruits.entities.RecruitHorseEntity;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.TieredItem;
@@ -30,7 +30,7 @@ public class HorsemanAttackAI extends Goal {
     }
 
     public boolean canUse() {
-        return horseman.getVehicle() instanceof RecruitHorseEntity && horseman.getFollowState() == 0 && !horseman.needsToGetFood() && !horseman.getShouldMount();
+        return horseman.getVehicle() instanceof AbstractHorse && horseman.getFollowState() == 0 && !horseman.needsToGetFood() && !horseman.getShouldMount();
     }
 
     public boolean canContinueToUse() {

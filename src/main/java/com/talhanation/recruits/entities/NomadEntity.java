@@ -17,6 +17,8 @@ import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -108,14 +110,12 @@ public class NomadEntity extends BowmanEntity {
         super.tick();
 
         if (!getHadHorse()){
-            boolean hasHorse = this.getVehicle() != null && this.getVehicle() instanceof RecruitHorseEntity;
+            boolean hasHorse = this.getVehicle() != null && this.getVehicle() instanceof AbstractHorse;
             if (!hasHorse){
-                RecruitHorseEntity horse = new RecruitHorseEntity(ModEntityTypes.RECRUIT_HORSE.get(), this.level);
+                Horse horse = new Horse(EntityType.HORSE, this.level);
                 horse.setPos(this.getX(), this.getY(), this.getZ());
-                horse.setRandomVariant();
-                horse.setRandomSpawnBonus();
-                //if (this.getOwner() != null) horse.setOwnerUUID(this.getOwnerUUID());
-
+                horse.setTamed(true);
+                horse.equipSaddle(null);
                 this.startRiding(horse);
                 this.level.addFreshEntity(horse);
                 this.setHadHorse(true);

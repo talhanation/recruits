@@ -6,7 +6,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.*;
-import com.talhanation.recruits.init.ModEntityTypes;
+import com.talhanation.recruits.entities.ai.navigation.RecruitPathNavigation;
 import com.talhanation.recruits.init.ModItems;
 import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
@@ -38,9 +38,12 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.control.JumpControl;
+import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.animal.AbstractFish;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.animal.Squid;
@@ -106,32 +109,21 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Integer> UpkeepTimer = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
 
     public int blockCoolDown;
-    protected GroundPathNavigation navigation;
     private boolean needsTeamUpdate = true;
 
 
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
-        this.setIsOwned(false);
         this.xpReward = 6;
         this.navigation = this.createNavigation(world);
-        this.navigation.setCanOpenDoors(true);
     }
 
     ///////////////////////////////////NAVIGATION/////////////////////////////////////////
     @NotNull
-    protected GroundPathNavigation createNavigation(@NotNull Level level) {
-        return new GroundPathNavigation(this, level);
+    protected PathNavigation createNavigation(@NotNull Level level) {
+        return new RecruitPathNavigation(this, level);
     }
 
-    @NotNull
-    public GroundPathNavigation getNavigation() {
-        if (super.getNavigation() instanceof GroundPathNavigation navigation) {
-            return navigation;
-        } else {
-            throw new IllegalStateException("Invalid worker entity navigation, not a GroundPathNavigation");
-        }
-    }
 
     ///////////////////////////////////TICK/////////////////////////////////////////
 
@@ -145,8 +137,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateSwingTime();
         updateShield();
         if(needsTeamUpdate) updateTeam();
-        if(this.getVehicle() != null) updateMount();
     }
+
 
     public void tick() {
         super.tick();
@@ -156,18 +148,42 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.heal(1.0F/50F);// 1 hp in 2.5s
         }
 
+        if (this.getVehicle() != null){
+            if (this.getVehicle() instanceof AbstractHorse horse){ // Increase movement speed
+                horse.maxUpStep = 1.5F;
+                this.maxUpStep = 1.5F;
+                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5 + horse.getAttributeValue(Attributes.MOVEMENT_SPEED));
+            }
+            else{
+                this.maxUpStep = 1.0F;
+                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.35);
+            }
+
+        }
+
     }
 
     public void rideTick() {
         super.rideTick();
+
+    }
+
+    public MoveControl getMoveControl() {
+        return this.isRidingHorse() ? this.moveControl : super.getMoveControl();
+    }
+
+    public PathNavigation getNavigation() {
+        return this.isRidingHorse() ? this.navigation : super.getNavigation();
+    }
+
+    protected boolean isRidingHorse() {
+        return this.isPassenger() && this.getVehicle() instanceof AbstractHorse;
     }
 
     @Nullable
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance diff, MobSpawnType reason, @Nullable SpawnGroupData spawnData, @Nullable CompoundTag nbt) {
-        setRandomSpawnBonus();
-        GroundPathNavigation navigation = this.getNavigation();
-        navigation.setCanOpenDoors(true);
-        navigation.setCanPassDoors(true);
+        this.setRandomSpawnBonus();
+        this.createNavigation(world.getLevel());
         return spawnData;
     }
     public void setRandomSpawnBonus(){
@@ -1050,7 +1066,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setLastHurtMob(entity);
         }
 
-        this.addXp(2);
+        this.addXp(1);
+        if(this.getHunger() > 0) this.setHunger(this.getHunger() - 0.1F);
         this.checkLevel();
         if(this.getMoral() < 100) this.setMoral(this.getMoral() + 0.25F);
         this.damageMainHandItem();
@@ -1436,20 +1453,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
-    public void updateMount() {
-        if(this.getVehicle() instanceof Horse horse){
-            RecruitHorseEntity recHorse = ModEntityTypes.RECRUIT_HORSE.get().create(this.level);
-            recHorse.setPos(this.getX(), this.getY(), this.getZ());
-            recHorse.invulnerableTime = 60;
-            recHorse.setPersistenceRequired();
-            recHorse.setTypeVariant(horse.getVariant().getId());
-            recHorse.setTypeMarking(horse.getMarkings().getId());
-
-            this.startRiding(recHorse);
-            this.level.addFreshEntity(recHorse);
-            horse.discard();
-        }
-    }
 
     public int getMountTimer() {
         return entityData.get(mountTimer);
@@ -1511,7 +1514,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public boolean isValidTarget(LivingEntity living){
-        boolean notAllowed = living instanceof AbstractFish || living instanceof Squid || living instanceof AbstractHorse || living instanceof RecruitHorseEntity;
+        boolean notAllowed = living instanceof AbstractFish || living instanceof Squid || living instanceof AbstractHorse;
 
         if (living instanceof AbstractRecruitEntity otherRecruit) {
             if (otherRecruit.isOwned() && this.isOwned()){

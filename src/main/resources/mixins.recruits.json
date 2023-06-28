@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "com.talhanation.recruits.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "modid.refmap.json",
+  "mixins": [
+    "HorseImmobile"
+  ],
+  "client": [
+  ],
+  "minVersion": "0.8"
+}

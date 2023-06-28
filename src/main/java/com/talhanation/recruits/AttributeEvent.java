@@ -20,7 +20,6 @@ public class AttributeEvent {
         event.put(ModEntityTypes.CROSSBOWMAN.get(), CrossBowmanEntity.setAttributes().build());
         event.put(ModEntityTypes.NOMAD.get(), NomadEntity.setAttributes().build());
         event.put(ModEntityTypes.RECRUIT.get(), RecruitEntity.setAttributes().build());
-        event.put(ModEntityTypes.RECRUIT_HORSE.get(), RecruitHorseEntity.setAttributes());
         event.put(ModEntityTypes.RECRUIT_SHIELDMAN.get(), RecruitShieldmanEntity.setAttributes().build());
         event.put(ModEntityTypes.HORSEMAN.get(), HorsemanEntity.setAttributes().build());
     }
