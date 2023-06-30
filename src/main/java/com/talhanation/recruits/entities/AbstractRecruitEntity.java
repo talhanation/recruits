@@ -146,18 +146,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if(getHunger() >=  70F && getHealth() < getMaxHealth()){
             this.heal(1.0F/50F);// 1 hp in 2.5s
         }
-
-        if (this.getVehicle() != null) {
-            if (this.getVehicle() instanceof AbstractHorse horse) { // Increase movement speed
-                horse.maxUpStep = 1.5F;
-                this.maxUpStep = 1.5F;
-                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5 + horse.getAttributeValue(Attributes.MOVEMENT_SPEED));
-            }
-        }
-        else {
-            this.maxUpStep = 1.0F;
-            this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.35);
-        }
     }
 
     @Nullable
