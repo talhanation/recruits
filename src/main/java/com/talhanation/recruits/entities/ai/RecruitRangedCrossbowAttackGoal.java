@@ -1,11 +1,10 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.compat.CrossbowWeapon;
 import com.talhanation.recruits.compat.IWeapon;
-import com.talhanation.recruits.compat.MusketWeapon;
-import com.talhanation.recruits.compat.PistolWeapon;
 import com.talhanation.recruits.entities.CrossBowmanEntity;
-import com.talhanation.recruits.entities.ai.compat.RecruitRangedMusketAttackGoal;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -21,20 +20,25 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
     private IWeapon weapon;
 
     public RecruitRangedCrossbowAttackGoal(CrossBowmanEntity crossBowman) {
-        this.weapon = new MusketWeapon();
+        this.weapon = new CrossbowWeapon();
         this.crossBowman = crossBowman;
         this.speedModifier = this.weapon.getMoveSpeedAmp();
         this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
 
-    @Override
     public boolean canUse() {
-        return this.crossBowman.getTarget() != null && this.isWeaponInMainHand();
+
+        LivingEntity livingentity = this.crossBowman.getTarget();
+        if (livingentity != null && livingentity.isAlive() && this.isWeaponInMainHand()) {
+            // if (mob.getOwner() != null && mob.getShouldFollow() && mob.getOwner().distanceTo(this.mob) <= 25.00D && !(target.distanceTo(this.mob) <= 7.00D)) return false;
+            return this.canAttackHoldPos() && this.canAttackMovePos() && !this.crossBowman.needsToGetFood() && !this.crossBowman.getShouldMount();
+        } else {
+            return false;
+        }
     }
 
-    @Override
     public boolean canContinueToUse() {
-        return (this.canUse() || this.crossBowman.getNavigation().getPath() != null) && this.isWeaponInMainHand();
+        return this.canUse() && this.isWeaponInMainHand();
     }
 
     @Override
@@ -64,8 +68,9 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
 
     public void tick() {
         LivingEntity target = this.crossBowman.getTarget();
-
-        if (target != null) {
+        Main.LOGGER.info("State: "  + state);
+        Main.LOGGER.info("Target: "  + target);
+        if (target != null && target.isAlive()) {
             double distanceToTarget = target.distanceTo(this.crossBowman);
             boolean isClose = distanceToTarget <= 7.00D;
             boolean isFar = distanceToTarget >= 21.5D;
@@ -79,7 +84,6 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
                     if (isClose) this.crossBowman.fleeEntity(target);
                 }
             }
-
             else if (crossBowman.getShouldFollow() && crossBowman.getOwner() != null){
                 boolean playerClose = crossBowman.getOwner().distanceTo(this.crossBowman) <= 15.00D;
 
@@ -90,6 +94,7 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
                 }
                 if (!playerClose) {
                     this.crossBowman.getNavigation().moveTo(crossBowman.getOwner(), this.speedModifier);
+                    this.crossBowman.setAggressive(false);
                 }
             }
 
@@ -163,24 +168,43 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
         SHOOT,
     }
 
+    private boolean canAttackHoldPos() {
+        LivingEntity target = this.crossBowman.getTarget();
+        BlockPos pos = crossBowman.getHoldPos();
 
-    /*
-    if (this.crossBowman.isUsingItem()) {
-                if (!canSee && this.seeTime < -60) {
-                    this.crossBowman.releaseUsingItem();
-                    this.crossBowman.setAggressive(false);
-                } else if (canSee) {
-                    this.crossBowman.setAggressive(true);
-                    int i = this.crossBowman.getTicksUsingItem();
-                    if (i >= weapon.getWeaponLoadTime()) {
-                        this.crossBowman.releaseUsingItem();
-                        this.weapon.performRangedAttackIWeapon(this.crossBowman, target, weapon.getProjectileSpeed(i));
+        if (target != null && pos != null && crossBowman.getShouldHoldPos()) {
+            boolean targetIsFar = target.distanceTo(this.crossBowman) >= 21.5D;
+            boolean posIsClose = pos.distSqr(this.crossBowman.getOnPos()) <= 15.0D;
+            boolean posIsFar = pos.distSqr(this.crossBowman.getOnPos()) > 15.0D;
 
-                        this.attackTime = this.attackCooldown;
-                    }
-                }
-            } else if (--this.attackTime <= 0 && this.seeTime >= -60) {
-                this.crossBowman.startUsingItem(ProjectileUtil.getWeaponHoldingHand(this.crossBowman, weapon.getWeapon()));
+            if (posIsFar) {
+                return false;
             }
-     */
+
+            else if (posIsClose && targetIsFar){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean canAttackMovePos() {
+        LivingEntity target = this.crossBowman.getTarget();
+        BlockPos pos = crossBowman.getMovePos();
+
+        if (target != null && pos != null && crossBowman.getShouldMovePos()) {
+            boolean targetIsFar = target.distanceTo(this.crossBowman) >= 21.5D;
+            boolean posIsClose = pos.distSqr(this.crossBowman.getOnPos()) <= 15.0D;
+            boolean posIsFar = pos.distSqr(this.crossBowman.getOnPos()) > 15.0D;
+
+            if (posIsFar) {
+                return false;
+            }
+
+            else if (posIsClose && targetIsFar){
+                return false;
+            }
+        }
+        return true;
+    }
 }
