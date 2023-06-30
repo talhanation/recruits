@@ -46,5 +46,7 @@ public abstract class AbstractHorseMixin extends Animal {
             ci.cancel();
         }
     }
+
+
 }
 

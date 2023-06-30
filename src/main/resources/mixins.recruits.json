@@ -4,7 +4,8 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "modid.refmap.json",
   "mixins": [
-    "AbstractHorseMixin"
+    "AbstractHorseMixin",
+    "AnimalMixin"
   ],
   "client": [
   ],
