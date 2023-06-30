@@ -31,11 +31,10 @@ public class RecruitFollowOwnerGoal extends Goal {
     }
 
     public void tick() {
-        if (this.recruit.getOwner() != null && recruit.getOwner().distanceToSqr(recruit) > within) {
-            this.recruit.getNavigation().moveTo(recruit.getOwner().getX(), recruit.getOwner().getY(), recruit.getOwner().getZ(), this.speedModifier);
-            this.recruit.setIsFollowing(true);
+        if (this.recruit.getOwner() != null &&
+                recruit.getOwner().distanceToSqr(recruit) > within) {
+                this.recruit.getNavigation().moveTo(recruit.getOwner().getX(), recruit.getOwner().getY(), recruit.getOwner().getZ(), this.speedModifier);
         }
-        else this.recruit.setIsFollowing(false);
     }
 }
 

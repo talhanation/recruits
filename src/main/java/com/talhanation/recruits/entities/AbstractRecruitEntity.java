@@ -38,17 +38,13 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.control.JumpControl;
-import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
-import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.animal.AbstractFish;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.animal.Squid;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
-import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.monster.AbstractIllager;
@@ -124,19 +120,22 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return new RecruitPathNavigation(this, level);
     }
 
-
-    ///////////////////////////////////TICK/////////////////////////////////////////
+    public void rideTick() {
+        super.rideTick();
+    }
 
     public double getMyRidingOffset() {
         return -0.35D;
     }
 
-    @Override
+    ///////////////////////////////////TICK/////////////////////////////////////////
+    // @Override
     public void aiStep(){
         super.aiStep();
         updateSwingTime();
         updateShield();
         if(needsTeamUpdate) updateTeam();
+
     }
 
 
@@ -148,36 +147,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.heal(1.0F/50F);// 1 hp in 2.5s
         }
 
-        if (this.getVehicle() != null){
-            if (this.getVehicle() instanceof AbstractHorse horse){ // Increase movement speed
+        if (this.getVehicle() != null) {
+            if (this.getVehicle() instanceof AbstractHorse horse) { // Increase movement speed
                 horse.maxUpStep = 1.5F;
                 this.maxUpStep = 1.5F;
                 this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.5 + horse.getAttributeValue(Attributes.MOVEMENT_SPEED));
             }
-            else{
-                this.maxUpStep = 1.0F;
-                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.35);
-            }
-
         }
-
-    }
-
-    public void rideTick() {
-        super.rideTick();
-
-    }
-
-    public MoveControl getMoveControl() {
-        return this.isRidingHorse() ? this.moveControl : super.getMoveControl();
-    }
-
-    public PathNavigation getNavigation() {
-        return this.isRidingHorse() ? this.navigation : super.getNavigation();
-    }
-
-    protected boolean isRidingHorse() {
-        return this.isPassenger() && this.getVehicle() instanceof AbstractHorse;
+        else {
+            this.maxUpStep = 1.0F;
+            this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.35);
+        }
     }
 
     @Nullable
