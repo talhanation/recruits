@@ -14,7 +14,7 @@ public class AnimalMixin {
 
     @SuppressWarnings("DataFlowIssue")
     @Inject(method = "hurt", at = @At(value = "HEAD", target = "Lnet/minecraft/world/entity/animal/Animal;hurt(Lnet/minecraft/world/damagesource/DamageSource;F)Z"))
-    private void hurt(DamageSource source, float amount, CallbackInfoReturnable<Boolean> ci) {
+    private void hurtWhenRecruitsRides(DamageSource source, float amount, CallbackInfoReturnable<Boolean> ci) {
         if (((Animal)(Object)this).isAlive() && ((Animal)(Object)this).isVehicle() && ((Animal)(Object)this).getControllingPassenger() instanceof AbstractRecruitEntity recruit) {
             if(source.getEntity() instanceof LivingEntity target && recruit.canAttack(target))
                 recruit.setTarget(target);

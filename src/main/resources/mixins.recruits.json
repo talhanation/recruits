@@ -1,13 +1,16 @@
 {
   "required": true,
+  "minVersion": "0.8",
   "package": "com.talhanation.recruits.mixin",
-  "compatibilityLevel": "JAVA_8",
-  "refmap": "modid.refmap.json",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "mixins.recruits.refmap.json",
   "mixins": [
     "AbstractHorseMixin",
     "AnimalMixin"
   ],
   "client": [
   ],
-  "minVersion": "0.8"
+  "injectors": {
+    "defaultRequire": 1
+  }
 }

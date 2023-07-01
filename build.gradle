@@ -15,7 +15,6 @@ buildscript {
 plugins {
     id "com.matthewprenger.cursegradle" version "1.4.0"
     id "com.github.johnrengelman.shadow" version "7.1.0"
-    //id 'org.spongepowered.mixin' version '0.7.+'
 }
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'idea'
@@ -32,9 +31,12 @@ idea {
 mixin{
     add sourceSets.main, 'mixins.recruits.refmap.json'
     config 'mixins.recruits.json'
+
+    disableTargetValidator = true
+    overwriteErrorLevel = 'error'
 }
 
-version = '1.10.1'
+version = '1.10.2'
 
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.19.2'
@@ -54,7 +56,7 @@ minecraft {
 
             property 'forge.enabledGameTestNamespaces', 'recruits'
 
-            Random rnd = new Random()
+            //Random rnd = new Random()
 
             args = ['--username', 'talhanation']// + rnd.nextInt(1000)]
 
@@ -118,7 +120,7 @@ dependencies {
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.19.2-1.0.0:javadoc")
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-    testAnnotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
 
     //implementation fg.deobf('curse.maven:musketmod-354562:4030979')
     //implementation fg.deobf('curse.maven:mca-535291:4586534')
@@ -136,7 +138,7 @@ artifacts {
 }
 
 shadowJar {
-    project.configurations.shadow.setTransitive(true);
+    project.configurations.shadow.setTransitive(true)
     configurations = [project.configurations.shadow]
     classifier = ""
     relocate 'de.maxhenkel.corelib', "de.maxhenkel.recruits.corelib"

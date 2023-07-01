@@ -31,7 +31,7 @@ public abstract class AbstractHorseMixin extends Animal {
 
     @SuppressWarnings("DataFlowIssue")
     @Inject(method = "travel", at = @At(value = "HEAD", target = "Lnet/minecraft/world/entity/animal/horse/AbstractHorse;travel(Lnet/minecraft/world/phys/Vec3;)V"), cancellable = true)
-    private void superTravel(Vec3 vec3, CallbackInfo ci) {
+    private void superTravelWhenRecruitsRides(Vec3 vec3, CallbackInfo ci) {
         if (this.isAlive() && isVehicle() && getControllingPassenger() instanceof AbstractRecruitEntity) {
             super.travel(vec3);
             ci.cancel();
@@ -40,13 +40,11 @@ public abstract class AbstractHorseMixin extends Animal {
 
     @SuppressWarnings("DataFlowIssue")
     @Inject(method = "positionRider", at = @At(value = "HEAD", target = "Lnet/minecraft/world/entity/Entity;positionRider(Lnet/minecraft/world/entity/Entity;)V"), cancellable = true)
-    private void superPositionRider(Entity entity, CallbackInfo ci) {
+    private void superPositionRiderWhenRecruitsRides(Entity entity, CallbackInfo ci) {
         if (this.isAlive() && isVehicle() && getControllingPassenger() instanceof AbstractRecruitEntity) {
             super.positionRider(entity);
             ci.cancel();
         }
     }
-
-
 }
 
