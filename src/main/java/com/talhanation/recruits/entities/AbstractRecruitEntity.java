@@ -885,6 +885,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         String name = this.getName().getString();
         boolean isPlayerTarget = this.getTarget() != null && getTarget().equals(player);
 
+        if(isPlayerTarget) return InteractionResult.PASS;
+
         if (this.level.isClientSide) {
             boolean flag = this.isOwnedBy(player) || this.isOwned() || !this.isOwned();
             return flag ? InteractionResult.CONSUME : InteractionResult.PASS;

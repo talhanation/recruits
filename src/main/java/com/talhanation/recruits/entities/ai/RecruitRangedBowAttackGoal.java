@@ -93,7 +93,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
             }
         }
 
-        if (mob.getShouldFollow() && mob.getOwner() != null){
+        else if (mob.getShouldFollow() && mob.getOwner() != null){
             boolean playerClose = mob.getOwner().distanceTo(this.mob) <= 15.00D;
 
             if (playerClose){

@@ -8,6 +8,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
+import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 
 import java.util.EnumSet;
@@ -109,44 +110,44 @@ public class RecruitMeleeAttackGoal extends Goal {
     }
 
     public void tick() {
-        //Main.LOGGER.info("this.ticksUntilNextAttack: " + this.ticksUntilNextAttack);
         LivingEntity target = this.recruit.getTarget();
-
         if(target != null && target.isAlive()) {
-            double d2 = target.getEyeY();
-            this.recruit.getLookControl().setLookAt(target.getX(), d2, target.getZ());
-            this.recruit.lookAt(target, 90.0F, 90.0F);
-        }
+            //Main.LOGGER.info("this.ticksUntilNextAttack: " + this.ticksUntilNextAttack);
 
-        double d0 = this.recruit.distanceToSqr(target.getX(), target.getY(), target.getZ());
-        this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
-        if ((this.followingTargetEvenIfNotSeen || this.recruit.getSensing().hasLineOfSight(target)) && this.ticksUntilNextPathRecalculation <= 0 && (this.pathedTargetX == 0.0D && this.pathedTargetY == 0.0D && this.pathedTargetZ == 0.0D || target.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) >= 1.0D || this.recruit.getRandom().nextFloat() < 0.05F)) {
-            this.pathedTargetX = target.getX();
-            this.pathedTargetY = target.getY();
-            this.pathedTargetZ = target.getZ();
-            this.ticksUntilNextPathRecalculation = 4 + this.recruit.getRandom().nextInt(7);
-            if (this.canPenalize) {
-                this.ticksUntilNextPathRecalculation += failedPathFindingPenalty;
-                if (this.recruit.getNavigation().getPath() != null) {
-                    net.minecraft.world.level.pathfinder.Node finalPathPoint = this.recruit.getNavigation().getPath().getEndNode();
-                    if (finalPathPoint != null && target.distanceToSqr(finalPathPoint.x, finalPathPoint.y, finalPathPoint.z) < 1)
-                        failedPathFindingPenalty = 0;
-                    else
-                        failedPathFindingPenalty += 10;
-                } else {
-                    failedPathFindingPenalty += 10;
+            double d0 = this.recruit.distanceToSqr(target.getX(), target.getY(), target.getZ());
+            this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
+            if ((this.followingTargetEvenIfNotSeen || this.recruit.getSensing().hasLineOfSight(target)) && this.ticksUntilNextPathRecalculation <= 0 && (this.pathedTargetX == 0.0D && this.pathedTargetY == 0.0D && this.pathedTargetZ == 0.0D || target.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) >= 1.0D || this.recruit.getRandom().nextFloat() < 0.05F)) {
+                this.pathedTargetX = target.getX();
+                this.pathedTargetY = target.getY();
+                this.pathedTargetZ = target.getZ();
+                this.ticksUntilNextPathRecalculation = 4 + this.recruit.getRandom().nextInt(7);
+                if (this.canPenalize) {
+                    this.ticksUntilNextPathRecalculation += failedPathFindingPenalty;
+                    if (this.recruit.getNavigation().getPath() != null) {
+                        Node finalPathPoint = this.recruit.getNavigation().getPath().getEndNode();
+                        if (finalPathPoint != null && target.distanceToSqr(finalPathPoint.x, finalPathPoint.y, finalPathPoint.z) < 1)
+                            failedPathFindingPenalty = 0;
+                        else
+                            failedPathFindingPenalty += 5;
+                    } else {
+                        failedPathFindingPenalty += 5;
+                    }
+                }
+                if (d0 > 1024.0D) {
+                    this.ticksUntilNextPathRecalculation += 10;
+                } else if (d0 > 256.0D) {
+                    this.ticksUntilNextPathRecalculation += 5;
                 }
             }
-            if (d0 > 1024.0D) {
-                this.ticksUntilNextPathRecalculation += 10;
-            } else if (d0 > 256.0D) {
-                this.ticksUntilNextPathRecalculation += 5;
-            }
-        }
 
-        if(ticksUntilNextAttack > 0) ticksUntilNextAttack--;
-        if(this.ticksUntilNextAttack <= 0 && !this.recruit.swinging) {
-            this.checkAndPerformAttack(target, d0);
+            double d2 = target.getEyeY();
+            this.recruit.getLookControl().setLookAt(target.getX(), d2, target.getZ());
+            this.recruit.lookAt(target, 10.0F, 10.0F);
+
+            if (ticksUntilNextAttack > 0) ticksUntilNextAttack--;
+            if (this.ticksUntilNextAttack <= 0 && !this.recruit.swinging) {
+                this.checkAndPerformAttack(target, d0);
+            }
         }
     }
 
@@ -166,7 +167,7 @@ public class RecruitMeleeAttackGoal extends Goal {
     private int getCooldownModifier(){
         int modifier = 0;
         Item item = recruit.getMainHandItem().getItem();
-        if(item instanceof TieredItem tieredItem){
+        if(item instanceof TieredItem tieredItem && !(item instanceof SwordItem)){
             modifier = 3 - (int) tieredItem.getTier().getSpeed();
         }
 
@@ -178,7 +179,7 @@ public class RecruitMeleeAttackGoal extends Goal {
     }
 
     protected double getAttackReachSqr(LivingEntity target) {
-        float weaponWidth = 5F;
+        float weaponWidth = 4F;
         //ItemStack stack = recruit.getMainHandItem();
         //CompoundTag tag = stack.getTag().getFloat("reach");
 
