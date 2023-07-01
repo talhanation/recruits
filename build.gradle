@@ -34,7 +34,7 @@ mixin{
     config 'mixins.recruits.json'
 }
 
-version = '1.10.0'
+version = '1.10.1'
 
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.19.2'
