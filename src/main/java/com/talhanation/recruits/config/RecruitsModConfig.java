@@ -16,7 +16,7 @@ public class RecruitsModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
-    public static final int NEW_VERSION = 21;
+    public static final int NEW_VERSION = 22;
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue OverrideIronGolemSpawn;
     public static ForgeConfigSpec.BooleanValue PillagerFriendlyFire;
@@ -434,9 +434,9 @@ public class RecruitsModConfig {
 
                         The interval in minutes a Recruit Patrol and Caravan can spawn.
                         \t(takes effect after restart)
-                        \tdefault: 15""")
+                        \tdefault: 30""")
                 .worldRestart()
-                .defineInRange("RecruitPatrolSpawnInterval", 15, 1, 60);
+                .defineInRange("RecruitPatrolSpawnInterval", 30, 1, 60);
 
         ShouldPillagerPatrolsSpawn = BUILDER.comment("""
 
@@ -458,9 +458,9 @@ public class RecruitsModConfig {
 
                         The interval in minutes a Pillager Patrol can spawn.
                         \t(takes effect after restart)
-                        \tdefault: 15""")
+                        \tdefault: 45""")
                 .worldRestart()
-                .defineInRange("PillagerPatrolSpawnInterval", 15, 1, 60);
+                .defineInRange("PillagerPatrolSpawnInterval", 45, 1, 60);
 
 
         /*
