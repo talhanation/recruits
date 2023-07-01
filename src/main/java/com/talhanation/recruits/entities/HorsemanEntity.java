@@ -4,6 +4,7 @@ import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.HorsemanAttackAI;
 import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.init.ModEntityTypes;
+import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -20,6 +21,8 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.animal.horse.Horse;
+import net.minecraft.world.entity.animal.horse.Markings;
+import net.minecraft.world.entity.animal.horse.Variant;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -119,6 +122,11 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
                 horse.setPos(this.getX(), this.getY(), this.getZ());
                 horse.setTamed(true);
                 horse.equipSaddle(null);
+
+                Variant variant = Util.getRandom(Variant.values(), this.random);
+                Markings markings = Util.getRandom(Markings.values(), this.random);
+                horse.setVariantAndMarkings(variant, markings);
+
                 this.startRiding(horse);
                 this.level.addFreshEntity(horse);
                 this.setHadHorse(true);
