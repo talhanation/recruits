@@ -130,6 +130,7 @@ public class RecruitsSpawnEgg extends SpawnEggItem {
 
                 ListTag listnbt = nbt.getList("Items", 10);//muss 10 sein amk sonst nix save
                 recruit.createInventory();
+                recruit.setPersistenceRequired();
 
                 for (int i = 0; i < listnbt.size(); ++i) {
                     CompoundTag compoundnbt = listnbt.getCompound(i);
