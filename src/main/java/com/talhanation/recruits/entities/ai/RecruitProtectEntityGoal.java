@@ -5,6 +5,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 
 import java.util.List;
 
@@ -12,6 +13,7 @@ public class RecruitProtectEntityGoal extends Goal {
 
     private final AbstractRecruitEntity recruit;
     private LivingEntity protectingMob;
+    private double range;
 
     public RecruitProtectEntityGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -28,6 +30,8 @@ public class RecruitProtectEntityGoal extends Goal {
 
     public void start(){
         this.getProtecting();
+        boolean isHorseBack = recruit.getVehicle() instanceof AbstractHorse;
+        this.range = isHorseBack ? 15D : 8D;
     }
 
     public void stop(){
@@ -43,7 +47,7 @@ public class RecruitProtectEntityGoal extends Goal {
     public void tick() {
 
         if(this.protectingMob != null) {
-            boolean isClose = protectingMob.distanceTo(this.recruit) <= 8.00D;
+            boolean isClose = protectingMob.distanceTo(this.recruit) <= range;
             if(!isClose){
                 recruit.getNavigation().moveTo(protectingMob, 1.15F);
             }
