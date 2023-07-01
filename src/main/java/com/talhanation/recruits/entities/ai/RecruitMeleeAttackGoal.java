@@ -111,7 +111,13 @@ public class RecruitMeleeAttackGoal extends Goal {
     public void tick() {
         //Main.LOGGER.info("this.ticksUntilNextAttack: " + this.ticksUntilNextAttack);
         LivingEntity target = this.recruit.getTarget();
-        this.recruit.getLookControl().setLookAt(target, 30.0F, 30.0F);
+
+        if(target != null && target.isAlive()) {
+            double d2 = target.getEyeY();
+            this.recruit.getLookControl().setLookAt(target.getX(), d2, target.getZ());
+            this.recruit.lookAt(target, 90.0F, 90.0F);
+        }
+
         double d0 = this.recruit.distanceToSqr(target.getX(), target.getY(), target.getZ());
         this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
         if ((this.followingTargetEvenIfNotSeen || this.recruit.getSensing().hasLineOfSight(target)) && this.ticksUntilNextPathRecalculation <= 0 && (this.pathedTargetX == 0.0D && this.pathedTargetY == 0.0D && this.pathedTargetZ == 0.0D || target.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) >= 1.0D || this.recruit.getRandom().nextFloat() < 0.05F)) {
@@ -137,6 +143,7 @@ public class RecruitMeleeAttackGoal extends Goal {
                 this.ticksUntilNextPathRecalculation += 5;
             }
         }
+
         if(ticksUntilNextAttack > 0) ticksUntilNextAttack--;
         if(this.ticksUntilNextAttack <= 0 && !this.recruit.swinging) {
             this.checkAndPerformAttack(target, d0);
@@ -160,7 +167,7 @@ public class RecruitMeleeAttackGoal extends Goal {
         int modifier = 0;
         Item item = recruit.getMainHandItem().getItem();
         if(item instanceof TieredItem tieredItem){
-            modifier = 5 - (int) tieredItem.getTier().getSpeed();
+            modifier = 3 - (int) tieredItem.getTier().getSpeed();
         }
 
         if (item instanceof AxeItem){
@@ -171,8 +178,8 @@ public class RecruitMeleeAttackGoal extends Goal {
     }
 
     protected double getAttackReachSqr(LivingEntity target) {
-        float weaponWidth = 2F;
-        ItemStack stack = recruit.getMainHandItem();
+        float weaponWidth = 5F;
+        //ItemStack stack = recruit.getMainHandItem();
         //CompoundTag tag = stack.getTag().getFloat("reach");
 
         return (double)(weaponWidth + this.recruit.getBbWidth() * 2.1F * this.recruit.getBbWidth() * 2.1F + target.getBbWidth());
