@@ -83,7 +83,7 @@ public class RecruitMeleeAttackGoal extends Goal {
             return false;
         }
         else {
-            return (!(target instanceof Player) || !target.isSpectator() && !((Player)target).isCreative()) && canAttackHoldPos() && !recruit.isFollowing() ;
+            return (!(target instanceof Player) || !target.isSpectator() && !((Player)target).isCreative()) && canAttackHoldPos() && !recruit.isFollowing() && this.recruit.canAttack(target) && this.recruit.getState() != 3;
         }
     }
 
