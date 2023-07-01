@@ -71,7 +71,7 @@ public class NomadAttackAI extends Goal {
             this.target = nomad.getTarget();
         }
 
-        if (target != null && target.isAlive()) {
+        if (target != null && target.isAlive() && this.nomad.canAttack(target) && this.nomad.getState() != 3) {
             boolean canSee = this.nomad.getSensing().hasLineOfSight(target);
             if (canSee) {
                 ++this.seeTime;
