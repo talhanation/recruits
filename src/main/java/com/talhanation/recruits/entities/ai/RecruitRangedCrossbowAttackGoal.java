@@ -137,7 +137,7 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
                 }
 
                 case SHOOT -> {
-                    if (target != null && target.isAlive()) {
+                    if (target != null && target.isAlive() && this.crossBowman.canAttack(target) && this.crossBowman.getState() != 3) {
                         this.crossBowman.getLookControl().setLookAt(target);
                         this.weapon.performRangedAttackIWeapon(this.crossBowman, target, weapon.getProjectileSpeed());
                         CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), false);
