@@ -5,6 +5,7 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.item.ItemEntity;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import static com.talhanation.recruits.entities.ai.RecruitPickupWantedItemGoal.State.*;
@@ -46,7 +47,7 @@ public class RecruitPickupWantedItemGoal extends Goal{
                 List<ItemEntity> list = recruit.level.getEntitiesOfClass(ItemEntity.class, recruit.getBoundingBox().inflate(16.0D, 3.0D, 16.0D), recruit.getAllowedItems());
                 if (!list.isEmpty()) {
                     for(ItemEntity itemEntity : list){
-                        if((itemEntity.getItem().isEdible() && recruit.getHunger() < 30) || (recruit.wantsToPickUp(itemEntity.getItem()))){
+                        if(recruit.distanceTo(itemEntity) < 25 && ((itemEntity.getItem().isEdible() && recruit.getHunger() < 30) || (recruit.wantsToPickUp(itemEntity.getItem())))){
                             this.itemEntityList.add(itemEntity);
                         }
                     }
@@ -84,7 +85,7 @@ public class RecruitPickupWantedItemGoal extends Goal{
                 recruit.getNavigation().moveTo(itemEntity, 1F);
                 this.recruit.setCanPickUpLoot(true);
                 if(++this.timer > 30){
-                    this.itemEntityList.remove(0);
+                    this.itemEntityList.clear();
                     this.recruit.setCanPickUpLoot(false);
                     this.timer = 0;
                     this.state = SELECT;

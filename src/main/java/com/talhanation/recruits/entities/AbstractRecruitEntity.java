@@ -171,29 +171,30 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(0, new RecruitQuaffGoal(this));
         this.goalSelector.addGoal(0, new FleeTNT(this));
         this.goalSelector.addGoal(0, new FleeFire(this));
-        this.goalSelector.addGoal(0, new OpenDoorGoal(this, true) {
+        this.goalSelector.addGoal(6, new OpenDoorGoal(this, true) {
         });
         this.goalSelector.addGoal(1, new RecruitProtectEntityGoal(this));
 
         //this.goalSelector.addGoal(0, new (this));
 
-        this.goalSelector.addGoal(1, new FloatGoal(this));
+        this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(1, new RecruitEatGoal(this));
-        this.goalSelector.addGoal(1, new RecruitUpkeepPosGoal(this));
-        this.goalSelector.addGoal(1, new RecruitUpkeepEntityGoal(this));
-        this.goalSelector.addGoal(2, new RecruitMountEntity(this));
-        this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.05D));
-        this.goalSelector.addGoal(4, new RecruitFollowOwnerGoal(this, 1.05D, RecruitsModConfig.RecruitFollowStartDistance.get()));
-        this.goalSelector.addGoal(5, new RecruitMeleeAttackGoal(this, 1.15D, false));
-        this.goalSelector.addGoal(6, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
-        this.goalSelector.addGoal(7, new RecruitMoveTowardsTargetGoal(this, 1.15D, 32.0F));
+        this.goalSelector.addGoal(5, new RecruitUpkeepPosGoal(this));
+        this.goalSelector.addGoal(6, new RecruitUpkeepEntityGoal(this));
+        this.goalSelector.addGoal(3, new RecruitMountEntity(this));
+        this.goalSelector.addGoal(4, new RecruitMoveToPosGoal(this, 1.05D));
+        this.goalSelector.addGoal(2, new RecruitFollowOwnerGoal(this, 1.05D, RecruitsModConfig.RecruitFollowStartDistance.get()));
+        this.goalSelector.addGoal(2, new RecruitMeleeAttackGoal(this, 1.05D, false));
+        this.goalSelector.addGoal(7, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
+        this.goalSelector.addGoal(8, new RecruitMoveTowardsTargetGoal(this, 1.15D, 32.0F));
         //this.goalSelector.addGoal(7, new RecruitDodgeGoal(this));
-        this.goalSelector.addGoal(8, new RecruitPickupWantedItemGoal(this));
+
         this.goalSelector.addGoal(9, new MoveBackToVillageGoal(this, 0.6D, false));
         this.goalSelector.addGoal(10, new GolemRandomStrollInVillageGoal(this, 0.6D));
         this.goalSelector.addGoal(10, new WaterAvoidingRandomStrollGoal(this, 1.0D, 0F));
         this.goalSelector.addGoal(11, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(12, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(13, new RecruitPickupWantedItemGoal(this));
 
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 10, true, false, (target) -> {
             return (this.getState() == 2 && this.canAttack(target));
@@ -208,19 +209,19 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }));
 
         this.targetSelector.addGoal(0, new RecruitProtectHurtByTargetGoal(this));
-        this.targetSelector.addGoal(0, new RecruitOwnerHurtByTargetGoal(this));
-        this.targetSelector.addGoal(0, new PatrolLeaderTargetAttackers(this));
-        this.targetSelector.addGoal(1, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
-        this.targetSelector.addGoal(3, new RecruitOwnerHurtTargetGoal(this));
+        this.targetSelector.addGoal(1, new RecruitOwnerHurtByTargetGoal(this));
+        this.targetSelector.addGoal(2, new PatrolLeaderTargetAttackers(this));
+        this.targetSelector.addGoal(3, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
+        this.targetSelector.addGoal(4, new RecruitOwnerHurtTargetGoal(this));
 
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, AbstractIllager.class, 10, true, false, (target) -> {
             return (this.getState() != 3);
         }));
 
-        this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Monster.class, 10, true, false, (target) -> {
+        this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, Monster.class, 10, true, false, (target) -> {
             return this.canAttack(target) && !(target instanceof Creeper) && (this.getState() != 3);
         }));
-        this.targetSelector.addGoal(10, new RecruitDefendVillageGoal(this));
+        this.targetSelector.addGoal(7, new RecruitDefendVillageGoal(this));
 
         this.updateTeam();
     }

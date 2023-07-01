@@ -15,7 +15,6 @@ public class RecruitFollowOwnerGoal extends Goal {
         this.recruit = recruit;
         this.speedModifier = v;
         this.within = within;
-        this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
 
     public boolean canUse() {
@@ -31,9 +30,13 @@ public class RecruitFollowOwnerGoal extends Goal {
     }
 
     public void tick() {
-        if (this.recruit.getOwner() != null &&
-                recruit.getOwner().distanceToSqr(recruit) > within) {
+        if (this.recruit.getOwner() != null){
+            if(recruit.getOwner().distanceToSqr(recruit) > within) {
+                this.recruit.setIsFollowing(true);
                 this.recruit.getNavigation().moveTo(recruit.getOwner().getX(), recruit.getOwner().getY(), recruit.getOwner().getZ(), this.speedModifier);
+            }
+            else
+                this.recruit.setIsFollowing(false);
         }
     }
 }

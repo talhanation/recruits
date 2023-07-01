@@ -67,6 +67,9 @@ public class NomadAttackAI extends Goal {
                 }
             }
         }
+        else {
+            this.target = nomad.getTarget();
+        }
 
         if (target != null && target.isAlive()) {
             boolean canSee = this.nomad.getSensing().hasLineOfSight(target);

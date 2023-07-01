@@ -32,7 +32,6 @@ public class RecruitMeleeAttackGoal extends Goal {
         this.recruit = recruit;
         this.speedModifier = speedModifier;
         this.followingTargetEvenIfNotSeen = followingTargetEvenIfNotSeen;
-        this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
     }
 
     public boolean canUse() {
@@ -62,7 +61,7 @@ public class RecruitMeleeAttackGoal extends Goal {
                 if (this.path != null) {
                     return true;
                 } else {
-                    return (this.getAttackReachSqr(target) >= this.recruit.distanceToSqr(target.getX(), target.getY(), target.getZ())) && canAttackHoldPos() && recruit.getState() != 3 && !recruit.needsToGetFood() && !recruit.getShouldMount();
+                    return (this.getAttackReachSqr(target) >= this.recruit.distanceToSqr(target.getX(), target.getY(), target.getZ())) && canAttackHoldPos() && recruit.getState() != 3 && !recruit.needsToGetFood() && !recruit.getShouldMount() && !recruit.getShouldMovePos();
                 }
             }
         }
@@ -84,7 +83,7 @@ public class RecruitMeleeAttackGoal extends Goal {
             return false;
         }
         else {
-            return (!(target instanceof Player) || !target.isSpectator() && !((Player)target).isCreative()) && canAttackHoldPos();
+            return (!(target instanceof Player) || !target.isSpectator() && !((Player)target).isCreative()) && canAttackHoldPos() && !recruit.isFollowing() ;
         }
     }
 

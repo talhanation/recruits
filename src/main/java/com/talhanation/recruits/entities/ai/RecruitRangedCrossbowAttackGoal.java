@@ -23,11 +23,9 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
         this.weapon = new CrossbowWeapon();
         this.crossBowman = crossBowman;
         this.speedModifier = this.weapon.getMoveSpeedAmp();
-        this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
 
     public boolean canUse() {
-
         LivingEntity livingentity = this.crossBowman.getTarget();
         if (livingentity != null && livingentity.isAlive() && this.isWeaponInMainHand()) {
             // if (mob.getOwner() != null && mob.getShouldFollow() && mob.getOwner().distanceTo(this.mob) <= 25.00D && !(target.distanceTo(this.mob) <= 7.00D)) return false;
@@ -68,41 +66,30 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
 
     public void tick() {
         LivingEntity target = this.crossBowman.getTarget();
-        Main.LOGGER.info("State: "  + state);
-        Main.LOGGER.info("Target: "  + target);
+
         if (target != null && target.isAlive()) {
             double distanceToTarget = target.distanceTo(this.crossBowman);
-            boolean isClose = distanceToTarget <= 7.00D;
-            boolean isFar = distanceToTarget >= 21.5D;
-            boolean inRange =  !isFar && distanceToTarget <= 15.0D;
+            boolean isFar = distanceToTarget >= 26D;
+            boolean inRange = !isFar && distanceToTarget <= 15.0D;
 
-            // movement
+            if (!crossBowman.isFollowing()){
+                if (inRange){
+                    this.crossBowman.setAggressive(true);
+                    this.crossBowman.getNavigation().stop();
+                }
+                else {
+                    this.crossBowman.setAggressive(true);
+                    this.crossBowman.getNavigation().moveTo(target, this.speedModifier);
+                }
+            }
+
             if (crossBowman.getShouldHoldPos() && crossBowman.getHoldPos() != null) {
                 if ((!crossBowman.getHoldPos().closerThan(crossBowman.getOnPos(), 5D))){
-                    if (inRange) this.crossBowman.getNavigation().stop();
-                    if (isFar) this.crossBowman.getNavigation().moveTo(target, this.speedModifier);
-                    if (isClose) this.crossBowman.fleeEntity(target);
-                }
-            }
-            else if (crossBowman.getShouldFollow() && crossBowman.getOwner() != null){
-                boolean playerClose = crossBowman.getOwner().distanceTo(this.crossBowman) <= 15.00D;
-
-                if (playerClose){
-                    if (inRange) this.crossBowman.getNavigation().stop();
-                    if (isFar) this.crossBowman.getNavigation().moveTo(target, this.speedModifier);
-                    if (isClose) this.crossBowman.fleeEntity(target);
-                }
-                if (!playerClose) {
-                    this.crossBowman.getNavigation().moveTo(crossBowman.getOwner(), this.speedModifier);
-                    this.crossBowman.setAggressive(false);
+                    this.crossBowman.setAggressive(true);
+                    this.crossBowman.getNavigation().moveTo(target, this.speedModifier);
                 }
             }
 
-            else {
-                if (inRange) this.crossBowman.getNavigation().stop();
-                if (isFar) this.crossBowman.getNavigation().moveTo(target, this.speedModifier);
-                if (isClose) this.crossBowman.fleeEntity(target);
-            }
         }
 
         //WEAPON HANDLING
