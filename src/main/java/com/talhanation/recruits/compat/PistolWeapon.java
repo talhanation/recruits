@@ -117,40 +117,61 @@ public class PistolWeapon implements IWeapon {
 
     @Override
     public AbstractHurtingProjectile shoot(LivingEntity shooter, AbstractHurtingProjectile projectile, double x, double y, double z) {
-        Vec3 forward = new Vec3(x, y, z).normalize();
-        Vec3 origin = new Vec3(shooter.getX(), shooter.getEyeY(), shooter.getZ());
         double d3 = Mth.sqrt((float) (x * x + z * z));
-        Vec3 vec3 = (new Vec3(x, y + d3 * (double) 0.02, z)).normalize().scale(10F);
+        Vec3 vec3 = (new Vec3(x, y + d3 * (double) 0.065, z)).normalize().scale(10F);
         try {
             Class<?> bulletClass = Class.forName("ewewukek.musketmod.BulletEntity");
             if (bulletClass.isInstance(projectile)) {
                 Object bullet = bulletClass.cast(projectile);
 
-                Method bulletClassSetDeltaMovementMethod = bullet.getClass().getMethod("setDeltaMovement", Vec3.class);
-                Method bulletClassSetInitialSpeedMethod = bullet.getClass().getMethod("setInitialSpeed", float.class);
                 Field bulletDamageField = bullet.getClass().getField("damageMultiplier");
                 bulletDamageField.setAccessible(true);
 
-                bulletClassSetDeltaMovementMethod.invoke(bullet, vec3);
+                Method bulletClassSetInitialSpeedMethod = bullet.getClass().getMethod("setInitialSpeed", float.class);
+
                 bulletClassSetInitialSpeedMethod.invoke(bullet, 5F);
                 bulletDamageField.setFloat(bullet, 1F);
 
 
-                projectile.shoot(x, y + d3 * (double) 0.02, z, 4.5F, (float) (0));
 
-
-                Class<?> musketModClass = Class.forName("ewewukek.musketmod.MusketMod");
-                Method sendSmokeEffectMethod = musketModClass.getMethod("sendSmokeEffect", LivingEntity.class, Vec3.class, Vec3.class);
-                sendSmokeEffectMethod.invoke(musketModClass, shooter, origin, forward);
-
-                return (AbstractHurtingProjectile) bullet;
+                projectile.setDeltaMovement(vec3);
+                projectile.shoot(x, y + d3 * (double) 0.065, z, 4.5F, (float) (0));
             }
 
+        } catch (NoSuchFieldException e) {
+            Main.LOGGER.error("bulletDamageField was not found (NoSuchFieldException)");
+        } catch (ClassNotFoundException e) {
+            Main.LOGGER.error("BulletEntity.class was not found (ClassNotFoundException)");
+        } catch (InvocationTargetException e) {
+            Main.LOGGER.error("bulletClassSetInitialSpeedMethod was not found (InvocationTargetException)");
+        } catch (NoSuchMethodException e) {
+            Main.LOGGER.error("bulletClassSetDeltaMovementMethod was not found (NoSuchMethodException)");
+        } catch (IllegalAccessException e) {
+            Main.LOGGER.error("BulletEntity.class was not found (IllegalAccessException)");
         }
-        catch (ClassNotFoundException | IllegalAccessException | NoSuchFieldException | InvocationTargetException | NoSuchMethodException e) {
-            Main.LOGGER.info("BulletEntity was not found");
+
+        Vec3 forward = new Vec3(x, y, z).normalize();
+        Vec3 origin = new Vec3(shooter.getX(), shooter.getEyeY(), shooter.getZ());
+
+        try{
+            Class<?> musketModClass = Class.forName("ewewukek.musketmod.MusketMod");
+            Method sendSmokeEffectMethod = musketModClass.getMethod("sendSmokeEffect", LivingEntity.class, Vec3.class, Vec3.class);
+            sendSmokeEffectMethod.invoke(musketModClass, shooter, origin, forward);
+
+        } catch (ClassNotFoundException e) {
+            Main.LOGGER.error("MusketMod.class was not found (ClassNotFoundException)");
+
+        } catch (InvocationTargetException e) {
+            Main.LOGGER.error("sendSmokeEffectMethod was not found (InvocationTargetException)");
+
+        } catch (NoSuchMethodException e) {
+            Main.LOGGER.error("sendSmokeEffectMethod was not found (NoSuchMethodException)");
+
+        } catch (IllegalAccessException e) {
+            Main.LOGGER.error("MusketMod.class was not found (IllegalAccessException)");
+
         }
-        return null;
+        return projectile;
     }
 
     @Override
