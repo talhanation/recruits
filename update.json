@@ -1,11 +1,12 @@
 {
   "homepage": "https://www.curseforge.com/minecraft/mc-mods/recruits/files",
   "promos": {
-    "1.19.2-recommended": "1.10.1",
-    "1.18.2-recommended": "1.10.1",
+    "1.19.2-recommended": "1.10.2",
+    "1.18.2-recommended": "1.10.2",
     "1.16.5-recommended": "1.5.1"
   },
   "1.18.2": {
+    "1.10.2": "fixed horse controll and musket team damage",
     "1.10.1": "major bugfixes to Musket using and Horseman",
     "1.10.0": "added Musket shooting AI, added Horseman, Nomads and Crossbowman, improved config, fixed bugs.",
     "1.9.3.9": "fixed recruits upkeep ai, fixed block interacting not triggering recruits.",
@@ -23,6 +24,7 @@
     "1.9.0": "Team Screen, Hail of Arrows, Upkeep, Configurations and more!"
   },
   "1.19.2": {
+    "1.10.2": "fixed horse controll and musket team damage",
     "1.10.1": "major bugfixes to Musket using and Horseman",
     "1.10.0": "added Musket shooting AI, added Horseman, Nomads and Crossbowman, improved config, fixed bugs.",
     "1.9.3.9": "fixed recruits upkeep ai, fixed block interacting not triggering recruits.",
