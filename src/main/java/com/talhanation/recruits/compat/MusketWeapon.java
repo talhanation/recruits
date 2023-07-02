@@ -5,10 +5,9 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.AbstractHurtingProjectile;
-import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -85,9 +84,8 @@ public class MusketWeapon implements IWeapon {
         }
     }
 
-
     @Override
-    public Entity getProjectile(LivingEntity shooter) {
+    public AbstractHurtingProjectile getProjectile(LivingEntity shooter) {
         try {
             Class<?> bulletClass = Class.forName("ewewukek.musketmod.BulletEntity");
             Class<?>[] constructorParamTypes = {Level.class};
@@ -95,7 +93,7 @@ public class MusketWeapon implements IWeapon {
             Level level = shooter.level;
             Object bulletInstance = bulletConstructor.newInstance(level);
 
-            if(bulletInstance instanceof Projectile bullet){
+            if(bulletInstance instanceof AbstractHurtingProjectile bullet){
                 bullet.setOwner(shooter);
                 bullet.setPos(shooter.getX(), shooter.getY() + shooter.getEyeHeight() - 0.1D, shooter.getZ());
 
@@ -111,8 +109,12 @@ public class MusketWeapon implements IWeapon {
     }
 
     @Override
-    public Entity shoot(LivingEntity shooter, Entity projectile, double x, double y, double z) {
-        Entity bulletEntity = null;
+    public AbstractArrow getProjectileArrow(LivingEntity shooter) {
+        return null;
+    }
+
+    @Override
+    public AbstractHurtingProjectile shoot(LivingEntity shooter, AbstractHurtingProjectile projectile, double x, double y, double z) {
         double d3 = Mth.sqrt((float) (x * x + z * z));
         Vec3 vec3 = (new Vec3(x, y + d3 * (double) 0.065, z)).normalize().scale(10F);
         try {
@@ -129,12 +131,9 @@ public class MusketWeapon implements IWeapon {
                 bulletDamageField.setFloat(bullet, 1.5F);
 
 
-                if(projectile instanceof AbstractHurtingProjectile bulletproj){
-                    bulletproj.setDeltaMovement(vec3);
-                    bulletproj.shoot(x, y + d3 * (double) 0.065, z, 4.5F, (float) (0));
 
-                    bulletEntity = bulletproj;
-                }
+                projectile.setDeltaMovement(vec3);
+                projectile.shoot(x, y + d3 * (double) 0.065, z, 4.5F, (float) (0));
             }
 
         } catch (NoSuchFieldException e) {
@@ -170,7 +169,12 @@ public class MusketWeapon implements IWeapon {
             Main.LOGGER.error("MusketMod.class was not found (IllegalAccessException)");
 
         }
-        return bulletEntity;
+        return projectile;
+    }
+
+    @Override
+    public AbstractArrow shootArrow(LivingEntity shooter, AbstractArrow projectile, double x, double y, double z) {
+        return null;
     }
 
     @Override
@@ -227,7 +231,7 @@ public class MusketWeapon implements IWeapon {
 
     @Override
     public void performRangedAttackIWeapon(AbstractRecruitEntity shooter, LivingEntity target, float projectileSpeed) {
-        Entity projectileEntity = this.getProjectile(shooter);
+        AbstractHurtingProjectile projectileEntity = this.getProjectile(shooter);
         double d0 = target.getX() - shooter.getX();
         double d1 = target.getY(0.25D) - projectileEntity.getY();
         double d2 = target.getZ() - shooter.getZ();

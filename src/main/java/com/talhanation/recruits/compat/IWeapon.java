@@ -1,11 +1,12 @@
 package com.talhanation.recruits.compat;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.AbstractHurtingProjectile;
+import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 
 public interface IWeapon {
     Item getWeapon();
@@ -13,8 +14,11 @@ public interface IWeapon {
     int getAttackCooldown();
     int getWeaponLoadTime();
     float getProjectileSpeed();
-    Entity getProjectile(LivingEntity shooter);
-    Entity shoot(LivingEntity shooter, Entity projectile, double x, double y, double z);
+    AbstractHurtingProjectile getProjectile(LivingEntity shooter);
+    AbstractArrow getProjectileArrow(LivingEntity shooter);
+    AbstractHurtingProjectile shoot(LivingEntity shooter, AbstractHurtingProjectile projectile, double x, double y, double z);
+    AbstractArrow shootArrow(LivingEntity shooter, AbstractArrow projectile, double x, double y, double z);
+
     SoundEvent getShootSound();
     SoundEvent getLoadSound();
     boolean isGun();

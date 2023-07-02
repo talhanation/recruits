@@ -194,7 +194,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(10, new WaterAvoidingRandomStrollGoal(this, 1.0D, 0F));
         this.goalSelector.addGoal(11, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(12, new RandomLookAroundGoal(this));
-        this.goalSelector.addGoal(13, new RecruitPickupWantedItemGoal(this));
+        //this.goalSelector.addGoal(13, new RecruitPickupWantedItemGoal(this));
 
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 10, true, false, (target) -> {
             return (this.getState() == 2 && this.canAttack(target));

@@ -122,7 +122,7 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
 
-    //implementation fg.deobf('curse.maven:musketmod-354562:4030979')
+    implementation fg.deobf('curse.maven:musketmod-354562:4030979')
     //implementation fg.deobf('curse.maven:mca-535291:4586534')
 }
 

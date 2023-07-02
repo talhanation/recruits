@@ -1,5 +1,6 @@
 package com.talhanation.recruits;
 
+import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ai.horse.HorseRiddenByRecruitGoal;
@@ -33,7 +34,9 @@ import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.EntityTeleportEvent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
@@ -179,6 +182,26 @@ public class   RecruitEvents {
         }
     }
 
+    @SubscribeEvent
+    public void onLivingHurt(LivingHurtEvent event) {
+        if(Main.isMusketModLoaded) {
+            Entity sourceEntity = event.getSource().getEntity();
+            if(sourceEntity instanceof AbstractRecruitEntity owner && IWeapon.isMusketModWeapon(owner.getMainHandItem())){
+                Entity target = event.getEntity();
+                if (target instanceof LivingEntity impactEntity) {
+
+                    if (!canDamageTarget(owner, impactEntity)) {
+                        event.setCanceled(true);
+                    }
+                    else {
+                        owner.addXp(2);
+                        owner.checkLevel();
+                    }
+
+                }
+            }
+        }
+    }
     @SubscribeEvent
     public void onLivingAttack(LivingAttackEvent event) {
         Entity target = event.getEntity();
