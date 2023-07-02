@@ -133,7 +133,7 @@ public class PistolWeapon implements IWeapon {
 
                 bulletClassSetDeltaMovementMethod.invoke(bullet, vec3);
                 bulletClassSetInitialSpeedMethod.invoke(bullet, 5F);
-                bulletDamageField.setFloat(bullet, 13F);
+                bulletDamageField.setFloat(bullet, 1F);
 
 
                 projectile.shoot(x, y + d3 * (double) 0.02, z, 4.5F, (float) (0));
