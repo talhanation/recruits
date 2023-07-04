@@ -350,16 +350,22 @@ public class TeamEvents {
         RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
         RecruitsTeam recruitsTeam = data.getTeamByName(teamName);
 
-        recruitsTeam.addNPCs(x);
-        data.setDirty();
+        if(recruitsTeam != null){
+            recruitsTeam.addNPCs(x);
+            data.setDirty();
+        }
+        else Main.LOGGER.error("Could not modify recruits team: "+ teamName + ".Team does not exist.");
     }
 
     public static void sendJoinRequest(ServerLevel level, Player player, String teamName) {
         RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
         RecruitsTeam recruitsTeam = data.getTeamByName(teamName);
 
-        recruitsTeam.addPlayerAsJoinRequest(player.getName().getString());
-        data.setDirty();
+        if(recruitsTeam != null){
+            recruitsTeam.addPlayerAsJoinRequest(player.getName().getString());
+            data.setDirty();
+        }
+        else Main.LOGGER.error("Could not add join request for "+ teamName + ".Team does not exist.");
     }
 
     public static void tryToRemoveFromTeam(ServerPlayer leader, ServerPlayer potentialRemovePlayer, ServerLevel level, String nameToRemove) {
