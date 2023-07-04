@@ -168,16 +168,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     ////////////////////////////////////REGISTER////////////////////////////////////
 
     protected void registerGoals() {
-        this.goalSelector.addGoal(0, new RecruitQuaffGoal(this));
-        this.goalSelector.addGoal(0, new FleeTNT(this));
-        this.goalSelector.addGoal(0, new FleeFire(this));
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new RecruitQuaffGoal(this));
+        this.goalSelector.addGoal(1, new FleeTNT(this));
+        this.goalSelector.addGoal(1, new FleeFire(this));
         this.goalSelector.addGoal(6, new OpenDoorGoal(this, true) {
         });
         this.goalSelector.addGoal(1, new RecruitProtectEntityGoal(this));
 
         //this.goalSelector.addGoal(0, new (this));
 
-        this.goalSelector.addGoal(0, new FloatGoal(this));
+
         this.goalSelector.addGoal(1, new RecruitEatGoal(this));
         this.goalSelector.addGoal(5, new RecruitUpkeepPosGoal(this));
         this.goalSelector.addGoal(6, new RecruitUpkeepEntityGoal(this));
@@ -1157,7 +1158,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void updateHunger(){
         if(getHunger() > 0) {
-            setHunger((getHunger() - 15F));
+            setHunger((getHunger() - 10F));
         }
         this.updateMoral();
     }

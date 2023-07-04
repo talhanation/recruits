@@ -89,7 +89,6 @@ public class RecruitUpkeepPosGoal extends Goal {
                                 if(recruit.getOwner() != null && message){
                                     recruit.getOwner().sendSystemMessage(TEXT_NO_PLACE(recruit.getName().getString()));
                                     message = false;
-
                                 }
                                 //Main.LOGGER.debug("Chest empty");
                                 this.stop();
@@ -103,6 +102,23 @@ public class RecruitUpkeepPosGoal extends Goal {
                             this.stop();
                         }
                     }
+
+
+                    //Try to reequip
+                    for(int i = 0; i < container.getContainerSize(); i++) {
+                        ItemStack itemstack = container.getItem(i);
+                        ItemStack equipment;
+                        if(!itemstack.isEdible() && recruit.wantsToPickUp(itemstack)){
+                            if (recruit.canEquipItem(itemstack)) {
+                                equipment = itemstack.copy();
+                                equipment.setCount(1);
+                                recruit.equipItem(equipment);
+                                itemstack.shrink(1);
+                            }
+                        }
+                    }
+
+
                     this.stop();
                 }
             }

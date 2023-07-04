@@ -90,9 +90,14 @@ public class RecruitShieldmanEntity extends AbstractRecruitEntity{
         return ALLOWED_ITEMS;
     }
 
+
     @Override
     public boolean wantsToPickUp(ItemStack itemStack) {
-        if(itemStack.getItem() instanceof SwordItem || itemStack.getItem() instanceof ShieldItem || itemStack.getItem() instanceof AxeItem) return !hasSameTypeOfItem(itemStack);
+        if(((itemStack.getItem() instanceof SwordItem || itemStack.getItem() instanceof AxeItem) && this.getMainHandItem().isEmpty()) ||
+                (itemStack.getItem() instanceof ShieldItem) && this.getOffhandItem().isEmpty())
+            return !hasSameTypeOfItem(itemStack);
+
         else return super.wantsToPickUp(itemStack);
     }
+
 }

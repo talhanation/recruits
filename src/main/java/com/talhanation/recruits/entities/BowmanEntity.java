@@ -260,7 +260,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
 
     @Override
     public boolean wantsToPickUp(ItemStack itemStack) {
-        if (itemStack.getItem() instanceof BowItem || itemStack.getItem() instanceof ProjectileWeaponItem){
+        if ((itemStack.getItem() instanceof BowItem || itemStack.getItem() instanceof ProjectileWeaponItem || itemStack.getItem() instanceof SwordItem) && this.getMainHandItem().isEmpty()){
             return !hasSameTypeOfItem(itemStack);
         }
         else

@@ -34,6 +34,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     public AbstractInventoryEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
         this.createInventory();
+        this.setCanPickUpLoot(true);
     }
 
     ///////////////////////////////////TICK/////////////////////////////////////////
@@ -226,26 +227,18 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     protected void pickUpItem(ItemEntity itemEntity) {
         ItemStack itemstack = itemEntity.getItem();
 
-        if (this.canEquipItem(itemstack)) {
-            this.equipItem(itemstack);
-            this.onItemPickup(itemEntity);
-            this.take(itemEntity, itemstack.getCount());
-            itemEntity.discard();
+        RecruitSimpleContainer inventory = this.inventory;
+        boolean flag = inventory.canAddItem(itemstack);
+        if (!flag) {
+            return;
         }
-        else {
-            RecruitSimpleContainer inventory = this.inventory;
-            boolean flag = inventory.canAddItem(itemstack);
-            if (!flag) {
-                return;
-            }
-            this.onItemPickup(itemEntity);
-            this.take(itemEntity, itemstack.getCount());
-            ItemStack itemstack1 = inventory.addItem(itemstack);
-            if (itemstack1.isEmpty()) {
-                itemEntity.remove(RemovalReason.KILLED);
-            } else {
-                itemstack.setCount(itemstack1.getCount());
-            }
+        this.onItemPickup(itemEntity);
+        this.take(itemEntity, itemstack.getCount());
+        ItemStack itemstack1 = inventory.addItem(itemstack);
+        if (itemstack1.isEmpty()) {
+            itemEntity.remove(RemovalReason.KILLED);
+        } else {
+            itemstack.setCount(itemstack1.getCount());
         }
     }
 
