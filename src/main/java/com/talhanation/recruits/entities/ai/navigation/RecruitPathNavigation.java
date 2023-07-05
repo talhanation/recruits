@@ -16,6 +16,7 @@ public class RecruitPathNavigation extends GroundPathNavigation {
         this.nodeEvaluator = new WalkNodeEvaluator();
         this.nodeEvaluator.setCanOpenDoors(true);
         this.nodeEvaluator.setCanPassDoors(true);
+        this.nodeEvaluator.setCanFloat(true);
         return new PathFinder(this.nodeEvaluator, range);
     }
 }
