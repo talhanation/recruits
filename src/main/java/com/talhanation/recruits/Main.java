@@ -224,6 +224,7 @@ public class Main {
         event.getRegistry().register(BOWMAN);
         event.getRegistry().register(NOMAD);
         event.getRegistry().register(CROSSBOWMAN);
+        event.getRegistry().register(HORSEMAN);
     }
 
 
