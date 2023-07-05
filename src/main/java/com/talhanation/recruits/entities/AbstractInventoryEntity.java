@@ -1,7 +1,6 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.inventory.RecruitSimpleContainer;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.Containers;
@@ -13,12 +12,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.CapabilityItemHandler;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
 import java.util.function.Predicate;
 
 import static net.minecraft.world.entity.EquipmentSlot.*;
@@ -38,6 +33,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     public AbstractInventoryEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
         this.createInventory();
+        this.setCanPickUpLoot(true);
     }
 
     ///////////////////////////////////TICK/////////////////////////////////////////
@@ -136,7 +132,6 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         }
         return 6;
     }
-    @Nullable
     public EquipmentSlot getEquipmentSlotIndex(int id) {
         switch (id) {
             case 0 -> {return HEAD;}
@@ -152,7 +147,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     ////////////////////////////////////SET////////////////////////////////////
 
     @Override
-    public void setItemSlot(EquipmentSlot slotIn, ItemStack stack) {
+    public void setItemSlot(@NotNull EquipmentSlot slotIn, @NotNull ItemStack stack) {
         super.setItemSlot(slotIn, stack);
         switch (slotIn) {
             case HEAD ->{
@@ -180,7 +175,6 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
                     this.inventory.setItem(5, this.handItems.get(slotIn.getIndex()));
             }
         }
-
     }
     public @NotNull SlotAccess getSlot(int slot) {
         return slot == 499 ? new SlotAccess() {
@@ -205,7 +199,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
     ////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////
 
-    protected void createInventory() {
+    public void createInventory() {
         SimpleContainer inventory = this.inventory;
         this.inventory = new RecruitSimpleContainer(this.getInventorySize(), this){
 
@@ -273,6 +267,10 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         return false;
     }
 
+    public boolean hasSameTypeOfItem(ItemStack stack) {
+        return this.getInventory().items.stream().anyMatch(itemStack -> itemStack.getDescriptionId().equals(stack.getDescriptionId()));
+    }
+
     public boolean canEquipItemToSlot(@NotNull ItemStack itemStack, EquipmentSlot slot) {
         if(!itemStack.isEmpty()) {
             ItemStack currentArmor = this.getItemBySlot(slot);
@@ -287,7 +285,9 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     @Override
     public boolean wantsToPickUp(@NotNull ItemStack itemStack){
        if (itemStack.getItem() instanceof ArmorItem){
-               return canEquipItem(itemStack);
+           EquipmentSlot equipmentslot = getEquipmentSlotForItem(itemStack);
+
+           return this.getItemBySlot(equipmentslot).isEmpty() && !hasSameTypeOfItem(itemStack) && canEquipItem(itemStack);
        }
        else
            return itemStack.isEdible();
@@ -369,22 +369,5 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
     public abstract void openGUI(Player player);
 
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable Direction facing) {
-        if (this.isAlive() && capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && itemHandler != null)
-            return itemHandler.cast();
-        return super.getCapability(capability, facing);
-    }
-
-
-
-    @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        if (itemHandler != null) {
-            LazyOptional<?> oldHandler = itemHandler;
-            itemHandler = null;
-            oldHandler.invalidate();
-        }
-    }
+    //TODO: add Capability from 1.18.2
 }

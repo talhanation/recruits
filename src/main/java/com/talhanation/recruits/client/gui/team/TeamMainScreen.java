@@ -9,25 +9,26 @@ import com.talhanation.recruits.network.MessageServerUpdateTeamInspectMenu;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.block.entity.BannerBlockEntity;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
+
+import java.awt.*;
 
 public class TeamMainScreen extends ScreenBase<TeamMainContainer> {
 
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/team/team_main_gui.png");
     Player player;
-    BannerBlockEntity bannerBlockEntity;
     private int leftPos;
     private int topPos;
-    private static final Component CREATE_TEAM = new TranslatableComponent("gui.recruits.team_creation.create_team");
-    private static final Component INSPECT_TEAM = new TranslatableComponent("gui.recruits.team_creation.inspect_team");
-    private static final Component TEAMS_LIST = new TranslatableComponent("gui.recruits.team_creation.teams_list");
+    private static final MutableComponent CREATE_TEAM = new TranslatableComponent("gui.recruits.team_creation.create_team");
+    private static final MutableComponent INSPECT_TEAM = new TranslatableComponent("gui.recruits.team_creation.inspect_team");
+    private static final MutableComponent TEAMS_LIST = new TranslatableComponent("gui.recruits.team_creation.teams_list");
 
     public TeamMainScreen(TeamMainContainer commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, new TextComponent(""));
@@ -44,8 +45,8 @@ public class TeamMainScreen extends ScreenBase<TeamMainContainer> {
         boolean isInTeam = TeamEvents.isPlayerInATeam(player);
 
 
-        String string = isInTeam ? INSPECT_TEAM.getString() : CREATE_TEAM.getString();
-        addRenderableWidget(new ExtendedButton(leftPos + 20, topPos + 29, 100, 20, new TextComponent(string), btn -> {
+        MutableComponent mutableComponent = isInTeam ? INSPECT_TEAM : CREATE_TEAM;
+        addRenderableWidget(new ExtendedButton(leftPos + 20, topPos + 29, 100, 20, mutableComponent, btn -> {
             if (isInTeam && player.getTeam() != null) {
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateTeamInspectMenu(player.getTeam()));
                 TeamEvents.openTeamInspectionScreen(player, player.getTeam());

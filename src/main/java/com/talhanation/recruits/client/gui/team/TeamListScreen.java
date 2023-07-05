@@ -8,6 +8,7 @@ import com.talhanation.recruits.network.MessageSendJoinRequestTeam;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -26,8 +27,8 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
     private int leftPos;
     private int topPos;
     private ExtendedButton joinButton;
-    private static final Component TEAMS_LIST = new TranslatableComponent("gui.recruits.team_creation.teams_list");
-    private static final Component NO_TEAMS = new TranslatableComponent("gui.recruits.team_creation.no_teams");
+    private static final MutableComponent TEAMS_LIST = new TranslatableComponent("gui.recruits.team_creation.teams_list");
+    private static final MutableComponent NO_TEAMS = new TranslatableComponent("gui.recruits.team_creation.no_teams");
     public TeamListScreen(TeamListContainer commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, new TextComponent(""));
         imageWidth = 197;

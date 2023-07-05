@@ -30,6 +30,7 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -52,14 +53,16 @@ public class Main {
     public static SimpleChannel SIMPLE_CHANNEL;
     public static VillagerProfession RECRUIT;
     public static VillagerProfession BOWMAN;
-    public static VillagerProfession RECRUIT_SHIELDMAN;
-    public static VillagerProfession SCOUT;
+    public static VillagerProfession CROSSBOWMAN;
+    public static VillagerProfession SHIELDMAN;
     public static VillagerProfession NOMAD;
+    public static VillagerProfession HORSEMAN;
     public static PoiType POI_RECRUIT;
     public static PoiType POI_BOWMAN;
+    public static PoiType POI_CROSSBOWMAN;
     public static PoiType POI_RECRUIT_SHIELDMAN;
-    public static PoiType POI_SCOUT;
     public static PoiType POI_NOMAD;
+    public static PoiType POI_HORSEMAN;
     public static KeyMapping R_KEY;
     public static MenuType<RecruitInventoryMenu> RECRUIT_CONTAINER_TYPE;
     public static MenuType<DebugInvMenu> DEBUG_CONTAINER_TYPE;
@@ -71,40 +74,40 @@ public class Main {
     public static MenuType<TeamMainContainer> TEAM_MAIN_TYPE;
     public static MenuType<TeamInspectionContainer> TEAM_INSPECTION_TYPE;
     public static MenuType<TeamListContainer> TEAM_LIST_TYPE;
+    public static MenuType<DisbandContainer> DISBAND;
     public static MenuType<TeamManagePlayerContainer> TEAM_ADD_PLAYER_TYPE;
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
+    public static boolean isMusketModLoaded;
 
     public Main() {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, RecruitsModConfig.CONFIG);
         RecruitsModConfig.loadConfig(RecruitsModConfig.CONFIG, FMLPaths.CONFIGDIR.get().resolve("recruits-common.toml"));
 
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+
         modEventBus.addListener(this::setup);
         modEventBus.addGenericListener(PoiType.class, this::registerPointsOfInterest);
         modEventBus.addGenericListener(VillagerProfession.class, this::registerVillagerProfessions);
         modEventBus.addGenericListener(MenuType.class, this::registerContainers);
+        ModEntityTypes.ENTITY_TYPES.register(modEventBus);
         ModBlocks.BLOCKS.register(modEventBus);
         //ModSounds.SOUNDS.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
-        ModEntityTypes.ENTITY_TYPES.register(modEventBus);
         MinecraftForge.EVENT_BUS.register(this);
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().addListener(Main.this::clientSetup));
     }
-
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private void setup(final FMLCommonSetupEvent event) {
         MinecraftForge.EVENT_BUS.register(new RecruitEvents());
         MinecraftForge.EVENT_BUS.register(new VillagerEvents());
         MinecraftForge.EVENT_BUS.register(new PillagerEvents());
         MinecraftForge.EVENT_BUS.register(new CommandEvents());
-        //MinecraftForge.EVENT_BUS.register(new AssassinEventsOLD());
         MinecraftForge.EVENT_BUS.register(new DebugEvents());
         MinecraftForge.EVENT_BUS.register(new TeamEvents());
         MinecraftForge.EVENT_BUS.register(new DamageEvent());
         MinecraftForge.EVENT_BUS.register(this);
 
 
-        MinecraftForge.EVENT_BUS.register(this);
         SIMPLE_CHANNEL = CommonRegistry.registerChannel(Main.MOD_ID, "default");
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 0, MessageAggro.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 1, MessageAggroGui.class);
@@ -124,11 +127,11 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 15, MessageRecruitGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 16, MessageHireGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 17, MessageHire.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 18, MessageGuardEntity.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 18, MessageProtectEntity.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 19, MessageDismount.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 20, MessageDismountGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 21, MessageUpkeepPos.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 22, MessageHailOfArrows.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 22, MessageStrategicFire.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 23, MessageShields.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 24, MessageDebugGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 25, MessageUpkeepEntity.class);
@@ -146,6 +149,13 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 37, MessageAddRecruitToTeam.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 38, MessageSendJoinRequestTeam.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 39, MessageRemoveFromTeam.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 40, MessageOpenDisbandScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 41, MessageAssignToTeamMate.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 42, MessageServerUpdateCommandScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 43, MessageToClientUpdateCommandScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 44, MessageWriteSpawnEgg.class);
+        isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
+
     }
 
     @SubscribeEvent
@@ -167,6 +177,7 @@ public class Main {
         ClientRegistry.registerScreen(Main.TEAM_INSPECTION_TYPE, TeamInspectionScreen::new);
         ClientRegistry.registerScreen(Main.TEAM_LIST_TYPE, TeamListScreen::new);
         ClientRegistry.registerScreen(Main.TEAM_ADD_PLAYER_TYPE, TeamManagePlayerScreen::new);
+        ClientRegistry.registerScreen(Main.DISBAND, DisbandScreen::new);
 
     }
 
@@ -176,16 +187,21 @@ public class Main {
         POI_RECRUIT.setRegistryName(Main.MOD_ID, "poi_recruit");
         POI_BOWMAN = new PoiType("poi_bowman", PoiType.getBlockStates(ModBlocks.BOWMAN_BLOCK.get()), 1, 1);
         POI_BOWMAN.setRegistryName(Main.MOD_ID, "poi_bowman");
-        //POI_NOMAD = new PointOfInterestType("poi_nomad", PointOfInterestType.getBlockStates(ModBlocks.NOMAD_BLOCK.get()), 1, 1);
-        //POI_NOMAD.setRegistryName(Main.MOD_ID, "poi_nomad");
+        POI_NOMAD = new PoiType("poi_nomad", PoiType.getBlockStates(ModBlocks.NOMAD_BLOCK.get()), 1, 1);
+        POI_NOMAD.setRegistryName(Main.MOD_ID, "poi_nomad");
         POI_RECRUIT_SHIELDMAN = new PoiType("poi_recruit_shieldman", PoiType.getBlockStates(ModBlocks.RECRUIT_SHIELD_BLOCK.get()), 1, 1);
         POI_RECRUIT_SHIELDMAN.setRegistryName(Main.MOD_ID, "poi_recruit_shieldman");
-
+        POI_HORSEMAN = new PoiType("poi_horseman", PoiType.getBlockStates(ModBlocks.HORSEMAN_BLOCK.get()), 1, 1);
+        POI_HORSEMAN.setRegistryName(Main.MOD_ID, "poi_horseman");
+        POI_CROSSBOWMAN = new PoiType("poi_crossbowman", PoiType.getBlockStates(ModBlocks.CROSSBOWMAN_BLOCK.get()), 1, 1);
+        POI_CROSSBOWMAN.setRegistryName(Main.MOD_ID, "poi_crossbowman");
 
         event.getRegistry().register(POI_RECRUIT);
         event.getRegistry().register(POI_BOWMAN);
         event.getRegistry().register(POI_RECRUIT_SHIELDMAN);
-        //event.getRegistry().register(POI_NOMAD);
+        event.getRegistry().register(POI_NOMAD);
+        event.getRegistry().register(POI_CROSSBOWMAN);
+        event.getRegistry().register(POI_HORSEMAN);
     }
 
     @SubscribeEvent
@@ -194,17 +210,20 @@ public class Main {
         RECRUIT.setRegistryName(Main.MOD_ID, "recruit");
         BOWMAN = new VillagerProfession("bowman", POI_BOWMAN, ImmutableSet.of(), ImmutableSet.of(), SoundEvents.VILLAGER_CELEBRATE);
         BOWMAN.setRegistryName(Main.MOD_ID, "bowman");
-        //NOMAD = new VillagerProfession("nomad", POI_NOMAD, ImmutableSet.of(), ImmutableSet.of(), SoundEvents.VILLAGER_CELEBRATE);
-        //NOMAD.setRegistryName(Main.MOD_ID, "nomad");
-        RECRUIT_SHIELDMAN = new VillagerProfession("recruit_shieldman", POI_RECRUIT_SHIELDMAN, ImmutableSet.of(), ImmutableSet.of(), SoundEvents.VILLAGER_CELEBRATE);
-        RECRUIT_SHIELDMAN.setRegistryName(Main.MOD_ID, "recruit_shieldman");
-
-
+        NOMAD = new VillagerProfession("nomad", POI_NOMAD, ImmutableSet.of(), ImmutableSet.of(), SoundEvents.VILLAGER_CELEBRATE);
+        NOMAD.setRegistryName(Main.MOD_ID, "nomad");
+        SHIELDMAN = new VillagerProfession("recruit_shieldman", POI_RECRUIT_SHIELDMAN, ImmutableSet.of(), ImmutableSet.of(), SoundEvents.VILLAGER_CELEBRATE);
+        SHIELDMAN.setRegistryName(Main.MOD_ID, "recruit_shieldman");
+        CROSSBOWMAN = new VillagerProfession("crossbowman", POI_CROSSBOWMAN, ImmutableSet.of(), ImmutableSet.of(), SoundEvents.VILLAGER_CELEBRATE);
+        CROSSBOWMAN.setRegistryName(Main.MOD_ID, "crossbowman");
+        HORSEMAN = new VillagerProfession("horseman", POI_HORSEMAN, ImmutableSet.of(), ImmutableSet.of(), SoundEvents.VILLAGER_CELEBRATE);
+        HORSEMAN.setRegistryName(Main.MOD_ID, "horseman");
 
         event.getRegistry().register(RECRUIT);
-        event.getRegistry().register(RECRUIT_SHIELDMAN);
+        event.getRegistry().register(SHIELDMAN);
         event.getRegistry().register(BOWMAN);
-        //event.getRegistry().register(NOMAD);
+        event.getRegistry().register(NOMAD);
+        event.getRegistry().register(CROSSBOWMAN);
     }
 
 
@@ -307,6 +326,17 @@ public class Main {
         });
         TEAM_ADD_PLAYER_TYPE.setRegistryName(new ResourceLocation(Main.MOD_ID, "team_add_player_container"));
         event.getRegistry().register(TEAM_ADD_PLAYER_TYPE);
+
+        DISBAND = new MenuType<>((IContainerFactory<DisbandContainer>) (windowId, inv, data) -> {
+            Player playerEntity = inv.player;
+            AbstractRecruitEntity rec = getRecruitByUUID(inv.player, data.readUUID());
+            if (rec == null) {
+                return null;
+            }
+            return new DisbandContainer(windowId, playerEntity, rec.getUUID());
+        });
+        DISBAND.setRegistryName(new ResourceLocation(Main.MOD_ID, "disband_container"));
+        event.getRegistry().register(DISBAND);
     }
 
 

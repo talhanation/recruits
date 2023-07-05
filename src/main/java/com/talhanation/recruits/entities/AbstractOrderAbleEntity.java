@@ -6,7 +6,7 @@ import com.talhanation.recruits.entities.ai.FleeTarget;
 import com.talhanation.recruits.entities.ai.UseShield;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -24,10 +24,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
-import net.minecraft.world.entity.monster.AbstractIllager;
-import net.minecraft.world.entity.monster.Creeper;
-import net.minecraft.world.entity.monster.Ghast;
-import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ArmorItem;
@@ -323,8 +320,6 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
                 return false;
             } else if (target instanceof AbstractHorse && ((AbstractHorse)target).isTamed()) {
                 return false;
-            } else if (target instanceof RecruitHorseEntity) {
-                return false;
             } else {
                 return !(target instanceof TamableAnimal) || !((TamableAnimal)target).isTame();
             }
@@ -385,14 +380,15 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
             itemstack.setDamageValue(1);
         }
     }
-
-
+    /*
     @Override
-    public void killed(ServerLevel p_241847_1_, LivingEntity p_241847_2_) {
-        super.killed(p_241847_1_, p_241847_2_);
+    public boolean wasKilled(ServerLevel p_241847_1_, LivingEntity p_241847_2_) {
         this.addXp(2);
         this.setKills(this.getKills() + 1);
+        return super.wasKilled(p_241847_1_, p_241847_2_);
     }
+
+     */
 
     @Override
     protected void hurtCurrentlyUsedShield(float damage) {
@@ -423,7 +419,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
 
     @Override
     public abstract void openGUI(Player player);
-
+    /*
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
         Item item = itemstack.getItem();
@@ -439,13 +435,13 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
                     int i = this.random.nextInt(5);
                     switch (i) {
                         case 0:
-                            player.sendMessage(new TextComponent(this.getName().getString() + ": " +" Hello my Friend."), player.getUUID());
+                            player.sendSystemMessage(Component.literal(this.getName().getString() + ": " + " Hello my Friend."));
                             break;
                         case 1:
-                            player.sendMessage(new TextComponent(this.getName().getString() + ": " +"Life is only worth as much as emeralds..."), player.getUUID());
+                            player.sendSystemMessage(Component.literal(this.getName().getString() + ": " +"Life is only worth as much as emeralds..."));
                             break;
                         default:
-                            player.sendMessage(new TextComponent(this.getName().getString() + ": " +"Pay me I'll get rid of your headache!"), player.getUUID());
+                            player.sendSystemMessage(Component.literal(this.getName().getString() + ": " +"Pay me I'll get rid of your headache!"));
                             break;
                     }
                     return InteractionResult.SUCCESS;
@@ -453,5 +449,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
             return super.mobInteract(player, hand);
         }
     }
+
+     */
 
 }

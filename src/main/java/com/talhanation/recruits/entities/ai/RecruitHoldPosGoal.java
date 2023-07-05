@@ -14,7 +14,6 @@ public class RecruitHoldPosGoal extends Goal {
     public RecruitHoldPosGoal(AbstractRecruitEntity recruit, double v, double within) {
       this.recruit = recruit;
       this.speedModifier = v;
-      this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
 
     public boolean canUse() {

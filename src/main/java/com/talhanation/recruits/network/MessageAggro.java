@@ -44,7 +44,7 @@ public class MessageAggro implements Message<MessageAggro> {
             }
         }
         else {
-            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
+            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100.0D));
             for (AbstractRecruitEntity recruits : list) {
                 CommandEvents.onAggroCommand(this.player, recruits, this.state, group, fromGui);
             }

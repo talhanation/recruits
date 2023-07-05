@@ -4,9 +4,9 @@ import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 
 import java.util.List;
-import java.util.Optional;
 
 public class RecruitMountEntity extends Goal {
 
@@ -49,6 +49,7 @@ public class RecruitMountEntity extends Goal {
             }
         }
 
+
         if (this.recruit.getVehicle() != null && recruit.getVehicle().equals(mount)) {
             this.clearMount();
         }
@@ -62,7 +63,7 @@ public class RecruitMountEntity extends Goal {
     private void findMount(){
         List<Entity> list = recruit.level.getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(32D));
         for(Entity mount : list){
-            if (recruit.getMountUUID() != null && mount.getUUID().equals(recruit.getMountUUID()) && RecruitsModConfig.MountWhiteList.get().contains(mount.getEncodeId())){
+            if (recruit.getMountUUID() != null && mount.getUUID().equals(recruit.getMountUUID()) && (RecruitsModConfig.MountWhiteList.get().contains(mount.getEncodeId()) || mount instanceof AbstractHorse)){
                 this.mount = mount;
             }
         }

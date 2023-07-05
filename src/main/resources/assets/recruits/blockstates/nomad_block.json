@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "recruits:block/nomad_block"
+    }
+  }
+}

@@ -12,14 +12,16 @@ import net.minecraftforge.network.NetworkEvent;
 public class MessageCreateTeam implements Message<MessageCreateTeam> {
 
     private String teamName;
+    private String color;
     private ItemStack banner;
 
     public MessageCreateTeam(){
     }
 
-    public MessageCreateTeam(String name, ItemStack banner) {
+    public MessageCreateTeam(String name, ItemStack banner, String color) {
         this.teamName = name;
         this.banner = banner;
+        this.color = color;
     }
 
     public Dist getExecutingSide() {
@@ -29,18 +31,19 @@ public class MessageCreateTeam implements Message<MessageCreateTeam> {
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = context.getSender();
         ServerLevel world = player.getLevel();
-
-        TeamEvents.createTeam(context.getSender(), world, this.teamName, player.getName().getString(), this.banner);
+        TeamEvents.createTeam(context.getSender(), world, this.teamName, player.getName().getString(), this.banner, this.color);
     }
 
     public MessageCreateTeam fromBytes(FriendlyByteBuf buf) {
         this.teamName = buf.readUtf();
         this.banner = buf.readItem();
+        this.color = buf.readUtf();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUtf(this.teamName);
         buf.writeItemStack(this.banner, false);
+        buf.writeUtf(this.color);
     }
 }

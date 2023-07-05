@@ -6,8 +6,10 @@ import com.talhanation.recruits.inventory.TeamManagePlayerContainer;
 import com.talhanation.recruits.network.MessageAddPlayerToTeam;
 import com.talhanation.recruits.network.MessageRemoveFromTeam;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -28,7 +30,8 @@ public class TeamManagePlayerScreen extends ScreenBase<TeamManagePlayerContainer
     private final Player player;
     private int leftPos;
     private int topPos;
-    private ExtendedButton addButton;
+
+    private static final MutableComponent TOOLTIP_ADD = new TranslatableComponent("gui.recruits.team.tooltip.add");
 
     public TeamManagePlayerScreen(TeamManagePlayerContainer container, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, container, playerInventory, new TextComponent(""));
@@ -80,7 +83,7 @@ public class TeamManagePlayerScreen extends ScreenBase<TeamManagePlayerContainer
         for (int i = 0; i < onlinePlayerJoinRequests.size(); i++) {
             if (i < 9) {
                 String requestName = onlinePlayerJoinRequests.get(i);
-                addButton = createAddButton(requestName, player.getTeam().getName());
+                Button addButton = createAddButton(requestName, player.getTeam().getName());
             }
         }
     }
@@ -101,12 +104,16 @@ public class TeamManagePlayerScreen extends ScreenBase<TeamManagePlayerContainer
         }
     }
 
-    public ExtendedButton createAddButton(String playerNameToAdd, String teamName) {
-        return addRenderableWidget(new ExtendedButton(leftPos + 110, topPos + 93 + (23 * onlinePlayerJoinRequests.indexOf(playerNameToAdd)), 30, 15, new TranslatableComponent(  "gui.recruits.team_creation.add_player_Button"),
+    public Button createAddButton(String playerNameToAdd, String teamName) {
+        return addRenderableWidget(new Button(leftPos + 110, topPos + 93 + (23 * onlinePlayerJoinRequests.indexOf(playerNameToAdd)), 30, 15, new TranslatableComponent(  "gui.recruits.team_creation.add_player_Button"),
             button -> {
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageAddPlayerToTeam(teamName, playerNameToAdd));
                 this.onClose();
+            },
+            (button, poseStack, i, i1) -> {
+                this.renderTooltip(poseStack, TOOLTIP_ADD, i, i1);
             }
         ));
+
     }
 }

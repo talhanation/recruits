@@ -17,7 +17,9 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BannerRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.ModelBakery;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -37,12 +39,12 @@ import java.util.UUID;
 public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/team/team_inspect_gui.png");
-    private static final TranslatableComponent LEAVE_TEAM = new TranslatableComponent("gui.recruits.team_creation.leave_team");
-    private static final TranslatableComponent DELETE_TEAM = new TranslatableComponent("gui.recruits.team_creation.delete_team");
-    private static final TranslatableComponent EDIT_TEAM = new TranslatableComponent("gui.recruits.team_creation.edit_team");
-    private static final TranslatableComponent MANAGE_TEAM = new TranslatableComponent("gui.recruits.team_creation.add_player");
+    private static final MutableComponent LEAVE_TEAM = new TranslatableComponent("gui.recruits.team_creation.leave_team");
+    private static final MutableComponent DELETE_TEAM = new TranslatableComponent("gui.recruits.team_creation.delete_team");
+    private static final MutableComponent EDIT_TEAM = new TranslatableComponent("gui.recruits.team_creation.edit_team");
+    private static final MutableComponent MANAGE_TEAM = new TranslatableComponent("gui.recruits.team_creation.add_player");
 
-    private static final TranslatableComponent TOOLTIP_COMING_SOON = new TranslatableComponent("gui.recruits.team_creation.coming_soon");
+    private static final MutableComponent TOOLTIP_COMING_SOON = new TranslatableComponent("gui.recruits.team_creation.coming_soon");
     public static UUID leaderUUID;
     private final Player player;
     private final Team team;
@@ -68,7 +70,6 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
         imageHeight = 250;
     }
 
-    @Override
     protected void init() {
         super.init();
         playerMembers = player.getTeam().getPlayers().stream().filter((name) -> name.length() <= 16).toList();
@@ -91,7 +92,7 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
         }
 
         //leave team
-        addRenderableWidget(new Button(leftPos + 85, topPos + 218, 50, 18, isTeamLeader ? DELETE_TEAM : LEAVE_TEAM, button -> {
+        addRenderableWidget(new Button(leftPos + 85, topPos + 218, 50, 18, (isTeamLeader ? DELETE_TEAM : LEAVE_TEAM), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
             this.onClose();
         }));
@@ -144,9 +145,20 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
 
         font.draw(matrixStack, "Players:", 18  , 116, fontColor);
 
-        for(int i = 0; i < playerMembers.size(); i ++){
+
+        int xOffset = 18;
+        int yOffset = 135;
+        for (int i = 0; i < playerMembers.size(); i++) {
             String name = playerMembers.get(i);
-            font.draw(matrixStack, "- " + name, 18, 135 + (12 * i), fontColor);
+            int xPosition = xOffset;
+            int yPosition = yOffset + (12 * i);
+
+            if (i >= 7) {
+                xPosition += 100;
+                yPosition -= 12;
+            }
+
+            font.draw(matrixStack, "- " + name, xPosition, yPosition, fontColor);
         }
 
         font.draw(matrixStack, "Members:",  135  ,  25, fontColor);
@@ -161,9 +173,10 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
 
     private Button createEditButton(){
         //Edit Team
-        return addRenderableWidget(new Button(leftPos + 15, topPos + 218, 50, 18, EDIT_TEAM,
+        return addRenderableWidget(new ExtendedButton(leftPos + 15, topPos + 218, 50, 18, EDIT_TEAM,
             button -> {
-            }, (a, b, c, d) -> { this.renderTooltip(b, TOOLTIP_COMING_SOON, c, d);
-        }));
+            }
+        ));
+
     }
 }
