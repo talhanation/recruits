@@ -15,6 +15,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import static net.minecraft.world.entity.EquipmentSlot.*;
@@ -227,18 +228,26 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     protected void pickUpItem(ItemEntity itemEntity) {
         ItemStack itemstack = itemEntity.getItem();
 
-        RecruitSimpleContainer inventory = this.inventory;
-        boolean flag = inventory.canAddItem(itemstack);
-        if (!flag) {
-            return;
+        if (this.canEquipItem(itemstack)) {
+            this.equipItem(itemstack);
+            this.onItemPickup(itemEntity);
+            this.take(itemEntity, itemstack.getCount());
+            itemEntity.discard();
         }
-        this.onItemPickup(itemEntity);
-        this.take(itemEntity, itemstack.getCount());
-        ItemStack itemstack1 = inventory.addItem(itemstack);
-        if (itemstack1.isEmpty()) {
-            itemEntity.remove(RemovalReason.KILLED);
-        } else {
-            itemstack.setCount(itemstack1.getCount());
+        else {
+            RecruitSimpleContainer inventory = this.inventory;
+            boolean flag = inventory.canAddItem(itemstack);
+            if (!flag) {
+                return;
+            }
+            this.onItemPickup(itemEntity);
+            this.take(itemEntity, itemstack.getCount());
+            ItemStack itemstack1 = inventory.addItem(itemstack);
+            if (itemstack1.isEmpty()) {
+                itemEntity.remove(RemovalReason.KILLED);
+            } else {
+                itemstack.setCount(itemstack1.getCount());
+            }
         }
     }
 
@@ -277,8 +286,10 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
     @Override
     public boolean wantsToPickUp(@NotNull ItemStack itemStack){
-       if (itemStack.getItem() instanceof ArmorItem && !hasSameTypeOfItem(itemStack)){
-               return canEquipItem(itemStack);
+       if (itemStack.getItem() instanceof ArmorItem){
+           EquipmentSlot equipmentslot = getEquipmentSlotForItem(itemStack);
+
+           return this.getItemBySlot(equipmentslot).isEmpty() && !hasSameTypeOfItem(itemStack) && canEquipItem(itemStack);
        }
        else
            return itemStack.isEdible();
