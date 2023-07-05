@@ -257,7 +257,9 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         this.spawnAtLocation(currentArmor);
         this.setItemSlot(equipmentslot, itemStack);
         this.inventory.setItem(getInventorySlotIndex(equipmentslot), itemStack);
-        this.playEquipSound(itemStack);
+        Equipable equipable = Equipable.get(itemStack);
+        if(equipable != null)
+            this.level.playSound(null, this.getX(), this.getY(), this.getZ(), equipable.getEquipSound(), this.getSoundSource(), 1.0F, 1.0F);
     }
     public boolean canEquipItem(@NotNull ItemStack itemStack) {
         if(!itemStack.isEmpty()) {

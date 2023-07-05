@@ -54,7 +54,7 @@ public class PillagerPatrolSpawn {
             return true;
         }
         else{
-            BlockPos blockpos = new BlockPos(player.position());
+            BlockPos blockpos = new BlockPos(player.getOnPos());
             BlockPos blockpos2 = this.func_221244_a(blockpos, 90);
             if (blockpos2 != null && this.func_226559_a_(blockpos2) && blockpos2.distSqr(blockpos) > 200) {
                 BlockPos upPos = new BlockPos(blockpos2.getX(), blockpos2.getY() + 2, blockpos2.getZ());
@@ -66,7 +66,7 @@ public class PillagerPatrolSpawn {
                     case 1, 2 -> spawnMediumPillagerPatrol(upPos, blockpos);
                     case 3, 4 -> spawnLargePillagerPatrol(upPos, blockpos);
                 }
-                this.world.playSound(null, upPos, SoundEvents.RAID_HORN, SoundSource.HOSTILE, 15F, 0.8F + 0.4F * this.random.nextFloat());
+                this.world.playSound(null, upPos, SoundEvents.RAID_HORN.get(), SoundSource.HOSTILE, 15F, 0.8F + 0.4F * this.random.nextFloat());
                 Main.LOGGER.info("New Pillager Patrol Spawned at "+ upPos);
                 return true;
             }

@@ -16,6 +16,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 import java.text.DecimalFormat;
 
@@ -61,60 +62,60 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
     }
 
     private void xpButton(int zeroLeftPos, int zeroTopPos){
-        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 0, 23, 20, Component.literal("+xp"), button -> {
+        addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 0, 23, 20, Component.literal("+xp"), button -> {
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(0, recruit.getUUID()));
         }));
     }
 
     private void lvlButton(int zeroLeftPos, int zeroTopPos){
-        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 1, 23, 20, Component.literal("+lvl"), button -> {
+        addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 1, 23, 20, Component.literal("+lvl"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(1, recruit.getUUID()));
         }));
     }
 
     private void costButton(int zeroLeftPos, int zeroTopPos){
         //increase cost
-        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 2, 23, 20, Component.literal("+cost"), button -> {
+        addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 2, 23, 20, Component.literal("+cost"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(2, recruit.getUUID()));
         }));
         //decrease cost
-        addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 2, 23, 20, Component.literal("-cost"), button -> {
+        addRenderableWidget(new ExtendedButton(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 2, 23, 20, Component.literal("-cost"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(3, recruit.getUUID()));
         }));
     }
 
     private void hungerButton(int zeroLeftPos, int zeroTopPos){
         //increase hunger
-        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 3, 23, 20, Component.literal("+hunger"), button -> {
+        addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 3, 23, 20, Component.literal("+hunger"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(4, recruit.getUUID()));
         }));
 
         //decrease hunger
-        addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 3, 23, 20, Component.literal("-hunger"), button -> {
+        addRenderableWidget(new ExtendedButton(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 3, 23, 20, Component.literal("-hunger"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(5, recruit.getUUID()));
         }));
     }
 
     private void moralButton(int zeroLeftPos, int zeroTopPos){
         //increase moral
-        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 4, 23, 20, Component.literal("+moral"), button -> {
+        addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 4, 23, 20, Component.literal("+moral"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(6, recruit.getUUID()));
         }));
 
         //decrease moral
-        addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 4, 23, 20, Component.literal("-moral"), button -> {
+        addRenderableWidget(new ExtendedButton(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 4, 23, 20, Component.literal("-moral"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(7, recruit.getUUID()));
         }));
     }
 
     private void healthButton(int zeroLeftPos, int zeroTopPos){
         //increase health
-        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 5, 23, 20, Component.literal("+health"), button -> {
+        addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 5, 23, 20, Component.literal("+health"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(8, recruit.getUUID()));
         }));
 
         //decrease health
-        addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 5, 23, 20, Component.literal("-health"), button -> {
+        addRenderableWidget(new ExtendedButton(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 5, 23, 20, Component.literal("-health"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(9, recruit.getUUID()));
         }));
     }

@@ -28,7 +28,7 @@ public abstract class AbstractHorseMixin extends Animal {
             callback.setReturnValue(false);
         }
     }
-
+/*
     @SuppressWarnings("DataFlowIssue")
     @Inject(method = "travel", at = @At(value = "HEAD", target = "Lnet/minecraft/world/entity/animal/horse/AbstractHorse;travel(Lnet/minecraft/world/phys/Vec3;)V"), cancellable = true)
     private void superTravelWhenRecruitsRides(Vec3 vec3, CallbackInfo ci) {
@@ -37,7 +37,7 @@ public abstract class AbstractHorseMixin extends Animal {
             ci.cancel();
         }
     }
-
+ */
     @SuppressWarnings("DataFlowIssue")
     @Inject(method = "positionRider", at = @At(value = "HEAD", target = "Lnet/minecraft/world/entity/Entity;positionRider(Lnet/minecraft/world/entity/Entity;)V"), cancellable = true)
     private void superPositionRiderWhenRecruitsRides(Entity entity, CallbackInfo ci) {

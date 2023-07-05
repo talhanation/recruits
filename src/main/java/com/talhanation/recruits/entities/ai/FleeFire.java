@@ -61,7 +61,7 @@ public boolean isNearLava() {
         int range = 4;
 
             for(int i = 0; i < 15; i++){
-                BlockPos blockPos = new BlockPos(entity.getX(), entity.getY(), entity.getZ());
+                BlockPos blockPos = new BlockPos((int) entity.getX(), (int) entity.getY(), (int) entity.getZ());
                 BlockPos blockpos1 = blockPos.offset(random.nextInt(range) - range/2, 3, random.nextInt(range) - range/2);
                 while(this.entity.level.isEmptyBlock(blockpos1) && blockpos1.getY() > 1){
                 blockpos1 = blockpos1.below();

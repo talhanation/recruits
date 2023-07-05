@@ -83,13 +83,13 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
             editButton.active = false;
 
             //Manage
-            addRenderableWidget(new Button(leftPos + 155, topPos + 218, 50, 18, MANAGE_TEAM, button -> {
+            addRenderableWidget(new ExtendedButton(leftPos + 155, topPos + 218, 50, 18, MANAGE_TEAM, button -> {
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamAddPlayerScreen(player));
             }));
         }
 
         //leave team
-        addRenderableWidget(new Button(leftPos + 85, topPos + 218, 50, 18, (isTeamLeader ? DELETE_TEAM : LEAVE_TEAM), button -> {
+        addRenderableWidget(new ExtendedButton(leftPos + 85, topPos + 218, 50, 18, (isTeamLeader ? DELETE_TEAM : LEAVE_TEAM), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
             this.onClose();
         }));

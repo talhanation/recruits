@@ -54,11 +54,10 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
 
         this.refreshSelectedColor();
 
-        minecraft.keyboardHandler.setSendRepeatsToGui(true);
         //Main.LOGGER.debug("Hello from Screen");
         String create = "create";
         if(playerInventory.player.getTeam() == null) {
-            addRenderableWidget(new Button(leftPos + 18, topPos + 80, 140, 20, Component.literal(create),
+            addRenderableWidget(new ExtendedButton(leftPos + 18, topPos + 80, 140, 20, Component.literal(create),
                 button -> {
                     this.banner = container.getBanner();
                     if (!banner.equals(ItemStack.EMPTY)) {
@@ -139,7 +138,6 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     @Override
     public void onClose() {
         super.onClose();
-        minecraft.keyboardHandler.setSendRepeatsToGui(false);
     }
 
     @Override

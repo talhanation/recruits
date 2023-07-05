@@ -5,9 +5,11 @@ import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.init.*;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.CommonRegistry;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.CreativeModeTabEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
@@ -41,8 +43,10 @@ public class Main {
         ModPois.POIS.register(modEventBus);
         ModProfessions.PROFESSIONS.register(modEventBus);
         ModScreens.MENU_TYPES.register(modEventBus);
-        ModItems.ITEMS.register(modEventBus);
         ModEntityTypes.ENTITY_TYPES.register(modEventBus);
+        ModItems.ITEMS.register(modEventBus);
+
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::addCreativeTabs);
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
             FMLJavaModLoadingContext.get().getModEventBus().addListener(Main.this::clientSetup);
@@ -62,6 +66,7 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new DebugEvents());
         MinecraftForge.EVENT_BUS.register(new TeamEvents());
         MinecraftForge.EVENT_BUS.register(new DamageEvent());
+
         MinecraftForge.EVENT_BUS.register(this);
 
         SIMPLE_CHANNEL = CommonRegistry.registerChannel(Main.MOD_ID, "default");
@@ -119,5 +124,18 @@ public class Main {
     public void clientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(ModScreens::registerMenus);
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
+    }
+
+    private void addCreativeTabs(CreativeModeTabEvent.BuildContents event) {
+        if (event.getTab() == CreativeModeTabs.SPAWN_EGGS) {
+            event.accept(ModItems.BOWMAN_SPAWN_EGG.get());
+            event.accept(ModItems.RECRUIT_SHIELD_SPAWN_EGG.get());
+            event.accept(ModItems.RECRUIT_SPAWN_EGG.get());
+            event.accept(ModItems.NOMAD_SPAWN_EGG.get());
+            event.accept(ModItems.HORSEMAN_SPAWN_EGG.get());
+            event.accept(ModItems.CROSSBOWMAN_SPAWN_EGG.get());
+        }
+
+        //if(event.getTab().)
     }
 }

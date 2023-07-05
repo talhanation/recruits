@@ -49,8 +49,7 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderMenu> {
     @Override
     protected void init() {
         super.init();
-        minecraft.keyboardHandler.setSendRepeatsToGui(true);
-
+        /*
         addRenderableWidget(new Button(leftPos + 10, topPos + 60, 8, 12, Component.literal("<"), button -> {
             this.count = assassinLeaderEntity.getCount();
             if (this.count != 0) {
@@ -85,6 +84,8 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderMenu> {
 
         addRenderableOnly(textField);
         setInitialFocus(textField);
+
+         */
     }
 
     @Override
@@ -118,7 +119,6 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderMenu> {
     @Override
     public void onClose() {
         super.onClose();
-        minecraft.keyboardHandler.setSendRepeatsToGui(false);
     }
 
     @Override

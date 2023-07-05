@@ -18,6 +18,8 @@ import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -288,7 +290,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     }
 
     public boolean doHurtTarget(Entity entity) {
-        boolean flag = entity.hurt(DamageSource.mobAttack(this), (float)((int)this.getAttributeValue(Attributes.ATTACK_DAMAGE)));
+        boolean flag = entity.hurt(this.damageSources().mobAttack(this), (float)((int)this.getAttributeValue(Attributes.ATTACK_DAMAGE)));
         if (flag) {
             this.doEnchantDamageEffects(this, entity);
         }
@@ -367,7 +369,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
             }
             for (int i = 11; i < 15; ++i) {//11,12,13,14 = armor
                 ItemStack itemstack = this.inventory.getItem(i);
-                if ((!damageSource.isFire() || !itemstack.getItem().isFireResistant()) && itemstack.getItem() instanceof ArmorItem) {
+                if ((!(damageSource.is(DamageTypes.IN_FIRE) && (damageSource.is(DamageTypes.ON_FIRE))) || !itemstack.getItem().isFireResistant()) && itemstack.getItem() instanceof ArmorItem) {
                     itemstack.setDamageValue((int) damage);
                 }
             }

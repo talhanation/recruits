@@ -9,6 +9,7 @@ import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -17,6 +18,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 @OnlyIn(Dist.CLIENT)
 public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
@@ -88,172 +90,149 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
 
 
         //PASSIVE
-        addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE,
+        ExtendedButton buttonPassive = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE,
             button -> {
                 this.aggro = recruit.getState();
                 if (this.aggro != 3) {
                     this.aggro = 3;
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(aggro, recruit.getUUID()));
-
                 }
-            },
-            (button1, poseStack, i, i1) -> {
-                this.renderTooltip(poseStack, TOOLTIP_PASSIVE, i, i1);
-            }
-        ));
+            });
+        buttonPassive.setTooltip(Tooltip.create(TOOLTIP_PASSIVE));
+        addRenderableWidget(buttonPassive);
 
-        //NEUTRAL
-        addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_NEUTRAL,
-            button -> {
-                this.aggro = recruit.getState();
-                if (this.aggro != 0) {
-                    this.aggro = 0;
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(aggro, recruit.getUUID()));
-                }
-            },
-            (button1, poseStack, i, i1) -> {
-                this.renderTooltip(poseStack, TOOLTIP_NEUTRAL, i, i1);
-            }
-        ));
+        // NEUTRAL
+        ExtendedButton buttonNeutral = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_NEUTRAL,
+                button -> {
+                    this.aggro = recruit.getState();
+                    if (this.aggro != 0) {
+                        this.aggro = 0;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(aggro, recruit.getUUID()));
+                    }
+                });
+        buttonNeutral.setTooltip(Tooltip.create(TOOLTIP_NEUTRAL));
+        addRenderableWidget(buttonNeutral);
 
         //AGGRESSIVE
-        addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_AGGRESSIVE,
-            button -> {
-                this.aggro = recruit.getState();
-                if (this.aggro != 1) {
-                    this.aggro = 1;
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(aggro, recruit.getUUID()));
-                }
-            },
-                (button1, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_AGGRESSIVE, i, i1);
-                }
-        ));
+        ExtendedButton buttonAggressive = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_AGGRESSIVE,
+                button -> {
+                    this.aggro = recruit.getState();
+                    if (this.aggro != 1) {
+                        this.aggro = 1;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(aggro, recruit.getUUID()));
+                    }
+                });
+        buttonAggressive.setTooltip(Tooltip.create(TOOLTIP_AGGRESSIVE));
+        addRenderableWidget(buttonAggressive);
 
         //RAID
-        addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_RAID,
-            button -> {
-                this.aggro = recruit.getState();
-                if (this.aggro != 2) {
-                    this.aggro = 2;
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(aggro, recruit.getUUID()));
-                }
-            },
-                (button1, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_RAID, i, i1);
-                }
-        ));
+        ExtendedButton buttonRaid = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_RAID,
+                button -> {
+                    this.aggro = recruit.getState();
+                    if (this.aggro != 2) {
+                        this.aggro = 2;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(aggro, recruit.getUUID()));
+                    }
+                });
+        buttonRaid.setTooltip(Tooltip.create(TOOLTIP_RAID));
+        addRenderableWidget(buttonRaid);
 
         //CLEAR TARGET
-        addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_CLEAR_TARGET,
-            button -> {
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTargetGui(playerInventory.player.getUUID(), recruit.getUUID()));
-            },
-                (button1, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_CLEAR_TARGET, i, i1);
-                }
-        ));
+        ExtendedButton buttonClearTarget = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_CLEAR_TARGET,
+                button -> {
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTargetGui(playerInventory.player.getUUID(), recruit.getUUID()));
+                });
+        buttonClearTarget.setTooltip(Tooltip.create(TOOLTIP_CLEAR_TARGET));
+        addRenderableWidget(buttonClearTarget);
 
         //WANDER
-        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_WANDER,
-            button -> {
-                this.follow = recruit.getFollowState();
-                if (this.follow != 0) {
-                    this.follow = 0;
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
-                }
-            },
-                (button1, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_WANDER, i, i1);
-                }
-        ));
+        ExtendedButton buttonWander = new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_WANDER,
+                button -> {
+                    this.follow = recruit.getFollowState();
+                    if (this.follow != 0) {
+                        this.follow = 0;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
+                    }
+                });
+        buttonWander.setTooltip(Tooltip.create(TOOLTIP_WANDER));
+        addRenderableWidget(buttonWander);
 
 
         //FOLLOW
-        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_FOLLOW,
-            button -> {
-                this.follow = recruit.getFollowState();
-                if (this.follow != 1) {
-                    this.follow = 1;
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
-                }
-            },
-                (button1, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_FOLLOW, i, i1);
-                }
-        ));
+        ExtendedButton buttonFollow = new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_FOLLOW,
+                button -> {
+                    this.follow = recruit.getFollowState();
+                    if (this.follow != 1) {
+                        this.follow = 1;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
+                    }
+                });
+        buttonFollow.setTooltip(Tooltip.create(TOOLTIP_FOLLOW));
+        addRenderableWidget(buttonFollow);
 
 
         //HOLD POS
-        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_HOLD_POS,
-            button -> {
-                this.follow = recruit.getFollowState();
-                if (this.follow != 2) {
-                    this.follow = 2;
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
-                }
-            },
-                (button1, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_HOLD_POS, i, i1);
-                }
-        ));
+        ExtendedButton buttonHoldPos = new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_HOLD_POS,
+                button -> {
+                    this.follow = recruit.getFollowState();
+                    if (this.follow != 2) {
+                        this.follow = 2;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
+                    }
+                });
+        buttonHoldPos.setTooltip(Tooltip.create(TOOLTIP_HOLD_POS));
+        addRenderableWidget(buttonHoldPos);
 
 
         //BACK TO POS
-        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_BACK_TO_POS,
-            button -> {
-                this.follow = recruit.getFollowState();
-                if (this.follow != 3) {
-                    this.follow = 3;
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
-                }
-            },
-                (button1, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_BACK_TO_POS, i, i1);
-                }
-        ));
+        ExtendedButton buttonBackToPos = new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_BACK_TO_POS,
+                button -> {
+                    this.follow = recruit.getFollowState();
+                    if (this.follow != 3) {
+                        this.follow = 3;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
+                    }
+                });
+        buttonBackToPos.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_POS));
+        addRenderableWidget(buttonBackToPos);
 
 
         //HOLD MY POS
-        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_HOLD_MY_POS,
-            button -> {
-                this.follow = recruit.getFollowState();
-                if (this.follow != 4) {
-                    this.follow = 4;
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
-                }
-            },
-                (button1, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_HOLD_MY_POS, i, i1);
-                }
-        ));
+        ExtendedButton buttonHoldMyPos = new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_HOLD_MY_POS,
+                button -> {
+                    this.follow = recruit.getFollowState();
+                    if (this.follow != 4) {
+                        this.follow = 4;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
+                    }
+                });
+        buttonHoldMyPos.setTooltip(Tooltip.create(TOOLTIP_HOLD_MY_POS));
+        addRenderableWidget(buttonHoldMyPos);
 
-        //HOLD MY POS
-        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 5, 80, 20, TEXT_DISMOUNT,
+        //DISMOUNT
+        ExtendedButton buttonDismount = new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 5, 80, 20, TEXT_DISMOUNT,
                 button -> {
                     this.follow = recruit.getFollowState();
                     if (this.follow != 4) {
                         this.follow = 4;
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageDismountGui(playerInventory.player.getUUID(), recruit.getUUID()));
                     }
-                },
-                (button1, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_DISMOUNT, i, i1);
-                }
-        ));
+                });
+        buttonDismount.setTooltip(Tooltip.create(TOOLTIP_DISMOUNT));
+        addRenderableWidget(buttonDismount);
 
         //LISTEN
-        addRenderableWidget(new Button(leftPos + 77, topPos + 113, 8, 12, Component.literal("<"), button -> {
+        addRenderableWidget(new ExtendedButton(leftPos + 77, topPos + 113, 8, 12, Component.literal("<"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         }));
 
-        addRenderableWidget(new Button(leftPos + 77 + 85, topPos + 113, 8, 12, Component.literal(">"), button -> {
+        addRenderableWidget(new ExtendedButton(leftPos + 77 + 85, topPos + 113, 8, 12, Component.literal(">"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         }));
 
 
         //GROUP
-        addRenderableWidget(new Button(leftPos + 77, topPos + 100, 8, 12, Component.literal("<"), button -> {
+        addRenderableWidget(new ExtendedButton(leftPos + 77, topPos + 100, 8, 12, Component.literal("<"), button -> {
             this.group = recruit.getGroup();
             if (this.group != 0) {
                 this.group--;
@@ -261,7 +240,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
             }
         }));
 
-        addRenderableWidget(new Button(leftPos + 77 + 85, topPos + 100, 8, 12, Component.literal(">"), button -> {
+        addRenderableWidget(new ExtendedButton(leftPos + 77 + 85, topPos + 100, 8, 12, Component.literal(">"), button -> {
             this.group = recruit.getGroup();
             if (this.group != 9) {
                 this.group++;
@@ -270,7 +249,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         }));
 
         //more
-        addRenderableWidget(new Button(leftPos + 77 + 55, topPos + 4, 40, 12, Component.literal("..."),
+        addRenderableWidget(new ExtendedButton(leftPos + 77 + 55, topPos + 4, 40, 12, Component.literal("..."),
                 button -> {
                     TeamEvents.openDisbandingScreen(this.playerInventory.player, this.recruit.getUUID());
                     this.onClose();
@@ -336,13 +315,13 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         font.draw(matrixStack, listen, k + 15, l + 56 + 41, fontColor);
     }
 
-    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
+    protected void renderBg(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
+        super.renderBg(poseStack, partialTicks, mouseX, mouseY);
 
         RenderSystem.clearColor(1.0F, 1.0F, 1.0F, 1.0F);
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
 
-        InventoryScreen.renderEntityInInventory(i + 50, j + 82, 30, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.recruit);
+        InventoryScreen.renderEntityInInventoryFollowsMouse(poseStack, i + 50, j + 82, 30, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.recruit);
     }
 }

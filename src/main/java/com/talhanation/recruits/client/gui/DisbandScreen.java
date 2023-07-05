@@ -8,12 +8,14 @@ import com.talhanation.recruits.network.MessageAssignToTeamMate;
 import com.talhanation.recruits.network.MessageDisband;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 import java.util.UUID;
 
@@ -48,31 +50,26 @@ public class DisbandScreen extends ScreenBase<DisbandContainer> {
 
         giveToTeamMate = createGiveToTeamMateButton();
 
-        addRenderableWidget(new Button(leftPos + 130, topPos + 29, 100, 20, DISBAND,
+        ExtendedButton button = new ExtendedButton(leftPos + 130, topPos + 29, 100, 20, DISBAND,
             btn -> {
             if(this.recruit != null) {
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageDisband(this.recruit));
                 onClose();
             }
-            },
-            (button, poseStack, i, i1) -> {
-                this.renderTooltip(poseStack, TOOLTIP_DISBAND, i, i1);
-            }
-        ));
+        });
+        button.setTooltip(Tooltip.create(TOOLTIP_DISBAND));
     }
 
-    private Button createGiveToTeamMateButton() {
-        return addRenderableWidget(new Button(leftPos + 20, topPos + 29, 100, 20, TEAM_MATE,
+    private ExtendedButton createGiveToTeamMateButton() {
+        ExtendedButton button = new ExtendedButton(leftPos + 20, topPos + 29, 100, 20, TEAM_MATE,
                 btn -> {
                     if(recruit != null) {
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignToTeamMate(this.recruit));
                         onClose();
                     }
-                },
-                (button, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_ASSIGN_TO_MATE, i, i1);
-                }
-        ));
+                });
+        button.setTooltip(Tooltip.create(TOOLTIP_ASSIGN_TO_MATE));
+        return button;
     }
 
     protected void render(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {

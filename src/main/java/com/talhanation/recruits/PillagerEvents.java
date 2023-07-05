@@ -178,7 +178,7 @@ public class PillagerEvents {
                         MobEffectInstance effectinstance = new MobEffectInstance(MobEffects.BAD_OMEN, 120000, i, false, false, true);
                         if (!player.level.getGameRules().getBoolean(GameRules.RULE_DISABLE_RAIDS)) {
                             player.addEffect(effectinstance);
-                            level.explode(itemEntity, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), 0.5F, Explosion.BlockInteraction.BREAK);
+                            level.explode(itemEntity, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), 0.5F, Level.ExplosionInteraction.BLOCK);
 
                         }
                     }

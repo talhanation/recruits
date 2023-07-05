@@ -39,12 +39,12 @@ mixin{
 version = '1.10.3'
 
 group = 'com.talhanation.recruits'
-archivesBaseName = 'recruits-1.19.2'
+archivesBaseName = 'recruits-1.19.4'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 minecraft {
-   mappings channel: 'official', version: '1.19.2'
+   mappings channel: 'official', version: '1.19.4'
 	accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
 
     runs {
@@ -114,15 +114,15 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.19.2-43.2.0'
-    shadow fg.deobf("de.maxhenkel.corelib:corelib:1.19.2-1.0.0:api")
-    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.19.2-1.0.0")
-    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.19.2-1.0.0:javadoc")
+    minecraft 'net.minecraftforge:forge:1.19.4-45.1.0'
+    shadow fg.deobf("de.maxhenkel.corelib:corelib:1.19.4-1.0.0:api")
+    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.19.4-1.0.0")
+    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.19.4-1.0.0:javadoc")
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
 
-    //implementation fg.deobf('curse.maven:musketmod-354562:4030979')
+    //implementation fg.deobf('curse.maven:musketmod-354562:4030979') //only for 1.19.2 and 1.18.2
     //implementation fg.deobf('curse.maven:mca-535291:4586534')
 }
 

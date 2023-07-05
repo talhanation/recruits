@@ -15,6 +15,7 @@ import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.common.ForgeSpawnEggItem;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -22,11 +23,11 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 
-public class RecruitsSpawnEgg extends SpawnEggItem {
-    private final Supplier<EntityType<?>> entityType;
+public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
+    private final Supplier<? extends EntityType<? extends AbstractRecruitEntity>> entityType;
 
-    public RecruitsSpawnEgg(Supplier<EntityType<?>> entityType, int primaryColor, int secondaryColor, Properties properties){
-        super(ModEntityTypes.RECRUIT.get(), primaryColor, secondaryColor, properties);
+    public RecruitsSpawnEgg(Supplier<? extends EntityType<? extends AbstractRecruitEntity>> entityType, int primaryColor, int secondaryColor, Properties properties) {
+        super(entityType, primaryColor, secondaryColor, properties);
         this.entityType = entityType;
     }
     @Override

@@ -33,6 +33,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
@@ -1031,7 +1032,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             entity.setSecondsOnFire(i * 4);
         }
 
-        boolean flag = entity.hurt(DamageSource.mobAttack(this), f);
+        boolean flag = entity.hurt(this.damageSources().mobAttack(this), f);
         if (flag) {
 
             this.doEnchantDamageEffects(this, entity);
@@ -1253,12 +1254,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         boolean hasHeadArmor = !headArmor.isEmpty();
         //Main.LOGGER.debug("headArmor :" + headArmor);
         //Main.LOGGER.debug("hasHeadArmor: " + hasHeadArmor);
-            if ((!damageSource.isFire() || !headArmor.getItem().isFireResistant()) && headArmor.getItem() instanceof ArmorItem) {
-                //damage
-                headArmor.hurtAndBreak(1, this, (p_43296_) -> {
-                    p_43296_.broadcastBreakEvent(EquipmentSlot.HEAD);
-                });
-            }
+        if (((!(damageSource.is(DamageTypes.IN_FIRE) && (damageSource.is(DamageTypes.ON_FIRE))) || !headArmor.getItem().isFireResistant()) && headArmor.getItem() instanceof ArmorItem)){
+        //damage
+            headArmor.hurtAndBreak(1, this, (p_43296_) -> {
+                p_43296_.broadcastBreakEvent(EquipmentSlot.HEAD);
+            });
+        }
 
         if (this.getItemBySlot(EquipmentSlot.HEAD).isEmpty() && hasHeadArmor) {
             this.inventory.setItem(0, ItemStack.EMPTY);
@@ -1268,7 +1269,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         ItemStack chestArmor = this.getItemBySlot(EquipmentSlot.CHEST);
         boolean hasChestArmor = !chestArmor.isEmpty();
-        if ((!damageSource.isFire() || !chestArmor.getItem().isFireResistant()) && chestArmor.getItem() instanceof ArmorItem) {
+        if (((!(damageSource.is(DamageTypes.IN_FIRE) && (damageSource.is(DamageTypes.ON_FIRE))) || !chestArmor.getItem().isFireResistant()) && chestArmor.getItem() instanceof ArmorItem)){
             //damage
             chestArmor.hurtAndBreak(1, this, (p_43296_) -> {
                 p_43296_.broadcastBreakEvent(EquipmentSlot.CHEST);
@@ -1283,7 +1284,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         ItemStack legsArmor = this.getItemBySlot(EquipmentSlot.LEGS);
         boolean hasLegsArmor = !legsArmor.isEmpty();
 
-        if ((!damageSource.isFire() || !legsArmor.getItem().isFireResistant()) && legsArmor.getItem() instanceof ArmorItem) {
+        if (((!(damageSource.is(DamageTypes.IN_FIRE) && (damageSource.is(DamageTypes.ON_FIRE))) || !legsArmor.getItem().isFireResistant()) && legsArmor.getItem() instanceof ArmorItem)){
             //damage
             legsArmor.hurtAndBreak(1, this, (p_43296_) -> {
                 p_43296_.broadcastBreakEvent(EquipmentSlot.LEGS);
@@ -1299,7 +1300,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         ItemStack feetArmor = this.getItemBySlot(EquipmentSlot.FEET);
         boolean hasFeetArmor = !feetArmor.isEmpty();
 
-        if ((!damageSource.isFire() || !feetArmor.getItem().isFireResistant()) && feetArmor.getItem() instanceof ArmorItem) {
+        if (((!(damageSource.is(DamageTypes.IN_FIRE) && (damageSource.is(DamageTypes.ON_FIRE))) || !feetArmor.getItem().isFireResistant()) && feetArmor.getItem() instanceof ArmorItem)){
             //damage
             feetArmor.hurtAndBreak(1, this, (p_43296_) -> {
                 p_43296_.broadcastBreakEvent(EquipmentSlot.FEET);
@@ -1339,10 +1340,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         for(int i = 6; i < 15; i++){
             ItemStack itemStack = this.getInventory().getItem(i);
             if(canEquipItemToSlot(itemStack, equipmentSlot)) {
-                this.playEquipSound(itemStack);
                 this.setItemSlot(equipmentSlot, itemStack);
                 this.inventory.setItem(getInventorySlotIndex(equipmentSlot), itemStack);
                 this.inventory.removeItemNoUpdate(i);
+                Equipable equipable = Equipable.get(itemStack);
+                if(equipable != null)
+                    this.level.playSound(null, this.getX(), this.getY(), this.getZ(), equipable.getEquipSound(), this.getSoundSource(), 1.0F, 1.0F);
             }
         }
     }
@@ -1352,7 +1355,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if(itemStack.getItem() instanceof ShieldItem){
                 this.setItemSlot(EquipmentSlot.OFFHAND, itemStack);
                 this.inventory.setItem(getInventorySlotIndex(EquipmentSlot.OFFHAND), itemStack);
-                this.playEquipSound(itemStack);
+                Equipable equipable = Equipable.get(itemStack);
+                if(equipable != null)
+                    this.level.playSound(null, this.getX(), this.getY(), this.getZ(), equipable.getEquipSound(), this.getSoundSource(), 1.0F, 1.0F);
+
                 itemStack.shrink(1);
             }
         }
