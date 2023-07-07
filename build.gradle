@@ -1,22 +1,18 @@
 buildscript {
     repositories {
-        maven { url = 'https://maven.minecraftforge.net' }
         maven { url = 'https://repo.spongepowered.org/maven' }
-        jcenter()
-        mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
         classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7-SNAPSHOT'
     }
 }
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 
 plugins {
+    id 'net.minecraftforge.gradle' version '5.+'
     id "com.matthewprenger.cursegradle" version "1.4.0"
-    id "com.github.johnrengelman.shadow" version "7.1.0"
+    id "com.github.johnrengelman.shadow" version "7.1.2"
 }
-apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'idea'
 apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'org.spongepowered.mixin'
@@ -39,12 +35,12 @@ mixin{
 version = '1.10.3'
 
 group = 'com.talhanation.recruits'
-archivesBaseName = 'recruits-1.19.4'
+archivesBaseName = 'recruits-1.20.1'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 minecraft {
-   mappings channel: 'official', version: '1.19.4'
+   mappings channel: 'official', version: '1.20.1'
 	accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
 
     runs {
@@ -114,16 +110,15 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.19.4-45.1.0'
-    shadow fg.deobf("de.maxhenkel.corelib:corelib:1.19.4-1.0.0:api")
-    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.19.4-1.0.0")
-    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.19.4-1.0.0:javadoc")
+    minecraft 'net.minecraftforge:forge:1.20.1-47.1.0'
+    shadow fg.deobf("de.maxhenkel.corelib:corelib:1.20.1-1.0.0:api")
+    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.20.1-1.0.0")
+    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.20.1-1.0.0:javadoc")
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
 
     //implementation fg.deobf('curse.maven:musketmod-354562:4030979') //only for 1.19.2 and 1.18.2
-    //implementation fg.deobf('curse.maven:mca-535291:4586539')
 }
 
 // Example for how to get properties into the manifest for reading at runtime.

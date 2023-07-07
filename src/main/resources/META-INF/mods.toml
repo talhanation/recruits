@@ -2,7 +2,7 @@ license="All rights reserved"
 
 modLoader="javafml"
 
-loaderVersion="[45,)" #mandatory This is typically bumped every Minecraft version by Forge. See our download page for lists of versions.
+loaderVersion="[47,)" #mandatory This is typically bumped every Minecraft version by Forge. See our download page for lists of versions.
 
 [[mods]] #mandatory
 
