@@ -39,6 +39,8 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.control.JumpControl;
+import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
@@ -137,8 +139,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateShield();
         if(needsTeamUpdate) updateTeam();
     }
-
-
 
     public void tick() {
         super.tick();

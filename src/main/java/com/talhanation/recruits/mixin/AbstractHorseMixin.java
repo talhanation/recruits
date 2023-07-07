@@ -3,6 +3,7 @@ package com.talhanation.recruits.mixin;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.level.Level;
@@ -28,16 +29,9 @@ public abstract class AbstractHorseMixin extends Animal {
             callback.setReturnValue(false);
         }
     }
-/*
-    @SuppressWarnings("DataFlowIssue")
-    @Inject(method = "travel", at = @At(value = "HEAD", target = "Lnet/minecraft/world/entity/animal/horse/AbstractHorse;travel(Lnet/minecraft/world/phys/Vec3;)V"), cancellable = true)
-    private void superTravelWhenRecruitsRides(Vec3 vec3, CallbackInfo ci) {
-        if (this.isAlive() && isVehicle() && getControllingPassenger() instanceof AbstractRecruitEntity) {
-            super.travel(vec3);
-            ci.cancel();
-        }
-    }
- */
+
+
+
     @SuppressWarnings("DataFlowIssue")
     @Inject(method = "positionRider", at = @At(value = "HEAD", target = "Lnet/minecraft/world/entity/Entity;positionRider(Lnet/minecraft/world/entity/Entity;)V"), cancellable = true)
     private void superPositionRiderWhenRecruitsRides(Entity entity, CallbackInfo ci) {
@@ -46,5 +40,6 @@ public abstract class AbstractHorseMixin extends Animal {
             ci.cancel();
         }
     }
+
 }
 

@@ -6,7 +6,8 @@
   "refmap": "mixins.recruits.refmap.json",
   "mixins": [
     "AbstractHorseMixin",
-    "AnimalMixin"
+    "AnimalMixin",
+    "LivingEntityMixin"
   ],
   "client": [
   ],

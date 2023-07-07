@@ -5,6 +5,7 @@ import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.PathFinder;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
+import org.jetbrains.annotations.NotNull;
 
 public class RecruitPathNavigation extends GroundPathNavigation {
 
@@ -12,7 +13,7 @@ public class RecruitPathNavigation extends GroundPathNavigation {
         super(recruit, world);
     }
 
-    protected PathFinder createPathFinder(int range) {
+    protected @NotNull PathFinder createPathFinder(int range) {
         this.nodeEvaluator = new WalkNodeEvaluator();
         this.nodeEvaluator.setCanOpenDoors(true);
         this.nodeEvaluator.setCanPassDoors(true);
