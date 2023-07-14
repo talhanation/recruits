@@ -4,7 +4,10 @@ import com.talhanation.recruits.config.RecruitsModConfig;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
@@ -49,19 +52,26 @@ public class DamageEvent {
     @SubscribeEvent
     public void onEntityHurt(LivingHurtEvent event) {
         if (!event.isCanceled()) {
-            LivingEntity entity = event.getEntity();
-            if (entity.getLevel().isClientSide()) {
+            LivingEntity target = event.getEntity();
+            DamageSource source = event.getSource();
+
+            if (target.getLevel().isClientSide()) {
                 return;
             }
+            //Velocity Damage
+            if(source != null && source.getEntity() != null){
+
+            }
+
+            //NO Damage Immunity
             if(!RecruitsModConfig.NoDamageImmunity.get()) return;
 
-            DamageSource source = event.getSource();
+
 
             if (source != null && RecruitsModConfig.AcceptedDamagesourceImmunity.get().contains(source.getMsgId())) {
                 return;
             }
-
-            entity.invulnerableTime = 0;
+            target.invulnerableTime = 0;
         }
     }
 }

@@ -7,6 +7,7 @@ buildscript {
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+        classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7-SNAPSHOT'
     }
 }
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
@@ -18,6 +19,7 @@ plugins {
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'idea'
 apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'org.spongepowered.mixin'
 
 idea {
     module {
@@ -26,7 +28,15 @@ idea {
     }
 }
 
-version = '1.9.3.9'
+mixin{
+    add sourceSets.main, 'mixins.recruits.refmap.json'
+    config 'mixins.recruits.json'
+
+    disableTargetValidator = true
+    overwriteErrorLevel = 'error'
+}
+
+version = '1.10.3'
 
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.19.2'
@@ -46,9 +56,9 @@ minecraft {
 
             property 'forge.enabledGameTestNamespaces', 'recruits'
 
-            Random rnd = new Random()
+            //Random rnd = new Random()
 
-            args = ['--username', 'talhanation']//rnd.nextInt(1000)]
+            args = ['--username', 'talhanation']// + rnd.nextInt(1000)]
 
 
             mods {
@@ -97,6 +107,10 @@ repositories {
         url = 'https://maven.maxhenkel.de/repository/public'
     }
     mavenLocal()
+    maven {
+
+        url "https://www.cursemaven.com"
+    }
 }
 
 dependencies {
@@ -105,8 +119,11 @@ dependencies {
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.19.2-1.0.0")
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.19.2-1.0.0:javadoc")
 
-    annotationProcessor 'org.spongepowered:mixin:0.8.2:processor'
-    testAnnotationProcessor 'org.spongepowered:mixin:0.8.2:processor'
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+
+    //implementation fg.deobf('curse.maven:musketmod-354562:4030979')
+    //implementation fg.deobf('curse.maven:mca-535291:4586534')
 }
 
 // Example for how to get properties into the manifest for reading at runtime.
@@ -121,7 +138,7 @@ artifacts {
 }
 
 shadowJar {
-    project.configurations.shadow.setTransitive(true);
+    project.configurations.shadow.setTransitive(true)
     configurations = [project.configurations.shadow]
     classifier = ""
     relocate 'de.maxhenkel.corelib', "de.maxhenkel.recruits.corelib"

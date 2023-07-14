@@ -3,16 +3,21 @@
   "entity.recruits.bowman": "Bogenschütze",
   "entity.recruits.recruit_shieldman": "Schildmann",
   "entity.recruits.nomad": "Nomade",
+  "entity.recruits.horseman": "Horseman",
 
   "item.recruits.recruit_spawn_egg": "Recruit Spawn Egg",
   "item.recruits.bowman_spawn_egg": "Bowman Spawn Egg",
   "item.recruits.nomad_spawn_egg": "Nomad Spawn Egg",
+  "item.recruits.horseman_spawn_egg": "Horseman Spawn Egg",
   "item.recruits.recruit_shieldman_spawn_egg": "Recruit Shieldman Spawn Egg",
+  "item.recruits.crossbowman_spawn_egg": "Crossbowman Spawn Egg",
 
   "block.recruits.recruit_block": "Recruit's Table",
   "block.recruits.recruit_shield_block": "Recruit Shieldman's Table",
   "block.recruits.bowman_block": "Bowman's Table",
   "block.recruits.nomad_block": "Nomad's Table",
+  "block.recruits.horseman_block": "Horseman's Table",
+  "block.recruits.crossbowman_block": "Crossbowman's Table",
 
   "category.recruits": "Recruits",
   "key.recruits.command_screen_key": "Befehlsbildschirm öffnen",
@@ -51,12 +56,25 @@
   "gui.recruits.inv.text.dismount": "Absteigen",
   "gui.recruits.inv.text.group": "Gruppe",
 
+  "gui.recruits.inv.info.text.neutral": "Neutral",
+  "gui.recruits.inv.info.text.aggressive": "Aggressive",
+  "gui.recruits.inv.info.text.raid": "Raid",
+  "gui.recruits.inv.info.text.passive": "Passive",
+  "gui.recruits.inv.info.text.wander": "Wandering",
+  "gui.recruits.inv.info.text.follow": "Following",
+  "gui.recruits.inv.info.text.hold_pos": "Holding Position",
+  "gui.recruits.inv.info.text.protect": "Protecting",
+  "gui.recruits.inv.info.text.listen": "Listening",
+  "gui.recruits.inv.info.text.ignore": "Ignoring",
+
+
   "gui.recruits.hire_gui.text.hire": "Einstellen",
 
   "gui.recruits.inv.tooltip.passive": "Lassen Sie diesen Rekruten überhaupt nicht angreifen.",
   "gui.recruits.inv.tooltip.neutral": "Machen Sie diesen Rekruten nur feindliche Lebende angreifen.",
   "gui.recruits.inv.tooltip.aggressive": "Lassen Sie den Rekruten alle feindlichen Spieler und Rekruten angreifen, sobald sie in Sichtweite sind.",
   "gui.recruits.inv.tooltip.raid": "Lassen Sie die Rekruten alles lebende angreifen.",
+  "gui.recruits.inv.tooltip.assignToTeamMate": "Assign this recruit to a nearby teammate.",
 
   "gui.recruits.command.tooltip.follow": "Lass die Rekruten dich folgen",
   "gui.recruits.command.tooltip.wander": "Erlaube den Rekruten, frei umherzuwandern.",
@@ -65,11 +83,11 @@
   "gui.recruits.command.tooltip.backToPos": "Lass die Rekruten zurück zu ihrer zuvor gehaltenen Position gehen.",
   "gui.recruits.command.tooltip.patrol": "Lass die Rekruten ihre zuvor gehaltenen Position patrouillieren.",
   "gui.recruits.command.tooltip.clearTargets": "Löscht das aktuelle Ziel der Rekruten, um anzugreifen.",
-  "gui.recruits.command.tooltip.escort": "Lass die Rekruten das Mob bewachen und folgen, auf das du schaust.",
+  "gui.recruits.command.tooltip.protect": "Make the recruits protect and follow the Mob you are looking at.",
   "gui.recruits.command.tooltip.mount": "Falls möglich, werden die Rekruten versuchen, das Mob auf dem du schaust zu besteigen.",
   "gui.recruits.command.tooltip.dismount": "Falls möglich, werden die Rekruten ihr aktuelles Gefährt verlassen.",
   "gui.recruits.command.tooltip.move": "Falls möglich, werden die Rekruten versuchen, an die Position zu gehen, auf die du schaust.",
-  "gui.recruits.command.tooltip.arrows": "Lass deine Bogenschützen einen Pfeilhagel an der Position, auf die du schaust, durchführen.",
+  "gui.recruits.command.tooltip.strategic_fire": "Order ranged troops to concentrate their fire on a specific area you are looking at.",
   "gui.recruits.command.tooltip.shields": "Lass die Rekruten ihre Schilde hoch/runter halten.",
   "gui.recruits.command.tooltip.upkeep": "Legt den Block oder das Entity für die Instandhaltung deiner Rekruten fest, auf die du schaust.",
 
@@ -78,14 +96,22 @@
   "gui.recruits.command.tooltip.aggressive": "Make the recruits attack all enemy players and recruits on sight.",
   "gui.recruits.command.tooltip.raid": "Make the recruits attack all living on sight.",
 
+  "gui.recruits.team.tooltip.add": "Adds this Player to the team within sight.",
+
+  "gui.recruits.team_creation.no_teams": "Es existieren keine Teams.",
+  "gui.recruits.team_creation.delete_team": "Löschen",
+  "gui.recruits.team.assignNewOwner": "Assign to teammate",
+  "gui.recruits.command.tooltip.team": "Öffnet den Teambilschirm",
+  "gui.recruits.command.text.team": "Team",
+
   "gui.recruits.command.text.mount": "Mount!",
   "gui.recruits.command.text.dismount": "Dismount!",
 
   "gui.recruits.command.text.move": "Move!",
   "gui.recruits.command.text.shields": "Schilde!",
-  "gui.recruits.command.text.arrow": "Pfeilhagel!",
+  "gui.recruits.command.text.strategic_fire": "Strategic Fire",
 
-  "gui.recruits.command.text.escort": "Beschützt das!",
+  "gui.recruits.command.text.protect": "Protect this!",
   "gui.recruits.command.text.follow": "Folgt mir!",
   "gui.recruits.command.text.wander": "Wander freely!",
   "gui.recruits.command.text.holdMyPos": "Hold my Position!",
@@ -103,14 +129,14 @@
   "gui.recruits.command.text.everyone": "Alle",
 
   "chat.recruits.command.upkeep": "Hier könnt Ihr Essen abholen!",
-  "chat.recruits.command.escort": "Bewache dieses Mob!",
+  "chat.recruits.command.protect": "%s Protect this Mob!",
   "chat.recruits.command.mount": "Besteige hier!",
   "chat.recruits.command.dismount": "Steig ab!",
   "chat.recruits.command.move": "Bewegung!",
   "chat.recruits.command.shields": "Schilder hoch!",
-  "chat.recruits.command.arrows": "Startet den Pfeilhagel!",
+  "chat.recruits.command.strategic_fire": "%s Strategic Fire to that position!",
   "chat.recruits.command.shields_off": "Schilder runter!",
-  "chat.recruits.command.arrows_off": "Stoppt den Pfeilhagel!",
+  "chat.recruits.command.strategic_fire_off": "%s Hold the Fire!",
   "chat.recruits.command.wander": "Bewegt euch Frei!",
   "chat.recruits.command.follow": "Folge mir!",
   "chat.recruits.command.holdMyPos": "Haltet meine Position!",
@@ -135,15 +161,21 @@
   "chat.recruits.text.recruited1": "Das ist ein ehrenhafter Weg, auf dem Sie sich befinden.",
   "chat.recruits.text.recruited2": "Wie kann ich Ihnen helfen?",
   "chat.recruits.text.recruited3": "Dein Weg ist mein Weg. Ich fühle mich geehrt.",
+  "chat.recruits.text.protect_died": "%s: The Mob under protection has been killed.",
 
   "chat.recruits.text.hire_costs": "%s: You need %s %s to recruit me!",
   "chat.recruits.info.reached_max": "Du hast die Höchstgrenze erreicht, die du rekrutieren kannst.",
   "chat.recruits.text.block_placing_warn": "Es ist Ihnen nicht gestattet, Blöcke in unseren Ländern zu platzieren oder zu zerstören!",
+  "chat.recruits.text.block_interact_warn": "%s: You are not allowed to interact with blocks in our lands!",
   "gui.recruits.text.recruited": "Es ist mir eine Ehre, Sie zu schützen!",
 
 
   "chat.recruits.text.group": "Gruppe",
   "chat.recruits.text.everyone": "Alle",
+
+  "chat.recruits.team_creation.warnVanillaCommand": "Using Vanilla Team-Commands will break recruits mod!",
+  "chat.recruits.team_creation.isDisabledInConfig": "Specific Team-Commands are disabled by recruits mod, use the team screen instead!",
+  "chat.recruits.team_creation.canEnableInConfig": "The Team-Commands can be enabled in the recruits config.",
 
   "chat.recruits.team_creation.team_exists": "Ein Team mit diesem Namen existiert bereits!",
   "chat.recruits.team_creation.removePlayer": "Spieler entfernen",
@@ -164,14 +196,20 @@
   "gui.recruits.team_creation.teams_list": "Liste der Teams",
   "gui.recruits.teamInspectTitle": "",
   "gui.recruits.team_creation.leave_team": "Verlassen",
+  "chat.recruits.team_creation.join": "Beitreten",
   "chat.recruits.team_creation.addedPlayer": "Du bist nun ein Mitglied von ",
   "chat.recruits.team_creation.removedPlayer": "Du wurdest aus dem Team entfernt",
+  "chat.recruits.team_creation.removedPlayerLeader": "You removed %s from the Team.",
   "chat.recruits.team_creation.addedPlayerLeader": " ist deinem Team erfolgreich beigetreten.",
   "chat.recruits.team_creation.could_not_find": "Der Spieler wurde nicht gefunden: ",
-  "chat.recruits.team_creation.join": "Beitreten",
-  "gui.recruits.team_creation.no_teams": "Es existieren keine Teams.",
-  "gui.recruits.team_creation.delete_team": "Löschen",
-  "gui.recruits.command.tooltip.team": "Öffnet den Teambilschirm",
-  "gui.recruits.command.text.team": "Team",
-  "Recruits": "Villager Recruits"
+  "chat.recruits.team.assignNewOwnerNoTeam": "You need to be in a team to assign this recruit a new owner!",
+  "chat.recruits.team.assignNewOwnerNotFound": "No team mate nearby to assign this recruit to.",
+  "Recruits": "Villager Recruits",
+  "chat.recruits.command.arrows": "Startet den Pfeilhagel!",
+  "chat.recruits.command.arrows_off": "Stoppt den Pfeilhagel!",
+  "chat.recruits.command.escort": "Bewache dieses Mob!",
+  "gui.recruits.command.text.arrow": "Pfeilhagel!",
+  "gui.recruits.command.text.escort": "Beschützt das!",
+  "gui.recruits.command.tooltip.arrows": "Lass deine Bogenschützen einen Pfeilhagel an der Position, auf die du schaust, durchführen.",
+  "gui.recruits.command.tooltip.escort": "Lass die Rekruten das Mob bewachen und folgen, auf das du schaust."
 }

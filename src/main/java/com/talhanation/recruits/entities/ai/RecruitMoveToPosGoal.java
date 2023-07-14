@@ -13,7 +13,6 @@ public class RecruitMoveToPosGoal extends Goal {
     public RecruitMoveToPosGoal(AbstractRecruitEntity recruit, double v) {
         this.recruit = recruit;
         this.speedModifier = v;
-        this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
     public boolean canUse() {
         return recruit.getShouldMovePos() && !recruit.needsToGetFood() && !recruit.getShouldMount();

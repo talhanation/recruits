@@ -15,7 +15,7 @@ public class RecruitHireMenu extends ContainerBase {
     private final AbstractRecruitEntity recruit;
 
     public RecruitHireMenu(int id, Player playerEntity, AbstractRecruitEntity recruit, Inventory playerInventory) {
-        super(ModScreens.HIRE_CONTAINER_TYPE.get(), id, null, new SimpleContainer(0));
+        super(ModScreens.HIRE_CONTAINER_TYPE.get(), id, playerInventory, new SimpleContainer(0));
         this.playerEntity = playerEntity;
         this.recruit = recruit;
         this.playerInventory = playerInventory;

@@ -142,9 +142,20 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
 
         font.draw(matrixStack, "Players:", 18  , 116, fontColor);
 
-        for(int i = 0; i < playerMembers.size(); i ++){
+
+        int xOffset = 18;
+        int yOffset = 135;
+        for (int i = 0; i < playerMembers.size(); i++) {
             String name = playerMembers.get(i);
-            font.draw(matrixStack, "- " + name, 18, 135 + (12 * i), fontColor);
+            int xPosition = xOffset;
+            int yPosition = yOffset + (12 * i);
+
+            if (i >= 7) {
+                xPosition += 100;
+                yPosition -= 12;
+            }
+
+            font.draw(matrixStack, "- " + name, xPosition, yPosition, fontColor);
         }
 
         font.draw(matrixStack, "Members:",  135  ,  25, fontColor);

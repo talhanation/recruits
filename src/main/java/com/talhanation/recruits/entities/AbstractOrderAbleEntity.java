@@ -320,8 +320,6 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
                 return false;
             } else if (target instanceof AbstractHorse && ((AbstractHorse)target).isTamed()) {
                 return false;
-            } else if (target instanceof RecruitHorseEntity) {
-                return false;
             } else {
                 return !(target instanceof TamableAnimal) || !((TamableAnimal)target).isTame();
             }

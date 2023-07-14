@@ -112,6 +112,21 @@ public class RecruitUpkeepEntityGoal extends Goal {
                         }
                     }
                     this.stop();
+
+                    //Try to reequip
+                    for(int i = 0; i < container.getContainerSize(); i++) {
+                        ItemStack itemstack = container.getItem(i);
+                        ItemStack equipment;
+                        if(!itemstack.isEdible() && recruit.wantsToPickUp(itemstack)){
+                            if (recruit.canEquipItem(itemstack)) {
+                                equipment = itemstack.copy();
+                                equipment.setCount(1);
+                                recruit.equipItem(equipment);
+                                itemstack.shrink(1);
+                            }
+                        }
+                    }
+
                 }
             }
             else {
@@ -128,12 +143,13 @@ public class RecruitUpkeepEntityGoal extends Goal {
 
     private Optional<Entity> findEntityPos() {
         if(this.recruit.getUpkeepUUID() != null) {
-            return recruit.level.getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(20.0D))
+            return recruit.level.getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(40.0D))
                     .stream()
                     .filter(entity -> entity.getUUID().equals(recruit.getUpkeepUUID())).findAny();
         }
         else return Optional.empty();
     }
+
 
     @Nullable
     private ItemStack getFoodFromInv(Container inv){
