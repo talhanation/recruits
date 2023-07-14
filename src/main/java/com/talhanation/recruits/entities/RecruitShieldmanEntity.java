@@ -19,6 +19,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.function.Predicate;
 
 public class RecruitShieldmanEntity extends AbstractRecruitEntity{
@@ -44,9 +45,9 @@ public class RecruitShieldmanEntity extends AbstractRecruitEntity{
     public static AttributeSupplier.Builder setAttributes() {
         return LivingEntity.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 25.0D)
-                .add(Attributes.MOVEMENT_SPEED, 0.2D)
+                .add(Attributes.MOVEMENT_SPEED, 0.25D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.2D)
-                .add(Attributes.ATTACK_DAMAGE, 1.5D)
+                .add(Attributes.ATTACK_DAMAGE, 1.0D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D);
 
     }
@@ -66,19 +67,17 @@ public class RecruitShieldmanEntity extends AbstractRecruitEntity{
     @Override
     public void initSpawn() {
         this.setCustomName(Component.literal("Shieldman"));
-        this.setCost(10);
+        this.setCost(RecruitsModConfig.ShieldmanCost.get());
         this.setEquipment();
         this.setDropEquipment();
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
-        this.setCanPickUpLoot(true);
+
         this.setGroup(1);
     }
 
-    @Override
-    public void setEquipment() {
-        super.setEquipment();
-        setHandEquipment(RecruitsModConfig.ShieldmanHandEquipment.get());
+    public List<String> getHandEquipment(){
+        return RecruitsModConfig.ShieldmanHandEquipment.get();
     }
 
     @Override
@@ -91,9 +90,14 @@ public class RecruitShieldmanEntity extends AbstractRecruitEntity{
         return ALLOWED_ITEMS;
     }
 
+
     @Override
     public boolean wantsToPickUp(ItemStack itemStack) {
-        if(itemStack.getItem() instanceof SwordItem || itemStack.getItem() instanceof ShieldItem || itemStack.getItem() instanceof AxeItem) return true;
+        if(((itemStack.getItem() instanceof SwordItem || itemStack.getItem() instanceof AxeItem) && this.getMainHandItem().isEmpty()) ||
+                (itemStack.getItem() instanceof ShieldItem) && this.getOffhandItem().isEmpty())
+            return !hasSameTypeOfItem(itemStack);
+
         else return super.wantsToPickUp(itemStack);
     }
+
 }

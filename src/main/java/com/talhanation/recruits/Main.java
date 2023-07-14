@@ -11,6 +11,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -22,18 +23,19 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 @Mod(Main.MOD_ID)
 public class Main {
     public static final String MOD_ID = "recruits";
     public static SimpleChannel SIMPLE_CHANNEL;
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
+    public static boolean isMusketModLoaded;
 
     public Main() {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, RecruitsModConfig.CONFIG);
         RecruitsModConfig.loadConfig(RecruitsModConfig.CONFIG, FMLPaths.CONFIGDIR.get().resolve("recruits-common.toml"));
 
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+
         modEventBus.addListener(this::setup);
         ModBlocks.BLOCKS.register(modEventBus);
         ModPois.POIS.register(modEventBus);
@@ -59,6 +61,7 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new CommandEvents());
         MinecraftForge.EVENT_BUS.register(new DebugEvents());
         MinecraftForge.EVENT_BUS.register(new TeamEvents());
+        MinecraftForge.EVENT_BUS.register(new DamageEvent());
         MinecraftForge.EVENT_BUS.register(this);
 
         SIMPLE_CHANNEL = CommonRegistry.registerChannel(Main.MOD_ID, "default");
@@ -80,11 +83,11 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 15, MessageRecruitGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 16, MessageHireGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 17, MessageHire.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 18, MessageGuardEntity.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 18, MessageProtectEntity.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 19, MessageDismount.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 20, MessageDismountGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 21, MessageUpkeepPos.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 22, MessageHailOfArrows.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 22, MessageStrategicFire.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 23, MessageShields.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 24, MessageDebugGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 25, MessageUpkeepEntity.class);
@@ -102,6 +105,13 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 37, MessageAddRecruitToTeam.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 38, MessageSendJoinRequestTeam.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 39, MessageRemoveFromTeam.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 40, MessageOpenDisbandScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 41, MessageAssignToTeamMate.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 42, MessageServerUpdateCommandScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 43, MessageToClientUpdateCommandScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 44, MessageWriteSpawnEgg.class);
+        isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
+
     }
 
     @SubscribeEvent
@@ -110,5 +120,4 @@ public class Main {
         event.enqueueWork(ModScreens::registerMenus);
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
     }
-
 }

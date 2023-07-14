@@ -3,9 +3,13 @@ package com.talhanation.recruits.client.events;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.init.ModShortcuts;
+import com.talhanation.recruits.network.MessageWriteSpawnEgg;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.InputEvent;
@@ -29,4 +33,22 @@ public class KeyEvents {
             TeamEvents.openTeamMainScreen(clientPlayerEntity);
         }
     }
+
+    @SubscribeEvent
+    public void onPlayerPick(InputEvent.InteractionKeyMappingTriggered event){
+        if(event.isPickBlock()){
+            Minecraft minecraft = Minecraft.getInstance();
+            LocalPlayer clientPlayerEntity = minecraft.player;
+            if (clientPlayerEntity == null || !clientPlayerEntity.isCreative())
+                return;
+            
+
+            Entity target = ClientEvent.getEntityByLooking();
+            if(target instanceof AbstractRecruitEntity recruitEntity){
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageWriteSpawnEgg(recruitEntity.getUUID()));
+                event.setCanceled(true);
+            }
+        }
+    }
+
 }

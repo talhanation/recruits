@@ -10,10 +10,12 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import static net.minecraft.world.entity.EquipmentSlot.*;
@@ -33,6 +35,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     public AbstractInventoryEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
         this.createInventory();
+        this.setCanPickUpLoot(true);
     }
 
     ///////////////////////////////////TICK/////////////////////////////////////////
@@ -131,7 +134,6 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         }
         return 6;
     }
-    @Nullable
     public EquipmentSlot getEquipmentSlotIndex(int id) {
         switch (id) {
             case 0 -> {return HEAD;}
@@ -147,7 +149,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     ////////////////////////////////////SET////////////////////////////////////
 
     @Override
-    public void setItemSlot(EquipmentSlot slotIn, ItemStack stack) {
+    public void setItemSlot(@NotNull EquipmentSlot slotIn, @NotNull ItemStack stack) {
         super.setItemSlot(slotIn, stack);
         switch (slotIn) {
             case HEAD ->{
@@ -175,7 +177,6 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
                     this.inventory.setItem(5, this.handItems.get(slotIn.getIndex()));
             }
         }
-
     }
     public @NotNull SlotAccess getSlot(int slot) {
         return slot == 499 ? new SlotAccess() {
@@ -200,7 +201,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
     ////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////
 
-    protected void createInventory() {
+    public void createInventory() {
         SimpleContainer inventory = this.inventory;
         this.inventory = new RecruitSimpleContainer(this.getInventorySize(), this){
 
@@ -258,22 +259,111 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         this.inventory.setItem(getInventorySlotIndex(equipmentslot), itemStack);
         this.playEquipSound(itemStack);
     }
-
     public boolean canEquipItem(@NotNull ItemStack itemStack) {
-        EquipmentSlot equipmentslot = getEquipmentSlotForItem(itemStack);
-        ItemStack currentArmor = this.getItemBySlot(equipmentslot);
-        boolean flag = this.canReplaceCurrentItem(itemStack, currentArmor);
-
-        return flag && this.canHoldItem(itemStack);
+        if(!itemStack.isEmpty()) {
+            EquipmentSlot equipmentslot = getEquipmentSlotForItem(itemStack);
+                ItemStack currentArmor = this.getItemBySlot(equipmentslot);
+                boolean flag = this.canReplaceCurrentItem(itemStack, currentArmor);
+                return flag && this.canHoldItem(itemStack);
+        }
+        return false;
     }
+
+    public boolean hasSameTypeOfItem(ItemStack stack) {
+        return this.getInventory().items.stream().anyMatch(itemStack -> itemStack.getDescriptionId().equals(stack.getDescriptionId()));
+    }
+
+    public boolean canEquipItemToSlot(@NotNull ItemStack itemStack, EquipmentSlot slot) {
+        if(!itemStack.isEmpty()) {
+            ItemStack currentArmor = this.getItemBySlot(slot);
+            boolean flag = this.canReplaceCurrentItem(itemStack, currentArmor);
+
+            return flag && this.canHoldItem(itemStack) && itemStack.canEquip(slot, this);
+        }
+        return false;
+    }
+
 
     @Override
     public boolean wantsToPickUp(@NotNull ItemStack itemStack){
        if (itemStack.getItem() instanceof ArmorItem){
-               return canEquipItem(itemStack);
+           EquipmentSlot equipmentslot = getEquipmentSlotForItem(itemStack);
+
+           return this.getItemBySlot(equipmentslot).isEmpty() && !hasSameTypeOfItem(itemStack) && canEquipItem(itemStack);
        }
        else
            return itemStack.isEdible();
+    }
+
+    @Override
+    protected boolean canReplaceCurrentItem(@NotNull ItemStack replacer, ItemStack current) {
+        if (current.isEmpty()) {
+            return true;
+        } else if (current.getItem() instanceof DiggerItem digger && replacer.getItem() instanceof SwordItem sword) {
+
+            if (digger.getAttackDamage() != sword.getDamage()) {
+                return digger.getAttackDamage() < sword.getDamage();
+            }
+            return this.canReplaceEqualItem(replacer, current);
+        }
+
+        else if (replacer.getItem() instanceof SwordItem) {
+            if (!(current.getItem() instanceof SwordItem)) {
+                return true;
+            } else {
+                SwordItem sworditem = (SwordItem)replacer.getItem();
+                SwordItem sworditem1 = (SwordItem)current.getItem();
+                if (sworditem.getDamage() != sworditem1.getDamage()) {
+                    return sworditem.getDamage() > sworditem1.getDamage();
+                } else {
+                    return this.canReplaceEqualItem(replacer, current);
+                }
+            }
+        }
+
+        else if (replacer.getItem() instanceof BowItem && current.getItem() instanceof BowItem) {
+            return this.canReplaceEqualItem(replacer, current);
+        }
+
+        else if (replacer.getItem() instanceof CrossbowItem && current.getItem() instanceof CrossbowItem) {
+            return this.canReplaceEqualItem(replacer, current);
+        }
+
+        else if (replacer.getItem() instanceof ArmorItem) {
+            if (EnchantmentHelper.hasBindingCurse(current)) {
+                return false;
+            } else if (!(current.getItem() instanceof ArmorItem)) {
+                return true;
+            } else {
+                ArmorItem armoritem = (ArmorItem)replacer.getItem();
+                ArmorItem armoritem1 = (ArmorItem)current.getItem();
+                if (armoritem.getDefense() != armoritem1.getDefense()) {
+                    return armoritem.getDefense() > armoritem1.getDefense();
+                } else if (armoritem.getToughness() != armoritem1.getToughness()) {
+                    return armoritem.getToughness() > armoritem1.getToughness();
+                } else {
+                    return this.canReplaceEqualItem(replacer, current);
+                }
+            }
+        } else {
+            if (replacer.getItem() instanceof DiggerItem) {
+                if (current.getItem() instanceof BlockItem) {
+                    return true;
+                }
+
+                if (current.getItem() instanceof DiggerItem) {
+                    DiggerItem diggeritem = (DiggerItem)replacer.getItem();
+                    DiggerItem diggeritem1 = (DiggerItem)current.getItem();
+                    if (diggeritem.getAttackDamage() != diggeritem1.getAttackDamage()) {
+                        return diggeritem.getAttackDamage() > diggeritem1.getAttackDamage();
+                    }
+
+                    return this.canReplaceEqualItem(replacer, current);
+                }
+            }
+
+            return false;
+        }
     }
 
 

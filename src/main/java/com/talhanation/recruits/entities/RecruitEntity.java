@@ -20,6 +20,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.function.Predicate;
 
 public class RecruitEntity extends AbstractRecruitEntity {
@@ -43,7 +44,7 @@ public class RecruitEntity extends AbstractRecruitEntity {
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.1D)
-                .add(Attributes.ATTACK_DAMAGE, 1.0D)
+                .add(Attributes.ATTACK_DAMAGE, 0.5D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D);
 
     }
@@ -64,19 +65,22 @@ public class RecruitEntity extends AbstractRecruitEntity {
     public void initSpawn() {
         super.initSpawn();
         this.setCustomName(Component.literal("Recruit"));
-        this.setCost(3);
+        this.setCost(RecruitsModConfig.RecruitCost.get());
         this.setEquipment();
         this.setDropEquipment();
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
-        this.setCanPickUpLoot(true);
+
         this.setGroup(1);
     }
 
     @Override
     public boolean wantsToPickUp(ItemStack itemStack) {
-        if(itemStack.getItem() instanceof SwordItem || itemStack.getItem() instanceof ShieldItem) return true;
-            else return super.wantsToPickUp(itemStack);
+        if((itemStack.getItem() instanceof SwordItem && this.getMainHandItem().isEmpty()) ||
+          (itemStack.getItem() instanceof ShieldItem) && this.getOffhandItem().isEmpty())
+            return !hasSameTypeOfItem(itemStack);
+
+        else return super.wantsToPickUp(itemStack);
     }
 
     public Predicate<ItemEntity> getAllowedItems(){
@@ -88,10 +92,8 @@ public class RecruitEntity extends AbstractRecruitEntity {
         return !(itemStack.getItem() instanceof CrossbowItem || itemStack.getItem() instanceof BowItem);
     }
 
-    @Override
-    public void setEquipment() {
-        super.setEquipment();
-        setHandEquipment(RecruitsModConfig.RecruitHandEquipment.get());
+    public List<String> getHandEquipment(){
+        return RecruitsModConfig.RecruitHandEquipment.get();
     }
 }
 

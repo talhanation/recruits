@@ -3,7 +3,11 @@ package com.talhanation.recruits.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.client.events.ClientEvent;
 import com.talhanation.recruits.client.models.RecruitVillagerModel;
+import com.talhanation.recruits.compat.IWeapon;
+import com.talhanation.recruits.compat.MusketWeapon;
 import com.talhanation.recruits.entities.AbstractInventoryEntity;
+import com.talhanation.recruits.entities.BowmanEntity;
+import com.talhanation.recruits.entities.CrossBowmanEntity;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -17,6 +21,7 @@ import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.UseAnim;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractRecruitVillagerRenderer extends HumanoidMobRenderer<AbstractInventoryEntity, HumanoidModel<AbstractInventoryEntity>> {
 
@@ -59,6 +64,7 @@ public abstract class AbstractRecruitVillagerRenderer extends HumanoidMobRendere
 
     private static HumanoidModel.ArmPose getArmPose(AbstractInventoryEntity recruit, InteractionHand hand) {
         ItemStack itemstack = recruit.getItemInHand(hand);
+        boolean isMusket = IWeapon.isMusketModWeapon(itemstack) && (recruit instanceof CrossBowmanEntity crossBowman)  && crossBowman.isAggressive();
         if (itemstack.isEmpty()) {
             return HumanoidModel.ArmPose.EMPTY;
         } else {
@@ -76,19 +82,19 @@ public abstract class AbstractRecruitVillagerRenderer extends HumanoidMobRendere
                     return HumanoidModel.ArmPose.THROW_SPEAR;
                 }
 
-                if (useanim == UseAnim.CROSSBOW && hand == recruit.getUsedItemHand()) {
+                if (useanim == UseAnim.CROSSBOW && hand == recruit.getUsedItemHand() || isMusket) {
                     return HumanoidModel.ArmPose.CROSSBOW_CHARGE;
                 }
 
                 if (useanim == UseAnim.SPYGLASS) {
                     return HumanoidModel.ArmPose.SPYGLASS;
                 }
-            } else if (!recruit.swinging && itemstack.is(Items.CROSSBOW) && CrossbowItem.isCharged(itemstack)) {
+            } else if (!recruit.swinging && itemstack.is(Items.CROSSBOW) && CrossbowItem.isCharged(itemstack) || isMusket) {
                 return HumanoidModel.ArmPose.CROSSBOW_HOLD;
             }
             return HumanoidModel.ArmPose.ITEM;
         }
     }
 
-    public abstract ResourceLocation getTextureLocation(AbstractInventoryEntity p_110775_1_);
+    public abstract ResourceLocation getTextureLocation(@NotNull AbstractInventoryEntity p_110775_1_);
 }

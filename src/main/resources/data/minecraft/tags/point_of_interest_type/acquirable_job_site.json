@@ -2,6 +2,9 @@
   "values": [
     "recruits:recruit",
     "recruits:shieldman",
-    "recruits:bowman"
+    "recruits:bowman",
+    "recruits:crossbowman",
+    "recruits:horseman",
+    "recruits:nomad"
   ]
 }

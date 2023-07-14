@@ -13,7 +13,11 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 import org.lwjgl.glfw.GLFW;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 
 @OnlyIn(Dist.CLIENT)
@@ -25,6 +29,15 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     private final Inventory playerInventory;
     private EditBox textField;
     private ItemStack banner;
+    private int color_index;
+    private int colorId;
+    private String color;
+    private final ArrayList<String> COLORS = new ArrayList<>(
+            Arrays.asList("white", "aqua", "black", "blue", "dark_aqua", "dark_blue", "dark_gray", "dark_green", "dark_purple", "dark_red", "gold", "green", "light_purple", "red", "yellow"));
+    //ChatFormatting
+    private final ArrayList<Integer> ColorID = new ArrayList<>(
+            Arrays.asList(16777215, 5636095, 0, 5592575, 43690, 170, 5592405, 43520, 11141290, 11141120, 16755200, 5635925, 16733695, 16733525, 16777045));
+
 
     public TeamCreationScreen(TeamCreationContainer container, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""));
@@ -39,6 +52,8 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     protected void init() {
         super.init();
 
+        this.refreshSelectedColor();
+
         minecraft.keyboardHandler.setSendRepeatsToGui(true);
         //Main.LOGGER.debug("Hello from Screen");
         String create = "create";
@@ -47,10 +62,13 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
                 button -> {
                     this.banner = container.getBanner();
                     if (!banner.equals(ItemStack.EMPTY)) {
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(textField.getValue().strip(), banner));
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(this.getCorrectFormat(textField.getValue().strip()), banner, color));
                         this.onClose();
                     }
             }));
+
+            cycleButtonLeft(leftPos + 60, topPos + 110);
+            cycleButtonRight(leftPos + 60 + 80, topPos + 110);
         }
 
         textField = new EditBox(font, leftPos + 18, topPos + 50, 140, 20, Component.literal(""));
@@ -63,6 +81,32 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
         setInitialFocus(textField);
     }
 
+    private Button cycleButtonLeft(int x, int y){
+        return addRenderableWidget(new ExtendedButton(x, y, 13, 13, Component.literal("<"),
+                button -> {
+                    if(this.color_index > 0){
+                        this.color_index--;
+                        this.refreshSelectedColor();
+                    }
+                }
+        ));
+    }
+
+    private Button cycleButtonRight(int x, int y){
+        return addRenderableWidget(new ExtendedButton(x, y, 13, 13, Component.literal(">"),
+                button -> {
+                    if(this.color_index + 1 != COLORS.size()){
+                        this.color_index++;
+                        this.refreshSelectedColor();
+                    }
+                }
+        ));
+    }
+    private void refreshSelectedColor() {
+        this.color = COLORS.get(color_index);
+        this.colorId = ColorID.get(color_index);
+    }
+
     @Override
     protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
@@ -70,6 +114,11 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
         font.draw(matrixStack, "Create a Team:", 18  , 11, fontColor);
 
         font.draw(matrixStack, playerInventory.getDisplayName().getVisualOrderText(), 8, this.imageHeight - 96 + 2, fontColor);
+
+        font.draw(matrixStack, color, 75, this.imageHeight - 112, colorId);
+
+        font.draw(matrixStack, "Color:",18, this.imageHeight - 112, fontColor);
+
     }
 
     protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
@@ -97,4 +146,12 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     public boolean isPauseScreen() {
         return false;
     }
+    
+    private String getCorrectFormat(String input) {
+        input = input.replaceAll(" ", "");
+        input = input.replaceAll("[^a-zA-Z0-9\\s]+", "");
+
+        return input;
+    }
+
 }

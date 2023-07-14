@@ -25,6 +25,12 @@ public class ModPois {
     public static final RegistryObject<PoiType> POI_SHIELDMAN = makePoi("shieldman", ModBlocks.RECRUIT_SHIELD_BLOCK);
     public static final RegistryObject<PoiType> POI_BOWMAN = makePoi("bowman", ModBlocks.BOWMAN_BLOCK);
 
+    public static final RegistryObject<PoiType> POI_CROSSBOWMAN = makePoi("crossbowman", ModBlocks.CROSSBOWMAN_BLOCK);
+
+    public static final RegistryObject<PoiType> POI_HORSEMAN = makePoi("horseman", ModBlocks.HORSEMAN_BLOCK);
+
+    public static final RegistryObject<PoiType> POI_NOMAD = makePoi("nomad", ModBlocks.NOMAD_BLOCK);
+
     private static RegistryObject<PoiType> makePoi(String name, RegistryObject<Block> block) {
         logger.info("Registering POI for " + block.getKey().toString());
         return POIS.register(name, () -> {

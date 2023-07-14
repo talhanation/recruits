@@ -32,9 +32,8 @@ public class MessageUpkeepEntity implements Message<MessageUpkeepEntity> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
+        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
         for (AbstractRecruitEntity recruits : list) {
-            Main.LOGGER.debug("message: uuid: " + target);
             CommandEvents.onUpkeepCommand(context.getSender(), player_uuid, recruits, group, true, target);
         }
     }

@@ -2,13 +2,13 @@ license="All rights reserved"
 
 modLoader="javafml"
 
-loaderVersion="[40,)" #mandatory This is typically bumped every Minecraft version by Forge. See our download page for lists of versions.
+loaderVersion="[43,)" #mandatory This is typically bumped every Minecraft version by Forge. See our download page for lists of versions.
 
 [[mods]] #mandatory
 
 modId="recruits"
 
-version="1.9.3.2"
+version="1.10.3"
 
 displayName="Recruits Mod"
 updateJSONURL="https://raw.githubusercontent.com/talhanation/recruits/main/update.json"

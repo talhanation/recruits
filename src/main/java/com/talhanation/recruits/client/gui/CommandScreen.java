@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.events.ClientEvent;
+import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
@@ -24,11 +25,11 @@ import net.minecraftforge.client.gui.widget.ExtendedButton;
 public class CommandScreen extends ScreenBase<CommandMenu> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/command_gui.png");
-
+    private static final MutableComponent TOOLTIP_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.tooltip.strategic_fire");
     private static final MutableComponent TOOLTIP_DISMOUNT = Component.translatable("gui.recruits.command.tooltip.dismount");
     private static final MutableComponent TOOLTIP_MOUNT = Component.translatable("gui.recruits.command.tooltip.mount");
     private static final MutableComponent TOOLTIP_SHIELDS = Component.translatable("gui.recruits.command.tooltip.shields");
-    private static final MutableComponent TOOLTIP_ESCORT = Component.translatable("gui.recruits.command.tooltip.escort");
+    private static final MutableComponent TOOLTIP_PROTECT = Component.translatable("gui.recruits.command.tooltip.protect");
     private static final MutableComponent TOOLTIP_MOVE = Component.translatable("gui.recruits.command.tooltip.move");
     private static final MutableComponent TOOLTIP_FOLLOW = Component.translatable("gui.recruits.command.tooltip.follow");
     private static final MutableComponent TOOLTIP_WANDER = Component.translatable("gui.recruits.command.tooltip.wander");
@@ -43,7 +44,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TOOLTIP_TEAM = Component.translatable("gui.recruits.command.tooltip.team");
     private static final MutableComponent TOOLTIP_CLEAR_TARGET = Component.translatable("gui.recruits.command.tooltip.clearTargets");
     private static final MutableComponent TEXT_EVERYONE = Component.translatable("gui.recruits.command.text.everyone");
-    private static final MutableComponent TEXT_ESCORT = Component.translatable("gui.recruits.command.text.escort");
+    private static final MutableComponent TEXT_PROTECT = Component.translatable("gui.recruits.command.text.protect");
     private static final MutableComponent TEXT_MOVE = Component.translatable("gui.recruits.command.text.move");
     private static final MutableComponent TEXT_SHIELDS = Component.translatable("gui.recruits.command.text.shields");
     private static final MutableComponent TEXT_DISMOUNT = Component.translatable("gui.recruits.command.text.dismount");
@@ -58,16 +59,16 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TEXT_NEUTRAL = Component.translatable("gui.recruits.command.text.neutral");
     private static final MutableComponent TEXT_AGGRESSIVE = Component.translatable("gui.recruits.command.text.aggressive");
     private static final MutableComponent TEXT_RAID = Component.translatable("gui.recruits.command.text.raid");
-    private static final MutableComponent TEXT_HAILOFARROWS = Component.translatable("gui.recruits.command.text.arrow");
+    private static final MutableComponent TEXT_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.text.strategic_fire");
     private static final MutableComponent TEXT_CLEAR_TARGET = Component.translatable("gui.recruits.command.text.clearTargets");
     private static final MutableComponent TEXT_UPKEEP = Component.translatable("gui.recruits.command.text.upkeep");
     private static final MutableComponent TEXT_TEAM = Component.translatable("gui.recruits.command.text.team");
     private static final int fontColor = 16250871;
-    private Player player;
+    private final Player player;
     private int group;
-    private int recCount;
+    public static int recruitsInCommand;
     private boolean shields;
-    private boolean hailOfArrows;
+    private boolean strategicFire;
 
     public CommandScreen(CommandMenu commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, Component.literal(""));
@@ -79,8 +80,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     @Override
     public boolean keyReleased(int x, int y, int z) {
         super.keyReleased(x, y, z);
-        this.onClose();
-
+        if(!RecruitsModConfig.CommandScreenToggle.get())this.onClose();
         return true;
     }
 
@@ -91,19 +91,28 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         int zeroTopPos = topPos + 10;
         int topPosGab = 7;
         int mirror = 240 - 60;
-
+        this.group = getSavedCurrentGroup(player);
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen(this.group));
         //TEAM SCREEN
         addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 60, 80, 20, TEXT_TEAM,
                 button -> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageTeamMainScreen(player));
-                }));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_TEAM, i, i1);
+                }
+        ));
 
         //Dismount
         addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_DISMOUNT,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(98, player, group);
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageDismount(player.getUUID(), group));
-                }));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_DISMOUNT, i, i1);
+                }
+        ));
 
         //Mount
         addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_MOUNT,
@@ -113,29 +122,41 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                     if (entity != null) {
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntity(player.getUUID(), entity.getUUID(), group));
                     }
-                }));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_MOUNT, i, i1);
+                }
+        ));
 
-        //HAIL OF ARROWS
-        addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_HAILOFARROWS,
+        //STRATEGIC FIRE
+        addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_STRATEGIC_FIRE,
                 button -> {
-                    this.hailOfArrows = !getSavedHailOfArrowsBool(player);
+                    this.strategicFire = !getSavedStrategicFireBool(player);
 
-                    if (hailOfArrows)
+                    if (strategicFire)
                         CommandEvents.sendFollowCommandInChat(96, player, group);
                     else
                         CommandEvents.sendFollowCommandInChat(94, player, group);
 
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageHailOfArrows(player.getUUID(), group, hailOfArrows));
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageStrategicFire(player.getUUID(), group, strategicFire));
 
-                    saveHailOfArrowsBool(player);
-                }));
+                    saveStrategicFireBool(player);
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_STRATEGIC_FIRE, i, i1);
+                }
+        ));
 
         //MOVE
         addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos - (20 + topPosGab), 80, 20, TEXT_MOVE,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(97, player, group);
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageMove(player.getUUID(), group));
-                }));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_MOVE, i, i1);
+                }
+        ));
 
         //UPKEEP
         addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_UPKEEP,
@@ -149,8 +170,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageUpkeepEntity(player.getUUID(), entity.getUUID(), group));
                     } else
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageUpkeepPos(player.getUUID(), group));
-                }));
-
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_UPKEEP, i, i1);
+                }
+        ));
         //SHIELDS
         addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_SHIELDS,
                 button -> {
@@ -164,18 +188,26 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageShields(player.getUUID(), group, shields));
 
                     saveShieldBool(player);
-                }));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_SHIELDS, i, i1);
+                }
+        ));
 
-        //Guard
-        addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_ESCORT,
+        //PROTECT
+        addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_PROTECT,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(5, player, group);
                     Entity entity = ClientEvent.getEntityByLooking();
                     if (entity != null) {
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageGuardEntity(player.getUUID(), entity.getUUID(), group));
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageProtectEntity(player.getUUID(), entity.getUUID(), group));
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 5, group));
                     }
-                }));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_PROTECT, i, i1);
+                }
+        ));
 
         //PASSIVE
         addRenderableWidget(new Button(zeroLeftPos - mirror + 40, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE,
@@ -183,37 +215,56 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             CommandEvents.sendAggroCommandInChat(3, player, group);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 3, group));
 
-        }));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_PASSIVE, i, i1);
+                }
+        ));
 
         //NEUTRAL
         addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_NEUTRAL,
                 button -> {
-            CommandEvents.sendAggroCommandInChat(0, player, group);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 0, group));
-
-        }));
+                    CommandEvents.sendAggroCommandInChat(0, player, group);
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 0, group));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_NEUTRAL, i, i1);
+                }
+        ));
 
         //AGGRESSIVE
         addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_AGGRESSIVE,
                 button -> {
-            CommandEvents.sendAggroCommandInChat(1, player, group);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 1, group));
-        }));
+                    CommandEvents.sendAggroCommandInChat(1, player, group);
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 1, group));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_AGGRESSIVE, i, i1);
+                }
+        ));
 
         //RAID
         addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_RAID,
                 button -> {
-            CommandEvents.sendAggroCommandInChat(2, player, group);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 2, group));
+                    CommandEvents.sendAggroCommandInChat(2, player, group);
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 2, group));
 
-        }));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_RAID, i, i1);
+                }
+        ));
 
         //CLEAR TARGET
         addRenderableWidget(new Button(zeroLeftPos - mirror + 40, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_CLEAR_TARGET,
                 button -> {
             //Main.LOGGER.debug("client: clear target");
             Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTarget(player.getUUID(), group));
-        }));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_CLEAR_TARGET, i, i1);
+                }
+        ));
 
 
         //WANDER
@@ -222,7 +273,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             CommandEvents.sendFollowCommandInChat(0, player, group);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 0, group));
 
-        }));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_WANDER, i, i1);
+                }
+        ));
 
 
         //FOLLOW
@@ -231,7 +286,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             CommandEvents.sendFollowCommandInChat(1, player, group);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 1, group));
 
-        }));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_FOLLOW, i, i1);
+                }
+        ));
 
 
         //HOLD POS
@@ -240,7 +299,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             CommandEvents.sendFollowCommandInChat(2, player, group);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 2, group));
 
-        }));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_HOLD_POS, i, i1);
+                }
+        ));
 
 
         //BACK TO POS
@@ -249,7 +312,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             CommandEvents.sendFollowCommandInChat(3, player, group);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 3, group));
 
-        }));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_BACK_TO_POS, i, i1);
+                }
+        ));
 
 
         //HOLD MY POS
@@ -258,30 +325,38 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             CommandEvents.sendFollowCommandInChat(4, player, group);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 4, group));
 
-        }));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_HOLD_MY_POS, i, i1);
+                }
+        ));
 
         //GROUP
-        addRenderableWidget(new ExtendedButton(leftPos - 4 + imageWidth / 2, topPos - 40 + imageHeight / 2, 11, 20, Component.literal("+"),
-                button -> {
-            this.group = getSavedCurrentGroup(player);
+        addRenderableWidget(new ExtendedButton(leftPos - 5 + imageWidth / 2, topPos - 50 + imageHeight / 2, 12, 20, Component.literal("+"),
+            button -> {
+                this.group = getSavedCurrentGroup(player);
+                if (this.group != 9) {
+                    this.group++;
 
-            if (this.group != 9) {
-                this.group++;
+                    this.saveCurrentGroup(player);
+                }
 
-                this.saveCurrentGroup(player);
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen(this.group));
             }
-        }));
+        ));
 
-        addRenderableWidget(new ExtendedButton(leftPos - 4 + imageWidth / 2, topPos + imageHeight / 2, 11, 20, Component.literal("-"),
-                button -> {
-            this.group = getSavedCurrentGroup(player);
+        addRenderableWidget(new ExtendedButton(leftPos - 5 + imageWidth / 2, topPos + 10 + imageHeight / 2, 12, 20, Component.literal("-"),
+            button -> {
+                this.group = getSavedCurrentGroup(player);
+                if (this.group != 0) {
+                    this.group--;
 
-            if (this.group != 0) {
-                this.group--;
+                    this.saveCurrentGroup(player);
+                }
 
-                this.saveCurrentGroup(player);
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen(this.group));
             }
-        }));
+        ));
     }
 
     @Override
@@ -295,10 +370,10 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         //player.sendMessage(new StringTextComponent("SCREEN int: " + recCount), player.getUUID());
 
         int k = 78;//rechst links
-        int l = 71;//höhe
+        int l = 61;//höhe
 
         font.draw(matrixStack, "" + handleGroupText(this.group), k, l, fontColor);
-        //font.draw(matrixStack, "" +  handleRecruitCountText(currentRecruits), k - 30 , 0, fontColor);
+        font.draw(matrixStack, "Recruits: " + recruitsInCommand, k , l + 10, fontColor);
     }
 
     protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
@@ -342,18 +417,18 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
 
-    public boolean getSavedHailOfArrowsBool(Player player) {
+    public boolean getSavedStrategicFireBool(Player player) {
         CompoundTag playerNBT = player.getPersistentData();
         CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
 
-        return nbt.getBoolean("HailOfArrows");
+        return nbt.getBoolean("StrategicFire");
     }
 
-    public void saveHailOfArrowsBool(Player player) {
+    public void saveStrategicFireBool(Player player) {
         CompoundTag playerNBT = player.getPersistentData();
         CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
 
-        nbt.putBoolean("HailOfArrows", this.hailOfArrows);
+        nbt.putBoolean("StrategicFire", this.strategicFire);
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
 

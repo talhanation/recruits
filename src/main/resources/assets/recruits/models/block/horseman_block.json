@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "recruits:block/horseman_table_side",
+    "north": "recruits:block/horseman_table_side",
+    "south": "recruits:block/horseman_table_side",
+    "east": "recruits:block/horseman_table_side",
+    "west": "recruits:block/horseman_table_side",
+    "up": "recruits:block/horseman_table_top",
+    "down": "recruits:block/horseman_table_bottom"
+  }
+}
