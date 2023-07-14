@@ -18,6 +18,7 @@ import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.levelgen.Heightmap.Types;
 
+
 import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.Random;
@@ -85,6 +86,7 @@ public class PillagerPatrolSpawn {
         Pillager pillagerLeader = createPillager(upPos, targetPos);
         pillagerLeader.setAggressive(true);
         pillagerLeader.setCustomName(new TextComponent("Pillager Leader"));
+
         pillagerLeader.setPatrolLeader(true);
         pillagerLeader.setCanJoinRaid(true);
         pillagerLeader.setCanPickUpLoot(true);

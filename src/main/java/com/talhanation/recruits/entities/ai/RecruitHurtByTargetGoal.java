@@ -26,7 +26,6 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
     public RecruitHurtByTargetGoal(AbstractRecruitEntity recruit) {
         super(recruit);
         this.recruit = recruit;
-        this.setFlags(EnumSet.of(Goal.Flag.TARGET));
     }
 
     public boolean canUse() {

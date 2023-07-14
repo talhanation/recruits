@@ -1,7 +1,8 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
@@ -33,16 +34,16 @@ public class RecruitUpkeepEntityGoal extends Goal {
         return canUse();
     }
 
-    private boolean hasFoodInInv() {
+    private boolean hasFoodInInv(){
         return recruit.getInventory().items
                 .stream()
                 .anyMatch(ItemStack::isEdible);
     }
 
-    private boolean isFoodInEntity(Container container) {
-        for (int i = 0; i < container.getContainerSize(); i++) {
+    private boolean isFoodInEntity(Container container){
+        for(int i = 0; i < container.getContainerSize(); i++) {
             ItemStack foodItem = container.getItem(i);
-            if (foodItem.isEdible()) {
+            if(foodItem.isEdible()){
                 return true;
             }
         }
@@ -97,26 +98,40 @@ public class RecruitUpkeepEntityGoal extends Goal {
                                 foodItem.shrink(1);
                             } else {
                                 if (recruit.getOwner() != null && message) {
-                                    String name = recruit.getName().getString() + ": ";
-                                    String str = TEXT_NO_PLACE.getString();
-                                    recruit.getOwner().sendMessage(new TextComponent(name + str), recruit.getOwner().getUUID());
+                                    recruit.getOwner().sendMessage(TEXT_NO_PLACE(recruit.getName().getString()), recruit.getOwner().getUUID());
                                     message = false;
                                 }
                                 this.stop();
                             }
-                            break;
                         }
-                    } else {
+                    }
+                    else {
                         if (recruit.getOwner() != null && message) {
-                            String name = recruit.getName().getString() + ": ";
-                            String str = TEXT_NOFOOD.getString();
-                            recruit.getOwner().sendMessage(new TextComponent(name + str), recruit.getOwner().getUUID());
+                            recruit.getOwner().sendMessage(TEXT_FOOD(recruit.getName().getString()), recruit.getOwner().getUUID());
                             message = false;
                             this.stop();
                         }
-                        this.stop();
                     }
-                } else stop();
+                    this.stop();
+
+                    //Try to reequip
+                    for(int i = 0; i < container.getContainerSize(); i++) {
+                        ItemStack itemstack = container.getItem(i);
+                        ItemStack equipment;
+                        if(!itemstack.isEdible() && recruit.wantsToPickUp(itemstack)){
+                            if (recruit.canEquipItem(itemstack)) {
+                                equipment = itemstack.copy();
+                                equipment.setCount(1);
+                                recruit.equipItem(equipment);
+                                itemstack.shrink(1);
+                            }
+                        }
+                    }
+
+                }
+            }
+            else {
+                this.entity = findEntityPos();
             }
         }
     }
@@ -129,12 +144,13 @@ public class RecruitUpkeepEntityGoal extends Goal {
 
     private Optional<Entity> findEntityPos() {
         if(this.recruit.getUpkeepUUID() != null) {
-            return recruit.level.getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(20.0D))
+            return recruit.level.getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(40.0D))
                     .stream()
                     .filter(entity -> entity.getUUID().equals(recruit.getUpkeepUUID())).findAny();
         }
         else return Optional.empty();
     }
+
 
     @Nullable
     private ItemStack getFoodFromInv(Container inv){
@@ -148,9 +164,6 @@ public class RecruitUpkeepEntityGoal extends Goal {
         return itemStack;
     }
 
-    private final TranslatableComponent TEXT_NOFOOD = new TranslatableComponent("chat.recruits.text.noFoodInUpkeep");
-    private final TranslatableComponent TEXT_NO_PLACE = new TranslatableComponent("chat.recruits.text.noPlaceInInv");
-
 
     private boolean canAddFood(){
         for(int i = 6; i < 14; i++){
@@ -158,5 +171,12 @@ public class RecruitUpkeepEntityGoal extends Goal {
                 return true;
         }
         return false;
+    }
+    private MutableComponent TEXT_NO_PLACE(String name) {
+        return new TranslatableComponent("chat.recruits.text.noPlaceInInv", name);
+    }
+
+    private MutableComponent TEXT_FOOD(String name) {
+        return new TranslatableComponent("chat.recruits.text.noFoodInUpkeep", name);
     }
 }

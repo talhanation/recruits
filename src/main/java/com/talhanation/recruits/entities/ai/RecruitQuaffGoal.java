@@ -46,10 +46,6 @@ public class RecruitQuaffGoal extends Goal {
         beforeItem = recruit.getOffhandItem().copy();
         recruit.setIsEating(true);
         this.potionItem = getPotionInInvAndRemove();
-        /*
-        Main.LOGGER.debug("Start: beforeItem: " + beforeItem);
-        Main.LOGGER.debug("Start: potionItem: " + potionItem);
-         */
 
         recruit.setItemInHand(InteractionHand.OFF_HAND, potionItem.copy());
         recruit.startUsingItem(InteractionHand.OFF_HAND);
@@ -88,15 +84,7 @@ public class RecruitQuaffGoal extends Goal {
         recruit.setIsEating(false);
         recruit.stopUsingItem();
 
-        recruit.eatCoolDown = 100;
         resetItemInHand();
-        /*
-        Main.LOGGER.debug("Stop--------------: ");
-        Main.LOGGER.debug("beforeFoodItem: " + beforeFoodItem);
-        Main.LOGGER.debug("isEating: " + recruit.getIsEating());
-        Main.LOGGER.debug("foodStack: " + foodStack.copy());
-        Main.LOGGER.debug("Stop--------------:");
-         */
     }
 
     public void resetItemInHand() {

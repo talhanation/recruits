@@ -3,20 +3,25 @@
   "entity.recruits.bowman": "Okçu",
   "entity.recruits.recruit_shieldman": "Kalkanlı Piyade",
   "entity.recruits.nomad": "Göçebe",
+  "entity.recruits.horseman": "Horseman",
 
   "item.recruits.recruit_spawn_egg": "Piyade Çağırma Yumurtası",
   "item.recruits.bowman_spawn_egg": "Okçu Çağırma Yumurtası",
   "item.recruits.nomad_spawn_egg": "Göçebe Çağırma Yumurtası",
+  "item.recruits.horseman_spawn_egg": "Horseman Spawn Egg",
   "item.recruits.recruit_shieldman_spawn_egg": "Kalkanlı Piyade Çağırma Yumurtası",
+  "item.recruits.crossbowman_spawn_egg": "Crossbowman Spawn Egg",
 
   "block.recruits.recruit_block": "Piyade Masası",
   "block.recruits.recruit_shield_block": "Kalkanlı Piyade Masası",
   "block.recruits.bowman_block": "Okçu Masası",
   "block.recruits.nomad_block": "Göçebe Masası",
+  "block.recruits.horseman_block": "Horseman's Table",
+  "block.recruits.crossbowman_block": "Crossbowman's Table",
 
   "category.recruits": "Piyadeler",
-  "key.recruits.r_key": "Komut Ekranını Aç",
-  "key.recruits.u_key": "Takım Ekranını Aç",
+  "key.recruits.command_screen_key": "Open Command Screen",
+  "key.recruits.team_screen_key": "Open Team Screen",
 
   "gui.recruits.inv.health": "Can:",
   "gui.recruits.inv.level": "Seviye:",
@@ -51,12 +56,25 @@
   "gui.recruits.inv.text.dismount": "İn",
   "gui.recruits.inv.text.group": "Grup",
 
+  "gui.recruits.inv.info.text.neutral": "Neutral",
+  "gui.recruits.inv.info.text.aggressive": "Aggressive",
+  "gui.recruits.inv.info.text.raid": "Raid",
+  "gui.recruits.inv.info.text.passive": "Passive",
+  "gui.recruits.inv.info.text.wander": "Wandering",
+  "gui.recruits.inv.info.text.follow": "Following",
+  "gui.recruits.inv.info.text.hold_pos": "Holding Position",
+  "gui.recruits.inv.info.text.protect": "Protecting",
+  "gui.recruits.inv.info.text.listen": "Listening",
+  "gui.recruits.inv.info.text.ignore": "Ignoring",
+
+
   "gui.recruits.hire_gui.text.hire": "Kirala",
 
   "gui.recruits.inv.tooltip.passive": "Bu piyadenin saldırmamasını sağla.",
   "gui.recruits.inv.tooltip.neutral": "Bu piyadenin sadece düşman varlıklara saldırmasını sağla.",
   "gui.recruits.inv.tooltip.aggressive": "Bu piyadenin herhangi düşman varlığa saldırmasını sağla.",
   "gui.recruits.inv.tooltip.raid": "Bu piyadenin herhangi bir varlığa saldırmasını sağla.",
+  "gui.recruits.inv.tooltip.assignToTeamMate": "Assign this recruit to a nearby teammate.",
 
   "gui.recruits.command.tooltip.follow": "Piyadelerin seni izlemesini sağla.",
   "gui.recruits.command.tooltip.wander": "Piyadelerin gezinmesine izin ver.",
@@ -65,11 +83,11 @@
   "gui.recruits.command.tooltip.backToPos": "Piyadelerin önceki tuttukları konuma dönmesini sağla.",
   "gui.recruits.command.tooltip.patrol": "Piyadelerin bir önceki tuttukları konumu devriye gezmelerini sağla.",
   "gui.recruits.command.tooltip.clearTargets": "Piyadelerin saldırmalarını durdur.",
-  "gui.recruits.command.tooltip.escort": "Piyadelerin baktığın Mob'a korumalık etmelerini sağla.",
+  "gui.recruits.command.tooltip.protect": "Make the recruits protect and follow the Mob you are looking at.",
   "gui.recruits.command.tooltip.mount": "Eğer münkünse, piyadeler baktığın Mob'a binmeye çalışır.",
   "gui.recruits.command.tooltip.dismount": "Eğer mümkünse, piyadelerin şu anki araçlarından inmesini sağla.",
   "gui.recruits.command.tooltip.move": "Eğer mümkünse, piyadeler baktığın noktaya gitmeye çalışır.",
-  "gui.recruits.command.tooltip.arrows": "Okçuların baktığın konuma ok yağmuru yapmasını sağla.",
+  "gui.recruits.command.tooltip.strategic_fire": "Order ranged troops to concentrate their fire on a specific area you are looking at.",
   "gui.recruits.command.tooltip.shields": "Piyadelerin kalkanlarını indirmesini/kaldırmasını sağla.",
   "gui.recruits.command.tooltip.upkeep": "Baktığın yeri veya varlığı piyadelerin toplamasını sağla.",
 
@@ -78,14 +96,22 @@
   "gui.recruits.command.tooltip.aggressive": "Piyadelerin herhangi düşman varlığa saldırmasını sağla.",
   "gui.recruits.command.tooltip.raid": "Piyadelerin herhangi bir varlığa saldırmasını sağla.",
 
+  "gui.recruits.team.tooltip.add": "Adds this Player to the team within sight.",
+
+  "gui.recruits.team_creation.no_teams": "Takım yok.",
+  "gui.recruits.team_creation.delete_team": "Sil",
+  "gui.recruits.team.assignNewOwner": "Assign to teammate",
+  "gui.recruits.command.tooltip.team": "Takım ekranını açar.",
+  "gui.recruits.command.text.team": "Takım",
+
   "gui.recruits.command.text.mount": "Bin!",
   "gui.recruits.command.text.dismount": "İn!",
 
   "gui.recruits.command.text.move": "İlerle!",
   "gui.recruits.command.text.shields": "Kalkanlar!",
-  "gui.recruits.command.text.arrow": "Ok yağmuru!",
+  "gui.recruits.command.text.strategic_fire": "Strategic Fire",
 
-  "gui.recruits.command.text.escort": "Koru!",
+  "gui.recruits.command.text.protect": "Protect this!",
   "gui.recruits.command.text.follow": "Beni izle!",
   "gui.recruits.command.text.wander": "Serbestsin!",
   "gui.recruits.command.text.holdMyPos": "Konumumu koru!",
@@ -97,21 +123,20 @@
   "gui.recruits.command.text.neutral": "Nötr kal!",
   "gui.recruits.command.text.aggressive": "Agresif kal!",
   "gui.recruits.command.text.raid": "Yağmala!",
+  "gui.recruits.command.text.upkeep": "Upkeep",
 
   "gui.recruits.command.text.group": "Grup",
   "gui.recruits.command.text.everyone": "Herkes",
 
   "chat.recruits.command.upkeep": "Burayı toplayın!",
-
-  "chat.recruits.command.escort": "Bu Mob'u koru!",
+  "chat.recruits.command.protect": "%s Protect this Mob!",
   "chat.recruits.command.mount": "Buraya bin!",
   "chat.recruits.command.dismount": "Buradan in!",
   "chat.recruits.command.move": "İlerle!",
   "chat.recruits.command.shields": "Kalkanlar!",
-  "chat.recruits.command.arrows": "Ok yağmuru yapın!",
+  "chat.recruits.command.strategic_fire": "%s Strategic Fire to that position!",
   "chat.recruits.command.shields_off": "Kalkanları indirin!",
-  "chat.recruits.command.arrows_off": "Ok yağmurun tutun!",
-
+  "chat.recruits.command.strategic_fire_off": "%s Hold the Fire!",
   "chat.recruits.command.wander": "Serbestsin!",
   "chat.recruits.command.follow": "Beni izle!",
   "chat.recruits.command.holdMyPos": "Konumumu koru!",
@@ -128,28 +153,29 @@
   "chat.recruits.text.hello_2": "Her şey yolunda mı?",
   "chat.recruits.text.hello_3": "Nedir o?",
   "chat.recruits.text.follow": "Seni izleyeceğim.",
-  "chat.recruits.text.hold_your_pos": "Konumunu tutacağım.",
+  "chat.recruits.text.holdPos": "%s: I will hold your position.",
   "chat.recruits.text.wander": "Tamam, serbestim.",
   "chat.recruits.text.disband": "Yollarımız burada ayrılıyor.",
   "chat.recruits.text.noFoodInUpkeep": "Benim topladığım yerde yiyecek yok.",
-
+  "chat.recruits.text.noPlaceInInv": "%s: There is no place to store food from my inventory.",
   "chat.recruits.text.recruited1": "Gittiğimiz yol onurlu bir yol.",
   "chat.recruits.text.recruited2": "Sana nasıl yardım edebilirim?",
   "chat.recruits.text.recruited3": "Onur duydum. Yolun benim yolumdur.",
+  "chat.recruits.text.protect_died": "%s: The Mob under protection has been killed.",
 
-  "chat.recruits.text.hire_costs_1": "Beni kiralamak için",
-  "chat.recruits.text.hire_costs_2": "ihtiyacın var!",
+  "chat.recruits.text.hire_costs": "%s: You need %s %s to recruit me!",
   "chat.recruits.info.reached_max": "Kiralayabileceğin maksimumu seviyeye ulaştın.",
-
   "chat.recruits.text.block_placing_warn": "Bizim topraklarımızda blok koyma veya kırma iznin yok!",
-
+  "chat.recruits.text.block_interact_warn": "%s: You are not allowed to interact with blocks in our lands!",
   "gui.recruits.text.recruited": "Sizi korumak benim için şeref!",
+
+
   "chat.recruits.text.group": "Grup",
   "chat.recruits.text.everyone": "Herkes",
 
-  "gui.recruits.inv.text.upkeep": "Topla",
-
-
+  "chat.recruits.team_creation.warnVanillaCommand": "Using Vanilla Team-Commands will break recruits mod!",
+  "chat.recruits.team_creation.isDisabledInConfig": "Specific Team-Commands are disabled by recruits mod, use the team screen instead!",
+  "chat.recruits.team_creation.canEnableInConfig": "The Team-Commands can be enabled in the recruits config.",
 
   "chat.recruits.team_creation.team_exists": "O adla bir takım mevcut!",
   "chat.recruits.team_creation.removePlayer": "Oyuncuyu çıkar",
@@ -168,14 +194,28 @@
   "gui.recruits.team_creation.create_team": "Takım Oluştur",
   "gui.recruits.team_creation.inspect_team": "Takımı İncele",
   "gui.recruits.team_creation.teams_list": "Takımların Listesi",
+  "gui.recruits.teamInspectTitle": "",
   "gui.recruits.team_creation.leave_team": "Ayrıl",
+  "chat.recruits.team_creation.join": "Katıl",
   "chat.recruits.team_creation.addedPlayer": "You are now a member of ",
   "chat.recruits.team_creation.removedPlayer": "Takımdan çıkarıldınız.",
+  "chat.recruits.team_creation.removedPlayerLeader": "You removed %s from the Team.",
   "chat.recruits.team_creation.addedPlayerLeader": " takımınıza başarıyla katıldı.",
   "chat.recruits.team_creation.could_not_find": "Oyuncu bulunamadı ",
-  "chat.recruits.team_creation.join": "Katıl",
-  "gui.recruits.team_creation.no_teams": "Takım yok.",
-  "gui.recruits.team_creation.delete_team": "Sil",
-  "gui.recruits.command.tooltip.team": "Takım ekranını açar.",
-  "gui.recruits.command.text.team": "Takım"
+  "chat.recruits.team.assignNewOwnerNoTeam": "You need to be in a team to assign this recruit a new owner!",
+  "chat.recruits.team.assignNewOwnerNotFound": "No team mate nearby to assign this recruit to.",
+  "Recruits": "",
+  "chat.recruits.command.arrows": "Ok yağmuru yapın!",
+  "chat.recruits.command.arrows_off": "Ok yağmurun tutun!",
+  "chat.recruits.command.escort": "Bu Mob'u koru!",
+  "chat.recruits.text.hire_costs_1": "Beni kiralamak için",
+  "chat.recruits.text.hire_costs_2": "ihtiyacın var!",
+  "chat.recruits.text.hold_your_pos": "Konumunu tutacağım.",
+  "gui.recruits.command.text.arrow": "Ok yağmuru!",
+  "gui.recruits.command.text.escort": "Koru!",
+  "gui.recruits.command.tooltip.arrows": "Okçuların baktığın konuma ok yağmuru yapmasını sağla.",
+  "gui.recruits.command.tooltip.escort": "Piyadelerin baktığın Mob'a korumalık etmelerini sağla.",
+  "gui.recruits.inv.text.upkeep": "Topla",
+  "key.recruits.c_key": "Takım Ekranını Aç",
+  "key.recruits.r_key": "Komut Ekranını Aç"
 }

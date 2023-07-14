@@ -21,13 +21,12 @@ public class RecruitMoveTowardsTargetGoal extends Goal {
         this.recruit = recruit;
         this.speedModifier = speedModifier;
         this.within = within;
-        this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
 
 
     public boolean canUse() {
         this.target = this.recruit.getTarget();
-        if (this.recruit.getState() == 3 || recruit.getShouldMount() || recruit.needsToGetFood()){
+        if (this.recruit.getState() == 3 || recruit.getShouldMount() || recruit.needsToGetFood() || this.recruit.isFollowing()){
             return false;
         }
         else if (this.target == null) {
@@ -48,7 +47,7 @@ public class RecruitMoveTowardsTargetGoal extends Goal {
     }
 
     public boolean canContinueToUse() {
-        if (this.recruit.getShouldFollow()){
+        if (this.recruit.isFollowing()){
             return false;
         }
         return !this.recruit.getNavigation().isDone() && this.target.isAlive() && this.target.distanceToSqr(this.recruit) < (double)(this.within * this.within);
@@ -59,7 +58,7 @@ public class RecruitMoveTowardsTargetGoal extends Goal {
     }
 
     public void start() {
-        if (!this.recruit.getShouldFollow()) {
+        if (!this.recruit.isFollowing()) {
         this.recruit.getNavigation().moveTo(this.wantedX, this.wantedY, this.wantedZ, this.speedModifier);
         }
     }

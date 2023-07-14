@@ -61,10 +61,10 @@ public class UseShield extends Goal {
         if (target instanceof Mob mobTarget) {
             isSelfTarget = mobTarget.getTarget() != null && mobTarget.getTarget().is(entity);
         }
-        if (target != null) {
+        if (target != null && target.isAlive() && !this.entity.swinging) {
             ItemStack itemStackinHand = target.getItemInHand(InteractionHand.MAIN_HAND);
             Item itemInHand = itemStackinHand.getItem();
-            boolean isClose = target.distanceTo(this.entity) <= 2.75D;
+            boolean isClose = target.distanceTo(this.entity) <= 3.5D;
             boolean isFar = target.distanceTo(this.entity) >= 20.0D;
             boolean inRange =  !isFar && target.distanceTo(this.entity) <= 15.0D;
 

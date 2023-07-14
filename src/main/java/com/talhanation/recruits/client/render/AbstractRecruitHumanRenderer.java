@@ -1,6 +1,5 @@
 package com.talhanation.recruits.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.talhanation.recruits.client.events.ClientEvent;
 import com.talhanation.recruits.entities.AbstractInventoryEntity;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;

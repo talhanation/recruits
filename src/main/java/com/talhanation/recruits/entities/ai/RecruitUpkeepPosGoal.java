@@ -2,7 +2,8 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
@@ -10,6 +11,8 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 
 public class RecruitUpkeepPosGoal extends Goal {
@@ -85,24 +88,38 @@ public class RecruitUpkeepPosGoal extends Goal {
                                 foodItem.shrink(1);
                             } else {
                                 if(recruit.getOwner() != null && message){
-                                    String name = recruit.getName().getString() + ": ";
-                                    String str = TEXT_NO_PLACE.getString();
-                                    recruit.getOwner().sendMessage(new TextComponent(name + str), recruit.getOwner().getUUID());
+                                    recruit.getOwner().sendMessage(TEXT_NO_PLACE(recruit.getName().getString()),recruit.getOwner().getUUID());
                                     message = false;
                                 }
+                                //Main.LOGGER.debug("Chest empty");
                                 this.stop();
                             }
                         }
                     }
                     else {
-                       if(recruit.getOwner() != null && message){
-                           String name = recruit.getName().getString() + ": ";
-                           String str = TEXT_NOFOOD.getString();
-                           recruit.getOwner().sendMessage(new TextComponent(name + str), recruit.getOwner().getUUID());
-                           message = false;
-                           this.stop();
-                       }
+                        if(recruit.getOwner() != null && message){
+                            recruit.getOwner().sendMessage(TEXT_FOOD(recruit.getName().getString()), recruit.getOwner().getUUID());
+                            message = false;
+                            this.stop();
+                        }
                     }
+
+
+                    //Try to reequip
+                    for(int i = 0; i < container.getContainerSize(); i++) {
+                        ItemStack itemstack = container.getItem(i);
+                        ItemStack equipment;
+                        if(!itemstack.isEdible() && recruit.wantsToPickUp(itemstack)){
+                            if (recruit.canEquipItem(itemstack)) {
+                                equipment = itemstack.copy();
+                                equipment.setCount(1);
+                                recruit.equipItem(equipment);
+                                itemstack.shrink(1);
+                            }
+                        }
+                    }
+
+
                     this.stop();
                 }
             }
@@ -141,7 +158,6 @@ public class RecruitUpkeepPosGoal extends Goal {
         //else entity around upkeepPos
         return null;
     }
-
     @Nullable
     private ItemStack getFoodFromInv(Container inv){
         ItemStack itemStack = null;
@@ -154,13 +170,19 @@ public class RecruitUpkeepPosGoal extends Goal {
         return itemStack;
     }
 
-    private final TranslatableComponent TEXT_NOFOOD = new TranslatableComponent("chat.recruits.text.noFoodInUpkeep");
-    private final TranslatableComponent TEXT_NO_PLACE = new TranslatableComponent("chat.recruits.text.noPlaceInInv");
     private boolean canAddFood(){
         for(int i = 6; i < 14; i++){
             if(recruit.getInventory().getItem(i).isEmpty())
                 return true;
         }
         return false;
+    }
+
+    private MutableComponent TEXT_NO_PLACE(String name) {
+        return new TranslatableComponent("chat.recruits.text.noPlaceInInv", name);
+    }
+
+    private MutableComponent TEXT_FOOD(String name) {
+        return new TranslatableComponent("chat.recruits.text.noFoodInUpkeep", name);
     }
 }

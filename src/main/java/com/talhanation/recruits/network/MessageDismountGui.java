@@ -21,7 +21,7 @@ public class MessageDismountGui implements Message<MessageDismountGui> {
     }
 
     public MessageDismountGui(UUID player, UUID uuid) {
-        this.player = uuid;
+        this.player = player;
         this.uuid = uuid;
     }
 
@@ -30,12 +30,11 @@ public class MessageDismountGui implements Message<MessageDismountGui> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        Main.LOGGER.debug("Dismount: message start");
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
         for (AbstractRecruitEntity recruits : list) {
             if (recruits.getUUID().equals(this.uuid)){
                 CommandEvents.onDismountButton(player, recruits, 0);
-                Main.LOGGER.debug("Dismount: message done");
+
             }
 
 

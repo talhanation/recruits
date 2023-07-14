@@ -2,10 +2,16 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.*;
+import com.talhanation.recruits.entities.ai.PatrolLeaderTargetAttackers;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
+import com.talhanation.recruits.world.RecruitsPatrolSpawn;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
@@ -15,47 +21,65 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.ItemLike;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.levelgen.RandomSource;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Random;
+
+import java.util.*;
 
 public class VillagerEvents {
     protected final Random random = new Random();
 
+    private static void spawnRecruits(ServerLevel level, BlockPos villagePos) {
+
+        Random random = new Random();
+        BlockPos spawnPos = RecruitsPatrolSpawn.func_221244_a(villagePos, 20, random, level);
+
+        if (spawnPos != null && RecruitsPatrolSpawn.func_226559_a_(spawnPos, level) && spawnPos.distSqr(villagePos) > 10) {
+            BlockPos upPos = new BlockPos(spawnPos.getX(), spawnPos.getY() + 2, spawnPos.getZ());
+
+            int i = random.nextInt(4);
+            switch (i) {
+                default -> spawnSmallGuardRecruits(upPos, level, random);
+                case 1 -> spawnMediumGuardRecruits(upPos, level, random);
+                case 2 -> spawnLargeGuardRecruits(upPos, level, random);
+            }
+        }
+    }
+
     @SubscribeEvent
     public void onVillagerLivingUpdate(LivingEvent.LivingUpdateEvent event) {
-        Entity entity = event.getEntityLiving();
+        HashMap<VillagerProfession, EntityType<? extends  AbstractRecruitEntity>> entitiesByProfession = new HashMap<>(){{
+            put(Main.RECRUIT, ModEntityTypes.RECRUIT.get());
+            put(Main.BOWMAN, ModEntityTypes.BOWMAN.get());
+            put(Main.SHIELDMAN, ModEntityTypes.RECRUIT_SHIELDMAN.get());
+            put(Main.HORSEMAN, ModEntityTypes.HORSEMAN.get());
+            put(Main.NOMAD, ModEntityTypes.NOMAD.get());
+            put(Main.CROSSBOWMAN, ModEntityTypes.CROSSBOWMAN.get());
+            }
+        };
+
+        Entity entity = event.getEntity();
         if (entity instanceof Villager villager) {
             VillagerProfession profession = villager.getVillagerData().getProfession();
 
-            if (profession.equals(Main.RECRUIT)) {
-                createRecruit(villager);
-            }
-
-            if (profession.equals(Main.BOWMAN)){
-                createBowman(villager);
-            }
-
-            if (profession.equals(Main.NOMAD)){
-                createNomad(villager);
-            }
-
-            if (profession.equals(Main.RECRUIT_SHIELDMAN)){
-                createRecruitShieldman(villager);
+            if(entitiesByProfession.containsKey(profession)) {
+                EntityType<? extends AbstractRecruitEntity> recruitType = entitiesByProfession.get(profession);
+                createRecruit(villager, recruitType);
             }
         }
+
+
         if (entity instanceof IronGolem ironGolemEntity) {
 
             if (!ironGolemEntity.isPlayerCreated() && RecruitsModConfig.OverrideIronGolemSpawn.get()){
                 List<AbstractRecruitEntity> list1 = entity.level.getEntitiesOfClass(AbstractRecruitEntity.class, ironGolemEntity.getBoundingBox().inflate(32));
                 if (list1.size() > 1) {
                     ironGolemEntity.remove(Entity.RemovalReason.KILLED);
-                    //System.out.println("golem was removed");
+                    //System.out.println(olem was removed");
                 }
                 else {
                     int i = this.random.nextInt(5);
@@ -67,75 +91,17 @@ public class VillagerEvents {
             }
         }
     }
-    private static void createRecruit(LivingEntity entity){
-        RecruitEntity recruit = ModEntityTypes.RECRUIT.get().create(entity.level);
-        Villager villager = (Villager) entity;
-        recruit.copyPosition(villager);
-
-        recruit.initSpawn();
-
-        villager.remove(Entity.RemovalReason.DISCARDED);
-        villager.level.addFreshEntity(recruit);
-    }
-
-    private static void createRecruitShieldman(LivingEntity entity){
-        RecruitShieldmanEntity recruitShieldman = ModEntityTypes.RECRUIT_SHIELDMAN.get().create(entity.level);
-        Villager villager = (Villager) entity;
-        recruitShieldman.copyPosition(villager);
-
-        recruitShieldman.initSpawn();
-
-        villager.remove(Entity.RemovalReason.DISCARDED);
-        villager.level.addFreshEntity(recruitShieldman);
-    }
-
-    private static void createBowman(LivingEntity entity){
-        BowmanEntity bowman = ModEntityTypes.BOWMAN.get().create(entity.level);
-        Villager villager = (Villager) entity;
-        bowman.copyPosition(villager);
-
-        bowman.initSpawn();
-
-        villager.remove(Entity.RemovalReason.DISCARDED);
-        villager.level.addFreshEntity(bowman);
-    }
-    /*
-    private static void createCrossBowman(LivingEntity entity){
-        CrossBowmanEntity crossBowman = ModEntityTypes.CROSSBOWMAN.get().create(entity.level);
-        Villager villager = (Villager) entity;
-        crossBowman.copyPosition(villager);
-        crossBowman.setEquipment();
-        crossBowman.setDropEquipment();
-        crossBowman.setRandomSpawnBonus();
-        crossBowman.setPersistenceRequired();
-        crossBowman.setCanPickUpLoot(true);
-        //crossBowman.reassessWeaponGoal();
-        crossBowman.setGroup(2);
-        villager.remove(Entity.RemovalReason.DISCARDED);
-        villager.level.addFreshEntity(crossBowman);
-    }
-     */
-    private static void createNomad(LivingEntity entity){
-        NomadEntity nomad = ModEntityTypes.NOMAD.get().create(entity.level);
-        Villager villager = (Villager) entity;
-        nomad.copyPosition(villager);
-
-        nomad.initSpawn();
-
-        villager.remove(Entity.RemovalReason.DISCARDED);
-
-        RecruitHorseEntity horse = createHorse(nomad);
-        nomad.startRiding(horse);
-
-        villager.level.addFreshEntity(nomad);
-    }
-
-    private static RecruitHorseEntity createHorse(LivingEntity entity) {
-        RecruitHorseEntity horse = ModEntityTypes.RECRUIT_HORSE.get().create(entity.level);
-        horse.setPos(entity.getX(), entity.getY(), entity.getZ());
-        horse.invulnerableTime = 60;
-        horse.setPersistenceRequired();
-        return horse;
+    private static void createRecruit(Villager villager, EntityType<? extends AbstractRecruitEntity> recruitType){
+        AbstractRecruitEntity abstractRecruit = recruitType.create(villager.level);
+        if (abstractRecruit != null) {
+            abstractRecruit.copyPosition(villager);
+            abstractRecruit.initSpawn();
+            villager.level.addFreshEntity(abstractRecruit);
+            villager.releasePoi(MemoryModuleType.HOME);
+            villager.releasePoi(MemoryModuleType.JOB_SITE);
+            villager.releasePoi(MemoryModuleType.MEETING_POINT);
+            villager.discard();
+        }
     }
 
     @SubscribeEvent
@@ -143,107 +109,45 @@ public class VillagerEvents {
 
         if (event.getType() == VillagerProfession.ARMORER) {
             VillagerTrades.ItemListing block_trade = new Trade(Items.EMERALD, 10, ModBlocks.RECRUIT_SHIELD_BLOCK.get(), 1, 4, 10);
-            List list = event.getTrades().get(2);
+            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
         if (event.getType() == VillagerProfession.WEAPONSMITH) {
             VillagerTrades.ItemListing block_trade = new Trade(Items.EMERALD, 3, ModBlocks.RECRUIT_BLOCK.get(), 1, 4, 10);
-            List list = event.getTrades().get(2);
+            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
 
         if (event.getType() == VillagerProfession.FLETCHER) {
             VillagerTrades.ItemListing block_trade = new Trade(Items.EMERALD, 4, ModBlocks.BOWMAN_BLOCK.get(), 1, 4, 10);
-            List list = event.getTrades().get(2);
+            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
+            list.add(block_trade);
+            event.getTrades().put(2, list);
+        }
+
+        if (event.getType() == VillagerProfession.FLETCHER) {
+            VillagerTrades.ItemListing block_trade = new Trade(Items.EMERALD, 4, ModBlocks.CROSSBOWMAN_BLOCK.get(), 1, 4, 10);
+            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
+            list.add(block_trade);
+            event.getTrades().put(2, list);
+        }
+
+        if (event.getType() == VillagerProfession.CARTOGRAPHER) {
+            VillagerTrades.ItemListing block_trade = new Trade(Items.EMERALD, 4, ModBlocks.NOMAD_BLOCK.get(), 1, 4, 10);
+            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
+            list.add(block_trade);
+            event.getTrades().put(2, list);
+        }
+
+        if (event.getType() == VillagerProfession.BUTCHER) {
+            VillagerTrades.ItemListing block_trade = new Trade(Items.EMERALD, 4, ModBlocks.HORSEMAN_BLOCK.get(), 1, 4, 10);
+            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
     }
-
-    static class EmeraldForItemsTrade extends Trade {
-        public EmeraldForItemsTrade(ItemLike buyingItem, int buyingAmount, int maxUses, int givenExp) {
-            super(buyingItem, buyingAmount, Items.EMERALD, 1, maxUses, givenExp);
-        }
-    }
-
-    static class MultiTrade implements VillagerTrades.ItemListing {
-        private final VillagerTrades.ItemListing[] trades;
-
-        public MultiTrade(VillagerTrades.ItemListing... trades) {
-            this.trades = trades;
-        }
-
-        @Nullable
-        @Override
-        public MerchantOffer getOffer(Entity entity, Random random) {
-            return trades[random.nextInt(trades.length)].getOffer(entity, random);
-        }
-    }
-
-    static class Trade implements VillagerTrades.ItemListing {
-        private final Item buyingItem;
-        private final Item sellingItem;
-        private final int buyingAmount;
-        private final int sellingAmount;
-        private final int maxUses;
-        private final int givenExp;
-        private final float priceMultiplier;
-
-        public Trade(ItemLike buyingItem, int buyingAmount, ItemLike sellingItem, int sellingAmount, int maxUses, int givenExp) {
-            this.buyingItem = buyingItem.asItem();
-            this.buyingAmount = buyingAmount;
-            this.sellingItem = sellingItem.asItem();
-            this.sellingAmount = sellingAmount;
-            this.maxUses = maxUses;
-            this.givenExp = givenExp;
-            this.priceMultiplier = 0.05F;
-        }
-
-        public MerchantOffer getOffer(Entity entity, Random random) {
-            return new MerchantOffer(new ItemStack(this.buyingItem, this.buyingAmount), new ItemStack(sellingItem, sellingAmount), maxUses, givenExp, priceMultiplier);
-        }
-    }
-
-    static class ItemsForEmeraldsTrade implements VillagerTrades.ItemListing {
-        private final ItemStack itemStack;
-        private final int emeraldCost;
-        private final int numberOfItems;
-        private final int maxUses;
-        private final int villagerXp;
-        private final float priceMultiplier;
-
-        public ItemsForEmeraldsTrade(Block p_i50528_1_, int p_i50528_2_, int p_i50528_3_, int p_i50528_4_, int p_i50528_5_) {
-            this(new ItemStack(p_i50528_1_), p_i50528_2_, p_i50528_3_, p_i50528_4_, p_i50528_5_);
-        }
-
-        public ItemsForEmeraldsTrade(Item p_i50529_1_, int p_i50529_2_, int p_i50529_3_, int p_i50529_4_) {
-            this(new ItemStack(p_i50529_1_), p_i50529_2_, p_i50529_3_, 12, p_i50529_4_);
-        }
-
-        public ItemsForEmeraldsTrade(Item p_i50530_1_, int p_i50530_2_, int p_i50530_3_, int p_i50530_4_, int p_i50530_5_) {
-            this(new ItemStack(p_i50530_1_), p_i50530_2_, p_i50530_3_, p_i50530_4_, p_i50530_5_);
-        }
-
-        public ItemsForEmeraldsTrade(ItemStack p_i50531_1_, int p_i50531_2_, int p_i50531_3_, int p_i50531_4_, int p_i50531_5_) {
-            this(p_i50531_1_, p_i50531_2_, p_i50531_3_, p_i50531_4_, p_i50531_5_, 0.05F);
-        }
-
-        public ItemsForEmeraldsTrade(ItemStack p_i50532_1_, int p_i50532_2_, int p_i50532_3_, int p_i50532_4_, int p_i50532_5_, float p_i50532_6_) {
-            this.itemStack = p_i50532_1_;
-            this.emeraldCost = p_i50532_2_;
-            this.numberOfItems = p_i50532_3_;
-            this.maxUses = p_i50532_4_;
-            this.villagerXp = p_i50532_5_;
-            this.priceMultiplier = p_i50532_6_;
-        }
-
-        public MerchantOffer getOffer(Entity p_221182_1_, Random p_221182_2_) {
-            return new MerchantOffer(new ItemStack(Items.EMERALD, this.emeraldCost), new ItemStack(this.itemStack.getItem(), this.numberOfItems), this.maxUses, this.villagerXp, this.priceMultiplier);
-        }
-    }
-
 
     private static void createRecruitIronGolem(LivingEntity entity){
         RecruitEntity recruit = ModEntityTypes.RECRUIT.get().create(entity.level);
@@ -253,7 +157,7 @@ public class VillagerEvents {
         recruit.initSpawn();
 
         villager.remove(Entity.RemovalReason.DISCARDED);
-        recruit.getInventory().setItem(5, Items.BREAD.getDefaultInstance());
+        recruit.getInventory().setItem(8, Items.BREAD.getDefaultInstance());
         villager.remove(Entity.RemovalReason.DISCARDED);
         villager.level.addFreshEntity(recruit);
     }
@@ -265,7 +169,7 @@ public class VillagerEvents {
 
         recruitShieldman.initSpawn();
 
-        recruitShieldman.getInventory().setItem(5, Items.BREAD.getDefaultInstance());
+        recruitShieldman.getInventory().setItem(8, Items.BREAD.getDefaultInstance());
         villager.remove(Entity.RemovalReason.DISCARDED);
         villager.level.addFreshEntity(recruitShieldman);
     }
@@ -277,8 +181,263 @@ public class VillagerEvents {
 
         bowman.initSpawn();
 
-        bowman.getInventory().setItem(5, Items.BREAD.getDefaultInstance());
+        bowman.getInventory().setItem(8, Items.BREAD.getDefaultInstance());
         villager.remove(Entity.RemovalReason.DISCARDED);
         villager.level.addFreshEntity(bowman);
+    }
+
+    static class Trade implements VillagerTrades.ItemListing {
+        private final Item buyingItem;
+        private final Item sellingItem;
+        private final int buyingAmount;
+        private final int sellingAmount;
+        private final int maxUses;
+        private final int givenExp;
+        private final float priceMultiplier;
+
+        public Trade(ItemLike buyingItem, int buyingAmount, ItemLike sellingItem, int sellingAmount, int maxUses,
+                     int givenExp) {
+            this.buyingItem = buyingItem.asItem();
+            this.buyingAmount = buyingAmount;
+            this.sellingItem = sellingItem.asItem();
+            this.sellingAmount = sellingAmount;
+            this.maxUses = maxUses;
+            this.givenExp = givenExp;
+            this.priceMultiplier = 0.05F;
+        }
+
+        public MerchantOffer getOffer(Entity entity, RandomSource random) {
+            return new MerchantOffer(new ItemStack(this.buyingItem, this.buyingAmount),
+                    new ItemStack(sellingItem, sellingAmount), maxUses, givenExp, priceMultiplier);
+        }
+
+        @Nullable
+        @Override
+        public MerchantOffer getOffer(Entity p_35706_, Random p_35707_) {
+            return null;
+        }
+    }
+
+    private static void spawnSmallGuardRecruits(BlockPos upPos, ServerLevel world, Random random) {
+        RecruitEntity guardLeader = createGuardLeader(upPos, "Village Guard Leader", world, random);
+
+        createGuardRecruit(upPos, guardLeader, "Village Guard", world, random);
+        createGuardRecruit(upPos, guardLeader, "Village Guard", world, random);
+        createGuardShieldman(upPos, guardLeader, "Village Guard", world, random);
+        createGuardBowman(upPos, guardLeader, world, random);
+    }
+
+    private static void spawnMediumGuardRecruits(BlockPos upPos, ServerLevel world, Random random) {
+        RecruitEntity guardLeader = createGuardLeader(upPos, "Village Guard Leader", world, random);
+
+        createGuardShieldman(upPos, guardLeader, "Village Guard", world, random);
+        createGuardShieldman(upPos, guardLeader, "Village Guard", world, random);
+        createGuardBowman(upPos, guardLeader, world, random);
+        createGuardBowman(upPos, guardLeader, world, random);
+        createPatrolCrossbowman(upPos, guardLeader, world, random);
+        createPatrolCrossbowman(upPos, guardLeader, world, random);
+
+        createGuardHorseman(upPos, guardLeader, "Village Guard", world, random);
+        createGuardNomad(upPos, guardLeader, "Village Guard", world, random);
+    }
+
+    private static void spawnLargeGuardRecruits(BlockPos upPos, ServerLevel world, Random random) {
+        RecruitEntity guardLeader = createGuardLeader(upPos, "Village Guard Leader", world, random);
+
+        createGuardRecruit(upPos, guardLeader, "Village Guard", world, random);
+        createGuardRecruit(upPos, guardLeader, "Village Guard", world, random);
+        createGuardShieldman(upPos, guardLeader, "Village Guard", world, random);
+        createGuardShieldman(upPos, guardLeader, "Village Guard", world, random);
+        createGuardShieldman(upPos, guardLeader, "Village Guard", world, random);
+        createGuardBowman(upPos, guardLeader, world, random);
+        createGuardBowman(upPos, guardLeader, world, random);
+        createGuardBowman(upPos, guardLeader, world, random);
+        createPatrolCrossbowman(upPos, guardLeader, world, random);
+        createPatrolCrossbowman(upPos, guardLeader, world, random);
+        createPatrolCrossbowman(upPos, guardLeader, world, random);
+
+        createGuardHorseman(upPos, guardLeader, "Village Guard", world, random);
+        createGuardNomad(upPos, guardLeader, "Village Guard", world, random);
+        createGuardHorseman(upPos, guardLeader, "Village Guard", world, random);
+        createGuardNomad(upPos, guardLeader, "Village Guard", world, random);
+
+    }
+
+    public static RecruitEntity createGuardLeader(BlockPos upPos, String name, ServerLevel world, Random random){
+        RecruitEntity patrolLeader = ModEntityTypes.RECRUIT.get().create(world);
+        patrolLeader.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
+        patrolLeader.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        setGuardLeaderEquipment(patrolLeader);
+        patrolLeader.setPersistenceRequired();
+
+        patrolLeader.setXpLevel(1 + random.nextInt(2));
+        patrolLeader.addLevelBuffsForLevel(patrolLeader.getXpLevel());
+        patrolLeader.setHunger(100);
+        patrolLeader.setMoral(100);
+        patrolLeader.setCost(45);
+        patrolLeader.setXp(random.nextInt(200));
+        patrolLeader.setCustomName(new TranslatableComponent(name));
+
+        patrolLeader.setProtectUUID(Optional.of(patrolLeader.getUUID()));
+
+        patrolLeader.targetSelector.addGoal(2, new PatrolLeaderTargetAttackers(patrolLeader));
+
+        world.addFreshEntity(patrolLeader);
+        return patrolLeader;
+    }
+
+
+    public static void setGuardLeaderEquipment(RecruitEntity recruit) {
+        Random random = new Random();
+        recruit.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.CHAINMAIL_HELMET));
+        recruit.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
+        recruit.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.IRON_LEGGINGS));
+        recruit.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.IRON_BOOTS));
+
+        int j = random.nextInt(10);
+        ItemStack item = new ItemStack(Items.EMERALD);
+        item.setCount(8 + j);
+        recruit.inventory.setItem(8, item);
+
+        recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
+        recruit.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
+
+        int k = random.nextInt(8);
+        ItemStack food;
+        switch(k) {
+            default -> food = new ItemStack(Items.BREAD);
+            case 1 -> food = new ItemStack(Items.COOKED_BEEF);
+            case 2 -> food = new ItemStack(Items.COOKED_CHICKEN);
+            case 3 -> food = new ItemStack(Items.COOKED_MUTTON);
+        }
+        food.setCount(32 + k);
+        recruit.inventory.setItem(7, food);
+    }
+
+    private static void createGuardRecruit(BlockPos upPos, RecruitEntity patrolLeader, String name, ServerLevel world, Random random) {
+        RecruitEntity recruitEntity = ModEntityTypes.RECRUIT.get().create(world);
+        recruitEntity.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
+        recruitEntity.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        recruitEntity.setPersistenceRequired();
+        recruitEntity.setEquipment();
+        recruitEntity.setXpLevel(1 + random.nextInt(2));
+        recruitEntity.addLevelBuffsForLevel(recruitEntity.getXpLevel());
+        recruitEntity.setHunger(80);
+        recruitEntity.setMoral(65);
+        recruitEntity.setCost(10);
+        recruitEntity.setProtectUUID(Optional.of(patrolLeader.getUUID()));
+        recruitEntity.setShouldProtect(true);
+        recruitEntity.setXp(random.nextInt(80));
+
+        recruitEntity.setCustomName(new TextComponent(name));
+
+
+        world.addFreshEntity(recruitEntity);
+        //Main.LOGGER.debug("SpawnPatrol: patrol spawned");
+    }
+
+    private static void createGuardBowman(BlockPos upPos, RecruitEntity patrolLeader, ServerLevel world, Random random) {
+        BowmanEntity bowman = ModEntityTypes.BOWMAN.get().create(world);
+        bowman.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
+        bowman.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        bowman.setEquipment();
+        bowman.setPersistenceRequired();
+
+        bowman.setXpLevel(1 + random.nextInt(2));
+        bowman.addLevelBuffsForLevel(bowman.getXpLevel());
+        bowman.setHunger(80);
+        bowman.setMoral(65);
+        bowman.setCost(16);
+        bowman.setProtectUUID(Optional.of(patrolLeader.getUUID()));
+        bowman.setShouldProtect(true);
+        bowman.setXp(random.nextInt(120));
+
+        bowman.setCustomName(new TextComponent("Village Guard"));
+
+        world.addFreshEntity(bowman);
+    }
+
+    private static void createGuardShieldman(BlockPos upPos, RecruitEntity patrolLeader, String name, ServerLevel world, Random random) {
+        RecruitShieldmanEntity shieldmanEntity = ModEntityTypes.RECRUIT_SHIELDMAN.get().create(world);
+        shieldmanEntity.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
+        shieldmanEntity.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        shieldmanEntity.setEquipment();
+        shieldmanEntity.setPersistenceRequired();
+
+        shieldmanEntity.setXpLevel(1 + random.nextInt(2));
+        shieldmanEntity.addLevelBuffsForLevel(shieldmanEntity.getXpLevel());
+        shieldmanEntity.setHunger(80);
+        shieldmanEntity.setMoral(65);
+        shieldmanEntity.setCost(24);
+        shieldmanEntity.setProtectUUID(Optional.of(patrolLeader.getUUID()));
+        shieldmanEntity.setShouldProtect(true);
+        shieldmanEntity.setXp(random.nextInt(120));
+
+        shieldmanEntity.setCustomName(new TextComponent(name));
+
+        world.addFreshEntity(shieldmanEntity);
+    }
+
+    private static void createGuardHorseman(BlockPos upPos, RecruitEntity patrolLeader, String name, ServerLevel world, Random random) {
+        HorsemanEntity horseman = ModEntityTypes.HORSEMAN.get().create(world);
+        horseman.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
+        horseman.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        horseman.setEquipment();
+        horseman.setPersistenceRequired();
+
+        horseman.setXpLevel(1 + random.nextInt(2));
+        horseman.addLevelBuffsForLevel(horseman.getXpLevel());
+        horseman.setHunger(80);
+        horseman.setMoral(75);
+        horseman.setCost(20);
+        horseman.setProtectUUID(Optional.of(patrolLeader.getUUID()));
+        horseman.setShouldProtect(true);
+        horseman.setXp(random.nextInt(120));
+
+        horseman.setCustomName(new TextComponent(name));
+
+        world.addFreshEntity(horseman);
+    }
+
+    private static void createGuardNomad(BlockPos upPos, RecruitEntity patrolLeader, String name, ServerLevel world, Random random) {
+        NomadEntity nomad = ModEntityTypes.NOMAD.get().create(world);
+        nomad.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
+        nomad.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        nomad.setEquipment();
+        nomad.setPersistenceRequired();
+
+        nomad.setXpLevel(1 + random.nextInt(2));
+        nomad.addLevelBuffsForLevel(nomad.getXpLevel());
+        nomad.setHunger(80);
+        nomad.setMoral(75);
+        nomad.setCost(25);
+        nomad.setProtectUUID(Optional.of(patrolLeader.getUUID()));
+        nomad.setShouldProtect(true);
+        nomad.setXp(random.nextInt(120));
+
+        nomad.setCustomName(new TextComponent(name));
+
+        world.addFreshEntity(nomad);
+    }
+
+    private static void createPatrolCrossbowman(BlockPos upPos, RecruitEntity patrolLeader, ServerLevel world, Random random) {
+        CrossBowmanEntity crossBowman = ModEntityTypes.CROSSBOWMAN.get().create(world);
+        crossBowman.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
+        crossBowman.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        crossBowman.setEquipment();
+        crossBowman.setPersistenceRequired();
+
+        crossBowman.setXpLevel(1 + random.nextInt(3));
+        crossBowman.addLevelBuffsForLevel(crossBowman.getXpLevel());
+        crossBowman.setHunger(80);
+        crossBowman.setMoral(65);
+        crossBowman.setCost(32);
+        crossBowman.setProtectUUID(Optional.of(patrolLeader.getUUID()));
+        crossBowman.setShouldProtect(true);
+        crossBowman.setXp(random.nextInt(120));
+
+        crossBowman.setCustomName(new TextComponent("Village Guard"));
+
+        world.addFreshEntity(crossBowman);
     }
 }
