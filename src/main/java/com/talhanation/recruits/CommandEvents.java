@@ -111,7 +111,7 @@ public class CommandEvents {
     public static void onStrategicFireCommand(Player player, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean should) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
 
-            if (recruit instanceof BowmanEntity bowman){
+            if (recruit instanceof IStrategicFire bowman){
                 HitResult hitResult = player.pick(100, 1F, false);
                 bowman.setShouldStrategicFire(should);
                 if (hitResult != null) {

@@ -12,11 +12,10 @@ import java.util.List;
 
 @Mod.EventBusSubscriber
 public class RecruitsModConfig {
-
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
-    public static final int NEW_VERSION = 22;
+    public static final int NEW_VERSION = 25;
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue OverrideIronGolemSpawn;
     public static ForgeConfigSpec.BooleanValue PillagerFriendlyFire;
@@ -171,14 +170,14 @@ public class RecruitsModConfig {
                         \t(takes effect after restart)
                         \tEntities in this list won't be targeted at all, for example: ["minecraft:creeper", "minecraft:sheep"]""")
                 .worldRestart()
-                .define("Target BlackList", BLACKLIST);
+                .define("TargetBlackList", BLACKLIST);
 
         MountWhiteList = BUILDER.comment("""
                         ----Mount Whitelist----
                         \t(takes effect after restart)
                         \tONLY Entities in this list can be mounted by a recruit, for example: ["minecraft:boat", "smallships:cog"]""")
                 .worldRestart()
-                .define("Mount Whitelist", MOUNTS);
+                .define("MountWhitelist", MOUNTS);
 
         RecruitCost = BUILDER.comment("""
 
@@ -303,15 +302,15 @@ public class RecruitsModConfig {
                         \t(takes effect after restart)
                         \tItems in this list will be equipped to a new spawned shieldman, in this following order: ["main-hand", "off-hand" ]""")
                 .worldRestart()
-                .define("ShieldmanStartHandEquipment", HORSEMAN_HAND);
+                .define("HorsemanHandEquipment", HORSEMAN_HAND);
 
         NomadHandEquipment = BUILDER.comment("""
 
                         ----Nomad start hand equipment ----
                         \t(takes effect after restart)
-                        \tItems in this list will be equipped to a new spawned bowman, in this following order: ["main-hand", "off-hand" ]""")
+                        \tItems in this list will be equipped to a new spawned nomad, in this following order: ["main-hand", "off-hand" ]""")
                 .worldRestart()
-                .define("BowmanStartHandEquipment", NOMAD_HAND);
+                .define("NomadHandEquipment", NOMAD_HAND);
 
         /*
         Pillager Config

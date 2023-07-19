@@ -1,14 +1,16 @@
 package com.talhanation.recruits.entities;
 
+
 import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.compat.MusketWeapon;
 import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.entities.ai.RecruitMeleeAttackGoal;
 import com.talhanation.recruits.entities.ai.RecruitStrategicFire;
 import com.talhanation.recruits.entities.ai.RecruitRangedBowAttackGoal;
 import com.talhanation.recruits.entities.ai.compat.RecruitRangedMusketAttackGoal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -21,7 +23,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.RangedAttackMob;
@@ -40,7 +41,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackMob {
+public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackMob, IStrategicFire {
 
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
@@ -49,7 +50,6 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
     private static final EntityDataAccessor<Boolean> SHOULD_STRATEGIC_FIRE = SynchedEntityData.defineId(BowmanEntity.class, EntityDataSerializers.BOOLEAN);
     public BowmanEntity(EntityType<? extends AbstractRecruitEntity> entityType, Level world) {
         super(entityType, world);
-        this.reassessWeaponGoal();
     }
 
     protected void defineSynchedData() {
@@ -74,7 +74,6 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
     @Override
     public void readAdditionalSaveData(CompoundTag nbt) {
         super.readAdditionalSaveData(nbt);
-        this.reassessWeaponGoal();
 
         if (nbt.contains("StrategicFirePosX") && nbt.contains("StrategicFirePosY") && nbt.contains("StrategicFirePosZ")) {
             this.setStrategicFirePos(new BlockPos (
@@ -89,7 +88,13 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
     protected void registerGoals() {
         super.registerGoals();
         this.goalSelector.addGoal(2, new RecruitStrategicFire(this, 10, 20));
+        this.goalSelector.addGoal(3, new RecruitRangedBowAttackGoal<>(this, 1.15D, 10, 20, 44.0F, getMeleeStartRange()));
     }
+    @Override
+    public double getMeleeStartRange() {
+        return 3D;
+    }
+
 
     //ATTRIBUTES
     public static AttributeSupplier.Builder setAttributes() {
@@ -106,7 +111,6 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data, @Nullable CompoundTag nbt) {
         RandomSource randomsource = world.getRandom();
         SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
-        ((GroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
         this.populateDefaultEquipmentEnchantments(randomsource, difficultyInstance);
         this.initSpawn();
         return ilivingentitydata;
@@ -121,7 +125,6 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
         this.setDropEquipment();
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
-        this.reassessWeaponGoal();
         this.setGroup(2);
     }
 
@@ -139,7 +142,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
             arrow = ((net.minecraft.world.item.BowItem) this.getMainHandItem().getItem()).customArrow(arrow);
 
             int powerLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.POWER_ARROWS, itemstack);
-            if (powerLevel > 0) arrow.setBaseDamage(arrow.getBaseDamage() + (double) powerLevel * 0.5D + 0.5D);
+            if (powerLevel > 0) arrow.setBaseDamage(arrow.getBaseDamage() + (double) powerLevel * 0.5D + 0.5D + this.arrowDamageModifier());
 
             int punchLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.PUNCH_ARROWS, itemstack);
             if (punchLevel > 0) arrow.setKnockback(punchLevel);
@@ -162,6 +165,10 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
         }
     }
 
+    public double arrowDamageModifier() {
+        return 0D;
+    }
+
     public void performRangedAttackXYZ(double x, double y, double z, float v, float angle, float force) {
         if (this.getMainHandItem().getItem() instanceof BowItem) {
             ItemStack itemstack = this.getProjectile(this.getItemInHand(InteractionHand.MAIN_HAND));
@@ -170,7 +177,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
             arrow = ((net.minecraft.world.item.BowItem) this.getMainHandItem().getItem()).customArrow(arrow);
 
             int powerLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.POWER_ARROWS, itemstack);
-            if (powerLevel > 0) arrow.setBaseDamage(arrow.getBaseDamage() + (double) powerLevel * 0.5D + 0.5D);
+            if (powerLevel > 0) arrow.setBaseDamage(arrow.getBaseDamage() + (double) powerLevel * 0.5D + 0.5D + this.arrowDamageModifier());
 
             int punchLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.PUNCH_ARROWS, itemstack);
             if (punchLevel > 0) arrow.setKnockback(punchLevel);
@@ -194,38 +201,6 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
             this.damageMainHandItem();
         }
     }
-
-    public void reassessWeaponGoal() {
-        if (this.level != null && !this.level.isClientSide) {
-            this.goalSelector.removeGoal(this.meleeGoal);
-            this.goalSelector.removeGoal(this.bowGoal);
-            ItemStack itemstack = this.getItemInHand(ProjectileUtil.getWeaponHoldingHand(this, Items.BOW));
-            if (itemstack.getItem() == Items.BOW) {
-                int i = 20;
-                if (this.level.getDifficulty() != Difficulty.HARD) {
-                    i = 40;
-                }
-
-                this.bowGoal.setMinAttackInterval(i - 10);
-                this.goalSelector.addGoal(3, this.bowGoal);
-            } else {
-                this.goalSelector.addGoal(4, this.meleeGoal);
-            }
-        }
-    }
-
-    private final RecruitRangedBowAttackGoal<BowmanEntity> bowGoal = new RecruitRangedBowAttackGoal<>(this, 1.15D, 10, 20, 44.0F);
-    private final MeleeAttackGoal meleeGoal = new MeleeAttackGoal(this, 1.2D, false) {
-        public void stop() {
-            super.stop();
-            BowmanEntity.this.setAggressive(false);
-        }
-
-        public void start() {
-            super.start();
-            BowmanEntity.this.setAggressive(true);
-        }
-    };
 
     public void fleeEntity(LivingEntity target) {
         if (target != null) {

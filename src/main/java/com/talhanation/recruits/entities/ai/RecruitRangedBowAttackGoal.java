@@ -16,33 +16,30 @@ import java.util.EnumSet;
 public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob> extends Goal {
     private final T mob;
     private final double speedModifier;
-    private int attackIntervalMin;
+    private final int attackIntervalMin;
     private LivingEntity target;
     private int attackTime = -1;
     private int seeTime;
     private final int attackIntervalMax;
     private final float attackRadius;
+    private final double stopRange;
 
-    public RecruitRangedBowAttackGoal(T mob, double speedModifier, int attackIntervalMin, int attackIntervalMax, float attackRadius) {
+    public RecruitRangedBowAttackGoal(T mob, double speedModifier, int attackIntervalMin, int attackIntervalMax, float attackRadius, double stopRange) {
         this.mob = mob;
         this.speedModifier = speedModifier;
         this.attackIntervalMin = attackIntervalMin;
         this.attackIntervalMax = attackIntervalMax;
         this.attackRadius = attackRadius;
+        this.stopRange = stopRange;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
     }
 
-    public void setMinAttackInterval(int min) {
-        this.attackIntervalMin = min;
-    }
-
     public boolean canUse() {
-
         LivingEntity livingentity = this.mob.getTarget();
         if (livingentity != null && livingentity.isAlive() && this.isHoldingBow()) {
             this.target = livingentity;
             // if (mob.getOwner() != null && mob.getShouldFollow() && mob.getOwner().distanceTo(this.mob) <= 25.00D && !(target.distanceTo(this.mob) <= 7.00D)) return false;
-            return canAttackHoldPos() && canAttackMovePos() && !mob.needsToGetFood() && !mob.getShouldMount() && this.mob.canAttack(target) && this.mob.getState() != 3;
+            return this.target.distanceTo(this.mob) >= stopRange && canAttackHoldPos() && canAttackMovePos() && !mob.needsToGetFood() && !mob.getShouldMount() && this.mob.canAttack(target) && this.mob.getState() != 3;
         } else {
             return false;
         }

@@ -103,6 +103,11 @@ public class NomadEntity extends BowmanEntity {
 
         this.setGroup(2);
     }
+    @Override
+    public double arrowDamageModifier() {
+        return 1D;
+    }
+
 
     public List<String> getHandEquipment(){
         return RecruitsModConfig.NomadHandEquipment.get();

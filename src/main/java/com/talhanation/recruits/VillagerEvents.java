@@ -108,42 +108,42 @@ public class VillagerEvents {
     public void villagerTrades(VillagerTradesEvent event) {
 
         if (event.getType() == VillagerProfession.ARMORER) {
-            VillagerTrades.ItemListing block_trade = new Trade(Items.EMERALD, 10, ModBlocks.RECRUIT_SHIELD_BLOCK.get(), 1, 4, 10);
-            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
+            Trade block_trade = new Trade(Items.EMERALD, 15, ModBlocks.RECRUIT_SHIELD_BLOCK.get(), 1, 2, 20);
+            List list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
         if (event.getType() == VillagerProfession.WEAPONSMITH) {
-            VillagerTrades.ItemListing block_trade = new Trade(Items.EMERALD, 3, ModBlocks.RECRUIT_BLOCK.get(), 1, 4, 10);
-            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
+            Trade block_trade = new Trade(Items.EMERALD, 8, ModBlocks.RECRUIT_BLOCK.get(), 1, 2, 20);
+            List list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
 
         if (event.getType() == VillagerProfession.FLETCHER) {
-            VillagerTrades.ItemListing block_trade = new Trade(Items.EMERALD, 4, ModBlocks.BOWMAN_BLOCK.get(), 1, 4, 10);
-            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
+            Trade block_trade = new Trade(Items.EMERALD, 10, ModBlocks.BOWMAN_BLOCK.get(), 1, 2, 20);
+            List list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
 
         if (event.getType() == VillagerProfession.FLETCHER) {
-            VillagerTrades.ItemListing block_trade = new Trade(Items.EMERALD, 4, ModBlocks.CROSSBOWMAN_BLOCK.get(), 1, 4, 10);
-            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
+            Trade block_trade = new Trade(Items.EMERALD, 20, ModBlocks.CROSSBOWMAN_BLOCK.get(), 1, 2, 20);
+            List list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
 
         if (event.getType() == VillagerProfession.CARTOGRAPHER) {
-            VillagerTrades.ItemListing block_trade = new Trade(Items.EMERALD, 4, ModBlocks.NOMAD_BLOCK.get(), 1, 4, 10);
-            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
+            Trade block_trade = new Trade(Items.EMERALD, 30, ModBlocks.NOMAD_BLOCK.get(), 1, 2, 20);
+            List list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
 
         if (event.getType() == VillagerProfession.BUTCHER) {
-            VillagerTrades.ItemListing block_trade = new Trade(Items.EMERALD, 4, ModBlocks.HORSEMAN_BLOCK.get(), 1, 4, 10);
-            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
+            Trade block_trade = new Trade(Items.EMERALD, 30, ModBlocks.HORSEMAN_BLOCK.get(), 1, 2, 20);
+            List list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
@@ -184,32 +184,6 @@ public class VillagerEvents {
         bowman.getInventory().setItem(8, Items.BREAD.getDefaultInstance());
         villager.remove(Entity.RemovalReason.DISCARDED);
         villager.level.addFreshEntity(bowman);
-    }
-
-    static class Trade implements VillagerTrades.ItemListing {
-        private final Item buyingItem;
-        private final Item sellingItem;
-        private final int buyingAmount;
-        private final int sellingAmount;
-        private final int maxUses;
-        private final int givenExp;
-        private final float priceMultiplier;
-
-        public Trade(ItemLike buyingItem, int buyingAmount, ItemLike sellingItem, int sellingAmount, int maxUses,
-                     int givenExp) {
-            this.buyingItem = buyingItem.asItem();
-            this.buyingAmount = buyingAmount;
-            this.sellingItem = sellingItem.asItem();
-            this.sellingAmount = sellingAmount;
-            this.maxUses = maxUses;
-            this.givenExp = givenExp;
-            this.priceMultiplier = 0.05F;
-        }
-
-        public MerchantOffer getOffer(Entity entity, RandomSource random) {
-            return new MerchantOffer(new ItemStack(this.buyingItem, this.buyingAmount),
-                    new ItemStack(sellingItem, sellingAmount), maxUses, givenExp, priceMultiplier);
-        }
     }
 
     private static void spawnSmallGuardRecruits(BlockPos upPos, ServerLevel world, Random random) {
@@ -433,5 +407,29 @@ public class VillagerEvents {
         crossBowman.setCustomName(Component.literal("Village Guard"));
 
         world.addFreshEntity(crossBowman);
+    }
+
+    static class Trade implements VillagerTrades.ItemListing {
+        private final Item buyingItem;
+        private final Item sellingItem;
+        private final int buyingAmount;
+        private final int sellingAmount;
+        private final int maxUses;
+        private final int givenExp;
+        private final float priceMultiplier;
+
+        public Trade(ItemLike buyingItem, int buyingAmount, ItemLike sellingItem, int sellingAmount, int maxUses, int givenExp) {
+            this.buyingItem = buyingItem.asItem();
+            this.buyingAmount = buyingAmount;
+            this.sellingItem = sellingItem.asItem();
+            this.sellingAmount = sellingAmount;
+            this.maxUses = maxUses;
+            this.givenExp = givenExp;
+            this.priceMultiplier = 0.05F;
+        }
+
+        public MerchantOffer getOffer(Entity entity, Random random) {
+            return new MerchantOffer(new ItemStack(this.buyingItem, this.buyingAmount), new ItemStack(sellingItem, sellingAmount), maxUses, givenExp, priceMultiplier);
+        }
     }
 }
