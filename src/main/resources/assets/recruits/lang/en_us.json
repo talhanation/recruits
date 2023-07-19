@@ -204,5 +204,8 @@
   "chat.recruits.team_creation.could_not_find": "Could not find player.",
   "chat.recruits.team.assignNewOwnerNoTeam": "You need to be in a team to assign this recruit a new owner!",
   "chat.recruits.team.assignNewOwnerNotFound": "No team mate nearby to assign this recruit to.",
-  "Recruits": ""
+  "recruits": "Recruits",
+
+  "key.recruits.r_key": "Open command screen",
+  "key.recruits.u_key": "Opens team screen"
 }
