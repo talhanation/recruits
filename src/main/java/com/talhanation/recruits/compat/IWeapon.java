@@ -25,7 +25,7 @@ public interface IWeapon {
     boolean canMelee();
     boolean isBow();
     boolean isCrossBow();
-    void performRangedAttackIWeapon(AbstractRecruitEntity shooter, LivingEntity target, float projectileSpeed);
+    void performRangedAttackIWeapon(AbstractRecruitEntity shooter, double x, double y, double z, float projectileSpeed);
 
     static boolean isMusketModWeapon(ItemStack stack){
         return stack.getDescriptionId().equals("item.musketmod.musket") ||
