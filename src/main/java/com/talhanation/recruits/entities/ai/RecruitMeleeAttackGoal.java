@@ -1,26 +1,17 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.Main;
-import com.talhanation.recruits.compat.AlexsArmoury;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.entities.BowmanEntity;
+
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.*;
-import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.List;
+
 
 
 public class RecruitMeleeAttackGoal extends Goal {
@@ -198,6 +189,7 @@ public class RecruitMeleeAttackGoal extends Goal {
         return true;
     }
 
+    /*
     private int getWeaponModifier(ItemStack stack){
         int base = 20;
         if(Main.isAlexArmouryModLoaded){
@@ -214,4 +206,6 @@ public class RecruitMeleeAttackGoal extends Goal {
         }
         return  0;
     }
+
+     */
 }
