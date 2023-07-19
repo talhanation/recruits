@@ -1,9 +1,11 @@
 package com.talhanation.recruits.entities;
 
+import com.talhanation.recruits.IStrategicFire;
 import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.RecruitRangedCrossbowAttackGoal;
 import com.talhanation.recruits.entities.ai.compat.RecruitRangedMusketAttackGoal;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -26,15 +28,18 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import static com.talhanation.recruits.Main.isMusketModLoaded;
 
 
-public class CrossBowmanEntity extends AbstractRecruitEntity implements CrossbowAttackMob{
+public class CrossBowmanEntity extends AbstractRecruitEntity implements CrossbowAttackMob, IStrategicFire {
 
     private static final EntityDataAccessor<Boolean> DATA_IS_CHARGING_CROSSBOW = SynchedEntityData.defineId(CrossBowmanEntity.class, EntityDataSerializers.BOOLEAN);
-    //public IWeapon weapon;
+    private static final EntityDataAccessor<Optional<BlockPos>> STRATEGIC_FIRE_POS = SynchedEntityData.defineId(CrossBowmanEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
+    private static final EntityDataAccessor<Boolean> SHOULD_STRATEGIC_FIRE = SynchedEntityData.defineId(CrossBowmanEntity.class, EntityDataSerializers.BOOLEAN);
+
 
     public CrossBowmanEntity(EntityType<? extends AbstractRecruitEntity> entityType, Level world) {
         super(entityType, world);
@@ -47,15 +52,46 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(DATA_IS_CHARGING_CROSSBOW, false);
+        this.entityData.define(STRATEGIC_FIRE_POS, Optional.empty());
+        this.entityData.define(SHOULD_STRATEGIC_FIRE, false);
     }
 
+    @Override
+    public void addAdditionalSaveData(CompoundTag nbt) {
+        super.addAdditionalSaveData(nbt);
+
+        nbt.putBoolean("isChargingCrossbow", this.getChargingCrossbow());
+
+        if(this.getStrategicFirePos() != null){
+
+            nbt.putInt("StrategicFirePosX", this.getStrategicFirePos().getX());
+            nbt.putInt("StrategicFirePosY", this.getStrategicFirePos().getY());
+            nbt.putInt("StrategicFirePosZ", this.getStrategicFirePos().getZ());
+            nbt.putBoolean("ShouldStrategicFire", this.getShouldStrategicFire());
+        }
+    }
+
+    @Override
+    public void readAdditionalSaveData(CompoundTag nbt) {
+        super.readAdditionalSaveData(nbt);
+
+        this.setChargingCrossbow(nbt.getBoolean("isChargingCrossbow"));
+
+        if (nbt.contains("StrategicFirePosX") && nbt.contains("StrategicFirePosY") && nbt.contains("StrategicFirePosZ")) {
+            this.setStrategicFirePos(new BlockPos (
+                    nbt.getInt("StrategicFirePosX"),
+                    nbt.getInt("StrategicFirePosY"),
+                    nbt.getInt("StrategicFirePosZ")));
+            this.setShouldStrategicFire(nbt.getBoolean("ShouldStrategicFire"));
+        }
+    }
     @Override
     protected void registerGoals() {
         super.registerGoals();
         if(isMusketModLoaded){
-            this.goalSelector.addGoal(0, new RecruitRangedMusketAttackGoal(this));
+            this.goalSelector.addGoal(0, new RecruitRangedMusketAttackGoal(this, this.getMeleeStartRange()));
         }
-        this.goalSelector.addGoal(0, new RecruitRangedCrossbowAttackGoal(this));
+        this.goalSelector.addGoal(0, new RecruitRangedCrossbowAttackGoal(this, this.getMeleeStartRange()));
     }
 
 
@@ -130,8 +166,10 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
     public Predicate<ItemEntity> getAllowedItems() {
         return ALLOWED_ITEMS;
     }
-
-
+    @Override
+    public double getMeleeStartRange() {
+        return 3D;
+    }
     public List<String> getHandEquipment(){
         return RecruitsModConfig.CrossbowmanHandEquipment.get();
     }
@@ -155,6 +193,24 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
     }
     public void onCrossbowAttackPerformed() {
         this.noActionTime = 0;
+    }
+
+    public void setStrategicFirePos(BlockPos pos) {
+        this.entityData.set(STRATEGIC_FIRE_POS, Optional.of(pos));
+    }
+    public BlockPos getStrategicFirePos(){
+        return this.entityData.get(STRATEGIC_FIRE_POS).orElse(null);
+    }
+
+    public void clearArrowsPos(){
+        this.entityData.set(STRATEGIC_FIRE_POS, Optional.empty());
+    }
+
+    public void setShouldStrategicFire(boolean bool) {
+        this.entityData.set(SHOULD_STRATEGIC_FIRE, bool);
+    }
+    public boolean getShouldStrategicFire(){
+        return this.entityData.get(SHOULD_STRATEGIC_FIRE);
     }
 
 }
