@@ -36,7 +36,7 @@ mixin{
     overwriteErrorLevel = 'error'
 }
 
-version = '1.10.3'
+version = '1.10.4'
 
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.18.2'
@@ -122,7 +122,7 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
 
-    //implementation fg.deobf('curse.maven:musketmod-354562:4028359')
+    implementation fg.deobf('curse.maven:musketmod-354562:4028359')
 
 }
 
