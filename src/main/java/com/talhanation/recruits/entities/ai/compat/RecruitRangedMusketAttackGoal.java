@@ -193,7 +193,6 @@ public class RecruitRangedMusketAttackGoal extends Goal {
                             this.crossBowman.playSound(this.weapon.getLoadSound(), 1.0F, 1.0F / (crossBowman.getRandom().nextFloat() * 0.4F + 0.8F));
                             this.weapon.setLoaded(crossBowman.getMainHandItem(), true);
                             this.consumeAmmo();
-
                             if (target != null && target.isAlive()) state = State.AIMING;
                             else state = State.IDLE;
                         }
