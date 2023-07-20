@@ -112,11 +112,12 @@ public class CrossbowWeapon implements IWeapon {
     }
 
     @Override
-    public void performRangedAttackIWeapon(AbstractRecruitEntity shooter, LivingEntity target, float projectileSpeed) {
+    public void performRangedAttackIWeapon(AbstractRecruitEntity shooter, double x, double y, double z, float projectileSpeed) {
         AbstractArrow projectileEntity = this.getProjectileArrow(shooter);
-        double d0 = target.getX() - shooter.getX();
-        double d1 = target.getY(0.25D) - projectileEntity.getY();
-        double d2 = target.getZ() - shooter.getZ();
+        double d0 = x - shooter.getX();
+        double d1 = y + 0.5D - projectileEntity.getY();
+        double d2 = z - shooter.getZ();
+
 
         this.shootArrow(shooter, projectileEntity, d0, d1, d2);
 

@@ -36,7 +36,7 @@ mixin{
     overwriteErrorLevel = 'error'
 }
 
-version = '1.10.3'
+version = '1.10.4'
 
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.19.2'
@@ -120,7 +120,6 @@ dependencies {
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.19.2-1.0.0:javadoc")
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-
 
     //implementation fg.deobf('curse.maven:musketmod-354562:4030979')
     //implementation fg.deobf('curse.maven:mca-535291:4586534')

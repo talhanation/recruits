@@ -153,7 +153,7 @@ public class RecruitsSpawnEgg extends SpawnEggItem {
                 }
 
                 recruit.setPos(pos.getX() + 0.5, pos.getY() + 1 , pos.getZ() + 0.5);
-                if(recruit instanceof BowmanEntity bowman) bowman.reassessWeaponGoal();
+                //if(recruit instanceof BowmanEntity bowman) bowman.reassessWeaponGoal();
 
                 world.addFreshEntity(recruit);
 

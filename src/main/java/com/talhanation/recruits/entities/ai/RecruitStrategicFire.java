@@ -60,7 +60,6 @@ public class RecruitStrategicFire extends Goal {
                 int i = this.bowman.getTicksUsingItem();
                 if (i >= 20) {
 
-                    Main.LOGGER.info("d0: " + d0);
                     float angle = 0;// increase = ++ / decrease = --
                     float force = 0;
                     if (0 < d0 && d0 < 500){
