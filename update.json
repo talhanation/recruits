@@ -1,12 +1,13 @@
 {
   "homepage": "https://www.curseforge.com/minecraft/mc-mods/recruits/files",
   "promos": {
-    "1.19.4-recommended": "1.10.3",
-    "1.19.2-recommended": "1.10.3",
-    "1.18.2-recommended": "1.10.3",
+    "1.19.4-recommended": "1.10.4",
+    "1.19.2-recommended": "1.10.4",
+    "1.18.2-recommended": "1.10.4",
     "1.16.5-recommended": "1.5.1"
   },
   "1.18.2": {
+    "1.10.4": "added strategic fire to crossbowman(also with muskets), fixed localisations, fixed melee ai",
     "1.10.3": "fixed crrash with teams, fixed AI in water, improved upkeep feature, added equiping from upkeep chest/entity",
     "1.10.2": "fixed horse controll and musket team damage",
     "1.10.1": "major bugfixes to Musket using and Horseman",
@@ -26,6 +27,7 @@
     "1.9.0": "Team Screen, Hail of Arrows, Upkeep, Configurations and more!"
   },
   "1.19.2": {
+    "1.10.4": "added strategic fire to crossbowman(also with muskets), fixed localisations, fixed melee ai",
     "1.10.3": "fixed crrash with teams, fixed AI in water, improved upkeep feature, added equiping from upkeep chest/entity",
     "1.10.2": "fixed horse controll and musket team damage",
     "1.10.1": "major bugfixes to Musket using and Horseman",
@@ -43,6 +45,7 @@
     "1.9.2": "added modded armor support."
   },
   "1.19.4": {
+    "1.10.4": "added strategic fire to crossbowman(also with muskets), fixed localisations, fixed melee ai",
     "1.10.3": "fixed crrash with teams, fixed AI in water, improved upkeep feature, added equiping from upkeep chest/entity."
   }
 }
