@@ -1,29 +1,24 @@
 package com.talhanation.recruits.entities;
 
 
-import com.talhanation.recruits.compat.IWeapon;
-import com.talhanation.recruits.compat.MusketWeapon;
+import com.talhanation.recruits.IStrategicFire;
 import com.talhanation.recruits.config.RecruitsModConfig;
-import com.talhanation.recruits.entities.ai.RecruitMeleeAttackGoal;
 import com.talhanation.recruits.entities.ai.RecruitStrategicFire;
 import com.talhanation.recruits.entities.ai.RecruitRangedBowAttackGoal;
-import com.talhanation.recruits.entities.ai.compat.RecruitRangedMusketAttackGoal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.projectile.AbstractArrow;

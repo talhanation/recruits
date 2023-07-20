@@ -25,7 +25,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-
+import org.jetbrains.annotations.Nullable;
 
 
 import java.util.*;
@@ -428,7 +428,7 @@ public class VillagerEvents {
             this.priceMultiplier = 0.05F;
         }
 
-        public MerchantOffer getOffer(Entity entity, Random random) {
+        public MerchantOffer getOffer(Entity entity, RandomSource random) {
             return new MerchantOffer(new ItemStack(this.buyingItem, this.buyingAmount), new ItemStack(sellingItem, sellingAmount), maxUses, givenExp, priceMultiplier);
         }
     }
