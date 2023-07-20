@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai.compat;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.compat.MusketBayonetWeapon;
 import com.talhanation.recruits.compat.MusketWeapon;
@@ -27,6 +28,8 @@ public class RecruitRangedMusketAttackGoal extends Goal {
     private IWeapon weapon;
     private int weaponLoadTime;
     private final double stopRange;
+    private int reloadTime;
+
     public RecruitRangedMusketAttackGoal(CrossBowmanEntity crossBowman, double stopRange) {
         this.weapon = new MusketWeapon();
         this.crossBowman = crossBowman;
@@ -36,8 +39,8 @@ public class RecruitRangedMusketAttackGoal extends Goal {
 
     public boolean canUse() {
         LivingEntity livingentity = this.crossBowman.getTarget();
-        if(livingentity != null && (this.isWeaponInHand())){
-            return livingentity.distanceTo(this.crossBowman) >= stopRange;
+        if(livingentity != null && livingentity.isAlive() && this.isWeaponInHand()){
+            return livingentity.distanceTo(this.crossBowman) >= stopRange && this.canAttackHoldPos() && this.canAttackMovePos() && !this.crossBowman.needsToGetFood() && !this.crossBowman.getShouldMount();
         }
         else
             return crossBowman.getShouldStrategicFire() || (this.isWeaponInHand() && weapon != null && !weapon.isLoaded(crossBowman.getMainHandItem()));
@@ -61,6 +64,7 @@ public class RecruitRangedMusketAttackGoal extends Goal {
     public void stop() {
         super.stop();
         this.seeTime = 0;
+        this.reloadTime = 0;
         this.attackTime = -1;
         this.crossBowman.stopUsingItem();
         this.crossBowman.setAggressive(false);
@@ -116,54 +120,60 @@ public class RecruitRangedMusketAttackGoal extends Goal {
         //WEAPON HANDLING
         if (isWeaponInHand()) {
             if(crossBowman.getShouldStrategicFire() && target == null){
-                BlockPos pos = crossBowman.getStrategicFirePos();
-                if(pos != null) {
-                    switch (state) {
-                        case IDLE -> {
-                            this.crossBowman.setAggressive(false);
-                            State newState;
-                            if (!weapon.isLoaded(crossBowman.getMainHandItem())) {
-                                if (canLoad()) newState = State.RELOAD;
-                                else newState = State.IDLE;
-                            } else {
-                                newState = State.AIMING;
-                            }
 
-                            this.state = newState;
+                switch (state) {
+                    case IDLE -> {
+                        BlockPos pos = crossBowman.getStrategicFirePos();
+                        this.crossBowman.setAggressive(false);
+                        State newState;
+                        if (!weapon.isLoaded(crossBowman.getMainHandItem())) {
+                            if (canLoad()) newState = State.RELOAD;
+                            else newState = State.IDLE;
+                        } else if (pos != null) {
+                            newState = State.AIMING;
+                        } else {
+                            newState = State.IDLE;
+
                         }
 
-                        case RELOAD -> {
-                            this.crossBowman.startUsingItem(InteractionHand.MAIN_HAND);
-                            int i = this.crossBowman.getTicksUsingItem();
-                            if (i >= this.weaponLoadTime) {
-                                this.crossBowman.releaseUsingItem();
-                                this.crossBowman.playSound(this.weapon.getLoadSound(), 1.0F, 1.0F / (crossBowman.getRandom().nextFloat() * 0.4F + 0.8F));
-                                this.weapon.setLoaded(crossBowman.getMainHandItem(), true);
-                                this.consumeAmmo();
+                        this.state = newState;
+                    }
 
-                                state = State.AIMING;
-                            }
+                    case RELOAD -> {
+                        this.crossBowman.startUsingItem(InteractionHand.MAIN_HAND);
+                        if (++reloadTime >= this.weaponLoadTime) {
+                            this.crossBowman.releaseUsingItem();
+                            this.crossBowman.playSound(this.weapon.getLoadSound(), 1.0F, 1.0F / (crossBowman.getRandom().nextFloat() * 0.4F + 0.8F));
+                            this.weapon.setLoaded(crossBowman.getMainHandItem(), true);
+                            this.consumeAmmo();
+                            this.reloadTime = 0;
+                            BlockPos pos = crossBowman.getStrategicFirePos();
+                            if (pos != null) state = State.AIMING;
+                            else state = State.IDLE;
                         }
+                    }
 
-                        case AIMING -> {
-                            this.crossBowman.getLookControl().setLookAt(Vec3.atCenterOf(pos));
-                            this.crossBowman.setAggressive(true);
-                            this.seeTime++;
+                    case AIMING -> {
+                        BlockPos pos = crossBowman.getStrategicFirePos();
+                        this.crossBowman.getLookControl().setLookAt(pos.getX(), pos.getY(), pos.getZ());
+                        this.crossBowman.setAggressive(true);
+                        this.seeTime++;
 
-                            if (this.seeTime >= 15 + crossBowman.getRandom().nextInt(15)) {
-                                this.seeTime = 0;
-                                this.state = State.SHOOT;
-                            }
+                        if (this.seeTime >= 10 + crossBowman.getRandom().nextInt(8)) {
+                            this.state = State.SHOOT;
+                            this.seeTime = 0;
                         }
+                    }
 
-                        case SHOOT -> {
-                            this.crossBowman.getLookControl().setLookAt(Vec3.atCenterOf(pos));
-                            this.weapon.performRangedAttackIWeapon(this.crossBowman, pos.getX(), pos.getY(), pos.getZ(), weapon.getProjectileSpeed());
+                    case SHOOT -> {
+                        BlockPos pos = crossBowman.getStrategicFirePos();
+                        if (pos != null) {
+                            this.crossBowman.getLookControl().setLookAt(pos.getX(), pos.getY(), pos.getZ());
+                            this.weapon.performRangedAttackIWeapon(this.crossBowman, pos.getX(), pos.getY() + 1.2, pos.getZ(), weapon.getProjectileSpeed());
                             this.weapon.setLoaded(crossBowman.getMainHandItem(), false);
-
-                            if (canLoad()) this.state = State.RELOAD;
-                            else this.state = State.IDLE; //RESUPPLY
                         }
+                        if (canLoad()) this.state = State.RELOAD;
+                        else this.state = State.IDLE; //RESUPPLY
                     }
                 }
             }
