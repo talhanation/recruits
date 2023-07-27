@@ -83,7 +83,9 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
                 recruit.setMountTimer(nbt.getInt("mountTimer"));
                 recruit.setUpkeepTimer(nbt.getInt("UpkeepTimer"));
 
+                recruit.setHoldPos(recruit.getOnPos());
 
+                /*
                 if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
                     recruit.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
                     recruit.setHoldPos(new BlockPos (
@@ -91,6 +93,7 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
                             nbt.getInt("HoldPosY"),
                             nbt.getInt("HoldPosZ")));
                 }
+                */
 
                 if (nbt.contains("MovePosX") && nbt.contains("MovePosY") && nbt.contains("MovePosZ")) {
                     recruit.setShouldMovePos(nbt.getBoolean("ShouldMovePos"));
