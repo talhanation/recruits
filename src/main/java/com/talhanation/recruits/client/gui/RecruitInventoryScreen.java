@@ -24,7 +24,7 @@ import org.w3c.dom.Text;
 @OnlyIn(Dist.CLIENT)
 public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/recruit_gui.png" );
-
+	
     private static final MutableComponent TEXT_HEALTH = new TranslatableComponent("gui.recruits.inv.health");
     private static final MutableComponent TEXT_LEVEL = new TranslatableComponent("gui.recruits.inv.level");
     private static final MutableComponent TEXT_KILLS = new TranslatableComponent("gui.recruits.inv.kills");
@@ -63,6 +63,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TEXT_AGGRESSIVE = new TranslatableComponent("gui.recruits.inv.text.aggressive");
     private static final MutableComponent TEXT_RAID = new TranslatableComponent("gui.recruits.inv.text.raid");
     private static final MutableComponent TEXT_CLEAR_TARGET = new TranslatableComponent("gui.recruits.inv.text.clearTargets");
+	private static final MutableComponent TEXT_MOUNT = Component.translatable("gui.recruits.command.text.mount");
 
     private static final int fontColor = 4210752;
 
@@ -156,6 +157,18 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                     this.renderTooltip(poseStack, TOOLTIP_CLEAR_TARGET, i, i1);
                 }
         ));
+
+
+        //MOUNT
+        addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 5, 80, 20, TEXT_MOUNT,
+            button -> {
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntityGui(recruit.getUUID()));
+            },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_MOUNT, i, i1);
+                }
+        ));
+
 
         //WANDER
         addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_WANDER,
