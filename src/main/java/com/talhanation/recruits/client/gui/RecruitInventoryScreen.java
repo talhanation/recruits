@@ -28,7 +28,6 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TEXT_LEVEL = Component.translatable("gui.recruits.inv.level");
     private static final MutableComponent TEXT_KILLS = Component.translatable("gui.recruits.inv.kills");
     private static final MutableComponent TEXT_DISBAND = Component.translatable("gui.recruits.inv.text.disband");
-
     private static final MutableComponent TEXT_INFO_FOLLOW = Component.translatable("gui.recruits.inv.info.text.follow");
     private static final MutableComponent TEXT_INFO_WANDER = Component.translatable("gui.recruits.inv.info.text.wander");
     private static final MutableComponent TEXT_INFO_HOLD_POS = Component.translatable("gui.recruits.inv.info.text.hold_pos");
@@ -47,6 +46,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TOOLTIP_HOLD_POS = Component.translatable("gui.recruits.inv.tooltip.holdPos");
     private static final MutableComponent TOOLTIP_BACK_TO_POS = Component.translatable("gui.recruits.inv.tooltip.backToPos");
     private static final MutableComponent TOOLTIP_CLEAR_TARGET = Component.translatable("gui.recruits.inv.tooltip.clearTargets");
+    private static final MutableComponent TOOLTIP_MOUNT = Component.translatable("gui.recruits.inv.tooltip.mount");
     private static final MutableComponent TOOLTIP_PASSIVE = Component.translatable("gui.recruits.inv.tooltip.passive");
     private static final MutableComponent TOOLTIP_NEUTRAL = Component.translatable("gui.recruits.inv.tooltip.neutral");
     private static final MutableComponent TOOLTIP_AGGRESSIVE = Component.translatable("gui.recruits.inv.tooltip.aggressive");
@@ -62,6 +62,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TEXT_AGGRESSIVE = Component.translatable("gui.recruits.inv.text.aggressive");
     private static final MutableComponent TEXT_RAID = Component.translatable("gui.recruits.inv.text.raid");
     private static final MutableComponent TEXT_CLEAR_TARGET = Component.translatable("gui.recruits.inv.text.clearTargets");
+    private static final MutableComponent TEXT_MOUNT = Component.translatable("gui.recruits.command.text.mount");
 
     private static final int fontColor = 4210752;
 
@@ -144,6 +145,18 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                 });
         buttonClearTarget.setTooltip(Tooltip.create(TOOLTIP_CLEAR_TARGET));
         addRenderableWidget(buttonClearTarget);
+
+
+        //MOUNT
+        addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 5, 80, 20, TEXT_MOUNT,
+            button -> {
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntityGui(recruit.getUUID()));
+            },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_MOUNT, i, i1);
+                }
+        ));
+
 
         //WANDER
         ExtendedButton buttonWander = new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_WANDER,

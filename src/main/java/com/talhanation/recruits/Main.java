@@ -76,7 +76,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 3, MessageAssassinCount.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 4, MessageAssassinGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 5, MessageMountEntity.class);
-        //6
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 6, MessageMountEntityGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 7, MessageClearTargetGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 8, MessageCommandScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 9, MessageDisband.class);

@@ -38,6 +38,7 @@
   "gui.recruits.inv.tooltip.disband" : "Removes this recruit from your command.",
   "gui.recruits.inv.tooltip.dismount" : "If possible, this recruit will dismount his current vehicle.",
   "gui.recruits.inv.tooltip.clearTargets" : "Clears this recruits current target to attack.",
+  "gui.recruits.inv.tooltip.mount" : "If possible, this recruit will mount the nearest mob or vehicle.",
 
   "gui.recruits.inv.text.follow" : "Follow me!",
   "gui.recruits.inv.text.wander" : "Wander freely!",
@@ -162,6 +163,7 @@
   "chat.recruits.text.recruited2": "%s: How can i assist you?",
   "chat.recruits.text.recruited3": "%s: Your way is my way. Im honored.",
   "chat.recruits.text.protect_died": "%s: The Mob under protection has been killed.",
+  "chat.recruits.text.noMount": "%s: There is no mob or vehicle around me!",
 
   "chat.recruits.text.hire_costs": "%s: You need %s %s to recruit me!",
   "chat.recruits.info.reached_max": "You reached the maximum limit you can recruit.",
