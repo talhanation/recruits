@@ -4,8 +4,8 @@ import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.api.distmarker.Dist;
@@ -56,7 +56,7 @@ public class MessageMountEntityGui implements Message<MessageMountEntityGui> {
                 recruit.shouldMount(true, list.get(0).getUUID());
             }
             else//owner cant be null
-                recruit.getOwner().sendSystemMessage(TEXT_NO_MOUNT(recruit.getName().getString()));
+                recruit.getOwner().sendMessage(TEXT_NO_MOUNT(recruit.getName().getString()), recruit.getOwner().getUUID());
 
         }
     }
@@ -72,6 +72,6 @@ public class MessageMountEntityGui implements Message<MessageMountEntityGui> {
     }
 
     private static MutableComponent TEXT_NO_MOUNT(String name){
-        return Component.translatable("chat.recruits.text.noMount", name);
+        return new TranslatableComponent("chat.recruits.text.noMount", name);
     }
 }

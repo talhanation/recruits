@@ -52,7 +52,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TOOLTIP_NEUTRAL = new TranslatableComponent("gui.recruits.inv.tooltip.neutral");
     private static final MutableComponent TOOLTIP_AGGRESSIVE = new TranslatableComponent("gui.recruits.inv.tooltip.aggressive");
     private static final MutableComponent TOOLTIP_RAID = new TranslatableComponent("gui.recruits.inv.tooltip.raid");
-
+    private static final MutableComponent TOOLTIP_MOUNT = new TranslatableComponent("gui.recruits.inv.tooltip.mount");
     private static final MutableComponent TEXT_FOLLOW = new TranslatableComponent("gui.recruits.inv.text.follow");
     private static final MutableComponent TEXT_WANDER = new TranslatableComponent("gui.recruits.inv.text.wander");
     private static final MutableComponent TEXT_HOLD_MY_POS = new TranslatableComponent("gui.recruits.inv.text.holdMyPos");
@@ -63,7 +63,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TEXT_AGGRESSIVE = new TranslatableComponent("gui.recruits.inv.text.aggressive");
     private static final MutableComponent TEXT_RAID = new TranslatableComponent("gui.recruits.inv.text.raid");
     private static final MutableComponent TEXT_CLEAR_TARGET = new TranslatableComponent("gui.recruits.inv.text.clearTargets");
-	private static final MutableComponent TEXT_MOUNT = Component.translatable("gui.recruits.command.text.mount");
+	private static final MutableComponent TEXT_MOUNT = new TranslatableComponent("gui.recruits.command.text.mount");
 
     private static final int fontColor = 4210752;
 
