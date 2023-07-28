@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.Container;
@@ -18,6 +19,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
     public Optional<Entity> entity;
     public Container container;
     public boolean message;
+    public BlockPos pos;
 
     public RecruitUpkeepEntityGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -59,26 +61,28 @@ public class RecruitUpkeepEntityGoal extends Goal {
     public void tick() {
         super.tick();
         this.entity = findEntityPos();
+
         if (recruit.getUpkeepTimer() == 0) {
             //Main.LOGGER.debug("searching upkeep entity");
             if (entity.isPresent() && !this.hasFoodInInv()) {
+                this.pos = this.entity.get().getOnPos();
 
                 if (entity.get() instanceof AbstractHorse horse) {
                     this.container = horse.inventory;
                     //Main.LOGGER.debug("found horse");
                 }
 
-                if (entity.get() instanceof InventoryCarrier carrier) {
+                else if (entity.get() instanceof InventoryCarrier carrier) {
                     this.container = carrier.getInventory();
                     //Main.LOGGER.debug("found carrier");
                 }
 
-                if (entity.get() instanceof Container containerEntity) {
+                else if (entity.get() instanceof Container containerEntity) {
                     this.container = containerEntity;
                     //Main.LOGGER.debug("found containerEntity");
                 }
 
-                this.recruit.getNavigation().moveTo(entity.get().getX(), entity.get().getY(), entity.get().getZ(), 1.15D);
+                this.recruit.getNavigation().moveTo(pos.getX(), pos.getY(), pos.getZ(), 1.15D);
                 //Main.LOGGER.debug("Moving to entity");
                 if (entity.get().closerThan(recruit, 3) && container != null) {
 
@@ -143,7 +147,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
 
     private Optional<Entity> findEntityPos() {
         if(this.recruit.getUpkeepUUID() != null) {
-            return recruit.level.getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(40.0D))
+            return recruit.level.getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(100.0D))
                     .stream()
                     .filter(entity -> entity.getUUID().equals(recruit.getUpkeepUUID())).findAny();
         }
