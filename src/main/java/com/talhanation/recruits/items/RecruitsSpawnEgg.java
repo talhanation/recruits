@@ -83,7 +83,7 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
                 recruit.setMountTimer(nbt.getInt("mountTimer"));
                 recruit.setUpkeepTimer(nbt.getInt("UpkeepTimer"));
 
-                recruit.setHoldPos(recruit.getOnPos());
+                recruit.setHoldPos(context.getClickedPos());
 
                 /*
                 if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
