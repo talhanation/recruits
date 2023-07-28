@@ -148,15 +148,13 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
 
 
         //MOUNT
-        addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 5, 80, 20, TEXT_MOUNT,
+        ExtendedButton buttonMount =  new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 5, 80, 20, TEXT_MOUNT,
             button -> {
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntityGui(recruit.getUUID()));
-            },
-                (button1, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_MOUNT, i, i1);
-                }
-        ));
-
+            }
+            );
+        buttonMount.setTooltip(Tooltip.create(TOOLTIP_MOUNT));
+        addRenderableWidget(buttonMount);
 
         //WANDER
         ExtendedButton buttonWander = new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_WANDER,

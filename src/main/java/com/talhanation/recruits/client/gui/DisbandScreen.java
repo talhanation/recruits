@@ -32,8 +32,6 @@ public class DisbandScreen extends ScreenBase<DisbandContainer> {
     private static final MutableComponent TOOLTIP_ASSIGN_TO_MATE = Component.translatable("gui.recruits.inv.tooltip.assignToTeamMate");
     private static final MutableComponent TEAM_MATE = Component.translatable("gui.recruits.team.assignNewOwner");
 
-    private Button giveToTeamMate;
-
     public DisbandScreen(DisbandContainer container, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""));
         this.imageWidth = 250;
@@ -48,29 +46,29 @@ public class DisbandScreen extends ScreenBase<DisbandContainer> {
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
 
-        giveToTeamMate = createGiveToTeamMateButton();
-
-        ExtendedButton button = new ExtendedButton(leftPos + 130, topPos + 29, 100, 20, DISBAND,
-            btn -> {
-            if(this.recruit != null) {
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageDisband(this.recruit));
-                onClose();
-            }
-        });
-        button.setTooltip(Tooltip.create(TOOLTIP_DISBAND));
-    }
-
-    private ExtendedButton createGiveToTeamMateButton() {
-        ExtendedButton button = new ExtendedButton(leftPos + 20, topPos + 29, 100, 20, TEAM_MATE,
+        ExtendedButton buttonAssignToMate = new ExtendedButton(leftPos + 20, topPos + 29, 100, 20, TEAM_MATE,
                 btn -> {
                     if(recruit != null) {
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignToTeamMate(this.recruit));
                         onClose();
                     }
                 });
-        button.setTooltip(Tooltip.create(TOOLTIP_ASSIGN_TO_MATE));
-        return button;
+        buttonAssignToMate.setTooltip(Tooltip.create(TOOLTIP_ASSIGN_TO_MATE));
+        addRenderableWidget(buttonAssignToMate);
+
+
+        ExtendedButton buttonDisband = new ExtendedButton(leftPos + 130, topPos + 29, 100, 20, DISBAND,
+            btn -> {
+            if(this.recruit != null) {
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageDisband(this.recruit));
+                onClose();
+            }
+        });
+        buttonDisband.setTooltip(Tooltip.create(TOOLTIP_DISBAND));
+        addRenderableWidget(buttonDisband);
     }
+
+
 
     protected void render(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
