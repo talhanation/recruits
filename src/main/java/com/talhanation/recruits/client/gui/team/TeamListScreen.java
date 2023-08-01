@@ -7,6 +7,8 @@ import com.talhanation.recruits.inventory.TeamListContainer;
 import com.talhanation.recruits.network.MessageSendJoinRequestTeam;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -25,6 +27,7 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
     private int topPos;
 
     private ExtendedButton joinButton;
+    private int page;
     private static final MutableComponent TEAMS_LIST = new TranslatableComponent("gui.recruits.team_creation.teams_list");
     private static final MutableComponent NO_TEAMS = new TranslatableComponent("gui.recruits.team_creation.no_teams");
 
@@ -120,7 +123,7 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
     }
 
     public ExtendedButton createPageBackButton() {
-        return addRenderableWidget(new ExtendedButton(leftPos, topPos + 40 + (23 * 9), 20, 15, Component.literal("<"),
+        return addRenderableWidget(new ExtendedButton(leftPos, topPos + 40 + (23 * 9), 20, 15, new TextComponent("<"),
                 button -> {
                     if(this.page > 0) page--;
                     this.setPageButtons();
@@ -129,7 +132,7 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
     }
 
     public ExtendedButton createPageForwardButton() {
-        return addRenderableWidget(new ExtendedButton(leftPos + 175, topPos + 40 + (23 * 9), 20, 15, Component.literal(">"),
+        return addRenderableWidget(new ExtendedButton(leftPos + 175, topPos + 40 + (23 * 9), 20, 15, new TextComponent(">"),
                 button -> {
                     page++;
                     this.setPageButtons();

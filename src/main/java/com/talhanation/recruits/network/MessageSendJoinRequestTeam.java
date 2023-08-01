@@ -5,6 +5,7 @@ import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
@@ -32,7 +33,7 @@ public class MessageSendJoinRequestTeam implements Message<MessageSendJoinReques
         ServerPlayer player = context.getSender();
         ServerLevel level = player.getLevel();
         TeamEvents.sendJoinRequest(level, player, teamName);
-        player.sendSystemMessage(JOIN_REQUEST(teamName));
+        player.sendMessage(JOIN_REQUEST(teamName), player.getUUID());
     }
 
     public MessageSendJoinRequestTeam fromBytes(FriendlyByteBuf buf) {
@@ -47,6 +48,6 @@ public class MessageSendJoinRequestTeam implements Message<MessageSendJoinReques
     }
 
     private MutableComponent JOIN_REQUEST(String teamName){
-      return Component.translatable("gui.recruits.team_creation.sendJoinRequest", teamName);
+      return new TranslatableComponent("gui.recruits.team_creation.sendJoinRequest", teamName);
     }
 }
