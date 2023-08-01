@@ -1,9 +1,10 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.TeamEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
@@ -31,6 +32,7 @@ public class MessageSendJoinRequestTeam implements Message<MessageSendJoinReques
         ServerPlayer player = context.getSender();
         ServerLevel level = player.getLevel();
         TeamEvents.sendJoinRequest(level, player, teamName);
+        player.sendSystemMessage(JOIN_REQUEST(teamName));
     }
 
     public MessageSendJoinRequestTeam fromBytes(FriendlyByteBuf buf) {
@@ -42,5 +44,9 @@ public class MessageSendJoinRequestTeam implements Message<MessageSendJoinReques
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(player_uuid);
         buf.writeUtf(teamName);
+    }
+
+    private MutableComponent JOIN_REQUEST(String teamName){
+      return Component.translatable("gui.recruits.team_creation.sendJoinRequest", teamName);
     }
 }

@@ -209,5 +209,6 @@
   "recruits": "Recruits",
 
   "key.recruits.r_key": "Open command screen",
-  "key.recruits.u_key": "Opens team screen"
+  "key.recruits.u_key": "Opens team screen",
+  "gui.recruits.team_creation.sendJoinRequest": "You have sent a join request to %s."
 }

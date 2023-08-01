@@ -132,7 +132,7 @@
   "chat.recruits.command.upkeep": "%s Bakım burada!",
   "chat.recruits.command.protect": "%s Bu yaratığı koru!",
   "chat.recruits.command.mount": "%s Buraya bin!",
-  "chat.recruits.command.dismount": "%s İne!",
+  "chat.recruits.command.dismount": "%s İn!",
   "chat.recruits.command.move": "%s Ilerle!",
   "chat.recruits.command.shields": "%s Kalkanlar yukarı!",
   "chat.recruits.command.strategic_fire": "%s O pozisyona stratejik ateş!",
@@ -210,5 +210,6 @@
 
   "key.recruits.r_key": "Emir ekranını aç",
   "key.recruits.u_key": "Takım ekranını aç",
+  "gui.recruits.team_creation.sendJoinRequest": "%s'ye katılma isteği gönderdiniz.",
   "Recruits": "Piyadeler"
 }
