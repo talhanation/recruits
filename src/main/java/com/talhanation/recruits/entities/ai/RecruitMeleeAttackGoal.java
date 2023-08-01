@@ -52,21 +52,25 @@ public class RecruitMeleeAttackGoal extends Goal {
                 return false;
             }
             else {
-                if (canPenalize) {
-                    if (--this.ticksUntilNextPathRecalculation <= 0) {
-                        this.path = this.recruit.getNavigation().createPath(target, 0);
-                        this.ticksUntilNextPathRecalculation = 4 + this.recruit.getRandom().nextInt(7);
-                        return this.path != null;
-                    } else {
+                boolean isClose = target.distanceTo(this.recruit) <= range;
+                if (isClose) {
+                    if (canPenalize) {
+                        if (--this.ticksUntilNextPathRecalculation <= 0) {
+                            this.path = this.recruit.getNavigation().createPath(target, 0);
+                            this.ticksUntilNextPathRecalculation = 4 + this.recruit.getRandom().nextInt(7);
+                            return this.path != null;
+                        } else {
+                            return true;
+                        }
+                    }
+                    this.path = this.recruit.getNavigation().createPath(target, 0);
+                    if (this.path != null) {
                         return true;
+                    } else {
+                        return  (this.getAttackReachSqr(target) >= this.recruit.distanceToSqr(target.getX(), target.getY(), target.getZ())) && canAttackHoldPos() && recruit.getState() != 3 && !recruit.needsToGetFood() && !recruit.getShouldMount() && !recruit.getShouldMovePos();
                     }
                 }
-                this.path = this.recruit.getNavigation().createPath(target, 0);
-                if (this.path != null) {
-                    return true;
-                } else {
-                    return  (this.getAttackReachSqr(target) >= this.recruit.distanceToSqr(target.getX(), target.getY(), target.getZ())) && canAttackHoldPos() && recruit.getState() != 3 && !recruit.needsToGetFood() && !recruit.getShouldMount() && !recruit.getShouldMovePos();
-                }
+                return false;
             }
         }
     }
