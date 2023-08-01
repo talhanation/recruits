@@ -209,5 +209,6 @@
   "recruits": "Recruits",
 
   "key.recruits.r_key": "Öffne den Kommando-Bildschirm",
-  "key.recruits.u_key": "Öffne den Team-Bildschirm"
+  "key.recruits.u_key": "Öffne den Team-Bildschirm",
+  "gui.recruits.team_creation.sendJoinRequest": "Du hast eine Beitrittsanfrage an %s gesendet."
 }

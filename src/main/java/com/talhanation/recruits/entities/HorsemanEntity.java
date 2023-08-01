@@ -145,6 +145,9 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
                 }
             }
         }
+        if(this.getVehicle() instanceof AbstractHorse abstractHorse){
+            abstractHorse.setDeltaMovement(abstractHorse.getDeltaMovement().add(this.getDeltaMovement().scale(2)));
+        }
     }
 
     @Override

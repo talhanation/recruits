@@ -1,7 +1,9 @@
 license="${mod_license}"
 modLoader="javafml"
 modId="recruits"
-version="1.10.5"
+
+version="1.10.6"
+
 displayName="Recruits Mod"
 updateJSONURL="https://raw.githubusercontent.com/talhanation/recruits/main/update.json"
 displayURL="https://www.curseforge.com/minecraft/mc-mods/recruits"

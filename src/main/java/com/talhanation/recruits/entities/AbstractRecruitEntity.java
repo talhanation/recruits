@@ -64,6 +64,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.network.NetworkHooks;
@@ -188,7 +189,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(2, new RecruitFollowOwnerGoal(this, 1.05D, RecruitsModConfig.RecruitFollowStartDistance.get()));
         this.goalSelector.addGoal(2, new RecruitMeleeAttackGoal(this, 1.05D, false, this.getMeleeStartRange()));
         this.goalSelector.addGoal(7, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
-        this.goalSelector.addGoal(8, new RecruitMoveTowardsTargetGoal(this, 1.15D, 32.0F));
+        this.goalSelector.addGoal(8, new RecruitMoveTowardsTargetGoal(this, 1.15D, (float) this.getMeleeStartRange()));
         //this.goalSelector.addGoal(7, new RecruitDodgeGoal(this));
 
         this.goalSelector.addGoal(9, new MoveBackToVillageGoal(this, 0.6D, false));
@@ -838,12 +839,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 this.setItemSlot(equipmentslot.get(i), holder.get().value().getDefaultInstance());
             }
         }
-
-
     }
 
     public double getMeleeStartRange() {
-        return 40D;
+        return 32D;
     }
 
     public abstract List<String> getHandEquipment();

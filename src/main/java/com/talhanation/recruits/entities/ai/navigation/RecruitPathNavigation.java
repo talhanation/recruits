@@ -13,6 +13,7 @@ public class RecruitPathNavigation extends GroundPathNavigation {
     public RecruitPathNavigation(AbstractRecruitEntity recruit, Level world) {
         super(recruit, world);
         recruit.setPathfindingMalus(BlockPathTypes.WATER, -1.0F);
+        recruit.setPathfindingMalus(BlockPathTypes.LAVA, -1.0F);
     }
 
     protected @NotNull PathFinder createPathFinder(int range) {
