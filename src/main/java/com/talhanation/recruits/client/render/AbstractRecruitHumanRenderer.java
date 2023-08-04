@@ -1,6 +1,8 @@
 package com.talhanation.recruits.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.entities.AbstractInventoryEntity;
+import com.talhanation.recruits.entities.CrossBowmanEntity;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.layers.*;
@@ -58,13 +60,15 @@ public abstract class AbstractRecruitHumanRenderer<Type extends AbstractInventor
 
     private static HumanoidModel.ArmPose getArmPose(AbstractInventoryEntity recruit, InteractionHand hand) {
         ItemStack itemstack = recruit.getItemInHand(hand);
+        boolean isMusket = IWeapon.isMusketModWeapon(itemstack) && (recruit instanceof CrossBowmanEntity crossBowman)  && crossBowman.isAggressive();
         if (itemstack.isEmpty()) {
             return HumanoidModel.ArmPose.EMPTY;
         } else {
             if (recruit.getUsedItemHand() == hand && recruit.getUseItemRemainingTicks() > 0) {
                 UseAnim useanim = itemstack.getUseAnimation();
-                if (useanim == UseAnim.BLOCK)
+                if (useanim == UseAnim.BLOCK) {
                     return HumanoidModel.ArmPose.BLOCK;
+                }
 
                 if (useanim == UseAnim.BOW) {
                     return HumanoidModel.ArmPose.BOW_AND_ARROW;
@@ -74,21 +78,16 @@ public abstract class AbstractRecruitHumanRenderer<Type extends AbstractInventor
                     return HumanoidModel.ArmPose.THROW_SPEAR;
                 }
 
-                if (useanim == UseAnim.CROSSBOW && hand == recruit.getUsedItemHand()) {
+                if (useanim == UseAnim.CROSSBOW && hand == recruit.getUsedItemHand() || isMusket) {
                     return HumanoidModel.ArmPose.CROSSBOW_CHARGE;
                 }
 
                 if (useanim == UseAnim.SPYGLASS) {
                     return HumanoidModel.ArmPose.SPYGLASS;
                 }
-
-                if (recruit.getUsedItemHand() == hand && recruit.getItemInHand(hand) == Items.SHIELD.getDefaultInstance()){
-                    return HumanoidModel.ArmPose.ITEM;
-                }
-            } else if (!recruit.swinging && itemstack.is(Items.CROSSBOW) && CrossbowItem.isCharged(itemstack)) {
+            } else if (!recruit.swinging && itemstack.is(Items.CROSSBOW) && CrossbowItem.isCharged(itemstack) || isMusket) {
                 return HumanoidModel.ArmPose.CROSSBOW_HOLD;
             }
-
             return HumanoidModel.ArmPose.ITEM;
         }
     }
