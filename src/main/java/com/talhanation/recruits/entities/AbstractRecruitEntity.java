@@ -1442,7 +1442,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
-
     public int getMountTimer() {
         return entityData.get(mountTimer);
     }
