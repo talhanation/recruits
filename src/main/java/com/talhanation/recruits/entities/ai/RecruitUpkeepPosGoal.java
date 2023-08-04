@@ -29,18 +29,12 @@ public class RecruitUpkeepPosGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return recruit.needsToGetFood();
+        return recruit.needsToGetFood() && recruit.getUpkeepPos() != null;
     }
 
     @Override
     public boolean canContinueToUse() {
         return canUse();
-    }
-
-    private boolean hasFoodInInv(){
-        return recruit.getInventory().items
-                .stream()
-                .anyMatch(ItemStack::isEdible);
     }
 
     private boolean isFoodInChest(Container container){
@@ -66,19 +60,11 @@ public class RecruitUpkeepPosGoal extends Goal {
         this.chestPos = findInvPos();
         if(recruit.getUpkeepTimer() == 0){
 
-            if (chestPos != null && !this.hasFoodInInv()){
+            if (chestPos != null && !recruit.hasFoodInInv()){
                 BlockEntity entity = recruit.level.getBlockEntity(chestPos);
 
                 if (entity instanceof Container containerEntity) {
                     this.container = containerEntity;
-                }else {
-                    if(recruit.getOwner() != null && messageNotChest){
-                        recruit.getOwner().sendMessage(TEXT_CANT_INTERACT(recruit.getName().getString()),recruit.getOwner().getUUID());
-                        messageNotChest = false;
-
-                        recruit.clearUpkeepPos();
-                    }
-
                 }
 
                 this.recruit.getNavigation().moveTo(chestPos.getX(), chestPos.getY(), chestPos.getZ(), 1.15D);
@@ -128,13 +114,20 @@ public class RecruitUpkeepPosGoal extends Goal {
                             }
                         }
                     }
-
-
                     this.stop();
                 }
             }
             else {
                 this.chestPos = findInvPos();
+
+                if(chestPos == null){
+                    if(recruit.getOwner() != null && messageNotChest){
+                        recruit.getOwner().sendMessage(TEXT_CANT_INTERACT(recruit.getName().getString()),recruit.getOwner().getUUID());
+                        messageNotChest = false;
+
+                        recruit.clearUpkeepPos();
+                    }
+                }
                 //Main.LOGGER.debug("Chest not found");
             }
         }

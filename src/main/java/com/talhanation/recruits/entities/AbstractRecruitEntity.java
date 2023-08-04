@@ -648,8 +648,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         player.sendSystemMessage(TEXT_DISBAND(name));
         this.setTarget(null);
         this.setIsOwned(false);
-        this.setUpkeepPos(BlockPos.ZERO);
-        this.setUpkeepUUID(Optional.empty());
+        this.clearUpkeepPos();
+        this.clearUpkeepEntity();
         this.setOwnerUUID(Optional.empty());
         CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
 
@@ -1168,9 +1168,18 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public boolean needsToGetFood(){
+        int timer = this.getUpkeepTimer();
+        boolean needsToEat = this.needsToEat();
+        boolean hasFood = this.hasFoodInInv();
         boolean isChest = this.getUpkeepPos() != null;
         boolean isEntity = this.getUpkeepUUID() != null;
-        return (this.getUpkeepTimer() == 0 && this.needsToEat() && (isChest || isEntity));
+        return (!hasFood && timer == 0 && needsToEat && (isChest || isEntity));
+    }
+
+    public boolean hasFoodInInv(){
+        return this.getInventory().items
+                .stream()
+                .anyMatch(ItemStack::isEdible);
     }
 
     public boolean needsToEat(){
@@ -1548,7 +1557,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 Team ownerTeam = this.getOwner().getTeam();
                 if (team == ownerTeam) {
                     needsTeamUpdate = false;
-                    return;
+
                 }
                 else if (ownerTeam == null) {
                     String teamName = team.getName();
