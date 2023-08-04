@@ -27,18 +27,12 @@ public class RecruitUpkeepEntityGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return recruit.needsToGetFood();
+        return recruit.needsToGetFood() && recruit.getUpkeepUUID() != null;
     }
 
     @Override
     public boolean canContinueToUse() {
         return canUse();
-    }
-
-    private boolean hasFoodInInv(){
-        return recruit.getInventory().items
-                .stream()
-                .anyMatch(ItemStack::isEdible);
     }
 
     private boolean isFoodInEntity(Container container){
@@ -65,7 +59,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
 
         if (recruit.getUpkeepTimer() == 0) {
             //Main.LOGGER.debug("searching upkeep entity");
-            if (entity.isPresent() && !this.hasFoodInInv()) {
+            if (entity.isPresent() && !recruit.hasFoodInInv()) {
                 this.pos = this.entity.get().getOnPos();
 
                 if (entity.get() instanceof AbstractHorse horse) {
