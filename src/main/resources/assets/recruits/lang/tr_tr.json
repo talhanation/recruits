@@ -159,6 +159,8 @@
   "chat.recruits.text.disband": "%s: O zaman burada yollarımızı ayırıyoruz.",
   "chat.recruits.text.noFoodInUpkeep": "%s: Bakımda yiyecek yok.",
   "chat.recruits.text.noPlaceInInv": "%s: Eşyalarımı saklamak için yer yok.",
+  "chat.recruits.text.cantInteract": "%s: Etkileşimde bulunabileceğim bir envanter yok. Lütfen benim bakımımı tekrar atayın.",
+  "chat.recruits.text.cantFindEntity": "%s: Menzilde herhangi bir yaratık bulunmuyor. Lütfen benim bakımımı tekrar atayın.",
   "chat.recruits.text.recruited1": "%s: Gittiğin yol onurlu bir yol.",
   "chat.recruits.text.recruited2": "%s: Nasıl yardımcı olabilirim?",
   "chat.recruits.text.recruited3": "%s: Senin yolun benim yolumdur. Onur duyarım.",

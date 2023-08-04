@@ -1625,6 +1625,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         else this.setProtectUUID(Optional.empty());
     }
 
+    public void clearUpkeepPos() {
+        this.entityData.set(UPKEEP_POS, Optional.empty());
+    }
+
+    public void clearUpkeepEntity() {
+        this.entityData.set(UPKEEP_ID, Optional.empty());
+    }
+
     public static enum ArmPose {
         ATTACKING,
         BLOCKING,

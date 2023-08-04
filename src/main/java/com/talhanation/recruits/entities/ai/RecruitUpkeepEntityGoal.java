@@ -2,7 +2,6 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.Container;
@@ -20,6 +19,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
     public Optional<Entity> entity;
     public Container container;
     public boolean message;
+    public boolean messageNotInRange;
     public BlockPos pos;
 
     public RecruitUpkeepEntityGoal(AbstractRecruitEntity recruit) {
@@ -56,12 +56,13 @@ public class RecruitUpkeepEntityGoal extends Goal {
     public void start() {
         super.start();
         message = true;
+        messageNotInRange = true;
     }
 
     @Override
     public void tick() {
         super.tick();
-        this.entity = findEntityPos();
+        this.entity = findEntity();
 
         if (recruit.getUpkeepTimer() == 0) {
             //Main.LOGGER.debug("searching upkeep entity");
@@ -135,7 +136,12 @@ public class RecruitUpkeepEntityGoal extends Goal {
                 }
             }
             else {
-                this.entity = findEntityPos();
+                if (recruit.getOwner() != null && messageNotInRange) {
+                    recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()), recruit.getOwner().getUUID());
+                    messageNotInRange = false;
+
+                    recruit.clearUpkeepEntity();
+                }
             }
         }
     }
@@ -146,7 +152,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
         recruit.setUpkeepTimer(recruit.getUpkeepCooldown());
     }
 
-    private Optional<Entity> findEntityPos() {
+    private Optional<Entity> findEntity() {
         if(this.recruit.getUpkeepUUID() != null) {
             return recruit.level.getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(100.0D))
                     .stream()
@@ -178,6 +184,10 @@ public class RecruitUpkeepEntityGoal extends Goal {
     }
     private MutableComponent TEXT_NO_PLACE(String name) {
         return new TranslatableComponent("chat.recruits.text.noPlaceInInv", name);
+    }
+
+    private MutableComponent TEXT_NOT_IN_RANGE(String name) {
+        return new TranslatableComponent("chat.recruits.text.cantFindEntity", name);
     }
 
     private MutableComponent TEXT_FOOD(String name) {
