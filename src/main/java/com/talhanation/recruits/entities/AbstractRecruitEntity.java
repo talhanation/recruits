@@ -177,11 +177,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(6, new OpenDoorGoal(this, true) {
         });
         this.goalSelector.addGoal(1, new RecruitProtectEntityGoal(this));
-
-        //this.goalSelector.addGoal(0, new (this));
-
-
-        this.goalSelector.addGoal(1, new RecruitEatGoal(this));
+        this.goalSelector.addGoal(0, new RecruitEatGoal(this));
         this.goalSelector.addGoal(5, new RecruitUpkeepPosGoal(this));
         this.goalSelector.addGoal(6, new RecruitUpkeepEntityGoal(this));
         this.goalSelector.addGoal(3, new RecruitMountEntity(this));
@@ -633,7 +629,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void setHunger(float value) {
-        this.entityData.set(HUNGER, value);
+        float currentHunger = getHunger();
+        if(value < 0 && currentHunger - value <= 0)
+            this.entityData.set(HUNGER, 0F);
+        else
+            this.entityData.set(HUNGER, value);
     }
 
     public void setFleeing(boolean bool){
@@ -1162,7 +1162,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void updateHunger(){
         if(getHunger() > 0) {
-            setHunger((getHunger() - 10F));
+            setHunger((getHunger() - 7F));
         }
         this.updateMoral();
     }
@@ -1174,11 +1174,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public boolean needsToEat(){
-        //Main.LOGGER.debug(getHunger());
         if (getHunger() <= 50F){
             return true;
         }
-        else if (getHunger() <= 70F && getHealth() != getMaxHealth() && this.getTarget() == null && this.getIsOwned()){
+        if (getHunger() <= 70F && getHealth() != getMaxHealth() && this.getTarget() == null && this.getIsOwned()){
             return true;
         }
         else return getHealth() <= (getMaxHealth() * 0.30) && this.getTarget() == null;
