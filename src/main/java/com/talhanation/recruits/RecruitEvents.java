@@ -432,7 +432,7 @@ public class   RecruitEvents {
                 for (AbstractRecruitEntity recruit2 : recruits) {
                     if(recruit2.getOwnerUUID() != null && recruit2.getOwnerUUID().equals(owner)){
                         float currentMoral = recruit2.getMoral();
-                        if(currentMoral > 0) recruit2.setMoral(currentMoral - 0.5F);
+                        if(currentMoral > 0) recruit2.setMoral(currentMoral - 0.2F);
 
                         //add to target list
                     }
