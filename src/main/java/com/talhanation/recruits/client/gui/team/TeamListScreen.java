@@ -9,14 +9,11 @@ import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
-
 import java.util.List;
 
 public class TeamListScreen extends ScreenBase<TeamListContainer> {
@@ -26,9 +23,9 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
     public List<PlayerTeam> teams;
     private int leftPos;
     private int topPos;
-    private ExtendedButton joinButton;
     private static final MutableComponent TEAMS_LIST = Component.translatable("gui.recruits.team_creation.teams_list");
     private static final MutableComponent NO_TEAMS = Component.translatable("gui.recruits.team_creation.no_teams");
+    private int page = 1;
     public TeamListScreen(TeamListContainer commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, Component.literal(""));
         imageWidth = 197;
@@ -42,22 +39,28 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
 
         this.teams = player.getScoreboard().getPlayerTeams().stream().toList();
 
-
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
 
+        this.setPageButtons();
+    }
 
-        for(int i = 0; i < teams.size(); i++) {
-            if (i < 9) {
-                PlayerTeam team = teams.get(i);
-                String teamName = team.getName();
-                joinButton = createJoinButton(team, teamName);
-                if (player.getTeam() != null) {
-                    joinButton.active = false;
-                }
-            }
+    public void setPageButtons() {
+        clearWidgets();
+
+        if(teams.size() > 9) createPageForwardButton();
+
+        if (page > 1) createPageBackButton();
+
+        int teamsPerPage = 9;
+        int startIndex = (page - 1) * teamsPerPage;
+        int endIndex = Math.min(startIndex + teamsPerPage, teams.size());
+
+        for (int i = startIndex; i < endIndex; i++) {
+            PlayerTeam team = teams.get(i);
+            String teamName = team.getName();
+            createJoinButton(teamName, i - startIndex);
         }
-
     }
 
     protected void render(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
@@ -70,15 +73,21 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
     @Override
     protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
-        //Info
+        // Info
         int fontColor = 4210752;
         int teamFontColor = 4210752;
 
-        List<PlayerTeam> playerTeams = teams.stream().toList();
-        font.draw(matrixStack, TEAMS_LIST, 18, 11, fontColor);
-        if(!playerTeams.isEmpty()) {
-            for (int i = 0; i < playerTeams.size(); i++) {
-                PlayerTeam playerTeam = playerTeams.get(i);
+        if(teams.size() > 9)
+            font.draw(matrixStack, "Page: " + page, 140, 11, fontColor);
+
+        font.draw(matrixStack, TEAMS_LIST.getString(), 18, 11, fontColor);
+        int teamsPerPage = 9;
+        int startIndex = (page - 1) * teamsPerPage;
+        int endIndex = Math.min(startIndex + teamsPerPage, teams.size());
+
+        if (!teams.isEmpty()) {
+            for (int i = startIndex; i < endIndex; i++) {
+                PlayerTeam playerTeam = teams.get(i);
                 String name = playerTeam.getName();
                 List<String> allMembers = playerTeam.getPlayers().stream().toList();
 
@@ -86,24 +95,42 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
                     teamFontColor = playerTeam.getColor().getColor();
                 }
 
-                int members = allMembers.size();
                 int players = allMembers.stream().filter((str) -> str.chars().count() <= 16).toList().size();
                 int x = 18;
-                int y = 32 + (23 * i);
+                int y = 32 + (23 * (i - startIndex));
 
-                font.draw(matrixStack, "" + name, x, y, teamFontColor);
-                font.draw(matrixStack, "" + members + "/" + players, x + 80, y, teamFontColor);
+                font.draw(matrixStack, name, x, y, teamFontColor);
+                font.draw(matrixStack, "" + players, x + 70, y, teamFontColor);
             }
-        }
-        else
+        } else {
             font.draw(matrixStack, NO_TEAMS, 20, 26, fontColor);
+        }
     }
 
-    public ExtendedButton createJoinButton(PlayerTeam team, String teamName) {
-        return addRenderableWidget(new ExtendedButton(leftPos + 150, topPos + 25 + (23 * teams.indexOf(team)), 30, 15, Component.translatable("chat.recruits.team_creation.join"),
+
+    public ExtendedButton createJoinButton(String teamName, int index) {
+        return addRenderableWidget(new ExtendedButton(leftPos + 150, topPos + 25 + (23 * index), 30, 15, Component.translatable("chat.recruits.team_creation.join"),
                 button -> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageSendJoinRequestTeam(player.getUUID(), teamName));
                     this.onClose();
+                }
+        ));
+    }
+
+    public ExtendedButton createPageBackButton() {
+        return addRenderableWidget(new ExtendedButton(leftPos, topPos + 40 + (23 * 9), 20, 15, Component.literal("<"),
+                button -> {
+                    if(this.page > 0) page--;
+                    this.setPageButtons();
+                }
+        ));
+    }
+
+    public ExtendedButton createPageForwardButton() {
+        return addRenderableWidget(new ExtendedButton(leftPos + 175, topPos + 40 + (23 * 9), 20, 15, Component.literal(">"),
+                button -> {
+                    page++;
+                    this.setPageButtons();
                 }
         ));
     }
