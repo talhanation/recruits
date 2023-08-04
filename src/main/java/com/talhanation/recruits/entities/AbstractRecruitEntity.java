@@ -1438,17 +1438,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.blockCoolDown--;
         }
     }
-
-    public void updateMountTimer(){
-        if(getMountTimer() > 0){
-            setMountTimer(getMountTimer() - 1);
-        }
-    }
-
-    public void updateUpkeepTimer(){
-        if(getUpkeepTimer() > 0) setUpkeepTimer(getUpkeepTimer() - 1);
-    }
-
     public int getMountTimer() {
         return entityData.get(mountTimer);
     }

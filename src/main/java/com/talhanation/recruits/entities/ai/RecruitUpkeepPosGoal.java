@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -13,16 +14,18 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 
 public class RecruitUpkeepPosGoal extends Goal {
     public AbstractRecruitEntity recruit;
     public BlockPos chestPos;
-    public Entity mobInv;
     public Container container;
     public boolean message;
     public boolean messageNotChest;
+    public boolean messageNeedNewChest;
 
     public RecruitUpkeepPosGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -37,43 +40,38 @@ public class RecruitUpkeepPosGoal extends Goal {
     public boolean canContinueToUse() {
         return canUse();
     }
-
-    private boolean isFoodInChest(Container container){
-        for(int i = 0; i < container.getContainerSize(); i++) {
-            ItemStack foodItem = container.getItem(i);
-            if(foodItem.isEdible()){
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Override
     public void start() {
         super.start();
         message = true;
         messageNotChest = true;
+        messageNeedNewChest = true;
+        this.chestPos = recruit.getUpkeepPos();
     }
 
     @Override
     public void tick() {
         super.tick();
-        this.chestPos = findInvPos();
         if(recruit.getUpkeepTimer() == 0){
-
-            if (chestPos != null && !recruit.hasFoodInInv()){
-                BlockEntity entity = recruit.level.getBlockEntity(chestPos);
-
-                if (entity instanceof Container containerEntity) {
-                    this.container = containerEntity;
+            BlockEntity entity = recruit.level.getBlockEntity(chestPos);
+            if (entity instanceof Container containerEntity) {
+                this.container = containerEntity;
+            }
+            else{
+                if(recruit.getOwner() != null && messageNotChest){
+                    recruit.getOwner().sendMessage(TEXT_CANT_INTERACT(recruit.getName().getString()),recruit.getOwner().getUUID());
+                    messageNotChest = false;
                 }
+                this.chestPos = null;
+            }
 
+            if (chestPos != null){
                 this.recruit.getNavigation().moveTo(chestPos.getX(), chestPos.getY(), chestPos.getZ(), 1.15D);
 
                 if (chestPos.closerThan(recruit.getOnPos(), 3) && container != null) {
                     this.recruit.getNavigation().stop();
                     this.recruit.getLookControl().setLookAt(chestPos.getX(), chestPos.getY() + 1, chestPos.getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
-                    if (isFoodInChest(container)) {
+                    if (isFoodInContainer(container)) {
                         for (int i = 0; i < 3; i++) {
                             ItemStack foodItem = this.getFoodFromInv(container);
                             ItemStack food;
@@ -88,7 +86,6 @@ public class RecruitUpkeepPosGoal extends Goal {
                                     recruit.getOwner().sendMessage(TEXT_NO_PLACE(recruit.getName().getString()),recruit.getOwner().getUUID());
                                     message = false;
                                 }
-                                //Main.LOGGER.debug("Chest empty");
                                 this.stop();
                             }
                         }
@@ -97,10 +94,9 @@ public class RecruitUpkeepPosGoal extends Goal {
                         if(recruit.getOwner() != null && message){
                             recruit.getOwner().sendMessage(TEXT_FOOD(recruit.getName().getString()), recruit.getOwner().getUUID());
                             message = false;
-                            this.stop();
                         }
+                        this.stop();
                     }
-
 
                     //Try to reequip
                     for(int i = 0; i < container.getContainerSize(); i++) {
@@ -122,13 +118,15 @@ public class RecruitUpkeepPosGoal extends Goal {
                 this.chestPos = findInvPos();
 
                 if(chestPos == null){
-                    if(recruit.getOwner() != null && messageNotChest){
-                        recruit.getOwner().sendMessage(TEXT_CANT_INTERACT(recruit.getName().getString()),recruit.getOwner().getUUID());
-                        messageNotChest = false;
-
-                        recruit.clearUpkeepPos();
+                    if(recruit.getOwner() != null && messageNeedNewChest){
+                        recruit.getOwner().sendMessage(NEED_NEW_UPKEEP(recruit.getName().getString()),recruit.getOwner().getUUID());
+                        messageNeedNewChest = false;
                     }
+
+                    recruit.clearUpkeepPos();
+                    stop();
                 }
+                else recruit.setUpkeepPos(chestPos);
                 //Main.LOGGER.debug("Chest not found");
             }
         }
@@ -142,25 +140,36 @@ public class RecruitUpkeepPosGoal extends Goal {
 
     @Nullable
     private BlockPos findInvPos() {
+        List<BlockPos> list = new ArrayList<>();
+        BlockPos chestPos;
         if(this.recruit.getUpkeepPos() != null) {
-            //Main.LOGGER.debug("up keep pos not null");
-            BlockPos chestPos;
             int range = 8;
-
             for (int x = -range; x < range; x++) {
                 for (int y = -range; y < range; y++) {
                     for (int z = -range; z < range; z++) {
                         chestPos = recruit.getUpkeepPos().offset(x, y, z);
                         BlockEntity block = recruit.level.getBlockEntity(chestPos);
-                        if (block instanceof Container)
-                            return chestPos;
+                        if (block instanceof Container blockContainer){
+                            if(isFoodInContainer(blockContainer)) return chestPos;
+                            else list.add(chestPos);
+                        }
                     }
                 }
             }
         }
-        //Main.LOGGER.debug("UpkeepPos NULL");
-        //else entity around upkeepPos
-        return null;
+
+        if(list.isEmpty()) return null;
+        else return list.get(recruit.getRandom().nextInt(list.size()));
+    }
+
+    private boolean isFoodInContainer(Container container){
+        for(int i = 0; i < container.getContainerSize(); i++) {
+            ItemStack foodItem = container.getItem(i);
+            if(foodItem.isEdible()){
+                return true;
+            }
+        }
+        return false;
     }
     @Nullable
     private ItemStack getFoodFromInv(Container inv){
@@ -188,6 +197,10 @@ public class RecruitUpkeepPosGoal extends Goal {
 
     private MutableComponent TEXT_CANT_INTERACT(String name) {
         return new TranslatableComponent("chat.recruits.text.cantInteract", name);
+    }
+
+    private MutableComponent NEED_NEW_UPKEEP(String name) {
+        return new TranslatableComponent("chat.recruits.text.findMeNewChest", name);
     }
 
     private MutableComponent TEXT_FOOD(String name) {
