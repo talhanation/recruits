@@ -403,7 +403,7 @@ public class CommandEvents {
             if (isEntity) {
                 //Main.LOGGER.debug("server: entity_uuid: " + entity_uuid);
                 recruit.setUpkeepUUID(Optional.of(entity_uuid));
-                recruit.setUpkeepPos(BlockPos.ZERO);
+                recruit.clearUpkeepPos();
                 recruit.setUpkeepTimer(0);
             }
             else {
@@ -413,7 +413,7 @@ public class CommandEvents {
                         BlockHitResult blockHitResult = (BlockHitResult) hitResult;
                         BlockPos blockpos = blockHitResult.getBlockPos();
                         recruit.setUpkeepPos(blockpos);
-                        recruit.setUpkeepUUID(Optional.empty());
+                        recruit.clearUpkeepEntity();
                         recruit.setUpkeepTimer(0);
                     }
                 }
