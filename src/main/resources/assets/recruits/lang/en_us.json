@@ -159,6 +159,8 @@
   "chat.recruits.text.disband": "%s: Then this is where we part ways.",
   "chat.recruits.text.noFoodInUpkeep": "%s: There is no food in my upkeep.",
   "chat.recruits.text.noPlaceInInv": "%s: There is no place to store food from my inventory.",
+  "chat.recruits.text.cantInteract": "%s: There is no inventory on the position that i can interact with. Please assign me my upkeep again.",
+  "chat.recruits.text.cantFindEntity": "%s: There is no Mob in range. Please assign me my upkeep again.",
   "chat.recruits.text.recruited1": "%s: That's an honorable path you're on.",
   "chat.recruits.text.recruited2": "%s: How can i assist you?",
   "chat.recruits.text.recruited3": "%s: Your way is my way. Im honored.",

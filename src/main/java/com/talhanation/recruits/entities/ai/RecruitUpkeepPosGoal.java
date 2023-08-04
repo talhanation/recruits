@@ -9,6 +9,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -20,6 +21,7 @@ public class RecruitUpkeepPosGoal extends Goal {
     public Entity mobInv;
     public Container container;
     public boolean message;
+    public boolean messageNotChest;
 
     public RecruitUpkeepPosGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -55,6 +57,7 @@ public class RecruitUpkeepPosGoal extends Goal {
     public void start() {
         super.start();
         message = true;
+        messageNotChest = true;
     }
 
     @Override
@@ -68,6 +71,14 @@ public class RecruitUpkeepPosGoal extends Goal {
 
                 if (entity instanceof Container containerEntity) {
                     this.container = containerEntity;
+                }else {
+                    if(recruit.getOwner() != null && messageNotChest){
+                        recruit.getOwner().sendMessage(TEXT_CANT_INTERACT(recruit.getName().getString()),recruit.getOwner().getUUID());
+                        messageNotChest = false;
+
+                        recruit.clearUpkeepPos();
+                    }
+
                 }
 
                 this.recruit.getNavigation().moveTo(chestPos.getX(), chestPos.getY(), chestPos.getZ(), 1.15D);
@@ -179,6 +190,10 @@ public class RecruitUpkeepPosGoal extends Goal {
 
     private MutableComponent TEXT_NO_PLACE(String name) {
         return Component.translatable("chat.recruits.text.noPlaceInInv", name);
+    }
+
+    private MutableComponent TEXT_CANT_INTERACT(String name) {
+        return new TranslatableComponent("chat.recruits.text.cantInteract", name);
     }
 
     private MutableComponent TEXT_FOOD(String name) {

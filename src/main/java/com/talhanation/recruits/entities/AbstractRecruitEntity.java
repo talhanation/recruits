@@ -1626,6 +1626,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public int getUpkeepCooldown() {
         return 3000;
+		
+    public void clearUpkeepPos() {
+        this.entityData.set(UPKEEP_POS, Optional.empty());
+    }
+
+    public void clearUpkeepEntity() {
+        this.entityData.set(UPKEEP_ID, Optional.empty());
     }
 
     public static enum ArmPose {
