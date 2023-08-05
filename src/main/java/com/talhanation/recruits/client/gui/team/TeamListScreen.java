@@ -25,8 +25,6 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
     public List<PlayerTeam> teams;
     private int leftPos;
     private int topPos;
-
-    private ExtendedButton joinButton;
     private int page;
     private static final MutableComponent TEAMS_LIST = new TranslatableComponent("gui.recruits.team_creation.teams_list");
     private static final MutableComponent NO_TEAMS = new TranslatableComponent("gui.recruits.team_creation.no_teams");
@@ -53,12 +51,12 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
     public void setPageButtons() {
         clearWidgets();
 
-        if(teams.size() > 9) createPageForwardButton();
+        if (teams.size() > 9) createPageForwardButton();
 
         if (page > 1) createPageBackButton();
 
         int teamsPerPage = 9;
-        int startIndex = (page - 1) * teamsPerPage;
+        int startIndex = Math.max((page - 1) * teamsPerPage, 0); // Ensure startIndex is not negative
         int endIndex = Math.min(startIndex + teamsPerPage, teams.size());
 
         for (int i = startIndex; i < endIndex; i++) {
@@ -87,7 +85,7 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
 
         font.draw(matrixStack, TEAMS_LIST.getString(), 18, 11, fontColor);
         int teamsPerPage = 9;
-        int startIndex = (page - 1) * teamsPerPage;
+        int startIndex = Math.max((page - 1) * teamsPerPage, 0); // Ensure startIndex is not negative
         int endIndex = Math.min(startIndex + teamsPerPage, teams.size());
 
         if (!teams.isEmpty()) {
