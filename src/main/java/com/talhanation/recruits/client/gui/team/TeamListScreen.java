@@ -61,7 +61,10 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
         for (int i = startIndex; i < endIndex; i++) {
             PlayerTeam team = teams.get(i);
             String teamName = team.getName();
-            createJoinButton(teamName, i - startIndex);
+            ExtendedButton joinButton = createJoinButton(teamName, i - startIndex);
+            if(player.getTeam() != null && player.getTeam().getName().equals(teamName)){
+                joinButton.active = false;
+            }
         }
     }
 
