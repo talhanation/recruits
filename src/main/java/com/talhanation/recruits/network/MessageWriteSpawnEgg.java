@@ -10,6 +10,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.Team;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -58,6 +60,10 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
 
                 CompoundTag entityTag = new CompoundTag();
                 String name = recruitEntity.getName().getString();
+                Team team = recruitEntity.getTeam();
+                if(team != null){
+                    entityTag.putString("Team", team.getName());
+                }
                 entityTag.putString("Name", name);
                 entityTag.putInt("AggroState", recruitEntity.getState());
                 entityTag.putInt("FollowState", recruitEntity.getFollowState());
