@@ -1,5 +1,6 @@
 package com.talhanation.recruits.items;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.BowmanEntity;
 import net.minecraft.core.BlockPos;
@@ -13,7 +14,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+
 import net.minecraftforge.common.ForgeSpawnEggItem;
+import net.minecraft.world.scores.PlayerTeam;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -57,6 +60,15 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
 
             CompoundTag entityTag = stack.getTag();
             if(entity instanceof AbstractRecruitEntity recruit && entityTag != null) {
+                if (entityTag.contains("Team", 8)) {
+                    String s = entityTag.getString("Team");
+                    PlayerTeam playerteam = recruit.level.getScoreboard().getPlayerTeam(s);
+                    boolean flag = playerteam != null && recruit.level.getScoreboard().addPlayerToTeam(recruit.getStringUUID(), playerteam);
+                    if (!flag) {
+                        Main.LOGGER.warn("Unable to add mob to team \"{}\" (that team probably doesn't exist)", (Object)s);
+                    }
+                }
+
                 CompoundTag nbt = entityTag.getCompound("EntityTag");
                 String name = nbt.getString("Name");
                 recruit.setCustomName(Component.literal(name));
