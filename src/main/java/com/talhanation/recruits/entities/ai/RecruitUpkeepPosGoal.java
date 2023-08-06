@@ -58,7 +58,7 @@ public class RecruitUpkeepPosGoal extends Goal {
             }
             else{
                 if(recruit.getOwner() != null && messageNotChest){
-                    recruit.getOwner().sendMessage(TEXT_CANT_INTERACT(recruit.getName().getString()),recruit.getOwner().getUUID());
+                    recruit.getOwner().sendSystemMessage(TEXT_CANT_INTERACT(recruit.getName().getString()));
                     messageNotChest = false;
                 }
                 this.chestPos = null;
@@ -118,7 +118,7 @@ public class RecruitUpkeepPosGoal extends Goal {
 
                 if(chestPos == null){
                     if(recruit.getOwner() != null && messageNeedNewChest){
-                        recruit.getOwner().sendMessage(NEED_NEW_UPKEEP(recruit.getName().getString()),recruit.getOwner().getUUID());
+                        recruit.getOwner().sendSystemMessage(NEED_NEW_UPKEEP(recruit.getName().getString()));
                         messageNeedNewChest = false;
                     }
 
@@ -195,11 +195,11 @@ public class RecruitUpkeepPosGoal extends Goal {
     }
 
     private MutableComponent TEXT_CANT_INTERACT(String name) {
-        return new TranslatableComponent("chat.recruits.text.cantInteract", name);
+        return Component.translatable("chat.recruits.text.cantInteract", name);
     }
 
     private MutableComponent NEED_NEW_UPKEEP(String name) {
-        return new TranslatableComponent("chat.recruits.text.findMeNewChest", name);
+        return Component.translatable("chat.recruits.text.findMeNewChest", name);
     }
 
     private MutableComponent TEXT_FOOD(String name) {

@@ -2,6 +2,7 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
@@ -130,7 +131,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
             }
             else {
                 if (recruit.getOwner() != null && messageNotInRange) {
-                    recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()), recruit.getOwner().getUUID());
+                    recruit.getOwner().sendSystemMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()));
                     messageNotInRange = false;
 
                     recruit.clearUpkeepEntity();
@@ -180,7 +181,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
     }
 
     private MutableComponent TEXT_NOT_IN_RANGE(String name) {
-        return new TranslatableComponent("chat.recruits.text.cantFindEntity", name);
+        return Component.translatable("chat.recruits.text.cantFindEntity", name);
     }
 
     private MutableComponent TEXT_FOOD(String name) {
