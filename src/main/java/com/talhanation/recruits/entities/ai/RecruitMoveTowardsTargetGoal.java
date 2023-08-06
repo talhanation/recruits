@@ -59,7 +59,7 @@ public class RecruitMoveTowardsTargetGoal extends Goal {
 
     public void start() {
         if (!this.recruit.isFollowing()) {
-        this.recruit.getNavigation().moveTo(this.wantedX, this.wantedY, this.wantedZ, this.speedModifier);
+            this.recruit.getNavigation().moveTo(this.wantedX, this.wantedY, this.wantedZ, this.speedModifier);
         }
     }
 
