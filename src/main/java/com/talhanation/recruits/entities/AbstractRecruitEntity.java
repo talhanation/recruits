@@ -1626,14 +1626,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         else this.setProtectUUID(Optional.empty());
     }
 
-    public void clearMount() {
-        this.setShouldMount(false);
-        this.setMountUUID(Optional.empty());
-    }
-
-    public int getUpkeepCooldown() {
-        return 3000;
-		
     public void clearUpkeepPos() {
         this.entityData.set(UPKEEP_POS, Optional.empty());
     }
