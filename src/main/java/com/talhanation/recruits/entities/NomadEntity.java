@@ -28,6 +28,7 @@ import net.minecraft.world.level.ServerLevelAccessor;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 public class NomadEntity extends BowmanEntity {
 
@@ -131,6 +132,7 @@ public class NomadEntity extends BowmanEntity {
                 this.startRiding(horse);
                 this.level.addFreshEntity(horse);
                 this.setHadHorse(true);
+                this.setMountUUID(Optional.of(horse.getUUID()));
             }
         }
     }

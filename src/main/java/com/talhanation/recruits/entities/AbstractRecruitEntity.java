@@ -1647,6 +1647,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         NEUTRAL;
     }
 
+    public int getUpkeepCooldown() {
+        return 3000;
+    }
+
     public AbstractRecruitEntity.ArmPose getArmPose() {
         return AbstractRecruitEntity.ArmPose.NEUTRAL;
     }
