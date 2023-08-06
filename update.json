@@ -1,12 +1,13 @@
 {
   "homepage": "https://www.curseforge.com/minecraft/mc-mods/recruits/files",
   "promos": {
-    "1.19.4-recommended": "1.10.6",
-    "1.19.2-recommended": "1.10.6",
-    "1.18.2-recommended": "1.10.6",
+    "1.19.4-recommended": "1.10.7",
+    "1.19.2-recommended": "1.10.7",
+    "1.18.2-recommended": "1.10.7",
     "1.16.5-recommended": "1.5.1"
   },
   "1.18.2": {
+    "1.10.7": "fixed crash in teeam list // fixed log spamm // buffed horse units // added back to mount command // improved recruit follow // ",
     "1.10.6": "added pages to team list // added notification for requested team join // fixed bowman melee range//  fixed horse units have no hitbox when moving // fixed pathfinder does not avoid water",
     "1.10.5": "added mount button to recruit inventory // added holding recruits that where copied will now hold the position that they are spawned with the spawn egg // update languages tr, de, en // fixed quick drag issues // fixed holding recruits will not walk towards close targets // improved melee AI",
     "1.10.4": "added strategic fire to crossbowman(also with muskets), fixed localisations, fixed melee ai",
@@ -28,7 +29,8 @@
     "1.9.1": "fixed texture for villager model.",
     "1.9.0": "Team Screen, Hail of Arrows, Upkeep, Configurations and more!"
   },
-  "1.19.2": 
+  "1.19.2": {
+    "1.10.7": "fixed crash in teeam list // fixed log spamm // buffed horse units // added back to mount command // improved recruit follow // ",
     "1.10.6": "added pages to team list // added notification for requested team join // fixed bowman melee range//  fixed horse units have no hitbox when moving // fixed pathfinder does not avoid water",
     "1.10.5": "added mount button to recruit inventory // added holding recruits that where copied will now hold the position that they are spawned with the spawn egg // update languages tr, de, en // fixed quick drag issues // fixed holding recruits will not walk towards close targets // improved melee AI",
     "1.10.4": "added strategic fire to crossbowman(also with muskets), fixed localisations, fixed melee ai",
@@ -49,6 +51,7 @@
     "1.9.2": "added modded armor support."
   },
   "1.19.4": { 
+    "1.10.7": "fixed crash in teeam list // fixed log spamm // buffed horse units // added back to mount command // improved recruit follow // ",
     "1.10.6": "added pages to team list // added notification for requested team join // fixed bowman melee range//  fixed horse units have no hitbox when moving // fixed pathfinder does not avoid water",
     "1.10.5": "added mount button to recruit inventory // added holding recruits that where copied will now hold the position that they are spawned with the spawn egg // update languages tr, de, en // fixed quick drag issues // fixed holding recruits will not walk towards close targets // improved melee AI",
     "1.10.4": "added strategic fire to crossbowman(also with muskets), fixed localisations, fixed melee ai",
