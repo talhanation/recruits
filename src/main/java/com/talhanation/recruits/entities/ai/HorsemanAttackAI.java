@@ -107,8 +107,8 @@ public class HorsemanAttackAI extends Goal {
 
             if (horseman.distanceToSqr(entity) < 3F) {
                 if(horseman.canAttack(entity) && !entity.equals(horseman) && entity.getVehicle() == null){
-                   entity.knockback(0.75, (double) Mth.sin(this.horseman.getYRot() * ((float)Math.PI / 180F)), (double)(-Mth.cos(this.horseman.getYRot() * ((float)Math.PI / 180F))));
-                   entity.hurt(DamageSource.mobAttack(this.horseman), 0.5F);;
+                   entity.knockback(0.85, (double) Mth.sin(this.horseman.getYRot() * ((float)Math.PI / 180F)), (double)(-Mth.cos(this.horseman.getYRot() * ((float)Math.PI / 180F))));
+                   entity.hurt(DamageSource.mobAttack(this.horseman), 1F);;
                 }
             }
         }
