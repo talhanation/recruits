@@ -38,6 +38,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TOOLTIP_HOLD_MY_POS = new TranslatableComponent("gui.recruits.command.tooltip.holdMyPos");
     private static final MutableComponent TOOLTIP_HOLD_POS = new TranslatableComponent("gui.recruits.command.tooltip.holdPos");
     private static final MutableComponent TOOLTIP_BACK_TO_POS = new TranslatableComponent("gui.recruits.command.tooltip.backToPos");
+    private static final MutableComponent TOOLTIP_BACK_TO_MOUNT = new TranslatableComponent("gui.recruits.command.tooltip.backToMount");
     private static final MutableComponent TOOLTIP_PASSIVE = new TranslatableComponent("gui.recruits.command.tooltip.passive");
     private static final MutableComponent TOOLTIP_NEUTRAL = new TranslatableComponent("gui.recruits.command.tooltip.neutral");
     private static final MutableComponent TOOLTIP_AGGRESSIVE = new TranslatableComponent("gui.recruits.command.tooltip.aggressive");
@@ -56,6 +57,8 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TEXT_HOLD_MY_POS = new TranslatableComponent("gui.recruits.command.text.holdMyPos");
     private static final MutableComponent TEXT_HOLD_POS = new TranslatableComponent("gui.recruits.command.text.holdPos");
     private static final MutableComponent TEXT_BACK_TO_POS = new TranslatableComponent("gui.recruits.command.text.backToPos");
+
+    private static final MutableComponent TEXT_BACK_TO_MOUNT = new TranslatableComponent("gui.recruits.command.text.backToMount");
 
     private static final MutableComponent TEXT_PASSIVE = new TranslatableComponent("gui.recruits.command.text.passive");
     private static final MutableComponent TEXT_NEUTRAL = new TranslatableComponent("gui.recruits.command.text.neutral");
@@ -106,7 +109,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         ));
 
         //Dismount
-        addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_DISMOUNT,
+        addRenderableWidget(new Button(zeroLeftPos - mirror + 40, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_DISMOUNT,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(98, player, group);
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageDismount(player.getUUID(), group));
@@ -116,8 +119,19 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 }
         ));
 
+        //Back To Mount
+        addRenderableWidget(new Button(zeroLeftPos - 40, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_BACK_TO_MOUNT,
+                button -> {
+                    CommandEvents.sendFollowCommandInChat(91, player, group);
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageBackToMountEntity(player.getUUID(), group));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_BACK_TO_MOUNT, i, i1);
+                }
+        ));
+
         //Mount
-        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_MOUNT,
+        addRenderableWidget(new Button(zeroLeftPos + 40 + 10, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_MOUNT,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(99, player, group);
                     Entity entity = ClientEvent.getEntityByLooking();
@@ -197,7 +211,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         ));
 
         //PROTECT
-        addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_PROTECT,
+        addRenderableWidget(new Button(zeroLeftPos - mirror - 50, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_PROTECT,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(5, player, group);
                     Entity entity = ClientEvent.getEntityByLooking();

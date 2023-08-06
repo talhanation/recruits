@@ -82,6 +82,7 @@
   "gui.recruits.command.tooltip.holdMyPos": "Lassen Sie die Rekruten Ihre aktuelle Position halten.",
   "gui.recruits.command.tooltip.holdPos": "Lassen Sie die Rekruten ihre aktuelle Position halten.",
   "gui.recruits.command.tooltip.backToPos": "Lassen Sie die Rekruten zu ihrer zuvor gehaltenen Position zurückkehren.",
+  "gui.recruits.command.tooltip.backToMount": "Lassen Sie die Rekruten zurück zu ihrem vorherigen Transportmittel.",
   "gui.recruits.command.tooltip.patrol": "Lassen Sie die Rekruten ihre zuvor gehaltene Position patrouillieren.",
   "gui.recruits.command.tooltip.clearTargets": "Löscht die aktuellen Angriffsziele der Rekruten.",
   "gui.recruits.command.tooltip.protect": "Lassen Sie die Rekruten den Mob, den Sie betrachten, schützen und verfolgen.",
@@ -118,6 +119,7 @@
   "gui.recruits.command.text.holdMyPos": "Halte meine Position!",
   "gui.recruits.command.text.holdPos": "Halte deine Position!",
   "gui.recruits.command.text.backToPos": "Zurück zur Position!",
+  "gui.recruits.command.text.backToMount": "Zurück zum Transportmittel!",
   "gui.recruits.command.text.patrol": "Patrouillieren!",
   "gui.recruits.command.text.clearTargets": "Ziele vergessen!",
   "gui.recruits.command.text.passive": "Passiv!",
@@ -143,6 +145,7 @@
   "chat.recruits.command.holdMyPos": "%s Halte meine Position!",
   "chat.recruits.command.holdPos": "%s Halte deine Position!",
   "chat.recruits.command.backToPos": "%s Zurück zu deiner Position!",
+  "chat.recruits.command.backToMount": "%s Zurück zum Transportmittel!",
   "chat.recruits.command.patrol": "%s Patrouilliere!",
   "chat.recruits.command.clearTargets": "%s Lösche Ziele!",
   "chat.recruits.command.passive": "%s Bleib passiv!",
@@ -161,11 +164,12 @@
   "chat.recruits.text.noPlaceInInv": "%s: Es gibt keinen Platz, um Nahrung aus meinem Inventar zu lagern.",
   "chat.recruits.text.cantInteract": "%s: An der Position gibt es kein Inventar, mit dem ich interagieren kann. Ich suche nach einem neuen.",
   "chat.recruits.text.findMeNewChest": "%s: Ich konnte keine anderen bedienbaren Inventare finden. Bitte weise mir meine Versorgung erneut zu.",
+  "chat.recruits.text.cantFindEntity": "%s: Es gibt kein Mob in der Nähe. Bitte ordne mir erneut meine Versorgung zu.",
   "chat.recruits.text.recruited1": "%s: Du gehst einen ehrenhaften Weg.",
   "chat.recruits.text.recruited2": "%s: Wie kann ich dir helfen?",
   "chat.recruits.text.recruited3": "%s: Dein Weg ist auch meiner. Ich fühle mich geehrt.",
   "chat.recruits.text.protect_died": "%s: Der geschützte Mob wurde getötet.",
-  "chat.recruits.text.noMount": "%s: Es gibt kein Mob oder Fahrzeug in meiner Nähe!",
+  "chat.recruits.text.noMount": "%s: Es gibt kein Transportmittel in meiner Nähe!",
 
   "chat.recruits.text.hire_costs": "%s: Du benötigst %s %s, um mich anzuwerben!",
   "chat.recruits.info.reached_max": "Du hast das maximale Limit erreicht, das du anwerben kannst.",
@@ -211,6 +215,7 @@
   "recruits": "Recruits",
 
   "key.recruits.r_key": "Öffne den Kommando-Bildschirm",
+
   "key.recruits.u_key": "Öffne den Team-Bildschirm",
   "gui.recruits.team_creation.sendJoinRequest": "Du hast eine Beitrittsanfrage an %s gesendet."
 }

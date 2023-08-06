@@ -1640,12 +1640,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         CELEBRATING,
         NEUTRAL;
     }
-
-    public void clearMount() {
-        this.setShouldMount(false);
-        this.setMountUUID(Optional.empty());
-    }
-
     public int getUpkeepCooldown() {
         return 3000;
     }

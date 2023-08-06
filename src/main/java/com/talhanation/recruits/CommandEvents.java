@@ -190,6 +190,7 @@ public class CommandEvents {
             case 4 -> owner.sendMessage(TEXT_HOLD_MY_POS(group_string), owner.getUUID());
             case 5 -> owner.sendMessage(TEXT_PROTECT(group_string), owner.getUUID());
 
+            case 91 -> owner.sendMessage(TEXT_BACK_TO_MOUNT(group_string), owner.getUUID());
             case 92 -> owner.sendMessage(TEXT_UPKEEP(group_string), owner.getUUID());
             case 93 -> owner.sendMessage(TEXT_SHIELDS_OFF(group_string), owner.getUUID());
             case 94 -> owner.sendMessage(TEXT_STRATEGIC_FIRE_OFF(group_string), owner.getUUID());
@@ -216,6 +217,11 @@ public class CommandEvents {
     private static MutableComponent TEXT_BACK_TO_POS(String group_string) {
         return new TranslatableComponent("chat.recruits.command.backToPos", group_string);
     }
+
+    private static MutableComponent TEXT_BACK_TO_MOUNT(String group_string) {
+        return new TranslatableComponent("chat.recruits.command.backToMount", group_string);
+    }
+
 
     private static MutableComponent TEXT_HOLD_MY_POS(String group_string) {
         return new TranslatableComponent("chat.recruits.command.holdMyPos", group_string);
@@ -369,7 +375,8 @@ public class CommandEvents {
 
     public static void onMountButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID mount_uuid, int group) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
-            recruit.shouldMount(true, mount_uuid);
+            if(mount_uuid != null) recruit.shouldMount(true, mount_uuid);
+            else if(recruit.getMountUUID() != null) recruit.shouldMount(true, recruit.getMountUUID());
         }
     }
 

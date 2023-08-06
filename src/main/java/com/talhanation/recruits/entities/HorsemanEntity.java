@@ -29,6 +29,7 @@ import net.minecraft.world.level.ServerLevelAccessor;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public class HorsemanEntity extends RecruitShieldmanEntity {
@@ -129,6 +130,7 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
                 this.startRiding(horse);
                 this.level.addFreshEntity(horse);
                 this.setHadHorse(true);
+                this.setMountUUID(Optional.of(horse.getUUID()));
             }
         }
     }
