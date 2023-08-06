@@ -26,6 +26,7 @@ import net.minecraftforge.client.gui.widget.ExtendedButton;
 public class CommandScreen extends ScreenBase<CommandMenu> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/command_gui.png");
+
     private static final MutableComponent TOOLTIP_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.tooltip.strategic_fire");
     private static final MutableComponent TOOLTIP_DISMOUNT = Component.translatable("gui.recruits.command.tooltip.dismount");
     private static final MutableComponent TOOLTIP_MOUNT = Component.translatable("gui.recruits.command.tooltip.mount");
@@ -37,6 +38,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TOOLTIP_HOLD_MY_POS = Component.translatable("gui.recruits.command.tooltip.holdMyPos");
     private static final MutableComponent TOOLTIP_HOLD_POS = Component.translatable("gui.recruits.command.tooltip.holdPos");
     private static final MutableComponent TOOLTIP_BACK_TO_POS = Component.translatable("gui.recruits.command.tooltip.backToPos");
+	private static final MutableComponent TOOLTIP_BACK_TO_MOUNT = new TranslatableComponent("gui.recruits.command.tooltip.backToMount");
     private static final MutableComponent TOOLTIP_PASSIVE = Component.translatable("gui.recruits.command.tooltip.passive");
     private static final MutableComponent TOOLTIP_NEUTRAL = Component.translatable("gui.recruits.command.tooltip.neutral");
     private static final MutableComponent TOOLTIP_AGGRESSIVE = Component.translatable("gui.recruits.command.tooltip.aggressive");
@@ -55,7 +57,8 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TEXT_HOLD_MY_POS = Component.translatable("gui.recruits.command.text.holdMyPos");
     private static final MutableComponent TEXT_HOLD_POS = Component.translatable("gui.recruits.command.text.holdPos");
     private static final MutableComponent TEXT_BACK_TO_POS = Component.translatable("gui.recruits.command.text.backToPos");
-
+	private static final MutableComponent TEXT_BACK_TO_MOUNT = new TranslatableComponent("gui.recruits.command.text.backToMount");
+		
     private static final MutableComponent TEXT_PASSIVE = Component.translatable("gui.recruits.command.text.passive");
     private static final MutableComponent TEXT_NEUTRAL = Component.translatable("gui.recruits.command.text.neutral");
     private static final MutableComponent TEXT_AGGRESSIVE = Component.translatable("gui.recruits.command.text.aggressive");
@@ -64,6 +67,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TEXT_CLEAR_TARGET = Component.translatable("gui.recruits.command.text.clearTargets");
     private static final MutableComponent TEXT_UPKEEP = Component.translatable("gui.recruits.command.text.upkeep");
     private static final MutableComponent TEXT_TEAM = Component.translatable("gui.recruits.command.text.team");
+
     private static final int fontColor = 16250871;
     private final Player player;
     private int group;
@@ -103,7 +107,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         addRenderableWidget(buttonTeamScreen);
 
         //Dismount
+
         ExtendedButton buttonDismount = new ExtendedButton(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_DISMOUNT,
+
+        addRenderableWidget(new Button(zeroLeftPos - mirror + 40, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_DISMOUNT,
+
                 button -> {
                     CommandEvents.sendFollowCommandInChat(98, player, group);
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageDismount(player.getUUID(), group));
@@ -111,8 +119,23 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         buttonDismount.setTooltip(Tooltip.create(TOOLTIP_DISMOUNT));
         addRenderableWidget(buttonDismount);
 
+        //Back To Mount
+        addRenderableWidget(new Button(zeroLeftPos - 40, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_BACK_TO_MOUNT,
+                button -> {
+                    CommandEvents.sendFollowCommandInChat(91, player, group);
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageBackToMountEntity(player.getUUID(), group));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_BACK_TO_MOUNT, i, i1);
+                }
+        ));
+
         //Mount
+
         ExtendedButton buttonMount = new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_MOUNT,
+
+        addRenderableWidget(new Button(zeroLeftPos + 40 + 10, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_MOUNT,
+
                 button -> {
                     CommandEvents.sendFollowCommandInChat(99, player, group);
                     Entity entity = ClientEvent.getEntityByLooking();
@@ -182,7 +205,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         addRenderableWidget(buttonShields);
 
         //PROTECT
+
         ExtendedButton buttonProtect = new ExtendedButton(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_PROTECT,
+
+        addRenderableWidget(new Button(zeroLeftPos - mirror - 50, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_PROTECT,
+		
                 button -> {
                     CommandEvents.sendFollowCommandInChat(5, player, group);
                     Entity entity = ClientEvent.getEntityByLooking();
