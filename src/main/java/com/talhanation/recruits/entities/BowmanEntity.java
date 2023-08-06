@@ -3,6 +3,8 @@ package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.IStrategicFire;
 import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.entities.ai.RecruitMeleeAttackGoal;
+import com.talhanation.recruits.entities.ai.RecruitMoveTowardsTargetGoal;
 import com.talhanation.recruits.entities.ai.RecruitStrategicFire;
 import com.talhanation.recruits.entities.ai.RecruitRangedBowAttackGoal;
 import net.minecraft.core.BlockPos;
@@ -84,6 +86,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
         super.registerGoals();
         this.goalSelector.addGoal(2, new RecruitStrategicFire(this, 10, 20));
         this.goalSelector.addGoal(3, new RecruitRangedBowAttackGoal<>(this, 1.15D, 10, 20, 44.0F, getMeleeStartRange()));
+        this.goalSelector.addGoal(8, new RecruitMoveTowardsTargetGoal(this, 1.15D, (float) this.getMeleeStartRange()));
     }
     @Override
     public double getMeleeStartRange() {

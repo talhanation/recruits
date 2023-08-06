@@ -3,6 +3,7 @@ package com.talhanation.recruits.entities;
 import com.talhanation.recruits.IStrategicFire;
 import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.entities.ai.RecruitMoveTowardsTargetGoal;
 import com.talhanation.recruits.entities.ai.RecruitRangedCrossbowAttackGoal;
 import com.talhanation.recruits.entities.ai.compat.RecruitRangedMusketAttackGoal;
 import net.minecraft.core.BlockPos;
@@ -92,6 +93,7 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
             this.goalSelector.addGoal(0, new RecruitRangedMusketAttackGoal(this, this.getMeleeStartRange()));
         }
         this.goalSelector.addGoal(0, new RecruitRangedCrossbowAttackGoal(this, this.getMeleeStartRange()));
+        this.goalSelector.addGoal(8, new RecruitMoveTowardsTargetGoal(this, 1.15D, (float) this.getMeleeStartRange()));
     }
 
 
