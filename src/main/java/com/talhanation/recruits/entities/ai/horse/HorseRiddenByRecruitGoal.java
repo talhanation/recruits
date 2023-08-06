@@ -27,7 +27,7 @@ public class HorseRiddenByRecruitGoal extends Goal {
             speed = this.horse.getAttribute(Attributes.MOVEMENT_SPEED).getValue();
             this.horse.getPersistentData().putDouble("oldSpeed", speed);
         }
-        this.horse.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.225  + speed);
+        this.horse.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.255  + speed);
     }
 
     @Override
