@@ -136,7 +136,6 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
                         case SHOOT -> {
                             if (pos != null) {
                                 double distance = this.crossBowman.distanceToSqr(pos.getX(), pos.getY(), pos.getZ());
-                                Main.LOGGER.info("distance: " + distance);
                                 this.weapon.performRangedAttackIWeapon(this.crossBowman, pos.getX(), pos.getY() + distance * 0.0025, pos.getZ(), weapon.getProjectileSpeed());
                                 CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), false);
                             }
