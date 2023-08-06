@@ -2,7 +2,7 @@ license="${mod_license}"
 modLoader="javafml"
 modId="recruits"
 
-version="1.10.6"
+version="1.10.7"
 
 displayName="Recruits Mod"
 updateJSONURL="https://raw.githubusercontent.com/talhanation/recruits/main/update.json"
