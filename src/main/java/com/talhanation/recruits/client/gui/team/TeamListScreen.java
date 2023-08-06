@@ -25,7 +25,7 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
     public List<PlayerTeam> teams;
     private int leftPos;
     private int topPos;
-    private int page;
+    private int page = 1;
     private static final MutableComponent TEAMS_LIST = new TranslatableComponent("gui.recruits.team_creation.teams_list");
     private static final MutableComponent NO_TEAMS = new TranslatableComponent("gui.recruits.team_creation.no_teams");
 
