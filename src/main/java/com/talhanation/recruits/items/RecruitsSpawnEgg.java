@@ -65,8 +65,10 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
 
                 if (nbt.contains("Team")) {
                     String s = nbt.getString("Team");
+
                     PlayerTeam playerteam = recruit.getCommandSenderWorld().getScoreboard().getPlayerTeam(s);
                     boolean flag = playerteam != null && recruit.getCommandSenderWorld().getScoreboard().addPlayerToTeam(recruit.getStringUUID(), playerteam);
+
                     if (!flag) {
                         Main.LOGGER.warn("Unable to add mob to team \"{}\" (that team probably doesn't exist)", (Object)s);
                     }

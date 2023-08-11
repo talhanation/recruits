@@ -15,6 +15,7 @@ import com.talhanation.recruits.network.MessageAddRecruitToTeam;
 import com.talhanation.recruits.network.MessageDebugScreen;
 import com.talhanation.recruits.network.MessageHireGui;
 import com.talhanation.recruits.network.MessageRecruitGui;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -1578,8 +1579,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         else{
             Team team = this.getTeam();
             if(team != null){ //TODO: add config
+
                 PlayerTeam recruitTeam = this.getCommandSenderWorld().getScoreboard().getPlayerTeam(team.getName());
                 this.getCommandSenderWorld().getScoreboard().removePlayerFromTeam(this.getStringUUID(), recruitTeam);
+
             }
             needsTeamUpdate = false;
         }
