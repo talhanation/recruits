@@ -15,6 +15,7 @@ import com.talhanation.recruits.network.MessageAddRecruitToTeam;
 import com.talhanation.recruits.network.MessageDebugScreen;
 import com.talhanation.recruits.network.MessageHireGui;
 import com.talhanation.recruits.network.MessageRecruitGui;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -116,6 +117,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         super(entityType, world);
         this.xpReward = 6;
         this.navigation = this.createNavigation(world);
+        this.updateTeam();
     }
 
     ///////////////////////////////////NAVIGATION/////////////////////////////////////////
@@ -220,8 +222,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             return this.canAttack(target) && !(target instanceof Creeper) && (this.getState() != 3);
         }));
         this.targetSelector.addGoal(7, new RecruitDefendVillageGoal(this));
-
-        this.updateTeam();
     }
 
     protected void defineSynchedData() {
@@ -655,7 +655,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.recalculateCost();
         if (this.getTeam() != null) Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
 
-        this.updateTeam();
+        //this.updateTeam();//TODO: Add config
     }
 
 
@@ -1581,11 +1581,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
         else{
             Team team = this.getTeam();
-            if(team != null){
+            if(team != null){ //TODO: add config
                 PlayerTeam recruitTeam = this.level.getScoreboard().getPlayerTeam(team.getName());
                 this.level.getScoreboard().removePlayerFromTeam(this.getStringUUID(), recruitTeam);
-                needsTeamUpdate = false;
             }
+            needsTeamUpdate = false;
         }
     }
 
