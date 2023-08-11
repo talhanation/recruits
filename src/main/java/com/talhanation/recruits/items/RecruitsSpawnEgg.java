@@ -60,16 +60,17 @@ public class RecruitsSpawnEgg extends SpawnEggItem {
 
             CompoundTag entityTag = stack.getTag();
             if(entity instanceof AbstractRecruitEntity recruit && entityTag != null) {
-                if (entityTag.contains("Team", 8)) {
-                    String s = entityTag.getString("Team");
+                CompoundTag nbt = entityTag.getCompound("EntityTag");
+
+
+                if (nbt.contains("Team")) {
+                    String s = nbt.getString("Team");
                     PlayerTeam playerteam = recruit.level.getScoreboard().getPlayerTeam(s);
                     boolean flag = playerteam != null && recruit.level.getScoreboard().addPlayerToTeam(recruit.getStringUUID(), playerteam);
                     if (!flag) {
                         Main.LOGGER.warn("Unable to add mob to team \"{}\" (that team probably doesn't exist)", (Object)s);
                     }
                 }
-
-                CompoundTag nbt = entityTag.getCompound("EntityTag");
                 String name = nbt.getString("Name");
                 recruit.setCustomName(new TextComponent(name));
 
