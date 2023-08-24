@@ -38,7 +38,7 @@ public class MessageRecruitGui implements Message<MessageRecruitGui> {
         }
 
         ServerPlayer player = context.getSender();
-        player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
+        player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
                         .inflate(16.0D), v -> v
                         .getUUID()
                         .equals(this.recruit))

@@ -29,7 +29,7 @@ public class MessageHire implements Message<MessageHire> {
     public void executeServerSide(NetworkEvent.Context context){
 
         ServerPlayer player = context.getSender();
-        player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
+        player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
                 .inflate(16.0D), v -> v
                 .getUUID()
                 .equals(this.recruit))

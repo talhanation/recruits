@@ -6,6 +6,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.inventory.TeamListContainer;
 import com.talhanation.recruits.network.MessageSendJoinRequestTeam;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -68,24 +69,24 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
         }
     }
 
-    protected void render(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+    protected void render(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
-        this.blit(matrixStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
+        guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
     }
 
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
-        super.renderLabels(matrixStack, mouseX, mouseY);
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        super.renderLabels(guiGraphics, mouseX, mouseY);
         // Info
         int fontColor = 4210752;
         int teamFontColor = 4210752;
 
         if(teams.size() > 9)
-            font.draw(matrixStack, "Page: " + page, 140, 11, fontColor);
+            guiGraphics.drawString(font, "Page: " + page, 140, 11, fontColor, false);
 
-        font.draw(matrixStack, TEAMS_LIST.getString(), 18, 11, fontColor);
+        guiGraphics.drawString(font, TEAMS_LIST.getString(), 18, 11, fontColor, false);
         int teamsPerPage = 9;
         int startIndex = Math.max((page - 1) * teamsPerPage, 0); // Ensure startIndex is not negative
         int endIndex = Math.min(startIndex + teamsPerPage, teams.size());
@@ -104,11 +105,11 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
                 int x = 18;
                 int y = 32 + (23 * (i - startIndex));
 
-                font.draw(matrixStack, name, x, y, teamFontColor);
-                font.draw(matrixStack, "" + players, x + 70, y, teamFontColor);
+                guiGraphics.drawString(font, name, x, y, teamFontColor, false);
+                guiGraphics.drawString(font, "" + players, x + 70, y, teamFontColor, false);
             }
         } else {
-            font.draw(matrixStack, NO_TEAMS, 20, 26, fontColor);
+            guiGraphics.drawString(font, NO_TEAMS, 20, 26, fontColor, false);
         }
     }
 

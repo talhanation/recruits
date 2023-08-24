@@ -8,6 +8,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
@@ -269,10 +270,11 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     }
 
 
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
-        super.renderLabels(matrixStack, mouseX, mouseY);
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        super.renderLabels(guiGraphics, mouseX, mouseY);
         int health = Mth.ceil(recruit.getHealth());
         int moral = Mth.ceil(recruit.getMoral());
+        int hunger = Mth.ceil(recruit.getHunger());
         this.follow = recruit.getFollowState();
         this.aggro = recruit.getState();
 
@@ -280,20 +282,24 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         int l = 19;//höhe
 
         //Titles
-        font.draw(matrixStack, recruit.getDisplayName().getVisualOrderText(), 8, 5, fontColor);
-        font.draw(matrixStack, playerInventory.getDisplayName().getVisualOrderText(), 8, this.imageHeight - 96 + 2, fontColor);
+        guiGraphics.drawString(font, recruit.getDisplayName().getVisualOrderText(), 8, 5, fontColor, false);
+        guiGraphics.drawString(font, playerInventory.getDisplayName().getVisualOrderText(), 8, this.imageHeight - 96 + 2, fontColor, false);
+
 
         //Info
-        font.draw(matrixStack, "Hp:", k, l, fontColor);
-        font.draw(matrixStack, "" + health, k + 25, l , fontColor);
-        font.draw(matrixStack, "Lvl:", k , l  + 10, fontColor);
-        font.draw(matrixStack, "" + recruit.getXpLevel(), k + 25 , l + 10, fontColor);
-        font.draw(matrixStack, "Exp:", k, l + 20, fontColor);
-        font.draw(matrixStack, "" + recruit.getXp(), k + 25, l + 20, fontColor);
-        font.draw(matrixStack, "Kls:", k, l + 30, fontColor);
-        font.draw(matrixStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
-        font.draw(matrixStack, "Mrl:", k, l + 40, fontColor);
-        font.draw(matrixStack, ""+ moral, k + 25, l + 40, fontColor);
+        guiGraphics.drawString(font, "Hp:", k, l, fontColor, false);
+        guiGraphics.drawString(font, "" + health, k + 25, l, fontColor, false);
+        guiGraphics.drawString(font, "Lvl:", k, l + 10, fontColor, false);
+        guiGraphics.drawString(font, "" + recruit.getXpLevel(), k + 25, l + 10, fontColor, false);
+        guiGraphics.drawString(font, "Exp:", k, l + 20, fontColor, false);
+        guiGraphics.drawString(font, "" + recruit.getXp(), k + 25, l + 20, fontColor, false);
+        guiGraphics.drawString(font, "Kills:", k, l + 30, fontColor, false);
+        guiGraphics.drawString(font, "" + recruit.getKills(), k + 25, l + 30, fontColor, false);
+        guiGraphics.drawString(font, "Morale:", k, l + 40, fontColor, false);
+        guiGraphics.drawString(font, "" + moral, k + 25, l + 40, fontColor, false);
+        guiGraphics.drawString(font, "Hunger:", k, l + 50, fontColor, false);
+        guiGraphics.drawString(font, "" + hunger, k + 25, l + 50, fontColor, false);
+
         /*
         font.draw(matrixStack, "Moral:", k, l + 30, fontColor);
         font.draw(matrixStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
@@ -307,7 +313,8 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
             case 5 -> TEXT_INFO_PROTECT.getString();
             default -> throw new IllegalStateException("Unexpected value: " + this.follow);
         };
-        font.draw(matrixStack, follow, k + 15, l + 58 + 0, fontColor);
+        guiGraphics.drawString(font, follow, k + 15, l + 58 + 0, fontColor, false);
+
 
         String aggro = switch (this.aggro) {
             case 0 -> TEXT_INFO_NEUTRAL.getString();
@@ -316,23 +323,24 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
             case 3 -> TEXT_INFO_PASSIVE.getString();
             default -> throw new IllegalStateException("Unexpected value: " + this.aggro);
         };
-        font.draw(matrixStack, aggro, k + 15, l + 56 + 15, fontColor);
+        guiGraphics.drawString(font, aggro, k + 15, l + 56 + 15, fontColor, false);
+        guiGraphics.drawString(font, CommandScreen.handleGroupText(recruit.getGroup()), k + 15, l + 56 + 28, fontColor, false);
 
-        font.draw(matrixStack, CommandScreen.handleGroupText(recruit.getGroup()), k + 15, l + 56 + 28, fontColor);
 
         String listen;
         if (recruit.getListen()) listen = TEXT_INFO_LISTEN.getString();
         else listen = TEXT_INFO_IGNORE.getString();
-        font.draw(matrixStack, listen, k + 15, l + 56 + 41, fontColor);
+        guiGraphics.drawString(font, listen, k + 15, l + 56 + 41, fontColor, false);
+
     }
 
-    protected void renderBg(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
-        super.renderBg(poseStack, partialTicks, mouseX, mouseY);
+    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+        super.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
 
         RenderSystem.clearColor(1.0F, 1.0F, 1.0F, 1.0F);
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
 
-        InventoryScreen.renderEntityInInventoryFollowsMouse(poseStack, i + 50, j + 82, 30, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.recruit);
+        InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, i + 50, j + 82, 30, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.recruit);
     }
 }

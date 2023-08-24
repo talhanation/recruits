@@ -37,7 +37,7 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer serverPlayer = context.getSender();
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
+        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
 
         for (AbstractRecruitEntity recruitEntity : list) {
             if(recruitEntity.getUUID().equals(this.recruit)) {

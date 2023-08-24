@@ -40,7 +40,7 @@ public class PatrolLeaderTargetAttackers extends TargetGoal {
     }
     @Nullable
     public LivingEntity getPatrollersTarget(){
-        List<AbstractRecruitEntity> list = patrolLeader.level.getEntitiesOfClass(AbstractRecruitEntity.class, patrolLeader.getBoundingBox().inflate(32D));
+        List<AbstractRecruitEntity> list = patrolLeader.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, patrolLeader.getBoundingBox().inflate(32D));
         for(AbstractRecruitEntity patrols : list){
             if (patrols.getUUID().equals(patrolLeader.getProtectUUID()) && patrols.isAlive() && patrols.getTarget() != null){
                 return patrols.getTarget();

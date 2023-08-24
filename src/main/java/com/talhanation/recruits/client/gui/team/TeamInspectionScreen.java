@@ -9,6 +9,7 @@ import com.talhanation.recruits.inventory.TeamInspectionContainer;
 import com.talhanation.recruits.network.MessageLeaveTeam;
 import com.talhanation.recruits.network.MessageOpenTeamAddPlayerScreen;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
@@ -95,52 +96,52 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
         }));
     }
 
-    protected void render(PoseStack matrixStack, int partialTicks, int mouseX, int mouseY) {
-        super.render(matrixStack, partialTicks, mouseX, mouseY);
+    protected void render(GuiGraphics guiGraphics, int partialTicks, int mouseX, int mouseY) {
+        super.render(guiGraphics, partialTicks, mouseX, mouseY);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
-        this.blit(matrixStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
+        guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
     }
 
-    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
+    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+        super.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
         //LoomScreen
         if(bannerItem != null) {
             int k = (int) (41.0F);//                                                 (this.displayPatterns ? 0 : 12)
-            this.blit(matrixStack, leftPos + 119, topPos + 13 + k, 232 + 0, 0, 12, 15);
+            guiGraphics.blit(texture, leftPos + 119, topPos + 13 + k, 232 + 0, 0, 12, 15);
             Lighting.setupForFlatItems();
 
             MultiBufferSource.BufferSource multibuffersource$buffersource = this.minecraft.renderBuffers().bufferSource();
-            matrixStack.pushPose();
-            matrixStack.translate((double) (leftPos) + 110, (double) (topPos) + 94, 0.0D);
-            matrixStack.scale(54.0F, -54.0F, 1.0F);
+            guiGraphics.pose().pushPose();
+            guiGraphics.pose().translate((double) (leftPos) + 110, (double) (topPos) + 94, 0.0D);
+            guiGraphics.pose().scale(54.0F, -54.0F, 1.0F);
             float f = 0.6666667F;
-            matrixStack.scale(f, -f, -f);
+            guiGraphics.pose().scale(f, -f, -f);
             this.flag.xRot = 0.0F;
             this.flag.y = -32.0F;
-            BannerRenderer.renderPatterns(matrixStack, multibuffersource$buffersource, 15728880, OverlayTexture.NO_OVERLAY, this.flag, ModelBakery.BANNER_BASE, true, this.resultBannerPatterns);
-            matrixStack.popPose();
+            BannerRenderer.renderPatterns(guiGraphics.pose(), multibuffersource$buffersource, 15728880, OverlayTexture.NO_OVERLAY, this.flag, ModelBakery.BANNER_BASE, true, this.resultBannerPatterns);
+            guiGraphics.pose().pushPose();
             multibuffersource$buffersource.endBatch();
         }
     }
 
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
-        super.renderLabels(matrixStack, mouseX, mouseY);
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        super.renderLabels(guiGraphics, mouseX, mouseY);
         //Info
         int fontColor = 4210752;
         int fontColorLeader;
         if(player.getTeam() != null && player.getTeam().getColor().getColor() != null) fontColorLeader = player.getTeam().getColor().getColor();
         else fontColorLeader = fontColor;
 
+        guiGraphics.drawString(font, "" + team.getName(), 90, 10, fontColor, false);
 
-        font.draw(matrixStack, "" + team.getName(), 90, 10, fontColor);
+        guiGraphics.drawString(font, "Leader:", 18, 25, fontColor, false);
+        guiGraphics.drawString(font, "" + leader, 18, 25 + 15, fontColorLeader, false);
 
-        font.draw(matrixStack, "Leader:", 18 , 25, fontColor);
-        font.draw(matrixStack, "" + leader, 18 ,  25 + 15, fontColorLeader);
+        guiGraphics.drawString(font, "Players:", 18, 116, fontColor, false);
 
-        font.draw(matrixStack, "Players:", 18  , 116, fontColor);
 
 
         int xOffset = 18;
@@ -155,17 +156,17 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
                 yPosition -= 12;
             }
 
-            font.draw(matrixStack, "- " + name, xPosition, yPosition, fontColor);
+            guiGraphics.drawString(font, "- " + name, xPosition, yPosition, fontColor, false);
         }
 
-        font.draw(matrixStack, "Members:",  135  ,  25, fontColor);
-        font.draw(matrixStack, "" + members, 135 + 50 , 25, fontColor);
+        guiGraphics.drawString(font, "Members:", 135, 25, fontColor, false);
+        guiGraphics.drawString(font, "" + members, 135 + 50, 25, fontColor, false);
 
-        font.draw(matrixStack, "Players:",  135, 40, fontColor);
-        font.draw(matrixStack, "" + players, 135 + 50, 40, fontColor);
+        guiGraphics.drawString(font, "Players:", 135, 40, fontColor, false);
+        guiGraphics.drawString(font, "" + players, 135 + 50, 40, fontColor, false);
 
-        font.draw(matrixStack, "NPCs:", 135  , 55, fontColor);
-        font.draw(matrixStack, "" + npcs, 135 + 50 , 55, fontColor);
+        guiGraphics.drawString(font, "NPCs:", 135, 55, fontColor, false);
+        guiGraphics.drawString(font, "" + npcs, 135 + 50, 55, fontColor, false);
     }
 
     private Button createEditButton(){

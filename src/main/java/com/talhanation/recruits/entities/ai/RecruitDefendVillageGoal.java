@@ -26,8 +26,8 @@ public class RecruitDefendVillageGoal extends TargetGoal {
 
     public boolean canUse() {
         AABB aabb = this.recruit.getBoundingBox().inflate(10.0D, 8.0D, 10.0D);
-        List<? extends LivingEntity> list = this.recruit.level.getNearbyEntities(Villager.class, this.attackTargeting, this.recruit, aabb);
-        List<Player> list1 = this.recruit.level.getNearbyPlayers(this.attackTargeting, this.recruit, aabb);
+        List<? extends LivingEntity> list = this.recruit.getCommandSenderWorld().getNearbyEntities(Villager.class, this.attackTargeting, this.recruit, aabb);
+        List<Player> list1 = this.recruit.getCommandSenderWorld().getNearbyPlayers(this.attackTargeting, this.recruit, aabb);
 
         for(LivingEntity livingentity : list) {
             Villager villager = (Villager)livingentity;

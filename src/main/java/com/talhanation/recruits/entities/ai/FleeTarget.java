@@ -28,7 +28,7 @@ public class FleeTarget extends Goal {
     @Override
     public void tick() {
         super.tick();
-        List<LivingEntity> list = entity.level.getEntitiesOfClass(LivingEntity.class, entity.getBoundingBox().inflate(32D));
+        List<LivingEntity> list = entity.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, entity.getBoundingBox().inflate(32D));
         if (!list.isEmpty()) {
             for (LivingEntity living : list) {
                 if (living.equals(this.entity.getTarget())) {

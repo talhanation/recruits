@@ -28,7 +28,7 @@ public class MessageClearTargetGui implements Message<MessageClearTargetGui> {
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
+        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
         for (AbstractRecruitEntity recruits : list) {
             if (recruits.getUUID().equals(this.recruit))
                 CommandEvents.onClearTargetButton(this.player, recruits,0);

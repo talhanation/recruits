@@ -44,7 +44,7 @@ public class RecruitPickupWantedItemGoal extends Goal{
     public void tick() {
         switch (state){
             case SEARCH -> {
-                List<ItemEntity> list = recruit.level.getEntitiesOfClass(ItemEntity.class, recruit.getBoundingBox().inflate(16.0D, 3.0D, 16.0D), recruit.getAllowedItems());
+                List<ItemEntity> list = recruit.getCommandSenderWorld().getEntitiesOfClass(ItemEntity.class, recruit.getBoundingBox().inflate(16.0D, 3.0D, 16.0D), recruit.getAllowedItems());
                 if (!list.isEmpty()) {
                     for(ItemEntity itemEntity : list){
                         if(recruit.distanceTo(itemEntity) < 25 && ((itemEntity.getItem().isEdible() && recruit.getHunger() < 30) || (recruit.wantsToPickUp(itemEntity.getItem())))){
@@ -71,10 +71,10 @@ public class RecruitPickupWantedItemGoal extends Goal{
             case MOVE -> {
                 if(itemEntity != null){
                     recruit.getNavigation().moveTo(itemEntity, 1F);
-                    recruit.maxUpStep = 1.25F;
+                    recruit.setMaxUpStep(1.25F);
                     if(recruit.distanceTo(itemEntity) < 3F) {
                         this.state = PICKUP;
-                        recruit.maxUpStep = 1F;
+                        recruit.setMaxUpStep(1F);
 
                     }
                 }

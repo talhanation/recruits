@@ -31,7 +31,7 @@ public class MessageAssignToTeamMate implements Message<MessageAssignToTeamMate>
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer serverPlayer = context.getSender();
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
+        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
 
         for (AbstractRecruitEntity recruit : list) {
                 if(recruit.getUUID().equals(this.recruit))

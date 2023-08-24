@@ -6,6 +6,8 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.network.MessageDebugGui;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -121,8 +123,8 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
     }
 
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
-        super.renderLabels(matrixStack, mouseX, mouseY);
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        super.renderLabels(guiGraphics, mouseX, mouseY);
         int health = Mth.ceil(recruit.getHealth());
         int maxHealth = Mth.ceil(recruit.getMaxHealth());
         int moral = Mth.ceil(recruit.getMoral());
@@ -138,45 +140,47 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
         int l = 15;//höhe
 
         //Titles
-        font.draw(matrixStack, recruit.getDisplayName().getVisualOrderText(), 8, 5, fontColor);
-        font.draw(matrixStack, playerInventory.getDisplayName().getVisualOrderText(), 8, imageHeight - 148 + 18, FONT_COLOR);
+        guiGraphics.drawString(font, recruit.getDisplayName().getVisualOrderText(), 8, 5, fontColor, false);
+        guiGraphics.drawString(font, playerInventory.getDisplayName().getVisualOrderText(), 8, imageHeight - 148 + 18, FONT_COLOR, false);
+
         //Info
-        font.draw(matrixStack, "Hp:", k, l, fontColor);
-        font.draw(matrixStack, "" + health, k + 25, l , fontColor);
+        guiGraphics.drawString(font, "Hp:", k, l, fontColor, false);
+        guiGraphics.drawString(font, "" + health, k + 25, l, fontColor, false);
 
-        font.draw(matrixStack, "Lvl:", k , l  + 10, fontColor);
-        font.draw(matrixStack, "" + recruit.getXpLevel(), k + 25 , l + 10, fontColor);
+        guiGraphics.drawString(font, "Lvl:", k, l + 10, fontColor, false);
+        guiGraphics.drawString(font, "" + recruit.getXpLevel(), k + 25, l + 10, fontColor, false);
 
-        font.draw(matrixStack, "Exp:", k, l + 20, fontColor);
-        font.draw(matrixStack, "" + recruit.getXp(), k + 25, l + 20, fontColor);
+        guiGraphics.drawString(font, "Exp:", k, l + 20, fontColor, false);
+        guiGraphics.drawString(font, "" + recruit.getXp(), k + 25, l + 20, fontColor, false);
 
-        font.draw(matrixStack, "Kills:", k, l + 30, fontColor);
-        font.draw(matrixStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
+        guiGraphics.drawString(font, "Kills:", k, l + 30, fontColor, false);
+        guiGraphics.drawString(font, "" + recruit.getKills(), k + 25, l + 30, fontColor, false);
 
-        font.draw(matrixStack, "Moral:", k, l + 40, fontColor);
-        font.draw(matrixStack, ""+ moral, k + 30, l + 40, fontColor);
+        guiGraphics.drawString(font, "Moral:", k, l + 40, fontColor, false);
+        guiGraphics.drawString(font, "" + moral, k + 30, l + 40, fontColor, false);
 
-        font.draw(matrixStack, "Hunger:", k, l + 50, fontColor);
-        font.draw(matrixStack, ""+ decimalformat.format(hunger), k + 40, l + 50, fontColor);
+        guiGraphics.drawString(font, "Hunger:", k, l + 50, fontColor, false);
+        guiGraphics.drawString(font, "" + decimalformat.format(hunger), k + 40, l + 50, fontColor, false);
 
-        font.draw(matrixStack, "Upkeep Pos:", k, l + 60, fontColor);
-        font.draw(matrixStack, ""+ recruit.getUpkeepPos(), k + 43 + 20, l + 60, fontColor);
+        guiGraphics.drawString(font, "Upkeep Pos:", k, l + 60, fontColor, false);
+        guiGraphics.drawString(font, "" + recruit.getUpkeepPos(), k + 43 + 20, l + 60, fontColor, false);
+
+        guiGraphics.drawString(font, "MaxHp:", k + 43 + 20, l, fontColor, false);
+        guiGraphics.drawString(font, "" + maxHealth, k + 77 + 20, l, fontColor, false);
+
+        guiGraphics.drawString(font, "Attack:", k + 43 + 20, l + 10, fontColor, false);
+        guiGraphics.drawString(font, "" + A_damage, k + 77 + 20, l + 10, fontColor, false);
+
+        guiGraphics.drawString(font, "Speed:", k + 43 + 20, l + 20, fontColor, false);
+        guiGraphics.drawString(font, "" + decimalformat.format(speed), k + 77 + 20, l + 20, fontColor, false);
+
+        guiGraphics.drawString(font, "Armor:", k + 43 + 20, l + 30, fontColor, false);
+        guiGraphics.drawString(font, "" + armor, k + 77 + 20, l + 30, fontColor, false);
+
+        guiGraphics.drawString(font, "Cost:", k + 43 + 20, l + 40, fontColor, false);
+        guiGraphics.drawString(font, "" + costs, k + 77 + 20, l + 40, fontColor, false);
 
 
-        font.draw(matrixStack, "MaxHp:", k + 43 + 20, l, fontColor);
-        font.draw(matrixStack, ""+ maxHealth, k + 77 + 20, l, fontColor);
-
-        font.draw(matrixStack, "Attack:", k + 43 + 20, l + 10, fontColor);
-        font.draw(matrixStack, ""+ A_damage, k + 77 + 20, l + 10, fontColor);
-
-        font.draw(matrixStack, "Speed:", k +43 + 20, l + 20, fontColor);
-        font.draw(matrixStack, ""+ decimalformat.format(speed), k + 77 + 20, l + 20, fontColor);
-
-        font.draw(matrixStack, "Armor:", k + 43 + 20, l + 30, fontColor);
-        font.draw(matrixStack, ""+ armor, k + 77 + 20, l + 30, fontColor);
-
-        font.draw(matrixStack, "Cost:", k + 43 + 20, l + 40, fontColor);
-        font.draw(matrixStack, ""+ costs, k + 77 + 20, l + 40, fontColor);
     }
 
     private int calculateADamage() {

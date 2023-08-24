@@ -38,7 +38,7 @@ public class MessageAssassinGui implements Message<MessageAssassinGui> {
         }
 
         ServerPlayer player = context.getSender();
-        player.level.getEntitiesOfClass(AssassinLeaderEntity.class, player.getBoundingBox()
+        player.getCommandSenderWorld().getEntitiesOfClass(AssassinLeaderEntity.class, player.getBoundingBox()
                         .inflate(16.0D), v -> v
                         .getUUID()
                         .equals(this.recruit))

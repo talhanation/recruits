@@ -15,7 +15,6 @@ import com.talhanation.recruits.network.MessageAddRecruitToTeam;
 import com.talhanation.recruits.network.MessageDebugScreen;
 import com.talhanation.recruits.network.MessageHireGui;
 import com.talhanation.recruits.network.MessageRecruitGui;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -40,8 +39,6 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.control.JumpControl;
-import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
@@ -65,7 +62,6 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.network.NetworkHooks;
@@ -428,7 +424,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public Player getOwner(){
         if (this.isOwned() && this.getOwnerUUID() != null){
             UUID ownerID = this.getOwnerUUID();
-            return level.getPlayerByUUID(ownerID);
+            return this.getCommandSenderWorld().getPlayerByUUID(ownerID);
         }
         else
             return null;
@@ -578,7 +574,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     @Nullable
     public LivingEntity getProtectingMob(){
-        List<LivingEntity> list = this.level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(32D));
+        List<LivingEntity> list = this.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(32D));
         for(LivingEntity living : list){
             if (this.getProtectUUID() != null && living.getUUID().equals(this.getProtectUUID()) && living.isAlive()){
                 return living;
@@ -891,7 +887,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         if(isPlayerTarget) return InteractionResult.PASS;
 
-        if (this.level.isClientSide) {
+        if (this.getCommandSenderWorld().isClientSide) {
             boolean flag = this.isOwnedBy(player) || this.isOwned() || !this.isOwned();
             return flag ? InteractionResult.CONSUME : InteractionResult.PASS;
         } else {
@@ -1107,7 +1103,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
 
         if (this.dead) {
-            if (!this.level.isClientSide && this.level.getGameRules().getBoolean(GameRules.RULE_SHOWDEATHMESSAGES) && this.getOwner() instanceof ServerPlayer) {
+            if (!this.getCommandSenderWorld().isClientSide && this.getCommandSenderWorld().getGameRules().getBoolean(GameRules.RULE_SHOWDEATHMESSAGES) && this.getOwner() instanceof ServerPlayer) {
                 this.getOwner().sendSystemMessage(deathMessage);
             }
         }
@@ -1273,7 +1269,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         if (this.getItemBySlot(EquipmentSlot.HEAD).isEmpty() && hasHeadArmor) {
             this.inventory.setItem(0, ItemStack.EMPTY);
-            this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+            this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.getCommandSenderWorld().random.nextFloat() * 0.4F);
             this.tryToReequip(EquipmentSlot.HEAD);
         }
 
@@ -1287,7 +1283,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
         if (this.getItemBySlot(EquipmentSlot.CHEST).isEmpty() && hasChestArmor) {
             this.inventory.setItem(1, ItemStack.EMPTY);
-            this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+            this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.getCommandSenderWorld().random.nextFloat() * 0.4F);
             this.tryToReequip(EquipmentSlot.CHEST);
         }
 
@@ -1302,7 +1298,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
         if (this.getItemBySlot(EquipmentSlot.LEGS).isEmpty() && hasLegsArmor) {
             this.inventory.setItem(2, ItemStack.EMPTY);
-            this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+            this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.getCommandSenderWorld().random.nextFloat() * 0.4F);
             this.tryToReequip(EquipmentSlot.LEGS);
         }
 
@@ -1319,7 +1315,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
         if (this.getItemBySlot(EquipmentSlot.FEET).isEmpty() && hasFeetArmor) {
             this.inventory.setItem(3, ItemStack.EMPTY);
-            this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+            this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.getCommandSenderWorld().random.nextFloat() * 0.4F);
             this.tryToReequip(EquipmentSlot.FEET);
         }
 
@@ -1341,7 +1337,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         if (this.getMainHandItem().isEmpty() && hasHandItem) {
             this.inventory.setItem(5, ItemStack.EMPTY);
-            this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+            this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.getCommandSenderWorld().random.nextFloat() * 0.4F);
             this.tryToReequip(EquipmentSlot.MAINHAND);
         }
     }
@@ -1355,7 +1351,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 this.inventory.removeItemNoUpdate(i);
                 Equipable equipable = Equipable.get(itemStack);
                 if(equipable != null)
-                    this.level.playSound(null, this.getX(), this.getY(), this.getZ(), equipable.getEquipSound(), this.getSoundSource(), 1.0F, 1.0F);
+                    this.getCommandSenderWorld().playSound(null, this.getX(), this.getY(), this.getZ(), equipable.getEquipSound(), this.getSoundSource(), 1.0F, 1.0F);
             }
         }
     }
@@ -1367,7 +1363,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 this.inventory.setItem(getInventorySlotIndex(EquipmentSlot.OFFHAND), itemStack);
                 Equipable equipable = Equipable.get(itemStack);
                 if(equipable != null)
-                    this.level.playSound(null, this.getX(), this.getY(), this.getZ(), equipable.getEquipSound(), this.getSoundSource(), 1.0F, 1.0F);
+                    this.getCommandSenderWorld().playSound(null, this.getX(), this.getY(), this.getZ(), equipable.getEquipSound(), this.getSoundSource(), 1.0F, 1.0F);
 
                 itemStack.shrink(1);
             }
@@ -1375,8 +1371,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     @Override
-    public boolean wasKilled(@NotNull ServerLevel level, @NotNull LivingEntity living) {
-        super.wasKilled(level, living);
+    public boolean killedEntity(@NotNull ServerLevel level, @NotNull LivingEntity living) {
+        super.killedEntity(level, living);
 
         this.addXp(5);
         this.setKills(this.getKills() + 1);
@@ -1428,7 +1424,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void disableShield() {
             this.blockCoolDown = this.getBlockCoolDown();
             this.stopUsingItem();
-            this.level.broadcastEntityEvent(this, (byte) 30);
+            this.getCommandSenderWorld().broadcastEntityEvent(this, (byte) 30);
     }
 
     public boolean canBlock(){
@@ -1457,7 +1453,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         });
         if (this.getOffhandItem().isEmpty()) {
             this.inventory.setItem(4, ItemStack.EMPTY);
-            this.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
+            this.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + this.getCommandSenderWorld().random.nextFloat() * 0.4F);
             this.tryToReequipShield();
         }
     }
@@ -1559,16 +1555,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 }
                 else if (ownerTeam == null) {
                     String teamName = team.getName();
-                    PlayerTeam recruitTeam = this.level.getScoreboard().getPlayerTeam(teamName);
-                    this.level.getScoreboard().removePlayerFromTeam(this.getStringUUID(), recruitTeam);
+                    PlayerTeam recruitTeam = this.getCommandSenderWorld().getScoreboard().getPlayerTeam(teamName);
+                    this.getCommandSenderWorld().getScoreboard().removePlayerFromTeam(this.getStringUUID(), recruitTeam);
                     needsTeamUpdate = false;
                 }
                 else {
                     String ownerTeamName = ownerTeam.getName();
-                    PlayerTeam playerteam = this.level.getScoreboard().getPlayerTeam(ownerTeamName);
+                    PlayerTeam playerteam = this.getCommandSenderWorld().getScoreboard().getPlayerTeam(ownerTeamName);
 
 
-                    boolean flag = playerteam != null && this.level.getScoreboard().addPlayerToTeam(this.getStringUUID(), playerteam);
+                    boolean flag = playerteam != null && this.getCommandSenderWorld().getScoreboard().addPlayerToTeam(this.getStringUUID(), playerteam);
                     if (!flag) {
                         Main.LOGGER.warn("Unable to add mob to team \"{}\" (that team probably doesn't exist)", ownerTeamName);
                     } else
@@ -1582,8 +1578,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         else{
             Team team = this.getTeam();
             if(team != null){ //TODO: add config
-                PlayerTeam recruitTeam = this.level.getScoreboard().getPlayerTeam(team.getName());
-                this.level.getScoreboard().removePlayerFromTeam(this.getStringUUID(), recruitTeam);
+                PlayerTeam recruitTeam = this.getCommandSenderWorld().getScoreboard().getPlayerTeam(team.getName());
+                this.getCommandSenderWorld().getScoreboard().removePlayerFromTeam(this.getStringUUID(), recruitTeam);
             }
             needsTeamUpdate = false;
         }

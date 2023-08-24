@@ -222,7 +222,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     public void die(DamageSource dmg) {
         super.die(dmg);
         for (int i = 0; i < this.inventory.getContainerSize(); i++)
-            Containers.dropItemStack(this.level, getX(), getY(), getZ(), this.inventory.getItem(i));
+            Containers.dropItemStack(this.getCommandSenderWorld(), getX(), getY(), getZ(), this.inventory.getItem(i));
     }
 
     protected void pickUpItem(ItemEntity itemEntity) {
@@ -259,7 +259,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         this.inventory.setItem(getInventorySlotIndex(equipmentslot), itemStack);
         Equipable equipable = Equipable.get(itemStack);
         if(equipable != null)
-            this.level.playSound(null, this.getX(), this.getY(), this.getZ(), equipable.getEquipSound(), this.getSoundSource(), 1.0F, 1.0F);
+            this.getCommandSenderWorld().playSound(null, this.getX(), this.getY(), this.getZ(), equipable.getEquipSound(), this.getSoundSource(), 1.0F, 1.0F);
     }
     public boolean canEquipItem(@NotNull ItemStack itemStack) {
         if(!itemStack.isEmpty()) {

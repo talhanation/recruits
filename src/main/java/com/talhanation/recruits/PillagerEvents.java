@@ -127,7 +127,7 @@ public class PillagerEvents {
         if (entity instanceof VindicatorEntity) {
             VindicatorEntity vindicator = (VindicatorEntity) entity;
 
-            List<PillagerEntity> list1 = entity.level.getEntitiesOfClass(PillagerEntity.class, vindicator.getBoundingBox().inflate(64));
+            List<PillagerEntity> list1 = entity.getCommandSenderWorld().getEntitiesOfClass(PillagerEntity.class, vindicator.getBoundingBox().inflate(64));
             int max = 2 + random.nextInt(10);
             if (list1.size() > 1) {
                 vindicator.remove();
@@ -160,7 +160,7 @@ public class PillagerEvents {
         if (entity instanceof ItemEntity itemEntity) {
             ItemStack itemStack = itemEntity.getItem();
 
-            Level level = itemEntity.level;
+            Level level = itemEntity.getCommandSenderWorld();
             if (itemStack.getItem() instanceof BannerItem) {
 
                 if (itemEntity.isOnFire() && ItemStack.matches(itemStack, Raid.getLeaderBannerInstance())) {
@@ -176,7 +176,7 @@ public class PillagerEvents {
                         }
                         i = Mth.clamp(i, 0, 4);
                         MobEffectInstance effectinstance = new MobEffectInstance(MobEffects.BAD_OMEN, 120000, i, false, false, true);
-                        if (!player.level.getGameRules().getBoolean(GameRules.RULE_DISABLE_RAIDS)) {
+                        if (!player.getCommandSenderWorld().getGameRules().getBoolean(GameRules.RULE_DISABLE_RAIDS)) {
                             player.addEffect(effectinstance);
                             level.explode(itemEntity, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), 0.5F, Level.ExplosionInteraction.BLOCK);
 
@@ -211,7 +211,7 @@ class FindTargetGoal extends Goal {
         super.start();
         this.mob.getNavigation().stop();
 
-        for(Raider abstractraiderentity : this.mob.level.getNearbyEntities(Raider.class, this.shoutTargeting, this.mob, this.mob.getBoundingBox().inflate(8.0D, 8.0D, 8.0D))) {
+        for(Raider abstractraiderentity : this.mob.getCommandSenderWorld().getNearbyEntities(Raider.class, this.shoutTargeting, this.mob, this.mob.getBoundingBox().inflate(8.0D, 8.0D, 8.0D))) {
             abstractraiderentity.setTarget(this.mob.getTarget());
         }
 
@@ -221,7 +221,7 @@ class FindTargetGoal extends Goal {
         super.stop();
         LivingEntity livingentity = this.mob.getTarget();
         if (livingentity != null) {
-            for(Raider abstractraiderentity : this.mob.level.getNearbyEntities(Raider.class, this.shoutTargeting, this.mob, this.mob.getBoundingBox().inflate(8.0D, 8.0D, 8.0D))) {
+            for(Raider abstractraiderentity : this.mob.getCommandSenderWorld().getNearbyEntities(Raider.class, this.shoutTargeting, this.mob, this.mob.getBoundingBox().inflate(8.0D, 8.0D, 8.0D))) {
                 abstractraiderentity.setTarget(livingentity);
                 abstractraiderentity.setAggressive(true);
             }

@@ -62,7 +62,7 @@ public class RecruitProtectEntityGoal extends Goal {
     }
 
     public void getProtecting(){
-        List<LivingEntity> list = recruit.level.getEntitiesOfClass(LivingEntity.class, recruit.getBoundingBox().inflate(32D));
+        List<LivingEntity> list = recruit.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, recruit.getBoundingBox().inflate(32D));
         for(LivingEntity livings : list){
             if (recruit.getProtectUUID() != null && livings.getUUID().equals(recruit.getProtectUUID())){
                 this.protectingMob = livings;

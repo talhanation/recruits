@@ -1,29 +1,26 @@
 package com.talhanation.recruits.entities;
 
 
-import com.talhanation.recruits.compat.IWeapon;
-import com.talhanation.recruits.compat.MusketWeapon;
+import com.talhanation.recruits.IStrategicFire;
 import com.talhanation.recruits.config.RecruitsModConfig;
-import com.talhanation.recruits.entities.ai.RecruitMeleeAttackGoal;
+import com.talhanation.recruits.entities.ai.RecruitMoveTowardsTargetGoal;
 import com.talhanation.recruits.entities.ai.RecruitStrategicFire;
 import com.talhanation.recruits.entities.ai.RecruitRangedBowAttackGoal;
-import com.talhanation.recruits.entities.ai.compat.RecruitRangedMusketAttackGoal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.Difficulty;
+
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.projectile.AbstractArrow;
@@ -159,7 +156,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
             arrow.shoot(d0, d1 + d3 * (double) 0.196F, d2, 1.75F, (float) (0));
 
             this.playSound(SoundEvents.ARROW_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
-            this.level.addFreshEntity(arrow);
+            this.getCommandSenderWorld().addFreshEntity(arrow);
 
 
             this.damageMainHandItem();
@@ -196,7 +193,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
             arrow.shoot(d0, d1 + d3 + angle, d2, force + 1.95F, (float) (2.5));
 
             this.playSound(SoundEvents.ARROW_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
-            this.level.addFreshEntity(arrow);
+            this.getCommandSenderWorld().addFreshEntity(arrow);
 
 
             this.damageMainHandItem();

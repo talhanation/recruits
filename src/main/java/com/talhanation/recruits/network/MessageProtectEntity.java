@@ -33,7 +33,7 @@ public class MessageProtectEntity implements Message<MessageProtectEntity> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
+        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
         for (AbstractRecruitEntity recruits : list) {
             CommandEvents.onProtectButton(uuid, recruits, target, group);
             CommandEvents.onFollowCommand(uuid, recruits, 5, this.group, false);

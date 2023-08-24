@@ -27,7 +27,7 @@ public class MessageServerUpdateTeamInspectMenu implements Message<MessageServer
     public void executeServerSide(NetworkEvent.Context context) {
         //Main.LOGGER.debug("---------MessageServerUpdateTeamInspectMenu--------");
         //Main.LOGGER.debug("teamName: " + teamName);
-        TeamEvents.updateTeamInspectMenu(context.getSender(), context.getSender().getLevel(), teamName);
+        TeamEvents.updateTeamInspectMenu(context.getSender(), context.getSender().serverLevel(), teamName);
 
     }
 

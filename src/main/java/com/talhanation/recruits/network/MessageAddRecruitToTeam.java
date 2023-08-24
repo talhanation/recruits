@@ -25,7 +25,7 @@ public class MessageAddRecruitToTeam implements Message<MessageAddRecruitToTeam>
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerLevel level = context.getSender().getLevel();
+        ServerLevel level = context.getSender().serverLevel();
 
         TeamEvents.addNPCToData(level, teamName, x);
     }

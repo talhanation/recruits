@@ -8,6 +8,7 @@ import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.nbt.CompoundTag;
@@ -335,8 +336,8 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     }
 
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
-        super.renderLabels(matrixStack, mouseX, mouseY);
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        super.renderLabels(guiGraphics, mouseX, mouseY);
 
         //Main.SIMPLE_CHANNEL.sendToServer(new MessageRecruitsInCommand(player.getUUID()));
 
@@ -347,12 +348,12 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         int k = 78;//rechst links
         int l = 61;//höhe
 
-        font.draw(matrixStack, "" + handleGroupText(this.group), k, l, fontColor);
-        font.draw(matrixStack, "Recruits: " + recruitsInCommand, k , l + 10, fontColor);
+        guiGraphics.drawString(font, "" + handleGroupText(this.group), k, l, fontColor, false);
+        guiGraphics.drawString(font, "Recruits: " + recruitsInCommand, k, l + 10, fontColor, false);
     }
 
-    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
+    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+        super.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
     }
 
     public static String handleGroupText(int group) {

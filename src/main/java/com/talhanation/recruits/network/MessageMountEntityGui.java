@@ -33,7 +33,7 @@ public class MessageMountEntityGui implements Message<MessageMountEntityGui> {
     public void executeServerSide(NetworkEvent.Context context) {
 
         ServerPlayer player = context.getSender();
-        player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
+        player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
                         .inflate(16.0D), v -> v
                         .getUUID()
                         .equals(this.recruit))
@@ -47,7 +47,7 @@ public class MessageMountEntityGui implements Message<MessageMountEntityGui> {
     @SuppressWarnings({"all"})
     private void mount(AbstractRecruitEntity recruit) {
         if(recruit.getVehicle() == null){
-            ArrayList<Entity> list = (ArrayList<Entity>) recruit.level.getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(8));
+            ArrayList<Entity> list = (ArrayList<Entity>) recruit.getCommandSenderWorld().getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(8));
 
             list.removeIf(mount -> !RecruitsModConfig.MountWhiteList.get().contains(mount.getEncodeId()));
             list.sort(Comparator.comparing(horseInList -> horseInList.distanceTo(recruit)));

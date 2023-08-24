@@ -32,7 +32,7 @@ public class MessageBackToMountEntity implements Message<MessageBackToMountEntit
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        List<AbstractRecruitEntity> recruitList = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
+        List<AbstractRecruitEntity> recruitList = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
 
         for (AbstractRecruitEntity recruits : recruitList) {
             CommandEvents.onMountButton(uuid, recruits, null, group);

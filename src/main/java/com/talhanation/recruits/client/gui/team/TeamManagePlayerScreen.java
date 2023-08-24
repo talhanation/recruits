@@ -6,6 +6,7 @@ import com.talhanation.recruits.inventory.TeamManagePlayerContainer;
 import com.talhanation.recruits.network.MessageAddPlayerToTeam;
 import com.talhanation.recruits.network.MessageRemoveFromTeam;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
@@ -49,7 +50,7 @@ public class TeamManagePlayerScreen extends ScreenBase<TeamManagePlayerContainer
 
 
         //add players to a list that are online and are in request list
-        playersList = player.getLevel().players().stream().toList();
+        playersList = player.getCommandSenderWorld().players().stream().toList();
         onlinePlayerJoinRequests = new ArrayList<>();
 
         for(Player onlinePlayer : playersList) {
@@ -89,18 +90,20 @@ public class TeamManagePlayerScreen extends ScreenBase<TeamManagePlayerContainer
     }
 
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
-        super.renderLabels(matrixStack, mouseX, mouseY);
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        super.renderLabels(guiGraphics, mouseX, mouseY);
         //Info
         int fontColor = 4210752;
-        font.draw(matrixStack, Component.translatable("chat.recruits.team_creation.removePlayerTitle"), 18  , 11, fontColor);
-        font.draw(matrixStack,  Component.translatable("chat.recruits.team_creation.addPlayerTitle"), 18  , 82, fontColor);
+        guiGraphics.drawString(font, Component.translatable("chat.recruits.team_creation.removePlayerTitle"), 18, 11, fontColor, false);
+        guiGraphics.drawString(font, Component.translatable("chat.recruits.team_creation.addPlayerTitle"), 18, 82, fontColor, false);
+
+
 
         for(int i = 0; i < onlinePlayerJoinRequests.size(); i ++){
             String requestName = onlinePlayerJoinRequests.get(i);
             int x = 18;
             int y = 98 + (23 * i);
-            font.draw(matrixStack, "- " + requestName, x, y, fontColor);
+            guiGraphics.drawString(font, "- " + requestName, x,y, fontColor, false);
         }
     }
 

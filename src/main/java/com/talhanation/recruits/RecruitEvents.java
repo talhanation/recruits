@@ -4,7 +4,6 @@ import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ai.horse.HorseRiddenByRecruitGoal;
-import com.talhanation.recruits.network.MessageWriteSpawnEgg;
 import com.talhanation.recruits.world.PillagerPatrolSpawn;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import net.minecraft.core.BlockPos;
@@ -21,7 +20,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.horse.AbstractChestedHorse;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.monster.AbstractIllager;
-import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -65,7 +63,7 @@ public class   RecruitEvents {
             double targetY = event.getTargetY();
             double targetZ = event.getTargetZ();
 
-            List <AbstractRecruitEntity> recruits = player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
+            List <AbstractRecruitEntity> recruits = player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
                     .inflate(64, 32, 64), AbstractRecruitEntity::isAlive)
                     .stream()
                     .filter(recruit -> recruit.getFollowState() == 1)
@@ -171,7 +169,7 @@ public class   RecruitEvents {
         if(interacting instanceof AbstractChestedHorse chestedHorse){
             CompoundTag nbt = chestedHorse.getPersistentData();
             if(nbt.contains("Caravan") && chestedHorse.hasChest()){
-                List<AbstractRecruitEntity> recruits = player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(64F));
+                List<AbstractRecruitEntity> recruits = player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(64F));
                 for(AbstractRecruitEntity recruit : recruits){
                     if(!recruit.isOwned() && (recruit.getName().getString().equals("Caravan Leader") || recruit.getName().getString().equals("Caravan Guard"))){
                         recruit.setTarget(player);
@@ -230,7 +228,7 @@ public class   RecruitEvents {
             Player blockBreaker = event.getPlayer();
 
             if (blockBreaker != null){
-                List<AbstractRecruitEntity> list = blockBreaker.level.getEntitiesOfClass(AbstractRecruitEntity.class, blockBreaker.getBoundingBox().inflate(32.0D));
+                List<AbstractRecruitEntity> list = blockBreaker.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, blockBreaker.getBoundingBox().inflate(32.0D));
                 for (AbstractRecruitEntity recruits : list) {
                     if (canDamageTargetBlockEvent(recruits, blockBreaker) && recruits.getState() == 1) {
                         recruits.setTarget(blockBreaker);
@@ -247,7 +245,7 @@ public class   RecruitEvents {
             Player blockBreaker = event.getPlayer();
 
             if (blockBreaker != null){
-                List<AbstractRecruitEntity> list = blockBreaker.level.getEntitiesOfClass(AbstractRecruitEntity.class, blockBreaker.getBoundingBox().inflate(32.0D));
+                List<AbstractRecruitEntity> list = blockBreaker.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, blockBreaker.getBoundingBox().inflate(32.0D));
                 for (AbstractRecruitEntity recruits : list) {
                     if (canDamageTargetBlockEvent(recruits, blockBreaker) && recruits.getState() == 0 && recruits.isOwned()) {
                         recruits.setTarget(blockBreaker);
@@ -267,7 +265,7 @@ public class   RecruitEvents {
             Entity blockPlacer = event.getEntity();
 
             if (blockPlacer instanceof LivingEntity livingBlockPlacer) {
-                List<AbstractRecruitEntity> list = Objects.requireNonNull(livingBlockPlacer.level.getEntitiesOfClass(AbstractRecruitEntity.class, livingBlockPlacer.getBoundingBox().inflate(32.0D)));
+                List<AbstractRecruitEntity> list = Objects.requireNonNull(livingBlockPlacer.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, livingBlockPlacer.getBoundingBox().inflate(32.0D)));
                 for (AbstractRecruitEntity recruits : list) {
                     if (canDamageTargetBlockEvent(recruits, livingBlockPlacer) && recruits.getState() == 1) {
                         recruits.setTarget(livingBlockPlacer);
@@ -284,7 +282,7 @@ public class   RecruitEvents {
             Entity blockPlacer = event.getEntity();
 
             if (blockPlacer instanceof LivingEntity livingBlockPlacer) {
-                List<AbstractRecruitEntity> list = Objects.requireNonNull(livingBlockPlacer.level.getEntitiesOfClass(AbstractRecruitEntity.class, livingBlockPlacer.getBoundingBox().inflate(32.0D)));
+                List<AbstractRecruitEntity> list = Objects.requireNonNull(livingBlockPlacer.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, livingBlockPlacer.getBoundingBox().inflate(32.0D)));
                 for (AbstractRecruitEntity recruits : list) {
                     if (canDamageTargetBlockEvent(recruits, livingBlockPlacer) && recruits.getState() == 0 && recruits.isOwned()) {
                         recruits.setTarget(livingBlockPlacer);
@@ -303,8 +301,8 @@ public class   RecruitEvents {
         BlockPos pos = event.getHitVec().getBlockPos();
         Player player = event.getEntity();
 
-        BlockState selectedBlock = player.level.getBlockState(pos);
-        BlockEntity blockEntity = player.level.getBlockEntity(pos);
+        BlockState selectedBlock = player.getCommandSenderWorld().getBlockState(pos);
+        BlockEntity blockEntity = player.getCommandSenderWorld().getBlockEntity(pos);
 
         if (selectedBlock.is(BlockTags.BUTTONS) ||
             selectedBlock.is(BlockTags.DOORS) ||
@@ -319,7 +317,7 @@ public class   RecruitEvents {
 
 
             if(RecruitsModConfig.AggroRecruitsBlockEvents.get()) {
-                List<AbstractRecruitEntity> list = Objects.requireNonNull(player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(32.0D)));
+                List<AbstractRecruitEntity> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(32.0D)));
                 for (AbstractRecruitEntity recruits : list) {
                     if (canDamageTargetBlockEvent(recruits, player) && recruits.getState() == 1) {
                         recruits.setTarget(player);
@@ -332,7 +330,7 @@ public class   RecruitEvents {
             }
 
             if(RecruitsModConfig.NeutralRecruitsBlockEvents.get()) {
-                List<AbstractRecruitEntity> list = Objects.requireNonNull(player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(32.0D)));
+                List<AbstractRecruitEntity> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(32.0D)));
                 for (AbstractRecruitEntity recruits : list) {
                     if (canDamageTargetBlockEvent(recruits, player) && recruits.getState() == 0 && recruits.isOwned()) {
                         recruits.setTarget(player);
@@ -427,7 +425,7 @@ public class   RecruitEvents {
             //Morale loss when recruits friend die
             if(recruit.getIsOwned() && !server.overworld().isClientSide()){
                 UUID owner = recruit.getOwnerUUID();
-                List<AbstractRecruitEntity> recruits = recruit.level.getEntitiesOfClass(AbstractRecruitEntity.class, recruit.getBoundingBox().inflate(64.0D));
+                List<AbstractRecruitEntity> recruits = recruit.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, recruit.getBoundingBox().inflate(64.0D));
     
                 for (AbstractRecruitEntity recruit2 : recruits) {
                     if(recruit2.getOwnerUUID() != null && recruit2.getOwnerUUID().equals(owner)){

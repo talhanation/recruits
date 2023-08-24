@@ -361,7 +361,7 @@ public class CommandEvents {
                     }
                     else {
                         ServerPlayer serverPlayer = (ServerPlayer) player;
-                        TeamEvents.addNPCToData(serverPlayer.getLevel(), player.getTeam().getName(), 1);
+                        TeamEvents.addNPCToData(serverPlayer.serverLevel(), player.getTeam().getName(), 1);
                     }
                 }
             }
@@ -458,7 +458,7 @@ public class CommandEvents {
     }
 
     public static int getRecruitsInCommand(ServerPlayer player, int group){
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(100)));
+        List<AbstractRecruitEntity> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(100)));
         List<AbstractRecruitEntity> loyals = new ArrayList<>();
 
         for (AbstractRecruitEntity recruit : list){

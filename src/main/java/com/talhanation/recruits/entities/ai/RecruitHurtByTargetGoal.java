@@ -59,7 +59,7 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
     protected void alertOthers() {
         double d0 = this.getFollowDistance();
         AABB axisalignedbb = AABB.unitCubeFromLowerCorner(this.recruit.position()).inflate(d0, 16.0D, d0);
-        List<? extends AbstractRecruitEntity> list = this.recruit.level.getEntitiesOfClass(this.recruit.getClass(), axisalignedbb);
+        List<? extends AbstractRecruitEntity> list = this.recruit.getCommandSenderWorld().getEntitiesOfClass(this.recruit.getClass(), axisalignedbb);
         Iterator iterator = list.iterator();
 
         while (true) {

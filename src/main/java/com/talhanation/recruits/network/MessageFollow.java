@@ -36,7 +36,7 @@ public class MessageFollow implements Message<MessageFollow> {
 
     public void executeServerSide(NetworkEvent.Context context){
         if (fromGui) {
-            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
+            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
             for (AbstractRecruitEntity recruits : list){
 
                 if (recruits.getUUID().equals(this.recruit))
@@ -44,7 +44,7 @@ public class MessageFollow implements Message<MessageFollow> {
             }
         }
         else{
-            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
+            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
             for (AbstractRecruitEntity recruits : list) {
                 CommandEvents.onFollowCommand(this.player, recruits, this.state, this.group, fromGui);
             }

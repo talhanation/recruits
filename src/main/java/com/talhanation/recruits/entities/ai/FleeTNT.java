@@ -25,7 +25,7 @@ public class FleeTNT extends Goal {
     @Override
     public void tick() {
         super.tick();
-        List<PrimedTnt> tntEntities = entity.level.getEntitiesOfClass(PrimedTnt.class, entity.getBoundingBox().inflate(10D));
+        List<PrimedTnt> tntEntities = entity.getCommandSenderWorld().getEntitiesOfClass(PrimedTnt.class, entity.getBoundingBox().inflate(10D));
         if (!tntEntities.isEmpty()) {
             for (PrimedTnt tnt : tntEntities) {
                 double fleeDistance = 10.0D;

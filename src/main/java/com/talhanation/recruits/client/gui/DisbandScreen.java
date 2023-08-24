@@ -7,6 +7,7 @@ import com.talhanation.recruits.inventory.DisbandContainer;
 import com.talhanation.recruits.network.MessageAssignToTeamMate;
 import com.talhanation.recruits.network.MessageDisband;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.renderer.GameRenderer;
@@ -68,13 +69,11 @@ public class DisbandScreen extends ScreenBase<DisbandContainer> {
         addRenderableWidget(buttonDisband);
     }
 
-
-
-    protected void render(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+    protected void render(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
-        this.blit(matrixStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
+        guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
     }
 
 }

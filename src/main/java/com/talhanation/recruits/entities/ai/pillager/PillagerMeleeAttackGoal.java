@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 
 import java.util.EnumSet;
@@ -36,7 +37,7 @@ public class PillagerMeleeAttackGoal extends Goal {
     }
 
     public boolean canUse() {
-        long i = this.mob.level.getGameTime();
+        long i = this.mob.getCommandSenderWorld().getGameTime();
         Item itemInHand = mob.getItemInHand(InteractionHand.MAIN_HAND).getItem();
 
         if (!(itemInHand instanceof SwordItem) && !(itemInHand instanceof AxeItem)){
@@ -119,7 +120,7 @@ public class PillagerMeleeAttackGoal extends Goal {
             if (this.canPenalize) {
                 this.ticksUntilNextPathRecalculation += failedPathFindingPenalty;
                 if (this.mob.getNavigation().getPath() != null) {
-                    net.minecraft.world.level.pathfinder.Node finalPathPoint = this.mob.getNavigation().getPath().getEndNode();
+                    Node finalPathPoint = this.mob.getNavigation().getPath().getEndNode();
                     if (finalPathPoint != null && livingentity.distanceToSqr(finalPathPoint.x, finalPathPoint.y, finalPathPoint.z) < 1)
                         failedPathFindingPenalty = 0;
                     else

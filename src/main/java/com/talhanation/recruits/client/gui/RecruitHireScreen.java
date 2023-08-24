@@ -7,6 +7,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.network.MessageHire;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -62,8 +63,8 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
     }
 
     @Override
-    protected void renderLabels(PoseStack poseStack, int mouseX, int mouseY) {
-        super.renderLabels(poseStack, mouseX, mouseY);
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        super.renderLabels(guiGraphics, mouseX, mouseY);
         int health = Mth.ceil(recruit.getHealth());
         int maxHealth = Mth.ceil(recruit.getMaxHealth());
         int moral = Mth.ceil(recruit.getMoral());
@@ -78,43 +79,42 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
         int k = 60;//rechst links
         int l = 19;//höhe
 
-        //Titles
-        font.draw(poseStack, recruit.getDisplayName().getVisualOrderText(), 8, 5, fontColor);
-        font.draw(poseStack, player.getInventory().getDisplayName().getVisualOrderText(), 8, this.imageHeight - 96 + 2, fontColor);
+        guiGraphics.drawString(font, recruit.getDisplayName().getVisualOrderText(), 8, 5, fontColor, false);
+        guiGraphics.drawString(font, player.getInventory().getDisplayName().getVisualOrderText(), 8, this.imageHeight - 96 + 2, fontColor, false);
 
-        //Info
-        font.draw(poseStack, "Hp:", k, l, fontColor);
-        font.draw(poseStack, "" + health, k + 25, l , fontColor);
+        guiGraphics.drawString(font, "Hp:", k, l, fontColor, false);
+        guiGraphics.drawString(font, "" + health, k + 25, l , fontColor, false);
 
-        font.draw(poseStack, "Lvl:", k , l  + 10, fontColor);
-        font.draw(poseStack, "" + recruit.getXpLevel(), k + 25 , l + 10, fontColor);
+        guiGraphics.drawString(font, "Lvl:", k , l  + 10, fontColor, false);
+        guiGraphics.drawString(font, "" + recruit.getXpLevel(), k + 25 , l + 10, fontColor, false);
 
-        font.draw(poseStack, "Exp:", k, l + 20, fontColor);
-        font.draw(poseStack, "" + recruit.getXp(), k + 25, l + 20, fontColor);
+        guiGraphics.drawString(font, "Exp:", k, l + 20, fontColor, false);
+        guiGraphics.drawString(font, "" + recruit.getXp(), k + 25, l + 20, fontColor, false);
 
-        font.draw(poseStack, "Kills:", k, l + 30, fontColor);
-        font.draw(poseStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
+        guiGraphics.drawString(font, "Kills:", k, l + 30, fontColor, false);
+        guiGraphics.drawString(font, ""+ recruit.getKills(), k + 25, l + 30, fontColor, false);
 
-        font.draw(poseStack, "Morale:", k, l + 40, fontColor);
-        font.draw(poseStack, ""+ moral, k + 37, l + 40, fontColor);
+        guiGraphics.drawString(font, "Morale:", k, l + 40, fontColor, false);
+        guiGraphics.drawString(font, ""+ moral, k + 37, l + 40, fontColor, false);
 
-        font.draw(poseStack, "MaxHp:", k + 55, l, fontColor);
-        font.draw(poseStack, ""+ maxHealth, k + 90, l, fontColor);
+        guiGraphics.drawString(font, "MaxHp:", k + 55, l, fontColor, false);
+        guiGraphics.drawString(font, ""+ maxHealth, k + 90, l, fontColor, false);
 
-        font.draw(poseStack, "Attack:", k + 55, l + 10, fontColor);
-        font.draw(poseStack, ""+ A_damage, k + 90, l + 10, fontColor);
+        guiGraphics.drawString(font, "Attack:", k + 55, l + 10, fontColor, false);
+        guiGraphics.drawString(font, ""+ A_damage, k + 90, l + 10, fontColor, false);
 
-        font.draw(poseStack, "Speed:", k + 55, l + 20, fontColor);
-        font.draw(poseStack, ""+ decimalformat.format(speed), k + 90, l + 20, fontColor);
+        guiGraphics.drawString(font, "Speed:", k + 55, l + 20, fontColor, false);
+        guiGraphics.drawString(font, ""+ decimalformat.format(speed), k + 90, l + 20, fontColor, false);
 
-        font.draw(poseStack, "Armor:", k + 55, l + 30, fontColor);
-        font.draw(poseStack, ""+ armor, k + 90, l + 30, fontColor);
+        guiGraphics.drawString(font, "Armor:", k + 55, l + 30, fontColor, false);
+        guiGraphics.drawString(font, ""+ armor, k + 90, l + 30, fontColor, false);
 
-        font.draw(poseStack, "Cost:", k + 55, l + 40, fontColor);
-        font.draw(poseStack, ""+ costs, k + 88, l + 40, fontColor);
+        guiGraphics.drawString(font, "Cost:", k + 55, l + 40, fontColor, false);
+        guiGraphics.drawString(font, ""+ costs, k + 88, l + 40, fontColor, false);
+
     }
 
-    protected void renderBg(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
+    protected void renderBg(GuiGraphics poseStack, float partialTicks, int mouseX, int mouseY) {
         super.renderBg(poseStack, partialTicks, mouseX, mouseY);
 
         RenderSystem.clearColor(1.0F, 1.0F, 1.0F, 1.0F);

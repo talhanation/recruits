@@ -461,7 +461,7 @@ public class TeamEvents {
     }
 
     public static void assignToTeamMate(ServerPlayer oldOwner, AbstractRecruitEntity recruit) {
-        ServerLevel level = oldOwner.getLevel();
+        ServerLevel level = oldOwner.serverLevel();
         Team team = oldOwner.getTeam();
 
         if(team != null){

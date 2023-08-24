@@ -7,6 +7,8 @@ import com.talhanation.recruits.inventory.AssassinLeaderMenu;
 import com.talhanation.recruits.network.MessageAssassinCount;
 import com.talhanation.recruits.network.MessageAssassinate;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
@@ -89,19 +91,21 @@ public class AssassinLeaderScreen extends ScreenBase<AssassinLeaderMenu> {
     }
 
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
-        super.renderLabels(matrixStack, mouseX, mouseY);
-
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        super.renderLabels(guiGraphics, mouseX, mouseY);
+        /*
         int k = 79;//rechst links
         int l = 19;//höhe
         font.draw(matrixStack, playerInventory.getDisplayName().getVisualOrderText(), 8, this.imageHeight - 96 + 2, fontColor);
         String count = String.valueOf(assassinLeaderEntity.getCount());
         font.draw(matrixStack, "Assassin Count:", k - 70, l + 35, fontColor);
         font.draw(matrixStack, count, k - 55, l + 45, fontColor);
+     */
     }
 
-    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
+
+    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+        super.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
 
     }
 

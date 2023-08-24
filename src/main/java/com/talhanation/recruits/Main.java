@@ -9,7 +9,7 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.CreativeModeTabEvent;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
@@ -127,8 +127,8 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
     }
 
-    private void addCreativeTabs(CreativeModeTabEvent.BuildContents event) {
-        if (event.getTab() == CreativeModeTabs.SPAWN_EGGS) {
+    private void addCreativeTabs(BuildCreativeModeTabContentsEvent event) {
+        if (event.getTabKey().equals(CreativeModeTabs.SPAWN_EGGS)) {
             event.accept(ModItems.BOWMAN_SPAWN_EGG.get());
             event.accept(ModItems.RECRUIT_SHIELD_SPAWN_EGG.get());
             event.accept(ModItems.RECRUIT_SPAWN_EGG.get());
