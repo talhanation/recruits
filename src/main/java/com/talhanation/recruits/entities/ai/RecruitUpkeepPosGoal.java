@@ -1,21 +1,17 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.Container;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 
 public class RecruitUpkeepPosGoal extends Goal {
@@ -51,7 +47,7 @@ public class RecruitUpkeepPosGoal extends Goal {
     @Override
     public void tick() {
         super.tick();
-        if(recruit.getUpkeepTimer() == 0){
+        if(recruit.getUpkeepTimer() == 0 && chestPos != null){
             BlockEntity entity = recruit.level.getBlockEntity(chestPos);
             if (entity instanceof Container containerEntity) {
                 this.container = containerEntity;
