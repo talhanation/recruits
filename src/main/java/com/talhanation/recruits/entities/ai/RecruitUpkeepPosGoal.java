@@ -49,6 +49,7 @@ public class RecruitUpkeepPosGoal extends Goal {
         super.tick();
         if(recruit.getUpkeepTimer() == 0 && chestPos != null){
             BlockEntity entity = recruit.getCommandSenderWorld().getBlockEntity(chestPos);
+
             if (entity instanceof Container containerEntity) {
                 this.container = containerEntity;
             }
