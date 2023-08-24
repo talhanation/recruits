@@ -48,7 +48,7 @@ public class RecruitUpkeepPosGoal extends Goal {
     public void tick() {
         super.tick();
         if(recruit.getUpkeepTimer() == 0 && chestPos != null){
-            BlockEntity entity = recruit.level.getBlockEntity(chestPos);
+            BlockEntity entity = recruit.getCommandSenderWorld().getBlockEntity(chestPos);
             if (entity instanceof Container containerEntity) {
                 this.container = containerEntity;
             }
@@ -143,7 +143,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                 for (int y = -range; y < range; y++) {
                     for (int z = -range; z < range; z++) {
                         chestPos = recruit.getUpkeepPos().offset(x, y, z);
-                        BlockEntity block = recruit.level.getBlockEntity(chestPos);
+                        BlockEntity block = recruit.getCommandSenderWorld().getBlockEntity(chestPos);
                         if (block instanceof Container blockContainer){
                             if(isFoodInContainer(blockContainer)) return chestPos;
                             else list.add(chestPos);

@@ -49,7 +49,7 @@ public class CrossbowWeapon implements IWeapon {
     }
     @Override
     public AbstractArrow getProjectileArrow(LivingEntity shooter) {
-        return new Arrow(shooter.level, shooter);
+        return new Arrow(shooter.getCommandSenderWorld(), shooter);
     }
 
     public boolean isLoaded(ItemStack itemStack) {
@@ -122,7 +122,7 @@ public class CrossbowWeapon implements IWeapon {
         this.shootArrow(shooter, projectileEntity, d0, d1, d2);
 
         shooter.playSound(this.getShootSound(), 1.0F, 1.0F / (shooter.getRandom().nextFloat() * 0.4F + 0.8F));
-        shooter.level.addFreshEntity(projectileEntity);
+        shooter.getCommandSenderWorld().addFreshEntity(projectileEntity);
 
         shooter.damageMainHandItem();
     }

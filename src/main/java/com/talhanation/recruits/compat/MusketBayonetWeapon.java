@@ -92,7 +92,7 @@ public class MusketBayonetWeapon implements IWeapon {
             Class<?> bulletClass = Class.forName("ewewukek.musketmod.BulletEntity");
             Class<?>[] constructorParamTypes = {Level.class};
             Constructor<?> bulletConstructor = bulletClass.getConstructor(constructorParamTypes);
-            Level level = shooter.level;
+            Level level = shooter.getCommandSenderWorld();
             Object bulletInstance = bulletConstructor.newInstance(level);
 
             if(bulletInstance instanceof AbstractHurtingProjectile bullet){
@@ -242,7 +242,7 @@ public class MusketBayonetWeapon implements IWeapon {
         this.shoot(shooter, projectileEntity, d0, d1, d2);
 
         shooter.playSound(this.getShootSound(), 1.0F, 1.0F / (shooter.getRandom().nextFloat() * 0.4F + 0.8F));
-        shooter.level.addFreshEntity(projectileEntity);
+        shooter.getCommandSenderWorld().addFreshEntity(projectileEntity);
 
         shooter.damageMainHandItem();
     }
