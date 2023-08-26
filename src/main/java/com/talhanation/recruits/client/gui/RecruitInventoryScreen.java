@@ -283,16 +283,19 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         int l = 19;//höhe
 
         //Titles
+
         guiGraphics.drawString(font, recruit.getDisplayName().getVisualOrderText(), 8, 5, fontColor, false);
         guiGraphics.drawString(font, playerInventory.getDisplayName().getVisualOrderText(), 8, this.imageHeight - 96 + 2, fontColor, false);
 
         guiGraphics.pose().pushPose();
         guiGraphics.pose().scale(0.7F, 0.7F, 1F);
 
+
         k = 112;//rechst links
         l = 32;//höhe
         int gap = 42;
         //Info
+
         guiGraphics.drawString(font, "Health:", k, l, fontColor, false);
         guiGraphics.drawString(font, "" + health, k + gap, l, fontColor, false);
         guiGraphics.drawString(font, "Lvl.:", k, l + 10, fontColor, false);
@@ -306,6 +309,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         guiGraphics.drawString(font, "Hunger:", k, l + 50, fontColor, false);
         guiGraphics.drawString(font, "" + hunger, k + gap, l + 50, fontColor, false);
         guiGraphics.pose().popPose();
+
         /*
         font.draw(matrixStack, "Moral:", k, l + 30, fontColor);
         font.draw(matrixStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
