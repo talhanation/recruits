@@ -1,5 +1,11 @@
-license="${mod_license}"
+license="All rights reserved"
+
 modLoader="javafml"
+
+loaderVersion="[47,)" #mandatory This is typically bumped every Minecraft version by Forge. See our download page for lists of versions.
+
+[[mods]] #mandatory
+
 modId="recruits"
 
 version="1.10.7"
@@ -7,15 +13,13 @@ version="1.10.7"
 displayName="Recruits Mod"
 updateJSONURL="https://raw.githubusercontent.com/talhanation/recruits/main/update.json"
 displayURL="https://www.curseforge.com/minecraft/mc-mods/recruits"
+
 logoFile="logo.png"
-# A version range to match for said mod loader - for regular FML @Mod it will be the forge version
-loaderVersion="${loader_version_range}" #mandatory This is typically bumped every Minecraft version by Forge. See our download page for lists of versions.
-issueTrackerURL="https://discord.gg/f54QsX7r6a" #optional
-# A list of mods - how many allowed here is determined by the individual mod loader
-[[mods]] #mandatory
-version="${mod_version}" #mandatory
-displayName="${mod_name}" #mandatory
-authors="${mod_authors}" #optional
-description='''${mod_description}'''
-versionRange="${forge_version_range}" #mandatory
+
+credits="talhanation"
+authors="talhanation"
+# The description text for the mod (multi line!) (#mandatory)
+description='''
+This Mod adds hire-able Villager Recruits with different Ranks like in M&B-Bannerlord into Minecraft.
+'''
 
