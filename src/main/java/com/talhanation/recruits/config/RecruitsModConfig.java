@@ -67,7 +67,7 @@ public class RecruitsModConfig {
     public static ArrayList<String> BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast"));
     public static ArrayList<String> MOUNTS = new ArrayList<>(
-            Arrays.asList("minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "smallships:galley", "camels:camel"));
+            Arrays.asList("minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "smallships:galley", "minecraft:camel"));
     public static ArrayList<String> START_ARMOR = new ArrayList<>();
     public static ArrayList<String> RECRUIT_HAND = new ArrayList<>(
             Arrays.asList("minecraft:wooden_sword", ""));
