@@ -16,6 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.animal.camel.Camel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -285,26 +286,32 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         guiGraphics.drawString(font, recruit.getDisplayName().getVisualOrderText(), 8, 5, fontColor, false);
         guiGraphics.drawString(font, playerInventory.getDisplayName().getVisualOrderText(), 8, this.imageHeight - 96 + 2, fontColor, false);
 
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().scale(0.7F, 0.7F, 1F);
 
+        k = 112;//rechst links
+        l = 32;//höhe
+        int gap = 42;
         //Info
-        guiGraphics.drawString(font, "Hp:", k, l, fontColor, false);
-        guiGraphics.drawString(font, "" + health, k + 25, l, fontColor, false);
-        guiGraphics.drawString(font, "Lvl:", k, l + 10, fontColor, false);
-        guiGraphics.drawString(font, "" + recruit.getXpLevel(), k + 25, l + 10, fontColor, false);
-        guiGraphics.drawString(font, "Exp:", k, l + 20, fontColor, false);
-        guiGraphics.drawString(font, "" + recruit.getXp(), k + 25, l + 20, fontColor, false);
+        guiGraphics.drawString(font, "Health:", k, l, fontColor, false);
+        guiGraphics.drawString(font, "" + health, k + gap, l, fontColor, false);
+        guiGraphics.drawString(font, "Lvl.:", k, l + 10, fontColor, false);
+        guiGraphics.drawString(font, "" + recruit.getXpLevel(), k + gap, l + 10, fontColor, false);
+        guiGraphics.drawString(font, "Exp.:", k, l + 20, fontColor, false);
+        guiGraphics.drawString(font, "" + recruit.getXp(), k + gap, l + 20, fontColor, false);
         guiGraphics.drawString(font, "Kills:", k, l + 30, fontColor, false);
-        guiGraphics.drawString(font, "" + recruit.getKills(), k + 25, l + 30, fontColor, false);
+        guiGraphics.drawString(font, "" + recruit.getKills(), k + gap, l + 30, fontColor, false);
         guiGraphics.drawString(font, "Morale:", k, l + 40, fontColor, false);
-        guiGraphics.drawString(font, "" + moral, k + 25, l + 40, fontColor, false);
+        guiGraphics.drawString(font, "" + moral, k + gap, l + 40, fontColor, false);
         guiGraphics.drawString(font, "Hunger:", k, l + 50, fontColor, false);
-        guiGraphics.drawString(font, "" + hunger, k + 25, l + 50, fontColor, false);
-
+        guiGraphics.drawString(font, "" + hunger, k + gap, l + 50, fontColor, false);
+        guiGraphics.pose().popPose();
         /*
         font.draw(matrixStack, "Moral:", k, l + 30, fontColor);
         font.draw(matrixStack, ""+ recruit.getKills(), k + 25, l + 30, fontColor);
         */
-
+        k = 79;//rechst links
+        l = 19;//höhe
         // command
         String follow = switch (this.follow) {
             case 0 -> TEXT_INFO_WANDER.getString();
