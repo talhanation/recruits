@@ -1,6 +1,7 @@
 {
   "homepage": "https://www.curseforge.com/minecraft/mc-mods/recruits/files",
   "promos": {
+    "1.20.1-recommended": "1.10.7.1",
     "1.19.4-recommended": "1.10.7",
     "1.19.2-recommended": "1.10.7",
     "1.18.2-recommended": "1.10.7",
@@ -56,5 +57,9 @@
     "1.10.5": "added mount button to recruit inventory // added holding recruits that where copied will now hold the position that they are spawned with the spawn egg // update languages tr, de, en // fixed quick drag issues // fixed holding recruits will not walk towards close targets // improved melee AI",
     "1.10.4": "added strategic fire to crossbowman(also with muskets), fixed localisations, fixed melee ai",
     "1.10.3": "fixed crrash with teams, fixed AI in water, improved upkeep feature, added equiping from upkeep chest/entity."
+  },
+  "1.20.1": {
+    "1.10.7.1": "fixed crash in mp // fixed team inspection screen not rendering",
+    "1.10.7": "fixed crash in teeam list // fixed log spamm // buffed horse units // added back to mount command // improved recruit follow // "
   }
 }
