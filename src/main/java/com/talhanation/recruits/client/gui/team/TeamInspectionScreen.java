@@ -11,6 +11,7 @@ import com.talhanation.recruits.network.MessageOpenTeamAddPlayerScreen;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.inventory.LoomScreen;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.GameRenderer;
@@ -45,6 +46,7 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
 
     private static final MutableComponent TOOLTIP_COMING_SOON = Component.translatable("gui.recruits.team_creation.coming_soon");
     public static UUID leaderUUID;
+    private static final int fontColor = 4210752;
     private final Player player;
     private final Team team;
     private ModelPart flag;
@@ -105,14 +107,14 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
     }
 
     protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
-        super.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
         //LoomScreen
+        super.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
+
         if(bannerItem != null) {
             int k = (int) (41.0F);//                                                 (this.displayPatterns ? 0 : 12)
             guiGraphics.blit(texture, leftPos + 119, topPos + 13 + k, 232 + 0, 0, 12, 15);
             Lighting.setupForFlatItems();
 
-            MultiBufferSource.BufferSource multibuffersource$buffersource = this.minecraft.renderBuffers().bufferSource();
             guiGraphics.pose().pushPose();
             guiGraphics.pose().translate((double) (leftPos) + 110, (double) (topPos) + 94, 0.0D);
             guiGraphics.pose().scale(54.0F, -54.0F, 1.0F);
@@ -120,17 +122,18 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
             guiGraphics.pose().scale(f, -f, -f);
             this.flag.xRot = 0.0F;
             this.flag.y = -32.0F;
-            BannerRenderer.renderPatterns(guiGraphics.pose(), multibuffersource$buffersource, 15728880, OverlayTexture.NO_OVERLAY, this.flag, ModelBakery.BANNER_BASE, true, this.resultBannerPatterns);
-            guiGraphics.pose().pushPose();
-            multibuffersource$buffersource.endBatch();
+            BannerRenderer.renderPatterns(guiGraphics.pose(), guiGraphics.bufferSource(), 15728880, OverlayTexture.NO_OVERLAY, this.flag, ModelBakery.BANNER_BASE, true, this.resultBannerPatterns);
+            guiGraphics.pose().popPose();
+            guiGraphics.flush();
         }
+        Lighting.setupFor3DItems();
+
     }
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         super.renderLabels(guiGraphics, mouseX, mouseY);
         //Info
-        int fontColor = 4210752;
         int fontColorLeader;
         if(player.getTeam() != null && player.getTeam().getColor().getColor() != null) fontColorLeader = player.getTeam().getColor().getColor();
         else fontColorLeader = fontColor;
