@@ -95,7 +95,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Integer> XP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> LEVEL = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> KILLS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Boolean> IS_EATING = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> FLEEING = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Float> HUNGER = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> MORAL = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.FLOAT);
@@ -250,7 +249,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(MOUNT_ID, Optional.empty());
         this.entityData.define(PROTECT_ID, Optional.empty());
         this.entityData.define(IS_FOLLOWING, false);
-        this.entityData.define(IS_EATING, false);
         this.entityData.define(HUNGER, 50F);
         this.entityData.define(MORAL, 50F);
         this.entityData.define(OWNER_ID, Optional.empty());
@@ -289,7 +287,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putBoolean("Listen", this.getListen());
         nbt.putBoolean("Fleeing", this.getFleeing());
         nbt.putBoolean("isFollowing", this.isFollowing());
-        nbt.putBoolean("isEating", this.getIsEating());
         nbt.putInt("Xp", this.getXp());
         nbt.putInt("Level", this.getXpLevel());
         nbt.putInt("Kills", this.getKills());
@@ -351,7 +348,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setGroup(nbt.getInt("Group"));
         this.setListen(nbt.getBoolean("Listen"));
         this.setIsFollowing(nbt.getBoolean("isFollowing"));
-        this.setIsEating(nbt.getBoolean("isEating"));
         this.setXp(nbt.getInt("Xp"));
         this.setKills(nbt.getInt("Kills"));
         this.setVariant(nbt.getInt("Variant"));
@@ -482,9 +478,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return entityData.get(XP);
     }
 
-    public boolean getIsEating() {
-        return entityData.get(IS_EATING);
-    }
 
     public boolean getShouldMovePos() {
         return entityData.get(SHOULD_MOVE_POS);
@@ -691,10 +684,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         int newXp = currentXp + xp;
 
         this. entityData.set(XP, newXp);
-    }
-
-    public void setIsEating(boolean bool){
-        entityData.set(IS_EATING, bool);
     }
 
     public void setShouldHoldPos(boolean bool){

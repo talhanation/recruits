@@ -16,7 +16,6 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.animal.camel.Camel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -299,6 +298,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
         int health = Mth.ceil(recruit.getHealth());
+        int hunger = Mth.ceil(recruit.getHunger());
         int moral = Mth.ceil(recruit.getMoral());
         this.follow = recruit.getFollowState();
         this.aggro = recruit.getState();
@@ -319,7 +319,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         int gap = 42;
         //Info
 
-        font.draw(matrixStack, "Health:", k, l,, fontColor);
+        font.draw(matrixStack, "Health:", k, l, fontColor);
         font.draw(matrixStack, "" + health, k + gap, l, fontColor);
         font.draw(matrixStack, "Lvl.:", k, l + 10, fontColor);
         font.draw(matrixStack, "" + recruit.getXpLevel(), k + gap , l + 10, fontColor);
