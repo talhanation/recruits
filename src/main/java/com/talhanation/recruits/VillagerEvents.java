@@ -97,8 +97,8 @@ public class VillagerEvents {
             abstractRecruit.copyPosition(villager);
             abstractRecruit.initSpawn();
             villager.level.addFreshEntity(abstractRecruit);
+            if(RecruitsModConfig.RecruitTablesPOIReleasing.get()) villager.releasePoi(MemoryModuleType.JOB_SITE);
             villager.releasePoi(MemoryModuleType.HOME);
-            villager.releasePoi(MemoryModuleType.JOB_SITE);
             villager.releasePoi(MemoryModuleType.MEETING_POINT);
             villager.discard();
         }
