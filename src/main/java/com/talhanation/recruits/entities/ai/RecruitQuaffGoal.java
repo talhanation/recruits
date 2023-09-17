@@ -24,7 +24,7 @@ public class RecruitQuaffGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return hasPotionInInv() && recruit.needsToPotion() && !recruit.getIsEating() && !recruit.isUsingItem();
+        return hasPotionInInv() && recruit.needsToPotion() && !recruit.isUsingItem();
     }
 
     @Override
@@ -44,7 +44,6 @@ public class RecruitQuaffGoal extends Goal {
     public void start() {
         slotID = 0;
         beforeItem = recruit.getOffhandItem().copy();
-        recruit.setIsEating(true);
         this.potionItem = getPotionInInvAndRemove();
 
         recruit.setItemInHand(InteractionHand.OFF_HAND, potionItem.copy());
@@ -81,7 +80,6 @@ public class RecruitQuaffGoal extends Goal {
 
     @Override
     public void stop() {
-        recruit.setIsEating(false);
         recruit.stopUsingItem();
 
         resetItemInHand();

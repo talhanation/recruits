@@ -16,7 +16,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.animal.camel.Camel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -274,6 +273,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         super.renderLabels(guiGraphics, mouseX, mouseY);
         int health = Mth.ceil(recruit.getHealth());
+        int hunger = Mth.ceil(recruit.getHunger());
         int moral = Mth.ceil(recruit.getMoral());
         int hunger = Mth.ceil(recruit.getHunger());
         this.follow = recruit.getFollowState();
