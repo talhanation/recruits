@@ -1103,17 +1103,23 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void updateMoral(){
         //fast recovery
+        float currentMorale = getMoral();
+        float newMorale = currentMorale;
+
         if (isStarving() && this.isOwned()){
-            if(getMoral() > 0) setMoral((getMoral() - 2F));
+            if(currentMorale > 0) newMorale -= 2F;
         }
 
         if (this.isOwned() && !isSaturated()){
-            if(getMoral() > 35) setMoral((getMoral() - 1F));
+            if(currentMorale > 35) newMorale -= 1F;
         }
 
         if(this.isSaturated() || getHealth() >= getMaxHealth() * 0.85){
-            if(getMoral() < 65) setMoral((getMoral() + 2F));
+            if(currentMorale < 65) newMorale += 2F;
         }
+
+        if(newMorale > 0) setMoral(newMorale);
+        else setMoral(0F);
     }
 
     public void applyMoralEffects(){
@@ -1146,9 +1152,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void updateHunger(){
-        if(getHunger() > 0) {
-            setHunger((getHunger() - 7F));
-        }
+        float currentHunger = getHunger();
+        float newHunger = currentHunger - 7F;
+
+        if(newHunger > 0) {
+            setHunger(newHunger);
+        }else
+            setHunger(0);
+
         this.updateMoral();
     }
 
