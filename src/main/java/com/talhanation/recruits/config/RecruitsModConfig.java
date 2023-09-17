@@ -15,8 +15,9 @@ public class RecruitsModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
-    public static final int NEW_VERSION = 25;
+    public static final int NEW_VERSION = 26;
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
+    public static ForgeConfigSpec.BooleanValue RecruitTablesPOIReleasing;
     public static ForgeConfigSpec.BooleanValue OverrideIronGolemSpawn;
     public static ForgeConfigSpec.BooleanValue PillagerFriendlyFire;
     public static ForgeConfigSpec.BooleanValue PillagerSpawn;
@@ -232,6 +233,16 @@ public class RecruitsModConfig {
          */
         BUILDER.pop();
         BUILDER.comment("Recruit Village Config:").push("Villages");
+
+        RecruitTablesPOIReleasing = BUILDER.comment("""
+
+                        ----Should Villager Recruits that were created with Tables release the POI for other Villagers?----
+                        ----True -> allows multiple villagers to become a recruit with one table.----
+                        ----False -> only one villager can become a recruit with one table.----
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("RecruitTablesPOIReleasing", true);
 
         OverrideIronGolemSpawn = BUILDER.comment("""
 
