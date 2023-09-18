@@ -87,7 +87,6 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
                 recruit.setGroup(nbt.getInt("Group"));
                 recruit.setListen(nbt.getBoolean("Listen"));
                 recruit.setIsFollowing(nbt.getBoolean("isFollowing"));
-                recruit.setIsEating(nbt.getBoolean("isEating"));
                 recruit.setXp(nbt.getInt("Xp"));
                 recruit.setKills(nbt.getInt("Kills"));
                 recruit.setVariant(nbt.getInt("Variant"));
