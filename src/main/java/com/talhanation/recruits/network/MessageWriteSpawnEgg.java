@@ -76,7 +76,6 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
                 entityTag.putBoolean("Listen", recruitEntity.getListen());
                 entityTag.putBoolean("Fleeing", recruitEntity.getFleeing());
                 entityTag.putBoolean("isFollowing", recruitEntity.isFollowing());
-                entityTag.putBoolean("isEating", recruitEntity.getIsEating());
                 entityTag.putInt("Xp", recruitEntity.getXp());
                 entityTag.putInt("Level", recruitEntity.getXpLevel());
                 entityTag.putInt("Kills", recruitEntity.getKills());
