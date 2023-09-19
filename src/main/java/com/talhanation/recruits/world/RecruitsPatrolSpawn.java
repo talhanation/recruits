@@ -654,11 +654,12 @@ public class RecruitsPatrolSpawn {
 
     private void createPatrolHorseman(BlockPos upPos, RecruitEntity patrolLeader, String name, boolean banner) {
         HorsemanEntity horseman = ModEntityTypes.HORSEMAN.get().create(world);
+
         horseman.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         horseman.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
         setPatrolShieldmanEquipment(horseman);
         horseman.setPersistenceRequired();
-
+        horseman.isPatrol = true;
         horseman.setXpLevel(1 + random.nextInt(3));
         horseman.addLevelBuffsForLevel(horseman.getXpLevel());
         horseman.setHunger(80);
@@ -687,7 +688,7 @@ public class RecruitsPatrolSpawn {
         nomad.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
         setPatrolBowmanEquipment(nomad);
         nomad.setPersistenceRequired();
-
+        nomad.isPatrol = true;
         nomad.setXpLevel(1 + random.nextInt(3));
         nomad.addLevelBuffsForLevel(nomad.getXpLevel());
         nomad.setHunger(80);
