@@ -648,9 +648,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.recalculateCost();
         if (this.getTeam() != null && this.level.isClientSide()) Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
 
-        this.updateTeam();//TODO: Add config
+        if(!RecruitsModConfig.RecruitsKeepTeamAfterDisband.get()) this.updateTeam();
     }
-
 
     public void addXpLevel(int level){
         int currentLevel = this.getXpLevel();

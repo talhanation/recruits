@@ -67,6 +67,7 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.BooleanValue GlobalTeamSetting;
     public static ForgeConfigSpec.BooleanValue CommandScreenToggle;
     public static ForgeConfigSpec.BooleanValue RecruitHorseUnitsHorse;
+    public static ForgeConfigSpec.BooleanValue RecruitsKeepTeamAfterDisband;
     public static ArrayList<String> BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast"));
     public static ArrayList<String> MOUNTS = new ArrayList<>(
@@ -521,6 +522,13 @@ public class RecruitsModConfig {
 
         BUILDER.pop();
         BUILDER.comment("Recruit Teams Config:").push("Teams");
+
+        RecruitsKeepTeamAfterDisband = BUILDER.comment("""
+                        ----Should recruits stay in the same team after disbanding?----
+                        \t(takes effect after restart)
+                        \tdefault: false""")
+                .worldRestart()
+                .define("RecruitsKeepTeamAfterDisband", false);
 
         DisableVanillaTeamCommands = BUILDER.comment("""
                         ----Should specific vanilla team commands be disabled?----
