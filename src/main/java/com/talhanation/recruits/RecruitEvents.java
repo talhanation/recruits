@@ -224,7 +224,7 @@ public class   RecruitEvents {
 
     @SubscribeEvent
     public void onBlockBreakEvent(BlockEvent.BreakEvent event) {
-        if(RecruitsModConfig.AggroRecruitsBlockEvents.get()) {
+        if(RecruitsModConfig.AggroRecruitsBlockPlaceBreakEvents.get()) {
             Player blockBreaker = event.getPlayer();
 
             if (blockBreaker != null){
@@ -241,7 +241,7 @@ public class   RecruitEvents {
             }
         }
 
-        if(RecruitsModConfig.NeutralRecruitsBlockEvents.get()) {
+        if(RecruitsModConfig.NeutralRecruitsBlockPlaceBreakEvents.get()) {
             Player blockBreaker = event.getPlayer();
 
             if (blockBreaker != null){
@@ -261,7 +261,7 @@ public class   RecruitEvents {
 
     @SubscribeEvent
     public void onBlockPlaceEvent(BlockEvent.EntityPlaceEvent event) {
-        if(RecruitsModConfig.AggroRecruitsBlockEvents.get()) {
+        if(RecruitsModConfig.AggroRecruitsBlockPlaceBreakEvents.get()) {
             Entity blockPlacer = event.getEntity();
 
             if (blockPlacer instanceof LivingEntity livingBlockPlacer) {
@@ -278,7 +278,7 @@ public class   RecruitEvents {
             }
         }
 
-        if(RecruitsModConfig.NeutralRecruitsBlockEvents.get()) {
+        if(RecruitsModConfig.NeutralRecruitsBlockPlaceBreakEvents.get()) {
             Entity blockPlacer = event.getEntity();
 
             if (blockPlacer instanceof LivingEntity livingBlockPlacer) {
@@ -315,7 +315,6 @@ public class   RecruitEvents {
             (blockEntity instanceof Container)
         ) {
 
-
             if(RecruitsModConfig.AggroRecruitsBlockEvents.get()) {
                 List<AbstractRecruitEntity> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(32.0D)));
                 for (AbstractRecruitEntity recruits : list) {
@@ -328,6 +327,7 @@ public class   RecruitEvents {
                     warnPlayer(player, TEXT_INTERACT_WARN(list.get(0).getName().getString()));
                 }
             }
+
 
             if(RecruitsModConfig.NeutralRecruitsBlockEvents.get()) {
                 List<AbstractRecruitEntity> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(32.0D)));
