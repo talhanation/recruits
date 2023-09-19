@@ -135,6 +135,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
         double armor = recruit.getArmorValue();
         int costs = recruit.getCost();
         double hunger = recruit.getHunger();
+        String team = recruit.getTeam() != null ? recruit.getTeam().getName() : "null";
 
         int k = 30;//rechst links
         int l = 15;//höhe
@@ -179,6 +180,9 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
 
         guiGraphics.drawString(font, "Cost:", k + 43 + 20, l + 40, fontColor, false);
         guiGraphics.drawString(font, "" + costs, k + 77 + 20, l + 40, fontColor, false);
+		
+		guiGraphics.drawString(font, "Team:", k + 43 + 20, l + 50, fontColor, false);
+        guiGraphics.drawString(font, "" + team, k + 77 + 20, l + 50, fontColor, false);
 
 
     }

@@ -296,6 +296,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         int gap = 42;
         //Info
 
+
         guiGraphics.drawString(font, "Health:", k, l, fontColor, false);
         guiGraphics.drawString(font, "" + health, k + gap, l, fontColor, false);
         guiGraphics.drawString(font, "Lvl.:", k, l + 10, fontColor, false);
