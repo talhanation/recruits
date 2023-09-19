@@ -38,6 +38,8 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
     private static final EntityDataAccessor<Boolean> HAD_HORSE = SynchedEntityData.defineId(HorsemanEntity.class, EntityDataSerializers.BOOLEAN);
 
+    public boolean isPatrol = false;
+
     public HorsemanEntity(EntityType<? extends AbstractRecruitEntity> entityType, Level world) {
         super(entityType, world);
     }
@@ -116,7 +118,7 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
     public void tick() {
         super.tick();
 
-        if (!getHadHorse()){
+        if (!getHadHorse() && (RecruitsModConfig.RecruitHorseUnitsHorse.get() || isPatrol)){
             boolean hasHorse = this.getVehicle() != null && this.getVehicle() instanceof AbstractHorse;
             if (!hasHorse){
                 Horse horse = new Horse(EntityType.HORSE, this.level);
