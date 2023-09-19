@@ -1,13 +1,11 @@
 package com.talhanation.recruits.world;
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.entities.ai.PatrolLeaderTargetAttackers;
 import com.talhanation.recruits.entities.ai.villager.FollowCaravanOwner;
 import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SpawnPlacements.Type;
@@ -31,13 +29,12 @@ import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Random;
-import java.util.UUID;
 
 public class RecruitsPatrolSpawn {
-    private final Random random = new Random();
+    private static final Random random = new Random();
     private final ServerLevel world;
     private int timer;
-    private double chance;
+    private final double chance;
 
     public RecruitsPatrolSpawn(ServerLevel level) {
         this.world = level;
@@ -50,7 +47,7 @@ public class RecruitsPatrolSpawn {
 
         if(this.timer <= 0){
             if (this.world.getGameRules().getBoolean(GameRules.RULE_DO_PATROL_SPAWNING)) {
-                double rnd = this.random.nextInt(100);
+                double rnd = random.nextInt(100);
 
                 if (rnd <= this.chance && this.attemptSpawnPatrol()){}//To avoid multiple method call
             }
@@ -63,17 +60,22 @@ public class RecruitsPatrolSpawn {
         if (player == null) {
             return true;
         } else {
+
             BlockPos blockpos = new BlockPos(player.getOnPos());
             BlockPos blockpos2 = func_221244_a(blockpos, 90, this.random, world);
+
             if (blockpos2 != null && func_226559_a_(blockpos2, world) && blockpos2.distSqr(blockpos) > 200) {
                 BlockPos upPos = new BlockPos(blockpos2.getX(), blockpos2.getY() + 2, blockpos2.getZ());
 
-                int i = random.nextInt(10);
+                int i = random.nextInt(13);
                 switch(i) {
                     default -> spawnCaravan(upPos);
-                    case 8,9 -> spawnSmallPatrol(upPos);
-                    case 1,2 -> spawnMediumPatrol(upPos);
-                    case 3,4 -> spawnLargePatrol(upPos);
+                    case 9,0 -> spawnSmallPatrol(upPos);
+                    case 1,2 -> spawnLargePatrol(upPos);
+                    case 3,4 -> spawnHugePatrol(upPos);
+                    case 5,6 -> spawnTinyPatrol(upPos);
+                    case 7,8 -> spawnRoadPatrol(upPos);
+                    case 10,11 -> spawnMediumPatrol(upPos);
                 }
                 return true;
             }
@@ -150,7 +152,7 @@ public class RecruitsPatrolSpawn {
         world.addFreshEntity(horse);
     }
 
-    private Llama createLlama(BlockPos upPos, Villager villager) {
+    private void createLlama(BlockPos upPos, Villager villager) {
         Llama llama = EntityType.LLAMA.create(world);
 
         llama.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
@@ -187,7 +189,7 @@ public class RecruitsPatrolSpawn {
                 default -> resources = new ItemStack(Items.STRING);
                 case 1 -> resources = new ItemStack(Items.LEATHER);
                 case 2 -> resources = new ItemStack(Items.ARROW);
-                case 3 -> resources = new ItemStack(Items.EMERALD);
+                case 3 -> resources = new ItemStack(Items.CHAIN);
             }
             resources.setCount(count);
             llama.inventory.addItem(resources);
@@ -206,8 +208,6 @@ public class RecruitsPatrolSpawn {
             resources.setCount(count);
             llama.inventory.addItem(resources);
         }
-
-        return llama;
     }
 
     private Villager createVillager(BlockPos upPos, RecruitEntity patrolLeader) {
@@ -223,7 +223,7 @@ public class RecruitsPatrolSpawn {
         return villager;
     }
 
-    private Mule createMule(BlockPos upPos, LivingEntity villager) {
+    private void createMule(BlockPos upPos, LivingEntity villager) {
         Mule mule = EntityType.MULE.create(world);
 
         mule.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
@@ -258,7 +258,7 @@ public class RecruitsPatrolSpawn {
                 default -> resources = new ItemStack(Items.COAL);
                 case 1 -> resources = new ItemStack(Items.IRON_INGOT);
                 case 2 -> resources = new ItemStack(Items.COPPER_INGOT);
-                case 3 -> resources = new ItemStack(Items.EMERALD);
+                case 3 -> resources = new ItemStack(Items.CHAIN);
                 case 4 -> resources = new ItemStack(Items.CLAY);
             }
             resources.setCount(count);
@@ -295,10 +295,35 @@ public class RecruitsPatrolSpawn {
 
         //mule.goalSelector.addGoal(0, new FollowCaravanOwner(mule, villager.getUUID()));
         world.addFreshEntity(mule);
-
-        return mule;
     }
 
+    private void spawnHugePatrol(BlockPos upPos) {
+        RecruitEntity patrolLeader = this.createPatrolLeader(upPos, "Patrol Leader");
+
+        this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
+        this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
+        this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
+
+        this.createPatrolShieldman(upPos, patrolLeader, "Patrol", true);
+        this.createPatrolShieldman(upPos, patrolLeader, "Patrol", true);
+        this.createPatrolShieldman(upPos, patrolLeader, "Patrol", true);
+
+        this.createPatrolBowman(upPos, patrolLeader);
+        this.createPatrolBowman(upPos, patrolLeader);
+        this.createPatrolBowman(upPos, patrolLeader);
+
+        this.createPatrolCrossbowman(upPos, patrolLeader);
+        this.createPatrolCrossbowman(upPos, patrolLeader);
+        this.createPatrolCrossbowman(upPos, patrolLeader);
+
+        this.createPatrolHorseman(upPos, patrolLeader, "Patrol", true);
+        this.createPatrolHorseman(upPos, patrolLeader, "Patrol", false);
+        this.createPatrolHorseman(upPos, patrolLeader, "Patrol", false);
+        this.createPatrolNomad(upPos, patrolLeader, "Patrol");
+        this.createPatrolNomad(upPos, patrolLeader, "Patrol");
+        this.createPatrolNomad(upPos, patrolLeader, "Patrol");
+
+    }
     private void spawnLargePatrol(BlockPos upPos) {
         RecruitEntity patrolLeader = this.createPatrolLeader(upPos, "Patrol Leader");
 
@@ -308,52 +333,62 @@ public class RecruitsPatrolSpawn {
 
         this.createPatrolShieldman(upPos, patrolLeader, "Patrol", true);
         this.createPatrolShieldman(upPos, patrolLeader, "Patrol", true);
-        this.createPatrolShieldman(upPos, patrolLeader, "Patrol", true);
 
         this.createPatrolBowman(upPos, patrolLeader);
         this.createPatrolBowman(upPos, patrolLeader);
-        this.createPatrolBowman(upPos, patrolLeader);
 
-        this.createPatrolCrossbowman(upPos, patrolLeader);
         this.createPatrolCrossbowman(upPos, patrolLeader);
         this.createPatrolCrossbowman(upPos, patrolLeader);
 
         this.createPatrolHorseman(upPos, patrolLeader, "Patrol", true);
-        this.createPatrolHorseman(upPos, patrolLeader, "Patrol", false);
-        this.createPatrolHorseman(upPos, patrolLeader, "Patrol", false);
+        this.createPatrolHorseman(upPos, patrolLeader, "Patrol", true);
         this.createPatrolNomad(upPos, patrolLeader, "Patrol");
         this.createPatrolNomad(upPos, patrolLeader, "Patrol");
-        this.createPatrolNomad(upPos, patrolLeader, "Patrol");
-
     }
+
     private void spawnMediumPatrol(BlockPos upPos) {
         RecruitEntity patrolLeader = this.createPatrolLeader(upPos, "Patrol Leader");
 
         this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
-        this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
-        this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
 
         this.createPatrolShieldman(upPos, patrolLeader, "Patrol", true);
         this.createPatrolShieldman(upPos, patrolLeader, "Patrol", true);
 
         this.createPatrolBowman(upPos, patrolLeader);
-        this.createPatrolBowman(upPos, patrolLeader);
 
-        this.createPatrolCrossbowman(upPos, patrolLeader);
         this.createPatrolCrossbowman(upPos, patrolLeader);
 
         this.createPatrolHorseman(upPos, patrolLeader, "Patrol", true);
         this.createPatrolNomad(upPos, patrolLeader, "Patrol");
-        this.createPatrolNomad(upPos, patrolLeader, "Patrol");
-    }
 
+    }
 
     private void spawnSmallPatrol(BlockPos upPos) {
         RecruitEntity patrolLeader = this.createPatrolLeader(upPos, "Patrol Leader");
 
         this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
+        this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
         this.createPatrolShieldman(upPos, patrolLeader, "Patrol", true);
         this.createPatrolBowman(upPos, patrolLeader);
+        this.createPatrolBowman(upPos, patrolLeader);
+    }
+    private void spawnTinyPatrol(BlockPos upPos) {
+        RecruitEntity patrolLeader = this.createPatrolLeader(upPos, "Patrol Leader");
+
+        this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
+        this.createPatrolShieldman(upPos, patrolLeader, "Patrol", true);
+        this.createPatrolBowman(upPos, patrolLeader);
+    }
+
+    private void spawnRoadPatrol(BlockPos upPos) {
+        RecruitEntity patrolLeader = this.createPatrolLeader(upPos, "Patrol Leader");
+
+        this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
+
+        this.createPatrolHorseman(upPos, patrolLeader, "Patrol", true);
+        this.createPatrolNomad(upPos, patrolLeader, "Patrol");
+        this.createPatrolHorseman(upPos, patrolLeader, "Patrol", true);
+        this.createPatrolNomad(upPos, patrolLeader, "Patrol");
     }
 
     @Nullable
@@ -396,7 +431,7 @@ public class RecruitsPatrolSpawn {
         recruit.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.IRON_LEGGINGS));
         recruit.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.IRON_BOOTS));
 
-        int j = random.nextInt(32);
+        int j = random.nextInt(16);
         ItemStack item = new ItemStack(Items.EMERALD);
         item.setCount(8 + j);
         recruit.inventory.setItem(8, item);
@@ -415,17 +450,6 @@ public class RecruitsPatrolSpawn {
         else {
             recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
         }
-
-        int k = random.nextInt(8);
-        ItemStack food;
-        switch(k) {
-            default -> food = new ItemStack(Items.BREAD);
-            case 1 -> food = new ItemStack(Items.COOKED_BEEF);
-            case 2 -> food = new ItemStack(Items.COOKED_CHICKEN);
-            case 3 -> food = new ItemStack(Items.COOKED_MUTTON);
-        }
-        food.setCount(16 + k);
-        recruit.inventory.setItem(7, food);
     }
 
     public static void setPatrolRecruitEquipment(RecruitEntity recruit) {
@@ -446,18 +470,6 @@ public class RecruitsPatrolSpawn {
         else {
             recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
         }
-
-        int k = random.nextInt(8);
-        ItemStack food;
-        switch(k) {
-            default -> food = new ItemStack(Items.BREAD);
-            case 1 -> food = new ItemStack(Items.COOKED_COD);
-            case 2 -> food = new ItemStack(Items.CARROT);
-            case 3 -> food = new ItemStack(Items.BAKED_POTATO);
-        }
-        food.setCount(6 + k);
-        recruit.inventory.setItem(7, food);
-
 
         int j = random.nextInt(8);
 
@@ -485,17 +497,6 @@ public class RecruitsPatrolSpawn {
         else {
             recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
         }
-
-        int k = random.nextInt(8);
-        ItemStack food;
-        switch(k) {
-            default -> food = new ItemStack(Items.BREAD);
-            case 1 -> food = new ItemStack(Items.COOKED_COD);
-            case 2 -> food = new ItemStack(Items.CARROT);
-            case 3 -> food = new ItemStack(Items.BAKED_POTATO);
-        }
-        food.setCount(6 + k);
-        recruit.inventory.setItem(7, food);
     }
 
     public static void setPatrolBowmanEquipment(AbstractRecruitEntity recruit) {
@@ -512,7 +513,12 @@ public class RecruitsPatrolSpawn {
         ItemStack arrows = new ItemStack(Items.ARROW);
         arrows.setCount(8 + i);
         recruit.inventory.setItem(6, arrows);
+    }
 
+    public static void setRecruitFood(AbstractRecruitEntity recruit){
+        setRecruitFood(recruit, 0);
+    }
+    public static void setRecruitFood(AbstractRecruitEntity recruit, int bonus){
         int k = random.nextInt(8);
         ItemStack food;
         switch(k) {
@@ -520,11 +526,15 @@ public class RecruitsPatrolSpawn {
             case 1 -> food = new ItemStack(Items.COOKED_COD);
             case 2 -> food = new ItemStack(Items.MELON_SLICE);
             case 3 -> food = new ItemStack(Items.COOKED_RABBIT);
+            case 4 -> food = new ItemStack(Items.COOKED_BEEF);
+            case 5 -> food = new ItemStack(Items.COOKED_CHICKEN);
+            case 6 -> food = new ItemStack(Items.COOKED_MUTTON);
+            case 7 -> food = new ItemStack(Items.BAKED_POTATO);
         }
-        food.setCount(6 + k);
+        int i = random.nextInt(14);
+        food.setCount(6 + i + bonus);
         recruit.inventory.setItem(7, food);
     }
-
     public static void setPatrolCrossbowmanEquipment(AbstractRecruitEntity recruit) {
         Random random = new Random();
 
@@ -539,19 +549,9 @@ public class RecruitsPatrolSpawn {
         ItemStack arrows = new ItemStack(Items.ARROW);
         arrows.setCount(8 + i);
         recruit.inventory.setItem(6, arrows);
-
-        int k = random.nextInt(8);
-        ItemStack food;
-        switch(k) {
-            default -> food = new ItemStack(Items.BREAD);
-            case 1 -> food = new ItemStack(Items.COOKED_COD);
-            case 2 -> food = new ItemStack(Items.MELON_SLICE);
-            case 3 -> food = new ItemStack(Items.COOKED_RABBIT);
-        }
-        food.setCount(6 + k);
-        recruit.inventory.setItem(7, food);
     }
 
+    //CREATE//
 
     public RecruitEntity createPatrolLeader(BlockPos upPos, String name){
         RecruitEntity patrolLeader = ModEntityTypes.RECRUIT.get().create(world);
@@ -560,7 +560,7 @@ public class RecruitsPatrolSpawn {
         setPatrolLeaderEquipment(patrolLeader);
         patrolLeader.setPersistenceRequired();
 
-        patrolLeader.setXpLevel(2 + random.nextInt(3));
+        patrolLeader.setXpLevel(1 + random.nextInt(2));
         patrolLeader.addLevelBuffsForLevel(patrolLeader.getXpLevel());
         patrolLeader.setHunger(100);
         patrolLeader.setMoral(100);
@@ -572,6 +572,8 @@ public class RecruitsPatrolSpawn {
 
         patrolLeader.targetSelector.addGoal(2, new PatrolLeaderTargetAttackers(patrolLeader));
 
+        setRecruitFood(patrolLeader);
+
         world.addFreshEntity(patrolLeader);
         return patrolLeader;
     }
@@ -580,20 +582,21 @@ public class RecruitsPatrolSpawn {
         RecruitEntity recruitEntity = ModEntityTypes.RECRUIT.get().create(world);
         recruitEntity.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         recruitEntity.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
-        setPatrolRecruitEquipment(recruitEntity);
+        if(random.nextInt(2) == 0) setPatrolRecruitEquipment(recruitEntity);
         recruitEntity.setPersistenceRequired();
 
-        recruitEntity.setXpLevel(1 + random.nextInt(3));
+        recruitEntity.setXpLevel(Math.max(1, random.nextInt(3)));
         recruitEntity.addLevelBuffsForLevel(recruitEntity.getXpLevel());
         recruitEntity.setHunger(80);
         recruitEntity.setMoral(65);
-        recruitEntity.setCost(18);
+        recruitEntity.setCost(9);
         recruitEntity.setProtectUUID(Optional.of(patrolLeader.getUUID()));
         recruitEntity.setShouldProtect(true);
         recruitEntity.setXp(random.nextInt(80));
 
         recruitEntity.setCustomName(Component.literal(name));
 
+        setRecruitFood(recruitEntity);
 
         world.addFreshEntity(recruitEntity);
     }
@@ -602,21 +605,21 @@ public class RecruitsPatrolSpawn {
         BowmanEntity bowman = ModEntityTypes.BOWMAN.get().create(world);
         bowman.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         bowman.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
-        setPatrolBowmanEquipment(bowman);
+        if(random.nextInt(2) == 0) setPatrolBowmanEquipment(bowman);
         bowman.setPersistenceRequired();
 
-        bowman.setXpLevel(1 + random.nextInt(3));
+        bowman.setXpLevel(Math.max(1, random.nextInt(3)));
         bowman.addLevelBuffsForLevel(bowman.getXpLevel());
         bowman.setHunger(80);
         bowman.setMoral(65);
-        bowman.setCost(32);
+        bowman.setCost(16);
         bowman.setProtectUUID(Optional.of(patrolLeader.getUUID()));
         bowman.setShouldProtect(true);
         bowman.setXp(random.nextInt(120));
 
         bowman.setCustomName(Component.literal("Patrol"));
 
-
+        setRecruitFood(bowman);
 
         world.addFreshEntity(bowman);
     }
@@ -625,14 +628,14 @@ public class RecruitsPatrolSpawn {
         RecruitShieldmanEntity shieldmanEntity = ModEntityTypes.RECRUIT_SHIELDMAN.get().create(world);
         shieldmanEntity.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         shieldmanEntity.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
-        setPatrolShieldmanEquipment(shieldmanEntity);
+        if(random.nextInt(2) == 0) setPatrolShieldmanEquipment(shieldmanEntity);
         shieldmanEntity.setPersistenceRequired();
 
-        shieldmanEntity.setXpLevel(1 + random.nextInt(3));
+        shieldmanEntity.setXpLevel(Math.max(1, random.nextInt(3)));
         shieldmanEntity.addLevelBuffsForLevel(shieldmanEntity.getXpLevel());
         shieldmanEntity.setHunger(80);
         shieldmanEntity.setMoral(65);
-        shieldmanEntity.setCost(24);
+        shieldmanEntity.setCost(12);
         shieldmanEntity.setProtectUUID(Optional.of(patrolLeader.getUUID()));
         shieldmanEntity.setShouldProtect(true);
         shieldmanEntity.setXp(random.nextInt(120));
@@ -649,6 +652,8 @@ public class RecruitsPatrolSpawn {
 
         }
 
+        setRecruitFood(shieldmanEntity);
+
         world.addFreshEntity(shieldmanEntity);
     }
 
@@ -657,14 +662,14 @@ public class RecruitsPatrolSpawn {
 
         horseman.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         horseman.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
-        setPatrolShieldmanEquipment(horseman);
+        if(random.nextInt(2) == 0) setPatrolShieldmanEquipment(horseman);
         horseman.setPersistenceRequired();
         horseman.isPatrol = true;
-        horseman.setXpLevel(1 + random.nextInt(3));
+        horseman.setXpLevel(Math.max(1, random.nextInt(3)));
         horseman.addLevelBuffsForLevel(horseman.getXpLevel());
         horseman.setHunger(80);
         horseman.setMoral(75);
-        horseman.setCost(36);
+        horseman.setCost(30);
         horseman.setProtectUUID(Optional.of(patrolLeader.getUUID()));
         horseman.setShouldProtect(true);
         horseman.setXp(random.nextInt(120));
@@ -679,6 +684,8 @@ public class RecruitsPatrolSpawn {
 
         }
 
+        setRecruitFood(horseman);
+
         world.addFreshEntity(horseman);
     }
 
@@ -686,19 +693,21 @@ public class RecruitsPatrolSpawn {
         NomadEntity nomad = ModEntityTypes.NOMAD.get().create(world);
         nomad.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         nomad.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
-        setPatrolBowmanEquipment(nomad);
+        if(random.nextInt(2) == 0) setPatrolBowmanEquipment(nomad);
         nomad.setPersistenceRequired();
         nomad.isPatrol = true;
         nomad.setXpLevel(1 + random.nextInt(3));
         nomad.addLevelBuffsForLevel(nomad.getXpLevel());
         nomad.setHunger(80);
         nomad.setMoral(75);
-        nomad.setCost(40);
+        nomad.setCost(30);
         nomad.setProtectUUID(Optional.of(patrolLeader.getUUID()));
         nomad.setShouldProtect(true);
         nomad.setXp(random.nextInt(120));
 
         nomad.setCustomName(Component.literal(name));
+
+        setRecruitFood(nomad);
 
         world.addFreshEntity(nomad);
     }
@@ -710,18 +719,18 @@ public class RecruitsPatrolSpawn {
         setPatrolCrossbowmanEquipment(crossBowman);
         crossBowman.setPersistenceRequired();
 
-        crossBowman.setXpLevel(1 + random.nextInt(3));
+        crossBowman.setXpLevel(Math.max(1, random.nextInt(3)));
         crossBowman.addLevelBuffsForLevel(crossBowman.getXpLevel());
         crossBowman.setHunger(80);
         crossBowman.setMoral(65);
-        crossBowman.setCost(32);
+        crossBowman.setCost(16);
         crossBowman.setProtectUUID(Optional.of(patrolLeader.getUUID()));
         crossBowman.setShouldProtect(true);
         crossBowman.setXp(random.nextInt(120));
 
         crossBowman.setCustomName(Component.literal("Patrol"));
 
-
+        setRecruitFood(crossBowman);
 
         world.addFreshEntity(crossBowman);
     }
