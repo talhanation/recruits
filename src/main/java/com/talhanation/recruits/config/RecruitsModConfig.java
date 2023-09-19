@@ -2,6 +2,7 @@ package com.talhanation.recruits.config;
 
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
+import com.talhanation.recruits.world.RecruitsTeamSavedData;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.Mod;
 
@@ -65,6 +66,7 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.BooleanValue GlobalTeamSeeFriendlyInvisibleSetting;
     public static ForgeConfigSpec.BooleanValue GlobalTeamSetting;
     public static ForgeConfigSpec.BooleanValue CommandScreenToggle;
+    public static ForgeConfigSpec.BooleanValue RecruitHorseUnitsHorse;
     public static ArrayList<String> BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast"));
     public static ArrayList<String> MOUNTS = new ArrayList<>(
@@ -227,6 +229,16 @@ public class RecruitsModConfig {
                         \tdefault: 15""")
                 .worldRestart()
                 .defineInRange("NomadCost", 19, 0, 999);
+
+        RecruitHorseUnitsHorse = BUILDER.comment("""
+                        ----RecruitHorseUnitsHorse----
+                        \t(takes effect after restart)
+                        \t
+                        Should the Horse units spawn with a horse?""
+                        default: true""")
+
+                .worldRestart()
+                .define("RecruitHorseUnitsHorse", true);
 
         /*
         Village Config
