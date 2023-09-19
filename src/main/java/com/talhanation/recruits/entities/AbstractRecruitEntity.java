@@ -645,7 +645,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.recalculateCost();
         if (this.getTeam() != null) Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
 
-        //this.updateTeam();//TODO: Add config
+        this.updateTeam();//TODO: Add config
     }
 
 
