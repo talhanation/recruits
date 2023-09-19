@@ -4,6 +4,7 @@ package com.talhanation.recruits.entities;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
+import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.*;
 import com.talhanation.recruits.entities.ai.navigation.RecruitPathNavigation;
@@ -646,7 +647,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
 
         this.recalculateCost();
-        if (this.getTeam() != null && this.level.isClientSide()) Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
+        if (this.getTeam() != null){
+            if(this.level.isClientSide()) Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
+            else TeamEvents.addNPCToData((ServerLevel) this.level, this.getTeam().getName(), -1);
+        }
 
         if(!RecruitsModConfig.RecruitsKeepTeamAfterDisband.get()) this.updateTeam();
     }
@@ -949,9 +953,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
             int i = this.random.nextInt(4);
             switch (i) {
-                case 1 -> {
+
+                default -> {
 
                     player.sendMessage(TEXT_RECRUITED1(name), player.getUUID());
+
                 }
                 case 2 -> {
                     player.sendMessage(TEXT_RECRUITED2(name), player.getUUID());
@@ -963,6 +969,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
         int currentRecruits = CommandEvents.getSavedRecruitCount(player);
         CommandEvents.saveRecruitCount(player,  currentRecruits + 1);
+
+        //Adding to team handles event
+
         return true;
     }
 
