@@ -191,7 +191,7 @@ public class TeamEvents {
 
 
                                 int recruits = getRecruitsOfPlayer(serverPlayer.getUUID(), level);
-                                addNPCToData(level, playerName, recruits);
+                                addNPCToData(level, teamName, recruits);
 
                                 updateRecruitsTeamServerSide(level);
 
@@ -331,8 +331,6 @@ public class TeamEvents {
         commanddispatcher.parse(joinTeamCommand, createCommandSourceStack(player, server));
         server.getCommands().performCommand(parseresults, joinTeamCommand);
         */
-
-
     }
     public static Component REMOVE_PLAYER_LEADER(String player){
         return Component.translatable("chat.recruits.team_creation.removedPlayerLeader", player);
