@@ -36,7 +36,7 @@ mixin{
     overwriteErrorLevel = 'error'
 }
 
-version = '1.10.7'
+version = '1.10.8'
 
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.18.2'
@@ -72,7 +72,7 @@ minecraft {
             workingDirectory project.file('run')
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
-			property 'forge.enabledGameTestNamespaces', 'examplemod'
+			property 'forge.enabledGameTestNamespaces', 'recruits'
 
             mods {
                 'recruits' {
@@ -87,7 +87,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-            args '--mod', 'examplemod', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            args '--mod', 'recruits', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
 
             mods {
                 'recruits' {
