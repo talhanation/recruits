@@ -318,13 +318,13 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
 
         font.draw(matrixStack, "Health:", k, l, fontColor);
         font.draw(matrixStack, "" + health, k + gap, l, fontColor);
-        font.draw(matrixStack, "Lvl.:", k, l + 10, fontColor);
+        font.draw(matrixStack, "Level.:", k, l + 10, fontColor);
         font.draw(matrixStack, "" + recruit.getXpLevel(), k + gap , l + 10, fontColor);
         font.draw(matrixStack, "Exp.:", k, l + 20, fontColor);
         font.draw(matrixStack, "" + recruit.getXp(), k + gap, l + 20, fontColor);
         font.draw(matrixStack, "Kills:", k, l + 30, fontColor);
         font.draw(matrixStack, ""+ recruit.getKills(), k + gap, l + 30, fontColor);
-        font.draw(matrixStack, "Mrl:", k, l + 40, fontColor);
+        font.draw(matrixStack, "Morale:", k, l + 40, fontColor);
         font.draw(matrixStack, ""+ moral, k + gap, l + 40, fontColor);
 		font.draw(matrixStack, "Hunger:", k, l + 50, fontColor);
         font.draw(matrixStack, ""+ hunger, k + gap, l + 50, fontColor);
