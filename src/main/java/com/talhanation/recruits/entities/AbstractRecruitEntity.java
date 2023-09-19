@@ -645,8 +645,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         this.recalculateCost();
         if (this.getTeam() != null){
-            if(this.level.isClientSide()) Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
-            else TeamEvents.addNPCToData((ServerLevel) this.level, this.getTeam().getName(), -1);
+            if(this.getCommandSenderWorld().isClientSide()) Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
+            else TeamEvents.addNPCToData((ServerLevel) this.getCommandSenderWorld(), this.getTeam().getName(), -1);
         }
 
         if(!RecruitsModConfig.RecruitsKeepTeamAfterDisband.get()) this.updateTeam();

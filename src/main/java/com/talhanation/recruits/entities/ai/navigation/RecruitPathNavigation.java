@@ -15,7 +15,7 @@ public class RecruitPathNavigation extends GroundPathNavigation {
         recruit.setPathfindingMalus(BlockPathTypes.WATER, 32.0F);
         recruit.setPathfindingMalus(BlockPathTypes.TRAPDOOR, 32.0F);
         recruit.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, 32.0F);
-        recruit.setPathfindingMalus(BlockPathTypes.DAMAGE_CACTUS, 32.0F);
+        recruit.setPathfindingMalus(BlockPathTypes.DAMAGE_CAUTIOUS, 32.0F);
         recruit.setPathfindingMalus(BlockPathTypes.DANGER_POWDER_SNOW, -1.0F);
         recruit.setPathfindingMalus(BlockPathTypes.DOOR_WOOD_CLOSED, 0.0F);
         recruit.setPathfindingMalus(BlockPathTypes.FENCE, 32.0F);

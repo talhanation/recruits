@@ -8,7 +8,7 @@
     "AbstractHorseMixin",
     "AnimalMixin",
     "CamelMixin",
-    "LivingEntityMixin"
+    "LivingEntityMixin",
     "WalkNodeEvaluatorMixin"
   ],
   "client": [
