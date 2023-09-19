@@ -229,7 +229,7 @@ public class   RecruitEvents {
 
     @SubscribeEvent
     public void onBlockBreakEvent(BlockEvent.BreakEvent event) {
-        if(RecruitsModConfig.AggroRecruitsBlockEvents.get()) {
+        if(RecruitsModConfig.AggroRecruitsBlockPlaceBreakEvents.get()) {
             Player blockBreaker = event.getPlayer();
 
             if (blockBreaker != null){
@@ -246,7 +246,7 @@ public class   RecruitEvents {
             }
         }
 
-        if(RecruitsModConfig.NeutralRecruitsBlockEvents.get()) {
+        if(RecruitsModConfig.NeutralRecruitsBlockPlaceBreakEvents.get()) {
             Player blockBreaker = event.getPlayer();
 
             if (blockBreaker != null){
@@ -266,7 +266,7 @@ public class   RecruitEvents {
 
     @SubscribeEvent
     public void onBlockPlaceEvent(BlockEvent.EntityPlaceEvent event) {
-        if(RecruitsModConfig.AggroRecruitsBlockEvents.get()) {
+        if(RecruitsModConfig.AggroRecruitsBlockPlaceBreakEvents.get()) {
             Entity blockPlacer = event.getEntity();
 
             if (blockPlacer instanceof LivingEntity livingBlockPlacer) {
@@ -283,7 +283,7 @@ public class   RecruitEvents {
             }
         }
 
-        if(RecruitsModConfig.NeutralRecruitsBlockEvents.get()) {
+        if(RecruitsModConfig.NeutralRecruitsBlockPlaceBreakEvents.get()) {
             Entity blockPlacer = event.getEntity();
 
             if (blockPlacer instanceof LivingEntity livingBlockPlacer) {
@@ -320,7 +320,7 @@ public class   RecruitEvents {
         ) {
 
 
-            if(RecruitsModConfig.AggroRecruitsBlockEvents.get()) {
+            if(RecruitsModConfig.AggroRecruitsBlockInteractingEvents.get()) {
                 List<AbstractRecruitEntity> list = Objects.requireNonNull(player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(32.0D)));
                 for (AbstractRecruitEntity recruits : list) {
                     if (canDamageTargetBlockEvent(recruits, player) && recruits.getState() == 1) {
@@ -333,7 +333,7 @@ public class   RecruitEvents {
                 }
             }
 
-            if(RecruitsModConfig.NeutralRecruitsBlockEvents.get()) {
+            if(RecruitsModConfig.NeutralRecruitsBlockInteractingEvents.get()) {
                 List<AbstractRecruitEntity> list = Objects.requireNonNull(player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(32.0D)));
                 for (AbstractRecruitEntity recruits : list) {
                     if (canDamageTargetBlockEvent(recruits, player) && recruits.getState() == 0 && recruits.isOwned()) {
