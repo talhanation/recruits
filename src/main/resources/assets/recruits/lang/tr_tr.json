@@ -42,7 +42,7 @@
 
   "gui.recruits.inv.text.follow": "Follow me!",
   "gui.recruits.inv.text.wander": "Wander freely!",
-  "gui.recruits.inv.text.holdMyPos": "Hold my Position!",
+  "gui.recruits.inv.text.holdMyPos": "Pozisyonumu Tut!",
   "gui.recruits.inv.text.holdPos": "Pozisyonunu Tut!",
   "gui.recruits.inv.text.backToPos": "Pozisyona Geri Dön!",
   "gui.recruits.inv.text.patrol": "Devriye!",
@@ -82,6 +82,7 @@
   "gui.recruits.command.tooltip.holdMyPos": "Piyadeleri mevcut pozisyonunuzu tutmaları için sağlalar.",
   "gui.recruits.command.tooltip.holdPos": "Piyadeleri mevcut pozisyonlarını tutmaları için sağlalar.",
   "gui.recruits.command.tooltip.backToPos": "Piyadeleri daha önce sahip oldukları pozisyona geri dönmeleri için sağlalar.",
+  "gui.recruits.command.tooltip.backToMount": "Piyadeleri önceki araçlarına geri gönder.",
   "gui.recruits.command.tooltip.patrol": "Piyadeleri daha önce sahip oldukları pozisyonda devriye gezmeleri için sağlalar.",
   "gui.recruits.command.tooltip.clearTargets": "Piyadelerin mevcut hedeflerini unuturur.",
   "gui.recruits.command.tooltip.protect": "Piyadeleri göz gezdirdiğiniz Yaratığı korumak ve takip etmek için sağlalar.",
@@ -118,6 +119,7 @@
   "gui.recruits.command.text.holdMyPos": "Pozisyonumu tut!",
   "gui.recruits.command.text.holdPos": "Pozisyonunu tut!",
   "gui.recruits.command.text.backToPos": "Pozisyona geri dön!",
+  "gui.recruits.command.text.backToMount": "Araçına geri dön!",
   "gui.recruits.command.text.patrol": "Devriye!",
   "gui.recruits.command.text.clearTargets": "Hedefleri unut!",
   "gui.recruits.command.text.passive": "Pasif!",
@@ -143,6 +145,7 @@
   "chat.recruits.command.holdMyPos": "%s Pozisyonumu tutun!",
   "chat.recruits.command.holdPos": "%s Pozisyonunu tutun!",
   "chat.recruits.command.backToPos": "%s Pozisyonuna geri dön!",
+  "chat.recruits.command.backToMount": "%s Araçına geri dön!",
   "chat.recruits.command.patrol": "%s Devriye gez!",
   "chat.recruits.command.clearTargets": "%s Dur, Hedefleri unut!",
   "chat.recruits.command.passive": "%s Saldırma!",
@@ -159,6 +162,9 @@
   "chat.recruits.text.disband": "%s: O zaman burada yollarımızı ayırıyoruz.",
   "chat.recruits.text.noFoodInUpkeep": "%s: Bakımda yiyecek yok.",
   "chat.recruits.text.noPlaceInInv": "%s: Eşyalarımı saklamak için yer yok.",
+  "chat.recruits.text.cantInteract": "%s: Bakim yapabilecek bir envanter bulunamadı. Yeni bir envanter arıyorum.",
+  "chat.recruits.text.findMeNewChest": "%s: Başka bir etkileşimli envanter bulamadım, lütfen benim bakımımı tekrardan ayarla.",
+  "chat.recruits.text.cantFindEntity": "%s: Yakında hiçbir mob yok. Lütfen bakımımı tekrar ayarla.",
   "chat.recruits.text.recruited1": "%s: Gittiğin yol onurlu bir yol.",
   "chat.recruits.text.recruited2": "%s: Nasıl yardımcı olabilirim?",
   "chat.recruits.text.recruited3": "%s: Senin yolun benim yolumdur. Onur duyarım.",
@@ -209,6 +215,7 @@
   "recruits": "Recruits",
 
   "key.recruits.r_key": "Emir ekranını aç",
+
   "key.recruits.u_key": "Takım ekranını aç",
   "gui.recruits.team_creation.sendJoinRequest": "%s'ye katılma isteği gönderdiniz.",
   "Recruits": "Piyadeler"

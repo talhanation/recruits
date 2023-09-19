@@ -28,11 +28,12 @@ import net.minecraft.world.level.ServerLevelAccessor;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 public class NomadEntity extends BowmanEntity {
 
     private static final EntityDataAccessor<Boolean> HAD_HORSE = SynchedEntityData.defineId(NomadEntity.class, EntityDataSerializers.BOOLEAN);
-
+    public boolean isPatrol = false;
     public NomadEntity(EntityType<? extends AbstractRecruitEntity> entityType, Level world) {
         super(entityType, world);
     }
@@ -116,7 +117,7 @@ public class NomadEntity extends BowmanEntity {
     @Override
     public void tick() {
         super.tick();
-        if (!getHadHorse()){
+        if (!getHadHorse() && (RecruitsModConfig.RecruitHorseUnitsHorse.get() || isPatrol)){
             boolean hasHorse = this.getVehicle() != null && this.getVehicle() instanceof AbstractHorse;
             if (!hasHorse){
                 Horse horse = new Horse(EntityType.HORSE, this.level);
@@ -131,6 +132,7 @@ public class NomadEntity extends BowmanEntity {
                 this.startRiding(horse);
                 this.level.addFreshEntity(horse);
                 this.setHadHorse(true);
+                this.setMountUUID(Optional.of(horse.getUUID()));
             }
         }
     }

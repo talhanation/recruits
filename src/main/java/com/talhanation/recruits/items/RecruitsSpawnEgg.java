@@ -1,5 +1,6 @@
 package com.talhanation.recruits.items;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.BowmanEntity;
 import com.talhanation.recruits.init.ModEntityTypes;
@@ -15,6 +16,7 @@ import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.scores.PlayerTeam;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -59,6 +61,16 @@ public class RecruitsSpawnEgg extends SpawnEggItem {
             CompoundTag entityTag = stack.getTag();
             if(entity instanceof AbstractRecruitEntity recruit && entityTag != null) {
                 CompoundTag nbt = entityTag.getCompound("EntityTag");
+
+
+                if (nbt.contains("Team")) {
+                    String s = nbt.getString("Team");
+                    PlayerTeam playerteam = recruit.level.getScoreboard().getPlayerTeam(s);
+                    boolean flag = playerteam != null && recruit.level.getScoreboard().addPlayerToTeam(recruit.getStringUUID(), playerteam);
+                    if (!flag) {
+                        Main.LOGGER.warn("Unable to add mob to team \"{}\" (that team probably doesn't exist)", (Object)s);
+                    }
+                }
                 String name = nbt.getString("Name");
                 recruit.setCustomName(Component.literal(name));
 
@@ -73,7 +85,6 @@ public class RecruitsSpawnEgg extends SpawnEggItem {
                 recruit.setGroup(nbt.getInt("Group"));
                 recruit.setListen(nbt.getBoolean("Listen"));
                 recruit.setIsFollowing(nbt.getBoolean("isFollowing"));
-                recruit.setIsEating(nbt.getBoolean("isEating"));
                 recruit.setXp(nbt.getInt("Xp"));
                 recruit.setKills(nbt.getInt("Kills"));
                 recruit.setVariant(nbt.getInt("Variant"));
