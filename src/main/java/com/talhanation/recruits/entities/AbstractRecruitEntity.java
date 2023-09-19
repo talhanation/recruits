@@ -646,7 +646,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
 
         this.recalculateCost();
-        if (this.getTeam() != null) Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
+        if (this.getTeam() != null && this.level.isClientSide()) Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
 
         this.updateTeam();//TODO: Add config
     }
