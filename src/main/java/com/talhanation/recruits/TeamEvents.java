@@ -189,6 +189,10 @@ public class TeamEvents {
                                 saveDataToTeam(level, teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT());
                                 addPlayerToData(level, teamName, 1, playerName);
 
+
+                                int recruits = getRecruitsOfPlayer(serverPlayer.getUUID(), level);
+                                addNPCToData(level, playerName, recruits);
+
                                 updateRecruitsTeamServerSide(level);
 
                                 Main.LOGGER.info("The new Team " + teamName + " has been created by " + playerName + ".");
@@ -271,6 +275,10 @@ public class TeamEvents {
         else
             isLeader = false;
 
+
+        int recruits = getRecruitsOfPlayer(player.getUUID(), level);
+        addNPCToData(level, teamName, -recruits);
+
         if(playerTeam != null){
             if(isLeader){
                 removeRecruitsTeamData(level, teamName);
@@ -282,6 +290,8 @@ public class TeamEvents {
             else {
                 server.getScoreboard().removePlayerFromTeam(playerName, playerTeam);
                 addPlayerToData(level,teamName,-1, playerName);
+
+
             }
 
             updateRecruitsTeamServerSide(level);
@@ -306,6 +316,10 @@ public class TeamEvents {
             if(player != null) player.sendSystemMessage(ADDED_PLAYER_LEADER(namePlayerToAdd));
 
             addPlayerToData(level,teamName,1, namePlayerToAdd);
+
+            int recruits = getRecruitsOfPlayer(playerToAdd.getUUID(), level);
+            addNPCToData(level, teamName, recruits);
+
             updateRecruitsTeamServerSide(level);
         }
         else
@@ -376,10 +390,22 @@ public class TeamEvents {
                 TeamEvents.leaveTeam(potentialRemovePlayer, level);
                 potentialRemovePlayer.sendSystemMessage(PLAYER_REMOVED);
                 leader.sendSystemMessage(REMOVE_PLAYER_LEADER(potentialRemovePlayer.getDisplayName().getString()));
-
+                int recruits = getRecruitsOfPlayer(potentialRemovePlayer.getUUID(), level);
+                addNPCToData(level, leader.getTeam().getName(), -recruits);
                 updateRecruitsTeamServerSide(level);
             }
         }
+    }
+
+    private static int getRecruitsOfPlayer(UUID player_uuid, ServerLevel level) {
+        List<AbstractRecruitEntity> list = new ArrayList<>();
+
+        for(Entity entity : level.getEntities().getAll()){
+            if(entity instanceof AbstractRecruitEntity recruit && recruit.getOwner() != null && recruit.getOwnerUUID().equals(player_uuid))
+                list.add(recruit);
+        }
+
+        return list.size();
     }
 
     public static ItemStack getCurrency(){
@@ -479,7 +505,11 @@ public class TeamEvents {
             if(newOwner != null){
                 if(list.contains(newOwner.getName().getString())){
                     recruit.disband(oldOwner);
-                    recruit.hire(newOwner);
+                    if(!recruit.hire(newOwner)){
+
+                    };
+
+
                 }
                 else
                     playerNotFound = true;
