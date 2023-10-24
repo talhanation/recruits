@@ -169,44 +169,54 @@ public class TeamEvents {
         int cost = 10;
 
         if (team == null) {
-            if (!(teamName.isBlank() || teamName.isEmpty())) {
-                if (!isNameInUse(level, teamName)) {
-                    if (playerHasEnoughEmeralds(serverPlayer, cost)) {
-                        if (!isBannerBlank(banner)) {
-                            if (!isBannerInUse(level, banner.serializeNBT())) {
-                                Scoreboard scoreboard = server.getScoreboard();
-                                PlayerTeam newTeam = scoreboard.addPlayerTeam(teamName);
-                                newTeam.setDisplayName(Component.literal(teamName));
+            if (teamName.chars().count() <= 13) {
+                if (!(teamName.isBlank() || teamName.isEmpty())) {
+                    if (!isNameInUse(level, teamName)) {
+                        if (playerHasEnoughEmeralds(serverPlayer, cost)) {
+                            if (!isBannerBlank(banner)) {
+                                if (!isBannerInUse(level, banner.serializeNBT())) {
+                                    Scoreboard scoreboard = server.getScoreboard();
+                                    PlayerTeam newTeam = scoreboard.addPlayerTeam(teamName);
+                                    newTeam.setDisplayName(Component.literal(teamName));
 
-                                newTeam.setColor(Objects.requireNonNull(ChatFormatting.getByName(color)));
-                                newTeam.setAllowFriendlyFire(RecruitsModConfig.GlobalTeamSetting.get() && RecruitsModConfig.GlobalTeamFriendlyFireSetting.get());
-                                newTeam.setSeeFriendlyInvisibles(RecruitsModConfig.GlobalTeamSetting.get() && RecruitsModConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
+                                    newTeam.setColor(Objects.requireNonNull(ChatFormatting.getByName(color)));
+                                    newTeam.setAllowFriendlyFire(RecruitsModConfig.GlobalTeamSetting.get() && RecruitsModConfig.GlobalTeamFriendlyFireSetting.get());
+                                    newTeam.setSeeFriendlyInvisibles(RecruitsModConfig.GlobalTeamSetting.get() && RecruitsModConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
 
-                                server.getScoreboard().addPlayerToTeam(playerName, newTeam);
-                                //TeamCommand
-                                doPayment(serverPlayer, cost);
+                                    server.getScoreboard().addPlayerToTeam(playerName, newTeam);
+                                    //TeamCommand
+                                    doPayment(serverPlayer, cost);
 
-                                saveDataToTeam(level, teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT());
-                                addPlayerToData(level, teamName, 1, playerName);
+                                    saveDataToTeam(level, teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT());
+                                    addPlayerToData(level, teamName, 1, playerName);
 
 
-                                int recruits = getRecruitsOfPlayer(serverPlayer.getUUID(), level);
-                                addNPCToData(level, teamName, recruits);
+                                    int recruits = getRecruitsOfPlayer(serverPlayer.getUUID(), level);
+                                    addNPCToData(level, teamName, recruits);
 
-                                updateRecruitsTeamServerSide(level);
+                                    updateRecruitsTeamServerSide(level);
 
-                                Main.LOGGER.info("The new Team " + teamName + " has been created by " + playerName + ".");
-                            } else
-                                serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.banner_exists").withStyle(ChatFormatting.RED));
-                        } else
-                            serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.wrongbanner"));
-                    } else
-                        serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.noenough_money").withStyle(ChatFormatting.RED));
-                } else
-                    serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED));
-            } else
-                serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.noname").withStyle(ChatFormatting.RED));
-        }else
+                                    Main.LOGGER.info("The new Team " + teamName + " has been created by " + playerName + ".");
+                                }
+                                else
+                                    serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.banner_exists").withStyle(ChatFormatting.RED));
+                            }
+                            else
+                                serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.wrongbanner"));
+                        }
+                        else
+                            serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.noenough_money").withStyle(ChatFormatting.RED));
+                    }
+                    else
+                        serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED));
+                }
+                else
+                    serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.noname").withStyle(ChatFormatting.RED));
+            } 
+            else
+                serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.teamname_to_long").withStyle(ChatFormatting.RED));
+        }
+        else
             serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED));
     }
 
