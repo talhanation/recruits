@@ -2,6 +2,7 @@ package com.talhanation.recruits.world;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.config.RecruitsModConfig;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -54,7 +55,10 @@ public class PillagerPatrolSpawn {
             return true;
         }
         else{
-            BlockPos blockpos = new BlockPos(player.position());
+            if(!player.getCommandSenderWorld().dimensionType().hasRaids()){
+                player = this.world.getRandomPlayer();
+            }
+            BlockPos blockpos = player.getOnPos();
             BlockPos blockpos2 = this.func_221244_a(blockpos, 90);
             if (blockpos2 != null && this.func_226559_a_(blockpos2) && blockpos2.distSqr(blockpos) > 200) {
                 BlockPos upPos = new BlockPos(blockpos2.getX(), blockpos2.getY() + 2, blockpos2.getZ());
@@ -66,8 +70,9 @@ public class PillagerPatrolSpawn {
                     case 1, 2 -> spawnMediumPillagerPatrol(upPos, blockpos);
                     case 3, 4 -> spawnLargePillagerPatrol(upPos, blockpos);
                 }
-                this.world.playSound(null, upPos, SoundEvents.RAID_HORN, SoundSource.HOSTILE, 15F, 0.8F + 0.4F * this.random.nextFloat());
+                this.world.playSound(null, upPos.above(2), SoundEvents.RAID_HORN, SoundSource.BLOCKS, 15F, 2F);
                 Main.LOGGER.info("New Pillager Patrol Spawned at "+ upPos);
+                player.sendSystemMessage(Component.literal("New Pillager Patrol Spawned at near by").withStyle(ChatFormatting.GRAY));
                 return true;
             }
         }
@@ -217,7 +222,7 @@ public class PillagerPatrolSpawn {
             int k = p_221244_1_.getZ() + this.random.nextInt(p_221244_2_ * 2) - p_221244_2_;
             int l = this.world.getHeight(Types.WORLD_SURFACE, j, k);
             BlockPos blockpos1 = new BlockPos(j, l, k);
-            if (NaturalSpawner.isSpawnPositionOk(Type.ON_GROUND, this.world, blockpos1, EntityType.WANDERING_TRADER)) {
+            if (!this.world.getLevel().isCloseToVillage(blockpos1, 2) && NaturalSpawner.isSpawnPositionOk(Type.ON_GROUND, this.world, blockpos1, EntityType.WANDERING_TRADER)) {
                 blockpos = blockpos1;
                 break;
             }
