@@ -64,6 +64,9 @@ public class RecruitsPatrolSpawn {
         if (player == null) {
             return true;
         } else {
+            if(!player.getCommandSenderWorld().dimensionType().hasRaids()){
+                player = this.world.getRandomPlayer();
+            }
             BlockPos blockpos = new BlockPos(player.position());
             BlockPos blockpos2 = func_221244_a(blockpos, 90, random, world);
             if (blockpos2 != null && func_226559_a_(blockpos2, world) && blockpos2.distSqr(blockpos) > 200) {
