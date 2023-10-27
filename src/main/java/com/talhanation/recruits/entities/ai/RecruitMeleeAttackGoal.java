@@ -52,7 +52,8 @@ public class RecruitMeleeAttackGoal extends Goal {
             }
             else {
                 boolean isClose = target.distanceTo(this.recruit) <= range;
-                if (isClose) {
+                boolean canSee = this.recruit.getSensing().hasLineOfSight(target);
+                if (isClose && canSee) {
                     if (canPenalize) {
                         if (--this.ticksUntilNextPathRecalculation <= 0) {
                             this.path = this.recruit.getNavigation().createPath(target, 0);
@@ -80,7 +81,7 @@ public class RecruitMeleeAttackGoal extends Goal {
         if (target == null) {
             return false;
         }
-        else if (!target.isAlive()) {
+        else if (!target.isAlive() && !this.recruit.getSensing().hasLineOfSight(target)) {
             return false;
         }
         else if (!this.followingTargetEvenIfNotSeen) {

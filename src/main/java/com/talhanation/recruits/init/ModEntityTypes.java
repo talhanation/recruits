@@ -17,48 +17,42 @@ public class ModEntityTypes {
     public static final RegistryObject<EntityType<RecruitEntity>> RECRUIT = ENTITY_TYPES.register("recruit",
             () -> EntityType.Builder.of(RecruitEntity::new, MobCategory.CREATURE)
                     .sized(0.6F, 1.95F)
+                    .clientTrackingRange(10)
                     .canSpawnFarFromPlayer()
-                    .setTrackingRange(32)
-                    .setShouldReceiveVelocityUpdates(true)
                     .build(new ResourceLocation(Main.MOD_ID, "recruit").toString()));
 
     public static final RegistryObject<EntityType<RecruitShieldmanEntity>> RECRUIT_SHIELDMAN = ENTITY_TYPES.register("recruit_shieldman",
             () -> EntityType.Builder.of(RecruitShieldmanEntity::new, MobCategory.CREATURE)
                     .sized(0.6F, 1.95F)
+                    .clientTrackingRange(10)
                     .canSpawnFarFromPlayer()
-                    .setTrackingRange(32)
-                    .setShouldReceiveVelocityUpdates(true)
                     .build(new ResourceLocation(Main.MOD_ID, "recruit_shield").toString()));
 
     public static final RegistryObject<EntityType<BowmanEntity>> BOWMAN = ENTITY_TYPES.register("bowman",
             () -> EntityType.Builder.of(BowmanEntity::new, MobCategory.CREATURE)
                     .sized(0.6F, 1.95F)
+                    .clientTrackingRange(10)
                     .canSpawnFarFromPlayer()
-                    .setTrackingRange(32)
-                    .setShouldReceiveVelocityUpdates(true)
                     .build(new ResourceLocation(Main.MOD_ID, "bowman").toString()));
 
     public static final RegistryObject<EntityType<CrossBowmanEntity>> CROSSBOWMAN = ENTITY_TYPES.register("crossbowman",
             () -> EntityType.Builder.of(CrossBowmanEntity::new, MobCategory.CREATURE)
                     .sized(0.6F, 1.95F)
+                    .clientTrackingRange(10)
                     .canSpawnFarFromPlayer()
-                    .setTrackingRange(32)
-                    .setShouldReceiveVelocityUpdates(true)
                     .build(new ResourceLocation(Main.MOD_ID, "crossbowman").toString()));
     public static final RegistryObject<EntityType<NomadEntity>> NOMAD = ENTITY_TYPES.register("nomad",
             () -> EntityType.Builder.of(NomadEntity::new, MobCategory.CREATURE)
                     .sized(0.6F, 1.95F)
+                    .clientTrackingRange(10)
                     .canSpawnFarFromPlayer()
-                    .setTrackingRange(32)
-                    .setShouldReceiveVelocityUpdates(true)
                     .build(new ResourceLocation(Main.MOD_ID, "nomad").toString()));
 
     public static final RegistryObject<EntityType<HorsemanEntity>> HORSEMAN = ENTITY_TYPES.register("horseman",
             () -> EntityType.Builder.of(HorsemanEntity::new, MobCategory.CREATURE)
                     .sized(0.6F, 1.95F)
+                    .clientTrackingRange(10)
                     .canSpawnFarFromPlayer()
-                    .setTrackingRange(32)
-                    .setShouldReceiveVelocityUpdates(true)
                     .build(new ResourceLocation(Main.MOD_ID, "horseman").toString()));
 
     /*

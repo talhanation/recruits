@@ -1,10 +1,7 @@
 package com.talhanation.recruits.entities;
 //ezgi&talha kantar
 
-import com.talhanation.recruits.CommandEvents;
-import com.talhanation.recruits.Main;
-import com.talhanation.recruits.RecruitEvents;
-import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.*;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.*;
 import com.talhanation.recruits.entities.ai.navigation.RecruitPathNavigation;
@@ -30,6 +27,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -57,13 +55,18 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.network.NetworkHooks;
@@ -138,6 +141,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateSwingTime();
         updateShield();
         if(needsTeamUpdate) updateTeam();
+        if(this instanceof IStrategicFire && this.tickCount % 10 == 0) pickUpArrows();
     }
 
     public void tick() {
@@ -193,15 +197,15 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(12, new RandomLookAroundGoal(this));
         //this.goalSelector.addGoal(13, new RecruitPickupWantedItemGoal(this));
 
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 10, true, false, (target) -> {
+        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, LivingEntity.class, 10, true, false, (target) -> {
             return (this.getState() == 2 && this.canAttack(target));
         }));
 
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, false, (target) -> {
+        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, Player.class, 10, true, false, (target) -> {
             return (this.getState() == 1 && this.canAttack(target));
         }));
 
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, AbstractRecruitEntity.class, 10, true, false, (target) -> {
+        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, AbstractRecruitEntity.class, 10, true, false, (target) -> {
             return (this.getState() == 1 && this.canAttack(target));
         }));
 
@@ -1700,6 +1704,30 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     private MutableComponent TEXT_HELLO_3(String name) {
         return Component.translatable("chat.recruits.text.hello_3", name);
+    }
+
+    public boolean hasLineOfSight(Entity target) {
+        if (target.level != this.level) {
+            return false;
+        } else {
+            Vec3 lookVec = new Vec3(this.getX(), this.getEyeY(), this.getZ());
+            Vec3 vec31 = new Vec3(target.getX(), target.getEyeY(), target.getZ());
+            if (vec31.distanceTo(lookVec) > 250.0D) {
+                return false;
+            } else {
+                return this.level.clip(new ClipContext(lookVec, vec31, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this)).getType() == HitResult.Type.MISS;
+            }
+        }
+    }
+
+    private void pickUpArrows() {
+        List<AbstractArrow> arrows = this.level.getEntitiesOfClass(AbstractArrow.class, this.getBoundingBox().inflate(8D));
+        for (AbstractArrow arrow : arrows){
+            if(arrow.isOnGround() && arrow.pickup == AbstractArrow.Pickup.ALLOWED && this.getInventory().canAddItem(Items.ARROW.getDefaultInstance())){
+                this.getInventory().addItem(Items.ARROW.getDefaultInstance());
+                arrow.discard();
+            }
+        }
     }
 
 }
