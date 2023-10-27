@@ -61,12 +61,12 @@
   "gui.recruits.inv.info.text.aggressive": "Saldırgan",
   "gui.recruits.inv.info.text.raid": "Yağmala",
   "gui.recruits.inv.info.text.passive": "Pasif",
-  "gui.recruits.inv.info.text.wander": "Dolaşma",
-  "gui.recruits.inv.info.text.follow": "Takip Etme",
-  "gui.recruits.inv.info.text.hold_pos": "Pozisyonu Tutmak",
-  "gui.recruits.inv.info.text.protect": "Korumak",
-  "gui.recruits.inv.info.text.listen": "Dinlemek",
-  "gui.recruits.inv.info.text.ignore": "Yok Sayma",
+  "gui.recruits.inv.info.text.wander": "Dolaşiyor",
+  "gui.recruits.inv.info.text.follow": "Takip Ediyor",
+  "gui.recruits.inv.info.text.hold_pos": "Pozisyon Tutiyor",
+  "gui.recruits.inv.info.text.protect": "Koruyor",
+  "gui.recruits.inv.info.text.listen": "Dinlemeke",
+  "gui.recruits.inv.info.text.ignore": "Dinlememeke",
 
 
   "gui.recruits.hire_gui.text.hire": "İşe Al",
