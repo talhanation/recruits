@@ -62,6 +62,7 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new DebugEvents());
         MinecraftForge.EVENT_BUS.register(new TeamEvents());
         MinecraftForge.EVENT_BUS.register(new DamageEvent());
+        MinecraftForge.EVENT_BUS.register(new UpdateChecker());
         MinecraftForge.EVENT_BUS.register(this);
 
         SIMPLE_CHANNEL = CommonRegistry.registerChannel(Main.MOD_ID, "default");
