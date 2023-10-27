@@ -74,7 +74,7 @@ public class PillagerPatrolSpawn {
                 }
                 this.world.playSound(null, upPos.above(2), SoundEvents.RAID_HORN, SoundSource.BLOCKS, 15F, 2F);
                 Main.LOGGER.info("New Pillager Patrol Spawned at "+ upPos);
-                player.sendSystemMessage(Component.literal("New Pillager Patrol Spawned at near by").withStyle(ChatFormatting.GRAY));
+                player.sendSystemMessage(Component.literal("A Pillager Patrol Spawned next to you!").withStyle(ChatFormatting.GRAY));
                 return true;
             }
         }
