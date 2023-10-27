@@ -16,7 +16,7 @@ public class RecruitsModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CONFIG;
     public static ForgeConfigSpec.IntValue VERSION;
-    public static final int NEW_VERSION = 26;
+    public static final int NEW_VERSION = 27;
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue RecruitTablesPOIReleasing;
     public static ForgeConfigSpec.BooleanValue OverrideIronGolemSpawn;
@@ -71,6 +71,7 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.BooleanValue CommandScreenToggle;
     public static ForgeConfigSpec.BooleanValue RecruitHorseUnitsHorse;
     public static ForgeConfigSpec.BooleanValue RecruitsKeepTeamAfterDisband;
+    public static ForgeConfigSpec.BooleanValue RangedRecruitsNeedArrowsToShoot;
     public static ArrayList<String> BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast"));
     public static ArrayList<String> MOUNTS = new ArrayList<>(
@@ -243,6 +244,16 @@ public class RecruitsModConfig {
 
                 .worldRestart()
                 .define("RecruitHorseUnitsHorse", true);
+
+        RangedRecruitsNeedArrowsToShoot = BUILDER.comment("""
+                        ----RangedRecruitsNeedArrowsToShoot----
+                        \t(takes effect after restart)
+                        \t
+                        Should ranged recruits units need arrows to shoot?""
+                        default: false""")
+
+                .worldRestart()
+                .define("RangedRecruitsNeedArrowsToShoot", false);
 
         /*
         Village Config

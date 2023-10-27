@@ -120,7 +120,9 @@ dependencies {
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.19.2-1.0.0:javadoc")
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-
+    implementation fg.deobf("curse.maven:epic-knights-armor-and-weapons-509041:4696044")
+    implementation fg.deobf("curse.maven:architectury-api-419699:4555749")
+    implementation fg.deobf("curse.maven:cloth-config-348521:4633416")
     //implementation fg.deobf('curse.maven:musketmod-354562:4030979')
     //implementation fg.deobf('curse.maven:mca-535291:4586534')
 }

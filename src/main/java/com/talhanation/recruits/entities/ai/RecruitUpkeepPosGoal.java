@@ -1,9 +1,11 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.IStrategicFire;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
@@ -71,7 +73,6 @@ public class RecruitUpkeepPosGoal extends Goal {
                             ItemStack foodItem = this.getFoodFromInv(container);
                             ItemStack food;
                             if (foodItem != null && canAddFood()){
-
                                 food = foodItem.copy();
                                 food.setCount(1);
                                 recruit.getInventory().addItem(food);
@@ -103,6 +104,13 @@ public class RecruitUpkeepPosGoal extends Goal {
                                 equipment.setCount(1);
                                 recruit.equipItem(equipment);
                                 itemstack.shrink(1);
+                            }
+                            else if (recruit instanceof IStrategicFire && itemstack.is(ItemTags.ARROWS)){ //all that are ranged
+                                if(recruit.canTakeArrows()){
+                                    equipment = itemstack.copy();
+                                    recruit.inventory.addItem(equipment);
+                                    itemstack.shrink(equipment.getCount());
+                                }
                             }
                         }
                     }

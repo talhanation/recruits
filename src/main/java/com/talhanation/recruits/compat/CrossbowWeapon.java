@@ -1,5 +1,6 @@
 package com.talhanation.recruits.compat;
 
+import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -12,6 +13,8 @@ import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -118,11 +121,18 @@ public class CrossbowWeapon implements IWeapon {
         double d1 = y + 0.5D - projectileEntity.getY();
         double d2 = z - shooter.getZ();
 
+        int powerLevel = EnchantmentHelper.getTagEnchantmentLevel(Enchantments.POWER_ARROWS, shooter.getMainHandItem());
+        projectileEntity.setBaseDamage(projectileEntity.getBaseDamage() + (double) powerLevel * 0.5D + 1.10D);
 
         this.shootArrow(shooter, projectileEntity, d0, d1, d2);
 
         shooter.playSound(this.getShootSound(), 1.0F, 1.0F / (shooter.getRandom().nextFloat() * 0.4F + 0.8F));
         shooter.level.addFreshEntity(projectileEntity);
+
+        if(RecruitsModConfig.RangedRecruitsNeedArrowsToShoot.get()){
+            shooter.consumeArrow();
+            projectileEntity.pickup = AbstractArrow.Pickup.ALLOWED;
+        }
 
         shooter.damageMainHandItem();
     }
