@@ -1,15 +1,20 @@
 package com.talhanation.recruits.entities.ai;
 
 
+import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.NomadEntity;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ProjectileWeaponItem;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.Tags;
 
 import java.util.EnumSet;
 
@@ -21,13 +26,15 @@ public class NomadAttackAI extends Goal {
     private NomadEntity.State state;
     private int seeTime;
     private int attackTime = -1;
+    private boolean consumeArrows;
 
     public NomadAttackAI(NomadEntity recruit) {
         this.nomad = recruit;
         this.setFlags(EnumSet.of(Flag.MOVE));
+        this.consumeArrows = RecruitsModConfig.RangedRecruitsNeedArrowsToShoot.get();
     }
     public boolean canUse() {
-        return nomad.getVehicle() instanceof AbstractHorse && nomad.getTarget() != null && !nomad.needsToGetFood() && !nomad.getShouldMount();
+        return nomad.getVehicle() instanceof AbstractHorse && nomad.getTarget() != null && !nomad.needsToGetFood() && !nomad.getShouldMount() && isHoldingBow();
     }
 
     public boolean canContinueToUse() {
@@ -40,12 +47,30 @@ public class NomadAttackAI extends Goal {
         this.nomad.setAggressive(true);
     }
 
+    protected boolean isHoldingBow() {
+        String name = nomad.getMainHandItem().getDescriptionId();
+        if(this.nomad.isHolding(bow -> bow.is(Tags.Items.TOOLS_BOWS))){
+            return true;
+        }
+        else if (this.nomad.isHolding(bow -> bow.getItem() instanceof BowItem))
+            return true;
+
+        else if (this.nomad.isHolding(bow -> bow.getItem() instanceof ProjectileWeaponItem))
+            return true;
+
+        else
+            return name.contains("bow");
+    }
+
+    private boolean hasArrows(){
+        return !consumeArrows || this.nomad.getInventory().hasAnyMatching(item -> item.is(ItemTags.ARROWS));
+    }
     public void tick() {
         if(nomad.getFollowState() == 0) {
             switch (state) {
                 case SELECT_TARGET -> {
                     this.target = nomad.getTarget();
-                    if (target != null && target.isAlive()) {
+                    if (target != null && target.isAlive() && hasArrows()) {
 
                         this.state = CIRCLE_TARGET;
                     }
@@ -94,8 +119,8 @@ public class NomadAttackAI extends Goal {
                         this.attackTime = Mth.floor(f * (float) (attackIntervalMax - attackIntervalMin) + (float) attackIntervalMin);
                     }
                 }
-            } else if (--this.attackTime <= 0 && this.seeTime >= -60) {
-                this.nomad.startUsingItem(ProjectileUtil.getWeaponHoldingHand(this.nomad, Items.BOW));
+            } else if (--this.attackTime <= 0 && this.seeTime >= -60 && hasArrows()) {
+                this.nomad.startUsingItem(InteractionHand.MAIN_HAND);
             }
         }
     }

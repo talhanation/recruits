@@ -13,6 +13,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
@@ -101,7 +102,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
                 .add(Attributes.MOVEMENT_SPEED, 0.31D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
-                .add(Attributes.FOLLOW_RANGE, 32.0D);
+                .add(Attributes.FOLLOW_RANGE, 64.0D);
     }
 
     @Override
@@ -139,7 +140,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
             arrow = ((net.minecraft.world.item.BowItem) this.getMainHandItem().getItem()).customArrow(arrow);
 
             int powerLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.POWER_ARROWS, itemstack);
-            if (powerLevel > 0) arrow.setBaseDamage(arrow.getBaseDamage() + (double) powerLevel * 0.5D + 0.5D + this.arrowDamageModifier());
+            arrow.setBaseDamage(arrow.getBaseDamage() + (double) powerLevel * 0.5D + 0.5D + this.arrowDamageModifier());
 
             int punchLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.PUNCH_ARROWS, itemstack);
             if (punchLevel > 0) arrow.setKnockback(punchLevel);
@@ -148,22 +149,30 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
             if (fireLevel > 0) arrow.setSecondsOnFire(100);
 
             double d0 = target.getX() - this.getX();
-            double d1 = target.getY(0.25D) - arrow.getY();
+            double d1 = target.getY() - arrow.getY() + target.getBbHeight() / 3;
             double d2 = target.getZ() - this.getZ();
             double d3 = Mth.sqrt((float) (d0 * d0 + d2 * d2));
-                                                    //angle   = 0.196F           //force     //accuracy 0 = 100%
-            arrow.shoot(d0, d1 + d3 * (double) 0.196F, d2, 1.75F, (float) (0));
+
+            float angle = (float) (0.18F);// increase = ++ / decrease = --
+            float force = 1.90F;
+            float accuracy = 0.5F; // 0 = 100%
+
+                                                //angle   = 0.196F           //force     //accuracy 0 = 100%
+            arrow.shoot(d0, d1 + d3 * ((double) angle + 0.02), d2, force, accuracy);
+
+            if(RecruitsModConfig.RangedRecruitsNeedArrowsToShoot.get()){
+                this.consumeArrow();
+                arrow.pickup = AbstractArrow.Pickup.ALLOWED;
+            }
 
             this.playSound(SoundEvents.ARROW_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
             this.level.addFreshEntity(arrow);
-
-
             this.damageMainHandItem();
         }
     }
 
     public double arrowDamageModifier() {
-        return 0D;
+        return 1.0D;
     }
 
     public void performRangedAttackXYZ(double x, double y, double z, float v, float angle, float force) {
@@ -186,14 +195,16 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
             double d1 = y - this.getY();
             double d2 = z - this.getZ();
             double d3 = Mth.sqrt((float) (d0 * d0 + d2 * d2));
-
-
-                                         //angle            //force             //accuracy 0 = 100%
+                                                     //angle            //force             //accuracy 0 = 100%
             arrow.shoot(d0, d1 + d3 + angle, d2, force + 1.95F, (float) (2.5));
 
             this.playSound(SoundEvents.ARROW_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
             this.level.addFreshEntity(arrow);
 
+            if(RecruitsModConfig.RangedRecruitsNeedArrowsToShoot.get()){
+                this.consumeArrow();
+                arrow.pickup = AbstractArrow.Pickup.ALLOWED;
+            }
 
             this.damageMainHandItem();
         }
@@ -235,6 +246,9 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
         if ((itemStack.getItem() instanceof BowItem || itemStack.getItem() instanceof ProjectileWeaponItem || itemStack.getItem() instanceof SwordItem) && this.getMainHandItem().isEmpty()){
             return !hasSameTypeOfItem(itemStack);
         }
+        else if(itemStack.is(ItemTags.ARROWS) && RecruitsModConfig.RangedRecruitsNeedArrowsToShoot.get())
+            return true;
+
         else
             return super.wantsToPickUp(itemStack);
     }

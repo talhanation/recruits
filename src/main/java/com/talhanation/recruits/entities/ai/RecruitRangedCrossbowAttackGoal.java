@@ -3,8 +3,11 @@ package com.talhanation.recruits.entities.ai;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.compat.CrossbowWeapon;
 import com.talhanation.recruits.compat.IWeapon;
+import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.CrossBowmanEntity;
+import com.talhanation.recruits.entities.ai.compat.RecruitRangedMusketAttackGoal;
 import net.minecraft.core.BlockPos;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -19,12 +22,14 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
     private State state;
     private IWeapon weapon;
     private final double stopRange;
+    private boolean consumeArrows;
 
     public RecruitRangedCrossbowAttackGoal(CrossBowmanEntity crossBowman, double stopRange) {
         this.weapon = new CrossbowWeapon();
         this.crossBowman = crossBowman;
         this.speedModifier = this.weapon.getMoveSpeedAmp();
         this.stopRange = stopRange;
+        this.consumeArrows = RecruitsModConfig.RangedRecruitsNeedArrowsToShoot.get();
     }
 
     public boolean canUse() {
@@ -45,7 +50,7 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
     public void start() {
         super.start();
         this.crossBowman.setAggressive(true);
-        this.state = State.RELOAD;
+        this.state = State.IDLE;
     }
 
     @Override
@@ -99,22 +104,24 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
             if(crossBowman.getShouldStrategicFire() && target == null) {
                 BlockPos pos = crossBowman.getStrategicFirePos();
                     switch (state) {
-                        case RELOAD -> {
+                        case IDLE -> {
                             if (weapon.isLoaded(crossBowman.getMainHandItem())) {
                                 if (pos != null) {
                                     this.state = State.AIMING;
                                 }
-                            } else {
-                                this.crossBowman.startUsingItem(InteractionHand.MAIN_HAND);
+                            } else if(hasArrows()) this.state = State.RELOAD;
+                        }
 
-                                int i = this.crossBowman.getTicksUsingItem();
-                                if (i >= weapon.getWeaponLoadTime()) {
-                                    this.crossBowman.releaseUsingItem();
-                                    this.crossBowman.playSound(this.weapon.getLoadSound(), 1.0F, 1.0F / (crossBowman.getRandom().nextFloat() * 0.4F + 0.8F));
-                                    CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), true);
+                        case RELOAD -> {
+                            this.crossBowman.startUsingItem(InteractionHand.MAIN_HAND);
 
-                                    this.state = State.AIMING;
-                                }
+                            int i = this.crossBowman.getTicksUsingItem();
+                            if (i >= weapon.getWeaponLoadTime()) {
+                                this.crossBowman.releaseUsingItem();
+                                this.crossBowman.playSound(this.weapon.getLoadSound(), 1.0F, 1.0F / (crossBowman.getRandom().nextFloat() * 0.4F + 0.8F));
+                                CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), true);
+
+                                this.state = State.AIMING;
                             }
                         }
 
@@ -139,28 +146,29 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
                                 this.weapon.performRangedAttackIWeapon(this.crossBowman, pos.getX(), pos.getY() + distance * 0.0025, pos.getZ(), weapon.getProjectileSpeed());
                                 CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), false);
                             }
-                            this.state = State.RELOAD;
+                            this.state = State.IDLE; //RESUPPLY
                         }
                     }
                 }
                 else {
                     switch (state) {
-                        case RELOAD -> {
+                        case IDLE -> {
                             if (weapon.isLoaded(crossBowman.getMainHandItem())) {
                                 if (target != null && target.isAlive()) {
                                     this.state = State.AIMING;
                                 }
-                            } else {
-                                this.crossBowman.startUsingItem(InteractionHand.MAIN_HAND);
+                            } else if(hasArrows()) this.state = State.RELOAD;
+                        }
+                        case RELOAD -> {
+                            this.crossBowman.startUsingItem(InteractionHand.MAIN_HAND);
 
-                                int i = this.crossBowman.getTicksUsingItem();
-                                if (i >= weapon.getWeaponLoadTime()) {
-                                    this.crossBowman.releaseUsingItem();
-                                    this.crossBowman.playSound(this.weapon.getLoadSound(), 1.0F, 1.0F / (crossBowman.getRandom().nextFloat() * 0.4F + 0.8F));
-                                    CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), true);
+                            int i = this.crossBowman.getTicksUsingItem();
+                            if (i >= weapon.getWeaponLoadTime()) {
+                                this.crossBowman.releaseUsingItem();
+                                this.crossBowman.playSound(this.weapon.getLoadSound(), 1.0F, 1.0F / (crossBowman.getRandom().nextFloat() * 0.4F + 0.8F));
+                                CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), true);
 
-                                    this.state = State.AIMING;
-                                }
+                                this.state = State.AIMING;
                             }
                         }
 
@@ -193,7 +201,7 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
                                 this.weapon.performRangedAttackIWeapon(this.crossBowman, target.getX(), target.getY(), target.getZ(), weapon.getProjectileSpeed());
                                 CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), false);
                             }
-                            this.state = State.RELOAD;
+                            this.state = State.IDLE;
                         }
                     }
                 }
@@ -202,9 +210,14 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
 
 
     enum State{
+        IDLE,
         RELOAD,
         AIMING,
         SHOOT,
+    }
+
+    private boolean hasArrows(){
+        return !consumeArrows || this.crossBowman.getInventory().hasAnyMatching(item -> item.is(ItemTags.ARROWS));
     }
 
     private boolean canAttackHoldPos() {
@@ -212,7 +225,7 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
         BlockPos pos = crossBowman.getHoldPos();
 
         if (target != null && pos != null && crossBowman.getShouldHoldPos()) {
-            boolean targetIsFar = target.distanceTo(this.crossBowman) >= 21.5D;
+            boolean targetIsFar = target.distanceTo(this.crossBowman) >= 32.0D;
             boolean posIsClose = pos.distSqr(this.crossBowman.getOnPos()) <= 15.0D;
             boolean posIsFar = pos.distSqr(this.crossBowman.getOnPos()) > 15.0D;
 
@@ -232,7 +245,7 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
         BlockPos pos = crossBowman.getMovePos();
 
         if (target != null && pos != null && crossBowman.getShouldMovePos()) {
-            boolean targetIsFar = target.distanceTo(this.crossBowman) >= 21.5D;
+            boolean targetIsFar = target.distanceTo(this.crossBowman) >= 32D;
             boolean posIsClose = pos.distSqr(this.crossBowman.getOnPos()) <= 15.0D;
             boolean posIsFar = pos.distSqr(this.crossBowman.getOnPos()) > 15.0D;
 

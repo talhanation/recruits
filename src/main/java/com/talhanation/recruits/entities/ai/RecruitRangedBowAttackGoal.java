@@ -1,14 +1,20 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.BowmanEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ProjectileWeaponItem;
+import net.minecraftforge.common.Tags;
 
 import java.util.EnumSet;
 
@@ -23,6 +29,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
     private final int attackIntervalMax;
     private final float attackRadius;
     private final double stopRange;
+    private boolean consumeArrows;
 
     public RecruitRangedBowAttackGoal(T mob, double speedModifier, int attackIntervalMin, int attackIntervalMax, float attackRadius, double stopRange) {
         this.mob = mob;
@@ -32,6 +39,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
         this.attackRadius = attackRadius;
         this.stopRange = stopRange;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
+        this.consumeArrows = RecruitsModConfig.RangedRecruitsNeedArrowsToShoot.get();
     }
 
     public boolean canUse() {
@@ -47,7 +55,22 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
     }
 
     protected boolean isHoldingBow() {
-        return this.mob.isHolding(is -> is.getItem() instanceof BowItem);
+        String name = mob.getMainHandItem().getDescriptionId();
+        if(this.mob.isHolding(bow -> bow.is(Tags.Items.TOOLS_BOWS))){
+            return true;
+        }
+        else if (this.mob.isHolding(bow -> bow.getItem() instanceof BowItem))
+            return true;
+
+        else if (this.mob.isHolding(bow -> bow.getItem() instanceof ProjectileWeaponItem))
+            return true;
+
+        else
+            return name.contains("bow");
+    }
+
+    private boolean hasArrows(){
+        return !consumeArrows || this.mob.getInventory().hasAnyMatching(item -> item.is(ItemTags.ARROWS));
     }
 
     public boolean canContinueToUse() {
@@ -69,9 +92,9 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
     }
 
     public void tick() {
-        boolean isClose = target.distanceTo(this.mob) <= 7.00D;
-        boolean isFar = target.distanceTo(this.mob) >= 21.5D;
-        boolean inRange =  !isFar && target.distanceTo(this.mob) <= 15.0D;
+        boolean isClose = target.distanceTo(this.mob) <= 15.00D;
+        boolean isFar = target.distanceTo(this.mob) >= 32.0D;
+        boolean inRange =  !isFar && target.distanceTo(this.mob) <= 20.0D;
         //if (mob.getHoldPos() != null)Objects.requireNonNull(this.mob.getOwner()).sendMessage(new StringTextComponent("Pos vorhanden"), mob.getOwner().getUUID());
 
         boolean canSee = this.mob.getSensing().hasLineOfSight(target);
@@ -125,8 +148,8 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
                     this.attackTime = Mth.floor(f * (float)(this.attackIntervalMax - this.attackIntervalMin) + (float)this.attackIntervalMin);
                 }
             }
-        } else if (--this.attackTime <= 0 && this.seeTime >= -60) {
-            this.mob.startUsingItem(ProjectileUtil.getWeaponHoldingHand(this.mob, Items.BOW));
+        } else if (--this.attackTime <= 0 && this.seeTime >= -60 && this.hasArrows()) {
+            this.mob.startUsingItem(InteractionHand.MAIN_HAND);
         }
     }
 
@@ -135,7 +158,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
         BlockPos pos = mob.getHoldPos();
 
         if (target != null && pos != null && mob.getShouldHoldPos()) {
-            boolean targetIsFar = target.distanceTo(this.mob) >= 21.5D;
+            boolean targetIsFar = target.distanceTo(this.mob) >= 32D;
             boolean posIsClose = pos.distSqr(this.mob.getOnPos()) <= 15.0D;
             boolean posIsFar = pos.distSqr(this.mob.getOnPos()) > 15.0D;
 
@@ -155,7 +178,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
         BlockPos pos = mob.getMovePos();
 
         if (target != null && pos != null && mob.getShouldMovePos()) {
-            boolean targetIsFar = target.distanceTo(this.mob) >= 21.5D;
+            boolean targetIsFar = target.distanceTo(this.mob) >= 32D;
             boolean posIsClose = pos.distSqr(this.mob.getOnPos()) <= 15.0D;
             boolean posIsFar = pos.distSqr(this.mob.getOnPos()) > 15.0D;
 

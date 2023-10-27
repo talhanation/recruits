@@ -3,6 +3,7 @@ package com.talhanation.recruits.entities;
 import com.talhanation.recruits.inventory.RecruitSimpleContainer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Containers;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.damagesource.DamageSource;
@@ -369,5 +370,33 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
     public abstract void openGUI(Player player);
 
-    //TODO: add Capability from 1.18.2
+    @Override
+    public void invalidateCaps() {
+        super.invalidateCaps();
+        if (itemHandler != null) {
+            net.minecraftforge.common.util.LazyOptional<?> oldHandler = itemHandler;
+            itemHandler = null;
+            oldHandler.invalidate();
+        }
+    }
+
+    public void consumeArrow(){
+        for(ItemStack itemStack : this.inventory.items){
+            if(itemStack.is(ItemTags.ARROWS)){
+                itemStack.shrink(1);
+                break;
+            }
+        }
+    }
+
+    public boolean canTakeArrows() {
+        int count = 0;
+        for(ItemStack itemstack : this.inventory.items){
+             if(itemstack.is(ItemTags.ARROWS)){
+                 count += itemstack.getCount();
+             }
+        }
+
+        return count < 32;
+    }
 }
