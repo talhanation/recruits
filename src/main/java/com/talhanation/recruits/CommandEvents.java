@@ -405,27 +405,22 @@ public class CommandEvents {
         }
     }
 
-    public static void onUpkeepCommand(Player player, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean isEntity, UUID entity_uuid) {
+    public static void onUpkeepCommand(UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean isEntity, UUID entity_uuid, BlockPos blockPos) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             if (isEntity) {
                 //Main.LOGGER.debug("server: entity_uuid: " + entity_uuid);
                 recruit.setUpkeepUUID(Optional.of(entity_uuid));
                 recruit.clearUpkeepPos();
-                recruit.setUpkeepTimer(0);
             }
             else {
-                HitResult hitResult = player.pick(100, 1F, false);
-                if (hitResult != null) {
-                    if (hitResult.getType().equals(HitResult.Type.BLOCK)) {
-                        BlockHitResult blockHitResult = (BlockHitResult) hitResult;
-                        BlockPos blockpos = blockHitResult.getBlockPos();
-                        recruit.setUpkeepPos(blockpos);
-                        recruit.clearUpkeepEntity();
-                        recruit.setUpkeepTimer(0);
-                    }
-                }
+                recruit.setUpkeepPos(blockPos);
+                recruit.clearUpkeepEntity();
             }
+
         }
+        recruit.setUpkeepTimer(0);
+        onClearTargetButton(player_uuid, recruit, group);
+
     }
 
     public static void onShieldsCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean shields) {
