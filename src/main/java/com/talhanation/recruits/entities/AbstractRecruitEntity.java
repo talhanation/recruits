@@ -1169,7 +1169,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void updateHunger(){
         float currentHunger = getHunger();
-        float newHunger = currentHunger - 7F;
+        float newHunger = currentHunger - 12F;
 
         if(newHunger > 0) {
             setHunger(newHunger);
