@@ -86,7 +86,12 @@ public class RecruitInventoryMenu extends ContainerBase {
         this.addSlot(new Slot(recruit.inventory, 4,44,90) {
             @Override
             public boolean mayPlace(ItemStack stack){
-                return stack.getItem() instanceof ShieldItem;
+                return !recruit.isUsingItem() && stack.getItem() instanceof ShieldItem;
+            }
+
+            @Override
+            public boolean mayPickup(Player player) {
+                return !recruit.isUsingItem();
             }
 
             @Override
