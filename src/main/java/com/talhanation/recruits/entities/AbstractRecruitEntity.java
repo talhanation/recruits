@@ -1707,7 +1707,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public boolean hasLineOfSight(Entity target) {
-        if (target.level != this.level) {
+        if (target.getCommandSenderWorld() != this.getCommandSenderWorld()) {
             return false;
         } else {
             Vec3 lookVec = new Vec3(this.getX(), this.getEyeY(), this.getZ());
@@ -1715,15 +1715,15 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if (vec31.distanceTo(lookVec) > 250.0D) {
                 return false;
             } else {
-                return this.level.clip(new ClipContext(lookVec, vec31, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this)).getType() == HitResult.Type.MISS;
+                return this.getCommandSenderWorld().clip(new ClipContext(lookVec, vec31, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this)).getType() == HitResult.Type.MISS;
             }
         }
     }
 
     private void pickUpArrows() {
-        List<AbstractArrow> arrows = this.level.getEntitiesOfClass(AbstractArrow.class, this.getBoundingBox().inflate(8D));
+        List<AbstractArrow> arrows = this.getCommandSenderWorld().getEntitiesOfClass(AbstractArrow.class, this.getBoundingBox().inflate(8D));
         for (AbstractArrow arrow : arrows){
-            if(arrow.isOnGround() && arrow.pickup == AbstractArrow.Pickup.ALLOWED && this.getInventory().canAddItem(Items.ARROW.getDefaultInstance())){
+            if(arrow.isInWall() && arrow.pickup == AbstractArrow.Pickup.ALLOWED && this.getInventory().canAddItem(Items.ARROW.getDefaultInstance())){
                 this.getInventory().addItem(Items.ARROW.getDefaultInstance());
                 arrow.discard();
             }

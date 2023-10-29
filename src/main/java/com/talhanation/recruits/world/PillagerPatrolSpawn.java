@@ -70,7 +70,7 @@ public class PillagerPatrolSpawn {
                     case 1, 2 -> spawnMediumPillagerPatrol(upPos, blockpos);
                     case 3, 4 -> spawnLargePillagerPatrol(upPos, blockpos);
                 }
-                this.world.playSound(null, upPos.above(2), SoundEvents.RAID_HORN, SoundSource.BLOCKS, 15F, 2F);
+                this.world.playSound(null, upPos.above(2), SoundEvents.RAID_HORN.get(), SoundSource.BLOCKS, 15F, 2F);
 
                 Main.LOGGER.info("New Pillager Patrol Spawned at "+ upPos);
                 player.sendSystemMessage(Component.literal("A Pillager Patrol Spawned next to you!").withStyle(ChatFormatting.GRAY));

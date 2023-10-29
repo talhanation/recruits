@@ -140,62 +140,6 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         buttonBackMount.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_MOUNT));
         addRenderableWidget(buttonBackMount);
 
-
-
-        //Mount
-        ExtendedButton buttonMount = new ExtendedButton(zeroLeftPos + 40 + 10, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_MOUNT,
-                button -> {
-                    CommandEvents.sendFollowCommandInChat(99, player, group);
-                    Entity entity = ClientEvent.getEntityByLooking();
-                    if (entity != null) {
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntity(player.getUUID(), entity.getUUID(), group));
-                    }
-                });
-        buttonMount.setTooltip(Tooltip.create(TOOLTIP_MOUNT));
-        addRenderableWidget(buttonMount);
-
-        //STRATEGIC FIRE
-        ExtendedButton buttonStrategicFire = new ExtendedButton(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_STRATEGIC_FIRE,
-                button -> {
-                    this.strategicFire = !getSavedStrategicFireBool(player);
-
-                    if (strategicFire)
-                        CommandEvents.sendFollowCommandInChat(96, player, group);
-                    else
-                        CommandEvents.sendFollowCommandInChat(94, player, group);
-
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageStrategicFire(player.getUUID(), group, strategicFire));
-
-                    saveStrategicFireBool(player);
-                });
-        buttonStrategicFire.setTooltip(Tooltip.create(TOOLTIP_STRATEGIC_FIRE));
-        addRenderableWidget(buttonStrategicFire);
-
-        //MOVE
-        ExtendedButton buttonMove = new ExtendedButton(zeroLeftPos - 90, zeroTopPos - (20 + topPosGab), 80, 20, TEXT_MOVE,
-                button -> {
-                    CommandEvents.sendFollowCommandInChat(97, player, group);
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageMove(player.getUUID(), group));
-                });
-        buttonMove.setTooltip(Tooltip.create(TOOLTIP_MOVE));
-        addRenderableWidget(buttonMove);
-
-        //UPKEEP
-        ExtendedButton buttonUpkeep = new ExtendedButton(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_UPKEEP,
-                button -> {
-                    CommandEvents.sendFollowCommandInChat(92, player, group);
-                    Entity entity = ClientEvent.getEntityByLooking();
-
-                    if (entity != null) {
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpkeepEntity(player.getUUID(), entity.getUUID(), group));
-                    } else {
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpkeepPos(player.getUUID(), group));
-                    }
-                });
-        buttonUpkeep.setTooltip(Tooltip.create(TOOLTIP_UPKEEP));
-        addRenderableWidget(buttonUpkeep);
-
-
         //SHIELDS
         ExtendedButton buttonShields = new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_SHIELDS,
                 button -> {
@@ -212,22 +156,6 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 });
         buttonShields.setTooltip(Tooltip.create(TOOLTIP_SHIELDS));
         addRenderableWidget(buttonShields);
-
-
-        //PROTECT
-
-        ExtendedButton buttonProtect = new ExtendedButton(zeroLeftPos - mirror - 50, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_PROTECT,
-                button -> {
-                    CommandEvents.sendFollowCommandInChat(5, player, group);
-                    Entity entity = ClientEvent.getEntityByLooking();
-
-                    if (entity != null) {
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageProtectEntity(player.getUUID(), entity.getUUID(), group));
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 5, group));
-                    }
-                });
-        buttonProtect.setTooltip(Tooltip.create(TOOLTIP_PROTECT));
-        addRenderableWidget(buttonProtect);
 
         //PASSIVE
         ExtendedButton buttonPassive = new ExtendedButton(zeroLeftPos - mirror + 40, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE,
@@ -352,62 +280,56 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
 
         /// switching Buttons
 
-        //UPKEEP
-        Button upkeepButton = addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_UPKEEP,
-                button -> {
-                    CommandEvents.sendFollowCommandInChat(92, player, group);
-                    //Entity entity = ClientEvent.getEntityByLooking();
-                    //Main.LOGGER.debug("client: entity: " + entity);
 
-                    if (rayEntity != null) {
-                        //Main.LOGGER.debug("client: uuid: " + entity.getUUID());
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpkeepEntity(player.getUUID(), rayEntity.getUUID(), group));
-                    } else if(rayBlockPos != null)
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpkeepPos(player.getUUID(), group, this.rayBlockPos));
-                },
-                (button1, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_UPKEEP, i, i1);
-                }
-        ));
+
+
+        //UPKEEP
+        ExtendedButton buttonUpkeep = addRenderableWidget(new ExtendedButton(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_UPKEEP,
+            button -> {
+                CommandEvents.sendFollowCommandInChat(92, player, group);
+
+                if (rayEntity != null) {
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageUpkeepEntity(player.getUUID(), rayEntity.getUUID(), group));
+                } else if(rayBlockPos != null)
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageUpkeepPos(player.getUUID(), group, this.rayBlockPos));
+            }));
+        buttonUpkeep.setTooltip(Tooltip.create(TOOLTIP_UPKEEP));
+        addRenderableWidget(buttonUpkeep);
+
         if(rayEntity != null){
-            upkeepButton.active = rayEntity instanceof Container || rayEntity instanceof AbstractChestedHorse horse && horse.hasChest() || rayEntity instanceof InventoryCarrier;
+            buttonUpkeep.active = rayEntity instanceof Container || rayEntity instanceof AbstractChestedHorse horse && horse.hasChest() || rayEntity instanceof InventoryCarrier;
         }
         else if(rayBlockPos != null){
-            upkeepButton.active = player.level.getBlockEntity(rayBlockPos) instanceof Container;
+            buttonUpkeep.active = player.getCommandSenderWorld().getBlockEntity(rayBlockPos) instanceof Container;
         }
         else
-            upkeepButton.active = false;
+            buttonUpkeep.active = false;
 
         //PROTECT
-        Button protectButton = addRenderableWidget(new Button(zeroLeftPos - mirror - 50, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_PROTECT,
+        ExtendedButton buttonProtect = new ExtendedButton(zeroLeftPos - mirror - 50, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_PROTECT,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(5, player, group);
-                    //Entity entity = ClientEvent.getEntityByLooking();
                     if (rayEntity != null) {
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageProtectEntity(player.getUUID(), rayEntity.getUUID(), group));
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 5, group));
                     }
-                },
-                (button1, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_PROTECT, i, i1);
-                }
-        ));
-        protectButton.active = rayEntity != null;
+                });
+        buttonProtect.setTooltip(Tooltip.create(TOOLTIP_PROTECT));
+        addRenderableWidget(buttonProtect);
+        buttonProtect.active = rayEntity != null;
 
         //MOVE
-        Button moveButton = addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos - (20 + topPosGab), 80, 20, TEXT_MOVE,
+        ExtendedButton buttonMove = new ExtendedButton(zeroLeftPos - 90, zeroTopPos - (20 + topPosGab), 80, 20, TEXT_MOVE,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(97, player, group);
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageMove(player.getUUID(), group));
-                },
-                (button1, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_MOVE, i, i1);
-                }
-        ));
-        moveButton.active = rayBlockPos != null;
+                });
+        buttonMove.setTooltip(Tooltip.create(TOOLTIP_MOVE));
+        addRenderableWidget(buttonMove);
+        buttonMove.active = rayBlockPos != null;
 
         //STRATEGIC FIRE
-        Button strategicFireButton = addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_STRATEGIC_FIRE,
+        ExtendedButton buttonStrategicFire = new ExtendedButton(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 35, 80, 20, TEXT_STRATEGIC_FIRE,
                 button -> {
                     this.strategicFire = !getSavedStrategicFireBool(player);
 
@@ -419,27 +341,22 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageStrategicFire(player.getUUID(), group, strategicFire));
 
                     saveStrategicFireBool(player);
-                },
-                (button1, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_STRATEGIC_FIRE, i, i1);
-                }
-        ));
-        strategicFireButton.active = rayBlockPos != null;
+                });
+        buttonStrategicFire.setTooltip(Tooltip.create(TOOLTIP_STRATEGIC_FIRE));
+        addRenderableWidget(buttonStrategicFire);
+        buttonStrategicFire.active = rayBlockPos != null;
 
         //Mount
-        Button mountButton = addRenderableWidget(new Button(zeroLeftPos + 40 + 10, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_MOUNT,
+        ExtendedButton buttonMount = new ExtendedButton(zeroLeftPos + 40 + 10, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_MOUNT,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(99, player, group);
-                    //Entity entity = ClientEvent.getEntityByLooking();
                     if (rayEntity != null) {
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntity(player.getUUID(), rayEntity.getUUID(), group));
                     }
-                },
-                (button1, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_MOUNT, i, i1);
-                }
-        ));
-        mountButton.active = rayEntity != null;
+                });
+        buttonMount.setTooltip(Tooltip.create(TOOLTIP_MOUNT));
+        addRenderableWidget(buttonMount);
+        buttonMount.active = rayEntity != null;
     }
 
     @Override
