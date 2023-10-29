@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities.ai;
 
 
+import com.google.common.collect.ImmutableSet;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.NomadEntity;
 import net.minecraft.tags.ItemTags;
@@ -11,6 +12,7 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ProjectileWeaponItem;
 import net.minecraft.world.phys.Vec3;
@@ -49,7 +51,7 @@ public class NomadAttackAI extends Goal {
 
     protected boolean isHoldingBow() {
         String name = nomad.getMainHandItem().getDescriptionId();
-        if(this.nomad.isHolding(bow -> bow.is(Tags.Items.TOOLS_BOWS))){
+        if(this.nomad.isHolding(bow -> bow.is(Items.BOW))){
             return true;
         }
         else if (this.nomad.isHolding(bow -> bow.getItem() instanceof BowItem))

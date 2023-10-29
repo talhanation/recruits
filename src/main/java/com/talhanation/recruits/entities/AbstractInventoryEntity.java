@@ -98,7 +98,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
     ////////////////////////////////////GET////////////////////////////////////
 
-    public SimpleContainer getInventory() {
+    public RecruitSimpleContainer getInventory() {
         return this.inventory;
     }
 

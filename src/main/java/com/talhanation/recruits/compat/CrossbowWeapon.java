@@ -121,7 +121,7 @@ public class CrossbowWeapon implements IWeapon {
         double d1 = y + 0.5D - projectileEntity.getY();
         double d2 = z - shooter.getZ();
 
-        int powerLevel = EnchantmentHelper.getTagEnchantmentLevel(Enchantments.POWER_ARROWS, shooter.getMainHandItem());
+        int powerLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.POWER_ARROWS, shooter.getMainHandItem());
         projectileEntity.setBaseDamage(projectileEntity.getBaseDamage() + (double) powerLevel * 0.5D + 1.10D);
 
         this.shootArrow(shooter, projectileEntity, d0, d1, d2);

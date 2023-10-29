@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
@@ -20,13 +21,13 @@ public class UpdateChecker {
 
         switch (status){
             case OUTDATED -> {
-                Player player = event.getEntity();
+                Player player = event.getPlayer();
                 if(player != null){
-                    player.sendSystemMessage(Component.literal("A new version of Villager Recruits is available!").withStyle(ChatFormatting.GOLD));
+                    player.sendMessage(new TextComponent("A new version of Villager Recruits is available!").withStyle(ChatFormatting.GOLD), player.getUUID());
 
-                    MutableComponent link = Component.literal("Download the update " + ChatFormatting.BLUE + "here").withStyle(ChatFormatting.GREEN);
+                    MutableComponent link = new TextComponent("Download the update " + ChatFormatting.BLUE + "here").withStyle(ChatFormatting.GREEN);
                     link.withStyle(link.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.curseforge.com/minecraft/mc-mods/recruits/files")));
-                    player.sendSystemMessage(link);
+                    player.sendMessage(link, player.getUUID());
                 }
                 else{
                     Main.LOGGER.warn("Villager recruits is outdated!");

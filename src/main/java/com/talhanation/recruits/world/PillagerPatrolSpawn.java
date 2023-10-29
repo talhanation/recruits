@@ -19,6 +19,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.levelgen.Heightmap.Types;
+import org.w3c.dom.Text;
 
 
 import javax.annotation.Nullable;
@@ -74,7 +75,7 @@ public class PillagerPatrolSpawn {
                 }
                 this.world.playSound(null, upPos.above(2), SoundEvents.RAID_HORN, SoundSource.BLOCKS, 15F, 2F);
                 Main.LOGGER.info("New Pillager Patrol Spawned at "+ upPos);
-                player.sendSystemMessage(Component.literal("A Pillager Patrol Spawned next to you!").withStyle(ChatFormatting.GRAY));
+                player.sendMessage(new TextComponent("A Pillager Patrol Spawned next to you!").withStyle(ChatFormatting.GRAY), player.getUUID());
                 return true;
             }
         }

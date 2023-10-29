@@ -7,6 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ShieldItem;
 
 import java.util.Objects;
+import java.util.function.Predicate;
 
 import static net.minecraft.world.entity.LivingEntity.getEquipmentSlotForItem;
 
@@ -81,4 +82,16 @@ public class RecruitSimpleContainer extends SimpleContainer {
         else
             return true;
     }
+
+    public boolean hasAnyMatching(Predicate<ItemStack> p_216875_) {
+        for(int i = 0; i < this.getContainerSize(); ++i) {
+            ItemStack itemstack = this.getItem(i);
+            if (p_216875_.test(itemstack)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 }

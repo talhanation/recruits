@@ -56,7 +56,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
 
     protected boolean isHoldingBow() {
         String name = mob.getMainHandItem().getDescriptionId();
-        if(this.mob.isHolding(bow -> bow.is(Tags.Items.TOOLS_BOWS))){
+        if(this.mob.isHolding(bow -> bow.is(Items.BOW))){
             return true;
         }
         else if (this.mob.isHolding(bow -> bow.getItem() instanceof BowItem))
