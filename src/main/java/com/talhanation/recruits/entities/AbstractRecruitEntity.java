@@ -1728,6 +1728,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
             if(onGround && pickUpAllowed && canAdd){
                 this.getInventory().addItem(Items.ARROW.getDefaultInstance());
+                arrow.moveTo(this.position());
                 arrow.discard();
             }
         }
