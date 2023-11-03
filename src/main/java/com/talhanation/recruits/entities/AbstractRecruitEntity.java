@@ -140,7 +140,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateSwingTime();
         updateShield();
         if(needsTeamUpdate) updateTeam();
-        if(this instanceof IStrategicFire && this.tickCount % 10 == 0) pickUpArrows();
+        if(this instanceof IStrategicFire && this.tickCount % 20 == 0) pickUpArrows();
     }
 
     public void tick() {
@@ -1714,7 +1714,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private void pickUpArrows() {
         List<AbstractArrow> arrows = this.level.getEntitiesOfClass(AbstractArrow.class, this.getBoundingBox().inflate(8D));
         for (AbstractArrow arrow : arrows){
-            if(arrow.isOnGround() && arrow.pickup == AbstractArrow.Pickup.ALLOWED && this.getInventory().canAddItem(Items.ARROW.getDefaultInstance())){
+            boolean onGround = arrow.inGround;
+            boolean pickUpAllowed = arrow.pickup == AbstractArrow.Pickup.ALLOWED;
+            boolean canAdd = this.getInventory().canAddItem(Items.ARROW.getDefaultInstance());
+
+            if(onGround && pickUpAllowed && canAdd){
                 this.getInventory().addItem(Items.ARROW.getDefaultInstance());
                 arrow.discard();
             }
