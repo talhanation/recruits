@@ -10,6 +10,7 @@ public class RecruitHoldPosGoal extends Goal {
     private final AbstractRecruitEntity recruit;
 
     private final double speedModifier;
+    byte timeOut;
 
     public RecruitHoldPosGoal(AbstractRecruitEntity recruit, double v, double within) {
       this.recruit = recruit;
@@ -31,8 +32,18 @@ public class RecruitHoldPosGoal extends Goal {
 
     public void tick() {
         BlockPos blockpos = this.recruit.getHoldPos();
-        if (this.recruit.getHoldPos() != null) {
-            this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
+        if (blockpos != null) {
+            double distance = recruit.distanceToSqr(blockpos.getX(), blockpos.getY(), blockpos.getZ());
+            if(distance >= 2) {
+                this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
+
+                if (++timeOut > 100 && recruit.horizontalCollision || recruit.minorHorizontalCollision) {
+                    this.recruit.getJumpControl().jump();
+                    this.timeOut = 0;
+                }
+
+            }
+            else if(distance > 1.25 ) this.recruit.getMoveControl().setWantedPosition(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
         }
     }
 }
