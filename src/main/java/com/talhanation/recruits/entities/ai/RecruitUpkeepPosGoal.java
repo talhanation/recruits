@@ -140,6 +140,7 @@ public class RecruitUpkeepPosGoal extends Goal {
     public void stop() {
         super.stop();
         recruit.setUpkeepTimer(recruit.getUpkeepCooldown());
+        recruit.forcedUpkeep = false;
     }
 
     @Nullable

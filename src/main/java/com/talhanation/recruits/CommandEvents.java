@@ -413,7 +413,7 @@ public class CommandEvents {
                 recruit.setUpkeepPos(blockPos);
                 recruit.clearUpkeepEntity();
             }
-
+            recruit.forcedUpkeep = true;
         }
         recruit.setUpkeepTimer(0);
         onClearTargetButton(player_uuid, recruit, group);

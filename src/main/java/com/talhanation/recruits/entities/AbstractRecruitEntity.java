@@ -111,7 +111,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public int blockCoolDown;
     private boolean needsTeamUpdate = true;
-
+    public boolean forcedUpkeep;
 
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
@@ -586,7 +586,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void setUpkeepTimer(int x){
         this.entityData.set(UpkeepTimer, x);
-
     }
     public void setVariant(int variant){
         entityData.set(VARIANT, variant);
@@ -1180,7 +1179,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         boolean hasFood = this.hasFoodInInv();
         boolean isChest = this.getUpkeepPos() != null;
         boolean isEntity = this.getUpkeepUUID() != null;
-        return (!hasFood && timer == 0 && needsToEat && (isChest || isEntity));
+        return forcedUpkeep || (!hasFood && timer == 0 && needsToEat) && (isChest || isEntity);
     }
 
     public boolean hasFoodInInv(){
