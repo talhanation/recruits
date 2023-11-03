@@ -70,54 +70,54 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
     }
 
     private void lvlButton(int zeroLeftPos, int zeroTopPos){
-        addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 1, 23, 20, Component.literal("+lvl"), button -> {
+        addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 1, 30, 20, Component.literal("+lvl"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(1, recruit.getUUID()));
         }));
     }
 
     private void costButton(int zeroLeftPos, int zeroTopPos){
         //increase cost
-        addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 2, 23, 20, Component.literal("+cost"), button -> {
+        addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 2, 30, 20, Component.literal("+cost"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(2, recruit.getUUID()));
         }));
         //decrease cost
-        addRenderableWidget(new ExtendedButton(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 2, 23, 20, Component.literal("-cost"), button -> {
+        addRenderableWidget(new ExtendedButton(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 2, 30, 20, Component.literal("-cost"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(3, recruit.getUUID()));
         }));
     }
 
     private void hungerButton(int zeroLeftPos, int zeroTopPos){
         //increase hunger
-        addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 3, 23, 20, Component.literal("+hunger"), button -> {
+        addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 3, 30, 20, Component.literal("+hunger"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(4, recruit.getUUID()));
         }));
 
         //decrease hunger
-        addRenderableWidget(new ExtendedButton(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 3, 23, 20, Component.literal("-hunger"), button -> {
+        addRenderableWidget(new ExtendedButton(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 3, 30, 20, Component.literal("-hunger"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(5, recruit.getUUID()));
         }));
     }
 
     private void moralButton(int zeroLeftPos, int zeroTopPos){
         //increase moral
-        addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 4, 23, 20, Component.literal("+moral"), button -> {
+        addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 4, 30, 20, Component.literal("+moral"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(6, recruit.getUUID()));
         }));
 
         //decrease moral
-        addRenderableWidget(new ExtendedButton(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 4, 23, 20, Component.literal("-moral"), button -> {
+        addRenderableWidget(new ExtendedButton(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 4, 30, 20, Component.literal("-moral"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(7, recruit.getUUID()));
         }));
     }
 
     private void healthButton(int zeroLeftPos, int zeroTopPos){
         //increase health
-        addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 5, 23, 20, Component.literal("+health"), button -> {
+        addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 5, 30, 20, Component.literal("+health"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(8, recruit.getUUID()));
         }));
 
         //decrease health
-        addRenderableWidget(new ExtendedButton(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 5, 23, 20, Component.literal("-health"), button -> {
+        addRenderableWidget(new ExtendedButton(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 5, 30, 20, Component.literal("-health"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(9, recruit.getUUID()));
         }));
     }
