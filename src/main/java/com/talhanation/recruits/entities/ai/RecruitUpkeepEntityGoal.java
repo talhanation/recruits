@@ -82,6 +82,10 @@ public class RecruitUpkeepEntityGoal extends Goal {
                 }
 
                 this.recruit.getNavigation().moveTo(pos.getX(), pos.getY(), pos.getZ(), 1.15D);
+                if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
+                    this.recruit.getJumpControl().jump();
+                }
+
                 //Main.LOGGER.debug("Moving to entity");
                 if (entity.get().closerThan(recruit, 3) && container != null) {
 

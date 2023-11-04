@@ -50,6 +50,9 @@ public class RecruitProtectEntityGoal extends Goal {
             boolean isClose = protectingMob.distanceTo(this.recruit) <= range;
             if(!isClose){
                 recruit.getNavigation().moveTo(protectingMob, 1.15F);
+                if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
+                    this.recruit.getJumpControl().jump();
+                }
             }
         }
 

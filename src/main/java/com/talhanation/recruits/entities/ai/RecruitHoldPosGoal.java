@@ -31,8 +31,19 @@ public class RecruitHoldPosGoal extends Goal {
 
     public void tick() {
         BlockPos blockpos = this.recruit.getHoldPos();
-        if (this.recruit.getHoldPos() != null) {
-            this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
+
+        if (blockpos != null) {
+            double distance = recruit.distanceToSqr(blockpos.getX(), blockpos.getY(), blockpos.getZ());
+            if(distance >= 2) {
+                this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
+
+                if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
+                    this.recruit.getJumpControl().jump();
+                }
+
+            }
+            else if(distance > 1.25 ) this.recruit.getMoveControl().setWantedPosition(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
+
         }
     }
 }
