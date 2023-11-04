@@ -12,6 +12,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
@@ -222,8 +223,9 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
     public void die(DamageSource dmg) {
         super.die(dmg);
-        for (int i = 0; i < this.inventory.getContainerSize(); i++)
-            Containers.dropItemStack(this.level, getX(), getY(), getZ(), this.inventory.getItem(i));
+        if(this.getCommandSenderWorld().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS))
+            for (int i = 0; i < this.inventory.getContainerSize(); i++)
+                Containers.dropItemStack(this.level, getX(), getY(), getZ(), this.inventory.getItem(i));
     }
 
     protected void pickUpItem(ItemEntity itemEntity) {
