@@ -46,6 +46,9 @@ public class RecruitFollowOwnerGoal extends Goal {
         if(distance > within * multiplier) {
             this.recruit.setIsFollowing(true);
             this.recruit.getNavigation().moveTo(recruit.getOwner().getX(), recruit.getOwner().getY(), recruit.getOwner().getZ(), this.speedModifier);
+            if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
+                this.recruit.getJumpControl().jump();
+            }
         }
         else{
             if(!target) this.recruit.getNavigation().stop();

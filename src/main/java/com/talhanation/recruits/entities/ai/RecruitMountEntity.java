@@ -39,6 +39,10 @@ public class RecruitMountEntity extends Goal {
         if(this.recruit.getVehicle() == null && this.mount != null) {
             if(recruit.getMountTimer() > 0){
                 recruit.getNavigation().moveTo(mount, 1.15F);
+                if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
+                    this.recruit.getJumpControl().jump();
+                }
+
                 if (recruit.distanceTo(mount) < 2D) {
                     recruit.startRiding(mount);
                     if(recruit.isPassenger()) recruit.setShouldMount(false);

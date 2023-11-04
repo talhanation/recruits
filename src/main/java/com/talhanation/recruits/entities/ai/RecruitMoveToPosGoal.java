@@ -9,7 +9,6 @@ import java.util.EnumSet;
 public class RecruitMoveToPosGoal extends Goal {
     private final AbstractRecruitEntity recruit;
     private final double speedModifier;
-    private byte timeOut = 0;
 
     public RecruitMoveToPosGoal(AbstractRecruitEntity recruit, double v) {
         this.recruit = recruit;
@@ -30,10 +29,8 @@ public class RecruitMoveToPosGoal extends Goal {
             double distance = recruit.distanceToSqr(blockpos.getX(), blockpos.getY(), blockpos.getZ());
             if(distance >= 6) {
                 this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
-
-                if (++timeOut > 100 && recruit.horizontalCollision || recruit.minorHorizontalCollision) {
+                if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
                     this.recruit.getJumpControl().jump();
-                    this.timeOut = 0;
                 }
             }
             else {
