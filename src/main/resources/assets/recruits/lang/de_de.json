@@ -215,7 +215,12 @@
   "recruits": "Recruits",
 
   "key.recruits.r_key": "Öffne den Kommando-Bildschirm",
-
   "key.recruits.u_key": "Öffne den Team-Bildschirm",
-  "gui.recruits.team_creation.sendJoinRequest": "Du hast eine Beitrittsanfrage an %s gesendet."
+  "gui.recruits.team_creation.sendJoinRequest": "Du hast eine Beitrittsanfrage an %s gesendet.",
+  "chat.recruits.team_creation.teamname_to_long": "Ihr Teamname ist zu lang!",
+  "gui.recruits.inv.tooltip.assignGroupToTeamMate": "Weisen Sie diesen Rekruten und nahegelegene Rekruten derselben Gruppe einem nahegelegenen Teamkollegen zu.",
+  "gui.recruits.team.assignGroupNewOwner": "Gruppe zuweisen",
+  "gui.recruits.inv.text.disbandGroup": "Gruppe auflösen",
+  "gui.recruits.inv.tooltip.disbandGroup": "Entfernt diesen Rekruten und nahegelegene Rekruten derselben Gruppe aus Ihrem Befehl.",
+  "gui.recruits.inv.tooltip.keepTeam": "Sollen die Rekruten nach der Auflösung in derselben Gruppe bleiben?"
 }

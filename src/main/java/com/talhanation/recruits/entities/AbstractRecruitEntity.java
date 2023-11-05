@@ -13,7 +13,6 @@ import com.talhanation.recruits.network.MessageAddRecruitToTeam;
 import com.talhanation.recruits.network.MessageDebugScreen;
 import com.talhanation.recruits.network.MessageHireGui;
 import com.talhanation.recruits.network.MessageRecruitGui;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -27,7 +26,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -55,7 +53,6 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
-import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.*;
@@ -64,10 +61,8 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -117,7 +112,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         super(entityType, world);
         this.xpReward = 6;
         this.navigation = this.createNavigation(world);
-        this.updateTeam();
     }
 
     ///////////////////////////////////NAVIGATION/////////////////////////////////////////
@@ -140,8 +134,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         super.aiStep();
         updateSwingTime();
         updateShield();
-        if(needsTeamUpdate) updateTeam();
         if(this instanceof IStrategicFire && this.tickCount % 20 == 0) pickUpArrows();
+        if(needsTeamUpdate) updateTeam();
     }
 
     public void tick() {
@@ -636,7 +630,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         entityData.set(mountTimer, x);
     }
 
-    public void disband(Player player){
+    public void disband(Player player, boolean keepTeam){
         String name = this.getName().getString();
         player.sendSystemMessage(TEXT_DISBAND(name));
         this.setTarget(null);
@@ -650,9 +644,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (this.getTeam() != null){
             if(this.getCommandSenderWorld().isClientSide()) Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
             else TeamEvents.addNPCToData((ServerLevel) this.getCommandSenderWorld(), this.getTeam().getName(), -1);
-        }
 
-        if(!RecruitsModConfig.RecruitsKeepTeamAfterDisband.get()) this.updateTeam();
+            if(!this.level.isClientSide() && !keepTeam)
+                TeamEvents.removeRecruitFromTeam(this, this.getTeam(), (ServerLevel) this.getCommandSenderWorld());
+        }
     }
 
     public void addXpLevel(int level){
@@ -948,7 +943,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setTarget(null);
             this.setFollowState(2);
             this.setState(0);
-            this.updateTeam();
+
+            Team ownerTeam = player.getTeam();// player is the new owner
+            if(!this.level.isClientSide() && ownerTeam != null) TeamEvents.addRecruitToTeam(this, ownerTeam, (ServerLevel) this.getCommandSenderWorld());
 
             int i = this.random.nextInt(4);
             switch (i) {
@@ -1555,47 +1552,15 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return false;
     }
 
+    //
+    /*********************************************************
+     * Update the current team of the recruit in following conditions:
+     * - If recruit team is not the same team as the owner
+     * - If recruit team is null but owner team != null
+     * - If recruit team is != null but owner team is null
+     *********************************************************/
     public void updateTeam(){
-        if(this.isOwned()){
-            if(getOwner() != null) {
-                Team team = this.getTeam();
-                Team ownerTeam = this.getOwner().getTeam();
-                if (team == ownerTeam) {
-                    needsTeamUpdate = false;
-
-                }
-                else if (ownerTeam == null) {
-                    String teamName = team.getName();
-                    PlayerTeam recruitTeam = this.getCommandSenderWorld().getScoreboard().getPlayerTeam(teamName);
-                    this.getCommandSenderWorld().getScoreboard().removePlayerFromTeam(this.getStringUUID(), recruitTeam);
-                    needsTeamUpdate = false;
-                }
-                else {
-                    String ownerTeamName = ownerTeam.getName();
-                    PlayerTeam playerteam = this.getCommandSenderWorld().getScoreboard().getPlayerTeam(ownerTeamName);
-
-
-                    boolean flag = playerteam != null && this.getCommandSenderWorld().getScoreboard().addPlayerToTeam(this.getStringUUID(), playerteam);
-                    if (!flag) {
-                        Main.LOGGER.warn("Unable to add mob to team \"{}\" (that team probably doesn't exist)", ownerTeamName);
-                    } else
-                        this.setTarget(null);// fix "if owner was other team and now same team und was target"
-
-                    needsTeamUpdate = false;
-                }
-
-            }
-        }
-        else{
-            Team team = this.getTeam();
-            if(team != null){ //TODO: add config
-
-                PlayerTeam recruitTeam = this.getCommandSenderWorld().getScoreboard().getPlayerTeam(team.getName());
-                this.getCommandSenderWorld().getScoreboard().removePlayerFromTeam(this.getStringUUID(), recruitTeam);
-
-            }
-            needsTeamUpdate = false;
-        }
+        
     }
 
     public void openHireGUI(Player player) {

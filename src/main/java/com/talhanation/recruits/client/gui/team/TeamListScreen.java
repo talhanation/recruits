@@ -106,7 +106,8 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
                 int y = 32 + (23 * (i - startIndex));
 
                 guiGraphics.drawString(font, name, x, y, teamFontColor, false);
-                guiGraphics.drawString(font, "" + players, x + 70, y, teamFontColor, false);
+                guiGraphics.drawString(font, "" + players, x + 80, y, teamFontColor, false);
+
             }
         } else {
             guiGraphics.drawString(font, NO_TEAMS, 20, 26, fontColor, false);
