@@ -105,7 +105,7 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
                 int y = 32 + (23 * (i - startIndex));
 
                 font.draw(matrixStack, name, x, y, teamFontColor);
-                font.draw(matrixStack, "" + players, x + 70, y, teamFontColor);
+                font.draw(matrixStack, "" + players, x + 80, y, teamFontColor);
             }
         } else {
             font.draw(matrixStack, NO_TEAMS, 20, 26, fontColor);

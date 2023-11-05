@@ -211,12 +211,18 @@
   "chat.recruits.team_creation.addedPlayerLeader": "%s başarıyla takıma katıldı.",
   "chat.recruits.team_creation.could_not_find": "Oyuncu bulunamadı.",
   "chat.recruits.team.assignNewOwnerNoTeam": "Bu askere yeni bir sahip atamak için bir takımda olmanız gerekiyor!",
-  "chat.recruits.team.assignNewOwnerNotFound": "Yakınlarda bu askere bir sahip atamak için takım arkadaşı bulunamadı.",
-  "recruits": "Recruits",
+  "chat.recruits.team.assignNewOwnerNotFound": "Askerleri atayacak takım arkadaşı yakınında bulunmuyor.",
 
   "key.recruits.r_key": "Emir ekranını aç",
-
   "key.recruits.u_key": "Takım ekranını aç",
   "gui.recruits.team_creation.sendJoinRequest": "%s'ye katılma isteği gönderdiniz.",
-  "Recruits": "Piyadeler"
+
+  "recruits": "Piyadeler",
+
+  "chat.recruits.team_creation.teamname_to_long": "Takım adınız çok uzun!",
+  "gui.recruits.inv.tooltip.assignGroupToTeamMate": "Bu askeri ve aynı gruptaki yakındaki askerleri bir takım arkadaşına atar.",
+  "gui.recruits.team.assignGroupNewOwner": "Grup Ata",
+  "gui.recruits.inv.text.disbandGroup": "Grubu Dağıt",
+  "gui.recruits.inv.tooltip.disbandGroup": "Bu askeri ve aynı gruptaki yakındaki askerleri emirden çıkarır.",
+  "gui.recruits.inv.tooltip.keepTeam": "Askerler emirden çıktıktan sonra aynı takımda mı kalmalı?"
 }
