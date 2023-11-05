@@ -210,13 +210,18 @@
   "chat.recruits.team_creation.removedPlayerLeader": "You removed %s from the Team.",
   "chat.recruits.team_creation.addedPlayerLeader": "%s joined your Team successfully.",
   "chat.recruits.team_creation.could_not_find": "Could not find player.",
-  "chat.recruits.team.assignNewOwnerNoTeam": "You need to be in a team to assign this recruit a new owner!",
-  "chat.recruits.team.assignNewOwnerNotFound": "No team mate nearby to assign this recruit to.",
+  "chat.recruits.team.assignNewOwnerNoTeam": "You need to be in a team to assign recruits to a new owner!",
+  "chat.recruits.team.assignNewOwnerNotFound": "No team mate nearby to assign recruits to.",
   "recruits": "Recruits",
 
   "key.recruits.r_key": "Open command screen",
 
   "key.recruits.u_key": "Opens team screen",
   "gui.recruits.team_creation.sendJoinRequest": "You have sent a join request to %s.",
-  "chat.recruits.team_creation.teamname_to_long": "Your Teamname is to long!"
+  "chat.recruits.team_creation.teamname_to_long": "Your Teamname is too long!",
+  "gui.recruits.inv.tooltip.assignGroupToTeamMate": "Assign this recruit and nearby recruits in the same group to a nearby teammate.",
+  "gui.recruits.team.assignGroupNewOwner": "Assign Group",
+  "gui.recruits.inv.text.disbandGroup": "Disband Group",
+  "gui.recruits.inv.tooltip.disbandGroup": "Removes this recruit and nearby recruits in the same group from your command.",
+  "gui.recruits.inv.tooltip.keepTeam": "Should recruits stay in the same team after disbanding?"
 }

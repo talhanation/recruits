@@ -4,8 +4,10 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.inventory.DisbandContainer;
+import com.talhanation.recruits.network.MessageAssignGroupToTeamMate;
 import com.talhanation.recruits.network.MessageAssignToTeamMate;
 import com.talhanation.recruits.network.MessageDisband;
+import com.talhanation.recruits.network.MessageDisbandGroup;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
@@ -27,12 +29,17 @@ public class DisbandScreen extends ScreenBase<DisbandContainer> {
     private UUID recruit;
     private int leftPos;
     private int topPos;
-    private static final MutableComponent DISBAND = new TranslatableComponent("gui.recruits.inv.text.disband");
-    private static final MutableComponent TOOLTIP_DISBAND = new TranslatableComponent("gui.recruits.inv.tooltip.disband");
-    private static final MutableComponent TOOLTIP_ASSIGN_TO_MATE = new TranslatableComponent("gui.recruits.inv.tooltip.assignToTeamMate");
-    private static final MutableComponent TEAM_MATE = new TranslatableComponent("gui.recruits.team.assignNewOwner");
 
-    private Button giveToTeamMate;
+    private static final MutableComponent DISBAND = new TranslatableComponent("gui.recruits.inv.text.disband");
+    private static final MutableComponent DISBAND_GROUP = new TranslatableComponent("gui.recruits.inv.text.disbandGroup");
+    private static final MutableComponent TOOLTIP_DISBAND = new TranslatableComponent("gui.recruits.inv.tooltip.disband");
+    private static final MutableComponent TOOLTIP_KEEP_TEAM = new TranslatableComponent("gui.recruits.inv.tooltip.keepTeam");
+    private static final MutableComponent TOOLTIP_DISBAND_GROUP = new TranslatableComponent("gui.recruits.inv.tooltip.disbandGroup");
+    private static final MutableComponent TOOLTIP_ASSIGN_TO_MATE = new TranslatableComponent("gui.recruits.inv.tooltip.assignToTeamMate");
+    private static final MutableComponent TOOLTIP_ASSIGN_GROUP_TO_MATE = new TranslatableComponent("gui.recruits.inv.tooltip.assignGroupToTeamMate");
+    private static final MutableComponent TEAM_MATE = new TranslatableComponent("gui.recruits.team.assignNewOwner");
+    private static final MutableComponent TEAM_MATE_GROUP = new TranslatableComponent("gui.recruits.team.assignGroupNewOwner");
+    private boolean keepTeam;
 
     public DisbandScreen(DisbandContainer container, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, container, playerInventory, new TextComponent(""));
@@ -47,35 +54,73 @@ public class DisbandScreen extends ScreenBase<DisbandContainer> {
         super.init();
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
+        keepTeam = false;
 
-        giveToTeamMate = createGiveToTeamMateButton();
+        setButtons();
+    }
 
-        addRenderableWidget(new Button(leftPos + 130, topPos + 29, 100, 20, DISBAND,
+    private void setButtons(){
+        clearWidgets();
+
+        Button buttonKeepTeam = addRenderableWidget(new Button(leftPos + 230, topPos + 15, 30, 20, Component.literal(String.valueOf(keepTeam)),
             btn -> {
-            if(this.recruit != null) {
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageDisband(this.recruit));
-                onClose();
+                keepTeam = !keepTeam;
+                setButtons();
+            },
+            (button, poseStack, i, i1) -> {
+                this.renderTooltip(poseStack, TOOLTIP_KEEP_TEAM, i, i1);
             }
+        ));
+
+        Button giveToTeamMate = addRenderableWidget(new Button(leftPos + 20, topPos + 15, 100, 20, TEAM_MATE,
+            btn -> {
+                if(recruit != null) {
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignToTeamMate(this.recruit));
+                    onClose();
+                }
+            },
+            (button, poseStack, i, i1) -> {
+                this.renderTooltip(poseStack, TOOLTIP_ASSIGN_TO_MATE, i, i1);
+            }
+        ));
+
+        Button buttonDisband = addRenderableWidget(new Button(leftPos + 130, topPos + 15, 100, 20, DISBAND,
+            btn -> {
+                if(this.recruit != null) {
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageDisband(this.recruit, this.keepTeam));
+                    onClose();
+                }
             },
             (button, poseStack, i, i1) -> {
                 this.renderTooltip(poseStack, TOOLTIP_DISBAND, i, i1);
             }
         ));
-    }
 
-    private Button createGiveToTeamMateButton() {
-        return addRenderableWidget(new Button(leftPos + 20, topPos + 29, 100, 20, TEAM_MATE,
-                btn -> {
-                    if(recruit != null) {
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignToTeamMate(this.recruit));
-                        onClose();
-                    }
-                },
-                (button, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_ASSIGN_TO_MATE, i, i1);
+        Button buttonDisbandGroup = addRenderableWidget(new Button(leftPos + 130, topPos + 40, 100, 20, DISBAND_GROUP,
+            btn -> {
+                if(this.recruit != null) {
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageDisbandGroup(this.player.getUUID(), this.recruit, this.keepTeam));
+                    onClose();
                 }
+            },
+            (button, poseStack, i, i1) -> {
+                this.renderTooltip(poseStack, TOOLTIP_DISBAND_GROUP, i, i1);
+            }
+        ));
+
+        Button buttonAssignGroup = addRenderableWidget(new Button(leftPos + 20, topPos + 40, 100, 20, TEAM_MATE_GROUP,
+            btn -> {
+                if(recruit != null) {
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToTeamMate(this.player.getUUID(), this.recruit));
+                    onClose();
+                }
+            },
+            (button, poseStack, i, i1) -> {
+                this.renderTooltip(poseStack, TOOLTIP_ASSIGN_GROUP_TO_MATE, i, i1);
+            }
         ));
     }
+
 
     protected void render(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
