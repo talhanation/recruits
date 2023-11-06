@@ -107,6 +107,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public int blockCoolDown;
     private boolean needsTeamUpdate = true;
     public boolean forcedUpkeep;
+    public int dismount = 0;
 
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
@@ -136,8 +137,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateShield();
         if(this instanceof IStrategicFire && this.tickCount % 20 == 0) pickUpArrows();
         if(needsTeamUpdate) updateTeam();
-    }
 
+        if(dismount > 0){
+            dismount--;
+            this.stopRiding();
+
+            if(this.tickCount % 40 == 0)
+                this.getJumpControl().jump();
+        }
+
+    }
     public void tick() {
         super.tick();
         if(getMountTimer() > 0) setMountTimer(getMountTimer() - 1);
