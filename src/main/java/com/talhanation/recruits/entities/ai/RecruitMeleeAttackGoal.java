@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 
 import net.minecraft.core.BlockPos;
@@ -174,6 +175,7 @@ public class RecruitMeleeAttackGoal extends Goal {
     protected double getAttackReachSqr(LivingEntity target) {
         float weaponWidth = 3.75F;
         //if(Main.isAlexArmyInsatlled) getAlexArmoryModifier();
+
         return (double)(weaponWidth + this.recruit.getBbWidth() * 2.1F * this.recruit.getBbWidth() * 2.1F + target.getBbWidth());
     }
 
@@ -191,7 +193,7 @@ public class RecruitMeleeAttackGoal extends Goal {
         return true;
     }
 
-    /*
+/*
     private int getWeaponModifier(ItemStack stack){
         int base = 20;
         if(Main.isAlexArmouryModLoaded){
@@ -208,6 +210,5 @@ public class RecruitMeleeAttackGoal extends Goal {
         }
         return  0;
     }
-
-     */
+    */
 }
