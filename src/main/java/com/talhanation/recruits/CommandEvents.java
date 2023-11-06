@@ -377,6 +377,7 @@ public class CommandEvents {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             if(mount_uuid != null) recruit.shouldMount(true, mount_uuid);
             else if(recruit.getMountUUID() != null) recruit.shouldMount(true, recruit.getMountUUID());
+            recruit.dismount = 0;
         }
     }
 
@@ -385,6 +386,7 @@ public class CommandEvents {
             recruit.shouldMount(false, null);
             if(recruit.isPassenger()){
                 recruit.stopRiding();
+                recruit.dismount = 180;
             }
         }
     }
