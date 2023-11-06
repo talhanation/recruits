@@ -36,7 +36,7 @@ mixin{
     overwriteErrorLevel = 'error'
 }
 
-version = '1.10.9'
+version = '1.10.10'
 
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.19.2'
@@ -123,6 +123,7 @@ dependencies {
     implementation fg.deobf("curse.maven:epic-knights-armor-and-weapons-509041:4696044")
     implementation fg.deobf("curse.maven:architectury-api-419699:4555749")
     implementation fg.deobf("curse.maven:cloth-config-348521:4633416")
+    implementation fg.deobf('curse.maven:smallships-450659:4575301')
     //implementation fg.deobf('curse.maven:musketmod-354562:4030979')
     //implementation fg.deobf('curse.maven:mca-535291:4586534')
 }
