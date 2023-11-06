@@ -62,7 +62,7 @@ public class DisbandScreen extends ScreenBase<DisbandContainer> {
     private void setButtons(){
         clearWidgets();
 
-        Button buttonKeepTeam = addRenderableWidget(new Button(leftPos + 230, topPos + 15, 30, 20, Component.literal(String.valueOf(keepTeam)),
+        Button buttonKeepTeam = addRenderableWidget(new Button(leftPos + 230, topPos + 15, 30, 20, new TextComponent(String.valueOf(keepTeam)),
             btn -> {
                 keepTeam = !keepTeam;
                 setButtons();

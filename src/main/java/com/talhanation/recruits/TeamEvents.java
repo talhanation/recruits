@@ -399,7 +399,7 @@ public class TeamEvents {
                 TeamEvents.leaveTeam(potentialRemovePlayer, level);
 
                 potentialRemovePlayer.sendMessage(PLAYER_REMOVED, potentialRemovePlayer.getUUID());
-                leader.sendMessage(REMOVE_PLAYER_LEADER(potentialRemovePlayer.getDisplayName().getString()), leader.getUUID());
+                serverPlayer.sendMessage(REMOVE_PLAYER_LEADER(potentialRemovePlayer.getDisplayName().getString()), serverPlayer.getUUID());
 
                 List<AbstractRecruitEntity> recruits = getRecruitsOfPlayer(serverPlayer.getUUID(), level);
                 int recruitCount = recruits.size();
