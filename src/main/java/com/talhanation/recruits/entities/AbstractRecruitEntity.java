@@ -654,7 +654,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if(this.getCommandSenderWorld().isClientSide()) Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
             else TeamEvents.addNPCToData((ServerLevel) this.getCommandSenderWorld(), this.getTeam().getName(), -1);
 
-            if(!this.level.isClientSide() && !keepTeam)
+            if(!this.getCommandSenderWorld().isClientSide() && !keepTeam)
                 TeamEvents.removeRecruitFromTeam(this, this.getTeam(), (ServerLevel) this.getCommandSenderWorld());
         }
     }
@@ -954,7 +954,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setState(0);
 
             Team ownerTeam = player.getTeam();// player is the new owner
-            if(!this.level.isClientSide() && ownerTeam != null) TeamEvents.addRecruitToTeam(this, ownerTeam, (ServerLevel) this.getCommandSenderWorld());
+            if(!this.getCommandSenderWorld().isClientSide() && ownerTeam != null) TeamEvents.addRecruitToTeam(this, ownerTeam, (ServerLevel) this.getCommandSenderWorld());
 
             int i = this.random.nextInt(4);
             switch (i) {
@@ -1569,7 +1569,39 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
      * - If recruit team is != null but owner team is null
      *********************************************************/
     public void updateTeam(){
-        
+        if(this.isOwned() && !this.getCommandSenderWorld().isClientSide()){
+            Player owner = getOwner();
+            if(owner != null) {
+                Team recruitTeam = this.getTeam();
+                Team ownerTeam = owner.getTeam();
+
+                if (ownerTeam == null) {
+                    if(recruitTeam != null){
+                        //Remove from current team because ownerTeam is null
+                        TeamEvents.removeRecruitFromTeam(this, recruitTeam, (ServerLevel) this.getCommandSenderWorld());
+                        TeamEvents.addNPCToData((ServerLevel) this.getCommandSenderWorld(), recruitTeam.getName(), -1 );
+                    }
+                    //recruit team is also null, so no nothing
+                    needsTeamUpdate = false;
+                }
+                else if(recruitTeam == null){
+                    TeamEvents.addRecruitToTeam(this, ownerTeam, (ServerLevel) this.getCommandSenderWorld());
+                    TeamEvents.addNPCToData((ServerLevel) this.getCommandSenderWorld(), ownerTeam.getName(), +1 );
+                    needsTeamUpdate = false;
+                }
+                else if(recruitTeam == ownerTeam){
+                    needsTeamUpdate = false;
+                }
+                else{
+                    TeamEvents.removeRecruitFromTeam(this, recruitTeam, (ServerLevel) this.getCommandSenderWorld());
+                    TeamEvents.addNPCToData((ServerLevel) this.getCommandSenderWorld(), recruitTeam.getName(), -1 );
+
+                    TeamEvents.addRecruitToTeam(this, ownerTeam, (ServerLevel) this.getCommandSenderWorld());
+                    TeamEvents.addNPCToData((ServerLevel) this.getCommandSenderWorld(), ownerTeam.getName(), +1 );
+                    needsTeamUpdate = false;
+                }
+            }
+        }
     }
 
     public void openHireGUI(Player player) {

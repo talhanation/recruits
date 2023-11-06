@@ -204,7 +204,7 @@ public class RecruitEvents {
         Entity source = event.getSource().getEntity();
         if(source instanceof LivingEntity sourceEntity){
             if(target.getTeam() != null){
-                List<AbstractRecruitEntity> list = Objects.requireNonNull(target.level.getEntitiesOfClass(AbstractRecruitEntity.class, target.getBoundingBox().inflate(32D)));
+                List<AbstractRecruitEntity> list = Objects.requireNonNull(target.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, target.getBoundingBox().inflate(32D)));
 
                 for (AbstractRecruitEntity recruit : list){
                     if(recruit.getTarget() == null && recruit.getTeam() != null && recruit.getTeam().equals(target.getTeam()))
