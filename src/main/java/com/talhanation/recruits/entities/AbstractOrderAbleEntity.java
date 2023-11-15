@@ -68,11 +68,6 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     public void aiStep() {
         super.aiStep();
     }
-    private void resetItemInHand() {
-        this.setItemInHand(InteractionHand.OFF_HAND, this.beforeFoodItem);
-        this.getSlot(10).set(this.beforeFoodItem);
-        this.beforeFoodItem = null;
-    }
 
     public void tick() {
         super.tick();
