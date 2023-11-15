@@ -3,8 +3,12 @@ package com.talhanation.recruits.entities;
 import com.talhanation.recruits.inventory.RecruitSimpleContainer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Containers;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
@@ -32,6 +36,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     //rest = inv
 
     public RecruitSimpleContainer inventory;
+    private int beforeItemSlot;
     private net.minecraftforge.common.util.LazyOptional<?> itemHandler = null;
 
     public AbstractInventoryEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
@@ -53,6 +58,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     ////////////////////////////////////DATA////////////////////////////////////
 
     protected void defineSynchedData() {
+
         super.defineSynchedData();
     }
 
@@ -70,6 +76,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         }
 
         nbt.put("Items", listnbt);
+        nbt.putInt("BeforeItemSlot", beforeItemSlot);
     }
 
     public void readAdditionalSaveData(CompoundTag nbt) {
@@ -96,6 +103,9 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
             int index = i == 0 ? 5 : 4; //5 = mainhand 4 = offhand
             this.inventory.setItem(index, ItemStack.of(handItems.getCompound(i)));
         }
+        this.setBeforeItemSlot(nbt.getInt("BeforeItemSlot"));
+        if(getBeforeItemSlot() != -1)
+            resetItemInHand();// fail save
     }
 
 
@@ -149,6 +159,21 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     }
 
     ////////////////////////////////////SET////////////////////////////////////
+
+    public void setItemInHand(@NotNull InteractionHand hand, @NotNull ItemStack itemStack) {
+        if (hand == InteractionHand.MAIN_HAND) {
+            this.setItemSlot(EquipmentSlot.MAINHAND, itemStack);
+            this.inventory.setItem(5, itemStack);
+        } else {
+            if (hand != InteractionHand.OFF_HAND) {
+                throw new IllegalArgumentException("Invalid hand " + hand);
+            }
+
+            this.setItemSlot(EquipmentSlot.OFFHAND, itemStack);
+            this.inventory.setItem(4, itemStack);
+        }
+
+    }
 
     @Override
     public void setItemSlot(@NotNull EquipmentSlot slotIn, @NotNull ItemStack stack) {
@@ -408,5 +433,35 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         }
 
         return count < 32;
+    }
+
+    public void resetItemInHand() {
+        //food is in offhand
+        //before item is in inventory slot
+
+        //get OffhandItem (food)
+        ItemStack foodStack = this.getOffhandItem().copy();
+        //get Before Item from saved slot
+        ItemStack beforeItem = this.inventory.getItem(getBeforeItemSlot()).copy();
+        //remove item from this slot
+        inventory.removeItemNoUpdate(getBeforeItemSlot());
+
+        //remove offhand item
+        this.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
+        //this.inventory.setItem(4, ItemStack.EMPTY);//set hand slot empty
+
+        //set before item in hand and slot
+        this.setItemInHand(InteractionHand.OFF_HAND, beforeItem.copy());
+        this.inventory.setItem(getBeforeItemSlot(), foodStack.copy());
+
+        this.setBeforeItemSlot(-1); // means eating was successfully without interrupt
+    }
+
+    public void setBeforeItemSlot(int i) {
+        beforeItemSlot = i;
+    }
+
+    public int getBeforeItemSlot(){
+        return beforeItemSlot;
     }
 }

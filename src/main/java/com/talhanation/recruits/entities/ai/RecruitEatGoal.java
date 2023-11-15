@@ -38,8 +38,19 @@ public class RecruitEatGoal extends Goal {
     @Override
     public void start() {
         slotID = 0;
-        beforeItem = recruit.getOffhandItem().copy();
+        //get OffhandItem
+        ItemStack beforeItem = recruit.getOffhandItem().copy();
+        //get FoodItem and slot in inv and remove item
         this.foodStack = getAndRemoveFoodInInv().copy();
+        //save slot to compound
+        this.recruit.setBeforeItemSlot(slotID);
+        //set beforeItem In Inventory slot
+        this.recruit.getInventory().setItem(this.recruit.getBeforeItemSlot(), beforeItem);
+        //set foodstack in inventory
+        this.recruit.setItemInHand(InteractionHand.OFF_HAND, foodStack);
+        //this.recruit.getInventory().setItem(4, foodStack);//inventory slot
+
+        this.recruit.startUsingItem(InteractionHand.OFF_HAND);
         /*
         Main.LOGGER.debug("Start--------------: ");
         Main.LOGGER.debug("beforeFoodItem: " + beforeFoodItem.copy());
@@ -60,9 +71,6 @@ public class RecruitEatGoal extends Goal {
 
             recruit.setHunger(newHunger);
         }
-
-        recruit.setItemInHand(InteractionHand.OFF_HAND, foodStack);
-        recruit.startUsingItem(InteractionHand.OFF_HAND);
     }
 
     @Override
@@ -73,24 +81,7 @@ public class RecruitEatGoal extends Goal {
             recruit.setMoral(recruit.getMoral() + 2.5F);
         }
 
-        resetItemInHand();
-        /*
-        Main.LOGGER.debug("Stop--------------: ");
-        Main.LOGGER.debug("beforeFoodItem: " + beforeFoodItem);
-        Main.LOGGER.debug("isEating: " + recruit.getIsEating());
-        Main.LOGGER.debug("foodStack: " + foodStack.copy());
-        Main.LOGGER.debug("Stop--------------:");
-
-         */
-    }
-
-    public void resetItemInHand() {
-        recruit.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
-        recruit.inventory.setItem(4, ItemStack.EMPTY);
-
-        recruit.setItemInHand(InteractionHand.OFF_HAND, this.beforeItem.copy());
-        recruit.inventory.setItem(slotID, foodStack.copy());
-
+        recruit.resetItemInHand();
     }
 
     private boolean hasFoodInInv(){
