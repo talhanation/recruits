@@ -125,9 +125,10 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     @Override
     public boolean keyPressed(int key, int a, int b) {
         if (key == GLFW.GLFW_KEY_ESCAPE) {
-            minecraft.player.closeContainer();
+            this.onClose();
             return true;
         }
+        setFocused(textField);
 
         return textField.keyPressed(key, a, b) || textField.canConsumeInput() || super.keyPressed(key, a, b);
     }
