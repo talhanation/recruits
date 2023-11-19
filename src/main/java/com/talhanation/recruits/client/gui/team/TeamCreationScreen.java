@@ -77,8 +77,20 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
         textField.setBordered(true);
         textField.setMaxLength(24);
 
-        addRenderableOnly(textField);
+        addRenderableWidget(textField);
         setInitialFocus(textField);
+    }
+
+    protected void containerTick() {
+        super.containerTick();
+        textField.tick();
+    }
+
+    public boolean mouseClicked(double p_100753_, double p_100754_, int p_100755_) {
+        if (this.textField.isFocused()) {
+            this.textField.mouseClicked(p_100753_, p_100754_, p_100755_);
+        }
+        return super.mouseClicked(p_100753_, p_100754_, p_100755_);
     }
 
     private Button cycleButtonLeft(int x, int y){
