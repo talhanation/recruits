@@ -6,8 +6,10 @@ import com.talhanation.recruits.client.events.PlayerEvents;
 import com.talhanation.recruits.client.gui.*;
 import com.talhanation.recruits.client.gui.team.*;
 import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
+import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModItems;
@@ -75,6 +77,9 @@ public class Main {
     public static MenuType<TeamInspectionContainer> TEAM_INSPECTION_TYPE;
     public static MenuType<TeamListContainer> TEAM_LIST_TYPE;
     public static MenuType<DisbandContainer> DISBAND;
+    public static MenuType<PromoteContainer> PROMOTE;
+    public static MenuType<MessengerContainer> MESSENGER;
+    public static MenuType<PatrolLeaderContainer> PATROL_LEADER;
     public static MenuType<TeamManagePlayerContainer> TEAM_ADD_PLAYER_TYPE;
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
     public static boolean isMusketModLoaded;
@@ -107,7 +112,6 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new DamageEvent());
         MinecraftForge.EVENT_BUS.register(new UpdateChecker());
         MinecraftForge.EVENT_BUS.register(this);
-
 
         SIMPLE_CHANNEL = CommonRegistry.registerChannel(Main.MOD_ID, "default");
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 0, MessageAggro.class);
@@ -158,6 +162,17 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 45, MessageBackToMountEntity.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 46, MessageDisbandGroup.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 47, MessageAssignGroupToTeamMate.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 48, MessagePromoteRecruit.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 49, MessageOpenPromoteScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 50, MessageOpenSpecialScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 51, MessageSendMessenger.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 52, MessagePatrolLeaderSetWaitTime.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 53, MessageToClientUpdateLeaderScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 54, MessagePatrolLeaderAddWayPoint.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 55, MessagePatrolLeaderRemoveWayPoint.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 56, MessagePatrolLeaderSetPatrolState.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 57, MessagePatrolLeaderSetCycle.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 58, MessagePatrolLeaderSetInfoMode.class);
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
 
     }
@@ -182,7 +197,10 @@ public class Main {
         ClientRegistry.registerScreen(Main.TEAM_LIST_TYPE, TeamListScreen::new);
         ClientRegistry.registerScreen(Main.TEAM_ADD_PLAYER_TYPE, TeamManagePlayerScreen::new);
         ClientRegistry.registerScreen(Main.DISBAND, DisbandScreen::new);
+        ClientRegistry.registerScreen(Main.PROMOTE, PromoteScreen::new);
 
+        ClientRegistry.registerScreen(Main.MESSENGER, MessengerScreen::new);
+        ClientRegistry.registerScreen(Main.PATROL_LEADER, PatrolLeaderScreen::new);
     }
 
     @SubscribeEvent
@@ -342,6 +360,39 @@ public class Main {
         });
         DISBAND.setRegistryName(new ResourceLocation(Main.MOD_ID, "disband_container"));
         event.getRegistry().register(DISBAND);
+
+        PROMOTE = new MenuType<>((IContainerFactory<PromoteContainer>) (windowId, inv, data) -> {
+            Player playerEntity = inv.player;
+            AbstractRecruitEntity rec = getRecruitByUUID(inv.player, data.readUUID());
+            if (rec == null) {
+                return null;
+            }
+            return new PromoteContainer(windowId, playerEntity, rec);
+        });
+        PROMOTE.setRegistryName(new ResourceLocation(Main.MOD_ID, "promote_container"));
+        event.getRegistry().register(PROMOTE);
+
+        MESSENGER = new MenuType<>((IContainerFactory<MessengerContainer>) (windowId, inv, data) -> {
+            Player playerEntity = inv.player;
+            AbstractRecruitEntity rec = getRecruitByUUID(inv.player, data.readUUID());
+            if (rec == null) {
+                return null;
+            }
+            return new MessengerContainer(windowId, playerEntity, (MessengerEntity) rec);
+        });
+        MESSENGER.setRegistryName(new ResourceLocation(Main.MOD_ID, "messenger_container"));
+        event.getRegistry().register(MESSENGER);
+
+        PATROL_LEADER = new MenuType<>((IContainerFactory<PatrolLeaderContainer>) (windowId, inv, data) -> {
+            Player playerEntity = inv.player;
+            AbstractRecruitEntity rec = getRecruitByUUID(inv.player, data.readUUID());
+            if (rec == null) {
+                return null;
+            }
+            return new PatrolLeaderContainer(windowId, playerEntity, (AbstractLeaderEntity) rec);
+        });
+        PATROL_LEADER.setRegistryName(new ResourceLocation(Main.MOD_ID, "patrol_leader_container"));
+        event.getRegistry().register(PATROL_LEADER);
     }
 
 

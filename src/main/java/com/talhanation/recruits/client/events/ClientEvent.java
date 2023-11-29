@@ -38,6 +38,11 @@ public class ClientEvent {
             EntityRenderers.register(ModEntityTypes.HORSEMAN.get(), HorsemanVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.CROSSBOWMAN.get(), CrossbowmanVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.RECRUIT_SHIELDMAN.get(), ShieldmanVillagerRenderer::new );
+
+            //COMPANIONS
+            EntityRenderers.register(ModEntityTypes.MESSENGER.get(), MessengerVillagerRenderer::new );
+            EntityRenderers.register(ModEntityTypes.PATROL_LEADER.get(), ShieldmanVillagerRenderer::new );//TODO: add own renderer
+
         }
         else{
             EntityRenderers.register(ModEntityTypes.RECRUIT.get(), RecruitHumanRenderer::new );
@@ -46,6 +51,10 @@ public class ClientEvent {
             EntityRenderers.register(ModEntityTypes.HORSEMAN.get(), HorsemanHumanRenderer::new );
             EntityRenderers.register(ModEntityTypes.CROSSBOWMAN.get(), CrossbowmanHumanRenderer::new );
             EntityRenderers.register(ModEntityTypes.RECRUIT_SHIELDMAN.get(), ShieldmanHumanRenderer::new );
+
+            //COMPANIONS
+            EntityRenderers.register(ModEntityTypes.MESSENGER.get(), MessengerHumanRenderer::new );
+            EntityRenderers.register(ModEntityTypes.PATROL_LEADER.get(), ShieldmanHumanRenderer::new );//TODO: add own renderer
         }
     }
 

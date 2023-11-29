@@ -223,5 +223,64 @@
   "gui.recruits.team.assignGroupNewOwner": "Assign Group",
   "gui.recruits.inv.text.disbandGroup": "Disband Group",
   "gui.recruits.inv.tooltip.disbandGroup": "Removes this recruit and nearby recruits in the same group from your command.",
-  "gui.recruits.inv.tooltip.keepTeam": "Should recruits stay in the same team after disbanding?"
+  "gui.recruits.inv.tooltip.keepTeam": "Should recruits stay in the same team after disbanding?",
+
+  "gui.recruits.inv.text.promote" : "Promote",
+  "gui.recruits.inv.tooltip.promote" : "Promote this recruit to a Companion.",
+
+  "gui.recruits.inv.text.messenger" : "Messenger",
+  "gui.recruits.inv.tooltip.messenger" : "A Messenger can deliver items and messages to other players.",
+
+  "gui.recruits.inv.text.patrol_leader" : "Patrol-Leader",
+  "gui.recruits.inv.tooltip.patrol_leader" : "A Patrol-Leader can patrol and command a group of recruits.",
+
+  "gui.recruits.inv.text.captain" : "Captain",
+  "gui.recruits.inv.tooltip.captain" : "A Captain can patrol sea routes, use cannons in small ships and command a group of recruits.",
+
+  "gui.recruits.inv.text.scout" : "Scout",
+  "gui.recruits.inv.tooltip.scout" : "A Scout can locate nearby structures and enemy players and recruits.",
+
+  "gui.recruits.inv.text.governor" : "Governor",
+  "gui.recruits.inv.tooltip.governor" : "A Governor can claim chunks. In villages he will hire recruits and generate income from taxes.",
+
+  "gui.recruits.inv.text.assassin" : "Assassin",
+  "gui.recruits.inv.tooltip.assassin" : "A Assassin can assassinate Players with high success.",
+
+  "gui.recruits.inv.text.spy" : "Spy",
+  "gui.recruits.inv.tooltip.spy" : "A Spy can imitate a recruit so other Players can hire them. He will report the former owner information about the player.",
+
+  "gui.recruits.inv.text.siege_engineer" : "Siege-Engineer",
+  "gui.recruits.inv.tooltip.siege_engineer" : "A Siege-Engineer can mount and operate Siege Weapons.",
+
+  "gui.recruits.inv.text.rogue": "Rogue",
+  "gui.recruits.inv.tooltip.rogue": "Rogue can capture enemy players and companions when their health is low.",
+  "gui.recruits.inv.text.special": "Special",
+  "gui.recruits.inv.tooltip.special": "Opens Companion Screen for special abilities",
+
+  "chat.recruits.text.messenger_player_not_found": "%s: There is no Player with this name, my lord.",
+  "chat.recruits.text.messenger_arrived_at_target": "The Messenger %s of %s arrived next to you!",
+  "chat.recruits.text.messenger_arrived_at_target_team": "\"The Messenger %s of %s from %s arrived next to you!\"",
+  "gui.recruits.inv.text.send_messenger": "Send Messenger",
+  "chat.recruits.text.patrol_leader_enemy_contact": "%s: Contact with enemy %s at x= %s y= %s z= %s!",
+  "chat.recruits.text.patrol_leader_hostile_contact": "%s: Contact with hostile at x= %s y= %s z= %s!",
+  "chat.recruits.text.patrol_leader_retreating": "%s: Im retreating to first patrol point!",
+  "gui.recruits.inv.text.start": "Start",
+  "gui.recruits.inv.text.stop": "Stop",
+  "gui.recruits.inv.text.pause": "Pause",
+  "gui.recruits.inv.text.resume": "Resume",
+  "gui.recruits.inv.tooltip.patrol_leader_start": "Begin patrolling from the first waypoint.",
+  "gui.recruits.inv.tooltip.patrol_leader_resume": "Continue patrolling from the current location.",
+  "gui.recruits.inv.tooltip.patrol_leader_stop": "Stop patrolling and reset to the starting point.",
+  "gui.recruits.inv.tooltip.patrol_leader_pause": "Pauses the patrolling.",
+  "gui.recruits.inv.text.cycle": "Cycle",
+  "gui.recruits.inv.text.line": "Line",
+  "gui.recruits.inv.tooltip.patrol_leader_cycle": "Patrol-Leader continuously cycles waypoints, instantly restarting from the first after reaching the last.",
+  "gui.recruits.inv.tooltip.patrol_leader_line": "Patrol-Leader follows the set path from the first to the last waypoint, then returns from last to first.",
+  "gui.recruits.inv.tooltip.patrol_leader_add": "Adds a patrol point at current position",
+  "gui.recruits.inv.tooltip.patrol_leader_remove": "Removes the last patrol point in the list.",
+  "gui.recruits.inv.tooltip.patrol_leader_info_mode": "Select creature types for combat notifications while patrolling.",
+  "gui.recruits.inv.text.infomode.none": "None",
+  "gui.recruits.inv.text.infomode.enemies": "Enemies",
+  "gui.recruits.inv.text.infomode.hostiles": "Hostiles",
+  "gui.recruits.inv.text.infomode.all": "All"
 }

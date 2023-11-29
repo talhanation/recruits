@@ -1,4 +1,4 @@
-package com.talhanation.recruits;
+package com.talhanation.recruits.entities;
 
 import net.minecraft.core.BlockPos;
 

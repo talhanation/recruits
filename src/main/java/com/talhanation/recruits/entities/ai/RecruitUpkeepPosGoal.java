@@ -1,9 +1,8 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.IStrategicFire;
+import com.talhanation.recruits.entities.IStrategicFire;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.tags.ItemTags;
