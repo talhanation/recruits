@@ -3,8 +3,10 @@ package com.talhanation.recruits.client.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.ICompanion;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
@@ -65,8 +67,11 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TEXT_CLEAR_TARGET = Component.translatable("gui.recruits.inv.text.clearTargets");
     private static final MutableComponent TEXT_MOUNT = Component.translatable("gui.recruits.command.text.mount");
 
+    private static final MutableComponent TEXT_PROMOTE = new TranslatableComponent("gui.recruits.inv.text.promote");
+    private static final MutableComponent TEXT_SPECIAL = new TranslatableComponent("gui.recruits.inv.text.special");
+    private static final MutableComponent TOOLTIP_PROMOTE = new TranslatableComponent("gui.recruits.inv.tooltip.promote");
+    private static final MutableComponent TOOLTIP_SPECIAL = new TranslatableComponent("gui.recruits.inv.tooltip.special");
     private static final int fontColor = 4210752;
-
     private final AbstractRecruitEntity recruit;
     private final Inventory playerInventory;
 
@@ -80,6 +85,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         this.playerInventory = playerInventory;
         imageWidth = 176;
         imageHeight = 223;
+
     }
 
 
@@ -267,6 +273,32 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                     this.onClose();
                 }
         ));
+
+        //promote
+        if(recruit instanceof ICompanion){
+            Button promoteButton = addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 7, 80, 20, TEXT_SPECIAL,
+                    button -> {
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenSpecialScreen(this.playerInventory.player, recruit.getUUID()));
+                        this.onClose();
+                    },
+                    (button1, poseStack, i, i1) -> {
+                        this.renderTooltip(poseStack, TOOLTIP_SPECIAL, i, i1);
+                    }
+            ));
+            promoteButton.active = recruit.getXpLevel() >= 3;
+        }
+        else {
+            Button promoteButton = addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 7, 80, 20, TEXT_PROMOTE,
+                    button -> {
+                        RecruitEvents.openPromoteScreen(this.playerInventory.player, this.recruit);
+                        this.onClose();
+                    },
+                    (button1, poseStack, i, i1) -> {
+                        this.renderTooltip(poseStack, TOOLTIP_PROMOTE, i, i1);
+                    }
+            ));
+            promoteButton.active = recruit.getXpLevel() >= 3;
+        }
     }
 
 

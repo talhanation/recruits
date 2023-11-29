@@ -28,7 +28,7 @@ public class RecruitMountEntity extends Goal {
 
     public void start(){
         this.findMount();
-        this.recruit.setMountTimer(150);
+        this.recruit.setMountTimer(200);
     }
 
     public boolean requiresUpdateEveryTick() {

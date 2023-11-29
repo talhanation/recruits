@@ -2,7 +2,7 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.entities.BowmanEntity;
+import com.talhanation.recruits.entities.IStrategicFire;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.MessageAddRecruitToTeam;
 import com.talhanation.recruits.network.MessageCommandScreen;
@@ -36,7 +36,6 @@ import java.util.*;
 public class CommandEvents {
     public static final MutableComponent TEXT_EVERYONE = Component.translatable("chat.recruits.text.everyone");
     public static final MutableComponent TEXT_GROUP = Component.translatable("chat.recruits.text.group");
-
 
     public static void onFollowCommand(UUID player_uuid, AbstractRecruitEntity recruit, int r_state, int group, boolean fromGui) {
         if (recruit.isEffectedByCommand(player_uuid, group)){

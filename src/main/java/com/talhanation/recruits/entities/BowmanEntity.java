@@ -1,6 +1,5 @@
 package com.talhanation.recruits.entities;
 
-
 import com.talhanation.recruits.IStrategicFire;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.ai.RecruitMoveTowardsTargetGoal;
