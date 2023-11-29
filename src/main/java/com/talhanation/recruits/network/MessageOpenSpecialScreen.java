@@ -1,0 +1,70 @@
+package com.talhanation.recruits.network;
+
+import com.talhanation.recruits.RecruitEvents;
+import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.ICompanion;
+import de.maxhenkel.corelib.net.Message;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.UUID;
+
+public class MessageOpenSpecialScreen implements Message<MessageOpenSpecialScreen> {
+
+    private UUID player;
+    private UUID recruit;
+
+    public MessageOpenSpecialScreen() {
+        this.player = new UUID(0, 0);
+    }
+
+    public MessageOpenSpecialScreen(Player player, UUID recruit) {
+        this.player = player.getUUID();
+        this.recruit = recruit;
+    }
+
+    @Override
+    public Dist getExecutingSide() {
+        return Dist.DEDICATED_SERVER;
+    }
+
+    @Override
+    public void executeServerSide(NetworkEvent.Context context) {
+        ServerPlayer player = context.getSender();
+        if (!player.getUUID().equals(this.player)) {
+            return;
+        }
+        player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
+                        .inflate(16.0D), v -> v
+                        .getUUID()
+                        .equals(this.recruit))
+                .stream()
+                .filter(Entity::isAlive)
+                .findAny()
+                .ifPresent(recruit -> tryToOpenSpecialGUI(recruit, player));
+    }
+
+    private void tryToOpenSpecialGUI(AbstractRecruitEntity recruit, ServerPlayer player){
+        if(recruit instanceof ICompanion companion)
+            companion.openSpecialGUI(player);
+    }
+
+    @Override
+    public MessageOpenSpecialScreen fromBytes(FriendlyByteBuf buf) {
+        this.player = buf.readUUID();
+        this.recruit= buf.readUUID();
+        return this;
+    }
+
+    @Override
+    public void toBytes(FriendlyByteBuf buf) {
+        buf.writeUUID(player);
+        buf.writeUUID(recruit);
+    }
+
+}

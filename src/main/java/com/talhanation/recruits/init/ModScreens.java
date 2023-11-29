@@ -40,6 +40,7 @@ public class ModScreens {
         registerMenu(TEAM_LIST_TYPE.get(), TeamListScreen::new);
         registerMenu(TEAM_ADD_PLAYER_TYPE.get(), TeamManagePlayerScreen::new);
         registerMenu(DISBAND.get(), DisbandScreen::new);
+        registerMenu(PROMOTE.get(), PromoteScreen::new);
 
         logger.info("MenuScreens registered");
     }
@@ -249,6 +250,23 @@ public class ModScreens {
 
                 } catch (Exception e) {
                     logger.error("Error in disband_container: ");
+                    logger.error(e.getMessage());
+                    logger.error(e.getStackTrace().toString());
+                    return null;
+                }
+            }));
+
+    public static final RegistryObject<MenuType<PromoteContainer>> PROMOTE =
+            MENU_TYPES.register("promote_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
+                try {
+                    UUID workerId = data.readUUID();
+                    Player playerEntity = inv.player;
+                    AbstractRecruitEntity rec = getRecruitByUUID(playerEntity, workerId);
+
+                    return new PromoteContainer(windowId, playerEntity, rec);
+
+                } catch (Exception e) {
+                    logger.error("Error in promote_container: ");
                     logger.error(e.getMessage());
                     logger.error(e.getStackTrace().toString());
                     return null;

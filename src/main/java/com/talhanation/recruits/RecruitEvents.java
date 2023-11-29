@@ -3,27 +3,37 @@ package com.talhanation.recruits;
 import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.ICompanion;
 import com.talhanation.recruits.entities.ai.horse.HorseRiddenByRecruitGoal;
 import com.talhanation.recruits.network.MessageWriteSpawnEgg;
+import com.talhanation.recruits.init.ModEntityTypes;
+import com.talhanation.recruits.inventory.PromoteContainer;
+import com.talhanation.recruits.network.MessageOpenPromoteScreen;
 import com.talhanation.recruits.world.PillagerPatrolSpawn;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.Container;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.horse.AbstractChestedHorse;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.entity.monster.Pillager;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.EntityHitResult;
@@ -41,8 +51,9 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.network.NetworkHooks;
+import org.jetbrains.annotations.NotNull;
 
-import javax.xml.transform.Source;
 import java.util.*;
 
 public class RecruitEvents {
@@ -52,6 +63,45 @@ public class RecruitEvents {
     public static MinecraftServer server;
     public boolean needsUpdateHungerDay = true;
     public boolean needsUpdateHungerNight = true;
+
+
+    static HashMap<Integer, EntityType<? extends  AbstractRecruitEntity>> entitiesByProfession = new HashMap<>(){{
+        put(0, ModEntityTypes.MESSENGER.get());
+        //put(1, ModEntityTypes.CAPTIAN.get());
+        put(2, ModEntityTypes.PATROL_LEADER.get());
+        }
+    };
+    public static void promoteRecruit(AbstractRecruitEntity recruit, int profession, String name, ServerPlayer player) {
+        EntityType<? extends AbstractRecruitEntity> companionType = entitiesByProfession.get(profession);
+        AbstractRecruitEntity abstractRecruit = companionType.create(recruit.getCommandSenderWorld());
+        if(abstractRecruit != null && abstractRecruit instanceof ICompanion companion){
+            abstractRecruit.setCustomName(new TextComponent(name));
+            abstractRecruit.copyPosition(recruit);
+            companion.applyRecruitValues(recruit);
+            companion.setOwnerName(player.getName().getString());
+
+            recruit.discard();
+            abstractRecruit.getCommandSenderWorld().addFreshEntity(abstractRecruit);
+        }
+    }
+
+    public static void openPromoteScreen(Player player, AbstractRecruitEntity recruit) {
+        if (player instanceof ServerPlayer) {
+            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+                @Override
+                public @NotNull Component getDisplayName() {
+                    return recruit.getName();
+                }
+
+                @Override
+                public AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
+                    return new PromoteContainer(i, playerEntity,  recruit);
+                }
+            }, packetBuffer -> {packetBuffer.writeUUID(recruit.getUUID());});
+        } else {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenPromoteScreen(player, recruit.getUUID()));
+        }
+    }
 
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
@@ -113,7 +163,6 @@ public class RecruitEvents {
                 this.needsUpdateHungerDay = true;
             }
         }
-
     }
 
     public void serverSideUpdateRecruitHunger(ServerLevel level){

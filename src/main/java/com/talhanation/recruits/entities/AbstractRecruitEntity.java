@@ -9,10 +9,7 @@ import com.talhanation.recruits.init.ModItems;
 import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
-import com.talhanation.recruits.network.MessageAddRecruitToTeam;
-import com.talhanation.recruits.network.MessageDebugScreen;
-import com.talhanation.recruits.network.MessageHireGui;
-import com.talhanation.recruits.network.MessageRecruitGui;
+import com.talhanation.recruits.network.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -100,13 +97,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Integer> COST = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Optional<UUID>> UPKEEP_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> mountTimer = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> UpkeepTimer = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
 
     public int blockCoolDown;
     private boolean needsTeamUpdate = true;
     public boolean forcedUpkeep;
     public int dismount = 0;
+    public int upkeepTimer = 0;
+    public int mountTimer = 0;
 
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
@@ -144,7 +141,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if(this.tickCount % 40 == 0)
                 this.getJumpControl().jump();
         }
-
     }
     public void tick() {
         super.tick();
@@ -257,8 +253,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(UPKEEP_ID, Optional.empty());
         this.entityData.define(OWNED, false);
         this.entityData.define(COST, 1);
-        this.entityData.define(mountTimer, 0);
-        this.entityData.define(UpkeepTimer, 0);
 
         //STATE
         // 0 = NEUTRAL
@@ -408,7 +402,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     ////////////////////////////////////GET////////////////////////////////////
 
     public int getUpkeepTimer(){
-        return this.entityData.get(UpkeepTimer);
+        return this.upkeepTimer;
     }
 
     public int getVariant() {
@@ -587,7 +581,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     ////////////////////////////////////SET////////////////////////////////////
 
     public void setUpkeepTimer(int x){
-        this.entityData.set(UpkeepTimer, x);
+        this.upkeepTimer =  x;
     }
     public void setVariant(int variant){
         entityData.set(VARIANT, variant);
@@ -635,7 +629,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         entityData.set(FLEEING, bool);
     }
     public void setMountTimer(int x){
-        entityData.set(mountTimer, x);
+        this.mountTimer = x;
     }
 
     public void disband(Player player, boolean keepTeam){
@@ -839,7 +833,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return 32D;
     }
 
-    public abstract List<String> getHandEquipment();
+    public List<String> getHandEquipment() {
+        return null;
+    }
 
     public void setHandEquipment(List<String> hand) {
         if(!hand.get(0).isEmpty()){
@@ -1449,7 +1445,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public int getMountTimer() {
-        return entityData.get(mountTimer);
+        return this.mountTimer;
     }
 
     @Override
@@ -1506,7 +1502,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugScreen(player, this.getUUID()));
         }
     }
-
     public boolean isValidTarget(LivingEntity living){
         boolean notAllowed = living instanceof AbstractFish || living instanceof Squid || living instanceof AbstractHorse;
 
@@ -1733,5 +1728,20 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             }
         }
     }
+
+    /*
+    enum CompanionProfession {
+        UNPROMOTED(0),
+        MESSENGER(1),
+        PATROL_LEADER(2),
+        CAPTIAN(3),
+        SCOUT(4),
+        GOVERNOR(5),
+        ASSASSIN(6),
+        SPY(7),
+        SIEGE_ENGINEER(8),
+        ROGUE(9)
+    }
+    */
 
 }
