@@ -59,6 +59,9 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private static final MutableComponent TOOLTIP_REMOVE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_remove");
     private static final MutableComponent TOOLTIP_INFO_MODE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_info_mode");
 
+    private static final MutableComponent BUTTON_ASSIGN_RECRUITS = new TranslatableComponent("gui.recruits.inv.text.assign_recruits");
+    private static final MutableComponent TOOLTIP_ASSIGN_RECRUITS = new TranslatableComponent("gui.recruits.inv.tooltip.assign_recruits");
+
     private static final int fontColor = 4210752;
     private ForgeSlider waitSlider;
 
@@ -88,6 +91,8 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         this.setPageButtons();
         this.setWaypointButtons();
         this.setWaitTimeSlider();
+
+        this.setAssignButton();
 
         Component startString;
         Component startToolTip;
@@ -131,7 +136,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
 
     private void setInfoButton(Component infoModeString) {
-        Button infoButton = addRenderableWidget(new Button(leftPos + 230, topPos + 32, 50, 20, infoModeString, button -> {
+        Button infoButton = addRenderableWidget(new Button(leftPos + 230, topPos + 62, 50, 20, infoModeString, button -> {
             this.infoMode = this.infoMode.getNext();
             Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetInfoMode(recruit.getUUID(), this.infoMode.getIndex()));
             this.setButtons();
@@ -139,6 +144,16 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         (button1, poseStack, i, i1) -> {
             this.renderTooltip(poseStack, TOOLTIP_INFO_MODE, i, i1);
         }));
+    }
+
+    private void setAssignButton() {
+        Button assignButton = addRenderableWidget(new Button(leftPos + 230, topPos + 32, 50, 20, BUTTON_ASSIGN_RECRUITS, button -> {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToCompanion(player.getUUID(), this.recruit.getUUID()));
+            onClose();
+        },
+            (button1, poseStack, i, i1) -> {
+                this.renderTooltip(poseStack, TOOLTIP_ASSIGN_RECRUITS, i, i1);
+            }));
     }
 
     private void setWaitTimeSlider() {
