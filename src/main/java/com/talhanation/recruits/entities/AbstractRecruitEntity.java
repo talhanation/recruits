@@ -98,6 +98,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Integer> COST = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Optional<UUID>> UPKEEP_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Optional<UUID>> LEADER_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
 
     public int blockCoolDown;
     private boolean needsTeamUpdate = true;
@@ -780,7 +781,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 setShouldFollow(false);
                 setShouldHoldPos(true);
                 clearHoldPos();
-                setHoldPos(this.getOwner().blockPosition());
+                setHoldPos(this.getOwner().getOnPos());
                 setShouldProtect(false);
                 setShouldMovePos(false);
                 state = 3;
@@ -1187,7 +1188,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         boolean hasFood = this.hasFoodInInv();
         boolean isChest = this.getUpkeepPos() != null;
         boolean isEntity = this.getUpkeepUUID() != null;
-        return (!hasFood && timer == 0 && needsToEat && (isChest || isEntity));
+        return (!hasFood && timer == 0 && needsToEat && (isChest || isEntity)) && !getShouldProtect();
     }
 
     public boolean hasFoodInInv(){
@@ -1729,20 +1730,5 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             }
         }
     }
-
-    /*
-    enum CompanionProfession {
-        UNPROMOTED(0),
-        MESSENGER(1),
-        PATROL_LEADER(2),
-        CAPTIAN(3),
-        SCOUT(4),
-        GOVERNOR(5),
-        ASSASSIN(6),
-        SPY(7),
-        SIEGE_ENGINEER(8),
-        ROGUE(9)
-    }
-    */
 
 }
