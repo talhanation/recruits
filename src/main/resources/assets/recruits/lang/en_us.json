@@ -281,5 +281,7 @@
   "gui.recruits.inv.text.infomode.none": "None",
   "gui.recruits.inv.text.infomode.enemies": "Enemies",
   "gui.recruits.inv.text.infomode.hostiles": "Hostiles",
-  "gui.recruits.inv.text.infomode.all": "All"
+  "gui.recruits.inv.text.infomode.all": "All",
+  "gui.recruits.inv.text.assign_recruits": "Assign Recruits",
+  "gui.recruits.inv.tooltip.assign_recruits": "All nearby recruits in the same group will be assigned to this companion"
 }

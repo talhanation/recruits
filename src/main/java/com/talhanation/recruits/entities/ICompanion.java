@@ -1,12 +1,40 @@
 package com.talhanation.recruits.entities;
 
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Optional;
 
 public interface ICompanion {
+
+    /*
+    enum CompanionProfession {
+        UNPROMOTED(0),
+        MESSENGER(1),
+        PATROL_LEADER(2),
+        CAPTIAN(3),
+        SCOUT(4),
+        GOVERNOR(5),
+        ASSASSIN(6),
+        SPY(7),
+        SIEGE_ENGINEER(8),
+        ROGUE(9)
+    }
+    */
+
+    static void assignToLeaderCompanion(AbstractLeaderEntity leader, AbstractRecruitEntity recruit) {
+        recruit.setListen(false);
+        recruit.clearHoldPos();
+        recruit.setProtectUUID(Optional.of(leader.getUUID()));
+        recruit.setFollowState(5);
+
+        recruit.setUpkeepUUID(Optional.of(leader.getUUID()));
+
+        recruit.setTarget(null);
+        recruit.setState(leader.getState());
+
+        leader.RECRUITS_IN_COMMAND.push(recruit.getUUID());
+    }
 
     AbstractRecruitEntity get();
     void openSpecialGUI(Player player);
