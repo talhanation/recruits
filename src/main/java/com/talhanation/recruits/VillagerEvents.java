@@ -7,6 +7,7 @@ import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerLevel;
@@ -95,7 +96,16 @@ public class VillagerEvents {
         AbstractRecruitEntity abstractRecruit = recruitType.create(villager.level);
         if (abstractRecruit != null) {
             abstractRecruit.copyPosition(villager);
+
             abstractRecruit.initSpawn();
+
+            for(ItemStack itemStack : villager.getInventory().items){
+                abstractRecruit.getInventory().addItem(itemStack);
+            }
+
+            Component name = villager.getCustomName();
+            if(name  != null) abstractRecruit.setCustomName(name);
+
             villager.level.addFreshEntity(abstractRecruit);
             if(RecruitsModConfig.RecruitTablesPOIReleasing.get()) villager.releasePoi(MemoryModuleType.JOB_SITE);
             villager.releasePoi(MemoryModuleType.HOME);
