@@ -21,7 +21,7 @@ public class RecruitProtectEntityGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return recruit.getShouldProtect() && !recruit.needsToGetFood();
+        return recruit.getShouldProtect();
     }
 
     public boolean canContinueToUse() {
@@ -31,10 +31,10 @@ public class RecruitProtectEntityGoal extends Goal {
     public void start(){
         this.getProtecting();
         boolean isHorseBack = recruit.getVehicle() instanceof AbstractHorse;
-        this.range = isHorseBack ? 15D : 8D;
+        this.range = isHorseBack ? 20D : 10D;
     }
 
-    public void stop(){
+    public void clear(){
         recruit.shouldProtect(false,null);
         recruit.setFollowState(3);
         this.protectingMob = null;
@@ -58,9 +58,9 @@ public class RecruitProtectEntityGoal extends Goal {
 
         if (this.protectingMob == null || !protectingMob.isAlive()) {
             if(this.protectingMob != null && !protectingMob.isAlive()){
-                if (recruit.getOwner() != null)recruit.getOwner().sendMessage(TEXT_PROTECT_DIED(recruit.getName().getString()), recruit.getOwner().getUUID());
+                if (recruit.getOwner() != null) recruit.getOwner().sendMessage(TEXT_PROTECT_DIED(recruit.getName().getString()), recruit.getOwner().getUUID());
             }
-            stop();
+            clear();
         }
     }
 

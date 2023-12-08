@@ -28,7 +28,8 @@ public interface ICompanion {
         recruit.setProtectUUID(Optional.of(leader.getUUID()));
         recruit.setFollowState(5);
 
-        recruit.setUpkeepUUID(Optional.of(leader.getUUID()));
+        if(leader.getUpkeepUUID() != null) recruit.setUpkeepUUID(Optional.of(leader.getUpkeepUUID()));
+        if(leader.getUpkeepPos() != null) recruit.setUpkeepPos(leader.getUpkeepPos());
 
         recruit.setTarget(null);
         recruit.setState(leader.getState());
