@@ -119,39 +119,42 @@ public class RecruitMeleeAttackGoal extends Goal {
 
     public void tick() {
         LivingEntity livingentity = this.recruit.getTarget();
-        this.recruit.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
-        double d0 = this.recruit.distanceToSqr(livingentity.getX(), livingentity.getY(), livingentity.getZ());
-        this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
-        if ((this.followingTargetEvenIfNotSeen || this.recruit.getSensing().hasLineOfSight(livingentity)) && this.ticksUntilNextPathRecalculation <= 0 && (this.pathedTargetX == 0.0D && this.pathedTargetY == 0.0D && this.pathedTargetZ == 0.0D || livingentity.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) >= 1.0D || this.recruit.getRandom().nextFloat() < 0.05F)) {
-            this.pathedTargetX = livingentity.getX();
-            this.pathedTargetY = livingentity.getY();
-            this.pathedTargetZ = livingentity.getZ();
-            this.ticksUntilNextPathRecalculation = 4 + this.recruit.getRandom().nextInt(7);
-            if (this.canPenalize) {
-                this.ticksUntilNextPathRecalculation += failedPathFindingPenalty;
-                if (this.recruit.getNavigation().getPath() != null) {
-                    net.minecraft.world.level.pathfinder.Node finalPathPoint = this.recruit.getNavigation().getPath().getEndNode();
-                    if (finalPathPoint != null && livingentity.distanceToSqr(finalPathPoint.x, finalPathPoint.y, finalPathPoint.z) < 1)
-                        failedPathFindingPenalty = 0;
-                    else
+        if(livingentity != null){
+
+            this.recruit.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
+            double d0 = this.recruit.distanceToSqr(livingentity.getX(), livingentity.getY(), livingentity.getZ());
+            this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
+            if ((this.followingTargetEvenIfNotSeen || this.recruit.getSensing().hasLineOfSight(livingentity)) && this.ticksUntilNextPathRecalculation <= 0 && (this.pathedTargetX == 0.0D && this.pathedTargetY == 0.0D && this.pathedTargetZ == 0.0D || livingentity.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) >= 1.0D || this.recruit.getRandom().nextFloat() < 0.05F)) {
+                this.pathedTargetX = livingentity.getX();
+                this.pathedTargetY = livingentity.getY();
+                this.pathedTargetZ = livingentity.getZ();
+                this.ticksUntilNextPathRecalculation = 4 + this.recruit.getRandom().nextInt(7);
+                if (this.canPenalize) {
+                    this.ticksUntilNextPathRecalculation += failedPathFindingPenalty;
+                    if (this.recruit.getNavigation().getPath() != null) {
+                        net.minecraft.world.level.pathfinder.Node finalPathPoint = this.recruit.getNavigation().getPath().getEndNode();
+                        if (finalPathPoint != null && livingentity.distanceToSqr(finalPathPoint.x, finalPathPoint.y, finalPathPoint.z) < 1)
+                            failedPathFindingPenalty = 0;
+                        else
+                            failedPathFindingPenalty += 10;
+                    } else {
                         failedPathFindingPenalty += 10;
-                } else {
-                    failedPathFindingPenalty += 10;
+                    }
+                }
+                if (d0 > 1024.0D) {
+                    this.ticksUntilNextPathRecalculation += 10;
+                } else if (d0 > 256.0D) {
+                    this.ticksUntilNextPathRecalculation += 5;
+                }
+
+                if (!this.recruit.getNavigation().moveTo(livingentity, this.speedModifier)) {
+                    this.ticksUntilNextPathRecalculation += 15;
                 }
             }
-            if (d0 > 1024.0D) {
-                this.ticksUntilNextPathRecalculation += 10;
-            } else if (d0 > 256.0D) {
-                this.ticksUntilNextPathRecalculation += 5;
-            }
 
-            if (!this.recruit.getNavigation().moveTo(livingentity, this.speedModifier)) {
-                this.ticksUntilNextPathRecalculation += 15;
-            }
+            this.ticksUntilNextAttack = Math.max(this.ticksUntilNextAttack - 1, 0);
+            this.checkAndPerformAttack(livingentity, d0);
         }
-
-        this.ticksUntilNextAttack = Math.max(this.ticksUntilNextAttack - 1, 0);
-        this.checkAndPerformAttack(livingentity, d0);
     }
 
     protected void checkAndPerformAttack(LivingEntity target, double p_190102_2_) {
