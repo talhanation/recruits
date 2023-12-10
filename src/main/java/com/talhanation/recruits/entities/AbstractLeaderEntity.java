@@ -1,8 +1,6 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.entities.ai.PatrolLeaderAttackAI;
-import com.talhanation.recruits.entities.ai.RecruitFloatGoal;
-import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -11,6 +9,7 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobCategory;
@@ -20,7 +19,7 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 
 
 import java.util.*;
@@ -37,6 +36,8 @@ public abstract class AbstractLeaderEntity extends AbstractRecruitEntity impleme
     private BlockPos currentWaypoint;
     private int waitingTime = 0;
     private int waitingForEnemiesTime = 0;
+
+    private int waitForRecruitsTime = 0;
     public int infoCooldown = 0;
     private State state = State.IDLE;
 
@@ -194,6 +195,22 @@ public abstract class AbstractLeaderEntity extends AbstractRecruitEntity impleme
                         this.sendInfoAboutTarget(this.getTarget());
                         this.state = State.ATTACKING;
                     }
+
+                    boolean isFirstWaypoint = getWaypointIndex() == 0;
+                    if(isFirstWaypoint && waitForRecruitsTime == 0){
+                        setRecruitsUpkeep();
+                        setRecruitsWanderFreely();
+
+                        this.waitForRecruitsTime = 400;
+                        this.state = State.WAITING_RECRUITS;
+                    }
+
+                }
+
+                case WAITING_RECRUITS -> {
+                    if(--waitForRecruitsTime == 0){
+                        state = State.STARTED;
+                    }
                 }
 
                 case PAUSED -> {
@@ -224,12 +241,6 @@ public abstract class AbstractLeaderEntity extends AbstractRecruitEntity impleme
                 }
 
                 case ATTACKING -> {
-                    if(this.getMaxHealth() * 0.25 > this.getHealth()){
-                        this.setRecruitsClearTargets();
-                        this.setRecruitsToFollow();
-                        this.state = State.RETREATING;
-                    }
-
                     if(distance > 500D || (this.getTarget() != null && !this.getTarget().isAlive()) || this.getTarget() == null){
                         this.setTarget(null);
                         this.setRecruitsClearTargets();
@@ -357,7 +368,8 @@ public abstract class AbstractLeaderEntity extends AbstractRecruitEntity impleme
 
         //Pause the patrolling when command is not wander freely
         if(state != 0  && WAYPOINTS != null  && WAYPOINTS.size() > 0){
-            this.setPatrollingState((byte) 2, false);//PAUSED
+            if(getTarget() != null) this.setPatrollingState((byte) 5, false);//ATTACKING
+            else this.setPatrollingState((byte) 2, false);//PAUSED
         }
     }
 
@@ -547,6 +559,12 @@ public abstract class AbstractLeaderEntity extends AbstractRecruitEntity impleme
         }
     }
 
+    public void setRecruitsShields(boolean shields){
+        for (AbstractRecruitEntity recruit : currentRecruitsInCommand){
+            recruit.clearHoldPos();
+            recruit.setShouldBlock(shields);
+        }
+    }
     public void setTypedRecruitsToMove(BlockPos pos, EntityType<?> type){
         for (AbstractRecruitEntity recruit : currentRecruitsInCommand){
             if(recruit.getType().equals(type)){
@@ -588,6 +606,38 @@ public abstract class AbstractLeaderEntity extends AbstractRecruitEntity impleme
             }
 
         }
+    }
+
+    public void setRecruitsUpkeep(){
+        for (AbstractRecruitEntity recruit : currentRecruitsInCommand){
+            recruit.clearUpkeepEntity();
+            recruit.clearUpkeepPos();
+
+            if(this.getUpkeepPos() != null) recruit.setUpkeepPos(this.getUpkeepPos());
+            recruit.setUpkeepUUID(Optional.ofNullable(this.getUpkeepUUID()));
+
+            recruit.setUpkeepTimer(0);
+            recruit.setTarget(null);
+        }
+    }
+
+    @Override
+    public void die(DamageSource dmg) {
+        super.die(dmg);
+        if(!currentRecruitsInCommand.isEmpty()){
+            setRecruitsWanderFreely();
+        }
+    }
+
+    @Override
+    public boolean hurt(@NotNull DamageSource dmg, float amt) {
+        if(this.getMaxHealth() * 0.25 > this.getHealth() && state != State.RETREATING){
+            this.setRecruitsClearTargets();
+            this.setRecruitsToFollow();
+            this.setRecruitsShields(false);
+            this.state = State.RETREATING;
+        }
+        return super.hurt(dmg, amt);
     }
 }
 
