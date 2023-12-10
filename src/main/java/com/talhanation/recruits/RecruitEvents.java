@@ -25,6 +25,7 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.horse.AbstractChestedHorse;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.monster.AbstractIllager;
@@ -188,6 +189,14 @@ public class RecruitEvents {
 
                     if (owner instanceof AbstractRecruitEntity recruit) {
 
+                        if(impactEntity instanceof Animal animal){
+                            if(animal.getFirstPassenger() instanceof AbstractRecruitEntity recruit2){
+                                if (!canDamageTarget(recruit, recruit2)) {
+                                    event.setCanceled(true);
+                                }
+                            }
+                        }
+
                         if (!canDamageTarget(recruit, impactEntity)) {
                             event.setCanceled(true);
                         }
@@ -209,6 +218,8 @@ public class RecruitEvents {
                             event.setCanceled(true);
                         }
                     }
+
+
 
                 }
             }
