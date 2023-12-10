@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.HorsemanEntity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -64,7 +65,9 @@ public class UseShield extends Goal {
         if (target != null && target.isAlive() && !this.entity.swinging) {
             ItemStack itemStackinHand = target.getItemInHand(InteractionHand.MAIN_HAND);
             Item itemInHand = itemStackinHand.getItem();
-            boolean isClose = target.distanceTo(this.entity) <= 3.5D;
+
+            boolean isClose = this.entity instanceof HorsemanEntity horseman && horseman.isPassenger() ? target.distanceTo(this.entity) <= 4.75D : target.distanceTo(this.entity) <= 3.75D;
+
             boolean isFar = target.distanceTo(this.entity) >= 20.0D;
             boolean inRange =  !isFar && target.distanceTo(this.entity) <= 15.0D;
 
