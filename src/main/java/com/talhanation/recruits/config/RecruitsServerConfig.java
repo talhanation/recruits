@@ -2,7 +2,7 @@ package com.talhanation.recruits.config;
 
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
-import com.talhanation.recruits.world.RecruitsTeamSavedData;
+import de.maxhenkel.corelib.config.ConfigBase;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.Mod;
 
@@ -12,12 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Mod.EventBusSubscriber
-public class RecruitsModConfig {
-    private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
-    public static ForgeConfigSpec CONFIG;
-    public static ForgeConfigSpec.IntValue VERSION;
-    public static final int NEW_VERSION = 27;
-    public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
+public class RecruitsServerConfig extends ConfigBase {
     public static ForgeConfigSpec.BooleanValue RecruitTablesPOIReleasing;
     public static ForgeConfigSpec.BooleanValue OverrideIronGolemSpawn;
     public static ForgeConfigSpec.BooleanValue PillagerFriendlyFire;
@@ -61,16 +56,15 @@ public class RecruitsModConfig {
     public static ForgeConfigSpec.DoubleValue RecruitPatrolsSpawnChance;
     public static ForgeConfigSpec.DoubleValue PillagerPatrolsSpawnChance;
     public static ForgeConfigSpec.ConfigValue<String> RecruitCurrency;
-    public static ForgeConfigSpec.BooleanValue RecruitsLookLikeVillagers;
     public static ForgeConfigSpec.BooleanValue NoDamageImmunity;
     public static ForgeConfigSpec.IntValue PillagerPatrolSpawnInterval;
     public static ForgeConfigSpec.IntValue RecruitPatrolSpawnInterval;
     public static ForgeConfigSpec.BooleanValue GlobalTeamFriendlyFireSetting;
     public static ForgeConfigSpec.BooleanValue GlobalTeamSeeFriendlyInvisibleSetting;
     public static ForgeConfigSpec.BooleanValue GlobalTeamSetting;
-    public static ForgeConfigSpec.BooleanValue CommandScreenToggle;
     public static ForgeConfigSpec.BooleanValue RecruitHorseUnitsHorse;
     public static ForgeConfigSpec.BooleanValue RangedRecruitsNeedArrowsToShoot;
+    public static ForgeConfigSpec.BooleanValue RecruitsChunkLoading;
     public static ArrayList<String> BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast"));
     public static ArrayList<String> MOUNTS = new ArrayList<>(
@@ -96,42 +90,8 @@ public class RecruitsModConfig {
 
     public static ArrayList<String> list = new ArrayList<>();
 
-    static{
-        VERSION = BUILDER.comment("\n" +"##Version, do not change!##")
-                .defineInRange("Version", 0, 0, Integer.MAX_VALUE);
-
-        BUILDER.comment("Recruits Config Client Side:").push("RecruitsClientSide");
-
-        PlayVillagerAmbientSound = BUILDER.comment("""
-
-                        ----Should Recruits Make Villager "Huh?" sound?----
-                        \t(takes effect after restart)
-                        \tdefault: true""")
-                .worldRestart()
-                .define("PlayVillagerAmbientSound", true);
-
-        RecruitsLookLikeVillagers = BUILDER.comment("""
-
-                        ----Should Recruits look like Villagers?----
-                        \t(takes effect after restart)
-                        \tdefault: true""")
-                .worldRestart()
-                .define("RecruitsLookLikeVillagers", true);
-
-        CommandScreenToggle = BUILDER.comment("""
-                        ----CommandScreenToggle----
-                        \t(takes effect after restart)
-                        \t
-                        Should the key to open the command screen be toggled instead of held?""
-                        default: false""")
-
-                .worldRestart()
-                .define("CommandScreenToggle", false);
-
-        /*
-        Recruits Config
-         */
-        BUILDER.pop();
+    public RecruitsServerConfig(ForgeConfigSpec.Builder BUILDER) {
+        super(BUILDER);
         BUILDER.comment("Recruits Config:").push("Recruits");
 
         RecruitCurrency = BUILDER.comment("""
@@ -253,6 +213,16 @@ public class RecruitsModConfig {
 
                 .worldRestart()
                 .define("RangedRecruitsNeedArrowsToShoot", false);
+
+        RecruitsChunkLoading = BUILDER.comment("""
+                        ----RecruitsChunkLoading----
+                        \t(takes effect after restart)
+                        \t
+                        Should companions load chunks? Disabling would make patrolling in to unloaded chunk impossible.
+                        default: true""")
+
+                .worldRestart()
+                .define("RecruitsChunkLoading", true);
 
         /*
         Village Config
@@ -582,28 +552,6 @@ public class RecruitsModConfig {
                         \tdefault: true""")
                 .worldRestart()
                 .define("GlobalTeamSeeFriendlyInvisibleSetting", true);
-
-        CONFIG = BUILDER.build();
-    }
-
-    public static void loadConfig(ForgeConfigSpec spec, Path path) {
-        CommentedFileConfig configData = CommentedFileConfig.builder(path)
-                .sync()
-                .autosave()
-                .writingMode(WritingMode.REPLACE)
-                .build();
-        configData.load();
-        spec.setConfig(configData);
-        if (VERSION.get() != NEW_VERSION) {
-            configData = CommentedFileConfig.builder(path)
-                    .sync()
-                    .autosave()
-                    .writingMode(WritingMode.REPLACE)
-                    .build();
-            spec.setConfig(configData);
-            VERSION.set(NEW_VERSION);
-            configData.save();
-        }
     }
 }
 

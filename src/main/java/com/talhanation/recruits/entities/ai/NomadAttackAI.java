@@ -1,7 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
-
-import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.NomadEntity;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
@@ -9,12 +8,10 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
-import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ProjectileWeaponItem;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.Tags;
 
 import java.util.EnumSet;
 
@@ -31,7 +28,7 @@ public class NomadAttackAI extends Goal {
     public NomadAttackAI(NomadEntity recruit) {
         this.nomad = recruit;
         this.setFlags(EnumSet.of(Flag.MOVE));
-        this.consumeArrows = RecruitsModConfig.RangedRecruitsNeedArrowsToShoot.get();
+        this.consumeArrows = RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get();
     }
     public boolean canUse() {
         return nomad.getVehicle() instanceof AbstractHorse && nomad.getTarget() != null && !nomad.needsToGetFood() && !nomad.getShouldMount() && isHoldingBow();

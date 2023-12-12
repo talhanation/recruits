@@ -1,8 +1,12 @@
 package com.talhanation.recruits;
 
 import com.talhanation.recruits.client.events.KeyEvents;
-import com.talhanation.recruits.config.RecruitsModConfig;
 import com.talhanation.recruits.init.*;
+import com.talhanation.recruits.client.events.PlayerEvents;
+import com.talhanation.recruits.client.gui.*;
+import com.talhanation.recruits.client.gui.team.*;
+import com.talhanation.recruits.config.RecruitsClientConfig;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
@@ -67,8 +71,8 @@ public class Main {
     public static boolean isMusketModLoaded;
 
     public Main() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, RecruitsModConfig.CONFIG);
-        RecruitsModConfig.loadConfig(RecruitsModConfig.CONFIG, FMLPaths.CONFIGDIR.get().resolve("recruits-common.toml"));
+        CommonRegistry.registerConfig(ModConfig.Type.CLIENT, RecruitsClientConfig.class);
+        CommonRegistry.registerConfig(ModConfig.Type.SERVER, RecruitsServerConfig.class);
 
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
