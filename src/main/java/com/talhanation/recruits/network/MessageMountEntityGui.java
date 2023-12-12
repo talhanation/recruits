@@ -1,6 +1,6 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -49,7 +49,7 @@ public class MessageMountEntityGui implements Message<MessageMountEntityGui> {
         if(recruit.getVehicle() == null){
             ArrayList<Entity> list = (ArrayList<Entity>) recruit.getCommandSenderWorld().getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(8));
 
-            list.removeIf(mount -> !RecruitsModConfig.MountWhiteList.get().contains(mount.getEncodeId()));
+            list.removeIf(mount -> !RecruitsServerConfig.MountWhiteList.get().contains(mount.getEncodeId()));
             list.sort(Comparator.comparing(horseInList -> horseInList.distanceTo(recruit)));
 
             if(!list.isEmpty()){

@@ -1,7 +1,7 @@
 package com.talhanation.recruits;
 
 import com.talhanation.recruits.compat.IWeapon;
-import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
 import com.talhanation.recruits.entities.ai.horse.HorseRiddenByRecruitGoal;
@@ -133,14 +133,14 @@ public class RecruitEvents {
     @SubscribeEvent
     public void onServerTick(TickEvent.LevelTickEvent event) {
         if (!event.level.isClientSide && event.level instanceof ServerLevel serverWorld) {
-            if (RecruitsModConfig.ShouldRecruitPatrolsSpawn.get()) {
+            if (RecruitsServerConfig.ShouldRecruitPatrolsSpawn.get()) {
                 RECRUIT_PATROL.computeIfAbsent(serverWorld,
                     serverLevel -> new RecruitsPatrolSpawn(serverWorld));
                     RecruitsPatrolSpawn spawner = RECRUIT_PATROL.get(serverWorld);
                     spawner.tick();
             }
 
-            if (RecruitsModConfig.ShouldPillagerPatrolsSpawn.get()) {
+            if (RecruitsServerConfig.ShouldPillagerPatrolsSpawn.get()) {
                 PILLAGER_PATROL.computeIfAbsent(serverWorld,
                     serverLevel -> new PillagerPatrolSpawn(serverWorld));
                     PillagerPatrolSpawn pillagerSpawner = PILLAGER_PATROL.get(serverWorld);
@@ -205,7 +205,7 @@ public class RecruitEvents {
                         }
                     }
 
-                    if (owner instanceof AbstractIllager illager && !RecruitsModConfig.PillagerFriendlyFire.get()) {
+                    if (owner instanceof AbstractIllager illager && !RecruitsServerConfig.PillagerFriendlyFire.get()) {
 
                         if (illager.isAlliedTo(impactEntity)) {
                             event.setCanceled(true);
@@ -300,7 +300,7 @@ public class RecruitEvents {
 
     @SubscribeEvent
     public void onBlockBreakEvent(BlockEvent.BreakEvent event) {
-        if(RecruitsModConfig.AggroRecruitsBlockPlaceBreakEvents.get()) {
+        if(RecruitsServerConfig.AggroRecruitsBlockPlaceBreakEvents.get()) {
             Player blockBreaker = event.getPlayer();
 
             if (blockBreaker != null){
@@ -317,7 +317,7 @@ public class RecruitEvents {
             }
         }
 
-        if(RecruitsModConfig.NeutralRecruitsBlockPlaceBreakEvents.get()) {
+        if(RecruitsServerConfig.NeutralRecruitsBlockPlaceBreakEvents.get()) {
             Player blockBreaker = event.getPlayer();
 
             if (blockBreaker != null){
@@ -337,7 +337,7 @@ public class RecruitEvents {
 
     @SubscribeEvent
     public void onBlockPlaceEvent(BlockEvent.EntityPlaceEvent event) {
-        if(RecruitsModConfig.AggroRecruitsBlockPlaceBreakEvents.get()) {
+        if(RecruitsServerConfig.AggroRecruitsBlockPlaceBreakEvents.get()) {
             Entity blockPlacer = event.getEntity();
 
             if (blockPlacer instanceof LivingEntity livingBlockPlacer) {
@@ -354,7 +354,7 @@ public class RecruitEvents {
             }
         }
 
-        if(RecruitsModConfig.NeutralRecruitsBlockPlaceBreakEvents.get()) {
+        if(RecruitsServerConfig.NeutralRecruitsBlockPlaceBreakEvents.get()) {
             Entity blockPlacer = event.getEntity();
 
             if (blockPlacer instanceof LivingEntity livingBlockPlacer) {
@@ -390,6 +390,7 @@ public class RecruitEvents {
             selectedBlock.is(BlockTags.ANVIL) ||
             (blockEntity instanceof Container)
         ) {
+
 
             if(RecruitsModConfig.AggroRecruitsBlockInteractingEvents.get()) {
                 List<AbstractRecruitEntity> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(32.0D)));

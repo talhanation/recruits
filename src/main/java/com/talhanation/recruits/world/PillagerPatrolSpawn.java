@@ -1,7 +1,10 @@
 package com.talhanation.recruits.world;
 
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.config.RecruitsServerConfig;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -33,7 +36,7 @@ public class PillagerPatrolSpawn {
     public PillagerPatrolSpawn(ServerLevel level) {
         this.world = level;
         this.timer = getSpawnInterval();
-        this.chance = RecruitsModConfig.PillagerPatrolsSpawnChance.get();
+        this.chance = RecruitsServerConfig.PillagerPatrolsSpawnChance.get();
     }
 
     public void tick() {
@@ -82,7 +85,7 @@ public class PillagerPatrolSpawn {
 
     private int getSpawnInterval(){
         //1200 == 1 min
-        int minutes = RecruitsModConfig.PillagerPatrolSpawnInterval.get(); //minutes
+        int minutes = RecruitsServerConfig.PillagerPatrolSpawnInterval.get(); //minutes
 
         return 1200 * minutes;
     }
