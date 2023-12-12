@@ -79,7 +79,6 @@ public class MessengerEntity extends AbstractRecruitEntity implements ICompanion
         nbt.putString("Message", this.getMessage());
         nbt.putString("TargetPlayerName", this.getTargetPlayerName());
         nbt.putString("OwnerName", this.getOwnerName());
-        nbt.putByte("TaskSate", this.getTaskState());
     }
 
     public void readAdditionalSaveData(CompoundTag nbt) {
@@ -88,7 +87,6 @@ public class MessengerEntity extends AbstractRecruitEntity implements ICompanion
         this.setTargetPlayerName(nbt.getString("TargetPlayerName"));
         this.setMessage(nbt.getString("Message"));
         this.setOwnerName(nbt.getString("OwnerName"));
-        this.setTaskState(nbt.getByte("TaskSate"));
     }
 
     //ATTRIBUTES
@@ -111,6 +109,12 @@ public class MessengerEntity extends AbstractRecruitEntity implements ICompanion
         this.initSpawn();
 
         return ilivingentitydata;
+    }
+
+    @Override
+    public void initSpawn() {
+        this.setDropEquipment();
+        this.setPersistenceRequired();
     }
 
     @Override
@@ -160,16 +164,6 @@ public class MessengerEntity extends AbstractRecruitEntity implements ICompanion
 
     public void setOwnerName(String name) {
         ownerName = name;
-    }
-
-    @Override
-    public Byte getTaskState() {
-        return entityData.get(TASK_STATE);
-    }
-
-    @Override
-    public void setTaskState(Byte x) {
-        this.entityData.set(TASK_STATE, x);
     }
 
     public Container getDeliverSlot() {

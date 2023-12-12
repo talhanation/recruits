@@ -40,24 +40,15 @@ import javax.annotation.Nullable;
 import java.util.function.Predicate;
 
 public class PatrolLeaderEntity extends AbstractLeaderEntity {
-
-    private static final EntityDataAccessor<String> TARGET_PLAYER_NAME = SynchedEntityData.defineId(PatrolLeaderEntity.class, EntityDataSerializers.STRING);
-
-    private static final EntityDataAccessor<Byte> TASK_STATE = SynchedEntityData.defineId(PatrolLeaderEntity.class, EntityDataSerializers.BYTE);
-
-    private final SimpleContainer deliverSlot = new SimpleContainer(1);
-
-    private String ownerName = "";
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
 
-    public PatrolLeaderEntity(EntityType<? extends AbstractRecruitEntity> entityType, Level world) {
+    public PatrolLeaderEntity(EntityType<? extends AbstractLeaderEntity> entityType, Level world) {
         super(entityType, world);
     }
 
     protected void defineSynchedData() {
         super.defineSynchedData();
-        this.entityData.define(TASK_STATE, (byte) 0);
     }
 
     @Override
@@ -94,6 +85,12 @@ public class PatrolLeaderEntity extends AbstractLeaderEntity {
         this.initSpawn();
 
         return ilivingentitydata;
+    }
+
+    @Override
+    public void initSpawn() {
+        this.setDropEquipment();
+        this.setPersistenceRequired();
     }
 
     @Override
@@ -140,54 +137,6 @@ public class PatrolLeaderEntity extends AbstractLeaderEntity {
             Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateLeaderScreen(this.WAYPOINTS, this.WAYPOINT_ITEMS));
         }
     }
-
-    public String getOwnerName() {
-        return ownerName;
-    }
-
-    public void setOwnerName(String name) {
-        ownerName = name;
-    }
-
-    @Override
-    public Byte getTaskState() {
-        return entityData.get(TASK_STATE);
-    }
-
-    @Override
-    public void setTaskState(Byte x) {
-        this.entityData.set(TASK_STATE, x);
-    }
-
-
-    public enum PatrolType{
-        FORWARD,//from first to last
-        CYCLE;//from first to last
-    }
-    public enum State{
-        IDLE(0),//follow, hold pos, protect, wander freely
-        PATROLLING(1),//traveling from first to last
-        ATTACKING(2),//traveling is paused attacking enemies
-        RETREATING(3);// traveling back to first waypoint from current one
-        private final int index;
-        State(int index){
-            this.index = index;
-        }
-
-        public int getIndex(){
-            return this.index;
-        }
-
-        public static State fromIndex(int index) {
-            for (State state : State.values()) {
-                if (state.getIndex() == index) {
-                    return state;
-                }
-            }
-            throw new IllegalArgumentException("Invalid State index: " + index);
-        }
-    }
-
 }
 
 
