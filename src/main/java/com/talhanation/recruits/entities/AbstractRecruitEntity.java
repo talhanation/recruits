@@ -861,9 +861,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
-    public void initSpawn(){
-        this.setVariant(random.nextInt(3));
+    public abstract void initSpawn();
+
+    public static void applySpawnValues(AbstractRecruitEntity recruit){
+        recruit.setVariant(recruit.random.nextInt(3));
+        recruit.setHunger(50);
+        recruit.setMoral(50);
+        recruit.setListen(true);
+        recruit.setXpLevel(1);
     }
+
+
 
     ////////////////////////////////////is FUNCTIONS////////////////////////////////////
 

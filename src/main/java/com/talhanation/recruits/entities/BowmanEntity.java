@@ -120,6 +120,8 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
         this.setGroup(2);
+
+        AbstractRecruitEntity.applySpawnValues(this);
     }
 
     @Override

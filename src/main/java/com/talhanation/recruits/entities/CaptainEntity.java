@@ -27,6 +27,11 @@ public class CaptainEntity extends AbstractLeaderEntity {
     public void openSpecialGUI(Player player) {
 
     }
+
+    @Override
+    public void initSpawn() {
+
+    }
 }
 
 

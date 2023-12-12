@@ -72,6 +72,8 @@ public class RecruitShieldmanEntity extends AbstractRecruitEntity{
         this.setPersistenceRequired();
 
         this.setGroup(1);
+
+        AbstractRecruitEntity.applySpawnValues(this);
     }
 
     public List<String> getHandEquipment(){

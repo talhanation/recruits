@@ -100,6 +100,8 @@ public class NomadEntity extends BowmanEntity {
         this.setPersistenceRequired();
 
         this.setGroup(2);
+
+        AbstractRecruitEntity.applySpawnValues(this);
     }
     @Override
     public double arrowDamageModifier() {
