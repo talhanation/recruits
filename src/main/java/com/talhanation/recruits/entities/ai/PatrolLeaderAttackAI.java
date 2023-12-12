@@ -30,8 +30,6 @@ public class PatrolLeaderAttackAI extends Goal {
         if(this.leader.currentRecruitsInCommand.size() > 0){
             attackCommandsToRecruits(this.leader.getTarget());
         }
-
-
     }
 
     @Override
@@ -39,6 +37,10 @@ public class PatrolLeaderAttackAI extends Goal {
         super.stop();
         this.leader.setRecruitsClearTargets();
         this.leader.setRecruitsToFollow();
+        this.leader.setFollowState(0);
+        this.leader.setTarget(null);
+        this.leader.setShouldBlock(false);
+        this.leader.setRecruitsShields(false);
     }
 
     public boolean canContinueToUse() {
