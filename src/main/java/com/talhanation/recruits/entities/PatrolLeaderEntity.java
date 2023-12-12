@@ -91,6 +91,8 @@ public class PatrolLeaderEntity extends AbstractLeaderEntity {
     public void initSpawn() {
         this.setDropEquipment();
         this.setPersistenceRequired();
+
+
     }
 
     @Override
