@@ -115,6 +115,8 @@ public class MessengerEntity extends AbstractRecruitEntity implements ICompanion
     public void initSpawn() {
         this.setDropEquipment();
         this.setPersistenceRequired();
+
+        AbstractRecruitEntity.applySpawnValues(this);
     }
 
     @Override

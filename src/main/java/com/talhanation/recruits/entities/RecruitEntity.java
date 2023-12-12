@@ -73,6 +73,8 @@ public class RecruitEntity extends AbstractRecruitEntity {
         this.setPersistenceRequired();
 
         this.setGroup(1);
+
+        AbstractRecruitEntity.applySpawnValues(this);
     }
 
     @Override

@@ -129,6 +129,8 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
         this.setPersistenceRequired();
 
         this.setGroup(2);
+
+        AbstractRecruitEntity.applySpawnValues(this);
     }
 
     @Override
