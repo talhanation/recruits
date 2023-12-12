@@ -1,6 +1,6 @@
 package com.talhanation.recruits;
 
-import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.*;
 import com.talhanation.recruits.network.*;
@@ -180,8 +180,8 @@ public class TeamEvents {
                                     newTeam.setDisplayName(Component.literal(teamName));
 
                                     newTeam.setColor(Objects.requireNonNull(ChatFormatting.getByName(color)));
-                                    newTeam.setAllowFriendlyFire(RecruitsModConfig.GlobalTeamSetting.get() && RecruitsModConfig.GlobalTeamFriendlyFireSetting.get());
-                                    newTeam.setSeeFriendlyInvisibles(RecruitsModConfig.GlobalTeamSetting.get() && RecruitsModConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
+                                    newTeam.setAllowFriendlyFire(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamFriendlyFireSetting.get());
+                                    newTeam.setSeeFriendlyInvisibles(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
 
                                     server.getScoreboard().addPlayerToTeam(playerName, newTeam);
                                     //TeamCommand
@@ -408,7 +408,7 @@ public class TeamEvents {
 
     public static ItemStack getCurrency(){
         ItemStack currencyItemStack;
-        String str = RecruitsModConfig.RecruitCurrency.get();
+        String str = RecruitsServerConfig.RecruitCurrency.get();
         Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
 
         currencyItemStack = holder.map(itemHolder -> itemHolder.value().getDefaultInstance()).orElseGet(Items.EMERALD::getDefaultInstance);
@@ -517,8 +517,8 @@ public class TeamEvents {
 
         Collection<PlayerTeam> list =  level.getScoreboard().getPlayerTeams();
         for(PlayerTeam playerTeam: list){
-            playerTeam.setAllowFriendlyFire(RecruitsModConfig.GlobalTeamSetting.get() && RecruitsModConfig.GlobalTeamFriendlyFireSetting.get());
-            playerTeam.setSeeFriendlyInvisibles(RecruitsModConfig.GlobalTeamSetting.get() && RecruitsModConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
+            playerTeam.setAllowFriendlyFire(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamFriendlyFireSetting.get());
+            playerTeam.setSeeFriendlyInvisibles(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
         }
     }
 
@@ -530,7 +530,7 @@ public class TeamEvents {
             Entity sender = event.getParseResults().getContext().build(command).getSource().getEntity();
 
             if(command.contains("team") && (command.contains("join") || command.contains("add") || command.contains("remove") || command.contains("leave"))){
-                if(RecruitsModConfig.DisableVanillaTeamCommands.get()) {
+                if(RecruitsServerConfig.DisableVanillaTeamCommands.get()) {
                     event.setCanceled(true);
 
                     if(sender instanceof ServerPlayer serverPlayer){
