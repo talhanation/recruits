@@ -1733,4 +1733,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
+    @Override
+    public boolean removeWhenFarAway(double p_21542_) {
+        return false;
+    }
+
 }
