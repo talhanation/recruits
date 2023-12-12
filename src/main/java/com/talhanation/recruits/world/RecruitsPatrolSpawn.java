@@ -1,6 +1,6 @@
 package com.talhanation.recruits.world;
 
-import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.entities.ai.PatrolLeaderTargetAttackers;
 import com.talhanation.recruits.entities.ai.villager.FollowCaravanOwner;
@@ -10,8 +10,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
-
-import net.minecraft.network.chat.Component;
 
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -43,7 +41,7 @@ public class RecruitsPatrolSpawn {
     public RecruitsPatrolSpawn(ServerLevel level) {
         this.world = level;
         this.timer = getSpawnInterval();
-        this.chance = RecruitsModConfig.RecruitPatrolsSpawnChance.get();
+        this.chance = RecruitsServerConfig.RecruitPatrolsSpawnChance.get();
     }
 
     public void tick() {
@@ -90,7 +88,7 @@ public class RecruitsPatrolSpawn {
 
     private int getSpawnInterval(){
         //1200 == 1 min
-        int minutes = RecruitsModConfig.RecruitPatrolSpawnInterval.get(); //minutes
+        int minutes = RecruitsServerConfig.RecruitPatrolSpawnInterval.get(); //minutes
         return 1200 * minutes;
     }
     private void spawnCaravan(BlockPos upPos) {

@@ -1,6 +1,6 @@
 package com.talhanation.recruits;
 
-import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ai.pillager.PillagerMeleeAttackGoal;
 import com.talhanation.recruits.entities.ai.pillager.PillagerUseShield;
@@ -43,7 +43,7 @@ public class PillagerEvents {
 
         if (entity instanceof Pillager) {
             Pillager pillager = (Pillager) entity;
-            if(RecruitsModConfig.PillagerIncreasedCombatRange.get()) {
+            if(RecruitsServerConfig.PillagerIncreasedCombatRange.get()) {
                 pillager.goalSelector.addGoal(2, new FindTargetGoal(pillager, 24.0F));
                 pillager.goalSelector.addGoal(2, new RangedCrossbowAttackGoal<>(pillager, 1.0D, 24.0F));
             }
@@ -52,12 +52,12 @@ public class PillagerEvents {
         if (entity instanceof AbstractIllager) {
             AbstractIllager illager = (AbstractIllager) entity;
             illager.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(illager, AbstractRecruitEntity.class, true));
-            if (RecruitsModConfig.PillagerAttackMonsters.get()){
+            if (RecruitsServerConfig.PillagerAttackMonsters.get()){
                 illager.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(illager, Zombie.class, true));
                 illager.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(illager, AbstractSkeleton.class, true));
                 illager.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(illager, Spider.class, true));
             }
-            if (RecruitsModConfig.ShouldPillagersRaidNaturally.get()){
+            if (RecruitsServerConfig.ShouldPillagersRaidNaturally.get()){
                 illager.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(illager, Animal.class, true));
             }
         }
@@ -69,25 +69,25 @@ public class PillagerEvents {
         }
 
         if (entity instanceof Zombie){
-            if (RecruitsModConfig.MonstersAttackPillagers.get()) {
+            if (RecruitsServerConfig.MonstersAttackPillagers.get()) {
                 Zombie monster = (Zombie) entity;
                 monster.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(monster, AbstractIllager.class, true));
             }
         }
         if (entity instanceof AbstractSkeleton){
-            if (RecruitsModConfig.MonstersAttackPillagers.get()) {
+            if (RecruitsServerConfig.MonstersAttackPillagers.get()) {
                 AbstractSkeleton monster = (AbstractSkeleton) entity;
                 monster.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(monster, AbstractIllager.class, true));
             }
         }
         if (entity instanceof Spider){
-            if (RecruitsModConfig.MonstersAttackPillagers.get()) {
+            if (RecruitsServerConfig.MonstersAttackPillagers.get()) {
                 Spider monster = (Spider) entity;
                 monster.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(monster, AbstractIllager.class, true));
             }
         }
 
-        if (entity instanceof Vindicator && RecruitsModConfig.VindicatorSpawnItems.get()) {
+        if (entity instanceof Vindicator && RecruitsServerConfig.VindicatorSpawnItems.get()) {
             Vindicator vindicator = (Vindicator) entity;
             vindicator.goalSelector.addGoal(0, new PillagerUseShield(vindicator));
             vindicator.setPersistenceRequired();
@@ -100,7 +100,7 @@ public class PillagerEvents {
             }
         }
 
-        if (entity instanceof Pillager && RecruitsModConfig.PillagerSpawnItems.get()) {
+        if (entity instanceof Pillager && RecruitsServerConfig.PillagerSpawnItems.get()) {
             Pillager pillager = (Pillager) entity;
             pillager.goalSelector.addGoal(0, new PillagerMeleeAttackGoal(pillager, 1.15D, true));
             pillager.goalSelector.addGoal(0, new PillagerUseShield(pillager));
