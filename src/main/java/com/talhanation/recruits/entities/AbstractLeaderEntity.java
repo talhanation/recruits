@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public abstract class AbstractLeaderEntity extends AbstractRecruitEntity implements ICompanion {
+public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity implements ICompanion {
     private static final EntityDataAccessor<Integer> WAYPOINT_INDEX = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> WAIT_TIME_IN_MIN = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> CYCLE = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.BOOLEAN);
@@ -40,8 +40,8 @@ public abstract class AbstractLeaderEntity extends AbstractRecruitEntity impleme
     private int waitForRecruitsTime = 0;
     public int infoCooldown = 0;
     private State state = State.IDLE;
-
-    public AbstractLeaderEntity(EntityType<? extends AbstractRecruitEntity> entityType, Level world) {
+    private String ownerName = "";
+    public AbstractLeaderEntity(EntityType<? extends AbstractLeaderEntity> entityType, Level world) {
         super(entityType, world);
     }
 
@@ -74,6 +74,7 @@ public abstract class AbstractLeaderEntity extends AbstractRecruitEntity impleme
         nbt.putBoolean("returning", this.returning);
         nbt.putBoolean("retreating", this.retreating);
         nbt.putByte("infoMode", this.getInfoMode());
+        nbt.putString("OwnerName", this.ownerName);
 
         ListTag waypointItems = new ListTag();
         for (int i = 0; i < WAYPOINT_ITEMS.size(); ++i) {
@@ -123,6 +124,7 @@ public abstract class AbstractLeaderEntity extends AbstractRecruitEntity impleme
         this.retreating = nbt.getBoolean("retreating");
         this.waitingTime = nbt.getInt("waiting_time");
         this.setInfoMode(nbt.getByte("infoMode"));
+        this.ownerName = nbt.getString("ownerName");
 
         ListTag waypointItems = nbt.getList("WaypointItems", 10);
         for (int i = 0; i < waypointItems.size(); ++i) {
@@ -347,6 +349,7 @@ public abstract class AbstractLeaderEntity extends AbstractRecruitEntity impleme
         this.state = State.fromIndex(state);
 
         if(this.state == State.STARTED){
+            this.setRecruitsToFollow();
             if(setFollow) this.setFollowState(0);//wander freely
         }
         else if (this.state == State.PAUSED){
@@ -372,7 +375,12 @@ public abstract class AbstractLeaderEntity extends AbstractRecruitEntity impleme
             else this.setPatrollingState((byte) 2, false);//PAUSED
         }
     }
-
+    public String getOwnerName() {
+        return ownerName;
+    }
+    public void setOwnerName(String name) {
+        ownerName = name;
+    }
     public byte getInfoMode() {
         return this.entityData.get(INFO_MODE);
     }
@@ -631,7 +639,7 @@ public abstract class AbstractLeaderEntity extends AbstractRecruitEntity impleme
 
     @Override
     public boolean hurt(@NotNull DamageSource dmg, float amt) {
-        if(this.getMaxHealth() * 0.25 > this.getHealth() && state != State.RETREATING){
+        if (this.getMaxHealth() * 0.25 > this.getHealth() && state != State.RETREATING) {
             this.setRecruitsClearTargets();
             this.setRecruitsToFollow();
             this.setRecruitsShields(false);

@@ -41,8 +41,6 @@ public interface ICompanion {
     void openSpecialGUI(Player player);
     String getOwnerName();
     void setOwnerName(String name);
-    Byte getTaskState();
-    void setTaskState(Byte x);
     default void applyRecruitValues(AbstractRecruitEntity recruit){
         //ATTRIBUTES
         this.get().getAttributes().assignValues(recruit.getAttributes());
