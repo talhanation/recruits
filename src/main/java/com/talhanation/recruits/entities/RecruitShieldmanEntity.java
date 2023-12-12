@@ -1,6 +1,6 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.UseShield;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TextComponent;
@@ -65,7 +65,7 @@ public class RecruitShieldmanEntity extends AbstractRecruitEntity{
     @Override
     public void initSpawn() {
         this.setCustomName(new TextComponent("Shieldman"));
-        this.setCost(RecruitsModConfig.ShieldmanCost.get());
+        this.setCost(RecruitsServerConfig.ShieldmanCost.get());
         this.setEquipment();
         this.setDropEquipment();
         this.setRandomSpawnBonus();
@@ -75,7 +75,7 @@ public class RecruitShieldmanEntity extends AbstractRecruitEntity{
     }
 
     public List<String> getHandEquipment(){
-        return RecruitsModConfig.ShieldmanHandEquipment.get();
+        return RecruitsServerConfig.ShieldmanHandEquipment.get();
     }
 
     @Override

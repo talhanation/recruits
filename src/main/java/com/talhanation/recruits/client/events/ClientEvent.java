@@ -6,7 +6,7 @@ import com.talhanation.recruits.client.models.RecruitVillagerModel;
 import com.talhanation.recruits.client.render.human.*;
 import com.talhanation.recruits.client.render.layer.RecruitArmorLayer;
 import com.talhanation.recruits.client.render.villager.*;
-import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelLayerLocation;
@@ -31,7 +31,7 @@ public class ClientEvent {
 
     @SubscribeEvent
     public static void clientSetup(EntityRenderersEvent.RegisterRenderers event){
-        if(RecruitsModConfig.RecruitsLookLikeVillagers.get()){
+        if(RecruitsClientConfig.RecruitsLookLikeVillagers.get()){
             EntityRenderers.register(ModEntityTypes.RECRUIT.get(), RecruitVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.BOWMAN.get(), BowmanVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.NOMAD.get(), NomadVillagerRenderer::new );

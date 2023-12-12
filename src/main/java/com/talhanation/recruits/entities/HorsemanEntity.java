@@ -1,12 +1,9 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.HorsemanAttackAI;
-import com.talhanation.recruits.entities.ai.UseShield;
-import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -100,7 +97,7 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
     @Override
     public void initSpawn() {
         this.setCustomName(new TextComponent("Horseman"));
-        this.setCost(RecruitsModConfig.HorsemanCost.get());
+        this.setCost(RecruitsServerConfig.HorsemanCost.get());
         this.setEquipment();
         this.setDropEquipment();
         this.setRandomSpawnBonus();
@@ -110,14 +107,14 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
     }
 
     public List<String> getHandEquipment(){
-        return RecruitsModConfig.HorsemanHandEquipment.get();
+        return RecruitsServerConfig.HorsemanHandEquipment.get();
     }
 
     @Override
     public void tick() {
         super.tick();
 
-        if (!getHadHorse() && (RecruitsModConfig.RecruitHorseUnitsHorse.get() || isPatrol)){
+        if (!getHadHorse() && (RecruitsServerConfig.RecruitHorseUnitsHorse.get() || isPatrol)){
             boolean hasHorse = this.getVehicle() != null && this.getVehicle() instanceof AbstractHorse;
             if (!hasHorse){
                 Horse horse = new Horse(EntityType.HORSE, this.level);

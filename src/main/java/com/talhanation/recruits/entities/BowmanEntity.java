@@ -1,6 +1,6 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.RecruitMoveTowardsTargetGoal;
 import com.talhanation.recruits.entities.ai.RecruitStrategicFire;
 import com.talhanation.recruits.entities.ai.RecruitRangedBowAttackGoal;
@@ -114,7 +114,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
     @Override
     public void initSpawn() {
         this.setCustomName(new TextComponent("Bowman"));
-        this.setCost(RecruitsModConfig.BowmanCost.get());
+        this.setCost(RecruitsServerConfig.BowmanCost.get());
         this.setEquipment();
         this.setDropEquipment();
         this.setRandomSpawnBonus();
@@ -156,7 +156,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
                                                 //angle   = 0.196F           //force     //accuracy 0 = 100%
             arrow.shoot(d0, d1 + d3 * ((double) angle + 0.02), d2, force, accuracy);
 
-            if(RecruitsModConfig.RangedRecruitsNeedArrowsToShoot.get()){
+            if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get()){
                 this.consumeArrow();
                 arrow.pickup = AbstractArrow.Pickup.ALLOWED;
             }
@@ -197,7 +197,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
             this.playSound(SoundEvents.ARROW_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
             this.level.addFreshEntity(arrow);
 
-            if(RecruitsModConfig.RangedRecruitsNeedArrowsToShoot.get()){
+            if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get()){
                 this.consumeArrow();
                 arrow.pickup = AbstractArrow.Pickup.ALLOWED;
             }
@@ -242,7 +242,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
         if ((itemStack.getItem() instanceof BowItem || itemStack.getItem() instanceof ProjectileWeaponItem || itemStack.getItem() instanceof SwordItem) && this.getMainHandItem().isEmpty()){
             return !hasSameTypeOfItem(itemStack);
         }
-        else if(itemStack.is(ItemTags.ARROWS) && RecruitsModConfig.RangedRecruitsNeedArrowsToShoot.get())
+        else if(itemStack.is(ItemTags.ARROWS) && RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get())
             return true;
 
         else
@@ -255,6 +255,6 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
     }
 
     public List<String> getHandEquipment(){
-        return RecruitsModConfig.BowmanHandEquipment.get();
+        return RecruitsServerConfig.BowmanHandEquipment.get();
     }
 }

@@ -1,7 +1,7 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.compat.IWeapon;
-import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.RecruitMoveTowardsTargetGoal;
 import com.talhanation.recruits.entities.ai.RecruitRangedCrossbowAttackGoal;
 import com.talhanation.recruits.entities.ai.compat.RecruitRangedMusketAttackGoal;
@@ -120,7 +120,7 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
     @Override
     public void initSpawn() {
         this.setCustomName(new TextComponent("Crossbowman"));
-        this.setCost(RecruitsModConfig.CrossbowmanCost.get());
+        this.setCost(RecruitsServerConfig.CrossbowmanCost.get());
         this.setEquipment();
         this.setDropEquipment();
         this.setRandomSpawnBonus();
@@ -156,7 +156,7 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
         else if ((itemStack.getItem() instanceof BowItem || itemStack.getItem() instanceof ProjectileWeaponItem || itemStack.getItem() instanceof SwordItem) && this.getMainHandItem().isEmpty()){
             return !hasSameTypeOfItem(itemStack);
         }
-        else if(itemStack.is(ItemTags.ARROWS) && RecruitsModConfig.RangedRecruitsNeedArrowsToShoot.get())
+        else if(itemStack.is(ItemTags.ARROWS) && RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get())
             return true;
         else
             return super.wantsToPickUp(itemStack);
@@ -172,7 +172,7 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
         return 3D;
     }
     public List<String> getHandEquipment(){
-        return RecruitsModConfig.CrossbowmanHandEquipment.get();
+        return RecruitsServerConfig.CrossbowmanHandEquipment.get();
     }
 
     //Pillager
