@@ -1,6 +1,6 @@
 package com.talhanation.recruits;
 
-import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.IStrategicFire;
 import com.talhanation.recruits.inventory.CommandMenu;
@@ -279,7 +279,7 @@ public class CommandEvents {
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         CompoundTag playerData = event.getEntity().getPersistentData();
         CompoundTag data = playerData.getCompound(Player.PERSISTED_NBT_TAG);
-            if (!data.contains("MaxRecruits")) data.putInt("MaxRecruits", RecruitsModConfig.MaxRecruitsForPlayer.get());
+            if (!data.contains("MaxRecruits")) data.putInt("MaxRecruits", RecruitsServerConfig.MaxRecruitsForPlayer.get());
             if (!data.contains("CommandingGroup")) data.putInt("CommandingGroup", 0);
             if (!data.contains("TotalRecruits")) data.putInt("TotalRecruits", 0);
 
@@ -303,7 +303,7 @@ public class CommandEvents {
     }
 
     public static boolean playerCanRecruit(Player player) {
-        return  (CommandEvents.getSavedRecruitCount(player) < RecruitsModConfig.MaxRecruitsForPlayer.get());
+        return  (CommandEvents.getSavedRecruitCount(player) < RecruitsServerConfig.MaxRecruitsForPlayer.get());
     }
 
     public static void handleRecruiting(Player player, AbstractRecruitEntity recruit){
@@ -312,7 +312,7 @@ public class CommandEvents {
         Inventory playerInv = player.getInventory();
         int playerEmeralds = 0;
 
-        String str = RecruitsModConfig.RecruitCurrency.get();
+        String str = RecruitsServerConfig.RecruitCurrency.get();
         Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
 
         ItemStack currencyItemStack = holder.map(itemHolder -> itemHolder.value().getDefaultInstance()).orElseGet(Items.EMERALD::getDefaultInstance);

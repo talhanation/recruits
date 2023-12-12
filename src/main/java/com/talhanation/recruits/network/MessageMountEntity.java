@@ -1,14 +1,13 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
-import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.List;
 import java.util.Objects;
@@ -36,10 +35,10 @@ public class MessageMountEntity implements Message<MessageMountEntity> {
     public void executeServerSide(NetworkEvent.Context context){
         List<Entity> entityList = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(Entity.class, context.getSender().getBoundingBox().inflate(100));
         for(Entity mount : entityList){
+
             String mountEncoded= mount.getEncodeId();
             boolean containsConfig = RecruitsModConfig.MountWhiteList.get().contains(mountEncoded);
             if(mount.getUUID().equals(target) && containsConfig){
-
                 List<AbstractRecruitEntity> recruitList = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
                 for (AbstractRecruitEntity recruits : recruitList) {
                     CommandEvents.onMountButton(uuid, recruits, target, group);

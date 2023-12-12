@@ -2,7 +2,8 @@ package com.talhanation.recruits.entities;
 //ezgi&talha kantar
 
 import com.talhanation.recruits.*;
-import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.config.RecruitsClientConfig;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.*;
 import com.talhanation.recruits.entities.ai.navigation.RecruitPathNavigation;
 import com.talhanation.recruits.init.ModItems;
@@ -185,7 +186,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(6, new RecruitUpkeepEntityGoal(this));
         this.goalSelector.addGoal(3, new RecruitMountEntity(this));
         this.goalSelector.addGoal(4, new RecruitMoveToPosGoal(this, 1.05D));
-        this.goalSelector.addGoal(2, new RecruitFollowOwnerGoal(this, 1.05D, RecruitsModConfig.RecruitFollowStartDistance.get()));
+        this.goalSelector.addGoal(2, new RecruitFollowOwnerGoal(this, 1.05D, RecruitsServerConfig.RecruitFollowStartDistance.get()));
         this.goalSelector.addGoal(2, new RecruitMeleeAttackGoal(this, 1.05D, false, this.getMeleeStartRange()));
         this.goalSelector.addGoal(7, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
         //this.goalSelector.addGoal(7, new RecruitDodgeGoal(this));
@@ -533,11 +534,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public SoundEvent getHurtSound(@NotNull DamageSource ds) {
         if (this.isBlocking())
             return SoundEvents.SHIELD_BLOCK;
-        return RecruitsModConfig.RecruitsLookLikeVillagers.get() ? SoundEvents.VILLAGER_HURT : SoundEvents.GENERIC_HURT;
+        return RecruitsClientConfig.RecruitsLookLikeVillagers.get() ? SoundEvents.VILLAGER_HURT : SoundEvents.GENERIC_HURT;
     }
 
     protected SoundEvent getDeathSound() {
-        return RecruitsModConfig.RecruitsLookLikeVillagers.get() ? SoundEvents.VILLAGER_DEATH : SoundEvents.GENERIC_DEATH;
+        return RecruitsClientConfig.RecruitsLookLikeVillagers.get() ? SoundEvents.VILLAGER_DEATH : SoundEvents.GENERIC_DEATH;
     }
 
     protected float getSoundVolume() {
@@ -658,8 +659,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         int currentLevel = this.getXpLevel();
         int newLevel = currentLevel + level;
 
-        if(newLevel > RecruitsModConfig.RecruitsMaxXpLevel.get()){
-            newLevel = RecruitsModConfig.RecruitsMaxXpLevel.get();
+        if(newLevel > RecruitsServerConfig.RecruitsMaxXpLevel.get()){
+            newLevel = RecruitsServerConfig.RecruitsMaxXpLevel.get();
         }
         else{
             this.makeLevelUpSound();
@@ -818,7 +819,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void setEquipment(){
         this.setHandEquipment(getHandEquipment());
         //Armor
-        List<String> armor = RecruitsModConfig.StartArmorList.get();
+        List<String> armor = RecruitsServerConfig.StartArmorList.get();
         List<ItemStack> itemStackArmor = new ArrayList<>(Arrays.asList(new ItemStack(Items.LEATHER_HELMET), new ItemStack(Items.LEATHER_CHESTPLATE), new ItemStack(Items.LEATHER_LEGGINGS), new ItemStack(Items.LEATHER_BOOTS)));
         List<EquipmentSlot> equipmentslot = new ArrayList<>(Arrays.asList(EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET));
 
@@ -1221,7 +1222,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void checkLevel(){
         int currentXp = this.getXp();
-        if (currentXp >= RecruitsModConfig.RecruitsMaxXpForLevelUp.get()){
+        if (currentXp >= RecruitsServerConfig.RecruitsMaxXpForLevelUp.get()){
             this.addXpLevel(1);
             this.setXp(0);
             this.heal(10F);
@@ -1251,14 +1252,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void makeLevelUpSound() {
-        if(RecruitsModConfig.RecruitsLookLikeVillagers.get())
+        if(RecruitsClientConfig.RecruitsLookLikeVillagers.get())
             this.playSound(SoundEvents.VILLAGER_YES, 15.0F, 0.8F + 0.4F * this.random.nextFloat());
 
         this.playSound(SoundEvents.PLAYER_LEVELUP, 15.0F, 0.8F + 0.4F * this.random.nextFloat());
     }
 
     public void makeHireSound() {
-        if(RecruitsModConfig.RecruitsLookLikeVillagers.get())
+        if(RecruitsClientConfig.RecruitsLookLikeVillagers.get())
             this.playSound(SoundEvents.VILLAGER_AMBIENT, 15.0F, 0.8F + 0.4F * this.random.nextFloat());
     }
 
@@ -1536,7 +1537,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 return RecruitEvents.canHarmTeam(this, living);
             return false;
         }
-        return !notAllowed && !RecruitsModConfig.TargetBlackList.get().contains(living.getEncodeId());
+        return !notAllowed && !RecruitsServerConfig.TargetBlackList.get().contains(living.getEncodeId());
     }
 
     public boolean isValidTargetPlayer(Player player){

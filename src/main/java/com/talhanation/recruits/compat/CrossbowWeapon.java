@@ -1,6 +1,6 @@
 package com.talhanation.recruits.compat;
 
-import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -129,7 +129,7 @@ public class CrossbowWeapon implements IWeapon {
         shooter.playSound(this.getShootSound(), 1.0F, 1.0F / (shooter.getRandom().nextFloat() * 0.4F + 0.8F));
         shooter.getCommandSenderWorld().addFreshEntity(projectileEntity);
 
-        if(RecruitsModConfig.RangedRecruitsNeedArrowsToShoot.get()){
+        if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get()){
             shooter.consumeArrow();
             projectileEntity.pickup = AbstractArrow.Pickup.ALLOWED;
         }

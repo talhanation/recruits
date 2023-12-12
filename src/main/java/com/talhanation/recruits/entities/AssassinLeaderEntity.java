@@ -1,7 +1,7 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.inventory.AssassinLeaderMenu;
 import com.talhanation.recruits.network.MessageAssassinGui;
 import net.minecraft.nbt.CompoundTag;
@@ -178,7 +178,7 @@ public class AssassinLeaderEntity extends AbstractOrderAbleEntity {
     }
 
     public int getMaxAssassinCount(){
-        return RecruitsModConfig.MaxAssassinCount.get();
+        return RecruitsServerConfig.MaxAssassinCount.get();
     }
 }
 

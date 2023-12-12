@@ -1,8 +1,7 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.config.RecruitsModConfig;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.NomadAttackAI;
-import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -96,7 +95,7 @@ public class NomadEntity extends BowmanEntity {
     @Override
     public void initSpawn() {
         this.setCustomName(Component.literal("Nomad"));
-        this.setCost(RecruitsModConfig.NomadCost.get());
+        this.setCost(RecruitsServerConfig.NomadCost.get());
         this.setEquipment();
         this.setDropEquipment();
         this.setRandomSpawnBonus();
@@ -111,13 +110,13 @@ public class NomadEntity extends BowmanEntity {
 
 
     public List<String> getHandEquipment(){
-        return RecruitsModConfig.NomadHandEquipment.get();
+        return RecruitsServerConfig.NomadHandEquipment.get();
     }
 
     @Override
     public void tick() {
         super.tick();
-        if (!getHadHorse() && (RecruitsModConfig.RecruitHorseUnitsHorse.get() || isPatrol)){
+        if (!getHadHorse() && (RecruitsServerConfig.RecruitHorseUnitsHorse.get() || isPatrol)){
             boolean hasHorse = this.getVehicle() != null && this.getVehicle() instanceof AbstractHorse;
             if (!hasHorse){
                 Horse horse = new Horse(EntityType.HORSE, this.getCommandSenderWorld());
