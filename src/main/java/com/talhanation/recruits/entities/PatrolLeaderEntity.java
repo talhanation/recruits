@@ -2,6 +2,7 @@ package com.talhanation.recruits.entities;
 
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.entities.ai.PatrolLeaderAttackAI;
 import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.inventory.PatrolLeaderContainer;
 import com.talhanation.recruits.network.MessageOpenSpecialScreen;
@@ -53,7 +54,8 @@ public class PatrolLeaderEntity extends AbstractLeaderEntity {
 
     @Override
     protected void registerGoals() {
-       super.registerGoals();
+        super.registerGoals();
+        this.goalSelector.addGoal(0, new PatrolLeaderAttackAI(this));
         this.goalSelector.addGoal(2, new UseShield(this));
     }
 
@@ -116,28 +118,6 @@ public class PatrolLeaderEntity extends AbstractLeaderEntity {
     @Override
     public AbstractRecruitEntity get() {
         return this;
-    }
-
-    public void openSpecialGUI(Player player) {
-        if (player instanceof ServerPlayer) {
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
-                @Override
-                public @NotNull Component getDisplayName() {
-                    return PatrolLeaderEntity.this.getName();
-                }
-
-                @Override
-                public AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
-                    return new PatrolLeaderContainer(i, playerEntity,  PatrolLeaderEntity.this);
-                }
-            }, packetBuffer -> {packetBuffer.writeUUID(this.getUUID());});
-        } else {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenSpecialScreen(player, this.getUUID()));
-        }
-
-        if (player instanceof ServerPlayer) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateLeaderScreen(this.WAYPOINTS, this.WAYPOINT_ITEMS));
-        }
     }
 }
 
