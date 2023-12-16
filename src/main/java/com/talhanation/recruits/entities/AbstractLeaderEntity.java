@@ -1,24 +1,35 @@
 package com.talhanation.recruits.entities;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.ai.PatrolLeaderAttackAI;
+import com.talhanation.recruits.inventory.PatrolLeaderContainer;
+import com.talhanation.recruits.network.MessageOpenSpecialScreen;
+import com.talhanation.recruits.network.MessageToClientUpdateLeaderScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.monster.Pillager;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.network.NetworkHooks;
+import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -30,10 +41,10 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     private static final EntityDataAccessor<Boolean> CYCLE = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Byte> PATROLLING_STATE = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.BYTE);
     private static final EntityDataAccessor<Byte> INFO_MODE = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.BYTE);
-    private boolean returning;
-    private boolean retreating;
+    public boolean returning;
+    public boolean retreating;
     public int commandCooldown = 0;
-    private BlockPos currentWaypoint;
+    protected BlockPos currentWaypoint;
     private int waitingTime = 0;
     private int waitingForEnemiesTime = 0;
 
@@ -56,12 +67,6 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         this.entityData.define(CYCLE, false);
         this.entityData.define(PATROLLING_STATE, (byte) 3);
         this.entityData.define(INFO_MODE, (byte) 0);
-    }
-
-    @Override
-    protected void registerGoals() {
-       super.registerGoals();
-        this.goalSelector.addGoal(0, new PatrolLeaderAttackAI(this));
     }
 
     public void addAdditionalSaveData(CompoundTag nbt) {
@@ -646,6 +651,28 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             this.state = State.RETREATING;
         }
         return super.hurt(dmg, amt);
+    }
+
+    public void openSpecialGUI(Player player) {
+        if (player instanceof ServerPlayer) {
+            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+                @Override
+                public @NotNull Component getDisplayName() {
+                    return AbstractLeaderEntity.this.getName();
+                }
+
+                @Override
+                public AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
+                    return new PatrolLeaderContainer(i, playerEntity,  AbstractLeaderEntity.this);
+                }
+            }, packetBuffer -> {packetBuffer.writeUUID(this.getUUID());});
+        } else {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenSpecialScreen(player, this.getUUID()));
+        }
+
+        if (player instanceof ServerPlayer) {
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateLeaderScreen(this.WAYPOINTS, this.WAYPOINT_ITEMS));
+        }
     }
 }
 

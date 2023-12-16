@@ -124,7 +124,6 @@ dependencies {
 
     //implementation fg.deobf('curse.maven:musketmod-354562:4030979') //only for 1.19.2 and 1.18.2
     //implementation fg.deobf('curse.maven:mca-535291:4586539')
-
 }
 
 // Example for how to get properties into the manifest for reading at runtime.
