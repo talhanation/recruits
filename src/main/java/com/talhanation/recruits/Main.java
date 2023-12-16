@@ -69,6 +69,7 @@ public class Main {
     public static MenuType<TeamManagePlayerContainer> TEAM_ADD_PLAYER_TYPE;
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
     public static boolean isMusketModLoaded;
+    public static boolean isSmallshipsLoaded;
 
     public Main() {
         CommonRegistry.registerConfig(ModConfig.Type.CLIENT, RecruitsClientConfig.class);
@@ -167,6 +168,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 58, MessagePatrolLeaderSetInfoMode.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 59, MessageAssignGroupToCompanion.class);
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
+        isSmallshipsLoaded = ModList.get().isLoaded("smallships");//small ships
 
     }
 
