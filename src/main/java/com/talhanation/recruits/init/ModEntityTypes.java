@@ -68,6 +68,14 @@ public class ModEntityTypes {
                     .canSpawnFarFromPlayer()
                     .build(new ResourceLocation(Main.MOD_ID, "patrol_leader").toString()));
 
+    public static final RegistryObject<EntityType<CaptainEntity>> CAPTAIN = ENTITY_TYPES.register("captain",
+            () -> EntityType.Builder.of(CaptainEntity::new, MobCategory.CREATURE)
+                    .sized(0.6F, 1.95F)
+                    .clientTrackingRange(10)
+                    .canSpawnFarFromPlayer()
+                    .build(new ResourceLocation(Main.MOD_ID, "captain").toString()));
+
+
     /*
     public static final RegistryObject<EntityType<AssassinEntity>> ASSASSIN = ENTITY_TYPES.register("assassin",
             () -> EntityType.Builder.of(AssassinEntity::new, MobCategory.CREATURE)
