@@ -24,6 +24,6 @@ public class AttributeEvent {
         event.put(ModEntityTypes.HORSEMAN.get(), HorsemanEntity.setAttributes().build());
         event.put(ModEntityTypes.MESSENGER.get(), MessengerEntity.setAttributes().build());
         event.put(ModEntityTypes.PATROL_LEADER.get(), PatrolLeaderEntity.setAttributes().build());
-
+        event.put(ModEntityTypes.CAPTAIN.get(), CaptainEntity.setAttributes().build());
     }
 }

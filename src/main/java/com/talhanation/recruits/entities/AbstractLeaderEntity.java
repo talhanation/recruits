@@ -1,7 +1,6 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.entities.ai.PatrolLeaderAttackAI;
 import com.talhanation.recruits.inventory.PatrolLeaderContainer;
 import com.talhanation.recruits.network.MessageOpenSpecialScreen;
 import com.talhanation.recruits.network.MessageToClientUpdateLeaderScreen;
@@ -24,14 +23,14 @@ import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
-
 
 import java.util.*;
 
@@ -618,6 +617,15 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                 recruit.setFollowState(0);//Freely
             }
 
+        }
+    }
+
+    public void setRecruitStrategicFirePos(boolean should, BlockPos pos) {
+        for (AbstractRecruitEntity recruit : currentRecruitsInCommand){
+                if(recruit instanceof IStrategicFire strategicFire){
+                    strategicFire.setShouldStrategicFire(should);
+                    strategicFire.setStrategicFirePos(pos);
+                }
         }
     }
 
