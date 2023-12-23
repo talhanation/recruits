@@ -47,9 +47,11 @@ public interface IBoatController {
                         else
                             updateSmallShipsBoatControl(getCaptain(), boat, posX, posZ, ownerFar);
                     }
-                } else
+                }
+                else
                     updateSmallShipsBoatControl(getCaptain(), boat, posX, posZ, false);
-            } else
+            }
+            else
                 updateVanillaBoatControl(boat, posX, posZ, speedFactor, turnFactor);
         }
     }
@@ -61,10 +63,10 @@ public interface IBoatController {
 
         double phi = horizontalAngleBetweenVectors(forward, toTarget);
         //Main.LOGGER.info("phi: " + phi);
-        double reff = 63.5F;
-        boolean inputLeft =  (phi < reff);
-        boolean inputRight = (phi > reff);
-        boolean inputUp = Math.abs(phi - reff) <= reff * 0.15F;
+        double ref = 63.5F;
+        boolean inputLeft =  (phi < ref);
+        boolean inputRight = (phi > ref);
+        boolean inputUp = Math.abs(phi - ref) <= ref * 0.15F;
 
         float f = 0.0F;
 
@@ -131,7 +133,6 @@ public interface IBoatController {
             Class<?> shipClass = Class.forName("com.talhanation.smallships.world.entity.ship.Ship");
             if(shipClass.isInstance(boat)) {
                 Object ship = shipClass.cast(boat);
-
 
                 Method shipClassSetRotSpeed = shipClass.getMethod("setRotSpeed", float.class);
                 Method shipClassGetSpeed = shipClass.getMethod("getSpeed");

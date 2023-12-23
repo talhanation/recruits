@@ -42,6 +42,7 @@ public class ClientEvent {
             //COMPANIONS
             EntityRenderers.register(ModEntityTypes.MESSENGER.get(), MessengerVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.PATROL_LEADER.get(), ShieldmanVillagerRenderer::new );//TODO: add own renderer
+            EntityRenderers.register(ModEntityTypes.CAPTAIN.get(), MessengerVillagerRenderer::new );//TODO: add own renderer
 
         }
         else{
@@ -55,6 +56,7 @@ public class ClientEvent {
             //COMPANIONS
             EntityRenderers.register(ModEntityTypes.MESSENGER.get(), MessengerHumanRenderer::new );
             EntityRenderers.register(ModEntityTypes.PATROL_LEADER.get(), ShieldmanHumanRenderer::new );//TODO: add own renderer
+            EntityRenderers.register(ModEntityTypes.CAPTAIN.get(), MessengerHumanRenderer::new );//TODO: add own renderer
         }
     }
 

@@ -66,9 +66,9 @@ public class RecruitEvents {
 
 
     static HashMap<Integer, EntityType<? extends  AbstractRecruitEntity>> entitiesByProfession = new HashMap<>(){{
-        put(0, ModEntityTypes.MESSENGER.get());
-        //put(1, ModEntityTypes.CAPTIAN.get());
-        put(2, ModEntityTypes.PATROL_LEADER.get());
+            put(0, ModEntityTypes.MESSENGER.get());
+            put(2, ModEntityTypes.PATROL_LEADER.get());
+            put(3, ModEntityTypes.CAPTAIN.get());
         }
     };
     public static void promoteRecruit(AbstractRecruitEntity recruit, int profession, String name, ServerPlayer player) {

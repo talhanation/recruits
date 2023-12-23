@@ -41,83 +41,92 @@ public class CaptainAttackAI extends Goal {
         this.captain.setTarget(null);
         this.captain.setShouldBlock(false);
         this.captain.setRecruitsShields(false);
+        this.captain.setRecruitStrategicFirePos(false, null);
     }
 
     public boolean canContinueToUse() {
-        return canUse();
+        return captain.commandCooldown != 0;
     }
 
     //TODO:
     private void attackCommandsToRecruits(LivingEntity target) {
         if(!this.captain.getCommandSenderWorld().isClientSide()){
-            targets = this.captain.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, this.captain.getBoundingBox().inflate(70D)).stream()
+            targets = this.captain.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, this.captain.getBoundingBox().inflate(150D)).stream()
                     .filter(living -> this.captain.canAttack(living) && living.isAlive())
                     .toList();
 
-            int enemySize = targets.size();
-            int partySize = this.getPartySize();
-            double x = partySize / enemySize;
+            if(!targets.isEmpty()){
+                int enemySize = targets.size();
+                int partySize = this.getPartySize();
+                double x = partySize / enemySize;
 
-            if(x >= 1.3){
-                this.mode = AttackMode.CHARGE;
-            }
-            else if(x >= 1){
-                int rand = this.captain.getRandom().nextInt(3);
-                this.mode = AttackMode.fromIndex(2 + rand); //DEFAULTS
-            }
-            else {
-                this.mode = AttackMode.DEFENSIVE;
-            }
-
-            Vec3 toTarget = target.position().subtract(this.captain.position());
-
-            this.captain.currentRecruitsInCommand = captain.getRecruitsInCommand();
-
-            for(int i = 0; i < targets.size(); i++){
-                if(this.captain.currentRecruitsInCommand.size() > i){
-                    AbstractRecruitEntity recruit = this.captain.currentRecruitsInCommand.get(i);
-                    recruit.setTarget(targets.get(i));
+                if(x >= 1.3){
+                    this.mode = AttackMode.CHARGE;
                 }
-            }
-
-            captain.commandCooldown = 350;
-
-            //LAND
-            if(!this.captain.isPassenger()) {
-
-                switch (mode) {
-                    case DEFENSIVE -> {
-                        //RANGED GO BEHIND LEADER AND HOLD POS
-                        Vec3 moveVecRanged = toTarget.yRot(180).normalize();
-                        Vec3 moveRanged = this.captain.position().add(moveVecRanged.scale(7.5D));
-                        BlockPos movePosRanged = this.captain.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(moveRanged.x, moveRanged.y, moveRanged.z));
-
-                        this.captain.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.BOWMAN.get());
-                        this.captain.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
-                        this.captain.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.NOMAD.get());
-                        this.captain.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.HORSEMAN.get());
-
-                        // INFANTRY HOLD POS AND SHIELDS UP
-                        this.captain.setFollowState(2);//HOLD POS
-                        this.captain.setTarget(null);
-                        this.captain.setShouldBlock(true);
-                        this.captain.setRecruitsShields(true);
-                        this.captain.setTypedRecruitsToHoldPos(ModEntityTypes.RECRUIT.get());
-                        this.captain.setTypedRecruitsToHoldPos(ModEntityTypes.RECRUIT_SHIELDMAN.get());
-                    }
-
-                    case CHARGE -> {
-                        //All freely
-                        this.captain.setFollowState(2);//HOLD POS
-                        this.captain.setRecruitsShields(false);
-                        this.captain.setRecruitsWanderFreely();
-                    }
+                else {
+                    this.mode = AttackMode.DEFENSIVE;
                 }
 
-            }
-            //WATER
-            else if(this.captain.getVehicle() != null && this.captain.getVehicle().getEncodeId().contains("smallships")){
+                Vec3 toTarget = target.position().subtract(this.captain.position());
 
+                this.captain.currentRecruitsInCommand = captain.getRecruitsInCommand();
+
+                if(this.captain.isPassenger() && this.captain.getVehicle() != null && this.captain.getVehicle().getEncodeId().contains("smallships")){
+                    commandToStrategicFire(toTarget);
+                    captain.commandCooldown = 100;
+                }
+                else{
+                    for(int i = 0; i < targets.size(); i++){
+                        if(this.captain.currentRecruitsInCommand.size() > i){
+                            AbstractRecruitEntity recruit = this.captain.currentRecruitsInCommand.get(i);
+                            recruit.setTarget(targets.get(i));
+                        }
+                    }
+                    commandLandAttack(toTarget);
+                    captain.commandCooldown = 350;
+                }
+            }
+        }
+    }
+
+    private void commandToStrategicFire(Vec3 toTarget) {
+        Vec3 targetMove = this.targets.get(0).getDeltaMovement();
+
+        Vec3 vecPos = this.targets.get(0).getPosition(1).add(targetMove.scale(captain.getRandom().nextDouble(8)));
+        BlockPos pos = this.captain.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(vecPos.x, vecPos.y, vecPos.z));
+
+        this.captain.setRecruitsClearTargets();
+        this.captain.setRecruitStrategicFirePos(true, pos);
+    }
+
+    private void commandLandAttack(Vec3 toTarget) {
+        switch (mode) {
+            case DEFENSIVE -> {
+                //RANGED GO BEHIND LEADER AND HOLD POS
+                Vec3 moveVecRanged = toTarget.yRot(180).normalize();
+                Vec3 moveRanged = this.captain.position().add(moveVecRanged.scale(7.5D));
+                BlockPos movePosRanged = this.captain.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(moveRanged.x, moveRanged.y, moveRanged.z));
+
+                this.captain.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.BOWMAN.get());
+                this.captain.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
+                this.captain.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.NOMAD.get());
+                this.captain.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.HORSEMAN.get());
+
+                // INFANTRY HOLD POS AND SHIELDS UP
+                this.captain.setFollowState(2);//HOLD POS
+                this.captain.setTarget(null);
+                this.captain.setShouldBlock(true);
+                this.captain.setRecruitsShields(true);
+                this.captain.setTypedRecruitsToHoldPos(ModEntityTypes.RECRUIT.get());
+                this.captain.setTypedRecruitsToHoldPos(ModEntityTypes.RECRUIT_SHIELDMAN.get());
+            }
+
+            case CHARGE -> {
+                //All freely
+                this.captain.setFollowState(2);//HOLD POS
+                this.captain.setShouldBlock(false);
+                this.captain.setRecruitsShields(false);
+                this.captain.setRecruitsWanderFreely();
             }
         }
     }
