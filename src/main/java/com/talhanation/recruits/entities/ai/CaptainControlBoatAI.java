@@ -34,7 +34,7 @@ public class CaptainControlBoatAI extends Goal {
 
     @Override
     public boolean canUse() {
-        return  this.captain.getVehicle() instanceof Boat boat && boat.getPassengers().get(0).equals(this.captain);
+        return this.captain.getVehicle() instanceof Boat boat && boat.getPassengers().get(0).equals(this.captain);
     }
 
     public boolean canContinueToUse() {
@@ -73,6 +73,8 @@ public class CaptainControlBoatAI extends Goal {
             switch (state) {
 
                 case IDLE -> {
+                    captain.setSailPos(Optional.empty());
+                    captain.setSmallShipsSailState((Boat) captain.getVehicle(), 0);
 
                     if (captain.getSailPos() != null) {
                         this.state = CREATING_PATH;
@@ -99,12 +101,7 @@ public class CaptainControlBoatAI extends Goal {
                         state = IDLE;
                 }
                 case MOVING_PATH -> {
-                    int waterDepth = getWaterDepth(captain.getOnPos());
-                    if(!captain.getVehicle().horizontalCollision && waterDepth >= 7 && path.getEndNode() != null) {
-                        this.node = path.getEndNode();
-                    }
-
-                    double distance = this.captain.distanceToSqr(node.x, node.y, node.z);
+                    double distance = this.captain.distanceToSqr(node.x, captain.getY(), node.z);
                     if(DEBUG) {
                         Main.LOGGER.info("################################");
                         Main.LOGGER.info("State: " + this.state);
@@ -142,34 +139,17 @@ public class CaptainControlBoatAI extends Goal {
                     }
 
                     if(distance >= 5F){
-                        captain.updateBoatControl(node.x, node.z, 1.0F, 1.1F, node);
+                        captain.updateBoatControl(node.x, node.z, 1.0F, 1.1F, path);
                     }
 
                     if(captain.distanceToSqr(sailPos.getX(), captain.getY(), sailPos.getZ()) < 25F){
                         node = null;
                         path = null;
-                        state = DONE;
+                        state = IDLE;
                     }
                 }
-
-                case DONE -> {
-                    captain.setSailPos(Optional.empty());
-                    state = IDLE;
-                }
             }
         }
-    }
-
-    private int getWaterDepth(BlockPos pos){
-        int depth = 0;
-        for(int i = 0; i < 10; i++){
-            BlockState state = captain.level.getBlockState(pos.below(i));
-            if(state.is(Blocks.WATER)){
-                depth++;
-            }
-            else break;
-        }
-        return depth;
     }
 
     private boolean isNeighborsWater(Node node){
@@ -188,6 +168,7 @@ public class CaptainControlBoatAI extends Goal {
         IDLE,
         CREATING_PATH,
         MOVING_PATH,
+        
         DONE,
     }
     private boolean sailPosChanged(){

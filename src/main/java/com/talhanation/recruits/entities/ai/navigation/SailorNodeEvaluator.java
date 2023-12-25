@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai.navigation;
 
+import com.talhanation.recruits.entities.IBoatController;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
@@ -7,10 +8,12 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.PathNavigationRegion;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Target;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -48,11 +51,16 @@ public class SailorNodeEvaluator extends WalkNodeEvaluator {
 
 
     public @NotNull Node getStart() {
-        return this.getNode(Mth.floor(this.mob.getVehicle().getBoundingBox().minX), Mth.floor(this.mob.getVehicle().getBoundingBox().minY + 0.5D), Mth.floor(this.mob.getVehicle().getBoundingBox().minZ));
+        boolean isWaterDeep = IBoatController.getWaterDepth(this.mob.getOnPos(), this.mob) > 3;
+        AABB boundingBox = this.mob.getVehicle().getBoundingBox();
+        double nodeX = isWaterDeep ? boundingBox.maxX : boundingBox.minX;
+        double nodeY = isWaterDeep ? boundingBox.maxY : boundingBox.minY;
+        double nodeZ = isWaterDeep ? boundingBox.maxZ : boundingBox.minZ;
+        return this.getNode(Mth.floor(nodeX), Mth.floor(nodeY + 0.5D), Mth.floor(nodeZ));
     }
 
     public @NotNull Target getGoal(double p_164662_, double p_164663_, double p_164664_) {
-        return new Target(this.getNode(Mth.floor(p_164662_ + 1.5), Mth.floor(p_164663_ + + 1.5), Mth.floor(p_164664_ + 1.5)));
+        return new Target(this.getNode(Mth.floor(p_164662_ + 1.5), Mth.floor(p_164663_ + 1.5), Mth.floor(p_164664_ + 1.5)));
     }
 
     public int getNeighbors(Node @NotNull [] nodes, Node nodeIn) {
