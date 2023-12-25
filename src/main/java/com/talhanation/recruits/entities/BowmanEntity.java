@@ -225,7 +225,8 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
     }
 
     public void setStrategicFirePos(BlockPos pos) {
-        this.entityData.set(STRATEGIC_FIRE_POS, Optional.of(pos));
+        if(pos != null) this.entityData.set(STRATEGIC_FIRE_POS, Optional.of(pos));
+        else this.entityData.set(STRATEGIC_FIRE_POS, Optional.empty());
     }
     public BlockPos StrategicFirePos(){
         return this.entityData.get(STRATEGIC_FIRE_POS).orElse(null);
