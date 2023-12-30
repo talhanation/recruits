@@ -26,7 +26,7 @@ public abstract class WalkNodeEvaluatorMixin extends NodeEvaluator {
             horse.setPathfindingMalus(BlockPathTypes.DAMAGE_CACTUS, 32.0F);
             horse.setPathfindingMalus(BlockPathTypes.DANGER_POWDER_SNOW, -1.0F);
             horse.setPathfindingMalus(BlockPathTypes.DOOR_WOOD_CLOSED, 0.0F);
-            horse.setPathfindingMalus(BlockPathTypes.FENCE, 32.0F);
+            horse.setPathfindingMalus(BlockPathTypes.FENCE, -1.0F);
             horse.setPathfindingMalus(BlockPathTypes.LAVA, -1.0F);
         }
     }
