@@ -8,7 +8,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
 
@@ -62,7 +61,7 @@ public interface IBoatController {
         Vec3 toTarget = boat.position().subtract(target).normalize();
 
         double phi = horizontalAngleBetweenVectors(forward, toTarget);
-        Main.LOGGER.info("phi: " + phi);
+        //Main.LOGGER.info("phi: " + phi);
         double ref = 63.5F;
         boolean inputLeft =  (phi < ref);
         boolean inputRight = (phi > ref);
@@ -135,7 +134,7 @@ public interface IBoatController {
 
                 this.calculateSpeed(boat, boatSpeed, acceleration, setPoint);
 
-                this.rotateSmallShip(boat, inputLeft, inputRight);
+                rotateSmallShip(boat, inputLeft, inputRight);
 
                 //SET
                 boat.setDeltaMovement(calculateMotionX(boatSpeed, boat.getYRot()), 0.0F, calculateMotionZ(boatSpeed, boat.getYRot()));
@@ -148,7 +147,7 @@ public interface IBoatController {
         }
     }
 
-    default void rotateSmallShip(Boat boat, boolean inputLeft, boolean inputRight){
+    static void rotateSmallShip(Boat boat, boolean inputLeft, boolean inputRight){
         float maxRotSp = 2.0F;
         float boatRotSpeed = 0;
         float rotAcceleration = 0.35F;
@@ -227,9 +226,56 @@ public interface IBoatController {
         }
     }
 
-    default float getVelocityResistance(){
+    static float getVelocityResistance(){
         return 0.007F;
     }
+/*
+    static void shootCannonsSmallShip(Boat boat, double pos){
+        float maxRotSp = 2.0F;
+        float boatRotSpeed = 0;
+        float rotAcceleration = 0.35F;
+        try{
+            Class<?> shipClass = Class.forName("com.talhanation.smallships.world.entity.ship.Ship");
+            if(shipClass.isInstance(boat)) {
+                Object ship = shipClass.cast(boat);
+
+                Method shipClassSetRotSpeed = shipClass.getMethod("setRotSpeed", float.class);
+                Method shipClassGetRotSpeed = shipClass.getMethod("getRotSpeed");
+                Method shipClassUpdateControls = shipClass.getMethod("updateControls", boolean.class, boolean.class, boolean.class, boolean.class, Player.class);
+
+                boatRotSpeed = (float) shipClassGetRotSpeed.invoke(ship);
+
+                shipClassUpdateControls.invoke(ship,false, false, inputLeft, inputRight, null);
+
+                //CALCULATE ROTATION SPEED//
+                float rotationSpeed = subtractToZero(boatRotSpeed, getVelocityResistance() * 2.5F);
+
+                if (inputRight) {
+                    if (rotationSpeed < maxRotSp) {
+                        rotationSpeed = Math.min(rotationSpeed + rotAcceleration * 1 / 8, maxRotSp);
+                    }
+                }
+
+                if (inputLeft) {
+                    if (rotationSpeed > -maxRotSp) {
+                        rotationSpeed = Math.max(rotationSpeed - rotAcceleration * 1 / 8, -maxRotSp);
+                    }
+                }
+
+                //ship.setRotSpeed(rotationSpeed);
+
+                boat.deltaRotation = rotationSpeed;
+                boat.setYRot(boat.getYRot() + boat.deltaRotation);
+
+                shipClassSetRotSpeed.invoke(ship, rotationSpeed);
+
+            }
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            Main.LOGGER.info("shipClass was not found");
+        }
+    }
+
+ */
 
     default void updateVanillaBoatControl(Boat boat, double posX, double posZ, double speedFactor, double turnFactor){
         Vec3 forward = boat.getForward().yRot(-90).normalize();
@@ -317,7 +363,7 @@ public interface IBoatController {
      * @param sub the amount to subtract
      * @return the resulting number
      */
-    private float subtractToZero(float num, float sub) {
+    static float subtractToZero(float num, float sub) {
         float erg;
         if (num < 0F) {
             erg = num + sub;
@@ -334,7 +380,7 @@ public interface IBoatController {
         return erg;
     }
 
-    private double horizontalAngleBetweenVectors(Vec3 vector1, Vec3 vector2) {
+    static double horizontalAngleBetweenVectors(Vec3 vector1, Vec3 vector2) {
         double dotProduct = vector1.x * vector2.x + vector1.z * vector2.z;
         double magnitude1 = Math.sqrt(vector1.x * vector1.x + vector1.z * vector1.z);
         double magnitude2 = Math.sqrt(vector2.x * vector2.x + vector2.z * vector2.z);
