@@ -38,7 +38,6 @@ mixin{
 
 version = '1.10.11'
 
-
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.20.1'
 
