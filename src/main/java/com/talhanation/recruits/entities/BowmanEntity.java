@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.IStrategicFire;
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.RecruitMoveTowardsTargetGoal;
 import com.talhanation.recruits.entities.ai.RecruitStrategicFire;
@@ -101,7 +102,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
                 .add(Attributes.MOVEMENT_SPEED, 0.31D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
-                .add(Attributes.FOLLOW_RANGE, 64.0D);
+                .add(Attributes.FOLLOW_RANGE, 55.0D); //do not change as ranged ai dependants on it
     }
 
     @Override
@@ -150,17 +151,20 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
             int fireLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FLAMING_ARROWS, itemstack);
             if (fireLevel > 0) arrow.setSecondsOnFire(100);
 
+            double distance = this.distanceToSqr(target.getX(), target.getY(), target.getZ());
+            double heightDiff = target.getY() - this.getY();
+
             double d0 = target.getX() - this.getX();
-            double d1 = target.getY() - arrow.getY() + target.getBbHeight() / 3;
+            double d1 = target.getY() - arrow.getY() + target.getEyeHeight();
             double d2 = target.getZ() - this.getZ();
             double d3 = Mth.sqrt((float) (d0 * d0 + d2 * d2));
 
-            float angle = (float) (0.18F);// increase = ++ / decrease = --
+            double angle = getAngleDistanceModifier(distance) + getAngleHeightModifier(distance, heightDiff) / 100;// increase = ++ / decrease = --
             float force = 1.90F;
-            float accuracy = 0.5F; // 0 = 100%
+            float accuracy = 0.75F; // 0 = 100%
 
                                                 //angle   = 0.196F           //force     //accuracy 0 = 100%
-            arrow.shoot(d0, d1 + d3 * ((double) angle + 0.02), d2, force, accuracy);
+            arrow.shoot(d0, d1 + d3 * angle, d2, force, accuracy);
 
             if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get()){
                 this.consumeArrow();
@@ -173,6 +177,39 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
 
             this.damageMainHandItem();
         }
+    }
+
+    private double getAngleHeightModifier(double distance, double heightDiff) {
+        if(distance >= 2000){
+            return heightDiff * 1.15;
+        }
+        else if(distance >= 1750){
+            return heightDiff * 1.05;
+        }
+        else if(distance >= 1500){
+            return heightDiff * 0.6;
+        }
+
+        else if(distance >= 1250){
+            return heightDiff * 0.5;
+        }
+
+        else if(distance >= 1000){
+            return heightDiff * 0.4;
+        }
+        else if(distance >= 750){
+            return heightDiff * 0.3;
+        }
+        else if(distance >= 500){
+            return heightDiff * 0.2;
+        }
+        else
+            return 0;
+    }
+
+    private double getAngleDistanceModifier(double distance) {
+        double modifier = distance/47;
+        return (modifier - random.nextInt(-2, 2)) /100;
     }
 
     public double arrowDamageModifier() {
@@ -200,7 +237,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
             double d2 = z - this.getZ();
             double d3 = Mth.sqrt((float) (d0 * d0 + d2 * d2));
                                                      //angle            //force             //accuracy 0 = 100%
-            arrow.shoot(d0, d1 + d3 + angle, d2, force + 1.95F, (float) (2.5));
+            arrow.shoot(d0, d1 + d3 + angle, d2, force + 1.95F, 2.5F);
 
             this.playSound(SoundEvents.ARROW_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
             this.getCommandSenderWorld().addFreshEntity(arrow);
