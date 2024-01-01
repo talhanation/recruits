@@ -98,8 +98,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Integer> COST = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Optional<UUID>> UPKEEP_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Optional<UUID>> LEADER_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
-
     public int blockCoolDown;
     private boolean needsTeamUpdate = true;
     public boolean forcedUpkeep;
@@ -545,7 +543,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     protected float getStandingEyeHeight(@NotNull Pose pos, EntityDimensions size) {
-        return size.height * 0.9F;
+        return size.height * 0.98F;
     }
 
     public int getMaxHeadXRot() {
