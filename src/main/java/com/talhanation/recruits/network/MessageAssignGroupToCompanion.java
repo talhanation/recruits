@@ -44,7 +44,7 @@ public class MessageAssignGroupToCompanion implements Message<MessageAssignGroup
 
         for (AbstractRecruitEntity recruit : list) {
             UUID recruitOwner = recruit.getOwnerUUID();
-            if (recruitOwner != null && recruitOwner.equals(owner) && recruit.getGroup() == group)
+            if (recruitOwner != null && recruitOwner.equals(owner) && recruit.getGroup() == group && !recruit.getUUID().equals(this.companion))
                 ICompanion.assignToLeaderCompanion(companionEntity, recruit);
         }
     }
