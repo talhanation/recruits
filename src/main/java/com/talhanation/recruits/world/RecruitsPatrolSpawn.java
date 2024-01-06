@@ -571,6 +571,8 @@ public class RecruitsPatrolSpawn {
         patrolLeader.setCost(55);
         patrolLeader.setXp(random.nextInt(200));
         patrolLeader.setCustomName(Component.literal(name));
+        patrolLeader.despawnTimer = RecruitsServerConfig.RecruitPatrolDespawnTime.get() * 20 * 60;
+
 
         patrolLeader.setProtectUUID(Optional.of(patrolLeader.getUUID()));
 
@@ -579,6 +581,7 @@ public class RecruitsPatrolSpawn {
         setRecruitFood(patrolLeader);
 
         world.addFreshEntity(patrolLeader);
+
         return patrolLeader;
     }
 
@@ -587,6 +590,8 @@ public class RecruitsPatrolSpawn {
         recruitEntity.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         recruitEntity.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
         if(random.nextInt(2) == 0) setPatrolRecruitEquipment(recruitEntity);
+        recruitEntity.despawnTimer = RecruitsServerConfig.RecruitPatrolDespawnTime.get() * 20 * 60;
+
         recruitEntity.setPersistenceRequired();
 
         recruitEntity.setXpLevel(Math.max(1, random.nextInt(3)));
@@ -611,6 +616,7 @@ public class RecruitsPatrolSpawn {
         bowman.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
         if(random.nextInt(2) == 0) setPatrolBowmanEquipment(bowman);
         bowman.setPersistenceRequired();
+        bowman.despawnTimer = RecruitsServerConfig.RecruitPatrolDespawnTime.get() * 20 * 60;
 
         bowman.setXpLevel(Math.max(1, random.nextInt(3)));
         bowman.addLevelBuffsForLevel(bowman.getXpLevel());
@@ -634,6 +640,7 @@ public class RecruitsPatrolSpawn {
         shieldmanEntity.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
         if(random.nextInt(2) == 0) setPatrolShieldmanEquipment(shieldmanEntity);
         shieldmanEntity.setPersistenceRequired();
+        shieldmanEntity.despawnTimer = RecruitsServerConfig.RecruitPatrolDespawnTime.get() * 20 * 60;
 
         shieldmanEntity.setXpLevel(Math.max(1, random.nextInt(3)));
         shieldmanEntity.addLevelBuffsForLevel(shieldmanEntity.getXpLevel());
@@ -668,6 +675,7 @@ public class RecruitsPatrolSpawn {
         horseman.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
         if(random.nextInt(2) == 0) setPatrolShieldmanEquipment(horseman);
         horseman.setPersistenceRequired();
+        horseman.despawnTimer = RecruitsServerConfig.RecruitPatrolDespawnTime.get() * 20 * 60;
         horseman.isPatrol = true;
         horseman.setXpLevel(Math.max(1, random.nextInt(3)));
         horseman.addLevelBuffsForLevel(horseman.getXpLevel());
@@ -677,7 +685,6 @@ public class RecruitsPatrolSpawn {
         horseman.setProtectUUID(Optional.of(patrolLeader.getUUID()));
         horseman.setShouldProtect(true);
         horseman.setXp(random.nextInt(120));
-
         horseman.setCustomName(Component.literal(name));
 
         if(banner) {
@@ -699,6 +706,7 @@ public class RecruitsPatrolSpawn {
         nomad.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
         if(random.nextInt(2) == 0) setPatrolBowmanEquipment(nomad);
         nomad.setPersistenceRequired();
+        nomad.despawnTimer = RecruitsServerConfig.RecruitPatrolDespawnTime.get() * 20 * 60;
         nomad.isPatrol = true;
         nomad.setXpLevel(1 + random.nextInt(3));
         nomad.addLevelBuffsForLevel(nomad.getXpLevel());
@@ -722,6 +730,7 @@ public class RecruitsPatrolSpawn {
         crossBowman.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
         setPatrolCrossbowmanEquipment(crossBowman);
         crossBowman.setPersistenceRequired();
+        crossBowman.despawnTimer = RecruitsServerConfig.RecruitPatrolDespawnTime.get() * 20 * 60;
 
         crossBowman.setXpLevel(Math.max(1, random.nextInt(3)));
         crossBowman.addLevelBuffsForLevel(crossBowman.getXpLevel());
