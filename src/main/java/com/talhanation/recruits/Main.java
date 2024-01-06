@@ -26,13 +26,13 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.network.IContainerFactory;
 import net.minecraftforge.network.simple.SimpleChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -71,7 +71,9 @@ public class Main {
     public static MenuType<TeamManagePlayerContainer> TEAM_ADD_PLAYER_TYPE;
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
     public static boolean isMusketModLoaded;
-    public static boolean isSmallshipsLoaded;
+    public static boolean isSmallShipsLoaded;
+    public static boolean isSmallShipsCompatible;
+    public static boolean isSiegeWeaponsLoaded;
 
     public Main() {
         CommonRegistry.registerConfig(ModConfig.Type.CLIENT, RecruitsClientConfig.class);
@@ -172,8 +174,13 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 58, MessagePatrolLeaderSetInfoMode.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 59, MessageAssignGroupToCompanion.class);
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
-        isSmallshipsLoaded = ModList.get().isLoaded("smallships");//small ships
+        isSmallShipsLoaded = ModList.get().isLoaded("smallships");//small ships
+        isSiegeWeaponsLoaded = ModList.get().isLoaded("siegeweapons");//siege weapons
+        String smallshipsversion = ModList.get().getModFileById("smallships").versionString();//2.0.0-a2.3.1 above shall be supported e.g.: "2.0.0-b1.0"
 
+        isSmallShipsCompatible = smallshipsversion.contains("2.0.0-b1");//TODO: Better Version check for compatible smallships version
+
+        Main.LOGGER.info("smallships version: " + smallshipsversion);
     }
 
     @SubscribeEvent
