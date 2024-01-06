@@ -127,7 +127,7 @@ public class CommandEvents {
     public static void onMoveCommand(Player player, UUID player_uuid, AbstractRecruitEntity recruit, int group) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
 
-            HitResult hitResult = player.pick(100, 1F, false);
+            HitResult hitResult = player.pick(100, 1F, true);
 
             if (hitResult != null) {
                 if (hitResult.getType() == HitResult.Type.BLOCK) {
