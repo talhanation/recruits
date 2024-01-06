@@ -105,6 +105,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public int dismount = 0;
     public int upkeepTimer = 0;
     public int mountTimer = 0;
+    public int despawnTimer = -1;
 
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
@@ -145,10 +146,27 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
     public void tick() {
         super.tick();
+        if(despawnTimer > 0) despawnTimer--;
+        if(despawnTimer == 0) recruitCheckDespawn();
         if(getMountTimer() > 0) setMountTimer(getMountTimer() - 1);
         if(getUpkeepTimer() > 0) setUpkeepTimer(getUpkeepTimer() - 1);
         if(getHunger() >=  70F && getHealth() < getMaxHealth()){
             this.heal(1.0F/50F);// 1 hp in 2.5s
+        }
+    }
+
+    private void recruitCheckDespawn() {
+        Entity entity = this.level.getNearestPlayer(this, -1.0D);
+
+        if (entity != null) {
+            double d0 = entity.distanceToSqr(this);
+            int k = this.getType().getCategory().getNoDespawnDistance();
+            int l = k * k;
+
+            if (this.random.nextInt(800) == 0 && d0 > (double) l) {
+                if(this.getVehicle() instanceof LivingEntity livingMount) livingMount.discard();
+                this.discard();
+            }
         }
     }
 
@@ -273,6 +291,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     @Override
     public void addAdditionalSaveData(CompoundTag nbt) {
         super.addAdditionalSaveData(nbt);
+        nbt.putInt("despawnTimer", this.despawnTimer);
         nbt.putInt("AggroState", this.getState());
         nbt.putInt("FollowState", this.getFollowState());
         nbt.putBoolean("ShouldFollow", this.getShouldFollow());
@@ -334,6 +353,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     @Override
     public void readAdditionalSaveData(CompoundTag nbt) {
         super.readAdditionalSaveData(nbt);
+        this.despawnTimer = nbt.getInt("despawnTimer");
         this.setXpLevel(nbt.getInt("Level"));
         this.setState(nbt.getInt("AggroState"));
         this.setFollowState(nbt.getInt("FollowState"));

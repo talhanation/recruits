@@ -2,6 +2,7 @@ package com.talhanation.recruits.config;
 
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
+import com.talhanation.recruits.world.RecruitsTeamSavedData;
 import de.maxhenkel.corelib.config.ConfigBase;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.Mod;
@@ -48,7 +49,6 @@ public class RecruitsServerConfig extends ConfigBase {
     public static ForgeConfigSpec.ConfigValue<List<String>> AcceptedDamagesourceImmunity;
     public static ForgeConfigSpec.BooleanValue AggroRecruitsBlockPlaceBreakEvents;
     public static ForgeConfigSpec.BooleanValue NeutralRecruitsBlockPlaceBreakEvents;
-
     public static ForgeConfigSpec.BooleanValue AggroRecruitsBlockInteractingEvents;
     public static ForgeConfigSpec.BooleanValue NeutralRecruitsBlockInteractingEvents;
     public static ForgeConfigSpec.BooleanValue ShouldRecruitPatrolsSpawn;
@@ -59,6 +59,7 @@ public class RecruitsServerConfig extends ConfigBase {
     public static ForgeConfigSpec.BooleanValue NoDamageImmunity;
     public static ForgeConfigSpec.IntValue PillagerPatrolSpawnInterval;
     public static ForgeConfigSpec.IntValue RecruitPatrolSpawnInterval;
+    public static ForgeConfigSpec.IntValue RecruitPatrolDespawnTime;
     public static ForgeConfigSpec.BooleanValue GlobalTeamFriendlyFireSetting;
     public static ForgeConfigSpec.BooleanValue GlobalTeamSeeFriendlyInvisibleSetting;
     public static ForgeConfigSpec.BooleanValue GlobalTeamSetting;
@@ -459,6 +460,15 @@ public class RecruitsServerConfig extends ConfigBase {
                         \tdefault: 30""")
                 .worldRestart()
                 .defineInRange("RecruitPatrolSpawnInterval", 30, 1, 60);
+
+        RecruitPatrolDespawnTime = BUILDER.comment("""
+
+                        The time in minutes a Recruit Patrol and Caravan will despawn.
+                        \t(takes effect after restart)
+                        \tdefault: 45""")
+                .worldRestart()
+                .defineInRange("RecruitPatrolDespawnTime", 45, 1, 600);
+
 
         ShouldPillagerPatrolsSpawn = BUILDER.comment("""
 
