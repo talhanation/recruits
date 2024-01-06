@@ -91,6 +91,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
     public void tick() {
         boolean isClose = target.distanceToSqr(this.mob) <= 150;
         boolean isFar = target.distanceToSqr(this.mob) >= 2800;
+        boolean isTooFar = target.distanceToSqr(this.mob) >= 5000;
         boolean inRange =  !isFar;
         //if (mob.getHoldPos() != null)Objects.requireNonNull(this.mob.getOwner()).sendMessage(new StringTextComponent("Pos vorhanden"), mob.getOwner().getUUID());
 
@@ -101,51 +102,53 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
             this.seeTime = 0;
         }
 
-        // movement
-
-        if (mob.getShouldHoldPos() && mob.getHoldPos() != null) {
-            if ((!mob.getHoldPos().closerThan(mob.getOnPos(), 5D))){
-                if (inRange)this.mob.getNavigation().stop();
-                else this.mob.getNavigation().moveTo(target, this.speedModifier);
-            }
+        if(isTooFar){
+            this.mob.setTarget(null);
+            this.stop();
+            return;
         }
 
-        else if (mob.getShouldFollow() && mob.getOwner() != null){
-            boolean playerClose = mob.getOwner().distanceTo(this.mob) <= 15.00D;
+        if(target != null && target.isAlive()) {
+            // movement
+            if (mob.getShouldHoldPos() && mob.getHoldPos() != null) {
+                if ((!mob.getHoldPos().closerThan(mob.getOnPos(), 5D))) {
+                    if (inRange) this.mob.getNavigation().stop();
+                    else this.mob.getNavigation().moveTo(target, this.speedModifier);
+                }
+            } else if (mob.getShouldFollow() && mob.getOwner() != null) {
+                boolean playerClose = mob.getOwner().distanceTo(this.mob) <= 15.00D;
 
-            if (playerClose){
+                if (playerClose) {
+                    if (inRange) this.mob.getNavigation().stop();
+                    if (isFar) this.mob.getNavigation().moveTo(target, this.speedModifier);
+                    if (isClose) this.mob.fleeEntity(target);
+                }
+                if (!playerClose) {
+                    this.mob.getNavigation().moveTo(mob.getOwner(), this.speedModifier);
+                }
+            } else {
                 if (inRange) this.mob.getNavigation().stop();
                 if (isFar) this.mob.getNavigation().moveTo(target, this.speedModifier);
                 if (isClose) this.mob.fleeEntity(target);
             }
-            if (!playerClose) {
-                this.mob.getNavigation().moveTo(mob.getOwner(), this.speedModifier);
-            }
-        }
 
-        else {
-            if (inRange) this.mob.getNavigation().stop();
-            if (isFar) this.mob.getNavigation().moveTo(target, this.speedModifier);
-            if (isClose) this.mob.fleeEntity(target);
-        }
-
-        double d0 = this.mob.distanceToSqr(target.getX(), target.getY(), target.getZ());
-        this.mob.getLookControl().setLookAt(target, 30.0F, 30.0F);
-        if (this.mob.isUsingItem()) {
-            if (!canSee && this.seeTime < -60) {
-                this.mob.stopUsingItem();
-            }
-            else if (canSee) {
-                int i = this.mob.getTicksUsingItem();
-                if (i >= 20) {
+            double d0 = this.mob.distanceToSqr(target.getX(), target.getY(), target.getZ());
+            this.mob.getLookControl().setLookAt(target, 30.0F, 30.0F);
+            if (this.mob.isUsingItem()) {
+                if (!canSee && this.seeTime < -60) {
                     this.mob.stopUsingItem();
-                    this.mob.performRangedAttack(target, BowItem.getPowerForTime(i));
-                    float f = Mth.sqrt((float) d0) / this.attackRadius;
-                    this.attackTime = Mth.floor(f * (float)(this.attackIntervalMax - this.attackIntervalMin) + (float)this.attackIntervalMin);
+                } else if (canSee) {
+                    int i = this.mob.getTicksUsingItem();
+                    if (i >= 20) {
+                        this.mob.stopUsingItem();
+                        this.mob.performRangedAttack(target, BowItem.getPowerForTime(i));
+                        float f = Mth.sqrt((float) d0) / this.attackRadius;
+                        this.attackTime = Mth.floor(f * (float) (this.attackIntervalMax - this.attackIntervalMin) + (float) this.attackIntervalMin);
+                    }
                 }
+            } else if (--this.attackTime <= 0 && this.seeTime >= -60 && this.hasArrows()) {
+                this.mob.startUsingItem(InteractionHand.MAIN_HAND);
             }
-        } else if (--this.attackTime <= 0 && this.seeTime >= -60 && this.hasArrows()) {
-            this.mob.startUsingItem(InteractionHand.MAIN_HAND);
         }
     }
 
