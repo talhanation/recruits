@@ -66,8 +66,7 @@ public class UseShield extends Goal {
             ItemStack itemStackinHand = target.getItemInHand(InteractionHand.MAIN_HAND);
             Item itemInHand = itemStackinHand.getItem();
 
-            boolean isClose = this.entity instanceof HorsemanEntity horseman && horseman.isPassenger() ? target.distanceTo(this.entity) <= 4.75D : target.distanceTo(this.entity) <= 3.75D;
-
+            boolean isClose = this.entity instanceof HorsemanEntity horseman && horseman.isPassenger() ? target.distanceTo(this.entity) <= 5.75D : target.distanceTo(this.entity) <= 3.75D;
             boolean isFar = target.distanceTo(this.entity) >= 20.0D;
             boolean inRange =  !isFar && target.distanceTo(this.entity) <= 15.0D;
 
