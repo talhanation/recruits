@@ -66,6 +66,7 @@ public class RecruitsServerConfig extends ConfigBase {
     public static ForgeConfigSpec.BooleanValue RecruitHorseUnitsHorse;
     public static ForgeConfigSpec.BooleanValue RangedRecruitsNeedArrowsToShoot;
     public static ForgeConfigSpec.BooleanValue RecruitsChunkLoading;
+    public static ForgeConfigSpec.BooleanValue UpdateCheckerServerside;
     public static ArrayList<String> BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast"));
     public static ArrayList<String> MOUNTS = new ArrayList<>(
@@ -88,12 +89,22 @@ public class RecruitsServerConfig extends ConfigBase {
     public static ArrayList<String> DAMAGESOURCE = new ArrayList<>(
             Arrays.asList("inFire", "lava", "sweetBerryBush", "cactus", "lightningBolt", "inWall", "hotFloor", "outOfWorld", "drown"));//add drowning
 
-
     public static ArrayList<String> list = new ArrayList<>();
 
     public RecruitsServerConfig(ForgeConfigSpec.Builder BUILDER) {
         super(BUILDER);
         BUILDER.comment("Recruits Config:").push("Recruits");
+
+        UpdateCheckerServerside = BUILDER.comment("""
+                        ----UpdateCheckerServerside----
+                        \t(takes effect after restart)
+                        \t
+                        Should the client side update checker be active?
+                        It is recommended to keep it enabled to receive information about new bug fixes and features.""
+                        default: true""")
+
+                .worldRestart()
+                .define("UpdateCheckerServerside", true);
 
         RecruitCurrency = BUILDER.comment("""
 
