@@ -11,6 +11,7 @@ public class RecruitsClientConfig extends ConfigBase {
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue CommandScreenToggle;
     public static ForgeConfigSpec.BooleanValue RecruitsLookLikeVillagers;
+    public static ForgeConfigSpec.BooleanValue UpdateCheckerClientside;
 
     public RecruitsClientConfig(ForgeConfigSpec.Builder BUILDER) {
         super(BUILDER);
@@ -42,6 +43,17 @@ public class RecruitsClientConfig extends ConfigBase {
 
                 .worldRestart()
                 .define("CommandScreenToggle", false);
+
+        UpdateCheckerClientside = BUILDER.comment("""
+                        ----UpdateCheckerClientside----
+                        \t(takes effect after restart)
+                        \t
+                        Should the client side update checker be active?""
+                        It is recommended to keep it enabled to receive information about new bug fixes and features.""
+                        default: true""")
+
+                .worldRestart()
+                .define("UpdateCheckerClientside", true);
 
         BUILDER.pop();
     }
