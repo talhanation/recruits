@@ -35,7 +35,7 @@ import java.util.function.Predicate;
 import static com.talhanation.recruits.Main.isMusketModLoaded;
 
 
-public class CrossBowmanEntity extends AbstractRecruitEntity implements CrossbowAttackMob, IStrategicFire {
+public class CrossBowmanEntity extends AbstractRecruitEntity implements CrossbowAttackMob, IRangedRecruit, IStrategicFire {
 
     private static final EntityDataAccessor<Boolean> DATA_IS_CHARGING_CROSSBOW = SynchedEntityData.defineId(CrossBowmanEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Optional<BlockPos>> STRATEGIC_FIRE_POS = SynchedEntityData.defineId(CrossBowmanEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
@@ -140,20 +140,6 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
     public void performRangedAttack(@NotNull LivingEntity target, float v) {
 
     }
-
-    public void fleeEntity(LivingEntity target) {
-        if (target != null) {
-            double fleeDistance = 10.0D;
-            Vec3 vecTarget = new Vec3(target.getX(), target.getY(), target.getZ());
-            Vec3 vecBowman = new Vec3(this.getX(), this.getY(), this.getZ());
-            Vec3 fleeDir = vecBowman.subtract(vecTarget);
-            fleeDir = fleeDir.normalize();
-            double rnd = this.random.nextGaussian() * 1.2;
-            Vec3 fleePos = new Vec3(vecBowman.x + rnd + fleeDir.x * fleeDistance, vecBowman.y + fleeDir.y * fleeDistance, vecBowman.z + rnd + fleeDir.z * fleeDistance);
-            this.getNavigation().moveTo(fleePos.x, fleePos.y, fleePos.z, 1.0D);
-        }
-    }
-
     @Override
     public boolean wantsToPickUp(@NotNull ItemStack itemStack) {
         if(isMusketModLoaded && IWeapon.isMusketModWeapon(itemStack)) return true;

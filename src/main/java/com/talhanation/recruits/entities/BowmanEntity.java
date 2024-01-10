@@ -23,7 +23,6 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.*;
@@ -39,7 +38,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackMob, IStrategicFire {
+public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecruit, IStrategicFire {
 
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
@@ -159,7 +158,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
             double d2 = target.getZ() - this.getZ();
             double d3 = Mth.sqrt((float) (d0 * d0 + d2 * d2));
 
-            double angle = getAngleDistanceModifier(distance) + getAngleHeightModifier(distance, heightDiff) / 100;// increase = ++ / decrease = --
+            double angle = IRangedRecruit.getAngleDistanceModifier(distance, 47, 2) + IRangedRecruit.getAngleHeightModifier(distance, heightDiff, 1.00D) / 100;
             float force = 1.90F;
             float accuracy = 0.75F; // 0 = 100%
 
@@ -167,8 +166,11 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
             arrow.shoot(d0, d1 + d3 * angle, d2, force, accuracy);
 
             if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get()){
-                this.consumeArrow();
-                arrow.pickup = AbstractArrow.Pickup.ALLOWED;
+                int k = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.INFINITY_ARROWS, this.getMainHandItem());
+                if (k == 0) {
+                    this.consumeArrow();
+                    arrow.pickup = AbstractArrow.Pickup.ALLOWED;
+                }
             }
 
             this.playSound(SoundEvents.ARROW_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
@@ -177,39 +179,6 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
 
             this.damageMainHandItem();
         }
-    }
-
-    private double getAngleHeightModifier(double distance, double heightDiff) {
-        if(distance >= 2000){
-            return heightDiff * 1.15;
-        }
-        else if(distance >= 1750){
-            return heightDiff * 1.05;
-        }
-        else if(distance >= 1500){
-            return heightDiff * 0.6;
-        }
-
-        else if(distance >= 1250){
-            return heightDiff * 0.5;
-        }
-
-        else if(distance >= 1000){
-            return heightDiff * 0.4;
-        }
-        else if(distance >= 750){
-            return heightDiff * 0.3;
-        }
-        else if(distance >= 500){
-            return heightDiff * 0.2;
-        }
-        else
-            return 0;
-    }
-
-    private double getAngleDistanceModifier(double distance) {
-        double modifier = distance/47;
-        return (modifier - random.nextInt(-2, 2)) /100;
     }
 
     public double arrowDamageModifier() {
@@ -258,7 +227,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements RangedAttackM
             Vec3 vecBowman = new Vec3(this.getX(), this.getY(), this.getZ());
             Vec3 fleeDir = vecBowman.subtract(vecTarget);
             fleeDir = fleeDir.normalize();
-            double rnd = this.random.nextGaussian() * 1.2;
+            double rnd = this.getRandom().nextGaussian() * 1.2;
             Vec3 fleePos = new Vec3(vecBowman.x + rnd + fleeDir.x * fleeDistance, vecBowman.y + fleeDir.y * fleeDistance, vecBowman.z + rnd + fleeDir.z * fleeDistance);
             this.getNavigation().moveTo(fleePos.x, fleePos.y, fleePos.z, 1.1D);
         }
