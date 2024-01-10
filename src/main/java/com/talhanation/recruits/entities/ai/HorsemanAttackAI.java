@@ -189,7 +189,7 @@ public class HorsemanAttackAI extends Goal {
     }
 
     private boolean canReach(BlockPos pos) {
-        this.reachCacheTime = reducedTickDelay(10 + this.horseman.getRandom().nextInt(5));
+        //this.reachCacheTime = reducedTickDelay(10 + this.horseman.getRandom().nextInt(5));
         Path path = horseman.getNavigation().createPath(pos, 0);
         if (path == null) {
             return false;
