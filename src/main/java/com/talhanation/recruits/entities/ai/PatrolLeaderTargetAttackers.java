@@ -27,6 +27,11 @@ public class PatrolLeaderTargetAttackers extends TargetGoal {
         else return false;
     }
 
+    @Override
+    public boolean canContinueToUse() {
+        return target != null && target.isAlive();
+    }
+
     public void start() {
         this.mob.setTarget(this.target);
         this.mob.setLastHurtMob(this.target);
