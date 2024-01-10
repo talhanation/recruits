@@ -147,14 +147,14 @@ public class RecruitsServerConfig extends ConfigBase {
         TargetBlackList = BUILDER.comment("""
                         ----Target Blacklist----
                         \t(takes effect after restart)
-                        \tEntities in this list won't be targeted at all, for example: ["minecraft:creeper", "minecraft:sheep"]""")
+                        \tEntities in this list won't be targeted at all, for example: ["minecraft:creeper", "minecraft:sheep", ...]""")
                 .worldRestart()
                 .define("TargetBlackList", BLACKLIST);
 
         MountWhiteList = BUILDER.comment("""
                         ----Mount Whitelist----
                         \t(takes effect after restart)
-                        \tONLY Entities in this list can be mounted by a recruit, for example: ["minecraft:boat", "smallships:cog"]""")
+                        \tONLY Entities in this list can be mounted by a recruit, for example: ["minecraft:boat", "smallships:cog", ...]""")
                 .worldRestart()
                 .define("MountWhitelist", MOUNTS);
 
