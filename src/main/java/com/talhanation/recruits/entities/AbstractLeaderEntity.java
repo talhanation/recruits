@@ -642,6 +642,19 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         }
     }
 
+    public void setRecruitsMount(){
+        for (AbstractRecruitEntity recruit : currentRecruitsInCommand){
+            recruit.clearUpkeepEntity();
+            recruit.clearUpkeepPos();
+
+            if(this.getUpkeepPos() != null) recruit.setUpkeepPos(this.getUpkeepPos());
+            recruit.setUpkeepUUID(Optional.ofNullable(this.getUpkeepUUID()));
+
+            recruit.setUpkeepTimer(0);
+            recruit.setTarget(null);
+        }
+    }
+
     @Override
     public void die(DamageSource dmg) {
         super.die(dmg);
