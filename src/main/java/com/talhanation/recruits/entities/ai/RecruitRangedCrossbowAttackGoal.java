@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.compat.CrossbowWeapon;
 import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
@@ -11,6 +12,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 
 public class RecruitRangedCrossbowAttackGoal extends Goal {
     private final CrossBowmanEntity crossBowman;
@@ -33,7 +36,7 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
         LivingEntity livingentity = this.crossBowman.getTarget();
         if (livingentity != null && livingentity.isAlive() && this.isWeaponInMainHand()) {
             // if (mob.getOwner() != null && mob.getShouldFollow() && mob.getOwner().distanceTo(this.mob) <= 25.00D && !(target.distanceTo(this.mob) <= 7.00D)) return false;
-            return livingentity.distanceTo(this.crossBowman) >= stopRange && this.canAttackHoldPos() && this.canAttackMovePos() && !this.crossBowman.needsToGetFood() && !this.crossBowman.getShouldMount();
+            return livingentity.distanceTo(this.crossBowman) >= stopRange && this.canAttackMovePos() && !this.crossBowman.needsToGetFood() && !this.crossBowman.getShouldMount();
         } else {
             return crossBowman.getShouldStrategicFire();
         }
@@ -69,12 +72,14 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
     }
 
     public void tick() {
+        Main.LOGGER.info("state: " + state);
         LivingEntity target = this.crossBowman.getTarget();
 
         if (target != null && target.isAlive()) {
-            double distanceToTarget = target.distanceTo(this.crossBowman);
-            boolean isFar = distanceToTarget >= 26D;
-            boolean inRange = !isFar && distanceToTarget <= 15.0D;
+            double distanceToTarget = target.distanceToSqr(this.crossBowman);
+            boolean isFar = distanceToTarget >= 3400;
+            boolean inRange = !isFar;
+
 
             if (!crossBowman.isFollowing()){
                 if (inRange){
@@ -127,20 +132,16 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
                                 this.crossBowman.setAggressive(true);
                                 this.crossBowman.getLookControl().setLookAt(pos.getX(), pos.getY(), pos.getZ());
 
-                                this.seeTime++;
-
-                                if (this.seeTime >= 15 + crossBowman.getRandom().nextInt(8)) {
+                                if (++this.seeTime > weapon.getWeaponLoadTime()) {
                                     this.state = State.SHOOT;
                                     this.seeTime = 0;
                                 }
                             }
                         }
 
-
                         case SHOOT -> {
                             if (pos != null) {
-                                double distance = this.crossBowman.distanceToSqr(pos.getX(), pos.getY(), pos.getZ());
-                                this.weapon.performRangedAttackIWeapon(this.crossBowman, pos.getX(), pos.getY() + distance * 0.0025, pos.getZ(), weapon.getProjectileSpeed());
+                                this.weapon.performRangedAttackIWeapon(this.crossBowman, pos.getX(), pos.getY(), pos.getZ(), weapon.getProjectileSpeed());
                                 CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), false);
                             }
                             this.state = State.IDLE; //RESUPPLY
@@ -176,9 +177,7 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
                                 this.crossBowman.getLookControl().setLookAt(target);
 
                                 if (canSee) {
-                                    this.seeTime++;
-
-                                    if (this.seeTime >= 15 + crossBowman.getRandom().nextInt(8)) {
+                                    if (++this.seeTime >= weapon.getWeaponLoadTime()) {
                                         this.state = State.SHOOT;
                                         this.seeTime = 0;
                                     }
@@ -194,8 +193,7 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
                         case SHOOT -> {
                             if (target != null && target.isAlive() && this.crossBowman.canAttack(target) && this.crossBowman.getState() != 3) {
                                 this.crossBowman.getLookControl().setLookAt(target);
-
-                                this.weapon.performRangedAttackIWeapon(this.crossBowman, target.getX(), target.getY(), target.getZ(), weapon.getProjectileSpeed());
+                                this.weapon.performRangedAttackIWeapon(this.crossBowman, target.getX(), target.getEyeY(), target.getZ(), weapon.getProjectileSpeed());
                                 CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), false);
                             }
                             this.state = State.IDLE;
@@ -215,26 +213,6 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
 
     private boolean hasArrows(){
         return !consumeArrows || this.crossBowman.getInventory().hasAnyMatching(item -> item.is(ItemTags.ARROWS));
-    }
-
-    private boolean canAttackHoldPos() {
-        LivingEntity target = this.crossBowman.getTarget();
-        BlockPos pos = crossBowman.getHoldPos();
-
-        if (target != null && pos != null && crossBowman.getShouldHoldPos()) {
-            boolean targetIsFar = target.distanceTo(this.crossBowman) >= 32.0D;
-            boolean posIsClose = pos.distSqr(this.crossBowman.getOnPos()) <= 15.0D;
-            boolean posIsFar = pos.distSqr(this.crossBowman.getOnPos()) > 15.0D;
-
-            if (posIsFar) {
-                return false;
-            }
-
-            else if (posIsClose && targetIsFar){
-                return false;
-            }
-        }
-        return true;
     }
 
     private boolean canAttackMovePos() {
