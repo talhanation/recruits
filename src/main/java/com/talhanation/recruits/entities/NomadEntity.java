@@ -124,8 +124,8 @@ public class NomadEntity extends BowmanEntity {
                 horse.setTamed(true);
                 horse.equipSaddle(null);
 
-                Variant variant = Util.getRandom(Variant.values(), this.random);
-                Markings markings = Util.getRandom(Markings.values(), this.random);
+                Variant variant = Util.getRandom(Variant.values(), this.getRandom());
+                Markings markings = Util.getRandom(Markings.values(), this.getRandom());
                 horse.setVariantAndMarkings(variant, markings);
 
                 this.startRiding(horse);

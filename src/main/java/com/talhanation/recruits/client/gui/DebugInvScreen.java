@@ -4,9 +4,11 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.DebugInvMenu;
+import com.talhanation.recruits.network.MessageCreateTeam;
 import com.talhanation.recruits.network.MessageDebugGui;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -17,6 +19,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.lwjgl.glfw.GLFW;
 
 import java.text.DecimalFormat;
 
@@ -26,6 +29,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/debug_gui.png" );
 
     private static final int fontColor = 4210752;
+    private EditBox textField;
 
     private final AbstractRecruitEntity recruit;
     private final Player player;
@@ -47,6 +51,8 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
     protected void init() {
         super.init();
 
+        minecraft.keyboardHandler.setSendRepeatsToGui(true);
+
         int zeroLeftPos = leftPos + 140;
         int zeroTopPos = topPos + 10;
 
@@ -59,64 +65,101 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
         hungerButton(zeroLeftPos, zeroTopPos);
         moralButton(zeroLeftPos, zeroTopPos);
         healthButton(zeroLeftPos, zeroTopPos);
+
+        textField = new EditBox(font, leftPos + 18, topPos - 20, 140, 20, recruit.getCustomName());
+        textField.setTextColor(-1);
+        textField.setTextColorUneditable(-1);
+        textField.setBordered(true);
+        textField.setMaxLength(24);
+
+        addRenderableWidget(textField);
+        setInitialFocus(textField);
+    }
+
+    protected void containerTick() {
+        super.containerTick();
+        textField.tick();
+    }
+
+    public boolean mouseClicked(double p_100753_, double p_100754_, int p_100755_) {
+        if (this.textField.isFocused()) {
+            this.textField.mouseClicked(p_100753_, p_100754_, p_100755_);
+        }
+        return super.mouseClicked(p_100753_, p_100754_, p_100755_);
+    }
+
+    @Override
+    public boolean keyPressed(int key, int a, int b) {
+        if (key == GLFW.GLFW_KEY_ESCAPE) {
+            this.onClose();
+            return true;
+        }
+        setFocused(textField);
+
+        return textField.keyPressed(key, a, b) || textField.canConsumeInput() || super.keyPressed(key, a, b);
+    }
+    @Override
+    public void onClose() {
+        super.onClose();
+        minecraft.keyboardHandler.setSendRepeatsToGui(false);
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(99, recruit.getUUID(), textField.getValue()));
     }
 
     private void xpButton(int zeroLeftPos, int zeroTopPos){
         addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 0, 23, 20, new TextComponent("+xp"), button -> {
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(0, recruit.getUUID()));
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(0, recruit.getUUID(), textField.getValue()));
         }));
     }
 
     private void lvlButton(int zeroLeftPos, int zeroTopPos){
         addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 1, 23, 20, new TextComponent("+lvl"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(1, recruit.getUUID()));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(1, recruit.getUUID(), textField.getValue()));
         }));
     }
 
     private void costButton(int zeroLeftPos, int zeroTopPos){
         //increase cost
         addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 2, 23, 20, new TextComponent("+cost"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(2, recruit.getUUID()));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(2, recruit.getUUID(), textField.getValue()));
         }));
         //decrease cost
         addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 2, 23, 20, new TextComponent("-cost"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(3, recruit.getUUID()));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(3, recruit.getUUID(), textField.getValue()));
         }));
     }
-
     private void hungerButton(int zeroLeftPos, int zeroTopPos){
         //increase hunger
         addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 3, 23, 20, new TextComponent("+hunger"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(4, recruit.getUUID()));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(4, recruit.getUUID(), textField.getValue()));
         }));
 
         //decrease hunger
         addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 3, 23, 20, new TextComponent("-hunger"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(5, recruit.getUUID()));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(5, recruit.getUUID(), textField.getValue()));
         }));
     }
 
     private void moralButton(int zeroLeftPos, int zeroTopPos){
         //increase moral
         addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 4, 23, 20, new TextComponent("+moral"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(6, recruit.getUUID()));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(6, recruit.getUUID(), textField.getValue()));
         }));
 
         //decrease moral
         addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 4, 23, 20, new TextComponent("-moral"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(7, recruit.getUUID()));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(7, recruit.getUUID(), textField.getValue()));
         }));
     }
 
     private void healthButton(int zeroLeftPos, int zeroTopPos){
         //increase health
         addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 5, 23, 20, new TextComponent("+health"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(8, recruit.getUUID()));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(8, recruit.getUUID(), textField.getValue()));
         }));
 
         //decrease health
         addRenderableWidget(new Button(zeroLeftPos - 170, zeroTopPos + (20 + 5) * 5, 23, 20, new TextComponent("-health"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(9, recruit.getUUID()));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(9, recruit.getUUID(), textField.getValue()));
         }));
     }
 
