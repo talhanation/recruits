@@ -6,6 +6,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 public class DebugEvents {
     public static void handleMessage(int id, AbstractRecruitEntity recruits) {
         switch (id){
+            default -> {}
             case 0 -> {recruits.addXp(1); recruits.checkLevel();}
             case 1 -> {recruits.addXp(RecruitsServerConfig.RecruitsMaxXpForLevelUp.get()); recruits.checkLevel();}
             case 2 -> {recruits.setCost(recruits.getCost() + 1);}
