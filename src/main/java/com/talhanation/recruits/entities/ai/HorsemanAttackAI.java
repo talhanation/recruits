@@ -18,6 +18,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.pathfinder.Node;
+import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -74,6 +76,12 @@ public class HorsemanAttackAI extends Goal {
                         this.movePos = possibleMovePosVec;
                         this.vecRotation = 0;
                         this.state = CHARGE_TARGET;
+                    }
+                    else if (vecRotation > 360){
+                        vecRotation += 15;
+                    }
+                    else{
+                        stop() ;
                     }
                 }
             }
@@ -179,5 +187,22 @@ public class HorsemanAttackAI extends Goal {
         }
 
         return modifier;
+    }
+
+    private boolean canReach(BlockPos pos) {
+        this.reachCacheTime = reducedTickDelay(10 + this.horseman.getRandom().nextInt(5));
+        Path path = horseman.getNavigation().createPath(pos, 0);
+        if (path == null) {
+            return false;
+        } else {
+            Node node = path.getEndNode();
+            if (node == null) {
+                return false;
+            } else {
+                int i = node.x - pos.getX();
+                int j = node.z - pos.getZ();
+                return (double)(i * i + j * j) <= 200D;
+            }
+        }
     }
 }
