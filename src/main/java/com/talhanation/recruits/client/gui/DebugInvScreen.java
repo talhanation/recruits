@@ -68,7 +68,11 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
         moralButton(zeroLeftPos, zeroTopPos);
         healthButton(zeroLeftPos, zeroTopPos);
 
-        textField = new EditBox(font, leftPos + 18, topPos - 20, 140, 20, recruit.getCustomName());
+        Component name = new TextComponent("Name");
+        if(recruit.getCustomName() != null) name = recruit.getCustomName();
+
+        textField = new EditBox(font, leftPos + 18, topPos - 23, 140, 20, name);
+        textField.setValue(name.getString());
         textField.setTextColor(-1);
         textField.setTextColorUneditable(-1);
         textField.setBordered(true);
