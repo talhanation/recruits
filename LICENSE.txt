@@ -1,4 +1,4 @@
-Copyright 2023 Talha Kantar
+Copyright 2024 Talha Kantar
 
 All rights reserved. This work and any accompanying documentation is the intellectual property of Talha Kantar. 
 Any unauthorized reproduction, modification, distribution, transmission, or other exploitation is strictly prohibited and may be a violation of applicable laws.
