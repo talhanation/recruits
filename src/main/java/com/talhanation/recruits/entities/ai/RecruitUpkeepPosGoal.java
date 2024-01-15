@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.entities.IRangedRecruit;
 import com.talhanation.recruits.entities.IStrategicFire;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
@@ -10,6 +11,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -23,6 +25,7 @@ public class RecruitUpkeepPosGoal extends Goal {
     public boolean message;
     public boolean messageNotChest;
     public boolean messageNeedNewChest;
+    public boolean messageNotInRange;
 
     public RecruitUpkeepPosGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -43,12 +46,19 @@ public class RecruitUpkeepPosGoal extends Goal {
         message = true;
         messageNotChest = true;
         messageNeedNewChest = true;
+        messageNotInRange = true;
         this.chestPos = recruit.getUpkeepPos();
     }
 
     @Override
     public void tick() {
         super.tick();
+        if(this.chestPos != recruit.getUpkeepPos()){
+            this.chestPos = recruit.getUpkeepPos();
+            this.stop();
+            return;
+        }
+
         if(recruit.getUpkeepTimer() == 0 && chestPos != null){
             BlockEntity entity = recruit.level.getBlockEntity(chestPos);
             if (entity instanceof Container containerEntity) {
@@ -63,6 +73,17 @@ public class RecruitUpkeepPosGoal extends Goal {
             }
 
             if (chestPos != null){
+                double distance = this.recruit.position().distanceToSqr(Vec3.atCenterOf(chestPos));
+                if(distance > 10000){
+                    if(recruit.getOwner() != null && messageNotInRange){
+                        recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()),recruit.getOwner().getUUID());
+                        messageNotInRange = false;
+                    }
+
+                    recruit.clearUpkeepPos();
+                    stop();
+                    return;
+                }
                 this.recruit.getNavigation().moveTo(chestPos.getX(), chestPos.getY(), chestPos.getZ(), 1.15D);
                 if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
                     this.recruit.getJumpControl().jump();
@@ -108,7 +129,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                                 recruit.equipItem(equipment);
                                 itemstack.shrink(1);
                             }
-                            else if (recruit instanceof IStrategicFire && itemstack.is(ItemTags.ARROWS)){ //all that are ranged
+                            else if (recruit instanceof IRangedRecruit && itemstack.is(ItemTags.ARROWS)){ //all that are ranged
                                 if(recruit.canTakeArrows()){
                                     equipment = itemstack.copy();
                                     recruit.inventory.addItem(equipment);
@@ -211,5 +232,9 @@ public class RecruitUpkeepPosGoal extends Goal {
 
     private MutableComponent TEXT_FOOD(String name) {
         return new TranslatableComponent("chat.recruits.text.noFoodInUpkeep", name);
+    }
+
+    private MutableComponent TEXT_NOT_IN_RANGE(String name) {
+        return new TranslatableComponent("chat.recruits.text.upkeepNotInRange", name);
     }
 }
