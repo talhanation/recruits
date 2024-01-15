@@ -225,7 +225,7 @@
   "gui.recruits.inv.tooltip.keepTeam": "Should recruits stay in the same team after disbanding?",
 
   "gui.recruits.inv.text.promote" : "Promote",
-  "gui.recruits.inv.tooltip.promote" : "Promote this recruit to a Companion.",
+  "gui.recruits.inv.tooltip.promote" : "Coming Soon: Promote this recruit to a Companion!",
 
   "gui.recruits.inv.text.messenger" : "Messenger",
   "gui.recruits.inv.tooltip.messenger" : "A Messenger can deliver items and messages to other players.",
