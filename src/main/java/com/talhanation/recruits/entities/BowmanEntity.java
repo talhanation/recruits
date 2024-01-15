@@ -101,7 +101,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
                 .add(Attributes.MOVEMENT_SPEED, 0.31D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
-                .add(Attributes.FOLLOW_RANGE, 55.0D); //do not change as ranged ai dependants on it
+                .add(Attributes.FOLLOW_RANGE, 64.0D); //do not change as ranged ai dependants on it
     }
 
     @Override
