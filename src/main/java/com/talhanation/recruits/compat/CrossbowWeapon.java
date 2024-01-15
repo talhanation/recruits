@@ -89,7 +89,7 @@ public class CrossbowWeapon implements IWeapon {
         double distance = shooter.distanceToSqr(x, y, z);
         double heightDiff = y - shooter.getY();
 
-        double angle = IRangedRecruit.getAngleDistanceModifier(distance, 400, 1) + IRangedRecruit.getAngleHeightModifier(distance, heightDiff, 1.00D) / 100;
+        double angle = IRangedRecruit.getAngleDistanceModifier(distance, 400, 1) + IRangedRecruit.getAngleHeightModifier(distance, heightDiff, 0.01D) / 100;
 
         projectile.shoot(d0, d1 + d3 * angle, d2, force, accuracy);
 
