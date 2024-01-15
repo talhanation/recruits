@@ -65,8 +65,8 @@
   "gui.recruits.inv.info.text.follow": "Takip Ediyor",
   "gui.recruits.inv.info.text.hold_pos": "Pozisyon Tutiyor",
   "gui.recruits.inv.info.text.protect": "Koruyor",
-  "gui.recruits.inv.info.text.listen": "Dinlemeke",
-  "gui.recruits.inv.info.text.ignore": "Dinlememeke",
+  "gui.recruits.inv.info.text.listen": "Dinliyor",
+  "gui.recruits.inv.info.text.ignore": "Dinlemiyor",
 
 
   "gui.recruits.hire_gui.text.hire": "İşe Al",
