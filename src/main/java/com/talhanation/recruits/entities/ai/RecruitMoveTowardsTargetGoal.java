@@ -23,7 +23,6 @@ public class RecruitMoveTowardsTargetGoal extends Goal {
         this.within = within;
     }
 
-
     public boolean canUse() {
         this.target = this.recruit.getTarget();
         if (this.recruit.getState() == 3 || recruit.getShouldMount() || recruit.needsToGetFood() || this.recruit.isFollowing()){
@@ -60,15 +59,15 @@ public class RecruitMoveTowardsTargetGoal extends Goal {
     public void start() {
         if (!this.recruit.isFollowing()) {
             this.recruit.getNavigation().moveTo(this.wantedX, this.wantedY, this.wantedZ, this.speedModifier);
-            if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
-                this.recruit.getJumpControl().jump();
-            }
         }
     }
 
     public void tick(){
         if (this.target == null){
             stop();
+        }
+        if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
+            this.recruit.getJumpControl().jump();
         }
     }
 }
