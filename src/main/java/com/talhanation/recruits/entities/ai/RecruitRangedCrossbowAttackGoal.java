@@ -72,12 +72,11 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
     }
 
     public void tick() {
-        Main.LOGGER.info("state: " + state);
         LivingEntity target = this.crossBowman.getTarget();
 
         if (target != null && target.isAlive()) {
             double distanceToTarget = target.distanceToSqr(this.crossBowman);
-            boolean isFar = distanceToTarget >= 3400;
+            boolean isFar = distanceToTarget >= 4200;
             boolean inRange = !isFar;
 
 

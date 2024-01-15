@@ -34,8 +34,8 @@ public interface IRangedRecruit extends RangedAttackMob {
             return 0;
     }
 
-    static double getAngleDistanceModifier(double distance, int x, int randomRange) {
+    static double getAngleDistanceModifier(double distance, int x, int random) {
         double modifier = distance/x;
-        return (modifier - random.nextInt(-randomRange, randomRange)) /100;
+        return (modifier - IRangedRecruit.random.nextInt(-random, random)) /100;
     }
 }
