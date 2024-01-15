@@ -134,14 +134,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         if(this instanceof IStrategicFire && this.tickCount % 20 == 0) pickUpArrows();
         if(needsTeamUpdate) updateTeam();
-
-        if(dismount > 0){
-            dismount--;
-            this.stopRiding();
-
-            if(this.tickCount % 40 == 0)
-                this.getJumpControl().jump();
-        }
     }
     public void tick() {
         super.tick();
@@ -194,11 +186,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(1, new FleeTNT(this));
         this.goalSelector.addGoal(1, new FleeFire(this));
         this.goalSelector.addGoal(6, new OpenDoorGoal(this, true) {});
+
         this.goalSelector.addGoal(1, new RecruitProtectEntityGoal(this));
         this.goalSelector.addGoal(0, new RecruitEatGoal(this));
         this.goalSelector.addGoal(5, new RecruitUpkeepPosGoal(this));
         this.goalSelector.addGoal(6, new RecruitUpkeepEntityGoal(this));
         this.goalSelector.addGoal(3, new RecruitMountEntity(this));
+        this.goalSelector.addGoal(3, new RecruitDismountEntity(this));
         this.goalSelector.addGoal(4, new RecruitMoveToPosGoal(this, 1.05D));
         this.goalSelector.addGoal(2, new RecruitFollowOwnerGoal(this, 1.05D, RecruitsServerConfig.RecruitFollowStartDistance.get()));
         this.goalSelector.addGoal(2, new RecruitMeleeAttackGoal(this, 1.05D, false, this.getMeleeStartRange()));
