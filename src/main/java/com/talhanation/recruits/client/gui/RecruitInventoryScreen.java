@@ -297,7 +297,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                         this.renderTooltip(poseStack, TOOLTIP_PROMOTE, i, i1);
                     }
             ));
-            promoteButton.active = recruit.getXpLevel() >= 3;
+            promoteButton.active = false || recruit.getXpLevel() >= 3;
         }
     }
 
