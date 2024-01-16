@@ -10,7 +10,6 @@ public class RecruitEatGoal extends Goal {
 
     public AbstractRecruitEntity recruit;
     public ItemStack foodStack;
-    public ItemStack beforeItem;
     public int slotID;
 
     public RecruitEatGoal(AbstractRecruitEntity recruit) {
