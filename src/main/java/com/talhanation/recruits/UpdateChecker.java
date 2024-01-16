@@ -23,7 +23,7 @@ public class UpdateChecker {
             VersionChecker.Status status = VersionChecker.getResult((ModList.get().getModContainerById("recruits").get()).getModInfo()).status();
             switch (status){
                 case OUTDATED -> {
-                    Player player = event.getPlayer();
+                    Player player = event.getEntity();
                     if(player != null){
 						player.sendSystemMessage(Component.literal("A new version of Villager Recruits is available!").withStyle(ChatFormatting.GOLD));
 						MutableComponent link = Component.literal("Download the update " + ChatFormatting.BLUE + "here").withStyle(ChatFormatting.GREEN);

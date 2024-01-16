@@ -10,8 +10,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -34,39 +32,39 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private AbstractLeaderEntity.State state;
     private AbstractLeaderEntity.InfoMode infoMode;
 
-    private static final MutableComponent TOOLTIP_START = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_start");
-    private static final MutableComponent TOOLTIP_STOP = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_stop");
-    private static final MutableComponent TOOLTIP_PAUSE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_pause");
-    private static final MutableComponent TOOLTIP_RESUME = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_resume");
+    private static final MutableComponent TOOLTIP_START = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_start");
+    private static final MutableComponent TOOLTIP_STOP = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_stop");
+    private static final MutableComponent TOOLTIP_PAUSE = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_pause");
+    private static final MutableComponent TOOLTIP_RESUME = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_resume");
 
-    private static final MutableComponent BUTTON_START = new TranslatableComponent("gui.recruits.inv.text.start");
-    private static final MutableComponent BUTTON_STOP = new TranslatableComponent("gui.recruits.inv.text.stop");
-    private static final MutableComponent BUTTON_PAUSE = new TranslatableComponent("gui.recruits.inv.text.pause");
-    private static final MutableComponent BUTTON_RESUME = new TranslatableComponent("gui.recruits.inv.text.resume");
+    private static final MutableComponent BUTTON_START = Component.translatable("gui.recruits.inv.text.start");
+    private static final MutableComponent BUTTON_STOP = Component.translatable("gui.recruits.inv.text.stop");
+    private static final MutableComponent BUTTON_PAUSE = Component.translatable("gui.recruits.inv.text.pause");
+    private static final MutableComponent BUTTON_RESUME = Component.translatable("gui.recruits.inv.text.resume");
 
 
-    private static final MutableComponent TOOLTIP_CYCLE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_cycle");
-    private static final MutableComponent TOOLTIP_LINE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_line");
+    private static final MutableComponent TOOLTIP_CYCLE = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_cycle");
+    private static final MutableComponent TOOLTIP_LINE = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_line");
 
-    private static final MutableComponent BUTTON_CYCLE = new TranslatableComponent("gui.recruits.inv.text.cycle");
-    private static final MutableComponent BUTTON_LINE = new TranslatableComponent("gui.recruits.inv.text.line");
+    private static final MutableComponent BUTTON_CYCLE = Component.translatable("gui.recruits.inv.text.cycle");
+    private static final MutableComponent BUTTON_LINE = Component.translatable("gui.recruits.inv.text.line");
 
-    private static final MutableComponent INFO_MODE_ALL = new TranslatableComponent("gui.recruits.inv.text.infomode.all");
-    private static final MutableComponent INFO_MODE_HOSTILE = new TranslatableComponent("gui.recruits.inv.text.infomode.hostiles");
-    private static final MutableComponent INFO_MODE_ENEMY = new TranslatableComponent("gui.recruits.inv.text.infomode.enemies");
-    private static final MutableComponent INFO_MODE_NONE = new TranslatableComponent("gui.recruits.inv.text.infomode.none");
-    private static final MutableComponent TOOLTIP_ADD = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_add");
-    private static final MutableComponent TOOLTIP_REMOVE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_remove");
-    private static final MutableComponent TOOLTIP_INFO_MODE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_info_mode");
+    private static final MutableComponent INFO_MODE_ALL = Component.translatable("gui.recruits.inv.text.infomode.all");
+    private static final MutableComponent INFO_MODE_HOSTILE = Component.translatable("gui.recruits.inv.text.infomode.hostiles");
+    private static final MutableComponent INFO_MODE_ENEMY = Component.translatable("gui.recruits.inv.text.infomode.enemies");
+    private static final MutableComponent INFO_MODE_NONE = Component.translatable("gui.recruits.inv.text.infomode.none");
+    private static final MutableComponent TOOLTIP_ADD = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_add");
+    private static final MutableComponent TOOLTIP_REMOVE = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_remove");
+    private static final MutableComponent TOOLTIP_INFO_MODE = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_info_mode");
 
-    private static final MutableComponent BUTTON_ASSIGN_RECRUITS = new TranslatableComponent("gui.recruits.inv.text.assign_recruits");
-    private static final MutableComponent TOOLTIP_ASSIGN_RECRUITS = new TranslatableComponent("gui.recruits.inv.tooltip.assign_recruits");
+    private static final MutableComponent BUTTON_ASSIGN_RECRUITS = Component.translatable("gui.recruits.inv.text.assign_recruits");
+    private static final MutableComponent TOOLTIP_ASSIGN_RECRUITS = Component.translatable("gui.recruits.inv.tooltip.assign_recruits");
 
     private static final int fontColor = 4210752;
     private ForgeSlider waitSlider;
 
     public PatrolLeaderScreen(PatrolLeaderContainer container, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, container, playerInventory, new TextComponent(""));
+        super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""));
         this.imageWidth = 211;
         this.imageHeight = 250;
         this.player = container.getPlayerEntity();
@@ -160,8 +158,8 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         int minValue = 0;
         int maxValue = 30;
         int step = 0;
-        Component prefix = new TextComponent("");
-        Component suffix = new TextComponent(" min");
+        Component prefix = Component.literal("");
+        Component suffix = Component.literal(" min");
 
         this.waitSlider = new ForgeSlider(this.leftPos + 16,this.topPos + 36, 179, 20, prefix,  suffix,  minValue, maxValue, recruit.getWaitTimeInMin(),step, 0, true);
         addRenderableWidget(waitSlider);
@@ -251,7 +249,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
 
     public Button createPageBackButton() {
-        return addRenderableWidget(new Button(leftPos + 15, topPos + 230, 12, 12, new TextComponent("<"),
+        return addRenderableWidget(new Button(leftPos + 15, topPos + 230, 12, 12, Component.literal("<"),
                 button -> {
                     if(this.page > 1) page--;
                     this.setButtons();
@@ -260,7 +258,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
 
     public Button createPageForwardButton() {
-        return addRenderableWidget(new Button(leftPos + 184, topPos + 230, 12, 12, new TextComponent(">"),
+        return addRenderableWidget(new Button(leftPos + 184, topPos + 230, 12, 12, Component.literal(">"),
                 button -> {
                     page++;
                     this.setButtons();
@@ -269,7 +267,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
 
     private Button createAddWaypointButton(int x, int y){
-        return addRenderableWidget(new Button(x, y, 20, 20, new TextComponent("+"),
+        return addRenderableWidget(new Button(x, y, 20, 20, Component.literal("+"),
                 button -> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderAddWayPoint(recruit.getUUID()));
                     this.setButtons();
@@ -281,7 +279,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
 
     private Button createRemoveWaypointButton(int x, int y){
-        return addRenderableWidget(new Button(x, y, 20, 20, new TextComponent("-"),
+        return addRenderableWidget(new Button(x, y, 20, 20, Component.literal("-"),
                 button -> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderRemoveWayPoint(recruit.getUUID()));
                     this.setButtons();

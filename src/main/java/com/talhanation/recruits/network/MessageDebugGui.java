@@ -4,7 +4,7 @@ import com.talhanation.recruits.DebugEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -37,7 +37,7 @@ public class MessageDebugGui implements Message<MessageDebugGui> {
 
             if (recruit.getUUID().equals(this.uuid)){
                 DebugEvents.handleMessage(id, recruit);
-                recruit.setCustomName(new TextComponent(name));
+                recruit.setCustomName(Component.literal(name));
             }
         }
 

@@ -8,6 +8,7 @@ import com.talhanation.recruits.client.render.layer.RecruitArmorLayer;
 import com.talhanation.recruits.client.render.villager.*;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.init.ModEntityTypes;
+import de.maxhenkel.corelib.CommonRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.entity.EntityRenderers;
@@ -16,9 +17,11 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 
 import javax.annotation.Nullable;
 
@@ -30,7 +33,8 @@ public class ClientEvent {
     public static ModelLayerLocation RECRUIT_INNER_ARMOR = new ModelLayerLocation(new ResourceLocation(Main.MOD_ID + "recruit_inner_layer"), "recruit_inner_layer");
 
     @SubscribeEvent
-    public static void clientSetup(EntityRenderersEvent.RegisterRenderers event){
+    @OnlyIn(Dist.CLIENT)
+    public static void entityRenderersEvent(EntityRenderersEvent.RegisterRenderers event){
         if(RecruitsClientConfig.RecruitsLookLikeVillagers.get()){
             EntityRenderers.register(ModEntityTypes.RECRUIT.get(), RecruitVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.BOWMAN.get(), BowmanVillagerRenderer::new );

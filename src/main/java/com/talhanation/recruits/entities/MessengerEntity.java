@@ -9,7 +9,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -104,7 +103,7 @@ public class MessengerEntity extends AbstractRecruitEntity implements ICompanion
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data, @Nullable CompoundTag nbt) {
         SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
         ((GroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
-        this.populateDefaultEquipmentEnchantments(difficultyInstance);
+        this.populateDefaultEquipmentEnchantments(random, difficultyInstance);
 
         this.initSpawn();
 
@@ -144,7 +143,7 @@ public class MessengerEntity extends AbstractRecruitEntity implements ICompanion
 
     public void openSpecialGUI(Player player) {
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {
                     return MessengerEntity.this.getName();
@@ -195,7 +194,7 @@ public class MessengerEntity extends AbstractRecruitEntity implements ICompanion
             MinecraftServer server = serverLevel.getServer();
             ServerPlayer targetPlayer = server.getPlayerList().getPlayerByName(this.getTargetPlayerName());
             if(targetPlayer == null && this.getOwner() != null){
-                this.getOwner().sendMessage(PLAYER_NOT_FOUND(), this.getOwnerUUID());
+                this.getOwner().sendSystemMessage(PLAYER_NOT_FOUND());
                 return;
             }
 
@@ -215,20 +214,20 @@ public class MessengerEntity extends AbstractRecruitEntity implements ICompanion
 
     public void tellTargetPlayerArrived(ServerPlayer target){
         Team ownerTeam = this.getTeam();
-        if(ownerTeam != null )target.sendMessage(MESSENGER_ARRIVED_TEAM(this.getOwnerName(), ownerTeam.getName()), target.getUUID());
-        else target.sendMessage(MESSENGER_ARRIVED(this.getOwnerName()), target.getUUID());
+        if(ownerTeam != null )target.sendSystemMessage(MESSENGER_ARRIVED_TEAM(this.getOwnerName(), ownerTeam.getName()));
+        else target.sendSystemMessage(MESSENGER_ARRIVED(this.getOwnerName()));
     }
 
     private MutableComponent PLAYER_NOT_FOUND(){
-        return new TranslatableComponent("chat.recruits.text.messenger_player_not_found", this.getName().getString());
+        return Component.translatable("chat.recruits.text.messenger_player_not_found", this.getName().getString());
     }
 
     private MutableComponent MESSENGER_ARRIVED(String ownerName){
-        return new TranslatableComponent("chat.recruits.text.messenger_arrived_at_target", this.getName().getString(), ownerName);
+        return Component.translatable("chat.recruits.text.messenger_arrived_at_target", this.getName().getString(), ownerName);
     }
 
     private MutableComponent MESSENGER_ARRIVED_TEAM(String ownerName, String teamName){
-        return new TranslatableComponent("chat.recruits.text.messenger_arrived_at_target_team", this.getName().getString(), ownerName, teamName);
+        return Component.translatable("chat.recruits.text.messenger_arrived_at_target_team", this.getName().getString(), ownerName, teamName);
     }
 
 

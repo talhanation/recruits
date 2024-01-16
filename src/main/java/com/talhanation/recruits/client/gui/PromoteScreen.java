@@ -12,8 +12,6 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -28,37 +26,37 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
     private int leftPos;
     private int topPos;
 
-    private static final MutableComponent BUTTON_MESSENGER = new TranslatableComponent("gui.recruits.inv.text.messenger");
-    private static final MutableComponent TOOLTIP_MESSENGER = new TranslatableComponent("gui.recruits.inv.tooltip.messenger");
+    private static final MutableComponent BUTTON_MESSENGER = Component.translatable("gui.recruits.inv.text.messenger");
+    private static final MutableComponent TOOLTIP_MESSENGER = Component.translatable("gui.recruits.inv.tooltip.messenger");
 
-    private static final MutableComponent BUTTON_PATROL_LEADER = new TranslatableComponent("gui.recruits.inv.text.patrol_leader");
-    private static final MutableComponent TOOLTIP_PATROL_LEADER = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader");
-    private static final MutableComponent BUTTON_CAPTAIN = new TranslatableComponent("gui.recruits.inv.text.captain");
-    private static final MutableComponent TOOLTIP_CAPTAIN = new TranslatableComponent("gui.recruits.inv.tooltip.captain");
+    private static final MutableComponent BUTTON_PATROL_LEADER = Component.translatable("gui.recruits.inv.text.patrol_leader");
+    private static final MutableComponent TOOLTIP_PATROL_LEADER = Component.translatable("gui.recruits.inv.tooltip.patrol_leader");
+    private static final MutableComponent BUTTON_CAPTAIN = Component.translatable("gui.recruits.inv.text.captain");
+    private static final MutableComponent TOOLTIP_CAPTAIN = Component.translatable("gui.recruits.inv.tooltip.captain");
 
-    private static final MutableComponent BUTTON_SCOUT = new TranslatableComponent("gui.recruits.inv.text.scout");
-    private static final MutableComponent TOOLTIP_SCOUT = new TranslatableComponent("gui.recruits.inv.tooltip.scout");
+    private static final MutableComponent BUTTON_SCOUT = Component.translatable("gui.recruits.inv.text.scout");
+    private static final MutableComponent TOOLTIP_SCOUT = Component.translatable("gui.recruits.inv.tooltip.scout");
 
-    private static final MutableComponent BUTTON_GOVERNOR = new TranslatableComponent("gui.recruits.inv.text.governor");
-    private static final MutableComponent TOOLTIP_GOVERNOR = new TranslatableComponent("gui.recruits.inv.tooltip.governor");
+    private static final MutableComponent BUTTON_GOVERNOR = Component.translatable("gui.recruits.inv.text.governor");
+    private static final MutableComponent TOOLTIP_GOVERNOR = Component.translatable("gui.recruits.inv.tooltip.governor");
 
-    private static final MutableComponent BUTTON_ASSASSIN = new TranslatableComponent("gui.recruits.inv.text.assassin");
-    private static final MutableComponent TOOLTIP_ASSASSIN = new TranslatableComponent("gui.recruits.inv.tooltip.assassin");
+    private static final MutableComponent BUTTON_ASSASSIN = Component.translatable("gui.recruits.inv.text.assassin");
+    private static final MutableComponent TOOLTIP_ASSASSIN = Component.translatable("gui.recruits.inv.tooltip.assassin");
 
-    private static final MutableComponent BUTTON_SPY = new TranslatableComponent("gui.recruits.inv.text.spy");
-    private static final MutableComponent TOOLTIP_SPY = new TranslatableComponent("gui.recruits.inv.tooltip.spy");
+    private static final MutableComponent BUTTON_SPY = Component.translatable("gui.recruits.inv.text.spy");
+    private static final MutableComponent TOOLTIP_SPY = Component.translatable("gui.recruits.inv.tooltip.spy");
 
-    private static final MutableComponent BUTTON_SIEGE_ENGINEER = new TranslatableComponent("gui.recruits.inv.text.siege_engineer");
-    private static final MutableComponent TOOLTIP_SIEGE_ENGINEER = new TranslatableComponent("gui.recruits.inv.tooltip.siege_engineer");
+    private static final MutableComponent BUTTON_SIEGE_ENGINEER = Component.translatable("gui.recruits.inv.text.siege_engineer");
+    private static final MutableComponent TOOLTIP_SIEGE_ENGINEER = Component.translatable("gui.recruits.inv.tooltip.siege_engineer");
 
-    private static final MutableComponent BUTTON_ROGUE = new TranslatableComponent("gui.recruits.inv.text.rogue");
-    private static final MutableComponent TOOLTIP_ROGUE = new TranslatableComponent("gui.recruits.inv.tooltip.rogue");
+    private static final MutableComponent BUTTON_ROGUE = Component.translatable("gui.recruits.inv.text.rogue");
+    private static final MutableComponent TOOLTIP_ROGUE = Component.translatable("gui.recruits.inv.tooltip.rogue");
 
     //private boolean keepTeam;
 
 
     public PromoteScreen(PromoteContainer container, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, container, playerInventory, new TextComponent(""));
+        super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""));
         this.imageWidth = 197;
         this.imageHeight = 250;
         this.player = container.getPlayerEntity();
@@ -78,7 +76,7 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
 
     private void setEditBox() {
         minecraft.keyboardHandler.setSendRepeatsToGui(true);
-        Component name = new TextComponent("Name");
+        Component name = Component.literal("Name");
         if(recruit.getCustomName() != null) name = recruit.getCustomName();
 
         textField = new EditBox(font, leftPos + 16, topPos + 8, 170, 20, name);

@@ -46,7 +46,7 @@ public class NomadAttackAI extends Goal {
 
     protected boolean isHoldingBow() {
         String name = nomad.getMainHandItem().getDescriptionId();
-        if(this.nomad.isHolding(bow -> bow.is(Tags.Items.TOOLS_BOWS))){
+        if(this.nomad.isHolding(bow -> bow.is(Items.BOW))){
             return true;
         }
         else if (this.nomad.isHolding(bow -> bow.getItem() instanceof BowItem))

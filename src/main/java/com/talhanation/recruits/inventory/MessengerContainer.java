@@ -2,6 +2,8 @@ package com.talhanation.recruits.inventory;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.MessengerEntity;
+import com.talhanation.recruits.init.ModEntityTypes;
+import com.talhanation.recruits.init.ModScreens;
 import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
@@ -13,7 +15,7 @@ public class MessengerContainer extends ContainerBase {
     private final MessengerEntity recruit;
 
     public MessengerContainer(int id, Player playerEntity, MessengerEntity messenger) {
-        super(Main.MESSENGER, id, playerEntity.getInventory(), messenger.getDeliverSlot());
+        super(ModScreens.MESSENGER.get(), id, playerEntity.getInventory(), messenger.getDeliverSlot());
         this.playerEntity = playerEntity;
         this.recruit = messenger;
 
