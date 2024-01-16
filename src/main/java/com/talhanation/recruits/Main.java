@@ -44,18 +44,23 @@ public class Main {
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, RecruitsClientConfig.CLIENT);
         RecruitsClientConfig.loadConfig(RecruitsClientConfig.CLIENT, FMLPaths.CONFIGDIR.get().resolve("recruits-client.toml"));
 
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().addListener(Main.this::clientSetup));
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
+                    FMLJavaModLoadingContext.get().getModEventBus().addListener(Main.this::clientSetup);
+                    FMLJavaModLoadingContext.get().getModEventBus().addListener(ModShortcuts::registerBindings);
+                }
+        );
 
-        modEventBus.addGenericListener(PoiType.class, this::registerPointsOfInterest);
-        modEventBus.addGenericListener(VillagerProfession.class, this::registerVillagerProfessions);
-        modEventBus.addGenericListener(MenuType.class, this::registerContainers);
-        ModItems.ITEMS.register(modEventBus);
+        modEventBus.addListener(this::setup);
         ModBlocks.BLOCKS.register(modEventBus);
+        ModPois.POIS.register(modEventBus);
+        ModProfessions.PROFESSIONS.register(modEventBus);
+        ModScreens.MENU_TYPES.register(modEventBus);
+        ModItems.ITEMS.register(modEventBus);
         ModEntityTypes.ENTITY_TYPES.register(modEventBus);
-        //ModSounds.SOUNDS.register(modEventBus);
 
+        //ModSounds.SOUNDS.register(modEventBus);
         MinecraftForge.EVENT_BUS.register(this);
-        }
+    }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void setup(final FMLCommonSetupEvent event) {
