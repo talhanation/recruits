@@ -2,8 +2,6 @@ package com.talhanation.recruits.config;
 
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
-import com.talhanation.recruits.world.RecruitsTeamSavedData;
-import de.maxhenkel.corelib.config.ConfigBase;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.Mod;
 
@@ -13,7 +11,9 @@ import java.util.Arrays;
 import java.util.List;
 
 @Mod.EventBusSubscriber
-public class RecruitsServerConfig extends ConfigBase {
+public class RecruitsServerConfig{
+    private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+    public static ForgeConfigSpec SERVER;
     public static ForgeConfigSpec.BooleanValue RecruitTablesPOIReleasing;
     public static ForgeConfigSpec.BooleanValue OverrideIronGolemSpawn;
     public static ForgeConfigSpec.BooleanValue PillagerFriendlyFire;
@@ -91,8 +91,7 @@ public class RecruitsServerConfig extends ConfigBase {
 
     public static ArrayList<String> list = new ArrayList<>();
 
-    public RecruitsServerConfig(ForgeConfigSpec.Builder BUILDER) {
-        super(BUILDER);
+    static {
         BUILDER.comment("Recruits Config:").push("Recruits");
 
         UpdateCheckerServerside = BUILDER.comment("""
@@ -573,6 +572,19 @@ public class RecruitsServerConfig extends ConfigBase {
                         \tdefault: true""")
                 .worldRestart()
                 .define("GlobalTeamSeeFriendlyInvisibleSetting", true);
+
+
+        SERVER = BUILDER.build();
+    }
+
+    public static void loadConfig(ForgeConfigSpec spec, Path path) {
+        CommentedFileConfig configData = CommentedFileConfig.builder(path)
+                .sync()
+                .autosave()
+                .writingMode(WritingMode.REPLACE)
+                .build();
+        configData.load();
+        spec.setConfig(configData);
     }
 }
 

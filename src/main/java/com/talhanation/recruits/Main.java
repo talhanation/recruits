@@ -34,11 +34,13 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.network.IContainerFactory;
 import net.minecraftforge.network.simple.SimpleChannel;
 import org.apache.logging.log4j.LogManager;
@@ -87,22 +89,27 @@ public class Main {
     public static boolean isSiegeWeaponsLoaded;
 
     public Main() {
-        CommonRegistry.registerConfig(ModConfig.Type.CLIENT, RecruitsClientConfig.class);
-        CommonRegistry.registerConfig(ModConfig.Type.SERVER, RecruitsServerConfig.class);
-
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-
         modEventBus.addListener(this::setup);
+
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, RecruitsServerConfig.SERVER);
+        RecruitsServerConfig.loadConfig(RecruitsServerConfig.SERVER, FMLPaths.MODSDIR.get().resolve("recruits-server.toml"));
+
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, RecruitsClientConfig.CLIENT);
+        RecruitsClientConfig.loadConfig(RecruitsClientConfig.CLIENT, FMLPaths.CONFIGDIR.get().resolve("recruits-client.toml"));
+
+
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().addListener(Main.this::clientSetup));
+
         modEventBus.addGenericListener(PoiType.class, this::registerPointsOfInterest);
         modEventBus.addGenericListener(VillagerProfession.class, this::registerVillagerProfessions);
         modEventBus.addGenericListener(MenuType.class, this::registerContainers);
-        ModEntityTypes.ENTITY_TYPES.register(modEventBus);
-        ModBlocks.BLOCKS.register(modEventBus);
-        //ModSounds.SOUNDS.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
+        ModBlocks.BLOCKS.register(modEventBus);
+        ModEntityTypes.ENTITY_TYPES.register(modEventBus);
+        //ModSounds.SOUNDS.register(modEventBus);
         MinecraftForge.EVENT_BUS.register(this);
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().addListener(Main.this::clientSetup));
-    }
+        }
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void setup(final FMLCommonSetupEvent event) {
         MinecraftForge.EVENT_BUS.register(new RecruitEvents());
@@ -179,11 +186,12 @@ public class Main {
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
         isSmallShipsLoaded = ModList.get().isLoaded("smallships");//small ships
         isSiegeWeaponsLoaded = ModList.get().isLoaded("siegeweapons");//siege weapons
-        String smallshipsversion = ModList.get().getModFileById("smallships").versionString();//2.0.0-a2.3.1 above shall be supported e.g.: "2.0.0-b1.0"
 
-        isSmallShipsCompatible = smallshipsversion.contains("2.0.0-b1");//TODO: Better Version check for compatible smallships version
-
-        Main.LOGGER.info("smallships version: " + smallshipsversion);
+        if(isSmallShipsLoaded){
+            String smallshipsversion = ModList.get().getModFileById("smallships").versionString();//2.0.0-a2.3.1 above shall be supported e.g.: "2.0.0-b1.0"
+            isSmallShipsCompatible = smallshipsversion.contains("2.0.0-b1");//TODO: Better Version check for compatible smallships version
+            Main.LOGGER.info("smallships version: " + smallshipsversion);
+        }
     }
 
     @SubscribeEvent
