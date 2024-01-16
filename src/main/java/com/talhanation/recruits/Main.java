@@ -36,29 +36,27 @@ public class Main {
     public static boolean isSiegeWeaponsLoaded;
 
     public Main() {
-        CommonRegistry.registerConfig(ModConfig.Type.CLIENT, RecruitsClientConfig.class);
-        CommonRegistry.registerConfig(ModConfig.Type.SERVER, RecruitsServerConfig.class);
-
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-        modEventBus.addListener(this::setup);
-        ModBlocks.BLOCKS.register(modEventBus);
-        ModPois.POIS.register(modEventBus);
-        ModProfessions.PROFESSIONS.register(modEventBus);
-        ModScreens.MENU_TYPES.register(modEventBus);
-        ModEntityTypes.ENTITY_TYPES.register(modEventBus);
 
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, RecruitsServerConfig.SERVER);
+        RecruitsServerConfig.loadConfig(RecruitsServerConfig.SERVER, FMLPaths.MODSDIR.get().resolve("recruits-server.toml"));
+
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, RecruitsClientConfig.CLIENT);
+        RecruitsClientConfig.loadConfig(RecruitsClientConfig.CLIENT, FMLPaths.CONFIGDIR.get().resolve("recruits-client.toml"));
+
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().addListener(Main.this::clientSetup));
+
+        modEventBus.addGenericListener(PoiType.class, this::registerPointsOfInterest);
+        modEventBus.addGenericListener(VillagerProfession.class, this::registerVillagerProfessions);
+        modEventBus.addGenericListener(MenuType.class, this::registerContainers);
         ModItems.ITEMS.register(modEventBus);
-
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::addCreativeTabs);
+        ModBlocks.BLOCKS.register(modEventBus);
+        ModEntityTypes.ENTITY_TYPES.register(modEventBus);
+        //ModSounds.SOUNDS.register(modEventBus);
 
         MinecraftForge.EVENT_BUS.register(this);
+        }
 
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-            FMLJavaModLoadingContext.get().getModEventBus().addListener(Main.this::clientSetup);
-            FMLJavaModLoadingContext.get().getModEventBus().addListener(ModShortcuts::registerBindings);
-        });
-
-    }
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void setup(final FMLCommonSetupEvent event) {
         MinecraftForge.EVENT_BUS.register(new RecruitEvents());
