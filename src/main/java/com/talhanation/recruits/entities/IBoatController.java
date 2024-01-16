@@ -28,9 +28,9 @@ public interface IBoatController {
     void setSailPos(BlockPos pos);
 
     default void updateBoatControl(double posX, double posZ, double speedFactor, double turnFactor, Path path){
-        if(this.getCaptain().getVehicle() instanceof Boat boat && boat.getPassengers().get(0).equals(this.getCaptain())) {
+        if(getCaptain().getVehicle() instanceof Boat boat && boat.getPassengers().get(0).equals(this.getCaptain())) {
             String string = boat.getEncodeId();
-            if (Main.isSmallshipsLoaded && (string.contains("smallships"))) {
+            if (Main.isSmallShipsLoaded && Main.isSmallShipsCompatible && (string.contains("smallships"))) {
                 boolean onPosIsDeep = getWaterDepth(boat.getOnPos(), this.getCaptain()) >= 7;
                 boolean following = getCaptain().getFollowState() == 1 && getCaptain().getOwner() != null;
                 BlockPos targetPos = new BlockPos(posX, getCaptain().getY(), posZ);
@@ -229,53 +229,27 @@ public interface IBoatController {
     static float getVelocityResistance(){
         return 0.007F;
     }
-/*
-    static void shootCannonsSmallShip(Boat boat, double pos){
-        float maxRotSp = 2.0F;
-        float boatRotSpeed = 0;
-        float rotAcceleration = 0.35F;
+
+    static void shootCannonsSmallShip(CaptainEntity driver, Boat boat, LivingEntity target){
+        double distanceToTarget = driver.distanceToSqr(target);
+        double speed = 2.2F;
+        double accuracy = 5F;// 0 = 100%
+        Vec3 shootVec = getShootVector(boat.getForward(), driver);
+        double yShootVec = shootVec.y() + distanceToTarget/48;
         try{
-            Class<?> shipClass = Class.forName("com.talhanation.smallships.world.entity.ship.Ship");
-            if(shipClass.isInstance(boat)) {
-                Object ship = shipClass.cast(boat);
+            Class<?> cannonAbleClass = Class.forName("com.talhanation.smallships.world.entity.ship.abilities.Cannonable");
+            if(cannonAbleClass.isInstance(boat)){
+                Object cannonAble = cannonAbleClass.cast(boat);
+                Method cannonAbleClassTriggerCannons = cannonAbleClass.getMethod("triggerCannons", Vec3.class, double.class, LivingEntity.class, double.class, double.class);
 
-                Method shipClassSetRotSpeed = shipClass.getMethod("setRotSpeed", float.class);
-                Method shipClassGetRotSpeed = shipClass.getMethod("getRotSpeed");
-                Method shipClassUpdateControls = shipClass.getMethod("updateControls", boolean.class, boolean.class, boolean.class, boolean.class, Player.class);
-
-                boatRotSpeed = (float) shipClassGetRotSpeed.invoke(ship);
-
-                shipClassUpdateControls.invoke(ship,false, false, inputLeft, inputRight, null);
-
-                //CALCULATE ROTATION SPEED//
-                float rotationSpeed = subtractToZero(boatRotSpeed, getVelocityResistance() * 2.5F);
-
-                if (inputRight) {
-                    if (rotationSpeed < maxRotSp) {
-                        rotationSpeed = Math.min(rotationSpeed + rotAcceleration * 1 / 8, maxRotSp);
-                    }
-                }
-
-                if (inputLeft) {
-                    if (rotationSpeed > -maxRotSp) {
-                        rotationSpeed = Math.max(rotationSpeed - rotAcceleration * 1 / 8, -maxRotSp);
-                    }
-                }
-
-                //ship.setRotSpeed(rotationSpeed);
-
-                boat.deltaRotation = rotationSpeed;
-                boat.setYRot(boat.getYRot() + boat.deltaRotation);
-
-                shipClassSetRotSpeed.invoke(ship, rotationSpeed);
-
+                cannonAbleClassTriggerCannons.invoke(cannonAble,  shootVec, yShootVec, driver, speed, accuracy);
             }
-        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            Main.LOGGER.info("shipClass was not found");
+
+        }
+        catch (ClassNotFoundException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            Main.LOGGER.info("Cannonable Class was not found");
         }
     }
-
- */
 
     default void updateVanillaBoatControl(Boat boat, double posX, double posZ, double speedFactor, double turnFactor){
         Vec3 forward = boat.getForward().yRot(-90).normalize();
@@ -400,5 +374,22 @@ public interface IBoatController {
             else break;
         }
         return depth;
+    }
+
+    //From smallships
+    static Vec3 getShootVector(Vec3 forward, LivingEntity driver) {
+        Vec3 VecRight = forward.yRot(-3.14F / 2).normalize();
+        Vec3 VecLeft = forward.yRot(3.14F / 2).normalize();
+
+        Vec3 playerVec = driver.getLookAngle().normalize();
+
+        if (playerVec.distanceTo(VecLeft) > playerVec.distanceTo(VecRight)) {
+            return VecRight;
+        }
+
+        if (playerVec.distanceTo(VecLeft) < playerVec.distanceTo(VecRight)) {
+            return VecLeft;
+        }
+        return null;
     }
 }

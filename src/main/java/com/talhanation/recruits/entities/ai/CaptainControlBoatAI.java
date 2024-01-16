@@ -13,9 +13,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
-import org.lwjgl.system.CallbackI;
 
-import java.util.List;
 import java.util.Optional;
 
 import static com.talhanation.recruits.entities.ai.CaptainControlBoatAI.State.*;
@@ -30,9 +28,10 @@ public class CaptainControlBoatAI extends Goal {
     private BlockPos sailPos;
     private int timer;
     private float precision;
-    private final boolean DEBUG = true;
-    private boolean attacking;
+    public final boolean DEBUG = false;
     private byte stoppingTimer = 0;
+    private int attackingTimeOut = 0;
+    public final int ATTACKING_TIME_OUT = 3000;
 
     public CaptainControlBoatAI(IBoatController sailor) {
         this.captain = sailor.getCaptain();
@@ -73,7 +72,7 @@ public class CaptainControlBoatAI extends Goal {
                 }
             }
 
-            if(sailPosChanged() && !attacking){
+            if(sailPosChanged() && !captain.shipAttacking){
                 this.sailPos = captain.getSailPos();
                 this.state = CREATING_PATH;
             }
@@ -83,7 +82,7 @@ public class CaptainControlBoatAI extends Goal {
                 case IDLE -> {
 
                     if(captain.getTarget() != null && captain.getTarget().isAlive()){
-                        this.attacking = true;
+                        this.captain.shipAttacking = true;
                         this.target = captain.getTarget();
                         this.sailPos = captain.getTarget().getOnPos();
                         this.state = CREATING_PATH;
@@ -157,7 +156,7 @@ public class CaptainControlBoatAI extends Goal {
                     if(distanceToNode >= 5F){
                         captain.updateBoatControl(node.x, node.z, 1.0F, 1.1F, path);
                     }
-                    int reach = attacking ? 4000 : 25;
+                    int reach = captain.shipAttacking ? 3000 : 25;
                     if(captain.distanceToSqr(sailPos.getX(), captain.getY(), sailPos.getZ()) < reach){
                         node = null;
                         path = null;
@@ -171,18 +170,17 @@ public class CaptainControlBoatAI extends Goal {
 
                     if(++this.stoppingTimer > 70){
                         this.stoppingTimer = 0;
-                        state = attacking && captain.getVehicle().getEncodeId().contains("smallships") ? ATTACKING : IDLE;
+                        state = captain.shipAttacking && captain.getVehicle().getEncodeId().contains("smallships") ? ATTACKING : IDLE;
                     }
                 }
 
                 case ATTACKING -> {
-
-                    if(target != null && target.isAlive()){
+                    if(captain.getVehicle() != null && target != null && target.isAlive() && !this.target.equals(this.captain) && ++this.attackingTimeOut < ATTACKING_TIME_OUT){
                         Vec3 toTarget = target.position().subtract(this.captain.position()).normalize();
                         double distanceToTarget = this.captain.distanceToSqr(target.getX(), captain.getY(), target.getZ());
                         if(distanceToTarget > 5000){
                             this.target = null;
-                            this.attacking = false;
+                            this.captain.shipAttacking = false;
                             this.state = IDLE;
                             break;
                         }
@@ -195,10 +193,13 @@ public class CaptainControlBoatAI extends Goal {
                         boolean inputRight = (phi > ref);
 
                         IBoatController.rotateSmallShip((Boat) this.captain.getVehicle(), inputLeft, inputRight);
+
+                        IBoatController.shootCannonsSmallShip(this.captain, (Boat) this.captain.getVehicle(), target);
                     }
                     else {
                         this.target = null;
-                        this.attacking = false;
+                        this.captain.shipAttacking = false;
+                        this.attackingTimeOut = 0;
                         this.state = IDLE;
                     }
                 }
