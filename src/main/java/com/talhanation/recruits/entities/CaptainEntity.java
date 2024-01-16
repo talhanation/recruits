@@ -30,6 +30,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 public class CaptainEntity extends AbstractLeaderEntity implements IBoatController {
+
+    public boolean shipAttacking = false;
     private static final EntityDataAccessor<Optional<BlockPos>> SAIL_POS = SynchedEntityData.defineId(CaptainEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
@@ -139,7 +141,7 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
 
     public float getPrecisionMin(){
         int base = 50;
-        if(this.getVehicle().getEncodeId().contains("smallships")){
+        if(this.getVehicle() != null && this.getVehicle().getEncodeId().contains("smallships")){
             base = 100;
         }
         return base;
@@ -147,7 +149,7 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
 
     public float getPrecisionMax(){
         int base = 150;
-        if(this.getVehicle().getEncodeId().contains("smallships")){
+        if(this.getVehicle() != null && this.getVehicle().getEncodeId().contains("smallships")){
             base = 200;
         }
 
@@ -183,15 +185,14 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
                 if(this.getMovePos() != null){
                     BlockPos pos = this.getMovePos();
                     setSailPos(pos);
+
                 }
             }
 
             case 2,3,4 -> {
                 if(this.getHoldPos() != null){
                     BlockPos pos = this.getHoldPos();
-                    double distance = this.position().distanceToSqr(pos.getX(), pos.getY(), pos.getZ());
-                    if(distance > 75F)
-                        setSailPos(pos);
+                    setSailPos(pos);
                 }
             }
 
@@ -199,6 +200,7 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
 
             }
         }
+        this.shipAttacking = false;
     }
 }
 
