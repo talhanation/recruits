@@ -1,21 +1,23 @@
 package com.talhanation.recruits.config;
 
-import de.maxhenkel.corelib.config.ConfigBase;
+import com.electronwill.nightconfig.core.file.CommentedFileConfig;
+import com.electronwill.nightconfig.core.io.WritingMode;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.Mod;
 
+import java.nio.file.Path;
 
 @Mod.EventBusSubscriber
-public class RecruitsClientConfig extends ConfigBase {
-
+public class RecruitsClientConfig {
+    private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+    public static ForgeConfigSpec CLIENT;
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue CommandScreenToggle;
     public static ForgeConfigSpec.BooleanValue RecruitsLookLikeVillagers;
     public static ForgeConfigSpec.BooleanValue UpdateCheckerClientside;
 
-    public RecruitsClientConfig(ForgeConfigSpec.Builder BUILDER) {
-        super(BUILDER);
 
+    static{
         BUILDER.comment("Recruits Config Client Side:").push("RecruitsClientSide");
 
         PlayVillagerAmbientSound = BUILDER.comment("""
@@ -56,5 +58,17 @@ public class RecruitsClientConfig extends ConfigBase {
                 .define("UpdateCheckerClientside", true);
 
         BUILDER.pop();
+        CLIENT = BUILDER.build();
+    }
+
+
+    public static void loadConfig(ForgeConfigSpec spec, Path path) {
+        CommentedFileConfig configData = CommentedFileConfig.builder(path)
+                .sync()
+                .autosave()
+                .writingMode(WritingMode.REPLACE)
+                .build();
+        configData.load();
+        spec.setConfig(configData);
     }
 }
