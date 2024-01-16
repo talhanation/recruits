@@ -9,7 +9,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -257,7 +256,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
 
                 case RETREATING -> {
                     if(this.getOwner() != null) {
-                        this.getOwner().sendMessage(RETREATING(), this.getOwnerUUID());
+                        this.getOwner().sendSystemMessage(RETREATING());
                     }
                     this.retreating = true;
                     this.setRecruitsClearTargets();
@@ -283,10 +282,10 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         InfoMode infoMode = InfoMode.fromIndex(getInfoMode());
         if(this.getOwner() != null && infoCooldown == 0 && infoMode != InfoMode.NONE){
             if((infoMode == InfoMode.ALL || infoMode == InfoMode.HOSTILE) && (target.getType().getCategory() == MobCategory.MONSTER || target instanceof Pillager)){
-                this.getOwner().sendMessage(HOSTILE_CONTACT(this.getOnPos()), this.getOwnerUUID());
+                this.getOwner().sendSystemMessage(HOSTILE_CONTACT(this.getOnPos()));
             }
             else if((infoMode == InfoMode.ALL || infoMode == InfoMode.ENEMY) && (target instanceof Player || target instanceof AbstractRecruitEntity recruitTarget && (recruitTarget.isOwned() || recruitTarget.getTeam() != null))){
-                this.getOwner().sendMessage(ENEMY_CONTACT(target.getType().toString(), this.getOnPos()), this.getOwnerUUID());
+                this.getOwner().sendSystemMessage(ENEMY_CONTACT(target.getType().toString(), this.getOnPos()));
             }
 
             infoCooldown = 20 * 60;
@@ -421,15 +420,15 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     }
 
     public MutableComponent ENEMY_CONTACT(String name, BlockPos pos){
-        return new TranslatableComponent("chat.recruits.text.patrol_leader_enemy_contact", this.getName().getString(), name, pos.getX(), pos.getY(), pos.getZ());
+        return Component.translatable("chat.recruits.text.patrol_leader_enemy_contact", this.getName().getString(), name, pos.getX(), pos.getY(), pos.getZ());
     }
 
     public MutableComponent HOSTILE_CONTACT(BlockPos pos){
-        return new TranslatableComponent("chat.recruits.text.patrol_leader_hostile_contact", this.getName().getString(), pos.getX(), pos.getY(), pos.getZ());
+        return Component.translatable("chat.recruits.text.patrol_leader_hostile_contact", this.getName().getString(), pos.getX(), pos.getY(), pos.getZ());
     }
 
     public MutableComponent RETREATING(){
-        return new TranslatableComponent("chat.recruits.text.patrol_leader_retreating", this.getName().getString());
+        return Component.translatable("chat.recruits.text.patrol_leader_retreating", this.getName().getString());
     }
 
     public ItemStack getItemStackToRender(BlockPos pos){
@@ -676,7 +675,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
 
     public void openSpecialGUI(Player player) {
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {
                     return AbstractLeaderEntity.this.getName();

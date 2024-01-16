@@ -12,8 +12,6 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -28,14 +26,14 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
     private int leftPos;
     private int topPos;
 
-    private static final MutableComponent TOOLTIP_MESSENGER = new TranslatableComponent("gui.recruits.inv.tooltip.messenger");
-    private static final MutableComponent BUTTON_MESSENGER = new TranslatableComponent("gui.recruits.inv.text.send_messenger");
+    private static final MutableComponent TOOLTIP_MESSENGER = Component.translatable("gui.recruits.inv.tooltip.messenger");
+    private static final MutableComponent BUTTON_MESSENGER = Component.translatable("gui.recruits.inv.text.send_messenger");
     private static final int fontColor = 4210752;
 
     //private boolean keepTeam;
 
     public MessengerScreen(MessengerContainer container, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, container, playerInventory, new TextComponent(""));
+        super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""));
         this.imageWidth = 197;
         this.imageHeight = 250;
         this.player = container.getPlayerEntity();
@@ -52,10 +50,10 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
 
         setSendButton();
 
-        Component componentPlayer = new TextComponent("Player");
+        Component componentPlayer = Component.literal("Player");
         String targetPlayerName = recruit.getTargetPlayerName();
         if (targetPlayerName != null && !targetPlayerName.isEmpty() && !targetPlayerName.isBlank())
-            componentPlayer = new TextComponent(targetPlayerName);
+            componentPlayer = Component.literal(targetPlayerName);
 
         this.textFieldPlayer = new EditBox(font, leftPos + 16, topPos + 19, 160, 20, componentPlayer);
         this.textFieldPlayer.setValue(componentPlayer.getString());
@@ -66,9 +64,9 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
 
         addRenderableWidget(textFieldPlayer);
 
-        Component componentMessage = new TextComponent("Message");
+        Component componentMessage = Component.literal("Message");
         String message = recruit.getMessage();
-        if (message != null && !message.isBlank() && !message.isEmpty()) componentMessage = new TextComponent(message);
+        if (message != null && !message.isBlank() && !message.isEmpty()) componentMessage = Component.literal(message);
 
         textFieldMessage = new EditBox(font, leftPos + 16, topPos + 54, 160, 20, componentMessage);
         this.textFieldMessage.setValue(componentMessage.getString());

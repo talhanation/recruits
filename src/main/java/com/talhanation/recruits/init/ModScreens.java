@@ -3,8 +3,10 @@ package com.talhanation.recruits.init;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.*;
 import com.talhanation.recruits.client.gui.team.*;
+import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
+import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.inventory.*;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.Screen;
@@ -41,6 +43,8 @@ public class ModScreens {
         registerMenu(TEAM_ADD_PLAYER_TYPE.get(), TeamManagePlayerScreen::new);
         registerMenu(DISBAND.get(), DisbandScreen::new);
         registerMenu(PROMOTE.get(), PromoteScreen::new);
+        registerMenu(MESSENGER.get(), MessengerScreen::new);
+        registerMenu(PATROL_LEADER.get(), PatrolLeaderScreen::new);
 
         logger.info("MenuScreens registered");
     }
@@ -267,6 +271,40 @@ public class ModScreens {
 
                 } catch (Exception e) {
                     logger.error("Error in promote_container: ");
+                    logger.error(e.getMessage());
+                    logger.error(e.getStackTrace().toString());
+                    return null;
+                }
+            }));
+
+    public static final RegistryObject<MenuType<MessengerContainer>> MESSENGER =
+            MENU_TYPES.register("messenger_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
+                try {
+                    UUID workerId = data.readUUID();
+                    Player playerEntity = inv.player;
+                    AbstractRecruitEntity rec = getRecruitByUUID(playerEntity, workerId);
+
+                    return new MessengerContainer(windowId, playerEntity, (MessengerEntity) rec);
+
+                } catch (Exception e) {
+                    logger.error("Error in disband_container: ");
+                    logger.error(e.getMessage());
+                    logger.error(e.getStackTrace().toString());
+                    return null;
+                }
+            }));
+
+    public static final RegistryObject<MenuType<PatrolLeaderContainer>> PATROL_LEADER =
+            MENU_TYPES.register("patrol_leader_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
+                try {
+                    UUID workerId = data.readUUID();
+                    Player playerEntity = inv.player;
+                    AbstractRecruitEntity rec = getRecruitByUUID(playerEntity, workerId);
+
+                    return new PatrolLeaderContainer(windowId, playerEntity, (AbstractLeaderEntity) rec);
+
+                } catch (Exception e) {
+                    logger.error("Error in disband_container: ");
                     logger.error(e.getMessage());
                     logger.error(e.getStackTrace().toString());
                     return null;

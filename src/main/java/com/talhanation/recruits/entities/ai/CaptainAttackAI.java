@@ -92,7 +92,7 @@ public class CaptainAttackAI extends Goal {
     private void commandToStrategicFire(Vec3 toTarget) {
         Vec3 targetMove = this.targets.get(0).getDeltaMovement();
 
-        Vec3 vecPos = this.targets.get(0).getPosition(1).add(targetMove.scale(captain.getRandom().nextDouble(8)));
+        Vec3 vecPos = this.targets.get(0).getPosition(1).add(targetMove.scale(captain.getRandom().nextDouble()));
         BlockPos pos = this.captain.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(vecPos.x, vecPos.y, vecPos.z));
 
 

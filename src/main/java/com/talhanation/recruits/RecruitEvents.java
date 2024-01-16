@@ -15,8 +15,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -76,7 +74,7 @@ public class RecruitEvents {
         EntityType<? extends AbstractRecruitEntity> companionType = entitiesByProfession.get(profession);
         AbstractRecruitEntity abstractRecruit = companionType.create(recruit.getCommandSenderWorld());
         if(abstractRecruit != null && abstractRecruit instanceof ICompanion companion){
-            abstractRecruit.setCustomName(new TextComponent(name));
+            abstractRecruit.setCustomName(Component.literal(name));
             abstractRecruit.copyPosition(recruit);
             companion.applyRecruitValues(recruit);
             companion.setOwnerName(player.getName().getString());
@@ -88,7 +86,7 @@ public class RecruitEvents {
 
     public static void openPromoteScreen(Player player, AbstractRecruitEntity recruit) {
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {
                     return recruit.getName();

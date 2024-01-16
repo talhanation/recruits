@@ -52,12 +52,10 @@ public class DamageEvent {
 
             LivingEntity target = event.getEntity();
 
-            if (entity.getLevel().isClientSide()) {
+            if (target.getLevel().isClientSide()) {
                 return;
             }
             if(!RecruitsServerConfig.NoDamageImmunity.get()) return;
-
-            LivingEntity target = event.getEntityLiving();
 
             DamageSource source = event.getSource();
 

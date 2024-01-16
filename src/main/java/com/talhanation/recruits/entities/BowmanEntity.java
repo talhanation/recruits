@@ -1,6 +1,5 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.IStrategicFire;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.RecruitMoveTowardsTargetGoal;
@@ -117,7 +116,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
     @Override
     public void initSpawn() {
         this.setCustomName(Component.literal("Bowman"));
-        this.setCost(RecruitsModConfig.BowmanCost.get());
+        this.setCost(RecruitsServerConfig.BowmanCost.get());
         this.setEquipment();
         this.setDropEquipment();
         this.setRandomSpawnBonus();

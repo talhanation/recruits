@@ -64,10 +64,10 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TEXT_CLEAR_TARGET = Component.translatable("gui.recruits.inv.text.clearTargets");
     private static final MutableComponent TEXT_MOUNT = Component.translatable("gui.recruits.command.text.mount");
 
-    private static final MutableComponent TEXT_PROMOTE = new TranslatableComponent("gui.recruits.inv.text.promote");
-    private static final MutableComponent TEXT_SPECIAL = new TranslatableComponent("gui.recruits.inv.text.special");
-    private static final MutableComponent TOOLTIP_PROMOTE = new TranslatableComponent("gui.recruits.inv.tooltip.promote");
-    private static final MutableComponent TOOLTIP_SPECIAL = new TranslatableComponent("gui.recruits.inv.tooltip.special");
+    private static final MutableComponent TEXT_PROMOTE = Component.translatable("gui.recruits.inv.text.promote");
+    private static final MutableComponent TEXT_SPECIAL = Component.translatable("gui.recruits.inv.text.special");
+    private static final MutableComponent TOOLTIP_PROMOTE = Component.translatable("gui.recruits.inv.tooltip.promote");
+    private static final MutableComponent TOOLTIP_SPECIAL = Component.translatable("gui.recruits.inv.tooltip.special");
     private static final int fontColor = 4210752;
     private final AbstractRecruitEntity recruit;
     private final Inventory playerInventory;

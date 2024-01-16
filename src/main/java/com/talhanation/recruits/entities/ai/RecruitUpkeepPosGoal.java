@@ -4,6 +4,7 @@ import com.talhanation.recruits.entities.IRangedRecruit;
 import com.talhanation.recruits.entities.IStrategicFire;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Container;
@@ -75,7 +76,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                 double distance = this.recruit.position().distanceToSqr(Vec3.atCenterOf(chestPos));
                 if(distance > 10000){
                     if(recruit.getOwner() != null && messageNotInRange){
-                        recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()),recruit.getOwner().getUUID());
+                        recruit.getOwner().sendSystemMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()));
                         messageNotInRange = false;
                     }
 
@@ -235,6 +236,6 @@ public class RecruitUpkeepPosGoal extends Goal {
     }
 
     private MutableComponent TEXT_NOT_IN_RANGE(String name) {
-        return new TranslatableComponent("chat.recruits.text.upkeepNotInRange", name);
+        return Component.translatable("chat.recruits.text.upkeepNotInRange", name);
     }
 }
