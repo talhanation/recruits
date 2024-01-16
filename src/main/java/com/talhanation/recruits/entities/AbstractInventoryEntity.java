@@ -36,7 +36,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     //rest = inv
 
     public RecruitSimpleContainer inventory;
-    private int beforeItemSlot;
+    private int beforeItemSlot = -1;
     private net.minecraftforge.common.util.LazyOptional<?> itemHandler = null;
 
     public AbstractInventoryEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
@@ -76,7 +76,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         }
 
         nbt.put("Items", listnbt);
-        nbt.putInt("BeforeItemSlot", beforeItemSlot);
+        nbt.putInt("BeforeItemSlot", this.getBeforeItemSlot());
     }
 
     public void readAdditionalSaveData(CompoundTag nbt) {
@@ -103,9 +103,9 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
             int index = i == 0 ? 5 : 4; //5 = mainhand 4 = offhand
             this.inventory.setItem(index, ItemStack.of(handItems.getCompound(i)));
         }
-        this.setBeforeItemSlot(nbt.getInt("BeforeItemSlot"));
-        if(getBeforeItemSlot() != -1)
-            resetItemInHand();// fail save
+        int beforeItemSlot = nbt.getInt("BeforeItemSlot");
+        this.setBeforeItemSlot(beforeItemSlot);
+        if(getBeforeItemSlot() != -1) resetItemInHand();// fail-safe in case eating is interrupted
     }
 
 
@@ -163,14 +163,14 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     public void setItemInHand(@NotNull InteractionHand hand, @NotNull ItemStack itemStack) {
         if (hand == InteractionHand.MAIN_HAND) {
             this.setItemSlot(EquipmentSlot.MAINHAND, itemStack);
-            this.inventory.setItem(5, itemStack);
+            this.inventory.setItem(5, itemStack);//5 == MAINHAND
         } else {
             if (hand != InteractionHand.OFF_HAND) {
                 throw new IllegalArgumentException("Invalid hand " + hand);
             }
 
             this.setItemSlot(EquipmentSlot.OFFHAND, itemStack);
-            this.inventory.setItem(4, itemStack);
+            this.inventory.setItem(4, itemStack);//4 == MAINHAND
         }
 
     }
@@ -440,7 +440,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
     public void resetItemInHand() {
         //food is in offhand
-        //before item is in inventory slot
+        //before-item is in inventory slot
 
         //get OffhandItem (food)
         ItemStack foodStack = this.getOffhandItem().copy();
