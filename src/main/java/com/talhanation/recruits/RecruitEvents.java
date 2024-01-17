@@ -390,7 +390,7 @@ public class RecruitEvents {
         ) {
 
 
-            if(RecruitsModConfig.AggroRecruitsBlockInteractingEvents.get()) {
+            if(RecruitsServerConfig.AggroRecruitsBlockInteractingEvents.get()) {
                 List<AbstractRecruitEntity> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(32.0D)));
                 for (AbstractRecruitEntity recruits : list) {
                     if (canDamageTargetBlockEvent(recruits, player) && recruits.getState() == 1) {
@@ -404,7 +404,7 @@ public class RecruitEvents {
             }
 
 
-            if(RecruitsModConfig.NeutralRecruitsBlockInteractingEvents.get()) {
+            if(RecruitsServerConfig.NeutralRecruitsBlockInteractingEvents.get()) {
                 List<AbstractRecruitEntity> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(32.0D)));
                 for (AbstractRecruitEntity recruits : list) {
                     if (canDamageTargetBlockEvent(recruits, player) && recruits.getState() == 0 && recruits.isOwned()) {

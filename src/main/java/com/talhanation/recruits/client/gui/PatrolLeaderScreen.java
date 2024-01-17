@@ -1,12 +1,13 @@
 package com.talhanation.recruits.client.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.inventory.PatrolLeaderContainer;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -14,6 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 import net.minecraftforge.client.gui.widget.ForgeSlider;
 
 import java.util.ArrayList;
@@ -134,24 +136,22 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
 
     private void setInfoButton(Component infoModeString) {
-        Button infoButton = addRenderableWidget(new Button(leftPos + 230, topPos + 62, 50, 20, infoModeString, button -> {
+        Button infoButton = addRenderableWidget(new ExtendedButton(leftPos + 230, topPos + 62, 50, 20, infoModeString, button -> {
             this.infoMode = this.infoMode.getNext();
             Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetInfoMode(recruit.getUUID(), this.infoMode.getIndex()));
             this.setButtons();
-        },
-        (button1, poseStack, i, i1) -> {
-            this.renderTooltip(poseStack, TOOLTIP_INFO_MODE, i, i1);
-        }));
+        }
+        ));
+        infoButton.setTooltip(Tooltip.create(TOOLTIP_INFO_MODE));
     }
 
     private void setAssignButton() {
-        Button assignButton = addRenderableWidget(new Button(leftPos + 230, topPos + 32, 50, 20, BUTTON_ASSIGN_RECRUITS, button -> {
+        Button assignButton = addRenderableWidget(new ExtendedButton(leftPos + 230, topPos + 32, 50, 20, BUTTON_ASSIGN_RECRUITS, button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToCompanion(player.getUUID(), this.recruit.getUUID()));
             onClose();
-        },
-            (button1, poseStack, i, i1) -> {
-                this.renderTooltip(poseStack, TOOLTIP_ASSIGN_RECRUITS, i, i1);
-            }));
+        }
+        ));
+        assignButton.setTooltip(Tooltip.create(TOOLTIP_ASSIGN_RECRUITS));
     }
 
     private void setWaitTimeSlider() {
@@ -166,38 +166,34 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
 
     public void setCycleButton(Component cycle, Component tooltip) {
-        Button startButton = addRenderableWidget(new Button(leftPos + 105, topPos + 11, 40, 20, cycle,
-                button -> {
-                    this.cycle = !this.cycle;
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetCycle(this.recruit.getUUID(), this.cycle));
+        Button startButton = addRenderableWidget(new ExtendedButton(leftPos + 105, topPos + 11, 40, 20, cycle,
+            button -> {
+                this.cycle = !this.cycle;
+                Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetCycle(this.recruit.getUUID(), this.cycle));
 
-                    this.setButtons();
-                },
-                (button, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, tooltip, i, i1);
-                }
+                this.setButtons();
+            }
         ));
+        startButton.setTooltip(Tooltip.create(tooltip));
         startButton.active = state == AbstractLeaderEntity.State.STOPPED || state == AbstractLeaderEntity.State.IDLE;
     }
 
     public void setStartButtons(Component start, Component tooltip) {
-        Button startButton = addRenderableWidget(new Button(leftPos + 19, topPos + 11, 40, 20, start,
-                button -> {
-                    this.state = AbstractLeaderEntity.State.STARTED;
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetPatrolState(this.recruit.getUUID(), (byte) 1));
+        Button startButton = addRenderableWidget(new ExtendedButton(leftPos + 19, topPos + 11, 40, 20, start,
+            button -> {
+                this.state = AbstractLeaderEntity.State.STARTED;
+                Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetPatrolState(this.recruit.getUUID(), (byte) 1));
 
-                    this.setButtons();
-                },
-                (button, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, tooltip, i, i1);
-                }
+                this.setButtons();
+            }
         ));
+        startButton.setTooltip(Tooltip.create(tooltip));
         startButton.active = state != AbstractLeaderEntity.State.STARTED;
 
     }
 
     public void setStopButtons(AbstractLeaderEntity.State currentState, Component stop, Component tooltip) {
-        Button startButton = addRenderableWidget(new Button(leftPos + 62, topPos + 11, 40, 20, stop,
+        Button startButton = addRenderableWidget(new ExtendedButton(leftPos + 62, topPos + 11, 40, 20, stop,
                 button -> {
                     if (currentState != AbstractLeaderEntity.State.STARTED) {
                         this.state = AbstractLeaderEntity.State.STOPPED;
@@ -207,11 +203,9 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
 
                     Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetPatrolState(this.recruit.getUUID(), (byte) state.getIndex()));
                     this.setButtons();
-                },
-                (button, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, tooltip, i, i1);
                 }
         ));
+        startButton.setTooltip(Tooltip.create(tooltip));
         startButton.active = state != AbstractLeaderEntity.State.STOPPED && state != AbstractLeaderEntity.State.IDLE;
     }
 
@@ -245,11 +239,11 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
 
     private void renderItemAt(ItemStack itemStack, int x, int y) {
-        if(itemStack != null) itemRenderer.renderAndDecorateItem(itemStack, x, y);
+        if(itemStack != null) renderItemAt(itemStack, x, y);
     }
 
     public Button createPageBackButton() {
-        return addRenderableWidget(new Button(leftPos + 15, topPos + 230, 12, 12, Component.literal("<"),
+        return addRenderableWidget(new ExtendedButton(leftPos + 15, topPos + 230, 12, 12, Component.literal("<"),
                 button -> {
                     if(this.page > 1) page--;
                     this.setButtons();
@@ -258,7 +252,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
 
     public Button createPageForwardButton() {
-        return addRenderableWidget(new Button(leftPos + 184, topPos + 230, 12, 12, Component.literal(">"),
+        return addRenderableWidget(new ExtendedButton(leftPos + 184, topPos + 230, 12, 12, Component.literal(">"),
                 button -> {
                     page++;
                     this.setButtons();
@@ -267,32 +261,30 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
 
     private Button createAddWaypointButton(int x, int y){
-        return addRenderableWidget(new Button(x, y, 20, 20, Component.literal("+"),
+        Button add = addRenderableWidget(new ExtendedButton(x, y, 20, 20, Component.literal("+"),
                 button -> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderAddWayPoint(recruit.getUUID()));
                     this.setButtons();
-                },
-                (button, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_ADD, i, i1);
                 }
         ));
+        add.setTooltip(Tooltip.create(TOOLTIP_ADD));
+        return add;
     }
 
     private Button createRemoveWaypointButton(int x, int y){
-        return addRenderableWidget(new Button(x, y, 20, 20, Component.literal("-"),
+        Button remove = addRenderableWidget(new ExtendedButton(x, y, 20, 20, Component.literal("-"),
                 button -> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderRemoveWayPoint(recruit.getUUID()));
                     this.setButtons();
-                },
-                (button, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_REMOVE, i, i1);
                 }
         ));
+        remove.setTooltip(Tooltip.create(TOOLTIP_REMOVE));
+        return remove;
     }
 
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
-        super.renderLabels(matrixStack, mouseX, mouseY);
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        super.renderLabels(guiGraphics, mouseX, mouseY);
         // Info
         int fontColor = 4210752;
         int waypointsPerPage = 10;
@@ -317,11 +309,11 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
 
                     renderItemAt(itemStack, 15, 58 + ((i - startIndex) * 17));
                 }
-                font.draw(matrixStack, coordinates, 35, 60 + ((i - startIndex) * 17), fontColor);
+                guiGraphics.drawString(font, coordinates, 35, 60 + ((i - startIndex) * 17), fontColor);
             }
 
             if (waypoints.size() > waypointsPerPage)
-                font.draw(matrixStack, "Page: " + page, 90, 230, fontColor);
+                guiGraphics.drawString(font, "Page: " + page, 90, 230, fontColor);
         }
 
     }

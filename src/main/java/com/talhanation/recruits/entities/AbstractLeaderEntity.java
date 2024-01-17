@@ -141,9 +141,9 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         for (int i = 0; i < waypoints.size(); ++i) {
             CompoundTag compoundnbt = waypoints.getCompound(i);
             BlockPos pos = new BlockPos(
-                    compoundnbt.getDouble("PosX"),
-                    compoundnbt.getDouble("PosY"),
-                    compoundnbt.getDouble("PosZ"));
+                    (int)compoundnbt.getDouble("PosX"),
+                    (int)compoundnbt.getDouble("PosY"),
+                    (int)compoundnbt.getDouble("PosZ"));
             this.WAYPOINTS.push(pos);
         }
 
@@ -432,7 +432,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     }
 
     public ItemStack getItemStackToRender(BlockPos pos){
-        BlockState state = this.level.getBlockState(pos);
+        BlockState state = this.getCommandSenderWorld().getBlockState(pos);
         ItemStack itemStack;
         if (state.is(Blocks.WATER) || state.is(Blocks.KELP) || state.is(Blocks.KELP_PLANT)){
 

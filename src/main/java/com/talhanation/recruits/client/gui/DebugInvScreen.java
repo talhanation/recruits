@@ -53,8 +53,6 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
     protected void init() {
         super.init();
 
-        minecraft.keyboardHandler.setSendRepeatsToGui(true);
-
         int zeroLeftPos = leftPos + 140;
         int zeroTopPos = topPos + 10;
 
@@ -107,7 +105,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
     @Override
     public void onClose() {
         super.onClose();
-        minecraft.keyboardHandler.setSendRepeatsToGui(false);
+
         Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(99, recruit.getUUID(), textField.getValue()));
     }
 

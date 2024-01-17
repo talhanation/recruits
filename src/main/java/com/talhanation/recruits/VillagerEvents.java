@@ -436,7 +436,6 @@ public class VillagerEvents {
             this.givenExp = givenExp;
             this.priceMultiplier = 0.05F;
         }
-        @Nullable
         @Override
         public MerchantOffer getOffer(Entity entity, RandomSource random) {
             return new MerchantOffer(new ItemStack(this.buyingItem, this.buyingAmount), new ItemStack(sellingItem, sellingAmount), maxUses, givenExp, priceMultiplier);

@@ -52,7 +52,7 @@ public class DamageEvent {
 
             LivingEntity target = event.getEntity();
 
-            if (target.getLevel().isClientSide()) {
+            if (target.getCommandSenderWorld().isClientSide()) {
                 return;
             }
             if(!RecruitsServerConfig.NoDamageImmunity.get()) return;

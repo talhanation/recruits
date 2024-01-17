@@ -276,27 +276,23 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
 
         //promote
         if(recruit instanceof ICompanion){
-            Button promoteButton = addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 7, 80, 20, TEXT_SPECIAL,
+            Button promoteButton = addRenderableWidget(new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 7, 80, 20, TEXT_SPECIAL,
                     button -> {
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenSpecialScreen(this.playerInventory.player, recruit.getUUID()));
                         this.onClose();
-                    },
-                    (button1, poseStack, i, i1) -> {
-                        this.renderTooltip(poseStack, TOOLTIP_SPECIAL, i, i1);
                     }
             ));
+            promoteButton.setTooltip(Tooltip.create(TOOLTIP_SPECIAL));
             promoteButton.active = recruit.getXpLevel() >= 3;
         }
         else {
-            Button promoteButton = addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 7, 80, 20, TEXT_PROMOTE,
+            Button promoteButton = addRenderableWidget(new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 7, 80, 20, TEXT_PROMOTE,
                     button -> {
                         RecruitEvents.openPromoteScreen(this.playerInventory.player, this.recruit);
                         this.onClose();
-                    },
-                    (button1, poseStack, i, i1) -> {
-                        this.renderTooltip(poseStack, TOOLTIP_PROMOTE, i, i1);
                     }
             ));
+            promoteButton.setTooltip(Tooltip.create(TOOLTIP_PROMOTE));
             promoteButton.active = false || recruit.getXpLevel() >= 3;
         }
     }

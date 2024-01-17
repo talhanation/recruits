@@ -28,7 +28,7 @@ public class MessagePatrolLeaderSetWaitTime implements Message<MessagePatrolLead
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        List<AbstractLeaderEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractLeaderEntity.class, context.getSender().getBoundingBox().inflate(100.0D));
+        List<AbstractLeaderEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractLeaderEntity.class, context.getSender().getBoundingBox().inflate(100.0D));
         for (AbstractLeaderEntity recruit : list) {
             if(recruit.getUUID().equals(this.recruit))
                 recruit.setWaitTimeInMin(this.time);

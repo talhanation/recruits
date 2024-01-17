@@ -58,6 +58,8 @@ public class Main {
         ModItems.ITEMS.register(modEventBus);
         ModEntityTypes.ENTITY_TYPES.register(modEventBus);
 
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::addCreativeTabs);
+
         //ModSounds.SOUNDS.register(modEventBus);
         MinecraftForge.EVENT_BUS.register(this);
     }
@@ -163,6 +165,13 @@ public class Main {
             event.accept(ModItems.CROSSBOWMAN_SPAWN_EGG.get());
         }
 
-        //if(event.getTab().)
+        if (event.getTabKey().equals(CreativeModeTabs.FUNCTIONAL_BLOCKS)){
+            event.accept(ModBlocks.RECRUIT_BLOCK.get());
+            event.accept(ModBlocks.BOWMAN_BLOCK.get());
+            event.accept(ModBlocks.RECRUIT_SHIELD_BLOCK.get());
+            event.accept(ModBlocks.CROSSBOWMAN_BLOCK.get());
+            event.accept(ModBlocks.HORSEMAN_BLOCK.get());
+            event.accept(ModBlocks.NOMAD_BLOCK.get());
+        }
     }
 }

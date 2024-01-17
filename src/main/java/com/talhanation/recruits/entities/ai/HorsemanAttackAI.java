@@ -69,7 +69,7 @@ public class HorsemanAttackAI extends Goal {
                 if (target != null) {
                     Vec3 moveVec = target.position().subtract(horseman.position()).normalize();
                     Vec3 movePosVec = target.position().add(moveVec.scale(10)).yRot(this.vecRotation);
-                    BlockPos possibleMovePosVec = new BlockPos(movePosVec.x, horseman.position().y, movePosVec.z);
+                    BlockPos possibleMovePosVec = new BlockPos((int) movePosVec.x, (int) horseman.position().y, (int) movePosVec.z);
 
                     if(isFreeSpotAbove(target.getOnPos())) {
                         //horseman.level.setBlock(possibleMovePosVec, Blocks.ICE.defaultBlockState(), 3);

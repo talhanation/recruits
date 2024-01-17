@@ -146,7 +146,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     private void recruitCheckDespawn() {
-        Entity entity = this.level.getNearestPlayer(this, -1.0D);
+        Entity entity = this.getCommandSenderWorld().getNearestPlayer(this, -1.0D);
 
         if (entity != null) {
             double d0 = entity.distanceToSqr(this);

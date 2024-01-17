@@ -38,7 +38,7 @@ public class MessageOpenPromoteScreen implements Message<MessageOpenPromoteScree
         if (!player.getUUID().equals(this.player)) {
             return;
         }
-        player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
+        player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
                         .inflate(16.0D), v -> v
                         .getUUID()
                         .equals(this.recruit))

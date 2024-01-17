@@ -92,7 +92,7 @@ public class PatrolLeaderAttackAI extends Goal {
                     //RANGED GO BEHIND LEADER AND HOLD POS
                     Vec3 moveVecRanged = toTarget.yRot(180).normalize();
                     Vec3 moveRanged = this.leader.position().add(moveVecRanged.scale(7.5D));
-                    BlockPos movePosRanged = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(moveRanged.x, moveRanged.y, moveRanged.z));
+                    BlockPos movePosRanged = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) moveRanged.x, (int) moveRanged.y, (int) moveRanged.z));
 
                     this.leader.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.BOWMAN.get());
                     this.leader.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
@@ -112,7 +112,7 @@ public class PatrolLeaderAttackAI extends Goal {
                     //RANGED GO BEHIND LEADER AND HOLD POS
                     Vec3 moveVecRanged = toTarget.yRot(180).normalize();
                     Vec3 moveRanged = this.leader.position().add(moveVecRanged.scale(7.5D));
-                    BlockPos movePosRanged = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(moveRanged.x, moveRanged.y, moveRanged.z));
+                    BlockPos movePosRanged = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int)moveRanged.x, (int)moveRanged.y, (int)moveRanged.z));
 
                     this.leader.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.BOWMAN.get());
                     this.leader.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
@@ -128,7 +128,7 @@ public class PatrolLeaderAttackAI extends Goal {
                     this.leader.setRecruitsShields(true);
                     Vec3 moveVecInf = toTarget.normalize();
                     Vec3 moveInf = this.leader.position().add(moveVecInf.scale(-7.5D));
-                    BlockPos movePosInf = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(moveInf.x, moveInf.y, moveInf.z));
+                    BlockPos movePosInf = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) moveInf.x, (int)moveInf.y, (int)moveInf.z));
 
                     this.leader.setTypedRecruitsSetAndHoldPos(movePosInf, ModEntityTypes.RECRUIT.get());
                     this.leader.setTypedRecruitsSetAndHoldPos(movePosInf, ModEntityTypes.RECRUIT_SHIELDMAN.get());
@@ -139,7 +139,7 @@ public class PatrolLeaderAttackAI extends Goal {
                     int rnd = this.leader.getRandom().nextInt(180);
                     Vec3 moveVecRanged = toTarget.yRot(90 - rnd).normalize();
                     Vec3 moveRanged = this.leader.position().add(moveVecRanged.scale(15D));
-                    BlockPos movePosRanged = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(moveRanged.x, moveRanged.y, moveRanged.z));
+                    BlockPos movePosRanged = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) moveRanged.x, (int) moveRanged.y, (int) moveRanged.z));
 
                     this.leader.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.BOWMAN.get());
                     this.leader.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
@@ -158,7 +158,7 @@ public class PatrolLeaderAttackAI extends Goal {
                     int rnd = this.leader.getRandom().nextInt(180);
                     Vec3 moveVecRanged = toTarget.yRot(90 - rnd).normalize();
                     Vec3 moveRanged = this.leader.position().add(moveVecRanged.scale(15D));
-                    BlockPos movePosRanged = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(moveRanged.x, moveRanged.y, moveRanged.z));
+                    BlockPos movePosRanged = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int)moveRanged.x, (int)moveRanged.y, (int)moveRanged.z));
                     this.leader.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.BOWMAN.get());
                     this.leader.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
 
@@ -177,7 +177,7 @@ public class PatrolLeaderAttackAI extends Goal {
                     //RANGED GO BEHIND LEADER AND HOLD POS
                     Vec3 moveVecLeft = toTarget.yRot(-90).normalize();
                     Vec3 moveLeft = this.leader.position().add(moveVecLeft.scale(20D));
-                    BlockPos movePosLeft = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(moveLeft.x, moveLeft.y, moveLeft.z));
+                    BlockPos movePosLeft = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int)moveLeft.x, (int)moveLeft.y, (int)moveLeft.z));
                     this.leader.setTypedRecruitsSetAndHoldPos(movePosLeft, ModEntityTypes.BOWMAN.get());
                     this.leader.setTypedRecruitsSetAndHoldPos(movePosLeft, ModEntityTypes.RECRUIT.get());
                     this.leader.setHoldPos(movePosLeft);
@@ -186,7 +186,7 @@ public class PatrolLeaderAttackAI extends Goal {
 
                     Vec3 moveVecRight = toTarget.yRot(-90).normalize();
                     Vec3 moveRight = this.leader.position().add(moveVecRight.scale(20D));
-                    BlockPos movePosRight = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(moveRight.x, moveRight.y, moveRight.z));
+                    BlockPos movePosRight = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int)moveRight.x, (int)moveRight.y, (int)moveRight.z));
                     this.leader.setTypedRecruitsSetAndHoldPos(movePosRight, ModEntityTypes.CROSSBOWMAN.get());
                     this.leader.setTypedRecruitsSetAndHoldPos(movePosRight, ModEntityTypes.RECRUIT_SHIELDMAN.get());
 

@@ -93,7 +93,7 @@ public class CaptainAttackAI extends Goal {
         Vec3 targetMove = this.targets.get(0).getDeltaMovement();
 
         Vec3 vecPos = this.targets.get(0).getPosition(1).add(targetMove.scale(captain.getRandom().nextDouble()));
-        BlockPos pos = this.captain.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(vecPos.x, vecPos.y, vecPos.z));
+        BlockPos pos = this.captain.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) vecPos.x, (int) vecPos.y, (int) vecPos.z));
 
 
         this.captain.setRecruitsClearTargets();
@@ -106,7 +106,7 @@ public class CaptainAttackAI extends Goal {
                 //RANGED GO BEHIND LEADER AND HOLD POS
                 Vec3 moveVecRanged = toTarget.yRot(180).normalize();
                 Vec3 moveRanged = this.captain.position().add(moveVecRanged.scale(7.5D));
-                BlockPos movePosRanged = this.captain.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(moveRanged.x, moveRanged.y, moveRanged.z));
+                BlockPos movePosRanged = this.captain.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) moveRanged.x, (int) moveRanged.y, (int) moveRanged.z));
 
                 this.captain.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.BOWMAN.get());
                 this.captain.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.CROSSBOWMAN.get());

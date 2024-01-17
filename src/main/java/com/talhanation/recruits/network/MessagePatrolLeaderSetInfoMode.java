@@ -27,7 +27,7 @@ public class MessagePatrolLeaderSetInfoMode implements Message<MessagePatrolLead
     public void executeServerSide(NetworkEvent.Context context){
 
         ServerPlayer player = context.getSender();
-        player.level.getEntitiesOfClass(AbstractLeaderEntity.class, player.getBoundingBox()
+        player.getCommandSenderWorld().getEntitiesOfClass(AbstractLeaderEntity.class, player.getBoundingBox()
                 .inflate(16.0D), v -> v
                 .getUUID()
                 .equals(this.recruit))

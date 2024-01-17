@@ -27,7 +27,7 @@ public abstract class AbstractChunkLoaderEntity extends AbstractRecruitEntity {
     }
 
     public void updateChunkLoading(){
-        if (RecruitsServerConfig.RecruitsChunkLoading.get() && !this.level.isClientSide) {
+        if (RecruitsServerConfig.RecruitsChunkLoading.get() && !this.getCommandSenderWorld().isClientSide) {
             RecruitsChunk currentChunk = new RecruitsChunk(this.chunkPosition().x, this.chunkPosition().z);
             if (loadedChunk.isEmpty()) {
                 this.setForceChunk(currentChunk, true);
@@ -86,12 +86,12 @@ public abstract class AbstractChunkLoaderEntity extends AbstractRecruitEntity {
     ////////////////////////////////////SET////////////////////////////////////
 
     private void setForceChunk(RecruitsChunk chunk, boolean add) {
-        ForgeChunkManager.forceChunk((ServerLevel) this.level, Main.MOD_ID, this, chunk.x, chunk.z, add, false);
+        ForgeChunkManager.forceChunk((ServerLevel) this.getCommandSenderWorld(), Main.MOD_ID, this, chunk.x, chunk.z, add, false);
     }
 
     public void kill(){
         super.kill();
-        if(!this.level.isClientSide) loadedChunk.ifPresent(chunk -> this.getSetOfChunks(chunk).forEach(chunk1 -> this.setForceChunk(chunk1, false)));
+        if(!this.getCommandSenderWorld().isClientSide) loadedChunk.ifPresent(chunk -> this.getSetOfChunks(chunk).forEach(chunk1 -> this.setForceChunk(chunk1, false)));
     }
 
     public static class RecruitsChunk {

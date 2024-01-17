@@ -33,7 +33,7 @@ public interface IBoatController {
             if (Main.isSmallShipsLoaded && Main.isSmallShipsCompatible && (string.contains("smallships"))) {
                 boolean onPosIsDeep = getWaterDepth(boat.getOnPos(), this.getCaptain()) >= 7;
                 boolean following = getCaptain().getFollowState() == 1 && getCaptain().getOwner() != null;
-                BlockPos targetPos = new BlockPos(posX, getCaptain().getY(), posZ);
+                BlockPos targetPos = new BlockPos((int) posX, (int) getCaptain().getY(), (int) posZ);
                 if(following){
                     boolean ownerOnPosIsDeep = getWaterDepth(getCaptain().getOwner().getOnPos(), this.getCaptain()) >= 7;
                     boolean ownerFar = getCaptain().distanceToSqr(getCaptain().getOwner()) > 50;
@@ -367,7 +367,7 @@ public interface IBoatController {
     public static int getWaterDepth(BlockPos pos, LivingEntity cap){
         int depth = 0;
         for(int i = 0; i < 10; i++){
-            BlockState state = cap.level.getBlockState(pos.below(i));
+            BlockState state = cap.getCommandSenderWorld().getBlockState(pos.below(i));
             if(state.is(Blocks.WATER) || state.is(Blocks.KELP_PLANT) || state.is(Blocks.KELP)){
                 depth++;
             }

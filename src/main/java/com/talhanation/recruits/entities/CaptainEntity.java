@@ -54,7 +54,7 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
     @NotNull
     public PathNavigation getNavigation() {
         if (this.getVehicle() instanceof Boat) {
-            return new SailorPathNavigation(this, level);
+            return new SailorPathNavigation(this, this.getCommandSenderWorld());
         }
         else
             return super.getNavigation();

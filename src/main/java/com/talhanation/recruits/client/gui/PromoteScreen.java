@@ -1,7 +1,5 @@
 package com.talhanation.recruits.client.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.PromoteContainer;
@@ -9,12 +7,13 @@ import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 public class PromoteScreen extends ScreenBase<PromoteContainer> {
 
@@ -75,7 +74,6 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
     }
 
     private void setEditBox() {
-        minecraft.keyboardHandler.setSendRepeatsToGui(true);
         Component name = Component.literal("Name");
         if(recruit.getCustomName() != null) name = recruit.getCustomName();
 
@@ -84,7 +82,7 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
         textField.setTextColor(-1);
         textField.setTextColorUneditable(-1);
         textField.setBordered(true);
-        textField.setFocus(true);
+        textField.setFocused(true);
         textField.setMaxLength(13);
 
         addRenderableWidget(textField);
@@ -93,7 +91,7 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
 
     @Override
     public boolean mouseClicked(double p_97748_, double p_97749_, int p_97750_) {
-        textField.setFocus(true);
+        textField.setFocused(true);
 
         return super.mouseClicked(p_97748_, p_97749_, p_97750_);
 
@@ -116,7 +114,7 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
     }
 
     private Button createProfessionButtons(Component buttonText, Component buttonTooltip, int professionID, boolean active){
-        Button professionButton = addRenderableWidget(new Button(leftPos + 59, 31 + topPos + 23 * professionID, 80, 20, buttonText,
+        Button professionButton = addRenderableWidget(new ExtendedButton(leftPos + 59, 31 + topPos + 23 * professionID, 80, 20, buttonText,
                 btn -> {
                     if (recruit != null) {
                         String name = this.textField.getValue();
@@ -127,20 +125,10 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
                         Main.SIMPLE_CHANNEL.sendToServer(new MessagePromoteRecruit(this.recruit.getUUID(), professionID, name));
                         onClose();
                     }
-                },
-                (button, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, buttonTooltip, i, i1);
                 }
         ));
+        professionButton.setTooltip(Tooltip.create(buttonTooltip));
         professionButton.active = active;
         return professionButton;
-    }
-
-
-    protected void render(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
-        this.blit(matrixStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
     }
 }

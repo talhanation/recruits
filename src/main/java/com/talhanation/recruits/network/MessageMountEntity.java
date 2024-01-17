@@ -37,7 +37,7 @@ public class MessageMountEntity implements Message<MessageMountEntity> {
         for(Entity mount : entityList){
 
             String mountEncoded= mount.getEncodeId();
-            boolean containsConfig = RecruitsModConfig.MountWhiteList.get().contains(mountEncoded);
+            boolean containsConfig = RecruitsServerConfig.MountWhiteList.get().contains(mountEncoded);
             if(mount.getUUID().equals(target) && containsConfig){
                 List<AbstractRecruitEntity> recruitList = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
                 for (AbstractRecruitEntity recruits : recruitList) {

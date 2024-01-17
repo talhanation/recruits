@@ -64,7 +64,7 @@ public class CaptainControlBoatAI extends Goal {
     }
 
     public void tick() {
-        if (!captain.getLevel().isClientSide()) {
+        if (!captain.getCommandSenderWorld().isClientSide()) {
             if(DEBUG) {
                 if (this.captain.getOwner() != null && captain.getOwner().isInWater()) {
                     captain.setSailPos(captain.getOwner().getOnPos());
@@ -105,7 +105,7 @@ public class CaptainControlBoatAI extends Goal {
 
                             if(DEBUG){
                                 for(Node node : this.path.nodes) {
-                                    captain.level.setBlock(new BlockPos(node.x, captain.getY() + 4, node.z), Blocks.ICE.defaultBlockState(), 3);
+                                    captain.getCommandSenderWorld().setBlock(new BlockPos(node.x, (int) (captain.getY() + 4), node.z), Blocks.ICE.defaultBlockState(), 3);
                                 }
                             }
                             state = State.MOVING_PATH;
@@ -210,8 +210,8 @@ public class CaptainControlBoatAI extends Goal {
     private boolean isNeighborsWater(Node node){
         for(int i = -2; i <= 2; i++) {
             for (int k = -2; k <= 2; k++) {
-                BlockPos pos = new BlockPos(node.x, this.captain.getY(), node.z).offset(i, 0, k);
-                BlockState state = this.captain.level.getBlockState(pos);
+                BlockPos pos = new BlockPos(node.x, (int) this.captain.getY(), node.z).offset(i, 0, k);
+                BlockState state = this.captain.getCommandSenderWorld().getBlockState(pos);
 
                 if(!state.is(Blocks.WATER) || (!state.is(Blocks.KELP_PLANT) || !state.is(Blocks.KELP)))
                     return false;

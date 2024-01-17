@@ -1,20 +1,20 @@
 package com.talhanation.recruits.client.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.inventory.MessengerContainer;
 import com.talhanation.recruits.network.MessageSendMessenger;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 public class MessengerScreen extends ScreenBase<MessengerContainer> {
 
@@ -44,7 +44,6 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
     @Override
     protected void init() {
         super.init();
-        this.minecraft.keyboardHandler.setSendRepeatsToGui(true);
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
 
@@ -78,7 +77,7 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
         addRenderableWidget(textFieldMessage);
 
         this.setInitialFocus(this.textFieldPlayer);
-        this.textFieldPlayer.setFocus(true);
+        this.textFieldPlayer.setFocused(true);
 
     }
     protected void containerTick() {
@@ -98,16 +97,13 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
     }
 
     private void setSendButton() {
-        Button sendButton = addRenderableWidget(new Button(leftPos + 33, topPos + 101, 128, 20, BUTTON_MESSENGER,
+        Button sendButton = addRenderableWidget(new ExtendedButton(leftPos + 33, topPos + 101, 128, 20, BUTTON_MESSENGER,
                 button -> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageSendMessenger(recruit.getUUID(), textFieldPlayer.getValue(), textFieldMessage.getValue(), true));
                     this.onClose();
-                },
-                (button1, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_MESSENGER, i, i1);
                 }
         ));
-        //sendButton.active = recruit.getXpLevel() >= 3;
+        sendButton.setTooltip(Tooltip.create(TOOLTIP_MESSENGER));
     }
 
 
@@ -117,21 +113,14 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
         Main.SIMPLE_CHANNEL.sendToServer(new MessageSendMessenger(recruit.getUUID(), textFieldPlayer.getValue(), textFieldMessage.getValue(), false));
     }
 
-    protected void render(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
-        this.blit(poseStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
-    }
-
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
-        super.renderLabels(matrixStack, mouseX, mouseY);
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        super.renderLabels(guiGraphics, mouseX, mouseY);
         //Info
         int fontColor = 4210752;
-        font.draw(matrixStack, "Player:", 16, 9, fontColor);
+        guiGraphics.drawString(font, "Player:", 16, 9, fontColor);
 
-        font.draw(matrixStack, "Message:", 16, 42, fontColor);
-        font.draw(matrixStack, player.getInventory().getDisplayName().getVisualOrderText(), 16, 127, fontColor);
+        guiGraphics.drawString(font, "Message:", 16, 42, fontColor);
+        guiGraphics.drawString(font, player.getInventory().getDisplayName().getVisualOrderText(), 16, 127, fontColor);
     }
 }
