@@ -144,6 +144,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
+
+
     private void recruitCheckDespawn() {
         Entity entity = this.level.getNearestPlayer(this, -1.0D);
 
@@ -342,7 +344,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     @Override
     public void readAdditionalSaveData(CompoundTag nbt) {
         super.readAdditionalSaveData(nbt);
-        this.despawnTimer = nbt.getInt("despawnTimer");
+
+        if(nbt.contains("despawnTimer")) this.despawnTimer = nbt.getInt("despawnTimer");
+        else this.despawnTimer = -1;//fix
+
         this.setXpLevel(nbt.getInt("Level"));
         this.setState(nbt.getInt("AggroState"));
         this.setFollowState(nbt.getInt("FollowState"));
