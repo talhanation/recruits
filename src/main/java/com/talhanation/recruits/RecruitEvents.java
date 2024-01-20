@@ -188,8 +188,8 @@ public class RecruitEvents {
                     if (owner instanceof AbstractRecruitEntity recruit) {
 
                         if(impactEntity instanceof Animal animal){
-                            if(animal.getFirstPassenger() instanceof AbstractRecruitEntity recruit2){
-                                if (!canDamageTarget(recruit, recruit2)) {
+                            if(animal.getFirstPassenger() instanceof AbstractRecruitEntity passenger){
+                                if (!canDamageTarget(recruit, passenger)) {
                                     event.setCanceled(true);
                                 }
                             }
@@ -471,7 +471,7 @@ public class RecruitEvents {
             return !team.isAlliedTo(team1) || team.isAllowFriendlyFire();
             //attacker can Harm target when attacker has no team
             //or attacker and target are not allied
-            //or team friendly is true
+            //or team friendly fire is true
         }
     }
 
