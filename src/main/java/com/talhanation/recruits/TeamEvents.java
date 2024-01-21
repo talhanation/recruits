@@ -306,6 +306,8 @@ public class TeamEvents {
         }
         else
             Main.LOGGER.error("Can not remove " + playerName + " from Team, because " + teamName + " does not exist!");
+
+        serverSideUpdateTeam(level);
     }
 
     private static void removeRecruitsTeamData(ServerLevel level, String teamName) {
@@ -328,7 +330,7 @@ public class TeamEvents {
             int recruits = getRecruitsOfPlayer(playerToAdd.getUUID(), level).size();
             addNPCToData(level, teamName, recruits);
 
-            //updateRecruitsTeamServerSide(level); //TODO: add Recruits to team
+            serverSideUpdateTeam(level);
         }
         else
             Main.LOGGER.error("Can not add " + playerToAdd + " to Team, because " + teamName + " does not exist!");
@@ -543,16 +545,24 @@ public class TeamEvents {
                 if(sender instanceof ServerPlayer serverPlayer) serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.warnVanillaCommand").withStyle(ChatFormatting.RED));
 
 
-                ServerLevel level = server.overworld();
-                if(command.contains("join")){
-                    //addRecruitsToTeamServerSide(level);
+                ServerLevel level = this.server.overworld();
+                if(command.contains("join") || command.contains("leave") || command.contains("remove")){
+                    serverSideUpdateTeam(level);
                 }
-                //else if(command.contains("remove")) //example command: /team leave talhanation14
             }
         }
     }
 
-
+    public static void serverSideUpdateTeam(ServerLevel level){
+        List<AbstractRecruitEntity> recruitList = new ArrayList<>();
+        for(Entity entity : level.getEntities().getAll()){
+            if(entity instanceof AbstractRecruitEntity recruit)
+                recruitList.add(recruit);
+        }
+        for(AbstractRecruitEntity recruit : recruitList){
+            recruit.needsTeamUpdate = true;
+        }
+    }
 
     ////////////////////////////////////Recruit TEAM JOIN AND REMOVE////////////////////////////
 
@@ -603,14 +613,4 @@ public class TeamEvents {
             if(recruitTeam != null) level.getScoreboard().removePlayerFromTeam(recruit.getStringUUID(), recruitTeam);
         }
     }
-    /*
-    List<AbstractRecruitEntity> recruitList = new ArrayList<>();
-        for(Entity entity : level.getEntities().getAll()){
-            if(entity instanceof AbstractRecruitEntity recruit)
-                recruitList.add(recruit);
-        }
-        for(AbstractRecruitEntity recruit : recruitList){
-
-        }
-     */
 }
