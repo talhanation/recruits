@@ -98,7 +98,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Optional<UUID>> UPKEEP_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     public int blockCoolDown;
-    private boolean needsTeamUpdate = true;
+    public boolean needsTeamUpdate = true;
+    public boolean forcedUpkeep;
+
     public int dismount = 0;
     public int upkeepTimer = 0;
     public int mountTimer = 0;
@@ -350,7 +352,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         super.readAdditionalSaveData(nbt);
 
         if(nbt.contains("despawnTimer")) this.despawnTimer = nbt.getInt("despawnTimer");
-        else this.despawnTimer = -1;//fix
+        else this.despawnTimer = -1;//fixes random recruits disappearing
 
         this.setXpLevel(nbt.getInt("Level"));
         this.setState(nbt.getInt("AggroState"));
@@ -1600,7 +1602,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                         TeamEvents.removeRecruitFromTeam(this, recruitTeam, (ServerLevel) this.getCommandSenderWorld());
                         TeamEvents.addNPCToData((ServerLevel) this.getCommandSenderWorld(), recruitTeam.getName(), -1 );
                     }
-                    //recruit team is also null, so no nothing
+                    //recruit team is also null, so no do nothing
                     needsTeamUpdate = false;
                 }
                 else if(recruitTeam == null){
