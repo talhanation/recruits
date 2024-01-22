@@ -307,7 +307,8 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                         this.renderTooltip(poseStack, TOOLTIP_SPECIAL, i, i1);
                     }
             ));
-            promoteButton.active =  false || recruit.getXpLevel() >= 3;
+            promoteButton.active = false && recruit.getXpLevel() >= 3;
+
         }
         else {
             Button promoteButton = addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 7, 80, 20, TEXT_PROMOTE,
@@ -319,7 +320,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                         this.renderTooltip(poseStack, TOOLTIP_PROMOTE, i, i1);
                     }
             ));
-            promoteButton.active = false || recruit.getXpLevel() >= 3;
+            promoteButton.active = false && recruit.getXpLevel() >= 3;
         }
     }
 
