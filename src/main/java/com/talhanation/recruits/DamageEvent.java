@@ -75,25 +75,17 @@ public class DamageEvent {
             //NO Damage Immunity
             if(!RecruitsServerConfig.NoDamageImmunity.get()) return;
 
-
-
-
             if (source != null && RecruitsServerConfig.AcceptedDamagesourceImmunity.get().contains(source.getMsgId())) {
                 return;
             }
-
-
-            entity.invulnerableTime = 0;
-
             target.invulnerableTime = 0;
-
         }
     }
 
     @SubscribeEvent
     public void onEntityHurtByPlayer(AttackEntityEvent event) {
         if (!event.isCanceled()) {
-            Player player = event.getEntity();
+            Player player = event.getPlayer();
             Entity target = event.getTarget();
 
             if(target.getFirstPassenger() instanceof LivingEntity passenger){
