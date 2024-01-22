@@ -971,6 +971,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setTarget(null);
             this.setFollowState(2);
             this.setState(0);
+            this.despawnTimer = -1;
 
             Team ownerTeam = player.getTeam();// player is the new owner
             if(!this.getCommandSenderWorld().isClientSide() && ownerTeam != null) TeamEvents.addRecruitToTeam(this, ownerTeam, (ServerLevel) this.getCommandSenderWorld());
