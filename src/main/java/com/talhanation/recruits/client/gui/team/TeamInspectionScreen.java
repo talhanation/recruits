@@ -134,8 +134,9 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
         if(player.getTeam() != null && player.getTeam().getColor().getColor() != null) fontColorLeader = player.getTeam().getColor().getColor();
         else fontColorLeader = fontColor;
 
-
-        font.draw(matrixStack, "" + team.getName(), 90, 10, fontColor);
+        String teamName = team.getName();
+        int x = teamName.length() * 4;
+        font.draw(matrixStack, "" + teamName, 110 - x, 10, fontColor);
 
         font.draw(matrixStack, "Leader:", 18 , 25, fontColor);
         font.draw(matrixStack, "" + leader, 18 ,  25 + 15, fontColorLeader);

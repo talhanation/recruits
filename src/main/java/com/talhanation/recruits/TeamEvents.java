@@ -285,17 +285,13 @@ public class TeamEvents {
         else
             isLeader = false;
 
-
         int recruits = getRecruitsOfPlayer(player.getUUID(), level).size();
         addNPCToData(level, teamName, -recruits);
 
         if(playerTeam != null){
             if(isLeader){
-                //removeRecruitsTeamData(level, teamName);
                 server.getScoreboard().removePlayerTeam(playerTeam);
-
-                data.getTeams().removeIf(team -> team.getTeamName().equals(teamName));
-                data.setDirty();
+                removeRecruitsTeamData(data, teamName);
             }
             else {
                 server.getScoreboard().removePlayerFromTeam(playerName, playerTeam);
@@ -310,14 +306,23 @@ public class TeamEvents {
         serverSideUpdateTeam(level);
     }
 
-    private static void removeRecruitsTeamData(ServerLevel level, String teamName) {
-
+    private static void removeRecruitsTeamData(RecruitsTeamSavedData data,  String teamName) {
+        data.getTeams().removeIf(team -> team.getTeamName().equals(teamName));
+        data.setDirty();
     }
 
     public static void addPlayerToTeam(ServerPlayer player, ServerLevel level, String teamName, String namePlayerToAdd) {
         MinecraftServer server = level.getServer();
         ServerPlayer playerToAdd = server.getPlayerList().getPlayerByName(namePlayerToAdd);
         PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(teamName);
+        RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
+
+        for(RecruitsTeam recruitsTeam : data.getTeams()) {
+            if(recruitsTeam.getTeamLeaderUUID().equals(player.getUUID())){
+                player.sendMessage(CAN_NOT_ADD_OTHER_LEADER(), player.getUUID());
+                return;
+            }
+        }
 
         if(playerTeam != null){
             server.getScoreboard().addPlayerToTeam(namePlayerToAdd, playerTeam);
@@ -334,13 +339,6 @@ public class TeamEvents {
         }
         else
             Main.LOGGER.error("Can not add " + playerToAdd + " to Team, because " + teamName + " does not exist!");
-        /*
-        String joinTeamCommand = "team join " + teamName + " " + namePlayerToAdd;
-        CommandDispatcher<CommandSourceStack> commanddispatcher = server.getCommands().getDispatcher();
-        ParseResults<CommandSourceStack> parseresults = commanddispatcher.parse(joinTeamCommand, createCommandSourceStack(playerToAdd, server));
-        commanddispatcher.parse(joinTeamCommand, createCommandSourceStack(player, server));
-        server.getCommands().performCommand(parseresults, joinTeamCommand);
-        */
     }
     public static Component REMOVE_PLAYER_LEADER(String player){
         return Component.translatable("chat.recruits.team_creation.removedPlayerLeader", player);
@@ -354,6 +352,10 @@ public class TeamEvents {
 
     public static Component ADDED_PLAYER_LEADER(String s){
         return Component.translatable("chat.recruits.team_creation.addedPlayerLeader", s);
+    }
+
+    public static Component CAN_NOT_ADD_OTHER_LEADER(){
+        return new TranslatableComponent("chat.recruits.team_creation.canNotAddOtherLeader");
     }
 
     public static void addPlayerToData(ServerLevel level, String teamName, int x, String namePlayerToAdd){
@@ -379,7 +381,7 @@ public class TeamEvents {
         else Main.LOGGER.error("Could not modify recruits team: "+ teamName + ".Team does not exist.");
     }
 
-    public static void sendJoinRequest(ServerLevel level, Player player, String teamName) {
+    public static void sendJoinRequest(ServerLevel level, ServerPlayer player, String teamName) {
         RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
         RecruitsTeam recruitsTeam = data.getTeamByName(teamName);
 
@@ -497,8 +499,6 @@ public class TeamEvents {
                     if(!recruit.hire(newOwner)){
 
                     };
-
-
                 }
                 else
                     playerNotFound = true;
@@ -518,13 +518,11 @@ public class TeamEvents {
         ServerLevel level = this.server.overworld();
 
         Collection<PlayerTeam> list =  level.getScoreboard().getPlayerTeams();
-        for(PlayerTeam playerTeam: list){
+        for(PlayerTeam playerTeam : list){
             playerTeam.setAllowFriendlyFire(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamFriendlyFireSetting.get());
             playerTeam.setSeeFriendlyInvisibles(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
         }
     }
-
-
     @SubscribeEvent
     public void onPlayerTypeCommandEvent(CommandEvent event){
         if (event.getParseResults() != null) {
