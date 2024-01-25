@@ -73,7 +73,7 @@
     "1.10.4": "added strategic fire to crossbowman(also with muskets), fixed localisations, fixed melee ai",
     "1.10.3": "fixed crrash with teams, fixed AI in water, improved upkeep feature, added equiping from upkeep chest/entity."
   },
-  "1.20.1": 
+  "1.20.1": {
     "1.10.14": "fixed hired patrol despawn // fixed team leader can join other teams // fixed performance issues",
     "1.10.13": "fixed crossbowman // fixed team join and leave // fixed melee friendly fire to friendly horses",
     "1.10.12": "fixed crash // fixed recruits disappearing",
