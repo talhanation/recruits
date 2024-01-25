@@ -283,7 +283,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                     }
             ));
             promoteButton.setTooltip(Tooltip.create(TOOLTIP_SPECIAL));
-            promoteButton.active = false && recruit.getXpLevel() >= 3;)
+            promoteButton.active = false && recruit.getXpLevel() >= 3;
         }
         else {
             Button promoteButton = addRenderableWidget(new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 7, 80, 20, TEXT_PROMOTE,
