@@ -85,7 +85,7 @@ public class DamageEvent {
     @SubscribeEvent
     public void onEntityHurtByPlayer(AttackEntityEvent event) {
         if (!event.isCanceled()) {
-            Player player = event.getPlayer();
+            Player player = event.getEntity();
             Entity target = event.getTarget();
 
             if(target.getFirstPassenger() instanceof LivingEntity passenger){

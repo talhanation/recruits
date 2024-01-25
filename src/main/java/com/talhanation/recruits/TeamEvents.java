@@ -319,7 +319,7 @@ public class TeamEvents {
 
         for(RecruitsTeam recruitsTeam : data.getTeams()) {
             if(recruitsTeam.getTeamLeaderUUID().equals(player.getUUID())){
-                player.sendMessage(CAN_NOT_ADD_OTHER_LEADER(), player.getUUID());
+                player.sendSystemMessage(CAN_NOT_ADD_OTHER_LEADER());
                 return;
             }
         }
@@ -355,7 +355,7 @@ public class TeamEvents {
     }
 
     public static Component CAN_NOT_ADD_OTHER_LEADER(){
-        return new TranslatableComponent("chat.recruits.team_creation.canNotAddOtherLeader");
+        return Component.translatable("chat.recruits.team_creation.canNotAddOtherLeader");
     }
 
     public static void addPlayerToData(ServerLevel level, String teamName, int x, String namePlayerToAdd){
