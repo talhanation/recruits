@@ -22,6 +22,7 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/team/team_list_gui.png");
     Player player;
     public List<PlayerTeam> teams;
+
     private int leftPos;
     private int topPos;
 
@@ -63,7 +64,7 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
             PlayerTeam team = teams.get(i);
             String teamName = team.getName();
             ExtendedButton joinButton = createJoinButton(teamName, i - startIndex);
-            if(player.getTeam() != null && player.getTeam().getName().equals(teamName)){
+            if(player != null && player.getTeam() != null && player.getTeam().getName().equals(teamName)){
                 joinButton.active = false;
             }
         }

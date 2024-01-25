@@ -138,14 +138,14 @@ public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
         if(player.getTeam() != null && player.getTeam().getColor().getColor() != null) fontColorLeader = player.getTeam().getColor().getColor();
         else fontColorLeader = fontColor;
 
-        guiGraphics.drawString(font, "" + team.getName(), 90, 10, fontColor, false);
+		String teamName = team.getName();
+        int x = teamName.length() * 4;
+        guiGraphics.drawString(font, "" + teamName, 110 - x, 10, fontColor, false);
 
         guiGraphics.drawString(font, "Leader:", 18, 25, fontColor, false);
         guiGraphics.drawString(font, "" + leader, 18, 25 + 15, fontColorLeader, false);
 
         guiGraphics.drawString(font, "Players:", 18, 116, fontColor, false);
-
-
 
         int xOffset = 18;
         int yOffset = 135;
