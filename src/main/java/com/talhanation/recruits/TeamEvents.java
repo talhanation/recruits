@@ -268,7 +268,7 @@ public class TeamEvents {
             Main.LOGGER.error("Could not load recruitsTeamData for Team " + team + " because Team == null");
     }
 
-    public static void leaveTeam(ServerPlayer player, ServerLevel level) {
+    public static void leaveTeam(ServerPlayer player, ServerLevel level, boolean fromLeader) {
         MinecraftServer server = level.getServer();
         String playerName = player.getName().getString();
         String teamName = player.getTeam().getName();
@@ -294,6 +294,9 @@ public class TeamEvents {
                 removeRecruitsTeamData(data, teamName);
             }
             else {
+                ServerPlayer leaderOfTeam = server.getPlayerList().getPlayerByName(recruitsTeam.getTeamLeaderName());
+                if(!fromLeader && leaderOfTeam != null) leaderOfTeam.sendSystemMessage(PLAYER_LEFT_TEAM_LEADER(playerName));
+
                 server.getScoreboard().removePlayerFromTeam(playerName, playerTeam);
                 addPlayerToData(level,teamName,-1, playerName);
             }
@@ -358,6 +361,10 @@ public class TeamEvents {
         return Component.translatable("chat.recruits.team_creation.canNotAddOtherLeader");
     }
 
+    public static Component PLAYER_LEFT_TEAM_LEADER(String s){
+        return Component.translatable("chat.recruits.team_creation.playerLeftTeamLeader", s);
+    }
+
     public static void addPlayerToData(ServerLevel level, String teamName, int x, String namePlayerToAdd){
         RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
         RecruitsTeam recruitsTeam = RecruitsTeamSavedData.getTeamByName(teamName);
@@ -397,7 +404,7 @@ public class TeamEvents {
             boolean isPlayerToRemove = potentialRemovePlayer.getName().getString().equals(nameToRemove);
 
             if (isPlayerToRemove) {
-                TeamEvents.leaveTeam(potentialRemovePlayer, level);
+                TeamEvents.leaveTeam(potentialRemovePlayer, level, true);
                 potentialRemovePlayer.sendSystemMessage(PLAYER_REMOVED);
                 serverPlayer.sendSystemMessage(REMOVE_PLAYER_LEADER(potentialRemovePlayer.getDisplayName().getString()));
 
