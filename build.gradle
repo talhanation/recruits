@@ -36,7 +36,7 @@ mixin{
     overwriteErrorLevel = 'error'
 }
 
-version = '1.10.14'
+version = '1.10.15'
 
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.18.2'
@@ -58,7 +58,7 @@ minecraft {
 
             Random rnd = new Random()
 
-            args = ['--username', 'talhanation'];//+ rnd.nextInt(1000)]
+            args = ['--username', 'talhanation'+ rnd.nextInt(1000)]
 
 
             mods {
