@@ -321,6 +321,7 @@ public class TeamEvents {
         RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
 
         for(RecruitsTeam recruitsTeam : data.getTeams()) {
+
             if(recruitsTeam.getTeamLeaderUUID().equals(player.getUUID())){
                 player.sendMessage(CAN_NOT_ADD_OTHER_LEADER(), player.getUUID());
                 return;
