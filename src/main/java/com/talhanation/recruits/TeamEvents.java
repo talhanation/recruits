@@ -298,7 +298,7 @@ public class TeamEvents {
             }
             else {
                 ServerPlayer leaderOfTeam = server.getPlayerList().getPlayerByName(recruitsTeam.getTeamLeaderName());
-                if(!fromLeader && leaderOfTeam != null) leaderOfTeam.sendSystemMessage(PLAYER_LEFT_TEAM_LEADER(playerName));
+                if(!fromLeader && leaderOfTeam != null) leaderOfTeam.sendMessage(PLAYER_LEFT_TEAM_LEADER(playerName), leaderOfTeam.getUUID());
 
                 server.getScoreboard().removePlayerFromTeam(playerName, playerTeam);
                 addPlayerToData(level,teamName,-1, playerName);
@@ -324,8 +324,7 @@ public class TeamEvents {
         RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
 
         for(RecruitsTeam recruitsTeam : data.getTeams()) {
-
-            if(recruitsTeam.getTeamLeaderUUID().equals(player.getUUID())){
+            if(recruitsTeam.getTeamLeaderUUID().equals(playerToAdd.getUUID())){
                 player.sendMessage(CAN_NOT_ADD_OTHER_LEADER(), player.getUUID());
                 return;
             }
@@ -366,7 +365,7 @@ public class TeamEvents {
     }
 
     public static Component PLAYER_LEFT_TEAM_LEADER(String s){
-        return Component.translatable("chat.recruits.team_creation.playerLeftTeamLeader", s);
+        return new TranslatableComponent("chat.recruits.team_creation.playerLeftTeamLeader", s);
     }
 
     public static void addPlayerToData(ServerLevel level, String teamName, int x, String namePlayerToAdd){
