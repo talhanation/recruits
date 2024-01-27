@@ -64,8 +64,8 @@ public class PillagerEvents {
 
         if (entity instanceof Monster) {
             Monster monster = (Monster) entity;
-            if (!(monster instanceof Creeper))
-            monster.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(monster, AbstractRecruitEntity.class, true));
+            if (!(monster instanceof Creeper) && !(monster instanceof EnderMan))
+                monster.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(monster, AbstractRecruitEntity.class, true));
         }
 
         if (entity instanceof Zombie){
