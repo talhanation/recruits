@@ -58,7 +58,7 @@ minecraft {
 
             Random rnd = new Random()
 
-            args = ['--username', 'talhanation'+ rnd.nextInt(1000)]
+            args = ['--username', 'talhanation']//+ rnd.nextInt(1000)]
 
 
             mods {
@@ -118,6 +118,9 @@ dependencies {
     shadow fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.3:api")
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.3")
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.3:javadoc")
+
+    implementation fg.deobf("curse.maven:small-ships-450659:5069368")
+
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     //implementation fg.deobf("curse.maven:debug-utils-forge-783008:4537623")

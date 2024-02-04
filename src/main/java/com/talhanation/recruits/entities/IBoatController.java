@@ -66,7 +66,7 @@ public interface IBoatController {
         boolean inputLeft =  (phi < ref);
         boolean inputRight = (phi > ref);
         boolean inputUp = Math.abs(phi - ref) <= ref * 0.35F;
-        boolean inAngleForSail = Math.abs(phi - ref) <= ref * 0.80;
+        boolean inAngleForSail = Math.abs(phi - ref) <= ref * 0.60;
 
         float acceleration = 0.005F;
         float setPoint = 0;
@@ -230,12 +230,13 @@ public interface IBoatController {
         return 0.007F;
     }
 
-    static void shootCannonsSmallShip(CaptainEntity driver, Boat boat, LivingEntity target){
+    static void shootCannonsSmallShip(CaptainEntity driver, Boat boat, LivingEntity target, boolean leftSide){
         double distanceToTarget = driver.distanceToSqr(target);
         double speed = 2.2F;
-        double accuracy = 5F;// 0 = 100%
-        Vec3 shootVec = getShootVector(boat.getForward(), driver);
-        double yShootVec = shootVec.y() + distanceToTarget/48;
+        double accuracy = 1F;// 0 = 100%
+        float rotation = leftSide ? (3.14F / 2) : -(3.14F / 2);
+        Vec3 shootVec = boat.getForward().yRot(rotation).normalize();
+        double yShootVec = shootVec.y() + distanceToTarget/5000;
         try{
             Class<?> cannonAbleClass = Class.forName("com.talhanation.smallships.world.entity.ship.abilities.Cannonable");
             if(cannonAbleClass.isInstance(boat)){
@@ -364,7 +365,7 @@ public interface IBoatController {
         return Math.toDegrees(Math.acos(cosTheta));
     }
 
-    public static int getWaterDepth(BlockPos pos, LivingEntity cap){
+    static int getWaterDepth(BlockPos pos, LivingEntity cap){
         int depth = 0;
         for(int i = 0; i < 10; i++){
             BlockState state = cap.level.getBlockState(pos.below(i));
@@ -377,17 +378,18 @@ public interface IBoatController {
     }
 
     //From smallships
-    static Vec3 getShootVector(Vec3 forward, LivingEntity driver) {
+    static Vec3 getShootVector(Vec3 forward, CaptainEntity driver) {
         Vec3 VecRight = forward.yRot(-3.14F / 2).normalize();
         Vec3 VecLeft = forward.yRot(3.14F / 2).normalize();
 
-        Vec3 playerVec = driver.getLookAngle().normalize();
+        LivingEntity target = driver.getTarget();
+        Vec3 toTarget = target != null ? driver.position().vectorTo(target.position()).normalize() : driver.getLookAngle().normalize();
 
-        if (playerVec.distanceTo(VecLeft) > playerVec.distanceTo(VecRight)) {
+        if (toTarget.distanceTo(VecLeft) > toTarget.distanceTo(VecRight)) {
             return VecRight;
         }
 
-        if (playerVec.distanceTo(VecLeft) < playerVec.distanceTo(VecRight)) {
+        if (toTarget.distanceTo(VecLeft) < toTarget.distanceTo(VecRight)) {
             return VecLeft;
         }
         return null;
