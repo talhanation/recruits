@@ -65,6 +65,7 @@ public class CaptainControlBoatAI extends Goal {
 
     public void tick() {
         if (!captain.getCommandSenderWorld().isClientSide()) {
+
             if(DEBUG) {
                 if (this.captain.getOwner() != null && captain.getOwner().isInWater()) {
                     captain.setSailPos(captain.getOwner().getOnPos());
@@ -81,7 +82,7 @@ public class CaptainControlBoatAI extends Goal {
 
                 case IDLE -> {
 
-                    if(captain.getTarget() != null && captain.getTarget().isAlive()){
+                    if(captain.getTarget() != null && captain.getTarget().isAlive() && !captain.getTarget().isUnderWater()){
                         this.captain.shipAttacking = true;
                         this.target = captain.getTarget();
                         this.sailPos = captain.getTarget().getOnPos();
@@ -175,8 +176,8 @@ public class CaptainControlBoatAI extends Goal {
                 }
 
                 case ATTACKING -> {
-                    if(captain.getVehicle() != null && target != null && target.isAlive() && !this.target.equals(this.captain) && ++this.attackingTimeOut < ATTACKING_TIME_OUT){
-                        Vec3 toTarget = target.position().subtract(this.captain.position()).normalize();
+                    if(captain.getVehicle() != null && target != null && target.isAlive() && !target.isUnderWater() && !this.target.equals(this.captain) && ++this.attackingTimeOut < ATTACKING_TIME_OUT){
+                        Vec3 toTarget = target.getVehicle() != null ? captain.position().vectorTo(target.getVehicle().position()) : captain.position().vectorTo(target.position());
                         double distanceToTarget = this.captain.distanceToSqr(target.getX(), captain.getY(), target.getZ());
                         if(distanceToTarget > 5000){
                             this.target = null;
@@ -184,17 +185,24 @@ public class CaptainControlBoatAI extends Goal {
                             this.state = IDLE;
                             break;
                         }
-
                         Vec3 forward = this.captain.getVehicle().getForward().normalize();
-                        double phi = IBoatController.horizontalAngleBetweenVectors(forward, toTarget);
-                        double ref = 90;
+                        Vec3 VecRight = forward.yRot(-3.14F / 2).normalize();
+                        Vec3 VecLeft = forward.yRot(3.14F / 2).normalize();
+
+                        double distanceToLeft = toTarget.distanceTo(VecLeft);
+                        double distanceToRight = toTarget.distanceTo(VecRight);
+
+                        boolean shootLeftSide = distanceToLeft < distanceToRight;
+
+                        double alpha = IBoatController.horizontalAngleBetweenVectors(forward, toTarget);
+                        double phi = shootLeftSide ?  -alpha : alpha;
+                        double ref = shootLeftSide ? -90 : 90;
 
                         boolean inputLeft =  (phi < ref);
                         boolean inputRight = (phi > ref);
 
                         IBoatController.rotateSmallShip((Boat) this.captain.getVehicle(), inputLeft, inputRight);
-
-                        IBoatController.shootCannonsSmallShip(this.captain, (Boat) this.captain.getVehicle(), target);
+                        if(Math.abs(phi - ref) <= ref * 0.90F) IBoatController.shootCannonsSmallShip(this.captain, (Boat) this.captain.getVehicle(), target, shootLeftSide);
                     }
                     else {
                         this.target = null;

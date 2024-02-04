@@ -2,6 +2,7 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.CaptainEntity;
 import com.talhanation.recruits.entities.IStrategicFire;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.MessageAddRecruitToTeam;
@@ -43,7 +44,7 @@ public class CommandEvents {
 
             recruit.setUpkeepTimer(recruit.getUpkeepCooldown());
             if(recruit.getShouldMount()) recruit.setShouldMount(false);
-
+            if(recruit instanceof CaptainEntity captain) captain.shipAttacking = false;
             switch (r_state) {
 
                 case 0:
