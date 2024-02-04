@@ -200,7 +200,7 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
 
             }
         }
-        this.shipAttacking = false;
+
     }
 }
 
