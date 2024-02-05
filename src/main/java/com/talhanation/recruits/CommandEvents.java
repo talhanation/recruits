@@ -131,6 +131,8 @@ public class CommandEvents {
         if (recruit.isEffectedByCommand(player_uuid, group)){
 
             HitResult hitResult = player.pick(100, 1F, true);
+            if(recruit instanceof CaptainEntity captain) captain.shipAttacking = false;
+            if(recruit.getShouldMount()) recruit.setShouldMount(false);
 
             if (hitResult != null) {
                 if (hitResult.getType() == HitResult.Type.BLOCK) {

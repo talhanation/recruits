@@ -14,8 +14,7 @@ import java.util.List;
 
 public class CaptainAttackAI extends Goal {
     private final AbstractLeaderEntity captain;
-    private AttackMode mode;
-    private List<LivingEntity> targets;
+    //private AttackMode mode;
     public CaptainAttackAI(AbstractLeaderEntity recruit) {
         this.captain = recruit;
     }
@@ -26,9 +25,9 @@ public class CaptainAttackAI extends Goal {
 
     public void start(){
         this.captain.currentRecruitsInCommand = captain.getRecruitsInCommand();
-        this.mode = AttackMode.DEFENSIVE;
+        //this.mode = AttackMode.DEFENSIVE;
         if(this.captain.currentRecruitsInCommand.size() > 0){
-            attackCommandsToRecruits(this.captain.getTarget());
+          //  attackCommandsToRecruits(this.captain.getTarget());
         }
     }
 
@@ -47,16 +46,16 @@ public class CaptainAttackAI extends Goal {
     public boolean canContinueToUse() {
         return captain.commandCooldown != 0;
     }
-
+        /*
     //TODO:
     private void attackCommandsToRecruits(LivingEntity target) {
         if(!this.captain.getCommandSenderWorld().isClientSide()){
-            targets = this.captain.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, this.captain.getBoundingBox().inflate(150D)).stream()
+            captain.targets = this.captain.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, this.captain.getBoundingBox().inflate(150D)).stream()
                     .filter(living -> this.captain.canAttack(living) && living.isAlive())
                     .toList();
 
-            if(!targets.isEmpty()){
-                int enemySize = targets.size();
+            if(!captain.targets.isEmpty()){
+                int enemySize = captain.targets.size();
                 int partySize = this.getPartySize();
                 double x = partySize / enemySize;
 
@@ -76,10 +75,10 @@ public class CaptainAttackAI extends Goal {
                     captain.commandCooldown = 100;
                 }
                 else{
-                    for(int i = 0; i < targets.size(); i++){
+                    for(int i = 0; i < captain.targets.size(); i++){
                         if(this.captain.currentRecruitsInCommand.size() > i){
                             AbstractRecruitEntity recruit = this.captain.currentRecruitsInCommand.get(i);
-                            recruit.setTarget(targets.get(i));
+                            recruit.setTarget(captain.targets.get(i));
                         }
                     }
                     commandLandAttack(toTarget);
@@ -90,9 +89,10 @@ public class CaptainAttackAI extends Goal {
     }
 
     private void commandToStrategicFire(Vec3 toTarget) {
-        Vec3 targetMove = this.targets.get(0).getDeltaMovement();
+        Vec3 targetMove = this.captain.targets.get(0).getDeltaMovement();
 
-        Vec3 vecPos = this.targets.get(0).getPosition(1).add(targetMove.scale(captain.getRandom().nextDouble(8)));
+        Vec3 vecPos = this.captain.targets.get(0).getPosition(1).add(targetMove.scale(captain.getRandom().nextDouble()));
+
         BlockPos pos = this.captain.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(vecPos.x, vecPos.y, vecPos.z));
 
         this.captain.setRecruitsClearTargets();
@@ -173,6 +173,8 @@ public class CaptainAttackAI extends Goal {
             throw new IllegalArgumentException("Invalid AttackMode index: " + index);
         }
     }
+
+         */
 
     //Defenssive
     //  ->  inf hold pos
