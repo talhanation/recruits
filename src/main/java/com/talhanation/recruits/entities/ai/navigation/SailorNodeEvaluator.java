@@ -53,14 +53,16 @@ public class SailorNodeEvaluator extends WalkNodeEvaluator {
     public @NotNull Node getStart() {
         boolean isWaterDeep = IBoatController.getWaterDepth(this.mob.getOnPos(), this.mob) > 3;
         AABB boundingBox = this.mob.getVehicle().getBoundingBox();
+
         double nodeX = isWaterDeep ? boundingBox.maxX : boundingBox.minX;
         double nodeY = isWaterDeep ? boundingBox.maxY : boundingBox.minY;
         double nodeZ = isWaterDeep ? boundingBox.maxZ : boundingBox.minZ;
         return this.getNode(Mth.floor(nodeX), Mth.floor(nodeY + 0.5D), Mth.floor(nodeZ));
     }
 
-    public @NotNull Target getGoal(double p_164662_, double p_164663_, double p_164664_) {
-        return new Target(this.getNode(Mth.floor(p_164662_ + 1.5), Mth.floor(p_164663_ + 1.5), Mth.floor(p_164664_ + 1.5)));
+    @Nullable
+    public Target getGoal(double p_77550_, double p_77551_, double p_77552_) {
+        return this.getTargetFromNode(this.getNode(Mth.floor(p_77550_ + 1.5), Mth.floor(p_77551_  + 1.5), Mth.floor(p_77552_  + 1.5)));
     }
 
     public int getNeighbors(Node @NotNull [] nodes, Node nodeIn) {
