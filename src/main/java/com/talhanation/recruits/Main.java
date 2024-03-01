@@ -136,8 +136,8 @@ public class Main {
         isSiegeWeaponsLoaded = ModList.get().isLoaded("siegeweapons");//siege weapons
 
         if(isSmallShipsLoaded){
-            String smallshipsversion = ModList.get().getModFileById("smallships").versionString();//2.0.0-a2.3.1 above shall be supported e.g.: "2.0.0-b1.0"
-            isSmallShipsCompatible = smallshipsversion.contains("2.0.0-b1");//TODO: Better Version check for compatible smallships version
+            String smallshipsversion = ModList.get().getModFileById("smallships").versionString();//2.0.0-a2.3.1 above shall be supported e.g.: "2.0.0-b1.1"
+            isSmallShipsCompatible = smallshipsversion.contains("2.0.0-b1.1") || !smallshipsversion.contains("2.0.0-b1.0");;//TODO: Better Version check for compatible smallships version
             Main.LOGGER.info("smallships version: " + smallshipsversion);
         }
     }
