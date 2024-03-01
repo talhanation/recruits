@@ -96,7 +96,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
                     this.recruit.getJumpControl().jump();
                 }
                 double distance = this.recruit.position().distanceToSqr(Vec3.atCenterOf(pos));
-                if (distance < 400 && container != null) {
+                if (distance < 50 && container != null) {
 
                     this.checkIfMounted(entity.get());
 
