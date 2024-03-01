@@ -12,6 +12,7 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ToolActions;
 
 public class UseShield extends Goal {
@@ -25,11 +26,11 @@ public class UseShield extends Goal {
         boolean hasShield = this.entity.getOffhandItem().getItem().canPerformAction(entity.getOffhandItem(), ToolActions.SHIELD_BLOCK);
         if (entity instanceof AbstractRecruitEntity recruit){
             boolean forced = recruit.getShouldBlock();
-            boolean normal = canRaiseShield() && !recruit.isFollowing() && recruit.canBlock();
+            boolean normal = canRaiseShield() && !recruit.isFollowing() && recruit.canBlock() && !recruit.getShouldMovePos();
 
-            return (forced || normal) && hasShield;
+            return (forced || normal) && hasShield && !this.entity.swinging;
         }
-        else return hasShield && canRaiseShield();
+        else return hasShield && canRaiseShield() && !this.entity.swinging;
     }
 
     public boolean canContinueToUse() {
@@ -59,10 +60,17 @@ public class UseShield extends Goal {
     public boolean canRaiseShield() {
         boolean isSelfTarget = false;
         LivingEntity target = this.entity.getTarget();
+
         if (target instanceof Mob mobTarget) {
             isSelfTarget = mobTarget.getTarget() != null && mobTarget.getTarget().is(entity);
         }
-        if (target != null && target.isAlive() && !this.entity.swinging) {
+        if (target != null && target.isAlive()) {
+            Vec3 toTarget = this.entity.position().vectorTo(target.position());
+            Vec3 forward = this.entity.getForward();
+            if(forward.reverse().distanceToSqr(toTarget) < forward.distanceToSqr(toTarget)){
+                return false;
+            }
+
             ItemStack itemStackinHand = target.getItemInHand(InteractionHand.MAIN_HAND);
             Item itemInHand = itemStackinHand.getItem();
 
