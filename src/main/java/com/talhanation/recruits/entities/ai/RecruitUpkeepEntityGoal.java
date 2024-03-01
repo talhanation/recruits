@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.entities.IRangedRecruit;
 import com.talhanation.recruits.entities.IStrategicFire;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
@@ -12,6 +13,7 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.npc.InventoryCarrier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -53,45 +55,54 @@ public class RecruitUpkeepEntityGoal extends Goal {
         super.start();
         message = true;
         messageNotInRange = true;
+
+        this.entity = findEntity();
+        if(entity.isPresent()){
+            this.pos = this.entity.get().getOnPos();
+
+            if (entity.get() instanceof AbstractHorse horse) {
+                this.container = horse.inventory;
+                //Main.LOGGER.debug("found horse");
+            }
+
+            else if (entity.get() instanceof InventoryCarrier carrier) {
+                this.container = carrier.getInventory();
+                //Main.LOGGER.debug("found carrier");
+            }
+
+            else if (entity.get() instanceof Container containerEntity) {
+                this.container = containerEntity;
+                //Main.LOGGER.debug("found containerEntity");
+            }
+        }
+        else
+        if (recruit.getOwner() != null && messageNotInRange) {
+            recruit.getOwner().sendSystemMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()));
+            messageNotInRange = false;
+            recruit.clearUpkeepEntity();
+            this.stop();
+        }
     }
 
     @Override
     public void tick() {
         super.tick();
-        this.entity = findEntity();
 
         if (recruit.getUpkeepTimer() == 0) {
             //Main.LOGGER.debug("searching upkeep entity");
-            if (entity.isPresent() && !recruit.hasFoodInInv()) {
-                this.pos = this.entity.get().getOnPos();
-
-                if (entity.get() instanceof AbstractHorse horse) {
-                    this.container = horse.inventory;
-                    //Main.LOGGER.debug("found horse");
-                }
-
-                else if (entity.get() instanceof InventoryCarrier carrier) {
-                    this.container = carrier.getInventory();
-                    //Main.LOGGER.debug("found carrier");
-                }
-
-                else if (entity.get() instanceof Container containerEntity) {
-                    this.container = containerEntity;
-                    //Main.LOGGER.debug("found containerEntity");
-                }
-
+            if (entity.isPresent()) {
                 this.recruit.getNavigation().moveTo(pos.getX(), pos.getY(), pos.getZ(), 1.15D);
                 if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
                     this.recruit.getJumpControl().jump();
                 }
+                double distance = this.recruit.position().distanceToSqr(Vec3.atCenterOf(pos));
+                if (distance < 400 && container != null) {
 
-                //Main.LOGGER.debug("Moving to entity");
-                if (entity.get().closerThan(recruit, 3) && container != null) {
+                    this.checkIfMounted(entity.get());
 
                     this.recruit.getNavigation().stop();
                     this.recruit.getLookControl().setLookAt(entity.get().getX(), entity.get().getY() + 1, entity.get().getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
 
-                    //Main.LOGGER.debug("Getting food from inv");
                     if (isFoodInEntity(container)) {
                         for (int i = 0; i < 3; i++) {
                             ItemStack foodItem = this.getFoodFromInv(container);
@@ -106,9 +117,10 @@ public class RecruitUpkeepEntityGoal extends Goal {
                                     recruit.getOwner().sendMessage(TEXT_NO_PLACE(recruit.getName().getString()), recruit.getOwner().getUUID());
                                     message = false;
                                 }
-                                this.stop();
+
                             }
                         }
+                        this.stop();//stop taking food out of the container
                     }
                     else {
                         if (recruit.getOwner() != null && message) {
@@ -117,7 +129,6 @@ public class RecruitUpkeepEntityGoal extends Goal {
                             this.stop();
                         }
                     }
-                    this.stop();
 
                     //Try to reequip
                     for(int i = 0; i < container.getContainerSize(); i++) {
@@ -130,7 +141,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
                                 recruit.equipItem(equipment);
                                 itemstack.shrink(1);
                             }
-                            else if (recruit instanceof IStrategicFire && itemstack.is(ItemTags.ARROWS)){ //all that are ranged
+                            else if (recruit instanceof IRangedRecruit && itemstack.is(ItemTags.ARROWS)){ //all that are ranged
                                 if(recruit.canTakeArrows()){
                                     equipment = itemstack.copy();
                                     recruit.inventory.addItem(equipment);
@@ -148,8 +159,22 @@ public class RecruitUpkeepEntityGoal extends Goal {
                     messageNotInRange = false;
 
                     recruit.clearUpkeepEntity();
+                    this.stop();
                 }
             }
+        }
+    }
+
+    private void checkIfMounted(Entity entity) {
+        Entity vehicle = this.recruit.getVehicle();
+        if(vehicle != null){
+            if(vehicle.getUUID().equals(entity.getUUID())) {
+                this.recruit.stopRiding();
+            }
+            else if(vehicle.getVehicle() != null && vehicle.getVehicle().getUUID().equals(entity.getUUID())){
+                vehicle.stopRiding();
+            }
+
         }
     }
 
