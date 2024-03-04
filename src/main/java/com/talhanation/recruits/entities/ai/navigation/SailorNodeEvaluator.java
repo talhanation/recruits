@@ -8,7 +8,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.PathNavigationRegion;
-import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Target;
@@ -57,12 +56,12 @@ public class SailorNodeEvaluator extends WalkNodeEvaluator {
         double nodeX = isWaterDeep ? boundingBox.maxX : boundingBox.minX;
         double nodeY = isWaterDeep ? boundingBox.maxY : boundingBox.minY;
         double nodeZ = isWaterDeep ? boundingBox.maxZ : boundingBox.minZ;
-        return this.getNode(Mth.floor(nodeX), Mth.floor(nodeY + 0.5D), Mth.floor(nodeZ));
+        return this.getNode(Mth.floor(nodeX), Mth.floor(nodeY), Mth.floor(nodeZ));
     }
 
     @Nullable
     public Target getGoal(double p_77550_, double p_77551_, double p_77552_) {
-        return this.getTargetFromNode(this.getNode(Mth.floor(p_77550_ + 1.5), Mth.floor(p_77551_  + 1.5), Mth.floor(p_77552_  + 1.5)));
+        return this.getTargetFromNode(this.getNode(Mth.floor(p_77550_), Mth.floor(p_77551_), Mth.floor(p_77552_)));
     }
 
     public int getNeighbors(Node @NotNull [] nodes, Node nodeIn) {
