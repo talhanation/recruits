@@ -97,6 +97,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Integer> COST = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Optional<UUID>> UPKEEP_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Byte> COLOR = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BYTE);
     public int blockCoolDown;
     public boolean needsTeamUpdate = true;
     public boolean forcedUpkeep;
@@ -598,6 +599,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return null;
     }
 
+    public int getColor() {
+        return entityData.get(COLOR);
+    }
+    public DyeColor getDyeColor() {
+        return DyeColor.byId(getColor());
+    }
+
     ////////////////////////////////////SET////////////////////////////////////
 
     public void setUpkeepTimer(int x){
@@ -605,6 +613,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
     public void setVariant(int variant){
         entityData.set(VARIANT, variant);
+    }
+    public void setColor(byte color){
+        entityData.set(COLOR, color);
     }
     public void setUpkeepUUID(Optional<UUID> id) {
         this.entityData.set(UPKEEP_ID, id);
@@ -880,7 +891,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public abstract void initSpawn();
 
     public static void applySpawnValues(AbstractRecruitEntity recruit){
-        recruit.setVariant(recruit.random.nextInt(3));
+        recruit.setVariant(recruit.random.nextInt(20));
         recruit.setHunger(50);
         recruit.setMoral(50);
         recruit.setListen(true);

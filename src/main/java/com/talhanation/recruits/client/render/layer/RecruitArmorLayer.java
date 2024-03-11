@@ -6,6 +6,7 @@ import net.minecraft.client.model.VillagerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
+import net.minecraft.client.renderer.entity.SheepRenderer;
 
 public class RecruitArmorLayer extends HumanoidModel {
     public RecruitArmorLayer(ModelPart p_170677_) {
