@@ -14,6 +14,7 @@ public class RecruitsTeam {
     public List<String> joinRequests = new ArrayList<>();
     public int players;
     public int npcs;
+    public byte color;
 
     public RecruitsTeam() {
     }
@@ -76,6 +77,10 @@ public class RecruitsTeam {
         return players;
     }
 
+    public byte getColor() {
+        return color;
+    }
+
     public void addNPCs(int x) {
         npcs += x;
         if(npcs < 0) npcs = 0;
@@ -84,5 +89,9 @@ public class RecruitsTeam {
     public void addPlayer(int x){
         players += x;
         if(players < 0) players = 0;
+    }
+
+    public void setColor(byte color) {
+        this.color = color;
     }
 }

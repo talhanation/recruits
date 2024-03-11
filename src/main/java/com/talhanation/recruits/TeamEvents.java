@@ -163,7 +163,7 @@ public class TeamEvents {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamAddPlayerScreen(player));
         }
     }
-    public static void createTeam(ServerPlayer serverPlayer, @NotNull ServerLevel level, String teamName, String playerName, ItemStack banner, String color) {
+    public static void createTeam(ServerPlayer serverPlayer, @NotNull ServerLevel level, String teamName, String playerName, ItemStack banner, String color, byte colorByte) {
         MinecraftServer server = level.getServer();
         PlayerTeam team = server.getScoreboard().getPlayerTeam(teamName);
         int cost = 10;
@@ -187,7 +187,7 @@ public class TeamEvents {
                                     //TeamCommand
                                     doPayment(serverPlayer, cost);
 
-                                    saveDataToTeam(level, teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT());
+                                    saveDataToTeam(level, teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT(), colorByte);
                                     addPlayerToData(level, teamName, 1, playerName);
 
                                     List<AbstractRecruitEntity> recruits = getRecruitsOfPlayer(serverPlayer.getUUID(), level);
@@ -230,10 +230,10 @@ public class TeamEvents {
         return equ;
     }
 
-    public static void saveDataToTeam(ServerLevel level, String teamName, UUID leaderUUID, String leaderName, CompoundTag bannerNbt) {
+    public static void saveDataToTeam(ServerLevel level, String teamName, UUID leaderUUID, String leaderName, CompoundTag bannerNbt, byte color) {
         RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
 
-        data.addTeam(teamName, leaderUUID, leaderName, bannerNbt);
+        data.addTeam(teamName, leaderUUID, leaderName, bannerNbt, color);
         data.setDirty();
     }
 
@@ -590,12 +590,18 @@ public class TeamEvents {
     public static void addRecruitToTeam(AbstractRecruitEntity recruit, Team team, ServerLevel level){
         String teamName = team.getName();
         PlayerTeam playerteam = level.getScoreboard().getPlayerTeam(teamName);
+        RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
+        RecruitsTeam recruitsTeam = data.getTeamByName(teamName);
+
 
         boolean flag = playerteam != null && level.getScoreboard().addPlayerToTeam(recruit.getStringUUID(), playerteam);
         if (!flag) {
             Main.LOGGER.warn("Unable to add mob to team \"{}\" (that team probably doesn't exist)", teamName);
-        } else
+        } else{
             recruit.setTarget(null);// fix "if owner was other team and now same team und was target"
+            if(recruitsTeam != null) recruit.setColor(recruitsTeam.getColor());
+        }
+
     }
 
     public static void removeRecruitFromTeam(ServerPlayer player, ServerLevel level){
