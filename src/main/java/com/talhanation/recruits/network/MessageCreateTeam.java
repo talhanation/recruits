@@ -14,14 +14,16 @@ public class MessageCreateTeam implements Message<MessageCreateTeam> {
     private String teamName;
     private String color;
     private ItemStack banner;
+    private int index;
 
     public MessageCreateTeam(){
     }
 
-    public MessageCreateTeam(String name, ItemStack banner, String color) {
+    public MessageCreateTeam(String name, ItemStack banner, String color, int index) {
         this.teamName = name;
         this.banner = banner;
         this.color = color;
+        this.index = index;
     }
 
     public Dist getExecutingSide() {
@@ -31,13 +33,14 @@ public class MessageCreateTeam implements Message<MessageCreateTeam> {
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = context.getSender();
         ServerLevel world = player.getLevel();
-        TeamEvents.createTeam(context.getSender(), world, this.teamName, player.getName().getString(), this.banner, this.color);
+        TeamEvents.createTeam(context.getSender(), world, this.teamName, player.getName().getString(), this.banner, this.color, (byte) index);
     }
 
     public MessageCreateTeam fromBytes(FriendlyByteBuf buf) {
         this.teamName = buf.readUtf();
         this.banner = buf.readItem();
         this.color = buf.readUtf();
+        this.index = buf.readInt();
         return this;
     }
 
@@ -45,5 +48,6 @@ public class MessageCreateTeam implements Message<MessageCreateTeam> {
         buf.writeUtf(this.teamName);
         buf.writeItemStack(this.banner, false);
         buf.writeUtf(this.color);
+        buf.writeInt(this.index);
     }
 }

@@ -1,7 +1,6 @@
 package com.talhanation.recruits.world;
 
 import com.google.common.collect.Maps;
-import com.talhanation.recruits.Main;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -71,6 +70,9 @@ public class RecruitsTeamSavedData extends SavedData {
                         recruitsTeam.getJoinRequests().add(compoundtag.getString("Request"));
                 }
             }
+            if (nbt.contains("Color")) {
+                recruitsTeam.setColor(nbt.getByte("Color"));
+            }
         }
     }
 
@@ -110,8 +112,9 @@ public class RecruitsTeamSavedData extends SavedData {
                 listtag1.add(StringTag.valueOf(s));
             }
             nbt.put("JoinRequests", listtag1);
-
             listtag.add(nbt);
+
+            nbt.putByte("Color", recruitsTeam.getColor());
         }
         return listtag;
     }
@@ -123,12 +126,13 @@ public class RecruitsTeamSavedData extends SavedData {
         return teams.values();
     }
 
-    public void addTeam(String teamName, UUID leaderUUID, String leaderName, CompoundTag bannerNbt) {
+    public void addTeam(String teamName, UUID leaderUUID, String leaderName, CompoundTag bannerNbt, byte color) {
         RecruitsTeam recruitsTeam = new RecruitsTeam();
         recruitsTeam.setTeamName(teamName);
         recruitsTeam.setTeamLeaderID(leaderUUID);
         recruitsTeam.setTeamLeaderName(leaderName);
         recruitsTeam.setBanner(bannerNbt);
+        recruitsTeam.setColor(color);
 
         teams.put(teamName, recruitsTeam);
     }
