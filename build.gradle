@@ -119,9 +119,8 @@ dependencies {
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.20.1-1.0.0")
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.20.1-1.0.0:javadoc")
 
-    implementation fg.deobf("curse.maven:small-ships-450659:5069368")
-
-
+    implementation fg.deobf("curse.maven:small-ships-450659:5148111")
+    implementation fg.deobf("curse.maven:worldedit-225608:3922622")
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
     //implementation fg.deobf('curse.maven:musketmod-354562:4030979') //only for 1.19.2 and 1.18.2
