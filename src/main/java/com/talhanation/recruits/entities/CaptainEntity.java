@@ -10,10 +10,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.DifficultyInstance;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
@@ -49,6 +46,12 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
         this.goalSelector.addGoal(0, new CaptainControlBoatAI(this));
         this.goalSelector.addGoal(2, new UseShield(this));
     }
+
+    @Override
+    public double getDistanceToReachWaypoint() {
+        return 150D;
+    }
+
 
     @Override
     @NotNull
@@ -130,10 +133,6 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
         return this;
     }
 
-    public BlockPos getCurrentWaypoint(){
-        return this.currentWaypoint;
-    }
-
     @Override
     public BlockPos getSailPos() {
         return this.entityData.get(SAIL_POS).orElse(null);
@@ -172,6 +171,13 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
 
         this.calculateSailPos(state);
     }
+    @Override
+    protected void moveToCurrentWaypoint() {
+        if(this.getVehicle() != null && this.getVehicle() instanceof Boat){
+            this.setSailPos(this.currentWaypoint);
+        }
+        else super.moveToCurrentWaypoint();
+    }
 
     //0 = wander
     //1 = follow
@@ -197,8 +203,21 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
             }
 
             case 5 -> {// PROTECT
-
+                LivingEntity protect = this.getProtectingMob();
+                if(protect != null){
+                    BlockPos pos = protect.getOnPos();
+                    setSailPos(pos);
+                }
             }
+
+            case 1 -> {// FOLLOW
+                LivingEntity owner = this.getOwner();
+                if(owner != null){
+                    BlockPos pos = owner.getOnPos();
+                    setSailPos(pos);
+                }
+            }
+
         }
 
     }
