@@ -28,7 +28,7 @@ public class CaptainControlBoatAI extends Goal {
     private BlockPos sailPos;
     private int timer;
     private float precision;
-    public final boolean DEBUG = false;
+    public final boolean DEBUG = true;
     private byte stoppingTimer = 0;
     private int attackingTimeOut = 0;
     private int creatingPathCounter = 0;
@@ -103,12 +103,11 @@ public class CaptainControlBoatAI extends Goal {
                 }
 
                 case CREATING_PATH -> {
-                    if(++creatingPathCounter > 10) this.state = DONE;
-
                     if (this.sailPos != null) {
 
                         SailorPathNavigation sailorPathNavigation = (SailorPathNavigation) captain.getNavigation();
-                        this.path = sailorPathNavigation.createPath(this.sailPos, 16, false, 0);
+                        this.path = sailorPathNavigation.createPath(this.sailPos, 32, false, 0);
+                        //this.path = sailorPathNavigation.createPath(this.sailPos.getX(), this.sailPos.getY(), this.sailPos.getZ(), 0);
 
                         if (path != null) {
                             this.node = this.path.getNextNode();

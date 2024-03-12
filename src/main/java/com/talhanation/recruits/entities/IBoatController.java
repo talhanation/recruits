@@ -4,6 +4,7 @@ import com.talhanation.recruits.Main;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.Skeleton;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.level.block.Blocks;
@@ -195,6 +196,7 @@ public interface IBoatController {
     default void setSmallShipsSailState(Boat boat, int state){
         try {
             Class<?> shipClass = Class.forName("com.talhanation.smallships.world.entity.ship.Ship");
+
             Field coolDownFlied = shipClass.getField("sailStateCooldown");
             int coolDown = coolDownFlied.getInt(boat);
 
@@ -233,10 +235,13 @@ public interface IBoatController {
     static void shootCannonsSmallShip(CaptainEntity driver, Boat boat, LivingEntity target, boolean leftSide){
         double distanceToTarget = driver.distanceToSqr(target);
         double speed = 2.2F;
-        double accuracy = 1F;// 0 = 100%
+        double accuracy = 3.75F;// 0 = 100%
         float rotation = leftSide ? (3.14F / 2) : -(3.14F / 2);
+
         Vec3 shootVec = boat.getForward().yRot(rotation).normalize();
-        double yShootVec = shootVec.y() + distanceToTarget/5000;
+        double heightDiff = target.getY() - driver.getY();
+        double angle = IRangedRecruit.getAngleDistanceModifier(distanceToTarget, 45, 3) * (1 + heightDiff * 0.20 - distanceToTarget/10000);
+        double yShootVec = shootVec.y() + angle;
         try{
             Class<?> cannonAbleClass = Class.forName("com.talhanation.smallships.world.entity.ship.abilities.Cannonable");
             if(cannonAbleClass.isInstance(boat)){
