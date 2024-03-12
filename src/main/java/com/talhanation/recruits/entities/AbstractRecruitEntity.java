@@ -276,6 +276,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(UPKEEP_ID, Optional.empty());
         this.entityData.define(OWNED, false);
         this.entityData.define(COST, 1);
+        this.entityData.define(COLOR, (byte) 3);
 
         //STATE
         // 0 = NEUTRAL
@@ -1781,5 +1782,4 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public boolean removeWhenFarAway(double p_21542_) {
         return false;
     }
-
 }
