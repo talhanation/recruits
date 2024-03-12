@@ -10,7 +10,11 @@ import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,7 +65,11 @@ public class RecruitUpkeepPosGoal extends Goal {
 
         if(recruit.getUpkeepTimer() == 0 && chestPos != null){
             BlockEntity entity = recruit.level.getBlockEntity(chestPos);
-            if (entity instanceof Container containerEntity) {
+            BlockState blockState = recruit.getCommandSenderWorld().getBlockState(chestPos);
+            if(blockState.getBlock() instanceof ChestBlock chestBlock){
+                this.container = ChestBlock.getContainer(chestBlock, blockState, recruit.getCommandSenderWorld(), chestPos, false);
+            }
+            else if (entity instanceof Container containerEntity) {
                 this.container = containerEntity;
             }
             else{
@@ -216,6 +224,20 @@ public class RecruitUpkeepPosGoal extends Goal {
                 return true;
         }
         return false;
+    }
+
+    public void interactChest(Container container, boolean open) {
+        if (container instanceof ChestBlockEntity chest) {
+            if (open) {
+                this.recruit.getLevel().blockEvent(this.chestPos, chest.getBlockState().getBlock(), 1, 1);
+                this.recruit.getCommandSenderWorld().playSound(null, chestPos, SoundEvents.CHEST_OPEN, recruit.getSoundSource(), 0.7F, 0.8F + 0.4F * recruit.getRandom().nextFloat());
+            }
+            else {
+                this.recruit.getLevel().blockEvent(this.chestPos, chest.getBlockState().getBlock(), 1, 0);
+                recruit.getCommandSenderWorld().playSound(null, chestPos, SoundEvents.CHEST_CLOSE, recruit.getSoundSource(), 0.7F, 0.8F + 0.4F * recruit.getRandom().nextFloat());
+            }
+            this.recruit.getCommandSenderWorld().gameEvent(this.recruit, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, chestPos);
+        }
     }
 
     private MutableComponent TEXT_NO_PLACE(String name) {
