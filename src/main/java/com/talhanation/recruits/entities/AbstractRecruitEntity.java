@@ -1228,6 +1228,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public boolean needsToEat(){
+        setHunger((getHunger() - 0.0001F));
+
         if (getHunger() <= 50F){
             return true;
         }

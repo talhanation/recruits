@@ -59,10 +59,6 @@ public class RecruitEvents {
     private static final Map<ServerLevel, PillagerPatrolSpawn> PILLAGER_PATROL = new HashMap<>();
 
     public static MinecraftServer server;
-    public boolean needsUpdateHungerDay = true;
-    public boolean needsUpdateHungerNight = true;
-
-
     static HashMap<Integer, EntityType<? extends  AbstractRecruitEntity>> entitiesByProfession = new HashMap<>(){{
             put(0, ModEntityTypes.MESSENGER.get());
             put(2, ModEntityTypes.PATROL_LEADER.get());
@@ -144,33 +140,6 @@ public class RecruitEvents {
                     PillagerPatrolSpawn pillagerSpawner = PILLAGER_PATROL.get(serverWorld);
                     pillagerSpawner.tick();
             }
-        }
-
-
-        //HUNGER
-        if (!event.level.isClientSide && event.level instanceof ServerLevel serverWorld) {
-            if(serverWorld.getLevel().isDay() && this.needsUpdateHungerDay){
-                serverSideUpdateRecruitHunger(serverWorld);
-                this.needsUpdateHungerNight = true;
-                this.needsUpdateHungerDay = false;
-            }
-            else if (serverWorld.getLevel().isNight() && this.needsUpdateHungerNight){
-
-                serverSideUpdateRecruitHunger(serverWorld);
-                this.needsUpdateHungerNight = false;
-                this.needsUpdateHungerDay = true;
-            }
-        }
-    }
-
-    public void serverSideUpdateRecruitHunger(ServerLevel level){
-        List<AbstractRecruitEntity> recruitList = new ArrayList<>();
-        for(Entity entity : level.getEntities().getAll()){
-            if(entity instanceof AbstractRecruitEntity recruit)
-                recruitList.add(recruit);
-        }
-        for(AbstractRecruitEntity recruit : recruitList){
-            recruit.updateHunger();
         }
     }
 
