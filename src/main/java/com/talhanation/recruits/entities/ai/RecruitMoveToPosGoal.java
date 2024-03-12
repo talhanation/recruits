@@ -4,8 +4,6 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
 
-import java.util.EnumSet;
-
 public class RecruitMoveToPosGoal extends Goal {
     private final AbstractRecruitEntity recruit;
     private final double speedModifier;
@@ -37,6 +35,7 @@ public class RecruitMoveToPosGoal extends Goal {
             else {
                 recruit.setShouldMovePos(false);
                 recruit.clearMovePos();
+                recruit.reachedMovePos = true;
             }
         }
     }

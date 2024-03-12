@@ -106,6 +106,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public int upkeepTimer = 0;
     public int mountTimer = 0;
     public int despawnTimer = -1;
+    public boolean reachedMovePos;
 
 
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
@@ -146,6 +147,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if(getUpkeepTimer() > 0) setUpkeepTimer(getUpkeepTimer() - 1);
         if(getHunger() >=  70F && getHealth() < getMaxHealth()){
             this.heal(1.0F/50F);// 1 hp in 2.5s
+        }
+
+        if(this.reachedMovePos){
+            this.setFollowState(2);
+            this.reachedMovePos = false;
         }
     }
 
@@ -830,6 +836,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
     public void setMovePos(BlockPos holdPos){
         this.entityData.set(MOVE_POS, Optional.of(holdPos));
+        reachedMovePos = false;
     }
 
     public void clearHoldPos(){
