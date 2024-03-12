@@ -99,7 +99,7 @@ public class PatrolLeaderAttackAI extends Goal {
 
                 //RANGED DARF NICHT VOR WENN GEGNER INFANTRY GRÖßER IST -> HOLD POS
                 //RANGED DARF NICHT VOR WENN GEGNER RANGED GRÖßER ist -> HOLD POS
-                
+
                 //INFANTRY DARF NICHT VOR WENN GEGNER INFANTRY GRÖßER ist -> HOLD POS
                 //INFANTRY SHIELDS UP WENN GEGNER RANGED GRÖßER ist -> CHARGE
 
