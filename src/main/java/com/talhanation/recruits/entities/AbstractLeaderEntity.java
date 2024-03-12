@@ -37,6 +37,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     private static final EntityDataAccessor<Integer> WAYPOINT_INDEX = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> WAIT_TIME_IN_MIN = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> CYCLE = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> FAST_PATROLLING = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Byte> PATROLLING_STATE = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.BYTE);
     private static final EntityDataAccessor<Byte> INFO_MODE = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.BYTE);
     public boolean returning;
@@ -63,6 +64,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         this.entityData.define(WAYPOINT_INDEX, 0);
         this.entityData.define(WAIT_TIME_IN_MIN, 0);
         this.entityData.define(CYCLE, false);
+        this.entityData.define(FAST_PATROLLING, false);
         this.entityData.define(PATROLLING_STATE, (byte) 3);
         this.entityData.define(INFO_MODE, (byte) 0);
     }
@@ -78,6 +80,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         nbt.putBoolean("retreating", this.retreating);
         nbt.putByte("infoMode", this.getInfoMode());
         nbt.putString("OwnerName", this.ownerName);
+        nbt.putBoolean("fastPatrolling", this.getFastPatrolling());
 
         ListTag waypointItems = new ListTag();
         for (int i = 0; i < WAYPOINT_ITEMS.size(); ++i) {
@@ -128,6 +131,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         this.waitingTime = nbt.getInt("waiting_time");
         this.setInfoMode(nbt.getByte("infoMode"));
         this.ownerName = nbt.getString("ownerName");
+        this.setFastPatrolling(nbt.getBoolean("fastPatrolling"));
 
         ListTag waypointItems = nbt.getList("WaypointItems", 10);
         for (int i = 0; i < waypointItems.size(); ++i) {
@@ -275,7 +279,20 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                 }
             }
         }
+    public double getDistanceToReachWaypoint() {
+        return 15D;
+    }
 
+    protected void moveToCurrentWaypoint() {
+        this.getNavigation().moveTo(currentWaypoint.getX(), currentWaypoint.getY(), currentWaypoint.getZ(), this.getFastPatrolling() ? 1F : 0.65F);
+        if (horizontalCollision || minorHorizontalCollision) {
+            this.getJumpControl().jump();
+        }
+    }
+
+    public void setPatrolState(State state){
+        this.prevState = this.state;
+        this.state = state;
     }
 
     private void sendInfoAboutTarget(LivingEntity target) {
@@ -372,11 +389,13 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     public void setFollowState(int state) {
         super.setFollowState(state);
 
+        /*
         //Pause the patrolling when command is not wander freely
         if(state != 0  && WAYPOINTS != null  && WAYPOINTS.size() > 0){
             if(getTarget() != null) this.setPatrollingState((byte) 5, false);//ATTACKING
             else this.setPatrollingState((byte) 2, false);//PAUSED
         }
+        */
     }
     public String getOwnerName() {
         return ownerName;
@@ -417,6 +436,11 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
 
     public int getWaypointIndex() {
         return this.entityData.get(WAYPOINT_INDEX);
+    }
+
+
+    public boolean getFastPatrolling() {
+        return this.entityData.get(FAST_PATROLLING);
     }
 
     public MutableComponent ENEMY_CONTACT(String name, BlockPos pos){

@@ -28,7 +28,7 @@ public class CaptainControlBoatAI extends Goal {
     private BlockPos sailPos;
     private int timer;
     private float precision;
-    public final boolean DEBUG = true;
+    public final boolean DEBUG = false;
     private byte stoppingTimer = 0;
     private int attackingTimeOut = 0;
     private int creatingPathCounter = 0;
