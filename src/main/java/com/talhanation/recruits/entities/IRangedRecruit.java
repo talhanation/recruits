@@ -38,4 +38,25 @@ public interface IRangedRecruit extends RangedAttackMob {
         double modifier = distance/x;
         return (modifier - IRangedRecruit.random.nextInt(-random, random)) /100;
     }
+
+    static float getForceDistanceModifier(double distance, double base) {
+        double modifier = 0;
+        if(distance > 4000){
+            modifier = base * 0.09;
+        }
+        else if(distance > 3750){
+            modifier = base * 0.075;
+        }
+        else if(distance > 3500){
+            modifier = base * 0.055;
+        }
+        else if(distance > 3000){
+            modifier = base * 0.030;
+        }
+        else if(distance > 2500){
+            modifier = base * 0.010;
+        }
+
+        return (float) modifier;
+    }
 }
