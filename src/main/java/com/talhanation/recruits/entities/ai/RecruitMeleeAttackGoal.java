@@ -187,11 +187,9 @@ public class RecruitMeleeAttackGoal extends Goal {
         BlockPos pos = recruit.getHoldPos();
 
         if (target != null && pos != null && recruit.getShouldHoldPos()) {
-            double distanceToTarget = target.distanceTo(this.recruit);
-            boolean targetIsFar =  distanceToTarget >= 10.0D;
-            boolean isFarToPos = !recruit.getHoldPos().closerThan(recruit.getOnPos(), 12D);
-            if(targetIsFar) return false;
-            else return !isFarToPos;
+            double distanceToPos = target.distanceToSqr(pos.getX(), pos.getY(), pos.getZ());
+
+            return distanceToPos < 750;
         }
         return true;
     }
