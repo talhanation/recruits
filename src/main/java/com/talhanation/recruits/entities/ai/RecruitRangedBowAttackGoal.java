@@ -90,8 +90,8 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
     //distance of 2800 is accuracy limit
     public void tick() {
         boolean isClose = target.distanceToSqr(this.mob) <= 150;
-        boolean isFar = target.distanceToSqr(this.mob) >= 3750;
-        boolean isTooFar = target.distanceToSqr(this.mob) >= 5000;
+        boolean isFar = target.distanceToSqr(this.mob) >= 3500;
+        boolean isTooFar = target.distanceToSqr(this.mob) >= 4500;
         boolean inRange =  !isFar;
         //if (mob.getHoldPos() != null)Objects.requireNonNull(this.mob.getOwner()).sendMessage(new StringTextComponent("Pos vorhanden"), mob.getOwner().getUUID());
 

@@ -10,6 +10,7 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Stack;
 import java.util.UUID;
 
 public class MessageAssignGroupToCompanion implements Message<MessageAssignGroupToCompanion> {
@@ -41,7 +42,7 @@ public class MessageAssignGroupToCompanion implements Message<MessageAssignGroup
                 break;
             }
         }
-
+        companionEntity.RECRUITS_IN_COMMAND = new Stack<>();
         for (AbstractRecruitEntity recruit : list) {
             UUID recruitOwner = recruit.getOwnerUUID();
             if (recruitOwner != null && recruitOwner.equals(owner) && recruit.getGroup() == group && !recruit.getUUID().equals(this.companion))
