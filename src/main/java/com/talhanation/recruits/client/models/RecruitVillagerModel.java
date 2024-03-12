@@ -11,7 +11,7 @@ import net.minecraft.client.model.geom.builders.*;
 import java.util.List;
 import java.util.Random;
 
-public class RecruitVillagerModel extends HumanoidModel<AbstractInventoryEntity> {
+public class RecruitVillagerModel extends HumanoidModel<AbstractRecruitEntity> {
     private final List<ModelPart> parts;
     public RecruitVillagerModel(ModelPart part) {
         super(part);
@@ -42,7 +42,7 @@ public class RecruitVillagerModel extends HumanoidModel<AbstractInventoryEntity>
     }
 
     @Override
-    public void setupAnim(AbstractInventoryEntity p_102866_, float p_102867_, float p_102868_, float p_102869_, float p_102870_, float p_102871_) {
+    public void setupAnim(AbstractRecruitEntity p_102866_, float p_102867_, float p_102868_, float p_102869_, float p_102870_, float p_102871_) {
         super.setupAnim(p_102866_, p_102867_, p_102868_, p_102869_, p_102870_, p_102871_);
     }
 
