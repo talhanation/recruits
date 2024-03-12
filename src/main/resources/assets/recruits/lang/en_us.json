@@ -286,7 +286,7 @@
   "gui.recruits.inv.text.assign_recruits": "Assign Recruits",
   "gui.recruits.inv.tooltip.assign_recruits": "All nearby recruits in the same group will be assigned to this companion",
   "chat.recruits.team_creation.canNotAddOtherLeader": "You can not add a other team leader to your team.",
-  "chat.recruits.team_creation.playerLeftTeamLeader": "%s has left your team."
+  "chat.recruits.team_creation.playerLeftTeamLeader": "%s has left your team.",
   "gui.recruits.inv.tooltip.patrol_leader_fast": "Set the patrolling speed.",
   "gui.recruits.inv.text.fast": "Fast",
   "gui.recruits.inv.text.normal": "Normal"
