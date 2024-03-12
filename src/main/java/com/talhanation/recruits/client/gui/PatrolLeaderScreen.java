@@ -3,6 +3,7 @@ package com.talhanation.recruits.client.gui;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
+import com.talhanation.recruits.entities.CaptainEntity;
 import com.talhanation.recruits.inventory.PatrolLeaderContainer;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
@@ -31,6 +32,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private int leftPos;
     private int topPos;
     private boolean cycle;
+    private boolean fastPatrolling;
     private AbstractLeaderEntity.State state;
     private AbstractLeaderEntity.InfoMode infoMode;
 
@@ -47,10 +49,11 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
 
     private static final MutableComponent TOOLTIP_CYCLE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_cycle");
     private static final MutableComponent TOOLTIP_LINE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_line");
-
+    private static final MutableComponent TOOLTIP_FAST_PATROLLING = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_fast");
     private static final MutableComponent BUTTON_CYCLE = new TranslatableComponent("gui.recruits.inv.text.cycle");
     private static final MutableComponent BUTTON_LINE = new TranslatableComponent("gui.recruits.inv.text.line");
-
+    private static final MutableComponent BUTTON_FAST = new TranslatableComponent("gui.recruits.inv.text.fast");
+    private static final MutableComponent BUTTON_NORMAL = new TranslatableComponent("gui.recruits.inv.text.normal");
     private static final MutableComponent INFO_MODE_ALL = new TranslatableComponent("gui.recruits.inv.text.infomode.all");
     private static final MutableComponent INFO_MODE_HOSTILE = new TranslatableComponent("gui.recruits.inv.text.infomode.hostiles");
     private static final MutableComponent INFO_MODE_ENEMY = new TranslatableComponent("gui.recruits.inv.text.infomode.enemies");
@@ -80,6 +83,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
         this.cycle = recruit.getCycle();
+        this.fastPatrolling = recruit.getFastPatrolling();
         this.state = AbstractLeaderEntity.State.fromIndex(recruit.getPatrollingState());
         this.infoMode = AbstractLeaderEntity.InfoMode.fromIndex(recruit.getInfoMode());
         this.setButtons();
@@ -107,7 +111,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
 
         Component stopString;
         Component stopToolTip;
-        if (state != AbstractLeaderEntity.State.STARTED) { // 1 = patrolling/started
+        if (state != AbstractLeaderEntity.State.PATROLLING) { // 1 = patrolling/started
             stopString = BUTTON_STOP;
             stopToolTip = TOOLTIP_STOP;
         } else {
@@ -133,6 +137,9 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         }
         this.setInfoButton(infoModeString);
 
+
+        Component fastPatrollingString = fastPatrolling ? BUTTON_FAST : BUTTON_NORMAL;
+        this.setFastPatrollingButton(fastPatrollingString);
     }
 
     private void setInfoButton(Component infoModeString) {
@@ -182,10 +189,25 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         startButton.active = state == AbstractLeaderEntity.State.STOPPED || state == AbstractLeaderEntity.State.IDLE;
     }
 
+    public void setFastPatrollingButton(Component cycle) {
+        Button buttonFastPatrolling = addRenderableWidget(new Button(leftPos + 230, topPos + 92, 50, 20, cycle,
+                button -> {
+                    this.fastPatrolling = !this.fastPatrolling;
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetPatrollingSpeed(this.recruit.getUUID(), this.fastPatrolling));
+
+                    this.setButtons();
+                },
+                (button, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_FAST_PATROLLING, i, i1);
+                }
+        ));
+        if(this.recruit instanceof CaptainEntity) buttonFastPatrolling.active = false;
+    }
+
     public void setStartButtons(Component start, Component tooltip) {
         Button startButton = addRenderableWidget(new Button(leftPos + 19, topPos + 11, 40, 20, start,
                 button -> {
-                    this.state = AbstractLeaderEntity.State.STARTED;
+                    this.state = AbstractLeaderEntity.State.PATROLLING;
                     Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetPatrolState(this.recruit.getUUID(), (byte) 1));
 
                     this.setButtons();
@@ -194,14 +216,14 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
                     this.renderTooltip(poseStack, tooltip, i, i1);
                 }
         ));
-        startButton.active = state != AbstractLeaderEntity.State.STARTED;
+        startButton.active = state != AbstractLeaderEntity.State.PATROLLING;
 
     }
 
     public void setStopButtons(AbstractLeaderEntity.State currentState, Component stop, Component tooltip) {
         Button startButton = addRenderableWidget(new Button(leftPos + 62, topPos + 11, 40, 20, stop,
                 button -> {
-                    if (currentState != AbstractLeaderEntity.State.STARTED) {
+                    if (currentState != AbstractLeaderEntity.State.PATROLLING) {
                         this.state = AbstractLeaderEntity.State.STOPPED;
                     } else {
                         this.state = AbstractLeaderEntity.State.PAUSED;
@@ -219,7 +241,8 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
 
     @Override
     public boolean mouseReleased(double p_97812_, double p_97813_, int p_97814_) {
-        Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetWaitTime(this.recruit.getUUID(),  this.waitSlider.getValueInt()));
+        if(this.recruit != null)
+            Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetWaitTime(this.recruit.getUUID(),  this.waitSlider.getValueInt()));
 
         return super.mouseReleased(p_97812_, p_97813_, p_97814_);
     }
@@ -295,6 +318,8 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     @Override
     protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
+
+        font.draw(matrixStack, "Status: " + state, 200, 10, fontColor);
         // Info
         int fontColor = 4210752;
         int waypointsPerPage = 10;
