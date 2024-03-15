@@ -8,8 +8,10 @@ import com.talhanation.recruits.entities.AbstractInventoryEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.CrossBowmanEntity;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.layers.*;
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.client.model.PlayerModel;
@@ -63,21 +65,16 @@ public class RecruitHumanRenderer extends MobRenderer<AbstractRecruitEntity, Pla
         this.addLayer(new CustomHeadLayer<>(this, mgr.getModelSet()));
     }
 
-    public void render(AbstractInventoryEntity recruit, float p_117789_, float p_117790_, PoseStack p_117791_, MultiBufferSource p_117792_, int p_117793_) {
+
+    public void render(AbstractRecruitEntity recruit, float p_117789_, float p_117790_, PoseStack p_117791_, MultiBufferSource p_117792_, int p_117793_) {
         this.setModelProperties(recruit);
-        super.render((AbstractRecruitEntity) recruit, p_117789_, p_117790_, p_117791_, p_117792_, p_117793_);
+        super.render(recruit, p_117789_, p_117790_, p_117791_, p_117792_, p_117793_);
     }
 
-    private void setModelProperties(AbstractInventoryEntity recruit) {
+    private void setModelProperties(AbstractRecruitEntity recruit) {
         PlayerModel<AbstractRecruitEntity> model = this.getModel();
 
         model.setAllVisible(true);
-        model.hat.visible = true;
-        model.jacket.visible = true;
-        model.leftPants.visible = true;
-        model.rightPants.visible = true;
-        model.leftSleeve.visible = true;
-        model.rightSleeve.visible = true;
         model.crouching = recruit.isCrouching();
         HumanoidModel.ArmPose humanoidmodel$armpose = getArmPose(recruit, InteractionHand.MAIN_HAND);
         HumanoidModel.ArmPose humanoidmodel$armpose1 = getArmPose(recruit, InteractionHand.OFF_HAND);
@@ -93,7 +90,7 @@ public class RecruitHumanRenderer extends MobRenderer<AbstractRecruitEntity, Pla
         }
     }
 
-    private static HumanoidModel.ArmPose getArmPose(AbstractInventoryEntity recruit, InteractionHand hand) {
+    private static HumanoidModel.ArmPose getArmPose(AbstractRecruitEntity recruit, InteractionHand hand) {
         ItemStack itemstack = recruit.getItemInHand(hand);
         boolean isMusket = IWeapon.isMusketModWeapon(itemstack) && (recruit instanceof CrossBowmanEntity crossBowman)  && crossBowman.isAggressive();
         if (itemstack.isEmpty()) {
@@ -123,7 +120,12 @@ public class RecruitHumanRenderer extends MobRenderer<AbstractRecruitEntity, Pla
             } else if (!recruit.swinging && itemstack.is(Items.CROSSBOW) && CrossbowItem.isCharged(itemstack) || isMusket) {
                 return HumanoidModel.ArmPose.CROSSBOW_HOLD;
             }
+
+            HumanoidModel.ArmPose forgeArmPose = net.minecraftforge.client.extensions.common.IClientItemExtensions.of(itemstack).getArmPose(recruit, hand, itemstack);
+            if (forgeArmPose != null) return forgeArmPose;
+
             return HumanoidModel.ArmPose.ITEM;
         }
     }
+
 }
