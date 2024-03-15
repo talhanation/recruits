@@ -54,6 +54,33 @@ public class RecruitUpkeepPosGoal extends Goal {
         messageNeedNewChest = true;
         messageNotInRange = true;
         this.chestPos = recruit.getUpkeepPos();
+
+        if(chestPos != null) {
+            BlockEntity entity = recruit.level.getBlockEntity(chestPos);
+            BlockState blockState = recruit.getCommandSenderWorld().getBlockState(chestPos);
+            if (blockState.getBlock() instanceof ChestBlock chestBlock) {
+                this.container = ChestBlock.getContainer(chestBlock, blockState, recruit.getCommandSenderWorld(), chestPos, false);
+            } else if (entity instanceof Container containerEntity) {
+                this.container = containerEntity;
+            } else {
+                if (recruit.getOwner() != null && messageNotChest) {
+                    recruit.getOwner().sendSystemMessage(TEXT_CANT_INTERACT(recruit.getName().getString()));
+                    messageNotChest = false;
+                }
+                this.chestPos = null;
+            }
+
+            double distance = this.recruit.position().distanceToSqr(Vec3.atCenterOf(chestPos));
+            if(distance > 10000){
+                if(recruit.getOwner() != null && messageNotInRange){
+                    recruit.getOwner().sendSystemMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()));
+                    messageNotInRange = false;
+                }
+
+                recruit.clearUpkeepPos();
+                stop();
+            }
+        }
     }
 
     @Override
@@ -65,35 +92,8 @@ public class RecruitUpkeepPosGoal extends Goal {
             return;
         }
 
-        if(recruit.getUpkeepTimer() == 0 && chestPos != null){
-            BlockEntity entity = recruit.level.getBlockEntity(chestPos);
-            BlockState blockState = recruit.getCommandSenderWorld().getBlockState(chestPos);
-            if(blockState.getBlock() instanceof ChestBlock chestBlock){
-                this.container = ChestBlock.getContainer(chestBlock, blockState, recruit.getCommandSenderWorld(), chestPos, false);
-            }
-            else if (entity instanceof Container containerEntity) {
-                this.container = containerEntity;
-            }
-            else{
-                if(recruit.getOwner() != null && messageNotChest){
-                    recruit.getOwner().sendSystemMessage(TEXT_CANT_INTERACT(recruit.getName().getString()));
-                    messageNotChest = false;
-                }
-                this.chestPos = null;
-            }
-
-            if (chestPos != null){
-                double distance = this.recruit.position().distanceToSqr(Vec3.atCenterOf(chestPos));
-                if(distance > 10000){
-                    if(recruit.getOwner() != null && messageNotInRange){
-                        recruit.getOwner().sendSystemMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()));
-                        messageNotInRange = false;
-                    }
-
-                    recruit.clearUpkeepPos();
-                    stop();
-                    return;
-                }
+        if(recruit.getUpkeepTimer() == 0){
+            if (container != null && chestPos != null){
                 this.recruit.getNavigation().moveTo(chestPos.getX(), chestPos.getY(), chestPos.getZ(), 1.15D);
                 if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
                     this.recruit.getJumpControl().jump();
@@ -103,6 +103,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                     this.recruit.getNavigation().stop();
                     this.recruit.getLookControl().setLookAt(chestPos.getX(), chestPos.getY() + 1, chestPos.getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
                     if (isFoodInContainer(container)) {
+                        interactChest(container, true);
                         for (int i = 0; i < 3; i++) {
                             ItemStack foodItem = this.getFoodFromInv(container);
                             ItemStack food;
@@ -174,6 +175,7 @@ public class RecruitUpkeepPosGoal extends Goal {
         super.stop();
         recruit.setUpkeepTimer(recruit.getUpkeepCooldown());
         recruit.forcedUpkeep = false;
+        if(container != null) interactChest(container, false);
     }
 
     @Nullable
