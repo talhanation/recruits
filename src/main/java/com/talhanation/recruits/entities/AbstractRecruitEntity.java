@@ -271,7 +271,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(UPKEEP_ID, Optional.empty());
         this.entityData.define(OWNED, false);
         this.entityData.define(COST, 1);
-        this.entityData.define(COLOR, (byte) 3);
+        this.entityData.define(COLOR, (byte) 0);
 
         //STATE
         // 0 = NEUTRAL
@@ -312,6 +312,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putInt("Cost", this.getCost());
         nbt.putInt("mountTimer", this.getMountTimer());
         nbt.putInt("upkeepTimer", this.getUpkeepTimer());
+        nbt.putInt("Color", this.getColor());
 
         if(this.getHoldPos() != null){
             nbt.putInt("HoldPosX", this.getHoldPos().getX());
@@ -377,7 +378,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setCost(nbt.getInt("Cost"));
         this.setMountTimer(nbt.getInt("mountTimer"));
         this.setUpkeepTimer(nbt.getInt("UpkeepTimer"));
-
+        this.setColor(nbt.getByte("Color"));
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
