@@ -94,7 +94,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
 
     //ATTRIBUTES
     public static AttributeSupplier.Builder setAttributes() {
-        return LivingEntity.createLivingAttributes()
+        return Mob.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.31D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
