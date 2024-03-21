@@ -108,7 +108,6 @@ public class CaptainControlBoatAI extends Goal {
 
                         SailorPathNavigation sailorPathNavigation = (SailorPathNavigation) captain.getNavigation();
                         this.path = sailorPathNavigation.createPath(this.sailPos, 32, false, 0);
-                        //this.path = sailorPathNavigation.createPath(this.sailPos.getX(), this.sailPos.getY(), this.sailPos.getZ(), 0);
 
                         if (path != null) {
                             this.node = this.path.getNextNode();
@@ -218,8 +217,8 @@ public class CaptainControlBoatAI extends Goal {
 
                         IBoatController.rotateSmallShip((Boat) this.captain.getVehicle(), inputLeft, inputRight);
 
-                        double abs = Math.abs(phi - ref);
-                        if(abs <= Math.abs(ref * 0.85F))
+                        double beta = shootLeftSide ? IBoatController.horizontalAngleBetweenVectors(forward.yRot(3.14F / 2), toTarget) : IBoatController.horizontalAngleBetweenVectors(forward.yRot(-3.14F / 2), toTarget);
+                        if(beta < 10)
                             IBoatController.shootCannonsSmallShip(this.captain, (Boat) this.captain.getVehicle(), target, shootLeftSide);
 
                     }
