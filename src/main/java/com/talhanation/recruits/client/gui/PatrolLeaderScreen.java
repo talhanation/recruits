@@ -1,14 +1,16 @@
 package com.talhanation.recruits.client.gui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.CaptainEntity;
 import com.talhanation.recruits.inventory.PatrolLeaderContainer;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -24,6 +26,7 @@ import java.util.List;
 
 public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/professions/waypoint_list_gui.png");
+    public static int recruitsSize;
     private final Player player;
     private final AbstractLeaderEntity recruit;
     private int page = 1;
@@ -35,7 +38,6 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private boolean fastPatrolling;
     private AbstractLeaderEntity.State state;
     private AbstractLeaderEntity.InfoMode infoMode;
-
     private static final MutableComponent TOOLTIP_START = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_start");
     private static final MutableComponent TOOLTIP_STOP = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_stop");
     private static final MutableComponent TOOLTIP_PAUSE = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_pause");
@@ -67,11 +69,11 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
 
     private static final int fontColor = 4210752;
     private ForgeSlider waitSlider;
-
+    private final int offset = 88;
     public PatrolLeaderScreen(PatrolLeaderContainer container, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""));
-        this.imageWidth = 211;
-        this.imageHeight = 250;
+        this.imageWidth = 384;
+        this.imageHeight = 256;
         this.player = container.getPlayerEntity();
         this.recruit = container.getRecruit();
     }
@@ -80,13 +82,20 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     protected void init() {
         super.init();
 
-        this.leftPos = (this.width - this.imageWidth) / 2;
+        this.leftPos = this.offset + (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
         this.cycle = recruit.getCycle();
         this.fastPatrolling = recruit.getFastPatrolling();
         this.state = AbstractLeaderEntity.State.fromIndex(recruit.getPatrollingState());
         this.infoMode = AbstractLeaderEntity.InfoMode.fromIndex(recruit.getInfoMode());
         this.setButtons();
+    }
+
+    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, this.texture);
+        blit(matrixStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight,this.imageWidth, this.imageHeight);
     }
 
     private void setButtons(){
@@ -153,7 +162,8 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
 
     private void setAssignButton() {
-        Button assignButton = addRenderableWidget(new ExtendedButton(leftPos + 230, topPos + 32, 50, 20, BUTTON_ASSIGN_RECRUITS, button -> {
+        Button assignButton = addRenderableWidget(new ExtendedButton(leftPos + 216, topPos + 140, 110, 20, BUTTON_ASSIGN_RECRUITS, button -> {
+
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToCompanion(player.getUUID(), this.recruit.getUUID()));
             onClose();
         }
@@ -307,8 +317,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         super.renderLabels(guiGraphics, mouseX, mouseY);
-
-        guiGraphics.drawString(font, "Status: " + state, 200, 10, fontColor);
+        guiGraphics.drawString(font, "Recruit in Oder: " + recruitsSize, offset + 220, 122, fontColor;
 
         // Info
         int fontColor = 4210752;
@@ -327,18 +336,18 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
 
                 String coordinates = String.format("%d:  (%d,  %d,  %d)", i + 1, x, y, z);
 
-                if(!waypointItems.isEmpty() && waypointItems.get(i) != null) renderItemAt(waypointItems.get(i), 15, 58 + ((i - startIndex) * 17)); // Adjust the Y position here
+                if(!waypointItems.isEmpty() && waypointItems.get(i) != null) renderItemAt(waypointItems.get(i), offset + 15, 58 + ((i - startIndex) * 17)); // Adjust the Y position here
                 else{
                     BlockPos pos1 =  waypoints.get(i);
                     ItemStack itemStack = recruit.getItemStackToRender(pos1);
 
-                    renderItemAt(itemStack, 15, 58 + ((i - startIndex) * 17));
+                    renderItemAt(itemStack, offset +15, 58 + ((i - startIndex) * 17));
                 }
-                guiGraphics.drawString(font, coordinates, 35, 60 + ((i - startIndex) * 17), fontColor);
+                guiGraphics.drawString(font, coordinates, offset +35, 60 + ((i - startIndex) * 17), fontColor);
             }
 
             if (waypoints.size() > waypointsPerPage)
-                guiGraphics.drawString(font, "Page: " + page, 90, 230, fontColor);
+                guiGraphics.drawString(font, "Page: " + page, offset + 90, 230, fontColor);
         }
 
     }
