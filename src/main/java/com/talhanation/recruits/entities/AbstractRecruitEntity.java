@@ -155,8 +155,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
-
-
     private void recruitCheckDespawn() {
         Entity entity = this.level.getNearestPlayer(this, -1.0D);
 
@@ -1560,7 +1558,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
     public boolean isValidTarget(LivingEntity living){
-        boolean notAllowed = living instanceof AbstractFish || living instanceof Squid || living instanceof AbstractHorse;
+        boolean notAllowed = living instanceof AbstractFish || living instanceof Squid || living instanceof AbstractHorse || (living instanceof Monster && living.isUnderWater());
 
         if (living instanceof AbstractRecruitEntity otherRecruit) {
             if (otherRecruit.isOwned() && this.isOwned()){
