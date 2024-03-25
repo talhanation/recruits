@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public class CaptainEntity extends AbstractLeaderEntity implements IBoatController {
+public class CaptainEntity extends AbstractLeaderEntity implements IBoatController, IStrategicFire {
 
     public boolean shipAttacking = false;
     private static final EntityDataAccessor<Optional<BlockPos>> SAIL_POS = SynchedEntityData.defineId(CaptainEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
@@ -51,7 +51,6 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
     public double getDistanceToReachWaypoint() {
         return 150D;
     }
-
 
     @Override
     @NotNull
@@ -112,6 +111,8 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
 
     @Override
     public boolean wantsToPickUp(ItemStack itemStack) {//TODO: add ranged combat
+        if(itemStack.getDescriptionId().contains("smallships")) return true;
+
         if((itemStack.getItem() instanceof SwordItem && this.getMainHandItem().isEmpty()) ||
                 (itemStack.getItem() instanceof ShieldItem) && this.getOffhandItem().isEmpty())
             return !hasSameTypeOfItem(itemStack);
@@ -209,16 +210,26 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
                     setSailPos(pos);
                 }
             }
-
-            case 1 -> {// FOLLOW
-                LivingEntity owner = this.getOwner();
-                if(owner != null){
-                    BlockPos pos = owner.getOnPos();
-                    setSailPos(pos);
-                }
-            }
-
         }
+    }
+
+    public void handleResupply() {
+        //Repair ship
+        //restock cannonballs
+        //
+    }
+
+    public int getResupplyTime() {
+        return 2000;
+    }
+
+    @Override
+    public void setShouldStrategicFire(boolean should) {
+
+    }
+
+    @Override
+    public void setStrategicFirePos(BlockPos blockpos) {
 
     }
 }

@@ -44,7 +44,7 @@ public class MessagePatrolLeaderRemoveWayPoint implements Message<MessagePatrolL
         if(leaderEntity.WAYPOINTS.size() > 0) leaderEntity.WAYPOINTS.pop();
         if(leaderEntity.WAYPOINT_ITEMS.size() > 0) leaderEntity.WAYPOINT_ITEMS.pop();
 
-        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new MessageToClientUpdateLeaderScreen(leaderEntity.WAYPOINTS, leaderEntity.WAYPOINT_ITEMS));
+        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new MessageToClientUpdateLeaderScreen(leaderEntity.WAYPOINTS, leaderEntity.WAYPOINT_ITEMS, leaderEntity.getRecruitsInCommand().size()));
     }
 
     public MessagePatrolLeaderRemoveWayPoint fromBytes(FriendlyByteBuf buf) {

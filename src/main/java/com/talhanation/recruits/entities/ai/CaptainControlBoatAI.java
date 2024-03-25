@@ -74,7 +74,21 @@ public class CaptainControlBoatAI extends Goal {
                 }
             }
 
-            if(sailPosChanged() && !captain.shipAttacking){
+            if(captain.getFollowState() == 1 && captain.getOwner() != null){
+                if(sailPos == null || captain.tickCount % 40 == 0){
+                    captain.setSailPos(captain.getOwner().getOnPos());
+                    this.sailPos = captain.getSailPos();
+                    this.state = CREATING_PATH;
+                }
+            }
+            else if (captain.getFollowState() == 5 && captain.getProtectingMob() != null){
+                if(sailPos == null || captain.tickCount % 40 == 0){
+                    captain.setSailPos(captain.getProtectingMob().getOnPos());
+                    this.sailPos = captain.getSailPos();
+                    this.state = CREATING_PATH;
+                }
+            }
+            else if(sailPosChanged() && !captain.shipAttacking){
                 this.sailPos = captain.getSailPos();
                 this.state = CREATING_PATH;
             }
@@ -170,7 +184,7 @@ public class CaptainControlBoatAI extends Goal {
                     if(distanceToNode >= 3F){
                         captain.updateBoatControl(node.x, node.z, 1.0F, 1.1F, path);
                     }
-                    int reach = captain.shipAttacking ? 3000 : 25;
+                    int reach = getTargetReach();
                     if(captain.distanceToSqr(sailPos.getX(), captain.getY(), sailPos.getZ()) < reach){
                         node = null;
                         path = null;
@@ -231,6 +245,13 @@ public class CaptainControlBoatAI extends Goal {
                 }
             }
         }
+    }
+
+    private int getTargetReach() {
+        if(this.captain.getFollowState() == 1 || this.captain.getFollowState() == 5){
+            return 1000;
+        }
+        else return captain.shipAttacking ? 3000 : 25;
     }
 
     private boolean isNeighborsWater(Node node){

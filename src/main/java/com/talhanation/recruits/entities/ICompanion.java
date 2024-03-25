@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface ICompanion {
 
-    /*
+/*
     enum CompanionProfession {
         UNPROMOTED(0),
         MESSENGER(1),
@@ -20,7 +20,7 @@ public interface ICompanion {
         SIEGE_ENGINEER(8),
         ROGUE(9)
     }
-    */
+ */
 
     static void assignToLeaderCompanion(AbstractLeaderEntity leader, AbstractRecruitEntity recruit) {
         recruit.setListen(false);
@@ -35,6 +35,7 @@ public interface ICompanion {
         recruit.setState(leader.getState());
 
         leader.RECRUITS_IN_COMMAND.push(recruit.getUUID());
+        leader.currentRecruitsInCommand = leader.getRecruitsInCommand();
     }
 
     AbstractRecruitEntity get();

@@ -33,18 +33,19 @@ public interface IBoatController {
             String string = boat.getEncodeId();
             if (Main.isSmallShipsLoaded && Main.isSmallShipsCompatible && (string.contains("smallships"))) {
                 boolean onPosIsDeep = getWaterDepth(boat.getOnPos(), this.getCaptain()) >= 7;
-                boolean following = getCaptain().getFollowState() == 1 && getCaptain().getOwner() != null;
-                BlockPos targetPos = new BlockPos((int) posX, (int) getCaptain().getY(), (int) posZ);
-                if(following){
+                //boolean following = getCaptain().getFollowState() == 1 && getCaptain().getOwner() != null;
+                BlockPos targetPos = new BlockPos(posX, getCaptain().getY(), posZ);
+                /*if(following){
                     boolean ownerOnPosIsDeep = getWaterDepth(getCaptain().getOwner().getOnPos(), this.getCaptain()) >= 7;
-                    boolean ownerFar = getCaptain().distanceToSqr(getCaptain().getOwner()) > 50;
+                    boolean ownerFar = getCaptain().distanceToSqr(getCaptain().getOwner()) > 150;
                     if (ownerOnPosIsDeep)
                         updateSmallShipsBoatControl(getCaptain(), boat, getCaptain().getOwner().getX(), getCaptain().getOwner().getZ(), ownerFar && onPosIsDeep);
                     else
                         updateSmallShipsBoatControl(getCaptain(), boat, posX, posZ, ownerFar && onPosIsDeep);
                 }
                 //MOVING TO POSITION / HOLD POS / MOVE / TARGET
-                else if(onPosIsDeep && path != null && !boat.horizontalCollision){
+                else
+                    */if(onPosIsDeep && path != null && !boat.horizontalCollision){
 
                     boolean targetIsDeep = getWaterDepth(targetPos, this.getCaptain()) >= 7;
                     updateSmallShipsBoatControl(getCaptain(), boat, targetPos.getX(), targetPos.getZ(), targetIsDeep);
@@ -289,6 +290,10 @@ public interface IBoatController {
 
         boat.setDeltaMovement(boat.getDeltaMovement().add((double)(Mth.sin(-boat.getYRot() * ((float)Math.PI / 180F)) * f), 0.0D, (double)(Mth.cos(boat.getYRot() * ((float)Math.PI / 180F)) * f)));
         boat.setPaddleState(inputRight || inputUp, inputLeft || inputUp);
+    }
+
+    static void mountSmallShips(Boat boat){
+
     }
 
     //Taken from Smallships/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

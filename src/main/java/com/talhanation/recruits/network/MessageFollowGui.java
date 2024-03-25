@@ -1,5 +1,6 @@
 package com.talhanation.recruits.network;
 
+import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -29,10 +30,10 @@ public class MessageFollowGui implements Message<MessageFollowGui> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
-        for (AbstractRecruitEntity recruits : list) {
+        for (AbstractRecruitEntity recruit : list) {
 
-            if (recruits.getUUID().equals(this.uuid))
-                recruits.setFollowState(this.state);
+            if (recruit.getUUID().equals(this.uuid))
+                CommandEvents.onFollowCommand(null, recruit, this.state, recruit.getGroup(), true);
         }
 
     }
