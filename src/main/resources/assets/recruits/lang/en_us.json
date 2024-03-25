@@ -289,5 +289,6 @@
   "chat.recruits.team_creation.playerLeftTeamLeader": "%s has left your team.",
   "gui.recruits.inv.tooltip.patrol_leader_fast": "Set the patrolling speed.",
   "gui.recruits.inv.text.fast": "Fast",
-  "gui.recruits.inv.text.normal": "Normal"
+  "gui.recruits.inv.text.normal": "Normal",
+  "chat.recruits.info.patrol_leader_info": "This companion can patrol pre defined waypoints. The first waypoint is also the retreating point and also important for resupplying. If a the upkeep chest of this companion is set in range the assinged recruits will also resupply form this chest."
 }

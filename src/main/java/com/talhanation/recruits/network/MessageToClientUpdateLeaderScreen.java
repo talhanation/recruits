@@ -15,13 +15,15 @@ public class MessageToClientUpdateLeaderScreen implements Message<MessageToClien
     public List<BlockPos> waypoints;
     public List<ItemStack> waypointItems;
     public boolean isStarted;
+    public int size;
 
     public MessageToClientUpdateLeaderScreen() {
     }
 
-    public MessageToClientUpdateLeaderScreen(List<BlockPos> waypoints, List<ItemStack> waypointItems) {
+    public MessageToClientUpdateLeaderScreen(List<BlockPos> waypoints, List<ItemStack> waypointItems, int size) {
         this.waypoints = waypoints;
         this.waypointItems = waypointItems;
+        this.size = size;
     }
 
     @Override
@@ -33,12 +35,14 @@ public class MessageToClientUpdateLeaderScreen implements Message<MessageToClien
     public void executeClientSide(NetworkEvent.Context context) {
         PatrolLeaderScreen.waypoints = this.waypoints;
         PatrolLeaderScreen.waypointItems = this.waypointItems;
+        PatrolLeaderScreen.recruitsSize = this.size;
     }
 
     @Override
     public MessageToClientUpdateLeaderScreen fromBytes(FriendlyByteBuf buf) {
         this.waypoints = buf.readList(FriendlyByteBuf::readBlockPos);
         this.waypointItems = buf.readList(FriendlyByteBuf::readItem);
+        this.size = buf.readInt();
 //        this.isStarted = buf.readBoolean();
         return this;
     }
@@ -47,6 +51,7 @@ public class MessageToClientUpdateLeaderScreen implements Message<MessageToClien
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeCollection(waypoints, FriendlyByteBuf::writeBlockPos);
         buf.writeCollection(waypointItems, FriendlyByteBuf::writeItem);
+        buf.writeInt(this.size);
 //      buf.writeBoolean(this.isStarted);
     }
 }
