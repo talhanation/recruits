@@ -747,4 +747,8 @@ public class RecruitsPatrolSpawn {
 
         world.addFreshEntity(crossBowman);
     }
+
+    private void createCompanionPatrolLeader(BlockPos upPos){
+
+    }
 }

@@ -24,9 +24,8 @@ public class RecruitMoveToPosGoal extends Goal {
     public void tick() {
         BlockPos blockpos = this.recruit.getMovePos();
         if (blockpos != null) {
-			
-            double distance = recruit.distanceToSqr(blockpos.getX(), blockpos.getY(), blockpos.getZ());
-            if(distance >= 6) {
+            double horizontalDistance = recruit.distanceToSqr(blockpos.getX(), recruit.getY(), blockpos.getZ());
+            if(horizontalDistance >= 6) {
                 this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
                 if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
                     this.recruit.getJumpControl().jump();

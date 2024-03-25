@@ -17,6 +17,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobCategory;
@@ -85,6 +86,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         nbt.putByte("infoMode", this.getInfoMode());
         nbt.putString("OwnerName", this.ownerName);
         nbt.putBoolean("fastPatrolling", this.getFastPatrolling());
+        nbt.putInt("waitForRecruitsUpkeepTime", this.waitForRecruitsUpkeepTime);
 
         ListTag waypointItems = new ListTag();
         for (int i = 0; i < WAYPOINT_ITEMS.size(); ++i) {
@@ -133,6 +135,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         this.returning = nbt.getBoolean("returning");
         this.retreating = nbt.getBoolean("retreating");
         this.waitingTime = nbt.getInt("waiting_time");
+        this.waitForRecruitsUpkeepTime = nbt.getInt("waitForRecruitsUpkeepTime");
         this.setInfoMode(nbt.getByte("infoMode"));
         this.ownerName = nbt.getString("ownerName");
         this.setFastPatrolling(nbt.getBoolean("fastPatrolling"));
@@ -168,10 +171,12 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
 
     public void tick(){
         super.tick();
-        Main.LOGGER.info(state);
+
         if(infoCooldown > 0) infoCooldown--;
         if(commandCooldown > 0) commandCooldown--;
+        if(waitForRecruitsUpkeepTime > 0) waitForRecruitsUpkeepTime--;
 
+        Main.LOGGER.info(state);
         double distance = 0D;
         if(currentWaypoint != null) distance = this.distanceToSqr(currentWaypoint.getX(), currentWaypoint.getY(), currentWaypoint.getZ());
 
@@ -185,11 +190,29 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                 if(currentWaypoint != null){
 
                     if(distance <= this.getDistanceToReachWaypoint()){
-                        updateWaypointIndex();
-                        this.setRecruitsToFollow();
-                        this.waitingTime = 0;
 
-                        this.setPatrolState(State.WAITING);
+                        //re-supply at first waypoint
+                        boolean isFirstWaypoint = getWaypointIndex() == 0;
+                        BlockPos pos = this.getUpkeepPos();
+                        if(pos != null && pos.distSqr(this.getOnPos()) < 5000 && isFirstWaypoint && waitForRecruitsUpkeepTime == 0){
+
+                            this.handleResupply();
+
+                            this.waitForRecruitsUpkeepTime = this.getResupplyTime(); // resupplying time
+                            this.setPatrolState(State.UPKEEP);
+                        }
+                        else
+                        {
+                            updateWaypointIndex();
+                            this.setRecruitsToFollow();
+                            if(this.getVehicle()!= null) setRecruitsDismount();
+                            else setRecruitsMount();
+
+
+                            this.waitingTime = 0;
+
+                            this.setPatrolState(State.WAITING);
+                        }
                     }
                     else{
                         moveToCurrentWaypoint();
@@ -202,25 +225,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                     this.sendInfoAboutTarget(this.getTarget());
                     this.setPatrolState(State.ATTACKING);
                 }
-                /*
-                boolean isFirstWaypoint = getWaypointIndex() == 0;
-                if(isFirstWaypoint && waitForRecruitsUpkeepTime == 0){
-                    setRecruitsUpkeep();
-                    setRecruitsWanderFreely();
-
-                    this.waitForRecruitsUpkeepTime = 400;
-                    this.setPatrolState(State.WAITING_RECRUITS);
-                }
-                 */
             }
-            /*
-            case WAITING_RECRUITS -> {
-                if(--waitForRecruitsUpkeepTime == 0){
-                    this.setPatrolState(State.STARTED);
-                }
-            }
-
-             */
 
             case WAITING -> {
                 if(timerElapsed() && hasIndex()){
@@ -242,37 +247,50 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                 if(this.retreating && WAYPOINTS != null && WAYPOINTS.size() > 0){
                     this.setPatrolState(State.RETREATING);
                 }
-                else if(distance > 500D || (this.getTarget() != null && !this.getTarget().isAlive()) || this.getTarget() == null){
-                    this.setTarget(null);
-                    this.setRecruitsClearTargets();
-                    this.setRecruitsToFollow();
-                    this.setPatrolState(State.WAITING_ENEMIES);
-                }
+                //AI-Task Taking care of this state
             }
 
             case RETREATING -> {
                 if(this.getOwner() != null) {
                     this.getOwner().sendSystemMessage(RETREATING());
                 }
-                //this.retreating = true;
                 this.setRecruitsClearTargets();
                 this.setRecruitsToFollow();
                 this.setRecruitsShields(false);
                 this.setPatrolState(State.PATROLLING);
             }
 
-            case WAITING_ENEMIES -> {
-                if(this.getTarget() != null){
-                    this.setPatrolState(State.ATTACKING);
-                }
-                else if(++waitingForEnemiesTime > 100){
-                    this.waitingForEnemiesTime = 0;
+            case UPKEEP -> {
+                if(waitForRecruitsUpkeepTime == 0){
+                    waitForRecruitsUpkeepTime = this.getAgainResupplyTime(); // time to resupply again
                     this.setPatrolState(State.PATROLLING);
                 }
             }
         }
     }
 
+    public void handleResupply() {
+        setRecruitsWanderFreely();
+        setRecruitsUpkeep();
+        this.forcedUpkeep = true;
+    }
+
+    public int getResupplyTime() {
+        return 1000;
+    }
+
+    public int getAgainResupplyTime() {
+        return 5000;
+    }
+
+    public void resetPatrolling(){
+        waitForRecruitsUpkeepTime = 0;
+        this.retreating = false;
+        this.waitingTime = 0;
+        this.setRecruitsClearTargets();
+        this.setRecruitsToFollow();
+        this.setRecruitsShields(false);
+    }
     public double getDistanceToReachWaypoint() {
         return 15D;
     }
@@ -378,19 +396,6 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             if(setFollow) this.setFollowState(1);//follow
         }
     }
-
-    @Override
-    public void setFollowState(int state) {
-        super.setFollowState(state);
-
-        /*
-        //Pause the patrolling when command is not wander freely
-        if(state != 0  && WAYPOINTS != null  && WAYPOINTS.size() > 0){
-            if(getTarget() != null) this.setPatrollingState((byte) 5, false);//ATTACKING
-            else this.setPatrollingState((byte) 2, false);//PAUSED
-        }
-        */
-    }
     public String getOwnerName() {
         return ownerName;
     }
@@ -480,8 +485,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         WAITING((byte) 4),
         ATTACKING((byte) 5), //traveling is paused attacking enemies
         RETREATING((byte) 6), //traveling back to first waypoint from current one
-        WAITING_ENEMIES((byte) 7), //waiting for more enemies
-        WAITING_RECRUITS((byte) 8);// waiting for upkeeping recruits
+        UPKEEP((byte) 7);
         private final byte index;
         State(byte index){
             this.index = index;
@@ -500,6 +504,15 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             throw new IllegalArgumentException("Invalid State index: " + index);
         }
     }
+
+    //FOLLOW
+    //0 = wander
+    //1 = follow
+    //2 = hold position
+    //3 = back to position
+    //4 = hold my position
+    //5 = Protect
+
 
     public enum InfoMode{
         ALL((byte) 0),
@@ -542,7 +555,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         List<AbstractRecruitEntity> recruits = new ArrayList<>();
 
         for (AbstractRecruitEntity recruit : list){
-            if(!recruit.getUUID().equals(this.getUUID()) && RECRUITS_IN_COMMAND.contains(recruit.getUUID()) && recruit.getProtectUUID() != null && recruit.getProtectUUID().equals(this.getUUID())){
+            if(recruit.isAlive() && !recruit.getUUID().equals(this.getUUID()) && RECRUITS_IN_COMMAND.contains(recruit.getUUID()) && recruit.getProtectUUID() != null && recruit.getProtectUUID().equals(this.getUUID())){
                 recruits.add(recruit);
             }
         }
@@ -640,6 +653,17 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         }
     }
 
+    public void setRecruitsToMoveAndHold(Vec3 target, Vec3 linePos){
+        for (AbstractRecruitEntity recruit : currentRecruitsInCommand){
+
+            recruit.reachedMovePos = false;
+            BlockPos pos = FormationUtils.calculateBlockPosition(target, linePos, this.currentRecruitsInCommand.size(), currentRecruitsInCommand.indexOf(recruit), this.getCommandSenderWorld());
+            recruit.setMovePos(pos);
+            recruit.setFollowState(0);// needs to be above setShouldMovePos
+            recruit.setShouldMovePos(true);
+        }
+    }
+
     public void setTypedRecruitsToMoveAndHold(Vec3 target, Vec3 linePos, EntityType<?> type){
         List<AbstractRecruitEntity> typedList = currentRecruitsInCommand.stream().filter(recruit ->  recruit.getType().equals(type)).toList();
 
@@ -647,7 +671,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         for (AbstractRecruitEntity recruit : typedList){
 
             recruit.reachedMovePos = false;
-            BlockPos pos = FormationUtils.calculateBlockPosition(target, linePos, typedList.indexOf(recruit), this.getCommandSenderWorld());
+            BlockPos pos = FormationUtils.calculateBlockPosition(target, linePos, typedList.size(), typedList.indexOf(recruit), this.getCommandSenderWorld());
             recruit.setMovePos(pos);
             recruit.setFollowState(0);// needs to be above setShouldMovePos
             recruit.setShouldMovePos(true);
@@ -656,10 +680,10 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
 
     public void setRecruitStrategicFirePos(boolean should, BlockPos pos) {
         for (AbstractRecruitEntity recruit : currentRecruitsInCommand){
-                if(recruit instanceof IStrategicFire strategicFire){
-                    strategicFire.setShouldStrategicFire(should);
-                    strategicFire.setStrategicFirePos(pos);
-                }
+            if(recruit instanceof IStrategicFire strategicFire){
+                strategicFire.setShouldStrategicFire(should);
+                strategicFire.setStrategicFirePos(pos);
+            }
         }
     }
 
@@ -668,11 +692,13 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             recruit.clearUpkeepEntity();
             recruit.clearUpkeepPos();
 
-            if(this.getUpkeepPos() != null) recruit.setUpkeepPos(this.getUpkeepPos());
+            if(this.getUpkeepPos() != null)
+                recruit.setUpkeepPos(this.getUpkeepPos());
             recruit.setUpkeepUUID(Optional.ofNullable(this.getUpkeepUUID()));
 
             recruit.setUpkeepTimer(0);
             recruit.setTarget(null);
+            recruit.forcedUpkeep = true;
         }
     }
 
@@ -686,14 +712,18 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
 
     public void setRecruitsMount(){
         for (AbstractRecruitEntity recruit : currentRecruitsInCommand){
-            recruit.clearUpkeepEntity();
-            recruit.clearUpkeepPos();
+            if(this.getMountUUID() != null) recruit.shouldMount(true, this.getMountUUID());
+            recruit.dismount = 0;
+        }
+    }
 
-            if(this.getUpkeepPos() != null) recruit.setUpkeepPos(this.getUpkeepPos());
-            recruit.setUpkeepUUID(Optional.ofNullable(this.getUpkeepUUID()));
-
-            recruit.setUpkeepTimer(0);
-            recruit.setTarget(null);
+    public void setRecruitsDismount(){
+        for (AbstractRecruitEntity recruit : currentRecruitsInCommand){
+            recruit.shouldMount(false, null);
+            if(recruit.isPassenger()){
+                recruit.stopRiding();
+                recruit.dismount = 180;
+            }
         }
     }
 
@@ -734,7 +764,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         }
 
         if (player instanceof ServerPlayer) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateLeaderScreen(this.WAYPOINTS, this.WAYPOINT_ITEMS));
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateLeaderScreen(this.WAYPOINTS, this.WAYPOINT_ITEMS, this.getRecruitsInCommand().size()));
         }
     }
 
@@ -760,6 +790,21 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             }
             throw new IllegalArgumentException("Invalid InfoMode index: " + index);
         }
+    }
+    @Override
+    public boolean startRiding(Entity p_20330_) {
+        if(super.startRiding(p_20330_, false)){
+            this.setRecruitsMount();
+            return true;
+        }
+        return false;
+    }
+
+    public void shouldMount(boolean should, UUID mount_uuid) {
+        super.shouldMount(should, mount_uuid);
+
+        if (should) this.setRecruitsMount();
+        else this.setRecruitsDismount();
     }
 }
 

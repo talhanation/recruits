@@ -19,17 +19,17 @@ import java.util.List;
 
 
 public class PatrolLeaderAttackAI extends Goal {
-    private final AbstractLeaderEntity leader;
-    private List<LivingEntity> targets;
-    private List<AbstractRecruitEntity> infantry;
-    private List<AbstractRecruitEntity> ranged;
+    public final AbstractLeaderEntity leader;
+    public List<LivingEntity> targets;
+    public List<AbstractRecruitEntity> infantry;
+    public List<AbstractRecruitEntity> ranged;
 
     public PatrolLeaderAttackAI(AbstractLeaderEntity recruit) {
         this.leader = recruit;
     }
 
     public boolean canUse() {
-        return leader.commandCooldown == 0 && leader.getTarget() != null && !leader.retreating;
+        return leader.commandCooldown == 0 && !leader.retreating && (leader.getTarget() != null || (int) leader.getPatrollingState() == AbstractLeaderEntity.State.ATTACKING.getIndex());
     }
 
     public void start(){
@@ -60,6 +60,7 @@ public class PatrolLeaderAttackAI extends Goal {
                 recruit.setShouldBlock(false);
             }
         }
+        if(this.leader.getPatrollingState() == AbstractLeaderEntity.State.ATTACKING.getIndex()) this.leader.setPatrolState(AbstractLeaderEntity.State.PATROLLING);
     }
 
     public boolean canContinueToUse() {
@@ -67,13 +68,13 @@ public class PatrolLeaderAttackAI extends Goal {
     }
 
     //TODO:
-    private void attackCommandsToRecruits(LivingEntity target) {
+    public void attackCommandsToRecruits(LivingEntity target) {
         if(!this.leader.getCommandSenderWorld().isClientSide()){
             double distanceToTarget = this.leader.distanceToSqr(target);
 
             if(distanceToTarget < 4000){
                 targets = this.leader.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, target.getBoundingBox().inflate(70D)).stream()
-                        .filter(living -> this.canAttack(living) && living.isAlive())
+                        .filter(living -> this.canAttack(living) && living.isAlive() && this.leader.getSensing().hasLineOfSight(living))
                         .toList();
 
                 this.leader.currentRecruitsInCommand = leader.getRecruitsInCommand();
@@ -89,26 +90,14 @@ public class PatrolLeaderAttackAI extends Goal {
 
                 if((sizeFactor + armorFactor)/2 <= 0.3){
                     if(this.leader.getOwner() != null) this.leader.getOwner().sendSystemMessage(Component.literal("Retreat!"));
-                    //this.leader.retreating = true;
+                    this.leader.retreating = true;
                 }
-                //int enemyCavalry = (int) targets.stream().filter(this::isCavalry).count();
-                //double cavalryFactor = Math.abs((cav.size() + 1) / (enemyCavalry+ 1));
 
                 Comparison comparisonOwnInfantry = getInfantryComparison();
                 Comparison comparisonOwnRanged = getRangedComparison();
 
-                //RANGED DARF NICHT VOR WENN GEGNER INFANTRY GRÖßER IST -> HOLD POS
-                //RANGED DARF NICHT VOR WENN GEGNER RANGED GRÖßER ist -> HOLD POS
-
-                //INFANTRY DARF NICHT VOR WENN GEGNER INFANTRY GRÖßER ist -> HOLD POS
-                //INFANTRY SHIELDS UP WENN GEGNER RANGED GRÖßER ist -> CHARGE
-
-                //CAV IST IN JEDEM FALL CHARGE
-
-
-
                 Vec3 movePosInfantry = getPosTowardsTarget(target, 0.6);
-                Vec3 movePosRanged = getPosTowardsTarget(target, 0.4);
+                Vec3 movePosRanged;
                 BlockPos movePosLeader = getBlockPosTowardsTarget(target, 0.2);
 
 
@@ -169,9 +158,8 @@ public class PatrolLeaderAttackAI extends Goal {
                 for(AbstractRecruitEntity recruit : this.leader.currentRecruitsInCommand) recruit.setState(leader.getState());
 
                 this.setRecruitsTargets();
-                leader.commandCooldown = 350;
+                leader.commandCooldown = 400;
             }
-
         }
     }
 
@@ -182,7 +170,7 @@ public class PatrolLeaderAttackAI extends Goal {
     public Vec3 getPosTowardsTarget(LivingEntity target, double x){
         return leader.position().lerp(target.position(), x);
     }
-    private Comparison getInfantryComparison() {
+    public Comparison getInfantryComparison() {
         int enemyInfantry = (int) targets.stream().filter(this::isInfantry).count();
         double infantryFactor = Math.abs((infantry.size() + 1) / (enemyInfantry + 1));
 
@@ -194,7 +182,7 @@ public class PatrolLeaderAttackAI extends Goal {
             return Comparison.SMALLER;
     }
 
-    private Comparison getRangedComparison() {
+    public Comparison getRangedComparison() {
         int enemyRanged = (int) targets.stream().filter(this::isRanged).count();
         double rangedFactor = Math.abs((ranged.size()  + 1) / (enemyRanged + 1));
 
@@ -206,14 +194,14 @@ public class PatrolLeaderAttackAI extends Goal {
             return Comparison.SMALLER;
     }
 
-    private void setRecruitsTargets() {
+    public void setRecruitsTargets() {
         for(int i = 0; i < this.leader.currentRecruitsInCommand.size(); i++){
             AbstractRecruitEntity recruit = this.leader.currentRecruitsInCommand.get(i);
             if(targets.size() > i) recruit.setTarget(targets.get(i));
         }
     }
 
-    private boolean isInfantry(LivingEntity living){
+    public boolean isInfantry(LivingEntity living){
         if(living.getVehicle() instanceof AbstractHorse)
             return false;
         else if(living.getMainHandItem().getItem() instanceof BowItem
@@ -224,18 +212,18 @@ public class PatrolLeaderAttackAI extends Goal {
             return true;
     }
 
-    private boolean isRanged(LivingEntity living){
+    public boolean isRanged(LivingEntity living){
         return living.getMainHandItem().getItem() instanceof BowItem || living.getMainHandItem().getItem() instanceof CrossbowItem;
     }
 
-    private boolean isCavalry(LivingEntity living){
+    public boolean isCavalry(LivingEntity living){
         if(living.getMainHandItem().getItem() instanceof BowItem || living.getMainHandItem().getItem() instanceof CrossbowItem)
             return false;
         else
             return living.getVehicle() instanceof AbstractHorse;
     }
 
-    private double calculateEnemyArmor(List<LivingEntity> targets) {
+    public double calculateEnemyArmor(List<LivingEntity> targets) {
         double enemyArmor = 0;
         for(LivingEntity living : targets){
             enemyArmor += living.getArmorValue();
@@ -243,7 +231,7 @@ public class PatrolLeaderAttackAI extends Goal {
         return enemyArmor;
     }
 
-    private double calculateArmor() {
+    public double calculateArmor() {
         double armor = 0;
         for(LivingEntity living : this.leader.currentRecruitsInCommand){
             armor += living.getArmorValue();
@@ -251,7 +239,7 @@ public class PatrolLeaderAttackAI extends Goal {
         return armor;
     }
 
-    private boolean canAttack(LivingEntity living) {
+    public boolean canAttack(LivingEntity living) {
         int aggroState = this.leader.getState();
         switch(aggroState){
             case 0 -> { //Neutral
@@ -304,7 +292,7 @@ public class PatrolLeaderAttackAI extends Goal {
     }
 
 
-    private enum Comparison{
+    public enum Comparison{
         BIGGER(0),
         SAME(1),
         SMALLER(3);
@@ -323,110 +311,6 @@ public class PatrolLeaderAttackAI extends Goal {
             throw new IllegalArgumentException("Invalid AttackMode index: " + index);
         }
     }
-
-
-
-
-
-    /*
-    switch (mode){
-                    case DEFENSIVE -> {
-                        if(this.leader.getOwner() != null) this.leader.getOwner().sendSystemMessage(Component.literal("Defensive tactics"));
-
-                        double dist1 = distanceToTarget < 500 ? -0.5 : 0.2;
-                        Vec3 moveRanged = this.leader.position().add(toTarget.scale(dist1));
-                        BlockPos movePosRanged = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(moveRanged.x, moveRanged.y, moveRanged.z));
-
-                        double dist2 = distanceToTarget < 500 ? -0.4 : 0.4;
-                        Vec3 moveInfantry = this.leader.position().add(toTarget.scale(dist2));
-                        BlockPos movePosInfantry = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(moveInfantry.x, moveInfantry.y, moveInfantry.z));
-
-                        if(this.leader.getRangedTactics() == AbstractLeaderEntity.CombatTactics.AUTO.getIndex()){
-                            //RANGED AND LEADER GO BEHIND AND HOLD POS
-                            this.leader.setTypedRecruitsToMove(movePosRanged, ModEntityTypes.BOWMAN.get());
-                            this.leader.setTypedRecruitsToMove(movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
-                        }
-
-                        if(this.leader.getCavalryTactics() == AbstractLeaderEntity.CombatTactics.AUTO.getIndex()){
-                            //CAVALRY CHARGE
-                            this.leader.setTypedRecruitsToWanderFreely(ModEntityTypes.NOMAD.get());
-                            this.leader.setTypedRecruitsToWanderFreely(ModEntityTypes.HORSEMAN.get());
-                        }
-
-                        if(this.leader.getInfantryTactics() == AbstractLeaderEntity.CombatTactics.AUTO.getIndex()){
-                            this.leader.setTypedRecruitsToMove(movePosInfantry, ModEntityTypes.RECRUIT.get());
-                            this.leader.setTypedRecruitsToMove(movePosInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
-                        }
-
-                        this.leader.setFollowState(2);//HOLD wPOS
-                        this.leader.setShouldBlock(true);
-
-                        this.leader.setRecruitsShields(true);
-
-                    }
-                    case DEFAULT -> {
-                        if(this.leader.getOwner() != null)this.leader.getOwner().sendSystemMessage(Component.literal("Default!"));
-
-                        Vec3 moveRanged = this.leader.position().add(toTarget.scale(0.4));
-                        BlockPos movePosRanged = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(moveRanged.x, moveRanged.y, moveRanged.z));
-
-                        Vec3 moveInfantry = this.leader.position().add(toTarget.scale(0.2));
-                        BlockPos movePosInfantry = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(moveInfantry.x, moveInfantry.y, moveInfantry.z));
-
-                        this.leader.setHoldPos(movePosRanged);//HOLD POS
-                        this.leader.setFollowState(3);
-                        this.leader.setShouldBlock(true);
-
-                        if(this.leader.getRangedTactics() == AbstractLeaderEntity.CombatTactics.AUTO.getIndex()){
-                            //RANGED AND LEADER GO BEHIND AND HOLD POS
-                            this.leader.setTypedRecruitsToMove(movePosRanged, ModEntityTypes.BOWMAN.get());
-                            this.leader.setTypedRecruitsToMove(movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
-                        }
-
-                        if(this.leader.getInfantryTactics() == AbstractLeaderEntity.CombatTactics.AUTO.getIndex()){
-                            this.leader.setTypedRecruitsToMove(movePosInfantry, ModEntityTypes.RECRUIT.get());
-                            this.leader.setTypedRecruitsToMove(movePosInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
-                        }
-
-                        if(this.leader.getCavalryTactics() == AbstractLeaderEntity.CombatTactics.AUTO.getIndex()){
-                            this.leader.setTypedRecruitsToMove(movePosInfantry, ModEntityTypes.NOMAD.get());
-                            this.leader.setTypedRecruitsToMove(movePosInfantry, ModEntityTypes.HORSEMAN.get());
-                        }
-                    }
-
-                    case CHARGE -> {
-                        //All freely
-                        if(this.leader.getOwner() != null)this.leader.getOwner().sendSystemMessage(Component.literal("Charge!"));
-
-                        Vec3 moveRanged = this.leader.position().add(toTarget.scale(0.5));
-                        BlockPos movePosRanged = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(moveRanged.x, moveRanged.y, moveRanged.z));
-
-                        Vec3 moveInfantry = this.leader.position().add(toTarget.scale(0.75));
-                        BlockPos movePosInfantry = this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(moveInfantry.x, moveInfantry.y, moveInfantry.z));
-
-                        this.leader.setHoldPos(movePosInfantry);//HOLD POS
-                        this.leader.setFollowState(3);
-
-                        this.leader.setRecruitsShields(false);
-
-                        if(this.leader.getRangedTactics() == AbstractLeaderEntity.CombatTactics.AUTO.getIndex()){
-                            //RANGED AND LEADER GO BEHIND AND HOLD POS
-                            this.leader.setTypedRecruitsToMove(movePosRanged, ModEntityTypes.BOWMAN.get());
-                            this.leader.setTypedRecruitsToMove(movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
-                        }
-
-                        if(this.leader.getInfantryTactics() == AbstractLeaderEntity.CombatTactics.AUTO.getIndex()){
-                            this.leader.setTypedRecruitsToMove(movePosInfantry, ModEntityTypes.RECRUIT.get());
-                            this.leader.setTypedRecruitsToMove(movePosInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
-                        }
-
-                        if(this.leader.getCavalryTactics() == AbstractLeaderEntity.CombatTactics.AUTO.getIndex()){
-                            this.leader.setTypedRecruitsToMove(movePosInfantry, ModEntityTypes.NOMAD.get());
-                            this.leader.setTypedRecruitsToMove(movePosInfantry, ModEntityTypes.HORSEMAN.get());
-                        }
-                    }
-                }
-     */
 }
 
 

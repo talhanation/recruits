@@ -1,6 +1,7 @@
 package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
+import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.CaptainEntity;
 import com.talhanation.recruits.entities.IStrategicFire;
@@ -27,6 +28,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
@@ -41,12 +43,14 @@ public class CommandEvents {
     public static final MutableComponent TEXT_GROUP = new TranslatableComponent("chat.recruits.text.group");
 
     public static void onFollowCommand(UUID player_uuid, AbstractRecruitEntity recruit, int r_state, int group, boolean fromGui) {
-        if (recruit.isEffectedByCommand(player_uuid, group)){
+        if (fromGui || recruit.isEffectedByCommand(player_uuid, group)){
             int state = recruit.getFollowState();
 
             recruit.setUpkeepTimer(recruit.getUpkeepCooldown());
             if(recruit.getShouldMount()) recruit.setShouldMount(false);
+
             if(recruit instanceof CaptainEntity captain) captain.shipAttacking = false;
+
             switch (r_state) {
 
                 case 0:
@@ -78,6 +82,17 @@ public class CommandEvents {
                     if (state != 5)
                         recruit.setFollowState(5);
                     break;
+            }
+
+            if(recruit instanceof AbstractLeaderEntity leader) {
+                AbstractLeaderEntity.State patrolState = AbstractLeaderEntity.State.fromIndex(leader.getPatrollingState());
+                if(patrolState == AbstractLeaderEntity.State.PATROLLING || patrolState == AbstractLeaderEntity.State.WAITING) {
+                    leader.setPatrollingState((byte) AbstractLeaderEntity.State.PAUSED.getIndex(), false);
+                }
+                else if(patrolState == AbstractLeaderEntity.State.RETREATING || patrolState == AbstractLeaderEntity.State.UPKEEP){
+                    leader.resetPatrolling();
+                    leader.setPatrollingState((byte) AbstractLeaderEntity.State.IDLE.getIndex(), false);
+                }
             }
         }
     }
@@ -138,13 +153,11 @@ public class CommandEvents {
                 if (hitResult.getType() == HitResult.Type.BLOCK) {
                     BlockHitResult blockHitResult = (BlockHitResult) hitResult;
                     BlockPos blockpos = blockHitResult.getBlockPos();
-                    recruit.setFollowState(0);// needs to be above setShouldMovePos
 
+                    recruit.setMovePos(blockpos);// needs to be above setFollowState
 
-                    recruit.setMovePos(blockpos);
                     recruit.setFollowState(0);// needs to be above setShouldMovePos
                     recruit.setShouldMovePos(true);
-
                 }
                 //mount maybe
                 /*
@@ -420,11 +433,10 @@ public class CommandEvents {
                 recruit.setUpkeepPos(blockPos);
                 recruit.clearUpkeepEntity();
             }
-
+            recruit.forcedUpkeep = true;
+            recruit.setUpkeepTimer(0);
+            onClearTargetButton(player_uuid, recruit, group);
         }
-        recruit.setUpkeepTimer(0);
-        onClearTargetButton(player_uuid, recruit, group);
-
     }
 
     public static void onShieldsCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean shields) {
