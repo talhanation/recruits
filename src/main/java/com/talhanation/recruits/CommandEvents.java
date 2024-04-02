@@ -348,7 +348,7 @@ public class CommandEvents {
 
         boolean playerCanPay = playerEmeralds >= sollPrice;
 
-        if (playerCanPay){
+        if (playerCanPay || player.isCreative()){
             if(recruit.hire(player)) {
                 //give player tradeGood
                 //remove playerEmeralds ->add left
