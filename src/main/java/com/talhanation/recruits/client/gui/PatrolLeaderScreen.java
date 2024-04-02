@@ -8,20 +8,25 @@ import com.talhanation.recruits.entities.CaptainEntity;
 import com.talhanation.recruits.inventory.PatrolLeaderContainer;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
-import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.client.gui.widget.ForgeSlider;
 
+import javax.swing.text.html.StyleSheet;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/professions/waypoint_list_gui.png");
@@ -65,7 +70,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
 
     private static final MutableComponent BUTTON_ASSIGN_RECRUITS = Component.translatable("gui.recruits.inv.text.assign_recruits");
     private static final MutableComponent TOOLTIP_ASSIGN_RECRUITS = Component.translatable("gui.recruits.inv.tooltip.assign_recruits");
-
+    private static final MutableComponent TOOLTIP_CHEST = Component.translatable("gui.recruits.inv.tooltip.chest");
     private static final int fontColor = 4210752;
     private ForgeSlider waitSlider;
     private final int offset = 88;
@@ -88,13 +93,24 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         this.state = AbstractLeaderEntity.State.fromIndex(recruit.getPatrollingState());
         this.infoMode = AbstractLeaderEntity.InfoMode.fromIndex(recruit.getInfoMode());
         this.setButtons();
+        this.setHoverAreas();
     }
+
 
     protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, this.texture);
         blit(matrixStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight,this.imageWidth, this.imageHeight);
+        this.drawHoverAreas(matrixStack, mouseX, mouseY);
+    }
+
+    private void setHoverAreas() {
+        this.hoverAreas = new ArrayList<>();
+        Supplier<List<FormattedCharSequence>> supplier = () ->  new ArrayList<>(List.of(FormattedCharSequence.forward(TOOLTIP_CHEST.getString(), Style.EMPTY)));
+
+        HoverArea hoverAreaChest = new HoverArea(this.leftPos + 150, this.topPos + 57, 25, 25, supplier);
+        this.hoverAreas.add(hoverAreaChest);
     }
 
     private void setButtons(){
@@ -347,12 +363,18 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
 
                 String coordinates = String.format("%d:  (%d,  %d,  %d)", i + 1, x, y, z);
 
-                if(!waypointItems.isEmpty() && waypointItems.get(i) != null) renderItemAt(waypointItems.get(i), offset + 15, 58 + ((i - startIndex) * 17)); // Adjust the Y position here
+                if(!waypointItems.isEmpty() && waypointItems.get(i) != null) {
+                    ItemStack chest = new ItemStack(Blocks.CHEST.asItem());
+                    if(i == 0 && this.page == 1){
+                        renderItemAt(chest, offset + 15 + 160, 57);
+                    }
+                    renderItemAt(waypointItems.get(i), offset + 15, 57 + ((i - startIndex) * 17));
+                }
                 else{
                     BlockPos pos1 =  waypoints.get(i);
                     ItemStack itemStack = recruit.getItemStackToRender(pos1);
 
-                    renderItemAt(itemStack, offset +15, 58 + ((i - startIndex) * 17));
+                    renderItemAt(itemStack, offset +15, 57 + ((i - startIndex) * 17));
                 }
                 font.draw(matrixStack, coordinates, offset +35, 60 + ((i - startIndex) * 17), fontColor);
             }
