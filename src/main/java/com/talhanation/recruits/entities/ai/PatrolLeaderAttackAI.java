@@ -183,7 +183,7 @@ public class PatrolLeaderAttackAI extends Goal {
     }
 
     public Comparison getRangedComparison() {
-        int enemyRanged = (int) targets.stream().filter(this::isRanged).count();
+        int enemyRanged = (int) targets.stream().filter(PatrolLeaderAttackAI::isRanged).count();
         double rangedFactor = Math.abs((ranged.size()  + 1) / (enemyRanged + 1));
 
         if(rangedFactor >= 1.15)
@@ -212,7 +212,7 @@ public class PatrolLeaderAttackAI extends Goal {
             return true;
     }
 
-    public boolean isRanged(LivingEntity living){
+    public static boolean isRanged(LivingEntity living){
         return living.getMainHandItem().getItem() instanceof BowItem || living.getMainHandItem().getItem() instanceof CrossbowItem;
     }
 
