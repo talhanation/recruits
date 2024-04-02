@@ -25,6 +25,8 @@ import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
@@ -49,8 +51,6 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     public int commandCooldown = 0;
     protected BlockPos currentWaypoint;
     private int waitingTime = 0;
-    private int waitingForEnemiesTime = 0;
-
     private int waitForRecruitsUpkeepTime = 0;
     public int infoCooldown = 0;
     private State state = State.IDLE;
@@ -218,12 +218,17 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                         moveToCurrentWaypoint();
                     }
                 }
-                else if(!WAYPOINTS.isEmpty() && hasIndex())
+                else if(!WAYPOINTS.isEmpty() && hasIndex()) {
                     this.currentWaypoint = WAYPOINTS.get(getWaypointIndex());
+                }
+                else
+                    this.setPatrolState(State.IDLE);
 
                 if(this.getTarget() != null && !retreating){
                     this.sendInfoAboutTarget(this.getTarget());
-                    this.setPatrolState(State.ATTACKING);
+
+                    if(canAttackWhilePatrolling(this.getTarget())) this.setPatrolState(State.ATTACKING);
+                    else this.setTarget(null);
                 }
             }
 
@@ -239,7 +244,9 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
 
                 if(this.getTarget() != null && this.getTarget().isAlive()){
                     this.sendInfoAboutTarget(this.getTarget());
-                    this.setPatrolState(State.ATTACKING);
+
+                    if(canAttackWhilePatrolling(this.getTarget())) this.setPatrolState(State.ATTACKING);
+                    else this.setTarget(null);
                 }
             }
 
@@ -267,6 +274,10 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                 }
             }
         }
+    }
+
+    public boolean canAttackWhilePatrolling(LivingEntity target) {
+        return target != null && target.isAlive();
     }
 
     public void handleResupply() {
@@ -461,8 +472,15 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         BlockState state = this.level.getBlockState(pos);
         ItemStack itemStack;
         if (state.is(Blocks.WATER) || state.is(Blocks.KELP) || state.is(Blocks.KELP_PLANT)){
+            if(this instanceof CaptainEntity){
+                itemStack = IBoatController.getSmallShipsItem();
+                if(itemStack == null) {
+                    itemStack = Items.OAK_BOAT.getDefaultInstance();
+                }
+            }
+            else
+                itemStack = new BlockItem(Blocks.WATER, new Item.Properties()).getDefaultInstance();
 
-            itemStack = new ItemStack(Blocks.WATER);
         }
         else if (state.is(Blocks.AIR) || state.is(Blocks.CAVE_AIR)) itemStack = new ItemStack(Items.GRASS_BLOCK);
         else itemStack = new ItemStack(state.getBlock().asItem());
@@ -649,7 +667,6 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                 recruit.clearHoldPos();
                 recruit.setFollowState(0);//Freely
             }
-
         }
     }
 

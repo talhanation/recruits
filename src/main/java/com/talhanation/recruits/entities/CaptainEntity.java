@@ -2,6 +2,7 @@ package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.entities.ai.CaptainAttackAI;
 import com.talhanation.recruits.entities.ai.CaptainControlBoatAI;
+import com.talhanation.recruits.entities.ai.PatrolLeaderAttackAI;
 import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.entities.ai.navigation.SailorPathNavigation;
 import net.minecraft.core.BlockPos;
@@ -16,6 +17,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
@@ -211,6 +213,20 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
                 }
             }
         }
+    }
+
+    public boolean canAttackWhilePatrolling(LivingEntity target) {
+        if(target != null && target.isAlive() && this.getSensing().hasLineOfSight(target) && this.getCommandSenderWorld().canSeeSky(target.blockPosition().above())) {
+            if(this.getRecruitsInCommand().stream().anyMatch(PatrolLeaderAttackAI::isRanged)){
+                return true;
+            }
+            else if(this.getVehicle() != null){
+                return IBoatController.hasCannons(this.getVehicle()) && IBoatController.canShootCannons(this.getVehicle());
+            }
+            return true;
+        }
+        else
+            return false;
     }
 
     public void handleResupply() {

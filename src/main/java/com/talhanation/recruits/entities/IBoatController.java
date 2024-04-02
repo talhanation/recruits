@@ -22,7 +22,10 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 public interface IBoatController {
+    @Nullable
     static ItemStack getSmallShipsItem() {
+        return ForgeRegistries.ITEMS.getDelegateOrThrow(ResourceLocation.tryParse("smallships:oak_cog")).get().getDefaultInstance();
+    }
 
     default CaptainEntity getCaptain() {
         return (CaptainEntity) this;
@@ -298,6 +301,42 @@ public interface IBoatController {
         boat.setPaddleState(inputRight || inputUp, inputLeft || inputUp);
     }
 
+    static boolean hasCannons(Entity vehicle) {
+        if(vehicle instanceof Boat boat) {
+            try{
+                Class<?> cannonAbleClass = Class.forName("com.talhanation.smallships.world.entity.ship.abilities.Cannonable");
+                if(cannonAbleClass.isInstance(boat)){
+                    Object cannonAble = cannonAbleClass.cast(boat);
+                    Method cannonAbleClassGetCannons = cannonAbleClass.getMethod("getCannons");
+
+                    List<?> list = (List<?>) cannonAbleClassGetCannons.invoke(cannonAble);
+                    return list.size() > 0;
+                }
+            }
+            catch (ClassNotFoundException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+                Main.LOGGER.info("Cannonable Class was not found");
+            }
+        }
+        return false;
+    }
+
+    static boolean canShootCannons(Entity vehicle) {
+        if(vehicle instanceof Boat boat) {
+            try{
+                Class<?> cannonAbleClass = Class.forName("com.talhanation.smallships.world.entity.ship.abilities.Cannonable");
+                if(cannonAbleClass.isInstance(boat)){
+                    Object cannonAble = cannonAbleClass.cast(boat);
+                    Method cannonAbleClassCanShootCannons = cannonAbleClass.getMethod("canShoot");
+
+                    return (boolean) cannonAbleClassCanShootCannons.invoke(cannonAble);
+                }
+            }
+            catch (ClassNotFoundException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+                Main.LOGGER.info("Cannonable Class was not found");
+            }
+        }
+        return false;
+    }
     static void mountSmallShips(Boat boat){
 
     }
