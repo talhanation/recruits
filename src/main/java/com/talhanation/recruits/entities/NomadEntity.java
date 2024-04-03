@@ -110,11 +110,6 @@ public class NomadEntity extends BowmanEntity {
         return 1.30D;
     }
 
-
-    public List<String> getHandEquipment(){
-        return RecruitsServerConfig.NomadHandEquipment.get();
-    }
-
     @Override
     public void tick() {
         super.tick();
@@ -159,5 +154,9 @@ public class NomadEntity extends BowmanEntity {
         //IDLE,
         SELECT_TARGET, // Der Bogenschütze richtet seine Waffe auf das ausgewählte Ziel aus
         CIRCLE_TARGET, // Der Bogenschütze bewegt sich um das Ziel herum, um es aus verschiedenen Winkeln anzugreifen
+    }
+
+    public List<List<String>> getEquipment(){
+        return RecruitsServerConfig.NomadStartEquipments.get();
     }
 }

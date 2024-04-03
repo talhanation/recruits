@@ -78,10 +78,6 @@ public class RecruitShieldmanEntity extends AbstractRecruitEntity{
         AbstractRecruitEntity.applySpawnValues(this);
     }
 
-    public List<String> getHandEquipment(){
-        return RecruitsServerConfig.ShieldmanHandEquipment.get();
-    }
-
     @Override
     public boolean canHoldItem(ItemStack itemStack){
         return !(itemStack.getItem() instanceof CrossbowItem || itemStack.getItem() instanceof BowItem);
@@ -101,5 +97,7 @@ public class RecruitShieldmanEntity extends AbstractRecruitEntity{
 
         else return super.wantsToPickUp(itemStack);
     }
-
+    public List<List<String>> getEquipment(){
+        return RecruitsServerConfig.ShieldmanStartEquipments.get();
+    }
 }

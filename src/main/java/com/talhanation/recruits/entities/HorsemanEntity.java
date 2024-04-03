@@ -111,10 +111,6 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
         AbstractRecruitEntity.applySpawnValues(this);
     }
 
-    public List<String> getHandEquipment(){
-        return RecruitsServerConfig.HorsemanHandEquipment.get();
-    }
-
     @Override
     public void tick() {
         super.tick();
@@ -165,5 +161,9 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
         SELECT_TARGET,
         CHARGE_TARGET,
         MOVE_TO_POS
+    }
+
+    public List<List<String>> getEquipment(){
+        return RecruitsServerConfig.HorsemanStartEquipments.get();
     }
 }
