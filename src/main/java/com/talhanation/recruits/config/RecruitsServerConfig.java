@@ -306,7 +306,7 @@ public class RecruitsServerConfig{
         ShieldmanStartEquipments = BUILDER.comment("""
                         
                         ----Shieldman Start Equipments ----
-                        Default=
+                        Default: [["minecraft:stone_sword", "minecraft:shield", "", "", "", ""], ["minecraft:wooden_axe", "minecraft:shield", "", "", "", ""]]
                         """)
                 .worldRestart()
                 .define("ShieldmanStartEquipments", START_EQUIPMENT_SHIELDMAN);
@@ -314,7 +314,7 @@ public class RecruitsServerConfig{
         BowmanStartEquipments = BUILDER.comment("""
                         
                         ----Bowman Start Equipments ----
-                        Default=
+                        Default: [["minecraft:bow", "", "", "", "", ""]]
                         """)
                 .worldRestart()
                 .define("BowmanStartEquipments", START_EQUIPMENT_BOWMAN);
@@ -322,7 +322,7 @@ public class RecruitsServerConfig{
         CrossbowmanStartEquipments = BUILDER.comment("""
                         
                         ----Crossbowman Start Equipments ----
-                        Default=
+                        Default: [["minecraft:crossbow", "", "", "", "", ""]]
                         """)
                 .worldRestart()
                 .define("CrossbowmanStartEquipments", START_EQUIPMENT_CROSSBOWMAN);
@@ -330,7 +330,7 @@ public class RecruitsServerConfig{
         HorsemanStartEquipments = BUILDER.comment("""
                         
                         ----Horseman Start Equipments ----
-                        Default=
+                        Default: [["minecraft:stone_sword", "minecraft:shield", "", "", "", ""], ["minecraft:iron_sword", "minecraft:shield", "", "", "", ""]]
                         """)
                 .worldRestart()
                 .define("HorsemanStartEquipments", START_EQUIPMENT_HORSEMAN);
@@ -338,7 +338,7 @@ public class RecruitsServerConfig{
         NomadStartEquipments = BUILDER.comment("""
                         
                         ----Nomad Start Equipments ----
-                        Default=
+                        Default: [["minecraft:bow", "", "", "", "", ""]]
                         """)
                 .worldRestart()
                 .define("NomadStartEquipments", START_EQUIPMENT_NOMAD);
