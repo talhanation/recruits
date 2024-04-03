@@ -848,47 +848,46 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void setEquipment(){
-        this.setHandEquipment(getHandEquipment());
-        //Armor
-        List<String> armor = RecruitsServerConfig.StartArmorList.get();
-        List<ItemStack> itemStackArmor = new ArrayList<>(Arrays.asList(new ItemStack(Items.LEATHER_HELMET), new ItemStack(Items.LEATHER_CHESTPLATE), new ItemStack(Items.LEATHER_LEGGINGS), new ItemStack(Items.LEATHER_BOOTS)));
-        List<EquipmentSlot> equipmentslot = new ArrayList<>(Arrays.asList(EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET));
+        //Equipment
+        List<List<String>> equipmentSets = getEquipment();
+        int i = this.random.nextInt(equipmentSets.size() -1);
+        if(i >= 0){
+            List<String> equipmentSet = equipmentSets.get(i);
+            while(equipmentSet.size() < 6) equipmentSet.add("");
 
-        for(int i = 0; i < armor.size(); i++){
-            String str = armor.get(i);
-            Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
-            if (holder.isPresent()){
-                this.setItemSlot(equipmentslot.get(i), holder.get().value().getDefaultInstance());
-            }
+            String mainHandStr = equipmentSet.get(0);
+            String offHandStr = equipmentSet.get(1);
+            String feetStr = equipmentSet.get(2);
+            String legsStr = equipmentSet.get(3);
+            String chestStr = equipmentSet.get(4);
+            String headStr = equipmentSet.get(5);
+
+            Optional<Holder<Item>> holderHead = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(headStr));
+            holderHead.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.HEAD, itemHolder.value().getDefaultInstance()));
+
+            Optional<Holder<Item>> holderChest = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(chestStr));
+            holderChest.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.CHEST, itemHolder.value().getDefaultInstance()));
+
+            Optional<Holder<Item>> holderLegs = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(legsStr));
+            holderLegs.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.LEGS, itemHolder.value().getDefaultInstance()));
+
+            Optional<Holder<Item>> holderFeet = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(feetStr));
+            holderFeet.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.FEET, itemHolder.value().getDefaultInstance()));
+
+            Optional<Holder<Item>> holderMainHand = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(mainHandStr));
+            holderMainHand.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.MAINHAND, itemHolder.value().getDefaultInstance()));
+
+            Optional<Holder<Item>> holderOffHand = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(offHandStr));
+            holderOffHand.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.OFFHAND, itemHolder.value().getDefaultInstance()));
         }
+    }
+
+    public List<List<String>> getEquipment() {
+        return null;
     }
 
     public double getMeleeStartRange() {
         return 32D;
-    }
-
-    public List<String> getHandEquipment() {
-        return null;
-    }
-
-    public void setHandEquipment(List<String> hand) {
-        if(!hand.get(0).isEmpty()){
-            String str = hand.get(0);
-            Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
-            holder.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.MAINHAND, itemHolder.value().getDefaultInstance()));
-        }
-        else {
-            this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.WOODEN_SWORD));
-        }
-
-        if(!hand.get(1).isEmpty()){
-            String str = hand.get(1);
-            Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
-            holder.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.OFFHAND, itemHolder.value().getDefaultInstance()));
-        }
-        else {
-            this.setItemSlot(EquipmentSlot.OFFHAND, ItemStack.EMPTY);
-        }
     }
 
     public abstract void initSpawn();

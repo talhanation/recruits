@@ -268,7 +268,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
         return ALLOWED_ITEMS;
     }
 
-    public List<String> getHandEquipment(){
-        return RecruitsServerConfig.BowmanHandEquipment.get();
+    public List<List<String>> getEquipment(){
+        return RecruitsServerConfig.BowmanStartEquipments.get();
     }
 }
