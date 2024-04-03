@@ -39,13 +39,12 @@ public class RecruitsServerConfig{
     public static ForgeConfigSpec.DoubleValue RecruitFollowStartDistance;
     public static ForgeConfigSpec.ConfigValue<List<String>> TargetBlackList;
     public static ForgeConfigSpec.ConfigValue<List<String>> MountWhiteList;
-    public static ForgeConfigSpec.ConfigValue<List<String>> StartArmorList;
-    public static ForgeConfigSpec.ConfigValue<List<String>> RecruitHandEquipment;
-    public static ForgeConfigSpec.ConfigValue<List<String>> ShieldmanHandEquipment;
-    public static ForgeConfigSpec.ConfigValue<List<String>> BowmanHandEquipment;
-    public static ForgeConfigSpec.ConfigValue<List<String>> CrossbowmanHandEquipment;
-    public static ForgeConfigSpec.ConfigValue<List<String>> HorsemanHandEquipment;
-    public static ForgeConfigSpec.ConfigValue<List<String>> NomadHandEquipment;
+    public static ForgeConfigSpec.ConfigValue<List<List<String>>> RecruitStartEquipments;
+    public static ForgeConfigSpec.ConfigValue<List<List<String>>> ShieldmanStartEquipments;
+    public static ForgeConfigSpec.ConfigValue<List<List<String>>> BowmanStartEquipments;
+    public static ForgeConfigSpec.ConfigValue<List<List<String>>> CrossbowmanStartEquipments;
+    public static ForgeConfigSpec.ConfigValue<List<List<String>>> HorsemanStartEquipments;
+    public static ForgeConfigSpec.ConfigValue<List<List<String>>> NomadStartEquipments;
     public static ForgeConfigSpec.ConfigValue<List<String>> AcceptedDamagesourceImmunity;
     public static ForgeConfigSpec.BooleanValue AggroRecruitsBlockPlaceBreakEvents;
     public static ForgeConfigSpec.BooleanValue NeutralRecruitsBlockPlaceBreakEvents;
@@ -69,23 +68,32 @@ public class RecruitsServerConfig{
     public static ForgeConfigSpec.BooleanValue UpdateCheckerServerside;
     public static ArrayList<String> BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast"));
+
+    public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
+            Arrays.asList("minecraft:poisonous_potato", "minecraft:spider_aye"));
     public static ArrayList<String> MOUNTS = new ArrayList<>(
             Arrays.asList("minecraft:mule", "minecraft:donkey", "minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "smallships:galley", "smallships:drakkar", "camels:camel"));
-    public static ArrayList<String> START_ARMOR = new ArrayList<>();
-    public static ArrayList<String> RECRUIT_HAND = new ArrayList<>(
-            Arrays.asList("minecraft:wooden_sword", ""));
-    public static ArrayList<String> SHIELDMAN_HAND = new ArrayList<>(
-            Arrays.asList("minecraft:wooden_axe", "minecraft:shield"));
-    public static ArrayList<String> HORSEMAN_HAND = new ArrayList<>(
-            Arrays.asList("minecraft:stone_sword", "minecraft:shield"));
-    public static ArrayList<String> BOWMAN_HAND = new ArrayList<>(
-            Arrays.asList("minecraft:bow", ""));
-    public static ArrayList<String> NOMAD_HAND = new ArrayList<>(
-            Arrays.asList("minecraft:bow", ""));
-
-    public static ArrayList<String> CROSSBOWMAN_HAND = new ArrayList<>(
-            Arrays.asList("minecraft:crossbow", ""));
-
+    public static ArrayList<List<String>> START_EQUIPMENT_RECRUIT = new ArrayList<>(
+            List.of(Arrays.asList("minecraft:wooden_sword", "","","","", ""),
+                    Arrays.asList("minecraft:stone_sword", "","","","", "")
+            ));
+    public static ArrayList<List<String>> START_EQUIPMENT_SHIELDMAN = new ArrayList<>(
+            List.of(Arrays.asList("minecraft:stone_sword", "minecraft:shield","","","", ""),
+                    Arrays.asList("minecraft:wooden_axe", "minecraft:shield","","","", "")
+            ));
+    public static ArrayList<List<String>> START_EQUIPMENT_HORSEMAN = new ArrayList<>(
+            List.of(Arrays.asList("minecraft:stone_sword", "minecraft:shield","","","", ""),
+                    Arrays.asList("minecraft:iron_sword", "minecraft:shield","","","", "")
+            ));
+    public static ArrayList<List<String>> START_EQUIPMENT_BOWMAN = new ArrayList<>(
+            List.of(Arrays.asList("minecraft:bow", "","","","", "")
+            ));
+    public static ArrayList<List<String>> START_EQUIPMENT_NOMAD = new ArrayList<>(
+            List.of(Arrays.asList("minecraft:bow", "","","","", "")
+            ));
+    public static ArrayList<List<String>> START_EQUIPMENT_CROSSBOWMAN = new ArrayList<>(
+            List.of(Arrays.asList("minecraft:crossbow", "","","","", "")
+            ));
     public static ArrayList<String> DAMAGESOURCE = new ArrayList<>(
             Arrays.asList("inFire", "lava", "sweetBerryBush", "cactus", "lightningBolt", "inWall", "hotFloor", "outOfWorld", "drown"));//add drowning
 
@@ -161,7 +169,7 @@ public class RecruitsServerConfig{
 
                         The amount of currency required to hire a recruit.
                         \t(takes effect after restart)
-                        \tdefault: 15""")
+                        \tdefault: 4""")
                 .worldRestart()
                 .defineInRange("RecruitCost", 4, 0, 999);
 
@@ -169,7 +177,7 @@ public class RecruitsServerConfig{
 
                         The amount of currency required to hire a bowman.
                         \t(takes effect after restart)
-                        \tdefault: 15""")
+                        \tdefault: 6""")
                 .worldRestart()
                 .defineInRange("BowmanCost", 6, 0, 999);
 
@@ -177,7 +185,7 @@ public class RecruitsServerConfig{
 
                         The amount of currency required to hire a crossbowman.
                         \t(takes effect after restart)
-                        \tdefault: 15""")
+                        \tdefault: 8""")
                 .worldRestart()
                 .defineInRange("CrossbowmanCost", 8, 0, 999);
 
@@ -185,7 +193,7 @@ public class RecruitsServerConfig{
 
                         The amount of currency required to hire a shieldman.
                         \t(takes effect after restart)
-                        \tdefault: 15""")
+                        \tdefault: 10""")
                 .worldRestart()
                 .defineInRange("ShieldmanCost", 10, 0, 999);
 
@@ -193,7 +201,7 @@ public class RecruitsServerConfig{
 
                         The amount of currency required to hire a horseman.
                         \t(takes effect after restart)
-                        \tdefault: 15""")
+                        \tdefault: 20""")
                 .worldRestart()
                 .defineInRange("HorsemanCost", 20, 0, 999);
 
@@ -201,7 +209,7 @@ public class RecruitsServerConfig{
 
                         The amount of currency required to hire a nomad.
                         \t(takes effect after restart)
-                        \tdefault: 15""")
+                        \tdefault: 19""")
                 .worldRestart()
                 .defineInRange("NomadCost", 19, 0, 999);
 
@@ -219,7 +227,9 @@ public class RecruitsServerConfig{
                         ----RangedRecruitsNeedArrowsToShoot----
                         \t(takes effect after restart)
                         \t
-                        Should ranged recruits units need arrows to shoot?""
+                        Should ranged units need arrows to shoot?
+                        If enabled ranged units will resupply arrows from upkeep chest.
+                        ""
                         default: false""")
 
                 .worldRestart()
@@ -229,7 +239,7 @@ public class RecruitsServerConfig{
                         ----RecruitsChunkLoading----
                         \t(takes effect after restart)
                         \t
-                        Should companions load chunks? Disabling would make patrolling in to unloaded chunk impossible.
+                        Should recruit-companions load chunks? Disabling would make patrolling in to unloaded chunk impossible.
                         default: true""")
 
                 .worldRestart()
@@ -271,64 +281,67 @@ public class RecruitsServerConfig{
         Equipment Config
          */
         BUILDER.pop();
-        BUILDER.comment("Recruit Equipment Config:").push("Equipment");
-
-        StartArmorList = BUILDER.comment("""
-
-                        ----Start armor ----
-                        \t(takes effect after restart)
-                        \tItems in this list will be equipped to a new spawned recruits in this order: ["head", "chest", "legs", "feet"]
-                        \tFor example: ["minecraft:leather_helmet", "minecraft:leather_chestplate", "minecraft:leather_leggings", "minecraft:leather_boots"]""")
+        BUILDER.comment("Recruits Equipment Config:").push("Equipments");
+        BUILDER.comment("""
+                Following lists will be used to generate starting armor for different recruit types. Each recruit will be equipped according to a random equipment-set defined below.
+                
+                To create a equipment-set note the following order: ["main-hand", "off-hand", "feet", "legs", "chest", "head"]
+                Each set has ONLY 6 entries. Each set is separated with square brackets: RecruitStartEquipments=[[1], [2], [3], ...].
+                For example, the following configuration will randomize newly spawned recruits either 1 or 2:
+                    1. full leather armor set with wooden sword and shield.
+                    2. only gold sword.
+                    
+                    RecruitStartEquipments=[["minecraft:wooden_sword", "minecraft:shield","minecraft:leather_boots","minecraft:leather_leggings","minecraft:leather_chestplate", "minecraft:leather_helmet"], ["minecraft:gold_sword", "", "", "", "", ""]]
+                    
+                There is no limit of armor-sets and modded armor / weapons are also compatible. The mod item-id can be accessed with /give-command.    
+                """);
+        RecruitStartEquipments = BUILDER.comment("""   
+                        
+                        ----Recruit Start Equipments ----
+                        Default:  [["minecraft:wooden_sword", "", "", "", "", ""], ["minecraft:stone_sword", "", "", "", "", ""]]
+                        """)
                 .worldRestart()
-                .define("StartArmorList", START_ARMOR);
+                .define("RecruitStartEquipments", START_EQUIPMENT_RECRUIT);
 
-        RecruitHandEquipment = BUILDER.comment("""
-
-                        ----Recruit start hand equipment ----
-                        \t(takes effect after restart)
-                        \tItems in this list will be equipped to a new spawned recruit, in this following order: ["main-hand", "off-hand"]""")
+        ShieldmanStartEquipments = BUILDER.comment("""
+                        
+                        ----Shieldman Start Equipments ----
+                        Default=
+                        """)
                 .worldRestart()
-                .define("RecruitStartHandEquipment", RECRUIT_HAND);
+                .define("ShieldmanStartEquipments", START_EQUIPMENT_SHIELDMAN);
 
-        ShieldmanHandEquipment = BUILDER.comment("""
-
-                        ----Shieldman start hand equipment ----
-                        \t(takes effect after restart)
-                        \tItems in this list will be equipped to a new spawned shieldman, in this following order: ["main-hand", "off-hand" ]""")
+        BowmanStartEquipments = BUILDER.comment("""
+                        
+                        ----Bowman Start Equipments ----
+                        Default=
+                        """)
                 .worldRestart()
-                .define("ShieldmanStartHandEquipment", SHIELDMAN_HAND);
+                .define("BowmanStartEquipments", START_EQUIPMENT_BOWMAN);
 
-        BowmanHandEquipment = BUILDER.comment("""
-
-                        ----Bowman start hand equipment ----
-                        \t(takes effect after restart)
-                        \tItems in this list will be equipped to a new spawned bowman, in this following order: ["main-hand", "off-hand" ]""")
+        CrossbowmanStartEquipments = BUILDER.comment("""
+                        
+                        ----Crossbowman Start Equipments ----
+                        Default=
+                        """)
                 .worldRestart()
-                .define("BowmanStartHandEquipment", BOWMAN_HAND);
+                .define("CrossbowmanStartEquipments", START_EQUIPMENT_CROSSBOWMAN);
 
-        CrossbowmanHandEquipment = BUILDER.comment("""
-
-                        ----Crossbowman start hand equipment ----
-                        \t(takes effect after restart)
-                        \tItems in this list will be equipped to a new spawned crossbowman, in this following order: ["main-hand", "off-hand" ]""")
+        HorsemanStartEquipments = BUILDER.comment("""
+                        
+                        ----Horseman Start Equipments ----
+                        Default=
+                        """)
                 .worldRestart()
-                .define("CrossbowmanStartHandEquipment", CROSSBOWMAN_HAND);
+                .define("HorsemanStartEquipments", START_EQUIPMENT_HORSEMAN);
 
-        HorsemanHandEquipment = BUILDER.comment("""
-
-                        ----Horseman start hand equipment ----
-                        \t(takes effect after restart)
-                        \tItems in this list will be equipped to a new spawned shieldman, in this following order: ["main-hand", "off-hand" ]""")
+        NomadStartEquipments = BUILDER.comment("""
+                        
+                        ----Nomad Start Equipments ----
+                        Default=
+                        """)
                 .worldRestart()
-                .define("HorsemanHandEquipment", HORSEMAN_HAND);
-
-        NomadHandEquipment = BUILDER.comment("""
-
-                        ----Nomad start hand equipment ----
-                        \t(takes effect after restart)
-                        \tItems in this list will be equipped to a new spawned nomad, in this following order: ["main-hand", "off-hand" ]""")
-                .worldRestart()
-                .define("NomadHandEquipment", NOMAD_HAND);
+                .define("NomadStartEquipments", START_EQUIPMENT_NOMAD);
 
         /*
         Pillager Config

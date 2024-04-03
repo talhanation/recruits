@@ -45,7 +45,6 @@ public class RecruitEntity extends AbstractRecruitEntity {
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.1D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D);
-
     }
 
     @Nullable
@@ -91,8 +90,8 @@ public class RecruitEntity extends AbstractRecruitEntity {
         return !(itemStack.getItem() instanceof CrossbowItem || itemStack.getItem() instanceof BowItem);
     }
 
-    public List<String> getHandEquipment(){
-        return RecruitsServerConfig.RecruitHandEquipment.get();
+    public List<List<String>> getEquipment(){
+        return RecruitsServerConfig.RecruitStartEquipments.get();
     }
 }
 

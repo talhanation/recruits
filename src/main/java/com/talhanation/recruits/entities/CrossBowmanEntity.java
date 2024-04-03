@@ -159,9 +159,6 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
     public double getMeleeStartRange() {
         return 3D;
     }
-    public List<String> getHandEquipment(){
-        return RecruitsServerConfig.CrossbowmanHandEquipment.get();
-    }
 
     //Pillager
     @Override
@@ -200,6 +197,10 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
     }
     public boolean getShouldStrategicFire(){
         return this.entityData.get(SHOULD_STRATEGIC_FIRE);
+    }
+
+    public List<List<String>> getEquipment(){
+        return RecruitsServerConfig.CrossbowmanStartEquipments.get();
     }
 
 }
