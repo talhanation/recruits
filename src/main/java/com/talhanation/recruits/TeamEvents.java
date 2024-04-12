@@ -109,6 +109,7 @@ public class TeamEvents {
     public static void openTeamCreationScreen(Player player) {
         if (player instanceof ServerPlayer) {
             NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateTeamCreationScreen(TeamEvents.getCurrency(), RecruitsServerConfig.TeamCreationCost.get()));
                 @Override
                 public Component getDisplayName() {
                     return new TextComponent("team_creation_screen");

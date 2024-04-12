@@ -182,6 +182,8 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 58, MessagePatrolLeaderSetInfoMode.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 59, MessageAssignGroupToCompanion.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 60, MessagePatrolLeaderSetPatrollingSpeed.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 61, MessageToClientUpdateHireScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 62, MessageToClientUpdateTeamCreationScreen.class);
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
         isSmallShipsLoaded = ModList.get().isLoaded("smallships");//small ships
         isSiegeWeaponsLoaded = ModList.get().isLoaded("siegeweapons");//siege weapons

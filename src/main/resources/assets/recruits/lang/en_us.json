@@ -69,7 +69,7 @@
   "gui.recruits.inv.info.text.ignore" : "Ignoring",
 
 
-  "gui.recruits.hire_gui.text.hire" : "Hire",
+  "gui.recruits.hire_gui.text.hire" : "Hire for %s",
 
   "gui.recruits.inv.tooltip.passive" : "Make this recruit not attacking at all.",
   "gui.recruits.inv.tooltip.neutral" : "Make this recruit attack only hostile living.",
