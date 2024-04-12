@@ -32,10 +32,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.scores.Team;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PacketDistributor;
-import org.jetbrains.annotations.NotNull;
+import net.minecraftforge.common.ForgeMod;
 
 import javax.annotation.Nullable;
 import java.util.function.Predicate;
@@ -74,7 +71,10 @@ public class PatrolLeaderEntity extends AbstractLeaderEntity {
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.1D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
-                .add(Attributes.FOLLOW_RANGE, 128.0D);
+                .add(Attributes.FOLLOW_RANGE, 128.0D)
+                .add(ForgeMod.ATTACK_RANGE.get(), 0D)
+                .add(Attributes.ATTACK_SPEED);
+
     }
 
 

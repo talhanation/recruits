@@ -23,6 +23,7 @@ import net.minecraft.world.entity.animal.horse.Variant;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraftforge.common.ForgeMod;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -79,7 +80,9 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
                 .add(Attributes.MOVEMENT_SPEED, 0.35D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
                 .add(Attributes.ATTACK_DAMAGE, 1.0D)
-                .add(Attributes.FOLLOW_RANGE, 64.0D);
+                .add(Attributes.FOLLOW_RANGE, 64.0D)
+                .add(ForgeMod.ATTACK_RANGE.get())
+                .add(Attributes.ATTACK_SPEED);
 
     }
 
