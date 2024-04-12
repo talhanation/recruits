@@ -32,6 +32,7 @@ public class Main {
     public static boolean isSmallShipsLoaded;
     public static boolean isSmallShipsCompatible;
     public static boolean isSiegeWeaponsLoaded;
+    public static boolean isCorpseLoaded;
 
     public Main() {
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -139,6 +140,7 @@ public class Main {
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
         isSmallShipsLoaded = ModList.get().isLoaded("smallships");//small ships
         isSiegeWeaponsLoaded = ModList.get().isLoaded("siegeweapons");//siege weapons
+        isCorpseLoaded = ModList.get().isLoaded("corpse");//corpse mod
 
         if(isSmallShipsLoaded){
             String smallshipsversion = ModList.get().getModFileById("smallships").versionString();//2.0.0-a2.3.1 above shall be supported e.g.: "2.0.0-b1.1"
