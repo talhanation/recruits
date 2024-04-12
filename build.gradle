@@ -122,7 +122,6 @@ dependencies {
     implementation fg.deobf("curse.maven:small-ships-450659:5148111")
     implementation fg.deobf("curse.maven:worldedit-225608:3922622")
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-    //implementation fg.deobf("curse.maven:debug-utils-forge-783008:4537623")
     //implementation fg.deobf('curse.maven:musketmod-354562:4030979')
     //implementation fg.deobf('curse.maven:mca-535291:4586534')
     //implementation fg.deobf("curse.maven:small-ships-450659:4578112")
