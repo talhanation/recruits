@@ -36,6 +36,8 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     private int recruitColorIndex;
     private int recruitColorId;
     private String recruitColor;
+    public static ItemStack currency;
+    public static int price;
     private final ArrayList<String> TEAM_COLORS = new ArrayList<>(
             Arrays.asList("white", "aqua", "black", "blue", "dark_aqua", "dark_blue", "dark_gray", "dark_green", "dark_purple", "dark_red", "gold", "green", "light_purple", "red", "yellow"));
 
@@ -63,6 +65,8 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     protected void init() {
         super.init();
 
+        currency.setCount(price);
+
         this.refreshSelectedColorRecruit();
         this.refreshSelectedColorTeam();
 
@@ -83,7 +87,7 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
             cycleButtonLeftRecruitColor(leftPos + 60, topPos + 83);
             cycleButtonRightRecruitColor(leftPos + 60 + 85, topPos + 83);
 
-            String create = "Create";
+            String create = "Create   ";
             addRenderableWidget(new ExtendedButton(leftPos + 18, topPos + 99, 140, 20, Component.literal(create),
                     button -> {
                         this.banner = container.getBanner();
@@ -97,11 +101,11 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
 
     protected void containerTick() {
         super.containerTick();
-        textField.tick();
+        if(textField != null) textField.tick();
     }
 
     public boolean mouseClicked(double p_100753_, double p_100754_, int p_100755_) {
-        if (this.textField.isFocused()) {
+        if (this.textField != null && this.textField.isFocused()) {
             this.textField.mouseClicked(p_100753_, p_100754_, p_100755_);
         }
         return super.mouseClicked(p_100753_, p_100754_, p_100755_);
@@ -158,7 +162,7 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
         this.recruitColor = RECRUIT_COLORS.get(recruitColorIndex);
         this.recruitColorId = RecruitColorID.get(recruitColorIndex);
     }
-    @Override
+
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         super.renderLabels(guiGraphics, mouseX, mouseY);
         guiGraphics.drawString(font, "Create a Team:", 18  , 11, fontColor);
@@ -166,7 +170,12 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
         guiGraphics.drawString(font, teamColor, 77, 69 + 2, teamColorId);
         guiGraphics.drawString(font, "Team Color:",18, 69 + 2, fontColor);
         guiGraphics.drawString(font, recruitColor, 77, 83 + 2, recruitColorId);
-        guiGraphics.drawString(font, "Unit Color:",18, 83 + 2, fontColor);
+        guiGraphics.drawString(font,"Unit Color:",18, 83 + 2, fontColor);
+
+        if(price > 0 && currency != null){
+            itemRenderer.renderGuiItem(currency, 120, this.imageHeight - 125);
+            itemRenderer.renderGuiItemDecorations(font, currency, 120, this.imageHeight - 125);
+        }
     }
 
     protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
