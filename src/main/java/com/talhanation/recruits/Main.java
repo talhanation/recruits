@@ -31,6 +31,7 @@ public class Main {
     public static boolean isSmallShipsLoaded;
     public static boolean isSmallShipsCompatible;
     public static boolean isSiegeWeaponsLoaded;
+    public static boolean isEpicKnightsLoaded;
     public static boolean isCorpseLoaded;
 
     public Main() {

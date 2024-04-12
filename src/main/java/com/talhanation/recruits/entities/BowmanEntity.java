@@ -18,6 +18,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -99,7 +100,8 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
                 .add(Attributes.MOVEMENT_SPEED, 0.31D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
-                .add(Attributes.FOLLOW_RANGE, 64.0D); //do not change as ranged ai dependants on it
+                .add(Attributes.FOLLOW_RANGE, 64.0D) //do not change as ranged ai dependants on it
+                .add(Attributes.ATTACK_SPEED);
     }
 
     @Override
