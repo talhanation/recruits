@@ -59,6 +59,7 @@ public class RecruitsServerConfig{
     public static ForgeConfigSpec.IntValue PillagerPatrolSpawnInterval;
     public static ForgeConfigSpec.IntValue RecruitPatrolSpawnInterval;
     public static ForgeConfigSpec.IntValue RecruitPatrolDespawnTime;
+    public static ForgeConfigSpec.IntValue TeamCreationCost;
     public static ForgeConfigSpec.BooleanValue GlobalTeamFriendlyFireSetting;
     public static ForgeConfigSpec.BooleanValue GlobalTeamSeeFriendlyInvisibleSetting;
     public static ForgeConfigSpec.BooleanValue GlobalTeamSetting;
@@ -127,14 +128,14 @@ public class RecruitsServerConfig{
                         \t(takes effect after restart)
                         \tdefault: 250""")
                 .worldRestart()
-                .defineInRange("RecruitsMaxXpForLevelUp", 250, 50, 10000);
+                .defineInRange("RecruitsMaxXpForLevelUp", 250, 50, 14530);
 
         RecruitsMaxXpLevel = BUILDER.comment("""
                         ----The max. Level a recruit can get.-----
                         \t(takes effect after restart)
                         \tdefault: 20""")
                 .worldRestart()
-                .defineInRange("RecruitsMaxXpLevel", 20, 10, 9999);
+                .defineInRange("RecruitsMaxXpLevel", 20, 10, 1453);
 
         RecruitFollowStartDistance = BUILDER.comment("""
 
@@ -149,7 +150,7 @@ public class RecruitsServerConfig{
                         \t(takes effect after restart)
                         \tdefault: 64""")
                 .worldRestart()
-                .defineInRange("MaxRecruitsForPlayer", 64, 1, 1280);
+                .defineInRange("MaxRecruitsForPlayer", 64, 1, 1453);
 
         TargetBlackList = BUILDER.comment("""
                         ----Target Blacklist----
@@ -171,7 +172,7 @@ public class RecruitsServerConfig{
                         \t(takes effect after restart)
                         \tdefault: 4""")
                 .worldRestart()
-                .defineInRange("RecruitCost", 4, 0, 999);
+                .defineInRange("RecruitCost", 4, 0, 1453);
 
         BowmanCost = BUILDER.comment("""
 
@@ -179,7 +180,7 @@ public class RecruitsServerConfig{
                         \t(takes effect after restart)
                         \tdefault: 6""")
                 .worldRestart()
-                .defineInRange("BowmanCost", 6, 0, 999);
+                .defineInRange("BowmanCost", 6, 0, 1453);
 
         CrossbowmanCost = BUILDER.comment("""
 
@@ -187,7 +188,7 @@ public class RecruitsServerConfig{
                         \t(takes effect after restart)
                         \tdefault: 8""")
                 .worldRestart()
-                .defineInRange("CrossbowmanCost", 8, 0, 999);
+                .defineInRange("CrossbowmanCost", 8, 0, 1453);
 
         ShieldmanCost = BUILDER.comment("""
 
@@ -195,7 +196,7 @@ public class RecruitsServerConfig{
                         \t(takes effect after restart)
                         \tdefault: 10""")
                 .worldRestart()
-                .defineInRange("ShieldmanCost", 10, 0, 999);
+                .defineInRange("ShieldmanCost", 10, 0, 1453);
 
         HorsemanCost = BUILDER.comment("""
 
@@ -203,7 +204,7 @@ public class RecruitsServerConfig{
                         \t(takes effect after restart)
                         \tdefault: 20""")
                 .worldRestart()
-                .defineInRange("HorsemanCost", 20, 0, 999);
+                .defineInRange("HorsemanCost", 20, 0, 1453);
 
         NomadCost = BUILDER.comment("""
 
@@ -211,7 +212,7 @@ public class RecruitsServerConfig{
                         \t(takes effect after restart)
                         \tdefault: 19""")
                 .worldRestart()
-                .defineInRange("NomadCost", 19, 0, 999);
+                .defineInRange("NomadCost", 19, 0, 1453);
 
         RecruitHorseUnitsHorse = BUILDER.comment("""
                         ----RecruitHorseUnitsHorse----
@@ -275,7 +276,7 @@ public class RecruitsServerConfig{
                         \t(takes effect after restart)
                         \tdefault: 1""")
                 .worldRestart()
-                .defineInRange("MaxSpawnRecruitsInVillage", 1, 1, 10);
+                .defineInRange("MaxSpawnRecruitsInVillage", 1, 1, 1453);
 
          /*
         Equipment Config
@@ -490,7 +491,7 @@ public class RecruitsServerConfig{
                         \t(takes effect after restart)
                         \tdefault: 45""")
                 .worldRestart()
-                .defineInRange("RecruitPatrolDespawnTime", 45, 1, 600);
+                .defineInRange("RecruitPatrolDespawnTime", 45, 1, 1453);
 
 
         ShouldPillagerPatrolsSpawn = BUILDER.comment("""
@@ -554,6 +555,14 @@ public class RecruitsServerConfig{
 
         BUILDER.pop();
         BUILDER.comment("Recruit Teams Config:").push("Teams");
+
+        TeamCreationCost = BUILDER.comment("""
+
+                        The amount of currency needed to create a team. Set 0 to disable.
+                        \t(takes effect after restart)
+                        \tdefault: 10""")
+                .worldRestart()
+                .defineInRange("TeamCreationCost", 10, 0, 1453);
 
         DisableVanillaTeamCommands = BUILDER.comment("""
                         ----Should specific vanilla team commands be disabled?----
