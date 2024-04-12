@@ -61,6 +61,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.network.NetworkHooks;
+import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
@@ -856,35 +857,39 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void setEquipment(){
         //Equipment
         List<List<String>> equipmentSets = getEquipment();
-        int i = this.random.nextInt(equipmentSets.size() -1);
-        if(i >= 0){
-            List<String> equipmentSet = equipmentSets.get(i);
-            while(equipmentSet.size() < 6) equipmentSet.add("");
+        if(!equipmentSets.isEmpty()){
 
-            String mainHandStr = equipmentSet.get(0);
-            String offHandStr = equipmentSet.get(1);
-            String feetStr = equipmentSet.get(2);
-            String legsStr = equipmentSet.get(3);
-            String chestStr = equipmentSet.get(4);
-            String headStr = equipmentSet.get(5);
+            int size = equipmentSets.size();
+            int i = size > 1 ? this.random.nextInt(size) -1 : 0;
+            if(i >= 0){
+                List<String> equipmentSet = equipmentSets.get(i);
+                while(equipmentSet.size() < 6) equipmentSet.add("");
 
-            Optional<Holder<Item>> holderHead = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(headStr));
-            holderHead.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.HEAD, itemHolder.value().getDefaultInstance()));
+                String mainHandStr = equipmentSet.get(0);
+                String offHandStr = equipmentSet.get(1);
+                String feetStr = equipmentSet.get(2);
+                String legsStr = equipmentSet.get(3);
+                String chestStr = equipmentSet.get(4);
+                String headStr = equipmentSet.get(5);
 
-            Optional<Holder<Item>> holderChest = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(chestStr));
-            holderChest.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.CHEST, itemHolder.value().getDefaultInstance()));
+                Optional<Holder<Item>> holderHead = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(headStr));
+                holderHead.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.HEAD, itemHolder.value().getDefaultInstance()));
 
-            Optional<Holder<Item>> holderLegs = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(legsStr));
-            holderLegs.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.LEGS, itemHolder.value().getDefaultInstance()));
+                Optional<Holder<Item>> holderChest = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(chestStr));
+                holderChest.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.CHEST, itemHolder.value().getDefaultInstance()));
 
-            Optional<Holder<Item>> holderFeet = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(feetStr));
-            holderFeet.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.FEET, itemHolder.value().getDefaultInstance()));
+                Optional<Holder<Item>> holderLegs = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(legsStr));
+                holderLegs.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.LEGS, itemHolder.value().getDefaultInstance()));
 
-            Optional<Holder<Item>> holderMainHand = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(mainHandStr));
-            holderMainHand.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.MAINHAND, itemHolder.value().getDefaultInstance()));
+                Optional<Holder<Item>> holderFeet = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(feetStr));
+                holderFeet.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.FEET, itemHolder.value().getDefaultInstance()));
 
-            Optional<Holder<Item>> holderOffHand = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(offHandStr));
-            holderOffHand.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.OFFHAND, itemHolder.value().getDefaultInstance()));
+                Optional<Holder<Item>> holderMainHand = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(mainHandStr));
+                holderMainHand.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.MAINHAND, itemHolder.value().getDefaultInstance()));
+
+                Optional<Holder<Item>> holderOffHand = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(offHandStr));
+                holderOffHand.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.OFFHAND, itemHolder.value().getDefaultInstance()));
+            }
         }
     }
 
@@ -1648,10 +1653,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void openHireGUI(Player player) {
-        this.navigation.stop();
-
         if (player instanceof ServerPlayer) {
             NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+            this.navigation.stop();
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateHireScreen(TeamEvents.getCurrency()));
                 @Override
                 public @NotNull Component getDisplayName() {
                     return getName();
