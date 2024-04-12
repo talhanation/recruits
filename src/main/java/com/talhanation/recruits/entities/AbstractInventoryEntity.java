@@ -1,11 +1,10 @@
 package com.talhanation.recruits.entities;
 
+import com.talhanation.recruits.Main;
+import com.talhanation.recruits.compat.Corpse;
 import com.talhanation.recruits.inventory.RecruitSimpleContainer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
@@ -21,7 +20,6 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-import java.util.Objects;
 import java.util.function.Predicate;
 
 import static net.minecraft.world.entity.EquipmentSlot.*;
@@ -248,6 +246,12 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
     public void die(DamageSource dmg) {
         super.die(dmg);
+
+        if(Main.isCorpseLoaded && !this.getCommandSenderWorld().isClientSide()){
+            Corpse.spawnCorpse(this);
+        }
+        else
+
         if(this.getCommandSenderWorld().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS))
             for (int i = 0; i < this.inventory.getContainerSize(); i++)
                 Containers.dropItemStack(this.level, getX(), getY(), getZ(), this.inventory.getItem(i));
