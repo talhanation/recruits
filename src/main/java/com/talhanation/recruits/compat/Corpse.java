@@ -1,13 +1,9 @@
 package com.talhanation.recruits.compat;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractInventoryEntity;
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.death.Death;
-import de.maxhenkel.corelib.item.ItemUtils;
-import de.maxhenkel.corpse.entities.CorpseEntity;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
