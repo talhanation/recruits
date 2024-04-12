@@ -167,7 +167,7 @@ public class TeamEvents {
     public static void createTeam(ServerPlayer serverPlayer, @NotNull ServerLevel level, String teamName, String playerName, ItemStack banner, String color, byte colorByte) {
         MinecraftServer server = level.getServer();
         PlayerTeam team = server.getScoreboard().getPlayerTeam(teamName);
-        int cost = 10;
+        int cost = RecruitsServerConfig.TeamCreationCost.get();
 
         if (team == null) {
             if (teamName.chars().count() <= 13) {
