@@ -50,7 +50,7 @@ public class CaptainAttackAI extends PatrolLeaderAttackAI {
                 Vec3 movePosRanged;
                 BlockPos movePosLeader = getBlockPosTowardsTarget(target, 0.2);
 
-
+                /*
                 //CHARGE INFANTRY
                 if(comparisonOwnRanged == Comparison.BIGGER && comparisonOwnInfantry == Comparison.BIGGER){
                     BlockPos moveBlockPosInfantry = getBlockPosTowardsTarget(target, 0.9);
@@ -104,6 +104,10 @@ public class CaptainAttackAI extends PatrolLeaderAttackAI {
                 this.leader.setHoldPos(movePosLeader);
                 this.leader.setFollowState(3);//LEADER HOLD POS
 
+
+                 */
+
+                this.leader.setRecruitsToFollow();
                 for(AbstractRecruitEntity recruit : this.leader.currentRecruitsInCommand) recruit.setState(leader.getState());
 
                 this.setRecruitsTargets();

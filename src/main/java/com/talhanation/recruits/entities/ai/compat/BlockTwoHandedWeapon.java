@@ -1,5 +1,6 @@
-package com.talhanation.recruits.entities.ai;
+package com.talhanation.recruits.entities.ai.compat;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.HorsemanEntity;
 import com.talhanation.recruits.util.AttackUtil;
@@ -16,22 +17,25 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ToolActions;
 
-public class UseShield extends Goal {
+public class BlockTwoHandedWeapon extends Goal {
     public final PathfinderMob entity;
 
-    public UseShield(PathfinderMob recruit){
+    public BlockTwoHandedWeapon(PathfinderMob recruit){
         this.entity = recruit;
     }
 
     public boolean canUse() {
-        boolean hasShield = this.entity.getOffhandItem().getItem().canPerformAction(entity.getOffhandItem(), ToolActions.SHIELD_BLOCK);
-        if (entity instanceof AbstractRecruitEntity recruit){
-            boolean forced = recruit.getShouldBlock();
-            boolean normal = canRaiseShield() && !recruit.isFollowing() && recruit.canBlock() && !recruit.getShouldMovePos();
+        if(Main.isEpicKnightsLoaded){
+            boolean noItemInOffhand = this.entity.getOffhandItem().isEmpty();
+            if (entity instanceof AbstractRecruitEntity recruit){
+                boolean forced = recruit.getShouldBlock();
+                boolean normal = shouldBlock() && !recruit.isFollowing() && recruit.canBlock() && !recruit.getShouldMovePos();
 
-            return (forced || normal) && hasShield && !this.entity.swinging;
+                return (forced || normal) && noItemInOffhand && !this.entity.swinging;
+            }
+            else return noItemInOffhand && shouldBlock() && !this.entity.swinging;
         }
-        else return hasShield && canRaiseShield() && !this.entity.swinging;
+        return false;
     }
 
     public boolean canContinueToUse() {
@@ -58,7 +62,7 @@ public class UseShield extends Goal {
         }
     }
 
-    public boolean canRaiseShield() {
+    public boolean shouldBlock() {
         boolean isSelfTargeted = false;
         LivingEntity target = this.entity.getTarget();
 
@@ -72,7 +76,7 @@ public class UseShield extends Goal {
             if (target instanceof Mob mobTarget) {
                 isSelfTargeted = mobTarget.getTarget() != null && mobTarget.getTarget().is(entity);
             }
-            
+
             ItemStack itemStackInHand = target.getItemInHand(InteractionHand.MAIN_HAND);
             double targetReach = AttackUtil.getAttackReachSqr(target);
             Item itemInHand = itemStackInHand.getItem();

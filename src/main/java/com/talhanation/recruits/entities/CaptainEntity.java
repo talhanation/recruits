@@ -89,7 +89,8 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.1D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
-                .add(Attributes.FOLLOW_RANGE, 128.0D);
+                .add(Attributes.FOLLOW_RANGE, 128.0D)
+                .add(Attributes.ATTACK_SPEED);
     }
 
 
