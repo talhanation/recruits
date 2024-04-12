@@ -16,6 +16,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
@@ -33,6 +34,7 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
     private final AbstractRecruitEntity recruit;
     private final Player player;
     private ExtendedButton hireButton;
+    public static ItemStack currency;
 
     public RecruitHireScreen(RecruitHireMenu recruitContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, recruitContainer, playerInventory, Component.literal(""));
@@ -47,13 +49,14 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
         super.init();
 
         hireButton = createHireButton();
-
+        if(currency != null) currency.setCount(recruit.getCost());
     }
 
     private ExtendedButton createHireButton() {
         int zeroLeftPos = leftPos + 180;
         int zeroTopPos = topPos + 10;
         int mirror = 240 - 60;
+
         return addRenderableWidget(new ExtendedButton(zeroLeftPos - mirror + 40, zeroTopPos + 85, 100, 20, TEXT_HIRE,
                 button -> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageHire(player.getUUID(), recruit.getUUID()));
@@ -112,6 +115,12 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
 
         font.draw(poseStack, "Cost:", k + 55, l + 40, fontColor);
         font.draw(poseStack, ""+ costs, k + 88, l + 40, fontColor);
+
+        if(currency != null){
+            itemRenderer.renderGuiItem(currency, 120, this.imageHeight - 125);
+            itemRenderer.renderGuiItemDecorations(font, currency, 120, this.imageHeight - 125);
+        }
+
     }
 
     protected void renderBg(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
@@ -123,6 +132,6 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
 
         InventoryScreen.renderEntityInInventory(i + 30, j + 60, 15, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.recruit);
         if(recruit.getVehicle() instanceof AbstractHorse horse) InventoryScreen.renderEntityInInventory(i + 30, j + 72, 15, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, horse);
-
     }
+
 }
