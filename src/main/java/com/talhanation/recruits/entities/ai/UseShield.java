@@ -72,7 +72,7 @@ public class UseShield extends Goal {
             if (target instanceof Mob mobTarget) {
                 isSelfTargeted = mobTarget.getTarget() != null && mobTarget.getTarget().is(entity);
             }
-            
+
             ItemStack itemStackInHand = target.getItemInHand(InteractionHand.MAIN_HAND);
             double targetReach = AttackUtil.getAttackReachSqr(target);
             Item itemInHand = itemStackInHand.getItem();

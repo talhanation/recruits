@@ -32,10 +32,20 @@ public abstract class AttackUtil {
 
         int base = (int) Math.round(20/attackSpeed);
 
-        return base + 5;
+        return base + 7;
     }
 
+    /*
+    Cooldown Infos MC-Wiki
+    Swords: 0.6s
+    Stone and Wood axe: 1.25s
+    Gold/Dia/Neatherite: 1s
+    Iron: 1.1s
 
+    1s = 20ticks
+
+    cooldown should be + 5 ticks for gameplay
+     */
     public static double getAttackReachSqr(LivingEntity living) {
         float base = 10F;
         if(living.getAttribute(ForgeMod.ATTACK_RANGE.get()) != null){
