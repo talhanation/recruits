@@ -180,7 +180,6 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private void setAssignButton() {
         Button assignButton = addRenderableWidget(new Button(leftPos + 216, topPos + 140, 110, 20, BUTTON_ASSIGN_RECRUITS, button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToCompanion(player.getUUID(), this.recruit.getUUID()));
-            onClose();
         },
             (button1, poseStack, i, i1) -> {
                 this.renderTooltip(poseStack, TOOLTIP_ASSIGN_RECRUITS, i, i1);
