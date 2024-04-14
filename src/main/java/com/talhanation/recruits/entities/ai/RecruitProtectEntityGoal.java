@@ -32,6 +32,7 @@ public class RecruitProtectEntityGoal extends Goal {
     public void start(){
         timeToRecalcPath = 0;
         this.getProtecting();
+        this.recruit.setIsFollowing(true);
         boolean isHorseBack = recruit.getVehicle() instanceof AbstractHorse;
         this.range = isHorseBack ? 20D : 10D;
     }
@@ -39,6 +40,7 @@ public class RecruitProtectEntityGoal extends Goal {
     public void clear(){
         recruit.shouldProtect(false,null);
         recruit.setFollowState(3);
+        this.recruit.setIsFollowing(false);
         this.protectingMob = null;
     }
 
