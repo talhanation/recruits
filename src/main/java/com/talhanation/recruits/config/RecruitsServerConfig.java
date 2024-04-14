@@ -36,7 +36,6 @@ public class RecruitsServerConfig{
     public static ForgeConfigSpec.IntValue NomadCost;
     public static ForgeConfigSpec.IntValue HorsemanCost;
     public static ForgeConfigSpec.IntValue CrossbowmanCost;
-    public static ForgeConfigSpec.DoubleValue RecruitFollowStartDistance;
     public static ForgeConfigSpec.ConfigValue<List<String>> TargetBlackList;
     public static ForgeConfigSpec.ConfigValue<List<String>> MountWhiteList;
     public static ForgeConfigSpec.ConfigValue<List<List<String>>> RecruitStartEquipments;
@@ -136,14 +135,6 @@ public class RecruitsServerConfig{
                         \tdefault: 20""")
                 .worldRestart()
                 .defineInRange("RecruitsMaxXpLevel", 20, 10, 1453);
-
-        RecruitFollowStartDistance = BUILDER.comment("""
-
-                        ----Distance Recruits will start to follow its owner----
-                        \t(takes effect after restart)
-                        \tdefault: 20.0""")
-                .worldRestart()
-                .defineInRange("RecruitFollowStartDistance", 20.0, 0, 100.0);
 
         MaxRecruitsForPlayer = BUILDER.comment("""
                         ----Max amount a player can recruit----
