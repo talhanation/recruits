@@ -12,6 +12,7 @@ public class RecruitMountEntity extends Goal {
 
     private final AbstractRecruitEntity recruit;
     private Entity mount;
+    private int timeToRecalcPath;
 
     public RecruitMountEntity(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -27,6 +28,7 @@ public class RecruitMountEntity extends Goal {
     }
 
     public void start(){
+        this.timeToRecalcPath = 0;
         this.findMount();
         this.recruit.setMountTimer(200);
     }
@@ -38,7 +40,12 @@ public class RecruitMountEntity extends Goal {
     public void tick() {
         if(this.recruit.getVehicle() == null && this.mount != null) {
             if(recruit.getMountTimer() > 0){
-                recruit.getNavigation().moveTo(mount, 1.15F);
+
+                if (--this.timeToRecalcPath <= 0) {
+                    this.timeToRecalcPath = this.adjustedTickDelay(10);
+                    recruit.getNavigation().moveTo(mount, 1.15F);
+                }
+
                 if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
                     this.recruit.getJumpControl().jump();
                 }

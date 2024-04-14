@@ -14,6 +14,7 @@ public class RecruitProtectEntityGoal extends Goal {
     private final AbstractRecruitEntity recruit;
     private LivingEntity protectingMob;
     private double range;
+    private int timeToRecalcPath;
 
     public RecruitProtectEntityGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -29,6 +30,7 @@ public class RecruitProtectEntityGoal extends Goal {
     }
 
     public void start(){
+        timeToRecalcPath = 0;
         this.getProtecting();
         boolean isHorseBack = recruit.getVehicle() instanceof AbstractHorse;
         this.range = isHorseBack ? 20D : 10D;
@@ -49,7 +51,13 @@ public class RecruitProtectEntityGoal extends Goal {
         if(this.protectingMob != null) {
             boolean isClose = protectingMob.distanceTo(this.recruit) <= range;
             if(!isClose){
-                recruit.getNavigation().moveTo(protectingMob, 1.15F);
+                if (--this.timeToRecalcPath <= 0) {
+                    this.timeToRecalcPath = this.adjustedTickDelay(10);
+                    recruit.getNavigation().moveTo(protectingMob, 1.15F);
+                }
+
+
+
                 if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
                     this.recruit.getJumpControl().jump();
                 }

@@ -30,6 +30,7 @@ public class RecruitUpkeepPosGoal extends Goal {
     public boolean messageNotChest;
     public boolean messageNeedNewChest;
     public boolean messageNotInRange;
+    public int timeToRecalcPath = 0;
 
     public RecruitUpkeepPosGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -47,6 +48,7 @@ public class RecruitUpkeepPosGoal extends Goal {
     @Override
     public void start() {
         super.start();
+        this.timeToRecalcPath = 0;
         message = true;
         messageNotChest = true;
         messageNeedNewChest = true;
@@ -92,7 +94,12 @@ public class RecruitUpkeepPosGoal extends Goal {
 
         if(recruit.getUpkeepTimer() == 0){
             if (container != null && chestPos != null){
-                this.recruit.getNavigation().moveTo(chestPos.getX(), chestPos.getY(), chestPos.getZ(), 1.15D);
+
+                if (--this.timeToRecalcPath <= 0) {
+                    this.timeToRecalcPath = this.adjustedTickDelay(10);
+                    this.recruit.getNavigation().moveTo(chestPos.getX(), chestPos.getY(), chestPos.getZ(), 1.15D);
+                }
+
                 if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
                     this.recruit.getJumpControl().jump();
                 }

@@ -25,6 +25,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
     public boolean message;
     public boolean messageNotInRange;
     public BlockPos pos;
+    public int timeToRecalcPath;
 
     public RecruitUpkeepEntityGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -53,6 +54,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
     @Override
     public void start() {
         super.start();
+        timeToRecalcPath = 0;
         message = true;
         messageNotInRange = true;
 
@@ -91,7 +93,14 @@ public class RecruitUpkeepEntityGoal extends Goal {
         if (recruit.getUpkeepTimer() == 0) {
             //Main.LOGGER.debug("searching upkeep entity");
             if (entity.isPresent()) {
-                this.recruit.getNavigation().moveTo(pos.getX(), pos.getY(), pos.getZ(), 1.15D);
+                if (--this.timeToRecalcPath <= 0) {
+                    this.timeToRecalcPath = this.adjustedTickDelay(10);
+                    this.recruit.getNavigation().moveTo(pos.getX(), pos.getY(), pos.getZ(), 1.15D);
+                }
+
+
+
+
                 if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
                     this.recruit.getJumpControl().jump();
                 }
