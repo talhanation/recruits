@@ -126,7 +126,11 @@ dependencies {
     implementation fg.deobf("curse.maven:architectury-api-419699:4555749")
     implementation fg.deobf("curse.maven:cloth-config-348521:4633416")
     implementation fg.deobf("curse.maven:epic-knights-addon-925866:5193426")
+
     implementation fg.deobf("curse.maven:corpse-316582:5157030")
+
+    implementation fg.deobf("curse.maven:mmmmmmmmmmmm-225738:4410143")
+    implementation fg.deobf("curse.maven:selene-499980:4983974")
     //implementation fg.deobf('curse.maven:musketmod-354562:4030979')
 }
 
