@@ -5,6 +5,7 @@ import com.talhanation.recruits.*;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.*;
+import com.talhanation.recruits.entities.ai.compat.BlockWithWeapon;
 import com.talhanation.recruits.entities.ai.navigation.RecruitPathNavigation;
 import com.talhanation.recruits.init.ModItems;
 import com.talhanation.recruits.inventory.DebugInvMenu;
@@ -110,7 +111,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public boolean reachedMovePos;
     public int attackCooldown = 0;
 
-
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
         this.xpReward = 6;
@@ -194,6 +194,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     ////////////////////////////////////REGISTER////////////////////////////////////
 
     protected void registerGoals() {
+        this.goalSelector.addGoal(4, new BlockWithWeapon(this));
         this.goalSelector.addGoal(0, new RecruitFloatGoal(this));
         this.goalSelector.addGoal(1, new RecruitQuaffGoal(this));
         this.goalSelector.addGoal(1, new FleeTNT(this));
@@ -207,7 +208,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(3, new RecruitMountEntity(this));
         this.goalSelector.addGoal(3, new RecruitDismountEntity(this));
         this.goalSelector.addGoal(4, new RecruitMoveToPosGoal(this, 1.05D));
-        this.goalSelector.addGoal(2, new RecruitFollowOwnerGoal(this, 1.05D, RecruitsServerConfig.RecruitFollowStartDistance.get()));
+        this.goalSelector.addGoal(2, new RecruitFollowOwnerGoal(this, 1.05D, 300, 100));
         this.goalSelector.addGoal(2, new RecruitMeleeAttackGoal(this, 1.05D, this.getMeleeStartRange()));
         this.goalSelector.addGoal(7, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
         //this.goalSelector.addGoal(7, new RecruitDodgeGoal(this));
@@ -1777,7 +1778,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     private void pickUpArrows() {
-        List<AbstractArrow> arrows = this.level.getEntitiesOfClass(AbstractArrow.class, this.getBoundingBox().inflate(8D));
+        List<AbstractArrow> arrows = this.level.getEntitiesOfClass(AbstractArrow.class, this.getBoundingBox().inflate(4D));
         for (AbstractArrow arrow : arrows){
             if(arrow.isOnGround() && arrow.pickup == AbstractArrow.Pickup.ALLOWED && this.getInventory().canAddItem(Items.ARROW.getDefaultInstance())){
                 this.getInventory().addItem(Items.ARROW.getDefaultInstance());

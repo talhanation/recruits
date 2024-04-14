@@ -190,6 +190,7 @@ public class Main {
         isSmallShipsLoaded = ModList.get().isLoaded("smallships");//small ships
         isSiegeWeaponsLoaded = ModList.get().isLoaded("siegeweapons");//siege weapons
         isCorpseLoaded = ModList.get().isLoaded("corpse");//corpse mod
+        isEpicKnightsLoaded = ModList.get().isLoaded("magistuarmory");//epic knights mod
 
         if(isSmallShipsLoaded){
             String smallshipsversion = ModList.get().getModFileById("smallships").versionString();//2.0.0-a2.3.1 above shall be supported e.g.: "2.0.0-b1.1"
