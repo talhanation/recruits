@@ -83,10 +83,6 @@ public class BlockWithWeapon extends Goal {
                     || itemInHand instanceof PickaxeItem
                     || itemInHand instanceof SwordItem;
 
-            if (target instanceof RangedAttackMob && inRange && isSelfTargeted) {
-                return true;
-            }
-
             if ((isClose && (isSelfTargeted || target instanceof Player)) && (isDanger || (target instanceof Monster))){
                 return true;
             }
