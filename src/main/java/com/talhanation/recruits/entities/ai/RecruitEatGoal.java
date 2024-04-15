@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -11,6 +12,7 @@ public class RecruitEatGoal extends Goal {
     public AbstractRecruitEntity recruit;
     public ItemStack foodStack;
     public int slotID;
+    private long lastCanUseCheck;
 
     public RecruitEatGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -18,7 +20,14 @@ public class RecruitEatGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return hasFoodInInv() && recruit.needsToEat() && !recruit.isUsingItem();
+        long i = this.recruit.level.getGameTime();
+        if (i - this.lastCanUseCheck >= 20L) {
+            this.lastCanUseCheck = i;
+
+            return hasFoodInInv() && recruit.needsToEat() && !recruit.isUsingItem();
+        }
+        
+        return false;
     }
 
     @Override
@@ -86,14 +95,14 @@ public class RecruitEatGoal extends Goal {
     private boolean hasFoodInInv(){
         return recruit.getInventory().items
                 .stream()
-                .anyMatch(ItemStack::isEdible);
+                .anyMatch(item -> recruit.canEatItemStack(item));
     }
 
     private ItemStack getAndRemoveFoodInInv(){
         ItemStack itemStack = null;
         for(int i = 0; i < recruit.getInventorySize(); i++){
             ItemStack stackInSlot = recruit.inventory.getItem(i).copy();
-            if(stackInSlot.isEdible()){
+            if(recruit.canEatItemStack(stackInSlot)){
                 itemStack = stackInSlot.copy();
                 this.slotID = i;
                 recruit.inventory.removeItemNoUpdate(i); //removing item in slot

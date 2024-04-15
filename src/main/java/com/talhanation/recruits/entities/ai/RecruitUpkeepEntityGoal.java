@@ -26,6 +26,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
     public boolean messageNotInRange;
     public BlockPos pos;
     public int timeToRecalcPath;
+    private long lastCanUseCheck;
 
     public RecruitUpkeepEntityGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -33,7 +34,13 @@ public class RecruitUpkeepEntityGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return recruit.needsToGetFood() && recruit.getUpkeepUUID() != null;
+        long i = this.recruit.level.getGameTime();
+        if (i - this.lastCanUseCheck >= 20L) {
+            this.lastCanUseCheck = i;
+
+            return recruit.needsToGetFood() && recruit.getUpkeepUUID() != null;
+        }
+        return false;
     }
 
     @Override
@@ -44,7 +51,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
     private boolean isFoodInEntity(Container container){
         for(int i = 0; i < container.getContainerSize(); i++) {
             ItemStack foodItem = container.getItem(i);
-            if(foodItem.isEdible()){
+            if(recruit.canEatItemStack(foodItem)){
                 return true;
             }
         }
@@ -143,7 +150,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
                     for(int i = 0; i < container.getContainerSize(); i++) {
                         ItemStack itemstack = container.getItem(i);
                         ItemStack equipment;
-                        if(!itemstack.isEdible() && recruit.wantsToPickUp(itemstack)){
+                        if(!recruit.canEatItemStack(itemstack) && recruit.wantsToPickUp(itemstack)){
                             if (recruit.canEquipItem(itemstack)) {
                                 equipment = itemstack.copy();
                                 equipment.setCount(1);
@@ -207,7 +214,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
     private ItemStack getFoodFromInv(Container inv){
         ItemStack itemStack = null;
         for(int i = 0; i < inv.getContainerSize(); i++){
-            if(inv.getItem(i).isEdible()){
+            if(recruit.canEatItemStack(inv.getItem(i))){
                 itemStack = inv.getItem(i);
                 break;
             }
