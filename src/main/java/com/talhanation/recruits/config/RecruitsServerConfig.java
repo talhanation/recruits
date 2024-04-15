@@ -45,6 +45,7 @@ public class RecruitsServerConfig{
     public static ForgeConfigSpec.ConfigValue<List<List<String>>> HorsemanStartEquipments;
     public static ForgeConfigSpec.ConfigValue<List<List<String>>> NomadStartEquipments;
     public static ForgeConfigSpec.ConfigValue<List<String>> AcceptedDamagesourceImmunity;
+    public static ForgeConfigSpec.ConfigValue<List<String>> FoodBlackList;
     public static ForgeConfigSpec.BooleanValue AggroRecruitsBlockPlaceBreakEvents;
     public static ForgeConfigSpec.BooleanValue NeutralRecruitsBlockPlaceBreakEvents;
     public static ForgeConfigSpec.BooleanValue AggroRecruitsBlockInteractingEvents;
@@ -66,11 +67,10 @@ public class RecruitsServerConfig{
     public static ForgeConfigSpec.BooleanValue RangedRecruitsNeedArrowsToShoot;
     public static ForgeConfigSpec.BooleanValue RecruitsChunkLoading;
     public static ForgeConfigSpec.BooleanValue UpdateCheckerServerside;
-    public static ArrayList<String> BLACKLIST = new ArrayList<>(
+    public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast"));
-
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
-            Arrays.asList("minecraft:poisonous_potato", "minecraft:spider_aye"));
+            Arrays.asList("minecraft:poisonous_potato", "minecraft:spider_eye", "minecraft:pufferfish"));
     public static ArrayList<String> MOUNTS = new ArrayList<>(
             Arrays.asList("minecraft:mule", "minecraft:donkey", "minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "smallships:galley", "smallships:drakkar", "camels:camel"));
     public static ArrayList<List<String>> START_EQUIPMENT_RECRUIT = new ArrayList<>(
@@ -103,7 +103,8 @@ public class RecruitsServerConfig{
         BUILDER.comment("Recruits Config:").push("Recruits");
 
         UpdateCheckerServerside = BUILDER.comment("""
-                        ----UpdateCheckerServerside----
+                        
+                        UpdateCheckerServerside
                         \t(takes effect after restart)
                         \t
                         Should the client side update checker be active?
@@ -115,7 +116,7 @@ public class RecruitsServerConfig{
 
         RecruitCurrency = BUILDER.comment("""
 
-                        ----Currency----
+                        Currency
                         \t(takes effect after restart)
                         \tThe Item defined here, will be used to hire recruits. For example: ["minecraft:diamond"]\tdefault: ["minecraft:emerald"]""")
                 .worldRestart()
@@ -123,35 +124,47 @@ public class RecruitsServerConfig{
 
         RecruitsMaxXpForLevelUp = BUILDER.comment("""
 
-                        ----Max XP a Recruit needs to Level Up.----
+                        Max XP a Recruit needs to Level Up.
                         \t(takes effect after restart)
                         \tdefault: 250""")
                 .worldRestart()
                 .defineInRange("RecruitsMaxXpForLevelUp", 250, 50, 14530);
 
         RecruitsMaxXpLevel = BUILDER.comment("""
-                        ----The max. Level a recruit can get.-----
+                        
+                        The max. Level a recruit can get.-
                         \t(takes effect after restart)
                         \tdefault: 20""")
                 .worldRestart()
                 .defineInRange("RecruitsMaxXpLevel", 20, 10, 1453);
 
         MaxRecruitsForPlayer = BUILDER.comment("""
-                        ----Max amount a player can recruit----
+                        
+                        Max amount a player can recruit
                         \t(takes effect after restart)
                         \tdefault: 64""")
                 .worldRestart()
                 .defineInRange("MaxRecruitsForPlayer", 64, 1, 1453);
 
         TargetBlackList = BUILDER.comment("""
-                        ----Target Blacklist----
+                        
+                        Target Blacklist
                         \t(takes effect after restart)
                         \tEntities in this list won't be targeted at all, for example: ["minecraft:creeper", "minecraft:sheep", ...]""")
                 .worldRestart()
-                .define("TargetBlackList", BLACKLIST);
+                .define("TargetBlackList", TARGET_BLACKLIST);
+
+        FoodBlackList = BUILDER.comment("""
+                        
+                        List of foods that recruits should not eat. 
+                        \t(takes effect after restart)
+                        \tFood items in this list will not be eaten by recruits and also not be picked up from upkeep.""")
+                .worldRestart()
+                .define("FoodBlackList", FOOD_BLACKLIST);
 
         MountWhiteList = BUILDER.comment("""
-                        ----Mount Whitelist----
+                        
+                        Mount Whitelist
                         \t(takes effect after restart)
                         \tONLY Entities in this list can be mounted by a recruit, for example: ["minecraft:boat", "smallships:cog", ...]""")
                 .worldRestart()
@@ -206,7 +219,8 @@ public class RecruitsServerConfig{
                 .defineInRange("NomadCost", 19, 0, 1453);
 
         RecruitHorseUnitsHorse = BUILDER.comment("""
-                        ----RecruitHorseUnitsHorse----
+                        
+                        RecruitHorseUnitsHorse
                         \t(takes effect after restart)
                         \t
                         Should the Horse units spawn with a horse?""
@@ -216,7 +230,8 @@ public class RecruitsServerConfig{
                 .define("RecruitHorseUnitsHorse", true);
 
         RangedRecruitsNeedArrowsToShoot = BUILDER.comment("""
-                        ----RangedRecruitsNeedArrowsToShoot----
+                        
+                        RangedRecruitsNeedArrowsToShoot
                         \t(takes effect after restart)
                         \t
                         Should ranged units need arrows to shoot?
@@ -228,7 +243,7 @@ public class RecruitsServerConfig{
                 .define("RangedRecruitsNeedArrowsToShoot", false);
 
         RecruitsChunkLoading = BUILDER.comment("""
-                        ----RecruitsChunkLoading----
+                        RecruitsChunkLoading
                         \t(takes effect after restart)
                         \t
                         Should recruit-companions load chunks? Disabling would make patrolling in to unloaded chunk impossible.
@@ -245,9 +260,9 @@ public class RecruitsServerConfig{
 
         RecruitTablesPOIReleasing = BUILDER.comment("""
 
-                        ----Should Villager Recruits that were created with Tables release the POI for other Villagers?----
-                        ----True -> allows multiple villagers to become a recruit with one table.----
-                        ----False -> only one villager can become a recruit with one table.----
+                        Should Villager Recruits that were created with Tables release the POI for other Villagers?
+                        True -> allows multiple villagers to become a recruit with one table.
+                        False -> only one villager can become a recruit with one table.
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -255,7 +270,7 @@ public class RecruitsServerConfig{
 
         OverrideIronGolemSpawn = BUILDER.comment("""
 
-                        ----Should Recruits instead of Iron Golems spawn in Villages ----
+                        Should Recruits instead of Iron Golems spawn in Villages 
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -275,6 +290,7 @@ public class RecruitsServerConfig{
         BUILDER.pop();
         BUILDER.comment("Recruits Equipment Config:").push("Equipments");
         BUILDER.comment("""
+                
                 Following lists will be used to generate starting armor for different recruit types. Each recruit will be equipped according to a random equipment-set defined below.
                 
                 To create a equipment-set note the following order: ["main-hand", "off-hand", "feet", "legs", "chest", "head"]
@@ -289,7 +305,7 @@ public class RecruitsServerConfig{
                 """);
         RecruitStartEquipments = BUILDER.comment("""   
                         
-                        ----Recruit Start Equipments ----
+                        Recruit Start Equipments
                         Default:  [["minecraft:wooden_sword", "", "", "", "", ""], ["minecraft:stone_sword", "", "", "", "", ""]]
                         """)
                 .worldRestart()
@@ -297,7 +313,7 @@ public class RecruitsServerConfig{
 
         ShieldmanStartEquipments = BUILDER.comment("""
                         
-                        ----Shieldman Start Equipments ----
+                        Shieldman Start Equipments
                         Default: [["minecraft:stone_sword", "minecraft:shield", "", "", "", ""], ["minecraft:wooden_axe", "minecraft:shield", "", "", "", ""]]
                         """)
                 .worldRestart()
@@ -305,7 +321,7 @@ public class RecruitsServerConfig{
 
         BowmanStartEquipments = BUILDER.comment("""
                         
-                        ----Bowman Start Equipments ----
+                        Bowman Start Equipments
                         Default: [["minecraft:bow", "", "", "", "", ""]]
                         """)
                 .worldRestart()
@@ -313,7 +329,7 @@ public class RecruitsServerConfig{
 
         CrossbowmanStartEquipments = BUILDER.comment("""
                         
-                        ----Crossbowman Start Equipments ----
+                        Crossbowman Start Equipments
                         Default: [["minecraft:crossbow", "", "", "", "", ""]]
                         """)
                 .worldRestart()
@@ -321,7 +337,7 @@ public class RecruitsServerConfig{
 
         HorsemanStartEquipments = BUILDER.comment("""
                         
-                        ----Horseman Start Equipments ----
+                        Horseman Start Equipments
                         Default: [["minecraft:stone_sword", "minecraft:shield", "", "", "", ""], ["minecraft:iron_sword", "minecraft:shield", "", "", "", ""]]
                         """)
                 .worldRestart()
@@ -329,7 +345,7 @@ public class RecruitsServerConfig{
 
         NomadStartEquipments = BUILDER.comment("""
                         
-                        ----Nomad Start Equipments ----
+                        Nomad Start Equipments
                         Default: [["minecraft:bow", "", "", "", "", ""]]
                         """)
                 .worldRestart()
@@ -344,7 +360,7 @@ public class RecruitsServerConfig{
 
         PillagerFriendlyFire = BUILDER.comment("""
 
-                        ----Should Pillagers do friendly fire ----
+                        Should Pillagers do friendly fire
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -352,7 +368,7 @@ public class RecruitsServerConfig{
 
         PillagerSpawn = BUILDER.comment("""
 
-                        ----Should Pillagers spawn naturally ----
+                        Should Pillagers spawn naturally
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
@@ -360,7 +376,7 @@ public class RecruitsServerConfig{
 
         PillagerAttackMonsters= BUILDER.comment("""
 
-                        ----Should Pillagers attack Monsters----
+                        Should Pillagers attack Monsters
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
@@ -368,7 +384,7 @@ public class RecruitsServerConfig{
 
         MonstersAttackPillagers= BUILDER.comment("""
 
-                        ----Should Monsters attack Pillagers----
+                        Should Monsters attack Pillagers
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
@@ -376,7 +392,7 @@ public class RecruitsServerConfig{
 
         ShouldPillagersRaidNaturally= BUILDER.comment("""
 
-                        ----Should Pillagers attack all Living----
+                        Should Pillagers attack all Living
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
@@ -384,7 +400,7 @@ public class RecruitsServerConfig{
 
         PillagerIncreasedCombatRange= BUILDER.comment("""
 
-                        ----Should Pillagers have increased Combat Range, so they can shoot from far away----
+                        Should Pillagers have increased Combat Range, so they can shoot from far away.
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
@@ -392,7 +408,7 @@ public class RecruitsServerConfig{
 
         VindicatorSpawnItems= BUILDER.comment("""
 
-                        ----Should Vindicators can spawn with shield and sword and AI to use these----
+                        Should Vindicators can spawn with shield and sword and AI to use these.
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
@@ -400,7 +416,7 @@ public class RecruitsServerConfig{
 
         PillagerSpawnItems= BUILDER.comment("""
 
-                        ----Should Pillagers can spawn with shield and sword and AI to use these----
+                        Should Pillagers can spawn with shield and sword and AI to use these.
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -415,7 +431,7 @@ public class RecruitsServerConfig{
 
         AggroRecruitsBlockPlaceBreakEvents= BUILDER.comment("""
 
-                        ----Should Aggressive Recruits attack enemy players that are placing or breaking blocks immediately?----
+                        Should Aggressive Recruits attack enemy players that are placing or breaking blocks immediately?
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -423,7 +439,7 @@ public class RecruitsServerConfig{
 
         NeutralRecruitsBlockPlaceBreakEvents= BUILDER.comment("""
 
-                        ----Should Neutral Recruits attack enemy players that are placing or breaking blocks immediately?----
+                        Should Neutral Recruits attack enemy players that are placing or breaking blocks immediately?
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -431,7 +447,7 @@ public class RecruitsServerConfig{
 
         AggroRecruitsBlockInteractingEvents= BUILDER.comment("""
 
-                        ----Should Aggressive Recruits attack enemy players that are interacting with blocks immediately?----
+                        Should Aggressive Recruits attack enemy players that are interacting with blocks immediately?
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -439,7 +455,7 @@ public class RecruitsServerConfig{
 
         NeutralRecruitsBlockInteractingEvents= BUILDER.comment("""
 
-                        ----Should Neutral Recruits attack enemy players that are interacting with blocks immediately?----
+                        Should Neutral Recruits attack enemy players that are interacting with blocks immediately?
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -454,7 +470,7 @@ public class RecruitsServerConfig{
 
         ShouldRecruitPatrolsSpawn= BUILDER.comment("""
 
-                        ----Should Recruits spawn as Patrols in the world?----
+                        Should Recruits spawn as Patrols in the world?
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -462,7 +478,7 @@ public class RecruitsServerConfig{
 
         RecruitPatrolsSpawnChance= BUILDER.comment("""
 
-                        ----Chance that a Recruit Patrol can spawn. (higher values = higher chance to spawn)----
+                        Chance that a Recruit Patrol can spawn. (higher values = higher chance to spawn)
                         \t(takes effect after restart)
                         \tdefault: 15.0""")
                 .worldRestart()
@@ -487,7 +503,7 @@ public class RecruitsServerConfig{
 
         ShouldPillagerPatrolsSpawn = BUILDER.comment("""
 
-                        ----Should modded Pillager Patrols spawn in the world?----
+                        Should modded Pillager Patrols spawn in the world?
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
@@ -495,7 +511,7 @@ public class RecruitsServerConfig{
 
         PillagerPatrolsSpawnChance = BUILDER.comment("""
 
-                        ----Chance that a modded Pillager Patrol can spawn. (higher values = higher chance to spawn)----
+                        Chance that a modded Pillager Patrol can spawn. (higher values = higher chance to spawn)
                         \t(takes effect after restart)
                         \tdefault: 25.0""")
                 .worldRestart()
@@ -519,15 +535,11 @@ public class RecruitsServerConfig{
 
          */
 
-        /*
-        Equipment Config
-         */
-
         BUILDER.pop();
         BUILDER.comment("General Damage Config:").push("Damage");
 
         NoDamageImmunity = BUILDER.comment("""
-                        ----No damage Immunity----
+                        No damage Immunity
                         \tShould Immunity between hits be disabled?
                         \t(takes effect after restart)
                         \tdefault: false""")
@@ -535,7 +547,7 @@ public class RecruitsServerConfig{
                 .define("NoDamageImmunity", false);
 
         AcceptedDamagesourceImmunity = BUILDER.comment("""
-                        ----List of damagesource that accept immunity ----
+                        List of damagesource that accept immunity 
                         \t(takes effect after restart)
                         \tDamagesource in this list will apply a immunity of 0.5s to the entity like normal.""")
                 .worldRestart()
@@ -556,7 +568,7 @@ public class RecruitsServerConfig{
                 .defineInRange("TeamCreationCost", 10, 0, 1453);
 
         DisableVanillaTeamCommands = BUILDER.comment("""
-                        ----Should specific vanilla team commands be disabled?----
+                        Should specific vanilla team commands be disabled?
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -566,21 +578,21 @@ public class RecruitsServerConfig{
 
         GlobalTeamSetting = BUILDER.comment("""
 
-                        ----Should Recruits override following team settings on world start for all teams?----
+                        Should Recruits override following team settings on world start for all teams?
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
                 .define("GlobalTeamSetting", true);
 
         GlobalTeamFriendlyFireSetting = BUILDER.comment("""
-                        ----Override Friendly fire true/false for all teams on world start----
+                        Override Friendly fire true/false for all teams on world start
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
                 .define("GlobalTeamFriendlyFireSetting", false);
 
         GlobalTeamSeeFriendlyInvisibleSetting = BUILDER.comment("""
-                        ----Override SeeFriendlyInvisible true/false for all teams on world start----
+                        Override SeeFriendlyInvisible true/false for all teams on world start.
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
