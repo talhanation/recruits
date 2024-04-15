@@ -85,6 +85,7 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
                 entityTag.putInt("Cost", recruitEntity.getCost());
                 entityTag.putInt("mountTimer", recruitEntity.getMountTimer());
                 entityTag.putInt("upkeepTimer", recruitEntity.getUpkeepTimer());
+                entityTag.putInt("Color", recruitEntity.getColor());
 
                 if (recruitEntity.getHoldPos() != null) {
                     entityTag.putInt("HoldPosX", recruitEntity.getHoldPos().getX());
