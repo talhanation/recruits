@@ -20,7 +20,7 @@ public class MessageLeaveTeam implements Message<MessageLeaveTeam> {
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = context.getSender();
         ServerLevel level = player.serverLevel();
-        TeamEvents.leaveTeam(player, level, false);
+        TeamEvents.leaveTeam(false, player, null, level, false);
     }
 
     public MessageLeaveTeam fromBytes(FriendlyByteBuf buf) {

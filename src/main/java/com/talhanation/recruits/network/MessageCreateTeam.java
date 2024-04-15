@@ -32,9 +32,8 @@ public class MessageCreateTeam implements Message<MessageCreateTeam> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = context.getSender();
-
         ServerLevel world = player.serverLevel();
-        TeamEvents.createTeam(context.getSender(), world, this.teamName, player.getName().getString(), this.banner, this.color, (byte) index);
+        TeamEvents.createTeam(true, context.getSender(), world, this.teamName, player.getName().getString(), this.banner, this.color, (byte) index);
     }
 
     public MessageCreateTeam fromBytes(FriendlyByteBuf buf) {
