@@ -567,13 +567,6 @@ public class RecruitsServerConfig{
                 .worldRestart()
                 .defineInRange("TeamCreationCost", 10, 0, 1453);
 
-        DisableVanillaTeamCommands = BUILDER.comment("""
-                        Should specific vanilla team commands be disabled?
-                        \t(takes effect after restart)
-                        \tdefault: true""")
-                .worldRestart()
-                .define("DisableVanillaTeamCommands", true);
-
         BUILDER.comment("Global Team Settings").push("Global Team Settings");
 
         GlobalTeamSetting = BUILDER.comment("""
