@@ -140,7 +140,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                     for(int i = 0; i < container.getContainerSize(); i++) {
                         ItemStack itemstack = container.getItem(i);
                         ItemStack equipment;
-                        if(!itemstack.isEdible() && recruit.wantsToPickUp(itemstack)){
+                        if(!recruit.canEatItemStack(itemstack) && recruit.wantsToPickUp(itemstack)){
                             if (recruit.canEquipItem(itemstack)) {
                                 equipment = itemstack.copy();
                                 equipment.setCount(1);
@@ -212,7 +212,7 @@ public class RecruitUpkeepPosGoal extends Goal {
     private boolean isFoodInContainer(Container container){
         for(int i = 0; i < container.getContainerSize(); i++) {
             ItemStack foodItem = container.getItem(i);
-            if(foodItem.isEdible()){
+            if(recruit.canEatItemStack(foodItem)){
                 return true;
             }
         }
@@ -222,7 +222,7 @@ public class RecruitUpkeepPosGoal extends Goal {
     private ItemStack getFoodFromInv(Container inv){
         ItemStack itemStack = null;
         for(int i = 0; i < inv.getContainerSize(); i++){
-            if(inv.getItem(i).isEdible()){
+            if(recruit.canEatItemStack(inv.getItem(i))){
                 itemStack = inv.getItem(i);
                 break;
             }

@@ -12,6 +12,7 @@ import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
+import de.maxhenkel.corelib.item.ItemUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -60,6 +61,7 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
+import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -1786,5 +1788,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     @Override
     public boolean removeWhenFarAway(double p_21542_) {
         return false;
+    }
+
+    public boolean canEatItemStack(ItemStack stack){
+        ResourceLocation location = ForgeRegistries.ITEMS.getKey(stack.getItem());
+
+        if(RecruitsServerConfig.FoodBlackList.get().contains(location.toString())){
+            return false;
+        }
+        return stack.isEdible();
     }
 }
