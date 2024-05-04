@@ -5,6 +5,7 @@ import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.RecruitMoveTowardsTargetGoal;
 import com.talhanation.recruits.entities.ai.RecruitRangedCrossbowAttackGoal;
 import com.talhanation.recruits.entities.ai.compat.RecruitRangedMusketAttackGoal;
+import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -130,6 +131,10 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
         this.setPersistenceRequired();
 
         this.setGroup(2);
+
+        if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get()){
+            RecruitsPatrolSpawn.setRangedArrows(this);
+        }
 
         AbstractRecruitEntity.applySpawnValues(this);
     }
