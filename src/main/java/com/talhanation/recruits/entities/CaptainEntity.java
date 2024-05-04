@@ -2,6 +2,7 @@ package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.entities.ai.CaptainAttackAI;
 import com.talhanation.recruits.entities.ai.CaptainControlBoatAI;
+import com.talhanation.recruits.entities.ai.PatrolLeaderAttackAI;
 import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.entities.ai.navigation.SailorPathNavigation;
 import net.minecraft.core.BlockPos;
@@ -10,10 +11,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.DifficultyInstance;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
@@ -29,7 +27,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public class CaptainEntity extends AbstractLeaderEntity implements IBoatController {
+public class CaptainEntity extends AbstractLeaderEntity implements IBoatController, IStrategicFire {
 
     public boolean shipAttacking = false;
     private static final EntityDataAccessor<Optional<BlockPos>> SAIL_POS = SynchedEntityData.defineId(CaptainEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
@@ -48,6 +46,11 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
         this.goalSelector.addGoal(0, new CaptainAttackAI(this));
         this.goalSelector.addGoal(0, new CaptainControlBoatAI(this));
         this.goalSelector.addGoal(2, new UseShield(this));
+    }
+
+    @Override
+    public double getDistanceToReachWaypoint() {
+        return 150D;
     }
 
     @Override
@@ -86,7 +89,8 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.1D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
-                .add(Attributes.FOLLOW_RANGE, 128.0D);
+                .add(Attributes.FOLLOW_RANGE, 128.0D)
+                .add(Attributes.ATTACK_SPEED);
     }
 
 
@@ -109,6 +113,8 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
 
     @Override
     public boolean wantsToPickUp(ItemStack itemStack) {//TODO: add ranged combat
+        if(itemStack.getDescriptionId().contains("smallships")) return true;
+
         if((itemStack.getItem() instanceof SwordItem && this.getMainHandItem().isEmpty()) ||
                 (itemStack.getItem() instanceof ShieldItem) && this.getOffhandItem().isEmpty())
             return !hasSameTypeOfItem(itemStack);
@@ -128,10 +134,6 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
     @Override
     public AbstractRecruitEntity get() {
         return this;
-    }
-
-    public BlockPos getCurrentWaypoint(){
-        return this.currentWaypoint;
     }
 
     @Override
@@ -172,6 +174,13 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
 
         this.calculateSailPos(state);
     }
+    @Override
+    protected void moveToCurrentWaypoint() {
+        if(this.getVehicle() != null && this.getVehicle() instanceof Boat){
+            this.setSailPos(this.currentWaypoint);
+        }
+        else super.moveToCurrentWaypoint();
+    }
 
     //0 = wander
     //1 = follow
@@ -197,10 +206,47 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
             }
 
             case 5 -> {// PROTECT
-
+                LivingEntity protect = this.getProtectingMob();
+                if(protect != null){
+                    BlockPos pos = protect.getOnPos();
+                    setSailPos(pos);
+                }
             }
         }
-        this.shipAttacking = false;
+    }
+
+    public boolean canAttackWhilePatrolling(LivingEntity target) {
+        if(target != null && target.isAlive() && this.getSensing().hasLineOfSight(target) && this.getCommandSenderWorld().canSeeSky(target.blockPosition().above())) {
+            if(this.getRecruitsInCommand().stream().anyMatch(PatrolLeaderAttackAI::isRanged)){
+                return true;
+            }
+            else if(this.getVehicle() != null){
+                return IBoatController.hasCannons(this.getVehicle()) && IBoatController.canShootCannons(this.getVehicle());
+            }
+            return true;
+        }
+        else
+            return false;
+    }
+
+    public void handleResupply() {
+        //Repair ship
+        //restock cannonballs
+        //
+    }
+
+    public int getResupplyTime() {
+        return 2000;
+    }
+
+    @Override
+    public void setShouldStrategicFire(boolean should) {
+
+    }
+
+    @Override
+    public void setStrategicFirePos(BlockPos blockpos) {
+
     }
 }
 

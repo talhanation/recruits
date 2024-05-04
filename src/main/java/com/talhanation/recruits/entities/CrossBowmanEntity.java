@@ -99,12 +99,13 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
 
     //ATTRIBUTES
     public static AttributeSupplier.Builder setAttributes() {
-        return LivingEntity.createLivingAttributes()
+        return Mob.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
                 .add(Attributes.ATTACK_DAMAGE, 1.5D)
-                .add(Attributes.FOLLOW_RANGE, 64.0D);
+                .add(Attributes.FOLLOW_RANGE, 64.0D)
+                .add(Attributes.ATTACK_SPEED);
     }
 
     @Override
@@ -161,9 +162,6 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
     public double getMeleeStartRange() {
         return 3D;
     }
-    public List<String> getHandEquipment(){
-        return RecruitsServerConfig.CrossbowmanHandEquipment.get();
-    }
 
     //Pillager
     @Override
@@ -202,6 +200,10 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
     }
     public boolean getShouldStrategicFire(){
         return this.entityData.get(SHOULD_STRATEGIC_FIRE);
+    }
+
+    public List<List<String>> getEquipment(){
+        return RecruitsServerConfig.CrossbowmanStartEquipments.get();
     }
 
 }

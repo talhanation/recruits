@@ -17,6 +17,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraftforge.common.ForgeMod;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -48,7 +49,10 @@ public class RecruitShieldmanEntity extends AbstractRecruitEntity{
                 .add(Attributes.MOVEMENT_SPEED, 0.25D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.2D)
                 .add(Attributes.ATTACK_DAMAGE, 1.0D)
-                .add(Attributes.FOLLOW_RANGE, 32.0D);
+                .add(Attributes.FOLLOW_RANGE, 32.0D)
+                .add(ForgeMod.ATTACK_RANGE.get())
+                .add(Attributes.ATTACK_SPEED);
+
 
     }
 
@@ -78,10 +82,6 @@ public class RecruitShieldmanEntity extends AbstractRecruitEntity{
         AbstractRecruitEntity.applySpawnValues(this);
     }
 
-    public List<String> getHandEquipment(){
-        return RecruitsServerConfig.ShieldmanHandEquipment.get();
-    }
-
     @Override
     public boolean canHoldItem(ItemStack itemStack){
         return !(itemStack.getItem() instanceof CrossbowItem || itemStack.getItem() instanceof BowItem);
@@ -101,5 +101,7 @@ public class RecruitShieldmanEntity extends AbstractRecruitEntity{
 
         else return super.wantsToPickUp(itemStack);
     }
-
+    public List<List<String>> getEquipment(){
+        return RecruitsServerConfig.ShieldmanStartEquipments.get();
+    }
 }

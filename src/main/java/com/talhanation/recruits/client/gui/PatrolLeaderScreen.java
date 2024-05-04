@@ -1,26 +1,36 @@
 package com.talhanation.recruits.client.gui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
+import com.talhanation.recruits.entities.CaptainEntity;
 import com.talhanation.recruits.inventory.PatrolLeaderContainer;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.client.gui.widget.ForgeSlider;
 
+import javax.swing.text.html.StyleSheet;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/professions/waypoint_list_gui.png");
+    public static int recruitsSize;
     private final Player player;
     private final AbstractLeaderEntity recruit;
     private int page = 1;
@@ -29,9 +39,9 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private int leftPos;
     private int topPos;
     private boolean cycle;
+    private boolean fastPatrolling;
     private AbstractLeaderEntity.State state;
     private AbstractLeaderEntity.InfoMode infoMode;
-
     private static final MutableComponent TOOLTIP_START = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_start");
     private static final MutableComponent TOOLTIP_STOP = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_stop");
     private static final MutableComponent TOOLTIP_PAUSE = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_pause");
@@ -45,10 +55,11 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
 
     private static final MutableComponent TOOLTIP_CYCLE = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_cycle");
     private static final MutableComponent TOOLTIP_LINE = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_line");
-
+    private static final MutableComponent TOOLTIP_FAST_PATROLLING = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_fast");
     private static final MutableComponent BUTTON_CYCLE = Component.translatable("gui.recruits.inv.text.cycle");
     private static final MutableComponent BUTTON_LINE = Component.translatable("gui.recruits.inv.text.line");
-
+    private static final MutableComponent BUTTON_FAST = Component.translatable("gui.recruits.inv.text.fast");
+    private static final MutableComponent BUTTON_NORMAL = Component.translatable("gui.recruits.inv.text.normal");
     private static final MutableComponent INFO_MODE_ALL = Component.translatable("gui.recruits.inv.text.infomode.all");
     private static final MutableComponent INFO_MODE_HOSTILE = Component.translatable("gui.recruits.inv.text.infomode.hostiles");
     private static final MutableComponent INFO_MODE_ENEMY = Component.translatable("gui.recruits.inv.text.infomode.enemies");
@@ -59,14 +70,14 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
 
     private static final MutableComponent BUTTON_ASSIGN_RECRUITS = Component.translatable("gui.recruits.inv.text.assign_recruits");
     private static final MutableComponent TOOLTIP_ASSIGN_RECRUITS = Component.translatable("gui.recruits.inv.tooltip.assign_recruits");
-
+    private static final MutableComponent TOOLTIP_CHEST = Component.translatable("gui.recruits.inv.tooltip.chest");
     private static final int fontColor = 4210752;
     private ForgeSlider waitSlider;
-
+    private final int offset = 88;
     public PatrolLeaderScreen(PatrolLeaderContainer container, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""));
-        this.imageWidth = 211;
-        this.imageHeight = 250;
+        this.imageWidth = 384;
+        this.imageHeight = 256;
         this.player = container.getPlayerEntity();
         this.recruit = container.getRecruit();
     }
@@ -75,12 +86,31 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     protected void init() {
         super.init();
 
-        this.leftPos = (this.width - this.imageWidth) / 2;
+        this.leftPos = this.offset + (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
         this.cycle = recruit.getCycle();
+        this.fastPatrolling = recruit.getFastPatrolling();
         this.state = AbstractLeaderEntity.State.fromIndex(recruit.getPatrollingState());
         this.infoMode = AbstractLeaderEntity.InfoMode.fromIndex(recruit.getInfoMode());
         this.setButtons();
+        this.setHoverAreas();
+    }
+
+
+    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, this.texture);
+        blit(matrixStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight,this.imageWidth, this.imageHeight);
+        this.drawHoverAreas(matrixStack, mouseX, mouseY);
+    }
+
+    private void setHoverAreas() {
+        this.hoverAreas = new ArrayList<>();
+        Supplier<List<FormattedCharSequence>> supplier = () ->  new ArrayList<>(List.of(FormattedCharSequence.forward(TOOLTIP_CHEST.getString(), Style.EMPTY)));
+
+        HoverArea hoverAreaChest = new HoverArea(this.leftPos + 150, this.topPos + 57, 25, 25, supplier);
+        this.hoverAreas.add(hoverAreaChest);
     }
 
     private void setButtons(){
@@ -105,7 +135,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
 
         Component stopString;
         Component stopToolTip;
-        if (state != AbstractLeaderEntity.State.STARTED) { // 1 = patrolling/started
+        if (state != AbstractLeaderEntity.State.PATROLLING) { // 1 = patrolling/started
             stopString = BUTTON_STOP;
             stopToolTip = TOOLTIP_STOP;
         } else {
@@ -131,6 +161,9 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         }
         this.setInfoButton(infoModeString);
 
+
+        Component fastPatrollingString = fastPatrolling ? BUTTON_FAST : BUTTON_NORMAL;
+        this.setFastPatrollingButton(fastPatrollingString);
     }
 
     private void setInfoButton(Component infoModeString) {
@@ -145,9 +178,8 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
 
     private void setAssignButton() {
-        Button assignButton = addRenderableWidget(new Button(leftPos + 230, topPos + 32, 50, 20, BUTTON_ASSIGN_RECRUITS, button -> {
+        Button assignButton = addRenderableWidget(new Button(leftPos + 216, topPos + 140, 110, 20, BUTTON_ASSIGN_RECRUITS, button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToCompanion(player.getUUID(), this.recruit.getUUID()));
-            onClose();
         },
             (button1, poseStack, i, i1) -> {
                 this.renderTooltip(poseStack, TOOLTIP_ASSIGN_RECRUITS, i, i1);
@@ -180,10 +212,25 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         startButton.active = state == AbstractLeaderEntity.State.STOPPED || state == AbstractLeaderEntity.State.IDLE;
     }
 
+    public void setFastPatrollingButton(Component cycle) {
+        Button buttonFastPatrolling = addRenderableWidget(new Button(leftPos + 230, topPos + 92, 50, 20, cycle,
+                button -> {
+                    this.fastPatrolling = !this.fastPatrolling;
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetPatrollingSpeed(this.recruit.getUUID(), this.fastPatrolling));
+
+                    this.setButtons();
+                },
+                (button, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_FAST_PATROLLING, i, i1);
+                }
+        ));
+        if(this.recruit instanceof CaptainEntity) buttonFastPatrolling.active = false;
+    }
+
     public void setStartButtons(Component start, Component tooltip) {
         Button startButton = addRenderableWidget(new Button(leftPos + 19, topPos + 11, 40, 20, start,
                 button -> {
-                    this.state = AbstractLeaderEntity.State.STARTED;
+                    this.state = AbstractLeaderEntity.State.PATROLLING;
                     Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetPatrolState(this.recruit.getUUID(), (byte) 1));
 
                     this.setButtons();
@@ -192,14 +239,14 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
                     this.renderTooltip(poseStack, tooltip, i, i1);
                 }
         ));
-        startButton.active = state != AbstractLeaderEntity.State.STARTED;
+        startButton.active = state != AbstractLeaderEntity.State.PATROLLING;
 
     }
 
     public void setStopButtons(AbstractLeaderEntity.State currentState, Component stop, Component tooltip) {
         Button startButton = addRenderableWidget(new Button(leftPos + 62, topPos + 11, 40, 20, stop,
                 button -> {
-                    if (currentState != AbstractLeaderEntity.State.STARTED) {
+                    if (currentState != AbstractLeaderEntity.State.PATROLLING) {
                         this.state = AbstractLeaderEntity.State.STOPPED;
                     } else {
                         this.state = AbstractLeaderEntity.State.PAUSED;
@@ -217,7 +264,8 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
 
     @Override
     public boolean mouseReleased(double p_97812_, double p_97813_, int p_97814_) {
-        Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetWaitTime(this.recruit.getUUID(),  this.waitSlider.getValueInt()));
+        if(this.recruit != null)
+            Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetWaitTime(this.recruit.getUUID(),  this.waitSlider.getValueInt()));
 
         return super.mouseReleased(p_97812_, p_97813_, p_97814_);
     }
@@ -293,6 +341,10 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     @Override
     protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
+
+        font.draw(matrixStack, "Status: " + state,  offset + 220, 65, fontColor);
+        font.draw(matrixStack, "Recruit in Oder: " + recruitsSize, offset + 220, 122, fontColor);
+
         // Info
         int fontColor = 4210752;
         int waypointsPerPage = 10;
@@ -310,18 +362,24 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
 
                 String coordinates = String.format("%d:  (%d,  %d,  %d)", i + 1, x, y, z);
 
-                if(!waypointItems.isEmpty() && waypointItems.get(i) != null) renderItemAt(waypointItems.get(i), 15, 58 + ((i - startIndex) * 17)); // Adjust the Y position here
+                if(!waypointItems.isEmpty() && waypointItems.get(i) != null) {
+                    ItemStack chest = new ItemStack(Blocks.CHEST.asItem());
+                    if(i == 0 && this.page == 1){
+                        renderItemAt(chest, offset + 15 + 160, 57);
+                    }
+                    renderItemAt(waypointItems.get(i), offset + 15, 57 + ((i - startIndex) * 17));
+                }
                 else{
                     BlockPos pos1 =  waypoints.get(i);
                     ItemStack itemStack = recruit.getItemStackToRender(pos1);
 
-                    renderItemAt(itemStack, 15, 58 + ((i - startIndex) * 17));
+                    renderItemAt(itemStack, offset +15, 57 + ((i - startIndex) * 17));
                 }
-                font.draw(matrixStack, coordinates, 35, 60 + ((i - startIndex) * 17), fontColor);
+                font.draw(matrixStack, coordinates, offset +35, 60 + ((i - startIndex) * 17), fontColor);
             }
 
             if (waypoints.size() > waypointsPerPage)
-                font.draw(matrixStack, "Page: " + page, 90, 230, fontColor);
+                font.draw(matrixStack, "Page: " + page, offset + 90, 230, fontColor);
         }
 
     }

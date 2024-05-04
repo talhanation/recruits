@@ -29,14 +29,26 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     private final Inventory playerInventory;
     private EditBox textField;
     private ItemStack banner;
-    private int color_index;
-    private int colorId;
-    private String color;
-    private final ArrayList<String> COLORS = new ArrayList<>(
+    private int teamColorIndex;
+    private int teamColorId;
+    private String teamColor;
+    private int recruitColorIndex;
+    private int recruitColorId;
+    private String recruitColor;
+    public static ItemStack currency;
+    public static int price;
+    private final ArrayList<String> TEAM_COLORS = new ArrayList<>(
             Arrays.asList("white", "aqua", "black", "blue", "dark_aqua", "dark_blue", "dark_gray", "dark_green", "dark_purple", "dark_red", "gold", "green", "light_purple", "red", "yellow"));
+
+    private final ArrayList<String> RECRUIT_COLORS = new ArrayList<>(
+            Arrays.asList("white", "orange", "magenta", "light_blue", "yellow", "lime", "pink", "gray", "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black"));
+
     //ChatFormatting
-    private final ArrayList<Integer> ColorID = new ArrayList<>(
+    private final ArrayList<Integer> TeamColorID = new ArrayList<>(
             Arrays.asList(16777215, 5636095, 0, 5592575, 43690, 170, 5592405, 43520, 11141290, 11141120, 16755200, 5635925, 16733695, 16733525, 16777045));
+
+    private final ArrayList<Integer> RecruitColorID = new ArrayList<>(
+            Arrays.asList(16777215, 16738335, 16711935, 10141901, 16776960, 12582656, 16738740, 8421504, 13882323, 65535, 10494192, 255, 9127187, 65280, 16711680, 0));
 
 
     public TeamCreationScreen(TeamCreationContainer container, Inventory playerInventory, Component title) {
@@ -52,85 +64,124 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     protected void init() {
         super.init();
 
-        this.refreshSelectedColor();
+        currency.setCount(price);
+
+        this.refreshSelectedColorRecruit();
+        this.refreshSelectedColorTeam();
 
         minecraft.keyboardHandler.setSendRepeatsToGui(true);
         //Main.LOGGER.debug("Hello from Screen");
-        String create = "create";
+
         if(playerInventory.player.getTeam() == null) {
-            addRenderableWidget(new Button(leftPos + 18, topPos + 80, 140, 20, Component.literal(create),
-                button -> {
-                    this.banner = container.getBanner();
-                    if (!banner.equals(ItemStack.EMPTY)) {
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(this.getCorrectFormat(textField.getValue().strip()), banner, color));
-                        this.onClose();
-                    }
-            }));
+            textField = new EditBox(font, leftPos + 18, topPos + 50, 140, 15, Component.literal(""));
+            textField.setTextColor(-1);
+            textField.setTextColorUneditable(-1);
+            textField.setBordered(true);
+            textField.setMaxLength(24);
+            addRenderableWidget(textField);
+            setInitialFocus(textField);
 
-            cycleButtonLeft(leftPos + 60, topPos + 110);
-            cycleButtonRight(leftPos + 60 + 80, topPos + 110);
+            cycleButtonLeftTeamColor(leftPos + 60, topPos + 69);
+            cycleButtonRightTeamColor(leftPos + 60 + 85, topPos + 69);
+
+            cycleButtonLeftRecruitColor(leftPos + 60, topPos + 83);
+            cycleButtonRightRecruitColor(leftPos + 60 + 85, topPos + 83);
+
+            String create = "Create   ";
+            addRenderableWidget(new Button(leftPos + 18, topPos + 99, 140, 20, Component.literal(create),
+                    button -> {
+                        this.banner = container.getBanner();
+                        if (!banner.equals(ItemStack.EMPTY)) {
+                            Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(this.getCorrectFormat(textField.getValue().strip()), banner, teamColor, recruitColorIndex));
+                            this.onClose();
+                        }
+                    }));
         }
-
-        textField = new EditBox(font, leftPos + 18, topPos + 50, 140, 20, Component.literal(""));
-        textField.setTextColor(-1);
-        textField.setTextColorUneditable(-1);
-        textField.setBordered(true);
-        textField.setMaxLength(24);
-
-        addRenderableWidget(textField);
-        setInitialFocus(textField);
     }
 
     protected void containerTick() {
         super.containerTick();
-        textField.tick();
+        if(textField != null) textField.tick();
     }
 
     public boolean mouseClicked(double p_100753_, double p_100754_, int p_100755_) {
-        if (this.textField.isFocused()) {
+        if (this.textField != null && this.textField.isFocused()) {
             this.textField.mouseClicked(p_100753_, p_100754_, p_100755_);
         }
         return super.mouseClicked(p_100753_, p_100754_, p_100755_);
     }
 
-    private Button cycleButtonLeft(int x, int y){
-        return addRenderableWidget(new ExtendedButton(x, y, 13, 13, Component.literal("<"),
+    private Button cycleButtonLeftTeamColor(int x, int y){
+        return addRenderableWidget(new ExtendedButton(x, y, 12, 12, Component.literal("<"),
                 button -> {
-                    if(this.color_index > 0){
-                        this.color_index--;
-                        this.refreshSelectedColor();
+                    if(this.teamColorIndex > 0){
+                        this.teamColorIndex--;
+                        this.refreshSelectedColorTeam();
                     }
                 }
         ));
     }
 
-    private Button cycleButtonRight(int x, int y){
-        return addRenderableWidget(new ExtendedButton(x, y, 13, 13, Component.literal(">"),
+    private Button cycleButtonRightTeamColor(int x, int y){
+        return addRenderableWidget(new ExtendedButton(x, y, 12, 12, Component.literal(">"),
                 button -> {
-                    if(this.color_index + 1 != COLORS.size()){
-                        this.color_index++;
-                        this.refreshSelectedColor();
+                    if(this.teamColorIndex + 1 != TEAM_COLORS.size()){
+                        this.teamColorIndex++;
+                        this.refreshSelectedColorTeam();
                     }
                 }
         ));
     }
-    private void refreshSelectedColor() {
-        this.color = COLORS.get(color_index);
-        this.colorId = ColorID.get(color_index);
+    private void refreshSelectedColorTeam() {
+        this.teamColor = TEAM_COLORS.get(teamColorIndex);
+        this.teamColorId = TeamColorID.get(teamColorIndex);
     }
 
+    private Button cycleButtonLeftRecruitColor(int x, int y){
+        return addRenderableWidget(new ExtendedButton(x, y, 12, 12, Component.literal("<"),
+                button -> {
+                    if(this.recruitColorIndex > 0){
+                        this.recruitColorIndex--;
+                        this.refreshSelectedColorRecruit();
+                    }
+                }
+        ));
+    }
+
+    private Button cycleButtonRightRecruitColor(int x, int y){
+        return addRenderableWidget(new ExtendedButton(x, y, 12, 12, Component.literal(">"),
+                button -> {
+                    if(this.recruitColorIndex + 1 != RECRUIT_COLORS.size()){
+                        this.recruitColorIndex++;
+                        this.refreshSelectedColorRecruit();
+                    }
+                }
+        ));
+    }
+    private void refreshSelectedColorRecruit() {
+        this.recruitColor = RECRUIT_COLORS.get(recruitColorIndex);
+        this.recruitColorId = RecruitColorID.get(recruitColorIndex);
+    }
     @Override
     protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
 
         font.draw(matrixStack, "Create a Team:", 18  , 11, fontColor);
 
-        font.draw(matrixStack, playerInventory.getDisplayName().getVisualOrderText(), 8, this.imageHeight - 96 + 2, fontColor);
+        font.draw(matrixStack, playerInventory.getDisplayName().getVisualOrderText(), 8, 128 + 2, fontColor);
 
-        font.draw(matrixStack, color, 75, this.imageHeight - 112, colorId);
+        font.draw(matrixStack, teamColor, 77, 69 + 2, teamColorId);
 
-        font.draw(matrixStack, "Color:",18, this.imageHeight - 112, fontColor);
+        font.draw(matrixStack, "Team Color:",18, 69 + 2, fontColor);
 
+        font.draw(matrixStack, recruitColor, 77, 83 + 2, recruitColorId);
+
+        font.draw(matrixStack, "Unit Color:",18, 83 + 2, fontColor);
+
+        if(price > 0 && currency != null){
+            itemRenderer.renderGuiItem(currency, 120, this.imageHeight - 125);
+            itemRenderer.renderGuiItemDecorations(font, currency, 120, this.imageHeight - 125);
+        }
     }
 
     protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {

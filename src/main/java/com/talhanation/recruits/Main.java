@@ -1,11 +1,9 @@
 package com.talhanation.recruits;
 import com.talhanation.recruits.client.events.KeyEvents;
-import com.talhanation.recruits.client.events.PlayerEvents;
 import com.talhanation.recruits.config.*;
 import com.talhanation.recruits.init.*;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.CommonRegistry;
-import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
@@ -33,6 +31,8 @@ public class Main {
     public static boolean isSmallShipsLoaded;
     public static boolean isSmallShipsCompatible;
     public static boolean isSiegeWeaponsLoaded;
+    public static boolean isEpicKnightsLoaded;
+    public static boolean isCorpseLoaded;
 
     public Main() {
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -131,13 +131,18 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 57, MessagePatrolLeaderSetCycle.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 58, MessagePatrolLeaderSetInfoMode.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 59, MessageAssignGroupToCompanion.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 60, MessagePatrolLeaderSetPatrollingSpeed.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 61, MessageToClientUpdateHireScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 62, MessageToClientUpdateTeamCreationScreen.class);
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
         isSmallShipsLoaded = ModList.get().isLoaded("smallships");//small ships
         isSiegeWeaponsLoaded = ModList.get().isLoaded("siegeweapons");//siege weapons
+        isCorpseLoaded = ModList.get().isLoaded("corpse");//corpse mod
+        isEpicKnightsLoaded = ModList.get().isLoaded("magistuarmory");//epic knights mod
 
         if(isSmallShipsLoaded){
-            String smallshipsversion = ModList.get().getModFileById("smallships").versionString();//2.0.0-a2.3.1 above shall be supported e.g.: "2.0.0-b1.0"
-            isSmallShipsCompatible = smallshipsversion.contains("2.0.0-b1");//TODO: Better Version check for compatible smallships version
+            String smallshipsversion = ModList.get().getModFileById("smallships").versionString();//2.0.0-a2.3.1 above shall be supported e.g.: "2.0.0-b1.1"
+            isSmallShipsCompatible = smallshipsversion.contains("2.0.0-b1.1") || !smallshipsversion.contains("2.0.0-b1.0");;//TODO: Better Version check for compatible smallships version
             Main.LOGGER.info("smallships version: " + smallshipsversion);
         }
     }

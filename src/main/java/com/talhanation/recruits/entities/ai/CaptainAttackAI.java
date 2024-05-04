@@ -3,6 +3,7 @@ package com.talhanation.recruits.entities.ai;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -12,173 +13,109 @@ import java.util.Collections;
 import java.util.List;
 
 
-public class CaptainAttackAI extends Goal {
-    private final AbstractLeaderEntity captain;
-    private AttackMode mode;
-    private List<LivingEntity> targets;
+public class CaptainAttackAI extends PatrolLeaderAttackAI {
+
     public CaptainAttackAI(AbstractLeaderEntity recruit) {
-        this.captain = recruit;
+        super(recruit);
     }
-
-    public boolean canUse() {
-        return captain.getTarget() != null;
-    }
-
-    public void start(){
-        this.captain.currentRecruitsInCommand = captain.getRecruitsInCommand();
-        this.mode = AttackMode.DEFENSIVE;
-        if(this.captain.currentRecruitsInCommand.size() > 0){
-            attackCommandsToRecruits(this.captain.getTarget());
-        }
-    }
-
     @Override
-    public void stop() {
-        super.stop();
-        this.captain.setRecruitsClearTargets();
-        this.captain.setRecruitsToFollow();
-        this.captain.setFollowState(0);
-        this.captain.setTarget(null);
-        this.captain.setShouldBlock(false);
-        this.captain.setRecruitsShields(false);
-        this.captain.setRecruitStrategicFirePos(false, null);
-    }
+    public void attackCommandsToRecruits(LivingEntity target) {
+        if(!this.leader.getCommandSenderWorld().isClientSide()){
+            double distanceToTarget = this.leader.distanceToSqr(target);
 
-    public boolean canContinueToUse() {
-        return captain.commandCooldown != 0;
-    }
+            if(distanceToTarget < 4000){
+                targets = this.leader.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, target.getBoundingBox().inflate(70D)).stream()
+                        .filter(living -> this.canAttack(living) && living.isAlive() && this.leader.getSensing().hasLineOfSight(living))
+                        .toList();
 
-    //TODO:
-    private void attackCommandsToRecruits(LivingEntity target) {
-        if(!this.captain.getCommandSenderWorld().isClientSide()){
-            targets = this.captain.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, this.captain.getBoundingBox().inflate(150D)).stream()
-                    .filter(living -> this.captain.canAttack(living) && living.isAlive())
-                    .toList();
+                this.leader.currentRecruitsInCommand = leader.getRecruitsInCommand();
 
-            if(!targets.isEmpty()){
+                double enemyArmor = calculateEnemyArmor(targets);
+                double armor = calculateArmor();
                 int enemySize = targets.size();
-                int partySize = this.getPartySize();
-                double x = partySize / enemySize;
 
-                if(x >= 1.3){
-                    this.mode = AttackMode.CHARGE;
+                int partySize = this.getPartySize();
+                double sizeFactor = Math.abs((partySize + 1) / (enemySize + 1) );
+                double armorFactor = Math.abs((armor + 1) / (enemyArmor + 1));
+
+
+                if((sizeFactor + armorFactor)/2 <= 0.3){
+                    if(this.leader.getOwner() != null) this.leader.getOwner().sendSystemMessage(Component.literal("Retreat!"));
+                    this.leader.retreating = true;
+                }
+
+                Comparison comparisonOwnInfantry = getInfantryComparison();
+                Comparison comparisonOwnRanged = getRangedComparison();
+
+                Vec3 movePosInfantry = getPosTowardsTarget(target, 0.6);
+                Vec3 movePosRanged;
+                BlockPos movePosLeader = getBlockPosTowardsTarget(target, 0.2);
+
+                /*
+                //CHARGE INFANTRY
+                if(comparisonOwnRanged == Comparison.BIGGER && comparisonOwnInfantry == Comparison.BIGGER){
+                    BlockPos moveBlockPosInfantry = getBlockPosTowardsTarget(target, 0.9);
+                    this.leader.setTypedRecruitsToMove(moveBlockPosInfantry, ModEntityTypes.RECRUIT.get());
+                    this.leader.setTypedRecruitsToMove(moveBlockPosInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
+
+                    movePosRanged = getPosTowardsTarget(target, 0.4);
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.BOWMAN.get());
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(),   movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
+
+                }
+                else if(comparisonOwnRanged == Comparison.SAME && comparisonOwnInfantry == Comparison.SAME){
+                    movePosInfantry = getPosTowardsTarget(target, 0.75);
+                    movePosRanged = getPosTowardsTarget(target, 0.5);
+
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT.get());
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
+
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.BOWMAN.get());
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
+                }
+
+                else if(comparisonOwnRanged == Comparison.SMALLER && comparisonOwnInfantry == Comparison.BIGGER){
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT.get());
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
+                    this.leader.setRecruitsShields(true);
+
+                }
+                else if(comparisonOwnRanged == Comparison.SMALLER && comparisonOwnInfantry == Comparison.SMALLER){
+                    movePosRanged = getPosTowardsTarget(target, -0.2);
+                    movePosLeader = getBlockPosTowardsTarget(target, -0.3);
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.NOMAD.get());
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.BOWMAN.get());
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
+
+                    movePosInfantry = getPosTowardsTarget(target, 0.3);
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT.get());
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
                 }
                 else {
-                    this.mode = AttackMode.DEFENSIVE;
-                }
+                    movePosInfantry = getPosTowardsTarget(target, 0.6);
+                    movePosRanged = getPosTowardsTarget(target, 0.4);
 
-                Vec3 toTarget = target.position().subtract(this.captain.position());
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT.get());
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
 
-                this.captain.currentRecruitsInCommand = captain.getRecruitsInCommand();
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.BOWMAN.get());
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
+                }
+                this.leader.setTypedRecruitsToWanderFreely(ModEntityTypes.HORSEMAN.get());
+                this.leader.setHoldPos(movePosLeader);
+                this.leader.setFollowState(3);//LEADER HOLD POS
 
-                if(this.captain.isPassenger() && this.captain.getVehicle() != null && this.captain.getVehicle().getEncodeId().contains("smallships")){
-                    commandToStrategicFire(toTarget);
-                    captain.commandCooldown = 100;
-                }
-                else{
-                    for(int i = 0; i < targets.size(); i++){
-                        if(this.captain.currentRecruitsInCommand.size() > i){
-                            AbstractRecruitEntity recruit = this.captain.currentRecruitsInCommand.get(i);
-                            recruit.setTarget(targets.get(i));
-                        }
-                    }
-                    commandLandAttack(toTarget);
-                    captain.commandCooldown = 350;
-                }
+
+                 */
+
+                this.leader.setRecruitsToFollow();
+                for(AbstractRecruitEntity recruit : this.leader.currentRecruitsInCommand) recruit.setState(leader.getState());
+
+                this.setRecruitsTargets();
+                leader.commandCooldown = 400;
             }
         }
     }
-
-    private void commandToStrategicFire(Vec3 toTarget) {
-        Vec3 targetMove = this.targets.get(0).getDeltaMovement();
-
-        Vec3 vecPos = this.targets.get(0).getPosition(1).add(targetMove.scale(captain.getRandom().nextDouble()));
-        BlockPos pos = this.captain.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(vecPos.x, vecPos.y, vecPos.z));
-
-
-        this.captain.setRecruitsClearTargets();
-        this.captain.setRecruitStrategicFirePos(true, pos);
-    }
-
-    private void commandLandAttack(Vec3 toTarget) {
-        switch (mode) {
-            case DEFENSIVE -> {
-                //RANGED GO BEHIND LEADER AND HOLD POS
-                Vec3 moveVecRanged = toTarget.yRot(180).normalize();
-                Vec3 moveRanged = this.captain.position().add(moveVecRanged.scale(7.5D));
-                BlockPos movePosRanged = this.captain.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(moveRanged.x, moveRanged.y, moveRanged.z));
-
-                this.captain.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.BOWMAN.get());
-                this.captain.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
-                this.captain.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.NOMAD.get());
-                this.captain.setTypedRecruitsSetAndHoldPos(movePosRanged, ModEntityTypes.HORSEMAN.get());
-
-                // INFANTRY HOLD POS AND SHIELDS UP
-                this.captain.setFollowState(2);//HOLD POS
-                this.captain.setTarget(null);
-                this.captain.setShouldBlock(true);
-                this.captain.setRecruitsShields(true);
-                this.captain.setTypedRecruitsToHoldPos(ModEntityTypes.RECRUIT.get());
-                this.captain.setTypedRecruitsToHoldPos(ModEntityTypes.RECRUIT_SHIELDMAN.get());
-            }
-
-            case CHARGE -> {
-                //All freely
-                this.captain.setFollowState(2);//HOLD POS
-                this.captain.setShouldBlock(false);
-                this.captain.setRecruitsShields(false);
-                this.captain.setRecruitsWanderFreely();
-            }
-        }
-    }
-
-    public int getPartySize(){
-        return this.captain.currentRecruitsInCommand.size();
-    }
-
-    public int getRangedSize(){
-        int bowman = Collections.frequency(this.captain.currentRecruitsInCommand, BowmanEntity.class);
-        int crossbow = Collections.frequency(this.captain.currentRecruitsInCommand, CrossBowmanEntity.class);
-        return bowman + crossbow;
-    }
-
-    public int getInfantrySize(){
-        int rec = Collections.frequency(this.captain.currentRecruitsInCommand, RecruitEntity.class);
-        int shield = Collections.frequency(this.captain.currentRecruitsInCommand, RecruitShieldmanEntity.class);
-        return rec + shield;
-    }
-
-    public int getCavalrySize(){
-        int horseman = Collections.frequency(this.captain.currentRecruitsInCommand, HorsemanEntity.class);
-        int nomad = Collections.frequency(this.captain.currentRecruitsInCommand, NomadEntity.class);
-        return horseman + nomad;
-    }
-
-
-    private enum AttackMode{
-        DEFENSIVE(0),
-        DEFAULT(1),
-        CHARGE(5);
-
-        private final int index;
-        AttackMode(int index){
-            this.index = index;
-        }
-
-        public static AttackMode fromIndex(int index) {
-            for (AttackMode state : AttackMode.values()) {
-                if (state.index == index) {
-                    return state;
-                }
-            }
-            throw new IllegalArgumentException("Invalid AttackMode index: " + index);
-        }
-    }
-
-    //Defenssive
-    //  ->  inf hold pos
-    //  ->  ranged hold pos, behind inf
-    //  ->
 }
 
 

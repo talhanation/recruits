@@ -18,6 +18,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -94,12 +95,13 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
 
     //ATTRIBUTES
     public static AttributeSupplier.Builder setAttributes() {
-        return LivingEntity.createLivingAttributes()
+        return Mob.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.31D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
-                .add(Attributes.FOLLOW_RANGE, 64.0D); //do not change as ranged ai dependants on it
+                .add(Attributes.FOLLOW_RANGE, 64.0D) //do not change as ranged ai dependants on it
+                .add(Attributes.ATTACK_SPEED);
     }
 
     @Override
@@ -157,9 +159,9 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
             double d3 = Mth.sqrt((float) (d0 * d0 + d2 * d2));
 
             double angle = IRangedRecruit.getAngleDistanceModifier(distance, 47, 2) + IRangedRecruit.getAngleHeightModifier(distance, heightDiff, 1.00D) / 100;
-            float force = 1.90F;
+            float force = 1.90F + IRangedRecruit.getForceDistanceModifier(distance, 1.90F);
             float accuracy = 0.75F; // 0 = 100%
-
+            Main.LOGGER.info("Distance: " + distance);
                                                 //angle   = 0.196F           //force     //accuracy 0 = 100%
             arrow.shoot(d0, d1 + d3 * angle, d2, force, accuracy);
 
@@ -265,7 +267,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
         return ALLOWED_ITEMS;
     }
 
-    public List<String> getHandEquipment(){
-        return RecruitsServerConfig.BowmanHandEquipment.get();
+    public List<List<String>> getEquipment(){
+        return RecruitsServerConfig.BowmanStartEquipments.get();
     }
 }

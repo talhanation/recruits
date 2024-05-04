@@ -50,7 +50,7 @@ public class MessagePatrolLeaderAddWayPoint implements Message<MessagePatrolLead
 
         leaderEntity.addWaypoint(pos);
 
-        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateLeaderScreen(leaderEntity.WAYPOINTS, leaderEntity.WAYPOINT_ITEMS));
+        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateLeaderScreen(leaderEntity.WAYPOINTS, leaderEntity.WAYPOINT_ITEMS, leaderEntity.getRecruitsInCommand().size()));
     }
 
     public MessagePatrolLeaderAddWayPoint fromBytes(FriendlyByteBuf buf) {

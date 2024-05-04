@@ -5,12 +5,14 @@ import com.talhanation.recruits.*;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.*;
+import com.talhanation.recruits.entities.ai.compat.BlockWithWeapon;
 import com.talhanation.recruits.entities.ai.navigation.RecruitPathNavigation;
 import com.talhanation.recruits.init.ModItems;
 import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
+import de.maxhenkel.corelib.item.ItemUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -59,7 +61,9 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
+import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.network.NetworkHooks;
+import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
@@ -96,6 +100,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Integer> COST = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Optional<UUID>> UPKEEP_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Byte> COLOR = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BYTE);
     public int blockCoolDown;
     public boolean needsTeamUpdate = true;
     public boolean forcedUpkeep;
@@ -103,7 +108,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public int upkeepTimer = 0;
     public int mountTimer = 0;
     public int despawnTimer = -1;
-
+    public boolean reachedMovePos;
+    public int attackCooldown = 0;
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
         this.xpReward = 6;
@@ -142,9 +148,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if(getHunger() >=  70F && getHealth() < getMaxHealth()){
             this.heal(1.0F/50F);// 1 hp in 2.5s
         }
+
+        if(this.reachedMovePos){
+            this.setFollowState(2);
+            this.reachedMovePos = false;
+        }
+
+        if(this.attackCooldown > 0) this.attackCooldown--;
     }
-
-
 
     private void recruitCheckDespawn() {
         Entity entity = this.level.getNearestPlayer(this, -1.0D);
@@ -181,6 +192,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     ////////////////////////////////////REGISTER////////////////////////////////////
 
     protected void registerGoals() {
+        this.goalSelector.addGoal(4, new BlockWithWeapon(this));
         this.goalSelector.addGoal(0, new RecruitFloatGoal(this));
         this.goalSelector.addGoal(1, new RecruitQuaffGoal(this));
         this.goalSelector.addGoal(1, new FleeTNT(this));
@@ -193,8 +205,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(3, new RecruitMountEntity(this));
         this.goalSelector.addGoal(3, new RecruitDismountEntity(this));
         this.goalSelector.addGoal(4, new RecruitMoveToPosGoal(this, 1.05D));
-        this.goalSelector.addGoal(2, new RecruitFollowOwnerGoal(this, 1.05D, RecruitsServerConfig.RecruitFollowStartDistance.get()));
-        this.goalSelector.addGoal(2, new RecruitMeleeAttackGoal(this, 1.05D, false, this.getMeleeStartRange()));
+        this.goalSelector.addGoal(2, new RecruitFollowOwnerGoal(this, 1.05D, 300, 100));
+        this.goalSelector.addGoal(2, new RecruitMeleeAttackGoal(this, 1.05D, this.getMeleeStartRange()));
         this.goalSelector.addGoal(7, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
         //this.goalSelector.addGoal(7, new RecruitDodgeGoal(this));
 
@@ -263,6 +275,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(UPKEEP_ID, Optional.empty());
         this.entityData.define(OWNED, false);
         this.entityData.define(COST, 1);
+        this.entityData.define(COLOR, (byte) 0);
 
         //STATE
         // 0 = NEUTRAL
@@ -303,6 +316,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putInt("Cost", this.getCost());
         nbt.putInt("mountTimer", this.getMountTimer());
         nbt.putInt("upkeepTimer", this.getUpkeepTimer());
+        nbt.putInt("Color", this.getColor());
 
         if(this.getHoldPos() != null){
             nbt.putInt("HoldPosX", this.getHoldPos().getX());
@@ -368,7 +382,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setCost(nbt.getInt("Cost"));
         this.setMountTimer(nbt.getInt("mountTimer"));
         this.setUpkeepTimer(nbt.getInt("UpkeepTimer"));
-
+        this.setColor(nbt.getByte("Color"));
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
@@ -593,6 +607,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return null;
     }
 
+    public int getColor() {
+        return entityData.get(COLOR);
+    }
+    public DyeColor getDyeColor() {
+        return DyeColor.byId(getColor());
+    }
+
     ////////////////////////////////////SET////////////////////////////////////
 
     public void setUpkeepTimer(int x){
@@ -600,6 +621,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
     public void setVariant(int variant){
         entityData.set(VARIANT, variant);
+    }
+    public void setColor(byte color){
+        entityData.set(COLOR, color);
     }
     public void setUpkeepUUID(Optional<UUID> id) {
         this.entityData.set(UPKEEP_ID, id);
@@ -814,6 +838,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
     public void setMovePos(BlockPos holdPos){
         this.entityData.set(MOVE_POS, Optional.of(holdPos));
+        reachedMovePos = false;
     }
 
     public void clearHoldPos(){
@@ -829,53 +854,56 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void setEquipment(){
-        this.setHandEquipment(getHandEquipment());
-        //Armor
-        List<String> armor = RecruitsServerConfig.StartArmorList.get();
-        List<ItemStack> itemStackArmor = new ArrayList<>(Arrays.asList(new ItemStack(Items.LEATHER_HELMET), new ItemStack(Items.LEATHER_CHESTPLATE), new ItemStack(Items.LEATHER_LEGGINGS), new ItemStack(Items.LEATHER_BOOTS)));
-        List<EquipmentSlot> equipmentslot = new ArrayList<>(Arrays.asList(EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET));
+        //Equipment
+        List<List<String>> equipmentSets = getEquipment();
+        if(!equipmentSets.isEmpty()){
 
-        for(int i = 0; i < armor.size(); i++){
-            String str = armor.get(i);
-            Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
-            if (holder.isPresent()){
-                this.setItemSlot(equipmentslot.get(i), holder.get().value().getDefaultInstance());
+            int size = equipmentSets.size();
+            int i = size > 1 ? this.random.nextInt(size) -1 : 0;
+            if(i >= 0){
+                List<String> equipmentSet = equipmentSets.get(i);
+                while(equipmentSet.size() < 6) equipmentSet.add("");
+
+                String mainHandStr = equipmentSet.get(0);
+                String offHandStr = equipmentSet.get(1);
+                String feetStr = equipmentSet.get(2);
+                String legsStr = equipmentSet.get(3);
+                String chestStr = equipmentSet.get(4);
+                String headStr = equipmentSet.get(5);
+
+                Optional<Holder<Item>> holderHead = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(headStr));
+                holderHead.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.HEAD, itemHolder.value().getDefaultInstance()));
+
+                Optional<Holder<Item>> holderChest = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(chestStr));
+                holderChest.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.CHEST, itemHolder.value().getDefaultInstance()));
+
+                Optional<Holder<Item>> holderLegs = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(legsStr));
+                holderLegs.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.LEGS, itemHolder.value().getDefaultInstance()));
+
+                Optional<Holder<Item>> holderFeet = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(feetStr));
+                holderFeet.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.FEET, itemHolder.value().getDefaultInstance()));
+
+                Optional<Holder<Item>> holderMainHand = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(mainHandStr));
+                holderMainHand.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.MAINHAND, itemHolder.value().getDefaultInstance()));
+
+                Optional<Holder<Item>> holderOffHand = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(offHandStr));
+                holderOffHand.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.OFFHAND, itemHolder.value().getDefaultInstance()));
             }
         }
+    }
+
+    public List<List<String>> getEquipment() {
+        return null;
     }
 
     public double getMeleeStartRange() {
         return 32D;
     }
 
-    public List<String> getHandEquipment() {
-        return null;
-    }
-
-    public void setHandEquipment(List<String> hand) {
-        if(!hand.get(0).isEmpty()){
-            String str = hand.get(0);
-            Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
-            holder.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.MAINHAND, itemHolder.value().getDefaultInstance()));
-        }
-        else {
-            this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.WOODEN_SWORD));
-        }
-
-        if(!hand.get(1).isEmpty()){
-            String str = hand.get(1);
-            Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
-            holder.ifPresent(itemHolder -> this.setItemSlot(EquipmentSlot.OFFHAND, itemHolder.value().getDefaultInstance()));
-        }
-        else {
-            this.setItemSlot(EquipmentSlot.OFFHAND, ItemStack.EMPTY);
-        }
-    }
-
     public abstract void initSpawn();
 
     public static void applySpawnValues(AbstractRecruitEntity recruit){
-        recruit.setVariant(recruit.random.nextInt(3));
+        recruit.setVariant(recruit.random.nextInt(20));
         recruit.setHunger(50);
         recruit.setMoral(50);
         recruit.setListen(true);
@@ -1216,6 +1244,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public boolean needsToEat(){
+        setHunger((getHunger() - 0.0001F));
+
         if (getHunger() <= 50F){
             return true;
         }
@@ -1529,7 +1559,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
     public boolean isValidTarget(LivingEntity living){
-        boolean notAllowed = living instanceof AbstractFish || living instanceof Squid || living instanceof AbstractHorse;
+        boolean notAllowed = living instanceof AbstractFish || living instanceof Squid || living instanceof AbstractHorse || (living instanceof Monster && living.isUnderWater());
 
         if (living instanceof AbstractRecruitEntity otherRecruit) {
             if (otherRecruit.isOwned() && this.isOwned()){
@@ -1620,9 +1650,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void openHireGUI(Player player) {
-        this.navigation.stop();
-
         if (player instanceof ServerPlayer) {
+            this.navigation.stop();
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateHireScreen(TeamEvents.getCurrency()));
             NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {
@@ -1741,7 +1771,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     private void pickUpArrows() {
-        List<AbstractArrow> arrows = this.level.getEntitiesOfClass(AbstractArrow.class, this.getBoundingBox().inflate(8D));
+        List<AbstractArrow> arrows = this.level.getEntitiesOfClass(AbstractArrow.class, this.getBoundingBox().inflate(4D));
         for (AbstractArrow arrow : arrows){
             boolean onGround = arrow.inGround;
             boolean pickUpAllowed = arrow.pickup == AbstractArrow.Pickup.ALLOWED;
@@ -1760,4 +1790,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return false;
     }
 
+    public boolean canEatItemStack(ItemStack stack){
+        ResourceLocation location = ForgeRegistries.ITEMS.getKey(stack.getItem());
+
+        if(RecruitsServerConfig.FoodBlackList.get().contains(location.toString())){
+            return false;
+        }
+        return stack.isEdible();
+    }
 }

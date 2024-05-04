@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.CaptainEntity;
 import com.talhanation.recruits.entities.IBoatController;
 import com.talhanation.recruits.entities.ai.navigation.SailorPathNavigation;
@@ -64,6 +65,8 @@ public class CaptainControlBoatAI extends Goal {
     }
 
     public void tick() {
+        Main.LOGGER.info("State: " + state);
+
         if (!captain.getLevel().isClientSide()) {
             if(DEBUG) {
                 if (this.captain.getOwner() != null && captain.getOwner().isInWater()) {
@@ -72,7 +75,21 @@ public class CaptainControlBoatAI extends Goal {
                 }
             }
 
-            if(sailPosChanged() && !captain.shipAttacking){
+            if(captain.getFollowState() == 1 && captain.getOwner() != null){
+                if(sailPos == null || captain.tickCount % 40 == 0){
+                    captain.setSailPos(captain.getOwner().getOnPos());
+                    this.sailPos = captain.getSailPos();
+                    this.state = CREATING_PATH;
+                }
+            }
+            else if (captain.getFollowState() == 5 && captain.getProtectingMob() != null){
+                if(sailPos == null || captain.tickCount % 40 == 0){
+                    captain.setSailPos(captain.getProtectingMob().getOnPos());
+                    this.sailPos = captain.getSailPos();
+                    this.state = CREATING_PATH;
+                }
+            }
+            else if(sailPosChanged() && !captain.shipAttacking){
                 this.sailPos = captain.getSailPos();
                 this.state = CREATING_PATH;
             }
@@ -81,11 +98,16 @@ public class CaptainControlBoatAI extends Goal {
 
                 case IDLE -> {
 
-                    if(captain.getTarget() != null && captain.getTarget().isAlive()){
+                    if(canAttackTarget()){
+                        double distance = captain.distanceToSqr(target.getX(), captain.getY(), target.getZ());
                         this.captain.shipAttacking = true;
-                        this.target = captain.getTarget();
-                        this.sailPos = captain.getTarget().getOnPos();
-                        this.state = CREATING_PATH;
+                        if(distance > 3500){
+                            this.sailPos = captain.getTarget().getOnPos();
+                            this.state = CREATING_PATH;
+                        }
+                        else{
+                            this.state = ATTACKING;
+                        }
                     }
 
                     else if (captain.getSailPos() != null) {
@@ -98,7 +120,7 @@ public class CaptainControlBoatAI extends Goal {
                     if (this.sailPos != null) {
 
                         SailorPathNavigation sailorPathNavigation = (SailorPathNavigation) captain.getNavigation();
-                        this.path = sailorPathNavigation.createPath(this.sailPos, 16, false, 0);
+                        this.path = sailorPathNavigation.createPath(this.sailPos, 32, false, 0);
 
                         if (path != null) {
                             this.node = this.path.getNextNode();
@@ -115,6 +137,14 @@ public class CaptainControlBoatAI extends Goal {
                         state = IDLE;
                 }
                 case MOVING_PATH -> {
+                    if(canAttackTarget()){
+                        double distanceToTarget = this.captain.distanceToSqr(target.getX(), captain.getY(), target.getZ());
+                        if(distanceToTarget <= 3500){
+                            this.captain.shipAttacking = true;
+                            this.state = ATTACKING;
+                            break;
+                        }
+                    }
                     double distanceToNode = this.captain.distanceToSqr(node.x, captain.getY(), node.z);
 
                     if(DEBUG) {
@@ -153,10 +183,10 @@ public class CaptainControlBoatAI extends Goal {
                         this.timer = 0;
                     }
 
-                    if(distanceToNode >= 5F){
+                    if(distanceToNode >= 3F){
                         captain.updateBoatControl(node.x, node.z, 1.0F, 1.1F, path);
                     }
-                    int reach = captain.shipAttacking ? 3000 : 25;
+                    int reach = getTargetReach();
                     if(captain.distanceToSqr(sailPos.getX(), captain.getY(), sailPos.getZ()) < reach){
                         node = null;
                         path = null;
@@ -167,44 +197,81 @@ public class CaptainControlBoatAI extends Goal {
                 case DONE -> {
                     captain.setSailPos(Optional.empty());
                     captain.setSmallShipsSailState((Boat) captain.getVehicle(), 0);
-
-                    if(++this.stoppingTimer > 70){
+                    if(++this.stoppingTimer > 25){
                         this.stoppingTimer = 0;
-                        state = captain.shipAttacking && captain.getVehicle().getEncodeId().contains("smallships") ? ATTACKING : IDLE;
+                        state = captain.shipAttacking && canAttackTarget() ? ATTACKING : IDLE;
                     }
                 }
 
                 case ATTACKING -> {
-                    if(captain.getVehicle() != null && target != null && target.isAlive() && !this.target.equals(this.captain) && ++this.attackingTimeOut < ATTACKING_TIME_OUT){
-                        Vec3 toTarget = target.position().subtract(this.captain.position()).normalize();
+                    if(canContinueAttack() && captain.shipAttacking && ++this.attackingTimeOut < ATTACKING_TIME_OUT){
+                        Vec3 toTarget = target.getVehicle() != null ? captain.position().vectorTo(target.getVehicle().position()) : captain.position().vectorTo(target.position());
                         double distanceToTarget = this.captain.distanceToSqr(target.getX(), captain.getY(), target.getZ());
                         if(distanceToTarget > 5000){
-                            this.target = null;
                             this.captain.shipAttacking = false;
+                            this.attackingTimeOut = 0;
+                            this.target = null;
                             this.state = IDLE;
+                            captain.setPatrolState(AbstractLeaderEntity.State.IDLE);
                             break;
                         }
-
+                        captain.setSmallShipsSailState((Boat) captain.getVehicle(), 0);
                         Vec3 forward = this.captain.getVehicle().getForward().normalize();
-                        double phi = IBoatController.horizontalAngleBetweenVectors(forward, toTarget);
-                        double ref = 90;
+                        Vec3 VecRight = forward.yRot(-3.14F / 2).normalize();
+                        Vec3 VecLeft = forward.yRot(3.14F / 2).normalize();
+
+                        double distanceToLeft = toTarget.distanceTo(VecLeft);
+                        double distanceToRight = toTarget.distanceTo(VecRight);
+
+                        boolean shootLeftSide = distanceToLeft < distanceToRight;
+
+                        double alpha = IBoatController.horizontalAngleBetweenVectors(forward, toTarget);
+                        double phi = shootLeftSide ?  -alpha : alpha;
+                        double ref = shootLeftSide ? -90 : 90;
 
                         boolean inputLeft =  (phi < ref);
                         boolean inputRight = (phi > ref);
 
                         IBoatController.rotateSmallShip((Boat) this.captain.getVehicle(), inputLeft, inputRight);
 
-                        IBoatController.shootCannonsSmallShip(this.captain, (Boat) this.captain.getVehicle(), target);
+                        double beta = shootLeftSide ? IBoatController.horizontalAngleBetweenVectors(forward.yRot(3.14F / 2), toTarget) : IBoatController.horizontalAngleBetweenVectors(forward.yRot(-3.14F / 2), toTarget);
+                        if(beta < 10)
+                            IBoatController.shootCannonsSmallShip(this.captain, (Boat) this.captain.getVehicle(), target, shootLeftSide);
+
                     }
                     else {
-                        this.target = null;
                         this.captain.shipAttacking = false;
                         this.attackingTimeOut = 0;
+                        this.target = null;
+                        captain.setPatrolState(AbstractLeaderEntity.State.IDLE);
                         this.state = IDLE;
                     }
                 }
             }
         }
+    }
+
+    private boolean canAttackTarget(){
+        if(captain.getTarget() != null){
+            this.target = captain.getTarget();
+            return captain.canAttackWhilePatrolling(target) && captain.getVehicle() != null && target != null && target.isAlive() && !target.isUnderWater() && this.captain.getCommandSenderWorld().canSeeSky(target.getOnPos().above());
+        }
+        return false;
+    }
+
+    private boolean canContinueAttack(){
+        boolean notnull = target != null && target.isAlive();
+        boolean can = captain.canAttackWhilePatrolling(target);
+        boolean notUnderwater = !target.isUnderWater();
+        boolean seeSky = this.captain.getCommandSenderWorld().canSeeSky(target.getOnPos().above());
+        return notnull && seeSky && notUnderwater && can;
+    }
+
+    private int getTargetReach() {
+        if(this.captain.getFollowState() == 1 || this.captain.getFollowState() == 5){
+            return 1000;
+        }
+        else return captain.shipAttacking ? 3000 : 25;
     }
 
     private boolean isNeighborsWater(Node node){

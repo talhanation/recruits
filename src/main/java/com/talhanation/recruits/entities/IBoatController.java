@@ -2,20 +2,30 @@ package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.Main;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.registries.ForgeRegistries;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 
 public interface IBoatController {
+    @Nullable
+    static ItemStack getSmallShipsItem() {
+        return ForgeRegistries.ITEMS.getDelegateOrThrow(ResourceLocation.tryParse("smallships:oak_cog")).get().getDefaultInstance();
+    }
 
     default CaptainEntity getCaptain() {
         return (CaptainEntity) this;
@@ -32,18 +42,19 @@ public interface IBoatController {
             String string = boat.getEncodeId();
             if (Main.isSmallShipsLoaded && Main.isSmallShipsCompatible && (string.contains("smallships"))) {
                 boolean onPosIsDeep = getWaterDepth(boat.getOnPos(), this.getCaptain()) >= 7;
-                boolean following = getCaptain().getFollowState() == 1 && getCaptain().getOwner() != null;
+                //boolean following = getCaptain().getFollowState() == 1 && getCaptain().getOwner() != null;
                 BlockPos targetPos = new BlockPos(posX, getCaptain().getY(), posZ);
-                if(following){
+                /*if(following){
                     boolean ownerOnPosIsDeep = getWaterDepth(getCaptain().getOwner().getOnPos(), this.getCaptain()) >= 7;
-                    boolean ownerFar = getCaptain().distanceToSqr(getCaptain().getOwner()) > 50;
+                    boolean ownerFar = getCaptain().distanceToSqr(getCaptain().getOwner()) > 150;
                     if (ownerOnPosIsDeep)
                         updateSmallShipsBoatControl(getCaptain(), boat, getCaptain().getOwner().getX(), getCaptain().getOwner().getZ(), ownerFar && onPosIsDeep);
                     else
                         updateSmallShipsBoatControl(getCaptain(), boat, posX, posZ, ownerFar && onPosIsDeep);
                 }
                 //MOVING TO POSITION / HOLD POS / MOVE / TARGET
-                else if(onPosIsDeep && path != null && !boat.horizontalCollision){
+                else
+                    */if(onPosIsDeep && path != null && !boat.horizontalCollision){
 
                     boolean targetIsDeep = getWaterDepth(targetPos, this.getCaptain()) >= 7;
                     updateSmallShipsBoatControl(getCaptain(), boat, targetPos.getX(), targetPos.getZ(), targetIsDeep);
@@ -66,7 +77,7 @@ public interface IBoatController {
         boolean inputLeft =  (phi < ref);
         boolean inputRight = (phi > ref);
         boolean inputUp = Math.abs(phi - ref) <= ref * 0.35F;
-        boolean inAngleForSail = Math.abs(phi - ref) <= ref * 0.80;
+        boolean inAngleForSail = Math.abs(phi - ref) <= ref * 0.60;
 
         float acceleration = 0.005F;
         float setPoint = 0;
@@ -195,6 +206,7 @@ public interface IBoatController {
     default void setSmallShipsSailState(Boat boat, int state){
         try {
             Class<?> shipClass = Class.forName("com.talhanation.smallships.world.entity.ship.Ship");
+
             Field coolDownFlied = shipClass.getField("sailStateCooldown");
             int coolDown = coolDownFlied.getInt(boat);
 
@@ -230,12 +242,16 @@ public interface IBoatController {
         return 0.007F;
     }
 
-    static void shootCannonsSmallShip(CaptainEntity driver, Boat boat, LivingEntity target){
+    static void shootCannonsSmallShip(CaptainEntity driver, Boat boat, LivingEntity target, boolean leftSide){
         double distanceToTarget = driver.distanceToSqr(target);
         double speed = 2.2F;
-        double accuracy = 5F;// 0 = 100%
-        Vec3 shootVec = getShootVector(boat.getForward(), driver);
-        double yShootVec = shootVec.y() + distanceToTarget/48;
+        double accuracy = 3.75F;// 0 = 100%
+        float rotation = leftSide ? (3.14F / 2) : -(3.14F / 2);
+
+        Vec3 shootVec = boat.getForward().yRot(rotation).normalize();
+        double heightDiff = target.getY() - driver.getY();
+        double angle = IRangedRecruit.getAngleDistanceModifier(distanceToTarget, 45, 3) * (1 + heightDiff * 0.20 - distanceToTarget/10000);
+        double yShootVec = shootVec.y() + angle;
         try{
             Class<?> cannonAbleClass = Class.forName("com.talhanation.smallships.world.entity.ship.abilities.Cannonable");
             if(cannonAbleClass.isInstance(boat)){
@@ -283,6 +299,46 @@ public interface IBoatController {
 
         boat.setDeltaMovement(boat.getDeltaMovement().add((double)(Mth.sin(-boat.getYRot() * ((float)Math.PI / 180F)) * f), 0.0D, (double)(Mth.cos(boat.getYRot() * ((float)Math.PI / 180F)) * f)));
         boat.setPaddleState(inputRight || inputUp, inputLeft || inputUp);
+    }
+
+    static boolean hasCannons(Entity vehicle) {
+        if(vehicle instanceof Boat boat) {
+            try{
+                Class<?> cannonAbleClass = Class.forName("com.talhanation.smallships.world.entity.ship.abilities.Cannonable");
+                if(cannonAbleClass.isInstance(boat)){
+                    Object cannonAble = cannonAbleClass.cast(boat);
+                    Method cannonAbleClassGetCannons = cannonAbleClass.getMethod("getCannons");
+
+                    List<?> list = (List<?>) cannonAbleClassGetCannons.invoke(cannonAble);
+                    return list.size() > 0;
+                }
+            }
+            catch (ClassNotFoundException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+                Main.LOGGER.info("Cannonable Class was not found");
+            }
+        }
+        return false;
+    }
+
+    static boolean canShootCannons(Entity vehicle) {
+        if(vehicle instanceof Boat boat) {
+            try{
+                Class<?> cannonAbleClass = Class.forName("com.talhanation.smallships.world.entity.ship.abilities.Cannonable");
+                if(cannonAbleClass.isInstance(boat)){
+                    Object cannonAble = cannonAbleClass.cast(boat);
+                    Method cannonAbleClassCanShootCannons = cannonAbleClass.getMethod("canShoot");
+
+                    return (boolean) cannonAbleClassCanShootCannons.invoke(cannonAble);
+                }
+            }
+            catch (ClassNotFoundException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+                Main.LOGGER.info("Cannonable Class was not found");
+            }
+        }
+        return false;
+    }
+    static void mountSmallShips(Boat boat){
+
     }
 
     //Taken from Smallships/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -364,7 +420,7 @@ public interface IBoatController {
         return Math.toDegrees(Math.acos(cosTheta));
     }
 
-    public static int getWaterDepth(BlockPos pos, LivingEntity cap){
+    static int getWaterDepth(BlockPos pos, LivingEntity cap){
         int depth = 0;
         for(int i = 0; i < 10; i++){
             BlockState state = cap.level.getBlockState(pos.below(i));
@@ -377,17 +433,18 @@ public interface IBoatController {
     }
 
     //From smallships
-    static Vec3 getShootVector(Vec3 forward, LivingEntity driver) {
+    static Vec3 getShootVector(Vec3 forward, CaptainEntity driver) {
         Vec3 VecRight = forward.yRot(-3.14F / 2).normalize();
         Vec3 VecLeft = forward.yRot(3.14F / 2).normalize();
 
-        Vec3 playerVec = driver.getLookAngle().normalize();
+        LivingEntity target = driver.getTarget();
+        Vec3 toTarget = target != null ? driver.position().vectorTo(target.position()).normalize() : driver.getLookAngle().normalize();
 
-        if (playerVec.distanceTo(VecLeft) > playerVec.distanceTo(VecRight)) {
+        if (toTarget.distanceTo(VecLeft) > toTarget.distanceTo(VecRight)) {
             return VecRight;
         }
 
-        if (playerVec.distanceTo(VecLeft) < playerVec.distanceTo(VecRight)) {
+        if (toTarget.distanceTo(VecLeft) < toTarget.distanceTo(VecRight)) {
             return VecLeft;
         }
         return null;

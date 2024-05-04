@@ -36,17 +36,16 @@ public class RecruitsServerConfig{
     public static ForgeConfigSpec.IntValue NomadCost;
     public static ForgeConfigSpec.IntValue HorsemanCost;
     public static ForgeConfigSpec.IntValue CrossbowmanCost;
-    public static ForgeConfigSpec.DoubleValue RecruitFollowStartDistance;
     public static ForgeConfigSpec.ConfigValue<List<String>> TargetBlackList;
     public static ForgeConfigSpec.ConfigValue<List<String>> MountWhiteList;
-    public static ForgeConfigSpec.ConfigValue<List<String>> StartArmorList;
-    public static ForgeConfigSpec.ConfigValue<List<String>> RecruitHandEquipment;
-    public static ForgeConfigSpec.ConfigValue<List<String>> ShieldmanHandEquipment;
-    public static ForgeConfigSpec.ConfigValue<List<String>> BowmanHandEquipment;
-    public static ForgeConfigSpec.ConfigValue<List<String>> CrossbowmanHandEquipment;
-    public static ForgeConfigSpec.ConfigValue<List<String>> HorsemanHandEquipment;
-    public static ForgeConfigSpec.ConfigValue<List<String>> NomadHandEquipment;
+    public static ForgeConfigSpec.ConfigValue<List<List<String>>> RecruitStartEquipments;
+    public static ForgeConfigSpec.ConfigValue<List<List<String>>> ShieldmanStartEquipments;
+    public static ForgeConfigSpec.ConfigValue<List<List<String>>> BowmanStartEquipments;
+    public static ForgeConfigSpec.ConfigValue<List<List<String>>> CrossbowmanStartEquipments;
+    public static ForgeConfigSpec.ConfigValue<List<List<String>>> HorsemanStartEquipments;
+    public static ForgeConfigSpec.ConfigValue<List<List<String>>> NomadStartEquipments;
     public static ForgeConfigSpec.ConfigValue<List<String>> AcceptedDamagesourceImmunity;
+    public static ForgeConfigSpec.ConfigValue<List<String>> FoodBlackList;
     public static ForgeConfigSpec.BooleanValue AggroRecruitsBlockPlaceBreakEvents;
     public static ForgeConfigSpec.BooleanValue NeutralRecruitsBlockPlaceBreakEvents;
     public static ForgeConfigSpec.BooleanValue AggroRecruitsBlockInteractingEvents;
@@ -60,6 +59,7 @@ public class RecruitsServerConfig{
     public static ForgeConfigSpec.IntValue PillagerPatrolSpawnInterval;
     public static ForgeConfigSpec.IntValue RecruitPatrolSpawnInterval;
     public static ForgeConfigSpec.IntValue RecruitPatrolDespawnTime;
+    public static ForgeConfigSpec.IntValue TeamCreationCost;
     public static ForgeConfigSpec.BooleanValue GlobalTeamFriendlyFireSetting;
     public static ForgeConfigSpec.BooleanValue GlobalTeamSeeFriendlyInvisibleSetting;
     public static ForgeConfigSpec.BooleanValue GlobalTeamSetting;
@@ -67,25 +67,33 @@ public class RecruitsServerConfig{
     public static ForgeConfigSpec.BooleanValue RangedRecruitsNeedArrowsToShoot;
     public static ForgeConfigSpec.BooleanValue RecruitsChunkLoading;
     public static ForgeConfigSpec.BooleanValue UpdateCheckerServerside;
-    public static ArrayList<String> BLACKLIST = new ArrayList<>(
+    public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast"));
+    public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
+            Arrays.asList("minecraft:poisonous_potato", "minecraft:spider_eye", "minecraft:pufferfish"));
     public static ArrayList<String> MOUNTS = new ArrayList<>(
             Arrays.asList("minecraft:mule", "minecraft:donkey", "minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "smallships:galley", "smallships:drakkar", "camels:camel"));
-    public static ArrayList<String> START_ARMOR = new ArrayList<>();
-    public static ArrayList<String> RECRUIT_HAND = new ArrayList<>(
-            Arrays.asList("minecraft:wooden_sword", ""));
-    public static ArrayList<String> SHIELDMAN_HAND = new ArrayList<>(
-            Arrays.asList("minecraft:wooden_axe", "minecraft:shield"));
-    public static ArrayList<String> HORSEMAN_HAND = new ArrayList<>(
-            Arrays.asList("minecraft:stone_sword", "minecraft:shield"));
-    public static ArrayList<String> BOWMAN_HAND = new ArrayList<>(
-            Arrays.asList("minecraft:bow", ""));
-    public static ArrayList<String> NOMAD_HAND = new ArrayList<>(
-            Arrays.asList("minecraft:bow", ""));
-
-    public static ArrayList<String> CROSSBOWMAN_HAND = new ArrayList<>(
-            Arrays.asList("minecraft:crossbow", ""));
-
+    public static ArrayList<List<String>> START_EQUIPMENT_RECRUIT = new ArrayList<>(
+            List.of(Arrays.asList("minecraft:wooden_sword", "","","","", ""),
+                    Arrays.asList("minecraft:stone_sword", "","","","", "")
+            ));
+    public static ArrayList<List<String>> START_EQUIPMENT_SHIELDMAN = new ArrayList<>(
+            List.of(Arrays.asList("minecraft:stone_sword", "minecraft:shield","","","", ""),
+                    Arrays.asList("minecraft:wooden_axe", "minecraft:shield","","","", "")
+            ));
+    public static ArrayList<List<String>> START_EQUIPMENT_HORSEMAN = new ArrayList<>(
+            List.of(Arrays.asList("minecraft:stone_sword", "minecraft:shield","","","", ""),
+                    Arrays.asList("minecraft:iron_sword", "minecraft:shield","","","", "")
+            ));
+    public static ArrayList<List<String>> START_EQUIPMENT_BOWMAN = new ArrayList<>(
+            List.of(Arrays.asList("minecraft:bow", "","","","", "")
+            ));
+    public static ArrayList<List<String>> START_EQUIPMENT_NOMAD = new ArrayList<>(
+            List.of(Arrays.asList("minecraft:bow", "","","","", "")
+            ));
+    public static ArrayList<List<String>> START_EQUIPMENT_CROSSBOWMAN = new ArrayList<>(
+            List.of(Arrays.asList("minecraft:crossbow", "","","","", "")
+            ));
     public static ArrayList<String> DAMAGESOURCE = new ArrayList<>(
             Arrays.asList("inFire", "lava", "sweetBerryBush", "cactus", "lightningBolt", "inWall", "hotFloor", "outOfWorld", "drown"));//add drowning
 
@@ -95,7 +103,8 @@ public class RecruitsServerConfig{
         BUILDER.comment("Recruits Config:").push("Recruits");
 
         UpdateCheckerServerside = BUILDER.comment("""
-                        ----UpdateCheckerServerside----
+                        
+                        UpdateCheckerServerside
                         \t(takes effect after restart)
                         \t
                         Should the client side update checker be active?
@@ -107,7 +116,7 @@ public class RecruitsServerConfig{
 
         RecruitCurrency = BUILDER.comment("""
 
-                        ----Currency----
+                        Currency
                         \t(takes effect after restart)
                         \tThe Item defined here, will be used to hire recruits. For example: ["minecraft:diamond"]\tdefault: ["minecraft:emerald"]""")
                 .worldRestart()
@@ -115,43 +124,47 @@ public class RecruitsServerConfig{
 
         RecruitsMaxXpForLevelUp = BUILDER.comment("""
 
-                        ----Max XP a Recruit needs to Level Up.----
+                        Max XP a Recruit needs to Level Up.
                         \t(takes effect after restart)
                         \tdefault: 250""")
                 .worldRestart()
-                .defineInRange("RecruitsMaxXpForLevelUp", 250, 50, 10000);
+                .defineInRange("RecruitsMaxXpForLevelUp", 250, 50, 14530);
 
         RecruitsMaxXpLevel = BUILDER.comment("""
-                        ----The max. Level a recruit can get.-----
+                        
+                        The max. Level a recruit can get.-
                         \t(takes effect after restart)
                         \tdefault: 20""")
                 .worldRestart()
-                .defineInRange("RecruitsMaxXpLevel", 20, 10, 9999);
-
-        RecruitFollowStartDistance = BUILDER.comment("""
-
-                        ----Distance Recruits will start to follow its owner----
-                        \t(takes effect after restart)
-                        \tdefault: 20.0""")
-                .worldRestart()
-                .defineInRange("RecruitFollowStartDistance", 20.0, 0, 100.0);
+                .defineInRange("RecruitsMaxXpLevel", 20, 10, 1453);
 
         MaxRecruitsForPlayer = BUILDER.comment("""
-                        ----Max amount a player can recruit----
+                        
+                        Max amount a player can recruit
                         \t(takes effect after restart)
                         \tdefault: 64""")
                 .worldRestart()
-                .defineInRange("MaxRecruitsForPlayer", 64, 1, 1280);
+                .defineInRange("MaxRecruitsForPlayer", 64, 1, 1453);
 
         TargetBlackList = BUILDER.comment("""
-                        ----Target Blacklist----
+                        
+                        Target Blacklist
                         \t(takes effect after restart)
                         \tEntities in this list won't be targeted at all, for example: ["minecraft:creeper", "minecraft:sheep", ...]""")
                 .worldRestart()
-                .define("TargetBlackList", BLACKLIST);
+                .define("TargetBlackList", TARGET_BLACKLIST);
+
+        FoodBlackList = BUILDER.comment("""
+                        
+                        List of foods that recruits should not eat. 
+                        \t(takes effect after restart)
+                        \tFood items in this list will not be eaten by recruits and also not be picked up from upkeep.""")
+                .worldRestart()
+                .define("FoodBlackList", FOOD_BLACKLIST);
 
         MountWhiteList = BUILDER.comment("""
-                        ----Mount Whitelist----
+                        
+                        Mount Whitelist
                         \t(takes effect after restart)
                         \tONLY Entities in this list can be mounted by a recruit, for example: ["minecraft:boat", "smallships:cog", ...]""")
                 .worldRestart()
@@ -161,52 +174,53 @@ public class RecruitsServerConfig{
 
                         The amount of currency required to hire a recruit.
                         \t(takes effect after restart)
-                        \tdefault: 15""")
+                        \tdefault: 4""")
                 .worldRestart()
-                .defineInRange("RecruitCost", 4, 0, 999);
+                .defineInRange("RecruitCost", 4, 0, 1453);
 
         BowmanCost = BUILDER.comment("""
 
                         The amount of currency required to hire a bowman.
                         \t(takes effect after restart)
-                        \tdefault: 15""")
+                        \tdefault: 6""")
                 .worldRestart()
-                .defineInRange("BowmanCost", 6, 0, 999);
+                .defineInRange("BowmanCost", 6, 0, 1453);
 
         CrossbowmanCost = BUILDER.comment("""
 
                         The amount of currency required to hire a crossbowman.
                         \t(takes effect after restart)
-                        \tdefault: 15""")
+                        \tdefault: 8""")
                 .worldRestart()
-                .defineInRange("CrossbowmanCost", 8, 0, 999);
+                .defineInRange("CrossbowmanCost", 8, 0, 1453);
 
         ShieldmanCost = BUILDER.comment("""
 
                         The amount of currency required to hire a shieldman.
                         \t(takes effect after restart)
-                        \tdefault: 15""")
+                        \tdefault: 10""")
                 .worldRestart()
-                .defineInRange("ShieldmanCost", 10, 0, 999);
+                .defineInRange("ShieldmanCost", 10, 0, 1453);
 
         HorsemanCost = BUILDER.comment("""
 
                         The amount of currency required to hire a horseman.
                         \t(takes effect after restart)
-                        \tdefault: 15""")
+                        \tdefault: 20""")
                 .worldRestart()
-                .defineInRange("HorsemanCost", 20, 0, 999);
+                .defineInRange("HorsemanCost", 20, 0, 1453);
 
         NomadCost = BUILDER.comment("""
 
                         The amount of currency required to hire a nomad.
                         \t(takes effect after restart)
-                        \tdefault: 15""")
+                        \tdefault: 19""")
                 .worldRestart()
-                .defineInRange("NomadCost", 19, 0, 999);
+                .defineInRange("NomadCost", 19, 0, 1453);
 
         RecruitHorseUnitsHorse = BUILDER.comment("""
-                        ----RecruitHorseUnitsHorse----
+                        
+                        RecruitHorseUnitsHorse
                         \t(takes effect after restart)
                         \t
                         Should the Horse units spawn with a horse?""
@@ -216,20 +230,23 @@ public class RecruitsServerConfig{
                 .define("RecruitHorseUnitsHorse", true);
 
         RangedRecruitsNeedArrowsToShoot = BUILDER.comment("""
-                        ----RangedRecruitsNeedArrowsToShoot----
+                        
+                        RangedRecruitsNeedArrowsToShoot
                         \t(takes effect after restart)
                         \t
-                        Should ranged recruits units need arrows to shoot?""
+                        Should ranged units need arrows to shoot?
+                        If enabled ranged units will resupply arrows from upkeep chest.
+                        ""
                         default: false""")
 
                 .worldRestart()
                 .define("RangedRecruitsNeedArrowsToShoot", false);
 
         RecruitsChunkLoading = BUILDER.comment("""
-                        ----RecruitsChunkLoading----
+                        RecruitsChunkLoading
                         \t(takes effect after restart)
                         \t
-                        Should companions load chunks? Disabling would make patrolling in to unloaded chunk impossible.
+                        Should recruit-companions load chunks? Disabling would make patrolling in to unloaded chunk impossible.
                         default: true""")
 
                 .worldRestart()
@@ -243,9 +260,9 @@ public class RecruitsServerConfig{
 
         RecruitTablesPOIReleasing = BUILDER.comment("""
 
-                        ----Should Villager Recruits that were created with Tables release the POI for other Villagers?----
-                        ----True -> allows multiple villagers to become a recruit with one table.----
-                        ----False -> only one villager can become a recruit with one table.----
+                        Should Villager Recruits that were created with Tables release the POI for other Villagers?
+                        True -> allows multiple villagers to become a recruit with one table.
+                        False -> only one villager can become a recruit with one table.
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -253,7 +270,7 @@ public class RecruitsServerConfig{
 
         OverrideIronGolemSpawn = BUILDER.comment("""
 
-                        ----Should Recruits instead of Iron Golems spawn in Villages ----
+                        Should Recruits instead of Iron Golems spawn in Villages 
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -265,70 +282,74 @@ public class RecruitsServerConfig{
                         \t(takes effect after restart)
                         \tdefault: 1""")
                 .worldRestart()
-                .defineInRange("MaxSpawnRecruitsInVillage", 1, 1, 10);
+                .defineInRange("MaxSpawnRecruitsInVillage", 1, 1, 1453);
 
          /*
         Equipment Config
          */
         BUILDER.pop();
-        BUILDER.comment("Recruit Equipment Config:").push("Equipment");
-
-        StartArmorList = BUILDER.comment("""
-
-                        ----Start armor ----
-                        \t(takes effect after restart)
-                        \tItems in this list will be equipped to a new spawned recruits in this order: ["head", "chest", "legs", "feet"]
-                        \tFor example: ["minecraft:leather_helmet", "minecraft:leather_chestplate", "minecraft:leather_leggings", "minecraft:leather_boots"]""")
+        BUILDER.comment("Recruits Equipment Config:").push("Equipments");
+        BUILDER.comment("""
+                
+                Following lists will be used to generate starting armor for different recruit types. Each recruit will be equipped according to a random equipment-set defined below.
+                
+                To create a equipment-set note the following order: ["main-hand", "off-hand", "feet", "legs", "chest", "head"]
+                Each set has ONLY 6 entries. Each set is separated with square brackets: RecruitStartEquipments=[[1], [2], [3], ...].
+                For example, the following configuration will randomize newly spawned recruits either 1 or 2:
+                    1. full leather armor set with wooden sword and shield.
+                    2. only gold sword.
+                    
+                    RecruitStartEquipments=[["minecraft:wooden_sword", "minecraft:shield","minecraft:leather_boots","minecraft:leather_leggings","minecraft:leather_chestplate", "minecraft:leather_helmet"], ["minecraft:gold_sword", "", "", "", "", ""]]
+                    
+                There is no limit of armor-sets and modded armor / weapons are also compatible. The mod item-id can be accessed with /give-command.    
+                """);
+        RecruitStartEquipments = BUILDER.comment("""   
+                        
+                        Recruit Start Equipments
+                        Default:  [["minecraft:wooden_sword", "", "", "", "", ""], ["minecraft:stone_sword", "", "", "", "", ""]]
+                        """)
                 .worldRestart()
-                .define("StartArmorList", START_ARMOR);
+                .define("RecruitStartEquipments", START_EQUIPMENT_RECRUIT);
 
-        RecruitHandEquipment = BUILDER.comment("""
-
-                        ----Recruit start hand equipment ----
-                        \t(takes effect after restart)
-                        \tItems in this list will be equipped to a new spawned recruit, in this following order: ["main-hand", "off-hand"]""")
+        ShieldmanStartEquipments = BUILDER.comment("""
+                        
+                        Shieldman Start Equipments
+                        Default: [["minecraft:stone_sword", "minecraft:shield", "", "", "", ""], ["minecraft:wooden_axe", "minecraft:shield", "", "", "", ""]]
+                        """)
                 .worldRestart()
-                .define("RecruitStartHandEquipment", RECRUIT_HAND);
+                .define("ShieldmanStartEquipments", START_EQUIPMENT_SHIELDMAN);
 
-        ShieldmanHandEquipment = BUILDER.comment("""
-
-                        ----Shieldman start hand equipment ----
-                        \t(takes effect after restart)
-                        \tItems in this list will be equipped to a new spawned shieldman, in this following order: ["main-hand", "off-hand" ]""")
+        BowmanStartEquipments = BUILDER.comment("""
+                        
+                        Bowman Start Equipments
+                        Default: [["minecraft:bow", "", "", "", "", ""]]
+                        """)
                 .worldRestart()
-                .define("ShieldmanStartHandEquipment", SHIELDMAN_HAND);
+                .define("BowmanStartEquipments", START_EQUIPMENT_BOWMAN);
 
-        BowmanHandEquipment = BUILDER.comment("""
-
-                        ----Bowman start hand equipment ----
-                        \t(takes effect after restart)
-                        \tItems in this list will be equipped to a new spawned bowman, in this following order: ["main-hand", "off-hand" ]""")
+        CrossbowmanStartEquipments = BUILDER.comment("""
+                        
+                        Crossbowman Start Equipments
+                        Default: [["minecraft:crossbow", "", "", "", "", ""]]
+                        """)
                 .worldRestart()
-                .define("BowmanStartHandEquipment", BOWMAN_HAND);
+                .define("CrossbowmanStartEquipments", START_EQUIPMENT_CROSSBOWMAN);
 
-        CrossbowmanHandEquipment = BUILDER.comment("""
-
-                        ----Crossbowman start hand equipment ----
-                        \t(takes effect after restart)
-                        \tItems in this list will be equipped to a new spawned crossbowman, in this following order: ["main-hand", "off-hand" ]""")
+        HorsemanStartEquipments = BUILDER.comment("""
+                        
+                        Horseman Start Equipments
+                        Default: [["minecraft:stone_sword", "minecraft:shield", "", "", "", ""], ["minecraft:iron_sword", "minecraft:shield", "", "", "", ""]]
+                        """)
                 .worldRestart()
-                .define("CrossbowmanStartHandEquipment", CROSSBOWMAN_HAND);
+                .define("HorsemanStartEquipments", START_EQUIPMENT_HORSEMAN);
 
-        HorsemanHandEquipment = BUILDER.comment("""
-
-                        ----Horseman start hand equipment ----
-                        \t(takes effect after restart)
-                        \tItems in this list will be equipped to a new spawned shieldman, in this following order: ["main-hand", "off-hand" ]""")
+        NomadStartEquipments = BUILDER.comment("""
+                        
+                        Nomad Start Equipments
+                        Default: [["minecraft:bow", "", "", "", "", ""]]
+                        """)
                 .worldRestart()
-                .define("HorsemanHandEquipment", HORSEMAN_HAND);
-
-        NomadHandEquipment = BUILDER.comment("""
-
-                        ----Nomad start hand equipment ----
-                        \t(takes effect after restart)
-                        \tItems in this list will be equipped to a new spawned nomad, in this following order: ["main-hand", "off-hand" ]""")
-                .worldRestart()
-                .define("NomadHandEquipment", NOMAD_HAND);
+                .define("NomadStartEquipments", START_EQUIPMENT_NOMAD);
 
         /*
         Pillager Config
@@ -339,7 +360,7 @@ public class RecruitsServerConfig{
 
         PillagerFriendlyFire = BUILDER.comment("""
 
-                        ----Should Pillagers do friendly fire ----
+                        Should Pillagers do friendly fire
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -347,7 +368,7 @@ public class RecruitsServerConfig{
 
         PillagerSpawn = BUILDER.comment("""
 
-                        ----Should Pillagers spawn naturally ----
+                        Should Pillagers spawn naturally
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
@@ -355,7 +376,7 @@ public class RecruitsServerConfig{
 
         PillagerAttackMonsters= BUILDER.comment("""
 
-                        ----Should Pillagers attack Monsters----
+                        Should Pillagers attack Monsters
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
@@ -363,7 +384,7 @@ public class RecruitsServerConfig{
 
         MonstersAttackPillagers= BUILDER.comment("""
 
-                        ----Should Monsters attack Pillagers----
+                        Should Monsters attack Pillagers
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
@@ -371,7 +392,7 @@ public class RecruitsServerConfig{
 
         ShouldPillagersRaidNaturally= BUILDER.comment("""
 
-                        ----Should Pillagers attack all Living----
+                        Should Pillagers attack all Living
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
@@ -379,7 +400,7 @@ public class RecruitsServerConfig{
 
         PillagerIncreasedCombatRange= BUILDER.comment("""
 
-                        ----Should Pillagers have increased Combat Range, so they can shoot from far away----
+                        Should Pillagers have increased Combat Range, so they can shoot from far away.
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
@@ -387,7 +408,7 @@ public class RecruitsServerConfig{
 
         VindicatorSpawnItems= BUILDER.comment("""
 
-                        ----Should Vindicators can spawn with shield and sword and AI to use these----
+                        Should Vindicators can spawn with shield and sword and AI to use these.
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
@@ -395,7 +416,7 @@ public class RecruitsServerConfig{
 
         PillagerSpawnItems= BUILDER.comment("""
 
-                        ----Should Pillagers can spawn with shield and sword and AI to use these----
+                        Should Pillagers can spawn with shield and sword and AI to use these.
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -410,7 +431,7 @@ public class RecruitsServerConfig{
 
         AggroRecruitsBlockPlaceBreakEvents= BUILDER.comment("""
 
-                        ----Should Aggressive Recruits attack enemy players that are placing or breaking blocks immediately?----
+                        Should Aggressive Recruits attack enemy players that are placing or breaking blocks immediately?
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -418,7 +439,7 @@ public class RecruitsServerConfig{
 
         NeutralRecruitsBlockPlaceBreakEvents= BUILDER.comment("""
 
-                        ----Should Neutral Recruits attack enemy players that are placing or breaking blocks immediately?----
+                        Should Neutral Recruits attack enemy players that are placing or breaking blocks immediately?
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -426,7 +447,7 @@ public class RecruitsServerConfig{
 
         AggroRecruitsBlockInteractingEvents= BUILDER.comment("""
 
-                        ----Should Aggressive Recruits attack enemy players that are interacting with blocks immediately?----
+                        Should Aggressive Recruits attack enemy players that are interacting with blocks immediately?
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -434,7 +455,7 @@ public class RecruitsServerConfig{
 
         NeutralRecruitsBlockInteractingEvents= BUILDER.comment("""
 
-                        ----Should Neutral Recruits attack enemy players that are interacting with blocks immediately?----
+                        Should Neutral Recruits attack enemy players that are interacting with blocks immediately?
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -449,7 +470,7 @@ public class RecruitsServerConfig{
 
         ShouldRecruitPatrolsSpawn= BUILDER.comment("""
 
-                        ----Should Recruits spawn as Patrols in the world?----
+                        Should Recruits spawn as Patrols in the world?
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -457,7 +478,7 @@ public class RecruitsServerConfig{
 
         RecruitPatrolsSpawnChance= BUILDER.comment("""
 
-                        ----Chance that a Recruit Patrol can spawn. (higher values = higher chance to spawn)----
+                        Chance that a Recruit Patrol can spawn. (higher values = higher chance to spawn)
                         \t(takes effect after restart)
                         \tdefault: 15.0""")
                 .worldRestart()
@@ -477,12 +498,12 @@ public class RecruitsServerConfig{
                         \t(takes effect after restart)
                         \tdefault: 45""")
                 .worldRestart()
-                .defineInRange("RecruitPatrolDespawnTime", 45, 1, 600);
+                .defineInRange("RecruitPatrolDespawnTime", 45, 1, 1453);
 
 
         ShouldPillagerPatrolsSpawn = BUILDER.comment("""
 
-                        ----Should modded Pillager Patrols spawn in the world?----
+                        Should modded Pillager Patrols spawn in the world?
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
@@ -490,7 +511,7 @@ public class RecruitsServerConfig{
 
         PillagerPatrolsSpawnChance = BUILDER.comment("""
 
-                        ----Chance that a modded Pillager Patrol can spawn. (higher values = higher chance to spawn)----
+                        Chance that a modded Pillager Patrol can spawn. (higher values = higher chance to spawn)
                         \t(takes effect after restart)
                         \tdefault: 25.0""")
                 .worldRestart()
@@ -514,15 +535,11 @@ public class RecruitsServerConfig{
 
          */
 
-        /*
-        Equipment Config
-         */
-
         BUILDER.pop();
         BUILDER.comment("General Damage Config:").push("Damage");
 
         NoDamageImmunity = BUILDER.comment("""
-                        ----No damage Immunity----
+                        No damage Immunity
                         \tShould Immunity between hits be disabled?
                         \t(takes effect after restart)
                         \tdefault: false""")
@@ -530,7 +547,7 @@ public class RecruitsServerConfig{
                 .define("NoDamageImmunity", false);
 
         AcceptedDamagesourceImmunity = BUILDER.comment("""
-                        ----List of damagesource that accept immunity ----
+                        List of damagesource that accept immunity 
                         \t(takes effect after restart)
                         \tDamagesource in this list will apply a immunity of 0.5s to the entity like normal.""")
                 .worldRestart()
@@ -542,32 +559,33 @@ public class RecruitsServerConfig{
         BUILDER.pop();
         BUILDER.comment("Recruit Teams Config:").push("Teams");
 
-        DisableVanillaTeamCommands = BUILDER.comment("""
-                        ----Should specific vanilla team commands be disabled?----
+        TeamCreationCost = BUILDER.comment("""
+
+                        The amount of currency needed to create a team. Set 0 to disable.
                         \t(takes effect after restart)
-                        \tdefault: true""")
+                        \tdefault: 10""")
                 .worldRestart()
-                .define("DisableVanillaTeamCommands", true);
+                .defineInRange("TeamCreationCost", 10, 0, 1453);
 
         BUILDER.comment("Global Team Settings").push("Global Team Settings");
 
         GlobalTeamSetting = BUILDER.comment("""
 
-                        ----Should Recruits override following team settings on world start for all teams?----
+                        Should Recruits override following team settings on world start for all teams?
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
                 .define("GlobalTeamSetting", true);
 
         GlobalTeamFriendlyFireSetting = BUILDER.comment("""
-                        ----Override Friendly fire true/false for all teams on world start----
+                        Override Friendly fire true/false for all teams on world start
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
                 .define("GlobalTeamFriendlyFireSetting", false);
 
         GlobalTeamSeeFriendlyInvisibleSetting = BUILDER.comment("""
-                        ----Override SeeFriendlyInvisible true/false for all teams on world start----
+                        Override SeeFriendlyInvisible true/false for all teams on world start.
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()

@@ -3,10 +3,11 @@ package com.talhanation.recruits.entities.ai;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 
+import com.talhanation.recruits.util.AttackUtil;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.goal.FollowOwnerGoal;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.pathfinder.Path;
@@ -18,63 +19,44 @@ import java.util.EnumSet;
 public class RecruitMeleeAttackGoal extends Goal {
     protected final AbstractRecruitEntity recruit;
     private final double speedModifier;
-    private final boolean followingTargetEvenIfNotSeen;
     private Path path;
     private double pathedTargetX;
     private double pathedTargetY;
     private double pathedTargetZ;
-    private int ticksUntilNextPathRecalculation;
-    private int ticksUntilNextAttack;
-    private final int attackInterval = 20;
+    private int pathingCooldown;
     private long lastCanUseCheck;
-    private int failedPathFindingPenalty = 0;
     private final double range;
-    private final boolean canPenalize = true;
-
-    public RecruitMeleeAttackGoal(AbstractRecruitEntity recruit, double speedModifier, boolean followingTargetEvenIfNotSeen, double range) {
+    public RecruitMeleeAttackGoal(AbstractRecruitEntity recruit, double speedModifier, double range) {
         this.recruit = recruit;
         this.speedModifier = speedModifier;
-        this.followingTargetEvenIfNotSeen = followingTargetEvenIfNotSeen;
+
         this.range = range;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
     }
 
     public boolean canUse() {
+        //check if last use was 10 tick before
         long i = this.recruit.level.getGameTime();
-        if (i - this.lastCanUseCheck < 20L) {
-            return false;
-        } else {
+        if (i - this.lastCanUseCheck >= 10L) {
             this.lastCanUseCheck = i;
+
             LivingEntity target = this.recruit.getTarget();
-            if (target == null) {
-                return false;
-            }
-            else if (!target.isAlive()) {
-                return false;
-            }
-            else {
+            if (target != null && target.isAlive()) {
                 boolean isClose = target.distanceTo(this.recruit) <= range;
                 boolean canSee = this.recruit.getSensing().hasLineOfSight(target);
                 if (isClose && canSee) {
-                    if (canPenalize) {
-                        if (--this.ticksUntilNextPathRecalculation <= 0) {
-                            this.path = this.recruit.getNavigation().createPath(target, 0);
-                            this.ticksUntilNextPathRecalculation = 4 + this.recruit.getRandom().nextInt(7);
-                            return this.path != null;
-                        } else {
-                            return true;
-                        }
-                    }
                     this.path = this.recruit.getNavigation().createPath(target, 0);
                     if (this.path != null) {
                         return true;
                     } else {
-                        return  (this.getAttackReachSqr(target) >= this.recruit.distanceToSqr(target.getX(), target.getY(), target.getZ())) && canAttackHoldPos() && recruit.getState() != 3 && !recruit.needsToGetFood() && !recruit.getShouldMount() && !recruit.getShouldMovePos();
+                        double distance = this.recruit.distanceToSqr(target.getX(), target.getY(), target.getZ());
+                        double reach = AttackUtil.getAttackReachSqr(recruit);
+                        return (reach >=  distance) && canAttackHoldPos() && recruit.getState() != 3 && !recruit.needsToGetFood() && !recruit.getShouldMount() && !recruit.getShouldMovePos();
                     }
                 }
-                return false;
             }
         }
+        return false;
     }
 
     public boolean canContinueToUse() {
@@ -86,9 +68,6 @@ public class RecruitMeleeAttackGoal extends Goal {
         else if (!target.isAlive() && !this.recruit.getSensing().hasLineOfSight(target)) {
             return false;
         }
-        else if (!this.followingTargetEvenIfNotSeen) {
-            return !this.recruit.getNavigation().isDone();
-        }
         else if (!this.recruit.isWithinRestriction(target.blockPosition())) {
             return false;
         }
@@ -98,120 +77,70 @@ public class RecruitMeleeAttackGoal extends Goal {
     }
 
     public void start() {
-        LivingEntity target = this.recruit.getTarget();
-        if ((!recruit.getShouldHoldPos()) || target.position().closerThan(recruit.position(), 12D)) {
+        if (!recruit.getShouldHoldPos() || !recruit.isFollowing()) {
             this.recruit.getNavigation().moveTo(this.path, this.speedModifier);
             this.recruit.setAggressive(true);
-            this.ticksUntilNextPathRecalculation = 0;
-            this.ticksUntilNextAttack = 0;
+            this.pathingCooldown = 0;
         }
     }
 
     public void stop() {
         LivingEntity target = this.recruit.getTarget();
         if (!EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(target)) {
-            this.recruit.setTarget((LivingEntity)null);
+            this.recruit.setTarget(null);
         }
 
         this.recruit.setAggressive(false);
-        this.recruit.getNavigation().stop();
+        if(!recruit.isFollowing()) this.recruit.getNavigation().stop();
     }
 
     public void tick() {
-        LivingEntity livingentity = this.recruit.getTarget();
-        if(livingentity != null){
+        if(this.pathingCooldown > 0) this.pathingCooldown--;
 
-            this.recruit.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
-            double d0 = this.recruit.distanceToSqr(livingentity.getX(), livingentity.getY(), livingentity.getZ());
-            this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
-            if ((this.followingTargetEvenIfNotSeen || this.recruit.getSensing().hasLineOfSight(livingentity)) && this.ticksUntilNextPathRecalculation <= 0 && (this.pathedTargetX == 0.0D && this.pathedTargetY == 0.0D && this.pathedTargetZ == 0.0D || livingentity.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) >= 1.0D || this.recruit.getRandom().nextFloat() < 0.05F)) {
-                this.pathedTargetX = livingentity.getX();
-                this.pathedTargetY = livingentity.getY();
-                this.pathedTargetZ = livingentity.getZ();
-                this.ticksUntilNextPathRecalculation = 4 + this.recruit.getRandom().nextInt(7);
-                if (this.canPenalize) {
-                    this.ticksUntilNextPathRecalculation += failedPathFindingPenalty;
-                    if (this.recruit.getNavigation().getPath() != null) {
-                        net.minecraft.world.level.pathfinder.Node finalPathPoint = this.recruit.getNavigation().getPath().getEndNode();
-                        if (finalPathPoint != null && livingentity.distanceToSqr(finalPathPoint.x, finalPathPoint.y, finalPathPoint.z) < 1)
-                            failedPathFindingPenalty = 0;
-                        else
-                            failedPathFindingPenalty += 10;
-                    } else {
-                        failedPathFindingPenalty += 10;
-                    }
-                }
-                if (d0 > 1024.0D) {
-                    this.ticksUntilNextPathRecalculation += 10;
-                } else if (d0 > 256.0D) {
-                    this.ticksUntilNextPathRecalculation += 5;
+        if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
+            this.recruit.getJumpControl().jump();
+        }
+
+        LivingEntity target = this.recruit.getTarget();
+        if(target != null && target.isAlive()){
+            this.recruit.getLookControl().setLookAt(target, 30.0F, 30.0F);
+            double distanceToTarget = this.recruit.distanceToSqr(target.getX(), target.getY(), target.getZ());
+            double reach = AttackUtil.getAttackReachSqr(recruit);
+
+            if(distanceToTarget <= reach && this.recruit.getSensing().hasLineOfSight(target)){
+                if(!recruit.isFollowing()) this.recruit.getNavigation().stop();
+                AttackUtil.performAttack(this.recruit, target);
+            }
+            else if ((this.recruit.getSensing().hasLineOfSight(target) && !recruit.isFollowing())
+                    && this.pathingCooldown <= 0
+                    && (this.pathedTargetX == 0.0D && this.pathedTargetY == 0.0D && this.pathedTargetZ == 0.0D || target.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) >= 1.0D || this.recruit.getRandom().nextFloat() < 0.05F)) {
+
+                this.pathedTargetX = target.getX();
+                this.pathedTargetY = target.getY();
+                this.pathedTargetZ = target.getZ();
+                this.pathingCooldown = 4 + this.recruit.getRandom().nextInt(4);
+
+                if (distanceToTarget > 2024.0D) {
+                    this.pathingCooldown += 10;
+                } else if (distanceToTarget > 256.0D) {
+                    this.pathingCooldown += 5;
                 }
 
-                if (!this.recruit.getNavigation().moveTo(livingentity, this.speedModifier)) {
-                    this.ticksUntilNextPathRecalculation += 15;
+                if (!this.recruit.getNavigation().moveTo(target, this.speedModifier)) {
+                    this.pathingCooldown += 10;
                 }
             }
-
-            this.ticksUntilNextAttack = Math.max(this.ticksUntilNextAttack - 1, 0);
-            this.checkAndPerformAttack(livingentity, d0);
         }
     }
-
-    protected void checkAndPerformAttack(LivingEntity target, double p_190102_2_) {
-        double d0 = this.getAttackReachSqr(target);
-        if (p_190102_2_ <= d0 && isTimeToAttack()) {
-            this.resetAttackCooldown();
-            this.recruit.swing(InteractionHand.MAIN_HAND);
-            this.recruit.doHurtTarget(target);
-        }
-    }
-
-    protected void resetAttackCooldown() {
-        this.ticksUntilNextAttack = 20;
-    }
-
-    protected boolean isTimeToAttack() {
-        return this.ticksUntilNextAttack <= 0;//get Weapon modifier
-    }
-
-
-    protected double getAttackReachSqr(LivingEntity target) {
-        float weaponWidth = 3.75F;
-        //if(Main.isAlexArmyInsatlled) getAlexArmoryModifier();
-
-        return (double)(weaponWidth + this.recruit.getBbWidth() * 2.1F * this.recruit.getBbWidth() * 2.1F + target.getBbWidth());
-    }
-
     private boolean canAttackHoldPos() {
         LivingEntity target = this.recruit.getTarget();
         BlockPos pos = recruit.getHoldPos();
 
         if (target != null && pos != null && recruit.getShouldHoldPos()) {
-            double distanceToTarget = target.distanceTo(this.recruit);
-            boolean targetIsFar =  distanceToTarget >= 10.0D;
-            boolean isFarToPos = !recruit.getHoldPos().closerThan(recruit.getOnPos(), 12D);
-            if(targetIsFar) return false;
-            else return !isFarToPos;
+            double distanceToPos = target.distanceToSqr(pos.getX(), pos.getY(), pos.getZ());
+
+            return distanceToPos < 400;
         }
         return true;
     }
-
-/*
-    private int getWeaponModifier(ItemStack stack){
-        int base = 20;
-        if(Main.isAlexArmouryModLoaded){
-            String fullName = stack.getDescriptionId();
-            int lastDotIndex = fullName.lastIndexOf(".");
-            String result = fullName.substring(lastDotIndex + 1);
-            AlexsArmoury weapon = AlexsArmoury.fromID(result);
-            if(weapon != null){
-                //attackSpeed > 1.6 --->
-                base = 20 + Mth.ceil(weapon.attackSpeed * 20/1.6);
-            }
-            else return base;
-
-        }
-        return  0;
-    }
-    */
 }

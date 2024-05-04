@@ -4,6 +4,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.inventory.PatrolLeaderContainer;
 import com.talhanation.recruits.network.MessageOpenSpecialScreen;
 import com.talhanation.recruits.network.MessageToClientUpdateLeaderScreen;
+import com.talhanation.recruits.util.FormationUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -15,6 +16,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobCategory;
@@ -22,11 +24,14 @@ import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +42,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     private static final EntityDataAccessor<Integer> WAYPOINT_INDEX = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> WAIT_TIME_IN_MIN = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> CYCLE = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> FAST_PATROLLING = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Byte> PATROLLING_STATE = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.BYTE);
     private static final EntityDataAccessor<Byte> INFO_MODE = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.BYTE);
     public boolean returning;
@@ -44,11 +50,10 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     public int commandCooldown = 0;
     protected BlockPos currentWaypoint;
     private int waitingTime = 0;
-    private int waitingForEnemiesTime = 0;
-
-    private int waitForRecruitsTime = 0;
+    private int waitForRecruitsUpkeepTime = 0;
     public int infoCooldown = 0;
     private State state = State.IDLE;
+    private State prevState = null;
     private String ownerName = "";
     public AbstractLeaderEntity(EntityType<? extends AbstractLeaderEntity> entityType, Level world) {
         super(entityType, world);
@@ -63,6 +68,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         this.entityData.define(WAYPOINT_INDEX, 0);
         this.entityData.define(WAIT_TIME_IN_MIN, 0);
         this.entityData.define(CYCLE, false);
+        this.entityData.define(FAST_PATROLLING, false);
         this.entityData.define(PATROLLING_STATE, (byte) 3);
         this.entityData.define(INFO_MODE, (byte) 0);
     }
@@ -78,6 +84,8 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         nbt.putBoolean("retreating", this.retreating);
         nbt.putByte("infoMode", this.getInfoMode());
         nbt.putString("OwnerName", this.ownerName);
+        nbt.putBoolean("fastPatrolling", this.getFastPatrolling());
+        nbt.putInt("waitForRecruitsUpkeepTime", this.waitForRecruitsUpkeepTime);
 
         ListTag waypointItems = new ListTag();
         for (int i = 0; i < WAYPOINT_ITEMS.size(); ++i) {
@@ -126,8 +134,10 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         this.returning = nbt.getBoolean("returning");
         this.retreating = nbt.getBoolean("retreating");
         this.waitingTime = nbt.getInt("waiting_time");
+        this.waitForRecruitsUpkeepTime = nbt.getInt("waitForRecruitsUpkeepTime");
         this.setInfoMode(nbt.getByte("infoMode"));
         this.ownerName = nbt.getString("ownerName");
+        this.setFastPatrolling(nbt.getBoolean("fastPatrolling"));
 
         ListTag waypointItems = nbt.getList("WaypointItems", 10);
         for (int i = 0; i < waypointItems.size(); ++i) {
@@ -163,119 +173,148 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
 
         if(infoCooldown > 0) infoCooldown--;
         if(commandCooldown > 0) commandCooldown--;
+        if(waitForRecruitsUpkeepTime > 0) waitForRecruitsUpkeepTime--;
 
-        if(this.tickCount % 10 == 0){
-            double distance = 0D;
-            if(currentWaypoint != null) distance = this.distanceToSqr(currentWaypoint.getX(), currentWaypoint.getY(), currentWaypoint.getZ());
+        Main.LOGGER.info(state);
+        double distance = 0D;
+        if(currentWaypoint != null) distance = this.distanceToSqr(currentWaypoint.getX(), currentWaypoint.getY(), currentWaypoint.getZ());
 
-            switch (state){
-                case IDLE -> {
+        switch (state){
+            case IDLE, PAUSED, STOPPED -> {
 
-                }
+            }
 
-                case STARTED -> {
+            case PATROLLING -> {
 
-                    if(currentWaypoint != null){
+                if(currentWaypoint != null){
 
-                        if(distance <= 10D){
+                    if(distance <= this.getDistanceToReachWaypoint()){
+
+                        //re-supply at first waypoint
+                        boolean isFirstWaypoint = getWaypointIndex() == 0;
+                        BlockPos pos = this.getUpkeepPos();
+                        if(pos != null && pos.distSqr(this.getOnPos()) < 5000 && isFirstWaypoint && waitForRecruitsUpkeepTime == 0){
+
+                            this.handleResupply();
+
+                            this.waitForRecruitsUpkeepTime = this.getResupplyTime(); // resupplying time
+                            this.setPatrolState(State.UPKEEP);
+                        }
+                        else
+                        {
                             updateWaypointIndex();
                             this.setRecruitsToFollow();
+                            if(this.getVehicle()!= null) setRecruitsDismount();
+                            else setRecruitsMount();
+
+
                             this.waitingTime = 0;
 
-                            this.state = State.WAITING;
-                        }
-                        else{
-                            this.getNavigation().moveTo(currentWaypoint.getX(), currentWaypoint.getY(), currentWaypoint.getZ(), 1F);
-                            if (horizontalCollision || minorHorizontalCollision) {
-                                this.getJumpControl().jump();
-                            }
-                        }
-
-
-                    }
-                    else if(!WAYPOINTS.isEmpty() && hasIndex())
-                        this.currentWaypoint = WAYPOINTS.get(getWaypointIndex());
-
-                    if(this.getTarget() != null && !retreating){
-                        this.sendInfoAboutTarget(this.getTarget());
-                        this.state = State.ATTACKING;
-                    }
-
-                    boolean isFirstWaypoint = getWaypointIndex() == 0;
-                    if(isFirstWaypoint && waitForRecruitsTime == 0){
-                        setRecruitsUpkeep();
-                        setRecruitsWanderFreely();
-
-                        this.waitForRecruitsTime = 400;
-                        this.state = State.WAITING_RECRUITS;
-                    }
-
-                }
-
-                case WAITING_RECRUITS -> {
-                    if(--waitForRecruitsTime == 0){
-                        state = State.STARTED;
-                    }
-                }
-
-                case PAUSED -> {
-
-                }
-
-                case STOPPED -> {
-
-                }
-
-                case WAITING -> {
-                    if(timerElapsed() && hasIndex()){
-                        this.currentWaypoint = WAYPOINTS.get(getWaypointIndex());
-                        this.state = State.STARTED;
-                    }
-
-                    if(distance > 25D && this.getTarget() == null){
-                        this.getNavigation().moveTo(currentWaypoint.getX(), currentWaypoint.getY(), currentWaypoint.getZ(), 1F);
-                        if (this.horizontalCollision || minorHorizontalCollision) {
-                            this.getJumpControl().jump();
+                            this.setPatrolState(State.WAITING);
                         }
                     }
-
-                    if(this.getTarget() != null){
-                        this.sendInfoAboutTarget(this.getTarget());
-                        this.state = State.ATTACKING;
+                    else{
+                        moveToCurrentWaypoint();
                     }
                 }
+                else if(!WAYPOINTS.isEmpty() && hasIndex()) {
+                    this.currentWaypoint = WAYPOINTS.get(getWaypointIndex());
+                }
+                else
+                    this.setPatrolState(State.IDLE);
 
-                case ATTACKING -> {
-                    if(distance > 500D || (this.getTarget() != null && !this.getTarget().isAlive()) || this.getTarget() == null){
-                        this.setTarget(null);
-                        this.setRecruitsClearTargets();
-                        this.setRecruitsToFollow();
-                        this.state = State.WAITING_ENEMIES;
-                    }
+                if(this.getTarget() != null && !retreating){
+                    this.sendInfoAboutTarget(this.getTarget());
+
+                    if(canAttackWhilePatrolling(this.getTarget())) this.setPatrolState(State.ATTACKING);
+                    else this.setTarget(null);
+                }
+            }
+
+            case WAITING -> {
+                if(timerElapsed() && hasIndex()){
+                    this.currentWaypoint = WAYPOINTS.get(getWaypointIndex());
+                    this.setPatrolState(State.PATROLLING);
                 }
 
-                case RETREATING -> {
-                    if(this.getOwner() != null) {
-                        this.getOwner().sendSystemMessage(RETREATING());
-                    }
-                    this.retreating = true;
-                    this.setRecruitsClearTargets();
-                    this.setRecruitsToFollow();
-                    this.state = State.STARTED;
+                if(distance > 25D && this.getTarget() == null){
+                    moveToCurrentWaypoint();
                 }
 
-                case WAITING_ENEMIES -> {
-                    if(this.getTarget() != null){
-                        this.state = State.ATTACKING;
-                    }
-                    else if(++waitingForEnemiesTime > 100){
-                        this.waitingForEnemiesTime = 0;
-                        this.state = State.STARTED;
-                    }
+                if(this.getTarget() != null && this.getTarget().isAlive()){
+                    this.sendInfoAboutTarget(this.getTarget());
+
+                    if(canAttackWhilePatrolling(this.getTarget())) this.setPatrolState(State.ATTACKING);
+                    else this.setTarget(null);
+                }
+            }
+
+            case ATTACKING -> {
+                if(this.retreating && WAYPOINTS != null && WAYPOINTS.size() > 0){
+                    this.setPatrolState(State.RETREATING);
+                }
+                //AI-Task Taking care of this state
+            }
+
+            case RETREATING -> {
+                if(this.getOwner() != null) {
+                    this.getOwner().sendSystemMessage(RETREATING());
+                }
+                this.setRecruitsClearTargets();
+                this.setRecruitsToFollow();
+                this.setRecruitsShields(false);
+                this.setPatrolState(State.PATROLLING);
+            }
+
+            case UPKEEP -> {
+                if(waitForRecruitsUpkeepTime == 0){
+                    waitForRecruitsUpkeepTime = this.getAgainResupplyTime(); // time to resupply again
+                    this.setPatrolState(State.PATROLLING);
                 }
             }
         }
+    }
 
+    public boolean canAttackWhilePatrolling(LivingEntity target) {
+        return target != null && target.isAlive();
+    }
+
+    public void handleResupply() {
+        setRecruitsWanderFreely();
+        setRecruitsUpkeep();
+        this.forcedUpkeep = true;
+    }
+
+    public int getResupplyTime() {
+        return 1000;
+    }
+
+    public int getAgainResupplyTime() {
+        return 5000;
+    }
+
+    public void resetPatrolling(){
+        waitForRecruitsUpkeepTime = 0;
+        this.retreating = false;
+        this.waitingTime = 0;
+        this.setRecruitsClearTargets();
+        this.setRecruitsToFollow();
+        this.setRecruitsShields(false);
+    }
+    public double getDistanceToReachWaypoint() {
+        return 15D;
+    }
+
+    protected void moveToCurrentWaypoint() {
+        this.getNavigation().moveTo(currentWaypoint.getX(), currentWaypoint.getY(), currentWaypoint.getZ(), this.getFastPatrolling() ? 1F : 0.65F);
+        if (horizontalCollision || minorHorizontalCollision) {
+            this.getJumpControl().jump();
+        }
+    }
+
+    public void setPatrolState(State state){
+        this.prevState = this.state;
+        this.state = state;
     }
 
     private void sendInfoAboutTarget(LivingEntity target) {
@@ -297,7 +336,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     }
 
     private boolean timerElapsed() {
-        return ++waitingTime >= this.getWaitTimeInMin() * 60 * 20;
+        return ++waitingTime > getWaitTimeInMin() * 60 * 20;
     }
 
     public void decreaseIndex() {
@@ -351,7 +390,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         this.entityData.set(PATROLLING_STATE, state);
         this.state = State.fromIndex(state);
 
-        if(this.state == State.STARTED){
+        if(this.state == State.PATROLLING){
             this.setRecruitsToFollow();
             if(setFollow) this.setFollowState(0);//wander freely
         }
@@ -365,17 +404,6 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             this.setWaypointIndex(0);
             if(WAYPOINTS != null && WAYPOINTS.size() > getWaypointIndex()) this.currentWaypoint = WAYPOINTS.get(getWaypointIndex());
             if(setFollow) this.setFollowState(1);//follow
-        }
-    }
-
-    @Override
-    public void setFollowState(int state) {
-        super.setFollowState(state);
-
-        //Pause the patrolling when command is not wander freely
-        if(state != 0  && WAYPOINTS != null  && WAYPOINTS.size() > 0){
-            if(getTarget() != null) this.setPatrollingState((byte) 5, false);//ATTACKING
-            else this.setPatrollingState((byte) 2, false);//PAUSED
         }
     }
     public String getOwnerName() {
@@ -419,6 +447,14 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         return this.entityData.get(WAYPOINT_INDEX);
     }
 
+    public void setFastPatrolling(boolean fastPatrolling) {
+        this.entityData.set(FAST_PATROLLING, fastPatrolling);
+    }
+
+    public boolean getFastPatrolling() {
+        return this.entityData.get(FAST_PATROLLING);
+    }
+
     public MutableComponent ENEMY_CONTACT(String name, BlockPos pos){
         return Component.translatable("chat.recruits.text.patrol_leader_enemy_contact", this.getName().getString(), name, pos.getX(), pos.getY(), pos.getZ());
     }
@@ -435,8 +471,15 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         BlockState state = this.level.getBlockState(pos);
         ItemStack itemStack;
         if (state.is(Blocks.WATER) || state.is(Blocks.KELP) || state.is(Blocks.KELP_PLANT)){
+            if(this instanceof CaptainEntity){
+                itemStack = IBoatController.getSmallShipsItem();
+                if(itemStack == null) {
+                    itemStack = Items.OAK_BOAT.getDefaultInstance();
+                }
+            }
+            else
+                itemStack = new BlockItem(Blocks.WATER, new Item.Properties()).getDefaultInstance();
 
-            itemStack = new ItemStack(Blocks.WATER);
         }
         else if (state.is(Blocks.AIR) || state.is(Blocks.CAVE_AIR)) itemStack = new ItemStack(Items.GRASS_BLOCK);
         else itemStack = new ItemStack(state.getBlock().asItem());
@@ -453,14 +496,13 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
 
     public enum State{
         IDLE((byte) 0), //follow, hold pos, protect, wander freely
-        STARTED((byte) 1), //traveling from first to last or cycle
+        PATROLLING((byte) 1), //traveling from first to last or cycle
         PAUSED((byte) 2),
         STOPPED((byte) 3),
         WAITING((byte) 4),
         ATTACKING((byte) 5), //traveling is paused attacking enemies
         RETREATING((byte) 6), //traveling back to first waypoint from current one
-        WAITING_ENEMIES((byte) 7), //waiting for more enemies
-        WAITING_RECRUITS((byte) 8);
+        UPKEEP((byte) 7);
         private final byte index;
         State(byte index){
             this.index = index;
@@ -479,6 +521,15 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             throw new IllegalArgumentException("Invalid State index: " + index);
         }
     }
+
+    //FOLLOW
+    //0 = wander
+    //1 = follow
+    //2 = hold position
+    //3 = back to position
+    //4 = hold my position
+    //5 = Protect
+
 
     public enum InfoMode{
         ALL((byte) 0),
@@ -521,7 +572,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         List<AbstractRecruitEntity> recruits = new ArrayList<>();
 
         for (AbstractRecruitEntity recruit : list){
-            if(!recruit.getUUID().equals(this.getUUID()) && RECRUITS_IN_COMMAND.contains(recruit.getUUID()) && recruit.getProtectUUID() != null && recruit.getProtectUUID().equals(this.getUUID())){
+            if(recruit.isAlive() && !recruit.getUUID().equals(this.getUUID()) && RECRUITS_IN_COMMAND.contains(recruit.getUUID()) && recruit.getProtectUUID() != null && recruit.getProtectUUID().equals(this.getUUID())){
                 recruits.add(recruit);
             }
         }
@@ -615,16 +666,40 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                 recruit.clearHoldPos();
                 recruit.setFollowState(0);//Freely
             }
+        }
+    }
 
+    public void setRecruitsToMoveAndHold(Vec3 target, Vec3 linePos){
+        for (AbstractRecruitEntity recruit : currentRecruitsInCommand){
+
+            recruit.reachedMovePos = false;
+            BlockPos pos = FormationUtils.calculateBlockPosition(target, linePos, this.currentRecruitsInCommand.size(), currentRecruitsInCommand.indexOf(recruit), this.getCommandSenderWorld());
+            recruit.setMovePos(pos);
+            recruit.setFollowState(0);// needs to be above setShouldMovePos
+            recruit.setShouldMovePos(true);
+        }
+    }
+
+    public void setTypedRecruitsToMoveAndHold(Vec3 target, Vec3 linePos, EntityType<?> type){
+        List<AbstractRecruitEntity> typedList = currentRecruitsInCommand.stream().filter(recruit ->  recruit.getType().equals(type)).toList();
+
+
+        for (AbstractRecruitEntity recruit : typedList){
+
+            recruit.reachedMovePos = false;
+            BlockPos pos = FormationUtils.calculateBlockPosition(target, linePos, typedList.size(), typedList.indexOf(recruit), this.getCommandSenderWorld());
+            recruit.setMovePos(pos);
+            recruit.setFollowState(0);// needs to be above setShouldMovePos
+            recruit.setShouldMovePos(true);
         }
     }
 
     public void setRecruitStrategicFirePos(boolean should, BlockPos pos) {
         for (AbstractRecruitEntity recruit : currentRecruitsInCommand){
-                if(recruit instanceof IStrategicFire strategicFire){
-                    strategicFire.setShouldStrategicFire(should);
-                    strategicFire.setStrategicFirePos(pos);
-                }
+            if(recruit instanceof IStrategicFire strategicFire){
+                strategicFire.setShouldStrategicFire(should);
+                strategicFire.setStrategicFirePos(pos);
+            }
         }
     }
 
@@ -633,24 +708,38 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             recruit.clearUpkeepEntity();
             recruit.clearUpkeepPos();
 
-            if(this.getUpkeepPos() != null) recruit.setUpkeepPos(this.getUpkeepPos());
+            if(this.getUpkeepPos() != null)
+                recruit.setUpkeepPos(this.getUpkeepPos());
             recruit.setUpkeepUUID(Optional.ofNullable(this.getUpkeepUUID()));
 
             recruit.setUpkeepTimer(0);
             recruit.setTarget(null);
+            recruit.forcedUpkeep = true;
+        }
+    }
+
+    public void clearRecruitsUpkeep(){
+        for (AbstractRecruitEntity recruit : currentRecruitsInCommand){
+            recruit.clearUpkeepEntity();
+            recruit.clearUpkeepPos();
+            recruit.setUpkeepTimer(0);
         }
     }
 
     public void setRecruitsMount(){
         for (AbstractRecruitEntity recruit : currentRecruitsInCommand){
-            recruit.clearUpkeepEntity();
-            recruit.clearUpkeepPos();
+            if(this.getMountUUID() != null) recruit.shouldMount(true, this.getMountUUID());
+            recruit.dismount = 0;
+        }
+    }
 
-            if(this.getUpkeepPos() != null) recruit.setUpkeepPos(this.getUpkeepPos());
-            recruit.setUpkeepUUID(Optional.ofNullable(this.getUpkeepUUID()));
-
-            recruit.setUpkeepTimer(0);
-            recruit.setTarget(null);
+    public void setRecruitsDismount(){
+        for (AbstractRecruitEntity recruit : currentRecruitsInCommand){
+            recruit.shouldMount(false, null);
+            if(recruit.isPassenger()){
+                recruit.stopRiding();
+                recruit.dismount = 180;
+            }
         }
     }
 
@@ -691,8 +780,47 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         }
 
         if (player instanceof ServerPlayer) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateLeaderScreen(this.WAYPOINTS, this.WAYPOINT_ITEMS));
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateLeaderScreen(this.WAYPOINTS, this.WAYPOINT_ITEMS, this.getRecruitsInCommand().size()));
         }
+    }
+
+
+    public enum CombatTactics{
+        AUTO((byte) 0),
+        FOLLOW((byte) 1),
+        HOLD((byte) 2),
+        CHARGE((byte) 3);
+        private final byte index;
+        CombatTactics(byte index){
+            this.index = index;
+        }
+
+        public byte getIndex(){
+            return this.index;
+        }
+        public static CombatTactics fromIndex(byte index) {
+            for (CombatTactics state : CombatTactics.values()) {
+                if (state.getIndex() == index) {
+                    return state;
+                }
+            }
+            throw new IllegalArgumentException("Invalid InfoMode index: " + index);
+        }
+    }
+    @Override
+    public boolean startRiding(Entity p_20330_) {
+        if(super.startRiding(p_20330_, false)){
+            this.setRecruitsMount();
+            return true;
+        }
+        return false;
+    }
+
+    public void shouldMount(boolean should, UUID mount_uuid) {
+        super.shouldMount(should, mount_uuid);
+
+        if (should) this.setRecruitsMount();
+        else this.setRecruitsDismount();
     }
 }
 

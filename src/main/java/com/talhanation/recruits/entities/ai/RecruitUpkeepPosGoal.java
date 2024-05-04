@@ -6,11 +6,17 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,6 +32,7 @@ public class RecruitUpkeepPosGoal extends Goal {
     public boolean messageNotChest;
     public boolean messageNeedNewChest;
     public boolean messageNotInRange;
+    public int timeToRecalcPath = 0;
 
     public RecruitUpkeepPosGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -43,11 +50,39 @@ public class RecruitUpkeepPosGoal extends Goal {
     @Override
     public void start() {
         super.start();
+        this.timeToRecalcPath = 0;
         message = true;
         messageNotChest = true;
         messageNeedNewChest = true;
         messageNotInRange = true;
         this.chestPos = recruit.getUpkeepPos();
+
+        if(chestPos != null) {
+            BlockEntity entity = recruit.level.getBlockEntity(chestPos);
+            BlockState blockState = recruit.getCommandSenderWorld().getBlockState(chestPos);
+            if (blockState.getBlock() instanceof ChestBlock chestBlock) {
+                this.container = ChestBlock.getContainer(chestBlock, blockState, recruit.getCommandSenderWorld(), chestPos, false);
+            } else if (entity instanceof Container containerEntity) {
+                this.container = containerEntity;
+            } else {
+                if (recruit.getOwner() != null && messageNotChest) {
+                    recruit.getOwner().sendSystemMessage(TEXT_CANT_INTERACT(recruit.getName().getString()));
+                    messageNotChest = false;
+                }
+                this.chestPos = null;
+            }
+
+            double distance = this.recruit.position().distanceToSqr(Vec3.atCenterOf(chestPos));
+            if(distance > 10000){
+                if(recruit.getOwner() != null && messageNotInRange){
+                    recruit.getOwner().sendSystemMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()));
+                    messageNotInRange = false;
+                }
+
+                recruit.clearUpkeepPos();
+                stop();
+            }
+        }
     }
 
     @Override
@@ -59,32 +94,14 @@ public class RecruitUpkeepPosGoal extends Goal {
             return;
         }
 
-        if(recruit.getUpkeepTimer() == 0 && chestPos != null){
-            BlockEntity entity = recruit.level.getBlockEntity(chestPos);
-            if (entity instanceof Container containerEntity) {
-                this.container = containerEntity;
-            }
-            else{
-                if(recruit.getOwner() != null && messageNotChest){
-                    recruit.getOwner().sendSystemMessage(TEXT_CANT_INTERACT(recruit.getName().getString()));
-                    messageNotChest = false;
-                }
-                this.chestPos = null;
-            }
+        if(recruit.getUpkeepTimer() == 0){
+            if (container != null && chestPos != null){
 
-            if (chestPos != null){
-                double distance = this.recruit.position().distanceToSqr(Vec3.atCenterOf(chestPos));
-                if(distance > 10000){
-                    if(recruit.getOwner() != null && messageNotInRange){
-                        recruit.getOwner().sendSystemMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()));
-                        messageNotInRange = false;
-                    }
-
-                    recruit.clearUpkeepPos();
-                    stop();
-                    return;
+                if (--this.timeToRecalcPath <= 0) {
+                    this.timeToRecalcPath = this.adjustedTickDelay(10);
+                    this.recruit.getNavigation().moveTo(chestPos.getX(), chestPos.getY(), chestPos.getZ(), 1.15D);
                 }
-                this.recruit.getNavigation().moveTo(chestPos.getX(), chestPos.getY(), chestPos.getZ(), 1.15D);
+
                 if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
                     this.recruit.getJumpControl().jump();
                 }
@@ -93,6 +110,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                     this.recruit.getNavigation().stop();
                     this.recruit.getLookControl().setLookAt(chestPos.getX(), chestPos.getY() + 1, chestPos.getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
                     if (isFoodInContainer(container)) {
+                        interactChest(container, true);
                         for (int i = 0; i < 3; i++) {
                             ItemStack foodItem = this.getFoodFromInv(container);
                             ItemStack food;
@@ -122,7 +140,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                     for(int i = 0; i < container.getContainerSize(); i++) {
                         ItemStack itemstack = container.getItem(i);
                         ItemStack equipment;
-                        if(!itemstack.isEdible() && recruit.wantsToPickUp(itemstack)){
+                        if(!recruit.canEatItemStack(itemstack) && recruit.wantsToPickUp(itemstack)){
                             if (recruit.canEquipItem(itemstack)) {
                                 equipment = itemstack.copy();
                                 equipment.setCount(1);
@@ -164,6 +182,7 @@ public class RecruitUpkeepPosGoal extends Goal {
         super.stop();
         recruit.setUpkeepTimer(recruit.getUpkeepCooldown());
         recruit.forcedUpkeep = false;
+        if(container != null) interactChest(container, false);
     }
 
     @Nullable
@@ -193,7 +212,7 @@ public class RecruitUpkeepPosGoal extends Goal {
     private boolean isFoodInContainer(Container container){
         for(int i = 0; i < container.getContainerSize(); i++) {
             ItemStack foodItem = container.getItem(i);
-            if(foodItem.isEdible()){
+            if(recruit.canEatItemStack(foodItem)){
                 return true;
             }
         }
@@ -203,7 +222,7 @@ public class RecruitUpkeepPosGoal extends Goal {
     private ItemStack getFoodFromInv(Container inv){
         ItemStack itemStack = null;
         for(int i = 0; i < inv.getContainerSize(); i++){
-            if(inv.getItem(i).isEdible()){
+            if(recruit.canEatItemStack(inv.getItem(i))){
                 itemStack = inv.getItem(i);
                 break;
             }
@@ -217,6 +236,20 @@ public class RecruitUpkeepPosGoal extends Goal {
                 return true;
         }
         return false;
+    }
+
+    public void interactChest(Container container, boolean open) {
+        if (container instanceof ChestBlockEntity chest) {
+            if (open) {
+                this.recruit.getLevel().blockEvent(this.chestPos, chest.getBlockState().getBlock(), 1, 1);
+                this.recruit.getCommandSenderWorld().playSound(null, chestPos, SoundEvents.CHEST_OPEN, recruit.getSoundSource(), 0.7F, 0.8F + 0.4F * recruit.getRandom().nextFloat());
+            }
+            else {
+                this.recruit.getLevel().blockEvent(this.chestPos, chest.getBlockState().getBlock(), 1, 0);
+                recruit.getCommandSenderWorld().playSound(null, chestPos, SoundEvents.CHEST_CLOSE, recruit.getSoundSource(), 0.7F, 0.8F + 0.4F * recruit.getRandom().nextFloat());
+            }
+            this.recruit.getCommandSenderWorld().gameEvent(this.recruit, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, chestPos);
+        }
     }
 
     private MutableComponent TEXT_NO_PLACE(String name) {

@@ -94,6 +94,7 @@ public class RecruitsSpawnEgg extends SpawnEggItem {
                 recruit.setCost(nbt.getInt("Cost"));
                 recruit.setMountTimer(nbt.getInt("mountTimer"));
                 recruit.setUpkeepTimer(nbt.getInt("UpkeepTimer"));
+                recruit.setColor(nbt.getByte("Color"));
 
                 recruit.setHoldPos(context.getClickedPos());
 
