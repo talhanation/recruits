@@ -50,7 +50,7 @@ public class PatrolLeaderAttackAI extends Goal {
     public void stop() {
         super.stop();
         this.leader.setRecruitsToFollow();
-        this.leader.setFollowState(0);
+        if(this.leader.getFollowState() != 1) this.leader.setFollowState(0);
         this.leader.setTarget(null);
         this.leader.setShouldBlock(false);
 
