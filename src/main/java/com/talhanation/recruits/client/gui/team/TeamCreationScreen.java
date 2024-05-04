@@ -1,6 +1,5 @@
 package com.talhanation.recruits.client.gui.team;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.inventory.TeamCreationContainer;
 import com.talhanation.recruits.network.MessageCreateTeam;
@@ -88,14 +87,16 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
             cycleButtonRightRecruitColor(leftPos + 60 + 85, topPos + 83);
 
             String create = "Create   ";
+
             addRenderableWidget(new ExtendedButton(leftPos + 18, topPos + 99, 140, 20, Component.literal(create),
-                    button -> {
-                        this.banner = container.getBanner();
-                        if (!banner.equals(ItemStack.EMPTY)) {
-                            Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(this.getCorrectFormat(textField.getValue().strip()), banner, teamColor, recruitColorIndex));
-                            this.onClose();
-                        }
-                    }));
+                button -> {
+                    this.banner = container.getBanner();
+                    if (!banner.equals(ItemStack.EMPTY)) {
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(this.getCorrectFormat(textField.getValue().strip()), banner, teamColor, recruitColorIndex));
+                        this.onClose();
+                    }
+                }
+            ));
         }
     }
 
@@ -161,6 +162,22 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     private void refreshSelectedColorRecruit() {
         this.recruitColor = RECRUIT_COLORS.get(recruitColorIndex);
         this.recruitColorId = RecruitColorID.get(recruitColorIndex);
+    }
+    @Override
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        super.renderLabels(guiGraphics, mouseX, mouseY);
+
+        guiGraphics.drawString(font, "Create a Team:", 18  , 11, fontColor);
+        guiGraphics.drawString(font, playerInventory.getDisplayName().getVisualOrderText(), 8, 128 + 2, fontColor);
+        guiGraphics.drawString(font, teamColor, 77, 69 + 2, teamColorId);
+        guiGraphics.drawString(font, "Team Color:",18, 69 + 2, fontColor);
+        guiGraphics.drawString(font, recruitColor, 77, 83 + 2, recruitColorId);
+        guiGraphics.drawString(font, "Unit Color:",18, 83 + 2, fontColor);
+
+        if(price > 0 && currency != null){
+            itemRenderer.renderGuiItem(currency, 120, this.imageHeight - 125);
+            itemRenderer.renderGuiItemDecorations(font, currency, 120, this.imageHeight - 125);
+        }
     }
 
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {

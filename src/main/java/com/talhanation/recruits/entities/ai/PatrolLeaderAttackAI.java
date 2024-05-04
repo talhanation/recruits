@@ -145,7 +145,6 @@ public class PatrolLeaderAttackAI extends Goal {
                     movePosInfantry = getPosTowardsTarget(target, 0.6);
                     movePosRanged = getPosTowardsTarget(target, 0.4);
 
-
                     this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT.get());
                     this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
 

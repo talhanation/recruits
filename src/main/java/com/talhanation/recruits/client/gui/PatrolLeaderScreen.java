@@ -20,11 +20,10 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 import net.minecraftforge.client.gui.widget.ForgeSlider;
 
-import javax.swing.text.html.StyleSheet;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -178,9 +177,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
 
     private void setAssignButton() {
         Button assignButton = addRenderableWidget(new ExtendedButton(leftPos + 216, topPos + 140, 110, 20, BUTTON_ASSIGN_RECRUITS, button -> {
-
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToCompanion(player.getUUID(), this.recruit.getUUID()));
-            onClose();
         }
         ));
         assignButton.setTooltip(Tooltip.create(TOOLTIP_ASSIGN_RECRUITS));
@@ -211,25 +208,23 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
 
     public void setFastPatrollingButton(Component cycle) {
-        Button buttonFastPatrolling = addRenderableWidget(new Button(leftPos + 230, topPos + 92, 50, 20, cycle,
+        Button buttonFastPatrolling = addRenderableWidget(new ExtendedButton(leftPos + 230, topPos + 92, 50, 20, cycle,
                 button -> {
                     this.fastPatrolling = !this.fastPatrolling;
                     Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetPatrollingSpeed(this.recruit.getUUID(), this.fastPatrolling));
 
                     this.setButtons();
-                },
-                (button, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_FAST_PATROLLING, i, i1);
                 }
+
         ));
         if(this.recruit instanceof CaptainEntity) buttonFastPatrolling.active = false;
+        buttonFastPatrolling.setTooltip(Tooltip.create(TOOLTIP_FAST_PATROLLING));
     }
-
     public void setStartButtons(Component start, Component tooltip) {
         Button startButton = addRenderableWidget(new ExtendedButton(leftPos + 19, topPos + 11, 40, 20, start,
                 button -> {
                     this.state = AbstractLeaderEntity.State.PATROLLING;
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetPatro lState(this.recruit.getUUID(), (byte) 1));
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetPatrolState(this.recruit.getUUID(), (byte) 1));
                     this.setButtons();
             }
         ));

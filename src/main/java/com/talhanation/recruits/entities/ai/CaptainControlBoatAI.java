@@ -65,8 +65,9 @@ public class CaptainControlBoatAI extends Goal {
     }
 
     public void tick() {
-        if (!captain.getCommandSenderWorld().isClientSide()) {
+        //Main.LOGGER.info("State: " + state);
 
+        if (!captain.getCommandSenderWorld().isClientSide()) {
             if(DEBUG) {
                 if (this.captain.getOwner() != null && captain.getOwner().isInWater()) {
                     captain.setSailPos(captain.getOwner().getOnPos());

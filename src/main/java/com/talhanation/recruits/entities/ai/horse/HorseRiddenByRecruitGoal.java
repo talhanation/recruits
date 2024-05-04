@@ -35,7 +35,6 @@ public class HorseRiddenByRecruitGoal extends Goal {
             speed = this.horse.getAttribute(Attributes.MOVEMENT_SPEED).getValue();
             this.horse.getPersistentData().putDouble("oldSpeed", speed);
         }
-
         if(this.horse.getControllingPassenger() instanceof AbstractLeaderEntity leader){
             leaderFastSpeed = leader.getFastPatrolling();
             double newSpeed = leaderFastSpeed ? speed : speed * 0.7D;
@@ -43,11 +42,8 @@ public class HorseRiddenByRecruitGoal extends Goal {
         }
         else
             this.horse.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.255  + speed);
+    }
 
-        if(this.horse instanceof Camel) this.horse.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.120  + speed);
-        else this.horse.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.255  + speed);
-
-    //}
 
     @Override
     public void tick() {

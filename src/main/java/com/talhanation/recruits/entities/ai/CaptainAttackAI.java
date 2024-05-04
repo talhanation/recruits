@@ -1,16 +1,10 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.*;
-import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
-
-import java.util.Collections;
-
-
 
 public class CaptainAttackAI extends PatrolLeaderAttackAI {
 
