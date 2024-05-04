@@ -1329,10 +1329,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         boolean hasHeadArmor = !headArmor.isEmpty();
         //Main.LOGGER.debug("headArmor :" + headArmor);
         //Main.LOGGER.debug("hasHeadArmor: " + hasHeadArmor);
+
         if (((!(damageSource.is(DamageTypes.IN_FIRE) && (damageSource.is(DamageTypes.ON_FIRE))) || !headArmor.getItem().isFireResistant()) && headArmor.getItem() instanceof ArmorItem)){
         //damage
             headArmor.hurtAndBreak(1, this, (p_43296_) -> {
-                p_43296_.broadcastBreakEvent(EquipmentSlot.HEAD);
+                //p_43296_.broadcastBreakEvent(EquipmentSlot.HEAD);
             });
         }
 
@@ -1347,7 +1348,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (((!(damageSource.is(DamageTypes.IN_FIRE) && (damageSource.is(DamageTypes.ON_FIRE))) || !chestArmor.getItem().isFireResistant()) && chestArmor.getItem() instanceof ArmorItem)){
             //damage
             chestArmor.hurtAndBreak(1, this, (p_43296_) -> {
-                p_43296_.broadcastBreakEvent(EquipmentSlot.CHEST);
+
             });
         }
         if (this.getItemBySlot(EquipmentSlot.CHEST).isEmpty() && hasChestArmor) {
@@ -1362,7 +1363,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (((!(damageSource.is(DamageTypes.IN_FIRE) && (damageSource.is(DamageTypes.ON_FIRE))) || !legsArmor.getItem().isFireResistant()) && legsArmor.getItem() instanceof ArmorItem)){
             //damage
             legsArmor.hurtAndBreak(1, this, (p_43296_) -> {
-                p_43296_.broadcastBreakEvent(EquipmentSlot.LEGS);
+
             });
         }
         if (this.getItemBySlot(EquipmentSlot.LEGS).isEmpty() && hasLegsArmor) {
@@ -1378,7 +1379,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (((!(damageSource.is(DamageTypes.IN_FIRE) && (damageSource.is(DamageTypes.ON_FIRE))) || !feetArmor.getItem().isFireResistant()) && feetArmor.getItem() instanceof ArmorItem)){
             //damage
             feetArmor.hurtAndBreak(1, this, (p_43296_) -> {
-                p_43296_.broadcastBreakEvent(EquipmentSlot.FEET);
+
             });
 
         }
