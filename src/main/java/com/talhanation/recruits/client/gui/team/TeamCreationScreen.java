@@ -186,7 +186,6 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
         guiGraphics.drawString(font, recruitColor, 77, 83 + 2, recruitColorId);
         guiGraphics.drawString(font, "Unit Color:",18, 83 + 2, fontColor);
 
-
         if(price > 0 && currency != null){
             itemRenderer.renderGuiItem(currency, 120, this.imageHeight - 125);
             itemRenderer.renderGuiItemDecorations(font, currency, 120, this.imageHeight - 125);
