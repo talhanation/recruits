@@ -5,6 +5,7 @@ import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.RecruitMoveTowardsTargetGoal;
 import com.talhanation.recruits.entities.ai.RecruitStrategicFire;
 import com.talhanation.recruits.entities.ai.RecruitRangedBowAttackGoal;
+import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -123,8 +124,12 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
         this.setDropEquipment();
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
-        this.setGroup(2);
 
+        this.setGroup(2);
+        
+        if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get()){
+            RecruitsPatrolSpawn.setRangedArrows(this);
+        }
         AbstractRecruitEntity.applySpawnValues(this);
     }
 
