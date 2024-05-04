@@ -28,6 +28,7 @@ import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.levelgen.Heightmap.Types;
 
 import javax.annotation.Nullable;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Random;
@@ -503,8 +504,6 @@ public class RecruitsPatrolSpawn {
     }
 
     public static void setPatrolBowmanEquipment(AbstractRecruitEntity recruit) {
-        Random random = new Random();
-
         recruit.setItemSlot(EquipmentSlot.HEAD, ItemStack.EMPTY);
         recruit.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.CHAINMAIL_CHESTPLATE));
         recruit.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.CHAINMAIL_LEGGINGS));
@@ -512,9 +511,13 @@ public class RecruitsPatrolSpawn {
 
         recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
 
-        int i = random.nextInt(13);
+        setRangedArrows(recruit);
+    }
+
+    public static void setRangedArrows(AbstractRecruitEntity recruit) {
+        int i = random.nextInt(32);
         ItemStack arrows = new ItemStack(Items.ARROW);
-        arrows.setCount(8 + i);
+        arrows.setCount(24 + i);
         recruit.inventory.setItem(6, arrows);
     }
 
@@ -548,10 +551,7 @@ public class RecruitsPatrolSpawn {
 
         recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.CROSSBOW));
 
-        int i = random.nextInt(13);
-        ItemStack arrows = new ItemStack(Items.ARROW);
-        arrows.setCount(8 + i);
-        recruit.inventory.setItem(6, arrows);
+        setRangedArrows(recruit);
     }
 
     //CREATE//
