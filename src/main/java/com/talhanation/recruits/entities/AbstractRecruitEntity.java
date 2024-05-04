@@ -390,7 +390,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setUpkeepTimer(nbt.getInt("UpkeepTimer"));
         this.setColor(nbt.getByte("Color"));
 
-
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
             this.setHoldPos(new BlockPos (
@@ -1660,9 +1659,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void openHireGUI(Player player) {
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
             this.navigation.stop();
             Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateHireScreen(TeamEvents.getCurrency()));
+            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {
                     return getName();

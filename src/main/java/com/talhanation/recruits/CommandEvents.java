@@ -157,6 +157,7 @@ public class CommandEvents {
                     recruit.setMovePos(blockpos);// needs to be above setFollowState
 
                     recruit.setFollowState(0);// needs to be above setShouldMovePos
+
                     recruit.setShouldMovePos(true);
                 }
                 //mount maybe

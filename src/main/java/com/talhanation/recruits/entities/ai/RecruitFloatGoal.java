@@ -9,6 +9,7 @@ import java.util.EnumSet;
 
 public class RecruitFloatGoal extends Goal {
     private final Mob mob;
+    private long lastCanUseCheck;
 
     private long lastCanUseCheck;
 

@@ -13,8 +13,6 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
@@ -49,7 +47,6 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private static final MutableComponent TOOLTIP_STOP = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_stop");
     private static final MutableComponent TOOLTIP_PAUSE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_pause");
     private static final MutableComponent TOOLTIP_RESUME = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_resume");
-
     private static final MutableComponent BUTTON_START = new TranslatableComponent("gui.recruits.inv.text.start");
     private static final MutableComponent BUTTON_STOP = new TranslatableComponent("gui.recruits.inv.text.stop");
     private static final MutableComponent BUTTON_PAUSE = new TranslatableComponent("gui.recruits.inv.text.pause");
@@ -70,10 +67,25 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private static final MutableComponent TOOLTIP_REMOVE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_remove");
     private static final MutableComponent TOOLTIP_INFO_MODE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_info_mode");
 
+    private static final MutableComponent TOOLTIP_CYCLE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_cycle");
+    private static final MutableComponent TOOLTIP_LINE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_line");
+    private static final MutableComponent TOOLTIP_FAST_PATROLLING = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_fast");
+    private static final MutableComponent BUTTON_CYCLE = new TranslatableComponent("gui.recruits.inv.text.cycle");
+    private static final MutableComponent BUTTON_LINE = new TranslatableComponent("gui.recruits.inv.text.line");
+    private static final MutableComponent BUTTON_FAST = new TranslatableComponent("gui.recruits.inv.text.fast");
+    private static final MutableComponent BUTTON_NORMAL = new TranslatableComponent("gui.recruits.inv.text.normal");
+    private static final MutableComponent INFO_MODE_ALL = new TranslatableComponent("gui.recruits.inv.text.infomode.all");
+    private static final MutableComponent INFO_MODE_HOSTILE = new TranslatableComponent("gui.recruits.inv.text.infomode.hostiles");
+    private static final MutableComponent INFO_MODE_ENEMY = new TranslatableComponent("gui.recruits.inv.text.infomode.enemies");
+    private static final MutableComponent INFO_MODE_NONE = new TranslatableComponent("gui.recruits.inv.text.infomode.none");
+    private static final MutableComponent TOOLTIP_ADD = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_add");
+    private static final MutableComponent TOOLTIP_REMOVE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_remove");
+    private static final MutableComponent TOOLTIP_INFO_MODE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_info_mode");
 
     private static final MutableComponent BUTTON_ASSIGN_RECRUITS = new TranslatableComponent("gui.recruits.inv.text.assign_recruits");
     private static final MutableComponent TOOLTIP_ASSIGN_RECRUITS = new TranslatableComponent("gui.recruits.inv.tooltip.assign_recruits");
     private static final MutableComponent TOOLTIP_CHEST = new TranslatableComponent("gui.recruits.inv.tooltip.chest");
+
     private static final int fontColor = 4210752;
     private ForgeSlider waitSlider;
     private final int offset = 88;

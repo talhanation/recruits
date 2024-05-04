@@ -201,6 +201,7 @@ public class TeamEvents {
 
 
                                     Main.LOGGER.info("The new Team " + teamName + " has been created by " + playerName + ".");
+                                    return true;
                                 }
                                 else
                                     serverPlayer.sendSystemMessage(new TranslatableComponent("chat.recruits.team_creation.banner_exists").withStyle(ChatFormatting.RED));
@@ -222,6 +223,7 @@ public class TeamEvents {
         }
         else
             serverPlayer.sendSystemMessage(new TranslatableComponent("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED));
+
         return false;
     }
 
@@ -573,6 +575,7 @@ public class TeamEvents {
                         createTeam(false, sender, level, teamName, sender.getName().getString(), mainhand.getItem() instanceof BannerItem ? mainhand : null, "white", (byte) 0);
                         sourceStack.sendSuccess(new TranslatableComponent("commands.team.add.success", teamName), true);
                         event.setCanceled(true);
+
                     }
                     else if(command.contains("remove")){
                         String[] parts = command.split(" ");
