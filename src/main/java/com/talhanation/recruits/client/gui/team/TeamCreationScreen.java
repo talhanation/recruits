@@ -41,15 +41,28 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     private final ArrayList<String> TEAM_COLORS = new ArrayList<>(
             Arrays.asList("white", "aqua", "black", "blue", "dark_aqua", "dark_blue", "dark_gray", "dark_green", "dark_purple", "dark_red", "gold", "green", "light_purple", "red", "yellow"));
 
-    private final ArrayList<String> RECRUIT_COLORS = new ArrayList<>(
-            Arrays.asList("white", "orange", "magenta", "light_blue", "yellow", "lime", "pink", "gray", "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black"));
 
-    //ChatFormatting
+    private final ArrayList<String> RECRUIT_COLORS = new ArrayList<>(
+            Arrays.asList("white", "black",
+                    "light_gray", "gray", "dark_gray",
+                    "light_blue", "blue","dark_blue",
+                    "light_green", "green", "dark_green",
+                    "light_red", "red", "dark_red",
+                    "light_brown", "brown", "dark_brown",
+                    "light_cyan", "cyan", "dark_cyan",
+                    "yellow","orange", "magenta", "purple", "gold"));
     private final ArrayList<Integer> TeamColorID = new ArrayList<>(
             Arrays.asList(16777215, 5636095, 0, 5592575, 43690, 170, 5592405, 43520, 11141290, 11141120, 16755200, 5635925, 16733695, 16733525, 16777045));
 
     private final ArrayList<Integer> RecruitColorID = new ArrayList<>(
-            Arrays.asList(16777215, 16738335, 16711935, 10141901, 16776960, 12582656, 16738740, 8421504, 13882323, 65535, 10494192, 255, 9127187, 65280, 16711680, 0));
+            Arrays.asList(16777215, 0,
+                    16711935, 10141901, 16776960,
+                    12582656, 16738740, 8421504,
+                    13882323, 65535, 10494192,
+                    255, 9127187, 65280,
+                    16711680, 0, 0,
+                    0, 0, 0,
+                    0,0,0,0));
 
 
     public TeamCreationScreen(TeamCreationContainer container, Inventory playerInventory, Component title) {
@@ -176,7 +189,7 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
 
         font.draw(matrixStack, "Team Color:",18, 69 + 2, fontColor);
 
-        font.draw(matrixStack, recruitColor, 77, 83 + 2, recruitColorId);
+        font.draw(matrixStack, recruitColor, 77, 83 + 2, fontColor);//change to recruitcolorid
 
         font.draw(matrixStack, "Unit Color:",18, 83 + 2, fontColor);
 

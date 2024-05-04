@@ -1340,7 +1340,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if ((!damageSource.isFire() || !headArmor.getItem().isFireResistant()) && headArmor.getItem() instanceof ArmorItem) {
                 //damage
                 headArmor.hurtAndBreak(1, this, (p_43296_) -> {
-                    p_43296_.broadcastBreakEvent(EquipmentSlot.HEAD);
+
                 });
             }
 
@@ -1355,7 +1355,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if ((!damageSource.isFire() || !chestArmor.getItem().isFireResistant()) && chestArmor.getItem() instanceof ArmorItem) {
             //damage
             chestArmor.hurtAndBreak(1, this, (p_43296_) -> {
-                p_43296_.broadcastBreakEvent(EquipmentSlot.CHEST);
+
             });
         }
         if (this.getItemBySlot(EquipmentSlot.CHEST).isEmpty() && hasChestArmor) {
@@ -1370,7 +1370,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if ((!damageSource.isFire() || !legsArmor.getItem().isFireResistant()) && legsArmor.getItem() instanceof ArmorItem) {
             //damage
             legsArmor.hurtAndBreak(1, this, (p_43296_) -> {
-                p_43296_.broadcastBreakEvent(EquipmentSlot.LEGS);
+
             });
         }
         if (this.getItemBySlot(EquipmentSlot.LEGS).isEmpty() && hasLegsArmor) {
@@ -1386,7 +1386,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if ((!damageSource.isFire() || !feetArmor.getItem().isFireResistant()) && feetArmor.getItem() instanceof ArmorItem) {
             //damage
             feetArmor.hurtAndBreak(1, this, (p_43296_) -> {
-                p_43296_.broadcastBreakEvent(EquipmentSlot.FEET);
+
             });
 
         }
