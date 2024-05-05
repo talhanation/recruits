@@ -254,7 +254,7 @@ public class CaptainControlBoatAI extends Goal {
     private boolean canAttackTarget(){
         if(captain.getTarget() != null){
             this.target = captain.getTarget();
-            return captain.canAttackWhilePatrolling(target) && captain.getVehicle() != null && target != null && target.isAlive() && !target.isUnderWater() && this.captain.getCommandSenderWorld().canSeeSky(target.getOnPos().above());
+            return captain.canAttackWhilePatrolling(target) && captain.getVehicle() != null && target != null && target.isAlive() && !target.isUnderWater();
         }
         return false;
     }
@@ -263,8 +263,8 @@ public class CaptainControlBoatAI extends Goal {
         boolean notnull = target != null && target.isAlive();
         boolean can = captain.canAttackWhilePatrolling(target);
         boolean notUnderwater = !target.isUnderWater();
-        boolean seeSky = this.captain.getCommandSenderWorld().canSeeSky(target.getOnPos().above());
-        return notnull && seeSky && notUnderwater && can;
+        //boolean seeSky = this.captain.getCommandSenderWorld().canSeeSky(target.getOnPos().above());
+        return notnull && notUnderwater && can;
     }
 
     private int getTargetReach() {
