@@ -208,6 +208,7 @@ public interface IBoatController {
             Class<?> shipClass = Class.forName("com.talhanation.smallships.world.entity.ship.Ship");
 
             Field coolDownFlied = shipClass.getField("sailStateCooldown");
+
             int coolDown = coolDownFlied.getInt(boat);
 
             if(coolDown == 0){
@@ -244,13 +245,14 @@ public interface IBoatController {
 
     static void shootCannonsSmallShip(CaptainEntity driver, Boat boat, LivingEntity target, boolean leftSide){
         double distanceToTarget = driver.distanceToSqr(target);
-        double speed = 2.2F;
-        double accuracy = 3.75F;// 0 = 100%
+        Main.LOGGER.info("Distance: " + distanceToTarget);
+        double speed = 3.2F;
+        double accuracy = 0F;// 0 = 100%
         float rotation = leftSide ? (3.14F / 2) : -(3.14F / 2);
 
         Vec3 shootVec = boat.getForward().yRot(rotation).normalize();
         double heightDiff = target.getY() - driver.getY();
-        double angle = IRangedRecruit.getAngleDistanceModifier(distanceToTarget, 45, 3) * (1 + heightDiff * 0.20 - distanceToTarget/10000);
+        double angle = IRangedRecruit.getCannonAngleDistanceModifier(distanceToTarget, 3) + IRangedRecruit.getCannonAngleHeightModifier(distanceToTarget, heightDiff)/ 100;
         double yShootVec = shootVec.y() + angle;
         try{
             Class<?> cannonAbleClass = Class.forName("com.talhanation.smallships.world.entity.ship.abilities.Cannonable");
