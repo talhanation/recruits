@@ -71,16 +71,23 @@ public class RecruitsPatrolSpawn {
             if (blockpos2 != null && func_226559_a_(blockpos2, world) && blockpos2.distSqr(blockpos) > 200) {
                 BlockPos upPos = new BlockPos(blockpos2.getX(), blockpos2.getY() + 2, blockpos2.getZ());
 
+                //spawnPatrol(upPos);
+
+                /*
                 int i = random.nextInt(13);
                 switch(i) {
                     default -> spawnCaravan(upPos);
+                    /*
                     case 9,0 -> spawnSmallPatrol(upPos);
                     case 1,2 -> spawnLargePatrol(upPos);
                     case 3,4 -> spawnHugePatrol(upPos);
                     case 5,6 -> spawnTinyPatrol(upPos);
                     case 7,8 -> spawnRoadPatrol(upPos);
                     case 10,11 -> spawnMediumPatrol(upPos);
+
+
                 }
+                */
                 return true;
             }
             return false;
@@ -748,7 +755,92 @@ public class RecruitsPatrolSpawn {
         world.addFreshEntity(crossBowman);
     }
 
-    private void createCompanionPatrolLeader(BlockPos upPos){
+    private void createRecruit(BlockPos upPos, AbstractLeaderEntity leader){
+        RecruitEntity recruitEntity = ModEntityTypes.RECRUIT.get().create(world);
+        recruitEntity.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
+        recruitEntity.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        if(random.nextInt(2) == 0) setPatrolRecruitEquipment(recruitEntity);
+        recruitEntity.despawnTimer = RecruitsServerConfig.RecruitPatrolDespawnTime.get() * 20 * 60;
 
+        recruitEntity.setPersistenceRequired();
+
+        recruitEntity.setXpLevel(Math.max(1, random.nextInt(3)));
+        recruitEntity.addLevelBuffsForLevel(recruitEntity.getXpLevel());
+        recruitEntity.setHunger(80);
+        recruitEntity.setMoral(65);
+        recruitEntity.setCost(9);
+        recruitEntity.setXp(random.nextInt(80));
+
+        recruitEntity.setCustomName(Component.literal("Recruit"));
+
+        setRecruitFood(recruitEntity);
+
+        ICompanion.assignToLeaderCompanion(leader, recruitEntity);
+
+        world.addFreshEntity(recruitEntity);
+    }
+
+    private PatrolLeaderEntity createCompanionPatrolLeader(BlockPos upPos){
+        PatrolLeaderEntity leader = ModEntityTypes.PATROL_LEADER.get().create(world);
+        leader.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
+        leader.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        AbstractRecruitEntity.applySpawnValues(leader);
+
+        setPatrolLeaderEquipment(leader);
+
+        leader.setXpLevel(Math.max(1, random.nextInt(4)));
+        leader.despawnTimer = RecruitsServerConfig.RecruitPatrolDespawnTime.get() * 20 * 60;
+
+        setRecruitFood(leader);
+
+        leader.addLevelBuffsForLevel(leader.getXpLevel());
+        leader.setHunger(80);
+        leader.setMoral(65);
+        leader.setCost(50);
+        leader.setXp(random.nextInt(120));
+        leader.setState(1);
+        leader.setCustomName(Component.literal("Patrol Leader"));
+
+        return leader;
+    }
+
+    private void spawnPatrol(BlockPos upPos) {
+        PatrolLeaderEntity leader = createCompanionPatrolLeader(upPos);
+
+        createRecruit(upPos, leader);
+        createRecruit(upPos, leader);
+        createRecruit(upPos, leader);
+        createRecruit(upPos, leader);
+        createRecruit(upPos, leader);
+
+        world.addFreshEntity(leader);
+    }
+
+    public static void setPatrolLeaderEquipment(PatrolLeaderEntity recruit) {
+        Random random = new Random();
+        recruit.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
+        recruit.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
+        recruit.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.IRON_LEGGINGS));
+        recruit.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.IRON_BOOTS));
+
+        int j = random.nextInt(16);
+        ItemStack item = new ItemStack(Items.EMERALD);
+        item.setCount(8 + j);
+        recruit.inventory.setItem(8, item);
+
+        int i = random.nextInt(8);
+        if (i == 1) {
+            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE));
+        }
+        else if (i == 2 || i == 3) {
+            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_AXE));
+        }
+        else if(i == 4 || i == 5) {
+            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_SWORD));
+        }
+
+        else {
+            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
+        }
     }
 }
