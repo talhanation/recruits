@@ -118,7 +118,7 @@ dependencies {
     shadow fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.3:api")
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.3")
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.3:javadoc")
-
+    
     //Implementations
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
