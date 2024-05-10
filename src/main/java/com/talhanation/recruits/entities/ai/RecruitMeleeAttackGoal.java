@@ -1,13 +1,12 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.Main;
+
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 
 import com.talhanation.recruits.util.AttackUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.goal.FollowOwnerGoal;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.pathfinder.Path;
@@ -20,9 +19,6 @@ public class RecruitMeleeAttackGoal extends Goal {
     protected final AbstractRecruitEntity recruit;
     private final double speedModifier;
     private Path path;
-    private double pathedTargetX;
-    private double pathedTargetY;
-    private double pathedTargetZ;
     private int pathingCooldown;
     private long lastCanUseCheck;
     private final double range;
@@ -44,7 +40,7 @@ public class RecruitMeleeAttackGoal extends Goal {
             if (target != null && target.isAlive()) {
                 boolean isClose = target.distanceTo(this.recruit) <= range;
                 boolean canSee = this.recruit.getSensing().hasLineOfSight(target);
-                if (isClose && canSee) {
+                if (isClose && canSee && canAttackHoldPos()) {
                     this.path = this.recruit.getNavigation().createPath(target, 0);
                     if (this.path != null) {
                         return true;
@@ -72,16 +68,18 @@ public class RecruitMeleeAttackGoal extends Goal {
             return false;
         }
         else {
-            return (!(target instanceof Player) || !target.isSpectator() && !((Player)target).isCreative()) && canAttackHoldPos() && recruit.getState() != 3 && !recruit.needsToGetFood() && !recruit.getShouldMount() && !recruit.getShouldMovePos();
+            boolean canAttackHoldPos = canAttackHoldPos();
+            boolean needsToGetFood = recruit.needsToGetFood();
+            boolean getShouldMount = recruit.getShouldMount();
+            boolean getShouldMovePos = recruit.getShouldMovePos();
+
+            return (!(target instanceof Player) || !target.isSpectator() && !((Player)target).isCreative()) && canAttackHoldPos && recruit.getState() != 3 && !needsToGetFood && !getShouldMount && !getShouldMovePos;
         }
     }
 
     public void start() {
-        if (!recruit.getShouldHoldPos() || !recruit.isFollowing()) {
-            this.recruit.getNavigation().moveTo(this.path, this.speedModifier);
-            this.recruit.setAggressive(true);
-            this.pathingCooldown = 0;
-        }
+        this.recruit.setAggressive(true);
+        this.pathingCooldown = 0;
     }
 
     public void stop() {
@@ -107,17 +105,16 @@ public class RecruitMeleeAttackGoal extends Goal {
             double distanceToTarget = this.recruit.distanceToSqr(target.getX(), target.getY(), target.getZ());
             double reach = AttackUtil.getAttackReachSqr(recruit);
 
+            boolean canSee = this.recruit.getSensing().hasLineOfSight(target);
+            boolean isNotFollowing = !recruit.isFollowing();
+            boolean coolDownElapsed = this.pathingCooldown <= 0;
+
             if(distanceToTarget <= reach && this.recruit.getSensing().hasLineOfSight(target)){
                 if(!recruit.isFollowing()) this.recruit.getNavigation().stop();
                 AttackUtil.performAttack(this.recruit, target);
             }
-            else if ((this.recruit.getSensing().hasLineOfSight(target) && !recruit.isFollowing())
-                    && this.pathingCooldown <= 0
-                    && (this.pathedTargetX == 0.0D && this.pathedTargetY == 0.0D && this.pathedTargetZ == 0.0D || target.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) >= 1.0D || this.recruit.getRandom().nextFloat() < 0.05F)) {
+            else if (canSee && isNotFollowing && coolDownElapsed) {
 
-                this.pathedTargetX = target.getX();
-                this.pathedTargetY = target.getY();
-                this.pathedTargetZ = target.getZ();
                 this.pathingCooldown = 4 + this.recruit.getRandom().nextInt(4);
 
                 if (distanceToTarget > 2024.0D) {
@@ -125,10 +122,7 @@ public class RecruitMeleeAttackGoal extends Goal {
                 } else if (distanceToTarget > 256.0D) {
                     this.pathingCooldown += 5;
                 }
-
-                if (!this.recruit.getNavigation().moveTo(target, this.speedModifier)) {
-                    this.pathingCooldown += 10;
-                }
+                this.recruit.getNavigation().moveTo(target, this.speedModifier);
             }
         }
     }
