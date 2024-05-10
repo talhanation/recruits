@@ -65,7 +65,7 @@ public class UseShield extends Goal {
         if (target != null && target.isAlive()) {
             Vec3 toTarget = this.entity.position().vectorTo(target.position());
             Vec3 forward = this.entity.getForward();
-            if(forward.reverse().distanceToSqr(toTarget) < forward.distanceToSqr(toTarget)){
+            if(forward.reverse().distanceToSqr(toTarget) < forward.distanceToSqr(toTarget) * 1.2){
                 return false;
             }
 
@@ -77,16 +77,14 @@ public class UseShield extends Goal {
             double targetReach = AttackUtil.getAttackReachSqr(target);
             Item itemInHand = itemStackInHand.getItem();
             double distanceToTarget = this.entity.distanceToSqr(target);
-            boolean isClose = this.entity instanceof HorsemanEntity horseman && horseman.isPassenger() ? distanceToTarget <= targetReach * (1.6) : distanceToTarget <= targetReach * (1.3) ;
-            boolean isFar = distanceToTarget >= targetReach * 3;
-            boolean inRange =  !isFar && distanceToTarget <= targetReach * (1.6);
+            boolean isClose = this.entity instanceof HorsemanEntity horseman && horseman.isPassenger() ? distanceToTarget <= targetReach * 1.5 : distanceToTarget <= targetReach * 1.25 ;
 
             boolean isDanger = isSelfTargeted && itemInHand instanceof CrossbowItem && CrossbowItem.isCharged(itemStackInHand)
                     || itemInHand instanceof AxeItem
                     || itemInHand instanceof PickaxeItem
                     || itemInHand instanceof SwordItem;
 
-            if (target instanceof RangedAttackMob && inRange && isSelfTargeted) {
+            if (target instanceof RangedAttackMob && isClose && isSelfTargeted) {
                 return true;
             }
 
@@ -94,11 +92,11 @@ public class UseShield extends Goal {
                 return true;
             }
 
-            if (target.isBlocking() && inRange){
+            if (target.isBlocking() && isClose){
                 return false;
             }
 
-            if ( (itemInHand instanceof BowItem && !isClose) || (itemInHand instanceof CrossbowItem && CrossbowItem.isCharged(itemStackInHand) ) && inRange){
+            if ( (itemInHand instanceof BowItem && !isClose) || (itemInHand instanceof CrossbowItem && CrossbowItem.isCharged(itemStackInHand) ) && isClose){
                 return true;
             }
         }
