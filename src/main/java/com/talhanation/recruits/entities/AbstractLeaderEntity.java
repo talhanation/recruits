@@ -175,7 +175,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         if(commandCooldown > 0) commandCooldown--;
         if(waitForRecruitsUpkeepTime > 0) waitForRecruitsUpkeepTime--;
 
-        Main.LOGGER.info(state);
+        //Main.LOGGER.info(state);
         double distance = 0D;
         if(currentWaypoint != null) distance = this.distanceToSqr(currentWaypoint.getX(), currentWaypoint.getY(), currentWaypoint.getZ());
 
