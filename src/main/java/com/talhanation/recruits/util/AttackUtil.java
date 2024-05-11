@@ -17,14 +17,12 @@ public abstract class AttackUtil {
     }
 
     public static void performAttack(AbstractRecruitEntity recruit, LivingEntity target) {
-        Vec3 toTarget = recruit.position().vectorTo(target.position());
-        Vec3 forward = recruit.getForward();
-        if(recruit.attackCooldown == 0 && !recruit.swinging && forward.reverse().distanceToSqr(toTarget) > forward.distanceToSqr(toTarget)){
+
+        if(recruit.attackCooldown == 0 && !recruit.swinging && recruit.getLookControl().isLookingAtTarget()){
             recruit.swing(InteractionHand.MAIN_HAND);
             recruit.doHurtTarget(target);
             recruit.attackCooldown = getAttackCooldown(recruit);
         }
-
     }
 
     public static int getAttackCooldown(AbstractRecruitEntity recruit) {
