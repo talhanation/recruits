@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.core.BlockPos;
@@ -71,13 +72,15 @@ public class PatrolLeaderAttackAI extends Goal {
     public void attackCommandsToRecruits(LivingEntity target) {
         if(!this.leader.getCommandSenderWorld().isClientSide()){
             double distanceToTarget = this.leader.distanceToSqr(target);
+            Main.LOGGER.info("DistanceToTarget: "+ distanceToTarget);
 
-            if(distanceToTarget < 4000){
+            if(distanceToTarget < 5000){
                 targets = this.leader.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, target.getBoundingBox().inflate(70D)).stream()
                         .filter(living -> this.canAttack(living) && living.isAlive() && this.leader.getSensing().hasLineOfSight(living))
                         .toList();
 
                 this.leader.currentRecruitsInCommand = leader.getRecruitsInCommand();
+                for(AbstractRecruitEntity recruit : this.leader.currentRecruitsInCommand) recruit.setState(leader.getState());
 
                 double enemyArmor = calculateEnemyArmor(targets);
                 double armor = calculateArmor();
@@ -86,11 +89,29 @@ public class PatrolLeaderAttackAI extends Goal {
                 int partySize = this.getPartySize();
                 double sizeFactor = Math.abs((partySize + 1) / (enemySize + 1) );
                 double armorFactor = Math.abs((armor + 1) / (enemyArmor + 1));
-
+                Main.LOGGER.info("PartySize: " + partySize);
+                Main.LOGGER.info("SizeFactor: " + sizeFactor);
+                Main.LOGGER.info("armorFactor: " + armorFactor);
+                Main.LOGGER.info("PartySize: " + partySize);
+                Main.LOGGER.info("PartySize: " + partySize);
 
                 if((sizeFactor + armorFactor)/2 <= 0.3){
                     if(this.leader.getOwner() != null) this.leader.getOwner().sendSystemMessage(Component.literal("Retreat!"));
                     this.leader.retreating = true;
+                }
+
+                if(distanceToTarget < 1000){
+                    charge(target);
+                    leader.commandCooldown = 400;
+                }
+                else if(distanceToTarget < 3000) {
+                    this.setRecruitsTargets();
+                    leader.commandCooldown = 400;
+
+                }
+                else{
+                    advance(target);
+                    leader.commandCooldown = 400;
                 }
 
                 Comparison comparisonOwnInfantry = getInfantryComparison();
@@ -99,69 +120,47 @@ public class PatrolLeaderAttackAI extends Goal {
                 Vec3 movePosInfantry = getPosTowardsTarget(target, 0.6);
                 Vec3 movePosRanged;
                 BlockPos movePosLeader = getBlockPosTowardsTarget(target, 0.2);
-
-
-                //CHARGE INFANTRY
-                if(comparisonOwnRanged == Comparison.BIGGER && comparisonOwnInfantry == Comparison.BIGGER){
-                    BlockPos moveBlockPosInfantry = getBlockPosTowardsTarget(target, 0.9);
-                    this.leader.setTypedRecruitsToMove(moveBlockPosInfantry, ModEntityTypes.RECRUIT.get());
-                    this.leader.setTypedRecruitsToMove(moveBlockPosInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
-
-
-                    movePosRanged = getPosTowardsTarget(target, 0.4);
-                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.BOWMAN.get());
-                    this.leader.setTypedRecruitsToMoveAndHold(target.position(),   movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
-
-                }
-                else if(comparisonOwnRanged == Comparison.SAME && comparisonOwnInfantry == Comparison.SAME){
-                    movePosInfantry = getPosTowardsTarget(target, 0.75);
-                    movePosRanged = getPosTowardsTarget(target, 0.5);
-
-                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT.get());
-                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
-
-                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.BOWMAN.get());
-                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
-                }
-
-                else if(comparisonOwnRanged == Comparison.SMALLER && comparisonOwnInfantry == Comparison.BIGGER){
-                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT.get());
-                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
-                    this.leader.setRecruitsShields(true);
-
-                }
-                else if(comparisonOwnRanged == Comparison.SMALLER && comparisonOwnInfantry == Comparison.SMALLER){
-                    movePosRanged = getPosTowardsTarget(target, -0.2);
-                    movePosLeader = getBlockPosTowardsTarget(target, -0.3);
-                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.NOMAD.get());
-                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.BOWMAN.get());
-                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
-
-                    movePosInfantry = getPosTowardsTarget(target, 0.3);
-                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT.get());
-                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
-                }
-                else {
-                    movePosInfantry = getPosTowardsTarget(target, 0.6);
-                    movePosRanged = getPosTowardsTarget(target, 0.4);
-
-                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT.get());
-                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
-
-                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.BOWMAN.get());
-                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
-                }
-
-                this.leader.setTypedRecruitsToWanderFreely(ModEntityTypes.HORSEMAN.get());
-                this.leader.setHoldPos(movePosLeader);
-                this.leader.setFollowState(3);//LEADER HOLD POS
-
-                for(AbstractRecruitEntity recruit : this.leader.currentRecruitsInCommand) recruit.setState(leader.getState());
-
-                this.setRecruitsTargets();
-                leader.commandCooldown = 400;
+            }
+            else {
+                
             }
         }
+    }
+
+
+    public void charge(LivingEntity target){
+        BlockPos movePosLeader = getBlockPosTowardsTarget(target, 0.2);
+        this.leader.setHoldPos(movePosLeader);
+        this.leader.setFollowState(3);//LEADER BACK TO POS
+
+        this.leader.setRecruitsWanderFreely();
+        this.setRecruitsTargets();
+    }
+
+    public void advance(LivingEntity target){
+        Vec3 moveVecInfantry = getPosTowardsTarget(target, 0.6);
+        Vec3 moveVecRanged = getPosTowardsTarget(target, 0.4);
+        BlockPos movePosLeader = getBlockPosTowardsTarget(target, 0.2);
+
+        this.leader.setTypedRecruitsToMoveAndHold(target.position(), moveVecInfantry, ModEntityTypes.RECRUIT.get());
+        this.leader.setTypedRecruitsToMoveAndHold(target.position(), moveVecInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
+
+        this.leader.setTypedRecruitsToMoveAndHold(target.position(), moveVecRanged, ModEntityTypes.BOWMAN.get());
+        this.leader.setTypedRecruitsToMoveAndHold(target.position(), moveVecRanged, ModEntityTypes.CROSSBOWMAN.get());
+
+        //this.leader.setTypedRecruitsToMoveAndHold(target.position(), moveVecRanged, ModEntityTypes.NOMAD.get());
+        //this.leader.setTypedRecruitsToMoveAndHold(target.position(), moveVecRanged, ModEntityTypes.HORSEMAN.get());
+
+        this.leader.setHoldPos(movePosLeader);
+        this.leader.setFollowState(3);//LEADER BACK TO POS
+    }
+
+    public void hold(LivingEntity target){
+
+    }
+
+    public void back(LivingEntity target){
+
     }
 
     public BlockPos getBlockPosTowardsTarget(LivingEntity target, double x){
@@ -312,6 +311,64 @@ public class PatrolLeaderAttackAI extends Goal {
             throw new IllegalArgumentException("Invalid AttackMode index: " + index);
         }
     }
+
+    /*
+    //CHARGE INFANTRY
+                if(comparisonOwnRanged == Comparison.BIGGER && comparisonOwnInfantry == Comparison.BIGGER){
+                    if(distanceToTarget > 1500){
+                        BlockPos moveBlockPosInfantry = getBlockPosTowardsTarget(target, 0.9);
+                        this.leader.setTypedRecruitsToMove(moveBlockPosInfantry, ModEntityTypes.RECRUIT.get());
+                        this.leader.setTypedRecruitsToMove(moveBlockPosInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
+                    }
+                    else{
+                        this.leader.setTypedRecruitsToWanderFreely(ModEntityTypes.RECRUIT.get());
+                        this.leader.setTypedRecruitsToWanderFreely(ModEntityTypes.RECRUIT_SHIELDMAN.get());
+                    }
+
+                    movePosRanged = getPosTowardsTarget(target, 0.4);
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.BOWMAN.get());
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(),   movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
+
+                }
+                else if(comparisonOwnRanged == Comparison.SAME && comparisonOwnInfantry == Comparison.SAME){
+                    movePosInfantry = getPosTowardsTarget(target, 0.75);
+                    movePosRanged = getPosTowardsTarget(target, 0.5);
+
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT.get());
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
+
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.BOWMAN.get());
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
+                }
+
+                else if(comparisonOwnRanged == Comparison.SMALLER && comparisonOwnInfantry == Comparison.BIGGER){
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT.get());
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
+                    this.leader.setRecruitsShields(true);
+
+                }
+                else if(comparisonOwnRanged == Comparison.SMALLER && comparisonOwnInfantry == Comparison.SMALLER){
+                    movePosRanged = getPosTowardsTarget(target, -0.2);
+                    movePosLeader = getBlockPosTowardsTarget(target, -0.3);
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.NOMAD.get());
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.BOWMAN.get());
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
+
+                    movePosInfantry = getPosTowardsTarget(target, 0.3);
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT.get());
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
+                }
+                else {
+                    movePosInfantry = getPosTowardsTarget(target, 0.6);
+                    movePosRanged = getPosTowardsTarget(target, 0.4);
+
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT.get());
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
+
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.BOWMAN.get());
+                    this.leader.setTypedRecruitsToMoveAndHold(target.position(), movePosRanged, ModEntityTypes.CROSSBOWMAN.get());
+                }
+     */
 }
 
 
