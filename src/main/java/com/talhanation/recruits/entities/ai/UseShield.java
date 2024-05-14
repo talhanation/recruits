@@ -9,6 +9,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.player.Player;
@@ -40,8 +41,8 @@ public class UseShield extends Goal {
 
     public void start() {
         if (this.entity.getOffhandItem().getItem().canPerformAction(entity.getOffhandItem(), ToolActions.SHIELD_BLOCK)){
-        this.entity.startUsingItem(InteractionHand.OFF_HAND);
-        this.entity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.12D);
+            this.entity.startUsingItem(InteractionHand.OFF_HAND);
+            this.entity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.12D);
         }
     }
 
@@ -63,41 +64,30 @@ public class UseShield extends Goal {
         LivingEntity target = this.entity.getTarget();
 
         if (target != null && target.isAlive()) {
-            Vec3 toTarget = this.entity.position().vectorTo(target.position());
-            Vec3 forward = this.entity.getForward();
-            if(forward.reverse().distanceToSqr(toTarget) < forward.distanceToSqr(toTarget) * 1.2){
-                return false;
-            }
 
             if (target instanceof Mob mobTarget) {
                 isSelfTargeted = mobTarget.getTarget() != null && mobTarget.getTarget().is(entity);
             }
+            else if (target instanceof Player player){
+                LivingEntity lastHurtMob = player.getLastHurtMob();
+                isSelfTargeted = lastHurtMob != null && lastHurtMob.is(entity);
+            }
 
             ItemStack itemStackInHand = target.getItemInHand(InteractionHand.MAIN_HAND);
-            double targetReach = AttackUtil.getAttackReachSqr(target);
+            double ownReach = AttackUtil.getAttackReachSqr(entity);
             Item itemInHand = itemStackInHand.getItem();
             double distanceToTarget = this.entity.distanceToSqr(target);
-            boolean isClose = this.entity instanceof HorsemanEntity horseman && horseman.isPassenger() ? distanceToTarget <= targetReach * 1.5 : distanceToTarget <= targetReach * 1.25 ;
+            boolean isTargetInReachToBlock = this.entity instanceof HorsemanEntity horseman && horseman.getVehicle() instanceof AbstractHorse ?  70 > distanceToTarget :  120 > distanceToTarget ;
 
-            boolean isDanger = isSelfTargeted && itemInHand instanceof CrossbowItem && CrossbowItem.isCharged(itemStackInHand)
-                    || itemInHand instanceof AxeItem
-                    || itemInHand instanceof PickaxeItem
-                    || itemInHand instanceof SwordItem;
+            boolean isDanger = itemInHand instanceof AxeItem || itemInHand instanceof PickaxeItem || itemInHand instanceof SwordItem;
 
-            if (target instanceof RangedAttackMob && isClose && isSelfTargeted) {
-                return true;
-            }
-
-            if ((isClose && (isSelfTargeted || target instanceof Player)) && (isDanger || (target instanceof Monster))){
-                return true;
-            }
-
-            if (target.isBlocking() && isClose){
-                return false;
-            }
-
-            if ( (itemInHand instanceof BowItem && !isClose) || (itemInHand instanceof CrossbowItem && CrossbowItem.isCharged(itemStackInHand) ) && isClose){
-                return true;
+            if(isSelfTargeted){
+                //For Ranged
+                if(target instanceof RangedAttackMob || (itemInHand instanceof CrossbowItem && CrossbowItem.isCharged(itemStackInHand)) || (itemInHand instanceof BowItem && target.getTicksUsingItem() > 0)){
+                    return distanceToTarget > ownReach * 1.5;
+                }
+                //For Melee
+                else return (isDanger || target instanceof Monster) && isTargetInReachToBlock;
             }
         }
         return false;
