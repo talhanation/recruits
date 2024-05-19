@@ -1,6 +1,7 @@
 package com.talhanation.recruits.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.render.layer.RecruitHumanBiomeLayer;
 import com.talhanation.recruits.client.render.layer.RecruitHumanCompanionLayer;
 import com.talhanation.recruits.client.render.layer.RecruitHumanTeamColorLayer;
 import com.talhanation.recruits.compat.IWeapon;
@@ -58,7 +59,8 @@ public class RecruitHumanRenderer extends MobRenderer<AbstractRecruitEntity, Pla
         super(mgr, new PlayerModel<>((mgr.bakeLayer(ModelLayers.PLAYER)), false), 0.5F);
         this.addLayer(new HumanoidArmorLayer<>(this, new HumanoidModel(mgr.bakeLayer(ModelLayers.PLAYER_INNER_ARMOR)), new HumanoidModel(mgr.bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR))));
         this.addLayer(new RecruitHumanTeamColorLayer(this));
-        //this.addLayer(new RecruitHumanCompanionLayer(this));
+        this.addLayer(new RecruitHumanBiomeLayer(this));
+        this.addLayer(new RecruitHumanCompanionLayer(this));
         //this.addLayer(new ArrowLayer<>(mgr, this));
         this.addLayer(new ItemInHandLayer<>(this, mgr.getItemInHandRenderer()));
         this.addLayer(new CustomHeadLayer<>(this, mgr.getModelSet(), mgr.getItemInHandRenderer()));
