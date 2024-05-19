@@ -12,7 +12,6 @@ import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
-import de.maxhenkel.corelib.item.ItemUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -59,10 +58,11 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.minecraftforge.common.Tags;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -102,6 +102,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Optional<UUID>> UPKEEP_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Byte> COLOR = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BYTE);
+    private static final EntityDataAccessor<Byte> BIOME = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BYTE);
     public int blockCoolDown;
     public boolean needsTeamUpdate = true;
     public boolean forcedUpkeep;
@@ -282,6 +283,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(OWNED, false);
         this.entityData.define(COST, 1);
         this.entityData.define(COLOR, (byte) 0);
+        this.entityData.define(BIOME, (byte) 0);
 
         //STATE
         // 0 = NEUTRAL
@@ -323,6 +325,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putInt("mountTimer", this.getMountTimer());
         nbt.putInt("upkeepTimer", this.getUpkeepTimer());
         nbt.putInt("Color", this.getColor());
+        nbt.putInt("Biome", this.getBiome());
 
         if(this.getHoldPos() != null){
             nbt.putInt("HoldPosX", this.getHoldPos().getX());
@@ -389,6 +392,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setMountTimer(nbt.getInt("mountTimer"));
         this.setUpkeepTimer(nbt.getInt("UpkeepTimer"));
         this.setColor(nbt.getByte("Color"));
+        this.setBiome(nbt.getByte("Biome"));
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
@@ -616,6 +620,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public int getColor() {
         return entityData.get(COLOR);
     }
+
+    public int getBiome() {
+        return entityData.get(BIOME);
+    }
     public DyeColor getDyeColor() {
         return DyeColor.byId(getColor());
     }
@@ -630,6 +638,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
     public void setColor(byte color){
         entityData.set(COLOR, color);
+    }
+    public void setBiome(byte biome){
+        entityData.set(BIOME, biome);
     }
     public void setUpkeepUUID(Optional<UUID> id) {
         this.entityData.set(UPKEEP_ID, id);
@@ -909,11 +920,43 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public abstract void initSpawn();
 
     public static void applySpawnValues(AbstractRecruitEntity recruit){
-        recruit.setVariant(recruit.random.nextInt(20));
         recruit.setHunger(50);
         recruit.setMoral(50);
         recruit.setListen(true);
         recruit.setXpLevel(1);
+
+
+        Holder<Biome> biome = recruit.getCommandSenderWorld().getBiome(recruit.getOnPos());
+        byte biomeByte = 2; //PLAINS
+        int variant = recruit.random.nextInt(0, 14);
+        //DESERT
+        if(biome.containsTag(Tags.Biomes.IS_DESERT)){
+            biomeByte = 0;
+            variant = recruit.random.nextInt(15, 19);
+        }
+        //JUNGLE
+        else if(biome.is(Tags.Biomes.IS_WET_OVERWORLD) && !biome.is(Tags.Biomes.IS_SANDY) && !biome.is(Tags.Biomes.IS_SWAMP)){
+            biomeByte = 1;
+            variant = recruit.random.nextInt(15, 19);
+        }
+        //SVANNA
+        else if(biome.is(Tags.Biomes.IS_HOT_OVERWORLD) && biome.is(Tags.Biomes.IS_SPARSE_OVERWORLD)){
+            biomeByte = 3;
+            variant = recruit.random.nextInt(15, 19);
+        }
+        //SNOWY
+        else if(biome.is(Tags.Biomes.IS_SNOWY)){
+            biomeByte = 4;
+            variant = recruit.random.nextInt(5, 10);
+        }
+        //TAIGA
+        else if(biome.is(Tags.Biomes.IS_CONIFEROUS)){
+            biomeByte = 5;
+            variant = recruit.random.nextInt(5, 14);
+        }
+
+        recruit.setBiome(biomeByte);
+        recruit.setVariant(variant);
     }
 
 
