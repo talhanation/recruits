@@ -36,7 +36,7 @@ public class MessageDebugGui implements Message<MessageDebugGui> {
         for (AbstractRecruitEntity recruit : list) {
 
             if (recruit.getUUID().equals(this.uuid)){
-                DebugEvents.handleMessage(id, recruit);
+                DebugEvents.handleMessage(id, recruit, context.getSender());
                 recruit.setCustomName(new TextComponent(name));
             }
 
