@@ -47,8 +47,7 @@ public class RecruitHumanRenderer extends MobRenderer<AbstractRecruitEntity, Pla
             new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_16.png"),
             new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_17.png"),
             new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_18.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_19.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_20.png")
+            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_19.png")
     };
 
     @Override
