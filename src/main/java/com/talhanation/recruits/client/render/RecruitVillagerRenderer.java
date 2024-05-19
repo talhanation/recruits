@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.events.ClientEvent;
 import com.talhanation.recruits.client.models.RecruitVillagerModel;
+import com.talhanation.recruits.client.render.layer.RecruitVillagerBiomeLayer;
 import com.talhanation.recruits.client.render.layer.RecruitVillagerTeamColorLayer;
 import com.talhanation.recruits.client.render.layer.VillagerRecruitCustomHeadLayer;
 import com.talhanation.recruits.compat.IWeapon;
@@ -14,7 +15,6 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.resources.ResourceLocation;
@@ -37,6 +37,7 @@ public class RecruitVillagerRenderer extends MobRenderer<AbstractRecruitEntity, 
         super(context, new RecruitVillagerModel(context.bakeLayer(ClientEvent.RECRUIT)), 0.5F);
         this.addLayer(new HumanoidArmorLayer<>(this, new HumanoidModel(context.bakeLayer(ClientEvent.RECRUIT_INNER_ARMOR)), new HumanoidModel(context.bakeLayer(ClientEvent.RECRUIT_OUTER_ARMOR)), context.getModelManager()));
         this.addLayer(new RecruitVillagerTeamColorLayer(this));
+        this.addLayer(new RecruitVillagerBiomeLayer(this));
         this.addLayer(new ItemInHandLayer<>(this, context.getItemInHandRenderer()));
         this.addLayer(new VillagerRecruitCustomHeadLayer<>(this, context.getModelSet(), context.getItemInHandRenderer()));
     }
