@@ -89,23 +89,32 @@ public class PatrolLeaderAttackAI extends Goal {
                 int partySize = this.getPartySize();
                 double sizeFactor = Math.abs((partySize + 1) / (enemySize + 1) );
                 double armorFactor = Math.abs((armor + 1) / (enemyArmor + 1));
+                /*
                 Main.LOGGER.info("PartySize: " + partySize);
                 Main.LOGGER.info("SizeFactor: " + sizeFactor);
                 Main.LOGGER.info("armorFactor: " + armorFactor);
                 Main.LOGGER.info("PartySize: " + partySize);
-                Main.LOGGER.info("PartySize: " + partySize);
-
+                Main.LOGGER.info("EnemySize: " + enemySize);
+                 */
+                /*
                 if((sizeFactor + armorFactor)/2 <= 0.3){
                     if(this.leader.getOwner() != null) this.leader.getOwner().sendSystemMessage(Component.literal("Retreat!"));
                     this.leader.retreating = true;
                 }
+                */
 
-                if(distanceToTarget < 1000){
+
+                this.setRecruitsTargets();
+                advance(target);
+                /*
+                if(distanceToTarget < 500){
                     charge(target);
-                    leader.commandCooldown = 400;
+
                 }
                 else if(distanceToTarget < 3000) {
-                    this.setRecruitsTargets();
+
+
+
                     leader.commandCooldown = 400;
 
                 }
@@ -113,6 +122,8 @@ public class PatrolLeaderAttackAI extends Goal {
                     advance(target);
                     leader.commandCooldown = 400;
                 }
+                */
+                leader.commandCooldown = 400;
 
                 Comparison comparisonOwnInfantry = getInfantryComparison();
                 Comparison comparisonOwnRanged = getRangedComparison();
@@ -142,14 +153,14 @@ public class PatrolLeaderAttackAI extends Goal {
         Vec3 moveVecRanged = getPosTowardsTarget(target, 0.4);
         BlockPos movePosLeader = getBlockPosTowardsTarget(target, 0.2);
 
-        this.leader.setTypedRecruitsToMoveAndHold(target.position(), moveVecInfantry, ModEntityTypes.RECRUIT.get());
-        this.leader.setTypedRecruitsToMoveAndHold(target.position(), moveVecInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
+        this.leader.setTypedRecruitsSetAndHoldPos(target.position(), moveVecInfantry, ModEntityTypes.RECRUIT.get());
+        this.leader.setTypedRecruitsSetAndHoldPos(target.position(), moveVecInfantry, ModEntityTypes.RECRUIT_SHIELDMAN.get());
 
-        this.leader.setTypedRecruitsToMoveAndHold(target.position(), moveVecRanged, ModEntityTypes.BOWMAN.get());
-        this.leader.setTypedRecruitsToMoveAndHold(target.position(), moveVecRanged, ModEntityTypes.CROSSBOWMAN.get());
+        this.leader.setTypedRecruitsSetAndHoldPos(target.position(), moveVecRanged, ModEntityTypes.BOWMAN.get());
+        this.leader.setTypedRecruitsSetAndHoldPos(target.position(), moveVecRanged, ModEntityTypes.CROSSBOWMAN.get());
 
-        //this.leader.setTypedRecruitsToMoveAndHold(target.position(), moveVecRanged, ModEntityTypes.NOMAD.get());
-        //this.leader.setTypedRecruitsToMoveAndHold(target.position(), moveVecRanged, ModEntityTypes.HORSEMAN.get());
+        this.leader.setTypedRecruitsSetAndHoldPos(target.position(), moveVecRanged, ModEntityTypes.NOMAD.get());
+        this.leader.setTypedRecruitsSetAndHoldPos(target.position(), moveVecRanged, ModEntityTypes.HORSEMAN.get());
 
         this.leader.setHoldPos(movePosLeader);
         this.leader.setFollowState(3);//LEADER BACK TO POS

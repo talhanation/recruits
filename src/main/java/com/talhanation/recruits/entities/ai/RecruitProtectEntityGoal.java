@@ -2,10 +2,11 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.vehicle.Boat;
 
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class RecruitProtectEntityGoal extends Goal {
     public void start(){
         timeToRecalcPath = 0;
         this.getProtecting();
-        this.recruit.setIsFollowing(true);
+        //this.recruit.setIsFollowing(true);
         boolean isHorseBack = recruit.getVehicle() instanceof AbstractHorse;
         this.range = isHorseBack ? 20D : 10D;
     }
@@ -40,7 +41,7 @@ public class RecruitProtectEntityGoal extends Goal {
     public void clear(){
         recruit.shouldProtect(false,null);
         recruit.setFollowState(3);
-        this.recruit.setIsFollowing(false);
+        //this.recruit.setIsFollowing(false);
         this.protectingMob = null;
     }
 
@@ -57,8 +58,6 @@ public class RecruitProtectEntityGoal extends Goal {
                     this.timeToRecalcPath = this.adjustedTickDelay(10);
                     recruit.getNavigation().moveTo(protectingMob, 1.15F);
                 }
-
-
 
                 if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
                     this.recruit.getJumpControl().jump();
@@ -84,5 +83,16 @@ public class RecruitProtectEntityGoal extends Goal {
     }
     private MutableComponent TEXT_PROTECT_DIED(String name) {
         return new TranslatableComponent("chat.recruits.text.protect_died", name);
+    }
+
+    private void checkMounts(){
+        Entity protectingVehicle = this.protectingMob.getVehicle();
+        Entity ownVehicle = this.recruit.getVehicle();
+        if(protectingVehicle == null){
+            //if(!(ownVehicle instanceof  ))
+        }
+        if(this.protectingMob.getVehicle() instanceof Boat) {
+
+        }
     }
 }

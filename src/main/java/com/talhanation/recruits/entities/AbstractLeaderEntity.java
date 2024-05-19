@@ -645,12 +645,15 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         }
     }
 
-    public void setTypedRecruitsSetAndHoldPos(BlockPos pos, EntityType<?> type){
-        for (AbstractRecruitEntity recruit : currentRecruitsInCommand){
-            if(recruit.getType().equals(type)){
-                recruit.setHoldPos(pos);//set pos
-                recruit.setFollowState(3);//back to pos
-            }
+    public void setTypedRecruitsSetAndHoldPos(Vec3 target, Vec3 linePos, EntityType<?> type){
+        List<AbstractRecruitEntity> typedList = currentRecruitsInCommand.stream().filter(recruit ->  recruit.getType().equals(type)).toList();
+
+
+        for (AbstractRecruitEntity recruit : typedList){
+            BlockPos pos = FormationUtils.calculateBlockPosition(target, linePos, typedList.size(), typedList.indexOf(recruit), this.getCommandSenderWorld());
+
+            recruit.setHoldPos(pos);//set pos
+            recruit.setFollowState(3);//back to pos
         }
     }
 
