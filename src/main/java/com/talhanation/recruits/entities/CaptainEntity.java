@@ -25,12 +25,14 @@ import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
 public class CaptainEntity extends AbstractLeaderEntity implements IBoatController, IStrategicFire {
 
     public boolean shipAttacking = false;
+    private int waitTimerForRecruitsToGetOnBoard;
     private static final EntityDataAccessor<Optional<BlockPos>> SAIL_POS = SynchedEntityData.defineId(CaptainEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
@@ -232,13 +234,34 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
     }
 
     public void handleResupply() {
+        super.handleResupply();
+        this.stopRiding();
+        this.setRecruitsDismount();
+        waitTimerForRecruitsToGetOnBoard = 500;
         //Repair ship
         //restock cannonballs
         //
     }
 
+    protected void handleUpkeepState() {
+        if(waitForRecruitsUpkeepTime == 0){
+            this.shouldMount(true, this.getMountUUID());
+            this.setRecruitsToFollow();
+            if(this.getVehicle() != null && this.getVehicle().getUUID().equals(this.getMountUUID())){
+                if(isRecruitsInCommandOnBoard()){
+                    waitForRecruitsUpkeepTime = this.getAgainResupplyTime(); // time to resupply again
+                    this.setPatrolState(State.PATROLLING);
+                }
+            }
+        }
+    }
+
+    private boolean isRecruitsInCommandOnBoard() {
+        return getRecruitsInCommand().stream().allMatch(recruit -> recruit.getVehicle() != null && recruit.getVehicle().equals(this.getVehicle()));
+    }
+
     public int getResupplyTime() {
-        return 2000;
+        return 1000;
     }
 
     @Override
