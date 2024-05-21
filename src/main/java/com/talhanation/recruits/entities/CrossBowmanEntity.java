@@ -26,6 +26,7 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -106,6 +107,7 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
                 .add(Attributes.ATTACK_DAMAGE, 1.5D)
                 .add(Attributes.FOLLOW_RANGE, 64.0D)
+                .add(ForgeMod.ATTACK_RANGE.get(), 0D)
                 .add(Attributes.ATTACK_SPEED);
     }
 
