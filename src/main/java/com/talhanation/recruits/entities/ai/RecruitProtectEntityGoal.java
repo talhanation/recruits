@@ -95,17 +95,20 @@ public class RecruitProtectEntityGoal extends Goal {
     }
 
     private void checkMounts(){
-        Entity protectingVehicle = this.protectingMob.getVehicle();
-        Entity ownVehicle = this.recruit.getVehicle();
-        if(protectingVehicle == null ){
-            if(ownVehicle instanceof AbstractHorse) ownVehicle.stopRiding();
-            else this.recruit.stopRiding();
-        }
-        else if(protectingVehicle instanceof Boat boat) {
-            if(ownVehicle instanceof AbstractHorse) {
-                ownVehicle.startRiding(boat);
+        if(protectingMob != null){
+            Entity protectingVehicle = this.protectingMob.getVehicle();
+            Entity ownVehicle = this.recruit.getVehicle();
+            if(protectingVehicle == null ){
+                if(ownVehicle instanceof AbstractHorse) ownVehicle.stopRiding();
+                else this.recruit.stopRiding();
             }
-            else this.recruit.shouldMount(true, boat.getUUID());
+            else if(protectingVehicle instanceof Boat boat) {
+                if(ownVehicle instanceof AbstractHorse) {
+                    ownVehicle.startRiding(boat);
+                }
+                else this.recruit.shouldMount(true, boat.getUUID());
+            }
         }
+
     }
 }
