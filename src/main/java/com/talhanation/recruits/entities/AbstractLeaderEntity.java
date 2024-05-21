@@ -49,12 +49,12 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     public boolean retreating;
     public int commandCooldown = 0;
     protected BlockPos currentWaypoint;
-    private int waitingTime = 0;
-    private int waitForRecruitsUpkeepTime = 0;
+    protected int waitingTime = 0;
+    protected int waitForRecruitsUpkeepTime = 0;
     public int infoCooldown = 0;
-    private State state = State.IDLE;
-    private State prevState = null;
-    private String ownerName = "";
+    protected State state = State.IDLE;
+    protected State prevState = null;
+    protected String ownerName = "";
     public AbstractLeaderEntity(EntityType<? extends AbstractLeaderEntity> entityType, Level world) {
         super(entityType, world);
     }
@@ -202,11 +202,8 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                         }
                         else
                         {
-                            updateWaypointIndex();
+                            this.updateWaypointIndex();
                             this.setRecruitsToFollow();
-                            if(this.getVehicle()!= null) setRecruitsDismount();
-                            else setRecruitsMount();
-
 
                             this.waitingTime = 0;
 
@@ -267,11 +264,15 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             }
 
             case UPKEEP -> {
-                if(waitForRecruitsUpkeepTime == 0){
-                    waitForRecruitsUpkeepTime = this.getAgainResupplyTime(); // time to resupply again
-                    this.setPatrolState(State.PATROLLING);
-                }
+                this.handleUpkeepState();
             }
+        }
+    }
+
+    protected void handleUpkeepState() {
+        if(waitForRecruitsUpkeepTime == 0){
+            waitForRecruitsUpkeepTime = this.getAgainResupplyTime(); // time to resupply again
+            this.setPatrolState(State.PATROLLING);
         }
     }
 
@@ -809,21 +810,6 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             }
             throw new IllegalArgumentException("Invalid InfoMode index: " + index);
         }
-    }
-    @Override
-    public boolean startRiding(Entity p_20330_) {
-        if(super.startRiding(p_20330_, false)){
-            this.setRecruitsMount();
-            return true;
-        }
-        return false;
-    }
-
-    public void shouldMount(boolean should, UUID mount_uuid) {
-        super.shouldMount(should, mount_uuid);
-
-        if (should) this.setRecruitsMount();
-        else this.setRecruitsDismount();
     }
 }
 
