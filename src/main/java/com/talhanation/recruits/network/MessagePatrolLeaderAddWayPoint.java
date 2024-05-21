@@ -6,6 +6,7 @@ import de.maxhenkel.corelib.net.Message;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
@@ -15,12 +16,17 @@ import java.util.UUID;
 
 public class MessagePatrolLeaderAddWayPoint implements Message<MessagePatrolLeaderAddWayPoint> {
     private UUID worker;
-
+    private int x;
+    private int y;
+    private int z;
     public MessagePatrolLeaderAddWayPoint() {
     }
 
-    public MessagePatrolLeaderAddWayPoint(UUID recruit) {
+    public MessagePatrolLeaderAddWayPoint(UUID recruit, int x, int y, int z) {
         this.worker = recruit;
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
     public Dist getExecutingSide() {
@@ -37,14 +43,10 @@ public class MessagePatrolLeaderAddWayPoint implements Message<MessagePatrolLead
                 .stream()
                 .filter(AbstractLeaderEntity::isAlive)
                 .findAny()
-                .ifPresent(merchant -> this.addWayPoint(player, merchant));
+                .ifPresent(merchant -> this.addWayPoint(new BlockPos(x,y,z), player, merchant));
     }
 
-    private void addWayPoint(ServerPlayer player, AbstractLeaderEntity leaderEntity){
-        BlockPos pos;
-        if(leaderEntity.isInWater()) pos = leaderEntity.getOnPos().above();
-        else pos = leaderEntity.getOnPos();
-        //leaderEntity.tellPlayer(player, Component.literal("Pos: " + pos + " was added."));
+    private void addWayPoint(BlockPos pos, Player player, AbstractLeaderEntity leaderEntity){
         BlockState state = leaderEntity.getCommandSenderWorld().getBlockState(pos);
         if(state.isAir()) pos = pos.below();
 
@@ -55,11 +57,17 @@ public class MessagePatrolLeaderAddWayPoint implements Message<MessagePatrolLead
 
     public MessagePatrolLeaderAddWayPoint fromBytes(FriendlyByteBuf buf) {
         this.worker = buf.readUUID();
+        this.x = buf.readInt();
+        this.y = buf.readInt();
+        this.z = buf.readInt();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(this.worker);
+        buf.writeInt(this.x);
+        buf.writeInt(this.y);
+        buf.writeInt(this.z);
     }
 
 }

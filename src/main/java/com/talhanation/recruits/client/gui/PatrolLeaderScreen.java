@@ -9,6 +9,7 @@ import com.talhanation.recruits.inventory.PatrolLeaderContainer;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -18,19 +19,22 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.client.gui.widget.ForgeSlider;
 
-import javax.swing.text.html.StyleSheet;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
 public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/professions/waypoint_list_gui.png");
     public static int recruitsSize;
+    private EditBox textBoxX;
+    private EditBox textBoxY;
+    private EditBox textBoxZ;
+
     private final Player player;
     private final AbstractLeaderEntity recruit;
     private int page = 1;
@@ -100,7 +104,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     @Override
     protected void init() {
         super.init();
-
+        minecraft.keyboardHandler.setSendRepeatsToGui(true);
         this.leftPos = this.offset + (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
         this.cycle = recruit.getCycle();
@@ -133,7 +137,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
 
         this.setPageButtons();
         this.setWaypointButtons();
-        this.setWaitTimeSlider();
+        this.setCoordinatesBoxes();
 
         this.setAssignButton();
 
@@ -146,7 +150,6 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
             startString = BUTTON_RESUME;
             startToolTip = TOOLTIP_RESUME;
         }
-
 
         Component stopString;
         Component stopToolTip;
@@ -201,6 +204,37 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
             }));
     }
 
+    private void setCoordinatesBoxes() {
+
+        int posX = recruit.getOnPos().getX();
+        int posY = recruit.getOnPos().getY();
+        int posZ = recruit.getOnPos().getZ();
+
+        textBoxX = new EditBox(font, leftPos + 16, topPos + 37, 50, 18, Component.literal(String.valueOf(posX)));
+        textBoxX.setValue(String.valueOf(posX));
+        textBoxX.setTextColor(-1);
+        textBoxX.setTextColorUneditable(-1);
+        textBoxX.setBordered(true);
+        textBoxX.setMaxLength(13);
+
+        textBoxY = new EditBox(font, leftPos + 16 + 55, topPos + 37, 50, 18, Component.literal(String.valueOf(posY)));
+        textBoxY.setValue(String.valueOf(posY));
+        textBoxY.setTextColor(-1);
+        textBoxY.setTextColorUneditable(-1);
+        textBoxY.setBordered(true);
+        textBoxY.setMaxLength(13);
+
+        textBoxZ = new EditBox(font, leftPos + 16 + 110, topPos + 37, 50, 18, Component.literal(String.valueOf(posZ)));
+        textBoxZ.setValue(String.valueOf(posZ));
+        textBoxZ.setTextColor(-1);
+        textBoxZ.setTextColorUneditable(-1);
+        textBoxZ.setBordered(true);
+        textBoxZ.setMaxLength(13);
+
+        addRenderableWidget(textBoxX);
+        addRenderableWidget(textBoxY);
+        addRenderableWidget(textBoxZ);
+    }
     private void setWaitTimeSlider() {
         int minValue = 0;
         int maxValue = 30;
@@ -224,7 +258,12 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
                     this.renderTooltip(poseStack, tooltip, i, i1);
                 }
         ));
-        startButton.active = state == AbstractLeaderEntity.State.STOPPED || state == AbstractLeaderEntity.State.IDLE;
+        if(recruit instanceof CaptainEntity && !(recruit.getVehicle() instanceof Boat)){
+            startButton.active =  false;
+        }
+        else
+            startButton.active = (state == AbstractLeaderEntity.State.STOPPED || state == AbstractLeaderEntity.State.IDLE);
+
     }
 
     public void setFastPatrollingButton(Component cycle) {
@@ -279,16 +318,16 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
 
     @Override
     public boolean mouseReleased(double p_97812_, double p_97813_, int p_97814_) {
-        if(this.recruit != null)
-            Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetWaitTime(this.recruit.getUUID(),  this.waitSlider.getValueInt()));
+        //if(this.recruit != null)
+            //Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetWaitTime(this.recruit.getUUID(),  this.waitSlider.getValueInt()));
 
         return super.mouseReleased(p_97812_, p_97813_, p_97814_);
     }
 
     @Override
     public boolean mouseDragged(double p_97752_, double p_97753_, int p_97754_, double p_97755_, double p_97756_) {
-        if(waitSlider.isHoveredOrFocused() && waitSlider.mouseClicked(p_97752_, p_97753_, p_97754_))
-            waitSlider.mouseDragged(p_97752_, p_97753_, p_97754_, p_97755_, p_97756_);
+        //if(waitSlider.isHoveredOrFocused() && waitSlider.mouseClicked(p_97752_, p_97753_, p_97754_))
+        //    waitSlider.mouseDragged(p_97752_, p_97753_, p_97754_, p_97755_, p_97756_);
         return super.mouseDragged(p_97752_, p_97753_, p_97754_, p_97755_, p_97756_);
     }
 
@@ -332,7 +371,10 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private Button createAddWaypointButton(int x, int y){
         return addRenderableWidget(new Button(x, y, 20, 20, new TextComponent("+"),
                 button -> {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderAddWayPoint(recruit.getUUID()));
+                    int posX = Integer.parseInt(textBoxX.getValue());
+                    int posY = Integer.parseInt(textBoxY.getValue());
+                    int posZ = Integer.parseInt(textBoxZ.getValue());
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderAddWayPoint(recruit.getUUID(), posX, posY, posZ));
                     this.setButtons();
                 },
                 (button, poseStack, i, i1) -> {
