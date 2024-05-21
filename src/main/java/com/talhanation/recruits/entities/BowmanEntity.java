@@ -29,6 +29,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -100,6 +101,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
                 .add(Attributes.FOLLOW_RANGE, 64.0D) //do not change as ranged ai dependants on it
+                .add(ForgeMod.ATTACK_RANGE.get(), 0D)
                 .add(Attributes.ATTACK_SPEED);
     }
 
