@@ -8,7 +8,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.extensions.IForgeEntity;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
@@ -50,6 +53,7 @@ public class MessageMountEntityGui implements Message<MessageMountEntityGui> {
             ArrayList<Entity> list = (ArrayList<Entity>) recruit.level.getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(8));
 
             list.removeIf(mount -> !RecruitsServerConfig.MountWhiteList.get().contains(mount.getEncodeId()));
+            list.removeIf(mount -> mount instanceof AbstractHorse horse && horse.hasControllingPassenger());
             list.sort(Comparator.comparing(horseInList -> horseInList.distanceTo(recruit)));
 
             if(!list.isEmpty()){
