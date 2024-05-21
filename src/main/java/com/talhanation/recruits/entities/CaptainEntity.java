@@ -21,6 +21,7 @@ import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -90,6 +91,7 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.1D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
                 .add(Attributes.FOLLOW_RANGE, 128.0D)
+                .add(ForgeMod.ATTACK_RANGE.get(), 0D)
                 .add(Attributes.ATTACK_SPEED);
     }
 
