@@ -54,12 +54,14 @@ public class RecruitProtectEntityGoal extends Goal {
     public void tick() {
 
         if(this.protectingMob != null) {
+
+
             boolean isClose = protectingMob.distanceTo(this.recruit) <= range;
             if(!isClose){
                 if (--this.timeToRecalcPath <= 0) {
                     this.timeToRecalcPath = this.adjustedTickDelay(10);
                     recruit.getNavigation().moveTo(protectingMob, 1.15F);
-                    checkMounts();
+
                 }
 
                 if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
@@ -73,6 +75,11 @@ public class RecruitProtectEntityGoal extends Goal {
                 if (recruit.getOwner() != null)recruit.getOwner().sendSystemMessage(TEXT_PROTECT_DIED(recruit.getName().getString()));
             }
             clear();
+        }
+
+        if(this.recruit.tickCount % 20 == 0){
+            this.getProtecting();
+            this.checkMounts();
         }
     }
 
@@ -91,7 +98,7 @@ public class RecruitProtectEntityGoal extends Goal {
     private void checkMounts(){
         Entity protectingVehicle = this.protectingMob.getVehicle();
         Entity ownVehicle = this.recruit.getVehicle();
-        if(protectingVehicle == null){
+        if(protectingVehicle == null ){
             if(ownVehicle instanceof AbstractHorse) ownVehicle.stopRiding();
             else this.recruit.stopRiding();
         }
