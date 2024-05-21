@@ -14,7 +14,6 @@ import java.util.List;
 public class MessageToClientUpdateLeaderScreen implements Message<MessageToClientUpdateLeaderScreen> {
     public List<BlockPos> waypoints;
     public List<ItemStack> waypointItems;
-    public boolean isStarted;
     public int size;
 
     public MessageToClientUpdateLeaderScreen() {
@@ -43,7 +42,6 @@ public class MessageToClientUpdateLeaderScreen implements Message<MessageToClien
         this.waypoints = buf.readList(FriendlyByteBuf::readBlockPos);
         this.waypointItems = buf.readList(FriendlyByteBuf::readItem);
         this.size = buf.readInt();
-//        this.isStarted = buf.readBoolean();
         return this;
     }
 
@@ -52,7 +50,6 @@ public class MessageToClientUpdateLeaderScreen implements Message<MessageToClien
         buf.writeCollection(waypoints, FriendlyByteBuf::writeBlockPos);
         buf.writeCollection(waypointItems, FriendlyByteBuf::writeItem);
         buf.writeInt(this.size);
-//      buf.writeBoolean(this.isStarted);
     }
 }
 

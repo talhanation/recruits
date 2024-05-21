@@ -2,7 +2,6 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.*;
-import com.talhanation.recruits.entities.ai.PatrolLeaderTargetAttackers;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
@@ -255,8 +254,6 @@ public class VillagerEvents {
         patrolLeader.setCustomName(new TranslatableComponent(name));
 
         patrolLeader.setProtectUUID(Optional.of(patrolLeader.getUUID()));
-
-        patrolLeader.targetSelector.addGoal(2, new PatrolLeaderTargetAttackers(patrolLeader));
 
         world.addFreshEntity(patrolLeader);
         return patrolLeader;

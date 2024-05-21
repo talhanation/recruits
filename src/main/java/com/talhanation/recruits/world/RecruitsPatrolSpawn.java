@@ -2,7 +2,6 @@ package com.talhanation.recruits.world;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.*;
-import com.talhanation.recruits.entities.ai.PatrolLeaderTargetAttackers;
 import com.talhanation.recruits.entities.ai.villager.FollowCaravanOwner;
 import com.talhanation.recruits.init.ModEntityTypes;
 
@@ -28,7 +27,6 @@ import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.levelgen.Heightmap.Types;
 
 import javax.annotation.Nullable;
-import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Random;
@@ -581,7 +579,6 @@ public class RecruitsPatrolSpawn {
 
         patrolLeader.setProtectUUID(Optional.of(patrolLeader.getUUID()));
 
-        patrolLeader.targetSelector.addGoal(2, new PatrolLeaderTargetAttackers(patrolLeader));
 
         setRecruitFood(patrolLeader);
 
