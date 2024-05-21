@@ -232,7 +232,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         this.targetSelector.addGoal(0, new RecruitProtectHurtByTargetGoal(this));
         this.targetSelector.addGoal(1, new RecruitOwnerHurtByTargetGoal(this));
-        this.targetSelector.addGoal(2, new PatrolLeaderTargetAttackers(this));
         this.targetSelector.addGoal(3, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
         this.targetSelector.addGoal(4, new RecruitOwnerHurtTargetGoal(this));
 
@@ -1096,6 +1095,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if(isBlocking()) hurtCurrentlyUsedShield(amt);
 
             if(entity instanceof LivingEntity living && RecruitEvents.canDamageTarget(this, living)){
+                if(this.getFollowState() == 5){//Protecting
+                    List<AbstractRecruitEntity> list = this.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, this.getBoundingBox().inflate(32D));
+                    for(AbstractRecruitEntity recruit : list){
+                        if (recruit.getUUID().equals(recruit.getProtectUUID()) && recruit.isAlive() && !recruit.equals(living)){
+                            //Patrolleader
+                            recruit.setTarget(living);
+                        }
+                    }
+                }
+
+
                 if(this.getTarget() != null){
                     double d1 = this.distanceToSqr(this.getTarget());
                     double d2 = this.distanceToSqr(living);
