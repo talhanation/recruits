@@ -33,7 +33,7 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
         LivingEntity livingentity = this.recruit.getLastHurtByMob();
 
         if(i != this.timestamp && livingentity != null) {
-                return this.canAttack(livingentity, HURT_BY_TARGETING) && (recruit.getState() != 3);
+                return this.canAttack(livingentity, HURT_BY_TARGETING) && (recruit.getState() != 3) && !(this.recruit.getTeam() != null && this.recruit.getTeam().isAlliedTo(livingentity.getTeam()) && !this.recruit.getTeam().isAllowFriendlyFire());
             }
         return false;
     }
@@ -43,9 +43,9 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
         this.toIgnoreAlert = p_220794_1_;
         return this;
     }
-
     public void start() {
-        this.recruit.setTarget(this.recruit.getLastHurtByMob());
+        LivingEntity hurtingMob = this.recruit.getLastHurtByMob();
+        this.recruit.setTarget(hurtingMob);
         this.targetMob = this.recruit.getTarget();
         this.timestamp = this.recruit.getLastHurtByMobTimestamp();
         this.unseenMemoryTicks = 300;
