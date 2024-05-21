@@ -72,7 +72,6 @@ public interface IBoatController {
         Vec3 toTarget = boat.position().subtract(target).normalize();
 
         double phi = horizontalAngleBetweenVectors(forward, toTarget);
-        //Main.LOGGER.info("phi: " + phi);
         double ref = 63.5F;
         boolean inputLeft =  (phi < ref);
         boolean inputRight = (phi > ref);
@@ -82,24 +81,7 @@ public interface IBoatController {
         float acceleration = 0.005F;
         float setPoint = 0;
         float boatSpeed = 0;
-
-        /*
-        try {
-            Class<?> shipClass = Class.forName("talhnation.smallships.world.entity.ship.Ship");
-            if(shipClass.isInstance(boat)){
-                Object ship = shipClass.cast(boat);
-
-                Method getSpeedMethod = ship.getClass().getMethod("getSpeed", float.class);
-                boatSpeed = getSpeedMethod.
-            }
-        } catch (ClassNotFoundException e) {
-            Main.LOGGER.info("smallShipsShipClass was not found");
-        } catch (NoSuchMethodException e) {
-            Main.LOGGER.info("setSpeedMethod was not found");
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            Main.LOGGER.info("setSpeedMethod could not invocation");
-        }
-        */
+        boolean isLeashed = false;
 
         try{
             Class<?> shipClass = Class.forName("com.talhanation.smallships.world.entity.ship.Ship");
@@ -108,50 +90,50 @@ public interface IBoatController {
 
                 Method shipClassGetSpeed = shipClass.getMethod("getSpeed");
                 Method shipClassUpdateControls = shipClass.getMethod("updateControls", boolean.class, boolean.class, boolean.class, boolean.class, Player.class);
+                Method shipClassIsLeashed = shipClass.getMethod("isShipLeashed");
 
                 boatSpeed = (float) shipClassGetSpeed.invoke(ship);
+                isLeashed = (boolean) shipClassIsLeashed.invoke(ship);
 
                 shipClassUpdateControls.invoke(ship,inputUp, false, inputLeft, inputRight, null);
 
-                //TODO if(this.isInWater() && !((BoatLeashAccess) this).isLeashed()){ need smallsips update
+                if(boat.isInWater() && !isLeashed){
 
-                if(!inAngleForSail){
-                    setSmallShipsSailState((Boat) ship,0);
-                    setPoint = 0.02F;
-                }
-                else if (inputUp) {
-                    double distance = toTarget.distanceToSqr(boat.position());
-                    byte state = 3;
-                    if(fast){
-                        state = 4;
-                        setPoint = 0.3F;
+                    if(!inAngleForSail){
+                        setSmallShipsSailState((Boat) ship,0);
+                        setPoint = 0.02F;
                     }
-                    else if(distance > 20){
-                        setPoint = 0.15F;
+                    else if (inputUp) {
+                        double distance = toTarget.distanceToSqr(boat.position());
+                        byte state = 3;
+                        if(fast){
+                            state = 4;
+                            setPoint = 0.3F;
+                        }
+                        else if(distance > 20){
+                            setPoint = 0.15F;
+                        }
+                        else{
+                            setPoint = 0.075F;
+                        }
+                        setSmallShipsSailState((Boat) ship,state);
+                    }
+                    else if(getCaptain().getFollowState() == 1) {
+                        setSmallShipsSailState((Boat) ship,1);
+                        setPoint = 0.025F;
                     }
                     else{
-                        setPoint = 0.075F;
+                        setSmallShipsSailState((Boat) ship,0);
+                        setPoint = 0.0F;
                     }
-                    setSmallShipsSailState((Boat) ship,state);
+
+                    this.calculateSpeed(boat, boatSpeed, acceleration, setPoint);
+
+                    rotateSmallShip(boat, inputLeft, inputRight);
+
+                    //SET
+                    boat.setDeltaMovement(calculateMotionX(boatSpeed, boat.getYRot()), 0.0F, calculateMotionZ(boatSpeed, boat.getYRot()));
                 }
-                else if(getCaptain().getFollowState() == 1) {
-                    setSmallShipsSailState((Boat) ship,1);
-                    setPoint = 0.025F;
-                }
-                else{
-                    setSmallShipsSailState((Boat) ship,0);
-                    setPoint = 0.0F;
-                }
-
-                this.calculateSpeed(boat, boatSpeed, acceleration, setPoint);
-
-                rotateSmallShip(boat, inputLeft, inputRight);
-
-                //SET
-                boat.setDeltaMovement(calculateMotionX(boatSpeed, boat.getYRot()), 0.0F, calculateMotionZ(boatSpeed, boat.getYRot()));
-                //}
-
-
             }
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             Main.LOGGER.info("shipClass was not found");
