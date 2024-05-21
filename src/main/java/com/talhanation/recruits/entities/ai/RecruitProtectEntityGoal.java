@@ -9,6 +9,7 @@ import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.vehicle.Boat;
 
 import java.util.List;
+import java.util.Optional;
 
 public class RecruitProtectEntityGoal extends Goal {
 
@@ -57,6 +58,7 @@ public class RecruitProtectEntityGoal extends Goal {
                 if (--this.timeToRecalcPath <= 0) {
                     this.timeToRecalcPath = this.adjustedTickDelay(10);
                     recruit.getNavigation().moveTo(protectingMob, 1.15F);
+                    checkMounts();
                 }
 
                 if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
@@ -89,10 +91,14 @@ public class RecruitProtectEntityGoal extends Goal {
         Entity protectingVehicle = this.protectingMob.getVehicle();
         Entity ownVehicle = this.recruit.getVehicle();
         if(protectingVehicle == null){
-            //if(!(ownVehicle instanceof  ))
+            if(ownVehicle instanceof AbstractHorse) ownVehicle.stopRiding();
+            else this.recruit.stopRiding();
         }
-        if(this.protectingMob.getVehicle() instanceof Boat) {
-
+        else if(protectingVehicle instanceof Boat boat) {
+            if(ownVehicle instanceof AbstractHorse) {
+                ownVehicle.startRiding(boat);
+            }
+            else this.recruit.shouldMount(true, boat.getUUID());
         }
     }
 }
