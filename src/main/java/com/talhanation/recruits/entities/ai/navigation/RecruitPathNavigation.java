@@ -9,9 +9,10 @@ import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import org.jetbrains.annotations.NotNull;
 
 public class RecruitPathNavigation extends GroundPathNavigation {
-
+    AbstractRecruitEntity recruit;
     public RecruitPathNavigation(AbstractRecruitEntity recruit, Level world) {
         super(recruit, world);
+        this.recruit = recruit;
         recruit.setPathfindingMalus(BlockPathTypes.WATER, 32.0F);
         recruit.setPathfindingMalus(BlockPathTypes.TRAPDOOR, 32.0F);
         recruit.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, 32.0F);
@@ -29,5 +30,10 @@ public class RecruitPathNavigation extends GroundPathNavigation {
         this.nodeEvaluator.setCanPassDoors(true);
         this.nodeEvaluator.setCanFloat(true);
         return new PathFinder(this.nodeEvaluator, range);
+    }
+
+    public boolean moveTo(double p_26520_, double p_26521_, double p_26522_, double p_26523_) {
+        this.recruit.setMaxFallDistance(1);
+        return this.moveTo(this.createPath(p_26520_, p_26521_, p_26522_, 1), p_26523_);
     }
 }
