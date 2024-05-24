@@ -117,9 +117,7 @@ public class CaptainControlBoatAI extends Goal {
                 }
 
                 case CREATING_PATH -> {
-                    if (this.sailPos != null) {
-
-                        SailorPathNavigation sailorPathNavigation = (SailorPathNavigation) captain.getNavigation();
+                    if (this.sailPos != null && captain.getNavigation() instanceof SailorPathNavigation sailorPathNavigation) {
                         this.path = sailorPathNavigation.createPath(this.sailPos, 32, false, 0);
 
                         if (path != null) {
