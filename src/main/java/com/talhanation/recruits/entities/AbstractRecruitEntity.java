@@ -111,6 +111,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public int despawnTimer = -1;
     public boolean reachedMovePos;
     public int attackCooldown = 0;
+    private int maxFallDistance;
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
         this.xpReward = 6;
@@ -129,6 +130,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public double getMyRidingOffset() {
         return -0.35D;
+    }
+
+    public int getMaxFallDistance() {
+        return maxFallDistance;
+    }
+
+    public void setMaxFallDistance(int x){
+        this.maxFallDistance = x;
     }
 
     ///////////////////////////////////TICK/////////////////////////////////////////
@@ -319,6 +328,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putInt("upkeepTimer", this.getUpkeepTimer());
         nbt.putInt("Color", this.getColor());
         nbt.putInt("Biome", this.getBiome());
+        nbt.putInt("MaxFallDistance", this.getMaxFallDistance());
 
         if(this.getHoldPos() != null){
             nbt.putInt("HoldPosX", this.getHoldPos().getX());
@@ -386,6 +396,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setUpkeepTimer(nbt.getInt("UpkeepTimer"));
         this.setColor(nbt.getByte("Color"));
         this.setBiome(nbt.getByte("Biome"));
+        this.setMaxFallDistance(nbt.getInt("MaxFallDistance"));
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
