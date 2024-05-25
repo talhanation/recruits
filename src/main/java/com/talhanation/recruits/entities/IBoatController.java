@@ -26,7 +26,6 @@ public interface IBoatController {
     static ItemStack getSmallShipsItem() {
         return ForgeRegistries.ITEMS.getDelegateOrThrow(ResourceLocation.tryParse("smallships:oak_cog")).get().getDefaultInstance();
     }
-
     default CaptainEntity getCaptain() {
         return (CaptainEntity) this;
     }
@@ -198,18 +197,19 @@ public interface IBoatController {
                     Class<?> sailableClass = Class.forName("com.talhanation.smallships.world.entity.ship.abilities.Sailable");
                     if(sailableClass.isInstance(boat)){
                         Object sailable = sailableClass.cast(boat);
-                        Method sailableClassGetSailStateCooldown = sailableClass.getMethod("getSailStateCooldown");
-                        int configCoolDown = (int) sailableClassGetSailStateCooldown.invoke(sailable);
+                        if(sailable != null){
+                            Method sailableClassGetSailStateCooldown = sailableClass.getMethod("getSailStateCooldown");
+                            int configCoolDown = (int) sailableClassGetSailStateCooldown.invoke(sailable);
 
 
-                        Method sailableClassSetSailState = sailableClass.getMethod("setSailState", byte.class);
-                        Method sailableClassGetSailState = sailableClass.getMethod("getSailState");
-                        byte currentSail = (byte) sailableClassGetSailState.invoke(sailable);
-                        if(currentSail != (byte) state) sailableClassSetSailState.invoke(sailable, (byte) state);
+                            Method sailableClassSetSailState = sailableClass.getMethod("setSailState", byte.class);
+                            Method sailableClassGetSailState = sailableClass.getMethod("getSailState");
+                            byte currentSail = (byte) sailableClassGetSailState.invoke(sailable);
+                            if(currentSail != (byte) state) sailableClassSetSailState.invoke(sailable, (byte) state);
 
-                        coolDownFlied.setInt(boat, configCoolDown);
+                            coolDownFlied.setInt(boat, configCoolDown);
+                        }
                     }
-
                 }
                 catch (ClassNotFoundException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                     Main.LOGGER.info("SailableClass was not found");
