@@ -27,7 +27,6 @@ public class RecruitsServerConfig{
     public static ForgeConfigSpec.IntValue RecruitsMaxXpLevel;
     public static ForgeConfigSpec.BooleanValue PillagerIncreasedCombatRange;
     public static ForgeConfigSpec.BooleanValue VindicatorSpawnItems;
-    public static ForgeConfigSpec.BooleanValue DisableVanillaTeamCommands;
     public static ForgeConfigSpec.BooleanValue PillagerSpawnItems;
     public static ForgeConfigSpec.IntValue MaxAssassinCount;
     public static ForgeConfigSpec.IntValue RecruitCost;
@@ -68,7 +67,7 @@ public class RecruitsServerConfig{
     public static ForgeConfigSpec.BooleanValue RecruitsChunkLoading;
     public static ForgeConfigSpec.BooleanValue UpdateCheckerServerside;
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
-            Arrays.asList("minecraft:creeper", "minecraft:ghast"));
+            Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin"));
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:poisonous_potato", "minecraft:spider_eye", "minecraft:pufferfish"));
     public static ArrayList<String> MOUNTS = new ArrayList<>(
