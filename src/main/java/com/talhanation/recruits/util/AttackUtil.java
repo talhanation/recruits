@@ -45,7 +45,7 @@ public abstract class AttackUtil {
     cooldown should be + 5 ticks for gameplay
      */
     public static double getAttackReachSqr(LivingEntity living) {
-        float base = 10F;
+        float base = 5F;
         if(living.getAttribute(ForgeMod.ATTACK_RANGE.get()) != null){
             double attackReach = living.getAttributeValue(ForgeMod.ATTACK_RANGE.get());
             //Vanilla reach is 10
@@ -54,7 +54,7 @@ public abstract class AttackUtil {
             // reach +2.0 == 45
             // reach +3.0 == 60
             if(attackReach > 0){
-                return base * attackReach;
+                return 2*base * attackReach;
             }
         }
         return base;
