@@ -46,7 +46,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private boolean fastPatrolling;
     private AbstractLeaderEntity.State state;
     private AbstractLeaderEntity.InfoMode infoMode;
-
+    
     private static final MutableComponent TOOLTIP_START = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_start");
     private static final MutableComponent TOOLTIP_STOP = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_stop");
     private static final MutableComponent TOOLTIP_PAUSE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_pause");
@@ -210,21 +210,21 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         int posY = recruit.getOnPos().getY();
         int posZ = recruit.getOnPos().getZ();
 
-        textBoxX = new EditBox(font, leftPos + 16, topPos + 37, 50, 18, Component.literal(String.valueOf(posX)));
+        textBoxX = new EditBox(font, leftPos + 16 + 15, topPos + 37, 43, 18, Component.literal(String.valueOf(posX)));
         textBoxX.setValue(String.valueOf(posX));
         textBoxX.setTextColor(-1);
         textBoxX.setTextColorUneditable(-1);
         textBoxX.setBordered(true);
         textBoxX.setMaxLength(13);
 
-        textBoxY = new EditBox(font, leftPos + 16 + 55, topPos + 37, 50, 18, Component.literal(String.valueOf(posY)));
+        textBoxY = new EditBox(font, leftPos + 16 + 75, topPos + 37, 43, 18, Component.literal(String.valueOf(posY)));
         textBoxY.setValue(String.valueOf(posY));
         textBoxY.setTextColor(-1);
         textBoxY.setTextColorUneditable(-1);
         textBoxY.setBordered(true);
         textBoxY.setMaxLength(13);
 
-        textBoxZ = new EditBox(font, leftPos + 16 + 110, topPos + 37, 50, 18, Component.literal(String.valueOf(posZ)));
+        textBoxZ = new EditBox(font, leftPos + 16 + 135, topPos + 37, 43, 18, Component.literal(String.valueOf(posZ)));
         textBoxZ.setValue(String.valueOf(posZ));
         textBoxZ.setTextColor(-1);
         textBoxZ.setTextColorUneditable(-1);
@@ -247,7 +247,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
 
     public void setCycleButton(Component cycle, Component tooltip) {
-        Button startButton = addRenderableWidget(new Button(leftPos + 105, topPos + 11, 40, 20, cycle,
+        Button cycleButton = addRenderableWidget(new Button(leftPos + 105, topPos + 11, 40, 20, cycle,
                 button -> {
                     this.cycle = !this.cycle;
                     Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetCycle(this.recruit.getUUID(), this.cycle));
@@ -258,11 +258,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
                     this.renderTooltip(poseStack, tooltip, i, i1);
                 }
         ));
-        if(recruit instanceof CaptainEntity && !(recruit.getVehicle() instanceof Boat)){
-            startButton.active =  false;
-        }
-        else
-            startButton.active = (state == AbstractLeaderEntity.State.STOPPED || state == AbstractLeaderEntity.State.IDLE);
+        cycleButton.active = (state == AbstractLeaderEntity.State.STOPPED || state == AbstractLeaderEntity.State.IDLE);
 
     }
 
@@ -290,10 +286,14 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
                     this.setButtons();
                 },
                 (button, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, tooltip, i, i1);
+                    this.renderTooltip(poseStack, recruit instanceof CaptainEntity && !(recruit.getVehicle() instanceof Boat) ? TOOLTIP_DISABLED_START : tooltip, i, i1);
                 }
         ));
-        startButton.active = state != AbstractLeaderEntity.State.PATROLLING;
+        if(recruit instanceof CaptainEntity && !(recruit.getVehicle() instanceof Boat)){
+            startButton.active =  false;
+        }
+        else
+            startButton.active = state != AbstractLeaderEntity.State.PATROLLING;
 
     }
 
@@ -374,6 +374,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
                     int posX = Integer.parseInt(textBoxX.getValue());
                     int posY = Integer.parseInt(textBoxY.getValue());
                     int posZ = Integer.parseInt(textBoxZ.getValue());
+
                     Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderAddWayPoint(recruit.getUUID(), posX, posY, posZ));
                     this.setButtons();
                 },
@@ -401,7 +402,9 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
 
         font.draw(matrixStack, "Status: " + state,  offset + 220, 65, fontColor);
         font.draw(matrixStack, "Recruit in Oder: " + recruitsSize, offset + 220, 122, fontColor);
-
+        font.draw(matrixStack, "x: ",  offset + 20, 42, fontColor);
+        font.draw(matrixStack, "y: ",  offset + 80, 42, fontColor);
+        font.draw(matrixStack, "z: ",  offset + 140, 42, fontColor);
         // Info
         int fontColor = 4210752;
         int waypointsPerPage = 10;
