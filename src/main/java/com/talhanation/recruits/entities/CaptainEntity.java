@@ -32,7 +32,6 @@ import java.util.function.Predicate;
 public class CaptainEntity extends AbstractLeaderEntity implements IBoatController, IStrategicFire {
 
     public boolean shipAttacking = false;
-    private int waitTimerForRecruitsToGetOnBoard;
     private static final EntityDataAccessor<Optional<BlockPos>> SAIL_POS = SynchedEntityData.defineId(CaptainEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
@@ -233,17 +232,19 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
             return false;
     }
 
-    public void handleResupply() {
-        super.handleResupply();
-        this.stopRiding();
-        this.setRecruitsDismount();
-        waitTimerForRecruitsToGetOnBoard = 500;
-        //Repair ship
-        //restock cannonballs
-        //
-    }
-
     protected void handleUpkeepState() {
+        if(this.getVehicle() != null && waitForRecruitsUpkeepTime != 0){
+            double speed = IBoatController.getSmallshipSpeed(this.getVehicle());
+            if(speed < 0.01){
+                this.stopRiding();
+                this.setRecruitsDismount();
+
+                //Repair ship
+                //restock cannonballs
+                //
+            }
+        }
+
         if(waitForRecruitsUpkeepTime == 0){
             this.shouldMount(true, this.getMountUUID());
             this.setRecruitsToFollow();
