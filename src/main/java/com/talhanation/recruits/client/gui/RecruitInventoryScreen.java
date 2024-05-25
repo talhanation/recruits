@@ -363,8 +363,11 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
             case 3 -> TEXT_INFO_PASSIVE.getString();
             default -> throw new IllegalStateException("Unexpected value: " + this.aggro);
         };
-        guiGraphics.drawString(font, aggro, k + 15, l + 56 + 15, fontColor, false);
+
+        int fnt = this.aggro == 3 ? 16733525 : fontColor;
+        guiGraphics.drawString(font, aggro, k + 15, l + 56 + 15, fnt, false);
         guiGraphics.drawString(font, CommandScreen.handleGroupText(recruit.getGroup()), k + 15, l + 56 + 28, fontColor, false);
+
 
 
         String listen;
