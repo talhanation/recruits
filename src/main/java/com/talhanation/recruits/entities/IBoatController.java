@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.smallships.world.entity.ship.Ship;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -189,33 +190,34 @@ public interface IBoatController {
             Class<?> shipClass = Class.forName("com.talhanation.smallships.world.entity.ship.Ship");
 
             Field coolDownFlied = shipClass.getField("sailStateCooldown");
+            if(coolDownFlied != null){
+                int coolDown = coolDownFlied.getInt(boat);
 
-            int coolDown = coolDownFlied.getInt(boat);
-
-            if(coolDown == 0){
-                try{
-                    Class<?> sailableClass = Class.forName("com.talhanation.smallships.world.entity.ship.abilities.Sailable");
-                    if(sailableClass.isInstance(boat)){
-                        Object sailable = sailableClass.cast(boat);
-                        if(sailable != null){
-                            Method sailableClassGetSailStateCooldown = sailableClass.getMethod("getSailStateCooldown");
-                            int configCoolDown = (int) sailableClassGetSailStateCooldown.invoke(sailable);
+                if(coolDown == 0){
+                    try{
+                        Class<?> sailableClass = Class.forName("com.talhanation.smallships.world.entity.ship.abilities.Sailable");
+                        if(sailableClass.isInstance(boat)){
+                            Object sailable = sailableClass.cast(boat);
+                            if(sailable != null){
+                                Method sailableClassGetSailStateCooldown = sailableClass.getMethod("getSailStateCooldown");
+                                int configCoolDown = (int) sailableClassGetSailStateCooldown.invoke(sailable);
 
 
-                            Method sailableClassSetSailState = sailableClass.getMethod("setSailState", byte.class);
-                            Method sailableClassGetSailState = sailableClass.getMethod("getSailState");
-                            byte currentSail = (byte) sailableClassGetSailState.invoke(sailable);
-                            if(currentSail != (byte) state) sailableClassSetSailState.invoke(sailable, (byte) state);
+                                Method sailableClassSetSailState = sailableClass.getMethod("setSailState", byte.class);
+                                Method sailableClassGetSailState = sailableClass.getMethod("getSailState");
+                                byte currentSail = (byte) sailableClassGetSailState.invoke(sailable);
+                                if(currentSail != (byte) state) sailableClassSetSailState.invoke(sailable, (byte) state);
 
-                            coolDownFlied.setInt(boat, configCoolDown);
+                                coolDownFlied.setInt(boat, configCoolDown);
+                            }
                         }
                     }
-                }
-                catch (ClassNotFoundException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-                    Main.LOGGER.info("SailableClass was not found");
+                    catch (ClassNotFoundException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+                        Main.LOGGER.info("SailableClass was not found");
+                    }
                 }
             }
-
+            
         } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e ) {
             Main.LOGGER.info("shipClass was not found");
         }
@@ -225,6 +227,24 @@ public interface IBoatController {
         return 0.007F;
     }
 
+    static float getSmallshipSpeed(Entity vehicle) {
+        float speed = 0;
+        if(vehicle instanceof Boat boat) {
+            try{
+                Class<?> shipClass = Class.forName("com.talhanation.smallships.world.entity.ship.Ship");
+                if(shipClass.isInstance(boat)) {
+                    Object ship = shipClass.cast(boat);
+
+                    Method shipClassGetSpeed = shipClass.getMethod("getSpeed");
+                    speed = (float) shipClassGetSpeed.invoke(ship);
+
+                }
+            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                Main.LOGGER.info("shipClass was not found");
+            }
+        }
+        return speed;
+    }
     static void shootCannonsSmallShip(CaptainEntity driver, Boat boat, LivingEntity target, boolean leftSide){
         double distanceToTarget = driver.distanceToSqr(target);
         Main.LOGGER.info("Distance: " + distanceToTarget);
