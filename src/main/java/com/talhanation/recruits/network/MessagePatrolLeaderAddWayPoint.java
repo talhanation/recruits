@@ -2,13 +2,19 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
+import com.talhanation.recruits.entities.CaptainEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.Tags;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.PacketDistributor;
 
@@ -48,11 +54,19 @@ public class MessagePatrolLeaderAddWayPoint implements Message<MessagePatrolLead
 
     private void addWayPoint(BlockPos pos, Player player, AbstractLeaderEntity leaderEntity){
         BlockState state = leaderEntity.getCommandSenderWorld().getBlockState(pos);
-        if(state.isAir()) pos = pos.below();
+        while (state.isAir()) {
+            pos = pos.below();
+            state = leaderEntity.getCommandSenderWorld().getBlockState(pos);
+        }
 
-        leaderEntity.addWaypoint(pos);
+        if(leaderEntity instanceof CaptainEntity captain && !state.is(Blocks.WATER)){
+            player.sendSystemMessage(TEXT_NOT_WATER_WAYPOINT(captain.getName().getString()));
 
-        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateLeaderScreen(leaderEntity.WAYPOINTS, leaderEntity.WAYPOINT_ITEMS, leaderEntity.getRecruitsInCommand().size()));
+        }
+        else {
+            leaderEntity.addWaypoint(pos);
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateLeaderScreen(leaderEntity.WAYPOINTS, leaderEntity.WAYPOINT_ITEMS, leaderEntity.getRecruitsInCommand().size()));
+        }
     }
 
     public MessagePatrolLeaderAddWayPoint fromBytes(FriendlyByteBuf buf) {
@@ -68,6 +82,10 @@ public class MessagePatrolLeaderAddWayPoint implements Message<MessagePatrolLead
         buf.writeInt(this.x);
         buf.writeInt(this.y);
         buf.writeInt(this.z);
+    }
+
+    private MutableComponent TEXT_NOT_WATER_WAYPOINT(String name) {
+        return Component.translatable("chat.recruits.text.notWaterWaypoint", name);
     }
 
 }
