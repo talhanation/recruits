@@ -163,7 +163,7 @@ public class Corpse {
 
         } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
                  IllegalAccessException e) {
-            throw new RuntimeException(e);
+            Main.LOGGER.warn("Was not able to spawn recruit corpse for " + recruit.getName().getString());
         }
     }
 }
