@@ -89,6 +89,11 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private static final MutableComponent BUTTON_ASSIGN_RECRUITS = new TranslatableComponent("gui.recruits.inv.text.assign_recruits");
     private static final MutableComponent TOOLTIP_ASSIGN_RECRUITS = new TranslatableComponent("gui.recruits.inv.tooltip.assign_recruits");
     private static final MutableComponent TOOLTIP_CHEST = new TranslatableComponent("gui.recruits.inv.tooltip.chest");
+    private static final MutableComponent BUTTON_ASSIGN_RECRUITS = new TranslatableComponent("gui.recruits.inv.text.assign_recruits");
+    private static final MutableComponent BUTTON_REMOVE_ASSIGNED_RECRUITS = new TranslatableComponent("gui.recruits.inv.text.remove_assigned_recruits");
+    private static final MutableComponent TOOLTIP_ASSIGN_RECRUITS = new TranslatableComponent("gui.recruits.inv.tooltip.assign_recruits");
+    private static final MutableComponent TOOLTIP_REMOVE_ASSIGNED_RECRUITS = new TranslatableComponent("gui.recruits.inv.tooltip.assign_recruits");
+    private static final MutableComponent TOOLTIP_CHEST = new TranslatableComponent("gui.recruits.inv.tooltip.chest");
 
     private static final int fontColor = 4210752;
     private ForgeSlider waitSlider;
@@ -202,6 +207,13 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
             (button1, poseStack, i, i1) -> {
                 this.renderTooltip(poseStack, TOOLTIP_ASSIGN_RECRUITS, i, i1);
             }));
+
+        Button removeButton = addRenderableWidget(new Button(leftPos + 216, topPos + 165, 110, 20, BUTTON_REMOVE_ASSIGNED_RECRUITS, button -> {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageRemoveAssignedGroupFromCompanion(player.getUUID(), this.recruit.getUUID()));
+        },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_REMOVE_ASSIGNED_RECRUITS, i, i1);
+                }));
     }
 
     private void setCoordinatesBoxes() {

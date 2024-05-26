@@ -285,7 +285,7 @@
   "gui.recruits.inv.text.infomode.hostiles": "Hostiles",
   "gui.recruits.inv.text.infomode.all": "All",
   "gui.recruits.inv.text.assign_recruits": "Assign Recruits",
-  "gui.recruits.inv.tooltip.assign_recruits": "All nearby recruits in the same group will be assigned to this companion",
+  "gui.recruits.inv.tooltip.assign_recruits": "All assigned recruits will be removed from command",
   "chat.recruits.team_creation.canNotAddOtherLeader": "You can not add a other team leader to your team.",
   "chat.recruits.team_creation.playerLeftTeamLeader": "%s has left your team.",
   "gui.recruits.inv.tooltip.patrol_leader_fast": "Set the patrolling speed.",
@@ -294,5 +294,6 @@
   "chat.recruits.info.patrol_leader_info": "This companion can patrol pre defined waypoints. The first waypoint is also the retreating point and also important for resupplying. If a the upkeep chest of this companion is set in range the assinged recruits will also resupply form this chest.",
   "gui.recruits.inv.tooltip.chest": "This waypoint will be used as resupply position if the upkeep chest is set nearby.",
   "chat.recruits.text.notWaterWaypoint": "%s: I can only patrol water waypoints",
-  "gui.recruits.inv.tooltip.patrol_leader_start_disabled": "Ship is needed to start patrolling"
+  "gui.recruits.inv.tooltip.patrol_leader_start_disabled": "Ship is needed to start patrolling",
+  "gui.recruits.inv.text.remove_assigned_recruits": "Remove Recruits"
 }
