@@ -367,7 +367,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         int fnt = this.aggro == 3 ? 16733525 : fontColor;
         guiGraphics.drawString(font, aggro, k + 15, l + 56 + 15, fnt, false);
         guiGraphics.drawString(font, CommandScreen.handleGroupText(recruit.getGroup()), k + 15, l + 56 + 28, fontColor, false);
-        
+
         String listen;
         if (recruit.getListen()) listen = TEXT_INFO_LISTEN.getString();
         else listen = TEXT_INFO_IGNORE.getString();
