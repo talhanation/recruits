@@ -32,6 +32,7 @@ public class RecruitSimpleContainer extends SimpleContainer {
 
     private void moveItemToEmptySlots(ItemStack itemStack) {
         for(int i = 0; i < this.size; ++i) {
+            if(i == 4 || i == 5) continue;
             ItemStack itemstack = this.getItem(i);
             if (itemstack.isEmpty() && canPlaceItem(i, itemStack)) {
                 this.setItem(i, itemStack.copy());
