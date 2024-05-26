@@ -75,10 +75,10 @@ public class Corpse {
 
 
         List<ItemStack> list2 = new ArrayList<>(Arrays.asList(
-                recruit.inventory.getItem(3),
-                recruit.inventory.getItem(2),
+                recruit.inventory.getItem(0),
                 recruit.inventory.getItem(1),
-                recruit.inventory.getItem(0)
+                recruit.inventory.getItem(2),
+                recruit.inventory.getItem(3)
 
         ));
         ListTag tagList2 = new ListTag();
