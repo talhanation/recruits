@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.entities.CaptainEntity;
 import com.talhanation.recruits.entities.IRangedRecruit;
 import com.talhanation.recruits.entities.IStrategicFire;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
@@ -136,6 +137,8 @@ public class RecruitUpkeepPosGoal extends Goal {
                         this.stop();
                     }
 
+
+
                     //Try to reequip
                     for(int i = 0; i < container.getContainerSize(); i++) {
                         ItemStack itemstack = container.getItem(i);
@@ -147,12 +150,15 @@ public class RecruitUpkeepPosGoal extends Goal {
                                 recruit.equipItem(equipment);
                                 itemstack.shrink(1);
                             }
-                            else if (recruit instanceof IRangedRecruit && itemstack.is(ItemTags.ARROWS)){ //all that are ranged
+                            if (recruit instanceof IRangedRecruit && itemstack.is(ItemTags.ARROWS)){ //all that are ranged
                                 if(recruit.canTakeArrows()){
                                     equipment = itemstack.copy();
                                     recruit.inventory.addItem(equipment);
                                     itemstack.shrink(equipment.getCount());
                                 }
+                            }
+                            if(this.recruit instanceof CaptainEntity captain){
+
                             }
                         }
                     }
