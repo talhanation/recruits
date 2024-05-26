@@ -393,7 +393,8 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         String listen;
         if (recruit.getListen()) listen = TEXT_INFO_LISTEN.getString();
         else listen = TEXT_INFO_IGNORE.getString();
-        font.draw(matrixStack, listen, k + 15, l + 56 + 41, fontColor);
+        int fnt2 = recruit.getListen() ? fontColor : 16733525;
+        font.draw(matrixStack, listen, k + 15, l + 56 + 41, fnt2);
     }
 
     protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
