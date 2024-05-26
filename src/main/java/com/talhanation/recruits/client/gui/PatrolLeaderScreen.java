@@ -10,6 +10,7 @@ import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -75,7 +76,9 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private static final MutableComponent TOOLTIP_INFO_MODE = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_info_mode");
 
     private static final MutableComponent BUTTON_ASSIGN_RECRUITS = Component.translatable("gui.recruits.inv.text.assign_recruits");
+    private static final MutableComponent BUTTON_REMOVE_ASSIGNED_RECRUITS = Component.translatable("gui.recruits.inv.text.remove_assigned_recruits");
     private static final MutableComponent TOOLTIP_ASSIGN_RECRUITS = Component.translatable("gui.recruits.inv.tooltip.assign_recruits");
+    private static final MutableComponent TOOLTIP_REMOVE_ASSIGNED_RECRUITS = Component.translatable("gui.recruits.inv.tooltip.assign_recruits");
     private static final MutableComponent TOOLTIP_CHEST = Component.translatable("gui.recruits.inv.tooltip.chest");
     private static final int fontColor = 4210752;
     private ForgeSlider waitSlider;
@@ -184,9 +187,16 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private void setAssignButton() {
         Button assignButton = addRenderableWidget(new ExtendedButton(leftPos + 216, topPos + 140, 110, 20, BUTTON_ASSIGN_RECRUITS, button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToCompanion(player.getUUID(), this.recruit.getUUID()));
-        }
+            }
         ));
         assignButton.setTooltip(Tooltip.create(TOOLTIP_ASSIGN_RECRUITS));
+
+        Button removeButton = addRenderableWidget(new Button(leftPos + 216, topPos + 165, 110, 20, BUTTON_REMOVE_ASSIGNED_RECRUITS, button -> {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageRemoveAssignedGroupFromCompanion(player.getUUID(), this.recruit.getUUID()));
+        }
+        ));
+
+        removeButton.setTooltip(Tooltip.create(TOOLTIP_REMOVE));
     }
 
     private void setCoordinatesBoxes() {
