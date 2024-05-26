@@ -5,14 +5,18 @@ import com.talhanation.recruits.entities.IRangedRecruit;
 import com.talhanation.recruits.entities.IStrategicFire;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.world.CompoundContainer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.BarrelBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
@@ -34,7 +38,8 @@ public class RecruitUpkeepPosGoal extends Goal {
     public boolean messageNeedNewChest;
     public boolean messageNotInRange;
     public int timeToRecalcPath = 0;
-
+    public int timer = 0;
+    public boolean setTimer = false;
     public RecruitUpkeepPosGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
     }
@@ -108,61 +113,68 @@ public class RecruitUpkeepPosGoal extends Goal {
                 }
 
                 if (chestPos.closerThan(recruit.getOnPos(), 3) && container != null) {
+
                     this.recruit.getNavigation().stop();
                     this.recruit.getLookControl().setLookAt(chestPos.getX(), chestPos.getY() + 1, chestPos.getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
-                    if (isFoodInContainer(container)) {
-                        interactChest(container, true);
-                        for (int i = 0; i < 3; i++) {
-                            ItemStack foodItem = this.getFoodFromInv(container);
-                            ItemStack food;
-                            if (foodItem != null && canAddFood()){
-                                food = foodItem.copy();
-                                food.setCount(1);
-                                recruit.getInventory().addItem(food);
-                                foodItem.shrink(1);
-                            } else {
-                                if(recruit.getOwner() != null && message){
-                                    recruit.getOwner().sendSystemMessage(TEXT_NO_PLACE(recruit.getName().getString()));
-                                    message = false;
+
+                    if(!setTimer){
+                        if (isFoodInContainer(container)) {
+                            interactChest(container, true);
+                            for (int i = 0; i < 3; i++) {
+                                ItemStack foodItem = this.getFoodFromInv(container);
+                                ItemStack food;
+                                if (foodItem != null && canAddFood()){
+                                    food = foodItem.copy();
+                                    food.setCount(1);
+                                    recruit.getInventory().addItem(food);
+                                    foodItem.shrink(1);
+                                } else {
+                                    if(recruit.getOwner() != null && message){
+                                        recruit.getOwner().sendSystemMessage(TEXT_NO_PLACE(recruit.getName().getString()));
+                                        message = false;
+                                    }
+                                    this.stop();
                                 }
-                                this.stop();
                             }
                         }
-                    }
-                    else {
-                        if(recruit.getOwner() != null && message){
-                            recruit.getOwner().sendSystemMessage(TEXT_FOOD(recruit.getName().getString()));
-                            message = false;
-                        }
-                        this.stop();
-                    }
-
-
-
-                    //Try to reequip
-                    for(int i = 0; i < container.getContainerSize(); i++) {
-                        ItemStack itemstack = container.getItem(i);
-                        ItemStack equipment;
-                        if(!recruit.canEatItemStack(itemstack) && recruit.wantsToPickUp(itemstack)){
-                            if (recruit.canEquipItem(itemstack)) {
-                                equipment = itemstack.copy();
-                                equipment.setCount(1);
-                                recruit.equipItem(equipment);
-                                itemstack.shrink(1);
+                        else {
+                            if(recruit.getOwner() != null && message){
+                                recruit.getOwner().sendSystemMessage(TEXT_FOOD(recruit.getName().getString()));
+                                message = false;
                             }
-                            if (recruit instanceof IRangedRecruit && itemstack.is(ItemTags.ARROWS)){ //all that are ranged
-                                if(recruit.canTakeArrows()){
+                            this.stop();
+                        }
+
+
+
+                        //Try to reequip
+                        for(int i = 0; i < container.getContainerSize(); i++) {
+                            ItemStack itemstack = container.getItem(i);
+                            ItemStack equipment;
+                            if(!recruit.canEatItemStack(itemstack) && recruit.wantsToPickUp(itemstack)){
+                                if (recruit.canEquipItem(itemstack)) {
                                     equipment = itemstack.copy();
-                                    recruit.inventory.addItem(equipment);
-                                    itemstack.shrink(equipment.getCount());
+                                    equipment.setCount(1);
+                                    recruit.equipItem(equipment);
+                                    itemstack.shrink(1);
+                                }
+                                if (recruit instanceof IRangedRecruit && itemstack.is(ItemTags.ARROWS)){ //all that are ranged
+                                    if(recruit.canTakeArrows()){
+                                        equipment = itemstack.copy();
+                                        recruit.inventory.addItem(equipment);
+                                        itemstack.shrink(equipment.getCount());
+                                    }
+                                }
+                                if(this.recruit instanceof CaptainEntity captain){
+
                                 }
                             }
-                            if(this.recruit instanceof CaptainEntity captain){
-
-                            }
                         }
+                        timer = 30;
+                        setTimer = true;
+
                     }
-                    this.stop();
+
                 }
             }
             else {
@@ -181,6 +193,11 @@ public class RecruitUpkeepPosGoal extends Goal {
                 //Main.LOGGER.debug("Chest not found");
             }
         }
+
+        if(setTimer){
+            if(timer > 0) timer--;
+            if(timer == 0) stop();
+        }
     }
 
     @Override
@@ -188,6 +205,8 @@ public class RecruitUpkeepPosGoal extends Goal {
         super.stop();
         recruit.setUpkeepTimer(recruit.getUpkeepCooldown());
         recruit.forcedUpkeep = false;
+        timer = 0;
+        setTimer = false;
 
         if(container != null) {
             interactChest(container, false);
@@ -249,16 +268,34 @@ public class RecruitUpkeepPosGoal extends Goal {
     }
 
     public void interactChest(Container container, boolean open) {
-        if (container instanceof ChestBlockEntity chest) {
+        if(container instanceof CompoundContainer || container instanceof ChestBlockEntity){
+            BlockState state = this.recruit.getCommandSenderWorld().getBlockState(this.chestPos);
+            Block block = state.getBlock();
+            boolean isOpened = false;
+            CompoundTag compoundTag = new CompoundTag();
+            if(recruit.getLevel().getBlockEntity(chestPos) instanceof ChestBlockEntity chestBlockEntity){
+                compoundTag = chestBlockEntity.getPersistentData();
+                if(compoundTag.contains("isOpened"))
+                    isOpened = compoundTag.getBoolean("isOpened");
+                else
+                    compoundTag.putBoolean("isOpened", false);
+            }
+
             if (open) {
-                this.recruit.getLevel().blockEvent(this.chestPos, chest.getBlockState().getBlock(), 1, 1);
-                this.recruit.getCommandSenderWorld().playSound(null, chestPos, SoundEvents.CHEST_OPEN, recruit.getSoundSource(), 0.7F, 0.8F + 0.4F * recruit.getRandom().nextFloat());
+                if(!isOpened){
+                    this.recruit.getLevel().blockEvent(this.chestPos, block, 1, 1);
+                    this.recruit.level.playSound(null, chestPos, SoundEvents.CHEST_OPEN, recruit.getSoundSource(), 0.7F, 0.8F + 0.4F * recruit.getRandom().nextFloat());
+                    compoundTag.putBoolean("isOpened", true);
+                }
             }
             else {
-                this.recruit.getLevel().blockEvent(this.chestPos, chest.getBlockState().getBlock(), 1, 0);
-                recruit.getCommandSenderWorld().playSound(null, chestPos, SoundEvents.CHEST_CLOSE, recruit.getSoundSource(), 0.7F, 0.8F + 0.4F * recruit.getRandom().nextFloat());
+                if(isOpened){
+                    this.recruit.getLevel().blockEvent(this.chestPos, block, 1, 0);
+                    this.recruit.level.playSound(null, chestPos, SoundEvents.CHEST_CLOSE, recruit.getSoundSource(), 0.7F, 0.8F + 0.4F * recruit.getRandom().nextFloat());
+                    compoundTag.putBoolean("isOpened", false);
+                }
             }
-            this.recruit.getCommandSenderWorld().gameEvent(this.recruit, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, chestPos);
+            this.recruit.getLevel().gameEvent(this.recruit, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, chestPos);
         }
     }
 
