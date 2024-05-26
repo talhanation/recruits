@@ -7,7 +7,9 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ProjectileWeaponItem;
 
 public class RecruitStrategicFire extends Goal {
 
@@ -25,7 +27,7 @@ public class RecruitStrategicFire extends Goal {
 
     @Override
     public boolean canUse() {
-        if(bowman.getTarget() == null && bowman.getShouldStrategicFire() && this.isHoldingBow() && bowman.getFollowState() != 5 && !bowman.needsToGetFood() && !bowman.getShouldMount()){
+        if(bowman.getTarget() == null && bowman.getShouldStrategicFire() && RecruitRangedBowAttackGoal.isHoldingBow(bowman) && bowman.getFollowState() != 5 && !bowman.needsToGetFood() && !bowman.getShouldMount()){
             return true;
         }
         else{
@@ -120,12 +122,12 @@ public class RecruitStrategicFire extends Goal {
                     this.bowman.stopUsingItem();
                 }
             } else if (--this.attackTime <= 0) {
-                this.bowman.startUsingItem(ProjectileUtil.getWeaponHoldingHand(this.bowman, Items.BOW));
+                this.bowman.startUsingItem(ProjectileUtil.getWeaponHoldingHand(this.bowman, predicateBow -> this.isBow(predicateBow.getDefaultInstance())));
             }
         }
     }
-
-    protected boolean isHoldingBow() {
-        return this.bowman.isHolding(is -> is.getItem() instanceof BowItem);
+    public boolean isBow(ItemStack itemStack){
+        String name = this.bowman.getMainHandItem().getDescriptionId();
+        return itemStack.is(Items.BOW) || itemStack.getItem() instanceof BowItem || itemStack.getItem() instanceof ProjectileWeaponItem || name.contains("bow");
     }
 }

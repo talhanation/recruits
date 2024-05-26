@@ -10,6 +10,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ProjectileWeaponItem;
 
@@ -41,7 +42,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
 
     public boolean canUse() {
         LivingEntity livingentity = this.mob.getTarget();
-        if (livingentity != null && livingentity.isAlive() && this.isHoldingBow()) {
+        if (livingentity != null && livingentity.isAlive() && isHoldingBow(mob)) {
             this.target = livingentity;
             float distance = this.target.distanceTo(this.mob);
             // if (mob.getOwner() != null && mob.getShouldFollow() && mob.getOwner().distanceTo(this.mob) <= 25.00D && !(target.distanceTo(this.mob) <= 7.00D)) return false;
@@ -56,15 +57,15 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
         }
     }
 
-    protected boolean isHoldingBow() {
+    public static boolean isHoldingBow(LivingEntity mob) {
         String name = mob.getMainHandItem().getDescriptionId();
-        if(this.mob.isHolding(bow -> bow.is(Items.BOW))){
+        if(mob.isHolding(bow -> bow.is(Items.BOW))){
             return true;
         }
-        else if (this.mob.isHolding(bow -> bow.getItem() instanceof BowItem))
+        else if (mob.isHolding(bow -> bow.getItem() instanceof BowItem))
             return true;
 
-        else if (this.mob.isHolding(bow -> bow.getItem() instanceof ProjectileWeaponItem))
+        else if (mob.isHolding(bow -> bow.getItem() instanceof ProjectileWeaponItem))
             return true;
 
         else
@@ -76,7 +77,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
     }
 
     public boolean canContinueToUse() {
-        return this.canUse() && this.isHoldingBow();
+        return this.canUse() && isHoldingBow(mob);
     }
 
     public void start() {
