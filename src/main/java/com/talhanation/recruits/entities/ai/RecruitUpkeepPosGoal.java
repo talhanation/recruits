@@ -184,7 +184,11 @@ public class RecruitUpkeepPosGoal extends Goal {
         super.stop();
         recruit.setUpkeepTimer(recruit.getUpkeepCooldown());
         recruit.forcedUpkeep = false;
-        if(container != null) interactChest(container, false);
+
+        if(container != null) {
+            interactChest(container, false);
+            container.setChanged();
+        }
     }
 
     @Nullable
