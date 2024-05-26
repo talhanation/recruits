@@ -17,6 +17,7 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.AbstractSkullBlock;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -325,6 +326,28 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
        }
        else
            return itemStack.isEdible();
+    }
+    @NotNull
+    public static EquipmentSlot getEquipmentSlotForItem(ItemStack itemStack) {
+        final EquipmentSlot slot = itemStack.getEquipmentSlot();
+        if (slot != null) return slot; // FORGE: Allow modders to set a non-default equipment slot for a stack; e.g. a non-armor chestplate-slot item
+        Item item = itemStack.getItem();
+        if (!itemStack.is(Items.CARVED_PUMPKIN) && (!(item instanceof BlockItem) || !(((BlockItem)item).getBlock() instanceof AbstractSkullBlock))) {
+            if (item instanceof ArmorItem) {
+                return ((ArmorItem)item).getSlot();
+            }
+            else if (itemStack.is(Items.ELYTRA)) {
+                return EquipmentSlot.CHEST;
+            }
+            else if(item instanceof SwordItem) {
+                return EquipmentSlot.MAINHAND;
+            }
+            else {
+                return itemStack.canPerformAction(net.minecraftforge.common.ToolActions.SHIELD_BLOCK)? EquipmentSlot.OFFHAND : EquipmentSlot.MAINHAND;
+            }
+        } else {
+            return EquipmentSlot.HEAD;
+        }
     }
 
     @Override
