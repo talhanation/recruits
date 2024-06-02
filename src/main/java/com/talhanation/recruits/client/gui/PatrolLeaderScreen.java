@@ -407,7 +407,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         guiGraphics.drawString(font, "x: ",  offset + 20, 42, fontColor);
         guiGraphics.drawString(font, "y: ",  offset + 80, 42, fontColor);
         guiGraphics.drawString(font, "z: ",  offset + 140, 42, fontColor);
-        
+
         // Info
         int fontColor = 4210752;
         int waypointsPerPage = 10;

@@ -76,8 +76,6 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
         double speed = recruit.getAttributeBaseValue(Attributes.MOVEMENT_SPEED) / 0.3;
         DecimalFormat decimalformat = new DecimalFormat("##.##");
         double armor = recruit.getArmorValue();
-        int costs = recruit.getCost();
-
 
         int k = 60;//rechst links
         int l = 19;//höhe
@@ -111,10 +109,7 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
 
         guiGraphics.drawString(font, "Armor:", k + 55, l + 30, fontColor, false);
         guiGraphics.drawString(font, ""+ armor, k + 90, l + 30, fontColor, false);
-
-        guiGraphics.drawString(font, "Cost:", k + 55, l + 40, fontColor, false);
-        guiGraphics.drawString(font, ""+ costs, k + 88, l + 40, fontColor, false);
-
+        
         if(currency != null){
             itemRenderer.renderGuiItem(currency, 120, this.imageHeight - 125);
             itemRenderer.renderGuiItemDecorations(font, currency, 120, this.imageHeight - 125);
