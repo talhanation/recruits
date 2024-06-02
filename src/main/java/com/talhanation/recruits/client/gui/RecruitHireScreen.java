@@ -109,7 +109,7 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
 
         guiGraphics.drawString(font, "Armor:", k + 55, l + 30, fontColor, false);
         guiGraphics.drawString(font, ""+ armor, k + 90, l + 30, fontColor, false);
-        
+
         if(currency != null){
             itemRenderer.renderGuiItem(currency, 120, this.imageHeight - 125);
             itemRenderer.renderGuiItemDecorations(font, currency, 120, this.imageHeight - 125);
