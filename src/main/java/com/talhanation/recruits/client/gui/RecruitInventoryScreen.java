@@ -5,8 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.TeamEvents;
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.entities.ICompanion;
+import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
@@ -19,6 +18,8 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.w3c.dom.Text;
@@ -398,6 +399,48 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         else listen = TEXT_INFO_IGNORE.getString();
         int fnt2 = recruit.getListen() ? fontColor : 16733525;
         font.draw(matrixStack, listen, k + 15, l + 56 + 41, fnt2);
+
+        ItemStack profItem1 = null;
+        ItemStack profItem2 = null;
+        if(this.recruit instanceof RecruitEntity){
+            profItem1 = Items.IRON_SWORD.getDefaultInstance();
+        }
+        else if(this.recruit instanceof RecruitShieldmanEntity){
+            profItem1 = Items.SHIELD.getDefaultInstance();
+            profItem2 = Items.IRON_SWORD.getDefaultInstance();
+        }
+        else if(this.recruit instanceof BowmanEntity){
+            profItem1 = Items.BOW.getDefaultInstance();
+        }
+        else if(this.recruit instanceof CrossBowmanEntity){
+            profItem1 = Items.CROSSBOW.getDefaultInstance();
+        }
+        else if(this.recruit instanceof HorsemanEntity){
+            profItem1 = Items.SADDLE.getDefaultInstance();
+            profItem2 = Items.IRON_SWORD.getDefaultInstance();
+        }
+        else if(this.recruit instanceof NomadEntity){
+            profItem1 = Items.SADDLE.getDefaultInstance();
+            profItem2 = Items.BOW.getDefaultInstance();
+        }
+        else if(this.recruit instanceof MessengerEntity){
+            profItem1 = Items.PAPER.getDefaultInstance();
+            profItem2 = Items.FEATHER.getDefaultInstance();
+        }
+        else if(this.recruit instanceof PatrolLeaderEntity){
+            profItem1 = Items.IRON_SWORD.getDefaultInstance();
+            profItem2 = Items.GOAT_HORN.getDefaultInstance();
+        }
+        else if(this.recruit instanceof CaptainEntity){
+            profItem1 = IBoatController.getSmallShipsItem();
+        }
+
+        if(profItem1 != null){
+            itemRenderer.renderGuiItem(profItem1, 4, 90);
+        }
+        if(profItem2 != null){
+            itemRenderer.renderGuiItem(profItem2, 9, 90);
+        }
     }
 
     protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
