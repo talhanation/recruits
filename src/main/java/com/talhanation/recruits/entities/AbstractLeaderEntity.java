@@ -582,6 +582,12 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         return recruits;
     }
 
+    public void setRecruitsToListen(){
+        for (AbstractRecruitEntity recruit : currentRecruitsInCommand){
+            recruit.setListen(true);
+        }
+    }
+
     public void setRecruitsToFollow(){
         for (AbstractRecruitEntity recruit : currentRecruitsInCommand){
             recruit.setProtectUUID(Optional.of(this.getUUID()));

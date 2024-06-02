@@ -34,6 +34,9 @@ public class MessageRemoveAssignedGroupFromCompanion implements Message<MessageR
         List<AbstractLeaderEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractLeaderEntity.class, context.getSender().getBoundingBox().inflate(100D));
         for (AbstractLeaderEntity companionEntity : list){
             if(companionEntity.getUUID().equals(this.companion)){
+                companionEntity.setRecruitsToHoldPos();
+                companionEntity.setRecruitsToListen();
+
                 companionEntity.RECRUITS_IN_COMMAND = new Stack<>();
                 companionEntity.currentRecruitsInCommand = new ArrayList<>();
                 Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(context::getSender), new MessageToClientUpdateLeaderScreen(companionEntity.WAYPOINTS, companionEntity.WAYPOINT_ITEMS, companionEntity.getRecruitsInCommand().size()));
