@@ -4,16 +4,19 @@ import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.init.ModScreens;
 import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 
-public class MessengerContainer extends ContainerBase {
+public class MessengerAnswerContainer extends ContainerBase {
 
     private final Player playerEntity;
     private final MessengerEntity recruit;
 
-    public MessengerContainer(int id, Player playerEntity, MessengerEntity messenger) {
-        super(ModScreens.MESSENGER.get(), id, playerEntity.getInventory(), messenger.getInventory());
+    public MessengerAnswerContainer(int id, Player playerEntity, MessengerEntity messenger) {
+        super(ModScreens.MESSENGER_ANSWER.get(), id, playerEntity.getInventory(), messenger.getInventory());
         this.playerEntity = playerEntity;
         this.recruit = messenger;
+        this.recruit.targetPlayerOpened = true;
     }
 
     public Player getPlayerEntity() {

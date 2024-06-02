@@ -179,6 +179,10 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 61, MessageToClientUpdateHireScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 62, MessageToClientUpdateTeamCreationScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 63, MessageRemoveAssignedGroupFromCompanion.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 64, MessageToClientUpdateMessengerScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 65, MessageAnswerMessenger.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 66, MessageToClientUpdateMessengerAnswerScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 67, MessageOpenMessengerAnswerScreen.class);
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
         isSmallShipsLoaded = ModList.get().isLoaded("smallships");//small ships
         isSiegeWeaponsLoaded = ModList.get().isLoaded("siegeweapons");//siege weapons

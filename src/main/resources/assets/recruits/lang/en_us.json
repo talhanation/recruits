@@ -230,7 +230,7 @@
   "gui.recruits.inv.tooltip.promote" : "Coming Soon: Promote this recruit to a Companion!",
 
   "gui.recruits.inv.text.messenger" : "Messenger",
-  "gui.recruits.inv.tooltip.messenger" : "A Messenger can deliver items and messages to other players.",
+  "gui.recruits.inv.tooltip.messenger" : "A Messenger can deliver messages and items that are in his main hand to other players.",
 
   "gui.recruits.inv.text.patrol_leader" : "Patrol-Leader",
   "gui.recruits.inv.tooltip.patrol_leader" : "A Patrol-Leader can patrol and command a group of recruits.",
@@ -260,7 +260,8 @@
 
   "chat.recruits.text.messenger_player_not_found": "%s: There is no Player with this name, my lord.",
   "chat.recruits.text.messenger_arrived_at_target": "The Messenger %s of %s arrived next to you!",
-  "chat.recruits.text.messenger_arrived_at_target_team": "\"The Messenger %s of %s from %s arrived next to you!\"",
+  "chat.recruits.text.messenger_arrived_at_target_team": "The Messenger %s of %s from %s arrived next to you!",
+  "chat.recruits.text.messenger_arrived_at_target_owner": "%s: I've arrived at %s!",
   "gui.recruits.inv.text.send_messenger": "Send Messenger",
   "chat.recruits.text.patrol_leader_enemy_contact": "%s: Contact with enemy %s at x= %s y= %s z= %s!",
   "chat.recruits.text.patrol_leader_hostile_contact": "%s: Contact with hostile at x= %s y= %s z= %s!",
@@ -295,5 +296,11 @@
   "gui.recruits.inv.tooltip.chest": "This waypoint will be used as resupply position if the upkeep chest is set nearby.",
   "chat.recruits.text.notWaterWaypoint": "%s: I can only patrol water waypoints",
   "gui.recruits.inv.tooltip.patrol_leader_start_disabled": "Ship is needed to start patrolling",
-  "gui.recruits.inv.text.remove_assigned_recruits": "Remove Recruits"
+  "gui.recruits.inv.text.remove_assigned_recruits": "Remove Recruits",
+  "chat.recruits.text.messenger_info_to_target": "%s: I have a important message from %s",
+  "chat.recruits.text.messenger_info_to_target_with_item": "%s: I have a important message and a gift from %s",
+  "chat.recruits.text.messenger_info_on_my_way": "%s: I shall be on my way in a moment.",
+  "chat.recruits.text.messenger_arrived_no_player": "%s: I arrived, but %s won't accept the message, so I have to return.",
+  "chat.recruits.text.messenger_target_player_not_answered": "%s: They read the message, so i'll needed to return.",
+  "gui.recruits.inv.text.ok_messenger": "Done"
 }
