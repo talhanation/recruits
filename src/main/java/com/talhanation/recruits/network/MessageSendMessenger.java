@@ -40,7 +40,9 @@ public class MessageSendMessenger implements Message<MessageSendMessenger> {
                 messenger.setTargetPlayerName(this.targetPlayer);
                 messenger.setMessage(this.message);
 
-                if(start) messenger.start();
+                if(start){
+                    messenger.start();
+                }
             }
 
         }
