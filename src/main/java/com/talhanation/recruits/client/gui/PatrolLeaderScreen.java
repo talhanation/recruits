@@ -94,7 +94,6 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     @Override
     protected void init() {
         super.init();
-        minecraft.keyboardHandler.setSendRepeatsToGui(true);
         this.leftPos = this.offset + (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
         this.cycle = recruit.getCycle();
@@ -185,13 +184,13 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
 
     private void setAssignButton() {
-        Button assignButton = addRenderableWidget(new ExtendedButton(leftPos + 216, topPos + 140, 110, 20, BUTTON_ASSIGN_RECRUITS, button -> {
+        Button assignButton = addRenderableWidget(new ExtendedButton(leftPos + 216, topPos + 140, 107, 20, BUTTON_ASSIGN_RECRUITS, button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToCompanion(player.getUUID(), this.recruit.getUUID()));
             }
         ));
         assignButton.setTooltip(Tooltip.create(TOOLTIP_ASSIGN_RECRUITS));
 
-        Button removeButton = addRenderableWidget(new Button(leftPos + 216, topPos + 165, 110, 20, BUTTON_REMOVE_ASSIGNED_RECRUITS, button -> {
+        Button removeButton = addRenderableWidget(new Button(leftPos + 216, topPos + 165, 107, 20, BUTTON_REMOVE_ASSIGNED_RECRUITS, button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageRemoveAssignedGroupFromCompanion(player.getUUID(), this.recruit.getUUID()));
         }
         ));
@@ -304,7 +303,25 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         startButton.setTooltip(Tooltip.create(tooltip));
         startButton.active = state != AbstractLeaderEntity.State.STOPPED && state != AbstractLeaderEntity.State.IDLE;
     }
+    protected void containerTick() {
+        super.containerTick();
+        textBoxX.tick();
+        textBoxY.tick();
+        textBoxZ.tick();
+    }
 
+    public boolean mouseClicked(double p_100753_, double p_100754_, int p_100755_) {
+        if (this.textBoxX.isFocused()) {
+            this.textBoxX.mouseClicked(p_100753_, p_100754_, p_100755_);
+        }
+        if (this.textBoxY.isFocused()) {
+            this.textBoxY.mouseClicked(p_100753_, p_100754_, p_100755_);
+        }
+        if (this.textBoxZ.isFocused()) {
+            this.textBoxZ.mouseClicked(p_100753_, p_100754_, p_100755_);
+        }
+        return super.mouseClicked(p_100753_, p_100754_, p_100755_);
+    }
     @Override
     public boolean mouseReleased(double p_97812_, double p_97813_, int p_97814_) {
         //if(this.recruit != null)
@@ -390,7 +407,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         guiGraphics.drawString(font, "x: ",  offset + 20, 42, fontColor);
         guiGraphics.drawString(font, "y: ",  offset + 80, 42, fontColor);
         guiGraphics.drawString(font, "z: ",  offset + 140, 42, fontColor);
-
+        
         // Info
         int fontColor = 4210752;
         int waypointsPerPage = 10;
