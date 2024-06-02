@@ -44,6 +44,7 @@ public class ModScreens {
         registerMenu(DISBAND.get(), DisbandScreen::new);
         registerMenu(PROMOTE.get(), PromoteScreen::new);
         registerMenu(MESSENGER.get(), MessengerScreen::new);
+        registerMenu(MESSENGER_ANSWER.get(), MessengerAnswerScreen::new);
         registerMenu(PATROL_LEADER.get(), PatrolLeaderScreen::new);
 
         logger.info("MenuScreens registered");
@@ -287,7 +288,24 @@ public class ModScreens {
                     return new MessengerContainer(windowId, playerEntity, (MessengerEntity) rec);
 
                 } catch (Exception e) {
-                    logger.error("Error in disband_container: ");
+                    logger.error("Error in messenger_container: ");
+                    logger.error(e.getMessage());
+                    logger.error(e.getStackTrace().toString());
+                    return null;
+                }
+            }));
+
+    public static final RegistryObject<MenuType<MessengerAnswerContainer>> MESSENGER_ANSWER =
+            MENU_TYPES.register("messenger_answer_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
+                try {
+                    UUID workerId = data.readUUID();
+                    Player playerEntity = inv.player;
+                    AbstractRecruitEntity rec = getRecruitByUUID(playerEntity, workerId);
+
+                    return new MessengerAnswerContainer(windowId, playerEntity, (MessengerEntity) rec);
+
+                } catch (Exception e) {
+                    logger.error("Error in messenger_answer_container: ");
                     logger.error(e.getMessage());
                     logger.error(e.getStackTrace().toString());
                     return null;
