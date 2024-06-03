@@ -40,6 +40,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TEXT_INFO_RAID = Component.translatable("gui.recruits.inv.info.text.raid");
     private static final MutableComponent TEXT_INFO_PROTECT = Component.translatable("gui.recruits.inv.info.text.protect");
     private static final MutableComponent TEXT_DISMOUNT = Component.translatable("gui.recruits.inv.text.dismount");
+    private static final MutableComponent TEXT_BACK_TO_MOUNT = Component.translatable("gui.recruits.inv.text.backToMount");
     private static final MutableComponent TOOLTIP_DISMOUNT = Component.translatable("gui.recruits.inv.tooltip.dismount");
     private static final MutableComponent TOOLTIP_FOLLOW = Component.translatable("gui.recruits.inv.tooltip.follow");
     private static final MutableComponent TOOLTIP_WANDER = Component.translatable("gui.recruits.inv.tooltip.wander");
@@ -52,7 +53,8 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TOOLTIP_NEUTRAL = Component.translatable("gui.recruits.inv.tooltip.neutral");
     private static final MutableComponent TOOLTIP_AGGRESSIVE = Component.translatable("gui.recruits.inv.tooltip.aggressive");
     private static final MutableComponent TOOLTIP_RAID = Component.translatable("gui.recruits.inv.tooltip.raid");
-
+    private static final MutableComponent TOOLTIP_BACK_TO_MOUNT = Component.translatable("gui.recruits.inv.tooltip.backToMount");
+    private static final MutableComponent TOOLTIP_CLEAR_UPKEEP = Component.translatable("gui.recruits.inv.tooltip.clearUpkeep");
     private static final MutableComponent TEXT_FOLLOW = Component.translatable("gui.recruits.inv.text.follow");
     private static final MutableComponent TEXT_WANDER = Component.translatable("gui.recruits.inv.text.wander");
     private static final MutableComponent TEXT_HOLD_MY_POS = Component.translatable("gui.recruits.inv.text.holdMyPos");
@@ -64,6 +66,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TEXT_RAID = Component.translatable("gui.recruits.inv.text.raid");
     private static final MutableComponent TEXT_CLEAR_TARGET = Component.translatable("gui.recruits.inv.text.clearTargets");
     private static final MutableComponent TEXT_MOUNT = Component.translatable("gui.recruits.command.text.mount");
+    private static final MutableComponent TEXT_CLEAR_UPKEEP = Component.translatable("gui.recruits.inv.text.clearUpkeep");
 
     private static final MutableComponent TEXT_PROMOTE = Component.translatable("gui.recruits.inv.text.promote");
     private static final MutableComponent TEXT_SPECIAL = Component.translatable("gui.recruits.inv.text.special");
@@ -93,8 +96,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         int zeroLeftPos = leftPos + 180;
         int zeroTopPos = topPos + 10;
         int topPosGab = 5;
-
-
+        this.clearWidgets();
         //PASSIVE
         addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE,
             button -> {
@@ -166,7 +168,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         //MOUNT
         addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 5, 80, 20, TEXT_MOUNT,
             button -> {
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntityGui(recruit.getUUID()));
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntityGui(recruit.getUUID(), false));
             },
                 (button1, poseStack, i, i1) -> {
                     this.renderTooltip(poseStack, TOOLTIP_MOUNT, i, i1);
@@ -248,7 +250,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                 }
         ));
 
-        //HOLD MY POS
+        //Dismount
         addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 5, 80, 20, TEXT_DISMOUNT,
                 button -> {
                     this.follow = recruit.getFollowState();
@@ -261,6 +263,28 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                     this.renderTooltip(poseStack, TOOLTIP_DISMOUNT, i, i1);
                 }
         ));
+
+        //BACK TO MOUNT
+        addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 6, 80, 20, TEXT_BACK_TO_MOUNT,
+                button -> {
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntityGui(recruit.getUUID(), true));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_BACK_TO_MOUNT, i, i1);
+                }
+        ));
+
+        //CLEAR UPKEEP
+        Button clearUpkeep = addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 6, 80, 20, TEXT_CLEAR_UPKEEP,
+                button -> {
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageClearUpkeepGui(recruit.getUUID()));
+                    this.init();
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_CLEAR_UPKEEP, i, i1);
+                }
+        ));
+        clearUpkeep.active = recruit.hasUpkeep();
 
         //LISTEN
         addRenderableWidget(new Button(leftPos + 77, topPos + 113, 8, 12, Component.literal("<"), button -> {
@@ -299,7 +323,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
 
         //promote
         if(recruit instanceof ICompanion){
-            Button promoteButton = addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 7, 80, 20, TEXT_SPECIAL,
+            Button promoteButton = addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 8, 80, 20, TEXT_SPECIAL,
                     button -> {
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenSpecialScreen(this.playerInventory.player, recruit.getUUID()));
                         this.onClose();
@@ -312,7 +336,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
 
         }
         else {
-            Button promoteButton = addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 7, 80, 20, TEXT_PROMOTE,
+            Button promoteButton = addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 8, 80, 20, TEXT_PROMOTE,
                     button -> {
                         RecruitEvents.openPromoteScreen(this.playerInventory.player, this.recruit);
                         this.onClose();
@@ -324,7 +348,6 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
             promoteButton.active = recruit.getXpLevel() >= 3;
         }
     }
-
 
     protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
@@ -399,12 +422,20 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
 
         ItemStack profItem1 = null;
         ItemStack profItem2 = null;
-        if(this.recruit instanceof RecruitEntity){
+        if(this.recruit instanceof HorsemanEntity){
             profItem1 = Items.IRON_SWORD.getDefaultInstance();
+            profItem2 = Items.SADDLE.getDefaultInstance();
+        }
+        else if(this.recruit instanceof NomadEntity){
+            profItem1 = Items.BOW.getDefaultInstance();
+            profItem2 = Items.SADDLE.getDefaultInstance();
         }
         else if(this.recruit instanceof RecruitShieldmanEntity){
-            profItem1 = Items.SHIELD.getDefaultInstance();
-            profItem2 = Items.IRON_SWORD.getDefaultInstance();
+            profItem1 = Items.IRON_SWORD.getDefaultInstance();
+            profItem2 = Items.SHIELD.getDefaultInstance();
+        }
+        else if(this.recruit instanceof RecruitEntity){
+            profItem1 = Items.IRON_SWORD.getDefaultInstance();
         }
         else if(this.recruit instanceof BowmanEntity){
             profItem1 = Items.BOW.getDefaultInstance();
@@ -412,17 +443,9 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         else if(this.recruit instanceof CrossBowmanEntity){
             profItem1 = Items.CROSSBOW.getDefaultInstance();
         }
-        else if(this.recruit instanceof HorsemanEntity){
-            profItem1 = Items.SADDLE.getDefaultInstance();
-            profItem2 = Items.IRON_SWORD.getDefaultInstance();
-        }
-        else if(this.recruit instanceof NomadEntity){
-            profItem1 = Items.SADDLE.getDefaultInstance();
-            profItem2 = Items.BOW.getDefaultInstance();
-        }
         else if(this.recruit instanceof MessengerEntity){
-            profItem1 = Items.PAPER.getDefaultInstance();
-            profItem2 = Items.FEATHER.getDefaultInstance();
+            profItem1 = Items.FEATHER.getDefaultInstance();
+            profItem2 = Items.PAPER.getDefaultInstance();
         }
         else if(this.recruit instanceof PatrolLeaderEntity){
             profItem1 = Items.IRON_SWORD.getDefaultInstance();
@@ -431,13 +454,17 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         else if(this.recruit instanceof CaptainEntity){
             profItem1 = IBoatController.getSmallShipsItem();
         }
+        matrixStack.pushPose();
+        matrixStack.scale(0.5F, 0.5F, 1F);
+
+        if(profItem2 != null){
+            itemRenderer.renderGuiItem(profItem2, 80, 2);
+        }
 
         if(profItem1 != null){
-            itemRenderer.renderGuiItem(profItem1, 4, 90);
+            itemRenderer.renderGuiItem(profItem1, 70, 2);
         }
-        if(profItem2 != null){
-            itemRenderer.renderGuiItem(profItem2, 9, 90);
-        }
+        matrixStack.popPose();
     }
 
     protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {

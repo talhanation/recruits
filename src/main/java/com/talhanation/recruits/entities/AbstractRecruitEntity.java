@@ -1742,6 +1742,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             else
                 this.setMountUUID(Optional.empty());
         }
+        if(should) this.dismount = 0;
     }
 
     public void shouldProtect(boolean should, UUID protect_uuid) {
@@ -1756,6 +1757,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void clearUpkeepEntity() {
         this.entityData.set(UPKEEP_ID, Optional.empty());
+    }
+
+    public boolean hasUpkeep(){
+        return this.getUpkeepPos() != null || this.getUpkeepUUID() != null;
     }
 
     public static enum ArmPose {
