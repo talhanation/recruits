@@ -23,7 +23,7 @@ public class RecruitEatGoal extends Goal {
         long i = this.recruit.level.getGameTime();
         if (i - this.lastCanUseCheck >= 20L) {
             this.lastCanUseCheck = i;
-
+            this.recruit.updateHunger();
             return hasFoodInInv() && recruit.needsToEat() && !recruit.isUsingItem();
         }
         
