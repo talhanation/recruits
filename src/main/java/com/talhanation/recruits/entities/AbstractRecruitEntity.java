@@ -1246,8 +1246,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if(currentMorale < 65) newMorale += 2F;
         }
 
-        if(newMorale > 0) setMoral(newMorale);
-        else setMoral(0F);
+        if(newMorale > 0) newMorale = 0;
+
+        this.setMoral(newMorale);
     }
 
     public void applyMoralEffects(){
@@ -1280,14 +1281,18 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void updateHunger(){
-        float currentHunger = getHunger();
-        float newHunger = currentHunger - 12F;
+        float hunger = getHunger();
 
-        if(newHunger > 0) {
-            setHunger(newHunger);
-        }else
-            setHunger(0);
+        if (this.getFollowState() == 2) {
+            hunger -= 2/60F;
+        }
+        else{
+            hunger -= 3/60F;
+        }
 
+        if (hunger < 0) hunger = 0;
+
+        this.setHunger(hunger);
         this.updateMoral();
     }
 
@@ -1309,8 +1314,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public boolean needsToEat(){
-        setHunger((getHunger() - 0.0001F));
-
         if (getHunger() <= 50F){
             return true;
         }
