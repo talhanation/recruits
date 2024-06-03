@@ -55,6 +55,7 @@
 
   "gui.recruits.inv.text.disband" : "Disband",
   "gui.recruits.inv.text.dismount" : "Dismount",
+  "gui.recruits.inv.text.backToMount" : "Back to Mount",
   "gui.recruits.inv.text.group" : "Group",
 
   "gui.recruits.inv.info.text.neutral" : "Neutral",
@@ -227,13 +228,13 @@
   "gui.recruits.inv.tooltip.keepTeam": "Should recruits stay in the same team after disbanding?",
 
   "gui.recruits.inv.text.promote" : "Promote",
-  "gui.recruits.inv.tooltip.promote" : "Coming Soon: Promote this recruit to a Companion!",
+  "gui.recruits.inv.tooltip.promote" : "Promote this recruit to a Companion!",
 
   "gui.recruits.inv.text.messenger" : "Messenger",
   "gui.recruits.inv.tooltip.messenger" : "A Messenger can deliver messages and items that are in his main hand to other players.",
 
-  "gui.recruits.inv.text.patrol_leader" : "Patrol-Leader",
-  "gui.recruits.inv.tooltip.patrol_leader" : "A Patrol-Leader can patrol and command a group of recruits.",
+  "gui.recruits.inv.text.patrol_leader" : "Commander",
+  "gui.recruits.inv.tooltip.patrol_leader" : "A Commander can patrol and command a group of recruits.",
 
   "gui.recruits.inv.text.captain" : "Captain",
   "gui.recruits.inv.tooltip.captain" : "A Captain can patrol sea routes, use cannons in small ships and command a group of recruits.",
@@ -276,8 +277,8 @@
   "gui.recruits.inv.tooltip.patrol_leader_pause": "Pauses the patrolling.",
   "gui.recruits.inv.text.cycle": "Cycle",
   "gui.recruits.inv.text.line": "Line",
-  "gui.recruits.inv.tooltip.patrol_leader_cycle": "Patrol-Leader continuously cycles waypoints, instantly restarting from the first after reaching the last.",
-  "gui.recruits.inv.tooltip.patrol_leader_line": "Patrol-Leader follows the set path from the first to the last waypoint, then returns from last to first.",
+  "gui.recruits.inv.tooltip.patrol_leader_cycle": "Commander continuously cycles waypoints, instantly restarting from the first after reaching the last.",
+  "gui.recruits.inv.tooltip.patrol_leader_line": "Commander follows the set path from the first to the last waypoint, then returns from last to first.",
   "gui.recruits.inv.tooltip.patrol_leader_add": "Adds a patrol point at current position",
   "gui.recruits.inv.tooltip.patrol_leader_remove": "Removes the last patrol point in the list.",
   "gui.recruits.inv.tooltip.patrol_leader_info_mode": "Select creature types for combat notifications while patrolling.",
@@ -302,5 +303,8 @@
   "chat.recruits.text.messenger_info_on_my_way": "%s: I shall be on my way in a moment.",
   "chat.recruits.text.messenger_arrived_no_player": "%s: I arrived, but %s won't accept the message, so I have to return.",
   "chat.recruits.text.messenger_target_player_not_answered": "%s: They read the message, so i'll needed to return.",
-  "gui.recruits.inv.text.ok_messenger": "Done"
+  "gui.recruits.inv.text.ok_messenger": "Done",
+  "gui.recruits.inv.tooltip.backToMount": "Make this recruit mount his previous vehicle.",
+  "gui.recruits.inv.tooltip.clearUpkeep": "Clears saved upkeep position.",
+  "gui.recruits.inv.text.clearUpkeep": "Clear Upkeep"
 }

@@ -183,6 +183,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 65, MessageAnswerMessenger.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 66, MessageToClientUpdateMessengerAnswerScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 67, MessageOpenMessengerAnswerScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 68, MessageClearUpkeepGui.class);
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
         isSmallShipsLoaded = ModList.get().isLoaded("smallships");//small ships
         isSiegeWeaponsLoaded = ModList.get().isLoaded("siegeweapons");//siege weapons
