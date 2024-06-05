@@ -884,7 +884,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if(!equipmentSets.isEmpty()){
 
             int size = equipmentSets.size();
-            int i = size > 1 ? this.random.nextInt(size) -1 : 0;
+            int i = this.random.nextInt(0, size);
+
             if(i >= 0){
                 List<String> equipmentSet = equipmentSets.get(i);
                 while(equipmentSet.size() < 6) equipmentSet.add("");
