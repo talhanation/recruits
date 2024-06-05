@@ -162,10 +162,8 @@ public class RecruitRangedMusketAttackGoal extends Goal {
                             else this.state = State.IDLE; //RESUPPLY
                         }
                         if (canLoad()) this.state = State.RELOAD;
-                        else {
-                            this.crossBowman.forcedUpkeep = true;
-                            this.state = State.RESUPPLY; //RESUPPLY
-                        }
+                        else this.state = State.IDLE ; //RESUPPLY
+
                     }
                 }
             }
@@ -226,19 +224,8 @@ public class RecruitRangedMusketAttackGoal extends Goal {
                             this.weapon.setLoaded(crossBowman.getMainHandItem(), false);
                         }
                         if (canLoad()) this.state = State.RELOAD;
-                        else{
-                            this.crossBowman.forcedUpkeep = true;
-                            this.state = State.RESUPPLY; //RESUPPLY
-                        }
-                    }
+                        else this.state = State.IDLE; //RESUPPLY
 
-                    case RESUPPLY -> {
-                        if(!this.crossBowman.hasUpkeep()){
-                            this.state = State.IDLE;
-                            this.crossBowman.forcedUpkeep = false;
-                        }
-
-                        if(canLoad()) this.state = State.RELOAD;
                     }
                 }
             }
@@ -300,7 +287,6 @@ public class RecruitRangedMusketAttackGoal extends Goal {
         RELOAD,
         AIMING,
         SHOOT,
-        RESUPPLY
     }
 
     private boolean canAttackMovePos() {
