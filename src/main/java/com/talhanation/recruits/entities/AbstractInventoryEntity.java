@@ -462,6 +462,28 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         return count < 32;
     }
 
+    public boolean canTakeCannonBalls() {
+        int count = 0;
+        for(ItemStack itemstack : this.inventory.items){
+            if(itemstack.getDescriptionId().contains("cannon_ball")){
+                count += itemstack.getCount();
+            }
+        }
+
+        return count < 100;
+    }
+
+    public boolean canTakeCartridge() {
+        int count = 0;
+        for(ItemStack itemstack : this.inventory.items){
+            if(itemstack.getDescriptionId().contains("cartridge")){
+                count += itemstack.getCount();
+            }
+        }
+
+        return count < 32;
+    }
+
     public void resetItemInHand() {
         //food is in offhand
         //before-item is in inventory slot

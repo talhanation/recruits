@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities;
 
+import com.sk89q.worldedit.forge.ForgeItemRegistry;
 import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.RecruitMoveTowardsTargetGoal;
@@ -12,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
@@ -27,6 +29,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -122,7 +125,6 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
         return ilivingentitydata;
     }
 
-
     @Override
     public void initSpawn() {
         this.setCustomName(Component.literal("Crossbowman"));
@@ -135,7 +137,13 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
         this.setGroup(2);
 
         if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get()){
-            RecruitsPatrolSpawn.setRangedArrows(this);
+            if(isMusketModLoaded && IWeapon.isMusketModWeapon(this.getMainHandItem())){
+                int i = this.getRandom().nextInt(32);
+                ItemStack arrows = ForgeRegistries.ITEMS.getDelegateOrThrow(ResourceLocation.tryParse("musketmod:cartridge")).get().getDefaultInstance();
+                arrows.setCount(14 + i);
+                this.inventory.setItem(6, arrows);
+            }
+            else RecruitsPatrolSpawn.setRangedArrows(this);
         }
 
         AbstractRecruitEntity.applySpawnValues(this);
