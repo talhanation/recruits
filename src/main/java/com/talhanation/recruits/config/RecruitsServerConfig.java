@@ -234,7 +234,7 @@ public class RecruitsServerConfig{
                         \t(takes effect after restart)
                         \t
                         Should ranged units need arrows to shoot?
-                        If enabled ranged units will resupply arrows from upkeep chest.
+                        If enabled ranged units will resupply arrows from upkeep chest and spawn with arrows.
                         ""
                         default: false""")
 

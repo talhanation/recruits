@@ -1,8 +1,8 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.entities.CaptainEntity;
-import com.talhanation.recruits.entities.IRangedRecruit;
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.Main;
+import com.talhanation.recruits.compat.IWeapon;
+import com.talhanation.recruits.entities.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.tags.ItemTags;
@@ -140,31 +140,8 @@ public class RecruitUpkeepPosGoal extends Goal {
                             this.stop();
                         }
 
+                        this.recruit.upkeepReequip(container);
 
-
-                        //Try to reequip
-                        for(int i = 0; i < container.getContainerSize(); i++) {
-                            ItemStack itemstack = container.getItem(i);
-                            ItemStack equipment;
-                            if(!recruit.canEatItemStack(itemstack) && recruit.wantsToPickUp(itemstack)){
-                                if (recruit.canEquipItem(itemstack)) {
-                                    equipment = itemstack.copy();
-                                    equipment.setCount(1);
-                                    recruit.equipItem(equipment);
-                                    itemstack.shrink(1);
-                                }
-                                if (recruit instanceof IRangedRecruit && itemstack.is(ItemTags.ARROWS)){ //all that are ranged
-                                    if(recruit.canTakeArrows()){
-                                        equipment = itemstack.copy();
-                                        recruit.inventory.addItem(equipment);
-                                        itemstack.shrink(equipment.getCount());
-                                    }
-                                }
-                                if(this.recruit instanceof CaptainEntity captain){
-
-                                }
-                            }
-                        }
                         timer = 30;
                         setTimer = true;
 

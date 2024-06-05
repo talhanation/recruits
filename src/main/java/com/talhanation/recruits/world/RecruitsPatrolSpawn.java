@@ -526,6 +526,13 @@ public class RecruitsPatrolSpawn {
         recruit.inventory.setItem(6, arrows);
     }
 
+    public static void setRangedCartriges(AbstractRecruitEntity recruit) {
+        int i = random.nextInt(32);
+        ItemStack arrows = new ItemStack(Items.ARROW);
+        arrows.setCount(24 + i);
+        recruit.inventory.setItem(6, arrows);
+    }
+
     public static void setRecruitFood(AbstractRecruitEntity recruit){
         setRecruitFood(recruit, 0);
     }

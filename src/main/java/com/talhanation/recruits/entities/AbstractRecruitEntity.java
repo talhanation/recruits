@@ -2,6 +2,7 @@ package com.talhanation.recruits.entities;
 //ezgi&talha kantar
 
 import com.talhanation.recruits.*;
+import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.*;
@@ -25,10 +26,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.DifficultyInstance;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.MenuProvider;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.*;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -1771,6 +1770,51 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public boolean hasUpkeep(){
         return this.getUpkeepPos() != null || this.getUpkeepUUID() != null;
+    }
+
+    public void upkeepReequip(@NotNull Container container) {
+        //Try to reequip
+        for(int i = 0; i < container.getContainerSize(); i++) {
+            ItemStack itemstack = container.getItem(i);
+            ItemStack equipment;
+            if(!this.canEatItemStack(itemstack) && this.wantsToPickUp(itemstack)){
+                if (this.canEquipItem(itemstack)) {
+                    equipment = itemstack.copy();
+                    equipment.setCount(1);
+                    this.equipItem(equipment);
+                    itemstack.shrink(1);
+                }
+                if(this instanceof CrossBowmanEntity crossBowmanEntity && Main.isMusketModLoaded && IWeapon.isMusketModWeapon(crossBowmanEntity.getMainHandItem()) && itemstack.getDescriptionId().contains("cartridge")){
+                    if(this.canTakeCartridge()){
+                        equipment = itemstack.copy();
+                        this.inventory.addItem(equipment);
+                        itemstack.shrink(equipment.getCount());
+                    }
+                }
+                else if (this instanceof IRangedRecruit && itemstack.is(ItemTags.ARROWS)){ //all that are ranged
+                    if(this.canTakeArrows()){
+                        equipment = itemstack.copy();
+                        this.inventory.addItem(equipment);
+                        itemstack.shrink(equipment.getCount());
+                    }
+                }
+                else if (this instanceof CaptainEntity && Main.isSmallShipsLoaded){
+                    if(itemstack.getDescriptionId().contains("cannon_ball")){
+                        if(this.canTakeCannonBalls()){
+                            equipment = itemstack.copy();
+                            this.inventory.addItem(equipment);
+                            itemstack.shrink(equipment.getCount());
+                        }
+                    }
+                    else if (itemstack.is(ItemTags.PLANKS)){
+
+                    }
+                    else if (itemstack.is(Items.IRON_NUGGET)){
+
+                    }
+                }
+            }
+        }
     }
 
     public static enum ArmPose {
