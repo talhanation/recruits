@@ -164,6 +164,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
 
         if(this.attackCooldown > 0) this.attackCooldown--;
+
     }
 
     private void recruitCheckDespawn() {
@@ -1228,7 +1229,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     ////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////
 
-    public void updateMoral(){
+    public void updateMorale(){
         //fast recovery
         float currentMorale = getMoral();
         float newMorale = currentMorale;
@@ -1245,7 +1246,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if(currentMorale < 65) newMorale += 2F;
         }
 
-        if(newMorale > 0) newMorale = 0;
+        if(newMorale < 0) newMorale = 0;
 
         this.setMoral(newMorale);
     }
@@ -1292,7 +1293,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (hunger < 0) hunger = 0;
 
         this.setHunger(hunger);
-        this.updateMoral();
     }
 
     public boolean needsToGetFood(){
