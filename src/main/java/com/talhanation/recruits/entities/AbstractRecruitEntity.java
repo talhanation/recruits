@@ -58,10 +58,12 @@ import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.common.Tags;
+import net.minecraftforge.common.data.ForgeBiomeTagsProvider;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -931,14 +933,19 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         recruit.setListen(true);
         recruit.setXpLevel(1);
 
-
+        //ForgeBiomeTagsProvider
         Holder<Biome> biome = recruit.getCommandSenderWorld().getBiome(recruit.getOnPos());
         byte biomeByte = 2; //PLAINS
         int variant = recruit.random.nextInt(0, 14);
         //DESERT
-        if(biome.containsTag(Tags.Biomes.IS_DESERT)){
+        if(biome.is(Biomes.ERODED_BADLANDS) || biome.containsTag(Tags.Biomes.IS_DESERT) || biome.containsTag(Tags.Biomes.IS_SANDY) && !biome.containsTag(Tags.Biomes.IS_WET_OVERWORLD)){
             biomeByte = 0;
             variant = recruit.random.nextInt(15, 19);
+        }
+        //TAIGA
+        else if(biome.is(Tags.Biomes.IS_CONIFEROUS) && biome.is(Tags.Biomes.IS_COLD_OVERWORLD) && !(biome.is(Tags.Biomes.IS_SNOWY))){
+            biomeByte = 6;
+            variant = recruit.random.nextInt(5, 14);
         }
         //JUNGLE
         else if(biome.is(Tags.Biomes.IS_WET_OVERWORLD) && !biome.is(Tags.Biomes.IS_SANDY) && !biome.is(Tags.Biomes.IS_SWAMP)){
@@ -955,8 +962,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             biomeByte = 4;
             variant = recruit.random.nextInt(5, 10);
         }
-        //TAIGA
-        else if(biome.is(Tags.Biomes.IS_CONIFEROUS)){
+        //SWAMP
+        else if(biome.is(Tags.Biomes.IS_SWAMP)){
             biomeByte = 5;
             variant = recruit.random.nextInt(5, 14);
         }
