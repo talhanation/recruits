@@ -67,6 +67,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TEXT_PROMOTE = Component.translatable("gui.recruits.inv.text.promote");
     private static final MutableComponent TEXT_SPECIAL = Component.translatable("gui.recruits.inv.text.special");
     private static final MutableComponent TOOLTIP_PROMOTE = Component.translatable("gui.recruits.inv.tooltip.promote");
+    private static final MutableComponent TOOLTIP_DISABLED_PROMOTE = Component.translatable("gui.recruits.inv.tooltip.promote_disabled");
     private static final MutableComponent TOOLTIP_SPECIAL = Component.translatable("gui.recruits.inv.tooltip.special");
     private static final int fontColor = 4210752;
     private final AbstractRecruitEntity recruit;
@@ -75,7 +76,8 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private int group;
     private int follow;
     private int aggro;
-
+    private Button clearUpkeep;
+    private boolean canPromote;
     public RecruitInventoryScreen(RecruitInventoryMenu recruitContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, recruitContainer, playerInventory, Component.literal(""));
         this.recruit = recruitContainer.getRecruit();
@@ -92,6 +94,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         int zeroLeftPos = leftPos + 180;
         int zeroTopPos = topPos + 10;
         int topPosGab = 5;
+        this.canPromote = this.recruit.getXpLevel() >= 3;
         this.clearWidgets();
         //PASSIVE
         ExtendedButton buttonPassive = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE,
@@ -246,15 +249,15 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         addRenderableWidget(backToMount);
 
         //CLEAR UPKEEP
-        Button clearUpkeep = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 6, 80, 20, TEXT_CLEAR_UPKEEP,
+        this.clearUpkeep = addRenderableWidget(new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 6, 80, 20, TEXT_CLEAR_UPKEEP,
                 button -> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageClearUpkeepGui(recruit.getUUID()));
-                    this.init();
+                    clearUpkeep.active = false;
                 }
         ));
-        clearUpkeep.setTooltip(Tooltip.create(TOOLTIP_CLEAR_UPKEEP));
-        clearUpkeep.active = recruit.hasUpkeep();
-        addRenderableWidget(clearUpkeep);
+        this.clearUpkeep.setTooltip(Tooltip.create(TOOLTIP_CLEAR_UPKEEP));
+        this.clearUpkeep.active = this.recruit.hasUpkeep();
+        
 
         //LISTEN
         addRenderableWidget(new ExtendedButton(leftPos + 77, topPos + 113, 8, 12, Component.literal("<"), button -> {
@@ -299,8 +302,10 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                         this.onClose();
                     }
             ));
+
             promoteButton.setTooltip(Tooltip.create(TOOLTIP_SPECIAL));
-            promoteButton.active = recruit.getXpLevel() >= 3;
+            promoteButton.active = canPromote;
+
         }
         else {
             Button promoteButton = addRenderableWidget(new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 8, 80, 20, TEXT_PROMOTE,
@@ -309,8 +314,9 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                         this.onClose();
                     }
             ));
-            promoteButton.setTooltip(Tooltip.create(TOOLTIP_PROMOTE));
-            promoteButton.active = recruit.getXpLevel() >= 3;
+            promoteButton.setTooltip(Tooltip.create(canPromote ? TOOLTIP_PROMOTE : TOOLTIP_DISABLED_PROMOTE));
+            promoteButton.active = canPromote;
+
         }
     }
 

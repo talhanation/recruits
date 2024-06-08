@@ -1,4 +1,4 @@
-{
+ {
   "entity.recruits.recruit": "Recruit",
   "entity.recruits.bowman": "Bowman",
   "entity.recruits.recruit_shieldman": "Recruit Shieldman",
@@ -228,6 +228,7 @@
 
   "gui.recruits.inv.text.promote" : "Promote",
   "gui.recruits.inv.tooltip.promote" : "Promote this recruit to a Companion!",
+  "gui.recruits.inv.tooltip.promote_disabled" : "Promote available at lvl 3!",
 
   "gui.recruits.inv.text.messenger" : "Messenger",
   "gui.recruits.inv.tooltip.messenger" : "A Messenger can deliver messages and items that are in his main hand to other players.",
