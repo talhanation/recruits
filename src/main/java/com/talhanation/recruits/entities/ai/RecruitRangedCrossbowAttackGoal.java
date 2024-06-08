@@ -1,6 +1,5 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.compat.CrossbowWeapon;
 import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
@@ -12,8 +11,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.item.enchantment.Enchantments;
+
+import java.util.EnumSet;
 
 public class RecruitRangedCrossbowAttackGoal extends Goal {
     private final CrossBowmanEntity crossBowman;
@@ -29,6 +28,7 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
         this.crossBowman = crossBowman;
         this.speedModifier = this.weapon.getMoveSpeedAmp();
         this.stopRange = stopRange;
+        this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
         this.consumeArrows = RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get();
     }
 
@@ -76,28 +76,42 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
 
         if (target != null && target.isAlive()) {
             double distanceToTarget = target.distanceToSqr(this.crossBowman);
-            boolean isFar = distanceToTarget >= 4200;
+            boolean isFar = distanceToTarget >= 3500;
+            boolean isTooFar = distanceToTarget >= 4500;
             boolean inRange = !isFar;
 
+            boolean canSee = this.crossBowman.getSensing().hasLineOfSight(target);
+            if (canSee) {
+                ++this.seeTime;
+            } else {
+                this.seeTime = 0;
+            }
 
-            if (!crossBowman.isFollowing()){
-                if (inRange){
-                    this.crossBowman.setAggressive(true);
-                    this.crossBowman.getNavigation().stop();
-                }
-                else {
-                    this.crossBowman.setAggressive(true);
-                    this.crossBowman.getNavigation().moveTo(target, this.speedModifier);
-                }
+            if(isTooFar){
+                this.crossBowman.setTarget(null);
+                this.stop();
+                return;
             }
 
             if (crossBowman.getShouldHoldPos() && crossBowman.getHoldPos() != null) {
-                if ((!crossBowman.getHoldPos().closerThan(crossBowman.getOnPos(), 5D))){
-                    this.crossBowman.setAggressive(true);
-                    this.crossBowman.getNavigation().moveTo(target, this.speedModifier);
+                if ((!crossBowman.getHoldPos().closerThan(crossBowman.getOnPos(), 5D))) {
+                    if (inRange) this.crossBowman.getNavigation().stop();
+                    else this.crossBowman.getNavigation().moveTo(target, this.speedModifier);
                 }
-            }
+            } else if (crossBowman.getShouldFollow() && crossBowman.getOwner() != null) {
+                boolean playerClose = crossBowman.getOwner().distanceTo(this.crossBowman) <= 15.00D;
 
+                if (playerClose) {
+                    if (inRange) this.crossBowman.getNavigation().stop();
+                    if (isFar) this.crossBowman.getNavigation().moveTo(target, this.speedModifier);
+                }
+                if (!playerClose) {
+                    this.crossBowman.getNavigation().moveTo(crossBowman.getOwner(), this.speedModifier);
+                }
+            } else {
+                if (inRange) this.crossBowman.getNavigation().stop();
+                if (isFar) this.crossBowman.getNavigation().moveTo(target, this.speedModifier);
+            }
         }
 
         //WEAPON HANDLING
