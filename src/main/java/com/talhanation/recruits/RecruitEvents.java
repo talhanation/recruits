@@ -151,11 +151,13 @@ public class RecruitEvents {
             Entity owner = projectile.getOwner();
 
             if (rayTrace.getType() == HitResult.Type.ENTITY) {
-                if (((EntityHitResult) rayTrace).getEntity() instanceof LivingEntity impactEntity) {
+                Entity impactEntity = ((EntityHitResult) rayTrace).getEntity();
+                String encode = impactEntity.getEncodeId();
+                if (impactEntity instanceof LivingEntity impactLiving) {
 
                     if (owner instanceof AbstractRecruitEntity recruit) {
 
-                        if(impactEntity instanceof Animal animal){
+                        if(impactLiving instanceof Animal animal){
                             if(animal.getFirstPassenger() instanceof AbstractRecruitEntity passenger){
                                 if (!canDamageTarget(recruit, passenger)) {
                                     event.setCanceled(true);
@@ -163,7 +165,7 @@ public class RecruitEvents {
                             }
                         }
 
-                        if (!canDamageTarget(recruit, impactEntity)) {
+                        if (!canDamageTarget(recruit, impactLiving)) {
                             event.setCanceled(true);
                         }
                         else {
@@ -174,19 +176,20 @@ public class RecruitEvents {
 
                     if (owner instanceof AbstractIllager illager && !RecruitsServerConfig.PillagerFriendlyFire.get()) {
 
-                        if (illager.isAlliedTo(impactEntity)) {
+                        if (illager.isAlliedTo(impactLiving)) {
                             event.setCanceled(true);
                         }
                     }
 
                     if (owner instanceof Player player) {
-                        if (!canHarmTeam(player, impactEntity)) {
+                        if (!canHarmTeam(player, impactLiving)) {
                             event.setCanceled(true);
                         }
                     }
 
-
-
+                }
+                else if (encode != null && encode.contains("corpse")){
+                    event.setCanceled(true);
                 }
             }
         }
