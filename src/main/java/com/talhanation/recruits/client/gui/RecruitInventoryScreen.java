@@ -80,7 +80,11 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TEXT_SPECIAL = new TranslatableComponent("gui.recruits.inv.text.special");
     private static final MutableComponent TOOLTIP_PROMOTE = new TranslatableComponent("gui.recruits.inv.tooltip.promote");
     private static final MutableComponent TOOLTIP_SPECIAL = new TranslatableComponent("gui.recruits.inv.tooltip.special");
-
+    private static final MutableComponent TEXT_PROMOTE = new TranslatableComponent("gui.recruits.inv.text.promote");
+    private static final MutableComponent TEXT_SPECIAL = new TranslatableComponent("gui.recruits.inv.text.special");
+    private static final MutableComponent TOOLTIP_PROMOTE = new TranslatableComponent("gui.recruits.inv.tooltip.promote");
+    private static final MutableComponent TOOLTIP_DISABLED_PROMOTE = new TranslatableComponent("gui.recruits.inv.tooltip.promote_disabled");
+    private static final MutableComponent TOOLTIP_SPECIAL = new TranslatableComponent("gui.recruits.inv.tooltip.special");
     private static final int fontColor = 4210752;
     private final AbstractRecruitEntity recruit;
     private final Inventory playerInventory;
@@ -88,7 +92,8 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private int group;
     private int follow;
     private int aggro;
-
+    private Button clearUpkeep;
+    private boolean canPromote;
     public RecruitInventoryScreen(RecruitInventoryMenu recruitContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, recruitContainer, playerInventory, new TextComponent(""));
         this.recruit = recruitContainer.getRecruit();
@@ -105,6 +110,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         int zeroLeftPos = leftPos + 180;
         int zeroTopPos = topPos + 10;
         int topPosGab = 5;
+        this.canPromote = this.recruit.getXpLevel() >= 3;
         this.clearWidgets();
         //PASSIVE
         addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE,
@@ -284,16 +290,17 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         ));
 
         //CLEAR UPKEEP
-        Button clearUpkeep = addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 6, 80, 20, TEXT_CLEAR_UPKEEP,
+        this.clearUpkeep = addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 6, 80, 20, TEXT_CLEAR_UPKEEP,
                 button -> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageClearUpkeepGui(recruit.getUUID()));
-                    this.init();
+                    clearUpkeep.active = false;
                 },
                 (button1, poseStack, i, i1) -> {
                     this.renderTooltip(poseStack, TOOLTIP_CLEAR_UPKEEP, i, i1);
                 }
         ));
-        clearUpkeep.active = recruit.hasUpkeep();
+        this.clearUpkeep.active = this.recruit.hasUpkeep();
+
 
         //LISTEN
         addRenderableWidget(new Button(leftPos + 77, topPos + 113, 8, 12, new TextComponent("<"), button -> {
@@ -341,7 +348,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                         this.renderTooltip(poseStack, TOOLTIP_SPECIAL, i, i1);
                     }
             ));
-            promoteButton.active = recruit.getXpLevel() >= 3;
+            promoteButton.active = canPromote;
 
         }
         else {
@@ -351,10 +358,10 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                         this.onClose();
                     },
                     (button1, poseStack, i, i1) -> {
-                        this.renderTooltip(poseStack, TOOLTIP_PROMOTE, i, i1);
+                        this.renderTooltip(poseStack, canPromote ? TOOLTIP_PROMOTE : TOOLTIP_DISABLED_PROMOTE, i, i1);
                     }
             ));
-            promoteButton.active = recruit.getXpLevel() >= 3;
+            promoteButton.active = canPromote;
         }
     }
 
