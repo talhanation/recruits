@@ -2,6 +2,7 @@ package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.compat.Corpse;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.inventory.RecruitSimpleContainer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -247,7 +248,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
     public void die(DamageSource dmg) {
         super.die(dmg);
 
-        if(Main.isCorpseLoaded && !this.getCommandSenderWorld().isClientSide()){
+        if(Main.isCorpseLoaded && !this.getCommandSenderWorld().isClientSide() && RecruitsServerConfig.CompatCorpseMod.get()){
             Corpse.spawnCorpse(this);
         }
         else

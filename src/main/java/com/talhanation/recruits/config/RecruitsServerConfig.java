@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.Mod;
+import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -66,6 +67,7 @@ public class RecruitsServerConfig{
     public static ForgeConfigSpec.BooleanValue RangedRecruitsNeedArrowsToShoot;
     public static ForgeConfigSpec.BooleanValue RecruitsChunkLoading;
     public static ForgeConfigSpec.BooleanValue UpdateCheckerServerside;
+    public static ForgeConfigSpec.BooleanValue CompatCorpseMod;
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin"));
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
@@ -590,6 +592,16 @@ public class RecruitsServerConfig{
                 .worldRestart()
                 .define("GlobalTeamSeeFriendlyInvisibleSetting", true);
 
+        BUILDER.pop();
+        BUILDER.comment("Recruit Mod compatibility Config:").push("Compat");
+
+        CompatCorpseMod = BUILDER.comment("""
+                        This feature is only possible when corpse mod is installed.
+                        Should recruits spawn corpse of corpse mod when dead?.
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("CompatCorpseMod", true);
 
         SERVER = BUILDER.build();
     }
