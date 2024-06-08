@@ -97,6 +97,7 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
                 recruit.setMountTimer(nbt.getInt("mountTimer"));
                 recruit.setUpkeepTimer(nbt.getInt("UpkeepTimer"));
                 recruit.setColor(nbt.getByte("Color"));
+                recruit.setBiome(nbt.getByte("Biome"));
 
                 recruit.setHoldPos(context.getClickedPos());
 
