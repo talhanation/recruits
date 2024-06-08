@@ -398,7 +398,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setMountTimer(nbt.getInt("mountTimer"));
         this.setUpkeepTimer(nbt.getInt("UpkeepTimer"));
         this.setColor(nbt.getByte("Color"));
-        this.setBiome(nbt.getByte("Biome"));
+
         this.setMaxFallDistance(nbt.getInt("MaxFallDistance"));
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
@@ -443,6 +443,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     nbt.getInt("UpkeepPosY"),
                     nbt.getInt("UpkeepPosZ")));
         }
+
+        if(nbt.contains("Biome"))this.setBiome(nbt.getByte("Biome"));
+        else applyBiomeAndVariant(this);;
     }
 
     ////////////////////////////////////GET////////////////////////////////////
@@ -933,6 +936,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         recruit.setListen(true);
         recruit.setXpLevel(1);
 
+        applyBiomeAndVariant(recruit);
+    }
+
+    public static void applyBiomeAndVariant(AbstractRecruitEntity recruit){
         //ForgeBiomeTagsProvider
         Holder<Biome> biome = recruit.getCommandSenderWorld().getBiome(recruit.getOnPos());
         byte biomeByte = 2; //PLAINS
@@ -971,8 +978,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         recruit.setBiome(biomeByte);
         recruit.setVariant(variant);
     }
-
-
 
     ////////////////////////////////////is FUNCTIONS////////////////////////////////////
 
