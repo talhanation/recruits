@@ -163,6 +163,11 @@ public class RecruitEvents {
                                     event.setCanceled(true);
                                 }
                             }
+                            else if(animal.getFirstPassenger() instanceof Player player){
+                                if (!canDamageTarget(recruit, player)) {
+                                    event.setCanceled(true);
+                                }
+                            }
                         }
 
                         if (!canDamageTarget(recruit, impactLiving)) {
