@@ -10,6 +10,7 @@ import com.talhanation.recruits.network.MessageLeaveTeam;
 import com.talhanation.recruits.network.MessageOpenTeamAddPlayerScreen;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.inventory.AnvilScreen;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.GameRenderer;
