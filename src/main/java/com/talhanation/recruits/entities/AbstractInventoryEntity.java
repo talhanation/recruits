@@ -471,7 +471,29 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
             }
         }
 
-        return count < 100;
+        return count < 50;
+    }
+
+    public boolean canTakePlanks() {
+        int count = 0;
+        for(ItemStack itemstack : this.inventory.items){
+            if(itemstack.is(ItemTags.PLANKS)){
+                count += itemstack.getCount();
+            }
+        }
+
+        return count < 64;
+    }
+
+    public boolean canTakeIronNuggets() {
+        int count = 0;
+        for(ItemStack itemstack : this.inventory.items){
+            if(itemstack.is(Items.IRON_NUGGET)){
+                count += itemstack.getCount();
+            }
+        }
+
+        return count < 64;
     }
 
     public boolean canTakeCartridge() {

@@ -1802,19 +1802,28 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                         itemstack.shrink(equipment.getCount());
                     }
                 }
-                else if (this instanceof CaptainEntity && Main.isSmallShipsLoaded){
-                    if(itemstack.getDescriptionId().contains("cannon_ball")){
-                        if(this.canTakeCannonBalls()){
-                            equipment = itemstack.copy();
-                            this.inventory.addItem(equipment);
-                            itemstack.shrink(equipment.getCount());
-                        }
-                    }
-                    else if (itemstack.is(ItemTags.PLANKS)){
+            }
 
+            if (this instanceof CaptainEntity && Main.isSmallShipsLoaded){
+                if(itemstack.getDescriptionId().contains("cannon_ball")){
+                    if(this.canTakeCannonBalls()){
+                        equipment = itemstack.copy();
+                        this.inventory.addItem(equipment);
+                        itemstack.shrink(equipment.getCount());
                     }
-                    else if (itemstack.is(Items.IRON_NUGGET)){
-
+                }
+                else if (itemstack.is(ItemTags.PLANKS)){
+                    if(this.canTakePlanks()){
+                        equipment = itemstack.copy();
+                        this.inventory.addItem(equipment);
+                        itemstack.shrink(equipment.getCount());
+                    }
+                }
+                else if (itemstack.is(Items.IRON_NUGGET)){
+                    if(this.canTakeIronNuggets()){
+                        equipment = itemstack.copy();
+                        this.inventory.addItem(equipment);
+                        itemstack.shrink(equipment.getCount());
                     }
                 }
             }

@@ -273,6 +273,29 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
     @Override
     public void setStrategicFirePos(BlockPos blockpos) {
 
+    public void refillCannonBalls() {
+        if(this.getInventory().hasAnyMatching(itemStack -> itemStack.getDescriptionId().contains("cannon_ball"))){
+            if(this.getVehicle() instanceof Container container){
+
+                for(int i = 0; i < this.getInventory().getContainerSize(); i++){
+                    ItemStack stack = this.getInventory().getItem(i);
+
+                    if(stack.getDescriptionId().contains("cannon_ball")){
+                        ItemStack cannonball = stack.copy();
+                        for(int k = 0; k < container.getContainerSize(); k++){
+                            if(container.getItem(k).isEmpty()) {
+                                container.setItem(k, cannonball);
+                                stack.shrink(cannonball.getCount());
+
+                                this.getInventory().setChanged();
+                                container.setChanged();
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
