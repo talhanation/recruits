@@ -30,27 +30,21 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
 
     private static final MutableComponent BUTTON_MESSENGER = new TranslatableComponent("gui.recruits.inv.text.messenger");
     private static final MutableComponent TOOLTIP_MESSENGER = new TranslatableComponent("gui.recruits.inv.tooltip.messenger");
-
     private static final MutableComponent BUTTON_PATROL_LEADER = new TranslatableComponent("gui.recruits.inv.text.patrol_leader");
     private static final MutableComponent TOOLTIP_PATROL_LEADER = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader");
     private static final MutableComponent BUTTON_CAPTAIN = new TranslatableComponent("gui.recruits.inv.text.captain");
     private static final MutableComponent TOOLTIP_CAPTAIN = new TranslatableComponent("gui.recruits.inv.tooltip.captain");
-
+    private static final MutableComponent TOOLTIP_CAPTAIN_DISABLED = new TranslatableComponent("gui.recruits.inv.tooltip.captain_disabled");
     private static final MutableComponent BUTTON_SCOUT = new TranslatableComponent("gui.recruits.inv.text.scout");
     private static final MutableComponent TOOLTIP_SCOUT = new TranslatableComponent("gui.recruits.inv.tooltip.scout");
-
     private static final MutableComponent BUTTON_GOVERNOR = new TranslatableComponent("gui.recruits.inv.text.governor");
     private static final MutableComponent TOOLTIP_GOVERNOR = new TranslatableComponent("gui.recruits.inv.tooltip.governor");
-
     private static final MutableComponent BUTTON_ASSASSIN = new TranslatableComponent("gui.recruits.inv.text.assassin");
     private static final MutableComponent TOOLTIP_ASSASSIN = new TranslatableComponent("gui.recruits.inv.tooltip.assassin");
-
     private static final MutableComponent BUTTON_SPY = new TranslatableComponent("gui.recruits.inv.text.spy");
     private static final MutableComponent TOOLTIP_SPY = new TranslatableComponent("gui.recruits.inv.tooltip.spy");
-
     private static final MutableComponent BUTTON_SIEGE_ENGINEER = new TranslatableComponent("gui.recruits.inv.text.siege_engineer");
     private static final MutableComponent TOOLTIP_SIEGE_ENGINEER = new TranslatableComponent("gui.recruits.inv.tooltip.siege_engineer");
-
     private static final MutableComponent BUTTON_ROGUE = new TranslatableComponent("gui.recruits.inv.text.rogue");
     private static final MutableComponent TOOLTIP_ROGUE = new TranslatableComponent("gui.recruits.inv.tooltip.rogue");
 
@@ -108,7 +102,7 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
         createProfessionButtons(BUTTON_SCOUT, TOOLTIP_SCOUT, 1, false && recruit.getXpLevel() >= 3);
 
         createProfessionButtons(BUTTON_PATROL_LEADER, TOOLTIP_PATROL_LEADER, 2,recruit.getXpLevel() >= 5);
-        createProfessionButtons(BUTTON_CAPTAIN, TOOLTIP_CAPTAIN, 3, recruit.getXpLevel() >= 5 && Main.isSmallShipsLoaded && Main.isSmallShipsCompatible);
+        createProfessionButtons(BUTTON_CAPTAIN, Main.isSmallShipsCompatible ? TOOLTIP_CAPTAIN : TOOLTIP_CAPTAIN_DISABLED, 3, recruit.getXpLevel() >= 5 && Main.isSmallShipsLoaded && Main.isSmallShipsCompatible);
         createProfessionButtons(BUTTON_ASSASSIN, TOOLTIP_ASSASSIN, 4, false && recruit.getXpLevel() >= 5);
         createProfessionButtons(BUTTON_SIEGE_ENGINEER, TOOLTIP_SIEGE_ENGINEER, 5, false && recruit.getXpLevel() >= 5 && Main.isSiegeWeaponsLoaded);
 
