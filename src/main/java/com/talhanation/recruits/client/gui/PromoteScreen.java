@@ -32,7 +32,7 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
     private static final MutableComponent TOOLTIP_PATROL_LEADER = Component.translatable("gui.recruits.inv.tooltip.patrol_leader");
     private static final MutableComponent BUTTON_CAPTAIN = Component.translatable("gui.recruits.inv.text.captain");
     private static final MutableComponent TOOLTIP_CAPTAIN = Component.translatable("gui.recruits.inv.tooltip.captain");
-
+    private static final MutableComponent TOOLTIP_CAPTAIN_DISABLED = Component.translatable("gui.recruits.inv.tooltip.captain_disabled");
     private static final MutableComponent BUTTON_SCOUT = Component.translatable("gui.recruits.inv.text.scout");
     private static final MutableComponent TOOLTIP_SCOUT = Component.translatable("gui.recruits.inv.tooltip.scout");
 
@@ -104,7 +104,7 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
         createProfessionButtons(BUTTON_SCOUT, TOOLTIP_SCOUT, 1, false && recruit.getXpLevel() >= 3);
 
         createProfessionButtons(BUTTON_PATROL_LEADER, TOOLTIP_PATROL_LEADER, 2,recruit.getXpLevel() >= 5);
-        createProfessionButtons(BUTTON_CAPTAIN, TOOLTIP_CAPTAIN, 3, recruit.getXpLevel() >= 5 && Main.isSmallShipsLoaded && Main.isSmallShipsCompatible);
+        createProfessionButtons(BUTTON_CAPTAIN, Main.isSmallShipsCompatible ? TOOLTIP_CAPTAIN : TOOLTIP_CAPTAIN_DISABLED, 3, recruit.getXpLevel() >= 5 && Main.isSmallShipsLoaded && Main.isSmallShipsCompatible);
         createProfessionButtons(BUTTON_ASSASSIN, TOOLTIP_ASSASSIN, 4, false && recruit.getXpLevel() >= 5);
         createProfessionButtons(BUTTON_SIEGE_ENGINEER, TOOLTIP_SIEGE_ENGINEER, 5, false && recruit.getXpLevel() >= 5 && Main.isSiegeWeaponsLoaded);
 
