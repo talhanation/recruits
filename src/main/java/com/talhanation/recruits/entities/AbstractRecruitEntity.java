@@ -217,10 +217,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(6, new RecruitUpkeepEntityGoal(this));
         this.goalSelector.addGoal(3, new RecruitMountEntity(this));
         this.goalSelector.addGoal(3, new RecruitDismountEntity(this));
-        this.goalSelector.addGoal(4, new RecruitMoveToPosGoal(this, 1.05D));
+        this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.05D));
         this.goalSelector.addGoal(2, new RecruitFollowOwnerGoal(this, 1.05D, 300, 100));
         this.goalSelector.addGoal(2, new RecruitMeleeAttackGoal(this, 1.05D, this.getMeleeStartRange()));
-        this.goalSelector.addGoal(7, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
+        this.goalSelector.addGoal(3, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
         //this.goalSelector.addGoal(7, new RecruitDodgeGoal(this));
 
         this.goalSelector.addGoal(9, new MoveBackToVillageGoal(this, 0.6D, false));
