@@ -168,7 +168,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
             double angle = IRangedRecruit.getAngleDistanceModifier(distance, 47, 2) + IRangedRecruit.getAngleHeightModifier(distance, heightDiff, 1.00D) / 100;
             float force = 1.90F + IRangedRecruit.getForceDistanceModifier(distance, 1.90F);
             float accuracy = 0.75F; // 0 = 100%
-            Main.LOGGER.info("Distance: " + distance);
+            //Main.LOGGER.info("Distance: " + distance);
                                                 //angle   = 0.196F           //force     //accuracy 0 = 100%
             arrow.shoot(d0, d1 + d3 * angle, d2, force, accuracy);
 
