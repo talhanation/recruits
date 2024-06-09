@@ -13,6 +13,7 @@ import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ProjectileWeaponItem;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
 
@@ -36,7 +37,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
         this.attackIntervalMax = attackIntervalMax;
         this.attackRadius = attackRadius;
         this.stopRange = stopRange;
-        this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
+        this.setFlags(EnumSet.of(Goal.Flag.LOOK));
         this.consumeArrows = RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get();
     }
 
@@ -93,52 +94,39 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
         this.attackTime = -1;
         this.mob.stopUsingItem();
     }
-    //distance of 2800 is accuracy limit
+
     public void tick() {
-        boolean isClose = target.distanceToSqr(this.mob) <= 150;
-        boolean isFar = target.distanceToSqr(this.mob) >= 3500;
-        boolean isTooFar = target.distanceToSqr(this.mob) >= 4500;
-        boolean inRange =  !isFar;
-        //if (mob.getHoldPos() != null)Objects.requireNonNull(this.mob.getOwner()).sendMessage(new StringTextComponent("Pos vorhanden"), mob.getOwner().getUUID());
-
-        boolean canSee = this.mob.getSensing().hasLineOfSight(target);
-        if (canSee) {
-            ++this.seeTime;
-        } else {
-            this.seeTime = 0;
-        }
-
-        if(isTooFar){
-            this.mob.setTarget(null);
-            this.stop();
-            return;
-        }
-
         if(target != null && target.isAlive()) {
-            // movement
-            if (mob.getShouldHoldPos() && mob.getHoldPos() != null) {
-                if ((!mob.getHoldPos().closerThan(mob.getOnPos(), 5D))) {
-                    if (inRange) this.mob.getNavigation().stop();
-                    else this.mob.getNavigation().moveTo(target, this.speedModifier);
-                }
-            } else if (mob.getShouldFollow() && mob.getOwner() != null) {
-                boolean playerClose = mob.getOwner().distanceTo(this.mob) <= 15.00D;
+            double distance = target.distanceToSqr(this.mob);
+            boolean isClose = distance <= 150;
+            boolean isFar = distance >= 3500;
+            boolean isTooFar = distance >= 4500;
+            boolean inRange =  !isFar;
+            boolean canSee = this.mob.getSensing().hasLineOfSight(target);
 
-                if (playerClose) {
-                    if (inRange) this.mob.getNavigation().stop();
-                    if (isFar) this.mob.getNavigation().moveTo(target, this.speedModifier);
-                    if (isClose) this.mob.fleeEntity(target);
-                }
-                if (!playerClose) {
-                    this.mob.getNavigation().moveTo(mob.getOwner(), this.speedModifier);
-                }
+            if (canSee) {
+                ++this.seeTime;
             } else {
-                if (inRange) this.mob.getNavigation().stop();
-                if (isFar) this.mob.getNavigation().moveTo(target, this.speedModifier);
-                if (isClose) this.mob.fleeEntity(target);
+                this.seeTime = 0;
             }
 
-            double d0 = this.mob.distanceToSqr(target.getX(), target.getY(), target.getZ());
+            if(isTooFar){
+                this.mob.setTarget(null);
+                this.stop();
+                return;
+            }
+
+            // movement
+            if (mob.getShouldFollow() && mob.getOwner() != null) {
+                handleFollow(this.mob.getOwner(), inRange, isFar, isClose);
+            }
+            else if(mob.getShouldHoldPos() && mob.getHoldPos() != null){
+                handleHoldPos(mob.getHoldPos(), inRange, isFar, isClose);
+            }
+            else {
+                handleWander(inRange, isFar, isClose);
+            }
+
             this.mob.getLookControl().setLookAt(target, 30.0F, 30.0F);
             if (this.mob.isUsingItem()) {
                 if (!canSee && this.seeTime < -60) {
@@ -148,7 +136,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
                     if (i >= 20) {
                         this.mob.stopUsingItem();
                         this.mob.performRangedAttack(target, BowItem.getPowerForTime(i));
-                        float f = Mth.sqrt((float) d0) / this.attackRadius;
+                        float f = Mth.sqrt((float) distance) / this.attackRadius;
                         this.attackTime = Mth.floor(f * (float) (this.attackIntervalMax - this.attackIntervalMin) + (float) this.attackIntervalMin);
                     }
                 }
@@ -163,9 +151,9 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
         BlockPos pos = mob.getMovePos();
 
         if (target != null && pos != null && mob.getShouldMovePos()) {
-            boolean targetIsFar = target.distanceTo(this.mob) >= 32D;
-            boolean posIsClose = pos.distSqr(this.mob.getOnPos()) <= 15.0D;
-            boolean posIsFar = pos.distSqr(this.mob.getOnPos()) > 15.0D;
+            boolean targetIsFar = target.distanceToSqr(this.mob) >= 320;
+            boolean posIsClose = pos.distSqr(this.mob.getOnPos()) <= 150;
+            boolean posIsFar = pos.distSqr(this.mob.getOnPos()) > 150D;
 
             if (posIsFar) {
                 return false;
@@ -176,5 +164,38 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
             }
         }
         return true;
+    }
+
+    private void handleFollow(@NotNull LivingEntity owner, boolean inRange, boolean isFar, boolean isClose){
+        boolean ownerClose = owner.distanceToSqr(this.mob) <= 100;
+
+        if (ownerClose) {
+            if (inRange) this.mob.getNavigation().stop();
+            if (isFar) this.mob.getNavigation().moveTo(target, this.speedModifier);
+            if (isClose) this.mob.fleeEntity(target);
+        }
+        //if (!ownerClose) {
+        //    this.mob.getNavigation().moveTo(owner, this.speedModifier);
+        //}
+    }
+
+    private void handleHoldPos(@NotNull BlockPos pos, boolean inRange, boolean isFar, boolean isClose){
+        boolean posClose = pos.distSqr(this.mob.getOnPos()) <= 50;
+
+        if (posClose) {
+            if (inRange) this.mob.getNavigation().stop();
+        }
+        else {
+            //this.mob.getNavigation().moveTo(pos.getX(), pos.getY(), pos.getZ(), 1);
+        }
+        //if (!ownerClose) {
+        //    this.mob.getNavigation().moveTo(owner, this.speedModifier);
+        //}
+    }
+
+    private void handleWander(boolean inRange, boolean isFar, boolean isClose){
+        if (inRange) this.mob.getNavigation().stop();
+        if (isFar) this.mob.getNavigation().moveTo(target, this.speedModifier);
+        if (isClose) this.mob.fleeEntity(target);
     }
 }

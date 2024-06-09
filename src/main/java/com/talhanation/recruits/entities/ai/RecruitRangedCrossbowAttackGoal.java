@@ -11,6 +11,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
 
@@ -20,6 +21,7 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
     private int seeTime;
     private State state;
     private IWeapon weapon;
+    private LivingEntity target;
     private final double stopRange;
     private boolean consumeArrows;
 
@@ -28,15 +30,15 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
         this.crossBowman = crossBowman;
         this.speedModifier = this.weapon.getMoveSpeedAmp();
         this.stopRange = stopRange;
-        this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
+        this.setFlags(EnumSet.of(Goal.Flag.LOOK));
         this.consumeArrows = RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get();
     }
 
     public boolean canUse() {
-        LivingEntity livingentity = this.crossBowman.getTarget();
-        if (livingentity != null && livingentity.isAlive() && this.isWeaponInMainHand()) {
+        this.target = this.crossBowman.getTarget();
+        if (target != null && target.isAlive() && this.isWeaponInMainHand()) {
             // if (mob.getOwner() != null && mob.getShouldFollow() && mob.getOwner().distanceTo(this.mob) <= 25.00D && !(target.distanceTo(this.mob) <= 7.00D)) return false;
-            return livingentity.distanceTo(this.crossBowman) >= stopRange && this.canAttackMovePos() && !this.crossBowman.needsToGetFood() && !this.crossBowman.getShouldMount();
+            return target.distanceTo(this.crossBowman) >= stopRange && this.canAttackMovePos() && !this.crossBowman.needsToGetFood() && !this.crossBowman.getShouldMount();
         } else {
             return crossBowman.getShouldStrategicFire();
         }
@@ -72,15 +74,14 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
     }
 
     public void tick() {
-        LivingEntity target = this.crossBowman.getTarget();
-
-        if (target != null && target.isAlive()) {
-            double distanceToTarget = target.distanceToSqr(this.crossBowman);
-            boolean isFar = distanceToTarget >= 3500;
-            boolean isTooFar = distanceToTarget >= 4500;
-            boolean inRange = !isFar;
-
+        if(target != null && target.isAlive()) {
+            double distance = target.distanceToSqr(this.crossBowman);
+            boolean isClose = distance <= 150;
+            boolean isFar = distance >= 3500;
+            boolean isTooFar = distance >= 4500;
+            boolean inRange =  !isFar;
             boolean canSee = this.crossBowman.getSensing().hasLineOfSight(target);
+
             if (canSee) {
                 ++this.seeTime;
             } else {
@@ -93,24 +94,15 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
                 return;
             }
 
-            if (crossBowman.getShouldHoldPos() && crossBowman.getHoldPos() != null) {
-                if ((!crossBowman.getHoldPos().closerThan(crossBowman.getOnPos(), 5D))) {
-                    if (inRange) this.crossBowman.getNavigation().stop();
-                    else this.crossBowman.getNavigation().moveTo(target, this.speedModifier);
-                }
-            } else if (crossBowman.getShouldFollow() && crossBowman.getOwner() != null) {
-                boolean playerClose = crossBowman.getOwner().distanceTo(this.crossBowman) <= 15.00D;
-
-                if (playerClose) {
-                    if (inRange) this.crossBowman.getNavigation().stop();
-                    if (isFar) this.crossBowman.getNavigation().moveTo(target, this.speedModifier);
-                }
-                if (!playerClose) {
-                    this.crossBowman.getNavigation().moveTo(crossBowman.getOwner(), this.speedModifier);
-                }
-            } else {
-                if (inRange) this.crossBowman.getNavigation().stop();
-                if (isFar) this.crossBowman.getNavigation().moveTo(target, this.speedModifier);
+            // movement
+            if (crossBowman.getShouldFollow() && crossBowman.getOwner() != null) {
+                handleFollow(this.crossBowman.getOwner(), inRange, isFar);
+            }
+            else if(crossBowman.getShouldHoldPos() && crossBowman.getHoldPos() != null){
+                handleHoldPos(crossBowman.getHoldPos(), inRange);
+            }
+            else {
+                handleWander(inRange, isFar, isClose);
             }
         }
 
@@ -246,5 +238,37 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
             }
         }
         return true;
+    }
+
+
+    private void handleFollow(@NotNull LivingEntity owner, boolean inRange, boolean isFar){
+        boolean ownerClose = owner.distanceToSqr(this.crossBowman) <= 100;
+
+        if (ownerClose) {
+            if (inRange) this.crossBowman.getNavigation().stop();
+            if (isFar) this.crossBowman.getNavigation().moveTo(target, this.speedModifier);
+        }
+        //if (!ownerClose) {
+        //    this.mob.getNavigation().moveTo(owner, this.speedModifier);
+        //}
+    }
+
+    private void handleHoldPos(@NotNull BlockPos pos, boolean inRange){
+        boolean posClose = pos.distSqr(this.crossBowman.getOnPos()) <= 50;
+
+        if (posClose) {
+            if (inRange) this.crossBowman.getNavigation().stop();
+        }
+        else {
+            //this.mob.getNavigation().moveTo(pos.getX(), pos.getY(), pos.getZ(), 1);
+        }
+        //if (!ownerClose) {
+        //    this.mob.getNavigation().moveTo(owner, this.speedModifier);
+        //}
+    }
+
+    private void handleWander(boolean inRange, boolean isFar, boolean isClose){
+        if (inRange) this.crossBowman.getNavigation().stop();
+        if (isFar) this.crossBowman.getNavigation().moveTo(crossBowman, this.speedModifier);
     }
 }
