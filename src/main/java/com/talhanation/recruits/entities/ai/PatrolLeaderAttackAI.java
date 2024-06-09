@@ -72,7 +72,7 @@ public class PatrolLeaderAttackAI extends Goal {
     public void attackCommandsToRecruits(LivingEntity target) {
         if(!this.leader.getCommandSenderWorld().isClientSide()){
             double distanceToTarget = this.leader.distanceToSqr(target);
-            Main.LOGGER.info("DistanceToTarget: "+ distanceToTarget);
+            //Main.LOGGER.info("DistanceToTarget: "+ distanceToTarget);
 
             if(distanceToTarget < 5000){
                 targets = this.leader.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, target.getBoundingBox().inflate(70D)).stream()
