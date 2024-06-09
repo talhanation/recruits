@@ -40,12 +40,10 @@ public class Corpse {
         ListTag tagList = new ListTag();
 
         for (int i = 0; i < list.size(); ++i) {
-            if (!(list.get(i)).isEmpty()) {
-                CompoundTag slot = new CompoundTag();
-                slot.putInt("Slot", i);
-                (list.get(i)).save(slot);
-                tagList.add(slot);
-            }
+            CompoundTag slot = new CompoundTag();
+            slot.putInt("Slot", i);
+            (list.get(i)).save(slot);
+            tagList.add(slot);
         }
         nbt.put("Equipment", tagList);
 
@@ -64,32 +62,28 @@ public class Corpse {
         ListTag tagList1 = new ListTag();
 
         for (int k = 0; k < list1.size(); ++k) {
-            if (!(list1.get(k)).isEmpty()) {
-                CompoundTag slot = new CompoundTag();
-                slot.putInt("Slot", k);
-                (list1.get(k)).save(slot);
-                tagList1.add(slot);
-            }
+            CompoundTag slot = new CompoundTag();
+            slot.putInt("Slot", k);
+            (list1.get(k)).save(slot);
+            tagList1.add(slot);
         }
         nbt.put("MainInventory", tagList1);
 
 
         List<ItemStack> list2 = new ArrayList<>(Arrays.asList(
-                recruit.inventory.getItem(0),
-                recruit.inventory.getItem(1),
+                recruit.inventory.getItem(3),
                 recruit.inventory.getItem(2),
-                recruit.inventory.getItem(3)
+                recruit.inventory.getItem(1),
+                recruit.inventory.getItem(0)
 
         ));
         ListTag tagList2 = new ListTag();
 
         for (int k = 0; k < list2.size(); ++k) {
-            if (!(list2.get(k)).isEmpty()) {
-                CompoundTag slot = new CompoundTag();
-                slot.putInt("Slot", k);
-                (list2.get(k)).save(slot);
-                tagList2.add(slot);
-            }
+            CompoundTag slot = new CompoundTag();
+            slot.putInt("Slot", k);
+            (list2.get(k)).save(slot);
+            tagList2.add(slot);
         }
         nbt.put("ArmorInventory", tagList2);
 
@@ -99,12 +93,10 @@ public class Corpse {
         ListTag tagList3 = new ListTag();
 
         for (int k = 0; k < list3.size(); ++k) {
-            if (!(list3.get(k)).isEmpty()) {
-                CompoundTag slot = new CompoundTag();
-                slot.putInt("Slot", k);
-                (list3.get(k)).save(slot);
-                tagList3.add(slot);
-            }
+            CompoundTag slot = new CompoundTag();
+            slot.putInt("Slot", k);
+            (list3.get(k)).save(slot);
+            tagList3.add(slot);
         }
         nbt.put("OffHandInventory", tagList3);
 
