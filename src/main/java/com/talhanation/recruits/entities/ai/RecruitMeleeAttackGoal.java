@@ -40,14 +40,14 @@ public class RecruitMeleeAttackGoal extends Goal {
             if (target != null && target.isAlive()) {
                 boolean isClose = target.distanceTo(this.recruit) <= range;
                 boolean canSee = this.recruit.getSensing().hasLineOfSight(target);
-                if (isClose && canSee && canAttackHoldPos()) {
+                if (isClose && canSee && canAttackHoldPos() && recruit.getState() != 3 && !recruit.needsToGetFood() && !recruit.getShouldMount() && !recruit.getShouldMovePos()) {
                     this.path = this.recruit.getNavigation().createPath(target, 0);
                     if (this.path != null) {
                         return true;
                     } else {
                         double distance = this.recruit.distanceToSqr(target.getX(), target.getY(), target.getZ());
                         double reach = AttackUtil.getAttackReachSqr(recruit);
-                        return (reach >=  distance) && canAttackHoldPos() && recruit.getState() != 3 && !recruit.needsToGetFood() && !recruit.getShouldMount() && !recruit.getShouldMovePos();
+                        return (reach >=  distance) && canAttackHoldPos();
                     }
                 }
             }
