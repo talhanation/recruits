@@ -117,6 +117,7 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
         if(textField != null) textField.tick();
     }
 
+
     public boolean mouseClicked(double p_100753_, double p_100754_, int p_100755_) {
         if (this.textField != null && this.textField.isFocused()) {
             this.textField.mouseClicked(p_100753_, p_100754_, p_100755_);

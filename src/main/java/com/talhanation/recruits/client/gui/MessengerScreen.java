@@ -16,6 +16,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import org.lwjgl.glfw.GLFW;
 
 public class MessengerScreen extends ScreenBase<MessengerContainer> {
 
@@ -78,6 +79,15 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
         super.containerTick();
         textFieldPlayer.tick();
         textFieldMessage.tick();
+    }
+
+    @Override
+    public boolean keyPressed(int key, int a, int b) {
+        if (key == GLFW.GLFW_KEY_ESCAPE) {
+            this.onClose();
+            return true;
+        }
+        return true;
     }
 
     public boolean mouseClicked(double p_100753_, double p_100754_, int p_100755_) {

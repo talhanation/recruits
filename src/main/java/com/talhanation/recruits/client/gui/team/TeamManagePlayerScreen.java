@@ -14,6 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +65,7 @@ public class TeamManagePlayerScreen extends ScreenBase<TeamManagePlayerContainer
         textField.setTextColorUneditable(-1);
         textField.setBordered(true);
         textField.setMaxLength(24);
+        textField.setCanLoseFocus(false);
 
         addRenderableWidget(textField);
         setInitialFocus(textField);
@@ -86,9 +88,25 @@ public class TeamManagePlayerScreen extends ScreenBase<TeamManagePlayerContainer
         }
     }
 
+    public void removed() {
+        super.removed();
+        this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
+    }
+
     protected void containerTick() {
         super.containerTick();
         textField.tick();
+    }
+
+    @Override
+    public boolean keyPressed(int key, int a, int b) {
+        if (key == GLFW.GLFW_KEY_ESCAPE) {
+            this.onClose();
+            return true;
+        }
+        setFocused(textField);
+
+        return textField.keyPressed(key, a, b) || textField.canConsumeInput() || super.keyPressed(key, a, b);
     }
 
     public boolean mouseClicked(double p_100753_, double p_100754_, int p_100755_) {
