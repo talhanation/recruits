@@ -109,10 +109,16 @@ public class CaptainControlBoatAI extends Goal {
                             this.state = ATTACKING;
                         }
                     }
-
                     else if (captain.getSailPos() != null) {
                         this.sailPos = captain.getSailPos();
                         this.state = CREATING_PATH;
+                    }
+
+                    if(this.captain.tickCount % 20 == 0){
+                        if(captain.canRepair()){
+                            IBoatController.repairShip(captain);
+                        }
+                        captain.refillCannonBalls();
                     }
                 }
 
