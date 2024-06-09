@@ -4,16 +4,19 @@ import com.talhanation.recruits.Main;
 import com.talhanation.smallships.world.entity.ship.Ship;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.Tags;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
@@ -27,6 +30,45 @@ public interface IBoatController {
     static ItemStack getSmallShipsItem() {
         return ForgeRegistries.ITEMS.getDelegateOrThrow(ResourceLocation.tryParse("smallships:oak_cog")).get().getDefaultInstance();
     }
+
+    static void repairShip(CaptainEntity captain) {
+        int amount = (10 + captain.getCommandSenderWorld().random.nextInt(5));
+        try{
+            if (Main.isSmallShipsLoaded && Main.isSmallShipsCompatible && captain.getVehicle() instanceof Boat boat && boat.getEncodeId().contains("smallships")) {
+                Class<?> shipClass = Class.forName("com.talhanation.smallships.world.entity.ship.Ship");
+                if(shipClass.isInstance(boat)) {
+                    Object ship = shipClass.cast(boat);
+
+                    Method getDamageMethod = shipClass.getMethod("getDamage");
+                    float damage = (float) getDamageMethod.invoke(ship);
+
+                    if(damage > 5) {
+                        Method shipRepairMethod = shipClass.getMethod("repairShip", int.class);
+                        shipRepairMethod.invoke(ship, amount);
+
+                        for (int i = 0; i < captain.getInventory().getContainerSize(); ++i) {
+                            ItemStack itemStack = captain.getInventory().getItem(i);
+                            if (itemStack.is(ItemTags.PLANKS)) {
+                                itemStack.shrink(1);
+                                break;
+                            }
+                        }
+
+                        for (int i = 0; i < captain.getInventory().getContainerSize(); ++i) {
+                            ItemStack itemStack = captain.getInventory().getItem(i);
+                            if (itemStack.is(Items.IRON_NUGGET)) {
+                                itemStack.shrink(1);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            Main.LOGGER.info("shipClass was not found");
+        }
+    }
+
     default CaptainEntity getCaptain() {
         return (CaptainEntity) this;
     }
@@ -247,7 +289,7 @@ public interface IBoatController {
     }
     static void shootCannonsSmallShip(CaptainEntity driver, Boat boat, LivingEntity target, boolean leftSide){
         double distanceToTarget = driver.distanceToSqr(target);
-        Main.LOGGER.info("Distance: " + distanceToTarget);
+        //Main.LOGGER.info("Distance: " + distanceToTarget);
         double speed = 3.2F;
         double accuracy = 0F;// 0 = 100%
         float rotation = leftSide ? (3.14F / 2) : -(3.14F / 2);
