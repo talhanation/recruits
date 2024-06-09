@@ -257,7 +257,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         ));
         this.clearUpkeep.setTooltip(Tooltip.create(TOOLTIP_CLEAR_UPKEEP));
         this.clearUpkeep.active = this.recruit.hasUpkeep();
-        
+
 
         //LISTEN
         addRenderableWidget(new ExtendedButton(leftPos + 77, topPos + 113, 8, 12, Component.literal("<"), button -> {
