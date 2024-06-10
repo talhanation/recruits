@@ -10,6 +10,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.Container;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -18,10 +21,13 @@ import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.entity.vehicle.ContainerEntity;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraftforge.common.ForgeMod;
+import net.minecraftforge.common.Tags;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -33,6 +39,9 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
 
     public boolean shipAttacking = false;
     private static final EntityDataAccessor<Optional<BlockPos>> SAIL_POS = SynchedEntityData.defineId(CaptainEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
+    private static final EntityDataAccessor<Optional<BlockPos>> STRATEGIC_FIRE_POS = SynchedEntityData.defineId(CaptainEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
+    private static final EntityDataAccessor<Boolean> SHOULD_STRATEGIC_FIRE = SynchedEntityData.defineId(CaptainEntity.class, EntityDataSerializers.BOOLEAN);
+
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
     public CaptainEntity(EntityType<? extends AbstractLeaderEntity> entityType, Level world) {
@@ -41,6 +50,8 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(SAIL_POS, Optional.empty());
+        this.entityData.define(STRATEGIC_FIRE_POS, Optional.empty());
+        this.entityData.define(SHOULD_STRATEGIC_FIRE, false);
     }
     @Override
     protected void registerGoals() {
@@ -72,6 +83,14 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
             nbt.putInt("SailPosY", this.getSailPos().getY());
             nbt.putInt("SailPosZ", this.getSailPos().getZ());
         }
+
+        if(this.StrategicFirePos() != null){
+
+            nbt.putInt("StrategicFirePosX", this.StrategicFirePos().getX());
+            nbt.putInt("StrategicFirePosY", this.StrategicFirePos().getY());
+            nbt.putInt("StrategicFirePosZ", this.StrategicFirePos().getZ());
+            nbt.putBoolean("ShouldStrategicFire", this.getShouldStrategicFire());
+        }
     }
 
     public void readAdditionalSaveData(CompoundTag nbt) {
@@ -81,6 +100,14 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
                     nbt.getInt("SailPosX"),
                     nbt.getInt("SailPosY"),
                     nbt.getInt("SailPosZ")));
+        }
+
+        if (nbt.contains("StrategicFirePosX") && nbt.contains("StrategicFirePosY") && nbt.contains("StrategicFirePosZ")) {
+            this.setStrategicFirePos(new BlockPos (
+                    nbt.getInt("StrategicFirePosX"),
+                    nbt.getInt("StrategicFirePosY"),
+                    nbt.getInt("StrategicFirePosZ")));
+            this.setShouldStrategicFire(nbt.getBoolean("ShouldStrategicFire"));
         }
     }
 
@@ -238,10 +265,6 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
             if(speed < 0.01){
                 this.stopRiding();
                 this.setRecruitsDismount();
-
-                //Repair ship
-                //restock cannonballs
-                //
             }
         }
 
@@ -265,13 +288,24 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
         return 1000;
     }
 
-    @Override
-    public void setShouldStrategicFire(boolean should) {
-
+    public void setStrategicFirePos(BlockPos pos) {
+        if(pos != null) this.entityData.set(STRATEGIC_FIRE_POS, Optional.of(pos));
+        else this.entityData.set(STRATEGIC_FIRE_POS, Optional.empty());
+    }
+    public BlockPos StrategicFirePos(){
+        return this.entityData.get(STRATEGIC_FIRE_POS).orElse(null);
     }
 
-    @Override
-    public void setStrategicFirePos(BlockPos blockpos) {
+    public void setShouldStrategicFire(boolean bool) {
+        this.entityData.set(SHOULD_STRATEGIC_FIRE, bool);
+    }
+    public boolean getShouldStrategicFire(){
+        return this.entityData.get(SHOULD_STRATEGIC_FIRE);
+    }
+
+    public boolean canRepair() {
+        return this.getInventory().hasAnyMatching(itemStack -> itemStack.is(Items.IRON_NUGGET)) && this.getInventory().hasAnyMatching(itemStack -> itemStack.is(ItemTags.PLANKS));
+    }
 
     public void refillCannonBalls() {
         if(this.getInventory().hasAnyMatching(itemStack -> itemStack.getDescriptionId().contains("cannon_ball"))){
