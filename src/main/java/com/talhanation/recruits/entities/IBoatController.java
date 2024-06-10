@@ -289,14 +289,14 @@ public interface IBoatController {
     }
     static void shootCannonsSmallShip(CaptainEntity driver, Boat boat, LivingEntity target, boolean leftSide){
         double distanceToTarget = driver.distanceToSqr(target);
-        //Main.LOGGER.info("Distance: " + distanceToTarget);
+        Main.LOGGER.info("Distance: " + distanceToTarget);
         double speed = 3.2F;
-        double accuracy = 0F;// 0 = 100%
+        double accuracy = 2F;// 0 = 100% left right accuracy
         float rotation = leftSide ? (3.14F / 2) : -(3.14F / 2);
 
         Vec3 shootVec = boat.getForward().yRot(rotation).normalize();
         double heightDiff = target.getY() - driver.getY();
-        double angle = IRangedRecruit.getCannonAngleDistanceModifier(distanceToTarget, 3) + IRangedRecruit.getCannonAngleHeightModifier(distanceToTarget, heightDiff)/ 100;
+        double angle = IRangedRecruit.getCannonAngleDistanceModifier(distanceToTarget, 2) + IRangedRecruit.getCannonAngleHeightModifier(distanceToTarget, heightDiff)/ 100;
         double yShootVec = shootVec.y() + angle;
         try{
             Class<?> cannonAbleClass = Class.forName("com.talhanation.smallships.world.entity.ship.abilities.Cannonable");
