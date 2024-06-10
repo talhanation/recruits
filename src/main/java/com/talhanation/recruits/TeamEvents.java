@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 import java.util.*;
 
-public class TeamEvents {
+public class  TeamEvents {
 
     public MinecraftServer server;
 
@@ -301,7 +301,7 @@ public class TeamEvents {
                 if(isLeader){
                     server.getScoreboard().removePlayerTeam(playerTeam);
                     removeRecruitsTeamData(data, teamName);
-
+                    data.removeTeam(teamName);
                 }
                 else {
                     ServerPlayer leaderOfTeam = server.getPlayerList().getPlayerByName(recruitsTeam.getTeamLeaderName());
@@ -339,7 +339,7 @@ public class TeamEvents {
         data.setDirty();
     }
 
-    public static void addPlayerToTeam(ServerPlayer player, ServerLevel level, String teamName, String namePlayerToAdd) {
+    public static boolean addPlayerToTeam(ServerPlayer player, ServerLevel level, String teamName, String namePlayerToAdd) {
         MinecraftServer server = level.getServer();
         ServerPlayer playerToAdd = server.getPlayerList().getPlayerByName(namePlayerToAdd);
         PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(teamName);
@@ -348,7 +348,7 @@ public class TeamEvents {
         for(RecruitsTeam recruitsTeam : data.getTeams()) {
             if(recruitsTeam.getTeamLeaderUUID().equals(playerToAdd.getUUID())){
                 player.sendSystemMessage(CAN_NOT_ADD_OTHER_LEADER());
-                return;
+                return false;
             }
         }
 
@@ -364,9 +364,11 @@ public class TeamEvents {
             addNPCToData(level, teamName, recruits);
 
             serverSideUpdateTeam(level);
+            return true;
         }
         else
             Main.LOGGER.error("Can not add " + playerToAdd + " to Team, because " + teamName + " does not exist!");
+        return false;
     }
     public static Component REMOVE_PLAYER_LEADER(String player){
         return Component.translatable("chat.recruits.team_creation.removedPlayerLeader", player);
@@ -424,20 +426,20 @@ public class TeamEvents {
         else Main.LOGGER.error("Could not add join request for "+ teamName + ".Team does not exist.");
     }
 
-    public static void tryToRemoveFromTeam(ServerPlayer serverPlayer, ServerPlayer potentialRemovePlayer, ServerLevel level, String nameToRemove) {
-        if (potentialRemovePlayer != null) {
+    public static void tryToRemoveFromTeam(Team team, ServerPlayer serverPlayer, ServerPlayer potentialRemovePlayer, ServerLevel level, String nameToRemove, boolean menu) {
+        if (potentialRemovePlayer != null && team != null) {
             boolean isPlayerToRemove = potentialRemovePlayer.getName().getString().equals(nameToRemove);
 
             if (isPlayerToRemove) {
                 TeamEvents.leaveTeam(false, potentialRemovePlayer, null, level, true);
                 potentialRemovePlayer.sendSystemMessage(PLAYER_REMOVED);
-                serverPlayer.sendSystemMessage(REMOVE_PLAYER_LEADER(potentialRemovePlayer.getDisplayName().getString()));
+                if(menu)serverPlayer.sendSystemMessage(REMOVE_PLAYER_LEADER(potentialRemovePlayer.getDisplayName().getString()));
 
                 List<AbstractRecruitEntity> recruits = getRecruitsOfPlayer(serverPlayer.getUUID(), level);
                 int recruitCount = recruits.size();
 
-                addNPCToData(level, serverPlayer.getTeam().getName(), -recruitCount);
-                removeRecruitFromTeam(recruits, serverPlayer.getTeam(), level);
+                addNPCToData(level, team.getName(), -recruitCount);
+                removeRecruitFromTeam(recruits, team, level);
             }
         }
     }
@@ -556,7 +558,7 @@ public class TeamEvents {
         }
     }
     @SubscribeEvent
-    public void onPlayerTypeCommandEvent(CommandEvent event){
+    public void onTypeCommandEvent(CommandEvent event){
         if (event.getParseResults() != null) {
             String command = event.getParseResults().getReader().getString();
             CommandSourceStack sourceStack = event.getParseResults().getContext().build(command).getSource();
@@ -572,7 +574,7 @@ public class TeamEvents {
                         createTeam(false, sender, level, teamName, sender.getName().getString(), mainhand.getItem() instanceof BannerItem ? mainhand : null, "white", (byte) 0);
                         sourceStack.sendSuccess(Component.translatable("commands.team.add.success", teamName), true);
                         event.setCanceled(true);
-
+                        serverSideUpdateTeam(level);
                     }
                     else if(command.contains("remove")){
                         String[] parts = command.split(" ");
@@ -580,17 +582,108 @@ public class TeamEvents {
                         leaveTeam(true,sender, teamName, level, false);
                         sourceStack.sendSuccess(Component.translatable("commands.team.remove.success", teamName), true);
                         event.setCanceled(true);
+                        serverSideUpdateTeam(level);
                     }
-                    else if(command.contains("join") || command.contains("leave") || command.contains("remove")){
+                    else if(command.contains("join") || command.contains("leave")){
                         serverSideUpdateTeam(level);
                     }
                 }
             }
             else {
-                Main.LOGGER.warn("No player detected for executing team command!");
-                event.setCanceled(true);
+                if (command.contains("team")) {
+                    if (command.contains("add")) {
+                        String[] parts = command.split(" ");
+                        String teamName = parts[2];
+                        createTeamConsole(sourceStack, level, teamName, "white", (byte) 0);
+                        event.setCanceled(true);
+                    }
+                    else if (command.contains("remove")) {
+                        String[] parts = command.split(" ");
+                        String teamName = parts[2];
+
+                        PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(teamName);
+
+                        if (playerTeam != null) {
+                            RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
+
+                            server.getScoreboard().removePlayerTeam(playerTeam);
+                            removeRecruitsTeamData(data, teamName);
+                            data.removeTeam(teamName);
+                            data.setDirty();
+
+                            sourceStack.sendSuccess(Component.translatable("commands.team.remove.success", teamName), true);
+                        } else {
+                            sourceStack.sendFailure(Component.translatable("team.notFound", teamName));
+                        }
+                        event.setCanceled(true);
+                    }
+                    else if (command.contains("join")) {
+                        String[] parts = command.split(" ");
+                        String teamName = parts[2];
+                        String playerName = parts[3];
+
+                        ServerPlayer player = this.server.getPlayerList().getPlayerByName(playerName);
+                        if (player != null) {
+                            addPlayerToTeam(player, this.server.overworld(), teamName, playerName);
+                            sourceStack.sendSuccess(Component.translatable("commands.team.join.success.single", playerName, teamName), true);
+                            serverSideUpdateTeam(level);
+                        } else {
+                            sourceStack.sendFailure(Component.translatable("argument.player.unknown"));
+                        }
+                        event.setCanceled(true);
+                    }
+                    else if (command.contains("leave")) {
+                        String[] parts = command.split(" ");
+                        String playerName = parts[2];
+
+                        ServerPlayer player = this.server.getPlayerList().getPlayerByName(playerName);
+                        if (player != null) {
+                            Team team = player.getTeam();
+                            tryToRemoveFromTeam(team, player, player,this.server.overworld(), playerName, false);
+                            sourceStack.sendSuccess(Component.translatable("commands.team.leave.success.single", playerName), true);
+                            serverSideUpdateTeam(level);
+                        } else {
+                            sourceStack.sendFailure(Component.translatable("argument.player.unknown"));
+                        }
+                        event.setCanceled(true);
+                    }
+                }
             }
         }
+    }
+
+    private void createTeamConsole(CommandSourceStack sourceStack, ServerLevel  level, String teamName, String color, byte colorByte) {
+        PlayerTeam team = server.getScoreboard().getPlayerTeam(teamName);
+
+        ItemStack banner = Items.BROWN_BANNER.getDefaultInstance();
+        if (team == null) {
+            if (teamName.chars().count() <= 13) {
+                if (!(teamName.isBlank() || teamName.isEmpty())) {
+                    if (!isNameInUse(level, teamName)) {
+                            Scoreboard scoreboard = server.getScoreboard();
+                            PlayerTeam newTeam = scoreboard.addPlayerTeam(teamName);
+                            newTeam.setDisplayName(Component.literal(teamName));
+
+                            newTeam.setColor(Objects.requireNonNull(ChatFormatting.getByName(color)));
+                            newTeam.setAllowFriendlyFire(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamFriendlyFireSetting.get());
+                            newTeam.setSeeFriendlyInvisibles(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
+
+                            saveDataToTeam(level, teamName, new UUID(0,0), "none", banner.serializeNBT(), colorByte);
+
+
+                            Main.LOGGER.info("The new Team " + teamName + " has been created by console.");
+                    }
+                    else
+                        sourceStack.sendFailure(Component.translatable("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED));
+                }
+                else
+                    sourceStack.sendFailure(Component.translatable("chat.recruits.team_creation.noname").withStyle(ChatFormatting.RED));
+            }
+            else
+                sourceStack.sendFailure(Component.translatable("chat.recruits.team_creation.teamname_to_long").withStyle(ChatFormatting.RED));
+        }
+        else
+            sourceStack.sendFailure(Component.translatable("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED));
     }
 
 
