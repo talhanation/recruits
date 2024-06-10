@@ -244,7 +244,7 @@ public class RecruitUpkeepPosGoal extends Goal {
     }
 
     public void interactChest(Container container, boolean open) {
-        if(this.chestPos != null && container instanceof CompoundContainer || container instanceof ChestBlockEntity){
+        if(this.chestPos != null && (container instanceof CompoundContainer || container instanceof ChestBlockEntity)){
             BlockState state = this.recruit.getCommandSenderWorld().getBlockState(this.chestPos);
             Block block = state.getBlock();
             boolean isOpened = false;
