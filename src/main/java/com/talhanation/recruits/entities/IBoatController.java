@@ -289,7 +289,7 @@ public interface IBoatController {
     }
     static void shootCannonsSmallShip(CaptainEntity driver, Boat boat, LivingEntity target, boolean leftSide){
         double distanceToTarget = driver.distanceToSqr(target);
-        Main.LOGGER.info("Distance: " + distanceToTarget);
+        //Main.LOGGER.info("Distance: " + distanceToTarget);
         double speed = 3.2F;
         double accuracy = 2F;// 0 = 100% left right accuracy
         float rotation = leftSide ? (3.14F / 2) : -(3.14F / 2);

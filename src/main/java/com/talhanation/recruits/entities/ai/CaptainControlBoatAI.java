@@ -67,7 +67,7 @@ public class CaptainControlBoatAI extends Goal {
     }
 
     public void tick() {
-        Main.LOGGER.info("State: " + state);
+        //Main.LOGGER.info("State: " + state);
 
         if (!captain.getLevel().isClientSide()) {
             if(DEBUG) {
