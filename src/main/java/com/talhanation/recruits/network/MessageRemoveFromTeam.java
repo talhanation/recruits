@@ -27,7 +27,7 @@ public class MessageRemoveFromTeam implements Message<MessageRemoveFromTeam> {
         ServerPlayer sender = context.getSender();
         ServerLevel level = sender.getLevel();
 
-        level.players().stream().toList().forEach(serverPlayer -> TeamEvents.tryToRemoveFromTeam(sender, serverPlayer, level, player));
+        level.players().stream().toList().forEach(serverPlayer -> TeamEvents.tryToRemoveFromTeam(serverPlayer.getTeam(), sender, serverPlayer, level, player, true));
     }
 
     public MessageRemoveFromTeam fromBytes(FriendlyByteBuf buf) {
