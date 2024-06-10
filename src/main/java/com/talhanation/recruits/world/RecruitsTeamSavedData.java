@@ -136,4 +136,8 @@ public class RecruitsTeamSavedData extends SavedData {
 
         teams.put(teamName, recruitsTeam);
     }
+
+    public void removeTeam(String teamName){
+        teams.remove(teamName);
+    }
 }
