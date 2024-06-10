@@ -94,8 +94,14 @@ public interface IRangedRecruit extends RangedAttackMob {
         double modifier = 0;
         //smaller modifier = bigger angle
         //higher modifier = smaller angle
-        if(distance > 4000){
-            modifier = 110;
+        if(distance > 4500){
+            modifier = 260;
+        }
+        else if(distance > 4000){
+            modifier = 230;
+        }
+        else if(distance > 3500){
+            modifier = 220;
         }
         else if(distance > 3000){
             modifier = 190;
@@ -140,6 +146,6 @@ public interface IRangedRecruit extends RangedAttackMob {
     }
 
     static double getCannonAngleHeightModifier(double distance, double heightDiff) {
-            return heightDiff * (2.55);
+        return heightDiff * (2.55);
     }
 }
