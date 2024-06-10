@@ -246,7 +246,7 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
     }
 
     public boolean canAttackWhilePatrolling(LivingEntity target) {
-        if(target != null && target.isAlive() && this.getSensing().hasLineOfSight(target) && this.getCommandSenderWorld().canSeeSky(target.blockPosition().above())) {
+        if(target != null && target.isAlive() && this.getSensing().hasLineOfSight(target)) {
             if(this.getRecruitsInCommand().stream().anyMatch(PatrolLeaderAttackAI::isRanged)){
                 return true;
             }
