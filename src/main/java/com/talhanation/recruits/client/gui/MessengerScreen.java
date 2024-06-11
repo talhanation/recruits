@@ -43,6 +43,22 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
     }
 
     @Override
+    public boolean keyPressed(int key, int a, int b) {
+        if (key == GLFW.GLFW_KEY_ESCAPE) {
+            this.onClose();
+            return true;
+        }
+        if(textFieldPlayer.isFocused()){
+            setFocused(textFieldPlayer);
+            return textFieldPlayer.keyPressed(key, a, b) || textFieldPlayer.canConsumeInput() || super.keyPressed(key, a, b);
+        }
+        else{
+            setFocused(textFieldMessage);
+            return textFieldMessage.keyPressed(key, a, b) || textFieldMessage.isFocused() || super.keyPressed(key, a, b);
+        }
+
+    }
+    @Override
     protected void init() {
         super.init();
 
@@ -79,15 +95,6 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
         super.containerTick();
         textFieldPlayer.tick();
         textFieldMessage.tick();
-    }
-
-    @Override
-    public boolean keyPressed(int key, int a, int b) {
-        if (key == GLFW.GLFW_KEY_ESCAPE) {
-            this.onClose();
-            return true;
-        }
-        return true;
     }
 
     public boolean mouseClicked(double p_100753_, double p_100754_, int p_100755_) {
