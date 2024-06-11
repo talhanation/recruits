@@ -229,8 +229,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     @Override
     public InteractionResult mobInteract(@NotNull Player player, @NotNull InteractionHand hand) {
 
-        //if(this.getTargetPlayer() != null && this.getTargetPlayer().getUUID().equals(player.getUUID())){
-        if(this.state != State.IDLE && !player.isCrouching()){
+        if(this.getTargetPlayer() != null && this.getTargetPlayer().getUUID().equals(player.getUUID())){
             openAnswerGUI(player);
             return InteractionResult.CONSUME;
         }
