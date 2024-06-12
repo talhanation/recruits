@@ -110,10 +110,8 @@ public class Corpse {
         nbt.putByte("Model", (byte) 0);
 
         Death death = Death.fromNBT(nbt);
-        CompoundTag deathCompound = new CompoundTag();
-        deathCompound.put("Death", death.toNBT(true));
         try {
-            createCorpseFromDeath(recruit, death, deathCompound, (ServerLevel) recruit.getCommandSenderWorld());
+            createCorpseFromDeath(recruit, death, nbt, (ServerLevel) recruit.getCommandSenderWorld());
 
         } catch (ClassNotFoundException e) {
             Main.LOGGER.warn("Was not able to spawn recruit corpse for " + recruit.getName().getString());
@@ -129,10 +127,6 @@ public class Corpse {
 
             Object corpseInstance = bulletConstructor.newInstance(level);
 
-            Method readAdditionalSaveData = corpseClass.getDeclaredMethod("readAdditionalSaveData", CompoundTag.class);
-            readAdditionalSaveData.setAccessible(true);
-            readAdditionalSaveData.invoke(corpseInstance, deathCompound);
-
             Method setUUIDMethod = corpseClass.getMethod("setCorpseUUID", UUID.class);
             setUUIDMethod.invoke(corpseInstance, death.getPlayerUUID());
 
@@ -142,20 +136,23 @@ public class Corpse {
             Method setEquipmentMethod = corpseClass.getMethod("setEquipment", NonNullList.class);
             setEquipmentMethod.invoke(corpseInstance, death.getEquipment());
 
-            Method setPosMethod = corpseClass.getMethod("setPos", double.class, double.class, double.class);
-            setPosMethod.invoke(corpseInstance, death.getPosX(), Math.max(death.getPosY(), level.getMinBuildHeight()), death.getPosZ());
+            Class<?> deathClass = Class.forName("de.maxhenkel.corpse.corelib.death.Death");
 
-            Method setYRotMethod = corpseClass.getMethod("setYRot", float.class);
-            setYRotMethod.invoke(corpseInstance, recruit.getYRot());
+            Method deathFromNBTMethod = deathClass.getMethod("fromNBT", CompoundTag.class);
+            de.maxhenkel.corpse.corelib.death.Death deathObject = (de.maxhenkel.corpse.corelib.death.Death) deathFromNBTMethod.invoke(null, deathCompound);
+
+            Method setDeathMethod = corpseClass.getMethod("setDeath", deathClass);
+            setDeathMethod.invoke(corpseInstance, deathObject);
 
             if (corpseInstance instanceof Entity corpseEntity) {
-
+                corpseEntity.setPos(death.getPosX(), Math.max(death.getPosY(), level.getMinBuildHeight()), death.getPosZ());
+                corpseEntity.setYRot(recruit.getYRot());
                 level.addFreshEntity(corpseEntity);
             }
 
         } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
                  IllegalAccessException e) {
-            Main.LOGGER.warn("Was not able to spawn recruit corpse for " + recruit.getName().getString());
+            Main.LOGGER.warn("Was not able to spawn recruit corpse for " + recruit.getName().getString() + e);
         }
     }
 }
