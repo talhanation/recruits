@@ -114,7 +114,7 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.19.2-43.2.0'
+    minecraft 'net.minecraftforge:forge:1.19.2-43.3.0'
     shadow fg.deobf("de.maxhenkel.corelib:corelib:1.19.2-1.0.0:api")
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.19.2-1.0.0")
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.19.2-1.0.0:javadoc")
@@ -127,6 +127,7 @@ dependencies {
     implementation fg.deobf("curse.maven:epic-knights-addon-925866:5193426")
 
     implementation fg.deobf("curse.maven:corpse-316582:5157030")
+
     implementation fg.deobf("curse.maven:small-ships-450659:5413769")
     implementation fg.deobf("curse.maven:mmmmmmmmmmmm-225738:4410143")
     implementation fg.deobf("curse.maven:selene-499980:4983974")
