@@ -66,6 +66,7 @@ public interface ICompanion {
         this.get().setListen(recruit.getListen());
         this.get().setBiome((byte)recruit.getBiome());
 
+
         //INVENTORY
         for(int i = 0; i < recruit.getInventory().getContainerSize(); i++){
             ItemStack itemStack = recruit.getInventory().getItem(i);
