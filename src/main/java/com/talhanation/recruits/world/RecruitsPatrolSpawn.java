@@ -67,13 +67,13 @@ public class RecruitsPatrolSpawn {
             if (blockpos2 != null && func_226559_a_(blockpos2, world) && blockpos2.distSqr(blockpos) > 200) {
                 BlockPos upPos = new BlockPos(blockpos2.getX(), blockpos2.getY() + 2, blockpos2.getZ());
 
-                //spawnPatrol(upPos);
 
-                /*
+
+
                 int i = random.nextInt(13);
                 switch(i) {
                     default -> spawnCaravan(upPos);
-                    /*
+
                     case 9,0 -> spawnSmallPatrol(upPos);
                     case 1,2 -> spawnLargePatrol(upPos);
                     case 3,4 -> spawnHugePatrol(upPos);
@@ -83,7 +83,7 @@ public class RecruitsPatrolSpawn {
 
 
                 }
-                */
+
                 return true;
             }
             return false;
