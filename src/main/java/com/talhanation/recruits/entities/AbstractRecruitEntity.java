@@ -702,8 +702,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         player.sendSystemMessage(TEXT_DISBAND(name));
         this.setTarget(null);
         this.setIsOwned(false);
-        this.clearUpkeepPos();
-        this.clearUpkeepEntity();
         this.setOwnerUUID(Optional.empty());
         CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
 
