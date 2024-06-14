@@ -166,7 +166,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
 
     }
 
-
+    private boolean retreatingMessage = false;
     public void tick(){
         super.tick();
 
@@ -253,9 +253,11 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             }
 
             case RETREATING -> {
-                if(this.getOwner() != null) {
+                if(this.getOwner() != null && !retreatingMessage) {
                     this.getOwner().sendSystemMessage(RETREATING());
+                    retreatingMessage = true;
                 }
+                this.retreating = true;
                 this.setRecruitsClearTargets();
                 this.setRecruitsToFollow();
                 this.setRecruitsShields(false);
