@@ -89,7 +89,8 @@ public class MessengerAnswerScreen extends ScreenBase<MessengerAnswerContainer> 
     @Override
     protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
-
+        String targetPlayer = this.recruit.getTargetPlayerName();
+        String owner = this.recruit.getOwnerName();
         String unit = "min";
         int rawtime = this.recruit.getWaitingTime();
         int time = rawtime / 20;
@@ -100,8 +101,8 @@ public class MessengerAnswerScreen extends ScreenBase<MessengerAnswerContainer> 
         int fontColor = 4210752;
         font.draw(matrixStack, "From:", 9, 9, fontColor);
         font.draw(matrixStack, "To:", 9, 20, fontColor);
-        font.draw(matrixStack, "" + this.recruit.getOwnerName(), 50, 9, fontColor);
-        font.draw(matrixStack, "" + this.recruit.getTargetPlayerName(), 50, 20, fontColor);
+        font.draw(matrixStack, "" + owner, 50, 9, fontColor);
+        font.draw(matrixStack, "" + targetPlayer, 50, 20, fontColor);
 
         font.draw(matrixStack, "Time: " + time + unit, 130, 9, fontColor);
 
