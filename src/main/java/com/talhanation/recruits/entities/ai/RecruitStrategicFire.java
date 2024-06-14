@@ -1,8 +1,10 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.BowmanEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
@@ -13,6 +15,7 @@ import net.minecraft.world.item.ProjectileWeaponItem;
 
 public class RecruitStrategicFire extends Goal {
 
+    private final Boolean consumeArrows;
     private BlockPos pos;
     private BowmanEntity bowman;
 
@@ -23,11 +26,12 @@ public class RecruitStrategicFire extends Goal {
         this.bowman = bowman;
         this.attackIntervalMin = attackIntervalMin;
         this.attackIntervalMax = attackIntervalMax;
+        this.consumeArrows = RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get();
     }
 
     @Override
     public boolean canUse() {
-        if(bowman.getTarget() == null && bowman.getShouldStrategicFire() && RecruitRangedBowAttackGoal.isHoldingBow(bowman) && bowman.getFollowState() != 5 && !bowman.needsToGetFood() && !bowman.getShouldMount()){
+        if(bowman.getTarget() == null && this.hasArrows() && bowman.getShouldStrategicFire() && RecruitRangedBowAttackGoal.isHoldingBow(bowman) && bowman.getFollowState() != 5 && !bowman.needsToGetFood() && !bowman.getShouldMount()){
             return true;
         }
         else{
@@ -130,4 +134,9 @@ public class RecruitStrategicFire extends Goal {
         String name = this.bowman.getMainHandItem().getDescriptionId();
         return itemStack.is(Items.BOW) || itemStack.getItem() instanceof BowItem || itemStack.getItem() instanceof ProjectileWeaponItem || name.contains("bow");
     }
+
+    private boolean hasArrows(){
+        return !consumeArrows || this.bowman.getInventory().hasAnyMatching(item -> item.is(ItemTags.ARROWS));
+    }
+
 }
