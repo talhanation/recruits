@@ -758,6 +758,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         super.die(dmg);
         if(!currentRecruitsInCommand.isEmpty()){
             setRecruitsWanderFreely();
+            setRecruitsToListen();
         }
     }
 
