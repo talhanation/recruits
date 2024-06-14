@@ -12,9 +12,9 @@ public class FormationUtils {
         Vec3 rotation = toTarget.yRot(3.14F/2).normalize();
         Vec3 pos;
         if(index == 0 || size/index > size/2)
-            pos = linePos.lerp(linePos.add(rotation), index * 1.33);
+            pos = linePos.lerp(linePos.add(rotation), index * 1.50);
         else
-            pos = linePos.lerp(linePos.add(rotation.reverse()), index * 1.33);
+            pos = linePos.lerp(linePos.add(rotation.reverse()), index * 1.50);
 
         return level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(pos.x, pos.y, pos.z));
 

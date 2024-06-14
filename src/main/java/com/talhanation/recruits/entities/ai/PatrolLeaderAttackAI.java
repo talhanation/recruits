@@ -62,7 +62,9 @@ public class PatrolLeaderAttackAI extends Goal {
             }
         }
 
-        this.leader.setPatrolState(leader.prevState);
+        AbstractLeaderEntity.State state = AbstractLeaderEntity.State.fromIndex(leader.getPatrollingState());
+        //if(this.leader.getPatrollingState() == AbstractLeaderEntity.State.ATTACKING.getIndex())
+        this.leader.setPatrolState(AbstractLeaderEntity.State.PATROLLING);
     }
 
     public boolean canContinueToUse() {
@@ -113,20 +115,22 @@ public class PatrolLeaderAttackAI extends Goal {
                 if(distanceToTarget < 3000) {
                     if(factor > 1.5){
                         charge(target);
-                        if(leader.getOwner() != null && leader.getInfoMode() != 1) this.leader.getOwner().sendMessage(new TextComponent(leader.getName().getString() + ": Im charging the enemy, their size is " + enemySize), this.leader.getOwnerUUID());
+                    if(leader.getOwner() != null && leader.getInfoMode() != 1) this.leader.getOwner().sendMessage(new TextComponent(leader.getName().getString() + ": Im charging the enemy, their size is " + enemySize), this.leader.getOwner().getUUID());
                     }
-                    else if(factor > 0.6){
+                    else if(factor > 0.75){
                         defaultAttack(target);
-                        if(leader.getOwner() != null && leader.getInfoMode() != 1) this.leader.getOwner().sendMessage(new TextComponent(leader.getName().getString() + ": Im engaging the enemy, their size is " + enemySize), this.leader.getOwnerUUID());
+                        if(leader.getOwner() != null && leader.getInfoMode() != 1) this.leader.getOwner().sendMessage(new TextComponent(leader.getName().getString() + ": Im engaging the enemy, their size is " + enemySize), this.leader.getOwner().getUUID());
                     }
                     else {
                         back(target);
-                        if(leader.getOwner() != null && leader.getInfoMode() != 1) this.leader.getOwner().sendMessage(new TextComponent(leader.getName().getString() + ": Im moving backwards, i could need assistance!. Their size is " + enemySize), this.leader.getOwnerUUID());
+                        if(leader.getOwner() != null) this.leader.getOwner().sendMessage(new TextComponent(leader.getName().getString() + ": Im moving backwards, i could need assistance!. Their size is " + enemySize), this.leader.getOwner().getUUID());
+
                     }
                     leader.commandCooldown = 400;
                 }
                 else{
-                    if(leader.getOwner() != null) this.leader.getOwner().sendMessage(new TextComponent(leader.getName().getString() + ": Enemy contact! Im advancing, their size is " + enemySize), this.leader.getOwnerUUID());
+                    if(leader.getOwner() != null) this.leader.getOwner().sendMessage(new TextComponent(leader.getName().getString() + ": Enemy contact! Im advancing, their size is " + enemySize), this.leader.getOwner().getUUID());
+
                     advance(target);
                     leader.commandCooldown = 150;
                 }
