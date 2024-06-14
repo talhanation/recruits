@@ -56,6 +56,7 @@ import java.util.function.Predicate;
 public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompanion {
 
     private static final EntityDataAccessor<String> TARGET_PLAYER_NAME = SynchedEntityData.defineId(MessengerEntity.class, EntityDataSerializers.STRING);
+    private static final EntityDataAccessor<String> OWNER_NAME = SynchedEntityData.defineId(MessengerEntity.class, EntityDataSerializers.STRING);
 
     private static final EntityDataAccessor<Byte> TASK_STATE = SynchedEntityData.defineId(MessengerEntity.class, EntityDataSerializers.BYTE);
     private static final EntityDataAccessor<Integer> WAITING_TIME = SynchedEntityData.defineId(MessengerEntity.class, EntityDataSerializers.INT);
@@ -77,6 +78,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(TARGET_PLAYER_NAME, "");
+        this.entityData.define(OWNER_NAME, "");
         this.entityData.define(TASK_STATE, (byte) 0);
         this.entityData.define(WAITING_TIME, 0);
     }
@@ -228,7 +230,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
 
     @Override
     public InteractionResult mobInteract(@NotNull Player player, @NotNull InteractionHand hand) {
-
+        //if(this.state != State.IDLE && !player.isCrouching()){ //For debug
         if(this.getTargetPlayer() != null && this.getTargetPlayer().getUUID().equals(player.getUUID())){
             openAnswerGUI(player);
             return InteractionResult.CONSUME;
@@ -237,11 +239,11 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     }
 
     public String getOwnerName() {
-        return ownerName;
+        return entityData.get(OWNER_NAME);
     }
 
     public void setOwnerName(String name) {
-        ownerName = name;
+        entityData.set(OWNER_NAME, name);
     }
 
     public String getMessage() {
