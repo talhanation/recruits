@@ -140,7 +140,7 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     private Button cycleButtonRightTeamColor(int x, int y){
         return addRenderableWidget(new ExtendedButton(x, y, 12, 12, Component.literal(">"),
                 button -> {
-                    if(this.teamColorIndex + 1 != TEAM_COLORS.size()){
+                    if(this.teamColorIndex < TEAM_COLORS.size() - 1){
                         this.teamColorIndex++;
                         this.refreshSelectedColorTeam();
                     }
@@ -166,7 +166,7 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     private Button cycleButtonRightRecruitColor(int x, int y){
         return addRenderableWidget(new ExtendedButton(x, y, 12, 12, Component.literal(">"),
                 button -> {
-                    if(this.recruitColorIndex + 1 != RECRUIT_COLORS.size()){
+                    if(this.recruitColorIndex < RECRUIT_COLORS.size() - 1){
                         this.recruitColorIndex++;
                         this.refreshSelectedColorRecruit();
                     }
@@ -175,7 +175,6 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     }
     private void refreshSelectedColorRecruit() {
         this.recruitColor = RECRUIT_COLORS.get(recruitColorIndex);
-        this.recruitColorId = RecruitColorID.get(recruitColorIndex);
     }
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
