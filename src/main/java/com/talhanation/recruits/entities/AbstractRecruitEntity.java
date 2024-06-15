@@ -1648,7 +1648,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 UUID recruitOwnerUuid = this.getOwnerUUID();
                 UUID otherRecruitOwnerUuid = otherRecruit.getOwnerUUID();
 
-                if(otherRecruit.getTeam() != null && this.getTeam() != null){
+                if(otherRecruit instanceof MessengerEntity messenger && messenger.state != null && messenger.state != MessengerEntity.State.IDLE){
+                    return false;
+                }
+                else if(otherRecruit.getTeam() != null && this.getTeam() != null){
                     return !otherRecruit.getTeam().isAlliedTo(this.getTeam());
                 }
                 else if(recruitOwnerUuid != null && otherRecruitOwnerUuid != null){

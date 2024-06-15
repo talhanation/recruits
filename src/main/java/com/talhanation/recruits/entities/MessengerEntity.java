@@ -467,10 +467,10 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     }
 
     private MutableComponent MESSENGER_INFO_AT_TARGET(){
-        return Component.translatable("chat.recruits.text.messenger_info_to_target", this.getName().getString(), this.getTargetPlayerName());
+        return Component.translatable("chat.recruits.text.messenger_info_to_target", this.getName().getString(), this.getOwnerName());
     }
     private MutableComponent MESSENGER_INFO_AT_TARGET_WITH_ITEM(){
-        return Component.translatable("chat.recruits.text.messenger_info_to_target_with_item", this.getName().getString(), this.getTargetPlayerName());
+        return Component.translatable("chat.recruits.text.messenger_info_to_target_with_item", this.getName().getString(), this.getOwnerName());
     }
 
     public MutableComponent MESSENGER_INFO_ON_MY_WAY(){
@@ -516,7 +516,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
 
     @Override
     public boolean hurt(@NotNull DamageSource dmg, float amt) {
-        if(this.state == State.IDLE){
+        if(this.state == null || this.state == State.IDLE){
             return super.hurt(dmg, amt);
         }
         else return false;
