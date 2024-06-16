@@ -52,7 +52,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     protected int waitForRecruitsUpkeepTime = 0;
     public int infoCooldown = 0;
     protected State state = State.IDLE;
-    protected State prevState = null;
+    public State prevState = null;
     protected String ownerName = "";
     public AbstractLeaderEntity(EntityType<? extends AbstractLeaderEntity> entityType, Level world) {
         super(entityType, world);
@@ -198,6 +198,8 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
 
                             this.waitForRecruitsUpkeepTime = this.getResupplyTime(); // resupplying time
                             this.setPatrolState(State.UPKEEP);
+                            this.retreating = false;
+                            this.retreatingMessage = false;
                         }
                         else
                         {
