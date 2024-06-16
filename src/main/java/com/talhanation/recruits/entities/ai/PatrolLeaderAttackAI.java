@@ -61,7 +61,8 @@ public class PatrolLeaderAttackAI extends Goal {
                 recruit.setShouldBlock(false);
             }
         }
-        if(this.leader.getPatrollingState() == AbstractLeaderEntity.State.ATTACKING.getIndex()) this.leader.setPatrolState(AbstractLeaderEntity.State.PATROLLING);
+        AbstractLeaderEntity.State state = AbstractLeaderEntity.State.fromIndex(leader.getPatrollingState());
+        this.leader.setPatrolState(AbstractLeaderEntity.State.PATROLLING);
     }
 
     public boolean canContinueToUse() {
@@ -89,40 +90,8 @@ public class PatrolLeaderAttackAI extends Goal {
                 int partySize = this.getPartySize();
                 double sizeFactor = Math.abs((partySize + 1) / (enemySize + 1) );
                 double armorFactor = Math.abs((armor + 1) / (enemyArmor + 1));
-                /*
-                Main.LOGGER.info("PartySize: " + partySize);
-                Main.LOGGER.info("SizeFactor: " + sizeFactor);
-                Main.LOGGER.info("armorFactor: " + armorFactor);
-                Main.LOGGER.info("PartySize: " + partySize);
-                Main.LOGGER.info("EnemySize: " + enemySize);
-                 */
-                /*
-                if((sizeFactor + armorFactor)/2 <= 0.3){
-                    if(this.leader.getOwner() != null) this.leader.getOwner().sendSystemMessage(Component.literal("Retreat!"));
-                    this.leader.retreating = true;
-                }
-                */
-
-
                 this.setRecruitsTargets();
                 advance(target);
-                /*
-                if(distanceToTarget < 500){
-                    charge(target);
-
-                }
-                else if(distanceToTarget < 3000) {
-
-
-
-                    leader.commandCooldown = 400;
-
-                }
-                else{
-                    advance(target);
-                    leader.commandCooldown = 400;
-                }
-                */
                 leader.commandCooldown = 400;
 
                 Comparison comparisonOwnInfantry = getInfantryComparison();
