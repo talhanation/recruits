@@ -265,7 +265,7 @@ public class CaptainControlBoatAI extends Goal {
                         this.captain.shipAttacking = false;
                         this.attackingTimeOut = 0;
                         this.target = null;
-                        captain.setPatrolState(AbstractLeaderEntity.State.IDLE);
+                        captain.setPatrolState(AbstractLeaderEntity.State.PATROLLING);
                         this.state = IDLE;
                     }
                 }
