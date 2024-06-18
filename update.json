@@ -3,7 +3,7 @@
   "promos": {
     "1.20.1-recommended": "1.10.15",
     "1.19.4-recommended": "1.10.8",
-    "1.19.2-recommended": "1.11.0",
+    "1.19.2-recommended": "1.11.1",
     "1.18.2-recommended": "1.10.15",
     "1.16.5-recommended": "1.5.1"
   },
@@ -39,6 +39,7 @@
     "1.9.0": "Team Screen, Hail of Arrows, Upkeep, Configurations and more!"
   },
   "1.19.2": {
+    "1.11.1": "fixed messenger screen and commander strategy",
     "1.11.0": "Companion Part 1 // improved server side performance",
     "1.10.15": "fixed teams related stuff // fixed endermen attack recruits",
     "1.10.14": "fixed hired patrol despawn // fixed team leader can join other teams // fixed performance issues",
