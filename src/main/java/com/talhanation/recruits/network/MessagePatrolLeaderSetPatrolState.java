@@ -34,8 +34,18 @@ public class MessagePatrolLeaderSetPatrolState implements Message<MessagePatrolL
                 .stream()
                 .filter(AbstractLeaderEntity::isAlive)
                 .findAny()
-                .ifPresent(abstractRecruitEntity -> abstractRecruitEntity.setPatrolState(AbstractLeaderEntity.State.fromIndex(state)));
+                .ifPresent(this::setState);
 
+    }
+
+    public void setState(AbstractLeaderEntity leader) {
+        AbstractLeaderEntity.State leaderState = AbstractLeaderEntity.State.fromIndex(state);
+        switch (leaderState){
+            case PATROLLING -> leader.setFollowState(0);
+            case STOPPED, PAUSED -> leader.setFollowState(1);
+        }
+        leader.setPatrolState(leaderState);
+        leader.currentWaypoint = null;
     }
 
     public MessagePatrolLeaderSetPatrolState fromBytes(FriendlyByteBuf buf) {
