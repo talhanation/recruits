@@ -68,7 +68,11 @@ public class DebugEvents {
                 else RecruitEvents.openPromoteScreen(player, recruits);
             }
             case 21 -> {recruits.addXp(10); recruits.checkLevel();}
-            case 22 -> {recruits.addXpLevel(recruits.getXpLevel() + 2); recruits.checkLevel();}
+            case 22 -> {
+                for(int i = 0; i < 5; i++){
+                    recruits.addXp(RecruitsServerConfig.RecruitsMaxXpForLevelUp.get()); recruits.checkLevel();
+                }
+            }
             case 23 -> {TeamEvents.removeRecruitFromTeam(recruits, recruits.getTeam(), (ServerLevel) recruits.getCommandSenderWorld());}
 
             case 24 -> {
