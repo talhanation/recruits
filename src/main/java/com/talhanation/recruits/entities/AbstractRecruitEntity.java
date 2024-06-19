@@ -1039,6 +1039,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
                         }
                     }
+                    if(this instanceof AbstractLeaderEntity) CommandEvents.checkPatrolLeaderState(this);
                     return InteractionResult.SUCCESS;
                 }
             }

@@ -30,16 +30,17 @@ public class PatrolLeaderAttackAI extends Goal {
     }
 
     public boolean canUse() {
-        return leader.commandCooldown == 0 && !leader.retreating && (leader.getTarget() != null || (int) leader.getPatrollingState() == AbstractLeaderEntity.State.ATTACKING.getIndex());
+        if(!leader.getShouldFollow() && !leader.getShouldMovePos() && leader.commandCooldown == 0 && !leader.retreating && (leader.getTarget() != null || (int) leader.getPatrollingState() == AbstractLeaderEntity.State.ATTACKING.getIndex())){
+            this.leader.currentRecruitsInCommand = leader.getRecruitsInCommand();
+            return this.leader.currentRecruitsInCommand.size() > 0;
+        }
+        return false;
     }
 
     public void start(){
-        this.leader.currentRecruitsInCommand = leader.getRecruitsInCommand();
-        if(this.leader.currentRecruitsInCommand.size() > 0){
-            this.infantry = this.getOwnInfantry();
-            this.ranged = this.getOwnRanged();
-            attackCommandsToRecruits(this.leader.getTarget());
-        }
+        this.infantry = this.getOwnInfantry();
+        this.ranged = this.getOwnRanged();
+        attackCommandsToRecruits(this.leader.getTarget());
     }
 
     @Override
@@ -61,8 +62,8 @@ public class PatrolLeaderAttackAI extends Goal {
                 recruit.setShouldBlock(false);
             }
         }
-        AbstractLeaderEntity.State state = AbstractLeaderEntity.State.fromIndex(leader.getPatrollingState());
-        this.leader.setPatrolState(AbstractLeaderEntity.State.PATROLLING);
+
+        this.leader.setPatrolState(leader.prevState);
     }
 
     public boolean canContinueToUse() {
@@ -71,7 +72,7 @@ public class PatrolLeaderAttackAI extends Goal {
 
     //TODO:
     public void attackCommandsToRecruits(LivingEntity target) {
-        if(!this.leader.getCommandSenderWorld().isClientSide()){
+        if(!this.leader.getCommandSenderWorld().isClientSide() && target != null){
             double distanceToTarget = this.leader.distanceToSqr(target);
             //Main.LOGGER.info("DistanceToTarget: "+ distanceToTarget);
 

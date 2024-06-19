@@ -49,12 +49,12 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     public boolean returning;
     public boolean retreating;
     public int commandCooldown = 0;
-    protected BlockPos currentWaypoint;
+    public BlockPos currentWaypoint;
     protected int waitingTime = 0;
     protected int waitForRecruitsUpkeepTime = 0;
     public int infoCooldown = 0;
     protected State state = State.IDLE;
-    public State prevState = null;
+    public State prevState = State.IDLE;
     protected String ownerName = "";
     public AbstractLeaderEntity(EntityType<? extends AbstractLeaderEntity> entityType, Level world) {
         super(entityType, world);
@@ -254,6 +254,9 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                 if(this.retreating && WAYPOINTS != null && WAYPOINTS.size() > 0){
                     this.setPatrolState(State.RETREATING);
                 }
+                if(this.getTarget() != null && !this.getTarget().isAlive()){
+                    this.setPatrolState(prevState);
+                }
                 //AI-Task Taking care of this state
             }
 
@@ -318,8 +321,8 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     }
 
     public void setPatrolState(State state){
-        this.entityData.set(PATROLLING_STATE, (byte) state.getIndex());
-        this.prevState = this.state;
+        this.entityData.set(PATROLLING_STATE, (byte)  state.getIndex());
+        if(this.state != this.prevState) this.prevState = this.state;
         this.state = state;
     }
 
