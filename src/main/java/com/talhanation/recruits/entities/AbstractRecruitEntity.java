@@ -1031,6 +1031,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                             player.sendSystemMessage(TEXT_WANDER(name));
                         }
                     }
+                    if(this instanceof AbstractLeaderEntity) CommandEvents.checkPatrolLeaderState(this);
                     return InteractionResult.SUCCESS;
                 }
             }
