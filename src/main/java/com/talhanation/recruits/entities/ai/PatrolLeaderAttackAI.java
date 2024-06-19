@@ -102,7 +102,26 @@ public class PatrolLeaderAttackAI extends Goal {
                 BlockPos movePosLeader = getBlockPosTowardsTarget(target, 0.2);
             }
             else {
-
+                if(distanceToTarget < 3000) {
+                    if(factor > 1.5){
+                        charge(target);
+                        if(leader.getOwner() != null && leader.getInfoMode() != 1) this.leader.getOwner().sendSystemMessage(Component.literal(leader.getName().getString() + ": Im charging the enemy, their size is " + enemySize));
+                    }
+                    else if(factor > 0.6){
+                        defaultAttack(target);
+                        if(leader.getOwner() != null && leader.getInfoMode() != 1) this.leader.getOwner().sendSystemMessage(Component.literal(leader.getName().getString() + ": Im engaging the enemy, their size is " + enemySize));
+                    }
+                    else {
+                        back(target);
+                        if(leader.getOwner() != null && leader.getInfoMode() != 1) this.leader.getOwner().sendSystemMessage(Component.literal(leader.getName().getString() + ": Im moving backwards, i could need assistance!. Their size is " + enemySize));
+                    }
+                    leader.commandCooldown = 400;
+                }
+                else{
+                    if(leader.getOwner() != null) this.leader.getOwner().sendSystemMessage(Component.literal(leader.getName().getString() + ": Enemy contact! Im advancing, their size is " + enemySize));
+                    advance(target);
+                    leader.commandCooldown = 150;
+                }
             }
         }
     }
