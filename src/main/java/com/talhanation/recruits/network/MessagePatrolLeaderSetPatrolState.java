@@ -34,7 +34,7 @@ public class MessagePatrolLeaderSetPatrolState implements Message<MessagePatrolL
                 .stream()
                 .filter(AbstractLeaderEntity::isAlive)
                 .findAny()
-                .ifPresent(abstractRecruitEntity -> abstractRecruitEntity.setPatrollingState(state, true));
+                .ifPresent(abstractRecruitEntity -> abstractRecruitEntity.setPatrolState(AbstractLeaderEntity.State.fromIndex(state)));
 
     }
 
