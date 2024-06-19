@@ -9,6 +9,7 @@ import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.MessageAddRecruitToTeam;
 import com.talhanation.recruits.network.MessageCommandScreen;
 import com.talhanation.recruits.network.MessageToClientUpdateCommandScreen;
+import com.talhanation.recruits.util.FormationUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -24,6 +25,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -481,5 +484,26 @@ public class CommandEvents {
         }
 
         return loyals.size();
+    }
+
+    public static void onFormationButton(ServerPlayer player, List<AbstractRecruitEntity> recruits) {
+        Vec3 playerPos = player.position();
+        Vec3 forward = player.getForward();
+        Vec3 toPos1 = forward.reverse().normalize();
+        Vec3 x = toPos1.scale(2);
+        Vec3 pos1 = playerPos.add(x);
+        Vec3 xx = pos1.add(x.yRot(3.14F/2));
+        int size = recruits.size();
+
+
+        for (AbstractRecruitEntity recruit : recruits){
+            int index = recruits.indexOf(recruit);
+            Vec3 pos = posLL.lerp(xx, -index);
+
+            BlockPos blockPos = player.level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(pos.x, pos.y, pos.z));
+            recruit.setHoldPos(blockPos);//set pos
+            recruit.setFollowState(3);//back to pos
+        }
+
     }
 }

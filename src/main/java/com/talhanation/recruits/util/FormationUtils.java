@@ -7,7 +7,7 @@ import net.minecraft.world.phys.Vec3;
 
 public class FormationUtils {
 
-    public static BlockPos calculateBlockPosition(Vec3 targetPos, Vec3 linePos, int size, int index, Level level) {
+    public static BlockPos calculateLineBlockPosition(Vec3 targetPos, Vec3 linePos, int size, int index, Level level) {
         Vec3 toTarget = linePos.vectorTo(targetPos).normalize();
         Vec3 rotation = toTarget.yRot(3.14F/2).normalize();
         Vec3 pos;

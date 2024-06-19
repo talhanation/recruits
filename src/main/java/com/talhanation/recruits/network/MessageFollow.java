@@ -28,6 +28,7 @@ public class MessageFollow implements Message<MessageFollow> {
         this.group  = group;
         this.fromGui = false;
         this.recruit = null;
+
     }
 
     public Dist getExecutingSide() {
@@ -35,19 +36,9 @@ public class MessageFollow implements Message<MessageFollow> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        if (fromGui) {
-            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
-            for (AbstractRecruitEntity recruits : list){
-
-                if (recruits.getUUID().equals(this.recruit))
-                    recruits.setGroup(this.state);
-            }
-        }
-        else{
-            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
-            for (AbstractRecruitEntity recruits : list) {
-                CommandEvents.onFollowCommand(this.player, recruits, this.state, this.group, fromGui);
-            }
+        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
+        for (AbstractRecruitEntity recruits : list) {
+            CommandEvents.onFollowCommand(this.player, recruits, this.state, this.group, fromGui);
         }
     }
 

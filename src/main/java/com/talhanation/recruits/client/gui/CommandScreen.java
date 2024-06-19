@@ -8,6 +8,7 @@ import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -22,8 +23,10 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,7 +76,10 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TEXT_CLEAR_TARGET = Component.translatable("gui.recruits.command.text.clearTargets");
     private static final MutableComponent TEXT_UPKEEP = Component.translatable("gui.recruits.command.text.upkeep");
     private static final MutableComponent TEXT_TEAM = Component.translatable("gui.recruits.command.text.team");
-
+    private static final MutableComponent TEXT_FORMATION_NONE = Component.translatable("gui.recruits.command.text.formation_none");
+    private static final MutableComponent TEXT_FORMATION_CUBE = Component.translatable("gui.recruits.command.text.formation_cube");
+    private static final MutableComponent TEXT_FORMATION_LINE = Component.translatable("gui.recruits.command.text.formation_cube");
+    private static final MutableComponent TOOLTIP_FORMATION = Component.translatable("gui.recruits.command.tooltip.formation");
     private static final int fontColor = 16250871;
     private final Player player;
     private int group;
@@ -82,6 +88,8 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private boolean strategicFire;
     private BlockPos rayBlockPos;
     private Entity rayEntity;
+    private byte formation;
+    private Button formationButton;
     public CommandScreen(CommandMenu commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, Component.literal(""));
         imageWidth = 201;
@@ -95,10 +103,16 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         if(!RecruitsClientConfig.CommandScreenToggle.get())this.onClose();
         return true;
     }
-
+    /*
+    Formation setting:
+    0 -> none
+    1 -> line
+    2 -> cube
+    */
     @Override
     protected void init() {
         super.init();
+
         this.rayBlockPos = getBlockPos();
         this.rayEntity = ClientEvent.getEntityByLooking();
         int zeroLeftPos = leftPos + 150;
@@ -109,7 +123,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen(this.group));
 
         //TEAM SCREEN
-        addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos + (20 + topPosGab) * 5 + 60, 80, 20, TEXT_TEAM,
+        addRenderableWidget(new Button(zeroLeftPos - 150, zeroTopPos + (30 + topPosGab), 80, 20, TEXT_TEAM,
                 button -> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageTeamMainScreen(player));
                 },
@@ -118,6 +132,18 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 }
         ));
 
+        //Formation
+        this.formationButton = new Button(zeroLeftPos + 150, zeroTopPos + (30 + topPosGab), 80, 20, TOOLTIP_FORMATION,
+                button -> {
+                    CommandEvents.sendFollowCommandInChat(98, player, group);
+
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageFormation(player.getUUID(), group));
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_FORMATION, i, i1);
+                }
+        );
+        addRenderableWidget(this.formationButton);
         //Dismount
         addRenderableWidget(new Button(zeroLeftPos - mirror + 40, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_DISMOUNT,
                 button -> {
@@ -399,6 +425,22 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 }
         ));
         mountButton.active = rayEntity != null;
+    }
+
+    private void updateFormationButton() {
+        formation++;
+        if(formation > 2) formation = 0;
+
+
+        if(formation == 0){
+            formationButton.setMessage(TEXT_FORMATION_NONE);
+        }
+        else if(formation == 1){
+            formationButton.setMessage(TEXT_FORMATION_LINE);
+        }
+        else if(formation == 2){
+            formationButton.setMessage(TEXT_FORMATION_CUBE);
+        }
     }
 
     @Override
