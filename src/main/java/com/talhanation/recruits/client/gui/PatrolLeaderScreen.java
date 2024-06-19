@@ -166,21 +166,31 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
             case ENEMY -> infoModeString = INFO_MODE_ENEMY;
             case NONE -> infoModeString = INFO_MODE_NONE;
         }
-        this.setInfoButton(infoModeString);
+        this.setNotificationButton(infoModeString);
 
 
         Component fastPatrollingString = fastPatrolling ? BUTTON_FAST : BUTTON_NORMAL;
         this.setFastPatrollingButton(fastPatrollingString);
+
+        setInfoButton();
     }
 
-    private void setInfoButton(Component infoModeString) {
-        Button infoButton = addRenderableWidget(new ExtendedButton(leftPos + 230, topPos + 62, 50, 20, infoModeString, button -> {
+
+    private void setNotificationButton(Component infoModeString) {
+        Button infoButton = addRenderableWidget(new ExtendedButton(leftPos + 216, topPos + 62, 50, 20, infoModeString, button -> {
             this.infoMode = this.infoMode.getNext();
             Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetInfoMode(recruit.getUUID(), this.infoMode.getIndex()));
             this.setButtons();
         }
         ));
         infoButton.setTooltip(Tooltip.create(TOOLTIP_INFO_MODE));
+    }
+
+    private void setInfoButton() {
+        Button infoButton = addRenderableWidget(new ExtendedButton(leftPos + 216, topPos + 11, 20, 20, Component.literal("i"), button -> {
+            player.sendSystemMessage(Component.translatable("chat.recruits.info.patrol_leader_info"));
+            this.onClose();
+        }));
     }
 
     private void setAssignButton() {
@@ -190,7 +200,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         ));
         assignButton.setTooltip(Tooltip.create(TOOLTIP_ASSIGN_RECRUITS));
 
-        Button removeButton = addRenderableWidget(new Button(leftPos + 216, topPos + 165, 107, 20, BUTTON_REMOVE_ASSIGNED_RECRUITS, button -> {
+        Button removeButton = addRenderableWidget(new ExtendedButton(leftPos + 216, topPos + 165, 107, 20, BUTTON_REMOVE_ASSIGNED_RECRUITS, button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageRemoveAssignedGroupFromCompanion(player.getUUID(), this.recruit.getUUID()));
         }
         ));
@@ -258,7 +268,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
 
     public void setFastPatrollingButton(Component cycle) {
-        Button buttonFastPatrolling = addRenderableWidget(new ExtendedButton(leftPos + 230, topPos + 92, 50, 20, cycle,
+        Button buttonFastPatrolling = addRenderableWidget(new ExtendedButton(leftPos + 216, topPos + 92, 50, 20, cycle,
                 button -> {
                     this.fastPatrolling = !this.fastPatrolling;
                     Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetPatrollingSpeed(this.recruit.getUUID(), this.fastPatrolling));
