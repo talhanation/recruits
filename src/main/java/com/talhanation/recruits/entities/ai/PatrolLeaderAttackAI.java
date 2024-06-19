@@ -113,15 +113,15 @@ public class PatrolLeaderAttackAI extends Goal {
                 if(distanceToTarget < 3000) {
                     if(factor > 1.5){
                         charge(target);
-                        if(leader.getOwner() != null && leader.getInfoMode() != 0) this.leader.getOwner().sendSystemMessage(Component.literal(leader.getName().getString() + ": Im charging the enemy, their size is " + enemySize));
+                        if(leader.getOwner() != null && leader.getInfoMode() != 1) this.leader.getOwner().sendSystemMessage(Component.literal(leader.getName().getString() + ": Im charging the enemy, their size is " + enemySize));
                     }
                     else if(factor > 0.6){
                         defaultAttack(target);
-                        if(leader.getOwner() != null && leader.getInfoMode() != 0) this.leader.getOwner().sendSystemMessage(Component.literal(leader.getName().getString() + ": Im engaging the enemy, their size is " + enemySize));
+                        if(leader.getOwner() != null && leader.getInfoMode() != 1) this.leader.getOwner().sendSystemMessage(Component.literal(leader.getName().getString() + ": Im engaging the enemy, their size is " + enemySize));
                     }
                     else {
                         back(target);
-                        if(leader.getOwner() != null && leader.getInfoMode() != 0) this.leader.getOwner().sendSystemMessage(Component.literal(leader.getName().getString() + ": Im moving backwards, i could need assistance!. Their size is " + enemySize));
+                        if(leader.getOwner() != null && leader.getInfoMode() != 1) this.leader.getOwner().sendSystemMessage(Component.literal(leader.getName().getString() + ": Im moving backwards, i could need assistance!. Their size is " + enemySize));
                     }
                     leader.commandCooldown = 400;
                 }
