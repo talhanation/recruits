@@ -11,7 +11,7 @@ public class CaptainAttackAI extends PatrolLeaderAttackAI {
     }
     @Override
     public void attackCommandsToRecruits(LivingEntity target) {
-        if(!this.leader.getCommandSenderWorld().isClientSide()){
+        if(!this.leader.getCommandSenderWorld().isClientSide() && target != null){
             double distanceToTarget = this.leader.distanceToSqr(target);
 
             if(distanceToTarget < 4000){

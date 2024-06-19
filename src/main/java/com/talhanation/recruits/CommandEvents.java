@@ -86,7 +86,7 @@ public class CommandEvents {
         }
     }
 
-    private static void checkPatrolLeaderState(AbstractRecruitEntity recruit) {
+    public static void checkPatrolLeaderState(AbstractRecruitEntity recruit) {
         if(recruit instanceof AbstractLeaderEntity leader) {
             AbstractLeaderEntity.State patrolState = AbstractLeaderEntity.State.fromIndex(leader.getPatrollingState());
             if(patrolState == AbstractLeaderEntity.State.PATROLLING || patrolState == AbstractLeaderEntity.State.WAITING) {
