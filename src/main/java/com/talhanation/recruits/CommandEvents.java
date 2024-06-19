@@ -28,7 +28,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
@@ -84,15 +83,20 @@ public class CommandEvents {
                     break;
             }
 
-            if(recruit instanceof AbstractLeaderEntity leader) {
-                AbstractLeaderEntity.State patrolState = AbstractLeaderEntity.State.fromIndex(leader.getPatrollingState());
-                if(patrolState == AbstractLeaderEntity.State.PATROLLING || patrolState == AbstractLeaderEntity.State.WAITING) {
-                    leader.setPatrollingState((byte) AbstractLeaderEntity.State.PAUSED.getIndex(), false);
-                }
-                else if(patrolState == AbstractLeaderEntity.State.RETREATING || patrolState == AbstractLeaderEntity.State.UPKEEP){
-                    leader.resetPatrolling();
-                    leader.setPatrollingState((byte) AbstractLeaderEntity.State.IDLE.getIndex(), false);
-                }
+            checkPatrolLeaderState(recruit);
+            recruit.forcedUpkeep = false;
+        }
+    }
+
+    private static void checkPatrolLeaderState(AbstractRecruitEntity recruit) {
+        if(recruit instanceof AbstractLeaderEntity leader) {
+            AbstractLeaderEntity.State patrolState = AbstractLeaderEntity.State.fromIndex(leader.getPatrollingState());
+            if(patrolState == AbstractLeaderEntity.State.PATROLLING || patrolState == AbstractLeaderEntity.State.WAITING) {
+                leader.setPatrolState(AbstractLeaderEntity.State.PAUSED);
+            }
+            else if(patrolState == AbstractLeaderEntity.State.RETREATING || patrolState == AbstractLeaderEntity.State.UPKEEP){
+                leader.resetPatrolling();
+                leader.setPatrolState(AbstractLeaderEntity.State.IDLE);
             }
         }
     }
@@ -170,6 +174,9 @@ public class CommandEvents {
                 }
                 */
             }
+
+            checkPatrolLeaderState(recruit);
+            recruit.forcedUpkeep = false;
         }
     }
 

@@ -80,7 +80,8 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         nbt.putInt("wait_time_in_min", this.getWaitTimeInMin());
         nbt.putInt("waiting_time", this.waitingTime);
         nbt.putBoolean("cycle", this.getCycle());
-        nbt.putByte("patrollingState", this.getPatrollingState());
+        nbt.putByte("patrolState", (byte) this.state.getIndex());
+        nbt.putByte("prevPatrolState", (byte) this.prevState.getIndex());
         nbt.putBoolean("returning", this.returning);
         nbt.putBoolean("retreating", this.retreating);
         nbt.putByte("infoMode", this.getInfoMode());
@@ -131,7 +132,8 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         this.setWaypointIndex(nbt.getInt("waypoint_index"));
         this.setWaitTimeInMin(nbt.getInt("wait_time_in_min"));
         this.setCycle(nbt.getBoolean("cycle"));
-        this.setPatrollingState(nbt.getByte("patrollingState"), false);
+        this.setPatrolState(State.fromIndex(nbt.getByte("patrolState")));
+        this.prevState = State.fromIndex(nbt.getByte("prevPatrolState"));
         this.returning = nbt.getBoolean("returning");
         this.retreating = nbt.getBoolean("retreating");
         this.waitingTime = nbt.getInt("waiting_time");
@@ -167,8 +169,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         }
 
     }
-
-
+    private boolean retreatingMessage = false;
     public void tick(){
         super.tick();
 
@@ -317,6 +318,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     }
 
     public void setPatrolState(State state){
+        this.entityData.set(PATROLLING_STATE, (byte) state.getIndex());
         this.prevState = this.state;
         this.state = state;
     }
@@ -390,26 +392,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             }
         }
     }
-    public void setPatrollingState(byte state, boolean setFollow) {
-        this.entityData.set(PATROLLING_STATE, state);
-        this.state = State.fromIndex(state);
 
-        if(this.state == State.PATROLLING){
-            this.setRecruitsToFollow();
-            if(setFollow) this.setFollowState(0);//wander freely
-        }
-        else if (this.state == State.PAUSED){
-            if(setFollow) this.setFollowState(1);//follow
-            this.retreating = false;
-        }
-        else if (this.state == State.STOPPED){
-            this.retreating = false;
-            this.returning = false;
-            this.setWaypointIndex(0);
-            if(WAYPOINTS != null && WAYPOINTS.size() > getWaypointIndex()) this.currentWaypoint = WAYPOINTS.get(getWaypointIndex());
-            if(setFollow) this.setFollowState(1);//follow
-        }
-    }
     public String getOwnerName() {
         return ownerName;
     }
@@ -512,7 +495,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             this.index = index;
         }
 
-        public int getIndex(){
+        public byte getIndex(){
             return this.index;
         }
 
@@ -525,6 +508,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             throw new IllegalArgumentException("Invalid State index: " + index);
         }
     }
+
 
     //FOLLOW
     //0 = wander
