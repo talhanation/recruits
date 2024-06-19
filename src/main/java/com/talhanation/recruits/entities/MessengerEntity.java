@@ -231,7 +231,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     @Override
     public InteractionResult mobInteract(@NotNull Player player, @NotNull InteractionHand hand) {
         //if(this.state != State.IDLE && !player.isCrouching()){ //For debug
-        if(this.getTargetPlayer() != null && this.getTargetPlayer().getUUID().equals(player.getUUID())){
+        if(this.getTargetPlayer() != null && this.getTargetPlayer().getUUID().equals(player.getUUID()) && !this.getTargetPlayer().getUUID().equals(getOwnerUUID())){
             openAnswerGUI(player);
             return InteractionResult.CONSUME;
         }
@@ -278,7 +278,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
             MinecraftServer server = serverLevel.getServer();
             ServerPlayer targetPlayer = server.getPlayerList().getPlayerByName(this.getTargetPlayerName());
             if(this.getOwner() != null){
-                if(targetPlayer == null){
+                if(targetPlayer == null || targetPlayer.equals(this.getOwner())){
                     this.getOwner().sendSystemMessage(PLAYER_NOT_FOUND());
                     return;
                 }
