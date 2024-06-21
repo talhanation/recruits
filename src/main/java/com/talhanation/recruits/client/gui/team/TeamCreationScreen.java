@@ -87,7 +87,7 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
         //Main.LOGGER.debug("Hello from Screen");
 
         if(playerInventory.player.getTeam() == null) {
-            textField = new EditBox(font, leftPos + 18, topPos + 50, 140, 15, Component.literal(""));
+            textField = new EditBox(font, leftPos + 18, topPos + 50, 140, 15, new TextComponent(""));
             textField.setTextColor(-1);
             textField.setTextColorUneditable(-1);
             textField.setBordered(true);
@@ -102,7 +102,7 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
             cycleButtonRightRecruitColor(leftPos + 60 + 85, topPos + 83);
 
             String create = "Create   ";
-            addRenderableWidget(new Button(leftPos + 18, topPos + 99, 140, 20, Component.literal(create),
+            addRenderableWidget(new Button(leftPos + 18, topPos + 99, 140, 20, new TextComponent(create),
                     button -> {
                         this.banner = container.getBanner();
                         if (!banner.equals(ItemStack.EMPTY)) {
@@ -154,7 +154,7 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     }
 
     private Button cycleButtonLeftRecruitColor(int x, int y){
-        return addRenderableWidget(new ExtendedButton(x, y, 12, 12, Component.literal("<"),
+        return addRenderableWidget(new ExtendedButton(x, y, 12, 12, new TextComponent("<"),
                 button -> {
                     if(this.recruitColorIndex > 0){
                         this.recruitColorIndex--;
@@ -165,7 +165,7 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     }
 
     private Button cycleButtonRightRecruitColor(int x, int y){
-        return addRenderableWidget(new ExtendedButton(x, y, 12, 12, Component.literal(">"),
+        return addRenderableWidget(new ExtendedButton(x, y, 12, 12, new TextComponent(">"),
                 button -> {
                     if(this.recruitColorIndex + 1 != RECRUIT_COLORS.size()){
                         this.recruitColorIndex++;

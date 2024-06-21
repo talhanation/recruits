@@ -114,13 +114,19 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.18.2-40.1.0'
+    minecraft 'net.minecraftforge:forge:1.18.2-40.1.14'
     shadow fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.3:api")
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.3")
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.18.2-1.0.3:javadoc")
     
     //Implementations
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+    implementation fg.deobf("curse.maven:small-ships-450659:5448674")
+    implementation fg.deobf("curse.maven:epic-knights-armor-and-weapons-509041:4695781")
+    implementation fg.deobf("curse.maven:architectury-api-419699:5137931")
+    implementation fg.deobf("curse.maven:cloth-config-348521:4973439")
+    implementation fg.deobf("curse.maven:ewewukeks-musket-mod-354562:4028359")
 }
 
 // Example for how to get properties into the manifest for reading at runtime.

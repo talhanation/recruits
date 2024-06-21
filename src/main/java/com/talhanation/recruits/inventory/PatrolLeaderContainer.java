@@ -4,6 +4,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.entities.PatrolLeaderEntity;
+import com.talhanation.recruits.init.ModScreens;
 import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
@@ -17,7 +18,7 @@ public class PatrolLeaderContainer extends ContainerBase {
     private final AbstractLeaderEntity recruit;
 
     public PatrolLeaderContainer(int id, Player playerEntity, AbstractLeaderEntity leader) {
-        super(Main.PATROL_LEADER, id, playerEntity.getInventory(), new SimpleContainer(0));
+        super(ModScreens.PATROL_LEADER.get(), id, playerEntity.getInventory(), new SimpleContainer(0));
         this.playerEntity = playerEntity;
         this.recruit = leader;
     }

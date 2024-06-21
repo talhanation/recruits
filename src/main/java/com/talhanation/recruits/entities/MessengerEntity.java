@@ -134,7 +134,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.1D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D)
-                .add(ForgeMod.ATTACK_RANGE.get(), 0D)
+                .add(ForgeMod.REACH_DISTANCE.get(), 0D)
                 .add(Attributes.ATTACK_SPEED);
     }
 
@@ -211,7 +211,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     public void openAnswerGUI(Player player) {
         if (player instanceof ServerPlayer) {
             Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateMessengerAnswerScreen(this.message));
-            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
+            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {
                     return MessengerEntity.this.getName();
@@ -321,9 +321,9 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
 
                         double distance = this.distanceToSqr(targetPlayer);
                         if(distance <= 100){
-                            if(this.getOwner() != null) this.getOwner().sendSystemMessage(MESSENGER_ARRIVED_AT_TARGET_OWNER());
-                            if(!this.getMainHandItem().isEmpty()) targetPlayer.sendSystemMessage(MESSENGER_INFO_AT_TARGET_WITH_ITEM());
-                            else targetPlayer.sendSystemMessage(MESSENGER_INFO_AT_TARGET());
+                            if(this.getOwner() != null) this.getOwner().sendMessage(MESSENGER_ARRIVED_AT_TARGET_OWNER(), this.getOwner().getUUID());
+                            if(!this.getMainHandItem().isEmpty()) targetPlayer.sendMessage(MESSENGER_INFO_AT_TARGET_WITH_ITEM(), this.getOwner().getUUID());
+                            else targetPlayer.sendMessage(MESSENGER_INFO_AT_TARGET(), this.getOwner().getUUID());
 
                             this.setFollowState(2);
                             this.arrivedWaitTimer = 1500;
@@ -332,7 +332,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
                         }
                     }
                     else {
-                        if(this.getOwner() != null) this.getOwner().sendSystemMessage(MESSENGER_ARRIVED_NO_TARGET_PLAYER());
+                        if(this.getOwner() != null) this.getOwner().sendMessage(MESSENGER_ARRIVED_NO_TARGET_PLAYER(), this.getOwner().getUUID());
                         teleportWaitTimer = 100;
                         this.state = State.TELEPORT_BACK;
                     }
@@ -340,7 +340,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
 
                 case ARRIVED -> {
                     if(--arrivedWaitTimer < 0){
-                        if(this.getOwner() != null) this.getOwner().sendSystemMessage(MESSENGER_ARRIVED_NO_TARGET_PLAYER());
+                        if(this.getOwner() != null) this.getOwner().sendMessage(MESSENGER_ARRIVED_NO_TARGET_PLAYER(), this.getOwner().getUUID());
                         teleportWaitTimer = 0;
                         state = State.TELEPORT_BACK;
                     }
@@ -364,8 +364,8 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
                     }
                     else{
                         if(this.getOwner() != null) {
-                            if(this.targetPlayerOpened) this.getOwner().sendSystemMessage(MESSENGER_ARRIVED_TARGET_PLAYER_NOT_ANSWERED());
-                            else this.getOwner().sendSystemMessage(MESSENGER_ARRIVED_NO_TARGET_PLAYER());
+                            if(this.targetPlayerOpened) this.getOwner().sendMessage(MESSENGER_ARRIVED_TARGET_PLAYER_NOT_ANSWERED(), this.getOwner().getUUID());
+                            else this.getOwner().sendMessage(MESSENGER_ARRIVED_NO_TARGET_PLAYER(), this.getOwner().getUUID());
                         }
                         teleportWaitTimer = 100;
                         state = State.TELEPORT_BACK;
@@ -433,8 +433,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     }
 
     private void playHornSound() {
-        this.getCommandSenderWorld().playSound(null, this, SoundEvents.GOAT_HORN_SOUND_VARIANTS.get(1), SoundSource.NEUTRAL, 128F, 1.0F);
-        this.getCommandSenderWorld().gameEvent(GameEvent.INSTRUMENT_PLAY, this.position(), GameEvent.Context.of(this));
+        this.getCommandSenderWorld().playSound(null, this, SoundEvents.RAID_HORN, SoundSource.NEUTRAL, 128F, 1.0F);
     }
 
     public void arriveAtTargetPlayer(ServerPlayer target){
@@ -460,26 +459,26 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     }
 
     private MutableComponent MESSENGER_ARRIVED_AT_TARGET_OWNER(){
-        return Component.translatable("chat.recruits.text.messenger_arrived_at_target_owner", this.getName().getString(), this.getTargetPlayerName());
+        return new TranslatableComponent("chat.recruits.text.messenger_arrived_at_target_owner", this.getName().getString(), this.getTargetPlayerName());
     }
 
     private MutableComponent MESSENGER_INFO_AT_TARGET(){
-        return Component.translatable("chat.recruits.text.messenger_info_to_target", this.getName().getString(), this.getTargetPlayerName());
+        return new TranslatableComponent("chat.recruits.text.messenger_info_to_target", this.getName().getString(), this.getTargetPlayerName());
     }
     private MutableComponent MESSENGER_INFO_AT_TARGET_WITH_ITEM(){
-        return Component.translatable("chat.recruits.text.messenger_info_to_target_with_item", this.getName().getString(), this.getTargetPlayerName());
+        return new TranslatableComponent("chat.recruits.text.messenger_info_to_target_with_item", this.getName().getString(), this.getTargetPlayerName());
     }
 
     public MutableComponent MESSENGER_INFO_ON_MY_WAY(){
-        return Component.translatable("chat.recruits.text.messenger_info_on_my_way", this.getName().getString());
+        return new TranslatableComponent("chat.recruits.text.messenger_info_on_my_way", this.getName().getString());
     }
 
     private MutableComponent MESSENGER_ARRIVED_NO_TARGET_PLAYER(){
-        return Component.translatable("chat.recruits.text.messenger_arrived_no_player", this.getName().getString(), this.getTargetPlayerName());
+        return new TranslatableComponent("chat.recruits.text.messenger_arrived_no_player", this.getName().getString(), this.getTargetPlayerName());
     }
 
     private MutableComponent MESSENGER_ARRIVED_TARGET_PLAYER_NOT_ANSWERED(){
-        return Component.translatable("chat.recruits.text.messenger_target_player_not_answered", this.getName().getString());
+        return new TranslatableComponent("chat.recruits.text.messenger_target_player_not_answered", this.getName().getString());
     }
 
     public enum State{

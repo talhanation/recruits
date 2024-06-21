@@ -38,8 +38,8 @@ public class RecruitVillagerRenderer extends MobRenderer<AbstractRecruitEntity, 
         this.addLayer(new HumanoidArmorLayer<>(this, new HumanoidModel(context.bakeLayer(ClientEvent.RECRUIT_INNER_ARMOR)), new HumanoidModel(context.bakeLayer(ClientEvent.RECRUIT_OUTER_ARMOR))));
         this.addLayer(new RecruitVillagerTeamColorLayer(this));
         this.addLayer(new RecruitVillagerBiomeLayer(this));
-        this.addLayer(new ItemInHandLayer<>(this, context.getItemInHandRenderer()));
-        this.addLayer(new VillagerRecruitCustomHeadLayer<>(this, context.getModelSet(), context.getItemInHandRenderer()));
+        this.addLayer(new ItemInHandLayer<>(this));
+        this.addLayer(new VillagerRecruitCustomHeadLayer<>(this, context.getModelSet()));
     }
 
     @Override

@@ -33,7 +33,7 @@ public class MessageAnswerMessenger implements Message<MessageAnswerMessenger> {
             if (messenger.getUUID().equals(this.recruit)){
 
                 messenger.teleportWaitTimer = 100;
-                context.getSender().sendSystemMessage(messenger.MESSENGER_INFO_ON_MY_WAY());
+                context.getSender().sendMessage(messenger.MESSENGER_INFO_ON_MY_WAY(), context.getSender().getUUID());
                 messenger.dropDeliverItem();
                 messenger.state = MessengerEntity.State.TELEPORT_BACK;
             }

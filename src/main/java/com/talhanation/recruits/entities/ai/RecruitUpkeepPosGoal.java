@@ -4,7 +4,10 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.entities.*;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.CompoundContainer;
 import net.minecraft.world.Container;
@@ -67,7 +70,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                 this.container = containerEntity;
             } else {
                 if (recruit.getOwner() != null && messageNotChest) {
-                    recruit.getOwner().sendSystemMessage(TEXT_CANT_INTERACT(recruit.getName().getString()));
+                    recruit.getOwner().sendMessage(TEXT_CANT_INTERACT(recruit.getName().getString()), recruit.getOwner().getUUID());
                     messageNotChest = false;
                 }
                 this.chestPos = null;
@@ -76,7 +79,7 @@ public class RecruitUpkeepPosGoal extends Goal {
             double distance = this.recruit.position().distanceToSqr(Vec3.atCenterOf(chestPos));
             if(distance > 10000){
                 if(recruit.getOwner() != null && messageNotInRange){
-                    recruit.getOwner().sendSystemMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()));
+                    recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()), recruit.getOwner().getUUID());
                     messageNotInRange = false;
                 }
 
@@ -125,7 +128,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                                     foodItem.shrink(1);
                                 } else {
                                     if(recruit.getOwner() != null && message){
-                                        recruit.getOwner().sendMessage(TEXT_NO_PLACE(recruit.getName().getString()));
+                                        recruit.getOwner().sendMessage(TEXT_NO_PLACE(recruit.getName().getString()), recruit.getOwner().getUUID());
                                         message = false;
                                     }
                                     this.stop();
@@ -134,7 +137,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                         }
                         else {
                             if(recruit.getOwner() != null && message){
-                                recruit.getOwner().sendMessage(TEXT_FOOD(recruit.getName().getString()));
+                                recruit.getOwner().sendMessage(TEXT_FOOD(recruit.getName().getString()), recruit.getOwner().getUUID());
                                 message = false;
                             }
                             this.stop();
@@ -246,7 +249,7 @@ public class RecruitUpkeepPosGoal extends Goal {
             boolean isOpened = false;
             CompoundTag compoundTag = new CompoundTag();
             if(recruit.getLevel().getBlockEntity(chestPos) instanceof ChestBlockEntity chestBlockEntity){
-                compoundTag = chestBlockEntity.getPersistentData();
+                compoundTag = chestBlockEntity.getTileData();
                 if(compoundTag.contains("isOpened"))
                     isOpened = compoundTag.getBoolean("isOpened");
                 else

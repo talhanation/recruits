@@ -86,7 +86,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
         }
         else
         if (recruit.getOwner() != null && messageNotInRange) {
-            recruit.getOwner().sendSystemMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()));
+            recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()), recruit.getOwner().getUUID());
             messageNotInRange = false;
             recruit.clearUpkeepEntity();
             this.stop();

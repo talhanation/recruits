@@ -9,16 +9,14 @@ import com.talhanation.recruits.inventory.MessengerAnswerContainer;
 import com.talhanation.recruits.network.MessageAnswerMessenger;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.MultiLineEditBox;
-import net.minecraft.client.gui.components.MultilineTextField;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 
 public class MessengerAnswerScreen extends ScreenBase<MessengerAnswerContainer> {
 
@@ -30,11 +28,11 @@ public class MessengerAnswerScreen extends ScreenBase<MessengerAnswerContainer> 
     private int topPos;
 
     public static String message = "";
-    private static final MutableComponent BUTTON_OK = Component.translatable("gui.recruits.inv.text.ok_messenger");
+    private static final MutableComponent BUTTON_OK = new TranslatableComponent("gui.recruits.inv.text.ok_messenger");
     private static final int fontColor = 4210752;
 
     public MessengerAnswerScreen(MessengerAnswerContainer container, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""));
+        super(RESOURCE_LOCATION, container, playerInventory, new TextComponent(""));
         this.imageWidth = 197;
         this.imageHeight = 250;
         this.player = container.getPlayerEntity();
@@ -47,7 +45,7 @@ public class MessengerAnswerScreen extends ScreenBase<MessengerAnswerContainer> 
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
 
-        this.textFieldMessage = new RecruitsMultiLineEditBox(font, leftPos + 3, topPos + 35, 186, 165, Component.empty(), Component.empty());
+        this.textFieldMessage = new RecruitsMultiLineEditBox(font, leftPos + 3, topPos + 35, 186, 165, new TextComponent(""), new TextComponent(""));
         this.textFieldMessage.setValue(message);
         this.textFieldMessage.setEnableEditing(false);
         this.textFieldMessage.changeFocus(false);

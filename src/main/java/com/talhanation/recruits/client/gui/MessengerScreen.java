@@ -3,13 +3,13 @@ package com.talhanation.recruits.client.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.gui.component.MultiLineEditBox;
 import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.inventory.MessengerContainer;
 import com.talhanation.recruits.network.MessageSendMessenger;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -41,6 +41,23 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
         this.imageHeight = 250;
         this.player = container.getPlayerEntity();
         this.recruit = container.getRecruit();
+    }
+
+    @Override
+    public boolean keyPressed(int key, int a, int b) {
+        if (key == GLFW.GLFW_KEY_ESCAPE) {
+            this.onClose();
+            return true;
+        }
+        if(textFieldPlayer.isFocused()){
+            setFocused(textFieldPlayer);
+            return textFieldPlayer.keyPressed(key, a, b) || textFieldPlayer.canConsumeInput() || super.keyPressed(key, a, b);
+        }
+        else{
+            setFocused(textFieldMessage);
+            return textFieldMessage.keyPressed(key, a, b) || textFieldMessage.isFocused() || super.keyPressed(key, a, b);
+        }
+
     }
 
     @Override
@@ -81,16 +98,6 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
         textFieldPlayer.tick();
         textFieldMessage.tick();
     }
-
-    @Override
-    public boolean keyPressed(int key, int a, int b) {
-        if (key == GLFW.GLFW_KEY_ESCAPE) {
-            this.onClose();
-            return true;
-        }
-        return true;
-    }
-
     public boolean mouseClicked(double p_100753_, double p_100754_, int p_100755_) {
         if (this.textFieldPlayer.isFocused()) {
             this.textFieldPlayer.mouseClicked(p_100753_, p_100754_, p_100755_);

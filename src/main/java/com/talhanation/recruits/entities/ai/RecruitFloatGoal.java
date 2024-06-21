@@ -10,9 +10,6 @@ import java.util.EnumSet;
 public class RecruitFloatGoal extends Goal {
     private final Mob mob;
     private long lastCanUseCheck;
-
-    private long lastCanUseCheck;
-
     public RecruitFloatGoal(Mob p_25230_) {
         this.mob = p_25230_;
         this.setFlags(EnumSet.of(Goal.Flag.JUMP));
@@ -30,12 +27,12 @@ public class RecruitFloatGoal extends Goal {
         super.start();
         mob.setSprinting(false);
     }
-
+    //FloatGoal
     public boolean canUse() {
         long i = this.mob.getCommandSenderWorld().getGameTime();
         if (i - this.lastCanUseCheck >= 20L) {
             this.lastCanUseCheck = i;
-            return this.mob.isInWater() && this.mob.getFluidHeight(FluidTags.WATER) > this.mob.getFluidJumpThreshold() || this.mob.isInLava() || this.mob.isInFluidType((fluidType, height) -> this.mob.canSwimInFluidType(fluidType) && height > this.mob.getFluidJumpThreshold());
+            return this.mob.isInWater() && this.mob.getFluidHeight(FluidTags.WATER) > this.mob.getFluidJumpThreshold() || this.mob.isInLava();
         }
         return false;
     }

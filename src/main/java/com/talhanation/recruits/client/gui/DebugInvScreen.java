@@ -137,17 +137,17 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
 
     private void costButton(int zeroLeftPos, int zeroTopPos){
         //increase cost
-        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 2, 40, 20, new TextComponen("+cost"), button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 2, 40, 20, new TextComponent("+cost"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(2, recruit.getUUID(), textField.getValue()));
         }));
         //decrease cost
-        addRenderableWidget(new Button(zeroLeftPos - 160, zeroTopPos + (20 + 5) * 2, 40, 20, new TextComponen("-cost"), button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 160, zeroTopPos + (20 + 5) * 2, 40, 20, new TextComponent("-cost"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(3, recruit.getUUID(), textField.getValue()));
         }));
     }
     private void hungerButton(int zeroLeftPos, int zeroTopPos){
         //increase hunger
-        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 3, 40, 20, new TextComponen("+hunger"), button -> {
+        addRenderableWidget(new Button(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 3, 40, 20, new TextComponent("+hunger"), button -> {
 
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(4, recruit.getUUID(), textField.getValue()));
         }));
@@ -265,7 +265,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
         int maxHealth = Mth.ceil(recruit.getMaxHealth());
         int moral = Mth.ceil(recruit.getMoral());
 
-        double attackReach = recruit.getAttributeValue(ForgeMod.ATTACK_RANGE.get());
+        double attackReach = recruit.getAttributeValue(ForgeMod.REACH_DISTANCE.get());
         double attackSpeed = recruit.getAttributeValue(Attributes.ATTACK_SPEED);
         double attackDamage = recruit.getAttackDamage();
         DecimalFormat decimalformat = new DecimalFormat("##.#");

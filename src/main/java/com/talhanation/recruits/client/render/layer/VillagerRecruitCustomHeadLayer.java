@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
 import com.talhanation.recruits.client.render.RecruitVillagerRenderer;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HeadedModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -16,6 +17,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
+import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -41,41 +43,41 @@ public class VillagerRecruitCustomHeadLayer<T extends LivingEntity, M extends En
     private final float scaleY;
     private final float scaleZ;
     private final Map<SkullBlock.Type, SkullModelBase> skullModels;
-    private final ItemInHandRenderer itemInHandRenderer;
 
-    public VillagerRecruitCustomHeadLayer(RenderLayerParent<T, M> p_234829_, EntityModelSet p_234830_, ItemInHandRenderer p_234831_) {
-        this(p_234829_, p_234830_, 1.0F, 1.0F, 1.0F, p_234831_);
+    public VillagerRecruitCustomHeadLayer(RenderLayerParent<T, M> p_174475_, EntityModelSet p_174476_) {
+        this(p_174475_, p_174476_, 1.0F, 1.0F, 1.0F);
     }
 
-    public VillagerRecruitCustomHeadLayer(RenderLayerParent<T, M> p_234822_, EntityModelSet p_234823_, float p_234824_, float p_234825_, float p_234826_, ItemInHandRenderer p_234827_) {
-        super(p_234822_);
-        this.scaleX = p_234824_;
-        this.scaleY = p_234825_;
-        this.scaleZ = p_234826_;
-        this.skullModels = SkullBlockRenderer.createSkullRenderers(p_234823_);
-        this.itemInHandRenderer = p_234827_;
+    public VillagerRecruitCustomHeadLayer(RenderLayerParent<T, M> p_174478_, EntityModelSet p_174479_, float p_174480_, float p_174481_, float p_174482_) {
+        super(p_174478_);
+        this.scaleX = p_174480_;
+        this.scaleY = p_174481_;
+        this.scaleZ = p_174482_;
+        this.skullModels = SkullBlockRenderer.createSkullRenderers(p_174479_);
     }
 
-    public void render(PoseStack poseStack, MultiBufferSource bufferSource, int p_116733_, T entity, float p_116735_, float p_116736_, float p_116737_, float p_116738_, float p_116739_, float p_116740_) {
-        ItemStack itemstack = entity.getItemBySlot(EquipmentSlot.HEAD);
-        if (!itemstack.isEmpty()) {
-            Item item = itemstack.getItem();
-            poseStack.pushPose();
-            poseStack.scale(this.scaleX, this.scaleY, this.scaleZ);
-            boolean flag = true;
-            if (entity.isBaby() && !(entity instanceof Villager)) {
+        public void render(PoseStack p_116731_, MultiBufferSource p_116732_, int p_116733_, T p_116734_, float p_116735_, float p_116736_, float p_116737_, float p_116738_, float p_116739_, float p_116740_) {
+            ItemStack itemstack = p_116734_.getItemBySlot(EquipmentSlot.HEAD);
+            if (!itemstack.isEmpty()) {
+                Item item = itemstack.getItem();
+            p_116731_.pushPose();
+            p_116731_.scale(this.scaleX, this.scaleY, this.scaleZ);
+            boolean flag = p_116734_ instanceof Villager || p_116734_ instanceof ZombieVillager;
+            if (p_116734_.isBaby() && !(p_116734_ instanceof Villager)) {
                 float f = 2.0F;
                 float f1 = 1.4F;
-                poseStack.translate(0.0D, 0.03125D, 0.0D);
-                poseStack.scale(0.7F, 0.7F, 0.7F);
-                poseStack.translate(0.0D, 1.0D, 0.0D);
+                p_116731_.translate(0.0D, 0.03125D, 0.0D);
+                p_116731_.scale(0.7F, 0.7F, 0.7F);
+                p_116731_.translate(0.0D, 1.0D, 0.0D);
             }
 
-            this.getParentModel().getHead().translateAndRotate(poseStack);
+            this.getParentModel().getHead().translateAndRotate(p_116731_);
             if (item instanceof BlockItem && ((BlockItem) item).getBlock() instanceof AbstractSkullBlock) {
                 float f2 = 1.1875F;
-                poseStack.scale(f2, -f2, -f2);
-                poseStack.translate(0.0D, 0.0625D, 0.0D);
+                p_116731_.scale(1.1875F, -1.1875F, -1.1875F);
+                if (flag) {
+                    p_116731_.translate(0.0D, 0.0625D, 0.0D);
+                }
 
                 GameProfile gameprofile = null;
                 if (itemstack.hasTag()) {
@@ -85,17 +87,17 @@ public class VillagerRecruitCustomHeadLayer<T extends LivingEntity, M extends En
                     }
                 }
 
-                poseStack.translate(-0.5D, 0.0D, -0.5D);
+                p_116731_.translate(-0.5D, 0.0D, -0.5D);
                 SkullBlock.Type skullblock$type = ((AbstractSkullBlock) ((BlockItem) item).getBlock()).getType();
                 SkullModelBase skullmodelbase = this.skullModels.get(skullblock$type);
                 RenderType rendertype = SkullBlockRenderer.getRenderType(skullblock$type, gameprofile);
-                SkullBlockRenderer.renderSkull((Direction) null, 180.0F, p_116735_, poseStack, bufferSource, p_116733_, skullmodelbase, rendertype);
+                SkullBlockRenderer.renderSkull((Direction) null, 180.0F, p_116735_, p_116731_, p_116732_, p_116733_, skullmodelbase, rendertype);
             } else if (!(item instanceof ArmorItem) || ((ArmorItem) item).getSlot() != EquipmentSlot.HEAD) {
-                translateToHead(poseStack, flag);
-                this.itemInHandRenderer.renderItem(entity, itemstack, ItemTransforms.TransformType.HEAD, false, poseStack, bufferSource, p_116733_);
+                translateToHead(p_116731_, flag);
+                Minecraft.getInstance().getItemInHandRenderer().renderItem(p_116734_, itemstack, ItemTransforms.TransformType.HEAD, false, p_116731_, p_116732_, p_116733_);
             }
 
-            poseStack.popPose();
+            p_116731_.popPose();
         }
     }
 

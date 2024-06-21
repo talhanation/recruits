@@ -1,7 +1,6 @@
 package com.talhanation.recruits.client.gui.component;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.network.chat.Component;
 
 public class RecruitsMultiLineEditBox extends MultiLineEditBox {

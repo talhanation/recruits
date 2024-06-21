@@ -49,7 +49,7 @@ public class RecruitShieldmanEntity extends AbstractRecruitEntity{
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.2D)
                 .add(Attributes.ATTACK_DAMAGE, 1.0D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D)
-                .add(ForgeMod.ATTACK_RANGE.get())
+                .add(ForgeMod.REACH_DISTANCE.get())
                 .add(Attributes.ATTACK_SPEED);
 
 

@@ -107,8 +107,9 @@ public class  TeamEvents {
     }
     public static void openTeamCreationScreen(Player player) {
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
             Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateTeamCreationScreen(TeamEvents.getCurrency(), RecruitsServerConfig.TeamCreationCost.get()));
+            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+
                 @Override
                 public Component getDisplayName() {
                     return new TextComponent("team_creation_screen");
@@ -204,25 +205,25 @@ public class  TeamEvents {
                                     return true;
                                 }
                                 else
-                                    serverPlayer.sendSystemMessage(new TranslatableComponent("chat.recruits.team_creation.banner_exists").withStyle(ChatFormatting.RED));
+                                    serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.banner_exists").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
                             }
                             else
-                                serverPlayer.sendSystemMessage(new TranslatableComponent("chat.recruits.team_creation.wrongbanner"));
+                                serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.wrongbanner"), serverPlayer.getUUID());
                         }
                         else
-                            serverPlayer.sendSystemMessage(new TranslatableComponent("chat.recruits.team_creation.noenough_money").withStyle(ChatFormatting.RED));
+                            serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.noenough_money").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
                     }
                     else
-                        serverPlayer.sendSystemMessage(new TranslatableComponent("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED));
+                        serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
                 }
                 else
-                    serverPlayer.sendSystemMessage(new TranslatableComponent("chat.recruits.team_creation.noname").withStyle(ChatFormatting.RED));
+                    serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.noname").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
             } 
             else
-                serverPlayer.sendSystemMessage(new TranslatableComponent("chat.recruits.team_creation.teamname_to_long").withStyle(ChatFormatting.RED));
+                serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.teamname_to_long").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
         }
         else
-            serverPlayer.sendSystemMessage(new TranslatableComponent("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED));
+            serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
 
         return false;
     }
@@ -308,7 +309,7 @@ public class  TeamEvents {
                 }
                 else {
                     ServerPlayer leaderOfTeam = server.getPlayerList().getPlayerByName(recruitsTeam.getTeamLeaderName());
-                    if(!fromLeader && leaderOfTeam != null) leaderOfTeam.sendSystemMessage(PLAYER_LEFT_TEAM_LEADER(playerName));
+                    if(!fromLeader && leaderOfTeam != null) leaderOfTeam.sendMessage(PLAYER_LEFT_TEAM_LEADER(playerName), leaderOfTeam.getUUID());
 
                     server.getScoreboard().removePlayerFromTeam(playerName, playerTeam);
                     addPlayerToData(level,teamName,-1, playerName);
@@ -546,7 +547,7 @@ public class  TeamEvents {
             if(playerNotFound) oldOwner.sendMessage(new TranslatableComponent("chat.recruits.team.assignNewOwnerNotFound"), oldOwner.getUUID());
         }
         else
-            oldOwner.sendSyMessage(new TranslatableComponent("chat.recruits.team.assignNewOwnerNoTeam"), oldOwner.getUUID());
+            oldOwner.sendMessage(new TranslatableComponent("chat.recruits.team.assignNewOwnerNoTeam"), oldOwner.getUUID());
     }
 
     @SubscribeEvent
@@ -565,10 +566,10 @@ public class  TeamEvents {
         if (event.getParseResults() != null) {
             String command = event.getParseResults().getReader().getString();
             CommandSourceStack sourceStack = event.getParseResults().getContext().build(command).getSource();
-            ServerPlayer sender = sourceStack.getPlayer();
+            Entity entity = sourceStack.getEntity();
             ServerLevel level = this.server.overworld();
 
-            if(sender != null){
+            if(entity instanceof ServerPlayer sender){
                 if(command.contains("team")){
                     if(command.contains("add")) {
                         ItemStack mainhand = (sender).getMainHandItem();
@@ -614,9 +615,9 @@ public class  TeamEvents {
                             data.removeTeam(teamName);
                             data.setDirty();
 
-                            sourceStack.sendSuccess(Component.translatable("commands.team.remove.success", teamName), true);
+                            sourceStack.sendSuccess(new TranslatableComponent("commands.team.remove.success", teamName), true);
                         } else {
-                            sourceStack.sendFailure(Component.translatable("team.notFound", teamName));
+                            sourceStack.sendFailure(new TranslatableComponent("team.notFound", teamName));
                         }
                         event.setCanceled(true);
                     }
@@ -628,10 +629,10 @@ public class  TeamEvents {
                         ServerPlayer player = this.server.getPlayerList().getPlayerByName(playerName);
                         if (player != null) {
                             addPlayerToTeam(player, this.server.overworld(), teamName, playerName);
-                            sourceStack.sendSuccess(Component.translatable("commands.team.join.success.single", playerName, teamName), true);
+                            sourceStack.sendSuccess(new TranslatableComponent("commands.team.join.success.single", playerName, teamName), true);
                             serverSideUpdateTeam(level);
                         } else {
-                            sourceStack.sendFailure(Component.translatable("argument.player.unknown"));
+                            sourceStack.sendFailure(new TranslatableComponent("argument.player.unknown"));
                         }
                         event.setCanceled(true);
                     }
@@ -643,10 +644,10 @@ public class  TeamEvents {
                         if (player != null) {
                             Team team = player.getTeam();
                             tryToRemoveFromTeam(team, player, player,this.server.overworld(), playerName, false);
-                            sourceStack.sendSuccess(Component.translatable("commands.team.leave.success.single", playerName), true);
+                            sourceStack.sendSuccess(new TranslatableComponent("commands.team.leave.success.single", playerName), true);
                             serverSideUpdateTeam(level);
                         } else {
-                            sourceStack.sendFailure(Component.translatable("argument.player.unknown"));
+                            sourceStack.sendFailure(new TranslatableComponent("argument.player.unknown"));
                         }
                         event.setCanceled(true);
                     }
@@ -665,7 +666,7 @@ public class  TeamEvents {
                     if (!isNameInUse(level, teamName)) {
                             Scoreboard scoreboard = server.getScoreboard();
                             PlayerTeam newTeam = scoreboard.addPlayerTeam(teamName);
-                            newTeam.setDisplayName(Component.literal(teamName));
+                            newTeam.setDisplayName(new TextComponent(teamName));
 
                             newTeam.setColor(Objects.requireNonNull(ChatFormatting.getByName(color)));
                             newTeam.setAllowFriendlyFire(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamFriendlyFireSetting.get());
@@ -677,16 +678,16 @@ public class  TeamEvents {
                             Main.LOGGER.info("The new Team " + teamName + " has been created by console.");
                     }
                     else
-                        sourceStack.sendFailure(Component.translatable("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED));
+                        sourceStack.sendFailure(new TranslatableComponent("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED));
                 }
                 else
-                    sourceStack.sendFailure(Component.translatable("chat.recruits.team_creation.noname").withStyle(ChatFormatting.RED));
+                    sourceStack.sendFailure(new TranslatableComponent("chat.recruits.team_creation.noname").withStyle(ChatFormatting.RED));
             }
             else
-                sourceStack.sendFailure(Component.translatable("chat.recruits.team_creation.teamname_to_long").withStyle(ChatFormatting.RED));
+                sourceStack.sendFailure(new TranslatableComponent("chat.recruits.team_creation.teamname_to_long").withStyle(ChatFormatting.RED));
         }
         else
-            sourceStack.sendFailure(Component.translatable("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED));
+            sourceStack.sendFailure(new TranslatableComponent("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED));
     }
 
 

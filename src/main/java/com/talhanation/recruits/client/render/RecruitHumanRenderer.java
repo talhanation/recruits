@@ -5,14 +5,11 @@ import com.talhanation.recruits.client.render.layer.RecruitHumanBiomeLayer;
 import com.talhanation.recruits.client.render.layer.RecruitHumanCompanionLayer;
 import com.talhanation.recruits.client.render.layer.RecruitHumanTeamColorLayer;
 import com.talhanation.recruits.compat.IWeapon;
-import com.talhanation.recruits.entities.AbstractInventoryEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.CrossBowmanEntity;
 import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.layers.*;
-import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.client.model.PlayerModel;
@@ -61,8 +58,8 @@ public class RecruitHumanRenderer extends MobRenderer<AbstractRecruitEntity, Pla
         this.addLayer(new RecruitHumanBiomeLayer(this));
         this.addLayer(new RecruitHumanCompanionLayer(this));
         //this.addLayer(new ArrowLayer<>(mgr, this));
-        this.addLayer(new ItemInHandLayer<>(this, mgr.getItemInHandRenderer()));
-        this.addLayer(new CustomHeadLayer<>(this, mgr.getModelSet(), mgr.getItemInHandRenderer()));
+        this.addLayer(new ItemInHandLayer<>(this));
+        this.addLayer(new CustomHeadLayer<>(this, mgr.getModelSet()));
     }
 
 
@@ -120,10 +117,6 @@ public class RecruitHumanRenderer extends MobRenderer<AbstractRecruitEntity, Pla
             } else if (!recruit.swinging && itemstack.is(Items.CROSSBOW) && CrossbowItem.isCharged(itemstack) || isMusket) {
                 return HumanoidModel.ArmPose.CROSSBOW_HOLD;
             }
-
-            HumanoidModel.ArmPose forgeArmPose = net.minecraftforge.client.extensions.common.IClientItemExtensions.of(itemstack).getArmPose(recruit, hand, itemstack);
-            if (forgeArmPose != null) return forgeArmPose;
-
             return HumanoidModel.ArmPose.ITEM;
         }
     }

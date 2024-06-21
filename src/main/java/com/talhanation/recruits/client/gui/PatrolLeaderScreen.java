@@ -12,9 +12,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
@@ -70,31 +68,12 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private static final MutableComponent TOOLTIP_ADD = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_add");
     private static final MutableComponent TOOLTIP_REMOVE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_remove");
     private static final MutableComponent TOOLTIP_INFO_MODE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_info_mode");
-
-    private static final MutableComponent TOOLTIP_CYCLE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_cycle");
-    private static final MutableComponent TOOLTIP_LINE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_line");
-    private static final MutableComponent TOOLTIP_FAST_PATROLLING = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_fast");
-    private static final MutableComponent BUTTON_CYCLE = new TranslatableComponent("gui.recruits.inv.text.cycle");
-    private static final MutableComponent BUTTON_LINE = new TranslatableComponent("gui.recruits.inv.text.line");
-    private static final MutableComponent BUTTON_FAST = new TranslatableComponent("gui.recruits.inv.text.fast");
-    private static final MutableComponent BUTTON_NORMAL = new TranslatableComponent("gui.recruits.inv.text.normal");
-    private static final MutableComponent INFO_MODE_ALL = new TranslatableComponent("gui.recruits.inv.text.infomode.all");
-    private static final MutableComponent INFO_MODE_HOSTILE = new TranslatableComponent("gui.recruits.inv.text.infomode.hostiles");
-    private static final MutableComponent INFO_MODE_ENEMY = new TranslatableComponent("gui.recruits.inv.text.infomode.enemies");
-    private static final MutableComponent INFO_MODE_NONE = new TranslatableComponent("gui.recruits.inv.text.infomode.none");
-    private static final MutableComponent TOOLTIP_ADD = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_add");
-    private static final MutableComponent TOOLTIP_REMOVE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_remove");
-    private static final MutableComponent TOOLTIP_INFO_MODE = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_info_mode");
-
     private static final MutableComponent BUTTON_ASSIGN_RECRUITS = new TranslatableComponent("gui.recruits.inv.text.assign_recruits");
     private static final MutableComponent TOOLTIP_ASSIGN_RECRUITS = new TranslatableComponent("gui.recruits.inv.tooltip.assign_recruits");
     private static final MutableComponent TOOLTIP_CHEST = new TranslatableComponent("gui.recruits.inv.tooltip.chest");
-    private static final MutableComponent BUTTON_ASSIGN_RECRUITS = new TranslatableComponent("gui.recruits.inv.text.assign_recruits");
     private static final MutableComponent BUTTON_REMOVE_ASSIGNED_RECRUITS = new TranslatableComponent("gui.recruits.inv.text.remove_assigned_recruits");
-    private static final MutableComponent TOOLTIP_ASSIGN_RECRUITS = new TranslatableComponent("gui.recruits.inv.tooltip.assign_recruits");
     private static final MutableComponent TOOLTIP_REMOVE_ASSIGNED_RECRUITS = new TranslatableComponent("gui.recruits.inv.tooltip.assign_recruits");
-    private static final MutableComponent TOOLTIP_CHEST = new TranslatableComponent("gui.recruits.inv.tooltip.chest");
-
+    private static final MutableComponent TOOLTIP_DISABLED_START = new TranslatableComponent("gui.recruits.inv.tooltip.patrol_leader_start_disabled");
     private static final int fontColor = 4210752;
     private ForgeSlider waitSlider;
     private final int offset = 88;
@@ -203,8 +182,8 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
 
     private void setInfoButton() {
-        Button infoButton = addRenderableWidget(new Button(leftPos + 216, topPos + 11, 20, 20, Component.literal("i"), button -> {
-            player.sendSystemMessage(Component.translatable("chat.recruits.info.patrol_leader_info"));
+        Button infoButton = addRenderableWidget(new Button(leftPos + 216, topPos + 11, 20, 20, new TextComponent("i"), button -> {
+            player.sendMessage(new TranslatableComponent("chat.recruits.info.patrol_leader_info"), player.getUUID());
             this.onClose();
         }));
     }
@@ -231,21 +210,21 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         int posY = recruit.getOnPos().getY();
         int posZ = recruit.getOnPos().getZ();
 
-        textBoxX = new EditBox(font, leftPos + 16 + 15, topPos + 37, 43, 18, Component.literal(String.valueOf(posX)));
+        textBoxX = new EditBox(font, leftPos + 16 + 15, topPos + 37, 43, 18, new TextComponent(String.valueOf(posX)));
         textBoxX.setValue(String.valueOf(posX));
         textBoxX.setTextColor(-1);
         textBoxX.setTextColorUneditable(-1);
         textBoxX.setBordered(true);
         textBoxX.setMaxLength(13);
 
-        textBoxY = new EditBox(font, leftPos + 16 + 75, topPos + 37, 43, 18, Component.literal(String.valueOf(posY)));
+        textBoxY = new EditBox(font, leftPos + 16 + 75, topPos + 37, 43, 18, new TextComponent(String.valueOf(posY)));
         textBoxY.setValue(String.valueOf(posY));
         textBoxY.setTextColor(-1);
         textBoxY.setTextColorUneditable(-1);
         textBoxY.setBordered(true);
         textBoxY.setMaxLength(13);
 
-        textBoxZ = new EditBox(font, leftPos + 16 + 135, topPos + 37, 43, 18, Component.literal(String.valueOf(posZ)));
+        textBoxZ = new EditBox(font, leftPos + 16 + 135, topPos + 37, 43, 18, new TextComponent(String.valueOf(posZ)));
         textBoxZ.setValue(String.valueOf(posZ));
         textBoxZ.setTextColor(-1);
         textBoxZ.setTextColorUneditable(-1);

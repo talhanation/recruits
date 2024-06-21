@@ -775,7 +775,7 @@ public class RecruitsPatrolSpawn {
         recruitEntity.setCost(9);
         recruitEntity.setXp(random.nextInt(80));
 
-        recruitEntity.setCustomName(Component.literal("Recruit"));
+        recruitEntity.setCustomName(new TextComponent("Recruit"));
 
         setRecruitFood(recruitEntity);
 
@@ -803,7 +803,7 @@ public class RecruitsPatrolSpawn {
         leader.setCost(50);
         leader.setXp(random.nextInt(120));
         leader.setState(1);
-        leader.setCustomName(Component.literal("Patrol Leader"));
+        leader.setCustomName(new TextComponent("Patrol Leader"));
 
         return leader;
     }

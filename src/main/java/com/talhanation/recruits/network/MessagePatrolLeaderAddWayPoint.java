@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.entity.player.Player;
@@ -60,7 +61,7 @@ public class MessagePatrolLeaderAddWayPoint implements Message<MessagePatrolLead
         }
 
         if(leaderEntity instanceof CaptainEntity captain && !state.is(Blocks.WATER)){
-            player.sendSystemMessage(TEXT_NOT_WATER_WAYPOINT(captain.getName().getString()));
+            player.sendMessage(TEXT_NOT_WATER_WAYPOINT(captain.getName().getString()), player.getUUID());
 
         }
         else {
@@ -85,7 +86,7 @@ public class MessagePatrolLeaderAddWayPoint implements Message<MessagePatrolLead
     }
 
     private MutableComponent TEXT_NOT_WATER_WAYPOINT(String name) {
-        return Component.translatable("chat.recruits.text.notWaterWaypoint", name);
+        return new TranslatableComponent("chat.recruits.text.notWaterWaypoint", name);
     }
 
 }

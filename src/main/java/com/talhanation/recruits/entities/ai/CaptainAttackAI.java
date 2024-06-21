@@ -2,6 +2,7 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.*;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.entity.LivingEntity;
 
 public class CaptainAttackAI extends PatrolLeaderAttackAI {
@@ -30,7 +31,7 @@ public class CaptainAttackAI extends PatrolLeaderAttackAI {
                 double armorFactor = Math.abs((armor + 1) / (enemyArmor + 1));
 
                 if((sizeFactor + armorFactor)/2 <= 0.3){
-                    if(this.leader.getOwner() != null) this.leader.getOwner().sendSystemMessage(Component.literal("Retreat!"));
+                    if(this.leader.getOwner() != null) this.leader.getOwner().sendMessage(new TextComponent("Retreat!"), this.leader.getOwnerUUID());
                     this.leader.retreating = true;
                 }
 

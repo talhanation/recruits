@@ -1,6 +1,5 @@
 package com.talhanation.recruits.entities;
 
-import com.sk89q.worldedit.forge.ForgeItemRegistry;
 import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.RecruitMoveTowardsTargetGoal;
@@ -26,7 +25,6 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
@@ -109,7 +107,7 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
                 .add(Attributes.ATTACK_DAMAGE, 1.5D)
                 .add(Attributes.FOLLOW_RANGE, 64.0D)
-                .add(ForgeMod.ATTACK_RANGE.get(), 0D)
+                .add(ForgeMod.REACH_DISTANCE.get(), 0D)
                 .add(Attributes.ATTACK_SPEED);
     }
 
@@ -137,7 +135,7 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
         if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get()){
             if(isMusketModLoaded && IWeapon.isMusketModWeapon(this.getMainHandItem())){
                 int i = this.getRandom().nextInt(32);
-                ItemStack arrows = ForgeRegistries.ITEMS.getDelegateOrThrow(ResourceLocation.tryParse("musketmod:cartridge")).get().getDefaultInstance();
+                ItemStack arrows = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse("musketmod:cartridge")).get().value().getDefaultInstance();
                 arrows.setCount(14 + i);
                 this.inventory.setItem(6, arrows);
             }

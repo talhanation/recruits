@@ -32,11 +32,6 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TEXT_LEVEL = new TranslatableComponent("gui.recruits.inv.level");
     private static final MutableComponent TEXT_KILLS = new TranslatableComponent("gui.recruits.inv.kills");
     private static final MutableComponent TEXT_DISBAND = new TranslatableComponent("gui.recruits.inv.text.disband");
-
-    private static final Mutableomponent TEXT_HEALTH = new TranslatableComponent("gui.recruits.inv.health");
-    private static final MutableComponent TEXT_LEVEL = new TranslatableComponent("gui.recruits.inv.level");
-    private static final MutableComponent TEXT_KILLS = new TranslatableComponent("gui.recruits.inv.kills");
-    private static final MutableComponent TEXT_DISBAND = new TranslatableComponent("gui.recruits.inv.text.disband");
     private static final MutableComponent TEXT_INFO_FOLLOW = new TranslatableComponent("gui.recruits.inv.info.text.follow");
     private static final MutableComponent TEXT_INFO_WANDER = new TranslatableComponent("gui.recruits.inv.info.text.wander");
     private static final MutableComponent TEXT_INFO_HOLD_POS = new TranslatableComponent("gui.recruits.inv.info.text.hold_pos");
@@ -80,11 +75,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TEXT_SPECIAL = new TranslatableComponent("gui.recruits.inv.text.special");
     private static final MutableComponent TOOLTIP_PROMOTE = new TranslatableComponent("gui.recruits.inv.tooltip.promote");
     private static final MutableComponent TOOLTIP_SPECIAL = new TranslatableComponent("gui.recruits.inv.tooltip.special");
-    private static final MutableComponent TEXT_PROMOTE = new TranslatableComponent("gui.recruits.inv.text.promote");
-    private static final MutableComponent TEXT_SPECIAL = new TranslatableComponent("gui.recruits.inv.text.special");
-    private static final MutableComponent TOOLTIP_PROMOTE = new TranslatableComponent("gui.recruits.inv.tooltip.promote");
     private static final MutableComponent TOOLTIP_DISABLED_PROMOTE = new TranslatableComponent("gui.recruits.inv.tooltip.promote_disabled");
-    private static final MutableComponent TOOLTIP_SPECIAL = new TranslatableComponent("gui.recruits.inv.tooltip.special");
     private static final int fontColor = 4210752;
     private final AbstractRecruitEntity recruit;
     private final Inventory playerInventory;
@@ -465,7 +456,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         }
         else if(this.recruit instanceof PatrolLeaderEntity){
             profItem1 = Items.IRON_SWORD.getDefaultInstance();
-            profItem2 = Items.GOAT_HORN.getDefaultInstance();
+            profItem2 = Items.GREEN_BANNER.getDefaultInstance();
         }
         else if(this.recruit instanceof CaptainEntity){
             profItem1 = IBoatController.getSmallShipsItem();

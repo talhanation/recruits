@@ -110,7 +110,7 @@ public class SailorNodeEvaluator extends SwimNodeEvaluator {
 
     @Nullable
     public Target getGoal(double p_77550_, double p_77551_, double p_77552_) {
-        return this.getTargetFromNode(this.getNodeRaw(Mth.floor(p_77550_), Mth.floor(p_77551_), Mth.floor(p_77552_)));
+        return new Target(this.getNodeRaw(Mth.floor(p_77550_), Mth.floor(p_77551_), Mth.floor(p_77552_)));
     }
 
     protected double getFloorLevel(@NotNull BlockPos p_164674_) {

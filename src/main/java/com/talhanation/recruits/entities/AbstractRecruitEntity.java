@@ -18,6 +18,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -62,7 +63,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.common.Tags;
-import net.minecraftforge.common.data.ForgeBiomeTagsProvider;
+import net.minecraftforge.common.data.ForgeRegistryTagsProvider;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -949,32 +950,32 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         byte biomeByte = 2; //PLAINS
         int variant = recruit.random.nextInt(0, 14);
         //DESERT
-        if(biome.is(Biomes.ERODED_BADLANDS) || biome.containsTag(Tags.Biomes.IS_DESERT) || biome.containsTag(Tags.Biomes.IS_SANDY) && !biome.containsTag(Tags.Biomes.IS_WET_OVERWORLD)){
+        if(biome.is(Biomes.DESERT) || biome.is(Biomes.BADLANDS) || biome.is(Biomes.ERODED_BADLANDS) || biome.is(Biomes.WOODED_BADLANDS)){
             biomeByte = 0;
             variant = recruit.random.nextInt(15, 19);
         }
         //TAIGA
-        else if(biome.is(Tags.Biomes.IS_CONIFEROUS) && biome.is(Tags.Biomes.IS_COLD_OVERWORLD) && !(biome.is(Tags.Biomes.IS_SNOWY))){
+        else if(biome.is(Biomes.TAIGA) || biome.is(Biomes.OLD_GROWTH_PINE_TAIGA) || biome.is(Biomes.OLD_GROWTH_SPRUCE_TAIGA)){
             biomeByte = 6;
             variant = recruit.random.nextInt(5, 14);
         }
         //JUNGLE
-        else if(biome.is(Tags.Biomes.IS_WET_OVERWORLD) && !biome.is(Tags.Biomes.IS_SANDY) && !biome.is(Tags.Biomes.IS_SWAMP)){
+        else if(biome.is(Biomes.JUNGLE) || biome.is(Biomes.BAMBOO_JUNGLE) || biome.is(Biomes.SPARSE_JUNGLE)){
             biomeByte = 1;
             variant = recruit.random.nextInt(15, 19);
         }
         //SVANNA
-        else if(biome.is(Tags.Biomes.IS_HOT_OVERWORLD) && biome.is(Tags.Biomes.IS_SPARSE_OVERWORLD)){
+        else if(biome.is(Biomes.SAVANNA) || biome.is(Biomes.SAVANNA_PLATEAU)){
             biomeByte = 3;
             variant = recruit.random.nextInt(15, 19);
         }
         //SNOWY
-        else if(biome.is(Tags.Biomes.IS_SNOWY)){
+        else if(biome.is(Biomes.SNOWY_BEACH) || biome.is(Biomes.SNOWY_PLAINS) || biome.is(Biomes.SNOWY_SLOPES) || biome.is(Biomes.SNOWY_TAIGA)){
             biomeByte = 4;
             variant = recruit.random.nextInt(5, 10);
         }
         //SWAMP
-        else if(biome.is(Tags.Biomes.IS_SWAMP)){
+        else if(biome.is(Biomes.SWAMP)){
             biomeByte = 5;
             variant = recruit.random.nextInt(5, 14);
         }

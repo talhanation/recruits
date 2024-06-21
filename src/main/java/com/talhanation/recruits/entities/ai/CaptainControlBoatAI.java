@@ -218,7 +218,7 @@ public class CaptainControlBoatAI extends Goal {
 
                 case DONE -> {
                     captain.setSailPos(Optional.empty());
-                    captain.setSmallShipsSailState((Boat) captain.getVehicle(), 0);
+                    captain. setSmallShipsSailState((Boat) captain.getVehicle(), 0);
                     if(++this.stoppingTimer > 25){
                         this.stoppingTimer = 0;
                         state = captain.shipAttacking && canAttackTarget() ? ATTACKING : IDLE;

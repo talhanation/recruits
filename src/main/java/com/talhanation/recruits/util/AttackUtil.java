@@ -46,8 +46,8 @@ public abstract class AttackUtil {
      */
     public static double getAttackReachSqr(LivingEntity living) {
         float base = 5F;
-        if(living.getAttribute(ForgeMod.ATTACK_RANGE.get()) != null){
-            double attackReach = living.getAttributeValue(ForgeMod.ATTACK_RANGE.get());
+        if(living.getAttribute(ForgeMod.REACH_DISTANCE.get()) != null){
+            double attackReach = living.getAttributeValue(ForgeMod.REACH_DISTANCE.get());
             //Vanilla reach is 10
             //Epic fight mod:
             // reach +1.0 == 18

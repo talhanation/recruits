@@ -57,7 +57,7 @@ public class MessageMountEntityGui implements Message<MessageMountEntityGui> {
             ArrayList<Entity> list = (ArrayList<Entity>) recruit.level.getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(8));
 
             list.removeIf(mount -> !RecruitsServerConfig.MountWhiteList.get().contains(mount.getEncodeId()));
-            list.removeIf(mount -> mount instanceof AbstractHorse horse && horse.hasControllingPassenger());
+            list.removeIf(mount -> mount instanceof AbstractHorse horse && horse.getFirstPassenger() != null);
             list.sort(Comparator.comparing(horseInList -> horseInList.distanceTo(recruit)));
 
             if(!list.isEmpty()){
