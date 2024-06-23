@@ -5,6 +5,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.events.ClientEvent;
 import com.talhanation.recruits.client.models.RecruitVillagerModel;
 import com.talhanation.recruits.client.render.layer.RecruitVillagerBiomeLayer;
+import com.talhanation.recruits.client.render.layer.RecruitVillagerCompanionLayer;
 import com.talhanation.recruits.client.render.layer.RecruitVillagerTeamColorLayer;
 import com.talhanation.recruits.client.render.layer.VillagerRecruitCustomHeadLayer;
 import com.talhanation.recruits.compat.IWeapon;
@@ -38,6 +39,7 @@ public class RecruitVillagerRenderer extends MobRenderer<AbstractRecruitEntity, 
         this.addLayer(new HumanoidArmorLayer<>(this, new HumanoidModel(context.bakeLayer(ClientEvent.RECRUIT_INNER_ARMOR)), new HumanoidModel(context.bakeLayer(ClientEvent.RECRUIT_OUTER_ARMOR)), context.getModelManager()));
         this.addLayer(new RecruitVillagerTeamColorLayer(this));
         this.addLayer(new RecruitVillagerBiomeLayer(this));
+        this.addLayer(new RecruitVillagerCompanionLayer(this));
         this.addLayer(new ItemInHandLayer<>(this, context.getItemInHandRenderer()));
         this.addLayer(new VillagerRecruitCustomHeadLayer<>(this, context.getModelSet(), context.getItemInHandRenderer()));
     }
