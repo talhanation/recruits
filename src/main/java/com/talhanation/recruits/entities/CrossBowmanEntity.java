@@ -1,6 +1,5 @@
 package com.talhanation.recruits.entities;
 
-import com.sk89q.worldedit.forge.ForgeItemRegistry;
 import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.RecruitMoveTowardsTargetGoal;
@@ -110,7 +109,7 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
                 .add(Attributes.ATTACK_DAMAGE, 1.5D)
                 .add(Attributes.FOLLOW_RANGE, 64.0D)
-                .add(ForgeMod.ATTACK_RANGE.get(), 0D)
+                .add(ForgeMod.ENTITY_REACH.get(), 0D)
                 .add(Attributes.ATTACK_SPEED);
     }
 

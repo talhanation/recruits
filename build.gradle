@@ -36,7 +36,7 @@ mixin{
     overwriteErrorLevel = 'error'
 }
 
-version = '1.11.1'
+version = '1.11.2'
 
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.20.1'
@@ -58,7 +58,7 @@ minecraft {
 
             Random rnd = new Random()
 
-            args = ['--username', 'talhanation']// + rnd.nextInt(1000)]
+            args = ['--username', 'talhanation22']// + rnd.nextInt(1000)]
 
             mods {
                 'recruits' {
@@ -120,6 +120,16 @@ dependencies {
     runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.20.1-1.0.0:javadoc")
     //Implementation
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+    implementation fg.deobf("curse.maven:corpse-316582:5157034")
+
+    implementation fg.deobf("curse.maven:epic-knights-armor-and-weapons-509041:5254836")
+    implementation fg.deobf("curse.maven:architectury-api-419699:5137938")
+    implementation fg.deobf("curse.maven:cloth-config-348521:4973441")
+
+    implementation fg.deobf("curse.maven:ewewukeks-musket-mod-354562:5172206")
+    implementation fg.deobf("curse.maven:worldedit-225608:4586218")
+    implementation fg.deobf("curse.maven:small-ships-450659:5448681")
 }
 
 // Example for how to get properties into the manifest for reading at runtime.

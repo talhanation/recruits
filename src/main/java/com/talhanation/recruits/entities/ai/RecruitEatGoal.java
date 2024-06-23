@@ -20,7 +20,7 @@ public class RecruitEatGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        long i = this.recruit.level.getGameTime();
+        long i = this.recruit.getCommandSenderWorld().getGameTime();
         if(i - this.lastCanUseCheck >= 1200){
             this.lastCanUseCheck = i;
             this.recruit.updateMorale();

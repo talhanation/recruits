@@ -31,7 +31,7 @@ public class MessageRemoveAssignedGroupFromCompanion implements Message<MessageR
 
     public void executeServerSide(NetworkEvent.Context context) {
 
-        List<AbstractLeaderEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractLeaderEntity.class, context.getSender().getBoundingBox().inflate(100D));
+        List<AbstractLeaderEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractLeaderEntity.class, context.getSender().getBoundingBox().inflate(100D));
         for (AbstractLeaderEntity companionEntity : list){
             if(companionEntity.getUUID().equals(this.companion)){
                 companionEntity.setRecruitsToHoldPos();

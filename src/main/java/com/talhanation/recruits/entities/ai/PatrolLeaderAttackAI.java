@@ -200,7 +200,7 @@ public class PatrolLeaderAttackAI extends Goal {
 
     public BlockPos getBlockPosTowardsTarget(LivingEntity target, double x){
         Vec3 pos = leader.position().lerp(target.position(), x);
-        return this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(pos.x, pos.y, pos.z));
+        return this.leader.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int)pos.x,(int) pos.y,(int) pos.z));
     }
     public Vec3 getPosTowardsTarget(LivingEntity target, double x){
         return leader.position().lerp(target.position(), x);

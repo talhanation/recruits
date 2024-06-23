@@ -90,14 +90,15 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
             textField.setTextColorUneditable(-1);
             textField.setBordered(true);
             textField.setMaxLength(24);
+            textField.setFocused(true);
             addRenderableWidget(textField);
             setInitialFocus(textField);
 
-            cycleButtonLeftTeamColor(leftPos + 60, topPos + 69);
-            cycleButtonRightTeamColor(leftPos + 60 + 85, topPos + 69);
+            cycleButtonLeftTeamColor(leftPos + 75, topPos + 69);
+            cycleButtonRightTeamColor(leftPos + 75 + 70, topPos + 69);
 
-            cycleButtonLeftRecruitColor(leftPos + 60, topPos + 83);
-            cycleButtonRightRecruitColor(leftPos + 60 + 85, topPos + 83);
+            cycleButtonLeftRecruitColor(leftPos + 75, topPos + 83);
+            cycleButtonRightRecruitColor(leftPos + 75 + 70, topPos + 83);
 
             String create = "Create   ";
 
@@ -176,34 +177,18 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     private void refreshSelectedColorRecruit() {
         this.recruitColor = RECRUIT_COLORS.get(recruitColorIndex);
     }
-    @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         super.renderLabels(guiGraphics, mouseX, mouseY);
-        guiGraphics.drawString(font, "Create a Team:", 18  , 11, fontColor);
-        guiGraphics.drawString(font, playerInventory.getDisplayName().getVisualOrderText(), 8, 128 + 2, fontColor);
-        guiGraphics.drawString(font, teamColor, 77, 69 + 2, teamColorId);
-        guiGraphics.drawString(font, "Team Color:",18, 69 + 2, fontColor);
-        guiGraphics.drawString(font, recruitColor, 77, 83 + 2, recruitColorId);
-        guiGraphics.drawString(font, "Unit Color:",18, 83 + 2, fontColor);
+        guiGraphics.drawString(font, "Create a Team:", 18  , 11, fontColor, false);
+        guiGraphics.drawString(font, playerInventory.getDisplayName().getVisualOrderText(), 8, 128 + 2, fontColor, false);
+        guiGraphics.drawString(font, teamColor, 88, 69 + 2, teamColorId, false);
+        guiGraphics.drawString(font, "Team Color:",18, 69 + 2, fontColor, false);
+        guiGraphics.drawString(font, recruitColor, 88, 83 + 2, recruitColorId, false);
+        guiGraphics.drawString(font,"Unit Color:",18, 83 + 2, fontColor, false);
 
         if(price > 0 && currency != null){
-            itemRenderer.renderGuiItem(currency, 120, this.imageHeight - 125);
-            itemRenderer.renderGuiItemDecorations(font, currency, 120, this.imageHeight - 125);
-        }
-    }
-
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        super.renderLabels(guiGraphics, mouseX, mouseY);
-        guiGraphics.drawString(font, "Create a Team:", 18  , 11, fontColor);
-        guiGraphics.drawString(font, playerInventory.getDisplayName().getVisualOrderText(), 8, 128 + 2, fontColor);
-        guiGraphics.drawString(font, teamColor, 77, 69 + 2, teamColorId);
-        guiGraphics.drawString(font, "Team Color:",18, 69 + 2, fontColor);
-        guiGraphics.drawString(font, recruitColor, 77, 83 + 2, recruitColorId);
-        guiGraphics.drawString(font,"Unit Color:",18, 83 + 2, fontColor);
-
-        if(price > 0 && currency != null){
-            itemRenderer.renderGuiItem(currency, 120, this.imageHeight - 125);
-            itemRenderer.renderGuiItemDecorations(font, currency, 120, this.imageHeight - 125);
+            guiGraphics.renderFakeItem(currency, 120, this.imageHeight - 125);
+            guiGraphics.renderItemDecorations(font, currency, 120, this.imageHeight - 125);
         }
     }
 

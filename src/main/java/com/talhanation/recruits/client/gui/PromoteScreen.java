@@ -73,6 +73,12 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
         setWidgets();
     }
 
+    protected void containerTick() {
+        super.containerTick();
+        if(textField != null) textField.tick();
+    }
+
+
     private void setEditBox() {
         Component name = Component.literal("Name");
         if(recruit.getCustomName() != null) name = recruit.getCustomName();

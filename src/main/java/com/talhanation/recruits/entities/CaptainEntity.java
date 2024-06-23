@@ -119,7 +119,7 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.1D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
                 .add(Attributes.FOLLOW_RANGE, 128.0D)
-                .add(ForgeMod.ATTACK_RANGE.get(), 0D)
+                .add(ForgeMod.ENTITY_REACH.get(), 0D)
                 .add(Attributes.ATTACK_SPEED);
     }
 

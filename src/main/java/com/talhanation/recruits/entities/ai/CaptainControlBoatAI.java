@@ -67,7 +67,7 @@ public class CaptainControlBoatAI extends Goal {
     }
 
     public void tick() {
-        //Main.LOGGER.info("State: " + state);
+        if(DEBUG)Main.LOGGER.info("State: " + state);
 
         if (!captain.getCommandSenderWorld().isClientSide()) {
             if(DEBUG) {
@@ -300,7 +300,7 @@ public class CaptainControlBoatAI extends Goal {
         if(this.captain.getFollowState() == 1 || this.captain.getFollowState() == 5){
             return 1000;
         }
-        if(target != null && target.isOnGround()){
+        if(target != null && target.onGround()){
             return STOP_RANGE_LAND_TARGET;
         }
         else return captain.shipAttacking ? ATTACKING_RANGE : 25;

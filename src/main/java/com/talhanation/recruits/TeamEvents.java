@@ -572,7 +572,7 @@ public class  TeamEvents {
                         String[] parts = command.split(" ");
                         String teamName = parts[2];
                         createTeam(false, sender, level, teamName, sender.getName().getString(), mainhand.getItem() instanceof BannerItem ? mainhand : null, "white", (byte) 0);
-                        sourceStack.sendSuccess(Component.translatable("commands.team.add.success", teamName), true);
+                        sourceStack.sendSuccess(() -> Component.translatable("commands.team.add.success", teamName), true);
                         event.setCanceled(true);
                         serverSideUpdateTeam(level);
                     }
@@ -580,7 +580,7 @@ public class  TeamEvents {
                         String[] parts = command.split(" ");
                         String teamName = parts[2];
                         leaveTeam(true,sender, teamName, level, false);
-                        sourceStack.sendSuccess(Component.translatable("commands.team.remove.success", teamName), true);
+                        sourceStack.sendSuccess(() -> Component.translatable("commands.team.remove.success", teamName), true);
                         event.setCanceled(true);
                         serverSideUpdateTeam(level);
                     }
@@ -611,7 +611,7 @@ public class  TeamEvents {
                             data.removeTeam(teamName);
                             data.setDirty();
 
-                            sourceStack.sendSuccess(Component.translatable("commands.team.remove.success", teamName), true);
+                            sourceStack.sendSuccess(() -> Component.translatable("commands.team.remove.success", teamName), true);
                         } else {
                             sourceStack.sendFailure(Component.translatable("team.notFound", teamName));
                         }
@@ -625,7 +625,7 @@ public class  TeamEvents {
                         ServerPlayer player = this.server.getPlayerList().getPlayerByName(playerName);
                         if (player != null) {
                             addPlayerToTeam(player, this.server.overworld(), teamName, playerName);
-                            sourceStack.sendSuccess(Component.translatable("commands.team.join.success.single", playerName, teamName), true);
+                            sourceStack.sendSuccess(() -> Component.translatable("commands.team.join.success.single", playerName, teamName), true);
                             serverSideUpdateTeam(level);
                         } else {
                             sourceStack.sendFailure(Component.translatable("argument.player.unknown"));
@@ -640,7 +640,7 @@ public class  TeamEvents {
                         if (player != null) {
                             Team team = player.getTeam();
                             tryToRemoveFromTeam(team, player, player,this.server.overworld(), playerName, false);
-                            sourceStack.sendSuccess(Component.translatable("commands.team.leave.success.single", playerName), true);
+                            sourceStack.sendSuccess(() -> Component.translatable("commands.team.leave.success.single", playerName), true);
                             serverSideUpdateTeam(level);
                         } else {
                             sourceStack.sendFailure(Component.translatable("argument.player.unknown"));

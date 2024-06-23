@@ -1,5 +1,6 @@
 package com.talhanation.recruits.client.gui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.TeamEvents;
@@ -7,12 +8,17 @@ import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
@@ -260,17 +266,17 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
 
 
         //LISTEN
-        addRenderableWidget(new ExtendedButton(leftPos + 77, topPos + 113, 8, 12, Component.literal("<"), button -> {
+        addRenderableWidget(new ExtendedButton(leftPos + 77, topPos + 113, 12, 12, Component.literal("<"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         }));
 
-        addRenderableWidget(new ExtendedButton(leftPos + 77 + 85, topPos + 113, 8, 12, Component.literal(">"), button -> {
+        addRenderableWidget(new ExtendedButton(leftPos + 77 + 81, topPos + 113, 12, 12, Component.literal(">"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         }));
 
 
         //GROUP
-        addRenderableWidget(new ExtendedButton(leftPos + 77, topPos + 100, 8, 12, Component.literal("<"), button -> {
+        addRenderableWidget(new ExtendedButton(leftPos + 77, topPos + 100, 12, 12, Component.literal("<"), button -> {
             this.group = recruit.getGroup();
             if (this.group != 0) {
                 this.group--;
@@ -278,7 +284,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
             }
         }));
 
-        addRenderableWidget(new ExtendedButton(leftPos + 77 + 85, topPos + 100, 8, 12, Component.literal(">"), button -> {
+        addRenderableWidget(new ExtendedButton(leftPos + 77 + 81, topPos + 100, 12, 12, Component.literal(">"), button -> {
             this.group = recruit.getGroup();
             if (this.group != 9) {
                 this.group++;
@@ -430,17 +436,17 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         else if(this.recruit instanceof CaptainEntity){
             profItem1 = IBoatController.getSmallShipsItem();
         }
-        matrixStack.pushPose();
-        matrixStack.scale(0.5F, 0.5F, 1F);
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().scale(0.8F, 0.8F, 1F);
 
         if(profItem2 != null){
-            itemRenderer.renderGuiItem(profItem2, 80, 2);
+            guiGraphics.renderFakeItem(profItem2, 90, 4);
         }
 
         if(profItem1 != null){
-            itemRenderer.renderGuiItem(profItem1, 70, 2);
+            guiGraphics.renderFakeItem(profItem1, 80, 4);
         }
-        matrixStack.popPose();
+        guiGraphics.pose().popPose();
     }
 
     protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {

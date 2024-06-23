@@ -93,12 +93,11 @@ public class TeamManagePlayerScreen extends ScreenBase<TeamManagePlayerContainer
 
     public void removed() {
         super.removed();
-        this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
     }
 
     protected void containerTick() {
         super.containerTick();
-        textField.tick();
+        if(textField != null) textField.tick();
     }
 
     @Override

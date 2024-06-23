@@ -15,6 +15,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 import org.lwjgl.glfw.GLFW;
 
 
@@ -127,12 +128,12 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
         //Info
         int fontColor = 4210752;
 
-        guiGraphics.drawString(font, "Player:", 5, 5, fontColor);
-        guiGraphics.drawString(font, "Message:", 5, 35, fontColor);
+        guiGraphics.drawString(font, "Player:", 5, 5, fontColor, false);
+        guiGraphics.drawString(font, "Message:", 5, 35, fontColor, false);
 
         if(!recruit.getMainHandItem().isEmpty()){
-            itemRenderer.renderGuiItem(recruit.getMainHandItem(), 140, 202);
-            itemRenderer.renderGuiItemDecorations(font, recruit.getMainHandItem(),140, 202);
+            guiGraphics.renderFakeItem(recruit.getMainHandItem(), 140, 202);
+            guiGraphics.renderItemDecorations(font, recruit.getMainHandItem(),140, 202);
         }
     }
 }

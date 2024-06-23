@@ -30,7 +30,7 @@ public class RecruitFollowOwnerGoal extends Goal {
     }
 
     public boolean canUse() {
-        long i = this.recruit.level.getGameTime();
+        long i = this.recruit.getCommandSenderWorld().getGameTime();
         if (i - this.lastCanUseCheck >= 20L) {
             this.lastCanUseCheck = i;
             LivingEntity livingentity = this.recruit.getOwner();

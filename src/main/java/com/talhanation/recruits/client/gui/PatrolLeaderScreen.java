@@ -8,6 +8,7 @@ import com.talhanation.recruits.entities.CaptainEntity;
 import com.talhanation.recruits.inventory.PatrolLeaderContainer;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
@@ -105,12 +106,12 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
 
 
-    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, this.texture);
-        blit(matrixStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight,this.imageWidth, this.imageHeight);
-        this.drawHoverAreas(matrixStack, mouseX, mouseY);
+        guiGraphics.blit(this.texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight,this.imageWidth, this.imageHeight);
+        this.drawHoverAreas(guiGraphics, mouseX, mouseY);
     }
 
     private void setHoverAreas() {
@@ -362,8 +363,8 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         removeButton.active = state == AbstractLeaderEntity.State.STOPPED || state == AbstractLeaderEntity.State.IDLE;
     }
 
-    private void renderItemAt(ItemStack itemStack, int x, int y) {
-        if(itemStack != null) renderItemAt(itemStack, x, y);
+    private void renderItemAt(GuiGraphics guiGraphics, ItemStack itemStack, int x, int y) {
+        if(itemStack != null) guiGraphics.renderFakeItem(itemStack, x, y);
     }
 
     public Button createPageBackButton() {
@@ -413,10 +414,10 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         super.renderLabels(guiGraphics, mouseX, mouseY);
-        guiGraphics.drawString(font, "Recruit in Oder: " + recruitsSize, offset + 220, 122, fontColor);
-        guiGraphics.drawString(font, "x: ",  offset + 20, 42, fontColor);
-        guiGraphics.drawString(font, "y: ",  offset + 80, 42, fontColor);
-        guiGraphics.drawString(font, "z: ",  offset + 140, 42, fontColor);
+        guiGraphics.drawString(font, "Recruit in Oder: " + recruitsSize, offset + 220, 122, fontColor, false);
+        guiGraphics.drawString(font, "x: ",  offset + 20, 42, fontColor, false);
+        guiGraphics.drawString(font, "y: ",  offset + 80, 42, fontColor, false);
+        guiGraphics.drawString(font, "z: ",  offset + 140, 42, fontColor, false);
 
         // Info
         int fontColor = 4210752;
@@ -438,24 +439,21 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
                 if(!waypointItems.isEmpty() && waypointItems.get(i) != null) {
                     ItemStack chest = new ItemStack(Blocks.CHEST.asItem());
                     if(i == 0 && this.page == 1){
-                        renderItemAt(chest, offset + 15 + 160, 57);
+                        renderItemAt(guiGraphics, chest, offset + 15 + 160, 57);
                     }
-                    renderItemAt(waypointItems.get(i), offset + 15, 57 + ((i - startIndex) * 17));
+                    renderItemAt(guiGraphics, waypointItems.get(i), offset + 15, 57 + ((i - startIndex) * 17));
                 }
                 else{
                     BlockPos pos1 =  waypoints.get(i);
                     ItemStack itemStack = recruit.getItemStackToRender(pos1);
 
-                    renderItemAt(itemStack, offset +15, 57 + ((i - startIndex) * 17));
+                    renderItemAt(guiGraphics, itemStack, offset +15, 57 + ((i - startIndex) * 17));
                 }
-                guiGraphics.drawString(font, coordinates, offset +35, 60 + ((i - startIndex) * 17), fontColor);
+                guiGraphics.drawString(font, coordinates, offset +35, 60 + ((i - startIndex) * 17), fontColor, false);
             }
 
             if (waypoints.size() > waypointsPerPage)
-                guiGraphics.drawString(font, "Page: " + page, offset + 90, 230, fontColor);
+                guiGraphics.drawString(font, "Page: " + page, offset + 90, 230, fontColor, false);
         }
-
     }
-
-
 }

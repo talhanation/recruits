@@ -135,7 +135,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.1D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D)
-                .add(ForgeMod.ATTACK_RANGE.get(), 0D)
+                .add(ForgeMod.ENTITY_REACH.get(), 0D)
                 .add(Attributes.ATTACK_SPEED);
     }
 
@@ -434,7 +434,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     }
 
     private void playHornSound() {
-        this.getCommandSenderWorld().playSound(null, this, SoundEvents.GOAT_HORN_SOUND_VARIANTS.get(1), SoundSource.NEUTRAL, 128F, 1.0F);
+        this.getCommandSenderWorld().playSound(null, this.getOnPos(), SoundEvents.GOAT_HORN_SOUND_VARIANTS.get(1).get(), SoundSource.NEUTRAL, 128F, 1.0F);
         this.getCommandSenderWorld().gameEvent(GameEvent.INSTRUMENT_PLAY, this.position(), GameEvent.Context.of(this));
     }
 

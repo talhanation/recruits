@@ -16,7 +16,7 @@ public class FormationUtils {
         else
             pos = linePos.lerp(linePos.add(rotation.reverse()), index * 1.50);
 
-        return level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(pos.x, pos.y, pos.z));
+        return level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
 
     }
 }

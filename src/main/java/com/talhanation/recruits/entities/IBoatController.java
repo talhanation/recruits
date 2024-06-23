@@ -1,7 +1,6 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.Main;
-import com.talhanation.smallships.world.entity.ship.Ship;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
@@ -16,7 +15,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.Tags;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
@@ -85,7 +83,7 @@ public interface IBoatController {
             if (Main.isSmallShipsLoaded && Main.isSmallShipsCompatible && (string.contains("smallships"))) {
                 boolean onPosIsDeep = getWaterDepth(boat.getOnPos(), this.getCaptain()) >= 7;
                 //boolean following = getCaptain().getFollowState() == 1 && getCaptain().getOwner() != null;
-                BlockPos targetPos = new BlockPos(posX, getCaptain().getY(), posZ);
+                BlockPos targetPos = new BlockPos((int)posX, (int)getCaptain().getY(), (int)posZ);
                 /*if(following){
                     boolean ownerOnPosIsDeep = getWaterDepth(getCaptain().getOwner().getOnPos(), this.getCaptain()) >= 7;
                     boolean ownerFar = getCaptain().distanceToSqr(getCaptain().getOwner()) > 150;

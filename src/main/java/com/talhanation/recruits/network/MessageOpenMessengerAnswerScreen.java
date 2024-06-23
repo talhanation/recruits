@@ -38,7 +38,7 @@ public class MessageOpenMessengerAnswerScreen implements Message<MessageOpenMess
         if (!player.getUUID().equals(this.player)) {
             return;
         }
-        player.level.getEntitiesOfClass(MessengerEntity.class, player.getBoundingBox()
+        player.getCommandSenderWorld().getEntitiesOfClass(MessengerEntity.class, player.getBoundingBox()
                         .inflate(16.0D), v -> v
                         .getUUID()
                         .equals(this.recruit))

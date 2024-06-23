@@ -27,7 +27,7 @@ public class MessageAnswerMessenger implements Message<MessageAnswerMessenger> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        List<MessengerEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(MessengerEntity.class, context.getSender().getBoundingBox().inflate(16D));
+        List<MessengerEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(MessengerEntity.class, context.getSender().getBoundingBox().inflate(16D));
         for (MessengerEntity messenger : list){
 
             if (messenger.getUUID().equals(this.recruit)){

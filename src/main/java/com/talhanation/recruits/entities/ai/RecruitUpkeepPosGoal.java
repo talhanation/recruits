@@ -63,7 +63,7 @@ public class RecruitUpkeepPosGoal extends Goal {
         this.chestPos = recruit.getUpkeepPos();
 
         if(chestPos != null) {
-            BlockEntity entity = recruit.level.getBlockEntity(chestPos);
+            BlockEntity entity = recruit.getCommandSenderWorld().getBlockEntity(chestPos);
             BlockState blockState = recruit.getCommandSenderWorld().getBlockState(chestPos);
             if (blockState.getBlock() instanceof ChestBlock chestBlock) {
                 this.container = ChestBlock.getContainer(chestBlock, blockState, recruit.getCommandSenderWorld(), chestPos, false);
@@ -252,7 +252,7 @@ public class RecruitUpkeepPosGoal extends Goal {
             Block block = state.getBlock();
             boolean isOpened = false;
             CompoundTag compoundTag = new CompoundTag();
-            if(recruit.getLevel().getBlockEntity(chestPos) instanceof ChestBlockEntity chestBlockEntity){
+            if(recruit.getCommandSenderWorld().getBlockEntity(chestPos) instanceof ChestBlockEntity chestBlockEntity){
                 compoundTag = chestBlockEntity.getPersistentData();
                 if(compoundTag.contains("isOpened"))
                     isOpened = compoundTag.getBoolean("isOpened");
@@ -275,7 +275,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                 }
 
             }
-            this.recruit.getLevel().gameEvent(this.recruit, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, chestPos);
+            this.recruit.getCommandSenderWorld().gameEvent(this.recruit, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, chestPos);
         }
     }
 

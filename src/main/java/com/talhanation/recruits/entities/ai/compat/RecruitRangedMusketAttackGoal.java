@@ -59,7 +59,7 @@ public class RecruitRangedMusketAttackGoal extends Goal {
     public void stop() {
         super.stop();
         this.seeTime = 0;
-        this.reloadTime = 0;
+        this.weaponLoadTime = 0;
         this.crossBowman.stopUsingItem();
         this.crossBowman.setAggressive(false);
     }
@@ -169,9 +169,6 @@ public class RecruitRangedMusketAttackGoal extends Goal {
                             if (canLoad()) this.state = State.RELOAD;
                             else this.state = State.IDLE; //RESUPPLY
                         }
-                        if (canLoad()) this.state = State.RELOAD;
-                        else this.state = State.IDLE ; //RESUPPLY
-
                     }
                 }
             }

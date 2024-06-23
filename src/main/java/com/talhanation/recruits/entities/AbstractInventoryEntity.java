@@ -338,7 +338,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
         Item item = itemStack.getItem();
         if (!itemStack.is(Items.CARVED_PUMPKIN) && (!(item instanceof BlockItem) || !(((BlockItem)item).getBlock() instanceof AbstractSkullBlock))) {
             if (item instanceof ArmorItem) {
-                return ((ArmorItem)item).getSlot();
+                return ((ArmorItem)item).getEquipmentSlot();
             }
             else if (itemStack.is(Items.ELYTRA)) {
                 return EquipmentSlot.CHEST;

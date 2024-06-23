@@ -88,8 +88,9 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
 
     protected void containerTick() {
         super.containerTick();
-        textField.tick();
+        if(textField != null) textField.tick();
     }
+
 
     public boolean mouseClicked(double p_100753_, double p_100754_, int p_100755_) {
         if (this.textField.isFocused()) {
@@ -261,7 +262,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
         int maxHealth = Mth.ceil(recruit.getMaxHealth());
         int moral = Mth.ceil(recruit.getMoral());
 
-        double attackReach = recruit.getAttributeValue(ForgeMod.ATTACK_RANGE.get());
+        double attackReach = recruit.getAttributeValue(ForgeMod.ENTITY_REACH.get());
         double attackSpeed = recruit.getAttributeValue(Attributes.ATTACK_SPEED);
         double attackDamage = recruit.getAttackDamage();
         DecimalFormat decimalformat = new DecimalFormat("##.#");
@@ -331,8 +332,8 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
             default -> "{}";
         };
 
-        matrixStack.pushPose();
-        matrixStack.scale(0.7F, 0.7F, 1F);
+        guiGraphics.pose();
+        guiGraphics.pose().scale(0.7F, 0.7F, 1F);
 
         //Titles
         guiGraphics.drawString(font, recruit.getDisplayName().getVisualOrderText(), 8, 5, fontColor, false);
@@ -351,7 +352,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
         guiGraphics.drawString(font, "" + recruit.getKills(), k + 25, l + 30, fontColor, false);
 
         guiGraphics.drawString(font, "Morale:", k, l + 40, fontColor, false);
-        guiGraphics.drawString(font, "" + moral, k + 30, l + 40, fontColor, false);
+        guiGraphics.drawString(font, "" + moral, k + 40, l + 40, fontColor, false);
 
         guiGraphics.drawString(font, "Hunger:", k, l + 50, fontColor, false);
         guiGraphics.drawString(font, "" + decimalformat.format(hunger), k + 40, l + 50, fontColor, false);
@@ -361,56 +362,56 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
 
         guiGraphics.drawString(font, "MaxHp:", k + 43 + 20, l, fontColor, false);
         guiGraphics.drawString(font, "" + maxHealth, k + 77 + 20, l, fontColor, false);
-
+/*
         guiGraphics.drawString(font, "Attack:", k + 43 + 20, l + 10, fontColor, false);
         guiGraphics.drawString(font, "" + A_damage, k + 77 + 20, l + 10, fontColor, false);
 
         guiGraphics.drawString(font, "Speed:", k + 43 + 20, l + 20, fontColor, false);
         guiGraphics.drawString(font, "" + decimalformat.format(speed), k + 77 + 20, l + 20, fontColor, false);
-
+*/
         guiGraphics.drawString(font, "Armor:", k + 43 + 20, l + 30, fontColor, false);
         guiGraphics.drawString(font, "" + armor, k + 77 + 20, l + 30, fontColor, false);
 
         guiGraphics.drawString(font, "Cost:", k + 43 + 20, l + 40, fontColor, false);
         guiGraphics.drawString(font, "" + costs, k + 77 + 20, l + 40, fontColor, false);
 
-        guiGraphics.drawString(font, "Team:", k, l + 70, fontColor);
-        guiGraphics.drawString(font, ""+ team, k + 40, l + 70, fontColor);
+        guiGraphics.drawString(font, "Team:", k, l + 70, fontColor, false);
+        guiGraphics.drawString(font, ""+ team, k + 40, l + 70, fontColor, false);
 
 
-        guiGraphics.drawString(font, "A Dmg:", k + 43 + 80, l, fontColor);
-        guiGraphics.drawString(font, ""+ decimalformat.format(attackDamage), k + 90 + 80, l, fontColor);
+        guiGraphics.drawString(font, "A Dmg:", k + 43 + 80, l, fontColor, false);
+        guiGraphics.drawString(font, ""+ decimalformat.format(attackDamage), k + 90 + 80, l, fontColor, false);
 
-        guiGraphics.drawString(font, "A reach:", k + 43 + 80, l + 10, fontColor);
-        guiGraphics.drawString(font, ""+ decimalformat.format(attackReach), k + 90 + 80, l + 10, fontColor);
+        guiGraphics.drawString(font, "A reach:", k + 43 + 80, l + 10, fontColor, false);
+        guiGraphics.drawString(font, ""+ decimalformat.format(attackReach), k + 90 + 80, l + 10, fontColor, false);
 
-        guiGraphics.drawString(font, "A speed:", k + 43 + 80, l + 20, fontColor);
-        guiGraphics.drawString(font, ""+ decimalformat.format(attackSpeed), k + 90 + 80, l + 20, fontColor);
+        guiGraphics.drawString(font, "A speed:", k + 43 + 80, l + 20, fontColor, false);
+        guiGraphics.drawString(font, ""+ decimalformat.format(attackSpeed), k + 90 + 80, l + 20, fontColor, false);
 
-        guiGraphics.drawString(font, "Armor:", k + 43 + 80, l + 30, fontColor);
-        guiGraphics.drawString(font, ""+ armor, k + 90 + 80, l + 30, fontColor);
+        guiGraphics.drawString(font, "Armor:", k + 43 + 80, l + 30, fontColor, false);
+        guiGraphics.drawString(font, ""+ armor, k + 90 + 80, l + 30, fontColor, false);
 
-        guiGraphics.drawString(font, "Cost:", k + 43 + 80, l + 40, fontColor);
-        guiGraphics.drawString(font, ""+ costs, k + 90 + 80, l + 40, fontColor);
+        guiGraphics.drawString(font, "Cost:", k + 43 + 80, l + 40, fontColor, false);
+        guiGraphics.drawString(font, ""+ costs, k + 90 + 80, l + 40, fontColor, false);
 
-        guiGraphics.drawString(font, "Group:", k + 43 + 80, l + 50, fontColor);
-        guiGraphics.drawString(font, ""+ group, k + 90 + 80, l + 50, fontColor);
+        guiGraphics.drawString(font, "Group:", k + 43 + 80, l + 50, fontColor, false);
+        guiGraphics.drawString(font, ""+ group, k + 90 + 80, l + 50, fontColor, false);
 
-        guiGraphics.drawString(font, "Follow:", k + 43 + 80, l + 60, fontColor);
-        guiGraphics.drawString(font, ""+ follow, k + 90 + 80, l + 60, fontColor);
+        guiGraphics.drawString(font, "Follow:", k + 43 + 80, l + 60, fontColor, false);
+        guiGraphics.drawString(font, ""+ follow, k + 90 + 80, l + 60, fontColor, false);
 
-        guiGraphics.drawString(font, "Aggro:", k + 43 + 80, l + 70, fontColor);
-        guiGraphics.drawString(font, ""+ aggro, k + 90 + 80, l + 70, fontColor);
+        guiGraphics.drawString(font, "Aggro:", k + 43 + 80, l + 70, fontColor, false);
+        guiGraphics.drawString(font, ""+ aggro, k + 90 + 80, l + 70, fontColor, false);
 
-        guiGraphics.drawString(font, "Variant:", k + 43 + 80, l + 80, fontColor);
-        guiGraphics.drawString(font, ""+ recruit.getVariant(), k + 90 + 80, l + 80, fontColor);
+        guiGraphics.drawString(font, "Variant:", k + 43 + 80, l + 80, fontColor, false);
+        guiGraphics.drawString(font, ""+ recruit.getVariant(), k + 90 + 80, l + 80, fontColor, false);
 
-        guiGraphics.drawString(font, "Biome:", k + 43 + 80, l + 90, fontColor);
-        guiGraphics.drawString(font, ""+ biome, k + 90 + 80, l + 90, fontColor);
+        guiGraphics.drawString(font, "Biome:", k + 43 + 80, l + 90, fontColor, false);
+        guiGraphics.drawString(font, ""+ biome, k + 90 + 80, l + 90, fontColor, false);
 
-        guiGraphics.drawString(font, "tColor:", k + 43 + 80, l + 100, fontColor);
-        guiGraphics.drawString(font, ""+ tcolor, k + 90 + 80, l + 100, fontColor);
-        matrixStack.popPose();
+        guiGraphics.drawString(font, "tColor:", k + 43 + 80, l + 100, fontColor, false);
+        guiGraphics.drawString(font, ""+ tcolor, k + 90 + 80, l + 100, fontColor, false);
+        guiGraphics.pose().popPose();
     }
 
     private int calculateADamage() {

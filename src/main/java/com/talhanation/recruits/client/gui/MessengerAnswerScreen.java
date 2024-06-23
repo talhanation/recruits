@@ -8,6 +8,7 @@ import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.inventory.MessengerAnswerContainer;
 import com.talhanation.recruits.network.MessageAnswerMessenger;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.MultiLineEditBox;
@@ -19,6 +20,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 public class MessengerAnswerScreen extends ScreenBase<MessengerAnswerContainer> {
 
@@ -50,8 +52,6 @@ public class MessengerAnswerScreen extends ScreenBase<MessengerAnswerContainer> 
         this.textFieldMessage = new RecruitsMultiLineEditBox(font, leftPos + 3, topPos + 35, 186, 165, Component.empty(), Component.empty());
         this.textFieldMessage.setValue(message);
         this.textFieldMessage.setEnableEditing(false);
-        this.textFieldMessage.changeFocus(false);
-
 
         addRenderableWidget(textFieldMessage);
 
@@ -67,7 +67,7 @@ public class MessengerAnswerScreen extends ScreenBase<MessengerAnswerContainer> 
     }
 
     private void setOKButton() {
-        Button sendButton = addRenderableWidget(new Button(leftPos + 33, topPos + 200, 128, 20, BUTTON_OK,
+        Button sendButton = addRenderableWidget(new ExtendedButton(leftPos + 33, topPos + 200, 128, 20, BUTTON_OK,
                 button -> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageAnswerMessenger(recruit.getUUID()));
                     this.onClose();
@@ -81,16 +81,16 @@ public class MessengerAnswerScreen extends ScreenBase<MessengerAnswerContainer> 
 
     }
 
-    protected void render(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
+    protected void render(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
-        this.blit(poseStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
+        guiGraphics.blit(this.texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
     }
 
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
-        super.renderLabels(matrixStack, mouseX, mouseY);
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        super.renderLabels(guiGraphics, mouseX, mouseY);
         String targetPlayer = this.recruit.getTargetPlayerName();
         String owner = this.recruit.getOwnerName();
         String unit = "min";
@@ -101,16 +101,16 @@ public class MessengerAnswerScreen extends ScreenBase<MessengerAnswerContainer> 
 
         //Info
         int fontColor = 4210752;
-        font.draw(matrixStack, "From:", 9, 9, fontColor);
-        font.draw(matrixStack, "To:", 9, 20, fontColor);
-        font.draw(matrixStack, "" + owner, 50, 9, fontColor);
-        font.draw(matrixStack, "" + targetPlayer, 50, 20, fontColor);
+        guiGraphics.drawString(font, "From:", 9, 9, fontColor, false);
+        guiGraphics.drawString(font, "To:", 9, 20, fontColor, false);
+        guiGraphics.drawString(font, "" + owner, 50, 9, fontColor, false);
+        guiGraphics.drawString(font, "" + targetPlayer, 50, 20, fontColor, false);
 
-        font.draw(matrixStack, "Time: " + time + unit, 130, 9, fontColor);
+        guiGraphics.drawString(font, "Time: " + time + unit, 130, 9, fontColor, false);
 
         if(!recruit.getMainHandItem().isEmpty()){
-            itemRenderer.renderGuiItem(recruit.getMainHandItem(), 120, 202);
-            itemRenderer.renderGuiItemDecorations(font, recruit.getMainHandItem(),120, 202);
+            guiGraphics.renderFakeItem(recruit.getMainHandItem(), 120, 202);
+            guiGraphics.renderItemDecorations(font, recruit.getMainHandItem(),120, 202);
         }
     }
 }
