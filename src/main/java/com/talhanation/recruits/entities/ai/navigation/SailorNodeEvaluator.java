@@ -44,7 +44,7 @@ public class SailorNodeEvaluator extends SwimNodeEvaluator {
 
 
     @Nullable
-    protected Node getNode(int x, int y, int z) {
+    protected Node findAcceptedNode(int x, int y, int z) {
         Node node = null;
         BlockPathTypes blockpathtypes = this.getCachedBlockType(x, y, z);
         if (blockpathtypes == BlockPathTypes.WATER || blockpathtypes == BlockPathTypes.BREACH) {
@@ -111,9 +111,5 @@ public class SailorNodeEvaluator extends SwimNodeEvaluator {
     @Nullable
     public Target getGoal(double p_77550_, double p_77551_, double p_77552_) {
         return this.getTargetFromNode(this.getNodeRaw(Mth.floor(p_77550_), Mth.floor(p_77551_), Mth.floor(p_77552_)));
-    }
-
-    protected double getFloorLevel(@NotNull BlockPos p_164674_) {
-        return this.mob.getY();
     }
 }
