@@ -78,7 +78,7 @@ public class CaptainControlBoatAI extends Goal {
             }
 
              if(captain.getFollowState() == 1 && captain.getOwner() != null){
-                if(sailPos == null || captain.tickCount % 30 == 0){
+                if(sailPos == null || captain.tickCount % 20 == 0){
                     captain.setSailPos(captain.getOwner().getOnPos());
                     this.sailPos = captain.getSailPos();
                     this.state = CREATING_PATH;
@@ -298,7 +298,7 @@ public class CaptainControlBoatAI extends Goal {
 
     private int getTargetReach() {
         if(this.captain.getFollowState() == 1 || this.captain.getFollowState() == 5){
-            return 1000;
+            return 400;
         }
         if(target != null && target.onGround()){
             return STOP_RANGE_LAND_TARGET;
