@@ -17,7 +17,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -497,28 +499,53 @@ public class CommandEvents {
     public static void onFormationButton(ServerPlayer player, List<AbstractRecruitEntity> recruits) {
         Vec3 playerPos = player.position();
         Vec3 forward = player.getForward();
-        Vec3 toPos1 = forward.reverse().normalize();
-        Vec3 x = toPos1.scale(2);
-        Vec3 pos1 = playerPos.add(x);
-        Vec3 right = pos1.add(x.yRot(3.14F/2));
-        Vec3 left = pos1.add(x.yRot(-3.14F/2));
-        int size = recruits.size();
+        Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
 
-        for (AbstractRecruitEntity recruit : recruits){
-            int index = recruits.indexOf(recruit);
-            double length = index * 0.5;
-            Vec3 pos;
-            if(index % 2 == 0){
-                pos = pos1.lerp(left, length);//rechts
+        int maxInRow = 15;
+        double spacing = 2.0;
+
+        List<Vec3> possiblePositions = new ArrayList<>();
+
+        for (int i = 0; i < recruits.size(); i++) {
+            int row = i / maxInRow;
+            int positionInRow = i % maxInRow;
+
+            Vec3 basePos = playerPos.add(forward.scale(-3 * row));
+            Vec3 offset = left.scale((maxInRow / 2F - positionInRow) * spacing);
+
+            Vec3 recruitPos = basePos.add(offset);
+            possiblePositions.add(recruitPos);
+        }
+
+        //recruits.sort(Comparator.comparingDouble(recruit -> recruit.position().distanceTo(playerPos)));
+
+        for (AbstractRecruitEntity recruit : recruits) {
+            if (possiblePositions.isEmpty()) {
+                break;
             }
-            else pos = pos1.lerp(right, length);//left
 
-            BlockPos blockPos = player.level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(pos.x, pos.y, pos.z));
-            recruit.setHoldPos(blockPos);//set pos
-            recruit.setFollowState(3);//back to pos
+            double closestDistance = Double.MAX_VALUE;
 
-            Vec3 lookVector = playerPos.lerp(player.getForward(), 2);
-            recruit.getLookControl().setLookAt(lookVector.x, recruit.getY() + 1, lookVector.z);
+            float diff = Mth.degreesDifference(recruit.ownerRot, player.getYRot());
+
+            int m = 0;
+            if (Math.abs(diff) > 90F) {
+                for (int i = 0; i < possiblePositions.size(); i++) {
+                    Vec3 pos = possiblePositions.get(i);
+                    double distance = recruit.position().distanceTo(pos);
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        m = i;
+                    }
+                }
+            }
+            Vec3 dest = possiblePositions.remove(m);
+            BlockPos blockPos = player.level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(dest.x, dest.y, dest.z));
+
+            recruit.setHoldPos(new Vec3(dest.x, blockPos.getY(), dest.z));
+            recruit.ownerRot = player.getYRot();
+            recruit.formationPos = 1;
+            recruit.setFollowState(3);
         }
     }
 }
