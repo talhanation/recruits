@@ -44,6 +44,7 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.network.NetworkHooks;
@@ -419,7 +420,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
             if(this.getVehicle() instanceof AbstractHorse horse) horse.teleportTo(tpPos.getX(), tpPos.getY(), tpPos.getZ());
             else this.teleportTo(tpPos.getX(), tpPos.getY(), tpPos.getZ());
 
-            this.setHoldPos(initialPos);
+            this.setHoldPos(Vec3.atCenterOf(initialPos));
             this.setFollowState(3);
         }
     }

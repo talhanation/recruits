@@ -2,8 +2,6 @@ package com.talhanation.recruits.items;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.entities.BowmanEntity;
-import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.TextComponent;
@@ -16,6 +14,8 @@ import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.common.ForgeSpawnEggItem;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import org.jetbrains.annotations.NotNull;
 
@@ -97,7 +97,7 @@ public class RecruitsSpawnEgg extends SpawnEggItem {
                 recruit.setColor(nbt.getByte("Color"));
                 recruit.setBiome(nbt.getByte("Biome"));
 
-                recruit.setHoldPos(context.getClickedPos());
+                recruit.setHoldPos(Vec3.atCenterOf(context.getClickedPos()));
 
                 /*
                 if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {

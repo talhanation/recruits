@@ -10,6 +10,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.pathfinder.Path;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
 
@@ -128,10 +129,10 @@ public class RecruitMeleeAttackGoal extends Goal {
     }
     private boolean canAttackHoldPos() {
         LivingEntity target = this.recruit.getTarget();
-        BlockPos pos = recruit.getHoldPos();
+        Vec3 pos = recruit.getHoldPos();
 
         if (target != null && pos != null && recruit.getShouldHoldPos()) {
-            double distanceToPos = target.distanceToSqr(pos.getX(), pos.getY(), pos.getZ());
+            double distanceToPos = target.distanceToSqr(pos);
 
             return distanceToPos < 400;
         }
