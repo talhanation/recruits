@@ -25,6 +25,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
+
 public interface IBoatController {
     @Nullable
     static ItemStack getSmallShipsItem() {
@@ -114,7 +115,7 @@ public interface IBoatController {
         Vec3 toTarget = boat.position().subtract(target).normalize();
 
         double phi = horizontalAngleBetweenVectors(forward, toTarget);
-        double ref = 63.5F;
+        double ref = 63.334F;
         boolean inputLeft =  (phi < ref);
         boolean inputRight = (phi > ref);
         boolean inputUp = Math.abs(phi - ref) <= ref * 0.35F;
@@ -180,6 +181,28 @@ public interface IBoatController {
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             Main.LOGGER.info("shipClass was not found");
         }
+    }
+
+    static boolean rotateShipTowardsPos(Boat boat, Vec3 targetVec){
+        boolean rotated = false;
+
+        if(targetVec != null) {
+            Vec3 forward = boat.getForward().normalize();
+            Vec3 target = new Vec3(targetVec.x, 0, targetVec.y);
+            Vec3 toTarget = boat.position().subtract(target).normalize();
+
+            double phi = IBoatController.horizontalAngleBetweenVectors(forward, toTarget);
+            double ref = 63.334F;
+            boolean inputLeft = (phi < ref);
+            boolean inputRight = (phi > ref);
+
+            IBoatController.rotateSmallShip(boat, inputLeft, inputRight);
+
+            if (Math.abs(phi - ref) <= ref * 0.35F) {
+                rotated = true;
+            }
+        }
+        return rotated;
     }
 
     static void rotateSmallShip(Boat boat, boolean inputLeft, boolean inputRight){
