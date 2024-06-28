@@ -50,7 +50,7 @@ public class RecruitMountEntity extends Goal {
                     this.recruit.getJumpControl().jump();
                 }
 
-                if (recruit.distanceTo(mount) < 2D) {
+                if (recruit.distanceToSqr(mount) < 50D) {
                     recruit.startRiding(mount);
                     if(recruit.isPassenger()) recruit.setShouldMount(false);
                 }
