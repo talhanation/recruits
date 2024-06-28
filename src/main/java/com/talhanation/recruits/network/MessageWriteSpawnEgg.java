@@ -89,9 +89,9 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
                 entityTag.putInt("Biome", recruitEntity.getBiome());
 
                 if (recruitEntity.getHoldPos() != null) {
-                    entityTag.putInt("HoldPosX", recruitEntity.getHoldPos().getX());
-                    entityTag.putInt("HoldPosY", recruitEntity.getHoldPos().getY());
-                    entityTag.putInt("HoldPosZ", recruitEntity.getHoldPos().getZ());
+                    entityTag.putDouble("HoldPosX", recruitEntity.getHoldPos().x());
+                    entityTag.putDouble("HoldPosY", recruitEntity.getHoldPos().y());
+                    entityTag.putDouble("HoldPosZ", recruitEntity.getHoldPos().z());
                     entityTag.putBoolean("ShouldHoldPos", recruitEntity.getShouldHoldPos());
                 }
 

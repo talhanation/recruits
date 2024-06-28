@@ -13,6 +13,7 @@ import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ProjectileWeaponItem;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
@@ -179,8 +180,8 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
         //}
     }
 
-    private void handleHoldPos(@NotNull BlockPos pos, boolean inRange, boolean isFar, boolean isClose){
-        boolean posClose = pos.distSqr(this.mob.getOnPos()) <= 50;
+    private void handleHoldPos(@NotNull Vec3 pos, boolean inRange, boolean isFar, boolean isClose){
+        boolean posClose = pos.distanceToSqr(this.mob.position()) <= 50;
 
         if (posClose) {
             if (inRange) this.mob.getNavigation().stop();

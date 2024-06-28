@@ -46,7 +46,9 @@ public class RecruitNearestAttackableTargetGoal<T extends LivingEntity> extends 
 
     protected void findTarget() {
         if (this.targetType != Player.class && this.targetType != ServerPlayer.class) {
-            this.target = this.mob.getCommandSenderWorld().getNearestEntity(this.mob.getCommandSenderWorld().getEntitiesOfClass(this.targetType, this.getTargetSearchArea(this.getFollowDistance()), (p_148152_) -> {
+            this.target = this.mob.getCommandSenderWorld().getNearestEntity(this.mob.getCommandSenderWorld().getEntitiesOfClass(this.targetType, this.getTargetSearchArea(this.getFollowDistance()),
+                    (p_148152_) -> {
+
                 return true;
             }), this.targetConditions, this.mob, this.mob.getX(), this.mob.getEyeY(), this.mob.getZ());
         } else {

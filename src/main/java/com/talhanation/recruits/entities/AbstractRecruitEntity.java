@@ -63,7 +63,6 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.common.Tags;
-import net.minecraftforge.common.data.ForgeBiomeTagsProvider;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -113,7 +112,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public int despawnTimer = -1;
     public boolean reachedMovePos;
     public int attackCooldown = 0;
+    public boolean rotate;
+    public float ownerRot;
     private int maxFallDistance;
+    public Vec3 holdPosVec;
+    public int formationPos = -1;
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
         this.xpReward = 6;
@@ -148,7 +151,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         super.aiStep();
         updateSwingTime();
         updateShield();
-        if(this instanceof IStrategicFire && this.tickCount % 20 == 0) pickUpArrows();
+        if(this instanceof IRangedRecruit  && this.tickCount % 20 == 0) pickUpArrows();
         if(needsTeamUpdate) updateTeam();
     }
     public void tick() {
@@ -333,17 +336,19 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putInt("Biome", this.getBiome());
         nbt.putInt("MaxFallDistance", this.getMaxFallDistance());
 
+
+
         if(this.getHoldPos() != null){
-            nbt.putInt("HoldPosX", this.getHoldPos().getX());
-            nbt.putInt("HoldPosY", this.getHoldPos().getY());
-            nbt.putInt("HoldPosZ", this.getHoldPos().getZ());
+            nbt.putDouble("HoldPosX", this.getHoldPos().x());
+            nbt.putDouble("HoldPosY", this.getHoldPos().y());
+            nbt.putDouble("HoldPosZ", this.getHoldPos().z());
             nbt.putBoolean("ShouldHoldPos", this.getShouldHoldPos());
         }
 
         if(this.getMovePos() != null){
-            nbt.putInt("MovePosX", this.getMovePos().getX());
-            nbt.putInt("MovePosY", this.getMovePos().getY());
-            nbt.putInt("MovePosZ", this.getMovePos().getZ());
+            nbt.putDouble("MovePosX", this.getMovePos().getX());
+            nbt.putDouble("MovePosY", this.getMovePos().getY());
+            nbt.putDouble("MovePosZ", this.getMovePos().getZ());
             nbt.putBoolean("ShouldMovePos", this.getShouldMovePos());
         }
 
@@ -403,10 +408,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
-            this.setHoldPos(new BlockPos (
-                    nbt.getInt("HoldPosX"),
-                    nbt.getInt("HoldPosY"),
-                    nbt.getInt("HoldPosZ")));
+            this.setHoldPos(new Vec3 (
+                    nbt.getDouble("HoldPosX"),
+                    nbt.getDouble("HoldPosY"),
+                    nbt.getDouble("HoldPosZ")));
         }
 
         if (nbt.contains("MovePosX") && nbt.contains("MovePosY") && nbt.contains("MovePosZ")) {
@@ -603,8 +608,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return 8;
     }
 
-    public BlockPos getHoldPos(){
-        return entityData.get(HOLD_POS).orElse(null);
+    public Vec3 getHoldPos(){
+        return this.holdPosVec;
+        //return entityData.get(HOLD_POS).orElse(null);
     }
 
     @Nullable
@@ -828,7 +834,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 setShouldFollow(false);
                 setShouldHoldPos(true);
                 clearHoldPos();
-                setHoldPos(getOnPos());
+                setHoldPos(position());
                 setShouldProtect(false);
                 setShouldMovePos(false);
             }
@@ -842,7 +848,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 setShouldFollow(false);
                 setShouldHoldPos(true);
                 clearHoldPos();
-                setHoldPos(this.getOwner().getOnPos());
+                setHoldPos(this.getOwner().position());
                 setShouldProtect(false);
                 setShouldMovePos(false);
                 state = 3;
@@ -858,8 +864,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.set(FOLLOW_STATE, state);
     }
 
-    public void setHoldPos(BlockPos holdPos){
-        this.entityData.set(HOLD_POS, Optional.of(holdPos));
+    public void setHoldPos(Vec3 holdPos){
+        //this.entityData.set(HOLD_POS, Optional.of(holdPos));
+        this.holdPosVec = holdPos;
     }
     public void setMovePos(BlockPos holdPos){
         this.entityData.set(MOVE_POS, Optional.of(holdPos));
