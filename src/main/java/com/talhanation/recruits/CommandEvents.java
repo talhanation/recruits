@@ -29,6 +29,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
@@ -499,18 +500,25 @@ public class CommandEvents {
         Vec3 toPos1 = forward.reverse().normalize();
         Vec3 x = toPos1.scale(2);
         Vec3 pos1 = playerPos.add(x);
-        Vec3 xx = pos1.add(x.yRot(3.14F/2));
+        Vec3 right = pos1.add(x.yRot(3.14F/2));
+        Vec3 left = pos1.add(x.yRot(-3.14F/2));
         int size = recruits.size();
-
 
         for (AbstractRecruitEntity recruit : recruits){
             int index = recruits.indexOf(recruit);
-            Vec3 pos = posLL.lerp(xx, -index);
+            double length = index * 0.5;
+            Vec3 pos;
+            if(index % 2 == 0){
+                pos = pos1.lerp(left, length);//rechts
+            }
+            else pos = pos1.lerp(right, length);//left
 
             BlockPos blockPos = player.level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(pos.x, pos.y, pos.z));
             recruit.setHoldPos(blockPos);//set pos
             recruit.setFollowState(3);//back to pos
-        }
 
+            Vec3 lookVector = playerPos.lerp(player.getForward(), 2);
+            recruit.getLookControl().setLookAt(lookVector.x, recruit.getY() + 1, lookVector.z);
+        }
     }
 }
