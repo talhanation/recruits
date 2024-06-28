@@ -174,7 +174,7 @@ public interface IBoatController {
                     rotateSmallShip(boat, inputLeft, inputRight);
 
                     //SET
-                    boat.setDeltaMovement(calculateMotionX(boatSpeed, boat.getYRot()), 0.0F, calculateMotionZ(boatSpeed, boat.getYRot()));
+                    boat.setDeltaMovement(calculateMotionX(boatSpeed, boat.getYRot()), boat.getDeltaMovement().y, calculateMotionZ(boatSpeed, boat.getYRot()));
                 }
             }
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
