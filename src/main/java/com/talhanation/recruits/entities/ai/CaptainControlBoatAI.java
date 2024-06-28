@@ -81,7 +81,9 @@ public class CaptainControlBoatAI extends Goal {
                 if(sailPos == null || captain.tickCount % 20 == 0){
                     captain.setSailPos(captain.getOwner().getOnPos());
                     this.sailPos = captain.getSailPos();
-                    this.state = CREATING_PATH;
+
+                    if(this.path != null && this.node != null) this.state = MOVING_PATH;
+                    else this.state = CREATING_PATH;
                 }
             }
             else if (captain.getFollowState() == 5 && captain.getProtectingMob() != null){
