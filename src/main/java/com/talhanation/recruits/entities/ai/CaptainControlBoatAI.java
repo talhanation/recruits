@@ -43,7 +43,7 @@ public class CaptainControlBoatAI extends Goal {
 
     @Override
     public boolean canUse() {
-        return this.captain.getVehicle() instanceof Boat boat && boat.getPassengers().get(0).equals(this.captain);
+        return this.captain.getVehicle() instanceof Boat boat && boat.getPassengers().get(0).equals(this.captain) && boat.getEncodeId().contains("smallships");
     }
 
     public boolean canContinueToUse() {
@@ -69,7 +69,7 @@ public class CaptainControlBoatAI extends Goal {
     public void tick() {
         //Main.LOGGER.info("State: " + state);
 
-        if (!captain.getLevel().isClientSide()) {
+        if (!captain.getCommandSenderWorld().isClientSide()) {
             if(DEBUG) {
                 if (this.captain.getOwner() != null && captain.getOwner().isInWater()) {
                     captain.setSailPos(captain.getOwner().getOnPos());
