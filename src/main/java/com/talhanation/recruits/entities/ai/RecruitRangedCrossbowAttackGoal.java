@@ -11,6 +11,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
@@ -253,8 +254,8 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
         //}
     }
 
-    private void handleHoldPos(@NotNull BlockPos pos, boolean inRange){
-        boolean posClose = pos.distSqr(this.crossBowman.getOnPos()) <= 50;
+    private void handleHoldPos(@NotNull Vec3 pos, boolean inRange){
+        boolean posClose = pos.distanceToSqr(this.crossBowman.position()) <= 50;
 
         if (posClose) {
             if (inRange) this.crossBowman.getNavigation().stop();
