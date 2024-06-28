@@ -7,7 +7,7 @@ import net.minecraft.world.phys.Vec3;
 
 public class FormationUtils {
 
-    public static BlockPos calculateLineBlockPosition(Vec3 targetPos, Vec3 linePos, int size, int index, Level level) {
+    public static Vec3 calculateLineBlockPosition(Vec3 targetPos, Vec3 linePos, int size, int index, Level level) {
         Vec3 toTarget = linePos.vectorTo(targetPos).normalize();
         Vec3 rotation = toTarget.yRot(3.14F/2).normalize();
         Vec3 pos;
@@ -16,7 +16,16 @@ public class FormationUtils {
         else
             pos = linePos.lerp(linePos.add(rotation.reverse()), index * 1.50);
 
-        return level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(pos.x, pos.y, pos.z));
+        BlockPos blockPos = level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(pos.x, pos.y, pos.z));
 
+        return new Vec3(pos.x, blockPos.getY(), pos.z);
+    }
+
+    public static Vec3 getVectorRight(Vec3 pos, Vec3 dir){
+        return pos.add(dir.yRot(3.14F / 2));
+    }
+
+    public static Vec3 getVectorLeft(Vec3 pos, Vec3 dir){
+        return pos.add(dir.yRot(-3.14F / 2));
     }
 }

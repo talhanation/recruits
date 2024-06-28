@@ -335,8 +335,8 @@ public class RecruitRangedMusketAttackGoal extends Goal {
         //}
     }
 
-    private void handleHoldPos(@NotNull BlockPos pos, boolean inRange){
-        boolean posClose = pos.distSqr(this.crossBowman.getOnPos()) <= 50;
+    private void handleHoldPos(@NotNull Vec3 pos, boolean inRange){
+        boolean posClose = pos.distanceToSqr(this.crossBowman.position()) <= 50;
 
         if (posClose) {
             if (inRange) this.crossBowman.getNavigation().stop();

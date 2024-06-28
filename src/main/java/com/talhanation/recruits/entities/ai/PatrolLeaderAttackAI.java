@@ -138,7 +138,7 @@ public class PatrolLeaderAttackAI extends Goal {
 
     public void charge(LivingEntity target){
         BlockPos movePosLeader = getBlockPosTowardsTarget(target, 0.2);
-        this.leader.setHoldPos(movePosLeader);
+        this.leader.setHoldPos(Vec3.atCenterOf(movePosLeader));
         this.leader.setFollowState(3);//LEADER BACK TO POS
 
         this.leader.setRecruitsWanderFreely();
@@ -159,7 +159,7 @@ public class PatrolLeaderAttackAI extends Goal {
         this.leader.setTypedRecruitsToWanderFreely(ModEntityTypes.NOMAD.get());
         this.leader.setTypedRecruitsToWanderFreely(ModEntityTypes.HORSEMAN.get());
 
-        this.leader.setHoldPos(movePosLeader);
+        this.leader.setHoldPos(Vec3.atCenterOf(movePosLeader));
         this.leader.setFollowState(3);//LEADER BACK TO POS
     }
     public void advance(LivingEntity target){
@@ -176,7 +176,7 @@ public class PatrolLeaderAttackAI extends Goal {
         this.leader.setTypedRecruitsSetAndHoldPos(target.position(), moveVecRanged, ModEntityTypes.NOMAD.get());
         this.leader.setTypedRecruitsSetAndHoldPos(target.position(), moveVecRanged, ModEntityTypes.HORSEMAN.get());
 
-        this.leader.setHoldPos(movePosLeader);
+        this.leader.setHoldPos(Vec3.atCenterOf(movePosLeader));
         this.leader.setFollowState(3);//LEADER BACK TO POS
     }
 
@@ -194,7 +194,7 @@ public class PatrolLeaderAttackAI extends Goal {
         this.leader.setTypedRecruitsSetAndHoldPos(target.position(), moveVecRanged, ModEntityTypes.NOMAD.get());
         this.leader.setTypedRecruitsSetAndHoldPos(target.position(), moveVecRanged, ModEntityTypes.HORSEMAN.get());
 
-        this.leader.setHoldPos(movePosLeader);
+        this.leader.setHoldPos(Vec3.atCenterOf(movePosLeader));
         this.leader.setFollowState(3);//LEADER BACK TO POS
     }
 

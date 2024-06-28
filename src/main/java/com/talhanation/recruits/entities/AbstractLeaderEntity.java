@@ -646,7 +646,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
 
 
         for (AbstractRecruitEntity recruit : typedList){
-            BlockPos pos = FormationUtils.calculateLineBlockPosition(target, linePos, typedList.size(), typedList.indexOf(recruit), this.getCommandSenderWorld());
+            Vec3 pos = FormationUtils.calculateLineBlockPosition(target, linePos, typedList.size(), typedList.indexOf(recruit), this.getCommandSenderWorld());
 
             recruit.setHoldPos(pos);//set pos
             recruit.setFollowState(3);//back to pos
@@ -673,8 +673,8 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         for (AbstractRecruitEntity recruit : currentRecruitsInCommand){
 
             recruit.reachedMovePos = false;
-            BlockPos pos = FormationUtils.calculateLineBlockPosition(target, linePos, this.currentRecruitsInCommand.size(), currentRecruitsInCommand.indexOf(recruit), this.getCommandSenderWorld());
-            recruit.setMovePos(pos);
+            Vec3 pos = FormationUtils.calculateLineBlockPosition(target, linePos, this.currentRecruitsInCommand.size(), currentRecruitsInCommand.indexOf(recruit), this.getCommandSenderWorld());
+            //recruit.setMovePos();
             recruit.setFollowState(0);// needs to be above setShouldMovePos
             recruit.setShouldMovePos(true);
         }
@@ -687,8 +687,8 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         for (AbstractRecruitEntity recruit : typedList){
 
             recruit.reachedMovePos = false;
-            BlockPos pos = FormationUtils.calculateLineBlockPosition(target, linePos, typedList.size(), typedList.indexOf(recruit), this.getCommandSenderWorld());
-            recruit.setMovePos(pos);
+            Vec3 pos = FormationUtils.calculateLineBlockPosition(target, linePos, typedList.size(), typedList.indexOf(recruit), this.getCommandSenderWorld());
+            //recruit.setMovePos(pos);
             recruit.setFollowState(0);// needs to be above setShouldMovePos
             recruit.setShouldMovePos(true);
         }

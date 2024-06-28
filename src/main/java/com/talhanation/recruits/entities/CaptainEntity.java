@@ -25,6 +25,7 @@ import net.minecraft.world.entity.vehicle.ContainerEntity;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -230,8 +231,8 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
 
             case 2,3,4 -> {
                 if(this.getHoldPos() != null){
-                    BlockPos pos = this.getHoldPos();
-                    setSailPos(pos);
+                    Vec3 pos = this.getHoldPos();
+                    setSailPos(new BlockPos(pos.x, pos.y, pos.z));
                 }
             }
 

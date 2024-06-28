@@ -3,6 +3,7 @@ package com.talhanation.recruits.entities.ai;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
 
@@ -37,23 +38,29 @@ public class RecruitHoldPosGoal extends Goal {
     }
 
     public void tick() {
-        BlockPos blockpos = this.recruit.getHoldPos();
-        if (blockpos != null) {
-            double distance = recruit.distanceToSqr(blockpos.getX(), blockpos.getY(), blockpos.getZ());
-            if(distance >= 2) {
+        Vec3 pos = this.recruit.getHoldPos();
+        if (pos != null) {
+            double distance = recruit.distanceToSqr(pos);
+            if(distance >= 0.3) {
 
                 if (--this.timeToRecalcPath <= 0) {
                     this.timeToRecalcPath = this.recruit.getVehicle() != null ? this.adjustedTickDelay(5) : this.adjustedTickDelay(10);
-                    this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
+                    this.recruit.getNavigation().moveTo(pos.x(), pos.y(), pos.z(), this.speedModifier);
                 }
-
 
                 if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
                     this.recruit.getJumpControl().jump();
                 }
-
             }
-            else if(distance > 1.25 ) this.recruit.getMoveControl().setWantedPosition(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
+            else{
+                if(recruit.rotate){
+                    this.recruit.setYRot(recruit.ownerRot);
+                    this.recruit.yRotO = this.recruit.ownerRot;
+                    this.recruit.yBodyRot = this.recruit.ownerRot;
+                    this.recruit.yHeadRot = this.recruit.ownerRot;
+                    recruit.rotate = false;
+                }
+            }
         }
     }
 }
