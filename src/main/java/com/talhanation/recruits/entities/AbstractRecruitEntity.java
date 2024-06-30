@@ -334,7 +334,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putInt("Color", this.getColor());
         nbt.putInt("Biome", this.getBiome());
         nbt.putInt("MaxFallDistance", this.getMaxFallDistance());
-
+        nbt.putInt("formationPos", formationPos);
 
 
         if(this.getHoldPos() != null){
@@ -404,6 +404,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setColor(nbt.getByte("Color"));
 
         this.setMaxFallDistance(nbt.getInt("MaxFallDistance"));
+        this.formationPos = (nbt.getInt("formationPos"));
+
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
@@ -573,7 +575,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     //FOLLOW
     //0 = wander
     //1 = follow
-    //2 = hold position
+    //2 = hold your position
     //3 = back to position
     //4 = hold my position
     //5 = Protect

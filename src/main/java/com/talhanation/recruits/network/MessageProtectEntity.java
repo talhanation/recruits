@@ -36,7 +36,6 @@ public class MessageProtectEntity implements Message<MessageProtectEntity> {
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
         for (AbstractRecruitEntity recruits : list) {
             CommandEvents.onProtectButton(uuid, recruits, target, group);
-            CommandEvents.onFollowCommand(uuid, recruits, 5, this.group, false);
         }
     }
     public MessageProtectEntity fromBytes(FriendlyByteBuf buf) {

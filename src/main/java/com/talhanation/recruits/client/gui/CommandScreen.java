@@ -8,7 +8,6 @@ import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -23,10 +22,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,8 +85,8 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private boolean strategicFire;
     private BlockPos rayBlockPos;
     private Entity rayEntity;
-    private byte formation;
-    private Button formationButton;
+    private byte formation = 1;
+    //private Button formationButton;
     public CommandScreen(CommandMenu commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, Component.literal(""));
         imageWidth = 201;
@@ -121,7 +118,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         int mirror = 240 - 60;
         this.group = getSavedCurrentGroup(player);
         Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen(this.group));
-
+        /*
         //TEAM SCREEN
         addRenderableWidget(new Button(zeroLeftPos - 150, zeroTopPos + (30 + topPosGab), 80, 20, TEXT_TEAM,
                 button -> {
@@ -131,19 +128,21 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                     this.renderTooltip(poseStack, TOOLTIP_TEAM, i, i1);
                 }
         ));
-
+        */
+        /*
         //Formation
-        this.formationButton = new Button(zeroLeftPos + 150, zeroTopPos + (30 + topPosGab), 80, 20, TOOLTIP_FORMATION,
+        this.formationButton = new Button(zeroLeftPos + 150, zeroTopPos + (30 + topPosGab), 80, 20, TEXT_FORMATION(),
                 button -> {
-                    CommandEvents.sendFollowCommandInChat(98, player, group);
 
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageFormation(player.getUUID(), group));
+
+                    CommandEvents.sendFollowCommandInChat(98, player, group);
                 },
                 (button1, poseStack, i, i1) -> {
                     this.renderTooltip(poseStack, TOOLTIP_FORMATION, i, i1);
                 }
         );
-        addRenderableWidget(this.formationButton);
+        */
+        //addRenderableWidget(this.formationButton);
         //Dismount
         addRenderableWidget(new Button(zeroLeftPos - mirror + 40, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_DISMOUNT,
                 button -> {
@@ -248,7 +247,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         addRenderableWidget(new Button(zeroLeftPos - 40, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_WANDER,
                 button -> {
             CommandEvents.sendFollowCommandInChat(0, player, group);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 0, group));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 0, group, formation));
 
                 },
                 (button1, poseStack, i, i1) -> {
@@ -261,7 +260,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_FOLLOW,
                 button -> {
             CommandEvents.sendFollowCommandInChat(1, player, group);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 1, group));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 1, group, formation));
 
                 },
                 (button1, poseStack, i, i1) -> {
@@ -274,7 +273,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_HOLD_POS,
                 button -> {
             CommandEvents.sendFollowCommandInChat(2, player, group);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 2, group));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 2, group, formation));
 
                 },
                 (button1, poseStack, i, i1) -> {
@@ -287,7 +286,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_BACK_TO_POS,
                 button -> {
             CommandEvents.sendFollowCommandInChat(3, player, group);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 3, group));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 3, group, formation));
 
                 },
                 (button1, poseStack, i, i1) -> {
@@ -300,7 +299,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         addRenderableWidget(new Button(zeroLeftPos - 40, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_HOLD_MY_POS,
                 button -> {
             CommandEvents.sendFollowCommandInChat(4, player, group);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 4, group));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 4, group, formation));
 
                 },
                 (button1, poseStack, i, i1) -> {
@@ -367,10 +366,9 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         Button protectButton = addRenderableWidget(new Button(zeroLeftPos - mirror - 50, zeroTopPos + (20 + topPosGab) * 5 + 10, 80, 20, TEXT_PROTECT,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(5, player, group);
-                    //Entity entity = ClientEvent.getEntityByLooking();
                     if (rayEntity != null) {
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageProtectEntity(player.getUUID(), rayEntity.getUUID(), group));
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageFollow(player.getUUID(), 5, group));
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 5, group, formation));
                     }
                 },
                 (button1, poseStack, i, i1) -> {
@@ -383,7 +381,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         Button moveButton = addRenderableWidget(new Button(zeroLeftPos - 90, zeroTopPos - (20 + topPosGab), 80, 20, TEXT_MOVE,
                 button -> {
                     CommandEvents.sendFollowCommandInChat(97, player, group);
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageMove(player.getUUID(), group));
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 6, group, formation));
                 },
                 (button1, poseStack, i, i1) -> {
                     this.renderTooltip(poseStack, TOOLTIP_MOVE, i, i1);
@@ -429,17 +427,20 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
 
     private void updateFormationButton() {
         formation++;
-        if(formation > 2) formation = 0;
+        if(formation > 3) formation = 0;
 
 
         if(formation == 0){
-            formationButton.setMessage(TEXT_FORMATION_NONE);
+            //formationButton.setMessage(TEXT_FORMATION_NONE);
         }
         else if(formation == 1){
-            formationButton.setMessage(TEXT_FORMATION_LINE);
+            //formationButton.setMessage(TEXT_FORMATION_LINE);
         }
         else if(formation == 2){
-            formationButton.setMessage(TEXT_FORMATION_CUBE);
+            //formationButton.setMessage(TEXT_FORMATION_SQUARE);
+        }
+        else if(formation == 3){
+            //formationButton.setMessage(TEXT_FORMATION_TRIANGLE);
         }
     }
 

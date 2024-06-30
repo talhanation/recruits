@@ -4,6 +4,7 @@ import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -11,24 +12,21 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageFollow implements Message<MessageFollow> {
+public class MessageMovement implements Message<MessageMovement> {
 
-    private UUID player;
-    private UUID recruit;
+    private UUID player_uuid;
     private int state;
     private int group;
-    private boolean fromGui;
+    private int formation;
 
-    public MessageFollow(){
+    public MessageMovement(){
     }
 
-    public MessageFollow(UUID player, int state, int group) {
-        this.player = player;
+    public MessageMovement(UUID player_uuid, int state, int group, int formation) {
+        this.player_uuid = player_uuid;
         this.state  = state;
         this.group  = group;
-        this.fromGui = false;
-        this.recruit = null;
-
+        this.formation = formation;
     }
 
     public Dist getExecutingSide() {
@@ -37,26 +35,24 @@ public class MessageFollow implements Message<MessageFollow> {
 
     public void executeServerSide(NetworkEvent.Context context){
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
-        for (AbstractRecruitEntity recruits : list) {
-            CommandEvents.onFollowCommand(this.player, recruits, this.state, this.group, fromGui);
-        }
+        list.removeIf(recruit -> !recruit.isEffectedByCommand(this.player_uuid, this.group));
+
+        CommandEvents.onMovementCommand(context.getSender(), list, this.state, this.formation);
     }
 
-    public MessageFollow fromBytes(FriendlyByteBuf buf) {
-        this.player = buf.readUUID();
+    public MessageMovement fromBytes(FriendlyByteBuf buf) {
+        this.player_uuid = buf.readUUID();
         this.state = buf.readInt();
         this.group = buf.readInt();
-        if (this.recruit != null) this.recruit = buf.readUUID();
-        this.fromGui = buf.readBoolean();
+        this.formation = buf.readInt();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
-        buf.writeUUID(this.player);
+        buf.writeUUID(this.player_uuid);
         buf.writeInt(this.state);
         buf.writeInt(this.group);
-        buf.writeBoolean(this.fromGui);
-        if (this.recruit != null) buf.writeUUID(this.recruit);
+        buf.writeInt(this.formation);
     }
 
 }

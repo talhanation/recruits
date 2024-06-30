@@ -81,11 +81,11 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 7, MessageClearTargetGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 8, MessageCommandScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 9, MessageDisband.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 10, MessageFollow.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 10, MessageMovement.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 11, MessageFollowGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 12, MessageGroup.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 13, MessageListen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 14, MessageMove.class);
+        //CommonRegistry.registerMessage(SIMPLE_CHANNEL, 14, MessageMove.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 15, MessageRecruitGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 16, MessageHireGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 17, MessageHire.class);
@@ -140,7 +140,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 66, MessageToClientUpdateMessengerAnswerScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 67, MessageOpenMessengerAnswerScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 68, MessageClearUpkeepGui.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 69, MessageFormation.class);
+
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
         isSmallShipsLoaded = ModList.get().isLoaded("smallships");//small ships
         isSiegeWeaponsLoaded = ModList.get().isLoaded("siegeweapons");//siege weapons
