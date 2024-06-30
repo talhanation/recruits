@@ -16,6 +16,8 @@ public class MessageFormation implements Message<MessageFormation> {
     private UUID uuid;
     private int group;
 
+    private static List<AbstractRecruitEntity> list;
+
     public MessageFormation(){
     }
 
@@ -32,7 +34,6 @@ public class MessageFormation implements Message<MessageFormation> {
     public void executeServerSide(NetworkEvent.Context context){
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
         list.removeIf(recruit -> !recruit.isEffectedByCommand(uuid, group));
-
 
         CommandEvents.onFormationButton(context.getSender(), list);
     }
