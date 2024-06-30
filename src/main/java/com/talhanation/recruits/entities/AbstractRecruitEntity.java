@@ -114,9 +114,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public int attackCooldown = 0;
     public boolean rotate;
     public float ownerRot;
+    public int formationPos = -1;
     private int maxFallDistance;
     public Vec3 holdPosVec;
-    public int formationPos = -1;
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
         this.xpReward = 6;
