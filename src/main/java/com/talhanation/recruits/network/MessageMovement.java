@@ -11,21 +11,21 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageProtectEntity implements Message<MessageProtectEntity> {
+public class MessageMovement implements Message<MessageMovement> {
 
-    private UUID uuid;
-    private UUID target;
+    private UUID player_uuid;
+    private int state;
     private int group;
+    private int formation;
 
-    public MessageProtectEntity(){
-
+    public MessageMovement(){
     }
 
-    public MessageProtectEntity(UUID uuid, UUID target, int group) {
-        this.uuid = uuid;
-        this.target = target;
-        this.group = group;
-
+    public MessageMovement(UUID player_uuid, int state, int group, int formation) {
+        this.player_uuid = player_uuid;
+        this.state  = state;
+        this.group  = group;
+        this.formation = formation;
     }
 
     public Dist getExecutingSide() {
@@ -34,21 +34,24 @@ public class MessageProtectEntity implements Message<MessageProtectEntity> {
 
     public void executeServerSide(NetworkEvent.Context context){
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
-        for (AbstractRecruitEntity recruits : list) {
-            CommandEvents.onProtectButton(uuid, recruits, target, group);
-        }
+        list.removeIf(recruit -> !recruit.isEffectedByCommand(this.player_uuid, this.group));
+
+        CommandEvents.onMovementCommand(context.getSender(), list, this.state, this.formation);
     }
-    public MessageProtectEntity fromBytes(FriendlyByteBuf buf) {
-        this.uuid = buf.readUUID();
-        this.target = buf.readUUID();
+
+    public MessageMovement fromBytes(FriendlyByteBuf buf) {
+        this.player_uuid = buf.readUUID();
+        this.state = buf.readInt();
         this.group = buf.readInt();
+        this.formation = buf.readInt();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
-        buf.writeUUID(uuid);
-        buf.writeUUID(target);
-        buf.writeInt(group);
+        buf.writeUUID(this.player_uuid);
+        buf.writeInt(this.state);
+        buf.writeInt(this.group);
+        buf.writeInt(this.formation);
     }
 
 }
