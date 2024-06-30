@@ -20,7 +20,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -497,55 +496,69 @@ public class CommandEvents {
     }
 
     public static void onFormationButton(ServerPlayer player, List<AbstractRecruitEntity> recruits) {
-        Vec3 playerPos = player.position();
+        HitResult hitResult = player.pick(100, 1F, false);
+        Vec3 targetPos = hitResult.getLocation();
+
         Vec3 forward = player.getForward();
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
 
         int maxInRow = 15;
         double spacing = 2.0;
 
-        List<Vec3> possiblePositions = new ArrayList<>();
+        List<FormationPosition> possiblePositions = new ArrayList<>();
 
         for (int i = 0; i < recruits.size(); i++) {
             int row = i / maxInRow;
             int positionInRow = i % maxInRow;
 
-            Vec3 basePos = playerPos.add(forward.scale(-3 * row));
-            Vec3 offset = left.scale((maxInRow / 2F - positionInRow) * spacing);
+            Vec3 basePos = targetPos.add(forward.scale(-3 * row));
+            Vec3 offset = left.scale((positionInRow - maxInRow / 2F) * spacing);
 
             Vec3 recruitPos = basePos.add(offset);
-            possiblePositions.add(recruitPos);
+            possiblePositions.add(new FormationPosition(recruitPos, true));
         }
 
-        //recruits.sort(Comparator.comparingDouble(recruit -> recruit.position().distanceTo(playerPos)));
-
         for (AbstractRecruitEntity recruit : recruits) {
-            if (possiblePositions.isEmpty()) {
-                break;
+            Vec3 pos = null;
+
+            if (recruit.formationPos >= 0 && recruit.formationPos < possiblePositions.size() && possiblePositions.get(recruit.formationPos).isFree) {
+                FormationPosition position = possiblePositions.get(recruit.formationPos);
+                position.isFree = false;
+                pos = position.position;
             }
-
-            double closestDistance = Double.MAX_VALUE;
-
-            float diff = Mth.degreesDifference(recruit.ownerRot, player.getYRot());
-
-            int m = 0;
-            if (Math.abs(diff) > 90F) {
-                for (int i = 0; i < possiblePositions.size(); i++) {
-                    Vec3 pos = possiblePositions.get(i);
-                    double distance = recruit.position().distanceTo(pos);
-                    if (distance < closestDistance) {
-                        closestDistance = distance;
-                        m = i;
+            else {
+                for(int i = 0; i < possiblePositions.size(); i++){
+                    FormationPosition position = possiblePositions.get(i);
+                    if(position.isFree){
+                        pos = possiblePositions.get(i).position;
+                        recruit.formationPos = i;
+                        position.isFree = false;
+                        break;
                     }
                 }
             }
-            Vec3 dest = possiblePositions.remove(m);
-            BlockPos blockPos = player.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) dest.x, (int) dest.y, (int) dest.z));
 
-            recruit.setHoldPos(new Vec3(dest.x, blockPos.getY(), dest.z));
-            recruit.ownerRot = player.getYRot();
-            recruit.formationPos = 1;
-            recruit.setFollowState(3);
+            if(pos != null){
+                BlockPos blockPos = player.level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(pos.x, pos.y, pos.z));
+
+                recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
+                recruit.ownerRot = player.getYRot();
+                recruit.setFollowState(3);
+            }
         }
+    }
+
+    public static class FormationPosition{
+        public Vec3 position;
+        public boolean isFree;
+
+        FormationPosition(Vec3 position, boolean isFree){
+            this.position = position;
+            this.isFree = isFree;
+        }
+    }
+
+    public static void onMovementCommand(){
+
     }
 }
