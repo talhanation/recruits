@@ -46,6 +46,7 @@ public class ModScreens {
         registerMenu(MESSENGER.get(), MessengerScreen::new);
         registerMenu(MESSENGER_ANSWER.get(), MessengerAnswerScreen::new);
         registerMenu(PATROL_LEADER.get(), PatrolLeaderScreen::new);
+        registerMenu(GROUP_CREATION_TYPE.get(), GroupManageScreen::new);
 
         logger.info("MenuScreens registered");
     }
@@ -323,6 +324,24 @@ public class ModScreens {
 
                 } catch (Exception e) {
                     logger.error("Error in disband_container: ");
+                    logger.error(e.getMessage());
+                    logger.error(e.getStackTrace().toString());
+                    return null;
+                }
+            }));
+
+
+    public static final RegistryObject<MenuType<GroupManageContainer>> GROUP_CREATION_TYPE =
+            MENU_TYPES.register("group_creation_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
+                try {
+                    Player playerEntity = inv.player;
+                    if (playerEntity == null) {
+                        return null;
+                    }
+                    return new GroupManageContainer(windowId, playerEntity);
+
+                } catch (Exception e) {
+                    logger.error("Error in team_main_container: ");
                     logger.error(e.getMessage());
                     logger.error(e.getStackTrace().toString());
                     return null;
