@@ -307,5 +307,7 @@
   "gui.recruits.inv.text.ok_messenger": "Done",
   "gui.recruits.inv.tooltip.backToMount": "Make this recruit mount his previous vehicle.",
   "gui.recruits.inv.tooltip.clearUpkeep": "Clears saved upkeep position.",
-  "gui.recruits.inv.text.clearUpkeep": "Clear Upkeep"
-}
+  "gui.recruits.inv.text.clearUpkeep": "Clear Upkeep",
+  "gui.recruits.group_creation.cancel": "Cancel",
+   "gui.recruits.group_creation.add": "Add"
+ }

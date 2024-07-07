@@ -4,9 +4,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.NotNull;
 
+
 public class RecruitsPlayerSavedData extends SavedData {
     public static int recruits;
-
     public RecruitsPlayerSavedData(){
         super();
     }
@@ -14,6 +14,7 @@ public class RecruitsPlayerSavedData extends SavedData {
     @Override
     public @NotNull CompoundTag save(CompoundTag nbt) {
         nbt.putInt("recruits", recruits);
+
         return nbt;
     }
     public static RecruitsPlayerSavedData load(CompoundTag nbt) {
@@ -21,6 +22,7 @@ public class RecruitsPlayerSavedData extends SavedData {
         if (nbt.contains("recruits")) {
             recruits = nbt.getInt("recruits");
         }
+
         return data;
     }
 
@@ -28,3 +30,4 @@ public class RecruitsPlayerSavedData extends SavedData {
         recruits = x;
     }
 }
+
