@@ -1,6 +1,5 @@
 package com.talhanation.recruits.inventory;
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.init.ModScreens;
 import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.world.Container;
