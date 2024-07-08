@@ -12,7 +12,8 @@ public class RecruitEatGoal extends Goal {
     public AbstractRecruitEntity recruit;
     public ItemStack foodStack;
     public int slotID;
-    private long lastCanUseCheck;
+    private long lastCanUseCheckMorale;
+    private long lastCanUseCheckHunger;
 
     public RecruitEatGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -20,13 +21,13 @@ public class RecruitEatGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        long i = this.recruit.getCommandSenderWorld().getGameTime();
-        if(i - this.lastCanUseCheck >= 1200){
-            this.lastCanUseCheck = i;
+        long i = this.recruit.level.getGameTime();
+        if(i - this.lastCanUseCheckMorale >= 1200L){
+            this.lastCanUseCheckMorale = i;
             this.recruit.updateMorale();
         }
-        if (i - this.lastCanUseCheck >= 20L) {
-            this.lastCanUseCheck = i;
+        if (i - this.lastCanUseCheckHunger >= 20L) {
+            this.lastCanUseCheckHunger = i;
             this.recruit.updateHunger();
             return hasFoodInInv() && recruit.needsToEat() && !recruit.isUsingItem();
         }
