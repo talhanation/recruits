@@ -1,13 +1,14 @@
 {
   "homepage": "https://www.curseforge.com/minecraft/mc-mods/recruits/files",
   "promos": {
-    "1.20.1-recommended": "1.11.3",
+    "1.20.1-recommended": "1.11.4",
     "1.19.4-recommended": "1.10.8",
-    "1.19.2-recommended": "1.11.3",
-    "1.18.2-recommended": "1.11.3",
+    "1.19.2-recommended": "1.11.4",
+    "1.18.2-recommended": "1.11.4",
     "1.16.5-recommended": "1.5.1"
   },
   "1.18.2": {
+    "1.11.4": "fixed layers not rendering // fixed coprse not spwanng on servers // fixed morale not updating",
     "1.11.3": "fix crashes // improved captain sailor AI",
     "1.11.2": "Companion Part 1 // improved server side performance",
     "1.10.15": "fixed teams related stuff // fixed endermen attack recruits",
@@ -41,6 +42,7 @@
     "1.9.0": "Team Screen, Hail of Arrows, Upkeep, Configurations and more!"
   },
   "1.19.2": {
+    "1.11.4": "fixed layers not rendering // fixed coprse not spwanng on servers // fixed morale not updating",
     "1.11.3": "fix crashes // improved captain sailor AI",
     "1.11.2": "fixed crash and fixed companions ignoring commands",
     "1.11.1": "fixed messenger screen and commander strategy",
@@ -82,6 +84,7 @@
     "1.10.3": "fixed crrash with teams, fixed AI in water, improved upkeep feature, added equiping from upkeep chest/entity."
   },
   "1.20.1": {
+    "1.11.4": "fixed layers not rendering // fixed coprse not spwanng on servers // fixed morale not updating",
     "1.11.3": "fix crashes // improved captain sailor AI",
     "1.11.2": "Companion Part 1 // improved server side performance",
     "1.10.15": "fixed teams related stuff // fixed endermen attack recruits",
