@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -13,11 +14,11 @@ import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 
-public class RecruitHumanCompanionLayer extends RenderLayer<AbstractRecruitEntity, PlayerModel<AbstractRecruitEntity>> {
+public class RecruitHumanCompanionLayer extends RenderLayer<AbstractRecruitEntity, HumanoidModel<AbstractRecruitEntity>> {
 
     private static final ResourceLocation LOCATION = new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_assassin_cloth.png");
 
-    public RecruitHumanCompanionLayer(LivingEntityRenderer<AbstractRecruitEntity, PlayerModel<AbstractRecruitEntity>> renderer) {
+    public RecruitHumanCompanionLayer(LivingEntityRenderer<AbstractRecruitEntity, HumanoidModel<AbstractRecruitEntity>> renderer) {
         super(renderer);
     }
 

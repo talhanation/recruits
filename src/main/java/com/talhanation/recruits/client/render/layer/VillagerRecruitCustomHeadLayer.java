@@ -87,8 +87,8 @@ public class VillagerRecruitCustomHeadLayer<T extends LivingEntity, M extends En
                 translateToHead(poseStack, flag);
                 this.itemInHandRenderer.renderItem(entity, itemstack, ItemDisplayContext.HEAD, false, poseStack, bufferSource, p_116733_);
             }
-
             poseStack.popPose();
+
         }
     }
 
@@ -97,8 +97,6 @@ public class VillagerRecruitCustomHeadLayer<T extends LivingEntity, M extends En
         p_174484_.translate(0.0D, -0.25D, 0.0D);
         p_174484_.mulPose(Axis.YP.rotationDegrees(180.0F));
         p_174484_.scale(f, -f, -f);
-        if (p_174485_) {
-            p_174484_.translate(0.0D, 0.1875D, 0.0D);
-        }
+        p_174484_.translate(0.0D, 0.1875D, 0.0D);
     }
 }
