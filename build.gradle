@@ -36,7 +36,7 @@ mixin{
     overwriteErrorLevel = 'error'
 }
 
-version = '1.11.3'
+version = '1.11.3.1'
 
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.18.2'
@@ -127,6 +127,8 @@ dependencies {
     implementation fg.deobf("curse.maven:architectury-api-419699:5137931")
     implementation fg.deobf("curse.maven:cloth-config-348521:4973439")
     implementation fg.deobf("curse.maven:ewewukeks-musket-mod-354562:4028359")
+
+    implementation fg.deobf("curse.maven:corpse-316582:3829457")
 }
 
 // Example for how to get properties into the manifest for reading at runtime.
