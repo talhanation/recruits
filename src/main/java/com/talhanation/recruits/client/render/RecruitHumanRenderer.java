@@ -55,7 +55,7 @@ public class RecruitHumanRenderer extends MobRenderer<AbstractRecruitEntity, Hum
         return TEXTURE[recruit.getVariant()];
     }
     public RecruitHumanRenderer(EntityRendererProvider.Context mgr) {
-        super(mgr, new HumanoidModel<>((mgr.bakeLayer(ModelLayers.PLAYER)), false), 0.5F);
+        super(mgr, new HumanoidModel<>((mgr.bakeLayer(ModelLayers.PLAYER))), 0.5F);
         this.addLayer(new HumanoidArmorLayer<>(this, new HumanoidModel(mgr.bakeLayer(ModelLayers.PLAYER_INNER_ARMOR)), new HumanoidModel(mgr.bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR)), mgr.getModelManager()));
         this.addLayer(new RecruitHumanTeamColorLayer(this));
         this.addLayer(new RecruitHumanBiomeLayer(this));
