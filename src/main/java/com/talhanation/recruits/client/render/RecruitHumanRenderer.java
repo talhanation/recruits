@@ -1,6 +1,7 @@
 package com.talhanation.recruits.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.events.ClientEvent;
 import com.talhanation.recruits.client.render.layer.RecruitHumanBiomeLayer;
 import com.talhanation.recruits.client.render.layer.RecruitHumanCompanionLayer;
 import com.talhanation.recruits.client.render.layer.RecruitHumanTeamColorLayer;
