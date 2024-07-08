@@ -3,7 +3,8 @@ package com.talhanation.recruits.client.render.layer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.client.model.PlayerModel;
+import net.minecraft.client.model.HumanoidModel;
+
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
@@ -11,7 +12,7 @@ import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 
-public class RecruitHumanBiomeLayer extends RenderLayer<AbstractRecruitEntity, PlayerModel<AbstractRecruitEntity>> {
+public class RecruitHumanBiomeLayer extends RenderLayer<AbstractRecruitEntity, HumanoidModel<AbstractRecruitEntity>> {
 
     private static final ResourceLocation[] TEXTURE = {
             new ResourceLocation(Main.MOD_ID,"textures/entity/human/biome/human_desert.png"),
@@ -23,7 +24,7 @@ public class RecruitHumanBiomeLayer extends RenderLayer<AbstractRecruitEntity, P
             new ResourceLocation(Main.MOD_ID,"textures/entity/human/biome/human_taiga.png"),
     };
 
-    public RecruitHumanBiomeLayer(LivingEntityRenderer<AbstractRecruitEntity, PlayerModel<AbstractRecruitEntity>> renderer) {
+    public RecruitHumanBiomeLayer(LivingEntityRenderer<AbstractRecruitEntity, HumanoidModel<AbstractRecruitEntity>> renderer) {
         super(renderer);
     }
 
