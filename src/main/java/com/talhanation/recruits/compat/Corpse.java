@@ -13,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -123,9 +124,9 @@ public class Corpse {
             Class<?> corpseClass = Class.forName("de.maxhenkel.corpse.entities.CorpseEntity");
 
             Class<?>[] constructorParamTypes = {Level.class};
-            Constructor<?> bulletConstructor = corpseClass.getConstructor(constructorParamTypes);
+            Constructor<?> corpseConstructor = corpseClass.getConstructor(constructorParamTypes);
 
-            Object corpseInstance = bulletConstructor.newInstance(level);
+            Object corpseInstance = corpseConstructor.newInstance(level);
 
             Method setUUIDMethod = corpseClass.getMethod("setCorpseUUID", UUID.class);
             setUUIDMethod.invoke(corpseInstance, death.getPlayerUUID());
@@ -141,8 +142,10 @@ public class Corpse {
             Method deathFromNBTMethod = deathClass.getMethod("fromNBT", CompoundTag.class);
             de.maxhenkel.corpse.corelib.death.Death deathObject = (de.maxhenkel.corpse.corelib.death.Death) deathFromNBTMethod.invoke(null, deathCompound);
 
-            Method setDeathMethod = corpseClass.getMethod("setDeath", deathClass);
-            setDeathMethod.invoke(corpseInstance, deathObject);
+            Field deathField = corpseClass.getDeclaredField("death");
+            deathField.setAccessible(true);
+
+            deathField.set(corpseInstance, deathObject);
 
             if (corpseInstance instanceof Entity corpseEntity) {
                 corpseEntity.setPos(death.getPosX(), Math.max(death.getPosY(), level.getMinBuildHeight()), death.getPosZ());
@@ -150,7 +153,7 @@ public class Corpse {
                 level.addFreshEntity(corpseEntity);
             }
 
-        } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
+        } catch (InvocationTargetException | NoSuchMethodException | InstantiationException | NoSuchFieldException |
                  IllegalAccessException e) {
             Main.LOGGER.warn("Was not able to spawn recruit corpse for " + recruit.getName().getString() + e);
         }
