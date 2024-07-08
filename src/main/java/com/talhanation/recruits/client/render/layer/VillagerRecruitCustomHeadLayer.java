@@ -96,7 +96,6 @@ public class VillagerRecruitCustomHeadLayer<T extends LivingEntity, M extends En
                 translateToHead(p_116731_, flag);
                 Minecraft.getInstance().getItemInHandRenderer().renderItem(p_116734_, itemstack, ItemTransforms.TransformType.HEAD, false, p_116731_, p_116732_, p_116733_);
             }
-
             p_116731_.popPose();
         }
     }
@@ -106,8 +105,6 @@ public class VillagerRecruitCustomHeadLayer<T extends LivingEntity, M extends En
         p_174484_.translate(0.0D, -0.25D, 0.0D);
         p_174484_.mulPose(Vector3f.YP.rotationDegrees(180.0F));
         p_174484_.scale(f, -f, -f);
-        if (p_174485_) {
-            p_174484_.translate(0.0D, 0.1875D, 0.0D);
-        }
+        p_174484_.translate(0.0D, 0.1875D, 0.0D);
     }
 }

@@ -22,7 +22,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.UseAnim;
 
-public class RecruitHumanRenderer extends MobRenderer<AbstractRecruitEntity, PlayerModel<AbstractRecruitEntity>> {
+public class RecruitHumanRenderer extends MobRenderer<AbstractRecruitEntity, HumanoidModel<AbstractRecruitEntity>> {
 
     private static final ResourceLocation[] TEXTURE = {
             new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_0.png"),
@@ -52,12 +52,10 @@ public class RecruitHumanRenderer extends MobRenderer<AbstractRecruitEntity, Pla
         return TEXTURE[recruit.getVariant()];
     }
     public RecruitHumanRenderer(EntityRendererProvider.Context mgr) {
-        super(mgr, new PlayerModel<>((mgr.bakeLayer(ModelLayers.PLAYER)), false), 0.5F);
-        this.addLayer(new HumanoidArmorLayer<>(this, new HumanoidModel(mgr.bakeLayer(ModelLayers.PLAYER_INNER_ARMOR)), new HumanoidModel(mgr.bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR))));
+        super(mgr, new HumanoidModel<>((mgr.bakeLayer(ModelLayers.PLAYER))), 0.5F);
         this.addLayer(new RecruitHumanTeamColorLayer(this));
         this.addLayer(new RecruitHumanBiomeLayer(this));
         this.addLayer(new RecruitHumanCompanionLayer(this));
-        //this.addLayer(new ArrowLayer<>(mgr, this));
         this.addLayer(new ItemInHandLayer<>(this));
         this.addLayer(new CustomHeadLayer<>(this, mgr.getModelSet()));
     }
@@ -69,7 +67,7 @@ public class RecruitHumanRenderer extends MobRenderer<AbstractRecruitEntity, Pla
     }
 
     private void setModelProperties(AbstractRecruitEntity recruit) {
-        PlayerModel<AbstractRecruitEntity> model = this.getModel();
+        HumanoidModel<AbstractRecruitEntity> model = this.getModel();
 
         model.setAllVisible(true);
         model.crouching = recruit.isCrouching();

@@ -1,10 +1,9 @@
 package com.talhanation.recruits.client.render.layer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;;
-import net.minecraft.client.model.PlayerModel;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
@@ -13,7 +12,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 
 
-public class RecruitHumanTeamColorLayer extends RenderLayer<AbstractRecruitEntity, PlayerModel<AbstractRecruitEntity>> {
+public class RecruitHumanTeamColorLayer extends RenderLayer<AbstractRecruitEntity, HumanoidModel<AbstractRecruitEntity>> {
 
     private static final ResourceLocation[] TEXTURE = {
             new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_team_white.png"),
@@ -44,7 +43,7 @@ public class RecruitHumanTeamColorLayer extends RenderLayer<AbstractRecruitEntit
     };
     private static final ResourceLocation TEXTURE2 = new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_base_cloth.png");
 
-    public RecruitHumanTeamColorLayer(LivingEntityRenderer<AbstractRecruitEntity, PlayerModel<AbstractRecruitEntity>> renderer) {
+    public RecruitHumanTeamColorLayer(LivingEntityRenderer<AbstractRecruitEntity, HumanoidModel<AbstractRecruitEntity>> renderer) {
         super(renderer);
     }
 
