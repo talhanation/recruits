@@ -4,6 +4,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.component.RecruitsGroup;
 import com.talhanation.recruits.inventory.GroupManageContainer;
+import com.talhanation.recruits.network.MessageRemoveGroupApplyNoGroup;
+import com.talhanation.recruits.network.MessageServerSavePlayerGroups;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
@@ -28,6 +30,7 @@ public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
     private static final MutableComponent ADD_GROUP = Component.translatable("gui.recruits.group_creation.add");
     private static final MutableComponent CANCEL = Component.translatable("gui.recruits.group_creation.cancel");
     private EditBox textField;
+    private boolean buttonsSet;
     public GroupManageScreen(GroupManageContainer commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, Component.literal(""));
         imageWidth = 250;
@@ -40,21 +43,44 @@ public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
         super.init();
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
-        //this.groups = ClientEvent.loadPlayersGroups(player);
 
+    }
+
+    @Override
+    public void onClose() {
+        super.onClose();
+        groups = null;
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        if(groups != null && !groups.isEmpty() && !buttonsSet){
+            setAddWidgets();
+            this.buttonsSet = true;
+        }
+
+        if(textField != null && textField.isFocused()){
+            textField.tick();
+        }
+    }
+
+    private void setAddWidgets() {
         textField = new EditBox(font, leftPos + 20, topPos + 10, 200, 15, Component.literal(""));
         textField.setTextColor(-1);
         textField.setTextColorUneditable(-1);
         textField.setBordered(true);
         textField.setMaxLength(24);
         textField.setFocused(true);
+        textField.setCanLoseFocus(false);
         addRenderableWidget(textField);
         setInitialFocus(textField);
 
 
         addRenderableWidget(new ExtendedButton(leftPos + 20, topPos + 39, 100, 20, ADD_GROUP, btn -> {
-            this.groups.add(new RecruitsGroup(groups.size(), textField.getValue(), false));
-            //ClientEvent.savePlayersGroups(player, groups);
+            groups.add(new RecruitsGroup(groups.size(), textField.getValue(), false));
+
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageServerSavePlayerGroups(groups));
             onClose();
         }));
 
@@ -68,6 +94,19 @@ public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
         guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
+    }
+
+    private ExtendedButton createRemoveGroupButton(RecruitsGroup group, int x, int y) {
+        return new ExtendedButton(x + 18,y + 38,12,12,Component.literal("-"), button -> {
+            if(group != null){
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageRemoveGroupApplyNoGroup(player.getUUID(), group.getId()));
+                buttonsSet = false;
+                //this.setButtons();
+                //removeGroupButton = null;
+                //groups.remove(group);
+                //SEND TO SERVER
+            }
+        });
     }
 
 }

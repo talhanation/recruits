@@ -1,25 +1,22 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
-import com.talhanation.recruits.client.gui.CommandScreen;
+import com.talhanation.recruits.client.gui.GroupManageScreen;
 import com.talhanation.recruits.client.gui.RecruitInventoryScreen;
-import com.talhanation.recruits.client.gui.component.RecruitsGroup;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.List;
 
-
-public class MessageToClientUpdateCommandScreen implements Message<MessageToClientUpdateCommandScreen> {
+public class MessageToClientUpdateRecruitInventoryScreen implements Message<MessageToClientUpdateRecruitInventoryScreen> {
     private CompoundTag nbt;
-    public MessageToClientUpdateCommandScreen() {
+    public MessageToClientUpdateRecruitInventoryScreen() {
 
     }
 
-    public MessageToClientUpdateCommandScreen(CompoundTag nbt) {
+    public MessageToClientUpdateRecruitInventoryScreen(CompoundTag nbt) {
         this.nbt = nbt;
     }
 
@@ -30,11 +27,11 @@ public class MessageToClientUpdateCommandScreen implements Message<MessageToClie
 
     @Override
     public void executeClientSide(NetworkEvent.Context context) {
-        CommandScreen.groups = CommandEvents.getRecruitsGroupListFormNBT(this.nbt);
+        RecruitInventoryScreen.groups = CommandEvents.getRecruitsGroupListFormNBT(this.nbt);
     }
 
     @Override
-    public MessageToClientUpdateCommandScreen fromBytes(FriendlyByteBuf buf) {
+    public MessageToClientUpdateRecruitInventoryScreen fromBytes(FriendlyByteBuf buf) {
         this.nbt = buf.readNbt();
         return this;
     }
@@ -42,6 +39,7 @@ public class MessageToClientUpdateCommandScreen implements Message<MessageToClie
     @Override
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeNbt(nbt);
+
     }
 
 }

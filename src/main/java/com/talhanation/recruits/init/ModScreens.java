@@ -46,7 +46,7 @@ public class ModScreens {
         registerMenu(MESSENGER.get(), MessengerScreen::new);
         registerMenu(MESSENGER_ANSWER.get(), MessengerAnswerScreen::new);
         registerMenu(PATROL_LEADER.get(), PatrolLeaderScreen::new);
-        registerMenu(GROUP_CREATION_TYPE.get(), GroupManageScreen::new);
+        registerMenu(GROUP_MANAGE_TYPE.get(), GroupManageScreen::new);
 
         logger.info("MenuScreens registered");
     }
@@ -331,8 +331,8 @@ public class ModScreens {
             }));
 
 
-    public static final RegistryObject<MenuType<GroupManageContainer>> GROUP_CREATION_TYPE =
-            MENU_TYPES.register("group_creation_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
+    public static final RegistryObject<MenuType<GroupManageContainer>> GROUP_MANAGE_TYPE =
+            MENU_TYPES.register("group_manage_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
                 try {
                     Player playerEntity = inv.player;
                     if (playerEntity == null) {

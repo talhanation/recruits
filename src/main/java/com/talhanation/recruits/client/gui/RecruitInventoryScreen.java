@@ -82,12 +82,13 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final int fontColor = 4210752;
     private final AbstractRecruitEntity recruit;
     private final Inventory playerInventory;
-    private List<RecruitsGroup> recruitsGroupList;
+    public static List<RecruitsGroup> groups;
     private RecruitsGroup currentGroup;
     private int follow;
     private int aggro;
     private Button clearUpkeep;
     private boolean canPromote;
+    private boolean buttonsSet;
     public RecruitInventoryScreen(RecruitInventoryMenu recruitContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, recruitContainer, playerInventory, new TextComponent(""));
         this.recruit = recruitContainer.getRecruit();
@@ -97,16 +98,15 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
 
     }
 
-
     @Override
     protected void init() {
         super.init();
+
         int zeroLeftPos = leftPos + 180;
         int zeroTopPos = topPos + 10;
         int topPosGab = 5;
         this.canPromote = this.recruit.getXpLevel() >= 3;
-        //this.recruitsGroupList = ClientEvent.loadPlayersGroups(playerInventory.player);
-        //this.currentGroup = getCurrentGroup(recruit.getGroup());
+
         this.clearWidgets();
         //PASSIVE
         addRenderableWidget(new Button(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE,
@@ -307,21 +307,6 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         }));
 
-
-        //GROUP
-        addRenderableWidget(new ExtendedButton(leftPos + 77, topPos + 100, 12, 12, Component.literal("<"),
-                button -> {
-                    selectPreviousGroup();
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(currentGroup.getId(), recruit.getUUID()));
-        }));
-
-        addRenderableWidget(new ExtendedButton(leftPos + 77 + 81, topPos + 100, 12, 12, Component.literal(">"),
-                button -> {
-                    selectNextGroup();
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(currentGroup.getId(), recruit.getUUID()));
-                }
-        ));
-
         //more
         addRenderableWidget(new Button(leftPos + 77 + 55, topPos + 4, 40, 12, new TextComponent("..."),
                 button -> {
@@ -357,30 +342,63 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
             promoteButton.active = canPromote;
         }
     }
-    private void selectPreviousGroup() {
-        if (recruitsGroupList.isEmpty()) return;
 
-        int currentIndex = recruitsGroupList.indexOf(currentGroup);
+    @Override
+    public void onClose() {
+        super.onClose();
+        groups = null;
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        if(groups != null && !groups.isEmpty() && !buttonsSet){
+            setGroupChangeButtons();
+            this.buttonsSet = true;
+        }
+    }
+    private void setGroupChangeButtons() {
+        this.currentGroup = getCurrentGroup(recruit.getGroup());
+
+        //GROUP
+        addRenderableWidget(new ExtendedButton(leftPos + 77, topPos + 100, 12, 12, Component.literal("<"),
+                button -> {
+                    selectPreviousGroup();
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(currentGroup.getId(), recruit.getUUID()));
+                }));
+
+        addRenderableWidget(new ExtendedButton(leftPos + 77 + 81, topPos + 100, 12, 12, Component.literal(">"),
+                button -> {
+                    selectNextGroup();
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(currentGroup.getId(), recruit.getUUID()));
+                }
+        ));
+    }
+
+    private void selectPreviousGroup() {
+        if (groups.isEmpty()) return;
+
+        int currentIndex = groups.indexOf(currentGroup);
         if (currentIndex > 0) {
-            currentGroup = recruitsGroupList.get(currentIndex - 1);
+            currentGroup = groups.get(currentIndex - 1);
         } else {
-            currentGroup = recruitsGroupList.get(recruitsGroupList.size() - 1);
+            currentGroup = groups.get(groups.size() - 1);
         }
     }
 
     private void selectNextGroup() {
-        if (recruitsGroupList.isEmpty()) return;
+        if (groups.isEmpty()) return;
 
-        int currentIndex = recruitsGroupList.indexOf(currentGroup);
-        if (currentIndex < recruitsGroupList.size() - 1) {
-            currentGroup = recruitsGroupList.get(currentIndex + 1);
+        int currentIndex = groups.indexOf(currentGroup);
+        if (currentIndex < groups.size() - 1) {
+            currentGroup = groups.get(currentIndex + 1);
         } else {
-            currentGroup = recruitsGroupList.get(0);
+            currentGroup = groups.get(0);
         }
     }
     private RecruitsGroup getCurrentGroup(int x) {
         RecruitsGroup group = null;
-        for (RecruitsGroup recruitsGroup : recruitsGroupList) {
+        for (RecruitsGroup recruitsGroup : groups) {
             if (recruitsGroup.getId() == x) {
                 group = recruitsGroup;
 
@@ -451,7 +469,8 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
             default -> throw new IllegalStateException("Unexpected value: " + this.aggro);
         };
         int fnt = this.aggro == 3 ? 16733525 : fontColor;
-        font.draw( aggro, k + 15, l + 56 + 15, fnt);
+
+        font.draw(aggro, k + 15, l + 56 + 15, fnt);
         font.draw(CommandScreen.handleGroupText(recruit.getGroup(), recruitsGroupList), k + 15, l + 56 + 28, fontColor);
 
         String listen;

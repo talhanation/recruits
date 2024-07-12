@@ -128,7 +128,8 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     @Override
     public void onClose() {
         super.onClose();
-        //ClientEvent.savePlayersGroups(player, groups);
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageServerSavePlayerGroups(groups));
+
         groups = new ArrayList<>();
         removeGroupButton = null;
         groupButtons = new ArrayList<>();
@@ -148,8 +149,6 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         this.rayBlockPos = getBlockPos();
         this.rayEntity = ClientEvent.getEntityByLooking();
 
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen());
-
         selection = Selection.MOVEMENT;
 
     }
@@ -167,31 +166,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             this.removeWidget(removeGroupButton);
             removeGroupButton = null;
         }
-
-        if(groupButtons != null && !groupButtons.isEmpty()){
-            for(RecruitsGroupButton button : groupButtons){
-                if((button.isHovered() && removeGroupButton == null)){
-                    removeGroupButton = createRemoveGroupButton(button.getGroup(), button.getX(), button.getY());
-
-                    addRenderableWidget(removeGroupButton);
-                }
-            }
-        }
     }
-
-    private ExtendedButton createRemoveGroupButton(RecruitsGroup group, int x, int y) {
-        return new ExtendedButton(x + 18,y + 38,12,12,Component.literal("-"), button -> {
-            if(group != null){
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageRemoveGroupApplyNoGroup(player.getUUID(), group.getId()));
-                buttonsSet = false;
-                this.setButtons();
-                removeGroupButton = null;
-                this.groups.remove(group);
-                //ClientEvent.savePlayersGroups(player, this.groups);
-            }
-        });
-    }
-
     private int zeroLeftPos;
     private int zeroTopPos;
     private void setButtons(){
@@ -206,7 +181,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             createRecruitsGroupButton(group, index);
             index++;
         }
-        createAddGroupButton(index);
+        createManageGroupsButton(index);
 
         // Other Buttons
     }
@@ -223,11 +198,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         this.groupButtons.add(groupButton);
     }
 
-    private void createAddGroupButton(int index){
-        ExtendedButton groupButton = new ExtendedButton(zeroLeftPos + 50 * index, zeroTopPos + 30, 20, 20, Component.literal("+"),
+    private void createManageGroupsButton(int index){
+        ExtendedButton groupButton = new ExtendedButton(zeroLeftPos + 50 * index, zeroTopPos + 30, 20, 20, Component.literal("+/-"),
                 button -> {
                     CommandEvents.openGroupManageScreen(player);
-                    this.onClose();
+
                 });
         addRenderableWidget(groupButton);
     }

@@ -10,6 +10,9 @@ import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModItems;
 import com.talhanation.recruits.init.ModScreens;
 import com.talhanation.recruits.inventory.*;
+import com.talhanation.recruits.network.MessageServerSavePlayerGroups;
+import com.talhanation.recruits.config.*;
+import com.talhanation.recruits.init.*;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.ClientRegistry;
 import de.maxhenkel.corelib.CommonRegistry;
@@ -139,7 +142,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 39, MessageRemoveFromTeam.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 40, MessageOpenDisbandScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 41, MessageAssignToTeamMate.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 42, MessageServerUpdateCommandScreen.class);
+
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 43, MessageToClientUpdateCommandScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 44, MessageWriteSpawnEgg.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 45, MessageBackToMountEntity.class);
@@ -168,6 +171,9 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 68, MessageClearUpkeepGui.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 69, MessageOpenGroupManageScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 70, MessageRemoveGroupApplyNoGroup.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 71, MessageServerSavePlayerGroups.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 72, MessageToClientUpdateGroupManageScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 73, MessageToClientUpdateRecruitInventoryScreen.class);
 
 
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod

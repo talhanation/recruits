@@ -10,7 +10,7 @@ public class GroupManageContainer extends ContainerBase {
     private Player playerEntity;
 
     public GroupManageContainer(int id, Player playerEntity) {
-        super(ModScreens.GROUP_CREATION_TYPE.get(), id, null, new SimpleContainer(0));
+        super(ModScreens.GROUP_MANAGE_TYPE.get(), id, null, new SimpleContainer(0));
         this.playerEntity = playerEntity;
     }
 
