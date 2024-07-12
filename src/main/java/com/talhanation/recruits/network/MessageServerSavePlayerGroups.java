@@ -1,40 +1,38 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
-import com.talhanation.recruits.client.gui.CommandScreen;
-import com.talhanation.recruits.client.gui.RecruitInventoryScreen;
 import com.talhanation.recruits.client.gui.component.RecruitsGroup;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.List;
 
-
-public class MessageToClientUpdateCommandScreen implements Message<MessageToClientUpdateCommandScreen> {
+public class MessageServerSavePlayerGroups implements Message<MessageServerSavePlayerGroups> {
     private CompoundTag nbt;
-    public MessageToClientUpdateCommandScreen() {
+
+    public MessageServerSavePlayerGroups() {
 
     }
-
-    public MessageToClientUpdateCommandScreen(CompoundTag nbt) {
-        this.nbt = nbt;
+    public MessageServerSavePlayerGroups(List<RecruitsGroup> groups) {
+        this.nbt = CommandEvents.getCompoundTagFromRecruitsGroupList(groups);
     }
 
     @Override
     public Dist getExecutingSide() {
-        return Dist.CLIENT;
+        return Dist.DEDICATED_SERVER;
     }
 
     @Override
-    public void executeClientSide(NetworkEvent.Context context) {
-        CommandScreen.groups = CommandEvents.getRecruitsGroupListFormNBT(this.nbt);
+    public void executeServerSide(NetworkEvent.Context context) {
+        CommandEvents.savePlayersGroupsToNBT(context.getSender(), CommandEvents.getRecruitsGroupListFormNBT(nbt));
     }
 
     @Override
-    public MessageToClientUpdateCommandScreen fromBytes(FriendlyByteBuf buf) {
+    public MessageServerSavePlayerGroups fromBytes(FriendlyByteBuf buf) {
         this.nbt = buf.readNbt();
         return this;
     }
@@ -43,5 +41,4 @@ public class MessageToClientUpdateCommandScreen implements Message<MessageToClie
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeNbt(nbt);
     }
-
 }

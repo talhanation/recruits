@@ -1610,6 +1610,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void openGUI(Player player) {
 
         if (player instanceof ServerPlayer) {
+            CommandEvents.updateRecruitInventoryScreen((ServerPlayer) player);
             NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {
