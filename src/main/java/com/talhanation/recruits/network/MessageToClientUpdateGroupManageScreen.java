@@ -27,7 +27,6 @@ public class MessageToClientUpdateGroupManageScreen implements Message<MessageTo
 
     @Override
     public void executeClientSide(NetworkEvent.Context context) {
-
         GroupManageScreen.groups = CommandEvents.getRecruitsGroupListFormNBT(this.nbt);
     }
 
