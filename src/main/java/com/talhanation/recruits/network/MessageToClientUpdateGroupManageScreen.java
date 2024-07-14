@@ -1,8 +1,7 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
-import com.talhanation.recruits.client.gui.CommandScreen;
-import com.talhanation.recruits.client.gui.GroupManageScreen;
+import com.talhanation.recruits.client.gui.group.GroupManageScreen;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
