@@ -3,11 +3,11 @@ package com.talhanation.recruits.client.gui;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.events.ClientEvent;
-import com.talhanation.recruits.client.gui.component.RecruitsGroupButton;
+import com.talhanation.recruits.client.gui.group.RecruitsGroupButton;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.*;
-import com.talhanation.recruits.client.gui.component.RecruitsGroup;
+import com.talhanation.recruits.client.gui.group.RecruitsGroup;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
@@ -95,8 +95,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     @Override
     public void onClose() {
         super.onClose();
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageServerSavePlayerGroups(groups));
-
+        this.saveGroups();
         groups = new ArrayList<>();
         removeGroupButton = null;
         groupButtons = new ArrayList<>();
@@ -125,7 +124,8 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     protected void containerTick() {
         super.containerTick();
         if(groups != null && !groups.isEmpty() && !buttonsSet){
-            setButtons();
+            this.setButtons();
+            this.saveGroups();
             this.buttonsSet = true;
         }
 
@@ -134,6 +134,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             removeGroupButton = null;
         }
     }
+
+    private void saveGroups() {
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageServerSavePlayerGroups(groups, true));
+    }
+
     private int zeroLeftPos;
     private int zeroTopPos;
     private void setButtons(){
@@ -188,26 +193,6 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         super.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
     }
 
-    public static String handleGroupText(int id, List<RecruitsGroup> groups) {
-        RecruitsGroup group;
-        String name;
-        try{
-           group = groups.get(id);
-           name = group.getName();
-        }
-        catch (Exception ex){
-            name = TEXT_GROUP(String.valueOf(id)).getString();
-        }
-
-        if (id == 0) {
-            return TEXT_EVERYONE.getString();
-        } else
-            return name;
-    }
-
-    private static MutableComponent TEXT_GROUP(String group) {
-            return Component.translatable("gui.recruits.command.text.group", group);
-    }
     @Nullable
     private BlockPos getBlockPos(){
         HitResult rayTraceResult = player.pick(100, 1F, true);

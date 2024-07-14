@@ -4,7 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.TeamEvents;
-import com.talhanation.recruits.client.gui.component.RecruitsGroup;
+import com.talhanation.recruits.client.gui.group.RecruitsGroup;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
@@ -24,7 +24,10 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @OnlyIn(Dist.CLIENT)
 public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
@@ -314,15 +317,10 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     }
 
     @Override
-    public void onClose() {
-        super.onClose();
-        groups = null;
-    }
-
-    @Override
     protected void containerTick() {
         super.containerTick();
         if(groups != null && !groups.isEmpty() && !buttonsSet){
+            groups.sort(Comparator.comparingInt(RecruitsGroup::getId));
             setGroupChangeButtons();
             this.buttonsSet = true;
         }
@@ -345,26 +343,20 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         ));
     }
 
-    private void selectPreviousGroup() {
+    public void selectPreviousGroup() {
         if (groups.isEmpty()) return;
 
         int currentIndex = groups.indexOf(currentGroup);
-        if (currentIndex > 0) {
-            currentGroup = groups.get(currentIndex - 1);
-        } else {
-            currentGroup = groups.get(groups.size() - 1);
-        }
+        int previousIndex = (currentIndex > 0) ? currentIndex - 1 : groups.size() - 1;
+        currentGroup = groups.get(previousIndex);
     }
 
-    private void selectNextGroup() {
+    public void selectNextGroup() {
         if (groups.isEmpty()) return;
 
         int currentIndex = groups.indexOf(currentGroup);
-        if (currentIndex < groups.size() - 1) {
-            currentGroup = groups.get(currentIndex + 1);
-        } else {
-            currentGroup = groups.get(0);
-        }
+        int nextIndex = (currentIndex < groups.size() - 1) ? currentIndex + 1 : 0;
+        currentGroup = groups.get(nextIndex);
     }
     private RecruitsGroup getCurrentGroup(int x) {
         RecruitsGroup group = null;
@@ -445,7 +437,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
 
         int fnt = this.aggro == 3 ? 16733525 : fontColor;
         guiGraphics.drawString(font, aggro, k + 15, l + 56 + 15, fnt, false);
-        guiGraphics.drawString(font, CommandScreen.handleGroupText(recruit.getGroup(), groups), k + 15, l + 56 + 28, fontColor, false);
+        if(currentGroup != null) guiGraphics.drawString(font, currentGroup.getName(), k + 15, l + 56 + 28, fontColor, false);
 
         String listen;
         if (recruit.getListen()) listen = TEXT_INFO_LISTEN.getString();

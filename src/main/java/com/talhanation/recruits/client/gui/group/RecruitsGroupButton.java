@@ -1,9 +1,12 @@
-package com.talhanation.recruits.client.gui.component;
+package com.talhanation.recruits.client.gui.group;
 
+import com.talhanation.recruits.client.gui.group.RecruitsGroup;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
-
+@OnlyIn(Dist.CLIENT)
 public class RecruitsGroupButton extends ExtendedButton {
 
     private RecruitsGroup group;

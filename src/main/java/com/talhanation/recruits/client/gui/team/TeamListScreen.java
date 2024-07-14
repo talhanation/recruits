@@ -20,7 +20,7 @@ import java.util.List;
 public class TeamListScreen extends ScreenBase<TeamListContainer> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/team/team_list_gui.png");
-    Player player;
+    private Player player;
     public List<PlayerTeam> teams;
 
     private int leftPos;
