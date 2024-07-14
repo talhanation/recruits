@@ -1,5 +1,4 @@
-package com.talhanation.recruits.client.gui.component;
-
+package com.talhanation.recruits.client.gui.group;
 public class RecruitsGroup {
     public String name;
     private int count;
@@ -38,4 +37,5 @@ public class RecruitsGroup {
     public int getId() {
         return id;
     }
+
 }

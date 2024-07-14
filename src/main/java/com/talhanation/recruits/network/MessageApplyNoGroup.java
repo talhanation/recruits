@@ -1,8 +1,5 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.CommandEvents;
-import com.talhanation.recruits.Main;
-import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -10,20 +7,18 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.PacketDistributor;
-import org.enginehub.piston.Command;
 
 import java.util.*;
 
-public class MessageRemoveGroupApplyNoGroup implements Message<MessageRemoveGroupApplyNoGroup> {
+public class MessageApplyNoGroup implements Message<MessageApplyNoGroup> {
 
     private UUID owner;
     private int groupID;
 
-    public MessageRemoveGroupApplyNoGroup(){
+    public MessageApplyNoGroup(){
     }
 
-    public MessageRemoveGroupApplyNoGroup(UUID owner, int groupID) {
+    public MessageApplyNoGroup(UUID owner, int groupID) {
         this.owner = owner;
         this.groupID = groupID;
     }
@@ -45,7 +40,7 @@ public class MessageRemoveGroupApplyNoGroup implements Message<MessageRemoveGrou
             recruit.setGroup(0);
         }
     }
-    public MessageRemoveGroupApplyNoGroup fromBytes(FriendlyByteBuf buf) {
+    public MessageApplyNoGroup fromBytes(FriendlyByteBuf buf) {
         this.owner = buf.readUUID();
         this.groupID = buf.readInt();
         return this;

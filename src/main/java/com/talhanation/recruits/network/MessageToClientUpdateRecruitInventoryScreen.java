@@ -1,7 +1,6 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
-import com.talhanation.recruits.client.gui.GroupManageScreen;
 import com.talhanation.recruits.client.gui.RecruitInventoryScreen;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;

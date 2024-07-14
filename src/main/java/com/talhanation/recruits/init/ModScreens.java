@@ -2,6 +2,7 @@ package com.talhanation.recruits.init;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.*;
+import com.talhanation.recruits.client.gui.group.GroupManageScreen;
 import com.talhanation.recruits.client.gui.team.*;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;

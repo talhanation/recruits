@@ -1,6 +1,6 @@
 package com.talhanation.recruits;
 
-import com.talhanation.recruits.client.gui.component.RecruitsGroup;
+import com.talhanation.recruits.client.gui.group.RecruitsGroup;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
@@ -605,11 +605,16 @@ public class CommandEvents {
         return groups;
     }
 
-    public static void savePlayersGroupsToNBT(ServerPlayer player, List<RecruitsGroup> groups) {
+    public static void savePlayersGroupsToNBT(ServerPlayer player, List<RecruitsGroup> groups, boolean update) {
         CompoundTag playerNBT = player.getPersistentData();
         CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
 
-        putCompoundTagFromRecruitsGroupList(groups, nbt, player);
+        if(update)
+            updateCompoundTag(groups, nbt, player);
+        else{
+            overrideCompoundTag(groups, nbt, player);
+        }
+
 
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
@@ -635,7 +640,7 @@ public class CommandEvents {
         return groups;
     }
 
-    public static CompoundTag putCompoundTagFromRecruitsGroupList(List<RecruitsGroup> groups, CompoundTag nbt, ServerPlayer player) {
+    public static CompoundTag updateCompoundTag(List<RecruitsGroup> groups, CompoundTag nbt, ServerPlayer player) {
         List<RecruitsGroup> currentList = loadPlayersGroupsFromNBT(player);
 
         Map<Integer, RecruitsGroup> groupMap = new HashMap<>();
@@ -645,18 +650,10 @@ public class CommandEvents {
 
         for (RecruitsGroup group : groups) {
             if (group != null) {
-                if (groupMap.containsKey(group.getId())) {
-                    RecruitsGroup existingGroup = groupMap.get(group.getId());
-                    existingGroup.setCount(group.getCount());
-                    existingGroup.setName(group.getName());
-                    existingGroup.setDisabled(group.isDisabled());
-                } else {
-                    groupMap.put(group.getId(), group);
-                }
+                groupMap.put(group.getId(), group);
             }
         }
 
-        // Liste der Gruppen in ein CompoundTag schreiben
         ListTag groupList = new ListTag();
         for (RecruitsGroup group : groupMap.values()) {
             CompoundTag compoundnbt = new CompoundTag();
@@ -667,6 +664,23 @@ public class CommandEvents {
 
             groupList.add(compoundnbt);
         }
+        nbt.put("recruits-groups", groupList);
+
+        return nbt;
+    }
+
+    public static CompoundTag overrideCompoundTag(List<RecruitsGroup> groups, CompoundTag nbt, ServerPlayer player) {
+        ListTag groupList = new ListTag();
+        for (RecruitsGroup group : groups) {
+            CompoundTag compoundnbt = new CompoundTag();
+            compoundnbt.putInt("id", group.getId());
+            compoundnbt.putInt("count", group.getCount());
+            compoundnbt.putString("name", group.getName());
+            compoundnbt.putBoolean("disabled", group.isDisabled());
+
+            groupList.add(compoundnbt);
+        }
+
         nbt.put("recruits-groups", groupList);
 
         return nbt;
