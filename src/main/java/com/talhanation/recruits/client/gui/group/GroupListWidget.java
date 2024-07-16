@@ -26,7 +26,7 @@ public class GroupListWidget extends ObjectSelectionList<GroupListWidget.GroupEn
     }
     @Override
     protected int getScrollbarPosition() {
-        return this.x0 + this.listWidth - 6; // Adjust scrollbar position
+        return this.x0 + this.listWidth - 5; // Adjust scrollbar position
     }
 
     @Override
@@ -39,24 +39,6 @@ public class GroupListWidget extends ObjectSelectionList<GroupListWidget.GroupEn
         for (RecruitsGroup groupInfo : groups) {
             this.addEntry(new GroupEntry(groupInfo, this.parent));
         }
-    }
-
-    @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-        if (delta != 0.0) {
-            this.setScrollAmount(this.getScrollAmount() - delta * this.itemHeight / 2.0);
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (this.isMouseOver(mouseX, mouseY)) {
-            this.setScrollAmount(this.getScrollAmount() - dragY);
-            return true;
-        }
-        return false;
     }
 
     public class GroupEntry extends ObjectSelectionList.Entry<GroupEntry> {

@@ -3,6 +3,7 @@ package com.talhanation.recruits.client.gui;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.events.ClientEvent;
+import com.talhanation.recruits.client.gui.group.RecruitsCommandButton;
 import com.talhanation.recruits.client.gui.group.RecruitsGroupButton;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.inventory.CommandMenu;
@@ -10,6 +11,7 @@ import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.client.gui.group.RecruitsGroup;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -38,6 +40,10 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TOOLTIP_SHIELDS = Component.translatable("gui.recruits.command.tooltip.shields");
     private static final MutableComponent TOOLTIP_PROTECT = Component.translatable("gui.recruits.command.tooltip.protect");
     private static final MutableComponent TOOLTIP_MOVE = Component.translatable("gui.recruits.command.tooltip.move");
+    private static final MutableComponent TOOLTIP_MOVE_HOLD = Component.translatable("gui.recruits.command.tooltip.move_hold");
+    private static final MutableComponent TOOLTIP_FORWARD = Component.translatable("gui.recruits.command.tooltip.forward");
+    private static final MutableComponent TOOLTIP_FORMATION = Component.translatable("gui.recruits.command.tooltip.formation");
+    private static final MutableComponent TOOLTIP_BACKWARD = Component.translatable("gui.recruits.command.tooltip.backward");
     private static final MutableComponent TOOLTIP_FOLLOW = Component.translatable("gui.recruits.command.tooltip.follow");
     private static final MutableComponent TOOLTIP_WANDER = Component.translatable("gui.recruits.command.tooltip.wander");
     private static final MutableComponent TOOLTIP_HOLD_MY_POS = Component.translatable("gui.recruits.command.tooltip.holdMyPos");
@@ -54,6 +60,9 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TEXT_EVERYONE = Component.translatable("gui.recruits.command.text.everyone");
     private static final MutableComponent TEXT_PROTECT = Component.translatable("gui.recruits.command.text.protect");
     private static final MutableComponent TEXT_MOVE = Component.translatable("gui.recruits.command.text.move");
+    private static final MutableComponent TEXT_MOVE_HOLD = Component.translatable("gui.recruits.command.text.move_hold");
+    private static final MutableComponent TEXT_FORWARD = Component.translatable("gui.recruits.command.text.forward");
+    private static final MutableComponent TEXT_BACKWARD = Component.translatable("gui.recruits.command.text.backward");
     private static final MutableComponent TEXT_SHIELDS = Component.translatable("gui.recruits.command.text.shields");
     private static final MutableComponent TEXT_DISMOUNT = Component.translatable("gui.recruits.command.text.dismount");
     private static final MutableComponent TEXT_MOUNT = Component.translatable("gui.recruits.command.text.mount");
@@ -77,12 +86,12 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private Entity rayEntity;
     private Selection selection;
     public static List<RecruitsGroup> groups;
+    public int formation;
+    public boolean mouseGroupsInverted;
     private List<RecruitsGroupButton> groupButtons;
 
     public CommandScreen(CommandMenu commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, Component.literal(""));
-        imageWidth = 201;
-        imageHeight = 170;
         player = playerInventory.player;
     }
     @Override
@@ -97,29 +106,19 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         super.onClose();
         this.saveGroups();
         groups = new ArrayList<>();
-        removeGroupButton = null;
         groupButtons = new ArrayList<>();
-    }
-
-    @Override
-    public boolean mouseScrolled(double p_94686_, double p_94687_, double p_94688_) {
-        if(p_94688_ > 0) this.setSelection(selection.getNext());
-        else this.setSelection(selection.getBefore());
-        return super.mouseScrolled(p_94686_, p_94687_, p_94688_);
     }
 
     @Override
     protected void init() {
         super.init();
-
         this.rayBlockPos = getBlockPos();
         this.rayEntity = ClientEvent.getEntityByLooking();
-
-        selection = Selection.MOVEMENT;
-
+        this.selection = Selection.MOVEMENT;
+        this.formation = 0;
     }
     private boolean buttonsSet = false;
-    private ExtendedButton removeGroupButton;
+
     @Override
     protected void containerTick() {
         super.containerTick();
@@ -128,38 +127,38 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             this.saveGroups();
             this.buttonsSet = true;
         }
-
-        if(removeGroupButton != null && !removeGroupButton.isHovered()) {
-            this.removeWidget(removeGroupButton);
-            removeGroupButton = null;
-        }
     }
 
     private void saveGroups() {
         Main.SIMPLE_CHANNEL.sendToServer(new MessageServerSavePlayerGroups(groups, true));
     }
-
-    private int zeroLeftPos;
-    private int zeroTopPos;
+    boolean statusSet = false;
     private void setButtons(){
+        int x = this.width / 2;
+        int y = this.height / 2;
         clearWidgets();
         groupButtons = new ArrayList<>();
-        zeroLeftPos = leftPos - 150;
-        zeroTopPos = topPos - 40;
-        //Group Buttons:
 
         int index = 0;
         for (RecruitsGroup group : groups) {
-            createRecruitsGroupButton(group, index);
-            index++;
+            if( index < 9){
+                createRecruitsGroupButton(group, index, x, y);
+                index++;
+            }
         }
-        createManageGroupsButton(index);
+        createManageGroupsButton(index, x, y);
 
-        // Other Buttons
+        createCommandButtons(selection, x, y);
+
+        if(!statusSet){
+            this.mouseGroupsInverted = getInvertedStatus();
+            statusSet = true;
+        }
+
     }
 
-    private void createRecruitsGroupButton(RecruitsGroup group, int index) {
-        RecruitsGroupButton groupButton = new RecruitsGroupButton(group,zeroLeftPos + 50 * index, zeroTopPos + 10, 40, 40, Component.literal(group.getName()),
+    private void createRecruitsGroupButton(RecruitsGroup group, int index, int x, int y) {
+        RecruitsGroupButton groupButton = new RecruitsGroupButton(group,x - 200 + 45 * index, y - 120, 40, 40, Component.literal(group.getName()),
         button -> {
             group.setDisabled(!group.isDisabled());
             this.setButtons();
@@ -170,8 +169,16 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         this.groupButtons.add(groupButton);
     }
 
-    private void createManageGroupsButton(int index){
-        ExtendedButton groupButton = new ExtendedButton(zeroLeftPos + 50 * index, zeroTopPos + 30, 20, 20, Component.literal("+/-"),
+    private void createManageGroupsButton(int index, int x, int y){
+        int posX = x - 200 + 45 * index;
+        int posY = y - 100;
+
+        if(index > 8){
+            posX = x + 180;
+            posY = y - 70;
+        }
+
+        ExtendedButton groupButton = new ExtendedButton(posX, posY, 20, 20, Component.literal("+/-"),
                 button -> {
                     CommandEvents.openGroupManageScreen(player);
 
@@ -182,6 +189,92 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private void setSelection(Selection selection){
         this.selection = selection;
         this.setButtons();
+    }
+    RecruitsCommandButton formationButton;
+    private void createCommandButtons(Selection selection, int x, int y) {
+        switch (selection){
+            case MOVEMENT -> {
+                //MOVE
+                RecruitsCommandButton moveButton = new RecruitsCommandButton(x, y - 50, TEXT_MOVE,
+                        button -> {
+                            //Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player, state, groups, formation));
+                        });
+                moveButton.setTooltip(Tooltip.create(TOOLTIP_MOVE));
+                addRenderableWidget(moveButton);
+
+                //FORWARD
+                RecruitsCommandButton forwardButton = new RecruitsCommandButton(x - 60, y - 25, TEXT_FORWARD,
+                        button -> {
+                            //Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player, state, groups, formation));
+                        });
+                forwardButton.setTooltip(Tooltip.create(TOOLTIP_FORWARD));
+                addRenderableWidget(forwardButton);
+
+                //FOLLOW
+                RecruitsCommandButton followButton = new RecruitsCommandButton(x + 60, y - 25, TEXT_FOLLOW,
+                        button -> {
+                            //Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player, state, groups, formation));
+                        });
+                followButton.setTooltip(Tooltip.create(TOOLTIP_FOLLOW));
+                addRenderableWidget(followButton);
+
+                /*
+                //MOVE AND HOLD
+                RecruitsCommandButton moveHoldButton = new RecruitsCommandButton(x, y, TEXT_MOVE_HOLD,
+                        button -> {
+                            //Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player, state, groups, formation));
+                        });
+                moveHoldButton.setTooltip(Tooltip.create(TOOLTIP_MOVE_HOLD));
+                addRenderableWidget(moveHoldButton);
+                */
+
+                //FORMATION
+                this.formationButton = new RecruitsCommandButton(x - 120, y, TEXT_FORMATION(String.valueOf(formation)),
+                        button -> {
+                            this.formation++;
+                            if(formation > 2){
+                                formation = 0;
+                            }
+                            formationButton.setMessage(TEXT_FORMATION(String.valueOf(formation))) ;
+                            setButtons();
+                        });
+
+                formationButton.setTooltip(Tooltip.create(TOOLTIP_FORMATION));
+                addRenderableWidget(formationButton);
+
+                //WANDER FREELY
+                RecruitsCommandButton wanderButton = new RecruitsCommandButton(x + 120, y, TEXT_WANDER,
+                        button -> {
+                            //Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player, state, groups, formation));
+                        });
+                wanderButton.setTooltip(Tooltip.create(TOOLTIP_WANDER));
+                addRenderableWidget(wanderButton);
+
+                //BACK TO POS
+                RecruitsCommandButton backToPosButton = new RecruitsCommandButton(x, y + 50, TEXT_BACK_TO_POS,
+                        button -> {
+                            //Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player, state, groups, formation));
+                        });
+                backToPosButton.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_POS));
+                addRenderableWidget(backToPosButton);
+
+                //HOLDPOS
+                RecruitsCommandButton holdPosButton = new RecruitsCommandButton(x + 60, y + 25, TEXT_HOLD_POS,
+                        button -> {
+                            //Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player, state, groups, formation));
+                        });
+                holdPosButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_POS));
+                addRenderableWidget(holdPosButton);
+
+                //BACKWARD
+                RecruitsCommandButton backwardButton = new RecruitsCommandButton(x - 60, y + 25, TEXT_BACKWARD,
+                        button -> {
+                            //Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player, state, groups, formation));
+                        });
+                backwardButton.setTooltip(Tooltip.create(TOOLTIP_BACKWARD));
+                addRenderableWidget(backwardButton);
+            }
+        }
     }
 
     @Override
@@ -206,6 +299,48 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         return null;
     }
 
+    @Override
+    public boolean mouseClicked(double x, double y, int id) {
+        if(id == 1){
+            this.invertGroups();
+        }
+
+        return super.mouseClicked(x, y, id);
+    }
+
+    @Override
+    public boolean mouseScrolled(double p_94686_, double p_94687_, double p_94688_) {
+        if(p_94688_ > 0) this.setSelection(selection.getNext());
+        else this.setSelection(selection.getBefore());
+        return super.mouseScrolled(p_94686_, p_94687_, p_94688_);
+    }
+
+    private void invertGroups() {
+        for(RecruitsGroupButton button : groupButtons){
+            button.getGroup().setDisabled(this.mouseGroupsInverted);
+        }
+        this.setButtons();
+        this.mouseGroupsInverted = !this.mouseGroupsInverted;
+    }
+
+    private boolean getInvertedStatus() {
+        boolean allActive = true;
+        boolean allInactive = true;
+
+        for (RecruitsGroupButton button : groupButtons) {
+            if (button.active) {
+                allInactive = false;
+            } else {
+                allActive = false;
+            }
+
+            if (!allActive && !allInactive) {
+                return false;
+            }
+        }
+
+        return allActive;
+    }
 
     private enum Selection{
         COMBAT((byte)0),
@@ -249,5 +384,9 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             }
             throw new IllegalArgumentException("Invalid Selection index: " + index);
         }
+    }
+
+    private static MutableComponent TEXT_FORMATION(String s){
+        return Component.translatable("gui.recruits.command.text.formation", s);
     }
 }
