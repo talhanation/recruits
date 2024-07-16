@@ -8,8 +8,11 @@ import com.talhanation.recruits.network.MessageServerSavePlayerGroups;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.reporting.ChatReportScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -18,10 +21,16 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 import java.util.List;
+
 @OnlyIn(Dist.CLIENT)
 public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/group_list_gui.png");
+    private static final MutableComponent TEXT_ADD = Component.translatable("gui.recruits.group_creation.add");
+    private static final MutableComponent TEXT_EDIT = Component.translatable("gui.recruits.group_creation.edit");
+    private static final MutableComponent TEXT_REMOVE = Component.translatable("gui.recruits.group_creation.remove");
+    private static final MutableComponent TEXT_TITLE = Component.translatable("gui.recruits.group_management.title");
+    public final int fontColor = 16250871;
     private Player player;
     private int leftPos;
     private int topPos;
@@ -29,6 +38,8 @@ public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
     public static List<RecruitsGroup> groups;
     public boolean setList;
     private GroupListWidget.GroupEntry selectedEntry;
+    private ExtendedButton editButton;
+    private ExtendedButton removeButton;
 
     public GroupManageScreen(GroupManageContainer commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, Component.literal(""));
@@ -40,7 +51,7 @@ public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
     @Override
     protected void init() {
         super.init();
-        clearWidgets();
+        this.clearWidgets();
 
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
@@ -48,9 +59,13 @@ public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
 
         addRenderableWidget(createAddGroupButton(leftPos + 14, topPos + 215));
 
-        addRenderableWidget(createEditGroupButton(leftPos + 74, topPos + 215));
+        this.editButton =  createEditGroupButton(leftPos + 74, topPos + 215);
+        this.editButton.active = this.selectedEntry != null;
+        addRenderableWidget(this.editButton);
 
-        addRenderableWidget(createRemoveGroupButton(leftPos + 134, topPos + 215));
+        this.removeButton = createRemoveGroupButton(leftPos + 134, topPos + 215);
+        this.removeButton.active = this.selectedEntry != null;
+        addRenderableWidget(this.removeButton);
     }
 
     @Override
@@ -70,12 +85,11 @@ public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
     }
 
     private void setList(){
-        this.groupListWidget = new GroupListWidget(this, 166, topPos + 22, topPos + 22 + 182, groups);
+        this.groupListWidget = new GroupListWidget(this, 165, topPos + 22, topPos + 22 + 182, groups);
         this.groupListWidget.setLeftPos(leftPos + 16);
 
         this.groupListWidget.setRenderBackground(false);
         this.groupListWidget.setRenderTopAndBottom(false);
-        this.groupListWidget.setSelected(groupListWidget.getFirstElement());
         addRenderableWidget(groupListWidget);
     }
 
@@ -88,19 +102,20 @@ public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
         RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
         guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
         this.groupListWidget.render(guiGraphics, mouseX, mouseY, partialTicks);
+        this.renderBackground(guiGraphics);
     }
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         super.renderLabels(guiGraphics, mouseX, mouseY);
-
+        guiGraphics.drawString(font, TEXT_TITLE, 18  , 11, fontColor, false);
     }
     public void setSelected(GroupListWidget.GroupEntry groupEntry) {
         this.selectedEntry = groupEntry;
     }
 
     private ExtendedButton createRemoveGroupButton(int x, int y) {
-        return new ExtendedButton(x, y, 50, 18, Component.literal("Remove"), button -> {
+        return new ExtendedButton(x, y, 50, 18, TEXT_REMOVE, button -> {
             if (selectedEntry != null) {
 
                 RecruitsGroup group = selectedEntry.getGroup();
@@ -118,18 +133,35 @@ public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
     }
 
     private ExtendedButton createAddGroupButton(int x, int y) {
-        return new ExtendedButton(x, y, 50, 18, Component.literal("Add"), btn -> {
+        return new ExtendedButton(x, y, 50, 18, TEXT_ADD, btn -> {
             this.minecraft.setScreen(new EditOrAddGroupScreen(this));
         });
     }
 
     private ExtendedButton createEditGroupButton(int x, int y) {
-        return new ExtendedButton(x, y, 50, 18, Component.literal("Edit"), btn -> {
+        return new ExtendedButton(x, y, 50, 18, TEXT_EDIT, btn -> {
             if(selectedEntry != null) this.minecraft.setScreen(new EditOrAddGroupScreen(this, selectedEntry.getGroup()));
         });
     }
 
     public void saveGroups() {
         Main.SIMPLE_CHANNEL.sendToServer(new MessageServerSavePlayerGroups(groups, false));
+    }
+
+    @Override
+    public boolean mouseClicked(double p_97748_, double p_97749_, int p_97750_) {
+        boolean flag = super.mouseClicked(p_97748_, p_97749_, p_97750_);
+        if(selectedEntry != null){
+            this.editButton.active = true;
+            this.removeButton.active = true;
+        }
+
+        return flag;
+    }
+
+    @Override
+    public boolean mouseDragged(double p_97752_, double p_97753_, int p_97754_, double p_97755_, double p_97756_) {
+        if(groupListWidget != null)this.groupListWidget.mouseDragged(p_97752_, p_97753_, p_97754_, p_97755_, p_97756_);
+        return super.mouseDragged(p_97752_, p_97753_, p_97754_, p_97755_, p_97756_);
     }
 }

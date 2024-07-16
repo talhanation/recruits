@@ -90,9 +90,13 @@
   "gui.recruits.command.tooltip.mount" : "If possible, the recruits will try to mount the Mob you are looking at.",
   "gui.recruits.command.tooltip.dismount" : "If possible, the recruits will dismount their current vehicle.",
   "gui.recruits.command.tooltip.move" : "If possible, the recruits will try to go to the position you are looking at.",
+  "gui.recruits.command.tooltip.move_hold" : "If possible, the recruits will try to go to the position you are looking at and hold it.",
+  "gui.recruits.command.tooltip.forward" : "Make the recruits move a bout 10 blocks forward to the position you are facing.",
+  "gui.recruits.command.tooltip.backward" : "Make the recruits move a bout 10 blocks backward to the position you are facing.",
   "gui.recruits.command.tooltip.strategic_fire" : "Order ranged troops to concentrate their fire on a specific area you are looking at.",
   "gui.recruits.command.tooltip.shields" : "Make the recruits raise/lower their shields.",
   "gui.recruits.command.tooltip.upkeep" : "Sets the block or entity for the upkeep of your recruits you are looking at.",
+  "gui.recruits.command.tooltip.formation" : "Order the recruits to do a formation.",
 
   "gui.recruits.command.tooltip.passive" : "Make the recruits not attacking at all.",
   "gui.recruits.command.tooltip.neutral" : "Make the recruits attack only hostile living.",
@@ -111,6 +115,10 @@
   "gui.recruits.command.text.dismount" : "Dismount!",
 
   "gui.recruits.command.text.move" : "Move!",
+  "gui.recruits.command.text.move_hold" : "Move and Hold!",
+  "gui.recruits.command.text.forward" : "Forward!",
+  "gui.recruits.command.text.backward" : "Backward!",
+  "gui.recruits.command.text.formation" : "Formation: %s!",
   "gui.recruits.command.text.shields" : "Shields!",
   "gui.recruits.command.text.strategic_fire" : "Strategic Fire",
 
@@ -308,6 +316,13 @@
   "gui.recruits.inv.tooltip.backToMount": "Make this recruit mount his previous vehicle.",
   "gui.recruits.inv.tooltip.clearUpkeep": "Clears saved upkeep position.",
   "gui.recruits.inv.text.clearUpkeep": "Clear Upkeep",
+  "gui.recruits.group_creation.add_title": "Add New Group:",
+  "gui.recruits.group_creation.edit_title": "Edit Group:",
   "gui.recruits.group_creation.cancel": "Cancel",
-   "gui.recruits.group_creation.add": "Add"
+  "gui.recruits.group_creation.add": "Add",
+  "gui.recruits.group_creation.save": "Save",
+  "gui.recruits.group_creation.edit": "Edit",
+  "gui.recruits.group_creation.remove": "Remove",
+  "gui.recruits.group_creation.split": "Split",
+  "gui.recruits.group_management.title": "Manage your Groups:"
  }
