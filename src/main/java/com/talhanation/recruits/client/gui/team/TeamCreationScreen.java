@@ -139,14 +139,14 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
 
     private Button cycleButtonRightTeamColor(int x, int y){
         return addRenderableWidget(new ExtendedButton(x, y, 12, 12, new TextComponent(">"),
-
                 button -> {
                     if(this.teamColorIndex < TEAM_COLORS.size() - 1){
                         this.teamColorIndex++;
                         this.refreshSelectedColorTeam();
+
                     }
                 }
-        ));
+            ));
     }
     private void refreshSelectedColorTeam() {
         this.teamColor = TEAM_COLORS.get(teamColorIndex);
