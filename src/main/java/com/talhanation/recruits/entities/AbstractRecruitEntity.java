@@ -1657,7 +1657,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         boolean notAllowed = living instanceof AbstractFish || living instanceof Squid || living instanceof AbstractHorse || (living instanceof Monster && living.isUnderWater());
 
         if (living instanceof AbstractRecruitEntity otherRecruit) {
-            if (otherRecruit.isOwned() && this.isOwned()){
+            if (otherRecruit.isOwned() && this.isOwned() && !otherRecruit.equals(this)){
                 UUID recruitOwnerUuid = this.getOwnerUUID();
                 UUID otherRecruitOwnerUuid = otherRecruit.getOwnerUUID();
 
