@@ -46,73 +46,74 @@ public class ModScreens {
         registerMenu(MESSENGER.get(), MessengerScreen::new);
         registerMenu(MESSENGER_ANSWER.get(), MessengerAnswerScreen::new);
         registerMenu(PATROL_LEADER.get(), PatrolLeaderScreen::new);
+
         logger.info("MenuScreens registered");
     }
 
 
     public static final RegistryObject<MenuType<RecruitInventoryMenu>> RECRUIT_CONTAINER_TYPE =
-        MENU_TYPES.register("recruit_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
-            try {
-                UUID workerId = data.readUUID();
-                logger.info("{} is opening hire container for {}", inv.player.getDisplayName().getString(), workerId);
+            MENU_TYPES.register("recruit_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
+                try {
+                    UUID workerId = data.readUUID();
+                    logger.info("{} is opening hire container for {}", inv.player.getDisplayName().getString(), workerId);
 
-                AbstractRecruitEntity rec = getRecruitByUUID(inv.player, workerId);
-                logger.info("Recruit is {}", rec);
-                if (rec == null) {
+                    AbstractRecruitEntity rec = getRecruitByUUID(inv.player, workerId);
+                    logger.info("Recruit is {}", rec);
+                    if (rec == null) {
+                        return null;
+                    }
+                    return new RecruitInventoryMenu(windowId, rec, inv);
+
+                } catch (Exception e) {
+                    logger.error("Error in recruit_container: ");
+                    logger.error(e.getMessage());
+                    logger.error(e.getStackTrace().toString());
                     return null;
                 }
-                return new RecruitInventoryMenu(windowId, rec, inv);
-
-            } catch (Exception e) {
-                logger.error("Error in recruit_container: ");
-                logger.error(e.getMessage());
-                logger.error(e.getStackTrace().toString());
-                return null;
-            }
-    }));
+            }));
 
     public static final RegistryObject<MenuType<CommandMenu>> COMMAND_CONTAINER_TYPE =
-        MENU_TYPES.register("command_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
-            try {
-                UUID player_uuid = inv.player.getUUID();
-                logger.info("{} is opening command container for {}", inv.player.getDisplayName().getString(), player_uuid);
+            MENU_TYPES.register("command_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
+                try {
+                    UUID player_uuid = inv.player.getUUID();
+                    logger.info("{} is opening command container for {}", inv.player.getDisplayName().getString(), player_uuid);
 
-                Player playerEntity = inv.player;
-                logger.info("Player is {}", playerEntity);
-                if (playerEntity == null) {
+                    Player playerEntity = inv.player;
+                    logger.info("Player is {}", playerEntity);
+                    if (playerEntity == null) {
+                        return null;
+                    }
+                    return new CommandMenu(windowId, playerEntity);
+
+                } catch (Exception e) {
+                    logger.error("Error in command_container: ");
+                    logger.error(e.getMessage());
+                    logger.error(e.getStackTrace().toString());
                     return null;
                 }
-                return new CommandMenu(windowId, playerEntity);
-
-            } catch (Exception e) {
-                logger.error("Error in command_container: ");
-                logger.error(e.getMessage());
-                logger.error(e.getStackTrace().toString());
-                return null;
-            }
-    }));
+            }));
     public static final RegistryObject<MenuType<AssassinLeaderMenu>> ASSASSIN_CONTAINER_TYPE =
-        MENU_TYPES.register("assassin_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
-            try {
-                UUID workerId = data.readUUID();
-                AssassinLeaderEntity rec = getAssassinByUUID(inv.player, workerId);
-                logger.info("{} is opening assassin container for {}", inv.player.getDisplayName().getString(), workerId);
-                if (rec == null) {
-                    return null;
-                }
-                logger.info("Player is {}", rec);
-                if (rec == null) {
-                    return null;
-                }
-                return new AssassinLeaderMenu(windowId, rec, inv);
+            MENU_TYPES.register("assassin_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
+                try {
+                    UUID workerId = data.readUUID();
+                    AssassinLeaderEntity rec = getAssassinByUUID(inv.player, workerId);
+                    logger.info("{} is opening assassin container for {}", inv.player.getDisplayName().getString(), workerId);
+                    if (rec == null) {
+                        return null;
+                    }
+                    logger.info("Player is {}", rec);
+                    if (rec == null) {
+                        return null;
+                    }
+                    return new AssassinLeaderMenu(windowId, rec, inv);
 
-            } catch (Exception e) {
-                logger.error("Error in assassin_container: ");
-                logger.error(e.getMessage());
-                logger.error(e.getStackTrace().toString());
-                return null;
-            }
-    }));
+                } catch (Exception e) {
+                    logger.error("Error in assassin_container: ");
+                    logger.error(e.getMessage());
+                    logger.error(e.getStackTrace().toString());
+                    return null;
+                }
+            }));
 
     public static final RegistryObject<MenuType<RecruitHireMenu>> HIRE_CONTAINER_TYPE =
             MENU_TYPES.register("hire_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
@@ -176,7 +177,7 @@ public class ModScreens {
     public static final RegistryObject<MenuType<TeamMainContainer>> TEAM_MAIN_TYPE =
             MENU_TYPES.register("team_main_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
                 try {
-                     Player playerEntity = inv.player;
+                    Player playerEntity = inv.player;
                     if (playerEntity == null) {
                         return null;
                     }
@@ -327,6 +328,7 @@ public class ModScreens {
                     return null;
                 }
             }));
+
     /**
      * Registers a menuType/container with a screen constructor.
      *

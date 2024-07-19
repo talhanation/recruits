@@ -4,8 +4,6 @@ import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.init.ModScreens;
 import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
 
 public class MessengerAnswerContainer extends ContainerBase {
 
