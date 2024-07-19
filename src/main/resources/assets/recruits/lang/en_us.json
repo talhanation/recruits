@@ -96,7 +96,13 @@
   "gui.recruits.command.tooltip.strategic_fire" : "Order ranged troops to concentrate their fire on a specific area you are looking at.",
   "gui.recruits.command.tooltip.shields" : "Make the recruits raise/lower their shields.",
   "gui.recruits.command.tooltip.upkeep" : "Sets the block or entity for the upkeep of your recruits you are looking at.",
+  "gui.recruits.command.tooltip.rest" : "Sets the area where your recruits can rest.",
   "gui.recruits.command.tooltip.formation" : "Order the recruits to do a formation.",
+  "gui.recruits.command.tooltip.hold_fire" : "Disable the use of Ranged weapons.",
+  "gui.recruits.command.tooltip.fire_at_will" : "Enable the use of Ranged weapons.",
+  "gui.recruits.command.tooltip.movement" : "Movement Commands",
+  "gui.recruits.command.tooltip.combat" : "Combat Commands",
+  "gui.recruits.command.tooltip.other" : "Other Commands",
 
   "gui.recruits.command.tooltip.passive" : "Make the recruits not attacking at all.",
   "gui.recruits.command.tooltip.neutral" : "Make the recruits attack only hostile living.",
@@ -120,7 +126,10 @@
   "gui.recruits.command.text.backward" : "Backward!",
   "gui.recruits.command.text.formation" : "Formation: %s!",
   "gui.recruits.command.text.shields" : "Shields!",
-  "gui.recruits.command.text.strategic_fire" : "Strategic Fire",
+  "gui.recruits.command.text.strategic_fire" : "Strategic Fire!",
+  "gui.recruits.command.text.hold_strategic_fire" : "Hold Strategic Fire!",
+   "gui.recruits.command.text.fire_at_will" : "Fire at will!",
+   "gui.recruits.command.text.hold_fire" : "Hold Fire!",
 
   "gui.recruits.command.text.protect" : "Protect this!",
   "gui.recruits.command.text.follow" : "Follow me!",
@@ -136,6 +145,7 @@
   "gui.recruits.command.text.aggressive" : "Aggressive!",
   "gui.recruits.command.text.raid" : "Raid!",
   "gui.recruits.command.text.upkeep" : "Upkeep",
+  "gui.recruits.command.text.rest" : "Rest",
 
   "gui.recruits.command.text.group" : "Group: %s",
   "gui.recruits.command.text.everyone" : "Everyone",
