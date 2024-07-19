@@ -4,10 +4,11 @@
     "1.20.1-recommended": "1.11.4",
     "1.19.4-recommended": "1.10.8",
     "1.19.2-recommended": "1.11.4.1",
-    "1.18.2-recommended": "1.11.4.1",
+    "1.18.2-recommended": "1.11.4.2",
     "1.16.5-recommended": "1.5.1"
   },
   "1.18.2": {
+    "1.11.4.2": "fixed screens not opening",
     "1.11.4.1": "fixed layers not rendering // fixed coprse not spwanng on servers // fixed morale not updating",
     "1.11.3": "fix crashes // improved captain sailor AI",
     "1.11.2": "Companion Part 1 // improved server side performance",
