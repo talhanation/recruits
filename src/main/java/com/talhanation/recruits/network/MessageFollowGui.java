@@ -30,7 +30,7 @@ public class MessageFollowGui implements Message<MessageFollowGui> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
-        
+
         for (AbstractRecruitEntity recruit : list) {
             if (recruit.getUUID().equals(this.uuid) && recruit.isEffectedByCommand(context.getSender().getUUID(), 0)){
                 CommandEvents.onMovementCommandGUI(recruit, this.state);
