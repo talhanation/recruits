@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.events.ClientEvent;
+import com.talhanation.recruits.client.events.PlayerEvents;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.*;
@@ -79,14 +80,14 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TOOLTIP_FORMATION = Component.translatable("gui.recruits.command.tooltip.formation");
     private static final int fontColor = 16250871;
     private final Player player;
-    private int group;
+    public static int group;
     public static int recruitsInCommand;
     private boolean shields;
     private boolean strategicFire;
     private BlockPos rayBlockPos;
     private Entity rayEntity;
-    private byte formation = 1;
-    //private Button formationButton;
+    public static byte formation = 2;
+
     public CommandScreen(CommandMenu commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, Component.literal(""));
         imageWidth = 201;
@@ -117,7 +118,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         int topPosGab = 7;
         int mirror = 240 - 60;
         this.group = getSavedCurrentGroup(player);
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen(this.group));
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateCommandScreen(group));
         /*
         //TEAM SCREEN
         addRenderableWidget(new Button(zeroLeftPos - 150, zeroTopPos + (30 + topPosGab), 80, 20, TEXT_TEAM,
@@ -222,7 +223,8 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         //RAID
         addRenderableWidget(new Button(zeroLeftPos - mirror, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_RAID,
                 button -> {
-                    CommandEvents.sendAggroCommandInChat(2, player, group);
+            PlayerEvents.followFormation = false;
+            CommandEvents.sendAggroCommandInChat(2, player, group);
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 2, group));
 
                 },
@@ -246,6 +248,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         //WANDER
         addRenderableWidget(new Button(zeroLeftPos - 40, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_WANDER,
                 button -> {
+            PlayerEvents.followFormation = false;
             CommandEvents.sendFollowCommandInChat(0, player, group);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 0, group, formation));
 
@@ -259,9 +262,13 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         //FOLLOW
         addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 1, 80, 20, TEXT_FOLLOW,
                 button -> {
-            CommandEvents.sendFollowCommandInChat(1, player, group);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 1, group, formation));
-
+                    CommandEvents.sendFollowCommandInChat(1, player, group);
+                    if(formation != 0){
+                        PlayerEvents.followFormation = true;
+                    }
+                    else{
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 1, group, formation));
+                    }
                 },
                 (button1, poseStack, i, i1) -> {
                     this.renderTooltip(poseStack, TOOLTIP_FOLLOW, i, i1);
@@ -272,8 +279,10 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         //HOLD POS
         addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 2, 80, 20, TEXT_HOLD_POS,
                 button -> {
+            PlayerEvents.followFormation = false;
             CommandEvents.sendFollowCommandInChat(2, player, group);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 2, group, formation));
+
 
                 },
                 (button1, poseStack, i, i1) -> {
@@ -285,6 +294,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         //BACK TO POS
         addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 3, 80, 20, TEXT_BACK_TO_POS,
                 button -> {
+            PlayerEvents.followFormation = false;
             CommandEvents.sendFollowCommandInChat(3, player, group);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 3, group, formation));
 
@@ -298,6 +308,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         //HOLD MY POS
         addRenderableWidget(new Button(zeroLeftPos - 40, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_HOLD_MY_POS,
                 button -> {
+            PlayerEvents.followFormation = false;
             CommandEvents.sendFollowCommandInChat(4, player, group);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 4, group, formation));
 

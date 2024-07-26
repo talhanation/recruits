@@ -2,22 +2,28 @@ package com.talhanation.recruits.client.events;
 
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.gui.CommandScreen;
 import com.talhanation.recruits.client.models.RecruitVillagerModel;
 import com.talhanation.recruits.client.render.RecruitHumanRenderer;
 import com.talhanation.recruits.client.render.RecruitVillagerRenderer;
 import com.talhanation.recruits.client.render.layer.RecruitArmorLayer;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.init.ModEntityTypes;
+import com.talhanation.recruits.network.MessageForamtionFollowMovement;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -79,4 +85,5 @@ public class ClientEvent {
         }
         return null;
     }
+
 }

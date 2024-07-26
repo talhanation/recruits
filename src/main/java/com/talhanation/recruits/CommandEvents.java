@@ -67,17 +67,7 @@ public class CommandEvents {
                }
             }
 
-            switch (formation){
-                case 1 ->{//LINE UP
-                    FormationUtils.lineUpFormation(player, recruits, targetPos);
-                }
-                case 2 ->{//SQUARE
-                    FormationUtils.squareFormation(player, recruits, targetPos);
-                }
-                case 3 ->{//TRIANGLE
-                    FormationUtils.triangleFormation(player, recruits, targetPos);
-                }
-            }
+            applyFormation(formation, recruits, player, targetPos);
         }
         else{
             for(AbstractRecruitEntity recruit : recruits){
@@ -133,6 +123,29 @@ public class CommandEvents {
              checkPatrolLeaderState(recruit);
              recruit.forcedUpkeep = false;
          }
+    }
+
+    public static void applyFormation(int formation, List<AbstractRecruitEntity> recruits, ServerPlayer player, Vec3 targetPos) {
+        switch (formation){
+            case 1 ->{//LINE UP
+                FormationUtils.lineUpFormation(player, recruits, targetPos);
+            }
+            case 2 ->{//SQUARE
+                FormationUtils.squareFormation(player, recruits, targetPos);
+            }
+            case 3 ->{//TRIANGLE
+                FormationUtils.triangleFormation(player, recruits, targetPos);
+            }
+            case 4 ->{//HOLLOW CIRCLE
+                FormationUtils.circleFormation(player, recruits, targetPos);
+            }
+            case 5 ->{//HOLLOW SQUARE
+                FormationUtils.hollowSquareFormation(player, recruits, targetPos);
+            }
+            case 6 ->{
+                FormationUtils.vFormation(player, recruits, targetPos);
+            }
+        }
     }
 
     public static void onMovementCommandGUI(AbstractRecruitEntity recruit, int movementState) {

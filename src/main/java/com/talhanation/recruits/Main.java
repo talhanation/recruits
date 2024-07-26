@@ -1,5 +1,6 @@
 package com.talhanation.recruits;
 import com.talhanation.recruits.client.events.KeyEvents;
+import com.talhanation.recruits.client.events.PlayerEvents;
 import com.talhanation.recruits.config.*;
 import com.talhanation.recruits.init.*;
 import com.talhanation.recruits.network.*;
@@ -140,6 +141,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 66, MessageToClientUpdateMessengerAnswerScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 67, MessageOpenMessengerAnswerScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 68, MessageClearUpkeepGui.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 69, MessageForamtionFollowMovement.class);
 
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
         isSmallShipsLoaded = ModList.get().isLoaded("smallships");//small ships
@@ -159,5 +161,6 @@ public class Main {
     public void clientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(ModScreens::registerMenus);
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
+        MinecraftForge.EVENT_BUS.register(new PlayerEvents());
     }
 }
