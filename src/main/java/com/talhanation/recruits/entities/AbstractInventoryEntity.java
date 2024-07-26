@@ -12,6 +12,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.animal.Chicken;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
@@ -255,7 +256,7 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
 
         if(this.getCommandSenderWorld().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS))
             for (int i = 0; i < this.inventory.getContainerSize(); i++)
-                Containers.dropItemStack(this.level, getX(), getY(), getZ(), this.inventory.getItem(i));
+                 this.spawnAtLocation(this.inventory.getItem(i));// Containers.dropItemStack(this.getCommandSenderWorld(), getX(), getY(), getZ(), );
     }
 
     protected void pickUpItem(ItemEntity itemEntity) {
@@ -283,7 +284,6 @@ public abstract class AbstractInventoryEntity extends PathfinderMob {
             }
         }
     }
-
     public void equipItem(ItemStack itemStack) {
         EquipmentSlot equipmentslot = getEquipmentSlotForItem(itemStack);
         ItemStack currentArmor = this.getItemBySlot(equipmentslot);
