@@ -175,7 +175,7 @@ public class Main {
         isSmallShipsCompatible = false;
         if(isSmallShipsLoaded){
             String smallshipsversion = ModList.get().getModFileById("smallships").versionString();//2.0.0-a2.3.1 above shall be supported e.g.: "2.0.0-b1.1"
-            isSmallShipsCompatible = smallshipsversion.contains("2.0.0-b1.3");//TODO: Better Version check for compatible smallships versions
+            isSmallShipsCompatible = smallshipsversion.contains("2.0.0-b1.3")||smallshipsversion.contains("2.0.0-b1.4");//TODO: Better Version check for compatible smallships versions
         }
     }
 
