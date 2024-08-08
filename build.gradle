@@ -132,7 +132,6 @@ dependencies {
     implementation fg.deobf("curse.maven:mmmmmmmmmmmm-225738:4410143")
     implementation fg.deobf("curse.maven:selene-499980:4983974")
     implementation fg.deobf('curse.maven:musketmod-354562:4030979')
-
 }
 
 // Example for how to get properties into the manifest for reading at runtime.
