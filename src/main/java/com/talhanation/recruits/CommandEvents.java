@@ -27,6 +27,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -43,7 +44,6 @@ public class CommandEvents {
     public static final MutableComponent TEXT_EVERYONE = Component.translatable("chat.recruits.text.everyone");
     public static final MutableComponent TEXT_GROUP = Component.translatable("chat.recruits.text.group");
 
-
     //0 = wander
     //1 = follow
     //2 = hold your position
@@ -51,34 +51,46 @@ public class CommandEvents {
     //4 = hold my position
     //5 = Protect
     //6 = move
+    //7 = forward
+    //8 = backward
     public static void onMovementCommand(ServerPlayer player, List<AbstractRecruitEntity> recruits, int movementState, int formation) {
-        if(formation != 0 && (movementState == 2|| movementState == 4 || movementState == 6)) {
+        if(formation != 0 && (movementState == 2|| movementState == 4 || movementState == 6 || movementState == 7 || movementState == 8)) {
             Vec3 targetPos = null;
 
             switch (movementState){
                case 2 -> {//hold your position
-                   targetPos = FormationUtils.getCenterOfPositions(recruits, (ServerLevel) player.getCommandSenderWorld());
+                   targetPos = FormationUtils.getGeometricMedian(recruits, (ServerLevel) player.getCommandSenderWorld());
                }
+
                case 4 -> {//hold my position
                     targetPos = player.position();
                }
-               case 6 -> {
+
+               case 6 -> {//move
                    HitResult hitResult = player.pick(100, 1F, true);
                    targetPos = hitResult.getLocation();
                }
+
+               case 7 -> {//forward
+                   Vec3 center = FormationUtils.getFarthestRecruitsCenter(recruits, (ServerLevel) player.getCommandSenderWorld());
+                   Vec3 forward = player.getForward();
+                   Vec3 pos = center.add(forward.scale(10));
+                   BlockPos blockPos = player.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
+
+                   targetPos = new Vec3(pos.x, blockPos.getY(), pos.z);
+               }
+
+               case 8 -> {//backward
+                   Vec3 center = FormationUtils.getFarthestRecruitsCenter(recruits, (ServerLevel) player.getCommandSenderWorld());
+                   Vec3 forward = player.getForward();
+                   Vec3 pos = center.add(forward.scale(-10));
+                   BlockPos blockPos = player.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
+
+                   targetPos = new Vec3(pos.x, blockPos.getY(), pos.z);
+               }
             }
 
-            switch (formation){
-                case 1 ->{//LINE UP
-                    FormationUtils.lineUpFormation(player, recruits, targetPos);
-                }
-                case 2 ->{//SQUARE
-                    FormationUtils.squareFormation(player, recruits, targetPos);
-                }
-                case 3 ->{//TRIANGLE
-                    FormationUtils.triangleFormation(player, recruits, targetPos);
-                }
-            }
+            applyFormation(formation, recruits, player, targetPos);
         }
         else{
             for(AbstractRecruitEntity recruit : recruits){
@@ -101,15 +113,17 @@ public class CommandEvents {
                         if (state != 3)
                             recruit.setFollowState(3);
                     }
+                    //
                     case 4 -> {
                         if (state != 4)
                             recruit.setFollowState(4);
                     }
+                    //PROTECT
                     case 5 -> {
                         if (state != 5)
                             recruit.setFollowState(5);
                     }
-
+                    //MOVE
                     case 6 ->{
                         HitResult hitResult = player.pick(100, 1F, true);
                         if (hitResult.getType() == HitResult.Type.BLOCK) {
@@ -123,6 +137,30 @@ public class CommandEvents {
                             recruit.setShouldMovePos(true);
                         }
                     }
+                    //FORWARD
+                    case 7 ->{
+                        Vec3 forward = player.getForward();
+                        Vec3 pos = recruit.position().add(forward.scale(10));
+                        BlockPos blockPos = player.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
+
+                        Vec3 targetPos = new Vec3(pos.x, blockPos.getY(), pos.z);
+
+                        recruit.setHoldPos(targetPos);
+                        recruit.ownerRot = player.getYRot();
+                        recruit.setFollowState(3);
+                    }
+                    //BACKWARD
+                    case 8 ->{
+                        Vec3 forward = player.getForward();
+                        Vec3 pos = recruit.position().add(forward.scale(-10));
+                        BlockPos blockPos = player.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
+
+                        Vec3 targetPos = new Vec3(pos.x, blockPos.getY(), pos.z);
+
+                        recruit.setHoldPos(targetPos);
+                        recruit.ownerRot = player.getYRot();
+                        recruit.setFollowState(3);
+                    }
                 }
             }
 
@@ -134,6 +172,29 @@ public class CommandEvents {
              checkPatrolLeaderState(recruit);
              recruit.forcedUpkeep = false;
          }
+    }
+
+    public static void applyFormation(int formation, List<AbstractRecruitEntity> recruits, ServerPlayer player, Vec3 targetPos) {
+        switch (formation){
+            case 1 ->{//LINE UP
+                FormationUtils.lineUpFormation(player, recruits, targetPos);
+            }
+            case 2 ->{//SQUARE
+                FormationUtils.squareFormation(player, recruits, targetPos);
+            }
+            case 3 ->{//TRIANGLE
+                FormationUtils.triangleFormation(player, recruits, targetPos);
+            }
+            case 4 ->{//HOLLOW CIRCLE
+                FormationUtils.circleFormation(player, recruits, targetPos);
+            }
+            case 5 ->{//HOLLOW SQUARE
+                FormationUtils.hollowSquareFormation(player, recruits, targetPos);
+            }
+            case 6 ->{//V Formation
+                FormationUtils.vFormation(player, recruits, targetPos);
+            }
+        }
     }
 
     public static void onMovementCommandGUI(AbstractRecruitEntity recruit, int movementState) {
@@ -249,94 +310,6 @@ public class CommandEvents {
         } else {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageCommandScreen(player));
         }
-    }
-    public static void sendFollowCommandInChat(int state, LivingEntity owner, int group){
-        String group_string = "";
-        if (group == 0){
-            group_string = TEXT_EVERYONE.getString() + ", ";
-        }else
-            group_string = TEXT_GROUP.getString() + " " + group + ", " ;
-
-        switch (state) {
-            case 0 -> owner.sendSystemMessage(TEXT_WANDER(group_string));
-            case 1 -> owner.sendSystemMessage(TEXT_FOLLOW(group_string));
-            case 2 -> owner.sendSystemMessage(TEXT_HOLD_POS(group_string));
-            case 3 -> owner.sendSystemMessage(TEXT_BACK_TO_POS(group_string));
-            case 4 -> owner.sendSystemMessage(TEXT_HOLD_MY_POS(group_string));
-            case 5 -> owner.sendSystemMessage(TEXT_PROTECT(group_string));
-
-
-			case 91 -> owner.sendSystemMessage(TEXT_BACK_TO_MOUNT(group_string));
-            case 92 -> owner.sendSystemMessage(TEXT_UPKEEP(group_string));
-            case 93 -> owner.sendSystemMessage(TEXT_SHIELDS_OFF(group_string));
-            case 94 -> owner.sendSystemMessage(TEXT_STRATEGIC_FIRE_OFF(group_string));
-            case 95 -> owner.sendSystemMessage(TEXT_SHIELDS(group_string));
-            case 96 -> owner.sendSystemMessage(TEXT_STRATEGIC_FIRE(group_string));
-            case 97 -> owner.sendSystemMessage(TEXT_MOVE(group_string));
-            case 98 -> owner.sendSystemMessage(TEXT_DISMOUNT(group_string));
-            case 99 -> owner.sendSystemMessage(TEXT_MOUNT(group_string));
-        }
-    }
-
-    private static MutableComponent TEXT_WANDER(String group_string) {
-        return Component.translatable("chat.recruits.command.wander", group_string);
-    }
-
-    private static MutableComponent TEXT_FOLLOW(String group_string) {
-        return Component.translatable("chat.recruits.command.follow", group_string);
-    }
-
-    private static MutableComponent TEXT_HOLD_POS(String group_string) {
-        return Component.translatable("chat.recruits.command.holdPos", group_string);
-    }
-
-    private static MutableComponent TEXT_BACK_TO_POS(String group_string) {
-        return Component.translatable("chat.recruits.command.backToPos", group_string);
-    }
-
-    private static MutableComponent TEXT_BACK_TO_MOUNT(String group_string) {
-        return Component.translatable("chat.recruits.command.backToMount", group_string);
-    }
-
-
-    private static MutableComponent TEXT_HOLD_MY_POS(String group_string) {
-        return Component.translatable("chat.recruits.command.holdMyPos", group_string);
-    }
-
-    private static MutableComponent TEXT_PROTECT(String group_string) {
-        return Component.translatable("chat.recruits.command.protect", group_string);
-    }
-
-    private static MutableComponent TEXT_UPKEEP(String group_string) {
-        return Component.translatable("chat.recruits.command.upkeep", group_string);
-    }
-
-    private static MutableComponent TEXT_SHIELDS_OFF(String group_string) {
-        return Component.translatable("chat.recruits.command.shields_off", group_string);
-    }
-
-    private static MutableComponent TEXT_STRATEGIC_FIRE_OFF(String group_string) {
-        return Component.translatable("chat.recruits.command.strategic_fire_off", group_string);
-    }
-
-    private static MutableComponent TEXT_SHIELDS(String group_string) {
-        return Component.translatable("chat.recruits.command.shields", group_string);
-    }
-
-    private static MutableComponent TEXT_STRATEGIC_FIRE(String group_string) {
-        return Component.translatable("chat.recruits.command.strategic_fire", group_string);
-    }
-
-    private static MutableComponent TEXT_MOVE(String group_string) {
-        return Component.translatable("chat.recruits.command.move", group_string);
-    }
-
-    private static MutableComponent TEXT_DISMOUNT(String group_string) {
-        return Component.translatable("chat.recruits.command.dismount", group_string);
-    }
-
-    private static MutableComponent TEXT_MOUNT(String group_string) {
-        return Component.translatable("chat.recruits.command.mount", group_string);
     }
 
     public static void sendAggroCommandInChat(int state, LivingEntity owner, int group){
@@ -698,9 +671,5 @@ public class CommandEvents {
         nbt.put("recruits-groups", groupList);
 
         return nbt;
-    }
-
-    public static void onMovementCommand(){
-
     }
 }
