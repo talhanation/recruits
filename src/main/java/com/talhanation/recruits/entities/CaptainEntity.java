@@ -228,7 +228,7 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
             case 2,3,4 -> {
                 if(this.getHoldPos() != null){
                     Vec3 pos = this.getHoldPos();
-                    setSailPos(new BlockPos(pos.x, pos.y, pos.z));
+                    setSailPos(new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
                 }
             }
 

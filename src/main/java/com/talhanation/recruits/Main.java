@@ -174,7 +174,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 71, MessageServerSavePlayerGroups.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 72, MessageToClientUpdateGroupManageScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 73, MessageToClientUpdateRecruitInventoryScreen.class);
-
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 74, MessageFormationFollowMovement.class);
 
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
         isSmallShipsLoaded = ModList.get().isLoaded("smallships");//small ships
@@ -199,6 +199,7 @@ public class Main {
 
         R_KEY = ClientRegistry.registerKeyBinding("key.recruits.r_key", "category.recruits", GLFW.GLFW_KEY_R);
         U_KEY = ClientRegistry.registerKeyBinding("key.recruits.u_key", "category.recruits", GLFW.GLFW_KEY_U);
+
     }
 
     @SubscribeEvent
