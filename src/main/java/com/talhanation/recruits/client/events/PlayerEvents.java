@@ -26,7 +26,7 @@ public class PlayerEvents {
 
             for(RecruitsGroup group: activeGroups){
                 if(!group.isDisabled()){
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageFormationFollowMovement(event.player.getUUID(), group.getId(), CommandScreen.formation));
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageFormationFollowMovement(event.player.getUUID(), group.getId(), CommandScreen.formation.getIndex()));
                 }
             }
         }

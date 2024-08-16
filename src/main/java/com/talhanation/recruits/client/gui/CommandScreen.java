@@ -4,13 +4,10 @@ import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.events.ClientEvent;
 import com.talhanation.recruits.client.events.PlayerEvents;
-import com.talhanation.recruits.client.gui.group.RecruitsCategoryButton;
-import com.talhanation.recruits.client.gui.group.RecruitsCommandButton;
-import com.talhanation.recruits.client.gui.group.RecruitsGroupButton;
+import com.talhanation.recruits.client.gui.group.*;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.*;
-import com.talhanation.recruits.client.gui.group.RecruitsGroup;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
@@ -20,7 +17,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
@@ -109,7 +105,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private Entity rayEntity;
     private Selection selection;
     public static List<RecruitsGroup> groups;
-    public static int formation;
+    public static Formation formation;
     public boolean mouseGroupsInverted;
     private List<RecruitsGroupButton> groupButtons;
 
@@ -139,8 +135,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         this.rayBlockPos = getBlockPos();
         this.rayEntity = ClientEvent.getEntityByLooking();
         this.selection = getSelectionFromClient();
-        formation = this.getSavedFormationSelection(player);
-
+        formation = getSavedFormationFromClient();
     }
 
     private boolean buttonsSet = false;
@@ -162,7 +157,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private void setButtons(){
         int x = this.width / 2;
         int y = this.height / 2;
-        formation = this.getSavedFormationSelection(player);
+        formation = this.getSavedFormationFromClient();
         clearWidgets();
         groupButtons = new ArrayList<>();
 
@@ -216,6 +211,12 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private void setSelection(Selection selection){
         this.selection = selection;
         this.saveSelectionOnClient();
+        this.setButtons();
+    }
+
+    private void setFormation(Formation f){
+        formation = f;
+        this.saveFormationSelection();
         this.setButtons();
     }
 
@@ -285,7 +286,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 //FOLLOW
                 RecruitsCommandButton followButton = new RecruitsCommandButton(x + 60, y - 25, TEXT_FOLLOW,
                         button -> {
-                            if(formation != 0){
+                            if(formation.getIndex() != 0){
                                 PlayerEvents.activeGroups = groups;
                                 PlayerEvents.followFormation = true;
                             }
@@ -297,40 +298,19 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 followButton.setTooltip(Tooltip.create(TOOLTIP_FOLLOW));
                 addRenderableWidget(followButton);
 
-                /*
-                //MOVE AND HOLD
-                RecruitsCommandButton moveHoldButton = new RecruitsCommandButton(x, y, TEXT_MOVE_HOLD,
-                        button -> {
-                            //Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player, state, groups, formation));
-                        });
-                moveHoldButton.setTooltip(Tooltip.create(TOOLTIP_MOVE_HOLD));
-                addRenderableWidget(moveHoldButton);
-                */
-
-                //FORMATION
-                this.formationButton = new RecruitsCommandButton(x - 120, y, getFormationString(formation),
-                        button -> {
-                            formation++;
-                            if(formation > 6){
-                                formation = 0;
-                            }
-                            this.saveFormationSelection(player);
-                            setButtons();
-                        });
-
-                formationButton.setTooltip(Tooltip.create(TOOLTIP_FORMATION));
-                addRenderableWidget(formationButton);
 
                 //WANDER FREELY
                 RecruitsCommandButton wanderButton = new RecruitsCommandButton(x + 120, y, TEXT_WANDER,
                         button -> {
-                            if(!groups.isEmpty()) for(RecruitsGroup group : groups) Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 0, group.getId(), formation));
+                            sendMovementCommandToServer(0);
+                            sendMovementCommandInChat(0);
+
                         });
                 wanderButton.setTooltip(Tooltip.create(TOOLTIP_WANDER));
                 addRenderableWidget(wanderButton);
 
                 //BACK TO POS
-                RecruitsCommandButton backToPosButton = new RecruitsCommandButton(x, y + 50, TEXT_BACK_TO_POS,
+                RecruitsCommandButton backToPosButton = new RecruitsCommandButton(x - 120, y, TEXT_BACK_TO_POS,
                         button -> {
                             sendMovementCommandToServer(3);
                             sendMovementCommandInChat(3);
@@ -356,11 +336,76 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                         });
                 backwardButton.setTooltip(Tooltip.create(TOOLTIP_BACKWARD));
                 addRenderableWidget(backwardButton);
+
+                //NONE
+                RecruitsFormationButton noneFormationButton = new RecruitsFormationButton(Formation.NONE, x, y + 50,
+                        button -> {
+                            this.setFormation(Formation.NONE);
+                        });
+                noneFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_NONE));
+                addRenderableWidget(noneFormationButton);
+
+                //LINE UP
+                RecruitsFormationButton lineUpFormationButton = new RecruitsFormationButton(Formation.LINE, x - 21, y + 50,
+                        button -> {
+                            this.setFormation(Formation.LINE);
+                        });
+                lineUpFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_LINEUP));
+                addRenderableWidget(lineUpFormationButton);
+
+                //SQUARE
+                RecruitsFormationButton squareFormationButton = new RecruitsFormationButton(Formation.SQUARE, x + 21, y + 50,
+                        button -> {
+                            this.setFormation(Formation.SQUARE);
+                        });
+                squareFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_SQUARE));
+                addRenderableWidget(squareFormationButton);
+
+                //TRIANGLE
+                RecruitsFormationButton triangleFormationButton = new RecruitsFormationButton(Formation.TRIANGLE, x - 42, y + 50,
+                        button -> {
+                            this.setFormation(Formation.TRIANGLE);
+                        });
+                triangleFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_TRIANGLE));
+                addRenderableWidget(triangleFormationButton);
+
+                //V_FORM
+                RecruitsFormationButton VFormFormationButton = new RecruitsFormationButton(Formation.VFORM, x + 42, y + 50,
+                        button -> {
+                            this.setFormation(Formation.VFORM);
+                        });
+                VFormFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_V));
+                addRenderableWidget(VFormFormationButton);
+
+                //CIRCLE
+                RecruitsFormationButton circleFormationButton = new RecruitsFormationButton(Formation.HCIRCLE, x - 63, y + 50,
+                        button -> {
+                            this.setFormation(Formation.HCIRCLE);
+                        });
+                circleFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_HOLLOW_CIRCLE));
+                addRenderableWidget(circleFormationButton);
+
+                //H SQAURE
+                RecruitsFormationButton hSquareFormationButton = new RecruitsFormationButton(Formation.HSQUARE, x + 63, y + 50,
+                        button -> {
+                            this.setFormation(Formation.HSQUARE);
+                        });
+                hSquareFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_HOLLOW_SQUARE));
+                addRenderableWidget(hSquareFormationButton);
+
+                noneFormationButton.active = formation == Formation.NONE;
+                lineUpFormationButton.active = formation == Formation.LINE;
+                squareFormationButton.active = formation == Formation.SQUARE;
+                hSquareFormationButton.active = formation == Formation.HSQUARE;
+                triangleFormationButton.active = formation == Formation.TRIANGLE;
+                VFormFormationButton.active = formation == Formation.VFORM;
+                circleFormationButton.active = formation == Formation.HCIRCLE;
             }
             case COMBAT -> {
                 //STRATEGIC FIRE
                 RecruitsCommandButton strategicFireButton = new RecruitsCommandButton(x, y - 50, TEXT_STRATEGIC_FIRE,
                         button -> {
+
                             if(!groups.isEmpty()) for(RecruitsGroup group : groups) Main.SIMPLE_CHANNEL.sendToServer(new MessageStrategicFire(player.getUUID(), group.getId(), true));
                         });
                 strategicFireButton.setTooltip(Tooltip.create(TOOLTIP_STRATEGIC_FIRE));
@@ -430,7 +475,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             if (rayEntity != null && !groups.isEmpty()) {
                                 for(RecruitsGroup group : groups) {
                                     Main.SIMPLE_CHANNEL.sendToServer(new MessageProtectEntity(player.getUUID(), rayEntity.getUUID(), group.getId()));
-                                    Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 5, formation, group.getId()));
+                                    Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 5, formation.getIndex(), group.getId()));
                                 }
                             }
                         });
@@ -448,7 +493,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 //TEAM
                 RecruitsCommandButton teamButton = new RecruitsCommandButton(x, y + 50, TEXT_TEAM,
                         button -> {
-                            //Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player, state, groups, formation));
+                            Main.SIMPLE_CHANNEL.sendToServer(new MessageTeamMainScreen(player));
                         });
                 teamButton.setTooltip(Tooltip.create(TOOLTIP_TEAM));
                 addRenderableWidget(teamButton);
@@ -456,7 +501,13 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 //BACK TO MOUNT
                 RecruitsCommandButton backToMountButton = new RecruitsCommandButton(x + 100, y + 25, TEXT_BACK_TO_MOUNT,
                         button -> {
-                            //Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player, state, groups, formation));
+                            if (!groups.isEmpty()) {
+                                for (RecruitsGroup group : groups) {
+                                    if (!group.isDisabled()) {
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageBackToMountEntity(player.getUUID(), group.getId()));
+                                    }
+                                }
+                            }
                         });
                 backToMountButton.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_MOUNT));
                 addRenderableWidget(backToMountButton);
@@ -464,7 +515,13 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 //DISMOUNT
                 RecruitsCommandButton dismountButton = new RecruitsCommandButton(x - 100, y + 25, TEXT_DISMOUNT,
                         button -> {
-                            //Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player, state, groups, formation));
+                            if (!groups.isEmpty()) {
+                                for (RecruitsGroup group : groups) {
+                                    if (!group.isDisabled()) {
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageDismount(player.getUUID(), group.getId()));
+                                    }
+                                }
+                            }
                         });
                 dismountButton.setTooltip(Tooltip.create(TOOLTIP_DISMOUNT));
                 addRenderableWidget(dismountButton);
@@ -474,9 +531,9 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                         button -> {
                             if (!groups.isEmpty()) {
                                 for (RecruitsGroup group : groups) {
-                                    if (rayEntity != null) {
+                                    if (!group.isDisabled() && rayEntity != null) {
                                         Main.SIMPLE_CHANNEL.sendToServer(new MessageUpkeepEntity(player.getUUID(), rayEntity.getUUID(), group.getId()));
-                                    } else if (rayBlockPos != null)
+                                    } else if (!group.isDisabled() && rayBlockPos != null)
                                         Main.SIMPLE_CHANNEL.sendToServer(new MessageUpkeepPos(player.getUUID(), group.getId(), this.rayBlockPos));
                                 }
                             }
@@ -502,36 +559,24 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         }
         if(!groups.isEmpty()){
             for(RecruitsGroup group : groups){
-                if(!group.isDisabled()) Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), state, group.getId(), formation));
+                if(!group.isDisabled()) Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), state, group.getId(), formation.getIndex()));
             }
         }
     }
 
-    public int getSavedFormationSelection(Player player) {
+    public Formation getSavedFormationFromClient() {
         CompoundTag playerNBT = player.getPersistentData();
         CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
 
-        return nbt.getInt("FormationSelection");
+        return Formation.fromIndex((byte) nbt.getInt("FormationSelection"));
     }
 
-    public void saveFormationSelection(Player player) {
+    public void saveFormationSelection() {
         CompoundTag playerNBT = player.getPersistentData();
         CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
 
-        nbt.putInt("FormationSelection", formation);
+        nbt.putByte("FormationSelection", formation.getIndex());
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
-    }
-
-    private Component getFormationString(int formation) {
-        switch (formation){
-            default -> {return TEXT_FORMATION_NONE;}
-            case 1 -> {return TEXT_FORMATION_LINEUP;}
-            case 2 -> {return TEXT_FORMATION_SQUARE;}
-            case 3 -> {return TEXT_FORMATION_TRIANGLE;}
-            case 4 -> {return TEXT_FORMATION_HOLLOW_CIRCLE;}
-            case 5 -> {return TEXT_FORMATION_HOLLOW_SQUARE;}
-            case 6 -> {return TEXT_FORMATION_V;}
-        }
     }
 
     public void sendMovementCommandInChat(int state){
@@ -705,7 +750,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         return allActive;
     }
 
-
+    @OnlyIn(Dist.CLIENT)
     private enum Selection {
         COMBAT((byte) -1),
         MOVEMENT((byte) 0),
@@ -744,6 +789,36 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
 
         public static Selection fromIndex(byte index) {
             for (Selection state : Selection.values()) {
+                if (state.getIndex() == index) {
+                    return state;
+                }
+            }
+            throw new IllegalArgumentException("Invalid Selection index: " + index);
+        }
+    }
+    @OnlyIn(Dist.CLIENT)
+    public enum Formation {
+        NONE((byte) 0),
+        LINE((byte) 1),
+        SQUARE((byte) 2),
+        TRIANGLE((byte) 3),
+        VFORM((byte) 4),
+        HCIRCLE((byte) 5),
+        HSQUARE((byte) 6);
+
+        private final byte index;
+
+        Formation(byte index) {
+            this.index = index;
+        }
+
+        public byte getIndex() {
+            return this.index;
+        }
+
+
+        public static Formation fromIndex(byte index) {
+            for (Formation state : Formation.values()) {
                 if (state.getIndex() == index) {
                     return state;
                 }
