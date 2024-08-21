@@ -482,8 +482,14 @@ public class CommandEvents {
         }
     }
 
-    private static Component TEXT_PASSIVE(String group_string) {
-        return new TranslatableComponent("chat.recruits.command.passive", group_string);
+    public static void onRestCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean should) {
+        if (recruit.isEffectedByCommand(player_uuid, group)){
+            recruit.setShouldRest(should);
+        }
+    }
+
+    private static MutableComponent TEXT_PASSIVE(String group_string) {
+        return Component.translatable("chat.recruits.command.passive", group_string);
     }
 
     private static MutableComponent TEXT_RAID(String group_string) {
