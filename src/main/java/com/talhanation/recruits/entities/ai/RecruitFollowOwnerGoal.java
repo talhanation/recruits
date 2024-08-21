@@ -67,6 +67,7 @@ public class RecruitFollowOwnerGoal extends Goal {
     }
 
     public void stop() {
+        super.stop();
         this.owner = null;
         this.recruit.setIsFollowing(false);
         this.recruit.getNavigation().stop();
