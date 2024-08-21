@@ -479,6 +479,12 @@ public class CommandEvents {
         }
     }
 
+    public static void onRestCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean should) {
+        if (recruit.isEffectedByCommand(player_uuid, group)){
+            recruit.setShouldRest(should);
+        }
+    }
+
     private static MutableComponent TEXT_PASSIVE(String group_string) {
         return Component.translatable("chat.recruits.command.passive", group_string);
     }

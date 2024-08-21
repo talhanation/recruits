@@ -2,93 +2,92 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Vec3i;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+
+import java.util.Comparator;
+import java.util.Stack;
 
 public class RestGoal extends Goal {
     private final AbstractRecruitEntity recruit;
-    private final MutableComponent NEED_BED = Component.translatable("chat.workers.needBed");
-    private final MutableComponent CANT_FIND_BED = Component.translatable("chat.workers.cantFindBed");
-    private final MutableComponent BED_OCCUPIED = Component.translatable("chat.workers.bedOccupied");
-    private boolean messageCantFindBed;
-    private boolean messageBedOccupied;
-    private boolean noBed;
+    private Stack<BlockPos> stackOfBeds;
+    private BlockPos sleepPos;
+    private long lastCanUseCheck;
+
     public RestGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
     }
 
+    private boolean isHealth(){
+        return recruit.getHealth() < recruit.getMaxHealth();
+    }
+
+    private boolean isMorale(){
+        return recruit.getMoral() < 45;
+    }
+    private boolean canRest(){
+        return (recruit.getShouldRest() || this.recruit.getCommandSenderWorld().isNight()) && recruit.getFollowState() == 0 && recruit.getTarget() == null && (isMorale() || isHealth());
+    }
+
     @Override
     public boolean canUse() {
-        return false; //cruit.shouldRest();
+        long i = this.recruit.getCommandSenderWorld().getGameTime();
+        if (i - this.lastCanUseCheck >= 20L) {
+            this.lastCanUseCheck = i;
+            return this.canRest();
+        }
+        return false;
     }
-    /*
+
     public boolean canContinueToUse() {
-        return recruit.shouldRest() && recruit.getTarget() == null && recruit.getFollowState() == 0;
+        return this.canRest();
     }
 
     @Override
     public void start() {
         super.start();
-        this.messageCantFindBed = true;
-        this.messageBedOccupied = true;
-
-        if(recruit.getBedPos() == null) {
-            if (recruit.getOwner() != null) {
-                this.recruit.tellPlayer(recruit.getOwner(), Translatable.NEED_BED);
-            }
-            this.noBed = true;
-        }
+        this.stackOfBeds = this.getListOfBeds();
     }
 
     @Override
     public void stop() {
         super.stop();
+        this.stackOfBeds.removeAllElements();
         this.recruit.stopSleeping();
         this.recruit.clearSleepingPos();
-        if(this.recruit.getStatus() != AbstractWorkerEntity.Status.FOLLOW) this.recruit.setStatus(AbstractWorkerEntity.Status.IDLE);
-        this.recruit.shouldDepositBeforeSleep = true;
+        this.recruit.setShouldRest(false);
     }
 
     @Override
     public void tick() {
+
         if (recruit.isSleeping()) {
             this.recruit.getNavigation().stop();
-            this.recruit.heal(0.025F);
-            if(this.recruit.getMoral() < 60) this.recruit.setMoral(this.recruit.getMoral() + 0.25F);
+            this.recruit.heal(0.0025F);
+            if(this.recruit.getMoral() < 60) this.recruit.setMoral(this.recruit.getMoral() + 0.0025F);
             return;
         }
-        if(recruit.tickCount % 20 == 0){
-            BlockPos sleepPos = this.getRandomBedPos();
-            if(sleepPos != null){
-                LivingEntity owner = recruit.getOwner();
+
+        if(!stackOfBeds.isEmpty()){
+            if(this.sleepPos != null){
                 BlockEntity bedEntity = recruit.getCommandSenderWorld().getBlockEntity(sleepPos);
-                if (bedEntity == null || !bedEntity.getBlockState().isBed(recruit.level, sleepPos, recruit)) {
-                    if(messageCantFindBed && owner != null){
-                        recruit.tellPlayer(owner, CANT_FIND_BED);
-                        messageCantFindBed = false;
-                        this.noBed = true;
-                    }
-                    return;
-                }
-                if (bedEntity.getBlockState().getValue(BlockStateProperties.OCCUPIED)) {
-                    if(messageBedOccupied){
-                        if(owner != null) recruit.tellPlayer(owner, BED_OCCUPIED);
-                        messageBedOccupied = false;
-                        this.noBed = true;
-                    }
-                }
-                else {
+                if (bedEntity != null && bedEntity.getBlockState().isBed(recruit.getCommandSenderWorld(), sleepPos, recruit) && !bedEntity.getBlockState().getValue(BlockStateProperties.OCCUPIED)) {
                     this.goToBed(sleepPos);
                 }
+                else{
+                    this.sleepPos = this.stackOfBeds.pop();
+                }
             }
-        }
+            else{
+                this.sleepPos = this.stackOfBeds.pop();
+            }
 
+        }
+        else stop();
     }
 
 
@@ -98,7 +97,7 @@ public class RestGoal extends Goal {
         }
         // Move to the bed and stay there.
         PathNavigation pathFinder = this.recruit.getNavigation();
-        pathFinder.moveTo(bedPos.getX(), bedPos.getY(), bedPos.getZ(), 1.1D);
+        pathFinder.moveTo(bedPos.getX(), bedPos.getY(), bedPos.getZ(), 1D);
         this.recruit.getLookControl().setLookAt(
                 bedPos.getX(),
                 bedPos.getY() + 1,
@@ -107,36 +106,35 @@ public class RestGoal extends Goal {
                 (float) this.recruit.getMaxHeadXRot()
         );
 
-        if (bedPos.distManhattan((Vec3i) recruit.getWorkerOnPos()) <= 5) {
+        if (bedPos.distToCenterSqr(recruit.position()) <= 75) {
             this.recruit.startSleeping(bedPos);
             this.recruit.setSleepingPos(bedPos);
             pathFinder.stop();
         }
     }
 
-
-    /*
-    @Nullable
-    private BlockPos grabRandomBed() {
-        BlockPos bedPos;
-        int range = 16;
+    private Stack<BlockPos> getListOfBeds() {
+        Stack<BlockPos> stack = new Stack<>();
+        int range = 25;
 
         for (int x = -range; x < range; x++) {
-            for (int y = -range; y < range; y++) {
+            for (int y = -3; y < 10; y++) {
                 for (int z = -range; z < range; z++) {
-                    bedPos = worker.getOnPos().offset(x, y, z);
-                    BlockState state = worker.level.getBlockState(bedPos);
+                    BlockPos pos = recruit.getOnPos().offset(x, y, z);
+                    BlockState state = recruit.getCommandSenderWorld().getBlockState(pos);
 
-                    if (state.isBed(worker.level, bedPos, this.worker) &&
+                    if (state.isBed(recruit.getCommandSenderWorld(), pos, this.recruit) &&
                         state.getValue(BlockStateProperties.BED_PART) == BedPart.HEAD &&
                         !state.getValue(BlockStateProperties.OCCUPIED)) {
-                        return bedPos;
+                        stack.push(pos);
                     }
                 }
             }
         }
-        return null;
+        stack.sort(Comparator.comparing(pos -> recruit.distanceToSqr(pos.getCenter())));
+
+        return stack;
     }
 
-     */
+
 }
