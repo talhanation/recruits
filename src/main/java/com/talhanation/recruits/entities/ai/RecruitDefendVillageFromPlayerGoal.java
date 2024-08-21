@@ -12,22 +12,22 @@ import javax.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.List;
 
-public class RecruitDefendVillageGoal extends TargetGoal {
+public class RecruitDefendVillageFromPlayerGoal extends TargetGoal {
     private final AbstractRecruitEntity recruit;
     @Nullable
     private LivingEntity potentialTarget;
     private final TargetingConditions attackTargeting = TargetingConditions.forCombat().range(64.0D);
 
-    public RecruitDefendVillageGoal(AbstractRecruitEntity p_26029_) {
+    public RecruitDefendVillageFromPlayerGoal(AbstractRecruitEntity p_26029_) {
         super(p_26029_, false, true);
         this.recruit = p_26029_;
         this.setFlags(EnumSet.of(Flag.TARGET));
     }
 
     public boolean canUse() {
-        AABB aabb = this.recruit.getBoundingBox().inflate(10.0D, 8.0D, 10.0D);
-        List<? extends LivingEntity> list = this.recruit.level.getNearbyEntities(Villager.class, this.attackTargeting, this.recruit, aabb);
-        List<Player> list1 = this.recruit.level.getNearbyPlayers(this.attackTargeting, this.recruit, aabb);
+        AABB aabb = this.recruit.getBoundingBox().inflate(30.0D, 8.0D, 30.0D);
+        List<? extends LivingEntity> list = this.recruit.getCommandSenderWorld().getNearbyEntities(Villager.class, this.attackTargeting, this.recruit, aabb);
+        List<Player> list1 = this.recruit.getCommandSenderWorld().getNearbyPlayers(this.attackTargeting, this.recruit, aabb);
 
         for(LivingEntity livingentity : list) {
             Villager villager = (Villager)livingentity;
