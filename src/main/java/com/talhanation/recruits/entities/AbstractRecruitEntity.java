@@ -103,6 +103,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Byte> COLOR = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BYTE);
     private static final EntityDataAccessor<Byte> BIOME = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BYTE);
+    private static final EntityDataAccessor<Boolean> SHOULD_REST = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     public int blockCoolDown;
     public boolean needsTeamUpdate = true;
     public boolean forcedUpkeep;
@@ -225,14 +226,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(2, new RecruitMeleeAttackGoal(this, 1.05D, this.getMeleeStartRange()));
         this.goalSelector.addGoal(3, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
         //this.goalSelector.addGoal(7, new RecruitDodgeGoal(this));
-
-        this.goalSelector.addGoal(9, new MoveBackToVillageGoal(this, 0.6D, false));
-        this.goalSelector.addGoal(10, new GolemRandomStrollInVillageGoal(this, 0.6D));
-        this.goalSelector.addGoal(10, new RecruitWaterAvoidingRandomStrollGoal(this, 0.6D, 0.2F));
+        this.goalSelector.addGoal(4, new RestGoal(this));
+        this.goalSelector.addGoal(10, new RecruitWanderGoal(this));
         this.goalSelector.addGoal(11, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(12, new RandomLookAroundGoal(this));
         //this.goalSelector.addGoal(13, new RecruitPickupWantedItemGoal(this));
-
         this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, LivingEntity.class, 10, true, false, (target) -> {
             return (this.getState() == 2 && this.canAttack(target));
         }));
@@ -257,7 +255,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.targetSelector.addGoal(6, new RecruitNearestAttackableTargetGoal<>(this, Monster.class, 10, true, false, (target) -> {
             return this.canAttack(target) && (this.getState() != 3);
         }));
-        this.targetSelector.addGoal(7, new RecruitDefendVillageGoal(this));
+        this.targetSelector.addGoal(7, new RecruitDefendVillageFromPlayerGoal(this));
     }
 
     protected void defineSynchedData() {
@@ -292,6 +290,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(COST, 1);
         this.entityData.define(COLOR, (byte) 0);
         this.entityData.define(BIOME, (byte) 0);
+        this.entityData.define(SHOULD_REST, false);
 
         //STATE
         // 0 = NEUTRAL
@@ -336,7 +335,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putInt("Biome", this.getBiome());
         nbt.putInt("MaxFallDistance", this.getMaxFallDistance());
         nbt.putInt("formationPos", formationPos);
-
+        nbt.putBoolean("ShouldRest", this.getShouldRest());
 
         if(this.getHoldPos() != null){
             nbt.putDouble("HoldPosX", this.getHoldPos().x());
@@ -406,7 +405,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         this.setMaxFallDistance(nbt.getInt("MaxFallDistance"));
         this.formationPos = (nbt.getInt("formationPos"));
-
+        this.setShouldRest(nbt.getBoolean("ShouldRest"));
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
@@ -558,7 +557,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public boolean isFollowing(){
         return entityData.get(IS_FOLLOWING);
     }
-
+    public boolean getShouldRest() {
+        return entityData.get(SHOULD_REST);
+    }
     public int getState() {
         return entityData.get(STATE);
     }
@@ -788,7 +789,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void setGroup(int group){
         entityData.set(GROUP, group);
     }
-
+    public void setShouldRest(boolean bool){
+        if(bool) setFollowState(0);
+        entityData.set(SHOULD_REST, bool);
+    }
     public void setState(int state) {
         switch (state){
             case 0:
