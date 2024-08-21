@@ -264,7 +264,7 @@
 
   "gui.recruits.inv.text.captain" : "Captain",
   "gui.recruits.inv.tooltip.captain" : "A Captain can patrol sea routes, use cannons in small ships and command a group of recruits.",
-   "gui.recruits.inv.tooltip.captain_disabled" : "Small ships mod b1.3 needed!",
+   "gui.recruits.inv.tooltip.captain_disabled" : "Small ships mod b1.3 or newer needed!",
 
   "gui.recruits.inv.text.scout" : "Scout",
   "gui.recruits.inv.tooltip.scout" : "A Scout can locate nearby structures and enemy players and recruits.",
