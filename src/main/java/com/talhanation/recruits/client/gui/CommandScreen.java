@@ -233,7 +233,6 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
 
-    RecruitsCommandButton formationButton;
     private void createCommandButtons(Selection selection, int x, int y) {
         RecruitsCategoryButton movementButton = new RecruitsCategoryButton(Items.LEATHER_BOOTS.getDefaultInstance(), x , y + 87, Component.literal(""),
                 button -> {
@@ -542,7 +541,13 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 //REST
                 RecruitsCommandButton restButton = new RecruitsCommandButton(x - 100, y, TEXT_REST,
                         button -> {
-                            //Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player, state, groups, formation));
+                            if (!groups.isEmpty()) {
+                                for (RecruitsGroup group : groups) {
+                                    if (!group.isDisabled()) {
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageRest(player.getUUID(), group.getId(), true));
+                                    }
+                                }
+                            }
                         });
                 restButton.setTooltip(Tooltip.create(TOOLTIP_REST));
                 addRenderableWidget(restButton);
@@ -800,9 +805,9 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         LINE((byte) 1),
         SQUARE((byte) 2),
         TRIANGLE((byte) 3),
-        VFORM((byte) 4),
-        HCIRCLE((byte) 5),
-        HSQUARE((byte) 6);
+        HCIRCLE((byte) 4),
+        HSQUARE((byte) 5),
+        VFORM((byte) 6);
 
         private final byte index;
 
