@@ -37,7 +37,8 @@ public class RecruitRangedMusketAttackGoal extends Goal {
 
     public boolean canUse() {
         LivingEntity livingentity = this.crossBowman.getTarget();
-        if(livingentity != null && livingentity.isAlive() && this.isWeaponInHand()){
+        boolean shouldRanged = crossBowman.getShouldRanged();
+        if(livingentity != null && livingentity.isAlive() && this.isWeaponInHand() && shouldRanged){
             return livingentity.distanceTo(this.crossBowman) >= stopRange && this.canAttackMovePos() && !this.crossBowman.needsToGetFood() && !this.crossBowman.getShouldMount();
         }
         else
