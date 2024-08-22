@@ -104,6 +104,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Byte> COLOR = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BYTE);
     private static final EntityDataAccessor<Byte> BIOME = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BYTE);
     private static final EntityDataAccessor<Boolean> SHOULD_REST = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> SHOULD_RANGED = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     public int blockCoolDown;
     public boolean needsTeamUpdate = true;
     public boolean forcedUpkeep;
@@ -291,7 +292,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(COLOR, (byte) 0);
         this.entityData.define(BIOME, (byte) 0);
         this.entityData.define(SHOULD_REST, false);
-
+        this.entityData.define(SHOULD_RANGED, true);
         //STATE
         // 0 = NEUTRAL
         // 1 = AGGRESSIVE
@@ -336,6 +337,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putInt("MaxFallDistance", this.getMaxFallDistance());
         nbt.putInt("formationPos", formationPos);
         nbt.putBoolean("ShouldRest", this.getShouldRest());
+        nbt.putBoolean("ShouldRanged", this.getShouldRanged());
 
         if(this.getHoldPos() != null){
             nbt.putDouble("HoldPosX", this.getHoldPos().x());
@@ -560,7 +562,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public boolean getShouldRest() {
         return entityData.get(SHOULD_REST);
     }
-    public int getState() {
+
+    public boolean getShouldRanged() {
+        return entityData.get(SHOULD_RANGED);
+    }
+        public int getState() {
         return entityData.get(STATE);
     }
     //STATE
@@ -749,14 +755,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void setXp(int xp){
-        this. entityData.set(XP, xp);
+        this.entityData.set(XP, xp);
     }
 
     public void addXp(int xp){
         int currentXp = this.getXp();
         int newXp = currentXp + xp;
 
-        this. entityData.set(XP, newXp);
+        this.entityData.set(XP, newXp);
     }
 
     public void setShouldHoldPos(boolean bool){
@@ -775,7 +781,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void setShouldFollow(boolean bool){
-            entityData.set(SHOULD_FOLLOW, bool);
+        entityData.set(SHOULD_FOLLOW, bool);
     }
 
     public void setShouldBlock(boolean bool){
@@ -793,6 +799,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if(bool) setFollowState(0);
         entityData.set(SHOULD_REST, bool);
     }
+
+    public void setShouldRanged(boolean should) {
+        entityData.set(SHOULD_RANGED, should);
+    }
+
     public void setState(int state) {
         switch (state){
             case 0:

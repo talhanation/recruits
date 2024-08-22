@@ -36,12 +36,14 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/command_gui.png");
 
     private static final MutableComponent TOOLTIP_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.tooltip.strategic_fire");
+    private static final MutableComponent TOOLTIP_HOLD_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.tooltip.hold_strategic_fire");
     private static final MutableComponent TOOLTIP_DISMOUNT = Component.translatable("gui.recruits.command.tooltip.dismount");
     private static final MutableComponent TOOLTIP_MOUNT = Component.translatable("gui.recruits.command.tooltip.mount");
-    private static final MutableComponent TOOLTIP_SHIELDS = Component.translatable("gui.recruits.command.tooltip.shields");
+    private static final MutableComponent TOOLTIP_SHIELDS_UP = Component.translatable("gui.recruits.command.tooltip.shields_up");
+    private static final MutableComponent TOOLTIP_SHIELDS_DOWN = Component.translatable("gui.recruits.command.tooltip.shields_down");
     private static final MutableComponent TOOLTIP_PROTECT = Component.translatable("gui.recruits.command.tooltip.protect");
-    private static final MutableComponent TOOLTIP_MOVE = Component.translatable("gui.recruits.command.tooltip.move");
-    private static final MutableComponent TOOLTIP_MOVE_HOLD = Component.translatable("gui.recruits.command.tooltip.move_hold");
+    //private static final MutableComponent TOOLTIP_MOVE = Component.translatable("gui.recruits.command.tooltip.move");
+    private static final MutableComponent TOOLTIP_MOVE = Component.translatable("gui.recruits.command.tooltip.move_hold");
     private static final MutableComponent TOOLTIP_FORWARD = Component.translatable("gui.recruits.command.tooltip.forward");
     private static final MutableComponent TOOLTIP_FORMATION = Component.translatable("gui.recruits.command.tooltip.formation");
     private static final MutableComponent TOOLTIP_BACKWARD = Component.translatable("gui.recruits.command.tooltip.backward");
@@ -71,7 +73,8 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TEXT_MOVE_HOLD = Component.translatable("gui.recruits.command.text.move_hold");
     private static final MutableComponent TEXT_FORWARD = Component.translatable("gui.recruits.command.text.forward");
     private static final MutableComponent TEXT_BACKWARD = Component.translatable("gui.recruits.command.text.backward");
-    private static final MutableComponent TEXT_SHIELDS = Component.translatable("gui.recruits.command.text.shields");
+    private static final MutableComponent TEXT_SHIELDS_UP = Component.translatable("gui.recruits.command.text.shields_up");
+    private static final MutableComponent TEXT_SHIELDS_DOWN = Component.translatable("gui.recruits.command.text.shields_down");
     private static final MutableComponent TEXT_DISMOUNT = Component.translatable("gui.recruits.command.text.dismount");
     private static final MutableComponent TEXT_MOUNT = Component.translatable("gui.recruits.command.text.mount");
     private static final MutableComponent TEXT_FOLLOW = Component.translatable("gui.recruits.command.text.follow");
@@ -268,7 +271,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 RecruitsCommandButton moveButton = new RecruitsCommandButton(x, y - 50, TEXT_MOVE,
                         button -> {
                             sendMovementCommandToServer(6);
-                            sendMovementCommandInChat(6);
+                            sendCommandInChat(6);
                         });
                 moveButton.setTooltip(Tooltip.create(TOOLTIP_MOVE));
                 addRenderableWidget(moveButton);
@@ -277,7 +280,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 RecruitsCommandButton forwardButton = new RecruitsCommandButton(x - 60, y - 25, TEXT_FORWARD,
                         button -> {
                             sendMovementCommandToServer(7);
-                            sendMovementCommandInChat(7);
+                            sendCommandInChat(7);
                 });
                 forwardButton.setTooltip(Tooltip.create(TOOLTIP_FORWARD));
                 addRenderableWidget(forwardButton);
@@ -292,7 +295,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             else {
                                 sendMovementCommandToServer(1);
                             }
-                            sendMovementCommandInChat(1);
+                            sendCommandInChat(1);
                         });
                 followButton.setTooltip(Tooltip.create(TOOLTIP_FOLLOW));
                 addRenderableWidget(followButton);
@@ -302,7 +305,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 RecruitsCommandButton wanderButton = new RecruitsCommandButton(x + 120, y, TEXT_WANDER,
                         button -> {
                             sendMovementCommandToServer(0);
-                            sendMovementCommandInChat(0);
+                            sendCommandInChat(0);
 
                         });
                 wanderButton.setTooltip(Tooltip.create(TOOLTIP_WANDER));
@@ -312,7 +315,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 RecruitsCommandButton backToPosButton = new RecruitsCommandButton(x - 120, y, TEXT_BACK_TO_POS,
                         button -> {
                             sendMovementCommandToServer(3);
-                            sendMovementCommandInChat(3);
+                            sendCommandInChat(3);
 
                         });
                 backToPosButton.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_POS));
@@ -322,7 +325,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 RecruitsCommandButton holdPosButton = new RecruitsCommandButton(x + 60, y + 25, TEXT_HOLD_POS,
                         button -> {
                             sendMovementCommandToServer(2);
-                            sendMovementCommandInChat(2);
+                            sendCommandInChat(2);
                         });
                 holdPosButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_POS));
                 addRenderableWidget(holdPosButton);
@@ -331,7 +334,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 RecruitsCommandButton backwardButton = new RecruitsCommandButton(x - 60, y + 25, TEXT_BACKWARD,
                         button -> {
                             sendMovementCommandToServer(8);
-                            sendMovementCommandInChat(8);
+                            sendCommandInChat(8);
                         });
                 backwardButton.setTooltip(Tooltip.create(TOOLTIP_BACKWARD));
                 addRenderableWidget(backwardButton);
@@ -404,64 +407,167 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 //STRATEGIC FIRE
                 RecruitsCommandButton strategicFireButton = new RecruitsCommandButton(x, y - 50, TEXT_STRATEGIC_FIRE,
                         button -> {
+                            if (!groups.isEmpty()) {
+                                for (RecruitsGroup group : groups) {
+                                    if (!group.isDisabled()) {
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageStrategicFire(player.getUUID(), group.getId(), true));
+                                    }
+                                }
+                                sendCommandInChat(72);
+                            }
 
-                            if(!groups.isEmpty()) for(RecruitsGroup group : groups) Main.SIMPLE_CHANNEL.sendToServer(new MessageStrategicFire(player.getUUID(), group.getId(), true));
                         });
                 strategicFireButton.setTooltip(Tooltip.create(TOOLTIP_STRATEGIC_FIRE));
                 addRenderableWidget(strategicFireButton);
 
-                //HOLD FIRE/FIRE AT WILL
-                RecruitsCommandButton holdFireButton = new RecruitsCommandButton(x, y - 25, TEXT_HOLD_FIRE,
+                //HOLD STRATEGIC FIRE
+                RecruitsCommandButton holdStrategicFireButton = new RecruitsCommandButton(x, y - 25, TEXT_HOLD_STRATEGIC_FIRE,
                         button -> {
-                            //Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player, state, groups, formation));
+                            if (!groups.isEmpty()) {
+                                for (RecruitsGroup group : groups) {
+                                    if (!group.isDisabled()) {
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageStrategicFire(player.getUUID(), group.getId(), false));
+                                    }
+                                }
+                                sendCommandInChat(73);
+                            }
+
+                        });
+                holdStrategicFireButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_STRATEGIC_FIRE));
+                addRenderableWidget(holdStrategicFireButton);
+
+                //FIRE AT WILL
+                RecruitsCommandButton fireAtWillButton = new RecruitsCommandButton(x + 100, y - 38, TEXT_FIRE_AT_WILL,
+                        button -> {
+                            if (!groups.isEmpty()) {
+                                for (RecruitsGroup group : groups) {
+                                    if (!group.isDisabled()) {
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageRangedFire(player.getUUID(), group.getId(), true));
+                                    }
+                                }
+                                sendCommandInChat(70);
+                            }
+                        });
+                fireAtWillButton.setTooltip(Tooltip.create(TOOLTIP_FIRE_AT_WILL));
+                addRenderableWidget(fireAtWillButton);
+
+                //HOLD FIRE
+                RecruitsCommandButton holdFireButton = new RecruitsCommandButton(x + 100, y - 13, TEXT_HOLD_FIRE,
+                        button -> {
+                            if (!groups.isEmpty()) {
+                                for (RecruitsGroup group : groups) {
+                                    if (!group.isDisabled()) {
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageStrategicFire(player.getUUID(), group.getId(), false));
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageRangedFire(player.getUUID(), group.getId(), false));
+                                    }
+                                }
+                                sendCommandInChat(71);
+                            }
                         });
                 holdFireButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_FIRE));
                 addRenderableWidget(holdFireButton);
 
-                //SHIELDS
-                RecruitsCommandButton shieldsButton = new RecruitsCommandButton(x, y + 25, TEXT_SHIELDS,
+                //SHIELDS UP
+                RecruitsCommandButton shieldsUpButton = new RecruitsCommandButton(x + 100, y + 13, TEXT_SHIELDS_UP,
                         button -> {
-                            //Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player, state, groups, formation));
+                            if (!groups.isEmpty()) {
+                                for (RecruitsGroup group : groups) {
+                                    if (!group.isDisabled()) {
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageShields(player.getUUID(), group.getId(), true));
+                                    }
+                                }
+                                sendCommandInChat(74);
+                            }
                         });
-                shieldsButton.setTooltip(Tooltip.create(TOOLTIP_SHIELDS));
-                addRenderableWidget(shieldsButton);
+                shieldsUpButton.setTooltip(Tooltip.create(TOOLTIP_SHIELDS_UP));
+                addRenderableWidget(shieldsUpButton);
 
-                //CLEAR TARGETS
+                //SHIELDS DOWN
+                RecruitsCommandButton shieldsDownButton = new RecruitsCommandButton(x + 100, y + 38, TEXT_SHIELDS_DOWN,
+                        button -> {
+                            if (!groups.isEmpty()) {
+                                for (RecruitsGroup group : groups) {
+                                    if (!group.isDisabled()) {
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageShields(player.getUUID(), group.getId(), false));
+                                    }
+                                }
+                                sendCommandInChat(75);
+                            }
+                        });
+                shieldsDownButton.setTooltip(Tooltip.create(TOOLTIP_SHIELDS_DOWN));
+                addRenderableWidget(shieldsDownButton);
+
+                //FORGET TARGETS
                 RecruitsCommandButton clearTargetsButton = new RecruitsCommandButton(x, y + 50, TEXT_CLEAR_TARGET,
                         button -> {
-                            if(!groups.isEmpty()) for(RecruitsGroup group : groups) Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTarget(player.getUUID(), group.getId()));
+                            if (!groups.isEmpty()) {
+                                for (RecruitsGroup group : groups) {
+                                    if (!group.isDisabled()) {
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTarget(player.getUUID(), group.getId()));
+                                    }
+                                }
+                                sendCommandInChat(9);
+                            }
                         });
                 clearTargetsButton.setTooltip(Tooltip.create(TOOLTIP_CLEAR_TARGET));
                 addRenderableWidget(clearTargetsButton);
 
                 //PASSIVE
-                RecruitsCommandButton passiveButton = new RecruitsCommandButton(x - 100, y - 25, TEXT_PASSIVE,
+                RecruitsCommandButton passiveButton = new RecruitsCommandButton(x - 100, y - 38, TEXT_PASSIVE,
                         button -> {
-                            if(!groups.isEmpty()) for(RecruitsGroup group : groups) Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 3, group.getId()));
+                            if (!groups.isEmpty()) {
+                                for (RecruitsGroup group : groups) {
+                                    if (!group.isDisabled()) {
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 3, group.getId()));
+                                    }
+                                }
+                                sendCommandInChat(13);
+                            }
                         });
                 passiveButton.setTooltip(Tooltip.create(TOOLTIP_PASSIVE));
                 addRenderableWidget(passiveButton);
 
                 //NEUTRAL
-                RecruitsCommandButton neutralButton = new RecruitsCommandButton(x - 100, y + 25, TEXT_NEUTRAL,
+                RecruitsCommandButton neutralButton = new RecruitsCommandButton(x - 100, y - 13 , TEXT_NEUTRAL,
                         button -> {
-                            if(!groups.isEmpty()) for(RecruitsGroup group : groups) Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 0, group.getId()));
+                            if (!groups.isEmpty()) {
+                                for (RecruitsGroup group : groups) {
+                                    if (!group.isDisabled()) {
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 0, group.getId()));
+                                    }
+                                }
+                                sendCommandInChat(10);
+                            }
                         });
                 neutralButton.setTooltip(Tooltip.create(TOOLTIP_NEUTRAL));
                 addRenderableWidget(neutralButton);
 
                 //RAID
-                RecruitsCommandButton raidButton = new RecruitsCommandButton(x + 100, y - 25, TEXT_RAID,
+                RecruitsCommandButton raidButton = new RecruitsCommandButton(x - 100, y + 38, TEXT_RAID,
                         button -> {
-                            if(!groups.isEmpty()) for(RecruitsGroup group : groups) Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 2, group.getId()));
+                            if (!groups.isEmpty()) {
+                                for (RecruitsGroup group : groups) {
+                                    if (!group.isDisabled()) {
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 2, group.getId()));
+                                    }
+                                }
+                                sendCommandInChat(12);
+                            }
                         });
                 raidButton.setTooltip(Tooltip.create(TOOLTIP_RAID));
                 addRenderableWidget(raidButton);
 
                 //AGGRESSIVE
-                RecruitsCommandButton aggressiveButton = new RecruitsCommandButton(x + 100, y + 25, TEXT_AGGRESSIVE,
+                RecruitsCommandButton aggressiveButton = new RecruitsCommandButton(x - 100, y + 13, TEXT_AGGRESSIVE,
                         button -> {
-                            if(!groups.isEmpty()) for(RecruitsGroup group : groups) Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 1, group.getId()));
+                            if (!groups.isEmpty()) {
+                                for (RecruitsGroup group : groups) {
+                                    if (!group.isDisabled()) {
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 1, group.getId()));
+                                    }
+                                }
+                                sendCommandInChat(11);
+                            }
                         });
                 aggressiveButton.setTooltip(Tooltip.create(TOOLTIP_AGGRESSIVE));
                 addRenderableWidget(aggressiveButton);
@@ -476,6 +582,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                     Main.SIMPLE_CHANNEL.sendToServer(new MessageProtectEntity(player.getUUID(), rayEntity.getUUID(), group.getId()));
                                     Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 5, formation.getIndex(), group.getId()));
                                 }
+                                this.sendCommandInChat(5);
                             }
                         });
                 protectButton.setTooltip(Tooltip.create(TOOLTIP_PROTECT));
@@ -484,7 +591,12 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 //MOUNT
                 RecruitsCommandButton mountButton = new RecruitsCommandButton(x, y + 25, TEXT_MOUNT,
                         button -> {
-                            //Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player, state, groups, formation));
+                            if (rayEntity != null && !groups.isEmpty()) {
+                                for (RecruitsGroup group : groups) {
+                                    Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntity(player.getUUID(), rayEntity.getUUID(), group.getId()));
+                                }
+                                this.sendCommandInChat(99);
+                            }
                         });
                 mountButton.setTooltip(Tooltip.create(TOOLTIP_MOUNT));
                 addRenderableWidget(mountButton);
@@ -506,6 +618,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                         Main.SIMPLE_CHANNEL.sendToServer(new MessageBackToMountEntity(player.getUUID(), group.getId()));
                                     }
                                 }
+                                this.sendCommandInChat(91);
                             }
                         });
                 backToMountButton.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_MOUNT));
@@ -520,6 +633,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                         Main.SIMPLE_CHANNEL.sendToServer(new MessageDismount(player.getUUID(), group.getId()));
                                     }
                                 }
+                                this.sendCommandInChat(98);
                             }
                         });
                 dismountButton.setTooltip(Tooltip.create(TOOLTIP_DISMOUNT));
@@ -535,6 +649,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                     } else if (!group.isDisabled() && rayBlockPos != null)
                                         Main.SIMPLE_CHANNEL.sendToServer(new MessageUpkeepPos(player.getUUID(), group.getId(), this.rayBlockPos));
                                 }
+                                this.sendCommandInChat(92);
                             }
                         });
                 upkeepButton.setTooltip(Tooltip.create(TOOLTIP_UPKEEP));
@@ -549,6 +664,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                         Main.SIMPLE_CHANNEL.sendToServer(new MessageRest(player.getUUID(), group.getId(), true));
                                     }
                                 }
+                                this.sendCommandInChat(88);
                             }
                         });
                 restButton.setTooltip(Tooltip.create(TOOLTIP_REST));
@@ -556,7 +672,6 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             }
         }
     }
-
     private void sendMovementCommandToServer(int state) {
         if(state != 1){
             PlayerEvents.activeGroups = null;
@@ -584,7 +699,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
 
-    public void sendMovementCommandInChat(int state){
+    public void sendCommandInChat(int state){
         StringBuilder group_string = new StringBuilder();
         int i = 0;
         for(RecruitsGroup group : groups){
@@ -610,13 +725,23 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             case 6 -> this.player.sendSystemMessage(TEXT_MOVE(group_string.toString()));
             case 7 -> this.player.sendSystemMessage(TEXT_FORWARD(group_string.toString()));
             case 8 -> this.player.sendSystemMessage(TEXT_BACKWARD(group_string.toString()));
+            case 9 -> this.player.sendSystemMessage(TEXT_CLEAR_TARGETS(group_string.toString()));
 
+            case 10 -> this.player.sendSystemMessage(TEXT_NEUTRAL(group_string.toString()));
+            case 11 -> this.player.sendSystemMessage(TEXT_AGGRESSIVE(group_string.toString()));
+            case 12 -> this.player.sendSystemMessage(TEXT_RAID(group_string.toString()));
+            case 13 -> this.player.sendSystemMessage(TEXT_PASSIVE(group_string.toString()));
+
+            case 70 -> this.player.sendSystemMessage(TEXT_FIRE_AT_WILL(group_string.toString()));
+            case 71 -> this.player.sendSystemMessage(TEXT_HOLD_FIRE(group_string.toString()));
+            case 72 -> this.player.sendSystemMessage(TEXT_STRATEGIC_FIRE(group_string.toString()));
+            case 73 -> this.player.sendSystemMessage(TEXT_STRATEGIC_FIRE_OFF(group_string.toString()));
+            case 74 -> this.player.sendSystemMessage(TEXT_SHIELDS(group_string.toString()));
+            case 75 -> this.player.sendSystemMessage(TEXT_SHIELDS_OFF(group_string.toString()));
+
+            case 88 -> this.player.sendSystemMessage(TEXT_REST(group_string.toString()));
             case 91 -> this.player.sendSystemMessage(TEXT_BACK_TO_MOUNT(group_string.toString()));
             case 92 -> this.player.sendSystemMessage(TEXT_UPKEEP(group_string.toString()));
-            case 93 -> this.player.sendSystemMessage(TEXT_SHIELDS_OFF(group_string.toString()));
-            case 94 -> this.player.sendSystemMessage(TEXT_STRATEGIC_FIRE_OFF(group_string.toString()));
-            case 95 -> this.player.sendSystemMessage(TEXT_SHIELDS(group_string.toString()));
-            case 96 -> this.player.sendSystemMessage(TEXT_STRATEGIC_FIRE(group_string.toString()));
 
             case 98 -> this.player.sendSystemMessage(TEXT_DISMOUNT(group_string.toString()));
             case 99 -> this.player.sendSystemMessage(TEXT_MOUNT(group_string.toString()));
@@ -642,7 +767,9 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         return Component.translatable("chat.recruits.command.backToMount", group_string);
     }
 
-
+    private static MutableComponent TEXT_REST(String group_string) {
+        return Component.translatable("chat.recruits.command.rest", group_string);
+    }
     private static MutableComponent TEXT_HOLD_MY_POS(String group_string) {
         return Component.translatable("chat.recruits.command.holdMyPos", group_string);
     }
@@ -682,6 +809,9 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         return Component.translatable("chat.recruits.command.backward", group_string);
     }
 
+    private static MutableComponent TEXT_CLEAR_TARGETS(String group_string) {
+        return Component.translatable("chat.recruits.command.clearTargets", group_string);
+    }
     private static MutableComponent TEXT_DISMOUNT(String group_string) {
         return Component.translatable("chat.recruits.command.dismount", group_string);
     }
@@ -690,6 +820,37 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         return Component.translatable("chat.recruits.command.mount", group_string);
     }
 
+    private static MutableComponent TEXT_PASSIVE(String group_string) {
+        return Component.translatable("chat.recruits.command.passive", group_string);
+    }
+
+    private static MutableComponent TEXT_RAID(String group_string) {
+        return Component.translatable("chat.recruits.command.raid", group_string);
+    }
+
+    private static MutableComponent TEXT_AGGRESSIVE(String group_string) {
+        return Component.translatable("chat.recruits.command.aggressive", group_string);
+    }
+
+    private static MutableComponent TEXT_NEUTRAL(String group_string) {
+        return Component.translatable("chat.recruits.command.aggressive", group_string);
+    }
+
+    private static MutableComponent TEXT_SHIELDS_UP(String group_string) {
+        return Component.translatable("chat.recruits.command.shields", group_string);
+    }
+
+    private static MutableComponent TEXT_SHIELDS_DOWN(String group_string) {
+        return Component.translatable("chat.recruits.command.shields_off", group_string);
+    }
+
+    private static MutableComponent TEXT_FIRE_AT_WILL(String group_string) {
+        return Component.translatable("chat.recruits.command.fire_at_will", group_string);
+    }
+
+    private static MutableComponent TEXT_HOLD_FIRE(String group_string) {
+        return Component.translatable("chat.recruits.command.hold_fire", group_string);
+    }
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         super.renderLabels(guiGraphics, mouseX, mouseY);

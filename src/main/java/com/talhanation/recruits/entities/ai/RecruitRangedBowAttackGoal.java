@@ -10,7 +10,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.item.BowItem;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ProjectileWeaponItem;
 import net.minecraft.world.phys.Vec3;
@@ -50,10 +49,11 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
             // if (mob.getOwner() != null && mob.getShouldFollow() && mob.getOwner().distanceTo(this.mob) <= 25.00D && !(target.distanceTo(this.mob) <= 7.00D)) return false;
             boolean canTackMovePos = canAttackMovePos();
             //boolean notMounting = !mob.getShouldMount();
+            boolean shouldRanged = mob.getShouldRanged();
             boolean canAttack = this.mob.canAttack(target);
             boolean notPassive = this.mob.getState() != 3;
             boolean notNeedsToGetFood = !mob.needsToGetFood();
-            return distance >= stopRange && canTackMovePos && notNeedsToGetFood && canAttack && notPassive;
+            return distance >= stopRange && canTackMovePos && notNeedsToGetFood && canAttack && notPassive && shouldRanged;
         } else {
             return false;
         }

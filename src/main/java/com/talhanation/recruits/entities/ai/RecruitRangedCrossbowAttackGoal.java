@@ -37,7 +37,8 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
 
     public boolean canUse() {
         this.target = this.crossBowman.getTarget();
-        if (target != null && target.isAlive() && this.isWeaponInMainHand()) {
+        boolean shouldRanged = crossBowman.getShouldRanged();
+        if (target != null && target.isAlive() && this.isWeaponInMainHand() && shouldRanged) {
             // if (mob.getOwner() != null && mob.getShouldFollow() && mob.getOwner().distanceTo(this.mob) <= 25.00D && !(target.distanceTo(this.mob) <= 7.00D)) return false;
             return target.distanceTo(this.crossBowman) >= stopRange && this.canAttackMovePos() && !this.crossBowman.needsToGetFood() && !this.crossBowman.getShouldMount();
         } else {
