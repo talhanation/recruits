@@ -32,7 +32,7 @@ public class NomadAttackAI extends Goal {
         this.consumeArrows = RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get();
     }
     public boolean canUse() {
-        return nomad.getVehicle() instanceof AbstractHorse && nomad.getTarget() != null && !nomad.needsToGetFood() && !nomad.getShouldMount() && isHoldingBow();
+        return nomad.getVehicle() instanceof AbstractHorse && nomad.getTarget() != null && !nomad.needsToGetFood() && !nomad.getShouldMount() && isHoldingBow() && nomad.getShouldRanged();
     }
 
     public boolean canContinueToUse() {

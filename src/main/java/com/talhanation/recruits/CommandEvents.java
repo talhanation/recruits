@@ -2,10 +2,7 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.client.gui.group.RecruitsGroup;
 import com.talhanation.recruits.config.RecruitsServerConfig;
-import com.talhanation.recruits.entities.AbstractLeaderEntity;
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.entities.CaptainEntity;
-import com.talhanation.recruits.entities.IStrategicFire;
+import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.inventory.GroupManageContainer;
 import com.talhanation.recruits.network.*;
@@ -314,23 +311,7 @@ public class CommandEvents {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageCommandScreen(player));
         }
     }
-
-    public static void sendAggroCommandInChat(int state, LivingEntity owner, int group){
-        String group_string = "";
-        if (group == 0){
-            group_string = TEXT_EVERYONE.getString() + ", ";
-        }else
-            group_string = TEXT_GROUP.getString() + " " + group + ", " ;
-
-
-        switch (state) {
-            case 0 -> owner.sendMessage(TEXT_NEUTRAL(group_string), owner.getUUID());
-            case 1 -> owner.sendMessage(TEXT_AGGRESSIVE(group_string), owner.getUUID());
-            case 2 -> owner.sendMessage(TEXT_RAID(group_string), owner.getUUID());
-            case 3 -> owner.sendMessage(TEXT_PASSIVE(group_string), owner.getUUID());
-        }
-    }
-
+    
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         CompoundTag playerData = event.getEntity().getPersistentData();
@@ -482,26 +463,16 @@ public class CommandEvents {
         }
     }
 
+    public static void onRangedFireCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean should) {
+        if (recruit.isEffectedByCommand(player_uuid, group)){
+            recruit.setShouldRanged(should);
+        }
+    }
+
     public static void onRestCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean should) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             recruit.setShouldRest(should);
         }
-    }
-
-    private static MutableComponent TEXT_PASSIVE(String group_string) {
-        return Component.translatable("chat.recruits.command.passive", group_string);
-    }
-
-    private static MutableComponent TEXT_RAID(String group_string) {
-        return new TranslatableComponent("chat.recruits.command.raid", group_string);
-    }
-
-    private static MutableComponent TEXT_AGGRESSIVE(String group_string) {
-        return new TranslatableComponent("chat.recruits.command.aggressive", group_string);
-    }
-
-    private static MutableComponent TEXT_NEUTRAL(String group_string) {
-        return new TranslatableComponent("chat.recruits.command.neutral", group_string);
     }
 
     private static MutableComponent TEXT_HIRE_COSTS(String name, int sollPrice, Item item) {
