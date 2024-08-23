@@ -146,7 +146,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     @Override
     protected void containerTick() {
         super.containerTick();
-        if(groups != null && !groups.isEmpty() && !buttonsSet){
+        if(!buttonsSet){
             this.setButtons();
             this.saveGroups();
             this.buttonsSet = true;
@@ -154,7 +154,9 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     }
 
     private void saveGroups() {
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageServerSavePlayerGroups(groups, true));
+        if(groups != null && !groups.isEmpty()){
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageServerSavePlayerGroups(groups, true));
+        }
     }
     boolean statusSet = false;
     private void setButtons(){
@@ -163,12 +165,14 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         formation = this.getSavedFormationFromClient();
         clearWidgets();
         groupButtons = new ArrayList<>();
-
         int index = 0;
-        for (RecruitsGroup group : groups) {
-            if( index < 9){
-                createRecruitsGroupButton(group, index, x, y);
-                index++;
+        if(groups != null && !groups.isEmpty()){
+
+            for (RecruitsGroup group : groups) {
+                if( index < 9){
+                    createRecruitsGroupButton(group, index, x, y);
+                    index++;
+                }
             }
         }
         createManageGroupsButton(index, x, y);
