@@ -27,7 +27,7 @@ public class UpdateChecker {
                     if(player != null){
 						player.sendSystemMessage(Component.literal("A new version of Villager Recruits is available!").withStyle(ChatFormatting.GOLD));
 						MutableComponent link = Component.literal("Download the update " + ChatFormatting.BLUE + "here").withStyle(ChatFormatting.GREEN);
-						link.withStyle(link.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.curseforge.com/minecraft/mc-mods/recruits/files")));
+						link.withStyle(link.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://modrinth.com/mod/villager-recruits/versions")));
 						player.sendSystemMessage(link);
                     }
                     else{
@@ -50,7 +50,7 @@ public class UpdateChecker {
             switch (status){
                 case OUTDATED -> {
                     Main.LOGGER.warn("A new version of Villager Recruits is available!");
-                    Main.LOGGER.warn("Download the new update here: https://www.curseforge.com/minecraft/mc-mods/recruits/files");
+                    Main.LOGGER.warn("Download the new update here: https://modrinth.com/mod/villager-recruits/versions");
                 }
 
                 case FAILED -> {
