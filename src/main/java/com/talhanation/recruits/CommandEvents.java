@@ -311,7 +311,7 @@ public class CommandEvents {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageCommandScreen(player));
         }
     }
-    
+
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         CompoundTag playerData = event.getEntity().getPersistentData();
