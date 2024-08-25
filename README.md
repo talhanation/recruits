@@ -1,6 +1,6 @@
 # recruits
 recruiting villagers
 
-https://www.curseforge.com/minecraft/mc-mods/recruits
+https://modrinth.com/mod/villager-recruits
 
 All Rights Reserved unless otherwise explicitly stated.
