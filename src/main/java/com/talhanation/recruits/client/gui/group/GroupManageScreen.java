@@ -24,12 +24,12 @@ import java.util.List;
 public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/group_list_gui.png");
-    private static final MutableComponent TEXT_ADD = Component.translatable("gui.recruits.group_creation.add");
-    private static final MutableComponent TEXT_EDIT = Component.translatable("gui.recruits.group_creation.edit");
-    private static final MutableComponent TEXT_REMOVE = Component.translatable("gui.recruits.group_creation.remove");
-    private static final MutableComponent TEXT_TITLE = Component.translatable("gui.recruits.group_management.title");
+    private static final MutableComponent TEXT_ADD = Component.literal("gui.recruits.group_creation.add");
+    private static final MutableComponent TEXT_EDIT = Component.literal("gui.recruits.group_creation.edit");
+    private static final MutableComponent TEXT_REMOVE = Component.literal("gui.recruits.group_creation.remove");
+    private static final MutableComponent TEXT_TITLE = Component.literal("gui.recruits.group_management.title");
     public final int fontColor = 16250871;
-    private Player player;
+    private final Player player;
     private int leftPos;
     private int topPos;
     private GroupListWidget groupListWidget;
@@ -83,11 +83,12 @@ public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
     }
 
     private void setList(){
-        this.groupListWidget = new GroupListWidget(this, 165, topPos + 22, topPos + 22 + 182, groups);
+        this.groupListWidget = new GroupListWidget(this, 165, topPos + 35, topPos + 182 + 8, groups);
         this.groupListWidget.setLeftPos(leftPos + 16);
-
+        this.groupListWidget.setScrollAmount(12D);
         this.groupListWidget.setRenderBackground(false);
         this.groupListWidget.setRenderTopAndBottom(false);
+
         addRenderableWidget(groupListWidget);
     }
 
@@ -98,9 +99,8 @@ public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(    1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
+        //this.renderBackground(guiGraphics);
         blit(guiGraphics, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
-        this.groupListWidget.render(guiGraphics, mouseX, mouseY, partialTicks);
-        this.renderBackground(guiGraphics);
     }
 
     @Override
@@ -121,9 +121,9 @@ public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
 
                 groups.remove(group);
                 this.saveGroups();
-                this.groupListWidget.removeGroup(selectedEntry);
+                //this.groupListWidget.removeGroup(selectedEntry);
 
-                this.groupListWidget.refreshList();
+                //this.groupListWidget.refreshList();
                 this.groupListWidget.setScrollAmount(0);
                 this.init();
             }

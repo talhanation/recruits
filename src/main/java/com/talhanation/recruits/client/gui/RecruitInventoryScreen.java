@@ -356,6 +356,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         this.currentGroup = getCurrentGroup(recruit.getGroup());
 
         //GROUP
+
         addRenderableWidget(new Button(leftPos + 77, topPos + 100, 12, 12, Component.literal("<"),
                 button -> {
                     selectPreviousGroup();
@@ -363,6 +364,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                 }));
 
         addRenderableWidget(new Button(leftPos + 77 + 81, topPos + 100, 12, 12, Component.literal(">"),
+
                 button -> {
                     selectNextGroup();
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(currentGroup.getId(), recruit.getUUID()));

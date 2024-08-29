@@ -11,7 +11,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 public class RecruitsCategoryButton extends Button {
 
-    private ItemStack renderItem;
+    private final ItemStack renderItem;
     private int x;
     private int y;
     public RecruitsCategoryButton(ItemStack renderItem, int xPos, int yPos, Component displayString, OnPress handler, OnTooltip tooltip) {

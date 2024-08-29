@@ -17,7 +17,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -522,10 +521,10 @@ public class CommandEvents {
     public static void openGroupManageScreen(Player player) {
         if (player instanceof ServerPlayer) {
             Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateGroupManageScreen(getCompoundTagFromRecruitsGroupList(loadPlayersGroupsFromNBT(player))));
-            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
+            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public Component getDisplayName() {
-                    return Component.literal("group_manage_screen");
+                    return new TextComponent("group_manage_screen");
                 }
 
                 @Override

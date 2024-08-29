@@ -65,42 +65,6 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TOOLTIP_MOVEMENT = Component.translatable("gui.recruits.command.tooltip.movement");
     private static final MutableComponent TOOLTIP_COMBAT = Component.translatable("gui.recruits.command.tooltip.combat");
     private static final MutableComponent TOOLTIP_OTHER = Component.translatable("gui.recruits.command.tooltip.other");
-
-    private static final MutableComponent TEXT_EVERYONE = Component.translatable("gui.recruits.command.text.everyone");
-    private static final MutableComponent TEXT_PROTECT = Component.translatable("gui.recruits.command.text.protect");
-    private static final MutableComponent TEXT_MOVE = Component.translatable("gui.recruits.command.text.move");
-    private static final MutableComponent TEXT_MOVE_HOLD = Component.translatable("gui.recruits.command.text.move_hold");
-    private static final MutableComponent TEXT_FORWARD = Component.translatable("gui.recruits.command.text.forward");
-    private static final MutableComponent TEXT_BACKWARD = Component.translatable("gui.recruits.command.text.backward");
-    private static final MutableComponent TEXT_SHIELDS_UP = Component.translatable("gui.recruits.command.text.shields_up");
-    private static final MutableComponent TEXT_SHIELDS_DOWN = Component.translatable("gui.recruits.command.text.shields_down");
-    private static final MutableComponent TEXT_DISMOUNT = Component.translatable("gui.recruits.command.text.dismount");
-    private static final MutableComponent TEXT_MOUNT = Component.translatable("gui.recruits.command.text.mount");
-    private static final MutableComponent TEXT_FOLLOW = Component.translatable("gui.recruits.command.text.follow");
-    private static final MutableComponent TEXT_WANDER = Component.translatable("gui.recruits.command.text.wander");
-    private static final MutableComponent TEXT_HOLD_MY_POS = Component.translatable("gui.recruits.command.text.holdMyPos");
-    private static final MutableComponent TEXT_HOLD_POS = Component.translatable("gui.recruits.command.text.holdPos");
-    private static final MutableComponent TEXT_BACK_TO_POS = Component.translatable("gui.recruits.command.text.backToPos");
-	private static final MutableComponent TEXT_BACK_TO_MOUNT = Component.translatable("gui.recruits.command.text.backToMount");
-    private static final MutableComponent TEXT_PASSIVE = Component.translatable("gui.recruits.command.text.passive");
-    private static final MutableComponent TEXT_NEUTRAL = Component.translatable("gui.recruits.command.text.neutral");
-    private static final MutableComponent TEXT_AGGRESSIVE = Component.translatable("gui.recruits.command.text.aggressive");
-    private static final MutableComponent TEXT_RAID = Component.translatable("gui.recruits.command.text.raid");
-    private static final MutableComponent TEXT_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.text.strategic_fire");
-    private static final MutableComponent TEXT_HOLD_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.text.hold_strategic_fire");
-    private static final MutableComponent TEXT_FIRE_AT_WILL = Component.translatable("gui.recruits.command.text.fire_at_will");
-    private static final MutableComponent TEXT_HOLD_FIRE = Component.translatable("gui.recruits.command.text.hold_fire");
-    private static final MutableComponent TEXT_CLEAR_TARGET = Component.translatable("gui.recruits.command.text.clearTargets");
-    private static final MutableComponent TEXT_UPKEEP = Component.translatable("gui.recruits.command.text.upkeep");
-    private static final MutableComponent TEXT_REST = Component.translatable("gui.recruits.command.text.rest");
-    private static final MutableComponent TEXT_TEAM = Component.translatable("gui.recruits.command.text.team");
-    private static final MutableComponent TEXT_FORMATION_NONE = Component.translatable("gui.recruits.command.text.formation_none");
-    private static final MutableComponent TEXT_FORMATION_LINEUP = Component.translatable("gui.recruits.command.text.formation_lineup");
-    private static final MutableComponent TEXT_FORMATION_SQUARE = Component.translatable("gui.recruits.command.text.formation_square");
-    private static final MutableComponent TEXT_FORMATION_TRIANGLE = Component.translatable("gui.recruits.command.text.formation_triangle");
-    private static final MutableComponent TEXT_FORMATION_HOLLOW_SQUARE = Component.translatable("gui.recruits.command.text.formation_hollow_square");
-    private static final MutableComponent TEXT_FORMATION_HOLLOW_CIRCLE = Component.translatable("gui.recruits.command.text.formation_hollow_circle");
-    private static final MutableComponent TEXT_FORMATION_V = Component.translatable("gui.recruits.command.text.formation_v");
     private static final int fontColor = 16250871;
     private final Player player;
     private BlockPos rayBlockPos;
@@ -112,7 +76,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private List<RecruitsGroupButton> groupButtons;
 
     public CommandScreen(CommandMenu commandContainer, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, commandContainer, playerInventory, Component.literal(""));
+        super(RESOURCE_LOCATION, commandContainer, playerInventory, new TextComponent(""));
         player = playerInventory.player;
     }
     @Override
@@ -186,7 +150,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     }
 
     private void createRecruitsGroupButton(RecruitsGroup group, int index, int x, int y) {
-        RecruitsGroupButton groupButton = new RecruitsGroupButton(group,x - 200 + 45 * index, y - 120, 40, 40, Component.literal(group.getName()),
+        RecruitsGroupButton groupButton = new RecruitsGroupButton(group,x - 200 + 45 * index, y - 120, 40, 40, new TextComponent(group.getName()),
         button -> {
             group.setDisabled(!group.isDisabled());
             this.setButtons();
@@ -206,7 +170,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             posY = y - 70;
         }
 
-        ExtendedButton groupButton = new ExtendedButton(posX, posY, 20, 20, Component.literal("+/-"),
+        ExtendedButton groupButton = new ExtendedButton(posX, posY, 20, 20, new TextComponent("+/-"),
                 button -> {
                     CommandEvents.openGroupManageScreen(player);
 
@@ -242,7 +206,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     }
 
     private void createCommandButtons(Selection selection, int x, int y) {
-        RecruitsCategoryButton movementButton = new RecruitsCategoryButton(Items.LEATHER_BOOTS.getDefaultInstance(), x , y + 87, Component.literal(""),
+        RecruitsCategoryButton movementButton = new RecruitsCategoryButton(Items.LEATHER_BOOTS.getDefaultInstance(), x , y + 87, new TextComponent(""),
                 button -> {
                     this.setSelection(Selection.MOVEMENT);
                 },
@@ -252,7 +216,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         //movementButton.setTooltip(Tooltip.create(TOOLTIP_MOVEMENT));
         addRenderableWidget(movementButton);
 
-        RecruitsCategoryButton combatButton = new RecruitsCategoryButton(Items.IRON_SWORD.getDefaultInstance(), x - 30, y + 87, Component.literal(""),
+        RecruitsCategoryButton combatButton = new RecruitsCategoryButton(Items.IRON_SWORD.getDefaultInstance(), x - 30, y + 87, new TextComponent(""),
                 button -> {
                     this.setSelection(Selection.COMBAT);
                 },
@@ -262,7 +226,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         //combatButton.setTooltip(Tooltip.create(TOOLTIP_COMBAT));
         addRenderableWidget(combatButton);
 
-        RecruitsCategoryButton otherButton = new RecruitsCategoryButton(Items.CHEST.getDefaultInstance(), x + 30, y + 87, Component.literal(""),
+        RecruitsCategoryButton otherButton = new RecruitsCategoryButton(Items.CHEST.getDefaultInstance(), x + 30, y + 87, new TextComponent(""),
                 button -> {
                     this.setSelection(Selection.OTHER);
                 },
@@ -821,140 +785,140 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         }
 
         switch (state) {
-            case 0 -> this.player.sendSystemMessage(TEXT_WANDER(group_string.toString()));
-            case 1 -> this.player.sendSystemMessage(TEXT_FOLLOW(group_string.toString()));
-            case 2 -> this.player.sendSystemMessage(TEXT_HOLD_POS(group_string.toString()));
-            case 3 -> this.player.sendSystemMessage(TEXT_BACK_TO_POS(group_string.toString()));
-            case 4 -> this.player.sendSystemMessage(TEXT_HOLD_MY_POS(group_string.toString()));
-            case 5 -> this.player.sendSystemMessage(TEXT_PROTECT(group_string.toString()));
-            case 6 -> this.player.sendSystemMessage(TEXT_MOVE(group_string.toString()));
-            case 7 -> this.player.sendSystemMessage(TEXT_FORWARD(group_string.toString()));
-            case 8 -> this.player.sendSystemMessage(TEXT_BACKWARD(group_string.toString()));
-            case 9 -> this.player.sendSystemMessage(TEXT_CLEAR_TARGETS(group_string.toString()));
+            case 0 -> this.player.sendMessage(TEXT_WANDER(group_string.toString()), player.getUUID());
+            case 1 -> this.player.sendMessage(TEXT_FOLLOW(group_string.toString()), player.getUUID());
+            case 2 -> this.player.sendMessage(TEXT_HOLD_POS(group_string.toString()), player.getUUID());
+            case 3 -> this.player.sendMessage(TEXT_BACK_TO_POS(group_string.toString()), player.getUUID());
+            case 4 -> this.player.sendMessage(TEXT_HOLD_MY_POS(group_string.toString()), player.getUUID());
+            case 5 -> this.player.sendMessage(TEXT_PROTECT(group_string.toString()), player.getUUID());
+            case 6 -> this.player.sendMessage(TEXT_MOVE(group_string.toString()), player.getUUID());
+            case 7 -> this.player.sendMessage(TEXT_FORWARD(group_string.toString()), player.getUUID());
+            case 8 -> this.player.sendMessage(TEXT_BACKWARD(group_string.toString()), player.getUUID());
+            case 9 -> this.player.sendMessage(TEXT_CLEAR_TARGETS(group_string.toString()), player.getUUID());
 
-            case 10 -> this.player.sendSystemMessage(TEXT_NEUTRAL(group_string.toString()));
-            case 11 -> this.player.sendSystemMessage(TEXT_AGGRESSIVE(group_string.toString()));
-            case 12 -> this.player.sendSystemMessage(TEXT_RAID(group_string.toString()));
-            case 13 -> this.player.sendSystemMessage(TEXT_PASSIVE(group_string.toString()));
+            case 10 -> this.player.sendMessage(TEXT_NEUTRAL(group_string.toString()), player.getUUID());
+            case 11 -> this.player.sendMessage(TEXT_AGGRESSIVE(group_string.toString()), player.getUUID());
+            case 12 -> this.player.sendMessage(TEXT_RAID(group_string.toString()), player.getUUID());
+            case 13 -> this.player.sendMessage(TEXT_PASSIVE(group_string.toString()), player.getUUID());
 
-            case 70 -> this.player.sendSystemMessage(TEXT_FIRE_AT_WILL(group_string.toString()));
-            case 71 -> this.player.sendSystemMessage(TEXT_HOLD_FIRE(group_string.toString()));
-            case 72 -> this.player.sendSystemMessage(TEXT_STRATEGIC_FIRE(group_string.toString()));
-            case 73 -> this.player.sendSystemMessage(TEXT_STRATEGIC_FIRE_OFF(group_string.toString()));
-            case 74 -> this.player.sendSystemMessage(TEXT_SHIELDS(group_string.toString()));
-            case 75 -> this.player.sendSystemMessage(TEXT_SHIELDS_OFF(group_string.toString()));
+            case 70 -> this.player.sendMessage(TEXT_FIRE_AT_WILL(group_string.toString()), player.getUUID());
+            case 71 -> this.player.sendMessage(TEXT_HOLD_FIRE(group_string.toString()), player.getUUID());
+            case 72 -> this.player.sendMessage(TEXT_STRATEGIC_FIRE(group_string.toString()), player.getUUID());
+            case 73 -> this.player.sendMessage(TEXT_STRATEGIC_FIRE_OFF(group_string.toString()), player.getUUID());
+            case 74 -> this.player.sendMessage(TEXT_SHIELDS(group_string.toString()), player.getUUID());
+            case 75 -> this.player.sendMessage(TEXT_SHIELDS_OFF(group_string.toString()), player.getUUID());
 
-            case 88 -> this.player.sendSystemMessage(TEXT_REST(group_string.toString()));
-            case 91 -> this.player.sendSystemMessage(TEXT_BACK_TO_MOUNT(group_string.toString()));
-            case 92 -> this.player.sendSystemMessage(TEXT_UPKEEP(group_string.toString()));
+            case 88 -> this.player.sendMessage(TEXT_REST(group_string.toString()), player.getUUID());
+            case 91 -> this.player.sendMessage(TEXT_BACK_TO_MOUNT(group_string.toString()), player.getUUID());
+            case 92 -> this.player.sendMessage(TEXT_UPKEEP(group_string.toString()), player.getUUID());
 
-            case 98 -> this.player.sendSystemMessage(TEXT_DISMOUNT(group_string.toString()));
-            case 99 -> this.player.sendSystemMessage(TEXT_MOUNT(group_string.toString()));
+            case 98 -> this.player.sendMessage(TEXT_DISMOUNT(group_string.toString()), player.getUUID());
+            case 99 -> this.player.sendMessage(TEXT_MOUNT(group_string.toString()), player.getUUID());
         }
     }
     private static MutableComponent TEXT_WANDER(String group_string) {
-        return Component.translatable("chat.recruits.command.wander", group_string);
+        return new TranslatableComponent("chat.recruits.command.wander", group_string);
     }
 
     private static MutableComponent TEXT_FOLLOW(String group_string) {
-        return Component.translatable("chat.recruits.command.follow", group_string);
+        return new TranslatableComponent("chat.recruits.command.follow", group_string);
     }
 
     private static MutableComponent TEXT_HOLD_POS(String group_string) {
-        return Component.translatable("chat.recruits.command.holdPos", group_string);
+        return new TranslatableComponent("chat.recruits.command.holdPos", group_string);
     }
 
     private static MutableComponent TEXT_BACK_TO_POS(String group_string) {
-        return Component.translatable("chat.recruits.command.backToPos", group_string);
+        return new TranslatableComponent("chat.recruits.command.backToPos", group_string);
     }
 
     private static MutableComponent TEXT_BACK_TO_MOUNT(String group_string) {
-        return Component.translatable("chat.recruits.command.backToMount", group_string);
+        return new TranslatableComponent("chat.recruits.command.backToMount", group_string);
     }
 
     private static MutableComponent TEXT_REST(String group_string) {
-        return Component.translatable("chat.recruits.command.rest", group_string);
+        return new TranslatableComponent("chat.recruits.command.rest", group_string);
     }
     private static MutableComponent TEXT_HOLD_MY_POS(String group_string) {
-        return Component.translatable("chat.recruits.command.holdMyPos", group_string);
+        return new TranslatableComponent("chat.recruits.command.holdMyPos", group_string);
     }
 
     private static MutableComponent TEXT_PROTECT(String group_string) {
-        return Component.translatable("chat.recruits.command.protect", group_string);
+        return new TranslatableComponent("chat.recruits.command.protect", group_string);
     }
 
     private static MutableComponent TEXT_UPKEEP(String group_string) {
-        return Component.translatable("chat.recruits.command.upkeep", group_string);
+        return new TranslatableComponent("chat.recruits.command.upkeep", group_string);
     }
 
     private static MutableComponent TEXT_SHIELDS_OFF(String group_string) {
-        return Component.translatable("chat.recruits.command.shields_off", group_string);
+        return new TranslatableComponent("chat.recruits.command.shields_off", group_string);
     }
 
     private static MutableComponent TEXT_STRATEGIC_FIRE_OFF(String group_string) {
-        return Component.translatable("chat.recruits.command.strategic_fire_off", group_string);
+        return new TranslatableComponent("chat.recruits.command.strategic_fire_off", group_string);
     }
 
     private static MutableComponent TEXT_SHIELDS(String group_string) {
-        return Component.translatable("chat.recruits.command.shields", group_string);
+        return new TranslatableComponent("chat.recruits.command.shields", group_string);
     }
 
     private static MutableComponent TEXT_STRATEGIC_FIRE(String group_string) {
-        return Component.translatable("chat.recruits.command.strategic_fire", group_string);
+        return new TranslatableComponent("chat.recruits.command.strategic_fire", group_string);
     }
 
     private static MutableComponent TEXT_MOVE(String group_string) {
-        return Component.translatable("chat.recruits.command.move", group_string);
+        return new TranslatableComponent("chat.recruits.command.move", group_string);
     }
 
     private static MutableComponent TEXT_FORWARD(String group_string) {
-        return Component.translatable("chat.recruits.command.forward", group_string);
+        return new TranslatableComponent("chat.recruits.command.forward", group_string);
     }
     private static MutableComponent TEXT_BACKWARD(String group_string) {
-        return Component.translatable("chat.recruits.command.backward", group_string);
+        return new TranslatableComponent("chat.recruits.command.backward", group_string);
     }
 
     private static MutableComponent TEXT_CLEAR_TARGETS(String group_string) {
-        return Component.translatable("chat.recruits.command.clearTargets", group_string);
+        return new TranslatableComponent("chat.recruits.command.clearTargets", group_string);
     }
     private static MutableComponent TEXT_DISMOUNT(String group_string) {
-        return Component.translatable("chat.recruits.command.dismount", group_string);
+        return new TranslatableComponent("chat.recruits.command.dismount", group_string);
     }
 
     private static MutableComponent TEXT_MOUNT(String group_string) {
-        return Component.translatable("chat.recruits.command.mount", group_string);
+        return new TranslatableComponent("chat.recruits.command.mount", group_string);
     }
 
     private static MutableComponent TEXT_PASSIVE(String group_string) {
-        return Component.translatable("chat.recruits.command.passive", group_string);
+        return new TranslatableComponent("chat.recruits.command.passive", group_string);
     }
 
     private static MutableComponent TEXT_RAID(String group_string) {
-        return Component.translatable("chat.recruits.command.raid", group_string);
+        return new TranslatableComponent("chat.recruits.command.raid", group_string);
     }
 
     private static MutableComponent TEXT_AGGRESSIVE(String group_string) {
-        return Component.translatable("chat.recruits.command.aggressive", group_string);
+        return new TranslatableComponent("chat.recruits.command.aggressive", group_string);
     }
 
     private static MutableComponent TEXT_NEUTRAL(String group_string) {
-        return Component.translatable("chat.recruits.command.aggressive", group_string);
+        return new TranslatableComponent("chat.recruits.command.aggressive", group_string);
     }
 
     private static MutableComponent TEXT_SHIELDS_UP(String group_string) {
-        return Component.translatable("chat.recruits.command.shields", group_string);
+        return new TranslatableComponent("chat.recruits.command.shields", group_string);
     }
 
     private static MutableComponent TEXT_SHIELDS_DOWN(String group_string) {
-        return Component.translatable("chat.recruits.command.shields_off", group_string);
+        return new TranslatableComponent("chat.recruits.command.shields_off", group_string);
     }
 
     private static MutableComponent TEXT_FIRE_AT_WILL(String group_string) {
-        return Component.translatable("chat.recruits.command.fire_at_will", group_string);
+        return new TranslatableComponent("chat.recruits.command.fire_at_will", group_string);
     }
 
     private static MutableComponent TEXT_HOLD_FIRE(String group_string) {
-        return Component.translatable("chat.recruits.command.hold_fire", group_string);
+        return new TranslatableComponent("chat.recruits.command.hold_fire", group_string);
     }
     @Override
     protected void renderLabels(PoseStack guiGraphics, int mouseX, int mouseY) {
