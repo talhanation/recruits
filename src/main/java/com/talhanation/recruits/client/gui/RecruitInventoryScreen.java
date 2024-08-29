@@ -23,6 +23,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 import org.w3c.dom.Text;
 
 import java.util.Collections;
@@ -302,11 +303,11 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
 
 
         //LISTEN
-        addRenderableWidget(new Button(leftPos + 77, topPos + 113, 8, 12, new TextComponent("<"), button -> {
+        addRenderableWidget(new Button(leftPos + 77, topPos + 113, 12, 12, new TextComponent("<"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         }));
 
-        addRenderableWidget(new Button(leftPos + 77 + 85, topPos + 113, 8, 12, new TextComponent(">"), button -> {
+        addRenderableWidget(new Button(leftPos + 77 + 81, topPos + 113, 12, 12, new TextComponent(">"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         }));
 
@@ -359,13 +360,13 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         this.currentGroup = getCurrentGroup(recruit.getGroup());
 
         //GROUP
-        addRenderableWidget(new ExtendedButton(leftPos + 77, topPos + 100, 12, 12, Component.literal("<"),
+        addRenderableWidget(new ExtendedButton(leftPos + 77, topPos + 100, 12, 12, new TextComponent("<"),
                 button -> {
                     selectPreviousGroup();
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(currentGroup.getId(), recruit.getUUID()));
                 }));
 
-        addRenderableWidget(new ExtendedButton(leftPos + 77 + 81, topPos + 100, 12, 12, Component.literal(">"),
+        addRenderableWidget(new ExtendedButton(leftPos + 77 + 81, topPos + 100, 12, 12, new TextComponent(">"),
                 button -> {
                     selectNextGroup();
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(currentGroup.getId(), recruit.getUUID()));
@@ -462,8 +463,8 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         };
         int fnt = this.aggro == 3 ? 16733525 : fontColor;
 
-        guiGraphics.drawString(font, aggro, k + 15, l + 56 + 15, fnt, false);
-        if(currentGroup != null) guiGraphics.drawString(font, currentGroup.getName(), k + 15, l + 56 + 28, fontColor, false);
+        font.draw(matrixStack, aggro, k + 15, l + 56 + 15, fnt);
+        if(currentGroup != null) font.draw(matrixStack, currentGroup.getName(), k + 15, l + 56 + 28, fontColor);
 
 
         String listen;

@@ -1,24 +1,42 @@
 package com.talhanation.recruits.client.gui.group;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.talhanation.recruits.Main;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
 public class GroupListWidget extends ObjectSelectionList<GroupListWidget.GroupEntry> {
     private final int listWidth;
     private final GroupManageScreen parent;
-    private List<RecruitsGroup> groups;
-
+    private final List<RecruitsGroup> groups;
+    private int top;
+    private static final ResourceLocation RESOURCE_LOCATION_OVERLAY = new ResourceLocation(Main.MOD_ID,"textures/gui/group_list_gui_overlay.png");
     public GroupListWidget(GroupManageScreen parent, int listWidth, int top, int bottom, List<RecruitsGroup> groups) {
         super(parent.getMinecraft(), listWidth, parent.height, top, bottom, parent.getFont().lineHeight * 2 + 12);
         this.parent = parent;
         this.listWidth = listWidth;
         this.groups = groups;
         this.refreshList();
+        this.top = top;
+    }
+
+    @Override
+    protected void renderDecorations(PoseStack p_93443_, int p_93444_, int p_93445_) {
+        super.renderDecorations(p_93443_, p_93444_, p_93445_);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(    1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, RESOURCE_LOCATION_OVERLAY);
+
+        blit(p_93443_, x0 - 16, top - 35, 0, 0, 198, 245);
     }
 
     public void removeGroup(GroupEntry entry){
@@ -27,6 +45,16 @@ public class GroupListWidget extends ObjectSelectionList<GroupListWidget.GroupEn
     @Override
     protected int getScrollbarPosition() {
         return this.x0 + this.listWidth - 5; // Adjust scrollbar position
+    }
+
+    @Override
+    public int getScrollBottom() {
+        return super.getScrollBottom() - 10;
+    }
+
+    @Override
+    protected int getMaxPosition() {
+        return super.getMaxPosition() + 10;
     }
 
     @Override
@@ -51,25 +79,18 @@ public class GroupListWidget extends ObjectSelectionList<GroupListWidget.GroupEn
         }
 
         @Override
-        public Component getNarration() {
-            return Component.translatable("narrator.select", group.getName());
-        }
+        public void render(PoseStack guiGraphics, int entryIdx, int top, int left, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean isMouseOver, float partialTick) {
+            //RenderBack
+            fill(guiGraphics, left, top, left + entryWidth, top + entryHeight, 0xFF404040);
 
-        public void renderBack(GuiGraphics guiGraphics, int entryIdx, int top, int left, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean isMouseOver, float partialTick) {
-            // Grauen Hintergrund rendern
-            guiGraphics.fill(left, top, left + entryWidth, top + entryHeight, 0xFF404040);
-        }
-
-        @Override
-        public void render(GuiGraphics guiGraphics, int entryIdx, int top, int left, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean isMouseOver, float partialTick) {
             Font font = this.parent.getFont();
-            Component name = Component.literal(group.getName());
+            Component name = new TextComponent(group.getName());
             //Component id = Component.literal("ID: " + group.getId());
-            Component count = Component.literal("Count: " + group.getCount());
+            Component count = new TextComponent("Count: " + group.getCount());
 
-            guiGraphics.drawString(font, Language.getInstance().getVisualOrder(FormattedText.composite(font.substrByWidth(name, listWidth))), left + 3, top + 2, 0xFFFFFF, false);
+            font.draw(guiGraphics, Language.getInstance().getVisualOrder(FormattedText.composite(font.substrByWidth(name, listWidth))), left + 3, top + 2, 0xFFFFFF);
             //guiGraphics.drawString(font, Language.getInstance().getVisualOrder(FormattedText.composite(font.substrByWidth(id, listWidth))), left + 3, top + 2 + font.lineHeight, 0xCCCCCC, false);
-            guiGraphics.drawString(font, Language.getInstance().getVisualOrder(FormattedText.composite(font.substrByWidth(count, listWidth))), left + 3, top + 2 + font.lineHeight, 0xCCCCCC, false);
+            font.draw(guiGraphics, Language.getInstance().getVisualOrder(FormattedText.composite(font.substrByWidth(count, listWidth))), left + 3, top + 2 + font.lineHeight, 0xCCCCCC);
 
         }
 
@@ -89,6 +110,11 @@ public class GroupListWidget extends ObjectSelectionList<GroupListWidget.GroupEn
 
         public RecruitsGroup getGroup() {
             return group;
+        }
+
+        @Override
+        public Component getNarration() {
+            return new TextComponent("");
         }
     }
 }

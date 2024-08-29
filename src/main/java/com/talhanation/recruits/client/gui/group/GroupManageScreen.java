@@ -1,18 +1,18 @@
 package com.talhanation.recruits.client.gui.group;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.inventory.GroupManageContainer;
 import com.talhanation.recruits.network.MessageApplyNoGroup;
 import com.talhanation.recruits.network.MessageServerSavePlayerGroups;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.reporting.ChatReportScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -26,12 +26,12 @@ import java.util.List;
 public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/group_list_gui.png");
-    private static final MutableComponent TEXT_ADD = Component.translatable("gui.recruits.group_creation.add");
-    private static final MutableComponent TEXT_EDIT = Component.translatable("gui.recruits.group_creation.edit");
-    private static final MutableComponent TEXT_REMOVE = Component.translatable("gui.recruits.group_creation.remove");
-    private static final MutableComponent TEXT_TITLE = Component.translatable("gui.recruits.group_management.title");
+    private static final MutableComponent TEXT_ADD = new TranslatableComponent("gui.recruits.group_creation.add");
+    private static final MutableComponent TEXT_EDIT = new TranslatableComponent("gui.recruits.group_creation.edit");
+    private static final MutableComponent TEXT_REMOVE = new TranslatableComponent("gui.recruits.group_creation.remove");
+    private static final MutableComponent TEXT_TITLE = new TranslatableComponent("gui.recruits.group_management.title");
     public final int fontColor = 16250871;
-    private Player player;
+    private final Player player;
     private int leftPos;
     private int topPos;
     private GroupListWidget groupListWidget;
@@ -42,7 +42,7 @@ public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
     private ExtendedButton removeButton;
 
     public GroupManageScreen(GroupManageContainer commandContainer, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, commandContainer, playerInventory, Component.literal(""));
+        super(RESOURCE_LOCATION, commandContainer, playerInventory, new TextComponent(""));
         imageWidth = 197;
         imageHeight = 250;
         player = playerInventory.player;
@@ -85,30 +85,30 @@ public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
     }
 
     private void setList(){
-        this.groupListWidget = new GroupListWidget(this, 165, topPos + 22, topPos + 22 + 182, groups);
+        this.groupListWidget = new GroupListWidget(this, 165, topPos + 35, topPos + 182 + 8, groups);
         this.groupListWidget.setLeftPos(leftPos + 16);
-
+        this.groupListWidget.setScrollAmount(12D);
         this.groupListWidget.setRenderBackground(false);
         this.groupListWidget.setRenderTopAndBottom(false);
+
         addRenderableWidget(groupListWidget);
     }
 
     public Font getFont() {
         return this.font;
     }
-    protected void render(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+    protected void render(PoseStack guiGraphics, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(    1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
-        guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
-        this.groupListWidget.render(guiGraphics, mouseX, mouseY, partialTicks);
-        this.renderBackground(guiGraphics);
+        //this.renderBackground(guiGraphics);
+        blit(guiGraphics, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
     }
 
     @Override
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void renderLabels(PoseStack guiGraphics, int mouseX, int mouseY) {
         super.renderLabels(guiGraphics, mouseX, mouseY);
-        guiGraphics.drawString(font, TEXT_TITLE, 18  , 11, fontColor, false);
+        font.draw(guiGraphics, TEXT_TITLE, 18  , 11, fontColor);
     }
     public void setSelected(GroupListWidget.GroupEntry groupEntry) {
         this.selectedEntry = groupEntry;
@@ -123,9 +123,9 @@ public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
 
                 groups.remove(group);
                 this.saveGroups();
-                this.groupListWidget.removeGroup(selectedEntry);
+                //this.groupListWidget.removeGroup(selectedEntry);
 
-                this.groupListWidget.refreshList();
+                //this.groupListWidget.refreshList();
                 this.groupListWidget.setScrollAmount(0);
                 this.init();
             }

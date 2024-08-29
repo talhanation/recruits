@@ -1,5 +1,6 @@
 package com.talhanation.recruits.client.gui;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.events.ClientEvent;
@@ -9,7 +10,6 @@ import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -35,73 +35,73 @@ import java.util.*;
 public class CommandScreen extends ScreenBase<CommandMenu> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/command_gui.png");
-    private static final MutableComponent TOOLTIP_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.tooltip.strategic_fire");
-    private static final MutableComponent TOOLTIP_HOLD_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.tooltip.hold_strategic_fire");
-    private static final MutableComponent TOOLTIP_DISMOUNT = Component.translatable("gui.recruits.command.tooltip.dismount");
-    private static final MutableComponent TOOLTIP_MOUNT = Component.translatable("gui.recruits.command.tooltip.mount");
-    private static final MutableComponent TOOLTIP_SHIELDS_UP = Component.translatable("gui.recruits.command.tooltip.shields_up");
-    private static final MutableComponent TOOLTIP_SHIELDS_DOWN = Component.translatable("gui.recruits.command.tooltip.shields_down");
-    private static final MutableComponent TOOLTIP_PROTECT = Component.translatable("gui.recruits.command.tooltip.protect");
-    //private static final MutableComponent TOOLTIP_MOVE = Component.translatable("gui.recruits.command.tooltip.move");
-    private static final MutableComponent TOOLTIP_MOVE = Component.translatable("gui.recruits.command.tooltip.move_hold");
-    private static final MutableComponent TOOLTIP_FORWARD = Component.translatable("gui.recruits.command.tooltip.forward");
-    private static final MutableComponent TOOLTIP_FORMATION = Component.translatable("gui.recruits.command.tooltip.formation");
-    private static final MutableComponent TOOLTIP_BACKWARD = Component.translatable("gui.recruits.command.tooltip.backward");
-    private static final MutableComponent TOOLTIP_FOLLOW = Component.translatable("gui.recruits.command.tooltip.follow");
-    private static final MutableComponent TOOLTIP_WANDER = Component.translatable("gui.recruits.command.tooltip.wander");
-    private static final MutableComponent TOOLTIP_HOLD_MY_POS = Component.translatable("gui.recruits.command.tooltip.holdMyPos");
-    private static final MutableComponent TOOLTIP_HOLD_POS = Component.translatable("gui.recruits.command.tooltip.holdPos");
-    private static final MutableComponent TOOLTIP_BACK_TO_POS = Component.translatable("gui.recruits.command.tooltip.backToPos");
-	private static final MutableComponent TOOLTIP_BACK_TO_MOUNT = Component.translatable("gui.recruits.command.tooltip.backToMount");
-    private static final MutableComponent TOOLTIP_PASSIVE = Component.translatable("gui.recruits.command.tooltip.passive");
-    private static final MutableComponent TOOLTIP_NEUTRAL = Component.translatable("gui.recruits.command.tooltip.neutral");
-    private static final MutableComponent TOOLTIP_AGGRESSIVE = Component.translatable("gui.recruits.command.tooltip.aggressive");
-    private static final MutableComponent TOOLTIP_RAID = Component.translatable("gui.recruits.command.tooltip.raid");
-    private static final MutableComponent TOOLTIP_UPKEEP = Component.translatable("gui.recruits.command.tooltip.upkeep");
-    private static final MutableComponent TOOLTIP_REST = Component.translatable("gui.recruits.command.tooltip.rest");
-    private static final MutableComponent TOOLTIP_TEAM = Component.translatable("gui.recruits.command.tooltip.team");
-    private static final MutableComponent TOOLTIP_CLEAR_TARGET = Component.translatable("gui.recruits.command.tooltip.clearTargets");
-    private static final MutableComponent TOOLTIP_HOLD_FIRE = Component.translatable("gui.recruits.command.tooltip.hold_fire");
-    private static final MutableComponent TOOLTIP_FIRE_AT_WILL = Component.translatable("gui.recruits.command.tooltip.fire_at_will");
-    private static final MutableComponent TOOLTIP_MOVEMENT = Component.translatable("gui.recruits.command.tooltip.movement");
-    private static final MutableComponent TOOLTIP_COMBAT = Component.translatable("gui.recruits.command.tooltip.combat");
-    private static final MutableComponent TOOLTIP_OTHER = Component.translatable("gui.recruits.command.tooltip.other");
+    private static final MutableComponent TOOLTIP_STRATEGIC_FIRE = new TranslatableComponent("gui.recruits.command.tooltip.strategic_fire");
+    private static final MutableComponent TOOLTIP_HOLD_STRATEGIC_FIRE = new TranslatableComponent("gui.recruits.command.tooltip.hold_strategic_fire");
+    private static final MutableComponent TOOLTIP_DISMOUNT = new TranslatableComponent("gui.recruits.command.tooltip.dismount");
+    private static final MutableComponent TOOLTIP_MOUNT = new TranslatableComponent("gui.recruits.command.tooltip.mount");
+    private static final MutableComponent TOOLTIP_SHIELDS_UP = new TranslatableComponent("gui.recruits.command.tooltip.shields_up");
+    private static final MutableComponent TOOLTIP_SHIELDS_DOWN = new TranslatableComponent("gui.recruits.command.tooltip.shields_down");
+    private static final MutableComponent TOOLTIP_PROTECT = new TranslatableComponent("gui.recruits.command.tooltip.protect");
+    //private static final MutableComponent TOOLTIP_MOVE = new TextComponent()("gui.recruits.command.tooltip.move");
+    private static final MutableComponent TOOLTIP_MOVE = new TranslatableComponent("gui.recruits.command.tooltip.move_hold");
+    private static final MutableComponent TOOLTIP_FORWARD = new TranslatableComponent("gui.recruits.command.tooltip.forward");
+    private static final MutableComponent TOOLTIP_FORMATION = new TranslatableComponent("gui.recruits.command.tooltip.formation");
+    private static final MutableComponent TOOLTIP_BACKWARD = new TranslatableComponent("gui.recruits.command.tooltip.backward");
+    private static final MutableComponent TOOLTIP_FOLLOW = new TranslatableComponent("gui.recruits.command.tooltip.follow");
+    private static final MutableComponent TOOLTIP_WANDER = new TranslatableComponent("gui.recruits.command.tooltip.wander");
+    private static final MutableComponent TOOLTIP_HOLD_MY_POS = new TranslatableComponent("gui.recruits.command.tooltip.holdMyPos");
+    private static final MutableComponent TOOLTIP_HOLD_POS = new TranslatableComponent("gui.recruits.command.tooltip.holdPos");
+    private static final MutableComponent TOOLTIP_BACK_TO_POS = new TranslatableComponent("gui.recruits.command.tooltip.backToPos");
+	private static final MutableComponent TOOLTIP_BACK_TO_MOUNT = new TranslatableComponent("gui.recruits.command.tooltip.backToMount");
+    private static final MutableComponent TOOLTIP_PASSIVE = new TranslatableComponent("gui.recruits.command.tooltip.passive");
+    private static final MutableComponent TOOLTIP_NEUTRAL = new TranslatableComponent("gui.recruits.command.tooltip.neutral");
+    private static final MutableComponent TOOLTIP_AGGRESSIVE = new TranslatableComponent("gui.recruits.command.tooltip.aggressive");
+    private static final MutableComponent TOOLTIP_RAID = new TranslatableComponent("gui.recruits.command.tooltip.raid");
+    private static final MutableComponent TOOLTIP_UPKEEP = new TranslatableComponent("gui.recruits.command.tooltip.upkeep");
+    private static final MutableComponent TOOLTIP_REST = new TranslatableComponent("gui.recruits.command.tooltip.rest");
+    private static final MutableComponent TOOLTIP_TEAM = new TranslatableComponent("gui.recruits.command.tooltip.team");
+    private static final MutableComponent TOOLTIP_CLEAR_TARGET = new TranslatableComponent("gui.recruits.command.tooltip.clearTargets");
+    private static final MutableComponent TOOLTIP_HOLD_FIRE = new TranslatableComponent("gui.recruits.command.tooltip.hold_fire");
+    private static final MutableComponent TOOLTIP_FIRE_AT_WILL = new TranslatableComponent("gui.recruits.command.tooltip.fire_at_will");
+    private static final MutableComponent TOOLTIP_MOVEMENT = new TranslatableComponent("gui.recruits.command.tooltip.movement");
+    private static final MutableComponent TOOLTIP_COMBAT = new TranslatableComponent("gui.recruits.command.tooltip.combat");
+    private static final MutableComponent TOOLTIP_OTHER = new TranslatableComponent("gui.recruits.command.tooltip.other");
 
-    private static final MutableComponent TEXT_EVERYONE = Component.translatable("gui.recruits.command.text.everyone");
-    private static final MutableComponent TEXT_PROTECT = Component.translatable("gui.recruits.command.text.protect");
-    private static final MutableComponent TEXT_MOVE = Component.translatable("gui.recruits.command.text.move");
-    private static final MutableComponent TEXT_MOVE_HOLD = Component.translatable("gui.recruits.command.text.move_hold");
-    private static final MutableComponent TEXT_FORWARD = Component.translatable("gui.recruits.command.text.forward");
-    private static final MutableComponent TEXT_BACKWARD = Component.translatable("gui.recruits.command.text.backward");
-    private static final MutableComponent TEXT_SHIELDS_UP = Component.translatable("gui.recruits.command.text.shields_up");
-    private static final MutableComponent TEXT_SHIELDS_DOWN = Component.translatable("gui.recruits.command.text.shields_down");
-    private static final MutableComponent TEXT_DISMOUNT = Component.translatable("gui.recruits.command.text.dismount");
-    private static final MutableComponent TEXT_MOUNT = Component.translatable("gui.recruits.command.text.mount");
-    private static final MutableComponent TEXT_FOLLOW = Component.translatable("gui.recruits.command.text.follow");
-    private static final MutableComponent TEXT_WANDER = Component.translatable("gui.recruits.command.text.wander");
-    private static final MutableComponent TEXT_HOLD_MY_POS = Component.translatable("gui.recruits.command.text.holdMyPos");
-    private static final MutableComponent TEXT_HOLD_POS = Component.translatable("gui.recruits.command.text.holdPos");
-    private static final MutableComponent TEXT_BACK_TO_POS = Component.translatable("gui.recruits.command.text.backToPos");
-	private static final MutableComponent TEXT_BACK_TO_MOUNT = Component.translatable("gui.recruits.command.text.backToMount");
-    private static final MutableComponent TEXT_PASSIVE = Component.translatable("gui.recruits.command.text.passive");
-    private static final MutableComponent TEXT_NEUTRAL = Component.translatable("gui.recruits.command.text.neutral");
-    private static final MutableComponent TEXT_AGGRESSIVE = Component.translatable("gui.recruits.command.text.aggressive");
-    private static final MutableComponent TEXT_RAID = Component.translatable("gui.recruits.command.text.raid");
-    private static final MutableComponent TEXT_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.text.strategic_fire");
-    private static final MutableComponent TEXT_HOLD_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.text.hold_strategic_fire");
-    private static final MutableComponent TEXT_FIRE_AT_WILL = Component.translatable("gui.recruits.command.text.fire_at_will");
-    private static final MutableComponent TEXT_HOLD_FIRE = Component.translatable("gui.recruits.command.text.hold_fire");
-    private static final MutableComponent TEXT_CLEAR_TARGET = Component.translatable("gui.recruits.command.text.clearTargets");
-    private static final MutableComponent TEXT_UPKEEP = Component.translatable("gui.recruits.command.text.upkeep");
-    private static final MutableComponent TEXT_REST = Component.translatable("gui.recruits.command.text.rest");
-    private static final MutableComponent TEXT_TEAM = Component.translatable("gui.recruits.command.text.team");
-    private static final MutableComponent TEXT_FORMATION_NONE = Component.translatable("gui.recruits.command.text.formation_none");
-    private static final MutableComponent TEXT_FORMATION_LINEUP = Component.translatable("gui.recruits.command.text.formation_lineup");
-    private static final MutableComponent TEXT_FORMATION_SQUARE = Component.translatable("gui.recruits.command.text.formation_square");
-    private static final MutableComponent TEXT_FORMATION_TRIANGLE = Component.translatable("gui.recruits.command.text.formation_triangle");
-    private static final MutableComponent TEXT_FORMATION_HOLLOW_SQUARE = Component.translatable("gui.recruits.command.text.formation_hollow_square");
-    private static final MutableComponent TEXT_FORMATION_HOLLOW_CIRCLE = Component.translatable("gui.recruits.command.text.formation_hollow_circle");
-    private static final MutableComponent TEXT_FORMATION_V = Component.translatable("gui.recruits.command.text.formation_v");
+    private static final MutableComponent TEXT_EVERYONE = new TranslatableComponent("gui.recruits.command.text.everyone");
+    private static final MutableComponent TEXT_PROTECT = new TranslatableComponent("gui.recruits.command.text.protect");
+    private static final MutableComponent TEXT_MOVE = new TranslatableComponent("gui.recruits.command.text.move");
+    private static final MutableComponent TEXT_MOVE_HOLD = new TranslatableComponent("gui.recruits.command.text.move_hold");
+    private static final MutableComponent TEXT_FORWARD = new TranslatableComponent("gui.recruits.command.text.forward");
+    private static final MutableComponent TEXT_BACKWARD = new TranslatableComponent("gui.recruits.command.text.backward");
+    private static final MutableComponent TEXT_SHIELDS_UP = new TranslatableComponent("gui.recruits.command.text.shields_up");
+    private static final MutableComponent TEXT_SHIELDS_DOWN = new TranslatableComponent("gui.recruits.command.text.shields_down");
+    private static final MutableComponent TEXT_DISMOUNT = new TranslatableComponent("gui.recruits.command.text.dismount");
+    private static final MutableComponent TEXT_MOUNT = new TranslatableComponent("gui.recruits.command.text.mount");
+    private static final MutableComponent TEXT_FOLLOW = new TranslatableComponent("gui.recruits.command.text.follow");
+    private static final MutableComponent TEXT_WANDER = new TranslatableComponent("gui.recruits.command.text.wander");
+    private static final MutableComponent TEXT_HOLD_MY_POS = new TranslatableComponent("gui.recruits.command.text.holdMyPos");
+    private static final MutableComponent TEXT_HOLD_POS = new TranslatableComponent("gui.recruits.command.text.holdPos");
+    private static final MutableComponent TEXT_BACK_TO_POS = new TranslatableComponent("gui.recruits.command.text.backToPos");
+	private static final MutableComponent TEXT_BACK_TO_MOUNT = new TranslatableComponent("gui.recruits.command.text.backToMount");
+    private static final MutableComponent TEXT_PASSIVE = new TranslatableComponent("gui.recruits.command.text.passive");
+    private static final MutableComponent TEXT_NEUTRAL = new TranslatableComponent("gui.recruits.command.text.neutral");
+    private static final MutableComponent TEXT_AGGRESSIVE = new TranslatableComponent("gui.recruits.command.text.aggressive");
+    private static final MutableComponent TEXT_RAID = new TranslatableComponent("gui.recruits.command.text.raid");
+    private static final MutableComponent TEXT_STRATEGIC_FIRE = new TranslatableComponent("gui.recruits.command.text.strategic_fire");
+    private static final MutableComponent TEXT_HOLD_STRATEGIC_FIRE = new TranslatableComponent("gui.recruits.command.text.hold_strategic_fire");
+    private static final MutableComponent TEXT_FIRE_AT_WILL = new TranslatableComponent("gui.recruits.command.text.fire_at_will");
+    private static final MutableComponent TEXT_HOLD_FIRE = new TranslatableComponent("gui.recruits.command.text.hold_fire");
+    private static final MutableComponent TEXT_CLEAR_TARGET = new TranslatableComponent("gui.recruits.command.text.clearTargets");
+    private static final MutableComponent TEXT_UPKEEP = new TranslatableComponent("gui.recruits.command.text.upkeep");
+    private static final MutableComponent TEXT_REST = new TranslatableComponent("gui.recruits.command.text.rest");
+    private static final MutableComponent TEXT_TEAM = new TranslatableComponent("gui.recruits.command.text.team");
+    private static final MutableComponent TEXT_FORMATION_NONE = new TranslatableComponent("gui.recruits.command.text.formation_none");
+    private static final MutableComponent TEXT_FORMATION_LINEUP = new TranslatableComponent("gui.recruits.command.text.formation_lineup");
+    private static final MutableComponent TEXT_FORMATION_SQUARE = new TranslatableComponent("gui.recruits.command.text.formation_square");
+    private static final MutableComponent TEXT_FORMATION_TRIANGLE = new TranslatableComponent("gui.recruits.command.text.formation_triangle");
+    private static final MutableComponent TEXT_FORMATION_HOLLOW_SQUARE = new TranslatableComponent("gui.recruits.command.text.formation_hollow_square");
+    private static final MutableComponent TEXT_FORMATION_HOLLOW_CIRCLE = new TranslatableComponent("gui.recruits.command.text.formation_hollow_circle");
+    private static final MutableComponent TEXT_FORMATION_V = new TranslatableComponent("gui.recruits.command.text.formation_v");
     private static final int fontColor = 16250871;
     private final Player player;
     private BlockPos rayBlockPos;
@@ -113,7 +113,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private List<RecruitsGroupButton> groupButtons;
 
     public CommandScreen(CommandMenu commandContainer, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, commandContainer, playerInventory, Component.literal(""));
+        super(RESOURCE_LOCATION, commandContainer, playerInventory, new TextComponent(""));
         player = playerInventory.player;
     }
     @Override
@@ -187,7 +187,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     }
 
     private void createRecruitsGroupButton(RecruitsGroup group, int index, int x, int y) {
-        RecruitsGroupButton groupButton = new RecruitsGroupButton(group,x - 200 + 45 * index, y - 120, 40, 40, Component.literal(group.getName()),
+        RecruitsGroupButton groupButton = new RecruitsGroupButton(group,x - 200 + 45 * index, y - 120, 40, 40, new TextComponent(group.getName()),
         button -> {
             group.setDisabled(!group.isDisabled());
             this.setButtons();
@@ -207,7 +207,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             posY = y - 70;
         }
 
-        ExtendedButton groupButton = new ExtendedButton(posX, posY, 20, 20, Component.literal("+/-"),
+        ExtendedButton groupButton = new ExtendedButton(posX, posY, 20, 20, new TextComponent("+/-"),
                 button -> {
                     CommandEvents.openGroupManageScreen(player);
 
@@ -243,25 +243,34 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     }
 
     private void createCommandButtons(Selection selection, int x, int y) {
-        RecruitsCategoryButton movementButton = new RecruitsCategoryButton(Items.LEATHER_BOOTS.getDefaultInstance(), x , y + 87, Component.literal(""),
+        RecruitsCategoryButton movementButton = new RecruitsCategoryButton(Items.LEATHER_BOOTS.getDefaultInstance(), x , y + 87, new TextComponent(""),
                 button -> {
                     this.setSelection(Selection.MOVEMENT);
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_MOVEMENT, i, i1);
                 });
-        movementButton.setTooltip(Tooltip.create(TOOLTIP_MOVEMENT));
+        //movementButton.setTooltip(Tooltip.create(TOOLTIP_MOVEMENT));
         addRenderableWidget(movementButton);
 
-        RecruitsCategoryButton combatButton = new RecruitsCategoryButton(Items.IRON_SWORD.getDefaultInstance(), x - 30, y + 87, Component.literal(""),
+        RecruitsCategoryButton combatButton = new RecruitsCategoryButton(Items.IRON_SWORD.getDefaultInstance(), x - 30, y + 87, new TextComponent(""),
                 button -> {
                     this.setSelection(Selection.COMBAT);
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_COMBAT, i, i1);
                 });
-        combatButton.setTooltip(Tooltip.create(TOOLTIP_COMBAT));
+        //combatButton.setTooltip(Tooltip.create(TOOLTIP_COMBAT));
         addRenderableWidget(combatButton);
 
-        RecruitsCategoryButton otherButton = new RecruitsCategoryButton(Items.CHEST.getDefaultInstance(), x + 30, y + 87, Component.literal(""),
+        RecruitsCategoryButton otherButton = new RecruitsCategoryButton(Items.CHEST.getDefaultInstance(), x + 30, y + 87, new TextComponent(""),
                 button -> {
                     this.setSelection(Selection.OTHER);
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_OTHER, i, i1);
                 });
-        otherButton.setTooltip(Tooltip.create(TOOLTIP_OTHER));
+        //combatButton.setTooltip(Tooltip.create(TOOLTIP_OTHER));
         addRenderableWidget(otherButton);
 
 
@@ -276,8 +285,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                         button -> {
                             sendMovementCommandToServer(6);
                             sendCommandInChat(6);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_MOVE, i, i1);
                         });
-                moveButton.setTooltip(Tooltip.create(TOOLTIP_MOVE));
+                //moveButton.setTooltip(Tooltip.create(TOOLTIP_MOVE));
                 addRenderableWidget(moveButton);
 
                 //FORWARD
@@ -285,8 +297,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                         button -> {
                             sendMovementCommandToServer(7);
                             sendCommandInChat(7);
-                });
-                forwardButton.setTooltip(Tooltip.create(TOOLTIP_FORWARD));
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_FORWARD, i, i1);
+                        });
+                //forwardButton.setTooltip(Tooltip.create(TOOLTIP_FORWARD));
                 addRenderableWidget(forwardButton);
 
                 //FOLLOW
@@ -300,8 +315,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 sendMovementCommandToServer(1);
                             }
                             sendCommandInChat(1);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_FOLLOW, i, i1);
                         });
-                followButton.setTooltip(Tooltip.create(TOOLTIP_FOLLOW));
+                //followButton.setTooltip(Tooltip.create(TOOLTIP_FOLLOW));
                 addRenderableWidget(followButton);
 
 
@@ -310,9 +328,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                         button -> {
                             sendMovementCommandToServer(0);
                             sendCommandInChat(0);
-
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_WANDER, i, i1);
                         });
-                wanderButton.setTooltip(Tooltip.create(TOOLTIP_WANDER));
+                //wanderButton.setTooltip(Tooltip.create(TOOLTIP_WANDER));
                 addRenderableWidget(wanderButton);
 
                 //BACK TO POS
@@ -320,9 +340,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                         button -> {
                             sendMovementCommandToServer(3);
                             sendCommandInChat(3);
-
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_BACK_TO_POS, i, i1);
                         });
-                backToPosButton.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_POS));
+                //backToPosButton.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_POS));
                 addRenderableWidget(backToPosButton);
 
                 //HOLDPOS
@@ -330,8 +352,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                         button -> {
                             sendMovementCommandToServer(2);
                             sendCommandInChat(2);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_HOLD_POS, i, i1);
                         });
-                holdPosButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_POS));
+                //holdPosButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_POS));
                 addRenderableWidget(holdPosButton);
 
                 //BACKWARD
@@ -339,64 +364,88 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                         button -> {
                             sendMovementCommandToServer(8);
                             sendCommandInChat(8);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_BACKWARD, i, i1);
                         });
-                backwardButton.setTooltip(Tooltip.create(TOOLTIP_BACKWARD));
+                //backwardButton.setTooltip(Tooltip.create(TOOLTIP_BACKWARD));
                 addRenderableWidget(backwardButton);
 
                 //NONE
                 RecruitsFormationButton noneFormationButton = new RecruitsFormationButton(Formation.NONE, x, y + 50,
                         button -> {
                             this.setFormation(Formation.NONE);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TEXT_FORMATION_NONE, i, i1);
                         });
-                noneFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_NONE));
+                //noneFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_NONE));
                 addRenderableWidget(noneFormationButton);
 
                 //LINE UP
                 RecruitsFormationButton lineUpFormationButton = new RecruitsFormationButton(Formation.LINE, x - 21, y + 50,
                         button -> {
                             this.setFormation(Formation.LINE);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TEXT_FORMATION_LINEUP, i, i1);
                         });
-                lineUpFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_LINEUP));
+                //lineUpFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_LINEUP));
                 addRenderableWidget(lineUpFormationButton);
 
                 //SQUARE
                 RecruitsFormationButton squareFormationButton = new RecruitsFormationButton(Formation.SQUARE, x + 21, y + 50,
                         button -> {
                             this.setFormation(Formation.SQUARE);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TEXT_FORMATION_SQUARE, i, i1);
                         });
-                squareFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_SQUARE));
+                //squareFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_SQUARE));
                 addRenderableWidget(squareFormationButton);
 
                 //TRIANGLE
                 RecruitsFormationButton triangleFormationButton = new RecruitsFormationButton(Formation.TRIANGLE, x - 42, y + 50,
                         button -> {
                             this.setFormation(Formation.TRIANGLE);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TEXT_FORMATION_TRIANGLE, i, i1);
                         });
-                triangleFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_TRIANGLE));
+                //triangleFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_TRIANGLE));
                 addRenderableWidget(triangleFormationButton);
 
                 //V_FORM
                 RecruitsFormationButton VFormFormationButton = new RecruitsFormationButton(Formation.VFORM, x + 42, y + 50,
                         button -> {
                             this.setFormation(Formation.VFORM);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TEXT_FORMATION_V, i, i1);
                         });
-                VFormFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_V));
+                //VFormFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_V));
                 addRenderableWidget(VFormFormationButton);
 
                 //CIRCLE
                 RecruitsFormationButton circleFormationButton = new RecruitsFormationButton(Formation.HCIRCLE, x - 63, y + 50,
                         button -> {
                             this.setFormation(Formation.HCIRCLE);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TEXT_FORMATION_HOLLOW_CIRCLE, i, i1);
                         });
-                circleFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_HOLLOW_CIRCLE));
+                //circleFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_HOLLOW_CIRCLE));
                 addRenderableWidget(circleFormationButton);
 
                 //H SQAURE
                 RecruitsFormationButton hSquareFormationButton = new RecruitsFormationButton(Formation.HSQUARE, x + 63, y + 50,
                         button -> {
                             this.setFormation(Formation.HSQUARE);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TEXT_FORMATION_HOLLOW_SQUARE, i, i1);
                         });
-                hSquareFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_HOLLOW_SQUARE));
+                //hSquareFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_HOLLOW_SQUARE));
                 addRenderableWidget(hSquareFormationButton);
 
                 noneFormationButton.active = formation == Formation.NONE;
@@ -419,9 +468,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(72);
                             }
-
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_STRATEGIC_FIRE, i, i1);
                         });
-                strategicFireButton.setTooltip(Tooltip.create(TOOLTIP_STRATEGIC_FIRE));
+                //strategicFireButton.setTooltip(Tooltip.create(TOOLTIP_STRATEGIC_FIRE));
                 addRenderableWidget(strategicFireButton);
 
                 //HOLD STRATEGIC FIRE
@@ -435,9 +486,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(73);
                             }
-
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_HOLD_STRATEGIC_FIRE, i, i1);
                         });
-                holdStrategicFireButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_STRATEGIC_FIRE));
+                //holdStrategicFireButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_STRATEGIC_FIRE));
                 addRenderableWidget(holdStrategicFireButton);
 
                 //FIRE AT WILL
@@ -451,8 +504,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(70);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_FIRE_AT_WILL, i, i1);
                         });
-                fireAtWillButton.setTooltip(Tooltip.create(TOOLTIP_FIRE_AT_WILL));
+                //fireAtWillButton.setTooltip(Tooltip.create(TOOLTIP_FIRE_AT_WILL));
                 addRenderableWidget(fireAtWillButton);
 
                 //HOLD FIRE
@@ -467,8 +523,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(71);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_HOLD_FIRE, i, i1);
                         });
-                holdFireButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_FIRE));
+                //holdFireButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_FIRE));
                 addRenderableWidget(holdFireButton);
 
                 //SHIELDS UP
@@ -482,8 +541,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(74);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_SHIELDS_UP, i, i1);
                         });
-                shieldsUpButton.setTooltip(Tooltip.create(TOOLTIP_SHIELDS_UP));
+                //shieldsUpButton.setTooltip(Tooltip.create(TOOLTIP_SHIELDS_UP));
                 addRenderableWidget(shieldsUpButton);
 
                 //SHIELDS DOWN
@@ -497,8 +559,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(75);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_SHIELDS_DOWN, i, i1);
                         });
-                shieldsDownButton.setTooltip(Tooltip.create(TOOLTIP_SHIELDS_DOWN));
+                //shieldsDownButton.setTooltip(Tooltip.create(TOOLTIP_SHIELDS_DOWN));
                 addRenderableWidget(shieldsDownButton);
 
                 //FORGET TARGETS
@@ -512,8 +577,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(9);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_CLEAR_TARGET, i, i1);
                         });
-                clearTargetsButton.setTooltip(Tooltip.create(TOOLTIP_CLEAR_TARGET));
+                //clearTargetsButton.setTooltip(Tooltip.create(TOOLTIP_CLEAR_TARGET));
                 addRenderableWidget(clearTargetsButton);
 
                 //PASSIVE
@@ -527,8 +595,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(13);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_PASSIVE, i, i1);
                         });
-                passiveButton.setTooltip(Tooltip.create(TOOLTIP_PASSIVE));
+                //passiveButton.setTooltip(Tooltip.create(TOOLTIP_PASSIVE));
                 addRenderableWidget(passiveButton);
 
                 //NEUTRAL
@@ -542,8 +613,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(10);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_NEUTRAL, i, i1);
                         });
-                neutralButton.setTooltip(Tooltip.create(TOOLTIP_NEUTRAL));
+                //neutralButton.setTooltip(Tooltip.create(TOOLTIP_NEUTRAL));
                 addRenderableWidget(neutralButton);
 
                 //RAID
@@ -557,8 +631,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(12);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_RAID, i, i1);
                         });
-                raidButton.setTooltip(Tooltip.create(TOOLTIP_RAID));
+                //raidButton.setTooltip(Tooltip.create(TOOLTIP_RAID));
                 addRenderableWidget(raidButton);
 
                 //AGGRESSIVE
@@ -572,8 +649,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(11);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_AGGRESSIVE, i, i1);
                         });
-                aggressiveButton.setTooltip(Tooltip.create(TOOLTIP_AGGRESSIVE));
+                //aggressiveButton.setTooltip(Tooltip.create(TOOLTIP_AGGRESSIVE));
                 addRenderableWidget(aggressiveButton);
             }
 
@@ -588,8 +668,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 this.sendCommandInChat(5);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_PROTECT, i, i1);
                         });
-                protectButton.setTooltip(Tooltip.create(TOOLTIP_PROTECT));
+                //protectButton.setTooltip(Tooltip.create(TOOLTIP_PROTECT));
                 addRenderableWidget(protectButton);
 
                 //MOUNT
@@ -601,16 +684,22 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 this.sendCommandInChat(99);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_MOUNT, i, i1);
                         });
-                mountButton.setTooltip(Tooltip.create(TOOLTIP_MOUNT));
+                //mountButton.setTooltip(Tooltip.create(TOOLTIP_MOUNT));
                 addRenderableWidget(mountButton);
 
                 //TEAM
                 RecruitsCommandButton teamButton = new RecruitsCommandButton(x, y + 50, TEXT_TEAM,
                         button -> {
                             Main.SIMPLE_CHANNEL.sendToServer(new MessageTeamMainScreen(player));
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_TEAM, i, i1);
                         });
-                teamButton.setTooltip(Tooltip.create(TOOLTIP_TEAM));
+                //teamButton.setTooltip(Tooltip.create(TOOLTIP_TEAM));
                 addRenderableWidget(teamButton);
 
                 //BACK TO MOUNT
@@ -624,8 +713,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 this.sendCommandInChat(91);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_BACK_TO_MOUNT, i, i1);
                         });
-                backToMountButton.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_MOUNT));
+                //backToMountButton.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_MOUNT));
                 addRenderableWidget(backToMountButton);
 
                 //DISMOUNT
@@ -639,8 +731,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 this.sendCommandInChat(98);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_DISMOUNT, i, i1);
                         });
-                dismountButton.setTooltip(Tooltip.create(TOOLTIP_DISMOUNT));
+                //dismountButton.setTooltip(Tooltip.create(TOOLTIP_DISMOUNT));
                 addRenderableWidget(dismountButton);
 
                 //UPKEEP
@@ -655,8 +750,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 this.sendCommandInChat(92);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_UPKEEP, i, i1);
                         });
-                upkeepButton.setTooltip(Tooltip.create(TOOLTIP_UPKEEP));
+                //upkeepButton.setTooltip(Tooltip.create(TOOLTIP_UPKEEP));
                 addRenderableWidget(upkeepButton);
 
                 //REST
@@ -670,12 +768,16 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 this.sendCommandInChat(88);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_REST, i, i1);
                         });
-                restButton.setTooltip(Tooltip.create(TOOLTIP_REST));
+                //restButton.setTooltip(Tooltip.create(TOOLTIP_REST));
                 addRenderableWidget(restButton);
             }
         }
     }
+
     private void sendMovementCommandToServer(int state) {
         if(state != 1){
             PlayerEvents.activeGroups = null;
@@ -720,143 +822,143 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         }
 
         switch (state) {
-            case 0 -> this.player.sendSystemMessage(TEXT_WANDER(group_string.toString()));
-            case 1 -> this.player.sendSystemMessage(TEXT_FOLLOW(group_string.toString()));
-            case 2 -> this.player.sendSystemMessage(TEXT_HOLD_POS(group_string.toString()));
-            case 3 -> this.player.sendSystemMessage(TEXT_BACK_TO_POS(group_string.toString()));
-            case 4 -> this.player.sendSystemMessage(TEXT_HOLD_MY_POS(group_string.toString()));
-            case 5 -> this.player.sendSystemMessage(TEXT_PROTECT(group_string.toString()));
-            case 6 -> this.player.sendSystemMessage(TEXT_MOVE(group_string.toString()));
-            case 7 -> this.player.sendSystemMessage(TEXT_FORWARD(group_string.toString()));
-            case 8 -> this.player.sendSystemMessage(TEXT_BACKWARD(group_string.toString()));
-            case 9 -> this.player.sendSystemMessage(TEXT_CLEAR_TARGETS(group_string.toString()));
+            case 0 -> this.player.sendMessage(TEXT_WANDER(group_string.toString()), player.getUUID());
+            case 1 -> this.player.sendMessage(TEXT_FOLLOW(group_string.toString()), player.getUUID());
+            case 2 -> this.player.sendMessage(TEXT_HOLD_POS(group_string.toString()), player.getUUID());
+            case 3 -> this.player.sendMessage(TEXT_BACK_TO_POS(group_string.toString()), player.getUUID());
+            case 4 -> this.player.sendMessage(TEXT_HOLD_MY_POS(group_string.toString()), player.getUUID());
+            case 5 -> this.player.sendMessage(TEXT_PROTECT(group_string.toString()), player.getUUID());
+            case 6 -> this.player.sendMessage(TEXT_MOVE(group_string.toString()), player.getUUID());
+            case 7 -> this.player.sendMessage(TEXT_FORWARD(group_string.toString()), player.getUUID());
+            case 8 -> this.player.sendMessage(TEXT_BACKWARD(group_string.toString()), player.getUUID());
+            case 9 -> this.player.sendMessage(TEXT_CLEAR_TARGETS(group_string.toString()), player.getUUID());
 
-            case 10 -> this.player.sendSystemMessage(TEXT_NEUTRAL(group_string.toString()));
-            case 11 -> this.player.sendSystemMessage(TEXT_AGGRESSIVE(group_string.toString()));
-            case 12 -> this.player.sendSystemMessage(TEXT_RAID(group_string.toString()));
-            case 13 -> this.player.sendSystemMessage(TEXT_PASSIVE(group_string.toString()));
+            case 10 -> this.player.sendMessage(TEXT_NEUTRAL(group_string.toString()), player.getUUID());
+            case 11 -> this.player.sendMessage(TEXT_AGGRESSIVE(group_string.toString()), player.getUUID());
+            case 12 -> this.player.sendMessage(TEXT_RAID(group_string.toString()), player.getUUID());
+            case 13 -> this.player.sendMessage(TEXT_PASSIVE(group_string.toString()), player.getUUID());
 
-            case 70 -> this.player.sendSystemMessage(TEXT_FIRE_AT_WILL(group_string.toString()));
-            case 71 -> this.player.sendSystemMessage(TEXT_HOLD_FIRE(group_string.toString()));
-            case 72 -> this.player.sendSystemMessage(TEXT_STRATEGIC_FIRE(group_string.toString()));
-            case 73 -> this.player.sendSystemMessage(TEXT_STRATEGIC_FIRE_OFF(group_string.toString()));
-            case 74 -> this.player.sendSystemMessage(TEXT_SHIELDS(group_string.toString()));
-            case 75 -> this.player.sendSystemMessage(TEXT_SHIELDS_OFF(group_string.toString()));
+            case 70 -> this.player.sendMessage(TEXT_FIRE_AT_WILL(group_string.toString()), player.getUUID());
+            case 71 -> this.player.sendMessage(TEXT_HOLD_FIRE(group_string.toString()), player.getUUID());
+            case 72 -> this.player.sendMessage(TEXT_STRATEGIC_FIRE(group_string.toString()), player.getUUID());
+            case 73 -> this.player.sendMessage(TEXT_STRATEGIC_FIRE_OFF(group_string.toString()), player.getUUID());
+            case 74 -> this.player.sendMessage(TEXT_SHIELDS(group_string.toString()), player.getUUID());
+            case 75 -> this.player.sendMessage(TEXT_SHIELDS_OFF(group_string.toString()), player.getUUID());
 
-            case 88 -> this.player.sendSystemMessage(TEXT_REST(group_string.toString()));
-            case 91 -> this.player.sendSystemMessage(TEXT_BACK_TO_MOUNT(group_string.toString()));
-            case 92 -> this.player.sendSystemMessage(TEXT_UPKEEP(group_string.toString()));
+            case 88 -> this.player.sendMessage(TEXT_REST(group_string.toString()), player.getUUID());
+            case 91 -> this.player.sendMessage(TEXT_BACK_TO_MOUNT(group_string.toString()), player.getUUID());
+            case 92 -> this.player.sendMessage(TEXT_UPKEEP(group_string.toString()), player.getUUID());
 
-            case 98 -> this.player.sendSystemMessage(TEXT_DISMOUNT(group_string.toString()));
-            case 99 -> this.player.sendSystemMessage(TEXT_MOUNT(group_string.toString()));
+            case 98 -> this.player.sendMessage(TEXT_DISMOUNT(group_string.toString()), player.getUUID());
+            case 99 -> this.player.sendMessage(TEXT_MOUNT(group_string.toString()), player.getUUID());
         }
     }
     private static MutableComponent TEXT_WANDER(String group_string) {
-        return Component.translatable("chat.recruits.command.wander", group_string);
+        return new TranslatableComponent("chat.recruits.command.wander", group_string);
     }
 
     private static MutableComponent TEXT_FOLLOW(String group_string) {
-        return Component.translatable("chat.recruits.command.follow", group_string);
+        return new TranslatableComponent("chat.recruits.command.follow", group_string);
     }
 
     private static MutableComponent TEXT_HOLD_POS(String group_string) {
-        return Component.translatable("chat.recruits.command.holdPos", group_string);
+        return new TranslatableComponent("chat.recruits.command.holdPos", group_string);
     }
 
     private static MutableComponent TEXT_BACK_TO_POS(String group_string) {
-        return Component.translatable("chat.recruits.command.backToPos", group_string);
+        return new TranslatableComponent("chat.recruits.command.backToPos", group_string);
     }
 
     private static MutableComponent TEXT_BACK_TO_MOUNT(String group_string) {
-        return Component.translatable("chat.recruits.command.backToMount", group_string);
+        return new TranslatableComponent("chat.recruits.command.backToMount", group_string);
     }
 
     private static MutableComponent TEXT_REST(String group_string) {
-        return Component.translatable("chat.recruits.command.rest", group_string);
+        return new TranslatableComponent("chat.recruits.command.rest", group_string);
     }
     private static MutableComponent TEXT_HOLD_MY_POS(String group_string) {
-        return Component.translatable("chat.recruits.command.holdMyPos", group_string);
+        return new TranslatableComponent("chat.recruits.command.holdMyPos", group_string);
     }
 
     private static MutableComponent TEXT_PROTECT(String group_string) {
-        return Component.translatable("chat.recruits.command.protect", group_string);
+        return new TranslatableComponent("chat.recruits.command.protect", group_string);
     }
 
     private static MutableComponent TEXT_UPKEEP(String group_string) {
-        return Component.translatable("chat.recruits.command.upkeep", group_string);
+        return new TranslatableComponent("chat.recruits.command.upkeep", group_string);
     }
 
     private static MutableComponent TEXT_SHIELDS_OFF(String group_string) {
-        return Component.translatable("chat.recruits.command.shields_off", group_string);
+        return new TranslatableComponent("chat.recruits.command.shields_off", group_string);
     }
 
     private static MutableComponent TEXT_STRATEGIC_FIRE_OFF(String group_string) {
-        return Component.translatable("chat.recruits.command.strategic_fire_off", group_string);
+        return new TranslatableComponent("chat.recruits.command.strategic_fire_off", group_string);
     }
 
     private static MutableComponent TEXT_SHIELDS(String group_string) {
-        return Component.translatable("chat.recruits.command.shields", group_string);
+        return new TranslatableComponent("chat.recruits.command.shields", group_string);
     }
 
     private static MutableComponent TEXT_STRATEGIC_FIRE(String group_string) {
-        return Component.translatable("chat.recruits.command.strategic_fire", group_string);
+        return new TranslatableComponent("chat.recruits.command.strategic_fire", group_string);
     }
 
     private static MutableComponent TEXT_MOVE(String group_string) {
-        return Component.translatable("chat.recruits.command.move", group_string);
+        return new TranslatableComponent("chat.recruits.command.move", group_string);
     }
 
     private static MutableComponent TEXT_FORWARD(String group_string) {
-        return Component.translatable("chat.recruits.command.forward", group_string);
+        return new TranslatableComponent("chat.recruits.command.forward", group_string);
     }
     private static MutableComponent TEXT_BACKWARD(String group_string) {
-        return Component.translatable("chat.recruits.command.backward", group_string);
+        return new TranslatableComponent("chat.recruits.command.backward", group_string);
     }
 
     private static MutableComponent TEXT_CLEAR_TARGETS(String group_string) {
-        return Component.translatable("chat.recruits.command.clearTargets", group_string);
+        return new TranslatableComponent("chat.recruits.command.clearTargets", group_string);
     }
     private static MutableComponent TEXT_DISMOUNT(String group_string) {
-        return Component.translatable("chat.recruits.command.dismount", group_string);
+        return new TranslatableComponent("chat.recruits.command.dismount", group_string);
     }
 
     private static MutableComponent TEXT_MOUNT(String group_string) {
-        return Component.translatable("chat.recruits.command.mount", group_string);
+        return new TranslatableComponent("chat.recruits.command.mount", group_string);
     }
 
     private static MutableComponent TEXT_PASSIVE(String group_string) {
-        return Component.translatable("chat.recruits.command.passive", group_string);
+        return new TranslatableComponent("chat.recruits.command.passive", group_string);
     }
 
     private static MutableComponent TEXT_RAID(String group_string) {
-        return Component.translatable("chat.recruits.command.raid", group_string);
+        return new TranslatableComponent("chat.recruits.command.raid", group_string);
     }
 
     private static MutableComponent TEXT_AGGRESSIVE(String group_string) {
-        return Component.translatable("chat.recruits.command.aggressive", group_string);
+        return new TranslatableComponent("chat.recruits.command.aggressive", group_string);
     }
 
     private static MutableComponent TEXT_NEUTRAL(String group_string) {
-        return Component.translatable("chat.recruits.command.aggressive", group_string);
+        return new TranslatableComponent("chat.recruits.command.aggressive", group_string);
     }
 
     private static MutableComponent TEXT_SHIELDS_UP(String group_string) {
-        return Component.translatable("chat.recruits.command.shields", group_string);
+        return new TranslatableComponent("chat.recruits.command.shields", group_string);
     }
 
     private static MutableComponent TEXT_SHIELDS_DOWN(String group_string) {
-        return Component.translatable("chat.recruits.command.shields_off", group_string);
+        return new TranslatableComponent("chat.recruits.command.shields_off", group_string);
     }
 
     private static MutableComponent TEXT_FIRE_AT_WILL(String group_string) {
-        return Component.translatable("chat.recruits.command.fire_at_will", group_string);
+        return new TranslatableComponent("chat.recruits.command.fire_at_will", group_string);
     }
 
     private static MutableComponent TEXT_HOLD_FIRE(String group_string) {
-        return Component.translatable("chat.recruits.command.hold_fire", group_string);
+        return new TranslatableComponent("chat.recruits.command.hold_fire", group_string);
     }
     @Override
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void renderLabels(PoseStack guiGraphics, int mouseX, int mouseY) {
         super.renderLabels(guiGraphics, mouseX, mouseY);
     }
 
