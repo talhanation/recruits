@@ -30,8 +30,17 @@ public class RecruitsFormationButton extends ExtendedButton {
     }
 
     private ResourceLocation getTextureLocation() {
-        String formation = this.formation.toString().toLowerCase();
-        return new ResourceLocation(Main.MOD_ID, "textures/gui/image/"+ formation + ".png");
+        ResourceLocation location;
+        switch (this.formation){
+            default -> location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/none.png");
+            case LINE ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/line.png");
+            case SQUARE ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/square.png");
+            case TRIANGLE ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/triangle.png");
+            case HCIRCLE ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/hcircle.png");
+            case HSQUARE ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/hsquare.png");
+            case VFORM ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/vform.png");
+        }
+        return location;
     }
 
     @Override
