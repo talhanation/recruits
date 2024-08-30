@@ -939,7 +939,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     }
 
     private static MutableComponent TEXT_NEUTRAL(String group_string) {
-        return new TranslatableComponent("chat.recruits.command.aggressive", group_string);
+        return new TranslatableComponent("chat.recruits.command.neutral", group_string);
     }
 
     private static MutableComponent TEXT_SHIELDS_UP(String group_string) {
