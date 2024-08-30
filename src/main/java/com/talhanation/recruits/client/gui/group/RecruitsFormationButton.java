@@ -32,17 +32,18 @@ public class RecruitsFormationButton extends Button {
 
     private ResourceLocation getTextureLocation() {
         ResourceLocation location;
-        switch (this.formation){
+        switch (this.formation.getIndex()){
             default -> location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/none.png");
-            case LINE ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/line.png");
-            case SQUARE ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/square.png");
-            case TRIANGLE ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/triangle.png");
-            case HCIRCLE ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/hcircle.png");
-            case HSQUARE ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/hsquare.png");
-            case VFORM ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/vform.png");
+            case 1 ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/line.png");
+            case 2 ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/square.png");
+            case 3 ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/triangle.png");
+            case 4 ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/hcircle.png");
+            case 5 ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/hsquare.png");
+            case 6 ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/vform.png");
         }
         return location;
     }
+
 
     @Override
     public boolean mouseClicked(double p_93641_, double p_93642_, int p_93643_) {
