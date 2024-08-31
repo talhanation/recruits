@@ -1,8 +1,8 @@
 package com.talhanation.recruits.client.gui.group;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
@@ -111,17 +111,18 @@ public class EditOrAddGroupScreen extends Screen {
         groupNameField.tick();
     }
 
-    private void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        guiGraphics.drawString(font, groupToEdit == null? TEXT_ADD_TITLE : TEXT_EDIT_TITLE, leftPos + 10  , topPos + 5, fontColor, false);
+    private void renderForeground(PoseStack guiGraphics, int mouseX, int mouseY, float delta) {
+        font.draw(guiGraphics, groupToEdit == null? TEXT_ADD_TITLE : TEXT_EDIT_TITLE, leftPos + 10  , topPos + 5, fontColor);
     }
-    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+    public void renderBackground(PoseStack guiGraphics, int mouseX, int mouseY, float delta) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
-        guiGraphics.blit(RESOURCE_LOCATION, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
+        blit(guiGraphics, leftPos, topPos, 0, 0, imageWidth, imageHeight);
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+    public void render(PoseStack guiGraphics, int mouseX, int mouseY, float delta) {
         this.renderBackground(guiGraphics);
         this.renderBackground(guiGraphics, mouseX, mouseY, delta);
         super.render(guiGraphics, mouseX, mouseY, delta);

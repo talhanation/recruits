@@ -1,5 +1,6 @@
 package com.talhanation.recruits.client.gui;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.events.ClientEvent;
@@ -244,22 +245,31 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         RecruitsCategoryButton movementButton = new RecruitsCategoryButton(Items.LEATHER_BOOTS.getDefaultInstance(), x , y + 87, Component.literal(""),
                 button -> {
                     this.setSelection(Selection.MOVEMENT);
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_MOVEMENT, i, i1);
                 });
-        movementButton.setTooltip(Tooltip.create(TOOLTIP_MOVEMENT));
+        //movementButton.setTooltip(Tooltip.create(TOOLTIP_MOVEMENT));
         addRenderableWidget(movementButton);
 
         RecruitsCategoryButton combatButton = new RecruitsCategoryButton(Items.IRON_SWORD.getDefaultInstance(), x - 30, y + 87, Component.literal(""),
                 button -> {
                     this.setSelection(Selection.COMBAT);
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_COMBAT, i, i1);
                 });
-        combatButton.setTooltip(Tooltip.create(TOOLTIP_COMBAT));
+        //combatButton.setTooltip(Tooltip.create(TOOLTIP_COMBAT));
         addRenderableWidget(combatButton);
 
         RecruitsCategoryButton otherButton = new RecruitsCategoryButton(Items.CHEST.getDefaultInstance(), x + 30, y + 87, Component.literal(""),
                 button -> {
                     this.setSelection(Selection.OTHER);
+                },
+                (button1, poseStack, i, i1) -> {
+                    this.renderTooltip(poseStack, TOOLTIP_OTHER, i, i1);
                 });
-        otherButton.setTooltip(Tooltip.create(TOOLTIP_OTHER));
+        //combatButton.setTooltip(Tooltip.create(TOOLTIP_OTHER));
         addRenderableWidget(otherButton);
 
 
@@ -274,8 +284,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                         button -> {
                             sendMovementCommandToServer(6);
                             sendCommandInChat(6);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_MOVE, i, i1);
                         });
-                moveButton.setTooltip(Tooltip.create(TOOLTIP_MOVE));
+                //moveButton.setTooltip(Tooltip.create(TOOLTIP_MOVE));
                 addRenderableWidget(moveButton);
 
                 //FORWARD
@@ -283,8 +296,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                         button -> {
                             sendMovementCommandToServer(7);
                             sendCommandInChat(7);
-                });
-                forwardButton.setTooltip(Tooltip.create(TOOLTIP_FORWARD));
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_FORWARD, i, i1);
+                        });
+                //forwardButton.setTooltip(Tooltip.create(TOOLTIP_FORWARD));
                 addRenderableWidget(forwardButton);
 
                 //FOLLOW
@@ -298,8 +314,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 sendMovementCommandToServer(1);
                             }
                             sendCommandInChat(1);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_FOLLOW, i, i1);
                         });
-                followButton.setTooltip(Tooltip.create(TOOLTIP_FOLLOW));
+                //followButton.setTooltip(Tooltip.create(TOOLTIP_FOLLOW));
                 addRenderableWidget(followButton);
 
 
@@ -308,9 +327,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                         button -> {
                             sendMovementCommandToServer(0);
                             sendCommandInChat(0);
-
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_WANDER, i, i1);
                         });
-                wanderButton.setTooltip(Tooltip.create(TOOLTIP_WANDER));
+                //wanderButton.setTooltip(Tooltip.create(TOOLTIP_WANDER));
                 addRenderableWidget(wanderButton);
 
                 //BACK TO POS
@@ -318,9 +339,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                         button -> {
                             sendMovementCommandToServer(3);
                             sendCommandInChat(3);
-
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_BACK_TO_POS, i, i1);
                         });
-                backToPosButton.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_POS));
+                //backToPosButton.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_POS));
                 addRenderableWidget(backToPosButton);
 
                 //HOLDPOS
@@ -328,8 +351,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                         button -> {
                             sendMovementCommandToServer(2);
                             sendCommandInChat(2);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_HOLD_POS, i, i1);
                         });
-                holdPosButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_POS));
+                //holdPosButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_POS));
                 addRenderableWidget(holdPosButton);
 
                 //BACKWARD
@@ -337,64 +363,88 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                         button -> {
                             sendMovementCommandToServer(8);
                             sendCommandInChat(8);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_BACKWARD, i, i1);
                         });
-                backwardButton.setTooltip(Tooltip.create(TOOLTIP_BACKWARD));
+                //backwardButton.setTooltip(Tooltip.create(TOOLTIP_BACKWARD));
                 addRenderableWidget(backwardButton);
 
                 //NONE
                 RecruitsFormationButton noneFormationButton = new RecruitsFormationButton(Formation.NONE, x, y + 50,
                         button -> {
                             this.setFormation(Formation.NONE);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TEXT_FORMATION_NONE, i, i1);
                         });
-                noneFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_NONE));
+                //noneFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_NONE));
                 addRenderableWidget(noneFormationButton);
 
                 //LINE UP
                 RecruitsFormationButton lineUpFormationButton = new RecruitsFormationButton(Formation.LINE, x - 21, y + 50,
                         button -> {
                             this.setFormation(Formation.LINE);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TEXT_FORMATION_LINEUP, i, i1);
                         });
-                lineUpFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_LINEUP));
+                //lineUpFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_LINEUP));
                 addRenderableWidget(lineUpFormationButton);
 
                 //SQUARE
                 RecruitsFormationButton squareFormationButton = new RecruitsFormationButton(Formation.SQUARE, x + 21, y + 50,
                         button -> {
                             this.setFormation(Formation.SQUARE);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TEXT_FORMATION_SQUARE, i, i1);
                         });
-                squareFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_SQUARE));
+                //squareFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_SQUARE));
                 addRenderableWidget(squareFormationButton);
 
                 //TRIANGLE
                 RecruitsFormationButton triangleFormationButton = new RecruitsFormationButton(Formation.TRIANGLE, x - 42, y + 50,
                         button -> {
                             this.setFormation(Formation.TRIANGLE);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TEXT_FORMATION_TRIANGLE, i, i1);
                         });
-                triangleFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_TRIANGLE));
+                //triangleFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_TRIANGLE));
                 addRenderableWidget(triangleFormationButton);
 
                 //V_FORM
                 RecruitsFormationButton VFormFormationButton = new RecruitsFormationButton(Formation.VFORM, x + 42, y + 50,
                         button -> {
                             this.setFormation(Formation.VFORM);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TEXT_FORMATION_V, i, i1);
                         });
-                VFormFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_V));
+                //VFormFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_V));
                 addRenderableWidget(VFormFormationButton);
 
                 //CIRCLE
                 RecruitsFormationButton circleFormationButton = new RecruitsFormationButton(Formation.HCIRCLE, x - 63, y + 50,
                         button -> {
                             this.setFormation(Formation.HCIRCLE);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TEXT_FORMATION_HOLLOW_CIRCLE, i, i1);
                         });
-                circleFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_HOLLOW_CIRCLE));
+                //circleFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_HOLLOW_CIRCLE));
                 addRenderableWidget(circleFormationButton);
 
                 //H SQAURE
                 RecruitsFormationButton hSquareFormationButton = new RecruitsFormationButton(Formation.HSQUARE, x + 63, y + 50,
                         button -> {
                             this.setFormation(Formation.HSQUARE);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TEXT_FORMATION_HOLLOW_SQUARE, i, i1);
                         });
-                hSquareFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_HOLLOW_SQUARE));
+                //hSquareFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_HOLLOW_SQUARE));
                 addRenderableWidget(hSquareFormationButton);
 
                 noneFormationButton.active = formation == Formation.NONE;
@@ -417,9 +467,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(72);
                             }
-
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_STRATEGIC_FIRE, i, i1);
                         });
-                strategicFireButton.setTooltip(Tooltip.create(TOOLTIP_STRATEGIC_FIRE));
+                //strategicFireButton.setTooltip(Tooltip.create(TOOLTIP_STRATEGIC_FIRE));
                 addRenderableWidget(strategicFireButton);
 
                 //HOLD STRATEGIC FIRE
@@ -433,9 +485,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(73);
                             }
-
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_HOLD_STRATEGIC_FIRE, i, i1);
                         });
-                holdStrategicFireButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_STRATEGIC_FIRE));
+                //holdStrategicFireButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_STRATEGIC_FIRE));
                 addRenderableWidget(holdStrategicFireButton);
 
                 //FIRE AT WILL
@@ -449,8 +503,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(70);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_FIRE_AT_WILL, i, i1);
                         });
-                fireAtWillButton.setTooltip(Tooltip.create(TOOLTIP_FIRE_AT_WILL));
+                //fireAtWillButton.setTooltip(Tooltip.create(TOOLTIP_FIRE_AT_WILL));
                 addRenderableWidget(fireAtWillButton);
 
                 //HOLD FIRE
@@ -465,8 +522,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(71);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_HOLD_FIRE, i, i1);
                         });
-                holdFireButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_FIRE));
+                //holdFireButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_FIRE));
                 addRenderableWidget(holdFireButton);
 
                 //SHIELDS UP
@@ -480,8 +540,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(74);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_SHIELDS_UP, i, i1);
                         });
-                shieldsUpButton.setTooltip(Tooltip.create(TOOLTIP_SHIELDS_UP));
+                //shieldsUpButton.setTooltip(Tooltip.create(TOOLTIP_SHIELDS_UP));
                 addRenderableWidget(shieldsUpButton);
 
                 //SHIELDS DOWN
@@ -495,8 +558,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(75);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_SHIELDS_DOWN, i, i1);
                         });
-                shieldsDownButton.setTooltip(Tooltip.create(TOOLTIP_SHIELDS_DOWN));
+                //shieldsDownButton.setTooltip(Tooltip.create(TOOLTIP_SHIELDS_DOWN));
                 addRenderableWidget(shieldsDownButton);
 
                 //FORGET TARGETS
@@ -510,8 +576,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(9);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_CLEAR_TARGET, i, i1);
                         });
-                clearTargetsButton.setTooltip(Tooltip.create(TOOLTIP_CLEAR_TARGET));
+                //clearTargetsButton.setTooltip(Tooltip.create(TOOLTIP_CLEAR_TARGET));
                 addRenderableWidget(clearTargetsButton);
 
                 //PASSIVE
@@ -525,8 +594,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(13);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_PASSIVE, i, i1);
                         });
-                passiveButton.setTooltip(Tooltip.create(TOOLTIP_PASSIVE));
+                //passiveButton.setTooltip(Tooltip.create(TOOLTIP_PASSIVE));
                 addRenderableWidget(passiveButton);
 
                 //NEUTRAL
@@ -540,8 +612,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(10);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_NEUTRAL, i, i1);
                         });
-                neutralButton.setTooltip(Tooltip.create(TOOLTIP_NEUTRAL));
+                //neutralButton.setTooltip(Tooltip.create(TOOLTIP_NEUTRAL));
                 addRenderableWidget(neutralButton);
 
                 //RAID
@@ -555,8 +630,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(12);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_RAID, i, i1);
                         });
-                raidButton.setTooltip(Tooltip.create(TOOLTIP_RAID));
+                //raidButton.setTooltip(Tooltip.create(TOOLTIP_RAID));
                 addRenderableWidget(raidButton);
 
                 //AGGRESSIVE
@@ -570,8 +648,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 sendCommandInChat(11);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_AGGRESSIVE, i, i1);
                         });
-                aggressiveButton.setTooltip(Tooltip.create(TOOLTIP_AGGRESSIVE));
+                //aggressiveButton.setTooltip(Tooltip.create(TOOLTIP_AGGRESSIVE));
                 addRenderableWidget(aggressiveButton);
             }
 
@@ -586,8 +667,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 this.sendCommandInChat(5);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_PROTECT, i, i1);
                         });
-                protectButton.setTooltip(Tooltip.create(TOOLTIP_PROTECT));
+                //protectButton.setTooltip(Tooltip.create(TOOLTIP_PROTECT));
                 addRenderableWidget(protectButton);
 
                 //MOUNT
@@ -599,16 +683,22 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 this.sendCommandInChat(99);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_MOUNT, i, i1);
                         });
-                mountButton.setTooltip(Tooltip.create(TOOLTIP_MOUNT));
+                //mountButton.setTooltip(Tooltip.create(TOOLTIP_MOUNT));
                 addRenderableWidget(mountButton);
 
                 //TEAM
                 RecruitsCommandButton teamButton = new RecruitsCommandButton(x, y + 50, TEXT_TEAM,
                         button -> {
                             Main.SIMPLE_CHANNEL.sendToServer(new MessageTeamMainScreen(player));
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_TEAM, i, i1);
                         });
-                teamButton.setTooltip(Tooltip.create(TOOLTIP_TEAM));
+                //teamButton.setTooltip(Tooltip.create(TOOLTIP_TEAM));
                 addRenderableWidget(teamButton);
 
                 //BACK TO MOUNT
@@ -622,8 +712,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 this.sendCommandInChat(91);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_BACK_TO_MOUNT, i, i1);
                         });
-                backToMountButton.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_MOUNT));
+                //backToMountButton.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_MOUNT));
                 addRenderableWidget(backToMountButton);
 
                 //DISMOUNT
@@ -637,8 +730,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 this.sendCommandInChat(98);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_DISMOUNT, i, i1);
                         });
-                dismountButton.setTooltip(Tooltip.create(TOOLTIP_DISMOUNT));
+                //dismountButton.setTooltip(Tooltip.create(TOOLTIP_DISMOUNT));
                 addRenderableWidget(dismountButton);
 
                 //UPKEEP
@@ -653,8 +749,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 this.sendCommandInChat(92);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_UPKEEP, i, i1);
                         });
-                upkeepButton.setTooltip(Tooltip.create(TOOLTIP_UPKEEP));
+                //upkeepButton.setTooltip(Tooltip.create(TOOLTIP_UPKEEP));
                 addRenderableWidget(upkeepButton);
 
                 //REST
@@ -668,12 +767,16 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 this.sendCommandInChat(88);
                             }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_REST, i, i1);
                         });
-                restButton.setTooltip(Tooltip.create(TOOLTIP_REST));
+                //restButton.setTooltip(Tooltip.create(TOOLTIP_REST));
                 addRenderableWidget(restButton);
             }
         }
     }
+
     private void sendMovementCommandToServer(int state) {
         if(state != 1){
             PlayerEvents.activeGroups = null;
@@ -854,7 +957,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         return Component.translatable("chat.recruits.command.hold_fire", group_string);
     }
     @Override
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void renderLabels(PoseStack guiGraphics, int mouseX, int mouseY) {
         super.renderLabels(guiGraphics, mouseX, mouseY);
     }
 

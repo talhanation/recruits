@@ -8,6 +8,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.Comparator;
 import java.util.Stack;
@@ -131,7 +132,7 @@ public class RestGoal extends Goal {
                 }
             }
         }
-        stack.sort(Comparator.comparing(pos -> recruit.distanceToSqr(pos.getCenter())));
+        stack.sort(Comparator.comparing(pos -> recruit.distanceToSqr(Vec3.atCenterOf(pos))));
 
         return stack;
     }

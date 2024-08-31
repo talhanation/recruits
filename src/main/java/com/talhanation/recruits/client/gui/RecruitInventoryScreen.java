@@ -356,13 +356,13 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         this.currentGroup = getCurrentGroup(recruit.getGroup());
 
         //GROUP
-        addRenderableWidget(new ExtendedButton(leftPos + 77, topPos + 100, 12, 12, Component.literal("<"),
+        addRenderableWidget(new Button(leftPos + 77, topPos + 100, 12, 12, Component.literal("<"),
                 button -> {
                     selectPreviousGroup();
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(currentGroup.getId(), recruit.getUUID()));
                 }));
 
-        addRenderableWidget(new ExtendedButton(leftPos + 77 + 81, topPos + 100, 12, 12, Component.literal(">"),
+        addRenderableWidget(new Button(leftPos + 77 + 81, topPos + 100, 12, 12, Component.literal(">"),
                 button -> {
                     selectNextGroup();
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(currentGroup.getId(), recruit.getUUID()));
@@ -462,13 +462,6 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         font.draw(matrixStack, aggro, k + 15, l + 56 + 15, fnt);
         if(currentGroup != null) font.draw(matrixStack, currentGroup.getName(), k + 15, l + 56 + 28, fontColor);
 
-        font.draw(matrixStack, aggro, k + 15, l + 56 + 15, fnt);
-        font.draw(matrixStack, CommandScreen.handleGroupText(recruit.getGroup(), groups), k + 15, l + 56 + 28, fontColor);
-
-
-        font.draw(matrixStack, aggro, k + 15, l + 56 + 15, fnt);
-        font.draw(matrixStack, CommandScreen.handleGroupText(recruit.getGroup(), recruitsGroupList), k + 15, l + 56 + 28, fontColor);
-        
         String listen;
         if (recruit.getListen()) listen = TEXT_INFO_LISTEN.getString();
         else listen = TEXT_INFO_IGNORE.getString();

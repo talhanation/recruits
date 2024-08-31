@@ -1,15 +1,13 @@
 package com.talhanation.recruits.client.gui.group;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.inventory.GroupManageContainer;
 import com.talhanation.recruits.network.MessageApplyNoGroup;
 import com.talhanation.recruits.network.MessageServerSavePlayerGroups;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.reporting.ChatReportScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -96,19 +94,19 @@ public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
     public Font getFont() {
         return this.font;
     }
-    protected void render(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+    protected void render(PoseStack guiGraphics, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(    1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
-        guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
+        blit(guiGraphics, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
         this.groupListWidget.render(guiGraphics, mouseX, mouseY, partialTicks);
         this.renderBackground(guiGraphics);
     }
 
     @Override
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void renderLabels(PoseStack guiGraphics, int mouseX, int mouseY) {
         super.renderLabels(guiGraphics, mouseX, mouseY);
-        guiGraphics.drawString(font, TEXT_TITLE, 18  , 11, fontColor, false);
+        font.draw(guiGraphics, TEXT_TITLE, 18  , 11, fontColor);
     }
     public void setSelected(GroupListWidget.GroupEntry groupEntry) {
         this.selectedEntry = groupEntry;
