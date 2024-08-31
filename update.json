@@ -1,11 +1,12 @@
 {
   "homepage": "https://www.curseforge.com/minecraft/mc-mods/recruits/files",
   "promos": {
-    "1.20.1-recommended": "1.12.0",
-    "1.19.2-recommended": "1.11.5",
-    "1.18.2-recommended": "1.11.5"
+    "1.20.1-recommended": "1.12.1",
+    "1.19.2-recommended": "1.12.1",
+    "1.18.2-recommended": "1.12.1"
   },
   "1.18.2": {
+    "1.12.1": "Formation update!, fixed crash and texts",
     "1.11.5": "fixed compat with small ships and rpgz, fixed arrow flight",
     "1.11.4.2": "fixed screens not opening",
     "1.11.4.1": "fixed layers not rendering // fixed coprse not spwanng on servers // fixed morale not updating",
@@ -42,6 +43,7 @@
     "1.9.0": "Team Screen, Hail of Arrows, Upkeep, Configurations and more!"
   },
   "1.19.2": {
+    "1.12.1": "Formation update!, fixed crash and texts",
     "1.11.5": "fixed compat with small ships and rpgz, fixed arrow flight",
     "1.11.4.1": "fixed layers not rendering // fixed coprse not spwanng on servers // fixed morale not updating",
     "1.11.3": "fix crashes // improved captain sailor AI",
@@ -77,6 +79,7 @@
     "1.9.2": "added modded armor support."
   },
   "1.20.1": {
+    "1.12.1": "Formation update!, fixed crash and texts",
     "1.12.0": "Formation update!",
     "1.11.5": "fixed compat with small ships and rpgz, fixed arrow flight",
     "1.11.4": "fixed layers not rendering // fixed coprse not spwanng on servers // fixed morale not updating",
