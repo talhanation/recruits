@@ -24,10 +24,10 @@ import java.util.List;
 public class GroupManageScreen extends ScreenBase<GroupManageContainer> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/group_list_gui.png");
-    private static final MutableComponent TEXT_ADD = Component.literal("gui.recruits.group_creation.add");
-    private static final MutableComponent TEXT_EDIT = Component.literal("gui.recruits.group_creation.edit");
-    private static final MutableComponent TEXT_REMOVE = Component.literal("gui.recruits.group_creation.remove");
-    private static final MutableComponent TEXT_TITLE = Component.literal("gui.recruits.group_management.title");
+    private static final MutableComponent TEXT_ADD = Component.translatable("gui.recruits.group_creation.add");
+    private static final MutableComponent TEXT_EDIT = Component.translatable("gui.recruits.group_creation.edit");
+    private static final MutableComponent TEXT_REMOVE = Component.translatable("gui.recruits.group_creation.remove");
+    private static final MutableComponent TEXT_TITLE = Component.translatable("gui.recruits.group_management.title");
     public final int fontColor = 16250871;
     private final Player player;
     private int leftPos;

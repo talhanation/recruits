@@ -6,9 +6,8 @@ import com.talhanation.recruits.Main;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
 
@@ -25,18 +24,18 @@ public class EditOrAddGroupScreen extends Screen {
     private int imageWidth;
     private int imageHeight;
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/team/team_main_gui.png");
-    private static final MutableComponent TEXT_CANCEL = new TranslatableComponent("gui.recruits.group_creation.cancel");
-    private static final MutableComponent TEXT_SAVE = new TranslatableComponent("gui.recruits.group_creation.save");
-    private static final MutableComponent TEXT_ADD = new TranslatableComponent("gui.recruits.group_creation.add");
-    private static final MutableComponent TEXT_SPLIT = new TranslatableComponent("gui.recruits.group_creation.split");
-    private static final MutableComponent TEXT_EDIT_TITLE = new TranslatableComponent("gui.recruits.group_creation.edit_title");
-    private static final MutableComponent TEXT_ADD_TITLE = new TranslatableComponent("gui.recruits.group_creation.add_title");
+    private static final MutableComponent TEXT_CANCEL = Component.translatable("gui.recruits.group_creation.cancel");
+    private static final MutableComponent TEXT_SAVE = Component.translatable("gui.recruits.group_creation.save");
+    private static final MutableComponent TEXT_ADD = Component.translatable("gui.recruits.group_creation.add");
+    private static final MutableComponent TEXT_SPLIT = Component.translatable("gui.recruits.group_creation.split");
+    private static final MutableComponent TEXT_EDIT_TITLE = Component.translatable("gui.recruits.group_creation.edit_title");
+    private static final MutableComponent TEXT_ADD_TITLE = Component.translatable("gui.recruits.group_creation.add_title");
     public EditOrAddGroupScreen(GroupManageScreen parent) {
         this(parent, null);
     }
 
     public EditOrAddGroupScreen(GroupManageScreen parent, RecruitsGroup groupToEdit) {
-        super(new TextComponent(""));
+        super(Component.literal(""));
         this.parent = parent;
         this.groupToEdit = groupToEdit;
         this.imageWidth = 250;
@@ -50,7 +49,7 @@ public class EditOrAddGroupScreen extends Screen {
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
 
-        groupNameField = new EditBox(this.font, leftPos + 10, topPos + 20, 220, 20, new TextComponent(""));
+        groupNameField = new EditBox(this.font, leftPos + 10, topPos + 20, 220, 20, Component.literal(""));
         if (groupToEdit != null) {
             groupNameField.setValue(groupToEdit.getName());
         }
