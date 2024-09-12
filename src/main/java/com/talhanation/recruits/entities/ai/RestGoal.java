@@ -8,6 +8,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.Comparator;
@@ -75,10 +77,11 @@ public class RestGoal extends Goal {
 
         if(!stackOfBeds.isEmpty()){
             if(this.sleepPos != null){
-                BlockEntity bedEntity = recruit.getCommandSenderWorld().getBlockEntity(sleepPos);
-                if (bedEntity != null && bedEntity.getBlockState().isBed(recruit.getCommandSenderWorld(), sleepPos, recruit) && !bedEntity.getBlockState().getValue(BlockStateProperties.OCCUPIED)) {
+                BlockState state = recruit.getCommandSenderWorld().getBlockState(sleepPos);
+                if (state.isBed(recruit.getCommandSenderWorld(), sleepPos, recruit) && !state.getValue(BlockStateProperties.OCCUPIED)) {
                     this.goToBed(sleepPos);
                 }
+
                 else{
                     this.sleepPos = this.stackOfBeds.pop();
                 }
@@ -114,6 +117,7 @@ public class RestGoal extends Goal {
         }
     }
 
+    public static final IntegerProperty MULTI_BLOCK_INDEX = IntegerProperty.create("multi_block_index", 0, 2); // Fantasy Furniture beds
     private Stack<BlockPos> getListOfBeds() {
         Stack<BlockPos> stack = new Stack<>();
         int range = 25;
@@ -124,10 +128,18 @@ public class RestGoal extends Goal {
                     BlockPos pos = recruit.getOnPos().offset(x, y, z);
                     BlockState state = recruit.getCommandSenderWorld().getBlockState(pos);
 
-                    if (state.isBed(recruit.getCommandSenderWorld(), pos, this.recruit) &&
-                        state.getValue(BlockStateProperties.BED_PART) == BedPart.HEAD &&
-                        !state.getValue(BlockStateProperties.OCCUPIED)) {
-                        stack.push(pos);
+                    if (state.isBed(recruit.getCommandSenderWorld(), pos, this.recruit) && !state.getValue(BlockStateProperties.OCCUPIED)){
+                        try{
+                            if (state.getValue(MULTI_BLOCK_INDEX) == 1){
+                                stack.push(pos);
+                            }
+                            else if(state.getValue(BlockStateProperties.BED_PART) == BedPart.HEAD){
+                                stack.push(pos);
+                            }
+
+                        } catch (IllegalArgumentException e){
+                            stack.push(pos);
+                        }
                     }
                 }
             }
