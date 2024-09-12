@@ -583,8 +583,10 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                         button -> {
                             if (rayEntity != null && !groups.isEmpty()) {
                                 for(RecruitsGroup group : groups) {
-                                    Main.SIMPLE_CHANNEL.sendToServer(new MessageProtectEntity(player.getUUID(), rayEntity.getUUID(), group.getId()));
-                                    Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 5, formation.getIndex(), group.getId()));
+                                    if (!group.isDisabled()) {
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageProtectEntity(player.getUUID(), rayEntity.getUUID(), group.getId()));
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 5, formation.getIndex(), group.getId()));
+                                    }
                                 }
                                 this.sendCommandInChat(5);
                             }
@@ -597,7 +599,9 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                         button -> {
                             if (rayEntity != null && !groups.isEmpty()) {
                                 for (RecruitsGroup group : groups) {
-                                    Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntity(player.getUUID(), rayEntity.getUUID(), group.getId()));
+                                    if (!group.isDisabled()) {
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntity(player.getUUID(), rayEntity.getUUID(), group.getId()));
+                                    }
                                 }
                                 this.sendCommandInChat(99);
                             }
