@@ -83,7 +83,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                         recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()), recruit.getOwner().getUUID());
                         messageNotInRange = false;
                     }
-                    
+
                     recruit.clearUpkeepPos();
                     stop();
                 }
