@@ -75,16 +75,17 @@ public class RecruitUpkeepPosGoal extends Goal {
                 }
                 this.chestPos = null;
             }
+            if(chestPos != null){
+                double distance = this.recruit.position().distanceToSqr(Vec3.atCenterOf(chestPos));
+                if(distance > 10000){
+                    if(recruit.getOwner() != null && messageNotInRange){
+                        recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()), recruit.getOwner().getUUID());
+                        messageNotInRange = false;
+                    }
 
-            double distance = this.recruit.position().distanceToSqr(Vec3.atCenterOf(chestPos));
-            if(distance > 10000){
-                if(recruit.getOwner() != null && messageNotInRange){
-                    recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()), recruit.getOwner().getUUID());
-                    messageNotInRange = false;
+                    recruit.clearUpkeepPos();
+                    stop();
                 }
-
-                recruit.clearUpkeepPos();
-                stop();
             }
         }
     }
