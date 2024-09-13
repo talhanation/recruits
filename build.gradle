@@ -128,12 +128,13 @@ dependencies {
     implementation fg.deobf("curse.maven:epic-knights-armor-and-weapons-509041:5254836")
     implementation fg.deobf("curse.maven:architectury-api-419699:5137938")
     implementation fg.deobf("curse.maven:cloth-config-348521:4973441")
-
+    
     implementation fg.deobf("curse.maven:ewewukeks-musket-mod-354562:5172206")
     implementation fg.deobf("curse.maven:worldedit-225608:4586218")
     implementation fg.deobf("curse.maven:small-ships-450659:5566900")
 
     //implementation fg.deobf("curse.maven:rpgz-404828:5549878")
+
 }
 
 // Example for how to get properties into the manifest for reading at runtime.

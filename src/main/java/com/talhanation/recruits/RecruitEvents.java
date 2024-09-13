@@ -423,6 +423,9 @@ public class RecruitEvents {
             if (recruit.getOwnerUUID().equals(recruitEntityTarget.getOwnerUUID())){
                 return false;
             }
+            else if (recruit.equals(target)){
+                return false;
+            }
             //extra for safety
             else if (recruit.getTeam() != null && recruitEntityTarget.getTeam() != null && recruit.getTeam().equals(recruitEntityTarget.getTeam())){
                 return false;

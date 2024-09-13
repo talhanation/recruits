@@ -49,20 +49,17 @@ public class RecruitMeleeAttackGoal extends Goal {
                     }
                 }
             }
+            else target = null;
         }
         return false;
     }
 
     public boolean canContinueToUse() {
         LivingEntity target = this.recruit.getTarget();
-
-        if (target == null) {
+        if (target == null || !target.isAlive()) {
             return false;
         }
-        else if (!target.isAlive() && !this.recruit.getSensing().hasLineOfSight(target)) {
-            return false;
-        }
-        else if (!this.recruit.isWithinRestriction(target.blockPosition())) {
+        else if (!this.recruit.getSensing().hasLineOfSight(target)) {
             return false;
         }
         else {
@@ -70,7 +67,6 @@ public class RecruitMeleeAttackGoal extends Goal {
             boolean needsToGetFood = recruit.needsToGetFood();
             boolean getShouldMount = recruit.getShouldMount();
             boolean getShouldMovePos = recruit.getShouldMovePos();
-
             return (!(target instanceof Player) || !target.isSpectator() && !((Player)target).isCreative()) && canAttackHoldPos && recruit.getState() != 3 && !needsToGetFood && !getShouldMount && !getShouldMovePos;
         }
     }
@@ -125,13 +121,12 @@ public class RecruitMeleeAttackGoal extends Goal {
         }
     }
     private boolean canAttackHoldPos() {
-        LivingEntity target = this.recruit.getTarget();
         Vec3 pos = recruit.getHoldPos();
-
+        LivingEntity target = this.recruit.getTarget();
         if (target != null && pos != null && recruit.getShouldHoldPos()) {
             double distanceToPos = target.distanceToSqr(pos);
 
-            return distanceToPos < 400;
+            return distanceToPos < 300;
         }
         return true;
     }
