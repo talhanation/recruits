@@ -29,9 +29,10 @@ public class RecruitMeleeAttackGoal extends Goal {
     }
 
     public boolean canUse() {
-        //check if last use was 10 tick before
+        //check if last use was 20 tick before
         long i = this.recruit.getCommandSenderWorld().getGameTime();
-        if (i - this.lastCanUseCheck >= 10L) {
+        if (i - this.lastCanUseCheck >= 20L) {
+
             this.lastCanUseCheck = i;
 
             LivingEntity target = this.recruit.getTarget();
