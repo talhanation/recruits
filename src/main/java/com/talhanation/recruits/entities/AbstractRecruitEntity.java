@@ -123,6 +123,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         super(entityType, world);
         this.xpReward = 6;
         this.navigation = this.createNavigation(world);
+        this.maxUpStep = 1F;
+        this.setMaxFallDistance(1);
     }
 
     ///////////////////////////////////NAVIGATION/////////////////////////////////////////
