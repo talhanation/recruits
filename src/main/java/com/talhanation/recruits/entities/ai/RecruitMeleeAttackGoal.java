@@ -1,11 +1,7 @@
 package com.talhanation.recruits.entities.ai;
 
-
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-
 import com.talhanation.recruits.util.AttackUtil;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -33,7 +29,7 @@ public class RecruitMeleeAttackGoal extends Goal {
     }
 
     public boolean canUse() {
-        //check if last use was 10 tick before
+        //check if last use was 20 tick before
         long i = this.recruit.level.getGameTime();
         if (i - this.lastCanUseCheck >= 20L) {
             this.lastCanUseCheck = i;
@@ -53,7 +49,6 @@ public class RecruitMeleeAttackGoal extends Goal {
                     }
                 }
             }
-            else target = null;
         }
         return false;
     }
