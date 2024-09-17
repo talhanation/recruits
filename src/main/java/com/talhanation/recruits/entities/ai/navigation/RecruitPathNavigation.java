@@ -2,6 +2,7 @@ package com.talhanation.recruits.entities.ai.navigation;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.PathFinder;
@@ -29,6 +30,7 @@ public class RecruitPathNavigation extends GroundPathNavigation {
         this.nodeEvaluator.setCanOpenDoors(true);
         this.nodeEvaluator.setCanPassDoors(true);
         this.nodeEvaluator.setCanFloat(true);
+
         return new PathFinder(this.nodeEvaluator, range);
     }
 
