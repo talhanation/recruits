@@ -3,6 +3,7 @@ package com.talhanation.recruits;
 import com.google.common.collect.ImmutableSet;
 import com.talhanation.recruits.client.events.KeyEvents;
 import com.talhanation.recruits.client.events.PlayerEvents;
+import com.talhanation.recruits.commands.PatrolSpawnCommand;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.init.ModBlocks;
@@ -24,6 +25,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -86,7 +88,13 @@ public class Main {
         ModScreens.MENU_TYPES.register(modEventBus);
         //ModSounds.SOUNDS.register(modEventBus);
         MinecraftForge.EVENT_BUS.register(this);
-        }
+    }
+
+    @SubscribeEvent
+    public void onRegisterCommands(RegisterCommandsEvent event) {
+        PatrolSpawnCommand.register(event.getDispatcher());
+    }
+
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void setup(final FMLCommonSetupEvent event) {
         MinecraftForge.EVENT_BUS.register(new RecruitEvents());
@@ -177,7 +185,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 74, MessageFormationFollowMovement.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 75, MessageRest.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 76, MessageRangedFire.class);
-
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 77,  MessageCommandPatrolSpawn.class);
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
         isSmallShipsLoaded = ModList.get().isLoaded("smallships");//small ships
         isSiegeWeaponsLoaded = ModList.get().isLoaded("siegeweapons");//siege weapons
