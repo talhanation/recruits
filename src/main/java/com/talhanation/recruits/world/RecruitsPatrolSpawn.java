@@ -7,6 +7,7 @@ import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -30,37 +31,36 @@ import java.util.Optional;
 import java.util.Random;
 
 public class RecruitsPatrolSpawn {
-    private static final Random random = new Random();
-    private final ServerLevel world;
-    private int timer;
-    private final double chance;
-
+    public static final Random random = new Random();
+    public static int timer;
+    public static double chance;
+    public final ServerLevel world;
     public RecruitsPatrolSpawn(ServerLevel level) {
-        this.world = level;
-        this.timer = getSpawnInterval();
-        this.chance = RecruitsServerConfig.RecruitPatrolsSpawnChance.get();
+        world = level;
+        timer = getSpawnInterval();
+        chance = RecruitsServerConfig.RecruitPatrolsSpawnChance.get();
     }
 
     public void tick() {
-        if(timer > 0) --this.timer;
+        if(timer > 0) --timer;
 
-        if(this.timer <= 0){
-            if (this.world.getGameRules().getBoolean(GameRules.RULE_DO_PATROL_SPAWNING)) {
+        if(timer <= 0){
+            if (world.getGameRules().getBoolean(GameRules.RULE_DO_PATROL_SPAWNING)) {
                 double rnd = random.nextInt(100);
 
-                if (rnd <= this.chance && this.attemptSpawnPatrol()){}//To avoid multiple method call
+                if (rnd <= chance && attemptSpawnPatrol(world)){}//To avoid multiple method call
             }
-            this.timer = getSpawnInterval();
+            timer = getSpawnInterval();
         }
     }
 
-    private boolean attemptSpawnPatrol() {
-        Player player = this.world.getRandomPlayer();
+    public static boolean attemptSpawnPatrol(ServerLevel world) {
+        Player player = world.getRandomPlayer();
         if (player == null) {
             return true;
         } else {
             if(!player.getCommandSenderWorld().dimensionType().hasRaids()){
-                player = this.world.getRandomPlayer();
+                player = world.getRandomPlayer();
             }
             BlockPos blockpos = new BlockPos(player.getOnPos());
             BlockPos blockpos2 = func_221244_a(blockpos, 90, random, world);
@@ -73,14 +73,14 @@ public class RecruitsPatrolSpawn {
 
                 int i = random.nextInt(13);
                 switch(i) {
-                    default -> spawnCaravan(upPos);
+                    default -> spawnCaravan(upPos, world);
 
-                    case 9,0 -> spawnSmallPatrol(upPos);
-                    case 1,2 -> spawnLargePatrol(upPos);
-                    case 3,4 -> spawnHugePatrol(upPos);
-                    case 5,6 -> spawnTinyPatrol(upPos);
-                    case 7,8 -> spawnRoadPatrol(upPos);
-                    case 10,11 -> spawnMediumPatrol(upPos);
+                    case 9,0 -> spawnSmallPatrol(upPos, world);
+                    case 1,2 -> spawnLargePatrol(upPos, world);
+                    case 3,4 -> spawnHugePatrol(upPos, world);
+                    case 5,6 -> spawnTinyPatrol(upPos, world);
+                    case 7,8 -> spawnRoadPatrol(upPos, world);
+                    case 10,11 -> spawnMediumPatrol(upPos, world);
 
 
                 }
@@ -91,53 +91,53 @@ public class RecruitsPatrolSpawn {
         }
     }
 
-    private int getSpawnInterval(){
+    public static int getSpawnInterval(){
         //1200 == 1 min
         int minutes = RecruitsServerConfig.RecruitPatrolSpawnInterval.get(); //minutes
         return 1200 * minutes;
     }
-    private void spawnCaravan(BlockPos upPos) {
-        RecruitEntity patrolLeader = this.createPatrolLeader(upPos, "Caravan Leader");
-        this.createVillager(upPos, patrolLeader);
-        Villager villagerGuide = this.createVillager(upPos, patrolLeader);
-        this.createLlama(upPos, villagerGuide);
-        this.createLlama(upPos, villagerGuide);
+    public static void spawnCaravan(BlockPos upPos, ServerLevel world) {
+        RecruitEntity patrolLeader = createPatrolLeader(world, upPos, "Caravan Leader");
+        createVillager(world, upPos, patrolLeader);
+        Villager villagerGuide = createVillager(world, upPos, patrolLeader);
+        createLlama(world, upPos, villagerGuide);
+        createLlama(world, upPos, villagerGuide);
 
-        Villager villagerGuide2 = this.createVillager(upPos, patrolLeader);
-        this.createMule(upPos, villagerGuide2);
-        this.createMule(upPos, villagerGuide2);
+        Villager villagerGuide2 = createVillager(world, upPos, patrolLeader);
+        createMule(world, upPos, villagerGuide2);
+        createMule(world, upPos, villagerGuide2);
 
-        Villager villagerGuide3 = this.createVillager(upPos, patrolLeader);
-        this.createHorse(upPos, villagerGuide3);
-        this.createHorse(upPos, villagerGuide3);
+        Villager villagerGuide3 = createVillager(world, upPos, patrolLeader);
+        createHorse(world, upPos, villagerGuide3);
+        createHorse(world, upPos, villagerGuide3);
 
-        Villager villagerGuide4 = this.createVillager(upPos, patrolLeader);
-        this.createMule(upPos, villagerGuide4);
-        this.createMule(upPos, villagerGuide4);
+        Villager villagerGuide4 = createVillager(world, upPos, patrolLeader);
+        createMule(world, upPos, villagerGuide4);
+        createMule(world, upPos, villagerGuide4);
 
-        this.createPatrolRecruit(upPos, patrolLeader, "Caravan Guard");
-        this.createPatrolRecruit(upPos, patrolLeader, "Caravan Guard");
-        this.createPatrolRecruit(upPos, patrolLeader, "Caravan Guard");
+        createPatrolRecruit(world, upPos, patrolLeader, "Caravan Guard");
+        createPatrolRecruit(world, upPos, patrolLeader, "Caravan Guard");
+        createPatrolRecruit(world, upPos, patrolLeader, "Caravan Guard");
 
-        this.createPatrolShieldman(upPos, patrolLeader, "Caravan Guard", false);
-        this.createPatrolShieldman(upPos, patrolLeader, "Caravan Guard", true);
+        createPatrolShieldman(world, upPos, patrolLeader, "Caravan Guard", false);
+        createPatrolShieldman(world, upPos, patrolLeader, "Caravan Guard", true);
 
-        this.createPatrolHorseman(upPos, patrolLeader, "Caravan Guard", true);
-        this.createPatrolHorseman(upPos, patrolLeader, "Caravan Guard", false);
-        this.createPatrolHorseman(upPos, patrolLeader, "Caravan Guard", false);
+        createPatrolHorseman(world,upPos, patrolLeader, "Caravan Guard", true);
+        createPatrolHorseman(world,upPos, patrolLeader, "Caravan Guard", false);
+        createPatrolHorseman(world,upPos, patrolLeader, "Caravan Guard", false);
 
-        this.createPatrolNomad(upPos, patrolLeader, "Caravan Guard");
-        this.createPatrolNomad(upPos, patrolLeader, "Caravan Guard");
-        this.createPatrolNomad(upPos, patrolLeader, "Caravan Guard");
+        createPatrolNomad(world, upPos, patrolLeader, "Caravan Guard");
+        createPatrolNomad(world, upPos, patrolLeader, "Caravan Guard");
+        createPatrolNomad(world, upPos, patrolLeader, "Caravan Guard");
 
-        this.createVillager(upPos, patrolLeader);
-        this.createVillager(upPos, patrolLeader);
+        createVillager(world, upPos, patrolLeader);
+        createVillager(world, upPos, patrolLeader);
 
-        this.createWanderingTrader(upPos, patrolLeader);
-        this.createWanderingTrader(upPos, patrolLeader);
+        createWanderingTrader(world, upPos, patrolLeader);
+        createWanderingTrader(world, upPos, patrolLeader);
     }
 
-    private void createWanderingTrader(BlockPos upPos, RecruitEntity patrolLeader) {
+    public static void createWanderingTrader(ServerLevel world, BlockPos upPos, RecruitEntity patrolLeader) {
         WanderingTrader villager = EntityType.WANDERING_TRADER.create(world);
 
         villager.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
@@ -148,7 +148,7 @@ public class RecruitsPatrolSpawn {
         world.addFreshEntity(villager);
     }
 
-    private void createHorse(BlockPos upPos, Villager villager) {
+    public static void createHorse(ServerLevel world, BlockPos upPos, Villager villager) {
         Horse horse = EntityType.HORSE.create(world);
 
         horse.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
@@ -160,7 +160,7 @@ public class RecruitsPatrolSpawn {
         world.addFreshEntity(horse);
     }
 
-    private void createLlama(BlockPos upPos, Villager villager) {
+    public static void createLlama(ServerLevel world, BlockPos upPos, Villager villager) {
         Llama llama = EntityType.LLAMA.create(world);
 
         llama.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
@@ -218,7 +218,7 @@ public class RecruitsPatrolSpawn {
         }
     }
 
-    private Villager createVillager(BlockPos upPos, RecruitEntity patrolLeader) {
+    public static Villager createVillager(ServerLevel world, BlockPos upPos, RecruitEntity patrolLeader) {
         Villager villager = EntityType.VILLAGER.create(world);
 
         villager.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
@@ -231,7 +231,7 @@ public class RecruitsPatrolSpawn {
         return villager;
     }
 
-    private void createMule(BlockPos upPos, LivingEntity villager) {
+    public static void createMule(ServerLevel world, BlockPos upPos, LivingEntity villager) {
         Mule mule = EntityType.MULE.create(world);
 
         mule.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
@@ -305,98 +305,98 @@ public class RecruitsPatrolSpawn {
         world.addFreshEntity(mule);
     }
 
-    private void spawnHugePatrol(BlockPos upPos) {
-        RecruitEntity patrolLeader = this.createPatrolLeader(upPos, "Patrol Leader");
+    public static void spawnHugePatrol(BlockPos upPos, ServerLevel world) {
+        RecruitEntity patrolLeader = createPatrolLeader(world, upPos, "Patrol Leader");
 
-        this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
-        this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
-        this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
+        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
+        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
+        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
 
-        this.createPatrolShieldman(upPos, patrolLeader, "Patrol", true);
-        this.createPatrolShieldman(upPos, patrolLeader, "Patrol", true);
-        this.createPatrolShieldman(upPos, patrolLeader, "Patrol", true);
+        createPatrolShieldman(world, upPos, patrolLeader, "Patrol", true);
+        createPatrolShieldman(world, upPos, patrolLeader, "Patrol", true);
+        createPatrolShieldman(world, upPos, patrolLeader, "Patrol", true);
 
-        this.createPatrolBowman(upPos, patrolLeader);
-        this.createPatrolBowman(upPos, patrolLeader);
-        this.createPatrolBowman(upPos, patrolLeader);
+        createPatrolBowman(world, upPos, patrolLeader);
+        createPatrolBowman(world, upPos, patrolLeader);
+        createPatrolBowman(world, upPos, patrolLeader);
 
-        this.createPatrolCrossbowman(upPos, patrolLeader);
-        this.createPatrolCrossbowman(upPos, patrolLeader);
-        this.createPatrolCrossbowman(upPos, patrolLeader);
+        createPatrolCrossbowman(world, upPos, patrolLeader);
+        createPatrolCrossbowman(world, upPos, patrolLeader);
+        createPatrolCrossbowman(world, upPos, patrolLeader);
 
-        this.createPatrolHorseman(upPos, patrolLeader, "Patrol", true);
-        this.createPatrolHorseman(upPos, patrolLeader, "Patrol", false);
-        this.createPatrolHorseman(upPos, patrolLeader, "Patrol", false);
-        this.createPatrolNomad(upPos, patrolLeader, "Patrol");
-        this.createPatrolNomad(upPos, patrolLeader, "Patrol");
-        this.createPatrolNomad(upPos, patrolLeader, "Patrol");
-
-    }
-    private void spawnLargePatrol(BlockPos upPos) {
-        RecruitEntity patrolLeader = this.createPatrolLeader(upPos, "Patrol Leader");
-
-        this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
-        this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
-        this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
-
-        this.createPatrolShieldman(upPos, patrolLeader, "Patrol", true);
-        this.createPatrolShieldman(upPos, patrolLeader, "Patrol", true);
-
-        this.createPatrolBowman(upPos, patrolLeader);
-        this.createPatrolBowman(upPos, patrolLeader);
-
-        this.createPatrolCrossbowman(upPos, patrolLeader);
-        this.createPatrolCrossbowman(upPos, patrolLeader);
-
-        this.createPatrolHorseman(upPos, patrolLeader, "Patrol", true);
-        this.createPatrolHorseman(upPos, patrolLeader, "Patrol", true);
-        this.createPatrolNomad(upPos, patrolLeader, "Patrol");
-        this.createPatrolNomad(upPos, patrolLeader, "Patrol");
-    }
-
-    private void spawnMediumPatrol(BlockPos upPos) {
-        RecruitEntity patrolLeader = this.createPatrolLeader(upPos, "Patrol Leader");
-
-        this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
-
-        this.createPatrolShieldman(upPos, patrolLeader, "Patrol", true);
-        this.createPatrolShieldman(upPos, patrolLeader, "Patrol", true);
-
-        this.createPatrolBowman(upPos, patrolLeader);
-
-        this.createPatrolCrossbowman(upPos, patrolLeader);
-
-        this.createPatrolHorseman(upPos, patrolLeader, "Patrol", true);
-        this.createPatrolNomad(upPos, patrolLeader, "Patrol");
+        createPatrolHorseman(world,upPos, patrolLeader, "Patrol", true);
+        createPatrolHorseman(world,upPos, patrolLeader, "Patrol", false);
+        createPatrolHorseman(world,upPos, patrolLeader, "Patrol", false);
+        createPatrolNomad(world, upPos, patrolLeader, "Patrol");
+        createPatrolNomad(world, upPos, patrolLeader, "Patrol");
+        createPatrolNomad(world, upPos, patrolLeader, "Patrol");
 
     }
+    public static void spawnLargePatrol(BlockPos upPos, ServerLevel world) {
+        RecruitEntity patrolLeader = createPatrolLeader(world, upPos, "Patrol Leader");
 
-    private void spawnSmallPatrol(BlockPos upPos) {
-        RecruitEntity patrolLeader = this.createPatrolLeader(upPos, "Patrol Leader");
+        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
+        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
+        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
 
-        this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
-        this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
-        this.createPatrolShieldman(upPos, patrolLeader, "Patrol", true);
-        this.createPatrolBowman(upPos, patrolLeader);
-        this.createPatrolBowman(upPos, patrolLeader);
+        createPatrolShieldman(world, upPos, patrolLeader, "Patrol", true);
+        createPatrolShieldman(world, upPos, patrolLeader, "Patrol", true);
+
+        createPatrolBowman(world, upPos, patrolLeader);
+        createPatrolBowman(world, upPos, patrolLeader);
+
+        createPatrolCrossbowman(world, upPos, patrolLeader);
+        createPatrolCrossbowman(world, upPos, patrolLeader);
+
+        createPatrolHorseman(world,upPos, patrolLeader, "Patrol", true);
+        createPatrolHorseman(world,upPos, patrolLeader, "Patrol", true);
+        createPatrolNomad(world, upPos, patrolLeader, "Patrol");
+        createPatrolNomad(world, upPos, patrolLeader, "Patrol");
     }
-    private void spawnTinyPatrol(BlockPos upPos) {
-        RecruitEntity patrolLeader = this.createPatrolLeader(upPos, "Patrol Leader");
 
-        this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
-        this.createPatrolShieldman(upPos, patrolLeader, "Patrol", true);
-        this.createPatrolBowman(upPos, patrolLeader);
+    public static void spawnMediumPatrol(BlockPos upPos, ServerLevel world) {
+        RecruitEntity patrolLeader = createPatrolLeader(world, upPos, "Patrol Leader");
+
+        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
+
+        createPatrolShieldman(world, upPos, patrolLeader, "Patrol", true);
+        createPatrolShieldman(world, upPos, patrolLeader, "Patrol", true);
+
+        createPatrolBowman(world, upPos, patrolLeader);
+
+        createPatrolCrossbowman(world, upPos, patrolLeader);
+
+        createPatrolHorseman(world,upPos, patrolLeader, "Patrol", true);
+        createPatrolNomad(world, upPos, patrolLeader, "Patrol");
+
     }
 
-    private void spawnRoadPatrol(BlockPos upPos) {
-        RecruitEntity patrolLeader = this.createPatrolLeader(upPos, "Patrol Leader");
+    public static void spawnSmallPatrol(BlockPos upPos, ServerLevel world) {
+        RecruitEntity patrolLeader = createPatrolLeader(world, upPos, "Patrol Leader");
 
-        this.createPatrolRecruit(upPos, patrolLeader, "Patrol");
+        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
+        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
+        createPatrolShieldman(world, upPos, patrolLeader, "Patrol", true);
+        createPatrolBowman(world, upPos, patrolLeader);
+        createPatrolBowman(world, upPos, patrolLeader);
+    }
+    public static void spawnTinyPatrol(BlockPos upPos, ServerLevel world) {
+        RecruitEntity patrolLeader = createPatrolLeader(world, upPos, "Patrol Leader");
 
-        this.createPatrolHorseman(upPos, patrolLeader, "Patrol", true);
-        this.createPatrolNomad(upPos, patrolLeader, "Patrol");
-        this.createPatrolHorseman(upPos, patrolLeader, "Patrol", true);
-        this.createPatrolNomad(upPos, patrolLeader, "Patrol");
+        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
+        createPatrolShieldman(world, upPos, patrolLeader, "Patrol", true);
+        createPatrolBowman(world, upPos, patrolLeader);
+    }
+
+    public static void spawnRoadPatrol(BlockPos upPos, ServerLevel world) {
+        RecruitEntity patrolLeader = createPatrolLeader(world, upPos, "Patrol Leader");
+
+        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
+
+        createPatrolHorseman(world,upPos, patrolLeader, "Patrol", true);
+        createPatrolNomad(world, upPos, patrolLeader, "Patrol");
+        createPatrolHorseman(world,upPos, patrolLeader, "Patrol", true);
+        createPatrolNomad(world, upPos, patrolLeader, "Patrol");
     }
 
     @Nullable
@@ -567,7 +567,7 @@ public class RecruitsPatrolSpawn {
 
     //CREATE//
 
-    public RecruitEntity createPatrolLeader(BlockPos upPos, String name){
+    public static RecruitEntity createPatrolLeader(ServerLevel world, BlockPos upPos, String name){
         RecruitEntity patrolLeader = ModEntityTypes.RECRUIT.get().create(world);
         patrolLeader.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         patrolLeader.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
@@ -593,7 +593,7 @@ public class RecruitsPatrolSpawn {
         return patrolLeader;
     }
 
-    private void createPatrolRecruit(BlockPos upPos, RecruitEntity patrolLeader, String name) {
+    public static void createPatrolRecruit(ServerLevel world, BlockPos upPos, RecruitEntity patrolLeader, String name) {
         RecruitEntity recruitEntity = ModEntityTypes.RECRUIT.get().create(world);
         recruitEntity.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         recruitEntity.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
@@ -618,7 +618,7 @@ public class RecruitsPatrolSpawn {
         world.addFreshEntity(recruitEntity);
     }
 
-    private void createPatrolBowman(BlockPos upPos, RecruitEntity patrolLeader) {
+    public static void createPatrolBowman(ServerLevel world, BlockPos upPos, RecruitEntity patrolLeader) {
         BowmanEntity bowman = ModEntityTypes.BOWMAN.get().create(world);
         bowman.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         bowman.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
@@ -642,7 +642,7 @@ public class RecruitsPatrolSpawn {
         world.addFreshEntity(bowman);
     }
 
-    private void createPatrolShieldman(BlockPos upPos, RecruitEntity patrolLeader, String name, boolean banner) {
+    public static void createPatrolShieldman(ServerLevel world, BlockPos upPos, RecruitEntity patrolLeader, String name, boolean banner) {
         RecruitShieldmanEntity shieldmanEntity = ModEntityTypes.RECRUIT_SHIELDMAN.get().create(world);
         shieldmanEntity.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         shieldmanEntity.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
@@ -676,7 +676,7 @@ public class RecruitsPatrolSpawn {
         world.addFreshEntity(shieldmanEntity);
     }
 
-    private void createPatrolHorseman(BlockPos upPos, RecruitEntity patrolLeader, String name, boolean banner) {
+    public static void createPatrolHorseman(ServerLevel world, BlockPos upPos, RecruitEntity patrolLeader, String name, boolean banner) {
         HorsemanEntity horseman = ModEntityTypes.HORSEMAN.get().create(world);
 
         horseman.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
@@ -708,7 +708,7 @@ public class RecruitsPatrolSpawn {
         world.addFreshEntity(horseman);
     }
 
-    private void createPatrolNomad(BlockPos upPos, RecruitEntity patrolLeader, String name) {
+    public static void createPatrolNomad(ServerLevel world, BlockPos upPos, RecruitEntity patrolLeader, String name) {
         NomadEntity nomad = ModEntityTypes.NOMAD.get().create(world);
         nomad.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         nomad.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
@@ -732,7 +732,7 @@ public class RecruitsPatrolSpawn {
         world.addFreshEntity(nomad);
     }
 
-    private void createPatrolCrossbowman(BlockPos upPos, RecruitEntity patrolLeader) {
+    public static void createPatrolCrossbowman(ServerLevel world, BlockPos upPos, RecruitEntity patrolLeader) {
         CrossBowmanEntity crossBowman = ModEntityTypes.CROSSBOWMAN.get().create(world);
         crossBowman.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         crossBowman.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
@@ -756,7 +756,7 @@ public class RecruitsPatrolSpawn {
         world.addFreshEntity(crossBowman);
     }
 
-    private void createRecruit(BlockPos upPos, AbstractLeaderEntity leader){
+    public static void createRecruit(ServerLevel world, BlockPos upPos, AbstractLeaderEntity leader){
         RecruitEntity recruitEntity = ModEntityTypes.RECRUIT.get().create(world);
         recruitEntity.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         recruitEntity.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
@@ -781,7 +781,7 @@ public class RecruitsPatrolSpawn {
         world.addFreshEntity(recruitEntity);
     }
 
-    private PatrolLeaderEntity createCompanionPatrolLeader(BlockPos upPos){
+    public static PatrolLeaderEntity createCompanionPatrolLeader(BlockPos upPos, ServerLevel world){
         PatrolLeaderEntity leader = ModEntityTypes.PATROL_LEADER.get().create(world);
         leader.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         leader.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
@@ -805,14 +805,14 @@ public class RecruitsPatrolSpawn {
         return leader;
     }
 
-    private void spawnPatrol(BlockPos upPos) {
-        PatrolLeaderEntity leader = createCompanionPatrolLeader(upPos);
+    public static void spawnPatrol(BlockPos upPos, ServerLevel world) {
+        PatrolLeaderEntity leader = createCompanionPatrolLeader(upPos, world);
 
-        createRecruit(upPos, leader);
-        createRecruit(upPos, leader);
-        createRecruit(upPos, leader);
-        createRecruit(upPos, leader);
-        createRecruit(upPos, leader);
+        createRecruit(world, upPos, leader);
+        createRecruit(world, upPos, leader);
+        createRecruit(world, upPos, leader);
+        createRecruit(world, upPos, leader);
+        createRecruit(world, upPos, leader);
 
         world.addFreshEntity(leader);
     }

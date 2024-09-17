@@ -1,8 +1,14 @@
 package com.talhanation.recruits;
 import com.talhanation.recruits.client.events.KeyEvents;
 import com.talhanation.recruits.client.events.PlayerEvents;
+import com.talhanation.recruits.commands.PatrolSpawnCommand;
+import com.talhanation.recruits.config.RecruitsClientConfig;
+import com.talhanation.recruits.config.RecruitsServerConfig;
+import com.talhanation.recruits.init.ModBlocks;
+import com.talhanation.recruits.init.ModEntityTypes;
+import com.talhanation.recruits.init.ModItems;
+import com.talhanation.recruits.init.ModScreens;
 import com.talhanation.recruits.network.MessageServerSavePlayerGroups;
-import com.talhanation.recruits.config.*;
 import com.talhanation.recruits.init.*;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.CommonRegistry;
@@ -10,7 +16,7 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
@@ -63,6 +69,11 @@ public class Main {
 
         //ModSounds.SOUNDS.register(modEventBus);
         MinecraftForge.EVENT_BUS.register(this);
+    }
+
+    @SubscribeEvent
+    public void onRegisterCommands(RegisterCommandsEvent event) {
+        PatrolSpawnCommand.register(event.getDispatcher());
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -155,7 +166,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 74, MessageFormationFollowMovement.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 75, MessageRest.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 76, MessageRangedFire.class);
-
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 77,  MessageCommandPatrolSpawn.class);
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
         isSmallShipsLoaded = ModList.get().isLoaded("smallships");//small ships
         isSiegeWeaponsLoaded = ModList.get().isLoaded("siegeweapons");//siege weapons

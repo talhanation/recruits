@@ -26,7 +26,7 @@ import java.util.Iterator;
 import java.util.Random;
 
 public class PillagerPatrolSpawn {
-    private final Random random = new Random();
+    private static final Random random = new Random();
     private final ServerLevel world;
     private int timer;
     private final double chance;
@@ -43,7 +43,7 @@ public class PillagerPatrolSpawn {
 
         if(this.timer <= 0){
             if (this.world.getGameRules().getBoolean(GameRules.RULE_DO_PATROL_SPAWNING)) {
-                double rnd = this.random.nextInt(100);
+                double rnd = random.nextInt(100);
 
                 if (rnd <= this.chance && this.attemptSpawnPatrol()){}//To avoid multiple method call
             }
@@ -67,10 +67,10 @@ public class PillagerPatrolSpawn {
 
                 int i = random.nextInt(10);
                 switch (i) {
-                    default -> spawnPillagerPatrol(upPos, blockpos);
-                    case 8, 9 -> spawnSmallPillagerPatrol(upPos, blockpos);
-                    case 1, 2 -> spawnMediumPillagerPatrol(upPos, blockpos);
-                    case 3, 4 -> spawnLargePillagerPatrol(upPos, blockpos);
+                    default -> spawnPillagerPatrol(upPos, blockpos, world);
+                    case 8, 9 -> spawnSmallPillagerPatrol(upPos, blockpos, world);
+                    case 1, 2 -> spawnMediumPillagerPatrol(upPos, blockpos, world);
+                    case 3, 4 -> spawnLargePillagerPatrol(upPos, blockpos, world);
                 }
                 this.world.playSound(null, upPos.above(2), SoundEvents.RAID_HORN.get(), SoundSource.BLOCKS, 15F, 2F);
 
@@ -89,31 +89,31 @@ public class PillagerPatrolSpawn {
         return 1200 * minutes;
     }
 
-    private void spawnPillagerPatrol(BlockPos upPos, BlockPos targetPos) {
-        Pillager pillagerLeader = createPillager(upPos, targetPos);
+    public static void spawnPillagerPatrol(BlockPos upPos, BlockPos targetPos, ServerLevel world) {
+        Pillager pillagerLeader = createPillager(upPos, targetPos, world);
         pillagerLeader.setAggressive(true);
         pillagerLeader.setCustomName(Component.literal("Pillager Leader"));
         pillagerLeader.setPatrolLeader(true);
         pillagerLeader.setCanJoinRaid(true);
         pillagerLeader.setCanPickUpLoot(true);
 
-        createPillager(upPos, targetPos);
-        createPillager(upPos, targetPos);
-        createPillager(upPos, targetPos);
-        createPillager(upPos, targetPos);
-        createPillager(upPos, targetPos);
-        createPillager(upPos, targetPos);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
 
-        createWitch(upPos, targetPos);
+        createWitch(upPos, targetPos, world);
 
-        createVindicator(upPos, targetPos);
-        createVindicator(upPos, targetPos);
-        createVindicator(upPos, targetPos);
-        createVindicator(upPos, targetPos);
+        createVindicator(upPos, targetPos, world);
+        createVindicator(upPos, targetPos, world);
+        createVindicator(upPos, targetPos, world);
+        createVindicator(upPos, targetPos, world);
 
     }
 
-    private Pillager createPillager(BlockPos upPos, BlockPos targetPos){
+    public static Pillager createPillager(BlockPos upPos, BlockPos targetPos, ServerLevel world){
         Pillager pillager = EntityType.PILLAGER.create(world);
         pillager.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         pillager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
@@ -124,7 +124,7 @@ public class PillagerPatrolSpawn {
         return pillager;
     }
 
-    private Witch createWitch(BlockPos upPos, BlockPos targetPos) {
+    public static Witch createWitch(BlockPos upPos, BlockPos targetPos, ServerLevel world) {
         Witch pillager = EntityType.WITCH.create(world);
         pillager.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         pillager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
@@ -134,7 +134,7 @@ public class PillagerPatrolSpawn {
         return pillager;
     }
 
-    private Vindicator createVindicator(BlockPos upPos, BlockPos targetPos){
+    public static Vindicator createVindicator(BlockPos upPos, BlockPos targetPos, ServerLevel world){
         Vindicator pillager = EntityType.VINDICATOR.create(world);
         pillager.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         pillager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
@@ -143,8 +143,8 @@ public class PillagerPatrolSpawn {
         world.addFreshEntity(pillager);
         return pillager;
     }
-    private void spawnLargePillagerPatrol(BlockPos upPos, BlockPos targetPos) {
-        Pillager pillagerLeader = createPillager(upPos, targetPos);
+    public static void spawnLargePillagerPatrol(BlockPos upPos, BlockPos targetPos, ServerLevel world) {
+        Pillager pillagerLeader = createPillager(upPos, targetPos, world);
         pillagerLeader.setAggressive(true);
         pillagerLeader.setCustomName(Component.literal("Pillager Leader"));
         pillagerLeader.setPatrolLeader(true);
@@ -152,56 +152,56 @@ public class PillagerPatrolSpawn {
         pillagerLeader.setCanPickUpLoot(true);
 
 
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
 
-        this.createWitch(upPos, targetPos);
-        this.createWitch(upPos, targetPos);
-        this.createWitch(upPos, targetPos);
+        createWitch(upPos, targetPos, world);
+        createWitch(upPos, targetPos, world);
+        createWitch(upPos, targetPos, world);
 
-        this.createVindicator(upPos, targetPos);
-        this.createVindicator(upPos, targetPos);
-        this.createVindicator(upPos, targetPos);
-        this.createVindicator(upPos, targetPos);
-        this.createVindicator(upPos, targetPos);
-        this.createVindicator(upPos, targetPos);
-        this.createVindicator(upPos, targetPos);
+        createVindicator(upPos, targetPos, world);
+        createVindicator(upPos, targetPos, world);
+        createVindicator(upPos, targetPos, world);
+        createVindicator(upPos, targetPos, world);
+        createVindicator(upPos, targetPos, world);
+        createVindicator(upPos, targetPos, world);
+        createVindicator(upPos, targetPos, world);
 
     }
-    private void spawnMediumPillagerPatrol(BlockPos upPos, BlockPos targetPos) {
-        Pillager pillagerLeader = createPillager(upPos, targetPos);
+    public static void spawnMediumPillagerPatrol(BlockPos upPos, BlockPos targetPos, ServerLevel world) {
+        Pillager pillagerLeader = createPillager(upPos, targetPos, world);
         pillagerLeader.setAggressive(true);
         pillagerLeader.setCustomName(Component.literal("Pillager Leader"));
         pillagerLeader.setPatrolLeader(true);
         pillagerLeader.setCanJoinRaid(true);
         pillagerLeader.setCanPickUpLoot(true);
 
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
 
-        this.createVindicator(upPos, targetPos);
-        this.createVindicator(upPos, targetPos);
-        this.createVindicator(upPos, targetPos);
+        createVindicator(upPos, targetPos, world);
+        createVindicator(upPos, targetPos, world);
+        createVindicator(upPos, targetPos, world);
 
     }
 
-    private void spawnSmallPillagerPatrol(BlockPos upPos, BlockPos targetPos) {
-        Pillager pillagerLeader = createPillager(upPos, targetPos);
+    public static void spawnSmallPillagerPatrol(BlockPos upPos, BlockPos targetPos, ServerLevel world) {
+        Pillager pillagerLeader = createPillager(upPos, targetPos, world);
         pillagerLeader.setAggressive(true);
         pillagerLeader.setCustomName(Component.literal("Pillager Leader"));
         pillagerLeader.setPatrolLeader(true);
@@ -209,10 +209,10 @@ public class PillagerPatrolSpawn {
         pillagerLeader.setCanPickUpLoot(true);
 
 
-        this.createVindicator(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createPillager(upPos, targetPos);
-        this.createWitch(upPos, targetPos);
+        createVindicator(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createPillager(upPos, targetPos, world);
+        createWitch(upPos, targetPos, world);
 
     }
 
@@ -221,8 +221,8 @@ public class PillagerPatrolSpawn {
         BlockPos blockpos = null;
 
         for(int i = 0; i < 10; ++i) {
-            int j = p_221244_1_.getX() + this.random.nextInt(p_221244_2_ * 2) - p_221244_2_;
-            int k = p_221244_1_.getZ() + this.random.nextInt(p_221244_2_ * 2) - p_221244_2_;
+            int j = p_221244_1_.getX() + random.nextInt(p_221244_2_ * 2) - p_221244_2_;
+            int k = p_221244_1_.getZ() + random.nextInt(p_221244_2_ * 2) - p_221244_2_;
             int l = this.world.getHeight(Types.WORLD_SURFACE, j, k);
             BlockPos blockpos1 = new BlockPos(j, l, k);
             if (!this.world.getLevel().isCloseToVillage(blockpos1, 2) && NaturalSpawner.isSpawnPositionOk(Type.ON_GROUND, this.world, blockpos1, EntityType.WANDERING_TRADER)) {
