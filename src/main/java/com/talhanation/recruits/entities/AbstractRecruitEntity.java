@@ -136,6 +136,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return new RecruitPathNavigation(this, level);
     }
 
+    public PathNavigation getNavigation() {
+        return super.getNavigation();
+    }
+
     public void rideTick() {
         super.rideTick();
     }
