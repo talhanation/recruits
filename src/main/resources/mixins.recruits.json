@@ -7,6 +7,7 @@
   "mixins": [
     "AbstractHorseMixin",
     "AnimalMixin",
+    "MobMixin",
     "WalkNodeEvaluatorMixin"
   ],
   "client": [
