@@ -43,7 +43,14 @@ public class NomadAttackAI extends Goal {
         this.state = SELECT_TARGET;
         this.nomad.setAggressive(true);
     }
-
+    public void stop() {
+        super.stop();
+        this.nomad.setAggressive(false);
+        this.target = null;
+        this.seeTime = 0;
+        this.attackTime = -1;
+        this.nomad.stopUsingItem();
+    }
     protected boolean isHoldingBow() {
         String name = nomad.getMainHandItem().getDescriptionId();
         if(this.nomad.isHolding(bow -> bow.is(Items.BOW))){
