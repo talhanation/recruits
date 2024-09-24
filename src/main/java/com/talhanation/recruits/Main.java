@@ -181,6 +181,5 @@ public class Main {
     public void clientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(ModScreens::registerMenus);
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
-        MinecraftForge.EVENT_BUS.register(new PlayerEvents());
     }
 }

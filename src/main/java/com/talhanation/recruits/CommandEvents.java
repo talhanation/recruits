@@ -335,6 +335,22 @@ public class CommandEvents {
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
 
+    public static int getFormationRecruitCount(Player player) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
+        //player.sendSystemMessage(new StringTextComponent("getSavedCount: " + nbt.getInt("TotalRecruits")), player.getUUID());
+        return nbt.getInt("TotalRecruits");
+    }
+
+    public static void saveRecruitCount(Player player, int count) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
+        //player.sendSystemMessage(new StringTextComponent("savedCount: " + count), player.getUUID());
+
+        nbt.putInt( "TotalRecruits", count);
+        playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
+    }
+
     public static boolean playerCanRecruit(Player player) {
         return  (CommandEvents.getSavedRecruitCount(player) < RecruitsServerConfig.MaxRecruitsForPlayer.get());
     }
