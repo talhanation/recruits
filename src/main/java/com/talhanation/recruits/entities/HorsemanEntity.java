@@ -82,7 +82,7 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
                 .add(Attributes.ATTACK_DAMAGE, 1.0D)
                 .add(Attributes.FOLLOW_RANGE, 64.0D)
-                .add(ForgeMod.ATTACK_RANGE.get())
+                .add(ForgeMod.ATTACK_RANGE.get(), 0D)
                 .add(Attributes.ATTACK_SPEED);
 
     }
