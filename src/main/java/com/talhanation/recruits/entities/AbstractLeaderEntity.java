@@ -165,7 +165,6 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             UUID recruit = compoundnbt.getUUID("UUID");
             this.RECRUITS_IN_COMMAND.push(recruit);
         }
-
     }
     private boolean retreatingMessage = false;
     public void tick(){
@@ -175,7 +174,6 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         if(commandCooldown > 0) commandCooldown--;
         if(waitForRecruitsUpkeepTime > 0) waitForRecruitsUpkeepTime--;
 
-        //Main.LOGGER.info(state);
         double distance = 0D;
         if(currentWaypoint != null) distance = this.distanceToSqr(currentWaypoint.getX(), currentWaypoint.getY(), currentWaypoint.getZ());
 
@@ -205,9 +203,8 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                         else
                         {
                             this.updateWaypointIndex();
-                            this.setRecruitsToFollow();
 
-                            this.waitingTime = 0;
+                            this.waitingTime = 120;
 
                             this.setPatrolState(State.WAITING);
                         }
@@ -225,14 +222,21 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                 if(this.getTarget() != null && !retreating){
                     this.sendInfoAboutTarget(this.getTarget());
 
-                    if(canAttackWhilePatrolling(this.getTarget())) this.setPatrolState(State.ATTACKING);
-                    else this.setTarget(null);
+                    if(canAttackWhilePatrolling(this.getTarget())){
+
+                        this.setRecruitsToFollow();
+                        this.setPatrolState(State.ATTACKING);
+                    }
+                    else{
+                        this.setTarget(null);
+                    }
                 }
             }
 
             case WAITING -> {
                 if(timerElapsed() && hasIndex()){
                     this.currentWaypoint = WAYPOINTS.get(getWaypointIndex());
+                    this.currentRecruitsInCommand = getRecruitsInCommand();
                     this.setPatrolState(State.PATROLLING);
                 }
 
@@ -243,8 +247,14 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                 if(this.getTarget() != null && this.getTarget().isAlive()){
                     this.sendInfoAboutTarget(this.getTarget());
 
-                    if(canAttackWhilePatrolling(this.getTarget())) this.setPatrolState(State.ATTACKING);
-                    else this.setTarget(null);
+                    if(canAttackWhilePatrolling(this.getTarget())){
+                        this.setRecruitsToFollow();
+                        this.setPatrolState(State.ATTACKING);
+
+                    }
+                    else {
+                        this.setTarget(null);
+                    }
                 }
             }
 
@@ -253,6 +263,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                     this.setPatrolState(State.RETREATING);
                 }
                 if(this.getTarget() != null && !this.getTarget().isAlive()){
+
                     this.setPatrolState(prevState);
                 }
                 //AI-Task Taking care of this state
@@ -274,6 +285,12 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                 this.handleUpkeepState();
             }
         }
+    }
+
+    @Override
+    public void setState(int state) {
+        super.setState(state);
+        this.setRecruitsAggroState(state);
     }
 
     protected void handleUpkeepState() {
@@ -314,7 +331,11 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     }
 
     protected void moveToCurrentWaypoint() {
-        this.getNavigation().moveTo(currentWaypoint.getX(), currentWaypoint.getY(), currentWaypoint.getZ(), this.getFastPatrolling() ? 1F : 0.65F);
+        if(this.tickCount % 20 == 0){
+            this.getNavigation().moveTo(currentWaypoint.getX(), currentWaypoint.getY(), currentWaypoint.getZ(), this.getFastPatrolling() ? 1F : 0.65F);
+            this.setRecruitsToMove(this.currentWaypoint);
+        }
+
         if (horizontalCollision || minorHorizontalCollision) {
             this.getJumpControl().jump();
         }
@@ -741,6 +762,12 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                 recruit.stopRiding();
                 recruit.dismount = 180;
             }
+        }
+    }
+
+    public void setRecruitsAggroState(int x){
+        for (AbstractRecruitEntity recruit : currentRecruitsInCommand){
+            recruit.setState(x);
         }
     }
 
