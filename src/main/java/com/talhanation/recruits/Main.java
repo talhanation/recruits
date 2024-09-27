@@ -1,6 +1,5 @@
 package com.talhanation.recruits;
 import com.talhanation.recruits.client.events.KeyEvents;
-import com.talhanation.recruits.client.events.PlayerEvents;
 import com.talhanation.recruits.commands.PatrolSpawnCommand;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
@@ -167,6 +166,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 75, MessageRest.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 76, MessageRangedFire.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 77,  MessageCommandPatrolSpawn.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 78,  MessageSaveFormationFollowMovement.class);
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
         isSmallShipsLoaded = ModList.get().isLoaded("smallships");//small ships
         isSiegeWeaponsLoaded = ModList.get().isLoaded("siegeweapons");//siege weapons

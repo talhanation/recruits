@@ -7,7 +7,10 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.PathNavigationRegion;
-import net.minecraft.world.level.pathfinder.*;
+import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.Node;
+import net.minecraft.world.level.pathfinder.SwimNodeEvaluator;
+import net.minecraft.world.level.pathfinder.Target;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,13 +53,16 @@ public class SailorNodeEvaluator extends SwimNodeEvaluator {
         if (blockpathtypes == BlockPathTypes.WATER || blockpathtypes == BlockPathTypes.BREACH) {
             float f = this.mob.getPathfindingMalus(blockpathtypes);
             if (f >= 0.0F) {
-                node = this.getNodeRaw(x, y, z);
                 if (node != null) {
                     node.type = blockpathtypes;
                     node.costMalus = Math.max(node.costMalus, f);
                     BlockPos pos = new BlockPos(x, y, z);
+                    //BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
 
                     for(Direction direction : Direction.Plane.HORIZONTAL) {
+                        //mutablePos.set(pos).move(direction);
+                        //BlockState belowStateNeighbors = this.level.getBlockState(mutablePos.below());
+
                         if (this.level.getFluidState(pos.relative(direction,2)).isEmpty()) {
                             node.costMalus += 4.0F;
                         }

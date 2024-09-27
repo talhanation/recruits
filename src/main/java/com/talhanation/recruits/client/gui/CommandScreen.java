@@ -3,7 +3,6 @@ package com.talhanation.recruits.client.gui;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.events.ClientEvent;
-import com.talhanation.recruits.client.events.PlayerEvents;
 import com.talhanation.recruits.client.gui.group.*;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.inventory.CommandMenu;
@@ -27,7 +26,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @OnlyIn(Dist.CLIENT)
@@ -293,8 +293,19 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 RecruitsCommandButton followButton = new RecruitsCommandButton(x + 60, y - 25, TEXT_FOLLOW,
                         button -> {
                             if(formation.getIndex() != 0){
-                                PlayerEvents.activeGroups = groups;
-                                PlayerEvents.followFormation = true;
+                                List<RecruitsGroup> activeGroups = new ArrayList<>();
+                                for(RecruitsGroup group : groups){
+                                    if(!group.isDisabled()) activeGroups.add(group);
+                                }
+
+                                int[] array = new int[activeGroups.size()];
+                                for(int i = 0; i < activeGroups.size(); i++){
+                                    RecruitsGroup group = activeGroups.get(i);
+                                    if(!group.isDisabled()){
+                                        array[i] = group.getId();
+                                    }
+                                }
+                                Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveFormationFollowMovement(player.getUUID(), array, formation.getIndex()));
                             }
                             else {
                                 sendMovementCommandToServer(1);
@@ -682,8 +693,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     }
     private void sendMovementCommandToServer(int state) {
         if(state != 1){
-            PlayerEvents.activeGroups = null;
-            PlayerEvents.followFormation = false;
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveFormationFollowMovement(player.getUUID(), null, -1));
         }
         if(!groups.isEmpty()){
             for(RecruitsGroup group : groups){

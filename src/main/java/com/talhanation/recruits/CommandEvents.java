@@ -28,6 +28,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
@@ -308,7 +309,36 @@ public class CommandEvents {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageCommandScreen(player));
         }
     }
+    @SubscribeEvent
+    public void onServerPlayerTick(TickEvent.PlayerTickEvent event){
+        if(event.player instanceof ServerPlayer serverPlayer && serverPlayer.tickCount % 20 == 0){
+            int formation = getSavedFormation(serverPlayer);
 
+            if(formation > 0){
+                int[] savedPos = getSavedFormationPos(serverPlayer);
+                if(savedPos.length == 0) {
+                    savedPos = new int[]{(int) serverPlayer.getX(), (int) serverPlayer.getZ()};
+                    saveFormationPos(serverPlayer, savedPos);
+                }
+                int savedX = savedPos[0];
+                int savedZ = savedPos[1];
+                Vec3 oldPos = new Vec3(savedX, serverPlayer.getY(), savedZ);
+                Vec3 targetPosition = serverPlayer.position();
+
+                if(targetPosition.distanceToSqr(oldPos) > 60){
+                    List<AbstractRecruitEntity> list = Objects.requireNonNull(serverPlayer).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, serverPlayer.getBoundingBox().inflate(100));
+                    int[] array = getActiveGroups(serverPlayer);
+                    for (int x : array) {
+                        list.removeIf(recruit -> !recruit.isEffectedByCommand(serverPlayer.getUUID(), x));
+                    }
+
+                    CommandEvents.applyFormation(formation, list, serverPlayer, targetPosition);
+                    int[] position = new int[]{(int) targetPosition.x, (int) targetPosition.z};
+                    saveFormationPos(serverPlayer, position);
+                }
+            }
+        }
+    }
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         CompoundTag playerData = event.getEntity().getPersistentData();
@@ -316,8 +346,11 @@ public class CommandEvents {
             if (!data.contains("MaxRecruits")) data.putInt("MaxRecruits", RecruitsServerConfig.MaxRecruitsForPlayer.get());
             if (!data.contains("CommandingGroup")) data.putInt("CommandingGroup", 0);
             if (!data.contains("TotalRecruits")) data.putInt("TotalRecruits", 0);
+            if (!data.contains("ActiveGroups")) data.putIntArray("ActiveGroups", new int[0]);
+            if (!data.contains("Formation")) data.putInt("Formation", 0);
+            if (!data.contains("FormationPos")) data.putIntArray("FormationPos", new int[]{(int) event.getPlayer().getX(), (int) event.getPlayer().getZ()});
 
-            playerData.put(Player.PERSISTED_NBT_TAG, data);
+        playerData.put(Player.PERSISTED_NBT_TAG, data);
     }
 
     public static int getSavedRecruitCount(Player player) {
@@ -336,19 +369,46 @@ public class CommandEvents {
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
 
-    public static int getFormationRecruitCount(Player player) {
+    public static int getSavedFormation(Player player) {
         CompoundTag playerNBT = player.getPersistentData();
         CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
-        //player.sendSystemMessage(new StringTextComponent("getSavedCount: " + nbt.getInt("TotalRecruits")), player.getUUID());
-        return nbt.getInt("TotalRecruits");
+
+        return nbt.getInt("Formation");
     }
 
-    public static void saveRecruitCount(Player player, int count) {
+    public static void saveFormation(Player player, int formation) {
         CompoundTag playerNBT = player.getPersistentData();
         CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
-        //player.sendSystemMessage(new StringTextComponent("savedCount: " + count), player.getUUID());
 
-        nbt.putInt( "TotalRecruits", count);
+        nbt.putInt( "Formation", formation);
+        playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
+    }
+    public static int[] getSavedFormationPos(Player player) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
+
+        return nbt.getIntArray("FormationPos");
+    }
+
+    public static void saveFormationPos(Player player, int[] pos) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
+
+        nbt.putIntArray( "FormationPos", pos);
+        playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
+    }
+    public static int[] getActiveGroups(Player player) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
+
+        return nbt.getIntArray("ActiveGroups");
+    }
+
+    public static void saveActiveGroups(Player player, int[] count) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
+
+        nbt.putIntArray( "ActiveGroups", count);
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
 
@@ -494,7 +554,7 @@ public class CommandEvents {
 
     private static final List<RecruitsGroup> GROUP_DEFAULT_SETTING = new ArrayList<>(
             Arrays.asList(
-                    new RecruitsGroup(0, "Everyone", false),
+                    new RecruitsGroup(0, "No Group", false),
                     new RecruitsGroup(1, "Infantry", false),
                     new RecruitsGroup(2, "Ranged", false),
                     new RecruitsGroup(3, "Cavalry", false)
