@@ -21,8 +21,8 @@ public class RecruitsPathNodeEvaluator extends WalkNodeEvaluator {
         if(mob.isVehicle()){
             this.entityHeight = Mth.floor(mob.getBbHeight() + (float) getEntityHeight());
         }
-        mob.setPathfindingMalus(BlockPathTypes.WATER, -1.0F);
-        mob.setPathfindingMalus(BlockPathTypes.WATER_BORDER, -1.0F);
+        mob.setPathfindingMalus(BlockPathTypes.WATER, 128.0F);
+        mob.setPathfindingMalus(BlockPathTypes.WATER_BORDER, 128.0F);
         mob.setPathfindingMalus(BlockPathTypes.TRAPDOOR, -1.0F);
         mob.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, 32.0F);
         mob.setPathfindingMalus(BlockPathTypes.DAMAGE_CACTUS, 32.0F);
