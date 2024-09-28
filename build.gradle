@@ -36,7 +36,7 @@ mixin{
     overwriteErrorLevel = 'error'
 }
 
-version = '1.12.2'
+version = '1.12.1.5'
 
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.18.2'
@@ -58,7 +58,7 @@ minecraft {
 
             Random rnd = new Random()
 
-            args = ['--username', 'talhanation']// + rnd.nextInt(1000)]
+            args = ['--username', 'talhanation2']// + rnd.nextInt(1000)]
 
 
             mods {
@@ -131,6 +131,7 @@ dependencies {
 
     implementation fg.deobf("curse.maven:fantasys-furniture-579564:4183201")
     implementation fg.deobf("curse.maven:debug-utils-forge-783008:5337487")
+    implementation fg.deobf("curse.maven:simple-voice-chat-416089:5716508")
 }
 
 // Example for how to get properties into the manifest for reading at runtime.
