@@ -71,6 +71,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
         promoteButton(zeroLeftPos, zeroTopPos);
         clearTeam(zeroLeftPos, zeroTopPos);
         teamColorButton(zeroLeftPos, zeroTopPos);
+        disband(zeroLeftPos, zeroTopPos);
 
         Component name = Component.literal("Name");
         if(recruit.getCustomName() != null) name = recruit.getCustomName();
@@ -254,6 +255,11 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
         }));
     }
 
+    private void disband(int zeroLeftPos, int zeroTopPos){
+        addRenderableWidget(new Button(zeroLeftPos + 80, zeroTopPos + (20 + 5) * 7, 40, 20, new TextComponent("c owner"), button -> {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(26, recruit.getUUID(), textField.getValue()));
+        }));
+    }
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {

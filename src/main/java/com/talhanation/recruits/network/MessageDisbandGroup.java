@@ -43,7 +43,7 @@ public class MessageDisbandGroup implements Message<MessageDisbandGroup> {
         for (AbstractRecruitEntity recruit : list){
             UUID recruitOwner = recruit.getOwnerUUID();
             if (recruitOwner != null && recruitOwner.equals(owner) && recruit.getGroup() == group)
-                recruit.disband(context.getSender(), keepTeam);
+                recruit.disband(context.getSender(), keepTeam, true);
         }
     }
 

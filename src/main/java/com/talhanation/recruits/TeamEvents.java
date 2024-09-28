@@ -529,7 +529,7 @@ public class  TeamEvents {
 
             if(newOwner != null){
                 if(list.contains(newOwner.getName().getString())){
-                    recruit.disband(oldOwner, true);
+                    recruit.disband(oldOwner, true, true);
                     if(!recruit.hire(newOwner)){
 
                     };
