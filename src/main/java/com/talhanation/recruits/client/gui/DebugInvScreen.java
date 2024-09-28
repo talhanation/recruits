@@ -4,9 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.DebugInvMenu;
-import com.talhanation.recruits.network.MessageCreateTeam;
 import com.talhanation.recruits.network.MessageDebugGui;
-import com.talhanation.recruits.util.AttackUtil;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -14,7 +12,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -72,6 +69,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
         promoteButton(zeroLeftPos, zeroTopPos);
         clearTeam(zeroLeftPos, zeroTopPos);
         teamColorButton(zeroLeftPos, zeroTopPos);
+        disband(zeroLeftPos, zeroTopPos);
 
         Component name = Component.literal("Name");
         if(recruit.getCustomName() != null) name = recruit.getCustomName();
@@ -254,6 +252,11 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
         }));
     }
 
+    private void disband(int zeroLeftPos, int zeroTopPos){
+        addRenderableWidget(new Button(zeroLeftPos + 80, zeroTopPos + (20 + 5) * 7, 40, 20, new TextComponent("c owner"), button -> {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(26, recruit.getUUID(), textField.getValue()));
+        }));
+    }
 
     @Override
     protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {

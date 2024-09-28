@@ -3,11 +3,8 @@ package com.talhanation.recruits;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
-import com.talhanation.recruits.network.MessageOpenSpecialScreen;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-
-import java.util.Optional;
 
 public class DebugEvents {
     public static void handleMessage(int id, AbstractRecruitEntity recruits, ServerPlayer player) {
@@ -89,6 +86,9 @@ public class DebugEvents {
                 recruits.setColor((byte) next);
             }
 
+            case 26 -> {
+                recruits.disband(recruits.getOwner(), true, false);
+            }
         }
     }
 }
