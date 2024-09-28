@@ -1,7 +1,10 @@
 package com.talhanation.recruits.entities;
 //ezgi&talha kantar
 
-import com.talhanation.recruits.*;
+import com.talhanation.recruits.CommandEvents;
+import com.talhanation.recruits.Main;
+import com.talhanation.recruits.RecruitEvents;
+import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
@@ -35,7 +38,9 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.*;
+import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.goal.OpenDoorGoal;
+import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.animal.AbstractFish;
 import net.minecraft.world.entity.animal.IronGolem;
@@ -62,8 +67,6 @@ import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.common.data.ForgeRegistryTagsProvider;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -71,7 +74,10 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
 public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Integer> DATA_REMAINING_ANGER_TIME = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
@@ -726,15 +732,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.mountTimer = x;
     }
 
-    public void disband(Player player, boolean keepTeam){
+    public void disband(@Nullable Player player, boolean keepTeam, boolean increaseCost){
         String name = this.getName().getString();
-        player.sendMessage(TEXT_DISBAND(name), player.getUUID());
+        if(player != null){
+            player.sendMessage(TEXT_DISBAND(name), player.getUUID());
+            CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
+        }
         this.setTarget(null);
         this.setIsOwned(false);
         this.setOwnerUUID(Optional.empty());
-        CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
 
-        this.recalculateCost();
+        if(increaseCost) this.recalculateCost();
         if (this.getTeam() != null){
             if(this.level.isClientSide()) Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
             else TeamEvents.addNPCToData((ServerLevel) this.level, this.getTeam().getName(), -1);
