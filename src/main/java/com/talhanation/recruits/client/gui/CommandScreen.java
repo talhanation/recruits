@@ -793,7 +793,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
 
     private void sendMovementCommandToServer(int state) {
         if(state != 1){
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveFormationFollowMovement(player.getUUID(), null, -1));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveFormationFollowMovement(player.getUUID(), new int[]{}, -1));
         }
         if(!groups.isEmpty()){
             for(RecruitsGroup group : groups){
