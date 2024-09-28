@@ -22,12 +22,13 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
@@ -43,7 +44,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.common.ForgeMod;
@@ -305,12 +305,15 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
                 }
 
                 case TELEPORT -> {
-                    //TELEPORT WITH HORSE
                     if(--teleportWaitTimer <= 0){
                         this.teleportNearTargetPlayer(getTargetPlayer());
                         this.arriveAtTargetPlayer(getTargetPlayer());
                         this.playHornSound();
                         this.setFollowState(0);
+
+                        if (!this.hasEffect(MobEffects.GLOWING))
+                            this.addEffect(new MobEffectInstance(MobEffects.GLOWING, 60*20*3, 1, false, false, true));
+
                         this.state = State.MOVING_TO_TARGET_PLAYER;
                     }
                 }
@@ -323,7 +326,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
                         }
 
                         double distance = this.distanceToSqr(targetPlayer);
-                        if(distance <= 100){
+                        if(distance <= 60){
                             if(this.getOwner() != null) this.getOwner().sendMessage(MESSENGER_ARRIVED_AT_TARGET_OWNER(), this.getOwner().getUUID());
                             if(!this.getMainHandItem().isEmpty()) targetPlayer.sendMessage(MESSENGER_INFO_AT_TARGET_WITH_ITEM(), this.getOwner().getUUID());
                             else targetPlayer.sendMessage(MESSENGER_INFO_AT_TARGET(), this.getOwner().getUUID());
@@ -332,6 +335,8 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
                             this.arrivedWaitTimer = 1500;
                             this.targetPlayerOpened = false;
                             this.state = State.ARRIVED;
+                            if (this.hasEffect(MobEffects.GLOWING))
+                                this.removeEffect(MobEffects.GLOWING);
                         }
                     }
                     else {
@@ -380,6 +385,9 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
                     if(--teleportWaitTimer <= 0){
                         this.teleportNearOwner();
                         this.state = State.MOVING_TO_OWNER;
+
+                        if (this.hasEffect(MobEffects.GLOWING))
+                            this.removeEffect(MobEffects.GLOWING);
                     }
                 }
 
@@ -427,7 +435,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     private void teleportNearTargetPlayer(Player player) {
         if(player != null && !this.getCommandSenderWorld().isClientSide()){
             BlockPos targetPos = player.getOnPos();
-            BlockPos tpPos = RecruitsPatrolSpawn.func_221244_a(targetPos, 60, new Random(), (ServerLevel) this.getCommandSenderWorld());
+            BlockPos tpPos = RecruitsPatrolSpawn.func_221244_a(targetPos, 40, new Random(), (ServerLevel) this.getCommandSenderWorld());
             if(tpPos == null) tpPos = targetPos;
 
             if(this.getVehicle() instanceof AbstractHorse horse) horse.teleportTo(tpPos.getX(), tpPos.getY(), tpPos.getZ());
@@ -436,7 +444,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     }
 
     private void playHornSound() {
-        this.getCommandSenderWorld().playSound(null, this, SoundEvents.RAID_HORN, SoundSource.NEUTRAL, 128F, 1.0F);
+        this.playSound(SoundEvents.PLAYER_LEVELUP, 128F, 1.0F);
     }
 
     public void arriveAtTargetPlayer(ServerPlayer target){
