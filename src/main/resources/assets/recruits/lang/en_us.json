@@ -140,8 +140,8 @@
   "gui.recruits.command.text.formation_hollow_circle" : "H circle Formation",
   "gui.recruits.command.text.formation_square" : "Square Formation",
   "gui.recruits.command.text.formation_triangle" : "Triangle Formation",
-   "gui.recruits.command.text.formation_circle" : "Circle Formation",
-   "gui.recruits.command.text.formation_movement" : "Movement Formation",
+  "gui.recruits.command.text.formation_circle" : "Circle Formation",
+  "gui.recruits.command.text.formation_movement" : "March Formation",
 
   "gui.recruits.command.text.protect" : "Protect this!",
   "gui.recruits.command.text.follow" : "Follow me!",
