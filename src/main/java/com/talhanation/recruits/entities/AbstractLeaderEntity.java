@@ -317,7 +317,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     }
 
     public int getAgainResupplyTime() {
-        return 5000;
+        return 60*20*10;
     }
 
     public void resetPatrolling(){
