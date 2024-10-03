@@ -39,6 +39,8 @@ public class RecruitsFormationButton extends ExtendedButton {
             case 4 ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/hcircle.png");
             case 5 ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/hsquare.png");
             case 6 ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/vform.png");
+            case 7 ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/circle.png");
+            case 8 ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/movement.png");
         }
         return location;
     }

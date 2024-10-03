@@ -34,7 +34,7 @@ import java.util.List;
 public class CommandScreen extends ScreenBase<CommandMenu> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/command_gui.png");
-
+    
     private static final MutableComponent TOOLTIP_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.tooltip.strategic_fire");
     private static final MutableComponent TOOLTIP_HOLD_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.tooltip.hold_strategic_fire");
     private static final MutableComponent TOOLTIP_DISMOUNT = Component.translatable("gui.recruits.command.tooltip.dismount");
@@ -102,6 +102,9 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TEXT_FORMATION_HOLLOW_SQUARE = Component.translatable("gui.recruits.command.text.formation_hollow_square");
     private static final MutableComponent TEXT_FORMATION_HOLLOW_CIRCLE = Component.translatable("gui.recruits.command.text.formation_hollow_circle");
     private static final MutableComponent TEXT_FORMATION_V = Component.translatable("gui.recruits.command.text.formation_v");
+    private static final MutableComponent TEXT_FORMATION_CIRCLE = Component.translatable("gui.recruits.command.text.formation_circle");
+    private static final MutableComponent TEXT_FORMATION_MOVEMENT = Component.translatable("gui.recruits.command.text.formation_movement");
+
     private static final int fontColor = 16250871;
     private final Player player;
     private BlockPos rayBlockPos;
@@ -394,13 +397,13 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 VFormFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_V));
                 addRenderableWidget(VFormFormationButton);
 
-                //CIRCLE
-                RecruitsFormationButton circleFormationButton = new RecruitsFormationButton(Formation.HCIRCLE, x - 63, y + 50,
+                //H CIRCLE
+                RecruitsFormationButton hcircleFormationButton = new RecruitsFormationButton(Formation.HCIRCLE, x - 63, y + 50,
                         button -> {
                             this.setFormation(Formation.HCIRCLE);
                         });
-                circleFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_HOLLOW_CIRCLE));
-                addRenderableWidget(circleFormationButton);
+                hcircleFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_HOLLOW_CIRCLE));
+                addRenderableWidget(hcircleFormationButton);
 
                 //H SQAURE
                 RecruitsFormationButton hSquareFormationButton = new RecruitsFormationButton(Formation.HSQUARE, x + 63, y + 50,
@@ -410,13 +413,37 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 hSquareFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_HOLLOW_SQUARE));
                 addRenderableWidget(hSquareFormationButton);
 
+                //CIRCLE
+                RecruitsFormationButton circleFormationButton = new RecruitsFormationButton(Formation.CIRCLE, x - 84, y + 50,
+                        button -> {
+                            this.setFormation(Formation.CIRCLE);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TEXT_FORMATION_CIRCLE, i, i1);
+                        });
+                //circleFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_CIRCLE));
+                addRenderableWidget(circleFormationButton);
+
+                //MOVEMENT
+                RecruitsFormationButton movementFormationButton = new RecruitsFormationButton(Formation.MOVEMENT, x + 84, y + 50,
+                        button -> {
+                            this.setFormation(Formation.MOVEMENT);
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TEXT_FORMATION_MOVEMENT, i, i1);
+                        });
+                //circleFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_MOVEMENT));
+                addRenderableWidget(movementFormationButton);
+
                 noneFormationButton.active = formation == Formation.NONE;
                 lineUpFormationButton.active = formation == Formation.LINE;
                 squareFormationButton.active = formation == Formation.SQUARE;
                 hSquareFormationButton.active = formation == Formation.HSQUARE;
                 triangleFormationButton.active = formation == Formation.TRIANGLE;
                 VFormFormationButton.active = formation == Formation.VFORM;
-                circleFormationButton.active = formation == Formation.HCIRCLE;
+                hcircleFormationButton.active = formation == Formation.HCIRCLE;
+                circleFormationButton.active = formation == Formation.CIRCLE;
+                movementFormationButton.active = formation == Formation.MOVEMENT;
             }
             case COMBAT -> {
                 //STRATEGIC FIRE
@@ -988,7 +1015,9 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         TRIANGLE((byte) 3),
         HCIRCLE((byte) 4),
         HSQUARE((byte) 5),
-        VFORM((byte) 6);
+        VFORM((byte) 6),
+        CIRCLE((byte) 7),
+        MOVEMENT((byte) 8);
 
         private final byte index;
 
