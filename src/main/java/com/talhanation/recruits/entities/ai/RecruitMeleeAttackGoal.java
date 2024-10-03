@@ -124,8 +124,9 @@ public class RecruitMeleeAttackGoal extends Goal {
         LivingEntity target = this.recruit.getTarget();
         if (target != null && pos != null && recruit.getShouldHoldPos()) {
             double distanceToPos = target.distanceToSqr(pos);
+            double ref = recruit.isInFormation ? 75 : 300;
 
-            return distanceToPos < 300;
+            return distanceToPos < ref;
         }
         return true;
     }

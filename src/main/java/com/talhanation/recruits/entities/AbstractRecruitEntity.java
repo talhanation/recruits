@@ -127,6 +127,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public int formationPos = -1;
     private int maxFallDistance;
     public Vec3 holdPosVec;
+    public boolean isInFormation;
+
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
         this.xpReward = 6;
@@ -352,6 +354,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putInt("formationPos", formationPos);
         nbt.putBoolean("ShouldRest", this.getShouldRest());
         nbt.putBoolean("ShouldRanged", this.getShouldRanged());
+        nbt.putBoolean("isInFormation", this.isInFormation);
 
         if(this.getHoldPos() != null){
             nbt.putDouble("HoldPosX", this.getHoldPos().x());
@@ -422,6 +425,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setMaxFallDistance(nbt.getInt("MaxFallDistance"));
         this.formationPos = (nbt.getInt("formationPos"));
         this.setShouldRest(nbt.getBoolean("ShouldRest"));
+        this.isInFormation = nbt.getBoolean("isInFormation");
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));

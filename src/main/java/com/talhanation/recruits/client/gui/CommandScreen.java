@@ -34,7 +34,7 @@ import java.util.List;
 public class CommandScreen extends ScreenBase<CommandMenu> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/command_gui.png");
-    
+
     private static final MutableComponent TOOLTIP_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.tooltip.strategic_fire");
     private static final MutableComponent TOOLTIP_HOLD_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.tooltip.hold_strategic_fire");
     private static final MutableComponent TOOLTIP_DISMOUNT = Component.translatable("gui.recruits.command.tooltip.dismount");
