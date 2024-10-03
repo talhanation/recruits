@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.util.AttackUtil;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.util.DefaultRandomPos;
@@ -30,9 +31,14 @@ public class RecruitMoveTowardsTargetGoal extends Goal {
         }
         else if (this.target == null) {
             return false;
-        } else if (this.target.distanceToSqr(this.recruit) > (double)(this.within * this.within)) {
+        }
+        else if(this.recruit.isInFormation && this.target.distanceToSqr(this.recruit) > AttackUtil.getAttackReachSqr(recruit) * 1.5){
             return false;
-        } else {
+        }
+        else if (this.target.distanceToSqr(this.recruit) > (double)(this.within * this.within)) {
+            return false;
+        }
+        else {
             Vec3 vec3 = DefaultRandomPos.getPosTowards(this.recruit, 16, 7, this.target.position(), (double)((float)Math.PI / 2F));
             if (vec3 == null) {
                 return false;
