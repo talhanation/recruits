@@ -80,6 +80,7 @@ public class FormationUtils {
                 recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
                 recruit.ownerRot = player.getYRot();
                 recruit.setFollowState(3);
+                recruit.isInFormation = true;
             }
         }
     }
@@ -133,6 +134,7 @@ public class FormationUtils {
                 recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
                 recruit.ownerRot = player.getYRot();
                 recruit.setFollowState(3);
+                recruit.isInFormation = true;
             }
         }
     }
@@ -187,6 +189,7 @@ public class FormationUtils {
                 recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
                 recruit.ownerRot = player.getYRot();
                 recruit.setFollowState(3);
+                recruit.isInFormation = true;
             }
         }
     }
@@ -234,6 +237,7 @@ public class FormationUtils {
                 recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
                 recruit.ownerRot = player.getYRot();
                 recruit.setFollowState(3);
+                recruit.isInFormation = true;
             }
         }
     }
@@ -304,6 +308,7 @@ public class FormationUtils {
                 recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
                 recruit.ownerRot = player.getYRot();
                 recruit.setFollowState(3);
+                recruit.isInFormation = true;
             }
         }
     }
@@ -365,6 +370,7 @@ public class FormationUtils {
                 recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
                 recruit.ownerRot = player.getYRot();
                 recruit.setFollowState(3);
+                recruit.isInFormation = true;
             }
         }
     }
@@ -406,6 +412,7 @@ public class FormationUtils {
             recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
             recruit.ownerRot = player.getYRot();
             recruit.setFollowState(3);
+            recruit.isInFormation = true;
         }
     }
 

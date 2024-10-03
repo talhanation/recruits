@@ -69,7 +69,7 @@ public class CommandEvents {
                }
 
                case 7 -> {//forward
-                   Vec3 center = FormationUtils.getFarthestRecruitsCenter(recruits, (ServerLevel) player.getCommandSenderWorld());
+                   Vec3 center = FormationUtils.getGeometricMedian(recruits, (ServerLevel) player.getCommandSenderWorld());
                    Vec3 forward = player.getForward();
                    Vec3 pos = center.add(forward.scale(10));
                    BlockPos blockPos = player.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
@@ -78,7 +78,7 @@ public class CommandEvents {
                }
 
                case 8 -> {//backward
-                   Vec3 center = FormationUtils.getFarthestRecruitsCenter(recruits, (ServerLevel) player.getCommandSenderWorld());
+                   Vec3 center = FormationUtils.getGeometricMedian(recruits, (ServerLevel) player.getCommandSenderWorld());
                    Vec3 forward = player.getForward();
                    Vec3 pos = center.add(forward.scale(-10));
                    BlockPos blockPos = player.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
@@ -86,7 +86,6 @@ public class CommandEvents {
                    targetPos = new Vec3(pos.x, blockPos.getY(), pos.z);
                }
             }
-
             applyFormation(formation, recruits, player, targetPos);
         }
         else{
@@ -159,6 +158,7 @@ public class CommandEvents {
                         recruit.setFollowState(3);
                     }
                 }
+                recruit.isInFormation = false;
             }
 
         }
