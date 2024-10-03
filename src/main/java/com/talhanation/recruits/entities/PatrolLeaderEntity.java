@@ -104,6 +104,11 @@ public class PatrolLeaderEntity extends AbstractLeaderEntity {
     public AbstractRecruitEntity get() {
         return this;
     }
+
+    @Override
+    public boolean isAtMission() {
+        return this.state != State.IDLE && this.state != State.PAUSED && this.state != State.STOPPED;
+    }
 }
 
 
