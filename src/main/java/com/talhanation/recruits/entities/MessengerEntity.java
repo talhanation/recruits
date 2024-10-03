@@ -248,6 +248,11 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
         entityData.set(OWNER_NAME, name);
     }
 
+    @Override
+    public boolean isAtMission() {
+        return this.state != State.IDLE;
+    }
+
     public String getMessage() {
         return this.message;
     }

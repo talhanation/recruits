@@ -42,6 +42,7 @@ public interface ICompanion {
     void openSpecialGUI(Player player);
     String getOwnerName();
     void setOwnerName(String name);
+    boolean isAtMission();
     default void applyRecruitValues(AbstractRecruitEntity recruit){
         //ATTRIBUTES
         this.get().getAttributes().assignValues(recruit.getAttributes());
