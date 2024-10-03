@@ -322,7 +322,10 @@
   "gui.recruits.command.text.formation_hollow_circle": "Hohler Kreis-Formation",
   "gui.recruits.command.text.formation_square": "Quadrat-Formation",
   "gui.recruits.command.text.formation_triangle": "Dreiecksformation",
-  "gui.recruits.command.text.rest": "Ruhe",
+  "gui.recruits.command.text.formation_circle" : "Kreis-Formation",
+  "gui.recruits.command.text.formation_movement" : "Marsch-Formation",
+
+  "gui.recruits.command.text.rest": "Ruhe Pos.",
   "chat.recruits.command.forward": "%s Vorwärts!",
   "chat.recruits.command.backward": "%s Rückwärts!",
   "gui.recruits.group_creation.add_title": "Neue Gruppe hinzufügen:",
