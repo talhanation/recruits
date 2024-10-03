@@ -332,6 +332,11 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
             }
         }
     }
+
+    @Override
+    public boolean isAtMission() {
+        return this.state != State.IDLE && this.state != State.PAUSED && this.state != State.STOPPED;
+    }
 }
 
 
