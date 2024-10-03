@@ -183,13 +183,19 @@ public class CommandEvents {
                 FormationUtils.triangleFormation(player, recruits, targetPos);
             }
             case 4 ->{//HOLLOW CIRCLE
-                FormationUtils.circleFormation(player, recruits, targetPos);
+                FormationUtils.hollowCircleFormation(player, recruits, targetPos);
             }
             case 5 ->{//HOLLOW SQUARE
                 FormationUtils.hollowSquareFormation(player, recruits, targetPos);
             }
             case 6 ->{//V Formation
                 FormationUtils.vFormation(player, recruits, targetPos);
+            }
+            case 7 ->{//CIRCLE
+                FormationUtils.circleFormation(player, recruits, targetPos);
+            }
+            case 8 ->{//MOVEMENT
+                FormationUtils.movementFormation(player, recruits, targetPos);
             }
         }
     }

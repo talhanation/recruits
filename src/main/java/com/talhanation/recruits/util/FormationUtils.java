@@ -27,14 +27,17 @@ public class FormationUtils {
         
         return new Vec3(pos.x, blockPos.getY(), pos.z);
     }
+    public static void movementFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
+        lineFormation(player, recruits, targetPos, 3, 2.0D);
+    }
 
     public static void lineUpFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
+        lineFormation(player, recruits, targetPos, 20, 1.75D);
+    }
+    public static void lineFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, int maxInRow, double spacing) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
-
-        int maxInRow = 20;
-        double spacing = 1.75;
 
         List<FormationPosition> possiblePositions = new ArrayList<>();
 
@@ -188,7 +191,7 @@ public class FormationUtils {
         }
     }
 
-    public static void circleFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
+    public static void hollowCircleFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
         double spacing = 2.5; // Distance between recruits in the circle
         int numRecruits = recruits.size();
 
@@ -234,7 +237,76 @@ public class FormationUtils {
             }
         }
     }
+    public static void circleFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
+        double spacing = 2.5; // Abstand zwischen den Rekruten in jedem Ring
+        int numRecruits = recruits.size();
 
+        // Aufteilen der Rekruten auf drei Ringe
+        int innerRingCount = Math.min(5, numRecruits); // Innerer Ring hat max 5
+        int middleRingCount = Math.min(10, numRecruits - innerRingCount); // Mittlerer Ring hat max 10
+        int outerRingCount = numRecruits - innerRingCount - middleRingCount; // Äußerer Ring bekommt den Rest
+
+        double innerRadius = spacing * innerRingCount / (2 * Math.PI); // Radius des inneren Rings
+        double middleRadius = spacing * middleRingCount / (2 * Math.PI); // Radius des mittleren Rings
+        double outerRadius = spacing * outerRingCount / (2 * Math.PI); // Radius des äußeren Rings
+
+        List<FormationPosition> possiblePositions = new ArrayList<>();
+
+        // Positionen für den inneren Ring
+        for (int i = 0; i < innerRingCount; i++) {
+            double angle = (2 * Math.PI / innerRingCount) * i;
+            double x = targetPos.x + innerRadius * Math.cos(angle);
+            double z = targetPos.z + innerRadius * Math.sin(angle);
+            Vec3 recruitPos = new Vec3(x, targetPos.y, z);
+            possiblePositions.add(new FormationPosition(recruitPos, true));
+        }
+
+        // Positionen für den mittleren Ring
+        for (int i = 0; i < middleRingCount; i++) {
+            double angle = (2 * Math.PI / middleRingCount) * i;
+            double x = targetPos.x + middleRadius * Math.cos(angle);
+            double z = targetPos.z + middleRadius * Math.sin(angle);
+            Vec3 recruitPos = new Vec3(x, targetPos.y, z);
+            possiblePositions.add(new FormationPosition(recruitPos, true));
+        }
+
+        // Positionen für den äußeren Ring
+        for (int i = 0; i < outerRingCount; i++) {
+            double angle = (2 * Math.PI / outerRingCount) * i;
+            double x = targetPos.x + outerRadius * Math.cos(angle);
+            double z = targetPos.z + outerRadius * Math.sin(angle);
+            Vec3 recruitPos = new Vec3(x, targetPos.y, z);
+            possiblePositions.add(new FormationPosition(recruitPos, true));
+        }
+
+        // Zuweisen der Positionen an die Rekruten
+        for (AbstractRecruitEntity recruit : recruits) {
+            Vec3 pos = null;
+
+            if (recruit.formationPos >= 0 && recruit.formationPos < possiblePositions.size() && possiblePositions.get(recruit.formationPos).isFree) {
+                FormationPosition position = possiblePositions.get(recruit.formationPos);
+                position.isFree = false;
+                pos = position.position;
+            } else {
+                for (int i = 0; i < possiblePositions.size(); i++) {
+                    FormationPosition position = possiblePositions.get(i);
+                    if (position.isFree) {
+                        pos = possiblePositions.get(i).position;
+                        recruit.formationPos = i;
+                        position.isFree = false;
+                        break;
+                    }
+                }
+            }
+
+            if (pos != null) {
+                BlockPos blockPos = player.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
+                recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
+                recruit.ownerRot = player.getYRot();
+                recruit.setFollowState(3);
+            }
+        }
+    }
 
     public static void hollowSquareFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
         float yaw = player.getYRot();
