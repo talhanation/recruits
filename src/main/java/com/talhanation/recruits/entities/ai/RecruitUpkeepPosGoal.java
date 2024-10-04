@@ -80,7 +80,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                 double distance = this.recruit.position().distanceToSqr(Vec3.atCenterOf(chestPos));
                 if(distance > 10000){
                     if(recruit.getOwner() != null && messageNotInRange){
-                        recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()), recruit.getOwner().getUUID());
+                        recruit.getOwner().sendSystemMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()));
                         messageNotInRange = false;
                     }
 

@@ -253,7 +253,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
     }
 
     private void disband(int zeroLeftPos, int zeroTopPos){
-        addRenderableWidget(new Button(zeroLeftPos + 80, zeroTopPos + (20 + 5) * 7, 40, 20, new TextComponent("c owner"), button -> {
+        addRenderableWidget(new Button(zeroLeftPos + 80, zeroTopPos + (20 + 5) * 7, 40, 20, Component.literal("c owner"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(26, recruit.getUUID(), textField.getValue()));
         }));
     }
