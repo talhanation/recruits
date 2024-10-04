@@ -521,6 +521,13 @@ public class CommandEvents {
         }
     }
 
+    public static void onClearUpkeepButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
+        if (recruit.isEffectedByCommand(player_uuid, group)){
+            //Main.LOGGER.debug("event: clear");
+            recruit.clearUpkeepEntity();
+            recruit.clearUpkeepPos();
+        }
+    }
     public static void onUpkeepCommand(UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean isEntity, UUID entity_uuid, BlockPos blockPos) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             if (isEntity) {

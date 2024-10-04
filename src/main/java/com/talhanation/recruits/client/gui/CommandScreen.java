@@ -58,6 +58,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TOOLTIP_AGGRESSIVE = new TranslatableComponent("gui.recruits.command.tooltip.aggressive");
     private static final MutableComponent TOOLTIP_RAID = new TranslatableComponent("gui.recruits.command.tooltip.raid");
     private static final MutableComponent TOOLTIP_UPKEEP = new TranslatableComponent("gui.recruits.command.tooltip.upkeep");
+    private static final MutableComponent TOOLTIP_CLEAR_UPKEEP = new TranslatableComponent("gui.recruits.command.tooltip.clear_upkeep");
     private static final MutableComponent TOOLTIP_REST = new TranslatableComponent("gui.recruits.command.tooltip.rest");
     private static final MutableComponent TOOLTIP_TEAM = new TranslatableComponent("gui.recruits.command.tooltip.team");
     private static final MutableComponent TOOLTIP_CLEAR_TARGET = new TranslatableComponent("gui.recruits.command.tooltip.clearTargets");
@@ -93,6 +94,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TEXT_HOLD_FIRE = new TranslatableComponent("gui.recruits.command.text.hold_fire");
     private static final MutableComponent TEXT_CLEAR_TARGET = new TranslatableComponent("gui.recruits.command.text.clearTargets");
     private static final MutableComponent TEXT_UPKEEP = new TranslatableComponent("gui.recruits.command.text.upkeep");
+    private static final MutableComponent TEXT_CLEAR_UPKEEP = new TranslatableComponent("gui.recruits.command.text.clear_upkeep");
     private static final MutableComponent TEXT_REST = new TranslatableComponent("gui.recruits.command.text.rest");
     private static final MutableComponent TEXT_TEAM = new TranslatableComponent("gui.recruits.command.text.team");
     private static final MutableComponent TEXT_FORMATION_NONE = new TranslatableComponent("gui.recruits.command.text.formation_none");
@@ -798,6 +800,24 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 //upkeepButton.setTooltip(Tooltip.create(TOOLTIP_UPKEEP));
                 addRenderableWidget(upkeepButton);
 
+                //Clear Upkeep
+                RecruitsCommandButton clearUpkeepButton = new RecruitsCommandButton(x + 130, y, TEXT_CLEAR_UPKEEP,
+                        button -> {
+                            if (!groups.isEmpty()) {
+                                for (RecruitsGroup group : groups) {
+                                    if (!group.isDisabled()) {
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageClearUpkeep(player.getUUID(), group.getId()));
+                                    }
+                                }
+                                this.sendCommandInChat(93);
+                            }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_CLEAR_UPKEEP, i, i1);
+                        });
+                //upkeepButton.setTooltip(Tooltip.create(TOOLTIP_CLEAR_UPKEEP));
+                addRenderableWidget(clearUpkeepButton);
+
                 //REST
                 RecruitsCommandButton restButton = new RecruitsCommandButton(x - 100, y, TEXT_REST,
                         button -> {
@@ -888,6 +908,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             case 88 -> this.player.sendMessage(TEXT_REST(group_string.toString()), player.getUUID());
             case 91 -> this.player.sendMessage(TEXT_BACK_TO_MOUNT(group_string.toString()), player.getUUID());
             case 92 -> this.player.sendMessage(TEXT_UPKEEP(group_string.toString()), player.getUUID());
+            case 93 -> this.player.sendMessage(TEXT_CLEAR_UPKEEP(group_string.toString()), player.getUUID());
 
             case 98 -> this.player.sendMessage(TEXT_DISMOUNT(group_string.toString()), player.getUUID());
             case 99 -> this.player.sendMessage(TEXT_MOUNT(group_string.toString()), player.getUUID());
@@ -927,7 +948,9 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static MutableComponent TEXT_UPKEEP(String group_string) {
         return new TranslatableComponent("chat.recruits.command.upkeep", group_string);
     }
-
+    private static MutableComponent TEXT_CLEAR_UPKEEP(String group_string) {
+        return new TranslatableComponent("chat.recruits.command.clear_upkeep", group_string);
+    }
     private static MutableComponent TEXT_SHIELDS_OFF(String group_string) {
         return new TranslatableComponent("chat.recruits.command.shields_off", group_string);
     }

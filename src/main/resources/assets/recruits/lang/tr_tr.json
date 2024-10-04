@@ -299,6 +299,7 @@
   "gui.recruits.inv.tooltip.backToMount": "Bu askeri önceki aracına bindir.",
   "gui.recruits.inv.tooltip.clearUpkeep": "Kaydedilen bakım konumunu temizler.",
   "gui.recruits.inv.text.clearUpkeep": "Bakımı Temizle",
+  "gui.recruits.command.text.clear_upkeep" : "Bakımı Temizle",
 
   "gui.recruits.command.tooltip.move_hold": "Mümkünse, askerler baktığınız konuma gitmeye ve orayı tutmaya çalışacaklar.",
   "gui.recruits.command.tooltip.forward": "Askerlerin, baktığınız yöne doğru yaklaşık 10 blok ilerlemesini sağlayın.",
@@ -346,5 +347,9 @@
   "gui.recruits.command.text.shields_down": "Kalkanlar Aşağı!",
   "chat.recruits.command.rest": "%s Burada dinlenebilirsiniz!",
   "chat.recruits.command.fire_at_will": "%s Ateş Serbest!",
-  "chat.recruits.command.hold_fire": "%s Ateşi Kes!"
+  "chat.recruits.command.hold_fire": "%s Ateşi Kes!",
+  "gui.recruits.command.tooltip.clear_upkeep": "Kaydedilen bakım konumunu temizler.",
+  "chat.recruits.command.clear_upkeep": "%s Bakımı unutun!",
+  "gui.multiLineEditBox.character_limit": "%s/%s",
+  "subtitles.recruits.messenger_horn": "Haberci borozanı çalyior"
 }
