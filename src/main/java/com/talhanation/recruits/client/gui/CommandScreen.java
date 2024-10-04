@@ -106,6 +106,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TEXT_FORMATION_CIRCLE = Component.translatable("gui.recruits.command.text.formation_circle");
     private static final MutableComponent TEXT_FORMATION_MOVEMENT = Component.translatable("gui.recruits.command.text.formation_movement");
     private static final MutableComponent TOOLTIP_CLEAR_UPKEEP = Component.translatable("gui.recruits.command.tooltip.clear_upkeep");
+    private static final MutableComponent TEXT_CLEAR_UPKEEP = Component.translatable("gui.recruits.command.text.clear_upkeep");
     private static final int fontColor = 16250871;
     private final Player player;
     private BlockPos rayBlockPos;
@@ -847,7 +848,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         return Component.translatable("chat.recruits.command.upkeep", group_string);
     }
     private static MutableComponent TEXT_CLEAR_UPKEEP(String group_string) {
-        return new TranslatableComponent("chat.recruits.command.clear_upkeep", group_string);
+        return Component.translatable("chat.recruits.command.clear_upkeep", group_string);
     }
     private static MutableComponent TEXT_SHIELDS_OFF(String group_string) {
         return Component.translatable("chat.recruits.command.shields_off", group_string);

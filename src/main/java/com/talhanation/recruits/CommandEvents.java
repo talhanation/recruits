@@ -354,7 +354,7 @@ public class CommandEvents {
             if (!data.contains("TotalRecruits")) data.putInt("TotalRecruits", 0);
             if (!data.contains("ActiveGroups")) data.putIntArray("ActiveGroups", new int[0]);
             if (!data.contains("Formation")) data.putInt("Formation", 0);
-            if (!data.contains("FormationPos")) data.putIntArray("FormationPos", new int[]{(int) event.getPlayer().getX(), (int) event.getPlayer().getZ()});
+            if (!data.contains("FormationPos")) data.putIntArray("FormationPos", new int[]{(int) event.getEntity().getX(), (int) event.getEntity().getZ()});
 
         playerData.put(Player.PERSISTED_NBT_TAG, data);
     }
