@@ -12,6 +12,7 @@ import com.talhanation.recruits.entities.ai.*;
 import com.talhanation.recruits.entities.ai.compat.BlockWithWeapon;
 import com.talhanation.recruits.entities.ai.navigation.RecruitPathNavigation;
 import com.talhanation.recruits.init.ModItems;
+import com.talhanation.recruits.init.ModSounds;
 import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
@@ -1431,15 +1432,15 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void makeLevelUpSound() {
-        if(RecruitsClientConfig.RecruitsLookLikeVillagers.get())
-            this.playSound(SoundEvents.VILLAGER_YES, 15.0F, 0.8F + 0.4F * this.random.nextFloat());
+        this.level.playSound(null, this.getX(), this.getY() + 1 , this.getZ(), SoundEvents.PLAYER_LEVELUP, this.getSoundSource(), 1.0F, 0.8F + 0.4F * this.random.nextFloat());
 
-        this.playSound(SoundEvents.PLAYER_LEVELUP, 15.0F, 0.8F + 0.4F * this.random.nextFloat());
+        if(RecruitsClientConfig.RecruitsLookLikeVillagers.get())
+            this.level.playSound(null, this.getX(), this.getY() + 1 , this.getZ(), SoundEvents.VILLAGER_CELEBRATE, this.getSoundSource(), 1.0F, 0.8F + 0.4F * this.random.nextFloat());
     }
 
     public void makeHireSound() {
         if(RecruitsClientConfig.RecruitsLookLikeVillagers.get())
-            this.playSound(SoundEvents.VILLAGER_AMBIENT, 15.0F, 0.8F + 0.4F * this.random.nextFloat());
+            this.playSound(SoundEvents.VILLAGER_AMBIENT, 1.0F, 0.8F + 0.4F * this.random.nextFloat());
     }
 
     @Override
