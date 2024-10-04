@@ -62,7 +62,7 @@ public class Main {
         ModScreens.MENU_TYPES.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
         ModEntityTypes.ENTITY_TYPES.register(modEventBus);
-
+        ModSounds.SOUNDS.register(modEventBus);
         MinecraftForge.EVENT_BUS.register(this);
     }
 

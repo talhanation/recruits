@@ -1,0 +1,10 @@
+{
+  "messenger_horn": {
+    "subtitle": "subtitles.recruits.messenger_horn",
+    "sounds": [
+      {
+        "name": "recruits:entity/messenger_horn"
+      }
+    ]
+  }
+}
