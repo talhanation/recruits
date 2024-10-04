@@ -1466,6 +1466,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         if (this.getItemBySlot(EquipmentSlot.HEAD).isEmpty() && hasHeadArmor) {
             this.inventory.setItem(0, ItemStack.EMPTY);
+            this.getInventory().setChanged();
             this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
             this.tryToReequip(EquipmentSlot.HEAD);
         }
@@ -1480,6 +1481,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
         if (this.getItemBySlot(EquipmentSlot.CHEST).isEmpty() && hasChestArmor) {
             this.inventory.setItem(1, ItemStack.EMPTY);
+            this.getInventory().setChanged();
             this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
             this.tryToReequip(EquipmentSlot.CHEST);
         }
@@ -1495,6 +1497,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
         if (this.getItemBySlot(EquipmentSlot.LEGS).isEmpty() && hasLegsArmor) {
             this.inventory.setItem(2, ItemStack.EMPTY);
+            this.getInventory().setChanged();
             this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
             this.tryToReequip(EquipmentSlot.LEGS);
         }
@@ -1512,6 +1515,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
         if (this.getItemBySlot(EquipmentSlot.FEET).isEmpty() && hasFeetArmor) {
             this.inventory.setItem(3, ItemStack.EMPTY);
+            this.getInventory().setChanged();
             this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
             this.tryToReequip(EquipmentSlot.FEET);
         }
@@ -1534,6 +1538,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         if (this.getMainHandItem().isEmpty() && hasHandItem) {
             this.inventory.setItem(5, ItemStack.EMPTY);
+            this.getInventory().setChanged();
             this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
             this.tryToReequip(EquipmentSlot.MAINHAND);
         }
@@ -1644,6 +1649,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         });
         if (this.getOffhandItem().isEmpty()) {
             this.inventory.setItem(4, ItemStack.EMPTY);
+            this.getInventory().setChanged();
             this.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F);
             this.tryToReequipShield();
         }
