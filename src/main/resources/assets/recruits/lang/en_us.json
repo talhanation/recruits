@@ -97,6 +97,7 @@
   "gui.recruits.command.tooltip.shields_up" : "Make the recruits raise their shields.",
   "gui.recruits.command.tooltip.shields_down" : "Make the recruits lower their shields.",
   "gui.recruits.command.tooltip.upkeep" : "Sets the block or entity for the upkeep of your recruits you are looking at.",
+  "gui.recruits.command.tooltip.clear_upkeep" : "Clears the block or entity for the upkeep of your recruits.",
   "gui.recruits.command.tooltip.rest" : "Sets the area where your recruits are allowed to rest.",
   "gui.recruits.command.tooltip.formation" : "Order the recruits to do a formation.",
   "gui.recruits.command.tooltip.hold_fire" : "Disable the use of Ranged weapons.",
@@ -157,12 +158,14 @@
   "gui.recruits.command.text.aggressive" : "Aggressive!",
   "gui.recruits.command.text.raid" : "Raid!",
   "gui.recruits.command.text.upkeep" : "Upkeep",
+  "gui.recruits.command.text.clear_upkeep" : "Clear Upkeep",
   "gui.recruits.command.text.rest" : "Rest",
 
   "gui.recruits.command.text.group" : "Group: %s",
   "gui.recruits.command.text.everyone" : "Everyone",
 
   "chat.recruits.command.upkeep" : "%s Your upkeep is here!",
+  "chat.recruits.command.clear_upkeep" : "%s Forget your upkeep!",
   "chat.recruits.command.protect" : "%s Protect this Mob!",
   "chat.recruits.command.mount" : "%s Mount here!",
   "chat.recruits.command.dismount" : "%s Dismount!",
@@ -350,5 +353,8 @@
   "gui.recruits.group_creation.edit": "Edit",
   "gui.recruits.group_creation.remove": "Remove",
   "gui.recruits.group_creation.split": "Split",
-  "gui.recruits.group_management.title": "Manage your Groups:"
+
+  "gui.recruits.group_management.title": "Manage your Groups:",
+  "subtitles.recruits.messenger_horn": "Messenger horn plays"
+
  }

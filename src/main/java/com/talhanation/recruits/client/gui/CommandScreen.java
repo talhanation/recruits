@@ -34,6 +34,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/command_gui.png");
 
+
     private static final MutableComponent TOOLTIP_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.tooltip.strategic_fire");
     private static final MutableComponent TOOLTIP_HOLD_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.tooltip.hold_strategic_fire");
     private static final MutableComponent TOOLTIP_DISMOUNT = Component.translatable("gui.recruits.command.tooltip.dismount");
@@ -102,7 +103,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static final MutableComponent TEXT_FORMATION_V = Component.translatable("gui.recruits.command.text.formation_v");
     private static final MutableComponent TEXT_FORMATION_CIRCLE = Component.translatable("gui.recruits.command.text.formation_circle");
     private static final MutableComponent TEXT_FORMATION_MOVEMENT = Component.translatable("gui.recruits.command.text.formation_movement");
-
+    private static final MutableComponent TOOLTIP_CLEAR_UPKEEP = Component.translatable("gui.recruits.command.tooltip.clear_upkeep");
     private static final int fontColor = 16250871;
     private final Player player;
     private BlockPos rayBlockPos;
@@ -797,6 +798,24 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 //upkeepButton.setTooltip(Tooltip.create(TOOLTIP_UPKEEP));
                 addRenderableWidget(upkeepButton);
 
+                //Clear Upkeep
+                RecruitsCommandButton clearUpkeepButton = new RecruitsCommandButton(x + 130, y, TEXT_CLEAR_UPKEEP,
+                        button -> {
+                            if (!groups.isEmpty()) {
+                                for (RecruitsGroup group : groups) {
+                                    if (!group.isDisabled()) {
+                                        Main.SIMPLE_CHANNEL.sendToServer(new MessageClearUpkeep(player.getUUID(), group.getId()));
+                                    }
+                                }
+                                this.sendCommandInChat(93);
+                            }
+                        },
+                        (button1, poseStack, i, i1) -> {
+                            this.renderTooltip(poseStack, TOOLTIP_CLEAR_UPKEEP, i, i1);
+                        });
+                //upkeepButton.setTooltip(Tooltip.create(TOOLTIP_CLEAR_UPKEEP));
+                addRenderableWidget(clearUpkeepButton);
+
                 //REST
                 RecruitsCommandButton restButton = new RecruitsCommandButton(x - 100, y, TEXT_REST,
                         button -> {
@@ -887,6 +906,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             case 88 -> this.player.sendSystemMessage(TEXT_REST(group_string.toString()));
             case 91 -> this.player.sendSystemMessage(TEXT_BACK_TO_MOUNT(group_string.toString()));
             case 92 -> this.player.sendSystemMessage(TEXT_UPKEEP(group_string.toString()));
+            case 93 -> this.player.sendSystemMessage(TEXT_CLEAR_UPKEEP(group_string.toString()));
 
             case 98 -> this.player.sendSystemMessage(TEXT_DISMOUNT(group_string.toString()));
             case 99 -> this.player.sendSystemMessage(TEXT_MOUNT(group_string.toString()));
@@ -926,7 +946,9 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static MutableComponent TEXT_UPKEEP(String group_string) {
         return Component.translatable("chat.recruits.command.upkeep", group_string);
     }
-
+    private static MutableComponent TEXT_CLEAR_UPKEEP(String group_string) {
+        return new TranslatableComponent("chat.recruits.command.clear_upkeep", group_string);
+    }
     private static MutableComponent TEXT_SHIELDS_OFF(String group_string) {
         return Component.translatable("chat.recruits.command.shields_off", group_string);
     }
