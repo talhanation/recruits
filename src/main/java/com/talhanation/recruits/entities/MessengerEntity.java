@@ -320,7 +320,6 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
                     if(--teleportWaitTimer <= 0){
                         this.teleportNearTargetPlayer(getTargetPlayer());
                         this.arriveAtTargetPlayer(getTargetPlayer());
-                        this.playHornSound();
                         this.setFollowState(0);
 
                         this.state = State.MOVING_TO_TARGET_PLAYER;
@@ -398,8 +397,15 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
                 }
 
                 case MOVING_TO_OWNER -> {
-                    this.setListen(true);
-                    this.state = State.IDLE;
+                    if(this.getOwner() != null){
+                        if(this.distanceToSqr(this.getOwner()) < 50F) {
+                            this.setListen(true);
+                            this.state = State.IDLE;
+                        }
+                    }
+                    else{
+                        teleportNearOwner();
+                    }
                 }
             }
         }
@@ -419,17 +425,17 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     private void teleportNearOwner() {
         if(getOwner() != null && !this.getCommandSenderWorld().isClientSide()){
             BlockPos targetPos = getOwner().getOnPos();
-            BlockPos tpPos = RecruitsPatrolSpawn.func_221244_a(targetPos, 5, new Random(), (ServerLevel) this.getCommandSenderWorld());
+            BlockPos tpPos = RecruitsPatrolSpawn.func_221244_a(targetPos, 10, new Random(), (ServerLevel) this.getCommandSenderWorld());
             if(tpPos == null) tpPos = targetPos;
 
             if(this.getVehicle() instanceof AbstractHorse horse) horse.teleportTo(tpPos.getX(), tpPos.getY(), tpPos.getZ());
             else this.teleportTo(tpPos.getX(), tpPos.getY(), tpPos.getZ());
 
             this.setFollowState(1);
-            this.addGlowEffectForPlayer(getOwner());
+            this.addGlowEffect();
         }
         else {
-            BlockPos tpPos = RecruitsPatrolSpawn.func_221244_a(initialPos, 5, new Random(), (ServerLevel) this.getCommandSenderWorld());
+            BlockPos tpPos = RecruitsPatrolSpawn.func_221244_a(initialPos, 10, new Random(), (ServerLevel) this.getCommandSenderWorld());
             if(tpPos == null) tpPos = initialPos;
 
             if(this.getVehicle() instanceof AbstractHorse horse) horse.teleportTo(tpPos.getX(), tpPos.getY(), tpPos.getZ());
@@ -442,28 +448,26 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     private void teleportNearTargetPlayer(Player player) {
         if(player != null && !this.getCommandSenderWorld().isClientSide()){
             BlockPos targetPos = player.getOnPos();
-            BlockPos tpPos = RecruitsPatrolSpawn.func_221244_a(targetPos, 35, new Random(), (ServerLevel) this.getCommandSenderWorld());
+            BlockPos tpPos = RecruitsPatrolSpawn.func_221244_a(targetPos, 20, new Random(), (ServerLevel) this.getCommandSenderWorld());
             if(tpPos == null) tpPos = targetPos;
 
             if(this.getVehicle() instanceof AbstractHorse horse) horse.teleportTo(tpPos.getX(), tpPos.getY(), tpPos.getZ());
             else this.teleportTo(tpPos.getX(), tpPos.getY(), tpPos.getZ());
         }
     }
-    @OnlyIn(Dist.CLIENT)
-    private void addGlowEffectForPlayer(Player player) {
-        LocalPlayer localPlayer = Minecraft.getInstance().player;
-        if(localPlayer != null && localPlayer.getUUID().equals(player.getUUID())){
-            this.addEffect(new MobEffectInstance(MobEffects.GLOWING, 60*20*3, 1, false, false, true));
-        }
+
+    private void addGlowEffect() {
+        this.addEffect(new MobEffectInstance(MobEffects.GLOWING, 60*20*3, 1, false, false, true));
     }
 
     private void playHornSound() {
-        this.level.playSound(null, this.getX(), this.getY() + 1 , this.getZ(), ModSounds.MESSENGER_HORN.get(), this.getSoundSource(), 1.0F, 0.8F + 0.4F * this.random.nextFloat());
+        this.level.playSound(null, this.getX(), this.getY() + 1 , this.getZ(), ModSounds.MESSENGER_HORN.get(), this.getSoundSource(), 5.0F, 0.8F + 0.4F * this.random.nextFloat());
     }
 
     public void arriveAtTargetPlayer(ServerPlayer target){
-        tellTargetPlayerArrived(target);
-        this.addGlowEffectForPlayer(target);
+        this.addGlowEffect();
+        this.playHornSound();
+        this.tellTargetPlayerArrived(target);
     }
 
     public void tellTargetPlayerArrived(ServerPlayer target){
