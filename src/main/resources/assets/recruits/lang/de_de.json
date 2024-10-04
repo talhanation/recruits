@@ -297,6 +297,7 @@
   "gui.recruits.inv.tooltip.backToMount": "Lässt diesen Rekruten auf sein vorheriges Fahrzeug aufsteigen.",
   "gui.recruits.inv.tooltip.clearUpkeep": "Löscht die gespeicherte Versorgungsposition.",
   "gui.recruits.inv.text.clearUpkeep": "Versorgung Löschen",
+  "gui.recruits.command.text.clear_upkeep" : "Versorgung Löschen",
 
   "gui.recruits.command.tooltip.move_hold": "Wenn möglich, werden die Rekruten versuchen, zu der Position zu gehen, auf die Sie schauen, und diese zu halten.",
   "gui.recruits.command.tooltip.forward": "Lassen Sie die Rekruten etwa 10 Blöcke nach vorne zu der Position bewegen, auf die Sie blicken.",
@@ -344,5 +345,9 @@
   "gui.recruits.command.text.shields_down": "Schilde runter!",
   "chat.recruits.command.rest": "%s Hier ausruhen!",
   "chat.recruits.command.fire_at_will": "%s Feuer frei!",
-  "chat.recruits.command.hold_fire": "%s Feuer einstellen!"
+  "chat.recruits.command.hold_fire": "%s Feuer einstellen!",
+  "gui.recruits.command.tooltip.clear_upkeep": "Löscht die gespeicherte Versorgung der Soldaten.",
+  "chat.recruits.command.clear_upkeep": "%s Vergesst die Versorgung!",
+ "subtitles.recruits.messenger_horn": "Botenhorn ertönt"
+
 }
