@@ -3,6 +3,7 @@ package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.ai.UseShield;
+import com.talhanation.recruits.init.ModSounds;
 import com.talhanation.recruits.inventory.MessengerAnswerContainer;
 import com.talhanation.recruits.inventory.MessengerContainer;
 import com.talhanation.recruits.network.MessageOpenMessengerAnswerScreen;
@@ -10,6 +11,8 @@ import com.talhanation.recruits.network.MessageOpenSpecialScreen;
 import com.talhanation.recruits.network.MessageToClientUpdateMessengerAnswerScreen;
 import com.talhanation.recruits.network.MessageToClientUpdateMessengerScreen;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -21,6 +24,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
@@ -46,6 +50,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
@@ -306,7 +312,8 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
         if(state != null){
             switch (state){
                 case IDLE -> {
-
+                    if (this.hasEffect(MobEffects.GLOWING))
+                        this.removeEffect(MobEffects.GLOWING);
                 }
 
                 case TELEPORT -> {
@@ -315,9 +322,6 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
                         this.arriveAtTargetPlayer(getTargetPlayer());
                         this.playHornSound();
                         this.setFollowState(0);
-
-                        if (!this.hasEffect(MobEffects.GLOWING))
-                            this.addEffect(new MobEffectInstance(MobEffects.GLOWING, 60*20*3, 1, false, false, true));
 
                         this.state = State.MOVING_TO_TARGET_PLAYER;
                     }
@@ -331,7 +335,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
                         }
 
                         double distance = this.distanceToSqr(targetPlayer);
-                        if(distance <= 60){
+                        if(distance <= 50){
                             if(this.getOwner() != null) this.getOwner().sendMessage(MESSENGER_ARRIVED_AT_TARGET_OWNER(), this.getOwner().getUUID());
                             if(!this.getMainHandItem().isEmpty()) targetPlayer.sendMessage(MESSENGER_INFO_AT_TARGET_WITH_ITEM(), this.getOwner().getUUID());
                             else targetPlayer.sendMessage(MESSENGER_INFO_AT_TARGET(), this.getOwner().getUUID());
@@ -340,8 +344,6 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
                             this.arrivedWaitTimer = 1500;
                             this.targetPlayerOpened = false;
                             this.state = State.ARRIVED;
-                            if (this.hasEffect(MobEffects.GLOWING))
-                                this.removeEffect(MobEffects.GLOWING);
                         }
                     }
                     else {
@@ -358,6 +360,8 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
                         state = State.TELEPORT_BACK;
                     }
                     if(targetPlayerOpened){
+                        if (this.hasEffect(MobEffects.GLOWING))
+                            this.removeEffect(MobEffects.GLOWING);
                         state = State.WAITING;
                         setWaitingTime(5 * 60 * 20);
                     }
@@ -390,9 +394,6 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
                     if(--teleportWaitTimer <= 0){
                         this.teleportNearOwner();
                         this.state = State.MOVING_TO_OWNER;
-
-                        if (this.hasEffect(MobEffects.GLOWING))
-                            this.removeEffect(MobEffects.GLOWING);
                     }
                 }
 
@@ -418,16 +419,17 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     private void teleportNearOwner() {
         if(getOwner() != null && !this.getCommandSenderWorld().isClientSide()){
             BlockPos targetPos = getOwner().getOnPos();
-            BlockPos tpPos = RecruitsPatrolSpawn.func_221244_a(targetPos, 20, new Random(), (ServerLevel) this.getCommandSenderWorld());
+            BlockPos tpPos = RecruitsPatrolSpawn.func_221244_a(targetPos, 5, new Random(), (ServerLevel) this.getCommandSenderWorld());
             if(tpPos == null) tpPos = targetPos;
 
             if(this.getVehicle() instanceof AbstractHorse horse) horse.teleportTo(tpPos.getX(), tpPos.getY(), tpPos.getZ());
             else this.teleportTo(tpPos.getX(), tpPos.getY(), tpPos.getZ());
 
             this.setFollowState(1);
+            this.addGlowEffectForPlayer(getOwner());
         }
         else {
-            BlockPos tpPos = RecruitsPatrolSpawn.func_221244_a(initialPos, 20, new Random(), (ServerLevel) this.getCommandSenderWorld());
+            BlockPos tpPos = RecruitsPatrolSpawn.func_221244_a(initialPos, 5, new Random(), (ServerLevel) this.getCommandSenderWorld());
             if(tpPos == null) tpPos = initialPos;
 
             if(this.getVehicle() instanceof AbstractHorse horse) horse.teleportTo(tpPos.getX(), tpPos.getY(), tpPos.getZ());
@@ -440,20 +442,28 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     private void teleportNearTargetPlayer(Player player) {
         if(player != null && !this.getCommandSenderWorld().isClientSide()){
             BlockPos targetPos = player.getOnPos();
-            BlockPos tpPos = RecruitsPatrolSpawn.func_221244_a(targetPos, 40, new Random(), (ServerLevel) this.getCommandSenderWorld());
+            BlockPos tpPos = RecruitsPatrolSpawn.func_221244_a(targetPos, 35, new Random(), (ServerLevel) this.getCommandSenderWorld());
             if(tpPos == null) tpPos = targetPos;
 
             if(this.getVehicle() instanceof AbstractHorse horse) horse.teleportTo(tpPos.getX(), tpPos.getY(), tpPos.getZ());
             else this.teleportTo(tpPos.getX(), tpPos.getY(), tpPos.getZ());
         }
     }
+    @OnlyIn(Dist.CLIENT)
+    private void addGlowEffectForPlayer(Player player) {
+        LocalPlayer localPlayer = Minecraft.getInstance().player;
+        if(localPlayer != null && localPlayer.getUUID().equals(player.getUUID())){
+            this.addEffect(new MobEffectInstance(MobEffects.GLOWING, 60*20*3, 1, false, false, true));
+        }
+    }
 
     private void playHornSound() {
-        this.playSound(SoundEvents.PLAYER_LEVELUP, 128F, 1.0F);
+        this.level.playSound(null, this.getX(), this.getY() + 1 , this.getZ(), ModSounds.MESSENGER_HORN.get(), this.getSoundSource(), 1.0F, 0.8F + 0.4F * this.random.nextFloat());
     }
 
     public void arriveAtTargetPlayer(ServerPlayer target){
         tellTargetPlayerArrived(target);
+        this.addGlowEffectForPlayer(target);
     }
 
     public void tellTargetPlayerArrived(ServerPlayer target){

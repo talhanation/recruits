@@ -5,10 +5,7 @@ import com.talhanation.recruits.client.events.KeyEvents;
 import com.talhanation.recruits.commands.PatrolSpawnCommand;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
-import com.talhanation.recruits.init.ModBlocks;
-import com.talhanation.recruits.init.ModEntityTypes;
-import com.talhanation.recruits.init.ModItems;
-import com.talhanation.recruits.init.ModScreens;
+import com.talhanation.recruits.init.*;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.ClientRegistry;
 import de.maxhenkel.corelib.CommonRegistry;
@@ -80,7 +77,7 @@ public class Main {
         ModBlocks.BLOCKS.register(modEventBus);
         ModEntityTypes.ENTITY_TYPES.register(modEventBus);
         ModScreens.MENU_TYPES.register(modEventBus);
-        //ModSounds.SOUNDS.register(modEventBus);
+        ModSounds.SOUNDS.register(modEventBus);
         MinecraftForge.EVENT_BUS.register(this);
     }
 
