@@ -733,7 +733,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 addRenderableWidget(mountButton);
 
                 //TEAM
-                RecruitsCommandButton teamButton = new RecruitsCommandButton(x, y + 50, TEXT_TEAM,
+                RecruitsCommandButton teamButton = new RecruitsCommandButton(x - 60, y + 50, TEXT_TEAM,
                         button -> {
                             Main.SIMPLE_CHANNEL.sendToServer(new MessageTeamMainScreen(player));
                         },
@@ -799,7 +799,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 addRenderableWidget(upkeepButton);
 
                 //Clear Upkeep
-                RecruitsCommandButton clearUpkeepButton = new RecruitsCommandButton(x + 130, y, TEXT_CLEAR_UPKEEP,
+                RecruitsCommandButton clearUpkeepButton = new RecruitsCommandButton(x + 60, y + 50, TEXT_CLEAR_UPKEEP,
                         button -> {
                             if (!groups.isEmpty()) {
                                 for (RecruitsGroup group : groups) {
