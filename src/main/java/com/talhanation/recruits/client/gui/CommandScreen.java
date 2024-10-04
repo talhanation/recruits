@@ -419,22 +419,16 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 RecruitsFormationButton circleFormationButton = new RecruitsFormationButton(Formation.CIRCLE, x - 84, y + 50,
                         button -> {
                             this.setFormation(Formation.CIRCLE);
-                        },
-                        (button1, poseStack, i, i1) -> {
-                            this.renderTooltip(poseStack, TEXT_FORMATION_CIRCLE, i, i1);
                         });
-                //circleFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_CIRCLE));
+                circleFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_CIRCLE));
                 addRenderableWidget(circleFormationButton);
 
                 //MOVEMENT
                 RecruitsFormationButton movementFormationButton = new RecruitsFormationButton(Formation.MOVEMENT, x + 84, y + 50,
                         button -> {
                             this.setFormation(Formation.MOVEMENT);
-                        },
-                        (button1, poseStack, i, i1) -> {
-                            this.renderTooltip(poseStack, TEXT_FORMATION_MOVEMENT, i, i1);
                         });
-                //circleFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_MOVEMENT));
+                movementFormationButton.setTooltip(Tooltip.create(TEXT_FORMATION_MOVEMENT));
                 addRenderableWidget(movementFormationButton);
 
                 noneFormationButton.active = formation == Formation.NONE;
@@ -714,11 +708,8 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 }
                                 this.sendCommandInChat(93);
                             }
-                        },
-                        (button1, poseStack, i, i1) -> {
-                            this.renderTooltip(poseStack, TOOLTIP_CLEAR_UPKEEP, i, i1);
                         });
-                //upkeepButton.setTooltip(Tooltip.create(TOOLTIP_CLEAR_UPKEEP));
+                upkeepButton.setTooltip(Tooltip.create(TOOLTIP_CLEAR_UPKEEP));
                 addRenderableWidget(clearUpkeepButton);
 
                 //REST

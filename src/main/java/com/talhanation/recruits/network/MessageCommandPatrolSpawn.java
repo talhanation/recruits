@@ -26,16 +26,16 @@ public class MessageCommandPatrolSpawn implements Message<MessageCommandPatrolSp
     public void executeServerSide(NetworkEvent.Context context){
         BlockPos pos = context.getSender().getOnPos();
         switch (type){
-            case 0 -> PillagerPatrolSpawn.spawnSmallPillagerPatrol(pos, pos, context.getSender().getLevel());
-            case 1 -> PillagerPatrolSpawn.spawnPillagerPatrol(pos, pos, context.getSender().getLevel());
-            case 2 -> PillagerPatrolSpawn.spawnMediumPillagerPatrol(pos, pos, context.getSender().getLevel());
-            case 3 -> PillagerPatrolSpawn.spawnLargePillagerPatrol(pos, pos, context.getSender().getLevel());
-            case 10 -> RecruitsPatrolSpawn.spawnCaravan(pos, context.getSender().getLevel());
-            case 11 -> RecruitsPatrolSpawn.spawnTinyPatrol(pos, context.getSender().getLevel());
-            case 12 -> RecruitsPatrolSpawn.spawnSmallPatrol(pos, context.getSender().getLevel());
-            case 13 -> RecruitsPatrolSpawn.spawnMediumPatrol(pos, context.getSender().getLevel());
-            case 14 -> RecruitsPatrolSpawn.spawnLargePatrol(pos, context.getSender().getLevel());
-            case 15 -> RecruitsPatrolSpawn.spawnHugePatrol(pos, context.getSender().getLevel());
+            case 0 -> PillagerPatrolSpawn.spawnSmallPillagerPatrol(pos, pos, context.getSender().serverLevel());
+            case 1 -> PillagerPatrolSpawn.spawnPillagerPatrol(pos, pos, context.getSender().serverLevel());
+            case 2 -> PillagerPatrolSpawn.spawnMediumPillagerPatrol(pos, pos, context.getSender().serverLevel());
+            case 3 -> PillagerPatrolSpawn.spawnLargePillagerPatrol(pos, pos, context.getSender().serverLevel());
+            case 10 -> RecruitsPatrolSpawn.spawnCaravan(pos, context.getSender().serverLevel());
+            case 11 -> RecruitsPatrolSpawn.spawnTinyPatrol(pos, context.getSender().serverLevel());
+            case 12 -> RecruitsPatrolSpawn.spawnSmallPatrol(pos, context.getSender().serverLevel());
+            case 13 -> RecruitsPatrolSpawn.spawnMediumPatrol(pos, context.getSender().serverLevel());
+            case 14 -> RecruitsPatrolSpawn.spawnLargePatrol(pos, context.getSender().serverLevel());
+            case 15 -> RecruitsPatrolSpawn.spawnHugePatrol(pos, context.getSender().serverLevel());
             default -> {
                 return;
             }

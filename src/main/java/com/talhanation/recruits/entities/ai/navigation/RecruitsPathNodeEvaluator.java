@@ -25,7 +25,7 @@ public class RecruitsPathNodeEvaluator extends WalkNodeEvaluator {
         mob.setPathfindingMalus(BlockPathTypes.WATER_BORDER, 128.0F);
         mob.setPathfindingMalus(BlockPathTypes.TRAPDOOR, -1.0F);
         mob.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, 32.0F);
-        mob.setPathfindingMalus(BlockPathTypes.DAMAGE_CACTUS, 32.0F);
+        mob.setPathfindingMalus(BlockPathTypes.DAMAGE_CAUTIOUS, 32.0F);
         mob.setPathfindingMalus(BlockPathTypes.DANGER_POWDER_SNOW, -1.0F);
         mob.setPathfindingMalus(BlockPathTypes.DOOR_WOOD_CLOSED, 0.0F);
         mob.setPathfindingMalus(BlockPathTypes.FENCE, -1.0F);
