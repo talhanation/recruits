@@ -186,7 +186,7 @@ public class BlunderbussWeapon implements IWeapon {
             Object musketWeaponInstance = itemClass.newInstance();
 
             Field musketItemField = musketWeaponInstance.getClass().getField("PISTOL_FIRE");
-            Object soundEvent = musketItemField.get("PISTOL_FIRE");
+            Object soundEvent = musketItemField.get("BLUNDERBUSS_FIRE");
             return (SoundEvent) soundEvent;
         }
         catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException | InstantiationException e) {
