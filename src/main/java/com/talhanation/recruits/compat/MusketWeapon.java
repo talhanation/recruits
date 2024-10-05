@@ -46,12 +46,12 @@ public class MusketWeapon implements IWeapon {
 
     @Override
     public int getAttackCooldown() {
-        return 30;//MusketItem.RELOAD_DURATION;
+        return 40;//MusketItem.RELOAD_DURATION;
     }
 
     @Override
     public int getWeaponLoadTime() {
-        return 35; //return MusketItem.LOADING_STAGE_1 + MusketItem.LOADING_STAGE_2 + MusketItem.LOADING_STAGE_3;
+        return 60; //return MusketItem.LOADING_STAGE_1 + MusketItem.LOADING_STAGE_2 + MusketItem.LOADING_STAGE_3;
     }
 
     @Override

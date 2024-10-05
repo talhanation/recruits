@@ -45,12 +45,12 @@ public class BlunderbussWeapon implements IWeapon {
 
     @Override
     public int getAttackCooldown() {
-        return 30;//MusketItem.RELOAD_DURATION;
+        return 50;//MusketItem.RELOAD_DURATION;
     }
 
     @Override
     public int getWeaponLoadTime() {
-        return 35; //return MusketItem.LOADING_STAGE_1 + MusketItem.LOADING_STAGE_2 + MusketItem.LOADING_STAGE_3;
+        return 70; //return MusketItem.LOADING_STAGE_1 + MusketItem.LOADING_STAGE_2 + MusketItem.LOADING_STAGE_3;
     }
 
     @Override
@@ -185,7 +185,7 @@ public class BlunderbussWeapon implements IWeapon {
             Class<?> itemClass = Class.forName("ewewukek.musketmod.Sounds");
             Object musketWeaponInstance = itemClass.newInstance();
 
-            Field musketItemField = musketWeaponInstance.getClass().getField("PISTOL_FIRE");
+            Field musketItemField = musketWeaponInstance.getClass().getField("BLUNDERBUSS_FIRE");
             Object soundEvent = musketItemField.get("BLUNDERBUSS_FIRE");
             return (SoundEvent) soundEvent;
         }
