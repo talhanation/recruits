@@ -138,7 +138,7 @@ public class MusketBayonetWeapon implements IWeapon {
 
 
                     projectile.setDeltaMovement(vec3);
-                    projectile.shoot(x, y + d3 * (double) 0.065, z, 4.5F, (float) (4));
+                    projectile.shoot(x, y + d3 * (double) 0.065, z, 4.5F, (float) (3));
                 }
 
             } catch (NoSuchFieldException e) {

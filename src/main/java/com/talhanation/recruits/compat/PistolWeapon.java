@@ -138,7 +138,7 @@ public class PistolWeapon implements IWeapon {
 
 
                     projectile.setDeltaMovement(vec3);
-                    projectile.shoot(x, y + d3 * (double) 0.065, z, 4.5F, (float) (2));
+                    projectile.shoot(x, y + d3 * (double) 0.065, z, 4.5F, (float) (1));
                 }
 
             } catch (NoSuchFieldException e) {

@@ -134,7 +134,7 @@ public class BlunderbussWeapon implements IWeapon {
                     bulletDamageField.setFloat(bullet, 10F);//player damage is 15 hp this value is tasted to match
 
                     projectile.setDeltaMovement(vec3);
-                    projectile.shoot(x, y + d3 * (double) 0.065, z, 4.5F, (float) (13));
+                    projectile.shoot(x, y + d3 * (double) 0.065, z, 4.5F, (float) (6));
                 }
             } catch (NoSuchFieldException e) {
                 Main.LOGGER.error("bulletDamageField was not found (NoSuchFieldException)");
