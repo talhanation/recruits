@@ -47,12 +47,13 @@ public class SailorNodeEvaluator extends SwimNodeEvaluator {
 
 
     @Nullable
-    protected Node findAcceptedNode(int x, int y, int z) {
+    protected Node getNode(int x, int y, int z) {
         Node node = null;
         BlockPathTypes blockpathtypes = this.getCachedBlockType(x, y, z);
         if (blockpathtypes == BlockPathTypes.WATER || blockpathtypes == BlockPathTypes.BREACH) {
             float f = this.mob.getPathfindingMalus(blockpathtypes);
             if (f >= 0.0F) {
+                node = this.getNodeRaw(x, y, z);
                 if (node != null) {
                     node.type = blockpathtypes;
                     node.costMalus = Math.max(node.costMalus, f);
