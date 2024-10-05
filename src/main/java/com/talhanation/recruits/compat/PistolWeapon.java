@@ -3,6 +3,7 @@ package com.talhanation.recruits.compat;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
@@ -116,62 +117,66 @@ public class PistolWeapon implements IWeapon {
     }
 
     @Override
+    @Nullable
     public AbstractHurtingProjectile shoot(LivingEntity shooter, AbstractHurtingProjectile projectile, double x, double y, double z) {
-        double d3 = Mth.sqrt((float) (x * x + z * z));
-        Vec3 vec3 = (new Vec3(x, y + d3 * (double) 0.065, z)).normalize().scale(10F);
-        try {
-            Class<?> bulletClass = Class.forName("ewewukek.musketmod.BulletEntity");
-            if (bulletClass.isInstance(projectile)) {
-                Object bullet = bulletClass.cast(projectile);
+        if(!shooter.getCommandSenderWorld().isClientSide()){
+            double d3 = Mth.sqrt((float) (x * x + z * z));
+            Vec3 vec3 = (new Vec3(x, y + d3 * (double) 0.065, z)).normalize().scale(10F);
+            try {
+                Class<?> bulletClass = Class.forName("ewewukek.musketmod.BulletEntity");
+                if (bulletClass.isInstance(projectile)) {
+                    Object bullet = bulletClass.cast(projectile);
 
-                Field bulletDamageField = bullet.getClass().getField("damageMultiplier");
-                bulletDamageField.setAccessible(true);
+                    Field bulletDamageField = bullet.getClass().getField("damage");
+                    bulletDamageField.setAccessible(true);
 
-                Method bulletClassSetInitialSpeedMethod = bullet.getClass().getMethod("setInitialSpeed", float.class);
+                    Method bulletClassSetInitialSpeedMethod = bullet.getClass().getMethod("setInitialSpeed", float.class);
 
-                bulletClassSetInitialSpeedMethod.invoke(bullet, 5F);
-                bulletDamageField.setFloat(bullet, 1F);
+                    bulletClassSetInitialSpeedMethod.invoke(bullet, 5F);
+                    bulletDamageField.setFloat(bullet, 40F);//player damage is 15 hp this value is tasted to match
 
 
 
-                projectile.setDeltaMovement(vec3);
-                projectile.shoot(x, y + d3 * (double) 0.065, z, 4.5F, (float) (0));
+                    projectile.setDeltaMovement(vec3);
+                    projectile.shoot(x, y + d3 * (double) 0.065, z, 4.5F, (float) (2));
+                }
+
+            } catch (NoSuchFieldException e) {
+                Main.LOGGER.error("bulletDamageField was not found (NoSuchFieldException)");
+            } catch (ClassNotFoundException e) {
+                Main.LOGGER.error("BulletEntity.class was not found (ClassNotFoundException)");
+            } catch (InvocationTargetException e) {
+                Main.LOGGER.error("bulletClassSetInitialSpeedMethod was not found (InvocationTargetException)");
+            } catch (NoSuchMethodException e) {
+                Main.LOGGER.error("bulletClassSetDeltaMovementMethod was not found (NoSuchMethodException)");
+            } catch (IllegalAccessException e) {
+                Main.LOGGER.error("BulletEntity.class was not found (IllegalAccessException)");
             }
 
-        } catch (NoSuchFieldException e) {
-            Main.LOGGER.error("bulletDamageField was not found (NoSuchFieldException)");
-        } catch (ClassNotFoundException e) {
-            Main.LOGGER.error("BulletEntity.class was not found (ClassNotFoundException)");
-        } catch (InvocationTargetException e) {
-            Main.LOGGER.error("bulletClassSetInitialSpeedMethod was not found (InvocationTargetException)");
-        } catch (NoSuchMethodException e) {
-            Main.LOGGER.error("bulletClassSetDeltaMovementMethod was not found (NoSuchMethodException)");
-        } catch (IllegalAccessException e) {
-            Main.LOGGER.error("BulletEntity.class was not found (IllegalAccessException)");
+            Vec3 forward = new Vec3(x, y, z).normalize();
+            Vec3 origin = new Vec3(shooter.getX(), shooter.getEyeY(), shooter.getZ());
+
+            try{
+                Class<?> musketModClass = Class.forName("ewewukek.musketmod.MusketMod");
+                Method sendSmokeEffectMethod = musketModClass.getMethod("sendSmokeEffect", ServerLevel.class, Vec3.class, Vec3.class);
+                sendSmokeEffectMethod.invoke(musketModClass, (ServerLevel) shooter.getCommandSenderWorld(), origin, forward);
+
+            } catch (ClassNotFoundException e) {
+                Main.LOGGER.error("MusketMod.class was not found (ClassNotFoundException)");
+
+            } catch (InvocationTargetException e) {
+                Main.LOGGER.error("sendSmokeEffectMethod was not found (InvocationTargetException)");
+
+            } catch (NoSuchMethodException e) {
+                Main.LOGGER.error("sendSmokeEffectMethod was not found (NoSuchMethodException)");
+
+            } catch (IllegalAccessException e) {
+                Main.LOGGER.error("MusketMod.class was not found (IllegalAccessException)");
+
+            }
+            return projectile;
         }
-
-        Vec3 forward = new Vec3(x, y, z).normalize();
-        Vec3 origin = new Vec3(shooter.getX(), shooter.getEyeY(), shooter.getZ());
-
-        try{
-            Class<?> musketModClass = Class.forName("ewewukek.musketmod.MusketMod");
-            Method sendSmokeEffectMethod = musketModClass.getMethod("sendSmokeEffect", LivingEntity.class, Vec3.class, Vec3.class);
-            sendSmokeEffectMethod.invoke(musketModClass, shooter, origin, forward);
-
-        } catch (ClassNotFoundException e) {
-            Main.LOGGER.error("MusketMod.class was not found (ClassNotFoundException)");
-
-        } catch (InvocationTargetException e) {
-            Main.LOGGER.error("sendSmokeEffectMethod was not found (InvocationTargetException)");
-
-        } catch (NoSuchMethodException e) {
-            Main.LOGGER.error("sendSmokeEffectMethod was not found (NoSuchMethodException)");
-
-        } catch (IllegalAccessException e) {
-            Main.LOGGER.error("MusketMod.class was not found (IllegalAccessException)");
-
-        }
-        return projectile;
+        return null;
     }
 
     @Override

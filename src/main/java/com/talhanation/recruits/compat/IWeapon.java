@@ -30,6 +30,8 @@ public interface IWeapon {
     static boolean isMusketModWeapon(ItemStack stack){
         return stack.getDescriptionId().equals("item.musketmod.musket") ||
                 stack.getDescriptionId().equals("item.musketmod.musket_with_bayonet") ||
+                stack.getDescriptionId().equals("item.musketmod.musket_with_scope") ||
+                stack.getDescriptionId().equals("item.musketmod.blunderbuss") ||
                 stack.getDescriptionId().equals("item.musketmod.cartridge") ||
                 stack.getDescriptionId().equals("item.musketmod.pistol");
     }

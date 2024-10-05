@@ -1,9 +1,6 @@
 package com.talhanation.recruits.entities.ai.compat;
 
-import com.talhanation.recruits.compat.IWeapon;
-import com.talhanation.recruits.compat.MusketBayonetWeapon;
-import com.talhanation.recruits.compat.MusketWeapon;
-import com.talhanation.recruits.compat.PistolWeapon;
+import com.talhanation.recruits.compat.*;
 import com.talhanation.recruits.entities.CrossBowmanEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
@@ -74,6 +71,14 @@ public class RecruitRangedMusketAttackGoal extends Goal {
         }
         else if(itemStack.getDescriptionId().equals("item.musketmod.musket_with_bayonet")){
             this.weapon = new MusketBayonetWeapon();
+            return true;
+        }
+        else if(itemStack.getDescriptionId().equals("item.musketmod.musket_with_scope")){
+            this.weapon = new MusketScopeWeapon();
+            return true;
+        }
+        else if(itemStack.getDescriptionId().equals("item.musketmod.blunderbuss")){
+            this.weapon = new BlunderbussWeapon();
             return true;
         }
         else if(itemStack.getDescriptionId().equals("item.musketmod.pistol")){
