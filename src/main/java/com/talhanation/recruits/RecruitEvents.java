@@ -9,6 +9,7 @@ import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.inventory.PromoteContainer;
 import com.talhanation.recruits.network.MessageOpenPromoteScreen;
 import com.talhanation.recruits.world.PillagerPatrolSpawn;
+import com.talhanation.recruits.world.RecruitUnitManager;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -47,7 +48,9 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.event.world.BlockEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
@@ -58,8 +61,7 @@ import java.util.*;
 public class RecruitEvents {
     private static final Map<ServerLevel, RecruitsPatrolSpawn> RECRUIT_PATROL = new HashMap<>();
     private static final Map<ServerLevel, PillagerPatrolSpawn> PILLAGER_PATROL = new HashMap<>();
-
-
+    public static RecruitUnitManager recruitUnitManager;
     public static MinecraftServer server;
     static HashMap<Integer, EntityType<? extends  AbstractRecruitEntity>> entitiesByProfession = new HashMap<>(){{
             put(0, ModEntityTypes.MESSENGER.get());
@@ -102,8 +104,20 @@ public class RecruitEvents {
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         server = event.getServer();
+
+        recruitUnitManager = new RecruitUnitManager();
+        recruitUnitManager.load(server.overworld());
     }
 
+    @SubscribeEvent
+    public void onServerStopping(ServerStoppingEvent event) {
+        recruitUnitManager.save(server.overworld());
+    }
+
+    @SubscribeEvent
+    public void onWorldSave(WorldEvent.Save event){
+        recruitUnitManager.save(server.overworld());
+    }
 
     @SubscribeEvent
     public void onTeleportEvent(EntityTeleportEvent event) {
@@ -473,9 +487,6 @@ public class RecruitEvents {
         Entity target = event.getEntity();
 
         if(target instanceof AbstractRecruitEntity recruit){
-            if (recruit.getTeam() != null){
-                TeamEvents.addNPCToData(server.overworld(), recruit.getTeam().getName(), -1);
-            }
 
             //Morale loss when recruits friend die
             if(recruit.getIsOwned() && !server.overworld().isClientSide()){

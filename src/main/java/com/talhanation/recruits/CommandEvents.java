@@ -333,12 +333,11 @@ public class CommandEvents {
                 Vec3 oldPos = new Vec3(savedX, serverPlayer.getY(), savedZ);
                 Vec3 targetPosition = serverPlayer.position();
 
-                if(targetPosition.distanceToSqr(oldPos) > 60){
+                if(targetPosition.distanceToSqr(oldPos) > 50){
                     List<AbstractRecruitEntity> list = Objects.requireNonNull(serverPlayer).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, serverPlayer.getBoundingBox().inflate(100));
                     int[] array = getActiveGroups(serverPlayer);
-                    for (int x : array) {
-                        list.removeIf(recruit -> !recruit.isEffectedByCommand(serverPlayer.getUUID(), x));
-                    }
+
+                    list.removeIf(recruit -> Arrays.stream(array).noneMatch(x -> recruit.isEffectedByCommand(serverPlayer.getUUID(), x)));
 
                     CommandEvents.applyFormation(formation, list, serverPlayer, targetPosition);
                     int[] position = new int[]{(int) targetPosition.x, (int) targetPosition.z};
@@ -359,22 +358,6 @@ public class CommandEvents {
             if (!data.contains("FormationPos")) data.putIntArray("FormationPos", new int[]{(int) event.getPlayer().getX(), (int) event.getPlayer().getZ()});
 
         playerData.put(Player.PERSISTED_NBT_TAG, data);
-    }
-
-    public static int getSavedRecruitCount(Player player) {
-        CompoundTag playerNBT = player.getPersistentData();
-        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
-        //player.sendSystemMessage(new StringTextComponent("getSavedCount: " + nbt.getInt("TotalRecruits")), player.getUUID());
-        return nbt.getInt("TotalRecruits");
-    }
-
-    public static void saveRecruitCount(Player player, int count) {
-        CompoundTag playerNBT = player.getPersistentData();
-        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
-        //player.sendSystemMessage(new StringTextComponent("savedCount: " + count), player.getUUID());
-
-        nbt.putInt( "TotalRecruits", count);
-        playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
 
     public static int getSavedFormation(Player player) {
@@ -418,10 +401,6 @@ public class CommandEvents {
 
         nbt.putIntArray( "ActiveGroups", count);
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
-    }
-
-    public static boolean playerCanRecruit(Player player) {
-        return  (CommandEvents.getSavedRecruitCount(player) < RecruitsServerConfig.MaxRecruitsForPlayer.get());
     }
 
     public static void handleRecruiting(Player player, AbstractRecruitEntity recruit){

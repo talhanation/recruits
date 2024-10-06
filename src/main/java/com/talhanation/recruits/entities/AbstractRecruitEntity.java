@@ -738,9 +738,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void disband(@Nullable Player player, boolean keepTeam, boolean increaseCost){
         String name = this.getName().getString();
+        RecruitEvents.recruitUnitManager.removeRecruits(this.getOwnerUUID(), 1);
         if(player != null){
             player.sendMessage(TEXT_DISBAND(name), player.getUUID());
-            CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
         }
         this.setTarget(null);
         this.setIsOwned(false);
@@ -1087,7 +1087,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 }
             }
 
-            else if (!this.isOwned() && CommandEvents.playerCanRecruit(player) && !isPlayerTarget) {
+            else if (!this.isOwned() && RecruitEvents.recruitUnitManager.canPlayerRecruit(player.getUUID()) && !isPlayerTarget) {
 
                 this.openHireGUI(player);
                 this.dialogue(name, player);
@@ -1100,7 +1100,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public boolean hire(Player player) {
         String name = this.getName().getString() + ": ";
-        if (!CommandEvents.playerCanRecruit(player)) {
+        if (!RecruitEvents.recruitUnitManager.canPlayerRecruit(player.getUUID())) {
 
             player.sendMessage(INFO_RECRUITING_MAX(name), player.getUUID());
             return false;
@@ -1135,8 +1135,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 }
             }
         }
-        int currentRecruits = CommandEvents.getSavedRecruitCount(player);
-        CommandEvents.saveRecruitCount(player,  currentRecruits + 1);
+        RecruitEvents.recruitUnitManager.addRecruits(player.getUUID(), 1);
 
         //Adding to team handles event
 
@@ -1279,14 +1278,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void die(DamageSource dmg) {
         net.minecraft.network.chat.Component deathMessage = this.getCombatTracker().getDeathMessage();
         super.die(dmg);
-        LivingEntity owner = this.getOwner();
-        if (owner instanceof Player player){
-            CommandEvents.saveRecruitCount(player, CommandEvents.getSavedRecruitCount(player) - 1);
-        }
-
         if (this.dead) {
             if (!this.level.isClientSide && this.level.getGameRules().getBoolean(GameRules.RULE_SHOWDEATHMESSAGES) && this.getOwner() instanceof ServerPlayer) {
                 this.getOwner().sendMessage(deathMessage, this.getOwner().getUUID());
+
+                if(this.isOwned()){
+                    RecruitEvents.recruitUnitManager.removeRecruits(this.getOwnerUUID(), 1);
+                }
             }
         }
     }
