@@ -1,6 +1,7 @@
 package com.talhanation.recruits;
 import com.talhanation.recruits.client.events.KeyEvents;
 import com.talhanation.recruits.commands.PatrolSpawnCommand;
+import com.talhanation.recruits.commands.RecruitsAdminCommands;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.init.ModBlocks;
@@ -69,6 +70,7 @@ public class Main {
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
         PatrolSpawnCommand.register(event.getDispatcher());
+        RecruitsAdminCommands.register(event.getDispatcher());
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -161,7 +163,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 74, MessageFormationFollowMovement.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 75, MessageRest.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 76, MessageRangedFire.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 77,  MessageCommandPatrolSpawn.class);
+
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 78,  MessageSaveFormationFollowMovement.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 79,  MessageClearUpkeep.class);
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
