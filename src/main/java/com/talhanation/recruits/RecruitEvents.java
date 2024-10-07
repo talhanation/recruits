@@ -44,15 +44,13 @@ import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.EntityTeleportEvent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
-import net.minecraftforge.event.world.BlockEvent;
-import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
@@ -109,14 +107,14 @@ public class RecruitEvents {
         recruitUnitManager = new RecruitUnitManager();
         recruitUnitManager.load(server.overworld());
     }
-    
+
     @SubscribeEvent
     public void onServerStopping(ServerStoppingEvent event) {
         recruitUnitManager.save(server.overworld());
     }
 
     @SubscribeEvent
-    public void onWorldSave(WorldEvent.Save event){
+    public void onWorldSave(LevelEvent.Save event){
         recruitUnitManager.save(server.overworld());
     }
 

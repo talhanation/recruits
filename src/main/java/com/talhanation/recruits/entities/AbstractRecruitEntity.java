@@ -1271,7 +1271,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         super.die(dmg);
         if (this.dead) {
             if (!this.level.isClientSide && this.level.getGameRules().getBoolean(GameRules.RULE_SHOWDEATHMESSAGES) && this.getOwner() instanceof ServerPlayer) {
-                this.getOwner().sendMessage(deathMessage, this.getOwner().getUUID());
+                this.getOwner().sendSystemMessage(deathMessage);
 
                 if(this.isOwned()){
                     RecruitEvents.recruitUnitManager.removeRecruits(this.getOwnerUUID(), 1);
