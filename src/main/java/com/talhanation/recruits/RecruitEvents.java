@@ -48,6 +48,7 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -115,7 +116,7 @@ public class RecruitEvents {
     }
 
     @SubscribeEvent
-    public void onWorldSave(WorldEvent.Save event){
+    public void onWorldSave(LevelEvent.Save event){
         recruitUnitManager.save(server.overworld());
     }
 
