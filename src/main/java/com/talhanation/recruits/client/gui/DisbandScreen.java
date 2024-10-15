@@ -3,6 +3,7 @@ package com.talhanation.recruits.client.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
 import com.talhanation.recruits.inventory.DisbandContainer;
 import com.talhanation.recruits.network.MessageAssignGroupToTeamMate;
 import com.talhanation.recruits.network.MessageAssignToTeamMate;
@@ -75,8 +76,7 @@ public class DisbandScreen extends ScreenBase<DisbandContainer> {
         Button giveToTeamMate = addRenderableWidget(new Button(leftPos + 20, topPos + 15, 100, 20, TEAM_MATE,
             btn -> {
                 if(recruit != null) {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignToTeamMate(this.recruit));
-                    onClose();
+                    minecraft.setScreen(new SelectPlayerScreen(this));
                 }
             },
             (button, poseStack, i, i1) -> {

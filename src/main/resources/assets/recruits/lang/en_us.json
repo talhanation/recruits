@@ -357,6 +357,9 @@
   "gui.recruits.group_creation.remove": "Remove",
   "gui.recruits.group_creation.split": "Split",
   "gui.recruits.group_management.title": "Manage your Groups:",
-  "subtitles.recruits.messenger_horn": "Messenger horn plays"
+  "subtitles.recruits.messenger_horn": "Messenger horn plays",
+
+
+   "gui.recruits.select_player.title": "Select Player"
 
  }
