@@ -61,12 +61,8 @@ public abstract class RecruitsScreenBase extends Screen{
         return guiTop;
     }
 
-    protected boolean isIngame() {
-        return minecraft.level != null;
-    }
-
-    protected int getFontColor() {
-        return isIngame() ? FONT_COLOR : ChatFormatting.WHITE.getColor();
+    public boolean isPauseScreen() {
+        return false;
     }
 
     public void drawHoverAreas(PoseStack matrixStack, int mouseX, int mouseY) {

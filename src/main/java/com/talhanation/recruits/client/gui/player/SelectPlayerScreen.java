@@ -3,8 +3,10 @@ package com.talhanation.recruits.client.gui.player;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.gui.CommandScreen;
 import com.talhanation.recruits.client.gui.group.GroupListWidget;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
+import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -19,15 +21,18 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 
 import javax.annotation.Nullable;
+import javax.swing.*;
 import java.util.Locale;
 
 public class SelectPlayerScreen extends ListScreenBase {
 
     protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_player.png");
     protected static final Component TITLE = new TranslatableComponent("gui.recruits.select_player_screen.title");
-
+    protected static final Component CANCEL = new TranslatableComponent("gui.recruits.cancel");
+    protected static Component ACTION;
+    protected static Component TOOLTIP_ACTION;
     protected static final int HEADER_SIZE = 16;
-    protected static final int FOOTER_SIZE = 8;
+    protected static final int FOOTER_SIZE = 32;
     protected static final int SEARCH_HEIGHT = 16;
     protected static final int UNIT_SIZE = 18;
     protected static final int CELL_HEIGHT = 36;
@@ -36,13 +41,19 @@ public class SelectPlayerScreen extends ListScreenBase {
     protected EditBox searchBox;
     protected String lastSearch;
     protected int units;
-    @Nullable
-    protected Screen parent;
-    private RecruitsPlayerEntry selected;
 
-    public SelectPlayerScreen(@Nullable Screen parent){
+    protected Screen parent;
+    private RecruitsPlayerInfo selected;
+    private Button backButton;
+    private Button actionButton;
+    public SelectPlayerScreen(Screen parent, Component actionButton){
+        this(parent, actionButton, new TextComponent(""));
+    }
+    public SelectPlayerScreen(Screen parent, Component actionButtonText, Component toolTip){
         super(TITLE,236,0);
         this.parent = parent;
+        ACTION = actionButtonText;
+        TOOLTIP_ACTION = toolTip;
     }
 
     @Override
@@ -62,19 +73,31 @@ public class SelectPlayerScreen extends ListScreenBase {
         } else {
             playerList = new PlayersList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this);
         }
-
         String string = searchBox != null ? searchBox.getValue() : "";
-        searchBox = new EditBox(font, guiLeft + 28, guiTop + HEADER_SIZE + 6, 196, SEARCH_HEIGHT, new TextComponent("SEARCH_HINT"));
+        searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, new TextComponent("SEARCH_HINT"));
         searchBox.setMaxLength(16);
-        searchBox.setBordered(false);
-        searchBox.setVisible(true);
         searchBox.setTextColor(0xFFFFFF);
         searchBox.setValue(string);
         searchBox.setResponder(this::checkSearchStringUpdate);
         addWidget(searchBox);
         addWidget(playerList);
 
-        this.setFocused(searchBox);
+        this.setInitialFocus(searchBox);
+
+        backButton = new Button(guiLeft + 129, guiTop + ySize - 20 - 7, 100, 20, CANCEL,
+                button -> {
+            minecraft.setScreen(parent);
+         });
+
+        actionButton = new Button(guiLeft + 7, guiTop + ySize - 20 - 7, 100, 20, ACTION,
+                button -> {
+
+
+        });
+        actionButton.active = false;
+
+        addRenderableWidget(backButton);
+        addRenderableWidget(actionButton);
     }
 
     @Override
@@ -89,6 +112,8 @@ public class SelectPlayerScreen extends ListScreenBase {
     public boolean keyPressed(int p_96552_, int p_96553_, int p_96554_) {
         boolean flag = super.keyPressed(p_96552_, p_96553_, p_96554_);
         this.selected = null;
+        this.playerList.setFocused(null);
+        this.actionButton.active = false;
 
         return flag;
     }
@@ -112,7 +137,8 @@ public class SelectPlayerScreen extends ListScreenBase {
 
     @Override
     public void renderForeground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
-        font.draw(poseStack, TITLE, width / 2 - font.width(TITLE) / 2, guiTop + 5, 4210752);
+        font.draw(poseStack, this.getTitle(), width / 2 - font.width(TITLE) / 2, guiTop + 5, 4210752);
+
         if (!playerList.isEmpty()) {
             playerList.render(poseStack, mouseX, mouseY, delta);
         } else if (!searchBox.getValue().isEmpty()) {
@@ -120,9 +146,8 @@ public class SelectPlayerScreen extends ListScreenBase {
         }
         if (!searchBox.isFocused() && searchBox.getValue().isEmpty()) {
             drawString(poseStack, font, "", searchBox.x, searchBox.y, -1);
-        } else {
-            searchBox.render(poseStack, mouseX, mouseY, delta);
         }
+        searchBox.render(poseStack, mouseX, mouseY, delta);
     }
 
     private void checkSearchStringUpdate(String string) {
@@ -133,13 +158,25 @@ public class SelectPlayerScreen extends ListScreenBase {
     }
 
     @Override
-    public boolean mouseClicked(double p_97748_, double p_97749_, int p_97750_) {
-        boolean flag = super.mouseClicked(p_97748_, p_97749_, p_97750_);
+    public boolean mouseClicked(double x, double y, int z) {
+        if(playerList != null) playerList.mouseClicked(x,y,z);
+        boolean flag = super.mouseClicked(x, y, z);
         if(this.playerList.getFocused() != null){
-            //this.editButton.active = true;
-            //this.removeButton.active = true;
+            this.selected = this.playerList.getFocused().getPlayerInfo();
+
+            this.actionButton.active = true;
         }
 
         return flag;
+    }
+
+
+    public RecruitsPlayerInfo getSelected(){
+        return this.selected;
+    }
+
+    @Override
+    public Component getTitle() {
+        return TITLE;
     }
 }

@@ -26,6 +26,7 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
         onlinePlayers.add(new RecruitsPlayerInfo(new UUID(3,3), "Test3"));
         setRenderBackground(false);
         setRenderTopAndBottom(false);
+        setRenderSelection(true);
         updateEntryList();
     }
 
