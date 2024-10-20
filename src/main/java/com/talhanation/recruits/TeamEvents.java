@@ -5,10 +5,9 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.*;
 import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.world.RecruitsTeam;
-import com.talhanation.recruits.world.RecruitsTeamSavedData;
+import com.talhanation.recruits.world.RecruitsTeamManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -16,7 +15,6 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.commands.TeamCommand;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
@@ -30,6 +28,8 @@ import net.minecraft.world.scores.Scoreboard;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
@@ -42,6 +42,31 @@ import java.util.*;
 public class  TeamEvents {
 
     public MinecraftServer server;
+    public static RecruitsTeamManager recruitsTeamManager;
+    @SubscribeEvent
+    public void onServerStarting(ServerStartingEvent event) {
+        this.server = event.getServer();
+        ServerLevel level = this.server.overworld();
+
+        Collection<PlayerTeam> list =  level.getScoreboard().getPlayerTeams();
+        for(PlayerTeam playerTeam : list){
+            playerTeam.setAllowFriendlyFire(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamFriendlyFireSetting.get());
+            playerTeam.setSeeFriendlyInvisibles(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
+        }
+
+        recruitsTeamManager = new RecruitsTeamManager();
+        recruitsTeamManager.load(server.overworld());
+    }
+
+    @SubscribeEvent
+    public void onServerStopping(ServerStoppingEvent event) {
+        recruitsTeamManager.save(server.overworld());
+    }
+
+    @SubscribeEvent
+    public void onWorldSave(WorldEvent.Save event){
+        recruitsTeamManager.save(server.overworld());
+    }
 
     public static boolean isPlayerInATeam(Player player) {
         return player.getTeam() != null;
@@ -171,14 +196,15 @@ public class  TeamEvents {
         PlayerTeam team = server.getScoreboard().getPlayerTeam(teamName);
         int cost = RecruitsServerConfig.TeamCreationCost.get();
         if(banner == null) banner = Items.BROWN_BANNER.getDefaultInstance();
+        CompoundTag nbt = banner.serializeNBT();
 
         if (team == null) {
-            if (teamName.chars().count() <= 13) {
+            if (teamName.chars().count() <= 24) {
                 if (!(teamName.isBlank() || teamName.isEmpty())) {
-                    if (!isNameInUse(level, teamName)) {
+                    if (!recruitsTeamManager.isNameInUse(teamName)) {
                         if (playerHasEnoughEmeralds(serverPlayer, cost) || !menu) {
-                            if (!isBannerBlank(banner) || !menu) {
-                                if (!isBannerInUse(level, banner.serializeNBT()) || !menu) {
+                            if (!recruitsTeamManager.isBannerBlank(banner) || !menu) {
+                                if (!recruitsTeamManager.isBannerInUse(level, nbt) || !menu) {
                                     Scoreboard scoreboard = server.getScoreboard();
                                     PlayerTeam newTeam = scoreboard.addPlayerTeam(teamName);
                                     newTeam.setDisplayName(new TextComponent(teamName));
@@ -191,7 +217,7 @@ public class  TeamEvents {
                                     //TeamCommand
                                     if(menu) doPayment(serverPlayer, cost);
 
-                                    saveDataToTeam(level, teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT(), colorByte);
+                                    recruitsTeamManager.addTeam(teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT(), colorByte);
                                     addPlayerToData(level, teamName, 1, playerName);
 
                                     List<AbstractRecruitEntity> recruits = getRecruitsOfPlayer(serverPlayer.getUUID(), level);
@@ -228,41 +254,8 @@ public class  TeamEvents {
         return false;
     }
 
-    private static boolean isNameInUse(ServerLevel level, String teamName) {
-        RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
-        List<RecruitsTeam> list = data.getTeams().stream().toList();
-        boolean equ = false;
-        for(RecruitsTeam recruitsTeam : list){
-            equ = recruitsTeam.getTeamName().toLowerCase().strip().equals(teamName.toLowerCase());
-        }
-        return equ;
-    }
-
-    public static void saveDataToTeam(ServerLevel level, String teamName, UUID leaderUUID, String leaderName, CompoundTag bannerNbt, byte color) {
-        RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
-
-        data.addTeam(teamName, leaderUUID, leaderName, bannerNbt, color);
-        data.setDirty();
-    }
-
-    public static boolean isBannerInUse(ServerLevel level, CompoundTag bannerNbt){
-        if(bannerNbt != null){
-            RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
-            for(RecruitsTeam recruitsTeam : data.getTeams()){
-                return bannerNbt.equals(recruitsTeam.getBanner());
-            }
-        }
-        return false;
-    }
-
-    public static boolean isBannerBlank(ItemStack itemStack){
-        CompoundTag compoundtag = BlockItem.getBlockEntityData(itemStack);
-        return compoundtag == null || !compoundtag.contains("Patterns");
-    }
-
     public static void updateTeamInspectMenu(ServerPlayer player, ServerLevel level, String team){
-        RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
-        RecruitsTeam recruitsTeam = data.getTeamByName(team);
+        RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByName(team);
 
         if(recruitsTeam != null){
             ItemStack bannerStack = ItemStack.of(recruitsTeam.getBanner());
@@ -288,8 +281,7 @@ public class  TeamEvents {
 
             PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(teamName);
 
-            RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
-            RecruitsTeam recruitsTeam = data.getTeamByName(teamName);
+            RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByName(teamName);
 
             boolean isLeader;
             if(recruitsTeam != null) {
@@ -304,8 +296,8 @@ public class  TeamEvents {
             if(playerTeam != null){
                 if(isLeader){
                     server.getScoreboard().removePlayerTeam(playerTeam);
-                    removeRecruitsTeamData(data, teamName);
-                    data.removeTeam(teamName);
+                    removeRecruitsTeamData(teamName);
+                    recruitsTeamManager.removeTeam(teamName);
                 }
                 else {
                     ServerPlayer leaderOfTeam = server.getPlayerList().getPlayerByName(recruitsTeam.getTeamLeaderName());
@@ -328,8 +320,7 @@ public class  TeamEvents {
             PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(teamName);
 
             if(playerTeam != null){
-                RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
-                removeRecruitsTeamData(data, teamName);
+                recruitsTeamManager.removeTeam(teamName);
                 return true;
             }
 
@@ -338,18 +329,16 @@ public class  TeamEvents {
         return false;
     }
 
-    private static void removeRecruitsTeamData(RecruitsTeamSavedData data,  String teamName) {
-        data.getTeams().removeIf(team -> team.getTeamName().equals(teamName));
-        data.setDirty();
+    private static void removeRecruitsTeamData(String teamName) {
+        recruitsTeamManager.removeTeam(teamName);
     }
 
     public static boolean addPlayerToTeam(ServerPlayer player, ServerLevel level, String teamName, String namePlayerToAdd) {
         MinecraftServer server = level.getServer();
         ServerPlayer playerToAdd = server.getPlayerList().getPlayerByName(namePlayerToAdd);
         PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(teamName);
-        RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
 
-        for(RecruitsTeam recruitsTeam : data.getTeams()) {
+        for(RecruitsTeam recruitsTeam : recruitsTeamManager.getTeams()) {
             if(recruitsTeam.getTeamLeaderUUID().equals(playerToAdd.getUUID())){
                 player.sendMessage(CAN_NOT_ADD_OTHER_LEADER(), player.getUUID());
                 return false;
@@ -397,35 +386,29 @@ public class  TeamEvents {
     }
 
     public static void addPlayerToData(ServerLevel level, String teamName, int x, String namePlayerToAdd){
-        RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
-        RecruitsTeam recruitsTeam = RecruitsTeamSavedData.getTeamByName(teamName);
+
+        RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByName(teamName);;
 
         recruitsTeam.addPlayer(x);
 
         if(x > 0){ //actually adding the player therefor remove it from request list
             recruitsTeam.removeJoinRequest(namePlayerToAdd);
         }
-
-        data.setDirty();
     }
     public static void addNPCToData(ServerLevel level, String teamName, int x){
-        RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
-        RecruitsTeam recruitsTeam = data.getTeamByName(teamName);
+        RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByName(teamName);;
 
         if(recruitsTeam != null){
             recruitsTeam.addNPCs(x);
-            data.setDirty();
         }
         else Main.LOGGER.error("Could not modify recruits team: "+ teamName + ".Team does not exist.");
     }
 
     public static void sendJoinRequest(ServerLevel level, ServerPlayer player, String teamName) {
-        RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
-        RecruitsTeam recruitsTeam = data.getTeamByName(teamName);
+        RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByName(teamName);
 
         if(recruitsTeam != null){
             recruitsTeam.addPlayerAsJoinRequest(player.getName().getString());
-            data.setDirty();
         }
         else Main.LOGGER.error("Could not add join request for "+ teamName + ".Team does not exist.");
     }
@@ -551,17 +534,6 @@ public class  TeamEvents {
     }
 
     @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event) {
-        this.server = event.getServer();
-        ServerLevel level = this.server.overworld();
-
-        Collection<PlayerTeam> list =  level.getScoreboard().getPlayerTeams();
-        for(PlayerTeam playerTeam : list){
-            playerTeam.setAllowFriendlyFire(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamFriendlyFireSetting.get());
-            playerTeam.setSeeFriendlyInvisibles(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
-        }
-    }
-    @SubscribeEvent
     public void onTypeCommandEvent(CommandEvent event){
         if (event.getParseResults() != null) {
             String command = event.getParseResults().getReader().getString();
@@ -608,12 +580,9 @@ public class  TeamEvents {
                         PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(teamName);
 
                         if (playerTeam != null) {
-                            RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
 
                             server.getScoreboard().removePlayerTeam(playerTeam);
-                            removeRecruitsTeamData(data, teamName);
-                            data.removeTeam(teamName);
-                            data.setDirty();
+                            recruitsTeamManager.removeTeam(teamName);
 
                             sourceStack.sendSuccess(new TranslatableComponent("commands.team.remove.success", teamName), true);
                         } else {
@@ -663,7 +632,7 @@ public class  TeamEvents {
         if (team == null) {
             if (teamName.chars().count() <= 13) {
                 if (!(teamName.isBlank() || teamName.isEmpty())) {
-                    if (!isNameInUse(level, teamName)) {
+                    if (!recruitsTeamManager.isNameInUse(teamName)) {
                             Scoreboard scoreboard = server.getScoreboard();
                             PlayerTeam newTeam = scoreboard.addPlayerTeam(teamName);
                             newTeam.setDisplayName(new TextComponent(teamName));
@@ -672,8 +641,7 @@ public class  TeamEvents {
                             newTeam.setAllowFriendlyFire(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamFriendlyFireSetting.get());
                             newTeam.setSeeFriendlyInvisibles(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
 
-                            saveDataToTeam(level, teamName, new UUID(0,0), "none", banner.serializeNBT(), colorByte);
-
+                            recruitsTeamManager.addTeam(teamName,new UUID(0,0),"none", banner.serializeNBT(), colorByte);
 
                             Main.LOGGER.info("The new Team " + teamName + " has been created by console.");
                     }
@@ -723,9 +691,7 @@ public class  TeamEvents {
     public static void addRecruitToTeam(AbstractRecruitEntity recruit, Team team, ServerLevel level){
         String teamName = team.getName();
         PlayerTeam playerteam = level.getScoreboard().getPlayerTeam(teamName);
-        RecruitsTeamSavedData data = RecruitsTeamSavedData.get(level);
-        RecruitsTeam recruitsTeam = data.getTeamByName(teamName);
-
+        RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByName(teamName);
 
         boolean flag = playerteam != null && level.getScoreboard().addPlayerToTeam(recruit.getStringUUID(), playerteam);
         if (!flag) {

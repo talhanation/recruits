@@ -37,7 +37,6 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
             entries.add(new RecruitsPlayerEntry(screen, player));
         }
 
-
         updateFilter();
     }
 

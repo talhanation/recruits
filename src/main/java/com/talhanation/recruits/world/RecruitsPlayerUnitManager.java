@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class RecruitPlayerUnitManager {
+public class RecruitsPlayerUnitManager {
     private Map<UUID, Integer> recruitCountMap = new HashMap<>();
 
     public void load(ServerLevel level) {

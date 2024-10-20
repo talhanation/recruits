@@ -360,5 +360,6 @@
   "subtitles.recruits.messenger_horn": "Messenger horn plays",
 
    "gui.recruits.select_player_screen.title": "Select Player",
-   "gui.recruits.cancel": "Cancel"
+   "gui.recruits.cancel": "Cancel",
+   "gui.recruits.back": "Back"
  }

@@ -737,7 +737,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void disband(@Nullable Player player, boolean keepTeam, boolean increaseCost){
         String name = this.getName().getString();
-        RecruitEvents.recruitPlayerUnitManager.removeRecruits(this.getOwnerUUID(), 1);
+        RecruitEvents.recruitsPlayerUnitManager.removeRecruits(this.getOwnerUUID(), 1);
         if(player != null){
             player.sendMessage(TEXT_DISBAND(name), player.getUUID());
         }
@@ -1086,7 +1086,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 }
             }
 
-            else if (!this.isOwned() && RecruitEvents.recruitPlayerUnitManager.canPlayerRecruit(player.getUUID()) && !isPlayerTarget) {
+            else if (!this.isOwned() && RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(player.getUUID()) && !isPlayerTarget) {
 
                 this.openHireGUI(player);
                 this.dialogue(name, player);
@@ -1099,7 +1099,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public boolean hire(Player player) {
         String name = this.getName().getString() + ": ";
-        if (!RecruitEvents.recruitPlayerUnitManager.canPlayerRecruit(player.getUUID())) {
+        if (!RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(player.getUUID())) {
 
             player.sendMessage(INFO_RECRUITING_MAX(name), player.getUUID());
             return false;
@@ -1134,7 +1134,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 }
             }
         }
-        RecruitEvents.recruitPlayerUnitManager.addRecruits(player.getUUID(), 1);
+        RecruitEvents.recruitsPlayerUnitManager.addRecruits(player.getUUID(), 1);
 
         //Adding to team handles event
 
@@ -1282,7 +1282,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 this.getOwner().sendMessage(deathMessage, this.getOwner().getUUID());
 
                 if(this.isOwned()){
-                    RecruitEvents.recruitPlayerUnitManager.removeRecruits(this.getOwnerUUID(), 1);
+                    RecruitEvents.recruitsPlayerUnitManager.removeRecruits(this.getOwnerUUID(), 1);
                 }
             }
         }

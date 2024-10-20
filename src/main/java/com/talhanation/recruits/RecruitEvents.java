@@ -9,7 +9,7 @@ import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.inventory.PromoteContainer;
 import com.talhanation.recruits.network.MessageOpenPromoteScreen;
 import com.talhanation.recruits.world.PillagerPatrolSpawn;
-import com.talhanation.recruits.world.RecruitPlayerUnitManager;
+import com.talhanation.recruits.world.RecruitsPlayerUnitManager;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -61,7 +61,7 @@ import java.util.*;
 public class RecruitEvents {
     private static final Map<ServerLevel, RecruitsPatrolSpawn> RECRUIT_PATROL = new HashMap<>();
     private static final Map<ServerLevel, PillagerPatrolSpawn> PILLAGER_PATROL = new HashMap<>();
-    public static RecruitPlayerUnitManager recruitPlayerUnitManager;
+    public static RecruitsPlayerUnitManager recruitsPlayerUnitManager;
     public static MinecraftServer server;
     static HashMap<Integer, EntityType<? extends  AbstractRecruitEntity>> entitiesByProfession = new HashMap<>(){{
             put(0, ModEntityTypes.MESSENGER.get());
@@ -105,18 +105,18 @@ public class RecruitEvents {
     public void onServerStarting(ServerStartingEvent event) {
         server = event.getServer();
 
-        recruitPlayerUnitManager = new RecruitPlayerUnitManager();
-        recruitPlayerUnitManager.load(server.overworld());
+        recruitsPlayerUnitManager = new RecruitsPlayerUnitManager();
+        recruitsPlayerUnitManager.load(server.overworld());
     }
 
     @SubscribeEvent
     public void onServerStopping(ServerStoppingEvent event) {
-        recruitPlayerUnitManager.save(server.overworld());
+        recruitsPlayerUnitManager.save(server.overworld());
     }
 
     @SubscribeEvent
     public void onWorldSave(WorldEvent.Save event){
-        recruitPlayerUnitManager.save(server.overworld());
+        recruitsPlayerUnitManager.save(server.overworld());
     }
 
     @SubscribeEvent

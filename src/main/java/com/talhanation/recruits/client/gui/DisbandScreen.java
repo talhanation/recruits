@@ -76,7 +76,7 @@ public class DisbandScreen extends ScreenBase<DisbandContainer> {
         Button giveToTeamMate = addRenderableWidget(new Button(leftPos + 20, topPos + 15, 100, 20, TEAM_MATE,
             btn -> {
                 if(recruit != null) {
-                    minecraft.setScreen(new SelectPlayerScreen(this));
+
                 }
             },
             (button, poseStack, i, i1) -> {

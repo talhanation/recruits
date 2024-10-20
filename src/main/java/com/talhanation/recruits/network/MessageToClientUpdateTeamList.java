@@ -1,7 +1,9 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.client.gui.player.PlayersList;
+import com.talhanation.recruits.client.gui.team.RecruitsTeamList;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
+import com.talhanation.recruits.world.RecruitsTeam;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -11,14 +13,14 @@ import net.minecraftforge.network.NetworkEvent;
 import java.util.List;
 
 
-public class MessageToClientUpdatePlayerList implements Message<MessageToClientUpdatePlayerList> {
+public class MessageToClientUpdateTeamList implements Message<MessageToClientUpdateTeamList> {
     private CompoundTag nbt;
 
-    public MessageToClientUpdatePlayerList() {
+    public MessageToClientUpdateTeamList() {
     }
 
-    public MessageToClientUpdatePlayerList(List<RecruitsPlayerInfo> playerInfoList) {
-        this.nbt = RecruitsPlayerInfo.toNBT(playerInfoList);
+    public MessageToClientUpdateTeamList(List<RecruitsTeam> teamList) {
+        this.nbt = RecruitsTeam.toNBT(teamList);
     }
 
     @Override
@@ -28,11 +30,11 @@ public class MessageToClientUpdatePlayerList implements Message<MessageToClientU
 
     @Override
     public void executeClientSide(NetworkEvent.Context context) {
-        PlayersList.onlinePlayers = RecruitsPlayerInfo.getListFromNBT(nbt);
+        RecruitsTeamList.teams = RecruitsTeam.getListFromNBT(nbt);
     }
 
     @Override
-    public MessageToClientUpdatePlayerList fromBytes(FriendlyByteBuf buf) {
+    public MessageToClientUpdateTeamList fromBytes(FriendlyByteBuf buf) {
         this.nbt = buf.readNbt();
         return this;
     }

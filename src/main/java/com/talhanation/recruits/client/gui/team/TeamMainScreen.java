@@ -6,6 +6,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.inventory.TeamMainContainer;
 import com.talhanation.recruits.network.MessageServerUpdateTeamInspectMenu;
+import com.talhanation.recruits.network.MessageToServerRequestUpdateTeamList;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
@@ -61,7 +62,9 @@ public class TeamMainScreen extends ScreenBase<TeamMainContainer> {
         }));
 
         addRenderableWidget(new ExtendedButton(leftPos + 130, topPos + 29, 100, 20, TEAMS_LIST, btn -> {
-            TeamEvents.openTeamListScreen(player);
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdateTeamList());
+            minecraft.setScreen(new RecruitsTeamListScreen(this));
+            //TeamEvents.openTeamListScreen(player);
         }));
     }
 
