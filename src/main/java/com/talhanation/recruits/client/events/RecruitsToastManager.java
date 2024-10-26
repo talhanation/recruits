@@ -6,20 +6,26 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.toasts.Toast;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
-
+@OnlyIn(Dist.CLIENT)
 public class RecruitsToastManager {
     private static final ResourceLocation LETTER_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/letter.png");
     private static final ResourceLocation ALLY_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/ally.png");
     private static final ResourceLocation ENEMY_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/enemy.png");
+    private static final ResourceLocation NEUTRAL_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/neutral.png");
     public static void setToastForPlayer(Images id, @Nullable Component title, @Nullable Component text){
         Toast toast = null;
         switch (id){
             case ALLY -> {
                 toast = new ImageToast(ALLY_IMAGE, title, text);
             }
-            case ENEMY -> {
+            case NEUTRAL -> {
                 toast = new ImageToast(ENEMY_IMAGE, title, text);
+            }
+            case ENEMY -> {
+                toast = new ImageToast(NEUTRAL_IMAGE, title, text);
             }
             default -> {
                 toast = new ImageToast(LETTER_IMAGE, title, text);
@@ -31,10 +37,11 @@ public class RecruitsToastManager {
         //minecraft.getSoundManager().play
     }
 
-
-    public static enum Images{
+    @OnlyIn(Dist.CLIENT)
+    public enum Images{
         LETTER,
         ALLY,
+        NEUTRAL,
         ENEMY
     }
 }
