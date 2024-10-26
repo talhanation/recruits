@@ -204,7 +204,7 @@ public class  TeamEvents {
                     if (!recruitsTeamManager.isNameInUse(teamName)) {
                         if (playerHasEnoughEmeralds(serverPlayer, cost) || !menu) {
                             if (!recruitsTeamManager.isBannerBlank(banner) || !menu) {
-                                if (!recruitsTeamManager.isBannerInUse(level, nbt) || !menu) {
+                                if (!recruitsTeamManager.isBannerInUse(nbt) || !menu) {
                                     Scoreboard scoreboard = server.getScoreboard();
                                     PlayerTeam newTeam = scoreboard.addPlayerTeam(teamName);
                                     newTeam.setDisplayName(new TextComponent(teamName));
@@ -217,7 +217,7 @@ public class  TeamEvents {
                                     //TeamCommand
                                     if(menu) doPayment(serverPlayer, cost);
 
-                                    recruitsTeamManager.addTeam(teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT(), colorByte);
+                                    recruitsTeamManager.addTeam(teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT(), colorByte, newTeam.getColor().getId());
                                     addPlayerToData(level, teamName, 1, playerName);
 
                                     List<AbstractRecruitEntity> recruits = getRecruitsOfPlayer(serverPlayer.getUUID(), level);
@@ -641,7 +641,7 @@ public class  TeamEvents {
                             newTeam.setAllowFriendlyFire(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamFriendlyFireSetting.get());
                             newTeam.setSeeFriendlyInvisibles(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
 
-                            recruitsTeamManager.addTeam(teamName,new UUID(0,0),"none", banner.serializeNBT(), colorByte);
+                            recruitsTeamManager.addTeam(teamName,new UUID(0,0),"none", banner.serializeNBT(), colorByte, newTeam.getColor().getId());
 
                             Main.LOGGER.info("The new Team " + teamName + " has been created by console.");
                     }
@@ -698,7 +698,7 @@ public class  TeamEvents {
             Main.LOGGER.warn("Unable to add mob to team \"{}\" (that team probably doesn't exist)", teamName);
         } else{
             recruit.setTarget(null);// fix "if owner was other team and now same team und was target"
-            if(recruitsTeam != null) recruit.setColor(recruitsTeam.getColor());
+            if(recruitsTeam != null) recruit.setColor(recruitsTeam.getUnitColor());
         }
 
     }

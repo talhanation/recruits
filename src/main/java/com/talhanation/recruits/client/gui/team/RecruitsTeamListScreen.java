@@ -3,7 +3,9 @@ package com.talhanation.recruits.client.gui.team;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.events.RecruitsToastManager;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
+import com.talhanation.recruits.network.MessageSendJoinRequestTeam;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -13,14 +15,18 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.Locale;
-
+@OnlyIn(Dist.CLIENT)
 public class RecruitsTeamListScreen extends ListScreenBase {
 
     protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_player.png");
     protected static final Component TITLE = new TranslatableComponent("gui.recruits.team_creation.teams_list");
-    protected static final Component BACK = new TranslatableComponent("gui.recruits.back");
+    protected static final Component JOIN_BUTTON = new TranslatableComponent("gui.recruits.button.join");
+    protected static final Component TOAST_SEND_JOIN_REQUEST_TITLE = new TranslatableComponent("gui.recruits.toast.sendJoinRequestTitle");
+    protected static final Component BACK_BUTTON = new TranslatableComponent("gui.recruits.back");
     protected static Component TOOLTIP_ACTION;
     protected static final int HEADER_SIZE = 16;
     protected static final int FOOTER_SIZE = 32;
@@ -36,6 +42,7 @@ public class RecruitsTeamListScreen extends ListScreenBase {
     protected Screen parent;
     private RecruitsTeam selected;
     private Button backButton;
+    private Button sendJoinRequestButton;
 
     public RecruitsTeamListScreen(Screen parent){
         super(TITLE,236,0);
@@ -70,14 +77,22 @@ public class RecruitsTeamListScreen extends ListScreenBase {
 
         this.setInitialFocus(searchBox);
 
-        backButton = new Button(guiLeft + 129, guiTop + ySize - 20 - 7, 100, 20, BACK,
+        backButton = new Button(guiLeft + 129, guiTop + ySize - 20 - 7, 100, 20, BACK_BUTTON,
                 button -> {
                     minecraft.setScreen(parent);
                 });
 
-
-
         addRenderableWidget(backButton);
+
+        sendJoinRequestButton = new Button(guiLeft + 7, guiTop + ySize - 20 - 7, 100, 20, JOIN_BUTTON,
+                button -> {
+                    RecruitsToastManager.setToastForPlayer(RecruitsToastManager.Images.LETTER, TOAST_SEND_JOIN_REQUEST_TITLE,TOAST_TO(selected.getTeamName()));
+
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageSendJoinRequestTeam(parent.getMinecraft().player.getUUID(), selected.getTeamName()));
+                });
+        sendJoinRequestButton.active = false;
+
+        addRenderableWidget(sendJoinRequestButton);
     }
 
     @Override
@@ -96,6 +111,7 @@ public class RecruitsTeamListScreen extends ListScreenBase {
         boolean flag = super.keyPressed(p_96552_, p_96553_, p_96554_);
         this.selected = null;
         this.teamList.setFocused(null);
+        this.sendJoinRequestButton.active = false;
 
         return flag;
     }
@@ -145,6 +161,7 @@ public class RecruitsTeamListScreen extends ListScreenBase {
         boolean flag = super.mouseClicked(x, y, z);
         if(this.teamList.getFocused() != null){
             this.selected = this.teamList.getFocused().getTeamInfo();
+            this.sendJoinRequestButton.active = true;
         }
 
         return flag;
@@ -159,5 +176,16 @@ public class RecruitsTeamListScreen extends ListScreenBase {
     public Component getTitle() {
         return TITLE;
     }
+    public Component TOAST_TO(String team){
+        return new TranslatableComponent("gui.recruits.toast.to", team);
+    }
+    public Component TOAST_FOR(String team){
+        return new TranslatableComponent("gui.recruits.toast.for", team);
+    }
+
+    public Component TOAST_FROM(String team){
+        return new TranslatableComponent("gui.recruits.toast.from", team);
+    }
+
 }
 

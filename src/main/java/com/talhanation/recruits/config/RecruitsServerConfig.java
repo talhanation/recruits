@@ -4,7 +4,6 @@ import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.Mod;
-import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -68,6 +67,10 @@ public class RecruitsServerConfig{
     public static ForgeConfigSpec.BooleanValue RecruitsChunkLoading;
     public static ForgeConfigSpec.BooleanValue UpdateCheckerServerside;
     public static ForgeConfigSpec.BooleanValue CompatCorpseMod;
+
+    public static ForgeConfigSpec.IntValue MaxPlayersInTeam;
+
+    public static ForgeConfigSpec.IntValue MaxRecruitsInTeam;
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin", "corpse:corpse", "minecraft:armorstand"));
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
@@ -568,7 +571,25 @@ public class RecruitsServerConfig{
                 .worldRestart()
                 .defineInRange("TeamCreationCost", 10, 0, 1453);
 
-        BUILDER.comment("Global Team Settings").push("Global Team Settings");
+        MaxPlayersInTeam = BUILDER.comment("""
+
+                        The amount of players allowed in a team. Set 0 for infinite.
+                        \t(takes effect after restart)
+                        \tdefault: 5""")
+                .worldRestart()
+                .defineInRange("MaxPlayersInTeam", 5, 0, 1453);
+
+        MaxRecruitsInTeam = BUILDER.comment("""
+
+                        The amount of recruits allowed in a team. Set 0 for infinite.
+                        \t(takes effect after restart)
+                        \tdefault: 500""")
+                .worldRestart()
+                .defineInRange("MaxRecruitsInTeam", 500, 0, 1453);
+
+        BUILDER.comment("Global Team Settings")
+
+                .push("Global Team Settings");
 
         GlobalTeamSetting = BUILDER.comment("""
 

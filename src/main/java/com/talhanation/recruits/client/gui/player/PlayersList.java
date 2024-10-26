@@ -8,22 +8,19 @@ import net.minecraft.client.Minecraft;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
+
 
 public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
 
     protected SelectPlayerScreen screen;
     protected final List<RecruitsPlayerEntry> entries;
     protected String filter;
-    public static List<RecruitsPlayerInfo> onlinePlayers = new ArrayList<>();
+    public static List<RecruitsPlayerInfo> onlinePlayers;
     public PlayersList(int width, int height, int x, int y, int size, SelectPlayerScreen screen) {
         super(width, height, x, y, size);
         this.screen = screen;
         this.entries = Lists.newArrayList();
         this.filter = "";
-        onlinePlayers.add(new RecruitsPlayerInfo(new UUID(3,3), "Test1"));
-        onlinePlayers.add(new RecruitsPlayerInfo(new UUID(3,3), "Test2"));
-        onlinePlayers.add(new RecruitsPlayerInfo(new UUID(3,3), "Test3"));
         setRenderBackground(false);
         setRenderTopAndBottom(false);
         setRenderSelection(true);

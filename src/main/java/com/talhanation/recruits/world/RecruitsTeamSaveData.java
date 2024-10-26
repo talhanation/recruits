@@ -46,7 +46,7 @@ public class RecruitsTeamSaveData extends SavedData {
                 recruitsTeam.getJoinRequests().add(joinRequestsList.getString(j));
             }
 
-            recruitsTeam.setColor(nbt.getByte("Color"));
+            recruitsTeam.setUnitColor(nbt.getByte("Color"));
             loadedTeams.put(recruitsTeam.getTeamName(), recruitsTeam);
         }
         return loadedTeams;
@@ -74,7 +74,7 @@ public class RecruitsTeamSaveData extends SavedData {
                 joinRequestsTag.add(StringTag.valueOf(request));
             }
             nbt.put("JoinRequests", joinRequestsTag);
-            nbt.putByte("Color", team.getColor());
+            nbt.putByte("Color", team.getUnitColor());
 
             listTag.add(nbt);
         }

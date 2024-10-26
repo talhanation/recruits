@@ -4,7 +4,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.inventory.TeamListContainer;
-import com.talhanation.recruits.network.MessageSendJoinRequestTeam;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
@@ -15,15 +14,16 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.scores.PlayerTeam;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
 import java.util.List;
-
+@OnlyIn(Dist.CLIENT)
 public class TeamListScreen extends ScreenBase<TeamListContainer> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/team/team_list_gui.png");
     private Player player;
     public List<PlayerTeam> teams;
-
     private int leftPos;
     private int topPos;
     private int page = 1;
@@ -113,11 +113,11 @@ public class TeamListScreen extends ScreenBase<TeamListContainer> {
         }
     }
 
-
     public ExtendedButton createJoinButton(String teamName, int index) {
         return addRenderableWidget(new ExtendedButton(leftPos + 150, topPos + 25 + (23 * index), 30, 15, new TranslatableComponent("chat.recruits.team_creation.join"),
                 button -> {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageSendJoinRequestTeam(player.getUUID(), teamName));
+
+                    //Main.SIMPLE_CHANNEL.sendToServer(new MessageSendJoinRequestTeam(player.getUUID(), teamName));
                     this.onClose();
                 }
         ));

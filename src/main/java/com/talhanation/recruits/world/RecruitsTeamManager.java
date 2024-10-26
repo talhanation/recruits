@@ -1,5 +1,6 @@
 package com.talhanation.recruits.world;
 
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.BlockItem;
@@ -15,6 +16,13 @@ public class RecruitsTeamManager {
         RecruitsTeamSaveData data = RecruitsTeamSaveData.get(level);
         teams.clear();
         teams.putAll(data.getTeams());
+
+        teams.values().forEach(this::loadConfig);
+    }
+
+    private void loadConfig(RecruitsTeam team) {
+        team.maxPlayers = RecruitsServerConfig.MaxPlayersInTeam.get();
+        team.maxNPCs = RecruitsServerConfig.MaxRecruitsInTeam.get();
     }
 
     public void save(ServerLevel level) {
@@ -32,13 +40,14 @@ public class RecruitsTeamManager {
         return teams.get(teamName);
     }
 
-    public void addTeam(String teamName, UUID leaderUUID, String leaderName, CompoundTag bannerNbt, byte color) {
+    public void addTeam(String teamName, UUID leaderUUID, String leaderName, CompoundTag bannerNbt, byte color, int nameColor) {
         RecruitsTeam recruitsTeam = new RecruitsTeam();
         recruitsTeam.setTeamName(teamName);
         recruitsTeam.setTeamLeaderID(leaderUUID);
         recruitsTeam.setTeamLeaderName(leaderName);
         recruitsTeam.setBanner(bannerNbt);
-        recruitsTeam.setColor(color);
+        recruitsTeam.setUnitColor(color);
+        recruitsTeam.setTeamColor(nameColor);
 
         teams.put(teamName, recruitsTeam);
     }
@@ -57,7 +66,7 @@ public class RecruitsTeamManager {
         return equ;
     }
 
-    public boolean isBannerInUse(ServerLevel level, CompoundTag bannerNbt){
+    public boolean isBannerInUse(CompoundTag bannerNbt){
         if(bannerNbt != null){
             for(RecruitsTeam recruitsTeam : getTeams()){
                 return bannerNbt.equals(recruitsTeam.getBanner());
@@ -69,6 +78,22 @@ public class RecruitsTeamManager {
     public boolean isBannerBlank(ItemStack itemStack){
         CompoundTag compoundtag = BlockItem.getBlockEntityData(itemStack);
         return compoundtag == null || !compoundtag.contains("Patterns");
+    }
+
+    public boolean canPlayerJoin(RecruitsTeam recruitsTeam){
+        int config = RecruitsServerConfig.MaxPlayersInTeam.get();
+        if(config == 0) {
+            return true;
+        }
+        else
+            return config <= recruitsTeam.getPlayers();
+    }
+
+    public boolean canRecruitJoin(RecruitsTeam recruitsTeam){
+        int config = RecruitsServerConfig.MaxPlayersInTeam.get();
+        if(config == 0) return true;
+
+        return RecruitsServerConfig.MaxRecruitsInTeam.get() < recruitsTeam.getNPCs();
     }
 }
 

@@ -15,17 +15,21 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BannerRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.ModelBakery;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.FastColor;
 import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
 import net.minecraft.world.level.block.entity.BannerPattern;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.List;
-
+@OnlyIn(Dist.CLIENT)
 public class RecruitsTeamEntry extends ListScreenEntryBase<RecruitsTeamEntry> {
     protected static final int SKIN_SIZE = 24;
     protected static final int PADDING = 4;
@@ -87,8 +91,18 @@ public class RecruitsTeamEntry extends ListScreenEntryBase<RecruitsTeamEntry> {
             BannerRenderer.renderPatterns(poseStack, multibuffersource$buffersource, 15728880, OverlayTexture.NO_OVERLAY, this.flag, ModelBakery.BANNER_BASE, true, this.resultBannerPatterns);
             poseStack.popPose();
             multibuffersource$buffersource.endBatch();
+
         }
-        minecraft.font.draw(poseStack, team.getTeamName(), (float) textX, (float) textY, PLAYER_NAME_COLOR);
+        /*
+        Integer teamColor = ChatFormatting.getById(team.getTeamColor()).getColor();
+        int unitColor = TeamCreationScreen.RecruitColorID.get(team.getUnitColor());
+
+        GuiComponent.fill(poseStack, left + 10, top , left + 200,top + 10, 0xFFFF0000);
+
+        GuiComponent.fill(poseStack, left + 10, top + 20, left + 200,top + 10, 0x8000FF00);
+         */
+        minecraft.font.draw(poseStack, team.getTeamName(), (float) textX + 45, (float) textY,  PLAYER_NAME_COLOR);
+        minecraft.font.draw(poseStack, getPlayersText(team.getPlayers()), (float) textX + 100, (float) textY, PLAYER_NAME_COLOR);
     }
 
     @Nullable
@@ -99,5 +113,15 @@ public class RecruitsTeamEntry extends ListScreenEntryBase<RecruitsTeamEntry> {
     @Override
     public ListScreenListBase<RecruitsTeamEntry> getList() {
         return screen.teamList;
+    }
+
+    private Component getPlayersText(int players){
+        if(team.maxPlayers > 0){
+            return new TranslatableComponent("gui.recruits.team_list.players_count", players, team.maxPlayers);
+        }
+        else
+            return  new TranslatableComponent("gui.recruits.team_list.players_no_count", players);
+
+
     }
 }

@@ -361,5 +361,15 @@
 
    "gui.recruits.select_player_screen.title": "Select Player",
    "gui.recruits.cancel": "Cancel",
-   "gui.recruits.back": "Back"
+   "gui.recruits.back": "Back",
+   "gui.recruits.team_list.players_count": " %s / %s",
+   "gui.recruits.team_list.players_no_count": "Players: %s",
+
+   "gui.recruits.toast.sendJoinRequestTitle" : "Sent Join Request",
+   "gui.recruits.toast.to" : "to %s",
+   "gui.recruits.toast.for" : "for %s",
+   "gui.recruits.toast.from" : "from %s",
+
+   "gui.recruits.toast.JoinRequestTitle" : "Join Request",
+   "gui.recruits.button.join" : "Join"
  }

@@ -17,8 +17,10 @@ public class RecruitsTeam {
     public List<String> joinRequests = new ArrayList<>();
     public int players;
     public int npcs;
-    public byte color;
-
+    public byte unitColor;
+    public int teamColor;
+    public int maxPlayers;
+    public int maxNPCs;
     public RecruitsTeam(String teamName, String teamLeaderName, CompoundTag banner) {
         this.teamName = teamName;
         this.teamLeaderName = teamLeaderName;
@@ -26,6 +28,7 @@ public class RecruitsTeam {
     }
 
     public RecruitsTeam() {
+
     }
 
     public CompoundTag getBanner() {
@@ -89,10 +92,12 @@ public class RecruitsTeam {
         return players;
     }
 
-    public byte getColor() {
-        return color;
+    public byte getUnitColor() {
+        return unitColor;
     }
-
+    public int getTeamColor() {
+        return teamColor;
+    }
     public void addNPCs(int x) {
         npcs += x;
         if (npcs < 0) npcs = 0;
@@ -103,10 +108,12 @@ public class RecruitsTeam {
         if (players < 0) players = 0;
     }
 
-    public void setColor(byte color) {
-        this.color = color;
+    public void setUnitColor(byte unitColor) {
+        this.unitColor = unitColor;
     }
-
+    public void setTeamColor(int color) {
+        this.teamColor = color;
+    }
     public CompoundTag toNBT() {
         CompoundTag nbt = new CompoundTag();
         nbt.putString("teamName", this.teamName);
@@ -122,7 +129,9 @@ public class RecruitsTeam {
 
         nbt.putInt("players", this.players);
         nbt.putInt("npcs", this.npcs);
-        nbt.putByte("color", this.color);
+        nbt.putByte("unitColor", this.unitColor);
+        nbt.putInt("teamColor", this.teamColor);
+        nbt.putInt("maxPlayers", this.maxPlayers);
 
         return nbt;
     }
@@ -142,7 +151,10 @@ public class RecruitsTeam {
 
         team.setPlayers(nbt.getInt("players"));
         team.setNPCs(nbt.getInt("npcs"));
-        team.setColor(nbt.getByte("color"));
+        team.setUnitColor(nbt.getByte("unitColor"));
+        team.setTeamColor(nbt.getByte("teamColor"));
+        team.maxPlayers = nbt.getInt("maxPlayers");
+
 
         return team;
     }
