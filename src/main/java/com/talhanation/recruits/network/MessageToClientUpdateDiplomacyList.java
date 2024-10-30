@@ -45,6 +45,7 @@ public class MessageToClientUpdateDiplomacyList implements Message<MessageToClie
     @Override
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeNbt(this.teamsNbt);
+        buf.writeNbt(this.diplomacyNbt);
     }
 
 }

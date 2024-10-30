@@ -2,10 +2,7 @@ package com.talhanation.recruits.client.gui.diplomacy;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.client.events.RecruitsToastManager;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
-import com.talhanation.recruits.network.MessageSendJoinRequestTeam;
-import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -24,7 +21,7 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
 
     protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_player.png");
     protected static final Component TITLE = new TranslatableComponent("gui.recruits.team_creation.teams_list");
-    protected static final Component JOIN_BUTTON = new TranslatableComponent("gui.recruits.button.join");
+    protected static final Component SET_STANCE = new TranslatableComponent("gui.recruits.button.setStance");
     protected static final Component TOAST_SEND_JOIN_REQUEST_TITLE = new TranslatableComponent("gui.recruits.toast.sendJoinRequestTitle");
     protected static final Component BACK_BUTTON = new TranslatableComponent("gui.recruits.back");
     protected static Component TOOLTIP_ACTION;
@@ -41,14 +38,15 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
 
     protected Screen parent;
     private RecruitsTeam selected;
-    private RecruitsTeam ownTeam;
+    protected RecruitsTeam ownTeam;
     private Button backButton;
-    private Button editDiplomacyButton;
+    private Button setStanceButton;
 
 
     public DiplomacyTeamListScreen(Screen parent) {
         super(TITLE, 236, 0);
         this.parent = parent;
+
     }
 
     @Override
@@ -64,10 +62,12 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
 
         minecraft.keyboardHandler.setSendRepeatsToGui(true);
         if (list != null) {
+
             list.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
         } else {
             list = new DiplomacyTeamList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this);
         }
+
         String string = searchBox != null ? searchBox.getValue() : "";
         searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, new TextComponent("SEARCH_HINT"));
         searchBox.setMaxLength(16);
@@ -86,13 +86,13 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
 
         addRenderableWidget(backButton);
 
-        editDiplomacyButton = new Button(guiLeft + 7, guiTop + ySize - 20 - 7, 100, 20, JOIN_BUTTON,
+        setStanceButton = new Button(guiLeft + 7, guiTop + ySize - 20 - 7, 100, 20, SET_STANCE,
                 button -> {
                      minecraft.setScreen(new DiplomacyEditScreen(this, ownTeam, selected));
                 });
-        editDiplomacyButton.active = ownTeam.getTeamLeaderUUID().equals(this.minecraft.player.getUUID());
+        setStanceButton.active = ownTeam != null && ownTeam.getTeamLeaderUUID().equals(this.minecraft.player.getUUID());
 
-        addRenderableWidget(editDiplomacyButton);
+        addRenderableWidget(setStanceButton);
     }
 
     @Override
@@ -111,7 +111,7 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
         boolean flag = super.keyPressed(p_96552_, p_96553_, p_96554_);
         this.selected = null;
         this.list.setFocused(null);
-        this.editDiplomacyButton.active = false;
+        this.setStanceButton.active = false;
 
         return flag;
     }
@@ -150,7 +150,7 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
 
     private void checkSearchStringUpdate(String string) {
         if (!(string = string.toLowerCase(Locale.ROOT)).equals(lastSearch)) {
-            list.setFilter(string);
+            //list.setFilter(string);
             lastSearch = string;
         }
     }
@@ -160,8 +160,8 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
         if (list != null) list.mouseClicked(x, y, z);
         boolean flag = super.mouseClicked(x, y, z);
         if (this.list.getFocused() != null) {
-            this.selected = this.list.getFocused().getTeamInfo();
-            this.editDiplomacyButton.active = true;
+            this.selected = this.list.getFocused().team;
+            this.setStanceButton.active = true;
         }
 
         return flag;

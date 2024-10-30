@@ -1,6 +1,7 @@
 package com.talhanation.recruits.client.gui.diplomacy;
 
 import com.google.common.collect.Lists;
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsTeam;
@@ -15,11 +16,13 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
     protected String filter;
     public static List<RecruitsTeam> teams;
     public static Map<String, RecruitsDiplomacyManager.DiplomacyStatus> diplomacyStatusMap;
+    public RecruitsTeam ownTeam;
     public DiplomacyTeamList(int width, int height, int x, int y, int size, DiplomacyTeamListScreen screen) {
         super(width, height, x, y, size);
         this.screen = screen;
         this.entries = Lists.newArrayList();
         this.filter = "";
+
         setRenderBackground(false);
         setRenderTopAndBottom(false);
         setRenderSelection(true);
@@ -28,18 +31,37 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
     boolean hasUpdated;
     public void tick() {
         if(!hasUpdated && teams != null && diplomacyStatusMap != null){
+            this.ownTeam = getOwnTeam(teams);
+            screen.ownTeam = this.ownTeam;
             updateEntryList();
+            hasUpdated = true;
         }
+    }
+
+    private RecruitsTeam getOwnTeam(List<RecruitsTeam> list){
+        String playerTeam = minecraft.player.getTeam().getName();
+        for(RecruitsTeam team : list){
+            if(team.getTeamName().equals(playerTeam)){
+                return team;
+            }
+        }
+        return null;
     }
 
     public void updateEntryList() {
         entries.clear();
 
         for (RecruitsTeam team : teams) {
-            entries.add(new DiplomacyTeamEntry(screen, team, getDiplomacyStatus(team.getTeamName())));
+            if(!team.equals(ownTeam)){
+                entries.add(new DiplomacyTeamEntry(screen, team, getDiplomacyStatus(team.getTeamName())));
+            }
         }
 
         //updateFilter();
+    }
+
+    public RecruitsTeam getOwnTeam(){
+        return ownTeam;
     }
 
     private RecruitsDiplomacyManager.DiplomacyStatus getDiplomacyStatus(String teamName){
@@ -78,9 +100,10 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
         updateFilter();
     }
 
+
+
+ */
     public boolean isEmpty() {
         return children().isEmpty();
     }
-
- */
 }

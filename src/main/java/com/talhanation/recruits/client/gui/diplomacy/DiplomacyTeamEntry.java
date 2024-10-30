@@ -106,11 +106,6 @@ public class DiplomacyTeamEntry extends ListScreenEntryBase<DiplomacyTeamEntry> 
         minecraft.font.draw(poseStack, team.getTeamName(), (float) textX + 45, (float) textY, PLAYER_NAME_COLOR);
     }
 
-    @Nullable
-    public RecruitsTeam getDiplomacyInfo() {
-        return team;
-    }
-
     @Override
     public ListScreenListBase<DiplomacyTeamEntry> getList() {
         return null;//screen.teamList;

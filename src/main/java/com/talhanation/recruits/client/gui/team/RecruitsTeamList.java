@@ -29,6 +29,7 @@ public class RecruitsTeamList extends ListScreenListBase<RecruitsTeamEntry> {
     public void tick() {
         if(!hasUpdated && teams != null){
             updateEntryList();
+            hasUpdated = true;
         }
     }
 

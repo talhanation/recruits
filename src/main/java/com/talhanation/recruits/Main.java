@@ -178,10 +178,8 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 74, MessageFormationFollowMovement.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 75, MessageRest.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 76, MessageRangedFire.class);
-
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 78,  MessageSaveFormationFollowMovement.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 79,  MessageClearUpkeep.class);
-
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 80,  MessageToServerRequestUpdateTeamList.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 81,  MessageToClientUpdateTeamList.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 82,  MessageToServerRequestUpdatePlayerList.class);
@@ -189,7 +187,7 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 84,  MessageDiplomacyChangeStatus.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 85,  MessageToClientSetToast.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 86,  MessageToClientUpdateDiplomacyList.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 86,  MessageToServerRequestUpdateDiplomacyList.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 87,  MessageToServerRequestUpdateDiplomacyList.class);
 
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
         isSmallShipsLoaded = ModList.get().isLoaded("smallships");//small ships
