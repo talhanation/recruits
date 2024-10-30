@@ -1,11 +1,11 @@
-package com.talhanation.recruits.client.gui.team;
-
+package com.talhanation.recruits.client.gui.diplomacy;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.events.RecruitsToastManager;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
 import com.talhanation.recruits.network.MessageSendJoinRequestTeam;
+import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -19,15 +19,13 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.Locale;
-import static com.talhanation.recruits.client.events.RecruitsToastManager.*;
-
-
 @OnlyIn(Dist.CLIENT)
-public class RecruitsTeamListScreen extends ListScreenBase {
+public class DiplomacyTeamListScreen extends ListScreenBase {
 
     protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_player.png");
     protected static final Component TITLE = new TranslatableComponent("gui.recruits.team_creation.teams_list");
     protected static final Component JOIN_BUTTON = new TranslatableComponent("gui.recruits.button.join");
+    protected static final Component TOAST_SEND_JOIN_REQUEST_TITLE = new TranslatableComponent("gui.recruits.toast.sendJoinRequestTitle");
     protected static final Component BACK_BUTTON = new TranslatableComponent("gui.recruits.back");
     protected static Component TOOLTIP_ACTION;
     protected static final int HEADER_SIZE = 16;
@@ -36,18 +34,20 @@ public class RecruitsTeamListScreen extends ListScreenBase {
     protected static final int UNIT_SIZE = 18;
     protected static final int CELL_HEIGHT = 36;
 
-    protected RecruitsTeamList teamList;
+    protected DiplomacyTeamList list;
     protected EditBox searchBox;
     protected String lastSearch;
     protected int units;
 
     protected Screen parent;
     private RecruitsTeam selected;
+    private RecruitsTeam ownTeam;
     private Button backButton;
-    private Button sendJoinRequestButton;
+    private Button editDiplomacyButton;
 
-    public RecruitsTeamListScreen(Screen parent){
-        super(TITLE,236,0);
+
+    public DiplomacyTeamListScreen(Screen parent) {
+        super(TITLE, 236, 0);
         this.parent = parent;
     }
 
@@ -63,10 +63,10 @@ public class RecruitsTeamListScreen extends ListScreenBase {
         ySize = HEADER_SIZE + units * UNIT_SIZE + FOOTER_SIZE;
 
         minecraft.keyboardHandler.setSendRepeatsToGui(true);
-        if (teamList != null) {
-            teamList.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
+        if (list != null) {
+            list.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
         } else {
-            teamList = new RecruitsTeamList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this);
+            list = new DiplomacyTeamList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this);
         }
         String string = searchBox != null ? searchBox.getValue() : "";
         searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, new TextComponent("SEARCH_HINT"));
@@ -75,7 +75,7 @@ public class RecruitsTeamListScreen extends ListScreenBase {
         searchBox.setValue(string);
         searchBox.setResponder(this::checkSearchStringUpdate);
         addWidget(searchBox);
-        addWidget(teamList);
+        addWidget(list);
 
         this.setInitialFocus(searchBox);
 
@@ -86,25 +86,23 @@ public class RecruitsTeamListScreen extends ListScreenBase {
 
         addRenderableWidget(backButton);
 
-        sendJoinRequestButton = new Button(guiLeft + 7, guiTop + ySize - 20 - 7, 100, 20, JOIN_BUTTON,
+        editDiplomacyButton = new Button(guiLeft + 7, guiTop + ySize - 20 - 7, 100, 20, JOIN_BUTTON,
                 button -> {
-                    RecruitsToastManager.setToastForPlayer(RecruitsToastManager.Images.LETTER, TOAST_SENT_JOIN_REQUEST_TITLE,TOAST_TO(selected.getTeamName()));
-
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageSendJoinRequestTeam(parent.getMinecraft().player.getUUID(), selected.getTeamName()));
+                     minecraft.setScreen(new DiplomacyEditScreen(this, ownTeam, selected));
                 });
-        sendJoinRequestButton.active = false;
+        editDiplomacyButton.active = ownTeam.getTeamLeaderUUID().equals(this.minecraft.player.getUUID());
 
-        addRenderableWidget(sendJoinRequestButton);
+        addRenderableWidget(editDiplomacyButton);
     }
 
     @Override
     public void tick() {
         super.tick();
-        if(searchBox != null){
+        if (searchBox != null) {
             searchBox.tick();
         }
-        if(teamList != null){
-            teamList.tick();
+        if (list != null) {
+            list.tick();
         }
     }
 
@@ -112,8 +110,8 @@ public class RecruitsTeamListScreen extends ListScreenBase {
     public boolean keyPressed(int p_96552_, int p_96553_, int p_96554_) {
         boolean flag = super.keyPressed(p_96552_, p_96553_, p_96554_);
         this.selected = null;
-        this.teamList.setFocused(null);
-        this.sendJoinRequestButton.active = false;
+        this.list.setFocused(null);
+        this.editDiplomacyButton.active = false;
 
         return flag;
     }
@@ -139,8 +137,8 @@ public class RecruitsTeamListScreen extends ListScreenBase {
     public void renderForeground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
         font.draw(poseStack, this.getTitle(), width / 2 - font.width(TITLE) / 2, guiTop + 5, 4210752);
 
-        if (!teamList.isEmpty()) {
-            teamList.render(poseStack, mouseX, mouseY, delta);
+        if (!list.isEmpty()) {
+            list.render(poseStack, mouseX, mouseY, delta);
         } else if (!searchBox.getValue().isEmpty()) {
             drawCenteredString(poseStack, font, "EMPTY_SEARCH", width / 2, guiTop + HEADER_SIZE + (units * UNIT_SIZE) / 2 - font.lineHeight / 2, -1);
         }
@@ -152,25 +150,25 @@ public class RecruitsTeamListScreen extends ListScreenBase {
 
     private void checkSearchStringUpdate(String string) {
         if (!(string = string.toLowerCase(Locale.ROOT)).equals(lastSearch)) {
-            teamList.setFilter(string);
+            list.setFilter(string);
             lastSearch = string;
         }
     }
 
     @Override
     public boolean mouseClicked(double x, double y, int z) {
-        if(teamList != null) teamList.mouseClicked(x,y,z);
+        if (list != null) list.mouseClicked(x, y, z);
         boolean flag = super.mouseClicked(x, y, z);
-        if(this.teamList.getFocused() != null){
-            this.selected = this.teamList.getFocused().getTeamInfo();
-            this.sendJoinRequestButton.active = true;
+        if (this.list.getFocused() != null) {
+            this.selected = this.list.getFocused().getTeamInfo();
+            this.editDiplomacyButton.active = true;
         }
 
         return flag;
     }
 
 
-    public RecruitsTeam getSelected(){
+    public RecruitsTeam getSelected() {
         return this.selected;
     }
 
@@ -179,5 +177,5 @@ public class RecruitsTeamListScreen extends ListScreenBase {
         return TITLE;
     }
 
-}
 
+}

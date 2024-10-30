@@ -4,6 +4,7 @@ import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.*;
 import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsTeam;
 import com.talhanation.recruits.world.RecruitsTeamManager;
 import net.minecraft.ChatFormatting;
@@ -43,6 +44,7 @@ public class  TeamEvents {
 
     public MinecraftServer server;
     public static RecruitsTeamManager recruitsTeamManager;
+    public static RecruitsDiplomacyManager recruitsDiplomacyManager;
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         this.server = event.getServer();
@@ -56,16 +58,21 @@ public class  TeamEvents {
 
         recruitsTeamManager = new RecruitsTeamManager();
         recruitsTeamManager.load(server.overworld());
+
+        recruitsDiplomacyManager = new RecruitsDiplomacyManager();
+        recruitsDiplomacyManager.load(server.overworld());
     }
 
     @SubscribeEvent
     public void onServerStopping(ServerStoppingEvent event) {
         recruitsTeamManager.save(server.overworld());
+        recruitsDiplomacyManager.save(server.overworld());
     }
 
     @SubscribeEvent
     public void onWorldSave(WorldEvent.Save event){
         recruitsTeamManager.save(server.overworld());
+        recruitsDiplomacyManager.save(server.overworld());
     }
 
     public static boolean isPlayerInATeam(Player player) {

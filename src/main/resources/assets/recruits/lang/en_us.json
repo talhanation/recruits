@@ -370,6 +370,22 @@
    "gui.recruits.toast.for" : "for %s",
    "gui.recruits.toast.from" : "from %s",
 
+   "gui.recruits.toast.allyTitle" : "New Alliance",
+   "gui.recruits.toast.setYouAsAlly" : "%s has marked you as ally",
+   "gui.recruits.toast.setAsAlly" : "%s is now an ally",
+
+   "gui.recruits.toast.neutralTitle" : "Neutrality Agreed",
+   "gui.recruits.toast.setYouAsNeutral" : "%s has marked you as neutral",
+   "gui.recruits.toast.setAsNeutral" : "%s is now marked as neutral",
+
+   "gui.recruits.toast.enemyTitle" : "Enemy Declared",
+   "gui.recruits.toast.setYouAsEnemy" : "%s has marked you as enemy",
+   "gui.recruits.toast.setAsEnemy" : "%s is now marked as enemy",
+
+
+
    "gui.recruits.toast.JoinRequestTitle" : "Join Request",
-   "gui.recruits.button.join" : "Join"
+   "gui.recruits.button.join" : "Join",
+   "gui.recruits.diplomacy_edit.title" : "Set your stance"
+
  }
