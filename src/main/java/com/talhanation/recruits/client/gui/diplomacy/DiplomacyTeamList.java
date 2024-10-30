@@ -2,11 +2,14 @@ package com.talhanation.recruits.client.gui.diplomacy;
 
 import com.google.common.collect.Lists;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.gui.team.RecruitsTeamEntry;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsTeam;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
@@ -57,17 +60,13 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
             }
         }
 
-        //updateFilter();
-    }
-
-    public RecruitsTeam getOwnTeam(){
-        return ownTeam;
+        updateFilter();
     }
 
     private RecruitsDiplomacyManager.DiplomacyStatus getDiplomacyStatus(String teamName){
         return diplomacyStatusMap.getOrDefault(teamName, RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL);
     }
-/*
+
     public void updateFilter() {
         clearEntries();
         List<DiplomacyTeamEntry> filteredEntries = new ArrayList<>(entries);
@@ -91,7 +90,7 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
         replaceEntries(filteredEntries);
     }
 
-    private String volumeEntryToString(RecruitsTeamEntry entry) {
+    private String volumeEntryToString(DiplomacyTeamEntry entry) {
         return entry.getTeamInfo() == null ? "" : entry.getTeamInfo().getTeamName();
     }
 
@@ -100,9 +99,6 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
         updateFilter();
     }
 
-
-
- */
     public boolean isEmpty() {
         return children().isEmpty();
     }
