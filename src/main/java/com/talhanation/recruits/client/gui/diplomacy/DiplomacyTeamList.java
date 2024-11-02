@@ -63,7 +63,7 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
         updateFilter();
     }
 
-    private RecruitsDiplomacyManager.DiplomacyStatus getDiplomacyStatus(String teamName){
+    public RecruitsDiplomacyManager.DiplomacyStatus getDiplomacyStatus(String teamName){
         return diplomacyStatusMap.getOrDefault(teamName, RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL);
     }
 

@@ -3,10 +3,12 @@ package com.talhanation.recruits.client.gui.diplomacy;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import com.talhanation.recruits.network.MessageDiplomacyChangeStatus;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsTeam;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
@@ -26,14 +28,19 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
     private RecruitsDiplomacyButton allyButton;
     private RecruitsDiplomacyButton neutralButton;
     private RecruitsDiplomacyButton enemyButton;
-    public static RecruitsDiplomacyManager.DiplomacyStatus othersStance;
-    public static RecruitsDiplomacyManager.DiplomacyStatus ownStance;
-
-    public DiplomacyEditScreen(Screen parent, @NotNull RecruitsTeam ownTeam , @NotNull RecruitsTeam otherTeam) {
+    public RecruitsDiplomacyManager.DiplomacyStatus othersStance;
+    public RecruitsDiplomacyManager.DiplomacyStatus ownStance;
+    protected final BannerRenderer bannerOwn;
+    protected final BannerRenderer bannerOther;
+    public DiplomacyEditScreen(Screen parent, @NotNull RecruitsTeam ownTeam , @NotNull RecruitsTeam otherTeam,  RecruitsDiplomacyManager.DiplomacyStatus ownStance,  RecruitsDiplomacyManager.DiplomacyStatus othersStance) {
         super(TITLE, 195,124);
         this.ownTeam = ownTeam;
         this.otherTeam = otherTeam;
         this.parent = parent;
+        this.othersStance = othersStance;
+        this.ownStance = ownStance;
+        this.bannerOwn = new BannerRenderer(ownTeam);
+        this.bannerOther = new BannerRenderer(otherTeam);
     }
 
     @Override
@@ -42,21 +49,21 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
         hoverAreas.clear();
         clearWidgets();
 
-        allyButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.ALLY,guiLeft + 6, guiTop + ySize - 6, 21, 21, new TextComponent(""),
+        allyButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.ALLY,60 + guiLeft + 6, guiTop + ySize - 6 - 90, 21, 21, new TextComponent(""),
                 button -> {
                     this.changeDiplomacyStatus(RecruitsDiplomacyManager.DiplomacyStatus.ALLY, otherTeam);
                 }
         );
         addRenderableWidget(allyButton);
 
-        neutralButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL,guiLeft + 27, guiTop + ySize - 6, 21, 21, new TextComponent(""),
+        neutralButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL,60 + guiLeft + 27, guiTop + ySize - 6 - 90, 21, 21, new TextComponent(""),
                 button -> {
                     this.changeDiplomacyStatus(RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL, otherTeam);
                 }
         );
         addRenderableWidget(neutralButton);
 
-        enemyButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.ENEMY,guiLeft + 48, guiTop + ySize - 6, 21, 21, new TextComponent(""),
+        enemyButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.ENEMY,60 + guiLeft + 48, guiTop + ySize - 6 - 90, 21, 21, new TextComponent(""),
                 button -> {
                     this.changeDiplomacyStatus(RecruitsDiplomacyManager.DiplomacyStatus.ENEMY, otherTeam);
                 }
@@ -78,15 +85,30 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
         RenderSystem.setShaderTexture(0, TEXTURE);
         blit(poseStack, guiLeft, guiTop, 0, 0, xSize, ySize);
     }
-
+    int x3 = 120;
+    int y3 = 50;
+    int x4 = 60;
+    int y4 = 50;
+    int x5 = -50;
+    int y5 = -30;
+    int x6 = 80;
+    int y6 = -30;
+    int x7 = 65;
+    int y7 = -100;
+    int x8 = -5;
+    int y8 = -100;
     @Override
     public void renderForeground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
         font.draw(poseStack, TITLE, guiLeft + xSize / 2 - font.width(TITLE) / 2, guiTop + 7, FONT_COLOR);
 
+        font.draw(poseStack, ownTeam.getTeamName(), x5 + guiLeft + xSize / 2 - font.width(ownTeam.getTeamName()) / 2, guiTop + 7 - y5, FONT_COLOR);
+        font.draw(poseStack, otherTeam.getTeamName(), x6 + guiLeft + xSize / 2 - font.width(otherTeam.getTeamName()) / 2, guiTop + 7 - y6, FONT_COLOR);
+
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
         RenderSystem.setShaderTexture(0, getDiplomacyStatusIcon(othersStance));
-        blit(poseStack, guiLeft + 5, guiTop + 5, 0, 0, 21, 21);
+        GuiComponent.blit(poseStack, this.guiLeft + x3, guiTop + ySize - y3, 0, 0, 21, 21, 21, 21);
+        font.draw(poseStack, othersStance.name(), x7 + guiLeft + xSize / 2 - font.width(othersStance.name()) / 2, guiTop + 7 - y7, FONT_COLOR);
         /*
         if (mouseX >= groupTypeButton.x && mouseY >= groupTypeButton.y && mouseX < groupTypeButton.x + groupTypeButton.getWidth() && mouseY < groupTypeButton.y + groupTypeButton.getHeight()) {
             renderTooltip(poseStack, groupTypeButton.getTooltip(), mouseX, mouseY);
@@ -96,13 +118,25 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
         RenderSystem.setShaderTexture(0, getDiplomacyStatusIcon(ownStance));
-        blit(poseStack, guiLeft + 5, guiTop + 5, 0, 0, 21, 21);
+        GuiComponent.blit(poseStack, this.guiLeft + x4, guiTop + ySize - y4, 0, 0, 21, 21, 21, 21);
+        font.draw(poseStack, ownStance.name(), x8 + guiLeft + xSize / 2 - font.width(ownStance.name()) / 2,  guiTop + 7 - y8, FONT_COLOR);
+
+    }
+    int x1 = 15;
+    int y1 = 42;
+    int x2 = 160;
+    int y2 = 42;
+    @Override
+    public void render(PoseStack poseStack, int mouseX, int mouseY, float delta) {
+        super.render(poseStack, mouseX, mouseY, delta);
+        bannerOwn.renderBanner(poseStack, this.guiLeft + x1, guiTop + ySize - y1, this.width, this.height, 40);
+        bannerOther.renderBanner(poseStack, this.guiLeft + x2, guiTop + ySize - y2, this.width, this.height, 40);
     }
 
     public ResourceLocation getDiplomacyStatusIcon(RecruitsDiplomacyManager.DiplomacyStatus status){
         ResourceLocation location;
 
-        switch (status){
+         switch (status){
             default -> location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/neutral.png");
             case ALLY ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/ally.png");
             case ENEMY ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/enemy.png");

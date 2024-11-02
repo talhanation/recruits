@@ -1,33 +1,19 @@
 package com.talhanation.recruits.client.gui.diplomacy;
 
-import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.datafixers.util.Pair;
-import com.talhanation.recruits.client.gui.team.RecruitsTeamListScreen;
+import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.widgets.ListScreenEntryBase;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
-import net.minecraft.client.model.geom.ModelLayers;
-import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BannerRenderer;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.util.FastColor;
-import net.minecraft.world.item.BannerItem;
-import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BannerBlockEntity;
-import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
 public class DiplomacyTeamEntry extends ListScreenEntryBase<DiplomacyTeamEntry> {
@@ -41,18 +27,14 @@ public class DiplomacyTeamEntry extends ListScreenEntryBase<DiplomacyTeamEntry> 
     protected final Minecraft minecraft;
     protected final DiplomacyTeamListScreen screen;
     protected final @NotNull RecruitsTeam team;
-    protected final List<Pair<BannerPattern, DyeColor>> resultBannerPatterns;
-    protected final ModelPart flag;
-    protected final ItemStack bannerItem;
+    protected final BannerRenderer bannerRenderer;
     protected final RecruitsDiplomacyManager.DiplomacyStatus status;
 
     public DiplomacyTeamEntry(DiplomacyTeamListScreen screen, @NotNull RecruitsTeam team, RecruitsDiplomacyManager.DiplomacyStatus status) {
         this.minecraft = Minecraft.getInstance();
         this.screen = screen;
         this.team = team;
-        this.bannerItem = ItemStack.of(team.getBanner());
-        this.resultBannerPatterns = BannerBlockEntity.createPatterns(((BannerItem) this.bannerItem.getItem()).getColor(), BannerBlockEntity.getItemPatterns(this.bannerItem));
-        this.flag = this.minecraft.getEntityModels().bakeLayer(ModelLayers.BANNER).getChild("flag");
+        this.bannerRenderer = new BannerRenderer(team);
         this.status = status;
     }
 
@@ -78,23 +60,7 @@ public class DiplomacyTeamEntry extends ListScreenEntryBase<DiplomacyTeamEntry> 
             GuiComponent.fill(poseStack, left, top, left + width, top + height, BG_FILL);
         }
 
-        if (bannerItem != null) {
-            GuiComponent.blit(poseStack, left, top, left + width, top + height, 0, 0, 256, 256);
-            Lighting.setupForFlatItems();
-
-            MultiBufferSource.BufferSource multibuffersource$buffersource = this.minecraft.renderBuffers().bufferSource();
-            poseStack.pushPose();
-            poseStack.translate(left + 10, top + 20, 0.0D);
-            poseStack.scale(15.0F, -15.0F, 1.0F);
-            float f = 0.6666667F;
-            poseStack.scale(f, -f, -f);
-            this.flag.xRot = 0.0F;
-            this.flag.y = -32.0F;
-            BannerRenderer.renderPatterns(poseStack, multibuffersource$buffersource, 15728880, OverlayTexture.NO_OVERLAY, this.flag, ModelBakery.BANNER_BASE, true, this.resultBannerPatterns);
-            poseStack.popPose();
-            multibuffersource$buffersource.endBatch();
-
-        }
+        bannerRenderer.renderBanner(poseStack, left, top, width, height, 15);
         /*
         Integer teamColor = ChatFormatting.getById(team.getTeamColor()).getColor();
         int unitColor = TeamCreationScreen.RecruitColorID.get(team.getUnitColor());
@@ -113,6 +79,6 @@ public class DiplomacyTeamEntry extends ListScreenEntryBase<DiplomacyTeamEntry> 
 
     @Override
     public ListScreenListBase<DiplomacyTeamEntry> getList() {
-        return null;//screen.teamList;
+        return screen.list;
     }
 }
