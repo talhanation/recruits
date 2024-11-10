@@ -9,6 +9,7 @@ import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.inventory.PromoteContainer;
 import com.talhanation.recruits.network.MessageOpenPromoteScreen;
 import com.talhanation.recruits.world.PillagerPatrolSpawn;
+import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsPlayerUnitManager;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import net.minecraft.core.BlockPos;
@@ -459,26 +460,40 @@ public class RecruitEvents {
     public static boolean canHarmTeam(LivingEntity attacker, LivingEntity target) {
         Team team = attacker.getTeam();
         Team team1 = target.getTeam();
+
         if (team == null) {
             return true;
-        } else {
-            return !team.isAlliedTo(team1) || team.isAllowFriendlyFire();
-            //attacker can Harm target when attacker has no team
-            //or attacker and target are not allied
-            //or team friendly fire is true
+
+        } else if (team1 == null) {
+            return true;
+        }
+        else if(team == team1 && !team.isAllowFriendlyFire()){
+            return false;
+        }
+        else {
+            RecruitsDiplomacyManager.DiplomacyStatus relation = TeamEvents.recruitsDiplomacyManager.getRelation(team.getName(), team1.getName());
+
+            return relation != RecruitsDiplomacyManager.DiplomacyStatus.ALLY;
         }
     }
 
     public static boolean canHarmTeamNoFriendlyFire(LivingEntity attacker, LivingEntity target) {
         Team team = attacker.getTeam();
         Team team1 = target.getTeam();
+
         if (team == null) {
             return true;
-        } else {
-            return !team.isAlliedTo(team1);
-            //attacker can Harm target when attacker has no team
-            //or attacker and target are not allied
-            //or team friendly is true
+
+        } else if (team1 == null) {
+            return true;
+        }
+        else if(team == team1){
+            return false;
+        }
+        else {
+            RecruitsDiplomacyManager.DiplomacyStatus relation = TeamEvents.recruitsDiplomacyManager.getRelation(team.getName(), team1.getName());
+
+            return relation != RecruitsDiplomacyManager.DiplomacyStatus.ALLY;
         }
     }
 

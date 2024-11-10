@@ -64,8 +64,6 @@ public class TeamMainScreen extends ScreenBase<TeamMainContainer> {
         }));
 
         addRenderableWidget(new ExtendedButton(leftPos + 130, topPos + 29, 100, 20, TEAMS_LIST, btn -> {
-            //Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdateTeamList());
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdateDiplomacyList());
             minecraft.setScreen(new DiplomacyTeamListScreen(this));
             //TeamEvents.openTeamListScreen(player);
         }));

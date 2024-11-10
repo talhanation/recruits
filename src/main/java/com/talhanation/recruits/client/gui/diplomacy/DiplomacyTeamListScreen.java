@@ -3,6 +3,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
+import com.talhanation.recruits.network.MessageToServerRequestUpdateDiplomacyList;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -52,7 +53,7 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
     @Override
     protected void init() {
         super.init();
-
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdateDiplomacyList());
         guiLeft = guiLeft + 2;
         guiTop = 70;
 
@@ -88,7 +89,7 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
 
         setStanceButton = new Button(guiLeft + 7, guiTop + ySize - 20 - 7, 100, 20, SET_STANCE,
                 button -> {
-                     minecraft.setScreen(new DiplomacyEditScreen(this, ownTeam, selected, list.getDiplomacyStatus(ownTeam.getTeamName()), list.getDiplomacyStatus(selected.getTeamName())));
+                     minecraft.setScreen(new DiplomacyEditScreen(this, ownTeam, selected, list.getRelation(ownTeam.getTeamName(), selected.getTeamName()), list.getRelation(selected.getTeamName(), ownTeam.getTeamName())));
                 });
         setStanceButton.active = ownTeam != null && ownTeam.getTeamLeaderUUID().equals(this.minecraft.player.getUUID());
 

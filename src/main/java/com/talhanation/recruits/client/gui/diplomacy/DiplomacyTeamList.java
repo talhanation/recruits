@@ -1,16 +1,11 @@
 package com.talhanation.recruits.client.gui.diplomacy;
 
 import com.google.common.collect.Lists;
-import com.talhanation.recruits.Main;
-import com.talhanation.recruits.client.gui.team.RecruitsTeamEntry;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsTeam;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
 
@@ -18,7 +13,7 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
     protected final List<DiplomacyTeamEntry> entries;
     protected String filter;
     public static List<RecruitsTeam> teams;
-    public static Map<String, RecruitsDiplomacyManager.DiplomacyStatus> diplomacyStatusMap;
+    public static Map<String, Map<String, RecruitsDiplomacyManager.DiplomacyStatus>> diplomacyMap;
     public RecruitsTeam ownTeam;
     public DiplomacyTeamList(int width, int height, int x, int y, int size, DiplomacyTeamListScreen screen) {
         super(width, height, x, y, size);
@@ -33,7 +28,7 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
 
     boolean hasUpdated;
     public void tick() {
-        if(!hasUpdated && teams != null && diplomacyStatusMap != null){
+        if(!hasUpdated && teams != null && diplomacyMap != null){
             this.ownTeam = getOwnTeam(teams);
             screen.ownTeam = this.ownTeam;
             updateEntryList();
@@ -56,15 +51,15 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
 
         for (RecruitsTeam team : teams) {
             if(!team.equals(ownTeam)){
-                entries.add(new DiplomacyTeamEntry(screen, team, getDiplomacyStatus(team.getTeamName())));
+                entries.add(new DiplomacyTeamEntry(screen, team));
             }
         }
 
         updateFilter();
     }
 
-    public RecruitsDiplomacyManager.DiplomacyStatus getDiplomacyStatus(String teamName){
-        return diplomacyStatusMap.getOrDefault(teamName, RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL);
+    public RecruitsDiplomacyManager.DiplomacyStatus getRelation(String team, String otherTeam) {
+        return diplomacyMap.getOrDefault(team, new HashMap<>()).getOrDefault(otherTeam, RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL);
     }
 
     public void updateFilter() {

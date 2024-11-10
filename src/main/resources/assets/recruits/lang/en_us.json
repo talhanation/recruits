@@ -386,6 +386,8 @@
 
    "gui.recruits.toast.JoinRequestTitle" : "Join Request",
    "gui.recruits.button.join" : "Join",
-   "gui.recruits.diplomacy_edit.title" : "Relations",
-   "gui.recruits.button.setStance" : "Set Stance"
+   "gui.recruits.diplomacy_edit.title" : "Set Relation",
+   "gui.recruits.button.setStance" : "Set Stance",
+   "gui.recruits.button.confirm" : "Confirm",
+   "gui.recruits.button.back" : "Back"
  }

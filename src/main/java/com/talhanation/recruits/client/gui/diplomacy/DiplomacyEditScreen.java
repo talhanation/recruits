@@ -9,6 +9,7 @@ import com.talhanation.recruits.network.MessageDiplomacyChangeStatus;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
@@ -17,11 +18,13 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
+
 public class DiplomacyEditScreen extends RecruitsScreenBase {
 
     private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_popup.png");
     private static final Component TITLE = new TranslatableComponent("gui.recruits.diplomacy_edit.title");
-
+    protected static final Component BUTTON_CONFIRM = new TranslatableComponent("gui.recruits.button.confirm");
+    protected static final Component BUTTON_BACK = new TranslatableComponent("gui.recruits.button.back");
     private Screen parent;
     private RecruitsTeam ownTeam;
     private  RecruitsTeam otherTeam;
@@ -30,10 +33,15 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
     private RecruitsDiplomacyButton enemyButton;
     public RecruitsDiplomacyManager.DiplomacyStatus othersStance;
     public RecruitsDiplomacyManager.DiplomacyStatus ownStance;
+    public RecruitsDiplomacyManager.DiplomacyStatus newStance;
     protected final BannerRenderer bannerOwn;
     protected final BannerRenderer bannerOther;
+    private  boolean stanceChanged;
+
+    private Button confirmButton;
+    private Button backButton;
     public DiplomacyEditScreen(Screen parent, @NotNull RecruitsTeam ownTeam , @NotNull RecruitsTeam otherTeam,  RecruitsDiplomacyManager.DiplomacyStatus ownStance,  RecruitsDiplomacyManager.DiplomacyStatus othersStance) {
-        super(TITLE, 195,124);
+        super(TITLE, 195,160);
         this.ownTeam = ownTeam;
         this.otherTeam = otherTeam;
         this.parent = parent;
@@ -47,35 +55,67 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
     protected void init() {
         super.init();
         hoverAreas.clear();
-        clearWidgets();
-
-        allyButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.ALLY,60 + guiLeft + 6, guiTop + ySize - 6 - 90, 21, 21, new TextComponent(""),
-                button -> {
-                    this.changeDiplomacyStatus(RecruitsDiplomacyManager.DiplomacyStatus.ALLY, otherTeam);
-                }
-        );
-        addRenderableWidget(allyButton);
-
-        neutralButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL,60 + guiLeft + 27, guiTop + ySize - 6 - 90, 21, 21, new TextComponent(""),
-                button -> {
-                    this.changeDiplomacyStatus(RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL, otherTeam);
-                }
-        );
-        addRenderableWidget(neutralButton);
-
-        enemyButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.ENEMY,60 + guiLeft + 48, guiTop + ySize - 6 - 90, 21, 21, new TextComponent(""),
-                button -> {
-                    this.changeDiplomacyStatus(RecruitsDiplomacyManager.DiplomacyStatus.ENEMY, otherTeam);
-                }
-        );
-        addRenderableWidget(enemyButton);
+        newStance = ownStance;
+        setButtons();
 
         minecraft.keyboardHandler.setSendRepeatsToGui(true);
     }
 
+    private void setButtons(){
+        clearWidgets();
+        allyButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.ALLY,60 + guiLeft + 6, guiTop + ySize - 6 - 125, 21, 21, new TextComponent(""),
+                button -> {
+                    this.newStance = RecruitsDiplomacyManager.DiplomacyStatus.ALLY;
+                    stanceChanged = this.newStance != ownStance;
+                    setButtons();
+                }
+        );
+        addRenderableWidget(allyButton);
+
+        neutralButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL,60 + guiLeft + 27, guiTop + ySize - 6 - 125, 21, 21, new TextComponent(""),
+                button -> {
+                    this.newStance = RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL;
+                    stanceChanged = this.newStance != ownStance;
+                    setButtons();
+                }
+        );
+        addRenderableWidget(neutralButton);
+
+        enemyButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.ENEMY,60 + guiLeft + 48, guiTop + ySize - 6 - 125, 21, 21, new TextComponent(""),
+                button -> {
+                    this.newStance = RecruitsDiplomacyManager.DiplomacyStatus.ENEMY;
+                    stanceChanged = this.newStance != ownStance;
+                    setButtons();
+                }
+        );
+        addRenderableWidget(enemyButton);
+
+        this.allyButton.active = newStance == RecruitsDiplomacyManager.DiplomacyStatus.ALLY;
+        this.neutralButton.active = newStance == RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL;
+        this.enemyButton.active = newStance == RecruitsDiplomacyManager.DiplomacyStatus.ENEMY;
+
+        confirmButton = new Button(guiLeft + 6, guiTop + ySize - 18 - 7, 90, 20, BUTTON_CONFIRM,
+                button -> {
+                    this.changeDiplomacyStatus(newStance, otherTeam);
+                    this.ownStance = newStance;
+                    stanceChanged = false;
+                    setButtons();
+                });
+
+        confirmButton.active = stanceChanged;
+
+        addRenderableWidget(confirmButton);
+
+
+        backButton = new Button(guiLeft + 98, guiTop + ySize - 18 - 7, 90, 20, BUTTON_BACK,
+                button -> {
+                    minecraft.setScreen(parent);
+                });
+        addRenderableWidget(backButton);
+    }
+
     private void changeDiplomacyStatus(RecruitsDiplomacyManager.DiplomacyStatus status, RecruitsTeam otherTeam) {
         Main.SIMPLE_CHANNEL.sendToServer(new MessageDiplomacyChangeStatus(ownTeam, otherTeam, status));
-
     }
 
     @Override
@@ -86,16 +126,16 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
         blit(poseStack, guiLeft, guiTop, 0, 0, xSize, ySize);
     }
     int x3 = 120;
-    int y3 = 50;
+    int y3 = 90;
     int x4 = 60;
-    int y4 = 50;
-    int x5 = -50;
+    int y4 = 90;
+    int x5 = -70;
     int y5 = -30;
-    int x6 = 80;
+    int x6 = 70;
     int y6 = -30;
-    int x7 = 65;
+    int x7 = 35;
     int y7 = -100;
-    int x8 = -5;
+    int x8 = -25;
     int y8 = -100;
     @Override
     public void renderForeground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
@@ -117,15 +157,15 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
-        RenderSystem.setShaderTexture(0, getDiplomacyStatusIcon(ownStance));
+        RenderSystem.setShaderTexture(0, getDiplomacyStatusIcon(newStance));
         GuiComponent.blit(poseStack, this.guiLeft + x4, guiTop + ySize - y4, 0, 0, 21, 21, 21, 21);
-        font.draw(poseStack, ownStance.name(), x8 + guiLeft + xSize / 2 - font.width(ownStance.name()) / 2,  guiTop + 7 - y8, FONT_COLOR);
+        font.draw(poseStack, newStance.name(), x8 + guiLeft + xSize / 2 - font.width(newStance.name()) / 2,  guiTop + 7 - y8, FONT_COLOR);
 
     }
     int x1 = 15;
-    int y1 = 42;
+    int y1 = 75;
     int x2 = 160;
-    int y2 = 42;
+    int y2 = 75;
     @Override
     public void render(PoseStack poseStack, int mouseX, int mouseY, float delta) {
         super.render(poseStack, mouseX, mouseY, delta);

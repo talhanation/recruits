@@ -19,7 +19,7 @@ public class MessageToClientUpdateDiplomacyList implements Message<MessageToClie
     public MessageToClientUpdateDiplomacyList() {
     }
 
-    public MessageToClientUpdateDiplomacyList(List<RecruitsTeam> teamList, Map<String, RecruitsDiplomacyManager.DiplomacyStatus> diplomacyStatusMap) {
+    public MessageToClientUpdateDiplomacyList(List<RecruitsTeam> teamList, Map<String, Map<String, RecruitsDiplomacyManager.DiplomacyStatus>> diplomacyStatusMap) {
         this.teamsNbt = RecruitsTeam.toNBT(teamList);
         this.diplomacyNbt = RecruitsDiplomacyManager.mapToNbt(diplomacyStatusMap);
     }
@@ -32,7 +32,7 @@ public class MessageToClientUpdateDiplomacyList implements Message<MessageToClie
     @Override
     public void executeClientSide(NetworkEvent.Context context) {
         DiplomacyTeamList.teams = RecruitsTeam.getListFromNBT(teamsNbt);
-        DiplomacyTeamList.diplomacyStatusMap = RecruitsDiplomacyManager.mapFromNbt(diplomacyNbt);
+        DiplomacyTeamList.diplomacyMap = RecruitsDiplomacyManager.mapFromNbt(diplomacyNbt);
     }
 
     @Override

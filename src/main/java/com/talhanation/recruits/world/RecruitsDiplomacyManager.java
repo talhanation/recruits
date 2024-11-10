@@ -3,7 +3,6 @@ package com.talhanation.recruits.world;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.network.MessageToClientSetToast;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.scores.PlayerTeam;
@@ -14,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 public class RecruitsDiplomacyManager {
-    private Map<String, Map<String, DiplomacyStatus>> diplomacyMap = new HashMap<>();
+    public Map<String, Map<String, DiplomacyStatus>> diplomacyMap = new HashMap<>();
 
     public void load(ServerLevel level) {
         RecruitsDiplomacySaveData data = RecruitsDiplomacySaveData.get(level);
@@ -35,18 +34,13 @@ public class RecruitsDiplomacyManager {
 
         data.setDirty();
     }
-
-    public DiplomacyStatus getRelation(String team, String otherTeam) {
-        return diplomacyMap.getOrDefault(team, new HashMap<>()).getOrDefault(otherTeam, DiplomacyStatus.NEUTRAL);
-    }
-
     public void setRelation(String team, String otherTeam, DiplomacyStatus relation, ServerLevel level) {
         diplomacyMap.computeIfAbsent(team, k -> new HashMap<>()).put(otherTeam, relation);
         this.notifyPlayersInTeam(team, otherTeam, relation, level);
     }
 
-    public Map<String, DiplomacyStatus> getAllRelations(String team) {
-        return diplomacyMap.getOrDefault(team, new HashMap<>());
+    public DiplomacyStatus getRelation(String team, String otherTeam) {
+        return diplomacyMap.getOrDefault(team, new HashMap<>()).getOrDefault(otherTeam, DiplomacyStatus.NEUTRAL);
     }
 
     public enum DiplomacyStatus {
@@ -100,31 +94,38 @@ public class RecruitsDiplomacyManager {
         return list;
     }
 
-    public static CompoundTag mapToNbt(Map<String, DiplomacyStatus> map) {
-        CompoundTag nbt = new CompoundTag();
-        ListTag list = new ListTag();
 
-        for (Map.Entry<String, DiplomacyStatus> entry : map.entrySet()) {
-            CompoundTag entryTag = new CompoundTag();
-            entryTag.putString("Team", entry.getKey());
-            entryTag.putByte("Status", entry.getValue().getByteValue());
-            list.add(entryTag);
-        }
-        nbt.put("DiplomacyMap", list);
+    public static CompoundTag mapToNbt(Map<String, Map<String, RecruitsDiplomacyManager.DiplomacyStatus>> diplomacyMap) {
+        CompoundTag nbt = new CompoundTag();
+
+        diplomacyMap.forEach((team, relations) -> {
+            CompoundTag teamTag = new CompoundTag();
+            relations.forEach((otherTeam, status) -> teamTag.putByte(otherTeam, status.getByteValue()));
+            nbt.put(team, teamTag);
+        });
+
         return nbt;
     }
 
-    public static Map<String, DiplomacyStatus> mapFromNbt(CompoundTag nbt) {
-        Map<String, DiplomacyStatus> map = new HashMap<>();
-        ListTag list = nbt.getList("DiplomacyMap", 10);
+    public static Map<String, Map<String, RecruitsDiplomacyManager.DiplomacyStatus>> mapFromNbt(CompoundTag nbt) {
+        Map<String, Map<String, RecruitsDiplomacyManager.DiplomacyStatus>> diplomacyMap = new HashMap<>();
 
-        for (int i = 0; i < list.size(); i++) {
-            CompoundTag entryTag = list.getCompound(i);
-            String team = entryTag.getString("Team");
-            DiplomacyStatus status = DiplomacyStatus.fromByte(entryTag.getByte("Status"));
-            map.put(team, status);
+        for (String team : nbt.getAllKeys()) {
+            CompoundTag teamTag = nbt.getCompound(team);
+            Map<String, RecruitsDiplomacyManager.DiplomacyStatus> relations = new HashMap<>();
+
+            for (String otherTeam : teamTag.getAllKeys()) {
+                byte statusByte = teamTag.getByte(otherTeam);
+                RecruitsDiplomacyManager.DiplomacyStatus status = RecruitsDiplomacyManager.DiplomacyStatus.fromByte(statusByte);
+                relations.put(otherTeam, status);
+            }
+
+            diplomacyMap.put(team, relations);
         }
-        return map;
+
+        return diplomacyMap;
     }
+
+
 }
 

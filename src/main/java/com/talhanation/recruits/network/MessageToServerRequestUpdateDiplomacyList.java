@@ -30,7 +30,7 @@ public class MessageToServerRequestUpdateDiplomacyList implements Message<Messag
         ServerPlayer player = context.getSender();
         if(player.getTeam() != null){
             List<RecruitsTeam> teamList = TeamEvents.recruitsTeamManager.getTeams().stream().toList();
-            Map<String, RecruitsDiplomacyManager.DiplomacyStatus> map = TeamEvents.recruitsDiplomacyManager.getAllRelations(player.getTeam().getName());
+            Map<String, Map<String, RecruitsDiplomacyManager.DiplomacyStatus>> map = TeamEvents.recruitsDiplomacyManager.diplomacyMap;
 
             Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateDiplomacyList(teamList, map));
         }

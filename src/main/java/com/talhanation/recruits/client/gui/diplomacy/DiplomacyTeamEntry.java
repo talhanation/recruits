@@ -30,12 +30,12 @@ public class DiplomacyTeamEntry extends ListScreenEntryBase<DiplomacyTeamEntry> 
     protected final BannerRenderer bannerRenderer;
     protected final RecruitsDiplomacyManager.DiplomacyStatus status;
 
-    public DiplomacyTeamEntry(DiplomacyTeamListScreen screen, @NotNull RecruitsTeam team, RecruitsDiplomacyManager.DiplomacyStatus status) {
+    public DiplomacyTeamEntry(DiplomacyTeamListScreen screen, @NotNull RecruitsTeam team) {
         this.minecraft = Minecraft.getInstance();
         this.screen = screen;
         this.team = team;
         this.bannerRenderer = new BannerRenderer(team);
-        this.status = status;
+        this.status = null;
     }
 
     @Override
