@@ -8,6 +8,7 @@ import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.init.*;
 import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.theading.RecruitsThread;
 import de.maxhenkel.corelib.ClientRegistry;
 import de.maxhenkel.corelib.CommonRegistry;
 import net.minecraft.client.KeyMapping;
@@ -19,6 +20,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
@@ -192,6 +195,10 @@ public class Main {
             String smallshipsversion = ModList.get().getModFileById("smallships").versionString();//2.0.0-a2.3.1 above shall be supported e.g.: "2.0.0-b1.1"
             isSmallShipsCompatible = smallshipsversion.contains("2.0.0-b1.3")||smallshipsversion.contains("2.0.0-b1.4");//TODO: Better Version check for compatible smallships versions
         }
+
+
+
+        RecruitsThread.getInstance().start();
     }
 
     @SubscribeEvent
@@ -249,5 +256,15 @@ public class Main {
         event.getRegistry().register(NOMAD);
         event.getRegistry().register(CROSSBOWMAN);
         event.getRegistry().register(HORSEMAN);
+    }
+
+    @SubscribeEvent
+    public void onServerStarting(ServerStartingEvent event) {
+        RecruitsThread.getInstance().start();
+    }
+
+    @SubscribeEvent
+    public void onServerStopping(ServerStoppingEvent event) {
+        RecruitsThread.getInstance().shutdown();
     }
 }
