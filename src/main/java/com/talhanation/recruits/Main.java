@@ -195,10 +195,6 @@ public class Main {
             String smallshipsversion = ModList.get().getModFileById("smallships").versionString();//2.0.0-a2.3.1 above shall be supported e.g.: "2.0.0-b1.1"
             isSmallShipsCompatible = smallshipsversion.contains("2.0.0-b1.3")||smallshipsversion.contains("2.0.0-b1.4");//TODO: Better Version check for compatible smallships versions
         }
-
-
-
-        RecruitsThread.getInstance().start();
     }
 
     @SubscribeEvent
@@ -258,13 +254,18 @@ public class Main {
         event.getRegistry().register(HORSEMAN);
     }
 
+
+    private RecruitsThread recruitsThread;
+    private Thread recruitsThreadWrapper;
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
-        RecruitsThread.getInstance().start();
+        recruitsThread = new RecruitsThread();
+        recruitsThreadWrapper = new Thread(recruitsThread, "RecruitsThread");
+        recruitsThreadWrapper.start();
     }
 
     @SubscribeEvent
     public void onServerStopping(ServerStoppingEvent event) {
-        RecruitsThread.getInstance().shutdown();
+        recruitsThreadWrapper.stop();
     }
 }

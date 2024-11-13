@@ -12,11 +12,11 @@ import com.talhanation.recruits.entities.ai.*;
 import com.talhanation.recruits.entities.ai.compat.BlockWithWeapon;
 import com.talhanation.recruits.entities.ai.navigation.RecruitPathNavigation;
 import com.talhanation.recruits.init.ModItems;
-import com.talhanation.recruits.init.ModSounds;
 import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.theading.AsyncGoalManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -129,13 +129,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private int maxFallDistance;
     public Vec3 holdPosVec;
     public boolean isInFormation;
-
+    AsyncGoalManager asyncGoalManager = new AsyncGoalManager(this);
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
         this.xpReward = 6;
         this.navigation = this.createNavigation(world);
         this.maxUpStep = 1F;
         this.setMaxFallDistance(1);
+
+        RecruitDismountAsyncGoal dismountGoal = new RecruitDismountAsyncGoal(this);
+        asyncGoalManager.registerGoal(dismountGoal);
     }
 
     ///////////////////////////////////NAVIGATION/////////////////////////////////////////
@@ -165,15 +168,15 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     ///////////////////////////////////TICK/////////////////////////////////////////
-    // @Override
     public void aiStep(){
         super.aiStep();
         updateSwingTime();
         updateShield();
-
+        this.asyncGoalManager.updateGoals();
         if(this instanceof IRangedRecruit  && this.tickCount % 20 == 0) pickUpArrows();
 
         if(needsTeamUpdate) updateTeam();
+
     }
     public void tick() {
         super.tick();
@@ -241,7 +244,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(5, new RecruitUpkeepPosGoal(this));
         this.goalSelector.addGoal(6, new RecruitUpkeepEntityGoal(this));
         this.goalSelector.addGoal(3, new RecruitMountEntity(this));
-        this.goalSelector.addGoal(3, new RecruitDismountEntity(this));
+        //this.goalSelector.addGoal(3, new RecruitDismountEntity(this));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.05D));
         this.goalSelector.addGoal(2, new RecruitFollowOwnerGoal(this, 1.05D, 300, 100));
         this.goalSelector.addGoal(2, new RecruitMeleeAttackGoal(this, 1.05D, this.getMeleeStartRange()));

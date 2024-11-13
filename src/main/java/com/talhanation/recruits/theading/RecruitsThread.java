@@ -1,48 +1,38 @@
 package com.talhanation.recruits.theading;
 
-public class RecruitsThread extends Thread {
-    private static RecruitsThread instance;
-    private boolean running;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
-    public static synchronized RecruitsThread getInstance() {
-        if (instance == null) {
-            instance = new RecruitsThread();
+public class RecruitsThread implements Runnable {
+    private static final BlockingQueue<RecruitsAsyncGoal> goalQueue = new LinkedBlockingQueue<>();
+    private volatile boolean running = true;
 
-        }
-        return instance;
+    public static void enqueueGoal(RecruitsAsyncGoal goal) {
+        goalQueue.add(goal);
     }
 
-    public void start(){
-        running = true;
-    }
-
-    private RecruitsThread() {
-        super("RecruitsThread");
+    public void stop() {
+        running = false;
     }
 
     @Override
     public void run() {
         while (running) {
             try {
-                RecruitsAsyncGoal nextGoal = RecruitsAsyncGoalQueue.poll();
-                if (nextGoal != null) {
-                    nextGoal.execute();
+                RecruitsAsyncGoal goal = goalQueue.poll();
+                if (goal != null) {
+                    if (goal.canContinueToUse()) {
+                        goal.tick();
+                    } else {
+                        goalQueue.remove(goal);
+                    }
                 }
-                Thread.sleep(10);  // Kurze Pause
+
+                Thread.sleep(50);
             } catch (InterruptedException e) {
-                running = false;
                 Thread.currentThread().interrupt();
-            } catch (Exception e) {
-                e.printStackTrace();
+                break;
             }
         }
     }
-
-    public void shutdown() {
-        running = false;
-    }
 }
-
-
-
-
