@@ -34,7 +34,11 @@ public class MessageToServerRequestUpdatePlayerList implements Message<MessageTo
         List<RecruitsPlayerInfo> playerInfoList = new ArrayList<>();
 
         for(ServerPlayer serverPlayer : playerList){
-            playerInfoList.add(new RecruitsPlayerInfo(serverPlayer.getUUID(), serverPlayer.getScoreboardName()));
+            if(serverPlayer.getTeam() != null){
+                playerInfoList.add(new RecruitsPlayerInfo(serverPlayer.getUUID(), serverPlayer.getScoreboardName(), serverPlayer.getTeam().getName()));
+            }
+            else
+                playerInfoList.add(new RecruitsPlayerInfo(serverPlayer.getUUID(), serverPlayer.getScoreboardName()));
         }
 
         Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdatePlayerList(playerInfoList));

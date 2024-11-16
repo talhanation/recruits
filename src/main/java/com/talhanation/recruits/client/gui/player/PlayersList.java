@@ -3,7 +3,8 @@ package com.talhanation.recruits.client.gui.player;
 import com.google.common.collect.Lists;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
-import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.event.world.NoteBlockEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,23 +16,48 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
     protected SelectPlayerScreen screen;
     protected final List<RecruitsPlayerEntry> entries;
     protected String filter;
+    protected final boolean sameTeamOnly;
     public static List<RecruitsPlayerInfo> onlinePlayers;
-    public PlayersList(int width, int height, int x, int y, int size, SelectPlayerScreen screen) {
+    public final Player player;
+    protected final boolean includeSelf;
+
+    public  PlayersList(int width, int height, int x, int y, int size, SelectPlayerScreen screen, boolean sameTeamOnly, Player player, boolean includeSelf) {
         super(width, height, x, y, size);
         this.screen = screen;
         this.entries = Lists.newArrayList();
         this.filter = "";
+        this.sameTeamOnly = sameTeamOnly;
+        this.player = player;
+        this.includeSelf = includeSelf;
         setRenderBackground(false);
         setRenderTopAndBottom(false);
         setRenderSelection(true);
-        updateEntryList();
+    }
+
+
+    boolean hasUpdated;
+    public void tick() {
+        if(!hasUpdated && onlinePlayers != null){
+            updateEntryList();
+            hasUpdated = true;
+        }
     }
 
     public void updateEntryList() {
         entries.clear();
 
         for (RecruitsPlayerInfo player : onlinePlayers) {
-            entries.add(new RecruitsPlayerEntry(screen, player));
+            if(!player.getUUID().equals(this.player.getUUID()) || includeSelf){
+
+                if(sameTeamOnly){
+                    if(player.getTeamName().equals(this.player.getTeam().getName())){
+                        entries.add(new RecruitsPlayerEntry(screen, player));
+                    }
+                }
+                else{
+                    entries.add(new RecruitsPlayerEntry(screen, player));
+                }
+            }
         }
 
         updateFilter();
@@ -71,5 +97,11 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
 
     public boolean isEmpty() {
         return children().isEmpty();
+    }
+
+    enum FilterSetting{
+        TEAM,
+        ALL
+
     }
 }

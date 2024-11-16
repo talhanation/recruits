@@ -250,7 +250,8 @@
   "chat.recruits.team_creation.addedPlayerLeader": "%s joined your Team successfully.",
   "chat.recruits.team_creation.could_not_find": "Could not find player.",
   "chat.recruits.team.assignNewOwnerNoTeam": "You need to be in a team to assign recruits to a new owner!",
-  "chat.recruits.team.assignNewOwnerNotFound": "No team mate nearby to assign recruits to.",
+  "chat.recruits.team.assignNewOwnerNotFound": "Team mate not found!",
+  "chat.recruits.team.assignNewOwnerLimitReached": "Team mate can not recruit any more!",
   "recruits": "Recruits",
 
   "key.recruits.r_key": "Open command screen",
@@ -382,6 +383,10 @@
    "gui.recruits.toast.setYouAsEnemy" : "%s has marked you as enemy",
    "gui.recruits.toast.setAsEnemy" : "%s is now marked as enemy",
 
+   "gui.recruits.toast.messengerArrivedTitle" : "Messenger Arrived",
+   "gui.recruits.toast.recruitAssignedTitle" : "Recruit Assigned",
+   "gui.recruits.toast.recruitAssigned" : "%s added a recruit to your command",
+   "gui.recruits.toast.messengerArrived" : "The Messenger of %s arrived",
 
 
    "gui.recruits.toast.JoinRequestTitle" : "Join Request",
@@ -389,5 +394,8 @@
    "gui.recruits.diplomacy_edit.title" : "Set Relation",
    "gui.recruits.button.setStance" : "Set Stance",
    "gui.recruits.button.confirm" : "Confirm",
-   "gui.recruits.button.back" : "Back"
+   "gui.recruits.button.back" : "Back",
+   "gui.recruits.button.Yes" : "Yes",
+   "gui.recruits.button.No" : "No",
+   "gui.recruits.more_screen.title" : "More"
  }

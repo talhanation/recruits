@@ -34,7 +34,9 @@ public class RecruitsPlayerInfo {
     public void setUUID(UUID uuid) {
         this.uuid = uuid;
     }
-
+    public String getTeamName() {
+        return teamName;
+    }
     public String getName() {
         return name;
     }

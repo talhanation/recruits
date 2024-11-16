@@ -3,62 +3,61 @@ package com.talhanation.recruits.client.gui.player;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.client.gui.CommandScreen;
-import com.talhanation.recruits.client.gui.group.GroupListWidget;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
+import com.talhanation.recruits.network.MessageToServerRequestUpdateDiplomacyList;
+import com.talhanation.recruits.network.MessageToServerRequestUpdatePlayerList;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.players.PlayerList;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
 
-import javax.annotation.Nullable;
-import javax.swing.*;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 public class SelectPlayerScreen extends ListScreenBase {
 
     protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_player.png");
     protected static final Component TITLE = new TranslatableComponent("gui.recruits.select_player_screen.title");
     protected static final Component CANCEL = new TranslatableComponent("gui.recruits.cancel");
-    protected static Component ACTION;
-    protected static Component TOOLTIP_ACTION;
+    protected static Component BUTTON_TEXT;
+    protected static Component TOOLTIP_BUTTON;
     protected static final int HEADER_SIZE = 16;
     protected static final int FOOTER_SIZE = 32;
     protected static final int SEARCH_HEIGHT = 16;
     protected static final int UNIT_SIZE = 18;
     protected static final int CELL_HEIGHT = 36;
-
     protected PlayersList playerList;
     protected EditBox searchBox;
     protected String lastSearch;
     protected int units;
 
     protected Screen parent;
-    private RecruitsPlayerInfo selected;
+    public RecruitsPlayerInfo selected;
     private Button backButton;
     private Button actionButton;
-    public SelectPlayerScreen(Screen parent, Component actionButton){
-        this(parent, actionButton, new TextComponent(""));
-    }
-    public SelectPlayerScreen(Screen parent, Component actionButtonText, Component toolTip){
-        super(TITLE,236,0);
+    private final Consumer<RecruitsPlayerInfo> buttonAction;
+    private final Player player;
+    public SelectPlayerScreen(Screen parent, Player player, Component title, Component buttonText, Component buttonTooltip, Consumer<RecruitsPlayerInfo> buttonAction){
+        super(title,236,0);
         this.parent = parent;
-        ACTION = actionButtonText;
-        TOOLTIP_ACTION = toolTip;
+        this.buttonAction = buttonAction;
+        this.player = player;
+        BUTTON_TEXT = buttonText;
+        TOOLTIP_BUTTON = buttonTooltip;
     }
+
 
     @Override
     protected void init() {
         super.init();
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdatePlayerList());
+
 
         guiLeft = guiLeft + 2;
         guiTop = 70;
@@ -71,7 +70,7 @@ public class SelectPlayerScreen extends ListScreenBase {
         if (playerList != null) {
             playerList.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
         } else {
-            playerList = new PlayersList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this);
+            playerList = new PlayersList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, true, player, false);
         }
         String string = searchBox != null ? searchBox.getValue() : "";
         searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, new TextComponent("SEARCH_HINT"));
@@ -86,13 +85,13 @@ public class SelectPlayerScreen extends ListScreenBase {
 
         backButton = new Button(guiLeft + 129, guiTop + ySize - 20 - 7, 100, 20, CANCEL,
                 button -> {
-            minecraft.setScreen(parent);
+                    minecraft.setScreen(parent);
          });
 
-        actionButton = new Button(guiLeft + 7, guiTop + ySize - 20 - 7, 100, 20, ACTION,
+        actionButton = new Button(guiLeft + 7, guiTop + ySize - 20 - 7, 100, 20, BUTTON_TEXT,
                 button -> {
-
-
+                buttonAction.accept(selected);
+                onClose();
         });
         actionButton.active = false;
 
@@ -105,6 +104,9 @@ public class SelectPlayerScreen extends ListScreenBase {
         super.tick();
         if(searchBox != null){
             searchBox.tick();
+        }
+        if(playerList != null){
+            playerList.tick();
         }
     }
 

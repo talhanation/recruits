@@ -6,12 +6,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.Scoreboard;
+import net.minecraft.world.scores.Team;
 import net.minecraftforge.network.PacketDistributor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 public class RecruitsDiplomacyManager {
     public Map<String, Map<String, DiplomacyStatus>> diplomacyMap = new HashMap<>();
 
@@ -79,8 +79,10 @@ public class RecruitsDiplomacyManager {
         }
     }
 
-    private List<ServerPlayer> getPlayersInTeam(String team, ServerLevel level) {
-        PlayerTeam playerTeam = level.getScoreboard().getPlayersTeam(team);
+    private List<ServerPlayer> getPlayersInTeam(String teamName, ServerLevel level) {
+        Scoreboard scoreboard = level.getScoreboard();
+        PlayerTeam playerTeam = scoreboard.getPlayerTeam(teamName);
+
         List<ServerPlayer> list = new ArrayList<>();
 
         if(playerTeam != null){

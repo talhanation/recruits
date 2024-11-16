@@ -42,7 +42,6 @@ public class ModScreens {
         registerMenu(TEAM_INSPECTION_TYPE.get(), TeamInspectionScreen::new);
         registerMenu(TEAM_LIST_TYPE.get(), TeamListScreen::new);
         registerMenu(TEAM_ADD_PLAYER_TYPE.get(), TeamManagePlayerScreen::new);
-        registerMenu(DISBAND.get(), DisbandScreen::new);
         registerMenu(PROMOTE.get(), PromoteScreen::new);
         registerMenu(MESSENGER.get(), MessengerScreen::new);
         registerMenu(MESSENGER_ANSWER.get(), MessengerAnswerScreen::new);

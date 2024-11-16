@@ -314,8 +314,8 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         //more
         addRenderableWidget(new Button(leftPos + 77 + 55, topPos + 4, 40, 12, new TextComponent("..."),
                 button -> {
-                    TeamEvents.openDisbandingScreen(this.playerInventory.player, this.recruit.getUUID());
-                    this.onClose();
+                    minecraft.setScreen(new DisbandScreen(this, this.recruit, this.playerInventory.player));
+
                 }
         ));
 

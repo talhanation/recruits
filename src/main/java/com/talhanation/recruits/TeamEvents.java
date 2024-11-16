@@ -505,28 +505,27 @@ public class  TeamEvents {
         return emeralds;
     }
 
-    public static void assignToTeamMate(ServerPlayer oldOwner, AbstractRecruitEntity recruit) {
+    public static void assignToTeamMate(ServerPlayer oldOwner, UUID newOwnerUUID, AbstractRecruitEntity recruit) {
         ServerLevel level = oldOwner.getLevel();
         Team team = oldOwner.getTeam();
 
         if(team != null){
-            Collection<String> list = team.getPlayers().stream().toList();
-            List<ServerPlayer> playerList = level.getEntitiesOfClass(ServerPlayer.class, oldOwner.getBoundingBox().inflate(32D));
+           Collection<String> list = team.getPlayers().stream().toList();
+           List<ServerPlayer> playerList = level.players();
 
-            playerList.sort(Comparator.comparing(serverPlayer -> serverPlayer.distanceTo(oldOwner)));
-            playerList.remove(0);// 0 is oldOwner
-
-            boolean playerNotFound = false;
-            ServerPlayer newOwner = null;
-            if(!playerList.isEmpty()) newOwner = playerList.get(0);
-
+           boolean playerNotFound = false;
+           ServerPlayer newOwner = playerList.stream().filter(player -> player.getUUID().equals(newOwnerUUID)).findFirst().orElse(null);
 
             if(newOwner != null){
                 if(list.contains(newOwner.getName().getString())){
+                    if (!RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(newOwnerUUID)) {
+                        oldOwner.sendMessage(new TranslatableComponent("chat.recruits.team.assignNewOwnerLimitReached"), oldOwner.getUUID());
+                        return;
+                    }
                     recruit.disband(oldOwner, true, true);
-                    if(!recruit.hire(newOwner)){
+                    recruit.hire(newOwner);
 
-                    };
+                    Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> newOwner), new MessageToClientSetToast(7, oldOwner.getName().getString()));
                 }
                 else
                     playerNotFound = true;
@@ -536,8 +535,6 @@ public class  TeamEvents {
 
             if(playerNotFound) oldOwner.sendMessage(new TranslatableComponent("chat.recruits.team.assignNewOwnerNotFound"), oldOwner.getUUID());
         }
-        else
-            oldOwner.sendMessage(new TranslatableComponent("chat.recruits.team.assignNewOwnerNoTeam"), oldOwner.getUUID());
     }
 
     @SubscribeEvent

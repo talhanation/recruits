@@ -6,10 +6,7 @@ import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.init.ModSounds;
 import com.talhanation.recruits.inventory.MessengerAnswerContainer;
 import com.talhanation.recruits.inventory.MessengerContainer;
-import com.talhanation.recruits.network.MessageOpenMessengerAnswerScreen;
-import com.talhanation.recruits.network.MessageOpenSpecialScreen;
-import com.talhanation.recruits.network.MessageToClientUpdateMessengerAnswerScreen;
-import com.talhanation.recruits.network.MessageToClientUpdateMessengerScreen;
+import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -474,6 +471,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
         Team ownerTeam = this.getTeam();
         if(ownerTeam != null )target.sendMessage(MESSENGER_ARRIVED_TEAM(this.getOwnerName(), ownerTeam.getName()), target.getUUID());
         else target.sendMessage(MESSENGER_ARRIVED(this.getOwnerName()), target.getUUID());
+        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> target), new MessageToClientSetToast(7, this.getOwnerName()));
     }
 
     private MutableComponent PLAYER_NOT_FOUND(){
