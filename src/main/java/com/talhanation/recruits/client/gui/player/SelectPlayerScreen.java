@@ -4,7 +4,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
-import com.talhanation.recruits.network.MessageToServerRequestUpdateDiplomacyList;
 import com.talhanation.recruits.network.MessageToServerRequestUpdatePlayerList;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.client.gui.components.Button;
@@ -23,7 +22,9 @@ import java.util.function.Consumer;
 public class SelectPlayerScreen extends ListScreenBase {
 
     protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_player.png");
-    protected static final Component TITLE = new TranslatableComponent("gui.recruits.select_player_screen.title");
+    public static final Component TITLE = new TranslatableComponent("gui.recruits.select_player_screen.title");
+    public static final Component BUTTON_SELECT = new TranslatableComponent("gui.recruits.select_player_screen.selectPlayer");
+    public static final Component BUTTON_SELECT_TOOLTIP = new TranslatableComponent("gui.recruits.select_player_screen.selectPlayerTooltip");
     protected static final Component CANCEL = new TranslatableComponent("gui.recruits.cancel");
     protected static Component BUTTON_TEXT;
     protected static Component TOOLTIP_BUTTON;
@@ -43,11 +44,16 @@ public class SelectPlayerScreen extends ListScreenBase {
     private Button actionButton;
     private final Consumer<RecruitsPlayerInfo> buttonAction;
     private final Player player;
-    public SelectPlayerScreen(Screen parent, Player player, Component title, Component buttonText, Component buttonTooltip, Consumer<RecruitsPlayerInfo> buttonAction){
+    private final boolean includeSelf;
+    private final boolean sameTeamOnly;
+
+    public SelectPlayerScreen(Screen parent, Player player, Component title, Component buttonText, Component buttonTooltip, boolean includeSelf, boolean sameTeamOnly, Consumer<RecruitsPlayerInfo> buttonAction){
         super(title,236,0);
         this.parent = parent;
         this.buttonAction = buttonAction;
         this.player = player;
+        this.includeSelf = includeSelf;
+        this.sameTeamOnly = sameTeamOnly;
         BUTTON_TEXT = buttonText;
         TOOLTIP_BUTTON = buttonTooltip;
     }
@@ -57,7 +63,6 @@ public class SelectPlayerScreen extends ListScreenBase {
     protected void init() {
         super.init();
         Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdatePlayerList());
-
 
         guiLeft = guiLeft + 2;
         guiTop = 70;
@@ -70,7 +75,7 @@ public class SelectPlayerScreen extends ListScreenBase {
         if (playerList != null) {
             playerList.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
         } else {
-            playerList = new PlayersList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, true, player, false);
+            playerList = new PlayersList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, sameTeamOnly, player, includeSelf);
         }
         String string = searchBox != null ? searchBox.getValue() : "";
         searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, new TextComponent("SEARCH_HINT"));
@@ -91,7 +96,6 @@ public class SelectPlayerScreen extends ListScreenBase {
         actionButton = new Button(guiLeft + 7, guiTop + ySize - 20 - 7, 100, 20, BUTTON_TEXT,
                 button -> {
                 buttonAction.accept(selected);
-                onClose();
         });
         actionButton.active = false;
 

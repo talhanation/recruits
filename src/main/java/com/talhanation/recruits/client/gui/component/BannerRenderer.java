@@ -16,6 +16,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
 import net.minecraft.world.level.block.entity.BannerPattern;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -23,18 +24,30 @@ public class BannerRenderer {
     private final List<Pair<BannerPattern, DyeColor>> resultBannerPatterns;
     private final ModelPart flag;
     private final ItemStack bannerItem;
-    private RecruitsTeam recruitsTeam;
-    private Minecraft minecraft;
-    public BannerRenderer(RecruitsTeam team) {
-        this.bannerItem = ItemStack.of(team.getBanner());
-        this.resultBannerPatterns = BannerBlockEntity.createPatterns(((BannerItem) this.bannerItem.getItem()).getColor(), BannerBlockEntity.getItemPatterns(this.bannerItem));
-        this.flag = Minecraft.getInstance().getEntityModels().bakeLayer(ModelLayers.BANNER).getChild("flag");
+    private final RecruitsTeam recruitsTeam;
+    private final Minecraft minecraft;
+    public BannerRenderer(@Nullable RecruitsTeam team) {
         this.recruitsTeam = team;
-        minecraft = Minecraft.getInstance();
+
+        if (team != null && team.getBanner() != null) {
+            this.bannerItem = ItemStack.of(team.getBanner());
+            this.resultBannerPatterns = BannerBlockEntity.createPatterns(
+                    ((BannerItem) this.bannerItem.getItem()).getColor(),
+                    BannerBlockEntity.getItemPatterns(this.bannerItem)
+            );
+        } else {
+            this.bannerItem = ItemStack.EMPTY;
+            this.resultBannerPatterns = List.of();
+        }
+
+        this.flag = Minecraft.getInstance().getEntityModels()
+                .bakeLayer(ModelLayers.BANNER)
+                .getChild("flag"); 
+        this.minecraft = Minecraft.getInstance();
     }
 
     public void renderBanner(PoseStack poseStack, int left, int top, int width, int height, int scale0) {
-        if (bannerItem != null) {
+        if (!bannerItem.isEmpty()) {
             GuiComponent.blit(poseStack, left, top, left + width, top + height, 0, 0, 256, 256);
             Lighting.setupForFlatItems();
 

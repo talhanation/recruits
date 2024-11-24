@@ -4,10 +4,14 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.component.MultiLineEditBox;
+import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
 import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.inventory.MessengerContainer;
 import com.talhanation.recruits.network.MessageSendMessenger;
+import com.talhanation.recruits.util.GameProfileUtils;
+import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.renderer.GameRenderer;
@@ -16,25 +20,28 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FastColor;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.UUID;
+
 public class MessengerScreen extends ScreenBase<MessengerContainer> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/professions/blank_gui.png");
+    protected static final int PLAYER_NAME_COLOR = FastColor.ARGB32.color(255, 255, 255, 255);
     private final Player player;
+    private RecruitsPlayerInfo selectedPlayer;
     private final MessengerEntity recruit;
-    private EditBox textFieldPlayer;
     private MultiLineEditBox textFieldMessage;
     private int leftPos;
     private int topPos;
     public static String message = "Message";
 
     private static final MutableComponent TOOLTIP_MESSENGER = new TranslatableComponent("gui.recruits.inv.tooltip.messenger");
-    private static final MutableComponent BUTTON_MESSENGER = new TranslatableComponent("gui.recruits.inv.text.send_messenger");
+    private static final MutableComponent BUTTON_SEND_MESSENGER = new TranslatableComponent("gui.recruits.inv.text.send_messenger");
     private static final int fontColor = 4210752;
-
     public MessengerScreen(MessengerContainer container, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, container, playerInventory, new TextComponent(""));
         this.imageWidth = 197;
@@ -49,82 +56,82 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
             this.onClose();
             return true;
         }
-        if(textFieldPlayer.isFocused()){
-            setFocused(textFieldPlayer);
-            return textFieldPlayer.keyPressed(key, a, b) || textFieldPlayer.canConsumeInput() || super.keyPressed(key, a, b);
-        }
-        else{
-            setFocused(textFieldMessage);
-            return textFieldMessage.keyPressed(key, a, b) || textFieldMessage.isFocused() || super.keyPressed(key, a, b);
-        }
 
+        setFocused(textFieldMessage);
+        return textFieldMessage.keyPressed(key, a, b) || textFieldMessage.isFocused() || super.keyPressed(key, a, b);
     }
 
     @Override
     protected void init() {
         super.init();
-
+        //selectedPlayer = new RecruitsPlayerInfo(new UUID(2,2), "Test");
         this.minecraft.keyboardHandler.setSendRepeatsToGui(true);
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
 
-
-        Component componentPlayer = new TextComponent("Player");
-        String targetPlayerName = recruit.getTargetPlayerName();
-        if (targetPlayerName != null && !targetPlayerName.isEmpty() && !targetPlayerName.isBlank())
-            componentPlayer = new TextComponent(targetPlayerName);
-
-        this.textFieldPlayer = new EditBox(font, leftPos + 3, topPos + 17, 186, 14, componentPlayer);
-        this.textFieldPlayer.setMaxLength(23);
-        this.textFieldPlayer.setBordered(true);
-        this.textFieldPlayer.setVisible(true);
-        this.textFieldPlayer.setTextColor(-1);
-        this.textFieldPlayer.setValue(componentPlayer.getString());
-
-        addRenderableWidget(textFieldPlayer);
-
-        this.textFieldMessage = new MultiLineEditBox(font, leftPos + 3, topPos + 47, 186, 150, new TextComponent(""), new TextComponent(""));
-        this.textFieldMessage.setValue(message);
-
-        addRenderableWidget(textFieldMessage);
-
-        this.setInitialFocus(this.textFieldPlayer);
-        this.textFieldPlayer.setFocus(true);
-
-        setSendButton();
+        setButtons();
     }
     protected void containerTick() {
         super.containerTick();
-        textFieldPlayer.tick();
         textFieldMessage.tick();
     }
     public boolean mouseClicked(double p_100753_, double p_100754_, int p_100755_) {
-        if (this.textFieldPlayer.isFocused()) {
-            this.textFieldPlayer.mouseClicked(p_100753_, p_100754_, p_100755_);
-        }
         if (this.textFieldMessage.isFocused()) {
             this.textFieldMessage.mouseClicked(p_100753_, p_100754_, p_100755_);
         }
         return super.mouseClicked(p_100753_, p_100754_, p_100755_);
     }
 
-    private void setSendButton() {
-        Button sendButton = addRenderableWidget(new Button(leftPos + 33, topPos + 200, 128, 20, BUTTON_MESSENGER,
+    private void setButtons() {
+        clearWidgets();
+
+        Button sendButton = addRenderableWidget(new Button(leftPos + 33, topPos + 200, 128, 20, BUTTON_SEND_MESSENGER,
                 button -> {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageSendMessenger(recruit.getUUID(), textFieldPlayer.getValue(), textFieldMessage.getValue(), true));
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageSendMessenger(recruit.getUUID(), selectedPlayer.getName(), textFieldMessage.getValue(), true));
                     this.onClose();
                 },
                 (button1, poseStack, i, i1) -> {
                     this.renderTooltip(poseStack, TOOLTIP_MESSENGER, i, i1);
                 }
         ));
-        //sendButton.active = recruit.getXpLevel() >= 3;
+        sendButton.active = selectedPlayer != null;
+
+        if(this.selectedPlayer != null){
+            Button delPlayerButton = addRenderableWidget(new Button(leftPos + 148, topPos + 15, 20, 20, new TextComponent("x"),
+                    button -> {
+                        this.selectedPlayer = null;
+                        this.setButtons();
+                    }
+            ));
+        }
+        else
+        {
+            Button selectPlayerButton = addRenderableWidget(new Button(leftPos + 33, topPos + 15, 128, 20, SelectPlayerScreen.TITLE,
+                    button -> {
+                        minecraft.setScreen(new SelectPlayerScreen(this, player, SelectPlayerScreen.TITLE, SelectPlayerScreen.BUTTON_SELECT, SelectPlayerScreen.BUTTON_SELECT_TOOLTIP, true, false,
+                                (playerInfo) -> {
+                                    this.selectedPlayer = playerInfo;
+                                    minecraft.setScreen(this);
+                                }
+                        ));
+
+                    },
+                    (button1, poseStack, i, i1) -> {
+                        this.renderTooltip(poseStack, TOOLTIP_MESSENGER, i, i1);
+                    }
+            ));
+        }
+
+        this.textFieldMessage = new MultiLineEditBox(font, leftPos + 3, topPos + 47, 186, 150, new TextComponent(""), new TextComponent(""));
+        this.textFieldMessage.setValue(message);
+
+        addRenderableWidget(textFieldMessage);
     }
 
     @Override
     public void onClose() {
         super.onClose();
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageSendMessenger(recruit.getUUID(), textFieldPlayer.getValue(), textFieldMessage.getValue(), false));
+        //Main.SIMPLE_CHANNEL.sendToServer(new MessageSendMessenger(recruit.getUUID(), selectedPlayer.getName(), textFieldMessage.getValue(), false));
     }
 
     protected void render(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
@@ -133,14 +140,27 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
         RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
         this.blit(poseStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
     }
-
+    int skinX = 50;
+    int skinY = 15;
+    int textX = 80;
+    int textY = 22;
     @Override
     protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
-        //Info
+
         int fontColor = 4210752;
         font.draw(matrixStack, "Player:", 5, 5, fontColor);
         font.draw(matrixStack, "Message:", 5, 35, fontColor);
+
+        if(selectedPlayer != null){
+            RenderSystem.setShaderTexture(0, GameProfileUtils.getSkin(selectedPlayer.getUUID()));
+            GuiComponent.blit(matrixStack, skinX, skinY, 20, 20, 8, 8, 8, 8, 64, 64);
+            RenderSystem.enableBlend();
+            GuiComponent.blit(matrixStack,skinX,  skinY,  20, 20, 40, 8, 8, 8, 64, 64);
+            RenderSystem.disableBlend();
+            font.draw(matrixStack, selectedPlayer.getName(), (float) textX, (float) textY, PLAYER_NAME_COLOR);
+
+        }
 
         if(!recruit.getMainHandItem().isEmpty()){
             itemRenderer.renderGuiItem(recruit.getMainHandItem(), 140, 202);

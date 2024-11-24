@@ -2,6 +2,7 @@ package com.talhanation.recruits.client.gui.player;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.widgets.ListScreenEntryBase;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
 import com.talhanation.recruits.util.GameProfileUtils;
@@ -24,10 +25,12 @@ public class RecruitsPlayerEntry extends ListScreenEntryBase<RecruitsPlayerEntry
     protected final Minecraft minecraft;
     protected final SelectPlayerScreen screen;
     protected final @NotNull RecruitsPlayerInfo player;
+    protected final BannerRenderer bannerRenderer;
     public RecruitsPlayerEntry(SelectPlayerScreen screen, @NotNull RecruitsPlayerInfo player) {
         this.minecraft = Minecraft.getInstance();
         this.screen = screen;
         this.player = player;
+        this.bannerRenderer = new BannerRenderer(player.getRecruitsTeam());
     }
 
     @Override
@@ -58,6 +61,10 @@ public class RecruitsPlayerEntry extends ListScreenEntryBase<RecruitsPlayerEntry
         GuiComponent.blit(poseStack, skinX, skinY, SKIN_SIZE, SKIN_SIZE, 40, 8, 8, 8, 64, 64);
         RenderSystem.disableBlend();
         minecraft.font.draw(poseStack, player.getName(), (float) textX, (float) textY, PLAYER_NAME_COLOR);
+
+        if(bannerRenderer != null){
+            bannerRenderer.renderBanner(poseStack, left + 185, top, width, height, 15);
+        }
     }
 
     @Nullable

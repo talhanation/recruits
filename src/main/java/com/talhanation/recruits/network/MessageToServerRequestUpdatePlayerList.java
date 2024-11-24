@@ -35,7 +35,8 @@ public class MessageToServerRequestUpdatePlayerList implements Message<MessageTo
 
         for(ServerPlayer serverPlayer : playerList){
             if(serverPlayer.getTeam() != null){
-                playerInfoList.add(new RecruitsPlayerInfo(serverPlayer.getUUID(), serverPlayer.getScoreboardName(), serverPlayer.getTeam().getName()));
+                RecruitsTeam team = TeamEvents.recruitsTeamManager.getTeamByName(serverPlayer.getTeam().getName());
+                playerInfoList.add(new RecruitsPlayerInfo(serverPlayer.getUUID(), serverPlayer.getScoreboardName(), team));
             }
             else
                 playerInfoList.add(new RecruitsPlayerInfo(serverPlayer.getUUID(), serverPlayer.getScoreboardName()));

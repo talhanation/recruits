@@ -361,6 +361,8 @@
   "subtitles.recruits.messenger_horn": "Messenger horn plays",
 
    "gui.recruits.select_player_screen.title": "Select Player",
+   "gui.recruits.select_player_screen.selectPlayer": "Select",
+   "gui.recruits.select_player_screen.selectPlayerTooltip": "Select this Player",
    "gui.recruits.cancel": "Cancel",
    "gui.recruits.back": "Back",
    "gui.recruits.team_list.players_count": " %s / %s",

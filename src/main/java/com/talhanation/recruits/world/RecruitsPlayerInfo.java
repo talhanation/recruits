@@ -3,8 +3,6 @@ package com.talhanation.recruits.world;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.world.scores.PlayerTeam;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -14,17 +12,15 @@ import java.util.UUID;
 public class RecruitsPlayerInfo {
     private UUID uuid;
     private String name;
-    private String teamName;
     @Nullable
-    private PlayerTeam playerTeam;
-
+    private final RecruitsTeam recruitsTeam;
     public RecruitsPlayerInfo(UUID uuid, String name) {
-        this(uuid, name, "No Team");
+        this(uuid, name, null);
     }
-    public RecruitsPlayerInfo(UUID uuid, String name, String teamName) {
+    public RecruitsPlayerInfo(UUID uuid, String name, @Nullable RecruitsTeam recruitsTeam) {
         this.uuid = uuid;
         this.name = name;
-        this.teamName = teamName;
+        this.recruitsTeam = recruitsTeam;
     }
 
     public UUID getUUID() {
@@ -34,9 +30,7 @@ public class RecruitsPlayerInfo {
     public void setUUID(UUID uuid) {
         this.uuid = uuid;
     }
-    public String getTeamName() {
-        return teamName;
-    }
+
     public String getName() {
         return name;
     }
@@ -46,21 +40,15 @@ public class RecruitsPlayerInfo {
     }
 
     @Nullable
-    public PlayerTeam getPlayerTeam() {
-        return playerTeam;
+    public RecruitsTeam getRecruitsTeam(){
+        return recruitsTeam;
     }
-
-    public void setPlayerTeam(@NotNull PlayerTeam playerTeam) {
-        this.playerTeam = playerTeam;
-        this.teamName = playerTeam.getName();
-    }
-
     @Override
     public String toString() {
         return "{" +
                 ", uuid=" + uuid +
                 ", name=" + name +
-                ", playerTeam=" + playerTeam +
+                ", team=" + recruitsTeam +
                 '}';
     }
 
@@ -69,16 +57,19 @@ public class RecruitsPlayerInfo {
         CompoundTag nbt = new CompoundTag();
         nbt.putUUID("UUID", uuid);
         nbt.putString("Name", name);
-        nbt.putString("TeamName", teamName);
+        if(recruitsTeam != null){
+            nbt.put("RecruitsTeam", this.recruitsTeam.toNBT());
+        }
+
         return nbt;
     }
 
     public static RecruitsPlayerInfo getFromNBT(CompoundTag nbt) {
         UUID uuid = nbt.getUUID("UUID");
         String name = nbt.getString("Name");
-        String teamName = nbt.getString("TeamName");
+        RecruitsTeam team = RecruitsTeam.fromNBT(nbt.getCompound("RecruitsTeam"));
 
-        return new RecruitsPlayerInfo(uuid, name, teamName);
+        return new RecruitsPlayerInfo(uuid, name, team);
     }
 
     public static CompoundTag toNBT(List<RecruitsPlayerInfo> list) {

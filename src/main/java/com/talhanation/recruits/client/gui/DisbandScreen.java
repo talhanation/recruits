@@ -79,9 +79,12 @@ public class DisbandScreen extends RecruitsScreenBase {
         Button giveToTeamMate = addRenderableWidget(new Button(guiLeft + 32, guiTop + ySize - 98 - 7, 130, 20, TEAM_MATE,
             btn -> {
                 if(recruit != null) {
-                    minecraft.setScreen(new SelectPlayerScreen(this, player, TEAM_MATE_GROUP, TEAM_MATE_GROUP, TOOLTIP_ASSIGN_GROUP_TO_MATE,
-                            (playerInfo) -> Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignToTeamMate(this.recruit.getUUID(), playerInfo.getUUID()))
-                    ));
+                    minecraft.setScreen(new SelectPlayerScreen(this, player, TEAM_MATE_GROUP, TEAM_MATE_GROUP, TOOLTIP_ASSIGN_GROUP_TO_MATE, true, true,
+                            (playerInfo) -> {
+                                Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignToTeamMate(this.recruit.getUUID(), playerInfo.getUUID()));
+                                onClose();
+                            } )
+                    );
                 }
             },
             (button, poseStack, i, i1) -> {
@@ -114,9 +117,12 @@ public class DisbandScreen extends RecruitsScreenBase {
         Button buttonAssignGroup = addRenderableWidget(new Button(guiLeft + 32, guiTop + ySize - 54 - 7, 130, 20, TEAM_MATE_GROUP,
             btn -> {
                 if(recruit != null) {
-                    minecraft.setScreen(new SelectPlayerScreen(this, player, TEAM_MATE_GROUP, TEAM_MATE_GROUP, TOOLTIP_ASSIGN_GROUP_TO_MATE,
-                        (playerInfo) -> Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToTeamMate(this.player.getUUID(), playerInfo.getUUID(), this.recruit.getUUID()))
-                    ));
+                    minecraft.setScreen(new SelectPlayerScreen(this, player, TEAM_MATE_GROUP, TEAM_MATE_GROUP, TOOLTIP_ASSIGN_GROUP_TO_MATE, true, true,
+                        (playerInfo) -> {
+                            Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToTeamMate(this.player.getUUID(), playerInfo.getUUID(), this.recruit.getUUID()));
+                            onClose();
+                        } )
+                    );
                 }
             },
             (button, poseStack, i, i1) -> {

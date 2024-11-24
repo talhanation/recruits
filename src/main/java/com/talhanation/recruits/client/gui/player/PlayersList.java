@@ -3,7 +3,9 @@ package com.talhanation.recruits.client.gui.player;
 import com.google.common.collect.Lists;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
+import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.scores.Team;
 import net.minecraftforge.event.world.NoteBlockEvent;
 
 import java.util.ArrayList;
@@ -45,12 +47,14 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
 
     public void updateEntryList() {
         entries.clear();
-
+        Team team = this.player.getTeam();
         for (RecruitsPlayerInfo player : onlinePlayers) {
-            if(!player.getUUID().equals(this.player.getUUID()) || includeSelf){
+            if(includeSelf || !player.getUUID().equals(this.player.getUUID())){
 
                 if(sameTeamOnly){
-                    if(player.getTeamName().equals(this.player.getTeam().getName())){
+                    RecruitsTeam recruitsTeam = player.getRecruitsTeam();
+
+                    if(recruitsTeam != null && team != null && recruitsTeam.getTeamName().equals(team.getName())){
                         entries.add(new RecruitsPlayerEntry(screen, player));
                     }
                 }
@@ -97,11 +101,5 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
 
     public boolean isEmpty() {
         return children().isEmpty();
-    }
-
-    enum FilterSetting{
-        TEAM,
-        ALL
-
     }
 }

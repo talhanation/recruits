@@ -114,6 +114,12 @@ public class RecruitsTeam {
     public void setTeamColor(int color) {
         this.teamColor = color;
     }
+
+    @Override
+    public String toString() {
+        return this.getTeamName();
+    }
+
     public CompoundTag toNBT() {
         CompoundTag nbt = new CompoundTag();
         nbt.putString("teamName", this.teamName);
@@ -138,6 +144,9 @@ public class RecruitsTeam {
 
     // Method to load RecruitsTeam from NBT
     public static RecruitsTeam fromNBT(CompoundTag nbt) {
+        if(nbt.isEmpty()) {
+            return null;
+        }
         RecruitsTeam team = new RecruitsTeam();
         team.setTeamName(nbt.getString("teamName"));
         team.setTeamLeaderID(nbt.getUUID("teamLeaderID"));
