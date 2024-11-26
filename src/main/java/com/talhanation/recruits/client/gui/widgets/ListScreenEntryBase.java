@@ -2,7 +2,6 @@ package com.talhanation.recruits.client.gui.widgets;
 
 
 import com.google.common.collect.Lists;
-import com.talhanation.recruits.client.gui.group.GroupListWidget;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.gui.components.events.GuiEventListener;

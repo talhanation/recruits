@@ -1,7 +1,7 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
-import com.talhanation.recruits.client.gui.group.GroupManageScreen;
+import com.talhanation.recruits.client.gui.group.RecruitsGroupList;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -9,13 +9,13 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
 
-public class MessageToClientUpdateGroupManageScreen implements Message<MessageToClientUpdateGroupManageScreen> {
+public class MessageToClientUpdateGroupList implements Message<MessageToClientUpdateGroupList> {
     private CompoundTag nbt;
-    public MessageToClientUpdateGroupManageScreen() {
+    public MessageToClientUpdateGroupList() {
 
     }
 
-    public MessageToClientUpdateGroupManageScreen(CompoundTag nbt) {
+    public MessageToClientUpdateGroupList(CompoundTag nbt) {
         this.nbt = nbt;
     }
 
@@ -26,11 +26,11 @@ public class MessageToClientUpdateGroupManageScreen implements Message<MessageTo
 
     @Override
     public void executeClientSide(NetworkEvent.Context context) {
-        GroupManageScreen.groups = CommandEvents.getRecruitsGroupListFormNBT(this.nbt);
+        RecruitsGroupList.groups = CommandEvents.getRecruitsGroupListFormNBT(this.nbt);
     }
 
     @Override
-    public MessageToClientUpdateGroupManageScreen fromBytes(FriendlyByteBuf buf) {
+    public MessageToClientUpdateGroupList fromBytes(FriendlyByteBuf buf) {
         this.nbt = buf.readNbt();
         return this;
     }

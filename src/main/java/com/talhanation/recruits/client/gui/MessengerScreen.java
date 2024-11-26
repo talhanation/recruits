@@ -117,7 +117,7 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
         {
             Button selectPlayerButton = addRenderableWidget(new Button(leftPos + 33, topPos + 15, 128, 20, SelectPlayerScreen.TITLE,
                     button -> {
-                        minecraft.setScreen(new SelectPlayerScreen(this, player, SelectPlayerScreen.TITLE, SelectPlayerScreen.BUTTON_SELECT, SelectPlayerScreen.BUTTON_SELECT_TOOLTIP, true, false,
+                        minecraft.setScreen(new SelectPlayerScreen(this, player, SelectPlayerScreen.TITLE, SelectPlayerScreen.BUTTON_SELECT, SelectPlayerScreen.BUTTON_SELECT_TOOLTIP, false, false,
                                 (playerInfo) -> {
                                     this.selectedPlayer = playerInfo;
                                     minecraft.setScreen(this);

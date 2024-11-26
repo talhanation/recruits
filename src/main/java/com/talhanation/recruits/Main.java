@@ -170,10 +170,10 @@ public class Main {
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 66, MessageToClientUpdateMessengerAnswerScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 67, MessageOpenMessengerAnswerScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 68, MessageClearUpkeepGui.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 69, MessageOpenGroupManageScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 69, MessageToServerRequestUpdateGroupList.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 70, MessageApplyNoGroup.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 71, MessageServerSavePlayerGroups.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 72, MessageToClientUpdateGroupManageScreen.class);
+        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 72, MessageToClientUpdateGroupList.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 73, MessageToClientUpdateRecruitInventoryScreen.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 74, MessageFormationFollowMovement.class);
         CommonRegistry.registerMessage(SIMPLE_CHANNEL, 75, MessageRest.class);

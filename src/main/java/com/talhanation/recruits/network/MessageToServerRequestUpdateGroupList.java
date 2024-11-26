@@ -1,25 +1,19 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
+import com.talhanation.recruits.Main;
 import de.maxhenkel.corelib.net.Message;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 
-import java.util.UUID;
+public class MessageToServerRequestUpdateGroupList implements Message<MessageToServerRequestUpdateGroupList> {
 
-public class MessageOpenGroupManageScreen implements Message<MessageOpenGroupManageScreen> {
 
-    private UUID uuid;
-
-    public MessageOpenGroupManageScreen() {
-        this.uuid = new UUID(0, 0);
-    }
-
-    public MessageOpenGroupManageScreen(Player player) {
-        this.uuid = player.getUUID();
+    public MessageToServerRequestUpdateGroupList() {
     }
 
     @Override
@@ -29,21 +23,20 @@ public class MessageOpenGroupManageScreen implements Message<MessageOpenGroupMan
 
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
-        if (!context.getSender().getUUID().equals(uuid)) {
-            return;
-        }
         ServerPlayer player = context.getSender();
-        CommandEvents.openGroupManageScreen(player);
+        CompoundTag nbt = CommandEvents.getCompoundTagFromRecruitsGroupList(CommandEvents.loadPlayersGroupsFromNBT(player));
+
+        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateGroupList(nbt));
     }
 
     @Override
-    public MessageOpenGroupManageScreen fromBytes(FriendlyByteBuf buf) {
-        this.uuid = buf.readUUID();
+    public MessageToServerRequestUpdateGroupList fromBytes(FriendlyByteBuf buf) {
         return this;
     }
 
     @Override
     public void toBytes(FriendlyByteBuf buf) {
-        buf.writeUUID(uuid);
+
     }
+
 }
