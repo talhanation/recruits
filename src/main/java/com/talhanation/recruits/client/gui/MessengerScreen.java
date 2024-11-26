@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.component.MultiLineEditBox;
 import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
+import com.talhanation.recruits.client.gui.widgets.SelectedPlayerWidget;
 import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.inventory.MessengerContainer;
 import com.talhanation.recruits.network.MessageSendMessenger;
@@ -38,7 +39,7 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
     private int leftPos;
     private int topPos;
     public static String message = "Message";
-
+    private SelectedPlayerWidget selectedPlayerWidget;
     private static final MutableComponent TOOLTIP_MESSENGER = new TranslatableComponent("gui.recruits.inv.tooltip.messenger");
     private static final MutableComponent BUTTON_SEND_MESSENGER = new TranslatableComponent("gui.recruits.inv.text.send_messenger");
     private static final int fontColor = 4210752;
@@ -85,7 +86,11 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
     private void setButtons() {
         clearWidgets();
 
-        Button sendButton = addRenderableWidget(new Button(leftPos + 33, topPos + 200, 128, 20, BUTTON_SEND_MESSENGER,
+        this.textFieldMessage = new MultiLineEditBox(font, leftPos + 3, topPos + 47, 186, 150, new TextComponent(""), new TextComponent(""));
+        this.textFieldMessage.setValue(message);
+        addRenderableWidget(textFieldMessage);
+
+        Button sendButton = addRenderableWidget(new Button(leftPos + 33, topPos + 198, 128, 20, BUTTON_SEND_MESSENGER,
                 button -> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageSendMessenger(recruit.getUUID(), selectedPlayer.getName(), textFieldMessage.getValue(), true));
                     this.onClose();
@@ -97,12 +102,16 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
         sendButton.active = selectedPlayer != null;
 
         if(this.selectedPlayer != null){
-            Button delPlayerButton = addRenderableWidget(new Button(leftPos + 148, topPos + 15, 20, 20, new TextComponent("x"),
-                    button -> {
+            this.selectedPlayerWidget = new SelectedPlayerWidget(font, leftPos + 33, topPos + 15, 128, 20, new TextComponent("x"), // Button label
+                    () -> {
                         this.selectedPlayer = null;
+                        this.selectedPlayerWidget.setPlayer(null, null);
                         this.setButtons();
                     }
-            ));
+            );
+
+            this.selectedPlayerWidget.setPlayer(selectedPlayer.getUUID(), selectedPlayer.getName());
+            addRenderableWidget(this.selectedPlayerWidget);
         }
         else
         {
@@ -121,17 +130,11 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
                     }
             ));
         }
-
-        this.textFieldMessage = new MultiLineEditBox(font, leftPos + 3, topPos + 47, 186, 150, new TextComponent(""), new TextComponent(""));
-        this.textFieldMessage.setValue(message);
-
-        addRenderableWidget(textFieldMessage);
     }
 
     @Override
     public void onClose() {
         super.onClose();
-        //Main.SIMPLE_CHANNEL.sendToServer(new MessageSendMessenger(recruit.getUUID(), selectedPlayer.getName(), textFieldMessage.getValue(), false));
     }
 
     protected void render(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
@@ -140,10 +143,6 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
         RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
         this.blit(poseStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
     }
-    int skinX = 50;
-    int skinY = 15;
-    int textX = 80;
-    int textY = 22;
     @Override
     protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
@@ -151,16 +150,6 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
         int fontColor = 4210752;
         font.draw(matrixStack, "Player:", 5, 5, fontColor);
         font.draw(matrixStack, "Message:", 5, 35, fontColor);
-
-        if(selectedPlayer != null){
-            RenderSystem.setShaderTexture(0, GameProfileUtils.getSkin(selectedPlayer.getUUID()));
-            GuiComponent.blit(matrixStack, skinX, skinY, 20, 20, 8, 8, 8, 8, 64, 64);
-            RenderSystem.enableBlend();
-            GuiComponent.blit(matrixStack,skinX,  skinY,  20, 20, 40, 8, 8, 8, 64, 64);
-            RenderSystem.disableBlend();
-            font.draw(matrixStack, selectedPlayer.getName(), (float) textX, (float) textY, PLAYER_NAME_COLOR);
-
-        }
 
         if(!recruit.getMainHandItem().isEmpty()){
             itemRenderer.renderGuiItem(recruit.getMainHandItem(), 140, 202);
