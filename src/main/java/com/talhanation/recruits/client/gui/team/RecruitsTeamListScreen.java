@@ -6,6 +6,8 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.events.RecruitsToastManager;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
 import com.talhanation.recruits.network.MessageSendJoinRequestTeam;
+import com.talhanation.recruits.network.MessageToServerRequestUpdatePlayerList;
+import com.talhanation.recruits.network.MessageToServerRequestUpdateTeamList;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -54,6 +56,7 @@ public class RecruitsTeamListScreen extends ListScreenBase {
     @Override
     protected void init() {
         super.init();
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdateTeamList());
 
         guiLeft = guiLeft + 2;
         guiTop = 70;
