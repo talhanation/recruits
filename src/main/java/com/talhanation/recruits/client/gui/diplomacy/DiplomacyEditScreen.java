@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class DiplomacyEditScreen extends RecruitsScreenBase {
 
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_popup.png");
+    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_big.png");
     private static final Component TITLE = new TranslatableComponent("gui.recruits.diplomacy_edit.title");
     protected static final Component BUTTON_CONFIRM = new TranslatableComponent("gui.recruits.button.confirm");
     protected static final Component BUTTON_BACK = new TranslatableComponent("gui.recruits.button.back");
@@ -40,7 +40,9 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
 
     private Button confirmButton;
     private Button backButton;
-    public DiplomacyEditScreen(Screen parent, @NotNull RecruitsTeam ownTeam , @NotNull RecruitsTeam otherTeam,  RecruitsDiplomacyManager.DiplomacyStatus ownStance,  RecruitsDiplomacyManager.DiplomacyStatus othersStance) {
+    private final boolean isLeader;
+
+    public DiplomacyEditScreen(Screen parent, @NotNull RecruitsTeam ownTeam , @NotNull RecruitsTeam otherTeam,  RecruitsDiplomacyManager.DiplomacyStatus ownStance,  RecruitsDiplomacyManager.DiplomacyStatus othersStance, boolean isLeader) {
         super(TITLE, 195,160);
         this.ownTeam = ownTeam;
         this.otherTeam = otherTeam;
@@ -49,6 +51,7 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
         this.ownStance = ownStance;
         this.bannerOwn = new BannerRenderer(ownTeam);
         this.bannerOther = new BannerRenderer(otherTeam);
+        this.isLeader = isLeader;
     }
 
     @Override
@@ -94,6 +97,10 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
         this.neutralButton.active = newStance == RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL;
         this.enemyButton.active = newStance == RecruitsDiplomacyManager.DiplomacyStatus.ENEMY;
 
+        this.allyButton.visible = isLeader;
+        this.neutralButton.visible = isLeader;
+        this.enemyButton.visible = isLeader;
+
         confirmButton = new Button(guiLeft + 6, guiTop + ySize - 18 - 7, 90, 20, BUTTON_CONFIRM,
                 button -> {
                     this.changeDiplomacyStatus(newStance, otherTeam);
@@ -103,7 +110,7 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
                 });
 
         confirmButton.active = stanceChanged;
-
+        confirmButton.visible = isLeader;
         addRenderableWidget(confirmButton);
 
 

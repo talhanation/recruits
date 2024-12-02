@@ -22,9 +22,10 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
 
     protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_player.png");
     protected static final Component TITLE = new TranslatableComponent("gui.recruits.team_creation.teams_list");
-    protected static final Component SET_STANCE = new TranslatableComponent("gui.recruits.button.setStance");
+    protected static final Component SET_STANCE = new TranslatableComponent("gui.recruits.button.setRelation");
+    protected static final Component SHOW_STANCE = new TranslatableComponent("gui.recruits.button.showRelation");
     protected static final Component TOAST_SEND_JOIN_REQUEST_TITLE = new TranslatableComponent("gui.recruits.toast.sendJoinRequestTitle");
-    protected static final Component BACK_BUTTON = new TranslatableComponent("gui.recruits.back");
+    protected static final Component BACK_BUTTON = new TranslatableComponent("gui.recruits.button.back");
     protected static Component TOOLTIP_ACTION;
     protected static final int HEADER_SIZE = 16;
     protected static final int FOOTER_SIZE = 32;
@@ -42,12 +43,13 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
     protected RecruitsTeam ownTeam;
     private Button backButton;
     private Button setStanceButton;
+    private final boolean isLeader;
 
 
-    public DiplomacyTeamListScreen(Screen parent) {
+    public DiplomacyTeamListScreen(Screen parent, boolean isLeader) {
         super(TITLE, 236, 0);
         this.parent = parent;
-
+        this.isLeader = isLeader;
     }
 
     @Override
@@ -70,7 +72,7 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
         }
 
         String string = searchBox != null ? searchBox.getValue() : "";
-        searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, new TextComponent("SEARCH_HINT"));
+        searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, new TextComponent(""));
         searchBox.setMaxLength(16);
         searchBox.setTextColor(0xFFFFFF);
         searchBox.setValue(string);
@@ -87,9 +89,9 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
 
         addRenderableWidget(backButton);
 
-        setStanceButton = new Button(guiLeft + 7, guiTop + ySize - 20 - 7, 100, 20, SET_STANCE,
+        setStanceButton = new Button(guiLeft + 7, guiTop + ySize - 20 - 7, 100, 20, this.isLeader ? SET_STANCE : SHOW_STANCE,
                 button -> {
-                     minecraft.setScreen(new DiplomacyEditScreen(this, ownTeam, selected, list.getRelation(ownTeam.getTeamName(), selected.getTeamName()), list.getRelation(selected.getTeamName(), ownTeam.getTeamName())));
+                     minecraft.setScreen(new DiplomacyEditScreen(this, ownTeam, selected, list.getRelation(ownTeam.getTeamName(), selected.getTeamName()), list.getRelation(selected.getTeamName(), ownTeam.getTeamName()), isLeader));
                 });
         setStanceButton.active = ownTeam != null && ownTeam.getTeamLeaderUUID().equals(this.minecraft.player.getUUID());
 

@@ -187,7 +187,9 @@ public class Main {
                 MessageDiplomacyChangeStatus.class,
                 MessageToClientSetToast.class,
                 MessageToClientUpdateDiplomacyList.class,
-                MessageToServerRequestUpdateDiplomacyList.class
+                MessageToServerRequestUpdateDiplomacyList.class,
+                MessageToClientUpdateTeamInspection.class,
+                MessageToServerRequestUpdateTeamInspaction.class
         };
 
 

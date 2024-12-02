@@ -38,9 +38,9 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     private String recruitColor;
     public static ItemStack currency;
     public static int price;
-    private final ArrayList<String> TEAM_COLORS = new ArrayList<>(
+    public static final ArrayList<String> TEAM_COLORS = new ArrayList<>(
             Arrays.asList("white", "aqua", "black", "blue", "dark_aqua", "dark_blue", "dark_gray", "dark_green", "dark_purple", "dark_red", "gold", "green", "light_purple", "red", "yellow"));
-    private final ArrayList<String> RECRUIT_COLORS = new ArrayList<>(
+    public static final ArrayList<String> UNIT_COLORS = new ArrayList<>(
             Arrays.asList("white", "black",
                     "light_gray", "gray", "dark_gray",
                     "light_blue", "blue","dark_blue",
@@ -52,7 +52,7 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     public static final ArrayList<Integer> TeamColorID = new ArrayList<>(
             Arrays.asList(16777215, 5636095, 0, 5592575, 43690, 170, 5592405, 43520, 11141290, 11141120, 16755200, 5635925, 16733695, 16733525, 16777045));
 
-    public static final ArrayList<Integer> RecruitColorID = new ArrayList<>(
+    public static final ArrayList<Integer> UnitColorID = new ArrayList<>(
             Arrays.asList(16777215, 0,
                     16711935, 10141901, 16776960,
                     12582656, 16738740, 8421504,
@@ -165,7 +165,7 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
     private Button cycleButtonRightRecruitColor(int x, int y){
         return addRenderableWidget(new ExtendedButton(x, y, 12, 12, new TextComponent(">"),
                 button -> {
-                    if(this.recruitColorIndex < RECRUIT_COLORS.size() - 1){
+                    if(this.recruitColorIndex < UNIT_COLORS.size() - 1){
                         this.recruitColorIndex++;
                         this.refreshSelectedColorRecruit();
                     }
@@ -173,7 +173,7 @@ public class TeamCreationScreen extends ScreenBase<TeamCreationContainer> {
         ));
     }
     private void refreshSelectedColorRecruit() {
-        this.recruitColor = RECRUIT_COLORS.get(recruitColorIndex);
+        this.recruitColor = UNIT_COLORS.get(recruitColorIndex);
     }
     @Override
     protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {

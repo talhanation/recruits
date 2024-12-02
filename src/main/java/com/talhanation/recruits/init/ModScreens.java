@@ -37,10 +37,6 @@ public class ModScreens {
         registerMenu(ASSASSIN_CONTAINER_TYPE.get(), AssassinLeaderScreen::new);
         registerMenu(HIRE_CONTAINER_TYPE.get(), RecruitHireScreen::new);
         registerMenu(TEAM_CREATION_TYPE.get(), TeamCreationScreen::new);
-        registerMenu(TEAM_MAIN_TYPE.get(), TeamMainScreen::new);
-        registerMenu(TEAM_INSPECTION_TYPE.get(), TeamInspectionScreen::new);
-        registerMenu(TEAM_LIST_TYPE.get(), TeamListScreen::new);
-        registerMenu(TEAM_ADD_PLAYER_TYPE.get(), TeamManagePlayerScreen::new);
         registerMenu(PROMOTE.get(), PromoteScreen::new);
         registerMenu(MESSENGER.get(), MessengerScreen::new);
         registerMenu(MESSENGER_ANSWER.get(), MessengerAnswerScreen::new);
@@ -171,78 +167,6 @@ public class ModScreens {
 
                 return new TeamCreationContainer(windowId, inv);
             }));
-
-
-    public static final RegistryObject<MenuType<TeamMainContainer>> TEAM_MAIN_TYPE =
-            MENU_TYPES.register("team_main_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
-                try {
-                    Player playerEntity = inv.player;
-                    if (playerEntity == null) {
-                        return null;
-                    }
-                    return new TeamMainContainer(windowId, playerEntity);
-
-                } catch (Exception e) {
-                    logger.error("Error in team_main_container: ");
-                    logger.error(e.getMessage());
-                    logger.error(e.getStackTrace().toString());
-                    return null;
-                }
-            }));
-
-
-    public static final RegistryObject<MenuType<TeamInspectionContainer>> TEAM_INSPECTION_TYPE =
-            MENU_TYPES.register("team_inspection_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
-                try {
-                    Player playerEntity = inv.player;
-                    if (playerEntity == null) {
-                        return null;
-                    }
-                    return new TeamInspectionContainer(windowId, playerEntity);
-
-                } catch (Exception e) {
-                    logger.error("Error in team_inspection_container: ");
-                    logger.error(e.getMessage());
-                    logger.error(e.getStackTrace().toString());
-                    return null;
-                }
-            }));
-
-
-    public static final RegistryObject<MenuType<TeamListContainer>> TEAM_LIST_TYPE =
-            MENU_TYPES.register("team_list_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
-                try {
-                    Player playerEntity = inv.player;
-                    if (playerEntity == null) {
-                        return null;
-                    }
-                    return new TeamListContainer(windowId, playerEntity);
-
-                } catch (Exception e) {
-                    logger.error("Error in team_list_container: ");
-                    logger.error(e.getMessage());
-                    logger.error(e.getStackTrace().toString());
-                    return null;
-                }
-            }));
-
-    public static final RegistryObject<MenuType<TeamManagePlayerContainer>> TEAM_ADD_PLAYER_TYPE =
-            MENU_TYPES.register("team_add_player_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
-                try {
-                    Player playerEntity = inv.player;
-                    if (playerEntity == null) {
-                        return null;
-                    }
-                    return new TeamManagePlayerContainer(windowId, playerEntity);
-
-                } catch (Exception e) {
-                    logger.error("Error in team_add_player_container: ");
-                    logger.error(e.getMessage());
-                    logger.error(e.getStackTrace().toString());
-                    return null;
-                }
-            }));
-
     public static final RegistryObject<MenuType<DisbandContainer>> DISBAND =
             MENU_TYPES.register("disband_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
                 try {

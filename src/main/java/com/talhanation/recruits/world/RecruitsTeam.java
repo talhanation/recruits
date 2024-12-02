@@ -1,5 +1,6 @@
 package com.talhanation.recruits.world;
 
+import net.minecraft.data.worldgen.biome.Biomes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -21,6 +22,7 @@ public class RecruitsTeam {
     public int teamColor;
     public int maxPlayers;
     public int maxNPCs;
+    private int biome = -1;
     public RecruitsTeam(String teamName, String teamLeaderName, CompoundTag banner) {
         this.teamName = teamName;
         this.teamLeaderName = teamLeaderName;
@@ -138,11 +140,11 @@ public class RecruitsTeam {
         nbt.putByte("unitColor", this.unitColor);
         nbt.putInt("teamColor", this.teamColor);
         nbt.putInt("maxPlayers", this.maxPlayers);
+        nbt.putInt("biome", this.biome);
 
         return nbt;
     }
 
-    // Method to load RecruitsTeam from NBT
     public static RecruitsTeam fromNBT(CompoundTag nbt) {
         if(nbt.isEmpty()) {
             return null;
@@ -163,12 +165,11 @@ public class RecruitsTeam {
         team.setUnitColor(nbt.getByte("unitColor"));
         team.setTeamColor(nbt.getByte("teamColor"));
         team.maxPlayers = nbt.getInt("maxPlayers");
-
+        team.biome = nbt.getInt("biome");
 
         return team;
     }
 
-    // Method to convert a list of RecruitsTeam to NBT
     public static CompoundTag toNBT(List<RecruitsTeam> list) {
         CompoundTag nbt = new CompoundTag();
         ListTag teamList = new ListTag();
@@ -181,7 +182,6 @@ public class RecruitsTeam {
         return nbt;
     }
 
-    // Method to load a list of RecruitsTeam from NBT
     public static List<RecruitsTeam> getListFromNBT(CompoundTag nbt) {
         List<RecruitsTeam> list = new ArrayList<>();
         ListTag teamList = nbt.getList("Teams", 10); // 10 corresponds to CompoundTag type
@@ -192,6 +192,13 @@ public class RecruitsTeam {
         }
 
         return list;
+    }
+
+    public enum PlayerRank {
+        NONE,
+        LEADER,
+        CAPTAIN,
+        COMMANDER,
     }
 }
 

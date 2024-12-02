@@ -98,45 +98,7 @@ public class  TeamEvents {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenDisbandScreen(player, recruit));
         }
     }
-    public static void openTeamListScreen(Player player) {
-        if (player instanceof ServerPlayer) {
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
-                @Override
-                public Component getDisplayName() {
-                    return new TextComponent("team_list_screen");
-                }
 
-                @Override
-                public AbstractContainerMenu createMenu(int i, Inventory playerInventory, Player playerEntity) {
-                    return new TeamListContainer(i, playerEntity);
-                }
-            }, packetBuffer -> {
-                packetBuffer.writeUUID(player.getUUID());
-            });
-        } else {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamListScreen(player));
-        }
-    }
-
-    public static void openTeamInspectionScreen(Player player, Team team) {
-        if (player instanceof ServerPlayer) {
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
-                @Override
-                public Component getDisplayName() {
-                    return new TextComponent("team_inspection_screen");
-                }
-
-                @Override
-                public AbstractContainerMenu createMenu(int i, Inventory playerInventory, Player playerEntity) {
-                    return new TeamInspectionContainer(i, playerEntity);
-                }
-            }, packetBuffer -> {
-                packetBuffer.writeUUID(player.getUUID());
-            });
-        } else {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamInspectionScreen(player));
-        }
-    }
     public static void openTeamCreationScreen(Player player) {
         if (player instanceof ServerPlayer) {
             Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateTeamCreationScreen(TeamEvents.getCurrency(), RecruitsServerConfig.TeamCreationCost.get()));
@@ -156,46 +118,6 @@ public class  TeamEvents {
             });
         } else {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamCreationScreen(player));
-        }
-    }
-
-    public static void openTeamMainScreen(Player player) {
-        if (player instanceof ServerPlayer) {
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
-
-                @Override
-                public Component getDisplayName() {
-                    return new TextComponent("team_main_screen");
-                }
-
-                @Nullable
-                @Override
-                public AbstractContainerMenu createMenu(int i, Inventory playerInventory, Player playerEntity) {
-                    return new TeamMainContainer(i, playerEntity);
-                }
-            }, packetBuffer -> {packetBuffer.writeUUID(player.getUUID());});
-        } else {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageTeamMainScreen(player));
-        }
-    }
-
-    public static void openTeamAddPlayerScreen(Player player) {
-        if (player instanceof ServerPlayer) {
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
-
-                @Override
-                public Component getDisplayName() {
-                    return new TextComponent("team_add_player_screen");
-                }
-
-                @Nullable
-                @Override
-                public AbstractContainerMenu createMenu(int i, Inventory playerInventory, Player playerEntity) {
-                    return new TeamManagePlayerContainer(i, playerEntity);
-                }
-            }, packetBuffer -> {packetBuffer.writeUUID(player.getUUID());});
-        } else {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamAddPlayerScreen(player));
         }
     }
     public static boolean createTeam(boolean menu, ServerPlayer serverPlayer, @NotNull ServerLevel level, String teamName, String playerName, ItemStack banner, String color, byte colorByte) {
@@ -272,7 +194,7 @@ public class  TeamEvents {
             UUID leaderUUID = recruitsTeam.getTeamLeaderUUID();
             String leaderName = recruitsTeam.getTeamLeaderName();
 
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateTeam(player.getUUID(), leaderName, leaderUUID, bannerStack, joinRequests, players, npcs));
+            //Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateTeam(player.getUUID(), leaderName, leaderUUID, bannerStack, joinRequests, players, npcs));
         }
         else
             Main.LOGGER.error("Could not load recruitsTeamData for Team " + team + " because Team == null");

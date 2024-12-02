@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
+import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
 import com.talhanation.recruits.network.MessageToServerRequestUpdatePlayerList;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.client.gui.components.Button;
@@ -19,13 +20,13 @@ import net.minecraft.world.entity.player.Player;
 import java.util.Locale;
 import java.util.function.Consumer;
 
-public class SelectPlayerScreen extends ListScreenBase {
+public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelection{
 
     protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_player.png");
     public static final Component TITLE = new TranslatableComponent("gui.recruits.select_player_screen.title");
     public static final Component BUTTON_SELECT = new TranslatableComponent("gui.recruits.select_player_screen.selectPlayer");
     public static final Component BUTTON_SELECT_TOOLTIP = new TranslatableComponent("gui.recruits.select_player_screen.selectPlayerTooltip");
-    protected static final Component CANCEL = new TranslatableComponent("gui.recruits.cancel");
+    protected static final Component BUTTON_BACK = new TranslatableComponent("gui.recruits.button.back");
     protected static Component BUTTON_TEXT;
     protected static Component TOOLTIP_BUTTON;
     protected static final int HEADER_SIZE = 16;
@@ -75,7 +76,7 @@ public class SelectPlayerScreen extends ListScreenBase {
         if (playerList != null) {
             playerList.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
         } else {
-            playerList = new PlayersList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, sameTeamOnly, player, includeSelf);
+            playerList = new PlayersList(width, height/2, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, sameTeamOnly, player, includeSelf);
         }
         String string = searchBox != null ? searchBox.getValue() : "";
         searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, new TextComponent("SEARCH_HINT"));
@@ -88,7 +89,7 @@ public class SelectPlayerScreen extends ListScreenBase {
 
         this.setInitialFocus(searchBox);
 
-        backButton = new Button(guiLeft + 129, guiTop + ySize - 20 - 7, 100, 20, CANCEL,
+        backButton = new Button(guiLeft + 129, guiTop + ySize - 20 - 7, 100, 20, BUTTON_BACK,
                 button -> {
                     minecraft.setScreen(parent);
          });
@@ -177,8 +178,18 @@ public class SelectPlayerScreen extends ListScreenBase {
     }
 
 
-    public RecruitsPlayerInfo getSelected(){
+    public RecruitsPlayerInfo getSelectedPlayerInfo(){
         return this.selected;
+    }
+
+    @Override
+    public RecruitsPlayerEntry getSelected() {
+        return playerList.getSelected();
+    }
+
+    @Override
+    public ListScreenListBase<RecruitsPlayerEntry> getPlayerList() {
+        return playerList;
     }
 
     @Override

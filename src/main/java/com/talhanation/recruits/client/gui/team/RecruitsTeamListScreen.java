@@ -28,7 +28,7 @@ public class RecruitsTeamListScreen extends ListScreenBase {
     protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_player.png");
     protected static final Component TITLE = new TranslatableComponent("gui.recruits.team_creation.teams_list");
     protected static final Component JOIN_BUTTON = new TranslatableComponent("gui.recruits.button.join");
-    protected static final Component BACK_BUTTON = new TranslatableComponent("gui.recruits.back");
+    protected static final Component BACK_BUTTON = new TranslatableComponent("gui.recruits.button.back");
     protected static Component TOOLTIP_ACTION;
     protected static final int HEADER_SIZE = 16;
     protected static final int FOOTER_SIZE = 32;

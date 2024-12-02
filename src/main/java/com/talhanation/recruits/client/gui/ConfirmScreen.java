@@ -15,7 +15,7 @@ import java.util.List;
 
 public class ConfirmScreen extends RecruitsScreenBase {
 
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_confirm.png");
+    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_small.png");
     private final Runnable yesAction;
     private final Runnable noAction;
     private final Runnable backAction;
@@ -30,7 +30,7 @@ public class ConfirmScreen extends RecruitsScreenBase {
         this(title, text, yesAction, noAction, null);
     }
     public ConfirmScreen(Component title, Component text, Runnable yesAction, Runnable noAction, Runnable backAction) {
-        super(title, 245,84);
+        super(title, 246,84);
         this.yesAction = yesAction;
         this.noAction = noAction;
         this.backAction = backAction;

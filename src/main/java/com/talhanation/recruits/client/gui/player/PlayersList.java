@@ -6,16 +6,13 @@ import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.scores.Team;
-import net.minecraftforge.event.world.NoteBlockEvent;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 
 public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
 
-    protected SelectPlayerScreen screen;
+    protected IPlayerSelection screen;
     protected final List<RecruitsPlayerEntry> entries;
     protected String filter;
     protected final boolean sameTeamOnly;
@@ -23,7 +20,7 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
     public final Player player;
     protected final boolean includeSelf;
 
-    public  PlayersList(int width, int height, int x, int y, int size, SelectPlayerScreen screen, boolean sameTeamOnly, Player player, boolean includeSelf) {
+    public  PlayersList(int width, int height, int x, int y, int size, IPlayerSelection screen, boolean sameTeamOnly, Player player, boolean includeSelf) {
         super(width, height, x, y, size);
         this.screen = screen;
         this.entries = Lists.newArrayList();
@@ -34,6 +31,7 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
         setRenderBackground(false);
         setRenderTopAndBottom(false);
         setRenderSelection(true);
+
     }
 
 

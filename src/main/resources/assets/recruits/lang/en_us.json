@@ -363,8 +363,6 @@
    "gui.recruits.select_player_screen.title": "Select Player",
    "gui.recruits.select_player_screen.selectPlayer": "Select",
    "gui.recruits.select_player_screen.selectPlayerTooltip": "Select this Player",
-   "gui.recruits.cancel": "Cancel",
-   "gui.recruits.back": "Back",
    "gui.recruits.team_list.players_count": " %s / %s",
    "gui.recruits.team_list.players_no_count": "Players: %s",
 
@@ -393,11 +391,26 @@
 
    "gui.recruits.toast.JoinRequestTitle" : "Join Request",
    "gui.recruits.button.join" : "Join",
-   "gui.recruits.diplomacy_edit.title" : "Set Relation",
-   "gui.recruits.button.setStance" : "Set Stance",
+   "gui.recruits.diplomacy_edit.title" : "Relations",
+   "gui.recruits.button.setRelation": "Set Relation",
+   "gui.recruits.button.showRelation": "Show Relation",
    "gui.recruits.button.confirm" : "Confirm",
    "gui.recruits.button.back" : "Back",
    "gui.recruits.button.Yes" : "Yes",
    "gui.recruits.button.No" : "No",
-   "gui.recruits.more_screen.title" : "More"
+   "gui.recruits.button.cancel" : "Cancel",
+   "gui.recruits.more_screen.title" : "More",
+
+   "gui.recruits.team.leader":  "Leader:  ",
+   "gui.recruits.team.players": "Players: ",
+   "gui.recruits.team.members": "Members: ",
+   "gui.recruits.team.npcs":    "NPCs:    ",
+   "gui.recruits.team.unit_color": "Unit Color:",
+   "gui.recruits.team.biome": "Biome:",
+   "gui.recruits.team.diplomacy": "Diplomacy",
+   "gui.recruits.team.edit": "Edit",
+   "gui.recruits.team.leave": "Leave",
+   "gui.recruits.team.manage": "Manage"
+
+
  }

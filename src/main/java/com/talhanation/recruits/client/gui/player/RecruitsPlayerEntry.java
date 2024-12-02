@@ -23,10 +23,10 @@ public class RecruitsPlayerEntry extends ListScreenEntryBase<RecruitsPlayerEntry
     protected static final int PLAYER_NAME_COLOR = FastColor.ARGB32.color(255, 255, 255, 255);
 
     protected final Minecraft minecraft;
-    protected final SelectPlayerScreen screen;
+    protected final IPlayerSelection screen;
     protected final @NotNull RecruitsPlayerInfo player;
     protected final BannerRenderer bannerRenderer;
-    public RecruitsPlayerEntry(SelectPlayerScreen screen, @NotNull RecruitsPlayerInfo player) {
+    public RecruitsPlayerEntry(IPlayerSelection screen, @NotNull RecruitsPlayerInfo player) {
         this.minecraft = Minecraft.getInstance();
         this.screen = screen;
         this.player = player;
@@ -74,6 +74,6 @@ public class RecruitsPlayerEntry extends ListScreenEntryBase<RecruitsPlayerEntry
 
     @Override
     public ListScreenListBase<RecruitsPlayerEntry> getList() {
-        return screen.playerList;
+        return screen.getPlayerList();
     }
 }

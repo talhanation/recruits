@@ -24,7 +24,7 @@ public class EditOrAddGroupScreen extends Screen {
     private int topPos;
     private int imageWidth;
     private int imageHeight;
-    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/team/team_main_gui.png");
+    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/gui_small.png");
     private static final MutableComponent TEXT_CANCEL = new TranslatableComponent("gui.recruits.groups.cancel");
     private static final MutableComponent TEXT_SAVE = new TranslatableComponent("gui.recruits.groups.save");
     private static final MutableComponent TEXT_ADD = new TranslatableComponent("gui.recruits.groups.add");

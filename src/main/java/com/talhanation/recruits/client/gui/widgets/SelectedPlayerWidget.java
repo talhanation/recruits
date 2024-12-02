@@ -3,6 +3,7 @@ package com.talhanation.recruits.client.gui.widgets;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.util.GameProfileUtils;
+import com.talhanation.recruits.world.RecruitsTeam.*;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -40,6 +41,13 @@ public class SelectedPlayerWidget extends AbstractWidget {
         });
     }
 
+    public void setButtonActive(boolean x){
+        this.actionButton.active = x;
+    }
+
+    public void setButtonVisible(boolean x){
+        this.actionButton.visible = x;
+    }
 
     public void setPlayer(@Nullable UUID playerUUID, @Nullable String playerName) {
         this.playerUUID = playerUUID;
@@ -66,13 +74,13 @@ public class SelectedPlayerWidget extends AbstractWidget {
 
     @Override
     public boolean mouseClicked(double x, double y, int i) {
-        if(actionButton.isMouseOver(x,y)) actionButton.onClick(x, y);
+        if(actionButton.isMouseOver(x,y) && actionButton.active && actionButton.visible) actionButton.onClick(x, y);
         return super.mouseClicked(x,y,i);
     }
 
     @Override
     public void onClick(double x, double y) {
-        if(actionButton.isMouseOver(x,y)) actionButton.onClick(x, y);
+        if(actionButton.isMouseOver(x,y) && actionButton.active && actionButton.visible) actionButton.onClick(x, y);
     }
 
     @Override
