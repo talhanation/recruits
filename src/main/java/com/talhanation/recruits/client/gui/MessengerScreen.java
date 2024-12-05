@@ -9,12 +9,9 @@ import com.talhanation.recruits.client.gui.widgets.SelectedPlayerWidget;
 import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.inventory.MessengerContainer;
 import com.talhanation.recruits.network.MessageSendMessenger;
-import com.talhanation.recruits.util.GameProfileUtils;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import de.maxhenkel.corelib.inventory.ScreenBase;
-import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -26,19 +23,18 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.UUID;
-
 public class MessengerScreen extends ScreenBase<MessengerContainer> {
 
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/professions/blank_gui.png");
     protected static final int PLAYER_NAME_COLOR = FastColor.ARGB32.color(255, 255, 255, 255);
     private final Player player;
-    private RecruitsPlayerInfo selectedPlayer;
+    public static RecruitsPlayerInfo playerInfo;
     private final MessengerEntity recruit;
     private MultiLineEditBox textFieldMessage;
     private int leftPos;
     private int topPos;
     public static String message = "Message";
+
     private SelectedPlayerWidget selectedPlayerWidget;
     private static final MutableComponent TOOLTIP_MESSENGER = new TranslatableComponent("gui.recruits.inv.tooltip.messenger");
     private static final MutableComponent BUTTON_SEND_MESSENGER = new TranslatableComponent("gui.recruits.inv.text.send_messenger");
@@ -65,7 +61,7 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
     @Override
     protected void init() {
         super.init();
-        //selectedPlayer = new RecruitsPlayerInfo(new UUID(2,2), "Test");
+
         this.minecraft.keyboardHandler.setSendRepeatsToGui(true);
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
@@ -92,25 +88,25 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
 
         Button sendButton = addRenderableWidget(new Button(leftPos + 33, topPos + 198, 128, 20, BUTTON_SEND_MESSENGER,
                 button -> {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageSendMessenger(recruit.getUUID(), selectedPlayer.getName(), textFieldMessage.getValue(), true));
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageSendMessenger(recruit.getUUID(), playerInfo, textFieldMessage.getValue(), true));
                     this.onClose();
                 },
                 (button1, poseStack, i, i1) -> {
                     this.renderTooltip(poseStack, TOOLTIP_MESSENGER, i, i1);
                 }
         ));
-        sendButton.active = selectedPlayer != null;
+        sendButton.active = playerInfo != null;
 
-        if(this.selectedPlayer != null){
+        if(playerInfo != null){
             this.selectedPlayerWidget = new SelectedPlayerWidget(font, leftPos + 33, topPos + 15, 128, 20, new TextComponent("x"), // Button label
                     () -> {
-                        this.selectedPlayer = null;
+                        playerInfo = null;
                         this.selectedPlayerWidget.setPlayer(null, null);
                         this.setButtons();
                     }
             );
 
-            this.selectedPlayerWidget.setPlayer(selectedPlayer.getUUID(), selectedPlayer.getName());
+            this.selectedPlayerWidget.setPlayer(playerInfo.getUUID(), playerInfo.getName());
             addRenderableWidget(this.selectedPlayerWidget);
         }
         else
@@ -119,7 +115,7 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
                     button -> {
                         minecraft.setScreen(new SelectPlayerScreen(this, player, SelectPlayerScreen.TITLE, SelectPlayerScreen.BUTTON_SELECT, SelectPlayerScreen.BUTTON_SELECT_TOOLTIP, false, false,
                                 (playerInfo) -> {
-                                    this.selectedPlayer = playerInfo;
+                                    MessengerScreen.playerInfo = playerInfo;
                                     minecraft.setScreen(this);
                                 }
                         ));
@@ -132,9 +128,9 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
         }
     }
 
-    @Override
-    public void onClose() {
+    public void onClose(){
         super.onClose();
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageSendMessenger(recruit.getUUID(), playerInfo, textFieldMessage.getValue(), false));
     }
 
     protected void render(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {

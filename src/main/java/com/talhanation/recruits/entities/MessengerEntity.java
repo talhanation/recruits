@@ -8,8 +8,7 @@ import com.talhanation.recruits.inventory.MessengerAnswerContainer;
 import com.talhanation.recruits.inventory.MessengerContainer;
 import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
+import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -21,8 +20,6 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -47,8 +44,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
@@ -59,8 +54,6 @@ import java.util.Random;
 import java.util.function.Predicate;
 
 public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompanion {
-
-    private static final EntityDataAccessor<String> TARGET_PLAYER_NAME = SynchedEntityData.defineId(MessengerEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<String> OWNER_NAME = SynchedEntityData.defineId(MessengerEntity.class, EntityDataSerializers.STRING);
 
     private static final EntityDataAccessor<Byte> TASK_STATE = SynchedEntityData.defineId(MessengerEntity.class, EntityDataSerializers.BYTE);
@@ -72,6 +65,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     public State state;
     public boolean targetPlayerOpened;
     public BlockPos initialPos;
+    public RecruitsPlayerInfo targetPlayerInfo;
 
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
@@ -82,7 +76,6 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
 
     protected void defineSynchedData() {
         super.defineSynchedData();
-        this.entityData.define(TARGET_PLAYER_NAME, "");
         this.entityData.define(OWNER_NAME, "");
         this.entityData.define(TASK_STATE, (byte) 0);
         this.entityData.define(WAITING_TIME, 0);
@@ -97,7 +90,11 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     public void addAdditionalSaveData(CompoundTag nbt) {
         super.addAdditionalSaveData(nbt);
         nbt.putString("Message", this.getMessage());
-        nbt.putString("TargetPlayerName", this.getTargetPlayerName());
+
+        if(this.targetPlayerInfo != null){
+            nbt.put("TargetPlayerInfo", this.targetPlayerInfo.toNBT());
+        }
+
         nbt.putString("OwnerName", this.getOwnerName());
         nbt.putInt("waitTimer", teleportWaitTimer);
         nbt.putInt("arrivedWaitTimer", arrivedWaitTimer);
@@ -113,7 +110,11 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
 
     public void readAdditionalSaveData(CompoundTag nbt) {
         super.readAdditionalSaveData(nbt);
-        this.setTargetPlayerName(nbt.getString("TargetPlayerName"));
+
+        if(nbt.contains("TargetPlayerInfo")){
+            this.setTargetPlayerInfo(RecruitsPlayerInfo.getFromNBT(nbt.getCompound("TargetPlayerInfo")));
+        }
+
         this.setMessage(nbt.getString("Message"));
         this.setOwnerName(nbt.getString("OwnerName"));
         this.setWaitingTime(nbt.getInt("waitingTime"));
@@ -188,16 +189,16 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     }
     @Nullable
     public ServerPlayer getTargetPlayer(){
-        if(this.getTargetPlayerName() != null && !this.getCommandSenderWorld().isClientSide()){
+        if(this.targetPlayerInfo != null && !this.getCommandSenderWorld().isClientSide()){
             ServerLevel serverLevel = (ServerLevel) this.getCommandSenderWorld();
-            return serverLevel.getServer().getPlayerList().getPlayerByName(this.getTargetPlayerName());
+            return serverLevel.getServer().getPlayerList().getPlayerByName(this.targetPlayerInfo.getName());
         }
         return null;
     }
 
     public void openSpecialGUI(Player player) {
         if (player instanceof ServerPlayer) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateMessengerScreen(this.message));
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateMessengerScreen(this.message, this.targetPlayerInfo));
             NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {
@@ -216,7 +217,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
 
     public void openAnswerGUI(Player player) {
         if (player instanceof ServerPlayer) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateMessengerAnswerScreen(this.message));
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateMessengerAnswerScreen(this.message, this.targetPlayerInfo));
             NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {
@@ -264,12 +265,12 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
         this.message = message;
     }
 
-    public String getTargetPlayerName() {
-        return this.entityData.get(TARGET_PLAYER_NAME);
+    public RecruitsPlayerInfo setTargetPlayerInfo() {
+        return this.targetPlayerInfo;
     }
 
-    public void setTargetPlayerName(String name) {
-        this.entityData.set(TARGET_PLAYER_NAME, name);
+    public void setTargetPlayerInfo(RecruitsPlayerInfo info) {
+        targetPlayerInfo = info;
     }
 
     public void setWaitingTime(int x){
@@ -286,7 +287,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
             ServerLevel serverLevel = (ServerLevel) getCommandSenderWorld();
 
             MinecraftServer server = serverLevel.getServer();
-            ServerPlayer targetPlayer = server.getPlayerList().getPlayerByName(this.getTargetPlayerName());
+            ServerPlayer targetPlayer = server.getPlayerList().getPlayerByName(this.targetPlayerInfo.getName());
             if(this.getOwner() != null){
                 if(targetPlayer == null || targetPlayer.equals(this.getOwner())){
                     this.getOwner().sendMessage(PLAYER_NOT_FOUND(), this.getOwnerUUID());
@@ -471,7 +472,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
         Team ownerTeam = this.getTeam();
         if(ownerTeam != null )target.sendMessage(MESSENGER_ARRIVED_TEAM(this.getOwnerName(), ownerTeam.getName()), target.getUUID());
         else target.sendMessage(MESSENGER_ARRIVED(this.getOwnerName()), target.getUUID());
-        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> target), new MessageToClientSetToast(7, this.getOwnerName()));
+        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> target), new MessageToClientSetToast(8, this.getOwnerName()));
     }
 
     private MutableComponent PLAYER_NOT_FOUND(){
@@ -487,7 +488,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     }
 
     private MutableComponent MESSENGER_ARRIVED_AT_TARGET_OWNER(){
-        return new TranslatableComponent("chat.recruits.text.messenger_arrived_at_target_owner", this.getName().getString(), this.getTargetPlayerName());
+        return new TranslatableComponent("chat.recruits.text.messenger_arrived_at_target_owner", this.getName().getString(), this.targetPlayerInfo.getName());
     }
 
     private MutableComponent MESSENGER_INFO_AT_TARGET(){
@@ -504,7 +505,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     }
 
     private MutableComponent MESSENGER_ARRIVED_NO_TARGET_PLAYER(){
-        return new TranslatableComponent("chat.recruits.text.messenger_arrived_no_player", this.getName().getString(), this.getTargetPlayerName());
+        return new TranslatableComponent("chat.recruits.text.messenger_arrived_no_player", this.getName().getString(), this.targetPlayerInfo.getName());
     }
 
     private MutableComponent MESSENGER_ARRIVED_TARGET_PLAYER_NOT_ANSWERED(){
