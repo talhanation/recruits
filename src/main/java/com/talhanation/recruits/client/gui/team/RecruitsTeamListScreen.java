@@ -31,7 +31,6 @@ public class RecruitsTeamListScreen extends ListScreenBase {
     protected static final Component TITLE = new TranslatableComponent("gui.recruits.team_creation.teams_list");
     protected static final Component JOIN_BUTTON = new TranslatableComponent("gui.recruits.button.join");
     protected static final Component BACK_BUTTON = new TranslatableComponent("gui.recruits.button.back");
-    protected static Component TOOLTIP_ACTION;
     protected static final int HEADER_SIZE = 16;
     protected static final int FOOTER_SIZE = 32;
     protected static final int SEARCH_HEIGHT = 16;
@@ -72,7 +71,7 @@ public class RecruitsTeamListScreen extends ListScreenBase {
             teamList = new RecruitsTeamList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this);
         }
         String string = searchBox != null ? searchBox.getValue() : "";
-        searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, new TextComponent("SEARCH_HINT"));
+        searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, new TextComponent(""));
         searchBox.setMaxLength(16);
         searchBox.setTextColor(0xFFFFFF);
         searchBox.setValue(string);
@@ -91,7 +90,7 @@ public class RecruitsTeamListScreen extends ListScreenBase {
 
         sendJoinRequestButton = new Button(guiLeft + 7, guiTop + ySize - 20 - 7, 100, 20, JOIN_BUTTON,
                 button -> {
-                    RecruitsToastManager.setToastForPlayer(RecruitsToastManager.Images.LETTER, TOAST_SENT_JOIN_REQUEST_TITLE,TOAST_TO(selected.getTeamName()));
+                    RecruitsToastManager.setToastForPlayer(RecruitsToastManager.Images.LETTER, TOAST_SENT_JOIN_REQUEST_TITLE, TOAST_TO(selected.getTeamName()));
 
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageSendJoinRequestTeam(parent.getMinecraft().player.getUUID(), selected.getTeamName()));
                 });
@@ -166,7 +165,7 @@ public class RecruitsTeamListScreen extends ListScreenBase {
         boolean flag = super.mouseClicked(x, y, z);
         if(this.teamList.getFocused() != null){
             this.selected = this.teamList.getFocused().getTeamInfo();
-            this.sendJoinRequestButton.active = true;
+            this.sendJoinRequestButton.active = minecraft.player.getTeam() == null;
         }
 
         return flag;

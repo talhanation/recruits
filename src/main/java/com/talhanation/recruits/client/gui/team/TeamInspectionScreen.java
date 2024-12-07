@@ -8,11 +8,13 @@ import com.talhanation.recruits.client.gui.diplomacy.DiplomacyTeamListScreen;
 import com.talhanation.recruits.client.gui.player.IPlayerSelection;
 import com.talhanation.recruits.client.gui.player.PlayersList;
 import com.talhanation.recruits.client.gui.player.RecruitsPlayerEntry;
+import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
 import com.talhanation.recruits.client.gui.widgets.SelectedPlayerWidget;
 import com.talhanation.recruits.network.MessageLeaveTeam;
 import com.talhanation.recruits.network.MessageToServerRequestUpdateTeamInspaction;
+import com.talhanation.recruits.network.MessageToServerRequestUpdateTeamList;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.client.gui.GuiComponent;
@@ -42,8 +44,8 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
     private static final Component PLAYERS_TEXT = new TranslatableComponent("gui.recruits.team.players");
     private static final Component NPCS_TEXT = new TranslatableComponent("gui.recruits.team.npcs");
     private static final Component LEADER_TEXT = new TranslatableComponent("gui.recruits.team.leader");
-    private static final Component UNIT_COLOR_TEXT = new TranslatableComponent("gui.recruits.team.unit_color");
-    private static final Component BIOME_TEXT = new TranslatableComponent("gui.recruits.team.biome");
+    private static final Component SELECT_LEADER = new TranslatableComponent("gui.recruits.team.select_leader");
+    private static final Component SELECT_LEADER_TOOLTIP = new TranslatableComponent("gui.recruits.team.select_leader_tooltip");
     protected static final int HEADER_SIZE = 130;
     protected static final int FOOTER_SIZE = 32;
     protected static final int SEARCH_HEIGHT = 0;
@@ -93,7 +95,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         if (playerList != null) {
             playerList.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
         } else {
-            playerList = new PlayersList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, true, player, true);
+            playerList = new PlayersList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT,  this, true, player, true);
         }
         addWidget(playerList);
 
@@ -140,11 +142,19 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         leaveButton = new Button(guiLeft + 7, buttonY, 60, 20, LEAVE_BUTTON,
             button -> {
                 if(isTeamLeader){
-                    //minecraft.setScreen(new PopUpSelectNewLeaderScreen(recruitsTeam));
+                    minecraft.setScreen(new SelectPlayerScreen(this, player, SELECT_LEADER, SelectPlayerScreen.BUTTON_SELECT, SELECT_LEADER_TOOLTIP, false, true,
+                            (playerInfo) -> {
+                                    recruitsTeam.setTeamLeaderID(playerInfo.getUUID());
+                                    recruitsTeam.setTeamName(playerInfo.getName());
+
+                                    Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveTeamSettings(recruitsTeam, recruitsTeam.getTeamName()));
+                                    onClose();
+                            }
+                        ));
                 }
                 else {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
-                    //minecraft.setScreen(new TeamMainScreen());
+                    onClose();
                 }
             });
 
@@ -231,9 +241,10 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         }
     }
 
+
     @Override
-    public RecruitsPlayerEntry getSelected() {
-        return playerList.getSelected();
+    public RecruitsPlayerInfo getSelected() {
+        return selected;
     }
 
     @Override
