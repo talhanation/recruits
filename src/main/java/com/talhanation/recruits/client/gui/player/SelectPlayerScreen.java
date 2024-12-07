@@ -76,7 +76,7 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
         if (playerList != null) {
             playerList.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
         } else {
-            playerList = new PlayersList(width, height/2, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, sameTeamOnly, player, includeSelf);
+            playerList = new PlayersList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, sameTeamOnly, player, includeSelf);
         }
         String string = searchBox != null ? searchBox.getValue() : "";
         searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, new TextComponent("SEARCH_HINT"));
@@ -177,23 +177,16 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
         return flag;
     }
 
-
-    public RecruitsPlayerInfo getSelectedPlayerInfo(){
-        return this.selected;
-    }
-
     @Override
-    public RecruitsPlayerEntry getSelected() {
-        return playerList.getSelected();
+    public Component getTitle() {
+        return title;
     }
-
+    @Override
+    public RecruitsPlayerInfo getSelected() {
+        return selected;
+    }
     @Override
     public ListScreenListBase<RecruitsPlayerEntry> getPlayerList() {
         return playerList;
-    }
-
-    @Override
-    public Component getTitle() {
-        return TITLE;
     }
 }

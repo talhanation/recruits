@@ -66,8 +66,7 @@ public class RecruitsPlayerEntry extends ListScreenEntryBase<RecruitsPlayerEntry
             bannerRenderer.renderBanner(poseStack, left + 185, top, width, height, 15);
         }
     }
-
-    @Nullable
+    @NotNull
     public RecruitsPlayerInfo getPlayerInfo() {
         return player;
     }
