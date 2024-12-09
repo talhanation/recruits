@@ -45,6 +45,7 @@ public class  TeamEvents {
     public MinecraftServer server;
     public static RecruitsTeamManager recruitsTeamManager;
     public static RecruitsDiplomacyManager recruitsDiplomacyManager;
+
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         this.server = event.getServer();
@@ -224,9 +225,7 @@ public class  TeamEvents {
 
             if(playerTeam != null){
                 if(isLeader){
-                    server.getScoreboard().removePlayerTeam(playerTeam);
-                    removeRecruitsTeamData(teamName);
-                    recruitsTeamManager.removeTeam(teamName);
+                    removeTeam(level, teamName);
                 }
                 else {
                     ServerPlayer leaderOfTeam = server.getPlayerList().getPlayerByName(recruitsTeam.getTeamLeaderName());
@@ -256,6 +255,38 @@ public class  TeamEvents {
         }
 
         return false;
+    }
+
+    public static void modifyTeam(ServerLevel level, String name, RecruitsTeam editedTeam) {
+        MinecraftServer server = level.getServer();
+        RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByName(name);
+        PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(name);
+
+        if(recruitsTeam != null && playerTeam != null){
+            recruitsTeam.setTeamLeaderID(editedTeam.getTeamLeaderUUID());
+            recruitsTeam.setTeamName(editedTeam.getTeamName());
+            recruitsTeam.setTeamLeaderID(editedTeam.getTeamLeaderUUID());
+            recruitsTeam.setTeamLeaderName(editedTeam.getTeamLeaderName());
+            recruitsTeam.setBanner(editedTeam.getBanner());
+            recruitsTeam.setUnitColor(editedTeam.getUnitColor());
+            recruitsTeam.setTeamColor(editedTeam.getTeamColor());
+
+            playerTeam.setDisplayName(new TextComponent(editedTeam.getTeamName()));
+            playerTeam.setColor(ChatFormatting.getById(editedTeam.getTeamColor()));
+        }
+    }
+
+    public static void removeTeam(ServerLevel level, String teamName){
+        MinecraftServer server = level.getServer();
+        PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(teamName);
+
+        if(playerTeam != null){
+            server.getScoreboard().removePlayerTeam(playerTeam);
+
+            removeRecruitsTeamData(teamName);
+
+            recruitsTeamManager.removeTeam(teamName);
+        }
     }
 
     private static void removeRecruitsTeamData(String teamName) {

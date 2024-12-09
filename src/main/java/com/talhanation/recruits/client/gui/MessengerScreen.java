@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.component.MultiLineEditBox;
+import com.talhanation.recruits.client.gui.player.PlayersList;
 import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
 import com.talhanation.recruits.client.gui.widgets.SelectedPlayerWidget;
 import com.talhanation.recruits.entities.MessengerEntity;
@@ -113,7 +114,7 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
         {
             Button selectPlayerButton = addRenderableWidget(new Button(leftPos + 33, topPos + 15, 128, 20, SelectPlayerScreen.TITLE,
                     button -> {
-                        minecraft.setScreen(new SelectPlayerScreen(this, player, SelectPlayerScreen.TITLE, SelectPlayerScreen.BUTTON_SELECT, SelectPlayerScreen.BUTTON_SELECT_TOOLTIP, false, false,
+                        minecraft.setScreen(new SelectPlayerScreen(this, player, SelectPlayerScreen.TITLE, SelectPlayerScreen.BUTTON_SELECT, SelectPlayerScreen.BUTTON_SELECT_TOOLTIP, false, PlayersList.FilterType.NONE,
                                 (playerInfo) -> {
                                     MessengerScreen.playerInfo = playerInfo;
                                     minecraft.setScreen(this);

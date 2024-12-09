@@ -105,18 +105,13 @@
   "gui.recruits.command.tooltip.movement" : "Movement Commands",
   "gui.recruits.command.tooltip.combat" : "Combat Commands",
   "gui.recruits.command.tooltip.other" : "Other Commands",
-   "gui.recruits.command.tooltip.hold_strategic_fire" : "Stop the ongoing strategic fire command.",
+  "gui.recruits.command.tooltip.hold_strategic_fire" : "Stop the ongoing strategic fire command.",
 
   "gui.recruits.command.tooltip.passive" : "Make the recruits not attacking at all.",
   "gui.recruits.command.tooltip.neutral" : "Make the recruits attack only hostile living.",
   "gui.recruits.command.tooltip.aggressive" : "Make the recruits attack all enemy players and recruits on sight.",
   "gui.recruits.command.tooltip.raid" : "Make the recruits attack all living on sight.",
 
-  "gui.recruits.team.tooltip.add" : "Adds this Player to the team within sight.",
-
-  "gui.recruits.team_creation.no_teams": "There are no Teams.",
-  "gui.recruits.team_creation.delete_team": "Delete",
-  "gui.recruits.team.assignNewOwner": "Assign to teammate",
   "gui.recruits.command.tooltip.team": "Opens the team screen",
   "gui.recruits.command.text.team": "Team",
 
@@ -252,6 +247,11 @@
   "chat.recruits.team.assignNewOwnerNoTeam": "You need to be in a team to assign recruits to a new owner!",
   "chat.recruits.team.assignNewOwnerNotFound": "Team mate not found!",
   "chat.recruits.team.assignNewOwnerLimitReached": "Team mate can not recruit any more!",
+
+   "gui.recruits.team.no_teams": "There are no Teams.",
+   "gui.recruits.team.delete_team": "Delete",
+   "gui.recruits.team.assignNewOwner": "Assign to teammate",
+
   "recruits": "Recruits",
 
   "key.recruits.r_key": "Open command screen",
@@ -410,7 +410,16 @@
    "gui.recruits.team.diplomacy": "Diplomacy",
    "gui.recruits.team.edit": "Edit",
    "gui.recruits.team.leave": "Leave",
-   "gui.recruits.team.manage": "Manage"
+   "gui.recruits.team.manage": "Manage",
 
+   "gui.recruits.team.unitManagement": "Unit Management",
+   "gui.recruits.team.playerPromotion": "Player Promotion",
+   "gui.recruits.team.addPlayer": "Add Player",
+   "gui.recruits.team.removePlayer": "Remove Player",
+   "gui.recruits.team.tooltip.add" : "Add a Player from join requests",
+   "gui.recruits.team.tooltip.remove" : "Remove a Player from your Team",
 
+   "gui.recruits.team.select_leader": "Select new Leader",
+   "gui.recruits.team.select_leader_tooltip": "Select a new leader before leaving this team",
+   "gui.recruits.wip": "WIP"
  }

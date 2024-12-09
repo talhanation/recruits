@@ -4,7 +4,6 @@ import net.minecraft.data.worldgen.biome.Biomes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -145,7 +144,7 @@ public class RecruitsTeam {
 
         return nbt;
     }
-    @NotNull
+
     public static RecruitsTeam fromNBT(CompoundTag nbt) {
         if(nbt.isEmpty()) {
             return null;

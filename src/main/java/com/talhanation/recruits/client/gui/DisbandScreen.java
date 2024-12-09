@@ -3,6 +3,7 @@ package com.talhanation.recruits.client.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.gui.player.PlayersList;
 import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.DisbandContainer;
@@ -79,7 +80,7 @@ public class DisbandScreen extends RecruitsScreenBase {
         Button giveToTeamMate = addRenderableWidget(new Button(guiLeft + 32, guiTop + ySize - 98 - 7, 130, 20, TEAM_MATE,
             btn -> {
                 if(recruit != null) {
-                    minecraft.setScreen(new SelectPlayerScreen(this, player, TEAM_MATE, TEAM_MATE, TOOLTIP_ASSIGN_GROUP_TO_MATE, false, true,
+                    minecraft.setScreen(new SelectPlayerScreen(this, player, TEAM_MATE, TEAM_MATE, TOOLTIP_ASSIGN_GROUP_TO_MATE, false, PlayersList.FilterType.SAME_TEAM,
                             (playerInfo) -> {
                                 Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignToTeamMate(this.recruit.getUUID(), playerInfo.getUUID()));
                                 onClose();
@@ -117,7 +118,7 @@ public class DisbandScreen extends RecruitsScreenBase {
         Button buttonAssignGroup = addRenderableWidget(new Button(guiLeft + 32, guiTop + ySize - 54 - 7, 130, 20, TEAM_MATE_GROUP,
             btn -> {
                 if(recruit != null) {
-                    minecraft.setScreen(new SelectPlayerScreen(this, player, TEAM_MATE_GROUP, TEAM_MATE_GROUP, TOOLTIP_ASSIGN_GROUP_TO_MATE, false, true,
+                    minecraft.setScreen(new SelectPlayerScreen(this, player, TEAM_MATE_GROUP, TEAM_MATE_GROUP, TOOLTIP_ASSIGN_GROUP_TO_MATE, false, PlayersList.FilterType.SAME_TEAM,
                         (playerInfo) -> {
                             Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToTeamMate(this.player.getUUID(), playerInfo.getUUID(), this.recruit.getUUID()));
                             onClose();

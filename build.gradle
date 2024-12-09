@@ -58,7 +58,7 @@ minecraft {
 
             Random rnd = new Random()
 
-            args = ['--username', 'talhanation2']// + rnd.nextInt(1000)]
+            args = ['--username', 'talhanation']// + rnd.nextInt(1000)]
 
 
             mods {

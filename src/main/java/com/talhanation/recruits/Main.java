@@ -2,6 +2,7 @@ package com.talhanation.recruits;
 
 import com.google.common.collect.ImmutableSet;
 import com.talhanation.recruits.client.events.KeyEvents;
+import com.talhanation.recruits.network.MessageSaveTeamSettings;
 import com.talhanation.recruits.commands.PatrolSpawnCommand;
 import com.talhanation.recruits.commands.RecruitsAdminCommands;
 import com.talhanation.recruits.config.RecruitsClientConfig;
@@ -189,7 +190,8 @@ public class Main {
                 MessageToClientUpdateDiplomacyList.class,
                 MessageToServerRequestUpdateDiplomacyList.class,
                 MessageToClientUpdateTeamInspection.class,
-                MessageToServerRequestUpdateTeamInspaction.class
+                MessageToServerRequestUpdateTeamInspaction.class,
+                MessageSaveTeamSettings.class
         };
 
 

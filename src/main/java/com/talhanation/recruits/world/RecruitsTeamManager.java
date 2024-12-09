@@ -51,7 +51,6 @@ public class RecruitsTeamManager {
 
         teams.put(teamName, recruitsTeam);
     }
-
     public void removeTeam(String teamName) {
         teams.remove(teamName);
     }

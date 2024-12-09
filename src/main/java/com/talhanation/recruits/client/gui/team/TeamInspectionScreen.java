@@ -3,6 +3,7 @@ package com.talhanation.recruits.client.gui.team;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.gui.ConfirmScreen;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.diplomacy.DiplomacyTeamListScreen;
 import com.talhanation.recruits.client.gui.player.IPlayerSelection;
@@ -12,9 +13,7 @@ import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
 import com.talhanation.recruits.client.gui.widgets.SelectedPlayerWidget;
-import com.talhanation.recruits.network.MessageLeaveTeam;
-import com.talhanation.recruits.network.MessageToServerRequestUpdateTeamInspaction;
-import com.talhanation.recruits.network.MessageToServerRequestUpdateTeamList;
+import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.client.gui.GuiComponent;
@@ -95,7 +94,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         if (playerList != null) {
             playerList.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
         } else {
-            playerList = new PlayersList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT,  this, true, player, true);
+            playerList = new PlayersList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT,  this, PlayersList.FilterType.SAME_TEAM, player, true);
         }
         addWidget(playerList);
 
@@ -133,7 +132,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
 
         manageButton = new Button(guiLeft + 87, buttonY, 60, 20, MANAGE_BUTTON,
                 button -> {
-                    //minecraft.setScreen(new Manage(this));
+                    minecraft.setScreen(new TeamManageScreen(this, player, recruitsTeam));
                 });
         manageButton.visible = isTeamLeader;
         addRenderableWidget(manageButton);
@@ -142,10 +141,10 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         leaveButton = new Button(guiLeft + 7, buttonY, 60, 20, LEAVE_BUTTON,
             button -> {
                 if(isTeamLeader){
-                    minecraft.setScreen(new SelectPlayerScreen(this, player, SELECT_LEADER, SelectPlayerScreen.BUTTON_SELECT, SELECT_LEADER_TOOLTIP, false, true,
+                    minecraft.setScreen(new SelectPlayerScreen(this, player, SELECT_LEADER, SelectPlayerScreen.BUTTON_SELECT, SELECT_LEADER_TOOLTIP, false, PlayersList.FilterType.SAME_TEAM,
                             (playerInfo) -> {
                                     recruitsTeam.setTeamLeaderID(playerInfo.getUUID());
-                                    recruitsTeam.setTeamName(playerInfo.getName());
+                                    recruitsTeam.setTeamLeaderName(playerInfo.getName());
 
                                     Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveTeamSettings(recruitsTeam, recruitsTeam.getTeamName()));
                                     onClose();

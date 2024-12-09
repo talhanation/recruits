@@ -15,17 +15,19 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
     protected IPlayerSelection screen;
     protected final List<RecruitsPlayerEntry> entries;
     protected String filter;
-    protected final boolean sameTeamOnly;
+    protected final PlayersList.FilterType filterType;
     public static List<RecruitsPlayerInfo> onlinePlayers;
     public final Player player;
+    public RecruitsTeam recruitsTeam;
     protected final boolean includeSelf;
 
-    public  PlayersList(int width, int height, int x, int y, int size, IPlayerSelection screen, boolean sameTeamOnly, Player player, boolean includeSelf) {
+
+    public  PlayersList(int width, int height, int x, int y, int size, IPlayerSelection screen, PlayersList.FilterType filterType, Player player, boolean includeSelf) {
         super(width, height, x, y, size);
         this.screen = screen;
         this.entries = Lists.newArrayList();
         this.filter = "";
-        this.sameTeamOnly = sameTeamOnly;
+        this.filterType = filterType;
         this.player = player;
         this.includeSelf = includeSelf;
         setRenderBackground(false);
@@ -33,7 +35,6 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
         setRenderSelection(true);
 
     }
-
 
     boolean hasUpdated;
     public void tick() {
@@ -45,24 +46,46 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
 
     public void updateEntryList() {
         entries.clear();
-        Team team = this.player.getTeam();
+        this.recruitsTeam = this.getRecruitsTeam();
+
+
         for (RecruitsPlayerInfo player : onlinePlayers) {
+
             if(includeSelf || !player.getUUID().equals(this.player.getUUID())){
 
-                if(sameTeamOnly){
-                    RecruitsTeam recruitsTeam = player.getRecruitsTeam();
-
-                    if(recruitsTeam != null && team != null && recruitsTeam.getTeamName().equals(team.getName())){
+                switch (filterType){
+                    default -> {
                         entries.add(new RecruitsPlayerEntry(screen, player));
                     }
-                }
-                else{
-                    entries.add(new RecruitsPlayerEntry(screen, player));
+                    case SAME_TEAM -> {
+                        RecruitsTeam recruitsTeam = player.getRecruitsTeam();
+
+                        if(recruitsTeam != null && recruitsTeam.getTeamName().equals(this.recruitsTeam.getTeamName())){
+                            entries.add(new RecruitsPlayerEntry(screen, player));
+                        }
+                    }
+
+                    case TEAM_JOIN_REQUEST -> {
+                        if(this.recruitsTeam != null && this.recruitsTeam.getJoinRequests().contains(player.getName())){
+                            entries.add(new RecruitsPlayerEntry(screen, player));
+                        }
+                    }
                 }
             }
         }
 
         updateFilter();
+    }
+
+    private RecruitsTeam getRecruitsTeam() {
+        RecruitsTeam recruitsTeam = null;
+        for (RecruitsPlayerInfo player : onlinePlayers) {
+            if(player.getUUID().equals(this.player.getUUID())){
+                recruitsTeam = player.getRecruitsTeam();
+                break;
+            }
+        }
+        return recruitsTeam;
     }
 
     public void updateFilter() {
@@ -99,5 +122,11 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
 
     public boolean isEmpty() {
         return children().isEmpty();
+    }
+
+    public enum FilterType{
+        NONE,
+        SAME_TEAM,
+        TEAM_JOIN_REQUEST
     }
 }

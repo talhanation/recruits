@@ -46,15 +46,15 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
     private final Consumer<RecruitsPlayerInfo> buttonAction;
     private final Player player;
     private final boolean includeSelf;
-    private final boolean sameTeamOnly;
+    private final PlayersList.FilterType filterType;
 
-    public SelectPlayerScreen(Screen parent, Player player, Component title, Component buttonText, Component buttonTooltip, boolean includeSelf, boolean sameTeamOnly, Consumer<RecruitsPlayerInfo> buttonAction){
+    public SelectPlayerScreen(Screen parent, Player player, Component title, Component buttonText, Component buttonTooltip, boolean includeSelf, PlayersList.FilterType filterType, Consumer<RecruitsPlayerInfo> buttonAction){
         super(title,236,0);
         this.parent = parent;
         this.buttonAction = buttonAction;
         this.player = player;
         this.includeSelf = includeSelf;
-        this.sameTeamOnly = sameTeamOnly;
+        this.filterType = filterType;
         BUTTON_TEXT = buttonText;
         TOOLTIP_BUTTON = buttonTooltip;
     }
@@ -76,7 +76,7 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
         if (playerList != null) {
             playerList.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
         } else {
-            playerList = new PlayersList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, sameTeamOnly, player, includeSelf);
+            playerList = new PlayersList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, filterType, player, includeSelf);
         }
         String string = searchBox != null ? searchBox.getValue() : "";
         searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, new TextComponent("SEARCH_HINT"));

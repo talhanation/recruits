@@ -4,15 +4,10 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.component.ImageToast;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.toasts.Toast;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
@@ -22,6 +17,7 @@ public class RecruitsToastManager {
     private static final ResourceLocation ALLY_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/ally.png");
     private static final ResourceLocation ENEMY_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/enemy.png");
     private static final ResourceLocation NEUTRAL_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/neutral.png");
+    private static final ResourceLocation CROWN_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/leader_crown.png");
     public static void setToastForPlayer(Images id, @Nullable Component title, @Nullable Component text){
         Toast toast = null;
         switch (id){
@@ -33,6 +29,9 @@ public class RecruitsToastManager {
             }
             case ENEMY -> {
                 toast = new ImageToast(ENEMY_IMAGE, title, text);
+            }
+            case CROWN -> {
+                toast = new ImageToast(CROWN_IMAGE, title, text);
             }
             default -> {
                 toast = new ImageToast(LETTER_IMAGE, title, text);
@@ -48,7 +47,8 @@ public class RecruitsToastManager {
         LETTER,
         ALLY,
         NEUTRAL,
-        ENEMY
+        ENEMY,
+        CROWN
     }
 
     public static Component TOAST_TO(String team){
