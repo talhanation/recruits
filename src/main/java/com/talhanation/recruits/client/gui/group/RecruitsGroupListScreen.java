@@ -48,6 +48,8 @@ public class RecruitsGroupListScreen extends ListScreenBase {
     private Button editButton;
     private Button removeButton;
     private final Player player;
+    private int gapTop;
+    private int gapBottom;
 
     public RecruitsGroupListScreen(Player player){
         super(TITLE,236,0);
@@ -59,12 +61,14 @@ public class RecruitsGroupListScreen extends ListScreenBase {
         super.init();
         Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdateGroupList());
 
+        gapTop = (int) (this.height * 0.1);
+        gapBottom = (int) (this.height * 0.1);
+
         guiLeft = guiLeft + 2;
-        guiTop = 70;
+        guiTop = gapTop;
 
         int minUnits = Mth.ceil((float) (CELL_HEIGHT + SEARCH_HEIGHT + 4) / (float) UNIT_SIZE);
-        units = Math.max(minUnits, (height - HEADER_SIZE - FOOTER_SIZE - guiTop * 2 - SEARCH_HEIGHT) / UNIT_SIZE);
-        ySize = HEADER_SIZE + units * UNIT_SIZE + FOOTER_SIZE;
+        units = Math.max(minUnits, (height - HEADER_SIZE - FOOTER_SIZE - gapTop - gapBottom - SEARCH_HEIGHT) / UNIT_SIZE);
 
         minecraft.keyboardHandler.setSendRepeatsToGui(true);
         if (groupList != null) {
@@ -81,13 +85,15 @@ public class RecruitsGroupListScreen extends ListScreenBase {
         addWidget(searchBox);
         addWidget(groupList);
 
-        addRenderableWidget(createAddGroupButton(guiLeft + 7, guiTop + ySize  - 20 - 7));
+        int buttonY = guiTop + HEADER_SIZE + 5 + units * UNIT_SIZE;
 
-        this.editButton =  createEditGroupButton(guiLeft + 87, guiTop + ySize  - 20 - 7);
+        addRenderableWidget(createAddGroupButton(guiLeft + 7, buttonY));
+
+        this.editButton =  createEditGroupButton(guiLeft + 87, buttonY);
         this.editButton.active = this.selected != null;
         addRenderableWidget(this.editButton);
 
-        this.removeButton = createRemoveGroupButton(guiLeft + 167, guiTop + ySize  - 20 - 7);
+        this.removeButton = createRemoveGroupButton(guiLeft + 167, buttonY);
         this.removeButton.active = this.selected != null;
         addRenderableWidget(this.removeButton);
     }

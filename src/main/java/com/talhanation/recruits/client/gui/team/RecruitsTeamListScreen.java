@@ -6,7 +6,6 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.events.RecruitsToastManager;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
 import com.talhanation.recruits.network.MessageSendJoinRequestTeam;
-import com.talhanation.recruits.network.MessageToServerRequestUpdatePlayerList;
 import com.talhanation.recruits.network.MessageToServerRequestUpdateTeamList;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.client.gui.components.Button;
@@ -47,6 +46,9 @@ public class RecruitsTeamListScreen extends ListScreenBase {
     private Button backButton;
     private Button sendJoinRequestButton;
 
+    private int gapTop;
+    private int gapBottom;
+
     public RecruitsTeamListScreen(Screen parent){
         super(TITLE,236,0);
         this.parent = parent;
@@ -57,12 +59,14 @@ public class RecruitsTeamListScreen extends ListScreenBase {
         super.init();
         Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdateTeamList());
 
+        gapTop = (int) (this.height * 0.1);
+        gapBottom = (int) (this.height * 0.1);
+
         guiLeft = guiLeft + 2;
-        guiTop = 70;
+        guiTop = gapTop;
 
         int minUnits = Mth.ceil((float) (CELL_HEIGHT + SEARCH_HEIGHT + 4) / (float) UNIT_SIZE);
-        units = Math.max(minUnits, (height - HEADER_SIZE - FOOTER_SIZE - guiTop * 2 - SEARCH_HEIGHT) / UNIT_SIZE);
-        ySize = HEADER_SIZE + units * UNIT_SIZE + FOOTER_SIZE;
+        units = Math.max(minUnits, (height - HEADER_SIZE - FOOTER_SIZE - gapTop - gapBottom - SEARCH_HEIGHT) / UNIT_SIZE);
 
         minecraft.keyboardHandler.setSendRepeatsToGui(true);
         if (teamList != null) {
@@ -81,14 +85,16 @@ public class RecruitsTeamListScreen extends ListScreenBase {
 
         this.setInitialFocus(searchBox);
 
-        backButton = new Button(guiLeft + 129, guiTop + ySize - 20 - 7, 100, 20, BACK_BUTTON,
+        int buttonY = guiTop + HEADER_SIZE + 5 + units * UNIT_SIZE;
+
+        backButton = new Button(guiLeft + 129, buttonY, 100, 20, BACK_BUTTON,
                 button -> {
                     minecraft.setScreen(parent);
                 });
 
         addRenderableWidget(backButton);
 
-        sendJoinRequestButton = new Button(guiLeft + 7, guiTop + ySize - 20 - 7, 100, 20, JOIN_BUTTON,
+        sendJoinRequestButton = new Button(guiLeft + 7, buttonY, 100, 20, JOIN_BUTTON,
                 button -> {
                     RecruitsToastManager.setToastForPlayer(RecruitsToastManager.Images.LETTER, TOAST_SENT_JOIN_REQUEST_TITLE, TOAST_TO(selected.getTeamName()));
 

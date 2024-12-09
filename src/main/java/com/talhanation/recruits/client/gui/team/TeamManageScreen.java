@@ -53,16 +53,16 @@ public class TeamManageScreen extends RecruitsScreenBase {
         clearWidgets();
 
         Button addPlayer = addRenderableWidget(new Button(guiLeft + 32, guiTop + ySize - 120 - 7, 130, 20, ADD_PLAYER,
-                btn -> {
-                    minecraft.setScreen(new SelectPlayerScreen(this, player, TOOLTIP_ADD_PLAYER,  ADD_PLAYER, new TextComponent(""), false, PlayersList.FilterType.TEAM_JOIN_REQUEST,
-                            (playerInfo) -> {
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageAddPlayerToTeam(recruitsTeam.getTeamName(), playerInfo.getName()));
-                            }
-                    ));
-                },
-                (button, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_ADD_PLAYER, i, i1);
-                }
+            btn -> {
+                minecraft.setScreen(new SelectPlayerScreen(this, player, TOOLTIP_ADD_PLAYER,  ADD_PLAYER, new TextComponent(""), false, PlayersList.FilterType.TEAM_JOIN_REQUEST,
+                        (playerInfo) -> {
+                            Main.SIMPLE_CHANNEL.sendToServer(new MessageAddPlayerToTeam(recruitsTeam.getTeamName(), playerInfo.getName()));
+                        }
+                ));
+            },
+            (button, poseStack, i, i1) -> {
+                this.renderTooltip(poseStack, TOOLTIP_ADD_PLAYER, i, i1);
+            }
         ));
 
         Button removePlayer = addRenderableWidget(new Button(guiLeft + 32, guiTop + ySize - 98 - 7, 130, 20, REMOVE_PLAYER,
@@ -99,9 +99,9 @@ public class TeamManageScreen extends RecruitsScreenBase {
         playerPromotion.active = false;
 
         Button back = addRenderableWidget(new Button(guiLeft + 32, guiTop + ySize - 32 - 7, 130, 20, BACK,
-                btn -> {
-                    minecraft.setScreen(parent);
-                }
+            btn -> {
+                minecraft.setScreen(parent);
+            }
         ));
     }
 

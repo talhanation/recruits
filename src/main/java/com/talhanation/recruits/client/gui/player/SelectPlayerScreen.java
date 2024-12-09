@@ -48,6 +48,9 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
     private final boolean includeSelf;
     private final PlayersList.FilterType filterType;
 
+    private int gapTop;
+    private int gapBottom;
+
     public SelectPlayerScreen(Screen parent, Player player, Component title, Component buttonText, Component buttonTooltip, boolean includeSelf, PlayersList.FilterType filterType, Consumer<RecruitsPlayerInfo> buttonAction){
         super(title,236,0);
         this.parent = parent;
@@ -65,11 +68,14 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
         super.init();
         Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdatePlayerList());
 
+        gapTop = (int) (this.height * 0.1);
+        gapBottom = (int) (this.height * 0.1);
+
         guiLeft = guiLeft + 2;
-        guiTop = 70;
+        guiTop = gapTop;
 
         int minUnits = Mth.ceil((float) (CELL_HEIGHT + SEARCH_HEIGHT + 4) / (float) UNIT_SIZE);
-        units = Math.max(minUnits, (height - HEADER_SIZE - FOOTER_SIZE - guiTop * 2 - SEARCH_HEIGHT) / UNIT_SIZE);
+        units = Math.max(minUnits, (height - HEADER_SIZE - FOOTER_SIZE - gapTop - gapBottom - SEARCH_HEIGHT) / UNIT_SIZE);
         ySize = HEADER_SIZE + units * UNIT_SIZE + FOOTER_SIZE;
 
         minecraft.keyboardHandler.setSendRepeatsToGui(true);
@@ -89,12 +95,14 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
 
         this.setInitialFocus(searchBox);
 
-        backButton = new Button(guiLeft + 129, guiTop + ySize - 20 - 7, 100, 20, BUTTON_BACK,
+        int buttonY = guiTop + HEADER_SIZE + 5 + units * UNIT_SIZE;
+
+        backButton = new Button(guiLeft + 129, buttonY, 100, 20, BUTTON_BACK,
                 button -> {
                     minecraft.setScreen(parent);
          });
 
-        actionButton = new Button(guiLeft + 7, guiTop + ySize - 20 - 7, 100, 20, BUTTON_TEXT,
+        actionButton = new Button(guiLeft + 7, buttonY, 100, 20, BUTTON_TEXT,
                 button -> {
                 buttonAction.accept(selected);
         });

@@ -44,7 +44,8 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
     private Button backButton;
     private Button setStanceButton;
     private final boolean isLeader;
-
+    private int gapBottom;
+    private int gapTop;
 
     public DiplomacyTeamListScreen(Screen parent, boolean isLeader) {
         super(TITLE, 236, 0);
@@ -56,11 +57,15 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
     protected void init() {
         super.init();
         Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdateDiplomacyList());
+
+        gapTop = (int) (this.height * 0.1);
+        gapBottom = (int) (this.height * 0.1);
+
         guiLeft = guiLeft + 2;
-        guiTop = 70;
+        guiTop = gapTop;
 
         int minUnits = Mth.ceil((float) (CELL_HEIGHT + SEARCH_HEIGHT + 4) / (float) UNIT_SIZE);
-        units = Math.max(minUnits, (height - HEADER_SIZE - FOOTER_SIZE - guiTop * 2 - SEARCH_HEIGHT) / UNIT_SIZE);
+        units = Math.max(minUnits, (height - HEADER_SIZE - FOOTER_SIZE - gapTop - gapBottom - SEARCH_HEIGHT) / UNIT_SIZE);
         ySize = HEADER_SIZE + units * UNIT_SIZE + FOOTER_SIZE;
 
         minecraft.keyboardHandler.setSendRepeatsToGui(true);
@@ -81,15 +86,16 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
         addWidget(list);
 
         this.setInitialFocus(searchBox);
+        int buttonY = guiTop + HEADER_SIZE + 5 + units * UNIT_SIZE;
 
-        backButton = new Button(guiLeft + 129, guiTop + ySize - 20 - 7, 100, 20, BACK_BUTTON,
+        backButton = new Button(guiLeft + 129, buttonY, 100, 20, BACK_BUTTON,
                 button -> {
                     minecraft.setScreen(parent);
                 });
 
         addRenderableWidget(backButton);
 
-        setStanceButton = new Button(guiLeft + 7, guiTop + ySize - 20 - 7, 100, 20, this.isLeader ? SET_STANCE : SHOW_STANCE,
+        setStanceButton = new Button(guiLeft + 7, buttonY, 100, 20, this.isLeader ? SET_STANCE : SHOW_STANCE,
                 button -> {
                      minecraft.setScreen(new DiplomacyEditScreen(this, ownTeam, selected, list.getRelation(ownTeam.getTeamName(), selected.getTeamName()), list.getRelation(selected.getTeamName(), ownTeam.getTeamName()), isLeader));
                      this.selected = null;
