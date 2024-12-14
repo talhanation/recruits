@@ -2,6 +2,8 @@ package com.talhanation.recruits.client.events;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.component.ImageToast;
+import com.talhanation.recruits.client.gui.component.RecruitsTeamImageToast;
+import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.toasts.Toast;
@@ -18,6 +20,25 @@ public class RecruitsToastManager {
     private static final ResourceLocation ENEMY_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/enemy.png");
     private static final ResourceLocation NEUTRAL_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/neutral.png");
     private static final ResourceLocation CROWN_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/leader_crown.png");
+    public static void setTeamToastForPlayer(Images id, @Nullable Component title, @Nullable Component text, RecruitsTeam team){
+        Toast toast = null;
+        switch (id) {
+            case ALLY -> {
+                toast = new RecruitsTeamImageToast(ALLY_IMAGE, title, text, team);
+            }
+            case NEUTRAL -> {
+                toast = new RecruitsTeamImageToast(NEUTRAL_IMAGE, title, text, team);
+            }
+            case ENEMY -> {
+                toast = new RecruitsTeamImageToast(ENEMY_IMAGE, title, text, team);
+            }
+            default -> {
+                toast = new ImageToast(LETTER_IMAGE, title, text);
+            }
+        }
+        Minecraft minecraft = Minecraft.getInstance();
+        minecraft.getToasts().addToast(toast);
+    }
     public static void setToastForPlayer(Images id, @Nullable Component title, @Nullable Component text){
         Toast toast = null;
         switch (id){
@@ -40,7 +61,6 @@ public class RecruitsToastManager {
 
         Minecraft minecraft = Minecraft.getInstance();
         minecraft.getToasts().addToast(toast);
-        //minecraft.getSoundManager().play(SimpleSoundInstance.forUI(, 1.0F));
     }
     @OnlyIn(Dist.CLIENT)
     public enum Images{

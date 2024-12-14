@@ -472,7 +472,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
         Team ownerTeam = this.getTeam();
         if(ownerTeam != null )target.sendMessage(MESSENGER_ARRIVED_TEAM(this.getOwnerName(), ownerTeam.getName()), target.getUUID());
         else target.sendMessage(MESSENGER_ARRIVED(this.getOwnerName()), target.getUUID());
-        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> target), new MessageToClientSetToast(8, this.getOwnerName()));
+        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> target), new MessageToClientSetToast(1, this.getOwnerName()));
     }
 
     private MutableComponent PLAYER_NOT_FOUND(){

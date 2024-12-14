@@ -1,6 +1,8 @@
 package com.talhanation.recruits.world;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.network.MessageToClientSetDiplomaticToast;
 import com.talhanation.recruits.network.MessageToClientSetToast;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -67,36 +69,23 @@ public class RecruitsDiplomacyManager {
         }
     }
 
-    private void notifyPlayersInTeam(String team, String otherTeam, DiplomacyStatus relation, ServerLevel level) {
-        List<ServerPlayer> playersInTeam = getPlayersInTeam(team, level);
-        for (ServerPlayer player : playersInTeam) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientSetToast(relation.getByteValue(), team));
-        }
+    private void notifyPlayersInTeam(String teamName, String otherTeamName, DiplomacyStatus relation, ServerLevel level) {
+        RecruitsTeam team = TeamEvents.recruitsTeamManager.getTeamByName(teamName);
+        RecruitsTeam otherTeam = TeamEvents.recruitsTeamManager.getTeamByName(otherTeamName);
 
-        List<ServerPlayer> playersInTeam2 = getPlayersInTeam(otherTeam, level);
-        for (ServerPlayer player : playersInTeam2) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientSetToast(relation.getByteValue() + 4, otherTeam));
-        }
-    }
+        if(team != null && otherTeam != null){
+            List<ServerPlayer> playersInTeam = TeamEvents.recruitsTeamManager.getPlayersInTeam(team.getTeamName(), level);
+            for (ServerPlayer player : playersInTeam) {
+                Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientSetDiplomaticToast(relation.getByteValue(), otherTeam));
+            }
 
-    private List<ServerPlayer> getPlayersInTeam(String teamName, ServerLevel level) {
-        Scoreboard scoreboard = level.getScoreboard();
-        PlayerTeam playerTeam = scoreboard.getPlayerTeam(teamName);
-
-        List<ServerPlayer> list = new ArrayList<>();
-
-        if(playerTeam != null){
-            for(ServerPlayer p : level.players()){
-                if(playerTeam.getPlayers().contains(p.getName().getString())){
-                   list.add(p);
-                }
+            List<ServerPlayer> playersInTeam2 = TeamEvents.recruitsTeamManager.getPlayersInTeam(otherTeam.getTeamName(), level);
+            for (ServerPlayer player : playersInTeam2) {
+                Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientSetDiplomaticToast(relation.getByteValue() + 4, team));
             }
         }
 
-        return list;
     }
-
-
     public static CompoundTag mapToNbt(Map<String, Map<String, RecruitsDiplomacyManager.DiplomacyStatus>> diplomacyMap) {
         CompoundTag nbt = new CompoundTag();
 

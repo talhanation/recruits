@@ -191,7 +191,8 @@ public class Main {
                 MessageToServerRequestUpdateDiplomacyList.class,
                 MessageToClientUpdateTeamInspection.class,
                 MessageToServerRequestUpdateTeamInspaction.class,
-                MessageSaveTeamSettings.class
+                MessageSaveTeamSettings.class,
+                MessageToClientSetDiplomaticToast.class
         };
 
 

@@ -236,6 +236,7 @@
   "gui.recruits.team_creation.create_team": "Create Team",
   "gui.recruits.team_creation.inspect_team": "Inspect Team",
   "gui.recruits.team_creation.teams_list": "List of Teams",
+   "gui.recruits.diplomacy.teams_list": "Diplomacy: List of Teams",
   "gui.recruits.teamInspectTitle": "",
   "gui.recruits.team_creation.leave_team": "Leave",
   "chat.recruits.team_creation.join": "Join",

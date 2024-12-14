@@ -3,8 +3,11 @@ package com.talhanation.recruits.world;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.Scoreboard;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -38,6 +41,32 @@ public class RecruitsTeamManager {
     @Nullable
     public RecruitsTeam getTeamByName(String teamName) {
         return teams.get(teamName);
+    }
+
+    public List<ServerPlayer> getPlayersInTeam(String teamName, ServerLevel level) {
+        Scoreboard scoreboard = level.getScoreboard();
+        PlayerTeam playerTeam = scoreboard.getPlayerTeam(teamName);
+
+        List<ServerPlayer> list = new ArrayList<>();
+
+        if(playerTeam != null){
+            for(ServerPlayer p : level.players()){
+                if(playerTeam.getPlayers().contains(p.getName().getString())){
+                    list.add(p);
+                }
+            }
+        }
+
+        return list;
+    }
+    @Nullable
+    public ServerPlayer getTeamLeader(RecruitsTeam recruitsTeam, ServerLevel level) {
+        for(ServerPlayer p : level.players()){
+            if(p.getUUID().equals(recruitsTeam.getTeamLeaderUUID())){
+                return p;
+            }
+        }
+        return null;
     }
 
     public void addTeam(String teamName, UUID leaderUUID, String leaderName, CompoundTag bannerNbt, byte color, int nameColor) {

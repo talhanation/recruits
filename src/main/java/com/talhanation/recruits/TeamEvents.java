@@ -368,7 +368,9 @@ public class  TeamEvents {
         RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByName(teamName);
 
         if(recruitsTeam != null){
-            recruitsTeam.addPlayerAsJoinRequest(player.getName().getString());
+            if(recruitsTeam.addPlayerAsJoinRequest(player.getName().getString())){
+                Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientSetDiplomaticToast(7, recruitsTeam));
+            }
         }
         else Main.LOGGER.error("Could not add join request for "+ teamName + ".Team does not exist.");
     }
@@ -478,7 +480,7 @@ public class  TeamEvents {
                     recruit.disband(oldOwner, true, true);
                     recruit.hire(newOwner);
 
-                    Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> newOwner), new MessageToClientSetToast(7, oldOwner.getName().getString()));
+                    Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> newOwner), new MessageToClientSetToast(0, oldOwner.getName().getString()));
                 }
                 else
                     playerNotFound = true;

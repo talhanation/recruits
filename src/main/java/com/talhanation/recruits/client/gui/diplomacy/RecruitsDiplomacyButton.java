@@ -22,9 +22,9 @@ public class RecruitsDiplomacyButton extends ExtendedButton {
 
     private final RecruitsDiplomacyManager.DiplomacyStatus status;
 
-    public RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus group, int xPos, int yPos, int width, int height, Component displayString, OnPress handler) {
+    public RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus status, int xPos, int yPos, int width, int height, Component displayString, OnPress handler) {
         super(xPos, yPos, width, height, displayString, handler);
-        this.status = group;
+        this.status = status;
     }
 
     private static Component createDisplayString(RecruitsGroup group) {

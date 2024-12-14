@@ -15,20 +15,24 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
     public static List<RecruitsTeam> teams;
     public static Map<String, Map<String, RecruitsDiplomacyManager.DiplomacyStatus>> diplomacyMap;
     public RecruitsTeam ownTeam;
+    public DiplomacyFilter diplomacyFilter;
+
     public DiplomacyTeamList(int width, int height, int x, int y, int size, DiplomacyTeamListScreen screen) {
         super(width, height, x, y, size);
         this.screen = screen;
         this.entries = Lists.newArrayList();
         this.filter = "";
+        this.diplomacyFilter = DiplomacyFilter.ALL;
 
         setRenderBackground(false);
         setRenderTopAndBottom(false);
         setRenderSelection(true);
     }
 
-    boolean hasUpdated;
+    public boolean hasUpdated;
+
     public void tick() {
-        if(!hasUpdated && teams != null && diplomacyMap != null){
+        if (!hasUpdated && teams != null && diplomacyMap != null) {
             this.ownTeam = getOwnTeam(teams);
             screen.ownTeam = this.ownTeam;
             updateEntryList();
@@ -36,10 +40,10 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
         }
     }
 
-    private RecruitsTeam getOwnTeam(List<RecruitsTeam> list){
+    private RecruitsTeam getOwnTeam(List<RecruitsTeam> list) {
         String playerTeam = minecraft.player.getTeam().getName();
-        for(RecruitsTeam team : list){
-            if(team.getTeamName().equals(playerTeam)){
+        for (RecruitsTeam team : list) {
+            if (team.getTeamName().equals(playerTeam)) {
                 return team;
             }
         }
@@ -50,8 +54,29 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
         entries.clear();
 
         for (RecruitsTeam team : teams) {
-            if(!team.equals(ownTeam)){
-                entries.add(new DiplomacyTeamEntry(screen, team));
+            if (!team.equals(ownTeam)) {
+                RecruitsDiplomacyManager.DiplomacyStatus status = getRelation(ownTeam.getTeamName(), team.getTeamName());
+
+                switch (diplomacyFilter) {
+                    case ALL -> {
+                        entries.add(new DiplomacyTeamEntry(screen, team));
+                    }
+                    case ALLIES -> {
+                        if (status == RecruitsDiplomacyManager.DiplomacyStatus.ALLY) {
+                            entries.add(new DiplomacyTeamEntry(screen, team));
+                        }
+                    }
+                    case NEUTRALS -> {
+                        if (status == RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL) {
+                            entries.add(new DiplomacyTeamEntry(screen, team));
+                        }
+                    }
+                    case ENEMIES -> {
+                        if (status == RecruitsDiplomacyManager.DiplomacyStatus.ENEMY) {
+                            entries.add(new DiplomacyTeamEntry(screen, team));
+                        }
+                    }
+                }
             }
         }
 
@@ -96,5 +121,12 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
 
     public boolean isEmpty() {
         return children().isEmpty();
+    }
+
+    public enum DiplomacyFilter {
+        ALL,
+        ALLIES,
+        NEUTRALS,
+        ENEMIES
     }
 }

@@ -43,8 +43,8 @@ public class ImageToast implements Toast {
         toastComponent.getMinecraft().font.draw(poseStack, this.title, 30, 7, 0xFFFFFF);
 
         poseStack.pushPose();
-        poseStack.translate(30, 18, 0);  // Position für die Beschreibung
-        poseStack.scale(0.6f, 0.6f, 1.0f);  // Skalierung auf 80% der Standardgröße
+        poseStack.translate(30, 18, 0); 
+        poseStack.scale(0.5f, 0.5f, 1.0f);
         toastComponent.getMinecraft().font.draw(poseStack, this.description, 0, 0, 0xCCCCCC);
         poseStack.popPose();
 

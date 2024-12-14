@@ -34,15 +34,8 @@ public class MessageToClientSetToast implements Message<MessageToClientSetToast>
     @Override
     public void executeClientSide(NetworkEvent.Context context) {
         switch (x){
-            case 0 -> RecruitsToastManager.setToastForPlayer(Images.NEUTRAL, TOAST_NEUTRAL_TITLE, TOAST_NEUTRAL_SET(s));//
-            case 1 -> RecruitsToastManager.setToastForPlayer(Images.ALLY, TOAST_ALLY_TITLE, TOAST_ALLY_SET(s));//
-            case 2 -> RecruitsToastManager.setToastForPlayer(Images.ENEMY, TOAST_ENEMY_TITLE,TOAST_ENEMY_SET(s));//
-            case 3 -> RecruitsToastManager.setToastForPlayer(Images.LETTER, TOAST_JOIN_REQUEST_TITLE, TOAST_FROM(s));//JoinReq
-            case 4 -> RecruitsToastManager.setToastForPlayer(Images.NEUTRAL, TOAST_NEUTRAL_TITLE, TOAST_NEUTRAL_INFO(s));//
-            case 5 -> RecruitsToastManager.setToastForPlayer(Images.ALLY, TOAST_ALLY_TITLE, TOAST_ALLY_INFO(s));//
-            case 6 -> RecruitsToastManager.setToastForPlayer(Images.ENEMY, TOAST_ENEMY_TITLE, TOAST_ENEMY_INFO(s));//
-            case 7 -> RecruitsToastManager.setToastForPlayer(Images.LETTER, TOAST_RECRUIT_ASSIGNED_TITLE, TOAST_RECRUIT_ASSIGNED_INFO(s));
-            case 8 -> RecruitsToastManager.setToastForPlayer(Images.LETTER, TOAST_MESSENGER_ARRIVED_TITLE, TOAST_MESSENGER_ARRIVED_INFO(s));
+            case 0 -> RecruitsToastManager.setToastForPlayer(Images.LETTER, TOAST_RECRUIT_ASSIGNED_TITLE, TOAST_RECRUIT_ASSIGNED_INFO(s));
+            case 1 -> RecruitsToastManager.setToastForPlayer(Images.LETTER, TOAST_MESSENGER_ARRIVED_TITLE, TOAST_MESSENGER_ARRIVED_INFO(s));
         }
     }
 

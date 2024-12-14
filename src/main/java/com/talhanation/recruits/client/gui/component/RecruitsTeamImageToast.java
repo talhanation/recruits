@@ -1,0 +1,36 @@
+package com.talhanation.recruits.client.gui.component;
+
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.talhanation.recruits.world.RecruitsTeam;
+import net.minecraft.client.gui.components.toasts.ToastComponent;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+
+@OnlyIn(Dist.CLIENT)
+public class RecruitsTeamImageToast extends ImageToast {
+
+    private final BannerRenderer bannerRenderer;
+    public RecruitsTeamImageToast(ResourceLocation image, Component title, Component description, RecruitsTeam recruitsTeam) {
+        super(image, title, description);
+        this.bannerRenderer = new BannerRenderer(recruitsTeam);
+    }
+
+    @Override
+    public Visibility render(PoseStack poseStack, ToastComponent toastComponent, long deltaTime) {
+        // Render the base toast (background, title, and description)
+        Visibility visibility = super.render(poseStack, toastComponent, deltaTime);
+
+
+        // Render the team banner
+        if (bannerRenderer != null) {
+            RenderSystem.setShader(GameRenderer::getPositionTexShader);
+            bannerRenderer.renderBanner(poseStack, 139, 3, width(), height(), 14);
+        }
+
+        return visibility;
+    }
+}

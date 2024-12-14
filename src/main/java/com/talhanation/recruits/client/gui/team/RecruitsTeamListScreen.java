@@ -96,7 +96,7 @@ public class RecruitsTeamListScreen extends ListScreenBase {
 
         sendJoinRequestButton = new Button(guiLeft + 7, buttonY, 100, 20, JOIN_BUTTON,
                 button -> {
-                    RecruitsToastManager.setToastForPlayer(RecruitsToastManager.Images.LETTER, TOAST_SENT_JOIN_REQUEST_TITLE, TOAST_TO(selected.getTeamName()));
+                    RecruitsToastManager.setTeamToastForPlayer(RecruitsToastManager.Images.LETTER, TOAST_SENT_JOIN_REQUEST_TITLE, TOAST_TO(selected.getTeamName()), selected);
 
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageSendJoinRequestTeam(parent.getMinecraft().player.getUUID(), selected.getTeamName()));
                 });
