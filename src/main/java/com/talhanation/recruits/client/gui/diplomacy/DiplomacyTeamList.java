@@ -59,21 +59,21 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
 
                 switch (diplomacyFilter) {
                     case ALL -> {
-                        entries.add(new DiplomacyTeamEntry(screen, team));
+                        entries.add(new DiplomacyTeamEntry(screen, team, status));
                     }
                     case ALLIES -> {
                         if (status == RecruitsDiplomacyManager.DiplomacyStatus.ALLY) {
-                            entries.add(new DiplomacyTeamEntry(screen, team));
+                            entries.add(new DiplomacyTeamEntry(screen, team, status));
                         }
                     }
                     case NEUTRALS -> {
                         if (status == RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL) {
-                            entries.add(new DiplomacyTeamEntry(screen, team));
+                            entries.add(new DiplomacyTeamEntry(screen, team, status));
                         }
                     }
                     case ENEMIES -> {
                         if (status == RecruitsDiplomacyManager.DiplomacyStatus.ENEMY) {
-                            entries.add(new DiplomacyTeamEntry(screen, team));
+                            entries.add(new DiplomacyTeamEntry(screen, team, status));
                         }
                     }
                 }

@@ -1,6 +1,8 @@
 package com.talhanation.recruits.client.gui.diplomacy;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.widgets.ListScreenEntryBase;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
@@ -8,6 +10,8 @@ import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -30,12 +34,12 @@ public class DiplomacyTeamEntry extends ListScreenEntryBase<DiplomacyTeamEntry> 
     protected final BannerRenderer bannerRenderer;
     protected final RecruitsDiplomacyManager.DiplomacyStatus status;
 
-    public DiplomacyTeamEntry(DiplomacyTeamListScreen screen, @NotNull RecruitsTeam team) {
+    public DiplomacyTeamEntry(DiplomacyTeamListScreen screen, @NotNull RecruitsTeam team, RecruitsDiplomacyManager.DiplomacyStatus status) {
         this.minecraft = Minecraft.getInstance();
         this.screen = screen;
         this.team = team;
         this.bannerRenderer = new BannerRenderer(team);
-        this.status = null;
+        this.status = status;
     }
 
     @Override
@@ -59,8 +63,16 @@ public class DiplomacyTeamEntry extends ListScreenEntryBase<DiplomacyTeamEntry> 
         } else {
             GuiComponent.fill(poseStack, left, top, left + width, top + height, BG_FILL);
         }
-
+        int iconX = 178;
+        int iconY = 5;
         bannerRenderer.renderBanner(poseStack, left, top, width, height, 15);
+        if(status != null){
+            RenderSystem.setShader(GameRenderer::getPositionTexShader);
+            RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
+            RenderSystem.setShaderTexture(0, getStatusTextureLocation());
+            GuiComponent.blit(poseStack, left + iconX, top + iconY, 0, 0, 21, 21, 21, 21);
+        }
+
         /*
         Integer teamColor = ChatFormatting.getById(team.getTeamColor()).getColor();
         int unitColor = TeamCreationScreen.RecruitColorID.get(team.getUnitColor());
@@ -81,4 +93,16 @@ public class DiplomacyTeamEntry extends ListScreenEntryBase<DiplomacyTeamEntry> 
     public ListScreenListBase<DiplomacyTeamEntry> getList() {
         return screen.list;
     }
+
+    private ResourceLocation getStatusTextureLocation() {
+        ResourceLocation location;
+
+        switch (this.status){
+            default -> location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/neutral.png");
+            case ALLY ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/ally.png");
+            case ENEMY ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/enemy.png");
+        }
+        return location;
+    }
+
 }
