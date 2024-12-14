@@ -21,14 +21,17 @@ public class RecruitsTeamImageToast extends ImageToast {
 
     @Override
     public Visibility render(PoseStack poseStack, ToastComponent toastComponent, long deltaTime) {
-        // Render the base toast (background, title, and description)
         Visibility visibility = super.render(poseStack, toastComponent, deltaTime);
 
+        int bannerX = 139;
+        int bannerY = 3;
+        if(image == null){
+            bannerX = 3;
+        }
 
-        // Render the team banner
         if (bannerRenderer != null) {
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
-            bannerRenderer.renderBanner(poseStack, 139, 3, width(), height(), 14);
+            bannerRenderer.renderBanner(poseStack, bannerX, bannerY, width(), height(), 14);
         }
 
         return visibility;

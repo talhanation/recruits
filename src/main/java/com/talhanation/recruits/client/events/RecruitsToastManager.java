@@ -21,7 +21,7 @@ public class RecruitsToastManager {
     private static final ResourceLocation NEUTRAL_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/neutral.png");
     private static final ResourceLocation CROWN_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/leader_crown.png");
     public static void setTeamToastForPlayer(Images id, @Nullable Component title, @Nullable Component text, RecruitsTeam team){
-        Toast toast = null;
+        Toast toast;
         switch (id) {
             case ALLY -> {
                 toast = new RecruitsTeamImageToast(ALLY_IMAGE, title, text, team);
@@ -32,15 +32,19 @@ public class RecruitsToastManager {
             case ENEMY -> {
                 toast = new RecruitsTeamImageToast(ENEMY_IMAGE, title, text, team);
             }
+            case TEAM_JOIN -> {
+                toast = new RecruitsTeamImageToast(null, title, text, team);
+            }
             default -> {
-                toast = new ImageToast(LETTER_IMAGE, title, text);
+                toast = new RecruitsTeamImageToast(LETTER_IMAGE, title, text, team);
             }
         }
+
         Minecraft minecraft = Minecraft.getInstance();
         minecraft.getToasts().addToast(toast);
     }
     public static void setToastForPlayer(Images id, @Nullable Component title, @Nullable Component text){
-        Toast toast = null;
+        Toast toast;
         switch (id){
             case ALLY -> {
                 toast = new ImageToast(ALLY_IMAGE, title, text);
@@ -64,11 +68,13 @@ public class RecruitsToastManager {
     }
     @OnlyIn(Dist.CLIENT)
     public enum Images{
+        NONE,
         LETTER,
         ALLY,
         NEUTRAL,
         ENEMY,
-        CROWN
+        CROWN,
+        TEAM_JOIN
     }
 
     public static Component TOAST_TO(String team){
@@ -81,7 +87,8 @@ public class RecruitsToastManager {
     public static Component TOAST_FROM(String team){
         return new TranslatableComponent("gui.recruits.toast.from", team);
     }
-
+    public static final Component TOAST_PLAYER_JOINED_TITLE = new TranslatableComponent("gui.recruits.toast.playerJoinedTeamTitle");
+    public static final Component TOAST_TEAM_JOINED_TITLE = new TranslatableComponent("gui.recruits.toast.teamJoinedTitle");
     public static final Component TOAST_JOIN_REQUEST_TITLE = new TranslatableComponent("gui.recruits.toast.JoinRequestTitle");
     public static final Component TOAST_SENT_JOIN_REQUEST_TITLE = new TranslatableComponent("gui.recruits.toast.sendJoinRequestTitle");
     public static final Component TOAST_ENEMY_TITLE = new TranslatableComponent("gui.recruits.toast.enemyTitle").withStyle(ChatFormatting.RED);
@@ -90,8 +97,15 @@ public class RecruitsToastManager {
     public static final Component TOAST_MESSENGER_ARRIVED_TITLE  = new TranslatableComponent("gui.recruits.toast.messengerArrivedTitle");
     public static final Component TOAST_RECRUIT_ASSIGNED_TITLE  = new TranslatableComponent("gui.recruits.toast.recruitAssignedTitle");
 
-
-
+    public static Component TOAST_PLAYER_JOINED_TEAM(String s){
+        return new TranslatableComponent("gui.recruits.toast.playerJoinedTeam", s);
+    }
+    public static Component TOAST_TEAM_JOINED(String s){
+        return new TranslatableComponent("gui.recruits.toast.teamJoined", s);
+    }
+    public static Component TOAST_WANTS_TO_JOIN(String s){
+        return new TranslatableComponent("gui.recruits.toast.wantsToJoin", s);
+    }
     public static Component TOAST_ENEMY_INFO(String s){
         return new TranslatableComponent("gui.recruits.toast.setYouAsEnemy", s).withStyle(ChatFormatting.RED);
     }

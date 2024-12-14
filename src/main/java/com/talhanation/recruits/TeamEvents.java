@@ -317,6 +317,15 @@ public class  TeamEvents {
             addNPCToData(level, teamName, recruits);
 
             serverSideUpdateTeam(level);
+
+            RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByName(teamName);
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> playerToAdd), new MessageToClientSetDiplomaticToast(8, recruitsTeam));
+
+            List<ServerPlayer> playersInTeam = TeamEvents.recruitsTeamManager.getPlayersInTeam(teamName, level);
+            for (ServerPlayer teamPlayer : playersInTeam) {
+                if(!teamPlayer.getUUID().equals(playerToAdd.getUUID()))
+                    Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> teamPlayer), new MessageToClientSetDiplomaticToast(9, recruitsTeam, playerToAdd.getName().getString()));
+            }
             return true;
         }
         else
@@ -369,7 +378,7 @@ public class  TeamEvents {
 
         if(recruitsTeam != null){
             if(recruitsTeam.addPlayerAsJoinRequest(player.getName().getString())){
-                Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientSetDiplomaticToast(7, recruitsTeam));
+                Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> recruitsTeamManager.getTeamLeader(recruitsTeam, level)), new MessageToClientSetDiplomaticToast(7, recruitsTeam, player.getName().getString()));
             }
         }
         else Main.LOGGER.error("Could not add join request for "+ teamName + ".Team does not exist.");

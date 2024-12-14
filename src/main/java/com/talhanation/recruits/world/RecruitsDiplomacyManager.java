@@ -69,7 +69,7 @@ public class RecruitsDiplomacyManager {
         }
     }
 
-    private void notifyPlayersInTeam(String teamName, String otherTeamName, DiplomacyStatus relation, ServerLevel level) {
+    public void notifyPlayersInTeam(String teamName, String otherTeamName, DiplomacyStatus relation, ServerLevel level) {
         RecruitsTeam team = TeamEvents.recruitsTeamManager.getTeamByName(teamName);
         RecruitsTeam otherTeam = TeamEvents.recruitsTeamManager.getTeamByName(otherTeamName);
 

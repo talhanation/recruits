@@ -11,17 +11,19 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import javax.annotation.Nullable;
+
 @OnlyIn(Dist.CLIENT)
 public class ImageToast implements Toast {
-
-    private final ResourceLocation image;
+    @Nullable
+    protected final ResourceLocation image;
     private final Component title;
     private final Component description;
     private long lastChanged;
     private boolean hasStarted;
     public final long SHOW_TIME = 20000L;
 
-    public ImageToast(ResourceLocation image, Component title, Component description) {
+    public ImageToast(@Nullable ResourceLocation image, Component title, Component description) {
         this.image = image;
         this.title = title;
         this.description = description;
@@ -34,11 +36,12 @@ public class ImageToast implements Toast {
         RenderSystem.setShaderTexture(0, TEXTURE);
         toastComponent.blit(poseStack, 0, 0, 0, 0, this.width(), this.height());
 
-
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
-        RenderSystem.setShaderTexture(0, this.image);
-        GuiComponent.blit(poseStack, 5, 5, 0, 0, 21, 21, 21, 21);
+        if(image != null){
+            RenderSystem.setShader(GameRenderer::getPositionTexShader);
+            RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
+            RenderSystem.setShaderTexture(0, this.image);
+            GuiComponent.blit(poseStack, 5, 5, 0, 0, 21, 21, 21, 21);
+        }
 
         toastComponent.getMinecraft().font.draw(poseStack, this.title, 30, 7, 0xFFFFFF);
 

@@ -383,14 +383,18 @@
    "gui.recruits.toast.enemyTitle" : "Enemy Declared",
    "gui.recruits.toast.setYouAsEnemy" : "%s has marked you as enemy",
    "gui.recruits.toast.setAsEnemy" : "%s is now marked as enemy",
+   "gui.recruits.toast.wantsToJoin" : "%s wants to join your Team",
+   "gui.recruits.toast.teamJoined" : "You joined %s",
+   "gui.recruits.toast.playerJoinedTeam" : "%s joined your Team",
 
    "gui.recruits.toast.messengerArrivedTitle" : "Messenger Arrived",
    "gui.recruits.toast.recruitAssignedTitle" : "Recruit Assigned",
    "gui.recruits.toast.recruitAssigned" : "%s added a recruit to your command",
    "gui.recruits.toast.messengerArrived" : "The Messenger of %s arrived",
-
-
+   "gui.recruits.toast.teamJoinedTitle" : "Team Joined",
    "gui.recruits.toast.JoinRequestTitle" : "Join Request",
+   "gui.recruits.toast.playerJoinedTeamTitle" : "Player Joined Team",
+
    "gui.recruits.button.join" : "Join",
    "gui.recruits.diplomacy_edit.title" : "Relations",
    "gui.recruits.button.setRelation": "Set Relation",

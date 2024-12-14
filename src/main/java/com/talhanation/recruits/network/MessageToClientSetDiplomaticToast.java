@@ -19,10 +19,12 @@ public class MessageToClientSetDiplomaticToast implements Message<MessageToClien
 
     public MessageToClientSetDiplomaticToast() {
     }
-
     public MessageToClientSetDiplomaticToast(int x, RecruitsTeam team) {
+        this(x, team, team.getTeamName());
+    }
+    public MessageToClientSetDiplomaticToast(int x, RecruitsTeam team, String s) {
         this.x = x;
-        this.s = team.getTeamName();
+        this.s = s;
         this.nbt = team.toNBT();
     }
 
@@ -41,7 +43,11 @@ public class MessageToClientSetDiplomaticToast implements Message<MessageToClien
             case 4 -> RecruitsToastManager.setTeamToastForPlayer(Images.NEUTRAL, TOAST_NEUTRAL_TITLE, TOAST_NEUTRAL_INFO(s), team);//
             case 5 -> RecruitsToastManager.setTeamToastForPlayer(Images.ALLY, TOAST_ALLY_TITLE, TOAST_ALLY_INFO(s), team);//
             case 6 -> RecruitsToastManager.setTeamToastForPlayer(Images.ENEMY, TOAST_ENEMY_TITLE, TOAST_ENEMY_INFO(s), team);//
-            case 7 -> RecruitsToastManager.setTeamToastForPlayer(Images.LETTER, TOAST_JOIN_REQUEST_TITLE, TOAST_ENEMY_INFO(s), team);//
+
+            case 7 -> RecruitsToastManager.setTeamToastForPlayer(Images.LETTER, TOAST_JOIN_REQUEST_TITLE, TOAST_WANTS_TO_JOIN(s), team);//
+
+            case 8 -> RecruitsToastManager.setTeamToastForPlayer(Images.TEAM_JOIN, TOAST_TEAM_JOINED_TITLE, TOAST_TEAM_JOINED(s), team);//
+            case 9 -> RecruitsToastManager.setTeamToastForPlayer(Images.TEAM_JOIN, TOAST_PLAYER_JOINED_TITLE, TOAST_PLAYER_JOINED_TEAM(s), team);//
         }
     }
 
@@ -59,7 +65,4 @@ public class MessageToClientSetDiplomaticToast implements Message<MessageToClien
         buf.writeUtf(s);
         buf.writeNbt(nbt);
     }
-
-
-
 }
