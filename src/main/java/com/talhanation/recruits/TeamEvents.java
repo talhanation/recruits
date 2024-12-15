@@ -355,7 +355,6 @@ public class  TeamEvents {
     }
 
     public static void addPlayerToData(ServerLevel level, String teamName, int x, String namePlayerToAdd){
-
         RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByName(teamName);;
 
         recruitsTeam.addPlayer(x);

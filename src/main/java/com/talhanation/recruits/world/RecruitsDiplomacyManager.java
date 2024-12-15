@@ -37,6 +37,12 @@ public class RecruitsDiplomacyManager {
         data.setDirty();
     }
     public void setRelation(String team, String otherTeam, DiplomacyStatus relation, ServerLevel level) {
+        DiplomacyStatus currentRelation = this.getRelation(team, otherTeam);
+
+        if (currentRelation == relation) {
+            return;
+        }
+        
         diplomacyMap.computeIfAbsent(team, k -> new HashMap<>()).put(otherTeam, relation);
         this.notifyPlayersInTeam(team, otherTeam, relation, level);
     }

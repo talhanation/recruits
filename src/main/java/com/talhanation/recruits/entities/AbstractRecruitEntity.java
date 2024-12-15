@@ -251,16 +251,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(11, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(12, new RandomLookAroundGoal(this));
         //this.goalSelector.addGoal(13, new RecruitPickupWantedItemGoal(this));
-        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, LivingEntity.class, 10, true, false, (target) -> {
+        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, LivingEntity.class, 20, true, false, (target) -> {
             return (this.getState() == 2 && this.canAttack(target));
         }));
 
-        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, Player.class, 10, true, false, (target) -> {
-            return (this.getState() == 1 && this.canAttack(target));
+        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, Player.class, 20, true, false, (target) -> {
+            return ((this.getState() == 0 || this.getState() == 1) && this.canAttack(target));
         }));
 
-        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, AbstractRecruitEntity.class, 10, true, false, (target) -> {
-            return (this.getState() == 1 && this.canAttack(target));
+        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, AbstractRecruitEntity.class, 20, true, false, (target) -> {
+            return ((this.getState() == 0 || this.getState() == 1) && this.canAttack(target));
         }));
 
         this.targetSelector.addGoal(0, new RecruitProtectHurtByTargetGoal(this));
@@ -1169,7 +1169,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if(this.getMoral() > 0) this.setMoral(this.getMoral() - 0.25F);
             if(isBlocking()) hurtCurrentlyUsedShield(amt);
 
-            if(entity instanceof LivingEntity living && RecruitEvents.canDamageTarget(this, living)){
+            if(entity instanceof LivingEntity living && RecruitEvents.canAttack(this, living)){
                 if(this.getFollowState() == 5){//Protecting
                     List<AbstractRecruitEntity> list = this.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, this.getBoundingBox().inflate(32D));
                     for(AbstractRecruitEntity recruit : list){
@@ -1260,18 +1260,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 .add(Attributes.FOLLOW_RANGE, 32.0D);
     */
 
-    public boolean wantsToAttack(LivingEntity target, LivingEntity owner) {
-        if (target instanceof Player player && owner instanceof Player && !((Player)owner).canHarmPlayer((Player)target)) {
-            return isValidTargetPlayer(player);
-
-        } else if (target instanceof AbstractHorse && ((AbstractHorse)target).isTamed()) {
-            return false;
-        //} else if (target instanceof AbstractOrderAbleEntity && ((AbstractOrderAbleEntity)target).getIsInOrder() && ((AbstractOrderAbleEntity)target).getOwner() != owner) {
-        //    return true;
-        } else {
-            //return !(target instanceof TamableAnimal) || !((TamableAnimal)target).isTame();
-            return isValidTarget(target);
-        }
+    public boolean isAlliedTo(Team p_20032_) {
+        return this.getTeam() != null ? this.getTeam().isAlliedTo(p_20032_) : false;
     }
 
     public void die(DamageSource dmg) {
@@ -1691,55 +1681,18 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugScreen(player, this.getUUID()));
         }
     }
-    public boolean isValidTarget(LivingEntity living){
-        boolean notAllowed = living instanceof AbstractFish || living instanceof Squid || living instanceof AbstractHorse || (living instanceof Monster && living.isUnderWater());
-
-        if (living instanceof AbstractRecruitEntity otherRecruit) {
-            if (otherRecruit.isOwned() && this.isOwned() && !otherRecruit.equals(this)){
-                UUID recruitOwnerUuid = this.getOwnerUUID();
-                UUID otherRecruitOwnerUuid = otherRecruit.getOwnerUUID();
-
-                if(otherRecruit instanceof MessengerEntity messenger && messenger.state != null && messenger.state != MessengerEntity.State.IDLE){
-                    return false;
-                }
-                else if(otherRecruit.getTeam() != null && this.getTeam() != null){
-                    return !otherRecruit.getTeam().isAlliedTo(this.getTeam());
-                }
-                else if(recruitOwnerUuid != null && otherRecruitOwnerUuid != null){
-                    return !recruitOwnerUuid.equals(otherRecruitOwnerUuid);
-                }
-                else if(otherRecruit.getProtectUUID() != null && this.getProtectUUID() != null){
-                    return !otherRecruit.getProtectUUID().equals(this.getProtectUUID());
-                }
-            }
-            else if(otherRecruit.getProtectUUID() != null && this.getProtectUUID() != null){
-                return !otherRecruit.getProtectUUID().equals(this.getProtectUUID());
-            }
-            else
-                return RecruitEvents.canHarmTeam(this, living);
-            return false;
-        }
-        return !notAllowed && !RecruitsServerConfig.TargetBlackList.get().contains(living.getEncodeId());
-    }
-
-    public boolean isValidTargetPlayer(Player player){
-        if(player.getUUID().equals(this.getOwnerUUID())) {
-            return false;
-        }
-        else
-            return RecruitEvents.canHarmTeam(this, player);
-    }
 
     @Override
     public boolean canAttack(@Nonnull LivingEntity target) {
-        if (target.canBeSeenAsEnemy() && target.isAlive()){
-            if (target instanceof Player player){
-                return this.isValidTargetPlayer(player);
-            }
-            else
-                return isValidTarget(target);
+        return RecruitEvents.canAttack(this, target);
+    }
+
+    public boolean isAlliedTo(Entity target) {
+        if (target instanceof LivingEntity livingTarget) {
+            return !RecruitEvents.canHarmTeam(this, livingTarget);
+        } else {
+            return super.isAlliedTo(target);
         }
-        return false;
     }
 
     //
