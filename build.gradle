@@ -59,7 +59,7 @@ minecraft {
 
             Random rnd = new Random()
 
-            args = ['--username', 'talhanation2']
+            args = ['--username', 'talhanation']
 
 
             mods {
