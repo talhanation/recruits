@@ -14,6 +14,7 @@ public class RecruitsPlayerInfo {
     private String name;
     @Nullable
     private final RecruitsTeam recruitsTeam;
+
     public RecruitsPlayerInfo(UUID uuid, String name) {
         this(uuid, name, null);
     }

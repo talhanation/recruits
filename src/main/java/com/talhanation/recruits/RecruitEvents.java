@@ -67,6 +67,7 @@ public class RecruitEvents {
     public static MinecraftServer server;
     static HashMap<Integer, EntityType<? extends  AbstractRecruitEntity>> entitiesByProfession = new HashMap<>(){{
             put(0, ModEntityTypes.MESSENGER.get());
+            put(1, ModEntityTypes.SCOUT.get());
             put(2, ModEntityTypes.PATROL_LEADER.get());
             put(3, ModEntityTypes.CAPTAIN.get());
         }
@@ -489,30 +490,30 @@ public class RecruitEvents {
         return true;
     }
 
-    public static boolean canAttackRecruit(AbstractRecruitEntity recruit, LivingEntity target) {
+    public static boolean canAttackRecruit(AbstractRecruitEntity attacker, LivingEntity target) {
         if (target instanceof AbstractRecruitEntity targetRecruit) {
-            if (targetRecruit.equals(recruit)) return false;
+            if (targetRecruit.equals(attacker)) return false;
 
-            if (recruit.isOwned() && targetRecruit.isOwned()) {
-                if (recruit.getOwnerUUID().equals(targetRecruit.getOwnerUUID())) return false;
+            if (attacker.isOwned() && targetRecruit.isOwned()) {
+                if (attacker.getOwnerUUID().equals(targetRecruit.getOwnerUUID())) return false;
             }
 
-            if (recruit.getTeam() != null && targetRecruit.getTeam() != null) {
-                if (recruit.getTeam().equals(targetRecruit.getTeam())) return false;
+            if (attacker.getTeam() != null && targetRecruit.getTeam() != null) {
+                if (attacker.getTeam().equals(targetRecruit.getTeam())) return false;
 
-                if (!recruit.getTeam().isAllowFriendlyFire()) {
+                if (!attacker.getTeam().isAllowFriendlyFire()) {
                     return !TeamEvents.recruitsDiplomacyManager
-                            .getRelation(recruit.getTeam().getName(), targetRecruit.getTeam().getName())
+                            .getRelation(attacker.getTeam().getName(), targetRecruit.getTeam().getName())
                             .equals(RecruitsDiplomacyManager.DiplomacyStatus.ALLY);
                 }
             }
 
-            if (recruit.getProtectUUID() != null && recruit.getProtectUUID().equals(targetRecruit.getProtectUUID())) {
+            if (attacker.getProtectUUID() != null && attacker.getProtectUUID().equals(targetRecruit.getProtectUUID())) {
                 return false;
             }
         }
 
-        return canHarmTeam(recruit, target);
+        return canHarmTeam(attacker, target);
     }
 
     public static boolean canHarmTeam(LivingEntity attacker, LivingEntity target) {

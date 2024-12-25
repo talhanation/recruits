@@ -41,6 +41,7 @@ public class ClientEvent {
 
             //COMPANIONS
             EntityRenderers.register(ModEntityTypes.MESSENGER.get(), RecruitVillagerRenderer::new );
+            EntityRenderers.register(ModEntityTypes.SCOUT.get(), RecruitVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.PATROL_LEADER.get(), RecruitVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.CAPTAIN.get(), RecruitVillagerRenderer::new );
 
@@ -55,6 +56,7 @@ public class ClientEvent {
 
             //COMPANIONS
             EntityRenderers.register(ModEntityTypes.MESSENGER.get(), RecruitHumanRenderer::new );
+            EntityRenderers.register(ModEntityTypes.SCOUT.get(), RecruitHumanRenderer::new );
             EntityRenderers.register(ModEntityTypes.PATROL_LEADER.get(), RecruitHumanRenderer::new );
             EntityRenderers.register(ModEntityTypes.CAPTAIN.get(), RecruitHumanRenderer::new );
         }

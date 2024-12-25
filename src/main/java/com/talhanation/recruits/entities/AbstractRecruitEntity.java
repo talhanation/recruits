@@ -269,11 +269,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.targetSelector.addGoal(4, new RecruitOwnerHurtTargetGoal(this));
 
 
-        this.targetSelector.addGoal(5, new RecruitNearestAttackableTargetGoal<>(this, AbstractIllager.class, 10, true, false, (target) -> {
+        this.targetSelector.addGoal(5, new RecruitNearestAttackableTargetGoal<>(this, AbstractIllager.class, 20, true, false, (target) -> {
             return (this.getState() != 3);
         }));
 
-        this.targetSelector.addGoal(6, new RecruitNearestAttackableTargetGoal<>(this, Monster.class, 10, true, false, (target) -> {
+        this.targetSelector.addGoal(6, new RecruitNearestAttackableTargetGoal<>(this, Monster.class, 20, true, false, (target) -> {
             return this.canAttack(target) && (this.getState() != 3);
         }));
         this.targetSelector.addGoal(7, new RecruitDefendVillageFromPlayerGoal(this));

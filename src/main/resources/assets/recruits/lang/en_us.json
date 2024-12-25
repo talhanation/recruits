@@ -426,5 +426,10 @@
 
    "gui.recruits.team.select_leader": "Select new Leader",
    "gui.recruits.team.select_leader_tooltip": "Select a new leader before leaving this team",
-   "gui.recruits.wip": "WIP"
+   "gui.recruits.wip": "WIP",
+
+   "gui.recruits.text.scoutLocatedPlayer" : "%s is %s ",
+   "gui.recruits.text.scoutLocatedPlayerTeam" : "%s from %s is %s to ",
+   "gui.recruits.inv.text.scoutScoutTask" : "Scouting",
+   "gui.recruits.inv.tooltip.scoutScoutTask" : ""
  }

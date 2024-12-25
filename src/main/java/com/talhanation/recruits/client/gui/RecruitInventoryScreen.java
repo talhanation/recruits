@@ -323,6 +323,10 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         if(recruit instanceof ICompanion){
             Button promoteButton = addRenderableWidget(new Button(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 8, 80, 20, TEXT_SPECIAL,
                     button -> {
+                        if(recruit instanceof ScoutEntity scout){
+                            this.minecraft.setScreen(new ScoutScreen(scout, getMinecraft().player));
+                            return;
+                        }
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenSpecialScreen(this.playerInventory.player, recruit.getUUID()));
                         this.onClose();
                     },
