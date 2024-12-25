@@ -119,7 +119,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
 
         editButton = new Button(guiLeft + 169, guiTop + 99, 60, 20, EDIT_BUTTON,
                 button -> {
-                    //minecraft.setScreen(new EditRecruitsTeam(recruitsTeam));
+                    minecraft.setScreen(new TeamEditScreen(this, player, recruitsTeam));
                 });
         editButton.visible = isTeamLeader;
         addRenderableWidget(editButton);
