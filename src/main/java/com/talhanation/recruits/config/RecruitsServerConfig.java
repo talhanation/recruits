@@ -587,6 +587,7 @@ public class RecruitsServerConfig{
                 .worldRestart()
                 .defineInRange("MaxRecruitsInTeam", 500, 0, 1453);
 
+
         BUILDER.comment("Global Team Settings")
 
                 .push("Global Team Settings");

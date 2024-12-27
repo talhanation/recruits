@@ -1,14 +1,8 @@
 package com.talhanation.recruits.world;
 
-import com.talhanation.recruits.Main;
-import com.talhanation.recruits.network.MessageToClientSetDiplomaticToast;
-import net.minecraft.data.worldgen.biome.Biomes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +21,7 @@ public class RecruitsTeam {
     public int teamColor;
     public int maxPlayers;
     public int maxNPCs;
+    public int maxNPCsPerPlayer;
     private int biome = -1;
     public RecruitsTeam(String teamName, String teamLeaderName, CompoundTag banner) {
         this.teamName = teamName;
@@ -50,7 +45,7 @@ public class RecruitsTeam {
         return teamName;
     }
 
-    public String getTeamLeaderName() {
+    public String getTeamLeaderName()  {
         return teamLeaderName;
     }
 
@@ -105,6 +100,10 @@ public class RecruitsTeam {
     public byte getUnitColor() {
         return unitColor;
     }
+
+    public int  getMaxNPCsPerPlayer() {
+        return maxNPCsPerPlayer;
+    }
     public int getTeamColor() {
         return teamColor;
     }
@@ -123,6 +122,10 @@ public class RecruitsTeam {
     }
     public void setTeamColor(int color) {
         this.teamColor = color;
+    }
+
+    public void setMaxNPCsPerPlayer(int maxNpcsPerPlayer) {
+        this.maxNPCsPerPlayer = maxNpcsPerPlayer;
     }
 
     @Override
@@ -149,6 +152,7 @@ public class RecruitsTeam {
         nbt.putInt("teamColor", this.teamColor);
         nbt.putInt("maxPlayers", this.maxPlayers);
         nbt.putInt("biome", this.biome);
+        nbt.putInt("maxNpcsPerPlayer", this.maxNPCsPerPlayer);
 
         return nbt;
     }
@@ -174,7 +178,7 @@ public class RecruitsTeam {
         team.setTeamColor(nbt.getByte("teamColor"));
         team.maxPlayers = nbt.getInt("maxPlayers");
         team.biome = nbt.getInt("biome");
-
+        team.setMaxNPCsPerPlayer(nbt.getInt("maxNpcsPerPlayer"));
         return team;
     }
 

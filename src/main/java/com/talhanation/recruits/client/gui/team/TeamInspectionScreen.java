@@ -16,6 +16,7 @@ import com.talhanation.recruits.client.gui.widgets.SelectedPlayerWidget;
 import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import com.talhanation.recruits.world.RecruitsTeam;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -44,7 +45,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
     private static final Component NPCS_TEXT = new TranslatableComponent("gui.recruits.team.npcs");
     private static final Component LEADER_TEXT = new TranslatableComponent("gui.recruits.team.leader");
     private static final Component SELECT_LEADER = new TranslatableComponent("gui.recruits.team.select_leader");
-    private static final Component SELECT_LEADER_TOOLTIP = new TranslatableComponent("gui.recruits.team.select_leader_tooltip");
+    private static final Component SELECT_LEADER_TOOLTIP = new TranslatableComponent("gui.recruits.team.select_leader_tooltip_leaving");
     protected static final int HEADER_SIZE = 130;
     protected static final int FOOTER_SIZE = 32;
     protected static final int SEARCH_HEIGHT = 0;
@@ -220,7 +221,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         if(recruitsTeam != null){
             int members = recruitsTeam.players + recruitsTeam.npcs;
 
-            font.draw(poseStack, this.getTitle(), width / 2F - font.width(getTitle()) / 2F, guiTop + 5, 4210752);
+            font.draw(poseStack, this.getTitle(), width / 2F - font.width(getTitle()) / 2F, guiTop + 5, 0xFF000000 | ChatFormatting.getById(recruitsTeam.getTeamColor()).getColor());
 
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderColor(1F, 1F, 1F, 1F);

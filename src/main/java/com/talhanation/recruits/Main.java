@@ -193,7 +193,8 @@ public class Main {
                 MessageToServerRequestUpdateTeamInspaction.class,
                 MessageSaveTeamSettings.class,
                 MessageToClientSetDiplomaticToast.class,
-                MessageScoutTask.class
+                MessageScoutTask.class,
+                MessageToServerRequestUpdateTeamEdit.class
         };
 
 

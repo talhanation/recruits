@@ -21,10 +21,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class BannerRenderer {
-    private final List<Pair<BannerPattern, DyeColor>> resultBannerPatterns;
+    private List<Pair<BannerPattern, DyeColor>> resultBannerPatterns;
     private final ModelPart flag;
-    private final ItemStack bannerItem;
-    private final RecruitsTeam recruitsTeam;
+    private ItemStack bannerItem;
+    private RecruitsTeam recruitsTeam;
     private final Minecraft minecraft;
     public BannerRenderer(@Nullable RecruitsTeam team) {
         this.recruitsTeam = team;
@@ -65,5 +65,13 @@ public class BannerRenderer {
             poseStack.popPose();
             bufferSource.endBatch();
         }
+    }
+
+    public void setRecruitsTeam(RecruitsTeam team){
+        this.recruitsTeam = team;
+        this.bannerItem = ItemStack.of(team.getBanner());
+        this.resultBannerPatterns = BannerBlockEntity.createPatterns(
+                ((BannerItem) this.bannerItem.getItem()).getColor(),
+                BannerBlockEntity.getItemPatterns(this.bannerItem));
     }
 }

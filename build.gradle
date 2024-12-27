@@ -36,7 +36,7 @@ mixin{
     overwriteErrorLevel = 'error'
 }
 
-version = '1.13.0TC1'
+version = '1.13.0TC2'
 
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.18.2'

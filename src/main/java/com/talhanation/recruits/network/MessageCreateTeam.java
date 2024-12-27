@@ -2,6 +2,7 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.TeamEvents;
 import de.maxhenkel.corelib.net.Message;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -12,14 +13,14 @@ import net.minecraftforge.network.NetworkEvent;
 public class MessageCreateTeam implements Message<MessageCreateTeam> {
 
     private String teamName;
-    private String color;
+    private ChatFormatting color;
     private ItemStack banner;
     private int index;
 
     public MessageCreateTeam(){
     }
 
-    public MessageCreateTeam(String name, ItemStack banner, String color, int index) {
+    public MessageCreateTeam(String name, ItemStack banner, ChatFormatting color, int index) {
         this.teamName = name;
         this.banner = banner;
         this.color = color;
@@ -39,7 +40,7 @@ public class MessageCreateTeam implements Message<MessageCreateTeam> {
     public MessageCreateTeam fromBytes(FriendlyByteBuf buf) {
         this.teamName = buf.readUtf();
         this.banner = buf.readItem();
-        this.color = buf.readUtf();
+        this.color = ChatFormatting.valueOf(buf.readUtf());
         this.index = buf.readInt();
         return this;
     }
@@ -47,7 +48,7 @@ public class MessageCreateTeam implements Message<MessageCreateTeam> {
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUtf(this.teamName);
         buf.writeItemStack(this.banner, false);
-        buf.writeUtf(this.color);
+        buf.writeUtf(String.valueOf(this.color));
         buf.writeInt(this.index);
     }
 }

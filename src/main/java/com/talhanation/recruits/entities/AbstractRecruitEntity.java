@@ -16,6 +16,7 @@ import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -128,7 +129,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private int maxFallDistance;
     public Vec3 holdPosVec;
     public boolean isInFormation;
-
+    public boolean needsColorUpdate = true;
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
         this.xpReward = 6;
@@ -173,6 +174,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if(this instanceof IRangedRecruit  && this.tickCount % 20 == 0) pickUpArrows();
 
         if(needsTeamUpdate) updateTeam();
+        if(needsColorUpdate && this.getTeam() != null) updateColor(this.getTeam().getName());
     }
     public void tick() {
         super.tick();
@@ -1724,6 +1726,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     needsTeamUpdate = false;
                 }
                 else if(recruitTeam == ownerTeam){
+                    updateColor(ownerTeam.getName());
                     needsTeamUpdate = false;
                 }
                 else{
@@ -1734,6 +1737,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     TeamEvents.addNPCToData((ServerLevel) this.getCommandSenderWorld(), ownerTeam.getName(), +1 );
                     needsTeamUpdate = false;
                 }
+            }
+        }
+    }
+
+    private void updateColor(String name) {
+        if(!this.getCommandSenderWorld().isClientSide()){
+            RecruitsTeam recruitsTeam = TeamEvents.recruitsTeamManager.getTeamByName(name);
+            if(recruitsTeam != null && recruitsTeam.getUnitColor() != this.getColor()){
+                this.setColor(recruitsTeam.getUnitColor());
+                this.needsColorUpdate = false;
             }
         }
     }

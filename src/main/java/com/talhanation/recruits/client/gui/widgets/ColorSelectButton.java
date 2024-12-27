@@ -1,20 +1,21 @@
 package com.talhanation.recruits.client.gui.widgets;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.talhanation.recruits.client.gui.component.ActivateableButton;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
-import net.minecraft.util.FastColor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.minecraft.network.chat.Component;
 
 import java.awt.*;
 
+
 @OnlyIn(Dist.CLIENT)
-public class ColorSelectButton extends ExtendedButton {
-    private final Color color;
-    public ColorSelectButton(Color color, int xPos, int yPos, int width, int height, Component displayString, OnPress handler) {
-        super(xPos, yPos, width, height, displayString, handler);
+public class ColorSelectButton extends ActivateableButton {
+    private final int color;
+
+    public ColorSelectButton(int color, int xPos, int yPos, int width, int height, Component displayString, OnPress handler, OnTooltip tooltip) {
+        super(xPos, yPos, width, height, displayString, handler, tooltip);
         this.color = color;
     }
 
@@ -45,7 +46,7 @@ public class ColorSelectButton extends ExtendedButton {
     public void renderButton(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         super.renderButton(poseStack, mouseX, mouseY, partialTicks);
 
-        fillGradient(poseStack, this.x, this.y, this.x + this.width, this.y + this.height, color.getRGB(), color.getRGB());
+        fillGradient(poseStack, this.x, this.y, this.x + this.width, this.y + this.height, color, color);
     }
 
 

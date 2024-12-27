@@ -47,6 +47,8 @@ public class RecruitsTeamSaveData extends SavedData {
             }
 
             recruitsTeam.setUnitColor(nbt.getByte("Color"));
+            recruitsTeam.setMaxNPCsPerPlayer(nbt.getInt("maxNpcsPerPlayer"));
+
             loadedTeams.put(recruitsTeam.getTeamName(), recruitsTeam);
         }
         return loadedTeams;
@@ -75,6 +77,7 @@ public class RecruitsTeamSaveData extends SavedData {
             }
             nbt.put("JoinRequests", joinRequestsTag);
             nbt.putByte("Color", team.getUnitColor());
+            nbt.putInt("maxNpcsPerPlayer", team.ge());
 
             listTag.add(nbt);
         }

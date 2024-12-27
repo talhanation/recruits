@@ -102,7 +102,7 @@ public class  TeamEvents {
 
     public static void openTeamCreationScreen(Player player) {
         if (player instanceof ServerPlayer) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateTeamCreationScreen(TeamEvents.getCurrency(), RecruitsServerConfig.TeamCreationCost.get()));
+            //Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateTeamCreationScreen(TeamEvents.getCurrency(), RecruitsServerConfig.TeamCreationCost.get(), RecruitsServerConfig.MaxRecruitsForPlayer.get()));
             NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
 
                 @Override
@@ -121,7 +121,7 @@ public class  TeamEvents {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamCreationScreen(player));
         }
     }
-    public static boolean createTeam(boolean menu, ServerPlayer serverPlayer, @NotNull ServerLevel level, String teamName, String playerName, ItemStack banner, String color, byte colorByte) {
+    public static boolean createTeam(boolean menu, ServerPlayer serverPlayer, @NotNull ServerLevel level, String teamName, String playerName, ItemStack banner, ChatFormatting color, byte colorByte) {
         MinecraftServer server = level.getServer();
         PlayerTeam team = server.getScoreboard().getPlayerTeam(teamName);
         int cost = RecruitsServerConfig.TeamCreationCost.get();
@@ -139,7 +139,7 @@ public class  TeamEvents {
                                     PlayerTeam newTeam = scoreboard.addPlayerTeam(teamName);
                                     newTeam.setDisplayName(new TextComponent(teamName));
 
-                                    newTeam.setColor(Objects.requireNonNull(ChatFormatting.getByName(color)));
+                                    newTeam.setColor(Objects.requireNonNull(color));
                                     newTeam.setAllowFriendlyFire(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamFriendlyFireSetting.get());
                                     newTeam.setSeeFriendlyInvisibles(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
 
@@ -147,7 +147,7 @@ public class  TeamEvents {
                                     //TeamCommand
                                     if(menu) doPayment(serverPlayer, cost);
 
-                                    recruitsTeamManager.addTeam(teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT(), colorByte, newTeam.getColor().getId());
+                                    recruitsTeamManager.addTeam(teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT(), colorByte, newTeam.getColor());
                                     addPlayerToData(level, teamName, 1, playerName);
 
                                     List<AbstractRecruitEntity> recruits = getRecruitsOfPlayer(serverPlayer.getUUID(), level);
@@ -514,7 +514,7 @@ public class  TeamEvents {
                         ItemStack mainhand = (sender).getMainHandItem();
                         String[] parts = command.split(" ");
                         String teamName = parts[2];
-                        createTeam(false, sender, level, teamName, sender.getName().getString(), mainhand.getItem() instanceof BannerItem ? mainhand : null, "white", (byte) 0);
+                        createTeam(false, sender, level, teamName, sender.getName().getString(), mainhand.getItem() instanceof BannerItem ? mainhand : null, ChatFormatting.WHITE, (byte) 0);
                         sourceStack.sendSuccess(new TranslatableComponent("commands.team.add.success", teamName), true);
                         event.setCanceled(true);
                         serverSideUpdateTeam(level);
@@ -608,7 +608,7 @@ public class  TeamEvents {
                             newTeam.setAllowFriendlyFire(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamFriendlyFireSetting.get());
                             newTeam.setSeeFriendlyInvisibles(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
 
-                            recruitsTeamManager.addTeam(teamName,new UUID(0,0),"none", banner.serializeNBT(), colorByte, newTeam.getColor().getId());
+                            recruitsTeamManager.addTeam(teamName,new UUID(0,0),"none", banner.serializeNBT(), colorByte, newTeam.getColor());
 
                             Main.LOGGER.info("The new Team " + teamName + " has been created by console.");
                     }

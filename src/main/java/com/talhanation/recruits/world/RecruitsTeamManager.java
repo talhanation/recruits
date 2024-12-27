@@ -1,6 +1,7 @@
 package com.talhanation.recruits.world;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -69,14 +70,14 @@ public class RecruitsTeamManager {
         return null;
     }
 
-    public void addTeam(String teamName, UUID leaderUUID, String leaderName, CompoundTag bannerNbt, byte color, int nameColor) {
+    public void addTeam(String teamName, UUID leaderUUID, String leaderName, CompoundTag bannerNbt, byte color, ChatFormatting teamColor) {
         RecruitsTeam recruitsTeam = new RecruitsTeam();
         recruitsTeam.setTeamName(teamName);
         recruitsTeam.setTeamLeaderID(leaderUUID);
         recruitsTeam.setTeamLeaderName(leaderName);
         recruitsTeam.setBanner(bannerNbt);
         recruitsTeam.setUnitColor(color);
-        recruitsTeam.setTeamColor(nameColor);
+        recruitsTeam.setTeamColor(teamColor.getId());
 
         teams.put(teamName, recruitsTeam);
     }
