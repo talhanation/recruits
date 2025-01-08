@@ -6,25 +6,18 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.player.PlayersList;
 import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.inventory.DisbandContainer;
 import com.talhanation.recruits.network.MessageAssignGroupToTeamMate;
 import com.talhanation.recruits.network.MessageAssignToTeamMate;
 import com.talhanation.recruits.network.MessageDisband;
 import com.talhanation.recruits.network.MessageDisbandGroup;
-import de.maxhenkel.corelib.inventory.ScreenBase;
-import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-
-import java.util.UUID;
 
 public class DisbandScreen extends RecruitsScreenBase {
 

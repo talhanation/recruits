@@ -56,7 +56,7 @@ public class TeamManageScreen extends RecruitsScreenBase {
             btn -> {
                 minecraft.setScreen(new SelectPlayerScreen(this, player, TOOLTIP_ADD_PLAYER,  ADD_PLAYER, new TextComponent(""), false, PlayersList.FilterType.TEAM_JOIN_REQUEST,
                         (playerInfo) -> {
-                            Main.SIMPLE_CHANNEL.sendToServer(new MessageAddPlayerToTeam(recruitsTeam.getTeamName(), playerInfo.getName()));
+                            Main.SIMPLE_CHANNEL.sendToServer(new MessageAddPlayerToTeam(recruitsTeam.getStringID(), playerInfo.getName()));
                         }
                 ));
             },

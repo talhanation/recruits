@@ -16,12 +16,17 @@ import java.util.List;
 public class MessageToClientUpdateTeamInspection implements Message<MessageToClientUpdateTeamInspection> {
     private CompoundTag players;
     private CompoundTag team;
+    private boolean editing;
+    private boolean managing;
+
     public MessageToClientUpdateTeamInspection() {
     }
 
-    public MessageToClientUpdateTeamInspection(List<RecruitsPlayerInfo> playerInfoList, RecruitsTeam team) {
+    public MessageToClientUpdateTeamInspection(List<RecruitsPlayerInfo> playerInfoList, RecruitsTeam team, boolean editing, boolean managing) {
         this.players = RecruitsPlayerInfo.toNBT(playerInfoList);
         this.team = team.toNBT();
+        this.editing = editing;
+        this.managing = managing;
     }
 
     @Override
@@ -33,12 +38,16 @@ public class MessageToClientUpdateTeamInspection implements Message<MessageToCli
     public void executeClientSide(NetworkEvent.Context context) {
         PlayersList.onlinePlayers = RecruitsPlayerInfo.getListFromNBT(players);
         TeamInspectionScreen.recruitsTeam = RecruitsTeam.fromNBT(team);
+        TeamInspectionScreen.isEditingAllowed = editing;
+        TeamInspectionScreen.isManagingAllowed = managing;
     }
 
     @Override
     public MessageToClientUpdateTeamInspection fromBytes(FriendlyByteBuf buf) {
         this.players = buf.readNbt();
         this.team = buf.readNbt();
+        this.editing = buf.readBoolean();
+        this.managing = buf.readBoolean();
         return this;
     }
 
@@ -46,6 +55,8 @@ public class MessageToClientUpdateTeamInspection implements Message<MessageToCli
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeNbt(this.players);
         buf.writeNbt(this.team);
+        buf.writeBoolean(editing);
+        buf.writeBoolean(managing);
     }
 
 }

@@ -20,7 +20,7 @@ public class MessageToClientSetDiplomaticToast implements Message<MessageToClien
     public MessageToClientSetDiplomaticToast() {
     }
     public MessageToClientSetDiplomaticToast(int x, RecruitsTeam team) {
-        this(x, team, team.getTeamName());
+        this(x, team, team.getTeamDisplayName());
     }
     public MessageToClientSetDiplomaticToast(int x, RecruitsTeam team, String s) {
         this.x = x;

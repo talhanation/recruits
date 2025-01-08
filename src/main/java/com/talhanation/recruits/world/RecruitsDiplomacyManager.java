@@ -3,13 +3,9 @@ package com.talhanation.recruits.world;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.network.MessageToClientSetDiplomaticToast;
-import com.talhanation.recruits.network.MessageToClientSetToast;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.scores.PlayerTeam;
-import net.minecraft.world.scores.Scoreboard;
-import net.minecraft.world.scores.Team;
 import net.minecraftforge.network.PacketDistributor;
 
 import java.util.*;
@@ -76,16 +72,16 @@ public class RecruitsDiplomacyManager {
     }
 
     public void notifyPlayersInTeam(String teamName, String otherTeamName, DiplomacyStatus relation, ServerLevel level) {
-        RecruitsTeam team = TeamEvents.recruitsTeamManager.getTeamByName(teamName);
-        RecruitsTeam otherTeam = TeamEvents.recruitsTeamManager.getTeamByName(otherTeamName);
+        RecruitsTeam team = TeamEvents.recruitsTeamManager.getTeamByStringID(teamName);
+        RecruitsTeam otherTeam = TeamEvents.recruitsTeamManager.getTeamByStringID(otherTeamName);
 
         if(team != null && otherTeam != null){
-            List<ServerPlayer> playersInTeam = TeamEvents.recruitsTeamManager.getPlayersInTeam(team.getTeamName(), level);
+            List<ServerPlayer> playersInTeam = TeamEvents.recruitsTeamManager.getPlayersInTeam(team.getStringID(), level);
             for (ServerPlayer player : playersInTeam) {
                 Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientSetDiplomaticToast(relation.getByteValue(), otherTeam));
             }
 
-            List<ServerPlayer> playersInTeam2 = TeamEvents.recruitsTeamManager.getPlayersInTeam(otherTeam.getTeamName(), level);
+            List<ServerPlayer> playersInTeam2 = TeamEvents.recruitsTeamManager.getPlayersInTeam(otherTeam.getStringID(), level);
             for (ServerPlayer player : playersInTeam2) {
                 Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientSetDiplomaticToast(relation.getByteValue() + 4, team));
             }

@@ -48,7 +48,7 @@ public class RecruitsTeamList extends ListScreenListBase<RecruitsTeamEntry> {
         List<RecruitsTeamEntry> filteredEntries = new ArrayList<>(entries);
         if (!filter.isEmpty()) {
             filteredEntries.removeIf(teamEntry -> {
-                return teamEntry.getTeamInfo() == null || !teamEntry.getTeamInfo().getTeamName().toLowerCase(Locale.ROOT).contains(filter);
+                return teamEntry.getTeamInfo() == null || !teamEntry.getTeamInfo().getTeamDisplayName().toLowerCase(Locale.ROOT).contains(filter);
             });
         }
 
@@ -67,7 +67,7 @@ public class RecruitsTeamList extends ListScreenListBase<RecruitsTeamEntry> {
     }
 
     private String volumeEntryToString(RecruitsTeamEntry entry) {
-        return entry.getTeamInfo() == null ? "" : entry.getTeamInfo().getTeamName();
+        return entry.getTeamInfo() == null ? "" : entry.getTeamInfo().getStringID();
     }
 
     public void setFilter(String filter) {

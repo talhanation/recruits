@@ -2,6 +2,7 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import com.talhanation.recruits.world.RecruitsTeam;
 import de.maxhenkel.corelib.net.Message;
@@ -30,7 +31,7 @@ public class MessageToServerRequestUpdateTeamInspaction implements Message<Messa
         ServerPlayer player = context.getSender();
         List<ServerPlayer> playerList = (List<ServerPlayer>) player.getCommandSenderWorld().players();
         List<RecruitsPlayerInfo> playerInfoList = new ArrayList<>();
-        RecruitsTeam recruitsTeam = TeamEvents.recruitsTeamManager.getTeamByName(player.getTeam().getName());
+        RecruitsTeam recruitsTeam = TeamEvents.recruitsTeamManager.getTeamByStringID(player.getTeam().getName());
 
         for(ServerPlayer serverPlayer : playerList){
             if(serverPlayer.getTeam() != null && serverPlayer.getTeam().equals(player.getTeam())){
@@ -38,7 +39,7 @@ public class MessageToServerRequestUpdateTeamInspaction implements Message<Messa
             }
         }
 
-        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateTeamInspection(playerInfoList, recruitsTeam));
+        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateTeamInspection(playerInfoList, recruitsTeam, RecruitsServerConfig.ShouldTeamEditingBeAllowed.get(), RecruitsServerConfig.ShouldTeamManagingBeAllowed.get()));
     }
 
     @Override

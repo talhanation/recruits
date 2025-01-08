@@ -103,7 +103,6 @@ public class Main {
 
         SIMPLE_CHANNEL = CommonRegistry.registerChannel(Main.MOD_ID, "default");
 
-        // Array mit allen Message-Klassen
         Class[] messages = {
                 MessageAggro.class,
                 MessageAggroGui.class,
@@ -132,7 +131,7 @@ public class Main {
                 MessageUpkeepEntity.class,
                 MessageClearTarget.class,
                 MessageCreateTeam.class,
-                MessageOpenTeamCreationScreen.class,
+                MessageOpenTeamEditScreen.class,
                 MessageLeaveTeam.class,
                 MessageTeamMainScreen.class,
                 MessageOpenTeamInspectionScreen.class,
@@ -164,7 +163,7 @@ public class Main {
                 MessageAssignGroupToCompanion.class,
                 MessagePatrolLeaderSetPatrollingSpeed.class,
                 MessageToClientUpdateHireScreen.class,
-                MessageToClientUpdateTeamCreationScreen.class,
+                MessageToClientUpdateTeamEditScreen.class,
                 MessageRemoveAssignedGroupFromCompanion.class,
                 MessageToClientUpdateMessengerScreen.class,
                 MessageAnswerMessenger.class,
@@ -194,11 +193,14 @@ public class Main {
                 MessageSaveTeamSettings.class,
                 MessageToClientSetDiplomaticToast.class,
                 MessageScoutTask.class,
-                MessageToServerRequestUpdateTeamEdit.class
+                MessageToServerRequestUpdatePlayerCurrencyCount.class,
+                MessageToClientUpdatePlayerCurrencyCount.class
         };
 
 
-        for (int i = 0; i < messages.length; i++) CommonRegistry.registerMessage(SIMPLE_CHANNEL, i, messages[i]);
+        for (int i = 0; i < messages.length; i++){
+            CommonRegistry.registerMessage(SIMPLE_CHANNEL, i, messages[i]);
+        }
 
 
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod

@@ -43,7 +43,7 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
     private RecruitsTeam getOwnTeam(List<RecruitsTeam> list) {
         String playerTeam = minecraft.player.getTeam().getName();
         for (RecruitsTeam team : list) {
-            if (team.getTeamName().equals(playerTeam)) {
+            if (team.getStringID().equals(playerTeam)) {
                 return team;
             }
         }
@@ -55,7 +55,7 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
 
         for (RecruitsTeam team : teams) {
             if (!team.equals(ownTeam)) {
-                RecruitsDiplomacyManager.DiplomacyStatus status = getRelation(ownTeam.getTeamName(), team.getTeamName());
+                RecruitsDiplomacyManager.DiplomacyStatus status = getRelation(ownTeam.getStringID(), team.getStringID());
 
                 switch (diplomacyFilter) {
                     case ALL -> {
@@ -92,7 +92,7 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
         List<DiplomacyTeamEntry> filteredEntries = new ArrayList<>(entries);
         if (!filter.isEmpty()) {
             filteredEntries.removeIf(teamEntry -> {
-                return teamEntry.getTeamInfo() == null || !teamEntry.getTeamInfo().getTeamName().toLowerCase(Locale.ROOT).contains(filter);
+                return teamEntry.getTeamInfo() == null || !teamEntry.getTeamInfo().getTeamDisplayName().toLowerCase(Locale.ROOT).contains(filter);
             });
         }
 
@@ -111,7 +111,7 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
     }
 
     private String volumeEntryToString(DiplomacyTeamEntry entry) {
-        return entry.getTeamInfo() == null ? "" : entry.getTeamInfo().getTeamName();
+        return entry.getTeamInfo() == null ? "" : entry.getTeamInfo().getStringID();
     }
 
     public void setFilter(String filter) {

@@ -1,25 +1,17 @@
 package com.talhanation.recruits.network;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.TeamEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 
-import java.util.UUID;
+public class MessageToServerRequestUpdatePlayerCurrencyCount implements Message<MessageToServerRequestUpdatePlayerCurrencyCount> {
 
-public class MessageOpenTeamCreationScreen implements Message<MessageOpenTeamCreationScreen> {
-
-    private UUID uuid;
-
-    public MessageOpenTeamCreationScreen() {
-        this.uuid = new UUID(0, 0);
-    }
-
-    public MessageOpenTeamCreationScreen(Player player) {
-        this.uuid = player.getUUID();
+    public MessageToServerRequestUpdatePlayerCurrencyCount() {
     }
 
     @Override
@@ -29,21 +21,20 @@ public class MessageOpenTeamCreationScreen implements Message<MessageOpenTeamCre
 
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
-        if (!context.getSender().getUUID().equals(uuid)) {
-            return;
-        }
         ServerPlayer player = context.getSender();
-        TeamEvents.openTeamCreationScreen(player);
+        int count = player.getInventory().countItem(TeamEvents.getCurrency().getItem());
+
+        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdatePlayerCurrencyCount(count));
     }
 
     @Override
-    public MessageOpenTeamCreationScreen fromBytes(FriendlyByteBuf buf) {
-        this.uuid = buf.readUUID();
+    public MessageToServerRequestUpdatePlayerCurrencyCount fromBytes(FriendlyByteBuf buf) {
         return this;
     }
 
     @Override
     public void toBytes(FriendlyByteBuf buf) {
-        buf.writeUUID(uuid);
+
     }
+
 }

@@ -24,10 +24,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.common.ForgeMod;
-import org.checkerframework.checker.units.qual.A;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -226,7 +224,7 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
             if(!potentialPlayerTargets.isEmpty()){
                 for(ServerPlayer player : potentialPlayerTargets){
                     String teamName = player.getTeam() != null ? player.getTeam().getName() : "";
-                    RecruitsPlayerInfo playerInfo = new RecruitsPlayerInfo(player.getUUID(), player.getName().getString(), TeamEvents.recruitsTeamManager.getTeamByName(teamName));
+                    RecruitsPlayerInfo playerInfo = new RecruitsPlayerInfo(player.getUUID(), player.getName().getString(), TeamEvents.recruitsTeamManager.getTeamByStringID(teamName));
                     int recruitsCount = countRecruits(player.getUUID());
                     int distance = (int) Math.sqrt(this.blockPosition().distSqr(player.blockPosition()));
                     String direction = getHorizontalDirection(this.blockPosition(), player.blockPosition());
@@ -338,7 +336,7 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
 
                 if(playerInfo.getRecruitsTeam() != null){
                     //Scout: I'm Seeing talhanation (YellowTeam) and 12 units, 125 blocks South from me.
-                    scout.sendMessageToOwner(String.format("%s (%s), %d units, %d blocks %s", playerInfo.getName(), playerInfo.getRecruitsTeam().getTeamName(), recruitsCount, distance, direction));
+                    scout.sendMessageToOwner(String.format("%s (%s), %d units, %d blocks %s", playerInfo.getName(), playerInfo.getRecruitsTeam().getTeamDisplayName(), recruitsCount, distance, direction));
                 }
                 else{//Scout: I'm Seeing talhanation and 12 units, 125 blocks South from me.
                     scout.sendMessageToOwner(String.format("%s, %d units, %d blocks %s",playerInfo.getName(), recruitsCount, distance, direction));

@@ -34,12 +34,16 @@ public class RecruitsTeamSaveData extends SavedData {
             CompoundTag nbt = list.getCompound(i);
             RecruitsTeam recruitsTeam = new RecruitsTeam();
 
-            recruitsTeam.setTeamName(nbt.getString("TeamName"));
+            recruitsTeam.setStringID(nbt.getString("TeamName"));
+            recruitsTeam.setTeamDisplayName(nbt.getString("TeamDisplayName"));
             recruitsTeam.setTeamLeaderID(nbt.getUUID("TeamLeaderID"));
             recruitsTeam.setTeamLeaderName(nbt.getString("TeamLeaderName"));
             recruitsTeam.setBanner((CompoundTag) nbt.get("TeamBanner"));
             recruitsTeam.setPlayers(nbt.getInt("Players"));
             recruitsTeam.setNPCs(nbt.getInt("NPCs"));
+
+            recruitsTeam.setMaxPlayers(nbt.getInt("MaxPlayers"));
+            recruitsTeam.setMaxNPCs(nbt.getInt("MaxNPCs"));
 
             ListTag joinRequestsList = nbt.getList("JoinRequests", 8);
             for (int j = 0; j < joinRequestsList.size(); ++j) {
@@ -47,9 +51,10 @@ public class RecruitsTeamSaveData extends SavedData {
             }
 
             recruitsTeam.setUnitColor(nbt.getByte("Color"));
+            recruitsTeam.setTeamColor(nbt.getInt("TeamColor"));
             recruitsTeam.setMaxNPCsPerPlayer(nbt.getInt("maxNpcsPerPlayer"));
 
-            loadedTeams.put(recruitsTeam.getTeamName(), recruitsTeam);
+            loadedTeams.put(recruitsTeam.getStringID(), recruitsTeam);
         }
         return loadedTeams;
     }
@@ -64,12 +69,16 @@ public class RecruitsTeamSaveData extends SavedData {
         ListTag listTag = new ListTag();
         for (RecruitsTeam team : teams.values()) {
             CompoundTag nbt = new CompoundTag();
-            nbt.putString("TeamName", team.getTeamName());
+            nbt.putString("TeamName", team.getStringID());
+            nbt.putString("TeamDisplayName", team.getTeamDisplayName());
             nbt.putUUID("TeamLeaderID", team.getTeamLeaderUUID());
             nbt.putString("TeamLeaderName", team.getTeamLeaderName());
             nbt.put("TeamBanner", team.getBanner());
             nbt.putInt("Players", team.getPlayers());
             nbt.putInt("NPCs", team.getNPCs());
+
+            nbt.putInt("MaxPlayers", team.getMaxPlayers());
+            nbt.putInt("MaxNPCs", team.getMaxNPCs());
 
             ListTag joinRequestsTag = new ListTag();
             for (String request : team.getJoinRequests()) {
@@ -77,7 +86,8 @@ public class RecruitsTeamSaveData extends SavedData {
             }
             nbt.put("JoinRequests", joinRequestsTag);
             nbt.putByte("Color", team.getUnitColor());
-            nbt.putInt("maxNpcsPerPlayer", team.ge());
+            nbt.putInt("TeamColor", team.getTeamColor());
+            nbt.putInt("maxNpcsPerPlayer", team.getMaxNPCsPerPlayer());
 
             listTag.add(nbt);
         }

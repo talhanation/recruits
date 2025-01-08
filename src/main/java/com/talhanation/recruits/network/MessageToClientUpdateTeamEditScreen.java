@@ -1,26 +1,31 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.client.gui.team.TeamEditScreen;
+import com.talhanation.recruits.world.RecruitsTeam;
 import de.maxhenkel.corelib.net.Message;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
 
-public class MessageToClientUpdateTeamCreationScreen implements Message<MessageToClientUpdateTeamCreationScreen> {
+public class MessageToClientUpdateTeamEditScreen implements Message<MessageToClientUpdateTeamEditScreen> {
     public ItemStack currency;
     public int price;
     public int maxRecruitsPerPlayerConfigSetting;
-    public int maxRecruitsPerPlayer;
-    public MessageToClientUpdateTeamCreationScreen() {
+    private CompoundTag recruitsTeam;
+    public MessageToClientUpdateTeamEditScreen() {
     }
 
-    public MessageToClientUpdateTeamCreationScreen(ItemStack currency, int price, int maxRecruitsPerPlayerConfigSetting, int maxRecruitsPerPlayer) {
+    public MessageToClientUpdateTeamEditScreen(ItemStack currency, int price, int maxRecruitsPerPlayerConfigSetting, RecruitsTeam recruitsTeam) {
         this.currency = currency;
         this.price = price;
         this.maxRecruitsPerPlayerConfigSetting = maxRecruitsPerPlayerConfigSetting;
-        this.maxRecruitsPerPlayer = maxRecruitsPerPlayer;
+
+        if(recruitsTeam != null){
+            this.recruitsTeam = recruitsTeam.toNBT();
+        }
     }
 
     @Override
@@ -33,15 +38,20 @@ public class MessageToClientUpdateTeamCreationScreen implements Message<MessageT
         TeamEditScreen.currency = this.currency;
         TeamEditScreen.creationPrice = this.price;
         TeamEditScreen.maxRecruitsPerPlayerConfigSetting = this.maxRecruitsPerPlayerConfigSetting;
-        TeamEditScreen.maxRecruitsPerPlayer = this.maxRecruitsPerPlayer;
+
+        if(this.recruitsTeam != null){
+            TeamEditScreen.recruitsTeam = RecruitsTeam.fromNBT(this.recruitsTeam);
+        }
+
+        TeamEditScreen.postInit = true;
     }
 
     @Override
-    public MessageToClientUpdateTeamCreationScreen fromBytes(FriendlyByteBuf buf) {
+    public MessageToClientUpdateTeamEditScreen fromBytes(FriendlyByteBuf buf) {
         this.currency = buf.readItem();
         this.price = buf.readInt();
         this.maxRecruitsPerPlayerConfigSetting = buf.readInt();
-        this.maxRecruitsPerPlayer = buf.readInt();
+        this.recruitsTeam = buf.readNbt();
         return this;
     }
 
@@ -50,7 +60,7 @@ public class MessageToClientUpdateTeamCreationScreen implements Message<MessageT
         buf.writeItemStack(currency, false);
         buf.writeInt(this.price);
         buf.writeInt(this.maxRecruitsPerPlayerConfigSetting);
-        buf.writeInt(this.maxRecruitsPerPlayer);
+        buf.writeNbt(this.recruitsTeam);
     }
 
 }

@@ -11,14 +11,14 @@ import net.minecraftforge.network.NetworkEvent;
 
 public class MessageSaveTeamSettings implements Message<MessageSaveTeamSettings> {
     private CompoundTag nbt;
-    private String name;
+    private String stringID;
 
     public MessageSaveTeamSettings() {
     }
 
-    public MessageSaveTeamSettings(RecruitsTeam team, String name) {
+    public MessageSaveTeamSettings(RecruitsTeam team) {
         this.nbt = team.toNBT();
-        this.name = name;
+        this.stringID = team.getStringID();
     }
 
     @Override
@@ -29,19 +29,19 @@ public class MessageSaveTeamSettings implements Message<MessageSaveTeamSettings>
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
         RecruitsTeam editedTeam = RecruitsTeam.fromNBT(nbt);
-        TeamEvents.modifyTeam(context.getSender().server.overworld(), name, editedTeam);
+        TeamEvents.modifyTeam(context.getSender().server.overworld(), stringID, editedTeam);
     }
 
     @Override
     public MessageSaveTeamSettings fromBytes(FriendlyByteBuf buf) {
         this.nbt = buf.readNbt();
-        this.name = buf.readUtf();
+        this.stringID = buf.readUtf();
         return this;
     }
 
     @Override
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeNbt(this.nbt);
-        buf.writeUtf(this.name);
+        buf.writeUtf(this.stringID);
     }
 }

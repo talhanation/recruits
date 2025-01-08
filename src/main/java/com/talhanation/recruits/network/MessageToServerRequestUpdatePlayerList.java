@@ -1,14 +1,12 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import com.talhanation.recruits.world.RecruitsTeam;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.PacketDistributor;
@@ -35,7 +33,7 @@ public class MessageToServerRequestUpdatePlayerList implements Message<MessageTo
 
         for(ServerPlayer serverPlayer : playerList){
             if(serverPlayer.getTeam() != null){
-                RecruitsTeam team = TeamEvents.recruitsTeamManager.getTeamByName(serverPlayer.getTeam().getName());
+                RecruitsTeam team = TeamEvents.recruitsTeamManager.getTeamByStringID(serverPlayer.getTeam().getName());
                 playerInfoList.add(new RecruitsPlayerInfo(serverPlayer.getUUID(), serverPlayer.getScoreboardName(), team));
             }
             else

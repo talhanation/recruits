@@ -40,7 +40,7 @@ public class MessageCreateTeam implements Message<MessageCreateTeam> {
     public MessageCreateTeam fromBytes(FriendlyByteBuf buf) {
         this.teamName = buf.readUtf();
         this.banner = buf.readItem();
-        this.color = ChatFormatting.valueOf(buf.readUtf());
+        this.color = ChatFormatting.getById(buf.readInt());
         this.index = buf.readInt();
         return this;
     }
@@ -48,7 +48,7 @@ public class MessageCreateTeam implements Message<MessageCreateTeam> {
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUtf(this.teamName);
         buf.writeItemStack(this.banner, false);
-        buf.writeUtf(String.valueOf(this.color));
+        buf.writeInt(this.color.getId());
         buf.writeInt(this.index);
     }
 }

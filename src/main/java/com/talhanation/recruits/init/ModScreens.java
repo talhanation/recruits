@@ -36,7 +36,7 @@ public class ModScreens {
         registerMenu(COMMAND_CONTAINER_TYPE.get(), CommandScreen::new);
         registerMenu(ASSASSIN_CONTAINER_TYPE.get(), AssassinLeaderScreen::new);
         registerMenu(HIRE_CONTAINER_TYPE.get(), RecruitHireScreen::new);
-        registerMenu(TEAM_CREATION_TYPE.get(), TeamCreationScreen::new);
+        registerMenu(TEAM_EDIT_TYPE.get(), TeamEditScreen::new);
         registerMenu(PROMOTE.get(), PromoteScreen::new);
         registerMenu(MESSENGER.get(), MessengerScreen::new);
         registerMenu(MESSENGER_ANSWER.get(), MessengerAnswerScreen::new);
@@ -44,7 +44,6 @@ public class ModScreens {
 
         logger.info("MenuScreens registered");
     }
-
 
     public static final RegistryObject<MenuType<RecruitInventoryMenu>> RECRUIT_CONTAINER_TYPE =
             MENU_TYPES.register("recruit_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
@@ -162,10 +161,10 @@ public class ModScreens {
                 }
             }));
 
-    public static final RegistryObject<MenuType<TeamCreationContainer>> TEAM_CREATION_TYPE =
-            MENU_TYPES.register("team_creation", () -> IForgeMenuType.create((windowId, inv, data) -> {
+    public static final RegistryObject<MenuType<TeamEditMenu>> TEAM_EDIT_TYPE =
+            MENU_TYPES.register("team_edit", () -> IForgeMenuType.create((windowId, inv, data) -> {
 
-                return new TeamCreationContainer(windowId, inv);
+                return new TeamEditMenu(windowId, inv);
             }));
     public static final RegistryObject<MenuType<DisbandContainer>> DISBAND =
             MENU_TYPES.register("disband_container", () -> IForgeMenuType.create((windowId, inv, data) -> {

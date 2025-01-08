@@ -1,30 +1,27 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.TeamEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.PacketDistributor;
 
 import java.util.UUID;
 
 public class MessageSendJoinRequestTeam implements Message<MessageSendJoinRequestTeam> {
     private UUID player_uuid;
-    private String teamName;
+    private String stringID;
 
     public MessageSendJoinRequestTeam(){
     }
 
-    public MessageSendJoinRequestTeam(UUID player_uuid, String teamName){
+    public MessageSendJoinRequestTeam(UUID player_uuid, String stringID){
         this.player_uuid = player_uuid;
-        this.teamName = teamName;
+        this.stringID = stringID;
     }
 
     public Dist getExecutingSide() {
@@ -34,19 +31,19 @@ public class MessageSendJoinRequestTeam implements Message<MessageSendJoinReques
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = context.getSender();
         ServerLevel level = player.getLevel();
-        if(player.getTeam() == null) TeamEvents.sendJoinRequest(level, player, teamName);
-        player.sendMessage(JOIN_REQUEST(teamName), player.getUUID());
+        if(player.getTeam() == null) TeamEvents.sendJoinRequest(level, player, stringID);
+        player.sendMessage(JOIN_REQUEST(stringID), player.getUUID());
     }
 
     public MessageSendJoinRequestTeam fromBytes(FriendlyByteBuf buf) {
         this.player_uuid = buf.readUUID();
-        this.teamName = buf.readUtf();
+        this.stringID = buf.readUtf();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(player_uuid);
-        buf.writeUtf(teamName);
+        buf.writeUtf(stringID);
     }
 
     private MutableComponent JOIN_REQUEST(String teamName){

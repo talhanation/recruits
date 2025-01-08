@@ -67,10 +67,10 @@ public class RecruitsServerConfig{
     public static ForgeConfigSpec.BooleanValue RecruitsChunkLoading;
     public static ForgeConfigSpec.BooleanValue UpdateCheckerServerside;
     public static ForgeConfigSpec.BooleanValue CompatCorpseMod;
-
     public static ForgeConfigSpec.IntValue MaxPlayersInTeam;
-
-    public static ForgeConfigSpec.IntValue MaxRecruitsInTeam;
+    public static ForgeConfigSpec.IntValue MaxNPCsInTeam;
+    public static ForgeConfigSpec.BooleanValue ShouldTeamEditingBeAllowed;
+    public static ForgeConfigSpec.BooleanValue ShouldTeamManagingBeAllowed;
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin", "corpse:corpse", "minecraft:armorstand"));
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
@@ -146,9 +146,9 @@ public class RecruitsServerConfig{
                         
                         Max amount a player can recruit
                         \t(takes effect after restart)
-                        \tdefault: 64""")
+                        \tdefault: 100""")
                 .worldRestart()
-                .defineInRange("MaxRecruitsForPlayer", 64, 1, 1453);
+                .defineInRange("MaxRecruitsForPlayer", 100, 1, 1453);
 
         TargetBlackList = BUILDER.comment("""
                         
@@ -579,13 +579,29 @@ public class RecruitsServerConfig{
                 .worldRestart()
                 .defineInRange("MaxPlayersInTeam", 5, 0, 1453);
 
-        MaxRecruitsInTeam = BUILDER.comment("""
+        MaxNPCsInTeam = BUILDER.comment("""
 
                         The amount of recruits allowed in a team. Set 0 for infinite.
                         \t(takes effect after restart)
                         \tdefault: 500""")
                 .worldRestart()
                 .defineInRange("MaxRecruitsInTeam", 500, 0, 1453);
+
+        ShouldTeamEditingBeAllowed = BUILDER.comment("""
+
+                        Should editing the team be allowed by team leaders. (Editing Team Colors, Name ,...)
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("ShouldTeamEditingBeAllowed", true);
+
+        ShouldTeamManagingBeAllowed = BUILDER.comment("""
+
+                        Should managing the team be allowed by team leaders. (Add/Remove Players...)
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("ShouldTeamEditingBeAllowed", true);
 
 
         BUILDER.comment("Global Team Settings")

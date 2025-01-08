@@ -37,7 +37,6 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
 import java.util.*;
 
 public class  TeamEvents {
@@ -100,25 +99,37 @@ public class  TeamEvents {
         }
     }
 
-    public static void openTeamCreationScreen(Player player) {
-        if (player instanceof ServerPlayer) {
-            //Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateTeamCreationScreen(TeamEvents.getCurrency(), RecruitsServerConfig.TeamCreationCost.get(), RecruitsServerConfig.MaxRecruitsForPlayer.get()));
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+    public static void openTeamEditScreen(Player player) {
+        if (player instanceof ServerPlayer serverPlayer) {
+            RecruitsTeam recruitsTeam = null;
+            if(serverPlayer.getTeam() != null) {
+                recruitsTeam = TeamEvents.recruitsTeamManager.getTeamByStringID(player.getTeam().getName());
+            }
+
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> serverPlayer),
+                    new MessageToClientUpdateTeamEditScreen(TeamEvents.getCurrency(),
+                            RecruitsServerConfig.TeamCreationCost.get(),
+                            RecruitsServerConfig.MaxRecruitsForPlayer.get(),
+                            recruitsTeam
+                    ));
+
+            NetworkHooks.openGui(serverPlayer, new MenuProvider() {
 
                 @Override
                 public Component getDisplayName() {
-                    return new TextComponent("team_creation_screen");
+                    return new TextComponent("team_edit_screen");
                 }
 
                 @Override
                 public AbstractContainerMenu createMenu(int i, Inventory playerInventory, Player playerEntity) {
-                    return new TeamCreationContainer(i, playerInventory);
+                    return new TeamEditMenu(i, playerInventory);
                 }
             }, packetBuffer -> {
                 packetBuffer.writeUUID(player.getUUID());
             });
-        } else {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamCreationScreen(player));
+        }
+        else {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamEditScreen(player));
         }
     }
     public static boolean createTeam(boolean menu, ServerPlayer serverPlayer, @NotNull ServerLevel level, String teamName, String playerName, ItemStack banner, ChatFormatting color, byte colorByte) {
@@ -128,64 +139,63 @@ public class  TeamEvents {
         if(banner == null) banner = Items.BROWN_BANNER.getDefaultInstance();
         CompoundTag nbt = banner.serializeNBT();
 
-        if (team == null) {
-            if (teamName.chars().count() <= 24) {
-                if (!(teamName.isBlank() || teamName.isEmpty())) {
-                    if (!recruitsTeamManager.isNameInUse(teamName)) {
-                        if (playerHasEnoughEmeralds(serverPlayer, cost) || !menu) {
-                            if (!recruitsTeamManager.isBannerBlank(banner) || !menu) {
-                                if (!recruitsTeamManager.isBannerInUse(nbt) || !menu) {
-                                    Scoreboard scoreboard = server.getScoreboard();
-                                    PlayerTeam newTeam = scoreboard.addPlayerTeam(teamName);
-                                    newTeam.setDisplayName(new TextComponent(teamName));
-
-                                    newTeam.setColor(Objects.requireNonNull(color));
-                                    newTeam.setAllowFriendlyFire(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamFriendlyFireSetting.get());
-                                    newTeam.setSeeFriendlyInvisibles(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
-
-                                    server.getScoreboard().addPlayerToTeam(playerName, newTeam);
-                                    //TeamCommand
-                                    if(menu) doPayment(serverPlayer, cost);
-
-                                    recruitsTeamManager.addTeam(teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT(), colorByte, newTeam.getColor());
-                                    addPlayerToData(level, teamName, 1, playerName);
-
-                                    List<AbstractRecruitEntity> recruits = getRecruitsOfPlayer(serverPlayer.getUUID(), level);
-                                    int recruitCount = recruits.size();
-                                    addNPCToData(level, teamName, recruitCount);
-
-                                    addRecruitToTeam(recruits, newTeam, level);
-
-
-                                    Main.LOGGER.info("The new Team " + teamName + " has been created by " + playerName + ".");
-                                    return true;
-                                }
-                                else
-                                    serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.banner_exists").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
-                            }
-                            else
-                                serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.wrongbanner"), serverPlayer.getUUID());
-                        }
-                        else
-                            serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.noenough_money").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
-                    }
-                    else
-                        serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
-                }
-                else
-                    serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.noname").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
-            } 
-            else
-                serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.teamname_to_long").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
-        }
-        else
+        if (team != null) {
             serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
+            return false;
+        }
+        else if (teamName.chars().count() > 24) {
+            serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.teamname_to_long").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
+            return false;
+        }
+        else if (teamName.isBlank() || teamName.isEmpty()) {
+            serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.noname").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
+            return false;
+        }
+        else if(recruitsTeamManager.isNameInUse(teamName)) {
+            serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
+            return false;
+        }
+        else if(!playerHasEnoughEmeralds(serverPlayer, cost) && menu) {
+            serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.noenough_money").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
+            return false;
+        }
+        else if(recruitsTeamManager.isBannerBlank(banner) && menu) {
+            serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.wrongbanner"), serverPlayer.getUUID());
+            return false;
+        }
+        else if (recruitsTeamManager.isBannerInUse(nbt) && menu) {
+            serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.banner_exists").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
+            return false;
+        }
+        else {
+            Scoreboard scoreboard = server.getScoreboard();
+            PlayerTeam newTeam = scoreboard.addPlayerTeam(teamName);
+            newTeam.setDisplayName(new TextComponent(teamName));
 
-        return false;
+            newTeam.setColor(color);
+            newTeam.setAllowFriendlyFire(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamFriendlyFireSetting.get());
+            newTeam.setSeeFriendlyInvisibles(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
+
+            server.getScoreboard().addPlayerToTeam(playerName, newTeam);
+            //TeamCommand
+            if (menu) doPayment(serverPlayer, cost);
+
+            recruitsTeamManager.addTeam(teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT(), colorByte, newTeam.getColor());
+            addPlayerToData(level, teamName, 1, playerName);
+
+            List<AbstractRecruitEntity> recruits = getRecruitsOfPlayer(serverPlayer.getUUID(), level);
+            int recruitCount = recruits.size();
+            addNPCToData(level, teamName, recruitCount);
+
+            addRecruitToTeam(recruits, newTeam, level);
+
+            Main.LOGGER.info("The new Team " + teamName + " has been created by " + playerName + ".");
+            return true;
+        }
     }
 
     public static void updateTeamInspectMenu(ServerPlayer player, ServerLevel level, String team){
-        RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByName(team);
+        RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByStringID(team);
 
         if(recruitsTeam != null){
             ItemStack bannerStack = ItemStack.of(recruitsTeam.getBanner());
@@ -211,7 +221,7 @@ public class  TeamEvents {
 
             PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(teamName);
 
-            RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByName(teamName);
+            RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByStringID(teamName);
 
             boolean isLeader;
             if(recruitsTeam != null) {
@@ -257,21 +267,21 @@ public class  TeamEvents {
         return false;
     }
 
-    public static void modifyTeam(ServerLevel level, String name, RecruitsTeam editedTeam) {
+    public static void modifyTeam(ServerLevel level, String stringID, RecruitsTeam editedTeam) {
         MinecraftServer server = level.getServer();
-        RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByName(name);
-        PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(name);
+        RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByStringID(stringID);
+        PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(stringID);
 
         if(recruitsTeam != null && playerTeam != null){
-            recruitsTeam.setTeamLeaderID(editedTeam.getTeamLeaderUUID());
-            recruitsTeam.setTeamName(editedTeam.getTeamName());
+            recruitsTeam.setTeamDisplayName(editedTeam.getTeamDisplayName());
             recruitsTeam.setTeamLeaderID(editedTeam.getTeamLeaderUUID());
             recruitsTeam.setTeamLeaderName(editedTeam.getTeamLeaderName());
             recruitsTeam.setBanner(editedTeam.getBanner());
             recruitsTeam.setUnitColor(editedTeam.getUnitColor());
             recruitsTeam.setTeamColor(editedTeam.getTeamColor());
+            recruitsTeam.setMaxNPCsPerPlayer(editedTeam.getMaxNPCsPerPlayer());
 
-            playerTeam.setDisplayName(new TextComponent(editedTeam.getTeamName()));
+            playerTeam.setDisplayName(new TextComponent(editedTeam.getTeamDisplayName()));
             playerTeam.setColor(ChatFormatting.getById(editedTeam.getTeamColor()));
         }
     }
@@ -318,7 +328,7 @@ public class  TeamEvents {
 
             serverSideUpdateTeam(level);
 
-            RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByName(teamName);
+            RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByStringID(teamName);
             Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> playerToAdd), new MessageToClientSetDiplomaticToast(8, recruitsTeam));
 
             List<ServerPlayer> playersInTeam = TeamEvents.recruitsTeamManager.getPlayersInTeam(teamName, level);
@@ -355,7 +365,7 @@ public class  TeamEvents {
     }
 
     public static void addPlayerToData(ServerLevel level, String teamName, int x, String namePlayerToAdd){
-        RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByName(teamName);;
+        RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByStringID(teamName);;
 
         recruitsTeam.addPlayer(x);
 
@@ -364,7 +374,7 @@ public class  TeamEvents {
         }
     }
     public static void addNPCToData(ServerLevel level, String teamName, int x){
-        RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByName(teamName);;
+        RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByStringID(teamName);;
 
         if(recruitsTeam != null){
             recruitsTeam.addNPCs(x);
@@ -372,15 +382,15 @@ public class  TeamEvents {
         else Main.LOGGER.error("Could not modify recruits team: "+ teamName + ".Team does not exist.");
     }
 
-    public static void sendJoinRequest(ServerLevel level, ServerPlayer player, String teamName) {
-        RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByName(teamName);
+    public static void sendJoinRequest(ServerLevel level, ServerPlayer player, String stringID) {
+        RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByStringID(stringID);
 
         if(recruitsTeam != null){
             if(recruitsTeam.addPlayerAsJoinRequest(player.getName().getString())){
                 Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> recruitsTeamManager.getTeamLeader(recruitsTeam, level)), new MessageToClientSetDiplomaticToast(7, recruitsTeam, player.getName().getString()));
             }
         }
-        else Main.LOGGER.error("Could not add join request for "+ teamName + ".Team does not exist.");
+        else Main.LOGGER.error("Could not add join request for "+ stringID + ".Team does not exist.");
     }
 
     public static void tryToRemoveFromTeam(Team team, ServerPlayer serverPlayer, ServerPlayer potentialRemovePlayer, ServerLevel level, String nameToRemove, boolean menu) {
@@ -481,14 +491,16 @@ public class  TeamEvents {
 
             if(newOwner != null){
                 if(list.contains(newOwner.getName().getString())){
-                    if (!RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(newOwnerUUID)) {
+
+                    if (!RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(team.getName(), newOwnerUUID)) {
                         oldOwner.sendMessage(new TranslatableComponent("chat.recruits.team.assignNewOwnerLimitReached"), oldOwner.getUUID());
                         return;
                     }
                     recruit.disband(oldOwner, true, true);
-                    recruit.hire(newOwner);
 
                     Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> newOwner), new MessageToClientSetToast(0, oldOwner.getName().getString()));
+
+                    recruit.hire(newOwner);
                 }
                 else
                     playerNotFound = true;
@@ -658,7 +670,7 @@ public class  TeamEvents {
     public static void addRecruitToTeam(AbstractRecruitEntity recruit, Team team, ServerLevel level){
         String teamName = team.getName();
         PlayerTeam playerteam = level.getScoreboard().getPlayerTeam(teamName);
-        RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByName(teamName);
+        RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByStringID(teamName);
 
         boolean flag = playerteam != null && level.getScoreboard().addPlayerToTeam(recruit.getStringUUID(), playerteam);
         if (!flag) {

@@ -5,16 +5,11 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
-import com.talhanation.recruits.client.gui.diplomacy.DiplomacyTeamListScreen;
-import de.maxhenkel.corelib.inventory.ScreenBase;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -45,7 +40,7 @@ public class TeamMainScreen extends RecruitsScreenBase {
                 minecraft.setScreen(new TeamInspectionScreen(this, player));
             }
             else {
-                TeamEvents.openTeamCreationScreen(player);
+                TeamEvents.openTeamEditScreen(player);
             }
         }));
 

@@ -5,7 +5,6 @@ import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.scores.Team;
 
 import java.util.*;
 
@@ -60,7 +59,7 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
                     case SAME_TEAM -> {
                         RecruitsTeam recruitsTeam = player.getRecruitsTeam();
 
-                        if(recruitsTeam != null && recruitsTeam.getTeamName().equals(this.recruitsTeam.getTeamName())){
+                        if(recruitsTeam != null && recruitsTeam.getStringID().equals(this.recruitsTeam.getStringID())){
                             entries.add(new RecruitsPlayerEntry(screen, player));
                         }
                     }

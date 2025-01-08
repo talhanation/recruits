@@ -3,7 +3,7 @@ package com.talhanation.recruits.client.gui.team;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.client.gui.ConfirmScreen;
+import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.diplomacy.DiplomacyTeamListScreen;
 import com.talhanation.recruits.client.gui.player.IPlayerSelection;
@@ -68,6 +68,8 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
     private boolean postInit;
     private int gapBottom;
     private int gapTop;
+    public static boolean isEditingAllowed;
+    public static boolean isManagingAllowed;
 
     public TeamInspectionScreen(Screen parent, Player player){
         super(new TextComponent("TeamInspection"),236,0);
@@ -120,9 +122,10 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
 
         editButton = new Button(guiLeft + 169, guiTop + 99, 60, 20, EDIT_BUTTON,
                 button -> {
-                    minecraft.setScreen(new TeamEditScreen(this, player, recruitsTeam));
+                    TeamEvents.openTeamEditScreen(player);
+            //minecraft.setScreen(new TeamEditScreen(this, player, recruitsTeam));
                 });
-        editButton.visible = isTeamLeader;
+        editButton.visible = isTeamLeader && isEditingAllowed;
         addRenderableWidget(editButton);
 
         diplomacyButton = new Button(guiLeft + 87, guiTop + 99, 60, 20, DIPLOMACY_BUTTON,
@@ -135,22 +138,29 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
                 button -> {
                     minecraft.setScreen(new TeamManageScreen(this, player, recruitsTeam));
                 });
-        manageButton.visible = isTeamLeader;
+        manageButton.visible = isTeamLeader && isManagingAllowed;
         addRenderableWidget(manageButton);
 
         //leave team
         leaveButton = new Button(guiLeft + 7, buttonY, 60, 20, LEAVE_BUTTON,
             button -> {
                 if(isTeamLeader){
-                    minecraft.setScreen(new SelectPlayerScreen(this, player, SELECT_LEADER, SelectPlayerScreen.BUTTON_SELECT, SELECT_LEADER_TOOLTIP, false, PlayersList.FilterType.SAME_TEAM,
-                            (playerInfo) -> {
-                                    recruitsTeam.setTeamLeaderID(playerInfo.getUUID());
-                                    recruitsTeam.setTeamLeaderName(playerInfo.getName());
+                    if(playerList != null && playerList.isEmpty()){
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
+                        return;
+                    }
 
-                                    Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveTeamSettings(recruitsTeam, recruitsTeam.getTeamName()));
-                                    onClose();
+                    Screen selectPlayerScreen = new SelectPlayerScreen(this, player, SELECT_LEADER, SelectPlayerScreen.BUTTON_SELECT, SELECT_LEADER_TOOLTIP, false, PlayersList.FilterType.SAME_TEAM,
+                            (playerInfo) -> {
+                                recruitsTeam.setTeamLeaderID(playerInfo.getUUID());
+                                recruitsTeam.setTeamLeaderName(playerInfo.getName());
+
+                                Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveTeamSettings(recruitsTeam));
+                                onClose();
                             }
-                        ));
+                    );
+                    minecraft.setScreen(selectPlayerScreen);
+
                 }
                 else {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
@@ -220,6 +230,11 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
 
         if(recruitsTeam != null){
             int members = recruitsTeam.players + recruitsTeam.npcs;
+            String players = "" + recruitsTeam.players;
+            String npcs = "" + recruitsTeam.npcs;
+
+            if(recruitsTeam.maxNPCs > 0) npcs = npcs + "/" + recruitsTeam.maxNPCs;
+            if(recruitsTeam.maxPlayers > 0) players = players + "/" + recruitsTeam.maxPlayers;
 
             font.draw(poseStack, this.getTitle(), width / 2F - font.width(getTitle()) / 2F, guiTop + 5, 0xFF000000 | ChatFormatting.getById(recruitsTeam.getTeamColor()).getColor());
 
@@ -234,10 +249,10 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
             font.draw(poseStack, "" + members, textX + numbersX, textY + 25, 4210752);
 
             font.draw(poseStack, PLAYERS_TEXT.getString(), textX, textY + 40, 4210752);
-            font.draw(poseStack, "" + recruitsTeam.players, textX + numbersX, textY + 40, 4210752);
+            font.draw(poseStack, players, textX + numbersX, textY + 40, 4210752);
 
             font.draw(poseStack, NPCS_TEXT.getString(), textX, textY + 55, 4210752);
-            font.draw(poseStack, "" + recruitsTeam.npcs, textX + numbersX, textY + 55, 4210752);
+            font.draw(poseStack, npcs, textX + numbersX, textY + 55, 4210752);
         }
     }
 
@@ -257,7 +272,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         String name = "";
 
         if(recruitsTeam != null){
-            name = recruitsTeam.getTeamName();
+            name = recruitsTeam.getTeamDisplayName();
         }
         return new TextComponent(name);
     }

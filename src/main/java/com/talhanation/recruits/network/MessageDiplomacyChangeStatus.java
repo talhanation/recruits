@@ -20,8 +20,8 @@ public class MessageDiplomacyChangeStatus implements Message<MessageDiplomacyCha
 
     public MessageDiplomacyChangeStatus(RecruitsTeam ownTeam, RecruitsTeam otherTeam, RecruitsDiplomacyManager.DiplomacyStatus status) {
         this.status = status.getByteValue();
-        this.ownTeam = ownTeam.getTeamName();
-        this.otherTeam = otherTeam.getTeamName();
+        this.ownTeam = ownTeam.getStringID();
+        this.otherTeam = otherTeam.getStringID();
     }
 
     public Dist getExecutingSide() {

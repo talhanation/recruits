@@ -24,9 +24,9 @@ public class RecruitsTeamManager {
         teams.values().forEach(this::loadConfig);
     }
 
-    private void loadConfig(RecruitsTeam team) {
+    public void loadConfig(RecruitsTeam team) {
         team.maxPlayers = RecruitsServerConfig.MaxPlayersInTeam.get();
-        team.maxNPCs = RecruitsServerConfig.MaxRecruitsInTeam.get();
+        team.maxNPCs = RecruitsServerConfig.MaxNPCsInTeam.get();
     }
 
     public void save(ServerLevel level) {
@@ -40,13 +40,13 @@ public class RecruitsTeamManager {
     }
 
     @Nullable
-    public RecruitsTeam getTeamByName(String teamName) {
-        return teams.get(teamName);
+    public RecruitsTeam getTeamByStringID(String stringID) {
+        return teams.get(stringID);
     }
 
-    public List<ServerPlayer> getPlayersInTeam(String teamName, ServerLevel level) {
+    public List<ServerPlayer> getPlayersInTeam(String stringID, ServerLevel level) {
         Scoreboard scoreboard = level.getScoreboard();
-        PlayerTeam playerTeam = scoreboard.getPlayerTeam(teamName);
+        PlayerTeam playerTeam = scoreboard.getPlayerTeam(stringID);
 
         List<ServerPlayer> list = new ArrayList<>();
 
@@ -72,13 +72,16 @@ public class RecruitsTeamManager {
 
     public void addTeam(String teamName, UUID leaderUUID, String leaderName, CompoundTag bannerNbt, byte color, ChatFormatting teamColor) {
         RecruitsTeam recruitsTeam = new RecruitsTeam();
-        recruitsTeam.setTeamName(teamName);
+        recruitsTeam.setStringID(teamName);
+        recruitsTeam.setTeamDisplayName(teamName);
         recruitsTeam.setTeamLeaderID(leaderUUID);
         recruitsTeam.setTeamLeaderName(leaderName);
         recruitsTeam.setBanner(bannerNbt);
         recruitsTeam.setUnitColor(color);
         recruitsTeam.setTeamColor(teamColor.getId());
-
+        recruitsTeam.setMaxNPCsPerPlayer(RecruitsServerConfig.MaxRecruitsForPlayer.get());
+        recruitsTeam.setMaxPlayers(RecruitsServerConfig.MaxPlayersInTeam.get());
+        recruitsTeam.setMaxNPCs(RecruitsServerConfig.MaxNPCsInTeam.get());
         teams.put(teamName, recruitsTeam);
     }
     public void removeTeam(String teamName) {
@@ -90,7 +93,7 @@ public class RecruitsTeamManager {
         List<RecruitsTeam> list = getTeams().stream().toList();
         boolean equ = false;
         for(RecruitsTeam recruitsTeam : list){
-            equ = recruitsTeam.getTeamName().toLowerCase().strip().equals(teamName.toLowerCase());
+            equ = recruitsTeam.getStringID().toLowerCase().strip().equals(teamName.toLowerCase());
         }
         return equ;
     }
@@ -120,9 +123,11 @@ public class RecruitsTeamManager {
 
     public boolean canRecruitJoin(RecruitsTeam recruitsTeam){
         int config = RecruitsServerConfig.MaxPlayersInTeam.get();
-        if(config == 0) return true;
-
-        return RecruitsServerConfig.MaxRecruitsInTeam.get() < recruitsTeam.getNPCs();
+        if(config == 0){
+            return true;
+        }
+        else
+            return RecruitsServerConfig.MaxNPCsInTeam.get() < recruitsTeam.getNPCs();
     }
 }
 

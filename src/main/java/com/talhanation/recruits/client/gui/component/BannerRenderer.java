@@ -16,6 +16,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
 import net.minecraft.world.level.block.entity.BannerPattern;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -28,14 +29,21 @@ public class BannerRenderer {
     private final Minecraft minecraft;
     public BannerRenderer(@Nullable RecruitsTeam team) {
         this.recruitsTeam = team;
+        boolean fail = true;
+        if (team != null && team.getBanner() != null){
+            ItemStack itemStack = ItemStack.of(team.getBanner());
+            if(itemStack.getItem() instanceof BannerItem bannerItem1){
+                this.bannerItem = itemStack;
+                this.resultBannerPatterns = BannerBlockEntity.createPatterns(
+                        bannerItem1.getColor(),
+                        BannerBlockEntity.getItemPatterns(this.bannerItem)
+                );
+                fail = false;
+            }
 
-        if (team != null && team.getBanner() != null) {
-            this.bannerItem = ItemStack.of(team.getBanner());
-            this.resultBannerPatterns = BannerBlockEntity.createPatterns(
-                    ((BannerItem) this.bannerItem.getItem()).getColor(),
-                    BannerBlockEntity.getItemPatterns(this.bannerItem)
-            );
-        } else {
+        }
+
+        if(fail){
             this.bannerItem = ItemStack.EMPTY;
             this.resultBannerPatterns = List.of();
         }
@@ -67,11 +75,16 @@ public class BannerRenderer {
         }
     }
 
+    public void setBannerItem(ItemStack bannerItem) {
+        if(bannerItem.getItem() instanceof BannerItem){
+            this.bannerItem = bannerItem;
+            this.resultBannerPatterns = BannerBlockEntity.createPatterns(((BannerItem) this.bannerItem.getItem()).getColor(), BannerBlockEntity.getItemPatterns(this.bannerItem));
+        }
+    }
+
     public void setRecruitsTeam(RecruitsTeam team){
         this.recruitsTeam = team;
         this.bannerItem = ItemStack.of(team.getBanner());
-        this.resultBannerPatterns = BannerBlockEntity.createPatterns(
-                ((BannerItem) this.bannerItem.getItem()).getColor(),
-                BannerBlockEntity.getItemPatterns(this.bannerItem));
+        this.resultBannerPatterns = BannerBlockEntity.createPatterns(((BannerItem) this.bannerItem.getItem()).getColor(), BannerBlockEntity.getItemPatterns(this.bannerItem));
     }
 }

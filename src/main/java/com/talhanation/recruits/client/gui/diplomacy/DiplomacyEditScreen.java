@@ -148,8 +148,8 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
     public void renderForeground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
         font.draw(poseStack, TITLE, guiLeft + xSize / 2 - font.width(TITLE) / 2, guiTop + 7, FONT_COLOR);
 
-        font.draw(poseStack, ownTeam.getTeamName(), x5 + guiLeft + xSize / 2 - font.width(ownTeam.getTeamName()) / 2, guiTop + 7 - y5, FONT_COLOR);
-        font.draw(poseStack, otherTeam.getTeamName(), x6 + guiLeft + xSize / 2 - font.width(otherTeam.getTeamName()) / 2, guiTop + 7 - y6, FONT_COLOR);
+        font.draw(poseStack, ownTeam.getTeamDisplayName(), x5 + guiLeft + xSize / 2 - font.width(ownTeam.getTeamDisplayName()) / 2, guiTop + 7 - y5, FONT_COLOR);
+        font.draw(poseStack, otherTeam.getTeamDisplayName(), x6 + guiLeft + xSize / 2 - font.width(otherTeam.getTeamDisplayName()) / 2, guiTop + 7 - y6, FONT_COLOR);
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
