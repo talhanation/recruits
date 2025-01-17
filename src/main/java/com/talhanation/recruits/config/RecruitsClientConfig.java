@@ -24,27 +24,27 @@ public class RecruitsClientConfig {
 
                         ----Should Recruits Make Villager "Huh?" sound?----
                         \t(takes effect after restart)
-                        \tdefault: true""")
+                        \tdefault: false""")
                 .worldRestart()
-                .define("PlayVillagerAmbientSound", true);
+                .define("PlayVillagerAmbientSound", false);
 
         RecruitsLookLikeVillagers = BUILDER.comment("""
 
                         ----Should Recruits look like Villagers?----
                         \t(takes effect after restart)
-                        \tdefault: true""")
+                        \tdefault: false""")
                 .worldRestart()
-                .define("RecruitsLookLikeVillagers", true);
+                .define("RecruitsLookLikeVillagers", false);
 
         CommandScreenToggle = BUILDER.comment("""
                         ----CommandScreenToggle----
                         \t(takes effect after restart)
                         \t
                         Should the key to open the command screen be toggled instead of held?""
-                        default: false""")
+                        default: true""")
 
                 .worldRestart()
-                .define("CommandScreenToggle", false);
+                .define("CommandScreenToggle", true);
 
         UpdateCheckerClientside = BUILDER.comment("""
                         ----UpdateCheckerClientside----
@@ -52,10 +52,10 @@ public class RecruitsClientConfig {
                         \t
                         Should the client side update checker be active?""
                         It is recommended to keep it enabled to receive information about new bug fixes and features.""
-                        default: true""")
+                        default: false""")
 
                 .worldRestart()
-                .define("UpdateCheckerClientside", true);
+                .define("UpdateCheckerClientside", false);
 
         BUILDER.pop();
         CLIENT = BUILDER.build();

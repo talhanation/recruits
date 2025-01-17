@@ -28,11 +28,11 @@ public class FormationUtils {
         return new Vec3(pos.x, blockPos.getY(), pos.z);
     }
     public static void movementFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
-        lineFormation(player, recruits, targetPos, 3, 2.0D);
+        lineFormation(player, recruits, targetPos, 5, 2.0D);
     }
 
     public static void lineUpFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
-        lineFormation(player, recruits, targetPos, 20, 1.75D);
+        lineFormation(player, recruits, targetPos, 25, 1.15D);
     }
     public static void lineFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, int maxInRow, double spacing) {
         float yaw = player.getYRot();
@@ -91,7 +91,7 @@ public class FormationUtils {
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
 
-        double spacing = 2.5;
+        double spacing = 1.5;
 
         int numRecruits = recruits.size();
         int sideLength = (int) Math.ceil(Math.sqrt(numRecruits));
@@ -195,7 +195,7 @@ public class FormationUtils {
     }
 
     public static void hollowCircleFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
-        double spacing = 2.5; // Distance between recruits in the circle
+        double spacing = 1.5; // Distance between recruits in the circle
         int numRecruits = recruits.size();
 
         double radius = spacing * numRecruits / (2 * Math.PI); // Calculate radius based on the number of recruits
@@ -242,7 +242,7 @@ public class FormationUtils {
         }
     }
     public static void circleFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
-        double spacing = 2.5; // Abstand zwischen den Rekruten in jedem Ring
+        double spacing = 1.5; // Abstand zwischen den Rekruten in jedem Ring
         int numRecruits = recruits.size();
 
         // Aufteilen der Rekruten auf drei Ringe
@@ -319,7 +319,7 @@ public class FormationUtils {
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
 
         int recruitsPerSide = Math.max(2, recruits.size() / 4); // Ensure at least 2 recruits per side
-        double spacing = 2.5;
+        double spacing = 1.5;
 
         int totalRecruitsNeeded = recruitsPerSide * 4;
         if (totalRecruitsNeeded > recruits.size()) {
@@ -381,7 +381,7 @@ public class FormationUtils {
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
 
-        double spacing = 2.5;
+        double spacing = 2;
         int recruitsPerWing = recruits.size() / 2;
 
         List<FormationPosition> possiblePositions = new ArrayList<>();

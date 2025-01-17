@@ -135,9 +135,9 @@ public class RecruitsServerConfig{
                         
                         The max. Level a recruit can get.-
                         \t(takes effect after restart)
-                        \tdefault: 20""")
+                        \tdefault: 1""")
                 .worldRestart()
-                .defineInRange("RecruitsMaxXpLevel", 20, 10, 1453);
+                .defineInRange("RecruitsMaxXpLevel", 1, 1, 500);
 
         MaxRecruitsForPlayer = BUILDER.comment("""
                         
