@@ -1,6 +1,7 @@
 package com.talhanation.recruits.pathfinding;
 
 
+import com.talhanation.recruits.Main;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.pathfinder.Node;
@@ -13,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.Supplier;
 
 /**
@@ -60,6 +63,7 @@ public class AsyncPath extends Path {
      * while processing we can always theoretically reach the target so default is true
      */
     private boolean canReach = true;
+    private final CompletableFuture<Void> lock;
 
     public AsyncPath(@NotNull List<Node> emptyNodeList, @NotNull Set<BlockPos> positions, @NotNull Supplier<Path> pathSupplier) {
         //noinspection ConstantConditions
@@ -69,11 +73,16 @@ public class AsyncPath extends Path {
         this.positions = positions;
         this.pathSupplier = pathSupplier;
 
-        AsyncPathProcessor.queue(this);
+        this.lock = AsyncPathProcessor.queue(this);
     }
+
 
     public boolean isProcessed() {
         return this.processed;
+    }
+
+    public void waitUntilProcessed() {
+        if(!this.isProcessed()) CompletableFuture.allOf(this.lock).join();
     }
 
     /**

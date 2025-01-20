@@ -49,7 +49,6 @@ public class RecruitWanderGoal extends Goal {
 
     @Override
     public void tick() {
-        Main.LOGGER.info("Ticking wander goal... Recruit: {}", recruit.getName());
         super.tick();
 
         if(!recruit.getNavigation().isDone()){
@@ -59,13 +58,11 @@ public class RecruitWanderGoal extends Goal {
         }
 
         if (--this.timeToRecalcPath <= 0) {
-            Main.LOGGER.info("Recalculating path... Recruit: {}", recruit.getName());
             this.timeToRecalcPath = this.adjustedTickDelay(200) + recruit.getRandom().nextInt(50);
 
 
             Vec3 vec3 = this.getPosition();
             if (vec3 != null) {
-                Main.LOGGER.info("Got position... Recruit: {}, position: {} {} {}", recruit.getName(), vec3.x, vec3.y, vec3.z);
                 this.wantedX = vec3.x;
                 this.wantedY = vec3.y;
                 this.wantedZ = vec3.z;

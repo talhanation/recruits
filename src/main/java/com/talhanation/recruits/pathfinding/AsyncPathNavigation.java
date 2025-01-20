@@ -93,7 +93,7 @@ public abstract class AsyncPathNavigation extends PathNavigation {
         } else if (this.path != null && !this.path.isDone() && p_148223_.contains(this.targetPos)) {
             return this.path;
         } else {
-            this.level.getProfiler().push("pathfind");
+            // this.level.getProfiler().push("pathfind");
             BlockPos blockpos = p_148225_ ? this.mob.blockPosition().above() : this.mob.blockPosition();
             int i = (int)(p_148227_ + (float)p_148224_);
             PathNavigationRegion pathnavigationregion = new PathNavigationRegion(this.level, blockpos.offset(-i, -i, -i), blockpos.offset(i, i, i));
@@ -113,8 +113,6 @@ public abstract class AsyncPathNavigation extends PathNavigation {
                     this.targetPos = processedPath.getTarget();
                     this.reachRange = p_148226_;
                     this.resetStuckTimeout();
-                } else {
-                    Main.LOGGER.error("PROCESSED PATH IS NULL OR TARGET IS NULL!!!!!");
                 }
             });
 
@@ -124,18 +122,18 @@ public abstract class AsyncPathNavigation extends PathNavigation {
 
     @Override
     public boolean moveTo(double p_26520_, double p_26521_, double p_26522_, double p_26523_) {
-        Main.LOGGER.info("Async moveTo called {} {} {}", p_26520_, p_26521_, p_26522_);
-        return this.moveTo(this.createPath(new BlockPos(p_26520_, p_26521_, p_26522_), 1), p_26523_);
+        Path path = this.createPath(new BlockPos(p_26520_, p_26521_, p_26522_), 1);
+        return this.moveTo(path, p_26523_);
     }
 
     // Paper start - optimise pathfinding
-    private int lastFailure = 0;
-    private int pathfindFailures = 0;
+    private long pathfindFailures = 0;
+    private long lastFailure = 0;
     // Paper end
 
     @Override
     public boolean moveTo(@NotNull Entity p_26532_, double p_26533_) {
-        int currentTick = Objects.requireNonNull(this.level.getServer()).getTickCount();
+        long currentTick = this.level.getGameTime();
         // Paper start - Pathfinding optimizations
         if (this.pathfindFailures > 10 && this.path == null && currentTick < this.lastFailure + 40) {
             return false;
@@ -169,14 +167,10 @@ public abstract class AsyncPathNavigation extends PathNavigation {
             return false;
         }
 
-        if (path != null) {
-            if (!(path instanceof AsyncPath asyncPath)) {
-                this.trimPath();
-            } else {
-                if (asyncPath.isProcessed()) {
-                    this.trimPath();
-                }
-            }
+        boolean isProcessed = (this.path instanceof AsyncPath asyncPath && asyncPath.isProcessed()) || (!(this.path instanceof AsyncPath asyncPath));
+
+        if (isProcessed) {
+            this.trimPath();
 
             if (this.path.getNodeCount() <= 0) {
                 return false;
@@ -187,7 +181,34 @@ public abstract class AsyncPathNavigation extends PathNavigation {
         Vec3 vec3 = this.getTempMobPos();
         this.lastStuckCheck = this.tick;
         this.lastStuckCheckPos = vec3;
+
         return true;
+    }
+
+    @Override
+    public void tick() {
+        ++this.tick;
+        if (this.hasDelayedRecomputation) {
+            this.recomputePath();
+        }
+
+        if (!this.isDone()) {
+            if (this.canUpdatePath()) {
+                this.followThePath();
+            } else if (this.path != null && !this.path.isDone()) {
+                Vec3 vec3 = this.getTempMobPos();
+                Vec3 vec31 = this.path.getNextEntityPos(this.mob);
+                if (vec3.y > vec31.y && !this.mob.isOnGround() && Mth.floor(vec3.x) == Mth.floor(vec31.x) && Mth.floor(vec3.z) == Mth.floor(vec31.z)) {
+                    this.path.advance();
+                }
+            }
+
+            DebugPackets.sendPathFindingPacket(this.level, this.mob, this.path, this.maxDistanceToWaypoint);
+            if (!this.isDone()) {
+                Vec3 vec32 = this.path.getNextEntityPos(this.mob);
+                this.mob.getMoveControl().setWantedPosition(vec32.x, this.getGroundY(vec32), vec32.z, this.speedModifier);
+            }
+        }
     }
 
     public void recomputePath() {
@@ -213,34 +234,5 @@ public abstract class AsyncPathNavigation extends PathNavigation {
     @Override
     public boolean isStuck() {
         return this.isStuck;
-    }
-
-    @Override
-    public void tick() {
-        ++this.tick;
-        if (this.hasDelayedRecomputation) {
-            this.recomputePath();
-        }
-
-        if (this.path instanceof AsyncPath asyncPath && !asyncPath.isProcessed()) return; // petal - skip pathfinding if we're still processing
-
-        if (!this.isDone()) {
-            if (this.canUpdatePath()) {
-                this.followThePath();
-            } else if (this.path != null && !this.path.isDone()) {
-                Vec3 vec3 = this.getTempMobPos();
-                Vec3 vec31 = this.path.getNextEntityPos(this.mob);
-                if (vec3.y > vec31.y && !this.mob.isOnGround() && Mth.floor(vec3.x) == Mth.floor(vec31.x) && Mth.floor(vec3.z) == Mth.floor(vec31.z)) {
-                    this.path.advance();
-                }
-            }
-
-            DebugPackets.sendPathFindingPacket(this.level, this.mob, this.path, this.maxDistanceToWaypoint);
-            if (!this.isDone()) {
-                Path path = Objects.requireNonNull(this.path);
-                Vec3 vec32 = path.getNextEntityPos(this.mob);
-                this.mob.getMoveControl().setWantedPosition(vec32.x, this.getGroundY(vec32), vec32.z, this.speedModifier);
-            }
-        }
     }
 }

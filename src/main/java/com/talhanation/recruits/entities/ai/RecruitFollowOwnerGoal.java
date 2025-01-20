@@ -6,6 +6,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.IBoatController;
 import net.minecraft.FieldsAreNonnullByDefault;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.vehicle.Boat;
@@ -75,9 +76,7 @@ public class RecruitFollowOwnerGoal extends Goal {
     }
 
     public void tick() {
-        Main.LOGGER.info("Ticking follow goal... Recruit: {}", recruit.getName());
         if (--this.timeToRecalcPath <= 0) {
-            Main.LOGGER.info("Recalculating path... Recruit: {}", recruit.getName());
             this.timeToRecalcPath = this.recruit.getVehicle() != null ? this.adjustedTickDelay(5) : this.adjustedTickDelay(10);
 
             this.recruit.getLookControl().setLookAt(this.owner, 10.0F, (float)this.recruit.getMaxHeadXRot());

@@ -32,6 +32,7 @@ public class AsyncPathfinder extends PathFinder {
 
     public AsyncPathfinder(NodeEvaluator p_77425_, int p_77426_, NodeEvaluatorGenerator nodeEvaluatorGenerator, Level level) {
         super(p_77425_, p_77426_);
+        this.maxVisitedNodes = p_77426_;
         this.nodeEvaluatorGenerator = nodeEvaluatorGenerator;
         this.nodeEvaluator = p_77425_;
         this.level = level;
@@ -39,7 +40,6 @@ public class AsyncPathfinder extends PathFinder {
 
     @Nullable
     public Path findPath(@NotNull PathNavigationRegion p_77428_, @NotNull Mob p_77429_, @NotNull Set<BlockPos> p_77430_, float p_77431_, int p_77432_, float p_77433_) {
-        Main.LOGGER.info("Async findPath called");
         //this.openSet.clear(); // petal - it's always cleared in processPath
         // petal start - use a generated evaluator if we have one otherwise run sync
         var nodeEvaluator = this.nodeEvaluatorGenerator == null ? this.nodeEvaluator : NodeEvaluatorCache.takeNodeEvaluator(this.nodeEvaluatorGenerator);
@@ -47,7 +47,6 @@ public class AsyncPathfinder extends PathFinder {
         Node node = nodeEvaluator.getStart();
 
         if (node == null) {
-            Main.LOGGER.info("No node present");
             if (this.nodeEvaluatorGenerator != null) {
                 NodeEvaluatorCache.returnNodeEvaluator(nodeEvaluator);
             }
@@ -62,10 +61,8 @@ public class AsyncPathfinder extends PathFinder {
             // Paper end
             // petal start
             if (this.nodeEvaluatorGenerator == null) {
-                Main.LOGGER.info("Async pathfinder: No node evaluator present");
                 return this.findPath(this.level.getProfiler(), node, map, p_77431_, p_77432_, p_77433_);
             }
-            Main.LOGGER.info("Calculating async path...");
             return new AsyncPath(Lists.newArrayList(), p_77430_, () -> {
                 try {
                     return this.processPath(nodeEvaluator, node, map, p_77431_, p_77432_, p_77433_);
@@ -81,7 +78,6 @@ public class AsyncPathfinder extends PathFinder {
     private Path findPath(ProfilerFiller p_164717_, Node p_164718_, List<Map.Entry<Target, BlockPos>> p_164719_, float p_164720_, int p_164721_, float p_164722_) {
         //p_164717_.push("find_path");
         //p_164717_.markForCharting(MetricCategory.PATH_FINDING);
-
         try {
             return this.processPath(this.nodeEvaluator, p_164718_, p_164719_, p_164720_, p_164721_, p_164722_);
         } finally {
@@ -91,7 +87,6 @@ public class AsyncPathfinder extends PathFinder {
     // petal end
 
     private synchronized @NotNull Path processPath(NodeEvaluator p_164717_, Node p_164718_, List<Map.Entry<Target, BlockPos>> p_164719_, float p_164720_, int p_164721_, float p_164722_) { // petal - sync to only use the caching functions in this class on a single thread
-        Main.LOGGER.info("sync processPath is called");
         org.apache.commons.lang3.Validate.isTrue(!p_164719_.isEmpty()); // ensure that we have at least one position, which means we'll always return a path
         // Set<Target> set = p_164719_.keySet();
         p_164718_.g = 0.0F;
@@ -99,7 +94,6 @@ public class AsyncPathfinder extends PathFinder {
         p_164718_.f = p_164718_.h;
         this.openSet.clear();
         this.openSet.insert(p_164718_);
-        Set<Node> set1 = ImmutableSet.of();
         int i = 0;
         List<Map.Entry<Target, BlockPos>> entryList = Lists.newArrayListWithExpectedSize(p_164719_.size()); // Paper - optimize collection
         int j = (int) ((float) this.maxVisitedNodes * p_164722_);
@@ -150,7 +144,6 @@ public class AsyncPathfinder extends PathFinder {
             }
         }
 
-        Main.LOGGER.info("Calculating best path in sync pathFind");
         Path best = null;
         boolean entryListIsEmpty = entryList.isEmpty();
 
@@ -173,7 +166,6 @@ public class AsyncPathfinder extends PathFinder {
     }
 
     private Path reconstructPath(Node p_77435_, BlockPos p_77436_, boolean p_77437_) {
-        Main.LOGGER.info("reconstructing path");
         List<Node> list = Lists.newArrayList();
         Node node = p_77435_;
         list.add(0, p_77435_);

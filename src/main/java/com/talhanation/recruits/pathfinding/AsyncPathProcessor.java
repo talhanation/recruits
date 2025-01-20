@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -23,7 +24,6 @@ public class AsyncPathProcessor {
 
 
     protected static CompletableFuture<Void> queue(@NotNull AsyncPath path) {
-        Main.LOGGER.info("Yay, got some work to do!!!!");
         return CompletableFuture.runAsync(path::process, pathProcessingExecutor);
     }
 
@@ -36,12 +36,11 @@ public class AsyncPathProcessor {
      * @param afterProcessing a consumer to be called
      */
     public static void awaitProcessing(@Nullable Path path, MinecraftServer server, Consumer<@Nullable Path> afterProcessing) {
-        if (path instanceof AsyncPath asyncPath && asyncPath.isProcessed()) {
+        if (path instanceof AsyncPath asyncPath && !asyncPath.isProcessed()) {
             asyncPath.postProcessing(() -> server.execute(() -> afterProcessing.accept(path)));
+            asyncPath.waitUntilProcessed();
         } else {
             afterProcessing.accept(path);
         }
-
-        Main.LOGGER.info("Someone has awaited for path to process!");
     }
 }
