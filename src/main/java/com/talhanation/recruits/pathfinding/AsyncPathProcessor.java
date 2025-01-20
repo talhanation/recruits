@@ -1,6 +1,7 @@
 package com.talhanation.recruits.pathfinding;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.talhanation.recruits.Main;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.pathfinder.Path;
 import org.jetbrains.annotations.NotNull;
@@ -22,6 +23,7 @@ public class AsyncPathProcessor {
 
 
     protected static CompletableFuture<Void> queue(@NotNull AsyncPath path) {
+        Main.LOGGER.info("Yay, got some work to do!!!!");
         return CompletableFuture.runAsync(path::process, pathProcessingExecutor);
     }
 
@@ -39,5 +41,7 @@ public class AsyncPathProcessor {
         } else {
             afterProcessing.accept(path);
         }
+
+        Main.LOGGER.info("Someone has awaited for path to process!");
     }
 }

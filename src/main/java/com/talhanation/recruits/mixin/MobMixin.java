@@ -1,7 +1,9 @@
 package com.talhanation.recruits.mixin;
 
 import com.talhanation.recruits.entities.ai.navigation.RecruitsHorsePathNavigation;
+import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.level.Level;
@@ -27,6 +29,5 @@ public class MobMixin {
         if(((Mob)(Object)this) instanceof AbstractHorse horse){
             callback.setReturnValue(1);
         }
-
     }
 }

@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 
 import com.talhanation.recruits.entities.IBoatController;
@@ -74,8 +75,9 @@ public class RecruitFollowOwnerGoal extends Goal {
     }
 
     public void tick() {
-
+        Main.LOGGER.info("Ticking follow goal... Recruit: {}", recruit.getName());
         if (--this.timeToRecalcPath <= 0) {
+            Main.LOGGER.info("Recalculating path... Recruit: {}", recruit.getName());
             this.timeToRecalcPath = this.recruit.getVehicle() != null ? this.adjustedTickDelay(5) : this.adjustedTickDelay(10);
 
             this.recruit.getLookControl().setLookAt(this.owner, 10.0F, (float)this.recruit.getMaxHeadXRot());

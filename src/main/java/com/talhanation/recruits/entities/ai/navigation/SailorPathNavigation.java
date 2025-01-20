@@ -3,6 +3,9 @@ package com.talhanation.recruits.entities.ai.navigation;
 import com.google.common.collect.ImmutableSet;
 import com.talhanation.recruits.entities.CaptainEntity;
 import com.talhanation.recruits.entities.IBoatController;
+import com.talhanation.recruits.pathfinding.AsyncPathfinder;
+import com.talhanation.recruits.pathfinding.AsyncWaterBoundPathNavigation;
+import com.talhanation.recruits.pathfinding.NodeEvaluatorGenerator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.navigation.WaterBoundPathNavigation;
@@ -13,18 +16,19 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 
-public class SailorPathNavigation extends WaterBoundPathNavigation {
-
+public class SailorPathNavigation extends AsyncWaterBoundPathNavigation {
     CaptainEntity worker;
+
+    private static final NodeEvaluatorGenerator nodeEvaluatorGenerator = SailorNodeEvaluator::new;
 
     public SailorPathNavigation(IBoatController sailor, Level level) {
         super(sailor.getCaptain(), level);
         this.worker = sailor.getCaptain();
     }
 
-    protected @NotNull PathFinder createPathFinder(int maxVisitedNodes) {
+    protected @NotNull AsyncPathfinder createPathFinder(int maxVisitedNodes) {
         this.nodeEvaluator = new SailorNodeEvaluator();
-        return new PathFinder(this.nodeEvaluator, maxVisitedNodes);
+        return new AsyncPathfinder(this.nodeEvaluator, maxVisitedNodes, nodeEvaluatorGenerator, this.level);
     }
 
     @Override

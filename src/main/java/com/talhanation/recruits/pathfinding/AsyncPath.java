@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -140,7 +141,7 @@ public class AsyncPath extends Path {
     public @NotNull BlockPos getTarget() {
         this.checkProcessed();
 
-        return this.target;
+        return Objects.requireNonNull(this.target);
     }
 
     @Override
@@ -202,7 +203,7 @@ public class AsyncPath extends Path {
     }
 
     @Override
-    public void replaceNode(int index, Node node) {
+    public void replaceNode(int index, @NotNull Node node) {
         this.checkProcessed();
 
         super.replaceNode(index, node);
@@ -230,28 +231,28 @@ public class AsyncPath extends Path {
     }
 
     @Override
-    public Vec3 getEntityPosAtNode(Entity entity, int index) {
+    public @NotNull Vec3 getEntityPosAtNode(@NotNull Entity entity, int index) {
         this.checkProcessed();
 
         return super.getEntityPosAtNode(entity, index);
     }
 
     @Override
-    public BlockPos getNodePos(int index) {
+    public @NotNull BlockPos getNodePos(int index) {
         this.checkProcessed();
 
         return super.getNodePos(index);
     }
 
     @Override
-    public Vec3 getNextEntityPos(Entity entity) {
+    public @NotNull Vec3 getNextEntityPos(@NotNull Entity entity) {
         this.checkProcessed();
 
         return super.getNextEntityPos(entity);
     }
 
     @Override
-    public BlockPos getNextNodePos() {
+    public @NotNull BlockPos getNextNodePos() {
         this.checkProcessed();
 
         return super.getNextNodePos();
@@ -259,7 +260,7 @@ public class AsyncPath extends Path {
 
 
     @Override
-    public Node getNextNode() {
+    public @NotNull Node getNextNode() {
         this.checkProcessed();
 
         return super.getNextNode();

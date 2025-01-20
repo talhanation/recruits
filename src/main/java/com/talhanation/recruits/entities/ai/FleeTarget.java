@@ -1,7 +1,7 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AssassinEntity;
-import net.minecraft.world.entity.PathfinderMob;
+import com.talhanation.recruits.pathfinding.AsyncPathfinderMob;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.phys.Vec3;
@@ -10,9 +10,9 @@ import java.util.List;
 
 public class FleeTarget extends Goal {
 
-    PathfinderMob entity;
+    AsyncPathfinderMob entity;
 
-    public FleeTarget(PathfinderMob creatureEntity) {
+    public FleeTarget(AsyncPathfinderMob creatureEntity) {
     this.entity = creatureEntity;
     }
 

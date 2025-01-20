@@ -17,6 +17,7 @@ import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.pathfinding.AsyncPathNavigation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -143,7 +144,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return new RecruitPathNavigation(this, level);
     }
 
-    public PathNavigation getNavigation() {
+    public @NotNull PathNavigation getNavigation() {
         return super.getNavigation();
     }
 

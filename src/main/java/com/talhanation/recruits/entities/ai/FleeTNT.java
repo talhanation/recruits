@@ -2,7 +2,7 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinEntity;
-import net.minecraft.world.entity.PathfinderMob;
+import com.talhanation.recruits.pathfinding.AsyncPathfinderMob;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.phys.Vec3;
@@ -11,9 +11,9 @@ import java.util.List;
 
 public class FleeTNT extends Goal {
 
-    PathfinderMob entity;
+    AsyncPathfinderMob entity;
 
-    public FleeTNT(PathfinderMob creatureEntity) {
+    public FleeTNT(AsyncPathfinderMob creatureEntity) {
         this.entity = creatureEntity;
     }
 
