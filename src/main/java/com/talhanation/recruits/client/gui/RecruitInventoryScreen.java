@@ -105,7 +105,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         int zeroLeftPos = leftPos + 180;
         int zeroTopPos = topPos + 10;
         int topPosGab = 5;
-        this.canPromote = this.recruit.getXpLevel() >= 1;
+        this.canPromote = this.recruit.getXpLevel() >= 3;
 
         this.clearWidgets();
         //PASSIVE
