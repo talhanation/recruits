@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.google.common.collect.Lists;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -16,6 +17,23 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public class RecruitNearestAttackableTargetGoal<T extends LivingEntity> extends TargetGoal {
+    private class TargetWithFightMark {
+        T target;
+        boolean isInFight;
+
+        private TargetWithFightMark(T target, boolean isInFight) {
+            this.target = target;
+            this.isInFight = isInFight;
+        }
+
+        private T getTarget() {
+            return this.target;
+        }
+
+        private boolean getInFight () {
+            return this.isInFight;
+        }
+    }
     private static final int DEFAULT_RANDOM_INTERVAL = 10;
     protected final Class<T> targetType;
     protected final int randomInterval;
@@ -36,7 +54,6 @@ public class RecruitNearestAttackableTargetGoal<T extends LivingEntity> extends 
         if (this.randomInterval > 0 && this.mob.getRandom().nextInt(this.randomInterval) != 0) {
             return false;
         } else {
-
             this.findTargetNormal();
             return this.target != null;
         }
@@ -49,24 +66,45 @@ public class RecruitNearestAttackableTargetGoal<T extends LivingEntity> extends 
     protected void findTargetNormal() {
         List<T> list = this.mob.getCommandSenderWorld().getEntitiesOfClass(this.targetType, this.getTargetSearchArea(this.getFollowDistance()));
 
-        list.removeIf(target -> !this.targetConditionsNormal.test(this.mob, target));
+        List<TargetWithFightMark> testifiedTargets = Lists.newArrayListWithExpectedSize(list.size());
 
-        list.removeIf(this::isInFight);
-
-        list.sort(Comparator.comparing(target -> target.distanceToSqr(this.mob)));
-
-        if (!list.isEmpty()) {
-            this.target = list.get(0);
-        } else {
-            // Fallback: if no unengaged targets are available, find any target
-            if (this.targetType != Player.class && this.targetType != ServerPlayer.class) {
-                this.target = this.mob.getCommandSenderWorld().getNearestEntity(this.mob.getCommandSenderWorld().getEntitiesOfClass(this.targetType, this.getTargetSearchArea(this.getFollowDistance()),
-                        (p_148152_) -> true), this.targetConditionsNormal, this.mob, this.mob.getX(), this.mob.getEyeY(), this.mob.getZ());
-            } else {
-                this.target = this.mob.getCommandSenderWorld().getNearestPlayer(this.targetConditionsNormal, this.mob, this.mob.getX(), this.mob.getEyeY(), this.mob.getZ());
+        for(T entry: list) {
+            if(!this.targetConditionsNormal.test(this.mob, entry)){
+                continue;
             }
 
+            testifiedTargets.add(new TargetWithFightMark(entry, this.isInFight(entry)));
         }
+
+        T target = null;
+        T anyTarget = null;
+        double d0 = -1.0D;
+        double anyD0 = -1.0D;
+
+        for(TargetWithFightMark t1 : testifiedTargets) {
+            double d1 = t1.getTarget().distanceToSqr(this.mob.getX(), this.mob.getY(), this.mob.getZ());
+            if (anyTarget == null && d0 == -1.0D || d1 < d0) {
+                anyTarget = t1.getTarget();
+                d0 = d1;
+            } else if (!t1.getInFight() && (anyD0 == -1.0D || d1 < anyD0)){
+                target = t1.getTarget();
+                anyD0 = d1;
+            }
+        }
+
+        if (target != null) {
+            this.target = target;
+            return;
+        }
+
+        // We didn't find any target who is testified by target conditions and not fighting.
+        // Try to find any target that testifies target conditions (does not matter if it fights or not)
+
+        if (anyTarget != null) {
+            this.target = anyTarget;
+        }
+        // We didn't find any target who is testified by target conditions.
+        // So no targets buddy
     }
 
     public void start() {
