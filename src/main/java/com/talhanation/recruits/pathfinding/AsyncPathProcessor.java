@@ -38,7 +38,6 @@ public class AsyncPathProcessor {
     public static void awaitProcessing(@Nullable Path path, MinecraftServer server, Consumer<@Nullable Path> afterProcessing) {
         if (path instanceof AsyncPath asyncPath && !asyncPath.isProcessed()) {
             asyncPath.postProcessing(() -> server.execute(() -> afterProcessing.accept(path)));
-            asyncPath.waitUntilProcessed();
         } else {
             afterProcessing.accept(path);
         }

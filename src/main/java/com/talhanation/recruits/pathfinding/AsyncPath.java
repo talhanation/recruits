@@ -63,7 +63,6 @@ public class AsyncPath extends Path {
      * while processing we can always theoretically reach the target so default is true
      */
     private boolean canReach = true;
-    private final CompletableFuture<Void> lock;
 
     public AsyncPath(@NotNull List<Node> emptyNodeList, @NotNull Set<BlockPos> positions, @NotNull Supplier<Path> pathSupplier) {
         //noinspection ConstantConditions
@@ -73,16 +72,12 @@ public class AsyncPath extends Path {
         this.positions = positions;
         this.pathSupplier = pathSupplier;
 
-        this.lock = AsyncPathProcessor.queue(this);
+        AsyncPathProcessor.queue(this);
     }
 
 
     public boolean isProcessed() {
         return this.processed;
-    }
-
-    public void waitUntilProcessed() {
-        if(!this.isProcessed()) CompletableFuture.allOf(this.lock).join();
     }
 
     /**
