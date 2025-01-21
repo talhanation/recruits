@@ -17,7 +17,7 @@ import java.util.function.Consumer;
  * used to handle the scheduling of async path processing
  */
 public class AsyncPathProcessor {
-    private static final Executor pathProcessingExecutor = Executors.newCachedThreadPool(new ThreadFactoryBuilder()
+    private static final Executor pathProcessingExecutor = Executors.newFixedThreadPool(Math.min(Runtime.getRuntime().availableProcessors() / 4, 1), new ThreadFactoryBuilder()
             .setNameFormat("petal-path-processor-%d")
             .setPriority(Thread.NORM_PRIORITY - 2)
             .build());

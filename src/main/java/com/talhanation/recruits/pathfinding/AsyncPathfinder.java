@@ -1,9 +1,6 @@
 package com.talhanation.recruits.pathfinding;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.talhanation.recruits.Main;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.Mob;
@@ -17,9 +14,7 @@ import java.util.*;
 
 public class AsyncPathfinder extends PathFinder {
     private final NodeEvaluator nodeEvaluator;
-    private final Node[] neighbors = new Node[32];
-    private int maxVisitedNodes;
-    private final BinaryHeap openSet = new BinaryHeap();
+    private final int maxVisitedNodes;
     private Level level;
 
     private NodeEvaluatorGenerator nodeEvaluatorGenerator;
@@ -86,25 +81,30 @@ public class AsyncPathfinder extends PathFinder {
     }
     // petal end
 
-    private synchronized @NotNull Path processPath(NodeEvaluator p_164717_, Node p_164718_, List<Map.Entry<Target, BlockPos>> p_164719_, float p_164720_, int p_164721_, float p_164722_) { // petal - sync to only use the caching functions in this class on a single thread
+    private @NotNull Path processPath(NodeEvaluator p_164717_, Node p_164718_, List<Map.Entry<Target, BlockPos>> p_164719_, float p_164720_, int p_164721_, float p_164722_) { // petal - sync to only use the caching functions in this class on a single thread
         org.apache.commons.lang3.Validate.isTrue(!p_164719_.isEmpty()); // ensure that we have at least one position, which means we'll always return a path
         // Set<Target> set = p_164719_.keySet();
+
         p_164718_.g = 0.0F;
         p_164718_.h = this.getBestH(p_164718_, p_164719_);
         p_164718_.f = p_164718_.h;
-        this.openSet.clear();
-        this.openSet.insert(p_164718_);
+
+        BinaryHeap openSet = new BinaryHeap();
+        openSet.insert(p_164718_);
+
+        Node[] neighbors = new Node[32];
+
         int i = 0;
         List<Map.Entry<Target, BlockPos>> entryList = Lists.newArrayListWithExpectedSize(p_164719_.size()); // Paper - optimize collection
         int j = (int) ((float) this.maxVisitedNodes * p_164722_);
 
-        while (!this.openSet.isEmpty()) {
+        while (!openSet.isEmpty()) {
             ++i;
             if (i >= j) {
                 break;
             }
 
-            Node node = this.openSet.pop();
+            Node node = openSet.pop();
             node.closed = true;
 
             // Paper start - optimize collection
@@ -122,10 +122,10 @@ public class AsyncPathfinder extends PathFinder {
             }
 
             if (!(node.distanceTo(p_164718_) >= p_164720_)) {
-                int k = p_164717_.getNeighbors(this.neighbors, node);
+                int k = p_164717_.getNeighbors(neighbors, node);
 
                 for (int l = 0; l < k; ++l) {
-                    Node node1 = this.neighbors[l];
+                    Node node1 = neighbors[l];
                     float f = this.distance(node, node1);
                     node1.walkedDistance = node.walkedDistance + f;
                     float f1 = node.g + f + node1.costMalus;
@@ -134,10 +134,10 @@ public class AsyncPathfinder extends PathFinder {
                         node1.g = f1;
                         node1.h = this.getBestH(node1, p_164719_) * 1.5F;
                         if (node1.inOpenSet()) {
-                            this.openSet.changeCost(node1, node1.g + node1.h);
+                            openSet.changeCost(node1, node1.g + node1.h);
                         } else {
                             node1.f = node1.g + node1.h;
-                            this.openSet.insert(node1);
+                            openSet.insert(node1);
                         }
                     }
                 }
