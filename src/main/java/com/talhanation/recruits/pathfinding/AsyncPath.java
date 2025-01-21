@@ -1,9 +1,9 @@
 package com.talhanation.recruits.pathfinding;
 
 
-import com.talhanation.recruits.Main;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
@@ -14,8 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import java.util.function.Supplier;
 
 /**
@@ -25,7 +23,7 @@ public class AsyncPath extends Path {
     /**
      * marks whether this async path has been processed
      */
-    private volatile boolean processed = false;
+    private volatile PathProcessState processState = PathProcessState.WAITING;
     /**
      * runnables waiting for this to be processed
      */
@@ -63,21 +61,23 @@ public class AsyncPath extends Path {
      * while processing we can always theoretically reach the target so default is true
      */
     private boolean canReach = true;
+    private Level level;
 
-    public AsyncPath(@NotNull List<Node> emptyNodeList, @NotNull Set<BlockPos> positions, @NotNull Supplier<Path> pathSupplier) {
+    public AsyncPath(@NotNull List<Node> emptyNodeList, @NotNull Set<BlockPos> positions, @NotNull Level level, @NotNull Supplier<Path> pathSupplier) {
         //noinspection ConstantConditions
         super(emptyNodeList, null, false);
 
         this.nodes = emptyNodeList;
         this.positions = positions;
         this.pathSupplier = pathSupplier;
+        this.level = level;
 
         AsyncPathProcessor.queue(this);
     }
 
 
     public boolean isProcessed() {
-        return this.processed;
+        return this.processState == PathProcessState.COMPLETED;
     }
 
     /**
@@ -86,7 +86,7 @@ public class AsyncPath extends Path {
      * @return a future
      */
     public synchronized void postProcessing(@NotNull Runnable runnable) {
-        if (this.processed) {
+        if (isProcessed()) {
             runnable.run();
         } else {
             this.postProcessing.add(runnable);
@@ -111,9 +111,11 @@ public class AsyncPath extends Path {
      * starts processing this path
      */
     public synchronized void process() {
-        if (this.processed) {
+        if (this.processState == PathProcessState.COMPLETED || this.processState == PathProcessState.PROCESSING) {
             return;
         }
+
+        processState = PathProcessState.PROCESSING;
 
         final Path bestPath = this.pathSupplier.get();
 
@@ -122,7 +124,7 @@ public class AsyncPath extends Path {
         this.distToTarget = bestPath.getDistToTarget();
         this.canReach = bestPath.canReach();
 
-        this.processed = true;
+        processState = PathProcessState.COMPLETED;
 
         for (Runnable runnable : this.postProcessing) {
             runnable.run();
@@ -133,7 +135,7 @@ public class AsyncPath extends Path {
      * if this path is accessed while it hasn't processed, just process it in-place
      */
     private void checkProcessed() {
-        if (!this.processed) {
+        if (this.processState == PathProcessState.WAITING || this.processState == PathProcessState.PROCESSING) {
             this.process();
         }
     }

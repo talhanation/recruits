@@ -1,10 +1,10 @@
 package com.talhanation.recruits.pathfinding;
 
 import com.google.common.collect.ImmutableSet;
-import com.talhanation.recruits.Main;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.protocol.game.DebugPackets;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.PathfinderMob;
@@ -12,6 +12,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.PathNavigationRegion;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.*;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -93,13 +94,12 @@ public abstract class AsyncPathNavigation extends PathNavigation {
         } else if (this.path != null && !this.path.isDone() && p_148223_.contains(this.targetPos)) {
             return this.path;
         } else {
-            // this.level.getProfiler().push("pathfind");
             BlockPos blockpos = p_148225_ ? this.mob.blockPosition().above() : this.mob.blockPosition();
             int i = (int)(p_148227_ + (float)p_148224_);
             PathNavigationRegion pathnavigationregion = new PathNavigationRegion(this.level, blockpos.offset(-i, -i, -i), blockpos.offset(i, i, i));
             float maxVisitedNodesMultiplier = 1.0F;
             Path path = this.pathFinder.findPath(pathnavigationregion, this.mob, p_148223_, p_148227_, p_148226_, maxVisitedNodesMultiplier);
-            this.level.getProfiler().pop();
+
             if (!p_148223_.isEmpty())
                 this.targetPos = p_148223_.iterator().next(); // petal - assign early a target position. most calls will only have 1 position
 
@@ -109,7 +109,7 @@ public abstract class AsyncPathNavigation extends PathNavigation {
                     return; // petal - check that processing didn't take so long that we calculated a new path
                 }
 
-                if (processedPath != null && processedPath.getTarget() != null) {
+                if (processedPath != null) {
                     this.targetPos = processedPath.getTarget();
                     this.reachRange = p_148226_;
                     this.resetStuckTimeout();
@@ -171,10 +171,7 @@ public abstract class AsyncPathNavigation extends PathNavigation {
 
         if (isProcessed) {
             this.trimPath();
-
-            if (this.path.getNodeCount() <= 0) {
-                return false;
-            }
+            if(this.path.getNodeCount() <= 0) return false;
         }
 
         this.speedModifier = p_26538_;
@@ -185,12 +182,31 @@ public abstract class AsyncPathNavigation extends PathNavigation {
         return true;
     }
 
+
+    protected void trimPath() {
+        if (this.path == null) return;
+
+        for (int i = 0; i < this.path.getNodeCount(); ++i) {
+            Node node = this.path.getNode(i);
+            Node node1 = i + 1 < this.path.getNodeCount() ? this.path.getNode(i + 1) : null;
+            BlockState blockstate = this.level.getBlockState(new BlockPos(node.x, node.y, node.z));
+            if (blockstate.is(BlockTags.CAULDRONS)) {
+                this.path.replaceNode(i, node.cloneAndMove(node.x, node.y + 1, node.z));
+                if (node1 != null && node.y >= node1.y) {
+                    this.path.replaceNode(i + 1, node.cloneAndMove(node1.x, node.y + 1, node1.z));
+                }
+            }
+        }
+    }
+
     @Override
     public void tick() {
         ++this.tick;
         if (this.hasDelayedRecomputation) {
             this.recomputePath();
         }
+
+        if (this.path instanceof AsyncPath asyncPath && !asyncPath.isProcessed()) return;
 
         if (!this.isDone()) {
             if (this.canUpdatePath()) {
@@ -207,6 +223,40 @@ public abstract class AsyncPathNavigation extends PathNavigation {
             if (!this.isDone()) {
                 Vec3 vec32 = this.path.getNextEntityPos(this.mob);
                 this.mob.getMoveControl().setWantedPosition(vec32.x, this.getGroundY(vec32), vec32.z, this.speedModifier);
+            }
+        }
+    }
+
+    protected void followThePath() {
+        if ((this.path instanceof AsyncPath asyncPath && !asyncPath.isProcessed())) return;
+        Vec3 vec3 = this.getTempMobPos();
+        this.maxDistanceToWaypoint = this.mob.getBbWidth() > 0.75F ? this.mob.getBbWidth() / 2.0F : 0.75F - this.mob.getBbWidth() / 2.0F;
+        Vec3i vec3i = this.path.getNextNodePos();
+        double d0 = Math.abs(this.mob.getX() - ((double)vec3i.getX() + (this.mob.getBbWidth() + 1) / 2D)); //Forge: Fix MC-94054
+        double d1 = Math.abs(this.mob.getY() - (double)vec3i.getY());
+        double d2 = Math.abs(this.mob.getZ() - ((double)vec3i.getZ() + (this.mob.getBbWidth() + 1) / 2D)); //Forge: Fix MC-94054
+        boolean flag = d0 <= (double)this.maxDistanceToWaypoint && d2 <= (double)this.maxDistanceToWaypoint && d1 < 1.0D; //Forge: Fix MC-94054
+        if (flag || this.mob.canCutCorner(this.path.getNextNode().type) && this.shouldTargetNextNodeInDirection(vec3)) {
+            this.path.advance();
+        }
+
+        this.doStuckDetection(vec3);
+    }
+
+    private boolean shouldTargetNextNodeInDirection(Vec3 p_26560_) {
+        if (this.path.getNextNodeIndex() + 1 >= this.path.getNodeCount()) {
+            return false;
+        } else {
+            Vec3 vec3 = Vec3.atBottomCenterOf(this.path.getNextNodePos());
+            if (!p_26560_.closerThan(vec3, 2.0D)) {
+                return false;
+            } else if (this.canMoveDirectly(p_26560_, this.path.getNextEntityPos(this.mob))) {
+                return true;
+            } else {
+                Vec3 vec31 = Vec3.atBottomCenterOf(this.path.getNodePos(this.path.getNextNodeIndex() + 1));
+                Vec3 vec32 = vec31.subtract(vec3);
+                Vec3 vec33 = p_26560_.subtract(vec3);
+                return vec32.dot(vec33) > 0.0D;
             }
         }
     }

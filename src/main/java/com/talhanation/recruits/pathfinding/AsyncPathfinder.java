@@ -1,8 +1,8 @@
 package com.talhanation.recruits.pathfinding;
 
 import com.google.common.collect.Lists;
+import com.talhanation.recruits.Main;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.PathNavigationRegion;
@@ -55,12 +55,18 @@ public class AsyncPathfinder extends PathFinder {
             }
             // Paper end
             // petal start
+            // Nope, no sync pathfinding
+            // Either patch mob to add NodeEvaluatorGenerator or go out
             if (this.nodeEvaluatorGenerator == null) {
-                return this.findPath(this.level.getProfiler(), node, map, p_77431_, p_77432_, p_77433_);
+                Main.LOGGER.error("No node evaluator generator present for Mob {}", p_77429_);
+                return null;
             }
-            return new AsyncPath(Lists.newArrayList(), p_77430_, () -> {
+            return new AsyncPath(Lists.newArrayList(), p_77430_, this.level, () -> {
                 try {
                     return this.processPath(nodeEvaluator, node, map, p_77431_, p_77432_, p_77433_);
+                }  catch (Exception e) {
+                        e.printStackTrace();
+                        return null;
                 } finally {
                     nodeEvaluator.done();
                     NodeEvaluatorCache.returnNodeEvaluator(nodeEvaluator);
@@ -69,17 +75,6 @@ public class AsyncPathfinder extends PathFinder {
             // petal end
         }
     }
-
-    private Path findPath(ProfilerFiller p_164717_, Node p_164718_, List<Map.Entry<Target, BlockPos>> p_164719_, float p_164720_, int p_164721_, float p_164722_) {
-        //p_164717_.push("find_path");
-        //p_164717_.markForCharting(MetricCategory.PATH_FINDING);
-        try {
-            return this.processPath(this.nodeEvaluator, p_164718_, p_164719_, p_164720_, p_164721_, p_164722_);
-        } finally {
-            this.nodeEvaluator.done();
-        }
-    }
-    // petal end
 
     private @NotNull Path processPath(NodeEvaluator p_164717_, Node p_164718_, List<Map.Entry<Target, BlockPos>> p_164719_, float p_164720_, int p_164721_, float p_164722_) { // petal - sync to only use the caching functions in this class on a single thread
         org.apache.commons.lang3.Validate.isTrue(!p_164719_.isEmpty()); // ensure that we have at least one position, which means we'll always return a path
