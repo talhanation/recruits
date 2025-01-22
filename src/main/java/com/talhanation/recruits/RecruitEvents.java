@@ -31,6 +31,7 @@ import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.horse.AbstractChestedHorse;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.monster.AbstractIllager;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -471,49 +472,70 @@ public class RecruitEvents {
     public static boolean canAttack(LivingEntity attacker, LivingEntity target) {
         if (target == null || !target.isAlive()) return false;
 
+        // Default logic for non-recruit attackers
         if (target instanceof Player player) {
             return canAttackPlayer(attacker, player);
-        } else if (attacker instanceof AbstractRecruitEntity recruit) {
-            return canAttackRecruit(recruit, target);
+        } else if (target instanceof AbstractRecruitEntity targetRecruit) {
+            return canAttackRecruit(attacker, targetRecruit);
         } else {
             return canHarmTeam(attacker, target);
         }
     }
 
+
     public static boolean canAttackPlayer(LivingEntity attacker, Player player) {
-        if (attacker instanceof AbstractRecruitEntity recruit) {
-            return !player.getUUID().equals(recruit.getOwnerUUID()) && canHarmTeam(recruit, player);
+        if (attacker instanceof AbstractRecruitEntity recruit && player.getUUID().equals(recruit.getOwnerUUID())) {
+            return false;
         }
-        else if (attacker instanceof Player playerAttacker){
-            return canHarmTeam(playerAttacker, player);
-        }
-        return true;
+        return canHarmTeam(attacker, player);
     }
 
-    public static boolean canAttackRecruit(AbstractRecruitEntity attacker, LivingEntity target) {
-        if (target instanceof AbstractRecruitEntity targetRecruit) {
-            if (targetRecruit.equals(attacker)) return false;
+    public static boolean canAttackRecruit(LivingEntity attacker, AbstractRecruitEntity targetRecruit) {
+        if (attacker.equals(targetRecruit)) return false;
 
-            if (attacker.isOwned() && targetRecruit.isOwned()) {
-                if (attacker.getOwnerUUID().equals(targetRecruit.getOwnerUUID())) return false;
+        if (attacker instanceof AbstractRecruitEntity attackerRecruit) {
+            if (attackerRecruit.isOwned() && targetRecruit.isOwned() &&
+                    attackerRecruit.getOwnerUUID().equals(targetRecruit.getOwnerUUID())) {
+                return false;
             }
 
-            if (attacker.getTeam() != null && targetRecruit.getTeam() != null) {
-                if (attacker.getTeam().equals(targetRecruit.getTeam())) return false;
-
-                if (!attacker.getTeam().isAllowFriendlyFire()) {
-                    return !TeamEvents.recruitsDiplomacyManager
-                            .getRelation(attacker.getTeam().getName(), targetRecruit.getTeam().getName())
-                            .equals(RecruitsDiplomacyManager.DiplomacyStatus.ALLY);
-                }
+            if (attackerRecruit.getTeam() != null && targetRecruit.getTeam() != null &&
+                    attackerRecruit.getTeam().equals(targetRecruit.getTeam()) &&
+                    !attackerRecruit.getTeam().isAllowFriendlyFire()) {
+                return false;
             }
 
-            if (attacker.getProtectUUID() != null && attacker.getProtectUUID().equals(targetRecruit.getProtectUUID())) {
+            if (attackerRecruit.getProtectUUID() != null &&
+                    attackerRecruit.getProtectUUID().equals(targetRecruit.getProtectUUID())) {
                 return false;
             }
         }
 
-        return canHarmTeam(attacker, target);
+        return canHarmTeam(attacker, targetRecruit);
+    }
+
+    public static boolean isAlly(Team team1, Team team2) {
+        if (team1 == null || team2 == null || TeamEvents.recruitsDiplomacyManager == null) {
+            return false; // No team or diplomacy manager, cannot be allies
+        }
+        return TeamEvents.recruitsDiplomacyManager.getRelation(team1.getName(), team2.getName()) ==
+                RecruitsDiplomacyManager.DiplomacyStatus.ALLY;
+    }
+
+    public static boolean isEnemy(Team team1, Team team2) {
+        if (team1 == null || team2 == null || TeamEvents.recruitsDiplomacyManager == null) {
+            return false; // No team or diplomacy manager, cannot be enemies
+        }
+        return TeamEvents.recruitsDiplomacyManager.getRelation(team1.getName(), team2.getName()) ==
+                RecruitsDiplomacyManager.DiplomacyStatus.ENEMY;
+    }
+
+    public static boolean isNeutral(Team team1, Team team2) {
+        if (team1 == null || team2 == null || TeamEvents.recruitsDiplomacyManager == null) {
+            return true; // No team or diplomacy manager, assume neutral
+        }
+        return TeamEvents.recruitsDiplomacyManager.getRelation(team1.getName(), team2.getName()) ==
+                RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL;
     }
 
     public static boolean canHarmTeam(LivingEntity attacker, LivingEntity target) {
@@ -521,13 +543,12 @@ public class RecruitEvents {
         Team targetTeam = target.getTeam();
 
         if (attackerTeam == null || targetTeam == null) return true;
-        if (attackerTeam == targetTeam && !attackerTeam.isAllowFriendlyFire()) return false;
 
-        if (TeamEvents.recruitsDiplomacyManager != null && attackerTeam != targetTeam) {
-            RecruitsDiplomacyManager.DiplomacyStatus relation = TeamEvents.recruitsDiplomacyManager.getRelation(attackerTeam.getName(), targetTeam.getName());
-            return relation != RecruitsDiplomacyManager.DiplomacyStatus.ALLY;
-        }
-        return true;
+
+        if (attackerTeam.equals(targetTeam) && !attackerTeam.isAllowFriendlyFire()) return false;
+
+
+        return !isAlly(attackerTeam, targetTeam);
     }
 
     public static boolean canHarmTeamNoFriendlyFire(LivingEntity attacker, LivingEntity target) {

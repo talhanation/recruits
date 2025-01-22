@@ -47,6 +47,7 @@ import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.monster.AbstractIllager;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Inventory;
@@ -250,31 +251,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(11, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(12, new RandomLookAroundGoal(this));
         //this.goalSelector.addGoal(13, new RecruitPickupWantedItemGoal(this));
-        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, LivingEntity.class, 20, true, false, (target) -> {
-            return (this.getState() == 2 && this.canAttack(target));
-        }));
-
-        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, Player.class, 20, true, false, (target) -> {
-            return ((this.getState() == 0 || this.getState() == 1) && this.canAttack(target));
-        }));
-
-        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, AbstractRecruitEntity.class, 20, true, false, (target) -> {
-            return ((this.getState() == 0 || this.getState() == 1) && this.canAttack(target));
-        }));
-
         this.targetSelector.addGoal(0, new RecruitProtectHurtByTargetGoal(this));
         this.targetSelector.addGoal(1, new RecruitOwnerHurtByTargetGoal(this));
+        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, LivingEntity.class, 20, true, false, this::shouldAttack));
         this.targetSelector.addGoal(3, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
         this.targetSelector.addGoal(4, new RecruitOwnerHurtTargetGoal(this));
 
 
-        this.targetSelector.addGoal(5, new RecruitNearestAttackableTargetGoal<>(this, AbstractIllager.class, 20, true, false, (target) -> {
-            return (this.getState() != 3);
-        }));
-
-        this.targetSelector.addGoal(6, new RecruitNearestAttackableTargetGoal<>(this, Monster.class, 20, true, false, (target) -> {
-            return this.canAttack(target) && (this.getState() != 3);
-        }));
         this.targetSelector.addGoal(7, new RecruitDefendVillageFromPlayerGoal(this));
     }
 
@@ -1680,6 +1663,36 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     @Override
     public boolean canAttack(@Nonnull LivingEntity target) {
         return RecruitEvents.canAttack(this, target);
+    }
+    // 0 = NEUTRAL
+    // 1 = AGGRESSIVE
+    // 2 = RAID
+    // 3 = PASSIVE
+    public boolean shouldAttack(LivingEntity target) {
+        return switch (this.getState()) {
+            case 3 -> false; // Passive mode: never attack
+            case 0 -> shouldAttackOnNeutral(target) && canAttack(target);
+            case 1 -> shouldAttackOnNeutral(target) || shouldAttackOnAggressive(target) && canAttack(target);
+            case 2 -> !RecruitEvents.isAlly(this.getTeam(), target.getTeam()) && canAttack(target);
+            default -> canAttack(target);
+        };
+    }
+
+    private boolean shouldAttackOnNeutral(LivingEntity target){
+        return isMonster(target) || isAttackingOwnerOrSelf(this, target) || RecruitEvents.isEnemy(this.getTeam(), target.getTeam());
+    }
+
+    private boolean shouldAttackOnAggressive(LivingEntity target){
+        return target instanceof AbstractRecruitEntity || target instanceof Player || !RecruitEvents.isAlly(this.getTeam(), target.getTeam());
+    }
+
+    private boolean isMonster(LivingEntity target) {
+        return target instanceof Enemy;
+    }
+
+    private boolean isAttackingOwnerOrSelf(AbstractRecruitEntity recruit, LivingEntity target) {
+        return target.getLastHurtByMob() != null &&
+                (target.getLastHurtByMob().equals(recruit) || target.getLastHurtByMob().equals(recruit.getOwner()));
     }
 
     public boolean isAlliedTo(Entity target) {
