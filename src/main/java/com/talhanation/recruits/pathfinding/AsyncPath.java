@@ -1,6 +1,7 @@
 package com.talhanation.recruits.pathfinding;
 
 
+import com.talhanation.recruits.util.ProcessState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -23,7 +24,7 @@ public class AsyncPath extends Path {
     /**
      * marks whether this async path has been processed
      */
-    private volatile PathProcessState processState = PathProcessState.WAITING;
+    private volatile ProcessState processState = ProcessState.WAITING;
     /**
      * runnables waiting for this to be processed
      */
@@ -77,7 +78,7 @@ public class AsyncPath extends Path {
 
 
     public boolean isProcessed() {
-        return this.processState == PathProcessState.COMPLETED;
+        return this.processState == ProcessState.COMPLETED;
     }
 
     /**
@@ -111,11 +112,11 @@ public class AsyncPath extends Path {
      * starts processing this path
      */
     public synchronized void process() {
-        if (this.processState == PathProcessState.COMPLETED || this.processState == PathProcessState.PROCESSING) {
+        if (this.processState == ProcessState.COMPLETED || this.processState == ProcessState.PROCESSING) {
             return;
         }
 
-        processState = PathProcessState.PROCESSING;
+        processState = ProcessState.PROCESSING;
 
         final Path bestPath = this.pathSupplier.get();
 
@@ -124,7 +125,7 @@ public class AsyncPath extends Path {
         this.distToTarget = bestPath.getDistToTarget();
         this.canReach = bestPath.canReach();
 
-        processState = PathProcessState.COMPLETED;
+        processState = ProcessState.COMPLETED;
 
         for (Runnable runnable : this.postProcessing) {
             runnable.run();
@@ -135,7 +136,7 @@ public class AsyncPath extends Path {
      * if this path is accessed while it hasn't processed, just process it in-place
      */
     private void checkProcessed() {
-        if (this.processState == PathProcessState.WAITING || this.processState == PathProcessState.PROCESSING) {
+        if (this.processState == ProcessState.WAITING || this.processState == ProcessState.PROCESSING) {
             this.process();
         }
     }

@@ -2,21 +2,22 @@ package com.talhanation.recruits.entities.ai;
 
 import com.google.common.collect.Lists;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraft.server.level.ServerPlayer;
+import com.talhanation.recruits.util.CommonThreadExecutor;
+import com.talhanation.recruits.util.ProcessState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.target.TargetGoal;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
+import net.minecraftforge.fml.util.thread.SidedThreadGroups;
 
 import javax.annotation.Nullable;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Predicate;
 
 public class RecruitNearestAttackableTargetGoal<T extends LivingEntity> extends TargetGoal {
+    private volatile ProcessState processState = ProcessState.WAITING;
     private class TargetWithFightMark {
         T target;
         boolean isInFight;
@@ -34,9 +35,7 @@ public class RecruitNearestAttackableTargetGoal<T extends LivingEntity> extends 
             return this.isInFight;
         }
     }
-    private static final int DEFAULT_RANDOM_INTERVAL = 10;
     protected final Class<T> targetType;
-    protected final int randomInterval;
 
     @Nullable
     protected LivingEntity target;
@@ -45,25 +44,25 @@ public class RecruitNearestAttackableTargetGoal<T extends LivingEntity> extends 
     public RecruitNearestAttackableTargetGoal(AbstractRecruitEntity recruit, Class<T> targetType, int randomInterval, boolean mustSee, boolean mustReach, @Nullable Predicate<LivingEntity> predicate) {
         super(recruit, mustSee, mustReach);
         this.targetType = targetType;
-        this.randomInterval = reducedTickDelay(randomInterval);
         this.setFlags(EnumSet.of(Goal.Flag.TARGET));
         this.targetConditionsNormal = TargetingConditions.forCombat().range(this.getFollowDistance()).selector(predicate);
     }
 
     public boolean canUse() {
-        if (this.randomInterval > 0 && this.mob.getRandom().nextInt(this.randomInterval) != 0) {
+        if(Thread.currentThread().getThreadGroup() != SidedThreadGroups.SERVER) {
             return false;
-        } else {
-            this.findTargetNormal();
-            return this.target != null;
         }
+        if (isProcessed()) CommonThreadExecutor.queue(this::findTargetNormal);
+        return this.target != null;
     }
 
     protected AABB getTargetSearchArea(double range) {
         return this.mob.getBoundingBox().inflate(range, range, range);
     }
 
-    protected void findTargetNormal() {
+    protected synchronized void findTargetNormal() {
+        processState = ProcessState.PROCESSING;
+
         List<T> list = this.mob.getCommandSenderWorld().getEntitiesOfClass(this.targetType, this.getTargetSearchArea(this.getFollowDistance()));
 
         List<TargetWithFightMark> testifiedTargets = Lists.newArrayListWithExpectedSize(list.size());
@@ -93,18 +92,17 @@ public class RecruitNearestAttackableTargetGoal<T extends LivingEntity> extends 
         }
 
         if (target != null) {
-            this.target = target;
+            this.setTarget(target);
             return;
-        }
-
-        // We didn't find any target who is testified by target conditions and not fighting.
-        // Try to find any target that testifies target conditions (does not matter if it fights or not)
-
-        if (anyTarget != null) {
-            this.target = anyTarget;
+        } else if (anyTarget != null) {
+            // We didn't find any target who is testified by target conditions and not fighting.
+            // Try to find any target that testifies target conditions (does not matter if it fights or not)
+            this.setTarget(anyTarget);
         }
         // We didn't find any target who is testified by target conditions.
         // So no targets buddy
+
+        processState = ProcessState.COMPLETED;
     }
 
     public void start() {
@@ -112,15 +110,21 @@ public class RecruitNearestAttackableTargetGoal<T extends LivingEntity> extends 
         super.start();
     }
 
-    public void setTarget(@Nullable LivingEntity targetIn) {
+    public synchronized void setTarget(@Nullable LivingEntity targetIn) {
         this.target = targetIn;
     }
 
     public void tick() {
         super.tick();
 
+        if(Thread.currentThread().getThreadGroup() != SidedThreadGroups.SERVER){
+            return;
+        }
+
+        if(!isProcessed()) return;
+
         if (target != null && isInFight(target)) {
-            findTargetNormal();
+            CommonThreadExecutor.queue(this::findTargetNormal);
         }
     }
 
@@ -134,5 +138,9 @@ public class RecruitNearestAttackableTargetGoal<T extends LivingEntity> extends 
             }
         }
         return false;
+    }
+
+    public boolean isProcessed() {
+        return this.processState == ProcessState.COMPLETED;
     }
 }

@@ -1,33 +1,19 @@
 package com.talhanation.recruits.pathfinding;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.talhanation.recruits.util.CommonThreadExecutor;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.pathfinder.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 /**
  * used to handle the scheduling of async path processing
  */
 public class AsyncPathProcessor {
-    private static final Executor pathProcessingExecutor = new ThreadPoolExecutor(
-            Math.max(Runtime.getRuntime().availableProcessors() / 4, 1),
-            Math.max(Runtime.getRuntime().availableProcessors() / 4, 1),
-            60,
-            TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(),
-            new ThreadFactoryBuilder()
-                    .setNameFormat("petal-path-processor-%d")
-                    .setPriority(Thread.NORM_PRIORITY - 2)
-                    .build()
-            );
-
-
     protected static void queue(@NotNull AsyncPath path) {
-        CompletableFuture.runAsync(path::process, pathProcessingExecutor);
+        CommonThreadExecutor.queue(path::process);
     }
 
     /**
