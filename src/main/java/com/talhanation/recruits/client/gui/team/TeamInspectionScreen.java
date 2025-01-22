@@ -223,6 +223,11 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
 
         if(recruitsTeam != null){
             int members = recruitsTeam.players + recruitsTeam.npcs;
+            String players = "" + recruitsTeam.players;
+            String npcs = "" + recruitsTeam.npcs;
+
+            if(recruitsTeam.maxNPCs > 0) npcs = npcs + "/" + recruitsTeam.maxNPCs;
+            if(recruitsTeam.maxPlayers > 0) players = players + "/" + recruitsTeam.maxPlayers;
 
             font.draw(poseStack, this.getTitle(), width / 2F - font.width(getTitle()) / 2F, guiTop + 5, 0xFF000000 | ChatFormatting.getById(recruitsTeam.getTeamColor()).getColor());
 
@@ -237,10 +242,10 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
             font.draw(poseStack, "" + members, textX + numbersX, textY + 25, 4210752);
 
             font.draw(poseStack, PLAYERS_TEXT.getString(), textX, textY + 40, 4210752);
-            font.draw(poseStack, "" + recruitsTeam.players, textX + numbersX, textY + 40, 4210752);
+            font.draw(poseStack, players, textX + numbersX, textY + 40, 4210752);
 
             font.draw(poseStack, NPCS_TEXT.getString(), textX, textY + 55, 4210752);
-            font.draw(poseStack, "" + recruitsTeam.npcs, textX + numbersX, textY + 55, 4210752);
+            font.draw(poseStack, npcs, textX + numbersX, textY + 55, 4210752);
         }
     }
 

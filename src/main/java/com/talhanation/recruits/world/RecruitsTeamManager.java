@@ -73,6 +73,7 @@ public class RecruitsTeamManager {
     public void addTeam(String teamName, UUID leaderUUID, String leaderName, CompoundTag bannerNbt, byte color, ChatFormatting teamColor) {
         RecruitsTeam recruitsTeam = new RecruitsTeam();
         recruitsTeam.setStringID(teamName);
+        recruitsTeam.setTeamDisplayName(teamName);
         recruitsTeam.setTeamLeaderID(leaderUUID);
         recruitsTeam.setTeamLeaderName(leaderName);
         recruitsTeam.setBanner(bannerNbt);

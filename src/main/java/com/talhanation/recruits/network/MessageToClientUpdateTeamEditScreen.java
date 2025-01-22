@@ -60,7 +60,7 @@ public class MessageToClientUpdateTeamEditScreen implements Message<MessageToCli
         buf.writeItemStack(currency, false);
         buf.writeInt(this.price);
         buf.writeInt(this.maxRecruitsPerPlayerConfigSetting);
-        if(this.recruitsTeam != null) buf.writeNbt(this.recruitsTeam);
+        buf.writeNbt(this.recruitsTeam);
     }
 
 }
