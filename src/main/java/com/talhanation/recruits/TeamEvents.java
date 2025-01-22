@@ -491,14 +491,16 @@ public class  TeamEvents {
 
             if(newOwner != null){
                 if(list.contains(newOwner.getName().getString())){
-                    if (!RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(newOwnerUUID)) {
+
+                    if (!RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(team.getName(), newOwnerUUID)) {
                         oldOwner.sendMessage(new TranslatableComponent("chat.recruits.team.assignNewOwnerLimitReached"), oldOwner.getUUID());
                         return;
                     }
                     recruit.disband(oldOwner, true, true);
-                    recruit.hire(newOwner);
 
                     Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> newOwner), new MessageToClientSetToast(0, oldOwner.getName().getString()));
+
+                    recruit.hire(newOwner);
                 }
                 else
                     playerNotFound = true;

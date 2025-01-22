@@ -1,5 +1,6 @@
 package com.talhanation.recruits.world;
 
+import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import net.minecraft.server.level.ServerLevel;
 
@@ -42,9 +43,28 @@ public class RecruitsPlayerUnitManager {
         recruitCountMap.put(playerUUID, Math.max(getRecruitCount(playerUUID) - count, 0));
     }
 
-    public boolean canPlayerRecruit(UUID playerUUID) {
-        int current = getRecruitCount(playerUUID);
+    public boolean canPlayerRecruit(String stringId, UUID playerUUID) {
+        RecruitsTeam recruitsTeam = TeamEvents.recruitsTeamManager.getTeamByStringID(stringId);
 
-        return current < RecruitsServerConfig.MaxRecruitsForPlayer.get();
+        int currentRecruitCount = getRecruitCount(playerUUID);
+        int maxRecruitCount = 0;
+
+        if (recruitsTeam == null) {
+            maxRecruitCount = RecruitsServerConfig.MaxRecruitsForPlayer.get();
+        } else {
+
+            if (playerUUID.equals(recruitsTeam.getTeamLeaderUUID())) {
+
+                maxRecruitCount = recruitsTeam.maxNPCs;
+            } else {
+                maxRecruitCount = recruitsTeam.getMaxNPCsPerPlayer();
+            }
+
+            if (recruitsTeam.npcs >= recruitsTeam.maxNPCs) {
+                return false;
+            }
+        }
+
+        return currentRecruitCount < maxRecruitCount;
     }
 }

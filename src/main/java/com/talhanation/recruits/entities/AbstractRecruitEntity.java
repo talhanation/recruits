@@ -746,9 +746,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         if(increaseCost) this.recalculateCost();
         if (this.getTeam() != null){
-            if(this.level.isClientSide()) Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
-            else TeamEvents.addNPCToData((ServerLevel) this.level, this.getTeam().getName(), -1);
-
             if(!this.level.isClientSide() && !keepTeam)
                 TeamEvents.removeRecruitFromTeam(this, this.getTeam(), (ServerLevel) this.getCommandSenderWorld());
         }
@@ -1041,6 +1038,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public InteractionResult mobInteract(@NotNull Player player, @NotNull InteractionHand hand) {
         String name = this.getName().getString();
+        Team ownerTeam = this.getTeam();
+        String stringId = ownerTeam != null ? ownerTeam.getName() : "";
         boolean isPlayerTarget = this.getTarget() != null && getTarget().equals(player);
 
         if(isPlayerTarget) return InteractionResult.PASS;
@@ -1084,9 +1083,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     return InteractionResult.SUCCESS;
                 }
             }
-
-            else if (!this.isOwned() && RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(player.getUUID()) && !isPlayerTarget) {
-
+            else if (!this.isOwned() && RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(stringId, player.getUUID()) && !isPlayerTarget) {
                 this.openHireGUI(player);
                 this.dialogue(name, player);
                 this.navigation.stop();
@@ -1098,7 +1095,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public boolean hire(Player player) {
         String name = this.getName().getString() + ": ";
-        if (!RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(player.getUUID())) {
+        Team ownerTeam = player.getTeam();// player is the new owner
+        String stringId = ownerTeam != null ? ownerTeam.getName() : "";
+        if (!RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(stringId, player.getUUID())) {
 
             player.sendMessage(INFO_RECRUITING_MAX(name), player.getUUID());
             return false;
@@ -1114,7 +1113,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setState(0);
             this.despawnTimer = -1;
 
-            Team ownerTeam = player.getTeam();// player is the new owner
             if(!this.level.isClientSide() && ownerTeam != null) TeamEvents.addRecruitToTeam(this, ownerTeam, (ServerLevel) this.getCommandSenderWorld());
 
             int i = this.random.nextInt(4);
@@ -1133,10 +1131,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 }
             }
         }
+
         RecruitEvents.recruitsPlayerUnitManager.addRecruits(player.getUUID(), 1);
-
-        //Adding to team handles event
-
         return true;
     }
 
