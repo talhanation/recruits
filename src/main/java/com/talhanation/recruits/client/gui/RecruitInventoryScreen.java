@@ -4,8 +4,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
-import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.client.gui.group.RecruitsGroup;
+import com.talhanation.recruits.client.gui.widgets.ScrollDropDownMenu;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
@@ -17,19 +17,16 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
-import org.w3c.dom.Text;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @OnlyIn(Dist.CLIENT)
 public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
@@ -93,6 +90,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private Button clearUpkeep;
     private boolean canPromote;
     private boolean buttonsSet;
+    private ScrollDropDownMenu<RecruitsGroup> groupSelectionDropDownMenu;
     public RecruitInventoryScreen(RecruitInventoryMenu recruitContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, recruitContainer, playerInventory, new TextComponent(""));
         this.recruit = recruitContainer.getRecruit();
@@ -301,13 +299,12 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         ));
         this.clearUpkeep.active = this.recruit.hasUpkeep();
 
-
         //LISTEN
-        addRenderableWidget(new Button(leftPos + 77, topPos + 113, 12, 12, new TextComponent("<"), button -> {
+        addRenderableWidget(new Button(leftPos + 77, topPos + 100, 12, 12, new TextComponent("<"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         }));
 
-        addRenderableWidget(new Button(leftPos + 77 + 81, topPos + 113, 12, 12, new TextComponent(">"), button -> {
+        addRenderableWidget(new Button(leftPos + 77 + 81, topPos + 100, 12, 12, new TextComponent(">"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         }));
 
@@ -356,43 +353,19 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         super.containerTick();
         if(groups != null && !groups.isEmpty() && !buttonsSet){
             groups.sort(Comparator.comparingInt(RecruitsGroup::getId));
-            setGroupChangeButtons();
+            this.currentGroup = getCurrentGroup(recruit.getGroup());
+
+            groupSelectionDropDownMenu = new ScrollDropDownMenu<>(currentGroup, leftPos + 77,topPos + 114,  93, 12, groups,
+                RecruitsGroup::getName,
+                (selected) -> this.currentGroup = selected
+            );
+            groupSelectionDropDownMenu.setBgFillSelected(FastColor.ARGB32.color(255, 139, 139, 139));
+
+            addRenderableWidget(groupSelectionDropDownMenu);
             this.buttonsSet = true;
         }
     }
-    private void setGroupChangeButtons() {
-        this.currentGroup = getCurrentGroup(recruit.getGroup());
 
-        //GROUP
-        addRenderableWidget(new ExtendedButton(leftPos + 77, topPos + 100, 12, 12, new TextComponent("<"),
-                button -> {
-                    selectPreviousGroup();
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(currentGroup.getId(), recruit.getUUID()));
-                }));
-
-        addRenderableWidget(new ExtendedButton(leftPos + 77 + 81, topPos + 100, 12, 12, new TextComponent(">"),
-                button -> {
-                    selectNextGroup();
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(currentGroup.getId(), recruit.getUUID()));
-                }
-        ));
-    }
-
-    public void selectPreviousGroup() {
-        if (groups.isEmpty()) return;
-
-        int currentIndex = groups.indexOf(currentGroup);
-        int previousIndex = (currentIndex > 0) ? currentIndex - 1 : groups.size() - 1;
-        currentGroup = groups.get(previousIndex);
-    }
-
-    public void selectNextGroup() {
-        if (groups.isEmpty()) return;
-
-        int currentIndex = groups.indexOf(currentGroup);
-        int nextIndex = (currentIndex < groups.size() - 1) ? currentIndex + 1 : 0;
-        currentGroup = groups.get(nextIndex);
-    }
     private RecruitsGroup getCurrentGroup(int x) {
         RecruitsGroup group = null;
         for (RecruitsGroup recruitsGroup : groups) {
@@ -405,6 +378,33 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         return group;
     }
 
+    @Override
+    public void mouseMoved(double x, double y) {
+        if(groupSelectionDropDownMenu != null) groupSelectionDropDownMenu.onMouseMove(x,y);
+        super.mouseMoved(x, y);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (groupSelectionDropDownMenu != null && groupSelectionDropDownMenu.isMouseOver(mouseX, mouseY)) {
+            groupSelectionDropDownMenu.onMouseClick(mouseX, mouseY);
+            return true;
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+    @Override
+    public boolean mouseScrolled(double x, double y, double d) {
+        if(groupSelectionDropDownMenu != null) groupSelectionDropDownMenu.mouseScrolled(x,y,d);
+        return super.mouseScrolled(x, y, d);
+    }
+    @Override
+    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+        super.render(matrixStack, mouseX, mouseY, partialTicks);
+
+        if (groupSelectionDropDownMenu != null) {
+            groupSelectionDropDownMenu.renderButton(matrixStack, mouseX, mouseY, partialTicks);
+        }
+    }
     protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         super.renderLabels(matrixStack, mouseX, mouseY);
         int health = Mth.ceil(recruit.getHealth());
@@ -468,14 +468,12 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         int fnt = this.aggro == 3 ? 16733525 : fontColor;
 
         font.draw(matrixStack, aggro, k + 15, l + 56 + 15, fnt);
-        if(currentGroup != null) font.draw(matrixStack, currentGroup.getName(), k + 15, l + 56 + 28, fontColor);
-
 
         String listen;
         if (recruit.getListen()) listen = TEXT_INFO_LISTEN.getString();
         else listen = TEXT_INFO_IGNORE.getString();
         int fnt2 = recruit.getListen() ? fontColor : 16733525;
-        font.draw(matrixStack, listen, k + 15, l + 56 + 41, fnt2);
+        font.draw(matrixStack, listen, k + 15, l + 56 + 28, fnt2);
 
         ItemStack profItem1 = null;
         ItemStack profItem2 = null;
