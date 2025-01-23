@@ -42,6 +42,9 @@ public class RecruitsTeamSaveData extends SavedData {
             recruitsTeam.setPlayers(nbt.getInt("Players"));
             recruitsTeam.setNPCs(nbt.getInt("NPCs"));
 
+            recruitsTeam.setMaxPlayers(nbt.getInt("MaxPlayers"));
+            recruitsTeam.setMaxNPCs(nbt.getInt("MaxNPCs"));
+
             ListTag joinRequestsList = nbt.getList("JoinRequests", 8);
             for (int j = 0; j < joinRequestsList.size(); ++j) {
                 recruitsTeam.getJoinRequests().add(joinRequestsList.getString(j));
@@ -73,6 +76,9 @@ public class RecruitsTeamSaveData extends SavedData {
             nbt.put("TeamBanner", team.getBanner());
             nbt.putInt("Players", team.getPlayers());
             nbt.putInt("NPCs", team.getNPCs());
+
+            nbt.putInt("MaxPlayers", team.getMaxPlayers());
+            nbt.putInt("MaxNPCs", team.getMaxNPCs());
 
             ListTag joinRequestsTag = new ListTag();
             for (String request : team.getJoinRequests()) {

@@ -24,9 +24,9 @@ public class RecruitsTeamManager {
         teams.values().forEach(this::loadConfig);
     }
 
-    private void loadConfig(RecruitsTeam team) {
+    public void loadConfig(RecruitsTeam team) {
         team.maxPlayers = RecruitsServerConfig.MaxPlayersInTeam.get();
-        team.maxNPCs = RecruitsServerConfig.MaxRecruitsInTeam.get();
+        team.maxNPCs = RecruitsServerConfig.MaxNPCsInTeam.get();
     }
 
     public void save(ServerLevel level) {
@@ -79,7 +79,9 @@ public class RecruitsTeamManager {
         recruitsTeam.setBanner(bannerNbt);
         recruitsTeam.setUnitColor(color);
         recruitsTeam.setTeamColor(teamColor.getId());
-
+        recruitsTeam.setMaxNPCsPerPlayer(RecruitsServerConfig.MaxRecruitsForPlayer.get());
+        recruitsTeam.setMaxPlayers(RecruitsServerConfig.MaxPlayersInTeam.get());
+        recruitsTeam.setMaxNPCs(RecruitsServerConfig.MaxNPCsInTeam.get());
         teams.put(teamName, recruitsTeam);
     }
     public void removeTeam(String teamName) {
@@ -121,9 +123,11 @@ public class RecruitsTeamManager {
 
     public boolean canRecruitJoin(RecruitsTeam recruitsTeam){
         int config = RecruitsServerConfig.MaxPlayersInTeam.get();
-        if(config == 0) return true;
-
-        return RecruitsServerConfig.MaxRecruitsInTeam.get() < recruitsTeam.getNPCs();
+        if(config == 0){
+            return true;
+        }
+        else
+            return RecruitsServerConfig.MaxNPCsInTeam.get() < recruitsTeam.getNPCs();
     }
 }
 

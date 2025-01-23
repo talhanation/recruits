@@ -82,6 +82,14 @@ public class RecruitsTeam {
         this.npcs = npcs;
     }
 
+    public void setMaxPlayers(int max) {
+        this.maxPlayers = max;
+    }
+
+    public void setMaxNPCs(int max) {
+        this.maxNPCs = max;
+    }
+
     public boolean addPlayerAsJoinRequest(String player) {
         if (!joinRequests.contains(player)){
             joinRequests.add(player);
@@ -116,6 +124,15 @@ public class RecruitsTeam {
     public int getTeamColor() {
         return teamColor;
     }
+
+    public int getMaxNPCs() {
+        return maxNPCs;
+    }
+
+    public int getMaxPlayers() {
+        return maxPlayers;
+    }
+
     public void addNPCs(int x) {
         npcs += x;
         if (npcs < 0) npcs = 0;
@@ -158,6 +175,8 @@ public class RecruitsTeam {
 
         nbt.putInt("players", this.players);
         nbt.putInt("npcs", this.npcs);
+        nbt.putInt("maxPlayers", this.maxPlayers);
+        nbt.putInt("maxNpcs", this.maxNPCs);
         nbt.putByte("unitColor", this.unitColor);
         nbt.putInt("teamColor", this.teamColor);
         nbt.putInt("maxPlayers", this.maxPlayers);
@@ -190,6 +209,8 @@ public class RecruitsTeam {
 
         team.setPlayers(nbt.getInt("players"));
         team.setNPCs(nbt.getInt("npcs"));
+        team.setMaxPlayers(nbt.getInt("maxPlayers"));
+        team.setMaxNPCs(nbt.getInt("maxNpcs"));
         team.setUnitColor(nbt.getByte("unitColor"));
         team.setTeamColor(nbt.getInt("teamColor"));
         team.maxPlayers = nbt.getInt("maxPlayers");

@@ -68,10 +68,9 @@ public class RecruitsServerConfig{
     public static ForgeConfigSpec.BooleanValue UpdateCheckerServerside;
     public static ForgeConfigSpec.BooleanValue CompatCorpseMod;
     public static ForgeConfigSpec.IntValue MaxPlayersInTeam;
+    public static ForgeConfigSpec.IntValue MaxNPCsInTeam;
     public static ForgeConfigSpec.BooleanValue ShouldTeamEditingBeAllowed;
     public static ForgeConfigSpec.BooleanValue ShouldTeamManagingBeAllowed;
-
-    public static ForgeConfigSpec.IntValue MaxRecruitsInTeam;
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin", "corpse:corpse", "minecraft:armorstand"));
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
@@ -580,7 +579,7 @@ public class RecruitsServerConfig{
                 .worldRestart()
                 .defineInRange("MaxPlayersInTeam", 5, 0, 1453);
 
-        MaxRecruitsInTeam = BUILDER.comment("""
+        MaxNPCsInTeam = BUILDER.comment("""
 
                         The amount of recruits allowed in a team. Set 0 for infinite.
                         \t(takes effect after restart)
