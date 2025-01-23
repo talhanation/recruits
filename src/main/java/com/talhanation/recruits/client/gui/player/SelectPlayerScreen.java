@@ -34,7 +34,7 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
     protected static final int SEARCH_HEIGHT = 16;
     protected static final int UNIT_SIZE = 18;
     protected static final int CELL_HEIGHT = 36;
-    protected PlayersList playerList;
+    public PlayersList playerList;
     protected EditBox searchBox;
     protected String lastSearch;
     protected int units;

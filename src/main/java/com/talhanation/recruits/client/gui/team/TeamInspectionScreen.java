@@ -145,15 +145,22 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         leaveButton = new Button(guiLeft + 7, buttonY, 60, 20, LEAVE_BUTTON,
             button -> {
                 if(isTeamLeader){
-                    minecraft.setScreen(new SelectPlayerScreen(this, player, SELECT_LEADER, SelectPlayerScreen.BUTTON_SELECT, SELECT_LEADER_TOOLTIP, false, PlayersList.FilterType.SAME_TEAM,
-                            (playerInfo) -> {
-                                    recruitsTeam.setTeamLeaderID(playerInfo.getUUID());
-                                    recruitsTeam.setTeamLeaderName(playerInfo.getName());
+                    if(playerList != null && playerList.isEmpty()){
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
+                        return;
+                    }
 
-                                    Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveTeamSettings(recruitsTeam));
-                                    onClose();
+                    Screen selectPlayerScreen = new SelectPlayerScreen(this, player, SELECT_LEADER, SelectPlayerScreen.BUTTON_SELECT, SELECT_LEADER_TOOLTIP, false, PlayersList.FilterType.SAME_TEAM,
+                            (playerInfo) -> {
+                                recruitsTeam.setTeamLeaderID(playerInfo.getUUID());
+                                recruitsTeam.setTeamLeaderName(playerInfo.getName());
+
+                                Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveTeamSettings(recruitsTeam));
+                                onClose();
                             }
-                        ));
+                    );
+                    minecraft.setScreen(selectPlayerScreen);
+
                 }
                 else {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
