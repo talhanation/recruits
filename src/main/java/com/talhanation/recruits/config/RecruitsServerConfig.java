@@ -146,9 +146,9 @@ public class RecruitsServerConfig{
                         
                         Max amount a player can recruit
                         \t(takes effect after restart)
-                        \tdefault: 64""")
+                        \tdefault: 100""")
                 .worldRestart()
-                .defineInRange("MaxRecruitsForPlayer", 64, 1, 1453);
+                .defineInRange("MaxRecruitsForPlayer", 100, 1, 1453);
 
         TargetBlackList = BUILDER.comment("""
                         
