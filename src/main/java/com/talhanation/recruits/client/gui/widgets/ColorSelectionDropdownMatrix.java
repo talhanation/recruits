@@ -35,7 +35,6 @@ public class ColorSelectionDropdownMatrix extends AbstractWidget {
         this.onSelect = onSelect;
         this.columns = 5;
         this.rows = 5;
-
     }
 
     public void renderButton(PoseStack poseStack, int mouseX, int mouseY, float delta) {
@@ -73,7 +72,6 @@ public class ColorSelectionDropdownMatrix extends AbstractWidget {
 
     public void onMouseClicked(double mouseX, double mouseY) {
         if (isOpen) {
-            // Prüfen, ob auf eine Option geklickt wurde
             for (int i = 0; i < options.size(); i++) {
                 int col = i % columns;
                 int row = i / columns;
@@ -83,17 +81,16 @@ public class ColorSelectionDropdownMatrix extends AbstractWidget {
 
                 if (isMouseOverOption((int) mouseX, (int) mouseY, optionX, optionY)) {
                     selectOption(options.get(i));
-                    isOpen = false; // Dropdown schließen nach Auswahl
+                    isOpen = false;
                     return;
                 }
             }
         }
 
-        // Prüfen, ob auf die Anzeige geklickt wurde
         if (isMouseOverDisplay((int) mouseX, (int) mouseY)) {
-            isOpen = !isOpen; // Dropdown öffnen/schließen
+            isOpen = !isOpen;
         } else {
-            isOpen = false; // Dropdown schließen, wenn Klick außerhalb
+            isOpen = false;
         }
     }
 
