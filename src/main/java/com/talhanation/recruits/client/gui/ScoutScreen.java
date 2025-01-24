@@ -17,8 +17,8 @@ public class ScoutScreen extends RecruitsScreenBase {
 
     private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_big.png");
     private static final Component TITLE = new TranslatableComponent("gui.recruits.more_screen.title");
-    private Player player;
-    private ScoutEntity scout;
+    private final Player player;
+    private final ScoutEntity scout;
     private ScoutEntity.State task;
     private static final MutableComponent SCOUTING = new TranslatableComponent("gui.recruits.inv.text.scoutScoutTask");
     private static final MutableComponent TOOLTIP_SCOUTING = new TranslatableComponent("gui.recruits.inv.tooltip.scoutScoutTask");
@@ -33,31 +33,36 @@ public class ScoutScreen extends RecruitsScreenBase {
     @Override
     protected void init() {
         super.init();
+        this.task = ScoutEntity.State.fromIndex(scout.getTaskState());
 
         setButtons();
     }
 
     private void setButtons(){
         clearWidgets();
-        this.task = ScoutEntity.State.fromIndex(scout.getTaskState());
 
         buttonScouting = new ActivateableButton(guiLeft + 32, guiTop + ySize - 120 - 7, 130, 20, SCOUTING,
-                btn -> {
-                    if(this.scout != null) {
+            btn -> {
+                if(this.scout != null) {
+                    if(task != ScoutEntity.State.SCOUTING){
+                        task = ScoutEntity.State.SCOUTING;
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageScoutTask(scout.getUUID(), 1));
-                        setButtons();
                     }
-                },
-                (button, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, TOOLTIP_SCOUTING, i, i1);
+                    else{
+                        task = ScoutEntity.State.IDLE;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageScoutTask(scout.getUUID(), 0));
+                    }
+
+                    setButtons();
                 }
+            },
+            (button, poseStack, i, i1) -> {
+                this.renderTooltip(poseStack, TOOLTIP_SCOUTING, i, i1);
+            }
         );
-
         buttonScouting.active = task == ScoutEntity.State.SCOUTING;
-
         addRenderableWidget(buttonScouting);
     }
-
 
     @Override
     public void renderBackground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
@@ -69,8 +74,11 @@ public class ScoutScreen extends RecruitsScreenBase {
 
     @Override
     public void renderForeground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
-        font.draw(poseStack, TITLE, guiLeft + xSize / 2 - font.width(TITLE) / 2, guiTop + 7, FONT_COLOR);
-
+        if(task != null){
+            String text = "";
+            if(task == ScoutEntity.State.IDLE) text = "No Active Task";
+            else text = "Active Task: " + task.name();
+            font.draw(poseStack, text, guiLeft + xSize / 2 - font.width(text) / 2, guiTop + 17, FONT_COLOR);
+        }
     }
-
 }

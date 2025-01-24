@@ -10,6 +10,7 @@ import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
@@ -357,10 +358,13 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
 
             groupSelectionDropDownMenu = new ScrollDropDownMenu<>(currentGroup, leftPos + 77,topPos + 114,  93, 12, groups,
                 RecruitsGroup::getName,
-                (selected) -> this.currentGroup = selected
+                (selected) ->{
+                    this.currentGroup = selected;
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(currentGroup.getId(), recruit.getUUID()));
+                }
             );
             groupSelectionDropDownMenu.setBgFillSelected(FastColor.ARGB32.color(255, 139, 139, 139));
-
+            groupSelectionDropDownMenu.visible = Minecraft.getInstance().player.getUUID().equals(recruit.getOwnerUUID());
             addRenderableWidget(groupSelectionDropDownMenu);
             this.buttonsSet = true;
         }
@@ -380,7 +384,9 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
 
     @Override
     public void mouseMoved(double x, double y) {
-        if(groupSelectionDropDownMenu != null) groupSelectionDropDownMenu.onMouseMove(x,y);
+        if(groupSelectionDropDownMenu != null){
+            groupSelectionDropDownMenu.onMouseMove(x,y);
+        }
         super.mouseMoved(x, y);
     }
 

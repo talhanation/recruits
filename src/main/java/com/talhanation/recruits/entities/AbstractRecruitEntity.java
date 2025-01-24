@@ -5,6 +5,8 @@ import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.client.gui.ConfirmScreen;
+import com.talhanation.recruits.client.gui.team.TakeOverScreen;
 import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
@@ -17,6 +19,7 @@ import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.world.RecruitsTeam;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -1066,6 +1069,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     return InteractionResult.SUCCESS;
                 }
             }
+            else if(this.isOwned() && this.getTeam() != null && !player.getUUID().equals(this.getOwnerUUID()) &&
+                    TeamEvents.recruitsTeamManager.getTeamByStringID(this.getTeam().getName()).getTeamLeaderUUID().equals(player.getUUID())){
+                    //this will not work:
+                    Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientOpenTakeOverScreen(this.getUUID()));
+            }
             else if (!this.isOwned() && RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(stringId, player.getUUID()) && !isPlayerTarget) {
                 this.openHireGUI(player);
                 this.dialogue(name, player);
@@ -1330,7 +1338,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         boolean hasFood = this.hasFoodInInv();
         boolean isChest = this.getUpkeepPos() != null;
         boolean isEntity = this.getUpkeepUUID() != null;
-        return (!hasFood && timer == 0 && needsToEat && (isChest || isEntity)) && !getShouldProtect();
+
+        return (forcedUpkeep || (!hasFood && timer == 0 && needsToEat) && (isChest || isEntity)) && !getShouldProtect();
     }
 
     public boolean hasFoodInInv(){
@@ -1622,7 +1631,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     @Override
     public void openGUI(Player player) {
-
         if (player instanceof ServerPlayer) {
             CommandEvents.updateRecruitInventoryScreen((ServerPlayer) player);
             NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
@@ -1660,6 +1668,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
+    public static void openTakeOverGUI(Player player) {
+
+    }
+
     @Override
     public boolean canAttack(@Nonnull LivingEntity target) {
         return RecruitEvents.canAttack(this, target);
@@ -1669,10 +1681,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     // 2 = RAID
     // 3 = PASSIVE
     public boolean shouldAttack(LivingEntity target) {
+        if(RecruitsServerConfig.TargetBlackList.get().contains(target.getEncodeId())) return false;
         return switch (this.getState()) {
             case 3 -> false; // Passive mode: never attack
             case 0 -> shouldAttackOnNeutral(target) && canAttack(target);
-            case 1 -> shouldAttackOnNeutral(target) || shouldAttackOnAggressive(target) && canAttack(target);
+            case 1 -> (shouldAttackOnNeutral(target) || shouldAttackOnAggressive(target)) && canAttack(target);
             case 2 -> !RecruitEvents.isAlly(this.getTeam(), target.getTeam()) && canAttack(target);
             default -> canAttack(target);
         };
@@ -1683,7 +1696,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     private boolean shouldAttackOnAggressive(LivingEntity target){
-        return target instanceof AbstractRecruitEntity || target instanceof Player || !RecruitEvents.isAlly(this.getTeam(), target.getTeam());
+        return (target instanceof AbstractRecruitEntity || target instanceof Player) && (RecruitEvents.isNeutral(this.getTeam(), target.getTeam()) || RecruitEvents.isEnemy(this.getTeam(), target.getTeam()));
     }
 
     private boolean isMonster(LivingEntity target) {

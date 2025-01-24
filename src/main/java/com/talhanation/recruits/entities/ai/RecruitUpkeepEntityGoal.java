@@ -34,7 +34,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        long i = this.recruit.level.getGameTime();
+        long i = this.recruit.getCommandSenderWorld().getGameTime();
         if (i - this.lastCanUseCheck >= 20L) {
             this.lastCanUseCheck = i;
 
@@ -86,7 +86,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
         }
         else
         if (recruit.getOwner() != null && messageNotInRange) {
-            recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()), recruit.getOwner().getUUID());
+            recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()), recruit.getOwnerUUID());
             messageNotInRange = false;
             recruit.clearUpkeepEntity();
             this.stop();
@@ -130,7 +130,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
                                 foodItem.shrink(1);
                             } else {
                                 if (recruit.getOwner() != null && message) {
-                                    recruit.getOwner().sendMessage(TEXT_NO_PLACE(recruit.getName().getString()), recruit.getOwner().getUUID());
+                                    recruit.getOwner().sendMessage(TEXT_NO_PLACE(recruit.getName().getString()), recruit.getOwnerUUID());
                                     message = false;
                                 }
 
@@ -140,7 +140,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
                     }
                     else {
                         if (recruit.getOwner() != null && message) {
-                            recruit.getOwner().sendMessage(TEXT_FOOD(recruit.getName().getString()), recruit.getOwner().getUUID());
+                            recruit.getOwner().sendMessage(TEXT_FOOD(recruit.getName().getString()), recruit.getOwnerUUID());
                             message = false;
                             this.stop();
                         }
@@ -171,7 +171,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
             }
             else {
                 if (recruit.getOwner() != null && messageNotInRange) {
-                    recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()), recruit.getOwner().getUUID());
+                    recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()), recruit.getOwnerUUID());
                     messageNotInRange = false;
 
                     recruit.clearUpkeepEntity();
@@ -198,11 +198,12 @@ public class RecruitUpkeepEntityGoal extends Goal {
     public void stop() {
         super.stop();
         recruit.setUpkeepTimer(recruit.getUpkeepCooldown());
+        recruit.forcedUpkeep = false;
     }
 
     private Optional<Entity> findEntity() {
         if(this.recruit.getUpkeepUUID() != null) {
-            return recruit.level.getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(100.0D))
+            return recruit.getCommandSenderWorld().getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(100.0D))
                     .stream()
                     .filter(entity -> entity.getUUID().equals(recruit.getUpkeepUUID())).findAny();
         }

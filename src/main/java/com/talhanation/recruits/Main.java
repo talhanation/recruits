@@ -194,7 +194,8 @@ public class Main {
                 MessageToClientSetDiplomaticToast.class,
                 MessageScoutTask.class,
                 MessageToServerRequestUpdatePlayerCurrencyCount.class,
-                MessageToClientUpdatePlayerCurrencyCount.class
+                MessageToClientUpdatePlayerCurrencyCount.class,
+                MessageToClientOpenTakeOverScreen.class
         };
 
 

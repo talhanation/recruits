@@ -2,17 +2,18 @@ package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.entities.ai.UseShield;
-import com.talhanation.recruits.world.RecruitsDiplomacyManager;
+import com.talhanation.recruits.util.FormationUtils;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.*;
@@ -24,7 +25,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.scores.Team;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
 
 import javax.annotation.Nullable;
@@ -165,46 +166,44 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
     @Override
     public void tick() {
         super.tick();
-        /*
-        if(--timerScouting <= 0){
-            this.startTask(State.SCOUTING);
-            timerScouting = 20*60*2;
-        }
 
-         */
+        if(--timerScouting <= 0){
+            this.startTask(State.fromIndex(getTaskState()));
+            timerScouting = 20*60*1; //1 min
+        }
     }
     public void startTask(State taskState) {
         setTaskState(taskState);
 
         switch (taskState) {
             case SEARCHING_STRUCTURE -> {
-                sendMessageToOwner("Scout: Ich suche nach einer Struktur...");
-                //findNonFriendlyEntities(this);
-                this.state = State.IDLE;
+                //TBD
             }
             case SCOUTING -> {
-                sendMessageToOwner("Scout: Ich suche nach feindlichen Spielern und Recruits...");
                 this.findNonFriendlyEntities();
-                this.state = State.IDLE;
             }
             case SEARCHING_LOST_RECRUITS -> {
-                sendMessageToOwner("Scout: Ich suche nach verlorenen Recruits...");
-                //findNonFriendlyEntities(this);
-                this.state = State.IDLE;
+                //TBD
+
             }
-            default -> sendMessageToOwner("Unbekannte Mission.");
+            default -> {}
+        }
+        this.state = State.IDLE;
+    }
+
+    private void sendMessageToOwner(Component message) {
+        if (getOwner() != null) {
+            MutableComponent prefix = new TextComponent(this.getName().getString() + ": ").withStyle(ChatFormatting.GOLD);
+            this.getOwner().sendMessage(prefix.append(message), getOwnerUUID());
         }
     }
 
-    private void sendMessageToOwner(String message) {
-        if (getOwner() != null) {
-            this.getOwner().sendMessage(new TextComponent(this.getName().getString() + ": " +  message).withStyle(ChatFormatting.GOLD), getOwnerUUID());
-        }
-    }
     List<ServerPlayer> potentialPlayerTargets;
     List<AbstractRecruitEntity> potentialRecruitTargets;
     public void findNonFriendlyEntities() {
         if (getOwner() == null) return;
+        if (this.getCommandSenderWorld().isClientSide()) return;
+
         potentialPlayerTargets = new ArrayList<>();
         potentialRecruitTargets = new ArrayList<>();
 
@@ -212,13 +211,13 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
             potentialPlayerTargets = this.getCommandSenderWorld().getEntitiesOfClass(
                     ServerPlayer.class,
                     this.getBoundingBox().inflate(SEARCH_RADIUS),
-                    (target) -> isNonAlly(target) && this.hasLineOfSight(target)
+                    (target) -> shouldAttack(target) && this.hasLineOfSight(target)
             );
 
             potentialRecruitTargets = this.getCommandSenderWorld().getEntitiesOfClass(
                     AbstractRecruitEntity.class,
                     this.getBoundingBox().inflate(SEARCH_RADIUS),
-                    (target) -> isNonAlly(target) && this.hasLineOfSight(target)
+                    (target) -> shouldAttack(target) && this.hasLineOfSight(target)
             );
 
             if(!potentialPlayerTargets.isEmpty()){
@@ -235,20 +234,20 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
             }
 
             if(!potentialRecruitTargets.isEmpty()){
-                Map<String, Integer> teamRecruitCount = potentialRecruitTargets.stream()
-                        .collect(Collectors.toMap(
-                                recruit -> recruit.getTeam() != null ? recruit.getTeam().getName() : "No Team",
-                                recruit -> 1,
-                                Integer::sum
+                Map<String, List<AbstractRecruitEntity>> teamedRecruitsMap = potentialRecruitTargets.stream()
+                        .collect(Collectors.groupingBy(
+                                recruit -> recruit.getTeam() != null ? recruit.getTeam().getName() : "No Team"
                         ));
 
-                for (Map.Entry<String, Integer> entry : teamRecruitCount.entrySet()) {
+                for (Map.Entry<String, List<AbstractRecruitEntity>> entry : teamedRecruitsMap.entrySet()) {
                     String teamName = entry.getKey();
-                    int recruitCount = entry.getValue();
-                    int distance = (int) Math.sqrt(this.blockPosition().distSqr(null));
-                    String direction = getHorizontalDirection(this.blockPosition(), null);
+                    int recruitCount = entry.getValue().size();
+                    Vec3 vec = FormationUtils.getCenterOfPositions(entry.getValue(), (ServerLevel) this.getCommandSenderWorld());
+                    int distance = (int) Math.sqrt(this.blockPosition().distSqr(new BlockPos(vec)));
+                    String direction = getHorizontalDirection(this.blockPosition(), new BlockPos(vec));
 
                     ScoutingResult result = new ScoutingResult(teamName, recruitCount, distance, direction);
+                    result.sendInfo(this);
                 }
             }
         }
@@ -260,20 +259,6 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
         potentialRecruitTargets.removeIf(predicate);
         return amount;
     }
-
-    private boolean isNonAlly(LivingEntity entity) {
-        if (entity == this || entity == this.getOwner() || !(entity instanceof Player || entity instanceof AbstractRecruitEntity)) {
-            return false;
-        }
-
-        Team scoutTeam = this.getTeam();
-        Team targetTeam = entity.getTeam();
-
-        return targetTeam != null && scoutTeam != null && TeamEvents.recruitsDiplomacyManager != null &&
-                TeamEvents.recruitsDiplomacyManager.getRelation(scoutTeam.getName(), targetTeam.getName())
-                        != RecruitsDiplomacyManager.DiplomacyStatus.ALLY;
-    }
-
 
     private String getHorizontalDirection(BlockPos from, BlockPos to) {
         double dx = to.getX() - from.getX();
@@ -300,17 +285,6 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
             return "North-East";
         }
     }
-
-    public static Component PLAYER_LOCATED(String player){
-        return new TranslatableComponent("gui.recruits.text.scoutLocatedPlayer", player);
-    }
-
-    private static class ScoutedUnits{
-        String team;
-        BlockPos pos;
-
-    }
-
     private static class ScoutingResult {
         RecruitsPlayerInfo playerInfo;
         int recruitsCount;
@@ -329,26 +303,47 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
             this((RecruitsPlayerInfo) null, recruits, distance, direction);
             this.team = team;
         }
+        public void sendInfo(ScoutEntity scout) {
+            Component recruitsText = new TextComponent("" + recruitsCount).withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
+            Component distanceText = new TextComponent("" + distance).withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
+            Component directionText = new TextComponent("" + direction).withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
+            if (playerInfo != null) {
+                Component playerName = new TextComponent(playerInfo.getName());
 
-        public void sendInfo(ScoutEntity scout){
-            if(playerInfo != null){
-
-
-                if(playerInfo.getRecruitsTeam() != null){
-                    //Scout: I'm Seeing talhanation (YellowTeam) and 12 units, 125 blocks South from me.
-                    scout.sendMessageToOwner(String.format("%s (%s), %d units, %d blocks %s", playerInfo.getName(), playerInfo.getRecruitsTeam().getTeamDisplayName(), recruitsCount, distance, direction));
+                //Scout: I'm Seeing talhanation (YellowTeam) and 12 units, 125 blocks South from me.
+                if (playerInfo.getRecruitsTeam() != null) {
+                    playerName = new TextComponent(playerInfo.getName()).withStyle(ChatFormatting.getById(playerInfo.getRecruitsTeam().getTeamColor()));
+                    Component teamName = new TextComponent(playerInfo.getRecruitsTeam().getTeamDisplayName()).withStyle(ChatFormatting.getById(playerInfo.getRecruitsTeam().getTeamColor()));
+                    scout.sendMessageToOwner(new TextComponent("")
+                            .append(playerName).append(" (")
+                            .append(teamName).append("), with ")
+                            .append(recruitsText).append(" units, ")
+                            .append(distanceText).append(" blocks, ")
+                            .append(directionText).append(" from me.")
+                    );
+                } else {//Scout: I'm Seeing talhanation and 12 units, 125 blocks South from me.
+                    scout.sendMessageToOwner(new TextComponent("")
+                            .append(playerName).append(" with ")
+                            .append(recruitsText).append(" units, ")
+                            .append(distanceText).append(" blocks, ")
+                            .append(directionText).append(" from me.")
+                    );
                 }
-                else{//Scout: I'm Seeing talhanation and 12 units, 125 blocks South from me.
-                    scout.sendMessageToOwner(String.format("%s, %d units, %d blocks %s",playerInfo.getName(), recruitsCount, distance, direction));
-                }
-            }
-            else{
-                if(team != null){// Scout: I'm Seeing 12 units of YellowTeam, 125 blocks North from me.
-                    scout.sendMessageToOwner(String.format("%d units of %s, %d blocks %s", recruitsCount, team, distance, direction));
+            } else {// Scout: I'm Seeing 12 units of YellowTeam, 125 blocks North from me.
+                if (team != null) {
+                    Component teamText = new TextComponent(team);
+
+                    scout.sendMessageToOwner(new TextComponent("")
+                            .append(recruitsText).append(" units of ")
+                            .append(teamText).append(", ")
+                            .append(distanceText).append(" blocks, ")
+                            .append(directionText).append(" from me.")
+                    );
                 }
             }
         }
     }
+
 }
 
 

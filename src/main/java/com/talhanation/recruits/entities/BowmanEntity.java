@@ -4,6 +4,7 @@ import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.RecruitMoveTowardsTargetGoal;
 import com.talhanation.recruits.entities.ai.RecruitStrategicFire;
 import com.talhanation.recruits.entities.ai.RecruitRangedBowAttackGoal;
+import com.talhanation.recruits.util.AttackUtil;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -140,6 +141,13 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
     @Override
     public void performRangedAttack(@NotNull LivingEntity target, float v) {
         if (this.getMainHandItem().getItem() instanceof BowItem) {
+
+            if(AttackUtil.canPerformHorseAttack(this, target)){
+                if(target.getVehicle() instanceof LivingEntity) {
+                    target = (LivingEntity) target.getVehicle();
+                }
+            }
+
             ItemStack itemstack = this.getProjectile(this.getItemInHand(InteractionHand.MAIN_HAND));
 
             AbstractArrow arrow = ProjectileUtil.getMobArrow(this, itemstack, v);
