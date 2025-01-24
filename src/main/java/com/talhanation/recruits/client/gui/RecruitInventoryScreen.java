@@ -357,7 +357,10 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
 
             groupSelectionDropDownMenu = new ScrollDropDownMenu<>(currentGroup, leftPos + 77,topPos + 114,  93, 12, groups,
                 RecruitsGroup::getName,
-                (selected) -> this.currentGroup = selected
+                (selected) ->{
+                    this.currentGroup = selected;
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(currentGroup.getId(), recruit.getUUID()));
+                }
             );
             groupSelectionDropDownMenu.setBgFillSelected(FastColor.ARGB32.color(255, 139, 139, 139));
 
@@ -380,7 +383,9 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
 
     @Override
     public void mouseMoved(double x, double y) {
-        if(groupSelectionDropDownMenu != null) groupSelectionDropDownMenu.onMouseMove(x,y);
+        if(groupSelectionDropDownMenu != null){
+            groupSelectionDropDownMenu.onMouseMove(x,y);
+        }
         super.mouseMoved(x, y);
     }
 

@@ -198,6 +198,10 @@ public class ScrollDropDownMenu<T> extends AbstractWidget {
         return mouseX >= this.x && mouseX <= this.x + this.width && mouseY >= optionY && mouseY <= optionY + optionHeight;
     }
 
+    public boolean isMouseOver(double x, double y) {
+        return isMouseOverDisplay((int) x, (int) y) || isMouseOverDropdown((int) x, (int) y) || isMouseOverScrollbar((int) x, (int) y) || super.isMouseOver(x,y);
+    }
+
     private void selectOption(T option) {
         selectedOption = option;
         onSelect.accept(option);
