@@ -49,6 +49,8 @@ public class ScrollDropDownMenu<T> extends AbstractWidget {
 
     @Override
     public void renderButton(PoseStack poseStack, int mouseX, int mouseY, float delta) {
+        if(!visible) return;
+
         if (isMouseOverDisplay(mouseX, mouseY)) {
             fill(poseStack, this.x, this.y, this.x + this.width, this.y + this.height, bgFillHovered);
         } else {
@@ -105,6 +107,8 @@ public class ScrollDropDownMenu<T> extends AbstractWidget {
     }
 
     public void onMouseClick(double mouseX, double mouseY) {
+        if(!visible) return;
+
         if (isOpen) {
             // Check if the click is on the scrollbar
             if (isMouseOverScrollbar((int) mouseX, (int) mouseY)) {
@@ -131,6 +135,8 @@ public class ScrollDropDownMenu<T> extends AbstractWidget {
     }
 
     public void onMouseMove(double mouseX, double mouseY) {
+        if(!visible) return;
+
         if (isOpen) {
             boolean isOverDropdown = isMouseOverDropdown((int) mouseX, (int) mouseY);
             boolean isOverDisplay = isMouseOverDisplay((int) mouseX, (int) mouseY);
@@ -151,6 +157,8 @@ public class ScrollDropDownMenu<T> extends AbstractWidget {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+        if(!visible) return false;
+
         if (isOpen) {
             scrollOffset -= (int) delta;
             scrollOffset = Math.max(0, Math.min(scrollOffset, options.size() - maxVisibleOptions));
@@ -161,6 +169,8 @@ public class ScrollDropDownMenu<T> extends AbstractWidget {
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if(!visible) return false;
+        
         if (isScrolling) {
             isScrolling = false;
             return true;

@@ -348,7 +348,9 @@
   "gui.recruits.inv.tooltip.backToMount": "Make this recruit mount his previous vehicle.",
   "gui.recruits.inv.tooltip.clearUpkeep": "Clears saved upkeep position.",
   "gui.recruits.inv.text.clearUpkeep": "Clear Upkeep",
-
+  "gui.recruits.inv.tooltip.takeOwnership" : "Take ownership of this recruit",
+  "gui.recruits.inv.tooltip.openInventory" : "Open Inventory this recruit",
+  "gui.recruits.inv.tooltip.more" : "Other",
   "gui.multiLineEditBox.character_limit": "%s/%s",
   "gui.recruits.groups.add_title": "Add New Group:",
   "gui.recruits.groups.edit_title": "Edit Group:",
@@ -360,6 +362,9 @@
   "gui.recruits.groups.split": "Split",
   "gui.recruits.groups.title": "Manage your Groups:",
   "subtitles.recruits.messenger_horn": "Messenger horn plays",
+   "gui.recruits.inv.takeOwnership" : "Take Ownership",
+   "gui.recruits.inv.openInventory" : "Inventory",
+   "gui.recruits.inv.more" : "More",
 
    "gui.recruits.select_player_screen.title": "Select Player",
    "gui.recruits.select_player_screen.selectPlayer": "Select",

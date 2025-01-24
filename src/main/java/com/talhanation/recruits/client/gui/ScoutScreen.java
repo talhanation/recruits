@@ -52,12 +52,8 @@ public class ScoutScreen extends RecruitsScreenBase {
                     this.renderTooltip(poseStack, TOOLTIP_SCOUTING, i, i1);
                 }
         );
-
-        buttonScouting.active = task == ScoutEntity.State.SCOUTING;
-
         addRenderableWidget(buttonScouting);
     }
-
 
     @Override
     public void renderBackground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
@@ -70,7 +66,5 @@ public class ScoutScreen extends RecruitsScreenBase {
     @Override
     public void renderForeground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
         font.draw(poseStack, TITLE, guiLeft + xSize / 2 - font.width(TITLE) / 2, guiTop + 7, FONT_COLOR);
-
     }
-
 }

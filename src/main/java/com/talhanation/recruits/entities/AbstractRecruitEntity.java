@@ -5,6 +5,8 @@ import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.client.gui.ConfirmScreen;
+import com.talhanation.recruits.client.gui.team.TakeOverScreen;
 import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
@@ -17,6 +19,7 @@ import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.world.RecruitsTeam;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -1066,6 +1069,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     return InteractionResult.SUCCESS;
                 }
             }
+            else if(this.isOwned() && this.getTeam() != null && !player.getUUID().equals(this.getOwnerUUID()) &&
+                    TeamEvents.recruitsTeamManager.getTeamByStringID(this.getTeam().getName()).getTeamLeaderUUID().equals(player.getUUID())){
+                    //this will not work:
+                    Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientOpenTakeOverScreen(this.getUUID()));
+            }
             else if (!this.isOwned() && RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(stringId, player.getUUID()) && !isPlayerTarget) {
                 this.openHireGUI(player);
                 this.dialogue(name, player);
@@ -1622,7 +1630,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     @Override
     public void openGUI(Player player) {
-
         if (player instanceof ServerPlayer) {
             CommandEvents.updateRecruitInventoryScreen((ServerPlayer) player);
             NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
@@ -1658,6 +1665,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         } else {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugScreen(player, this.getUUID()));
         }
+    }
+
+    public static void openTakeOverGUI(Player player) {
+
     }
 
     @Override
