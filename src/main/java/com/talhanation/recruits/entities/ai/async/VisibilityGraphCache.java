@@ -25,7 +25,7 @@ public class VisibilityGraphCache {
         }
 
         processQueue.add(new BiDirectionalPair<>(first, second));
-        return true;
+        return false;
     }
 
     @SubscribeEvent
