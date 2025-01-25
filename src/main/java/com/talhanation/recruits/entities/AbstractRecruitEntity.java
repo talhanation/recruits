@@ -9,6 +9,7 @@ import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.*;
+import com.talhanation.recruits.entities.ai.async.Sensing;
 import com.talhanation.recruits.entities.ai.compat.BlockWithWeapon;
 import com.talhanation.recruits.entities.ai.navigation.RecruitPathNavigation;
 import com.talhanation.recruits.init.ModItems;
@@ -127,6 +128,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private int maxFallDistance;
     public Vec3 holdPosVec;
     public boolean isInFormation;
+    private Sensing sensing;
 
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
@@ -134,6 +136,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.navigation = this.createNavigation(world);
         this.maxUpStep = 1F;
         this.setMaxFallDistance(1);
+        this.sensing = new Sensing(this);
     }
 
     ///////////////////////////////////NAVIGATION/////////////////////////////////////////
@@ -1944,18 +1947,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return Component.translatable("chat.recruits.text.hello_3", name);
     }
 
-    public boolean hasLineOfSight(Entity target) {
-        if (target.level != this.level) {
-            return false;
-        } else {
-            Vec3 lookVec = new Vec3(this.getX(), this.getEyeY(), this.getZ());
-            Vec3 vec31 = new Vec3(target.getX(), target.getEyeY(), target.getZ());
-            if (vec31.distanceTo(lookVec) > 250.0D) {
-                return false;
-            } else {
-                return this.level.clip(new ClipContext(lookVec, vec31, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this)).getType() == HitResult.Type.MISS;
-            }
-        }
+    @Override
+    public @NotNull Sensing getSensing() {
+        return this.sensing;
     }
 
     private void pickUpArrows() {

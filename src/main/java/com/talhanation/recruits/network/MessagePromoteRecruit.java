@@ -2,6 +2,7 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.ai.async.EntityCache;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
@@ -30,12 +31,13 @@ public class MessagePromoteRecruit implements Message<MessagePromoteRecruit> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16D));
-        for (AbstractRecruitEntity recruit : list){
-
-            if (recruit.getUUID().equals(this.recruit))
-                RecruitEvents.promoteRecruit(recruit, profession, name, context.getSender());
-        }
+        List<AbstractRecruitEntity> list = EntityCache.withLevel(Objects.requireNonNull(context.getSender()).getLevel()).getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                context.getSender().getBoundingBox().inflate(16D),
+                livingEntity -> livingEntity.getUUID().equals(this.recruit)
+        );
+        if(list.isEmpty()) return;
+        RecruitEvents.promoteRecruit(list.get(0), profession, name, context.getSender());
 
     }
     public MessagePromoteRecruit fromBytes(FriendlyByteBuf buf) {

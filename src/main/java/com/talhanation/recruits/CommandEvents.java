@@ -3,6 +3,7 @@ package com.talhanation.recruits;
 import com.talhanation.recruits.client.gui.group.RecruitsGroup;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.*;
+import com.talhanation.recruits.entities.ai.async.EntityCache;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.inventory.GroupManageContainer;
 import com.talhanation.recruits.network.*;
@@ -331,7 +332,8 @@ public class CommandEvents {
                 Vec3 targetPosition = serverPlayer.position();
 
                 if(targetPosition.distanceToSqr(oldPos) > 50){
-                    List<AbstractRecruitEntity> list = Objects.requireNonNull(serverPlayer).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, serverPlayer.getBoundingBox().inflate(100));
+                    List<AbstractRecruitEntity> list = EntityCache.withLevel(Objects.requireNonNull(serverPlayer).getLevel()).
+                            getEntitiesOfClass(AbstractRecruitEntity.class, serverPlayer.getBoundingBox().inflate(100));
                     int[] array = getActiveGroups(serverPlayer);
 
                     list.removeIf(recruit -> Arrays.stream(array).noneMatch(x -> recruit.isEffectedByCommand(serverPlayer.getUUID(), x)));

@@ -64,6 +64,7 @@ public class RecruitFollowOwnerGoal extends Goal {
     }
 
     public void start() {
+        this.timeToRecalcPath = 0;
         this.recruit.setIsFollowing(true);
     }
 

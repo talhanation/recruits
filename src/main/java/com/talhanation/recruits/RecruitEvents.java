@@ -4,6 +4,7 @@ import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
+import com.talhanation.recruits.entities.ai.async.EntityCache;
 import com.talhanation.recruits.entities.ai.horse.HorseRiddenByRecruitGoal;
 import com.talhanation.recruits.network.MessageWriteSpawnEgg;
 import com.talhanation.recruits.init.ModEntityTypes;
@@ -36,6 +37,7 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.scores.Team;
@@ -122,21 +124,18 @@ public class RecruitEvents {
     @SubscribeEvent
     public void onTeleportEvent(EntityTeleportEvent event) {
         if (event.getEntity() instanceof ServerPlayer player && !(event instanceof EntityTeleportEvent.EnderPearl) && !(event instanceof EntityTeleportEvent.ChorusFruit) && !(event instanceof EntityTeleportEvent.EnderEntity)){
-
-            UUID player_uuid = player.getUUID();
             double targetX = event.getTargetX();
             double targetY = event.getTargetY();
             double targetZ = event.getTargetZ();
 
-            List <AbstractRecruitEntity> recruits = player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
-                    .inflate(64, 32, 64), AbstractRecruitEntity::isAlive)
-                    .stream()
-                    .filter(recruit -> recruit.getFollowState() == 1)
-                    .filter(recruit -> recruit.getOwnerUUID().equals(player_uuid))
-                    .toList();
+            List <AbstractRecruitEntity> recruits = EntityCache.withLevel(player.getLevel()).getEntitiesOfClass(
+                    AbstractRecruitEntity.class,
+                    player.getBoundingBox()
+                            .inflate(64, 32, 64),
+                    LivingEntity::isAlive
+            );
 
             recruits.forEach(recruit -> recruit.teleportTo(targetX, targetY, targetZ));
-
             //wip
         }
 

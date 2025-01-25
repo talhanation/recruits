@@ -3,6 +3,7 @@ package com.talhanation.recruits.network;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.ai.async.EntityCache;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -38,14 +39,11 @@ public class MessageOpenPromoteScreen implements Message<MessageOpenPromoteScree
         if (!player.getUUID().equals(this.player)) {
             return;
         }
-        player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
-                        .inflate(16.0D), v -> v
-                        .getUUID()
-                        .equals(this.recruit))
-                .stream()
-                .filter(Entity::isAlive)
-                .findAny()
-                .ifPresent(recruit ->  RecruitEvents.openPromoteScreen(player, recruit));
+        EntityCache.withLevel(player.getLevel()).getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                player.getBoundingBox().inflate(16.0D),
+                v -> v.getUUID().equals(this.recruit)
+        ).stream().filter(Entity::isAlive).findAny().ifPresent(recruit ->  RecruitEvents.openPromoteScreen(player, recruit));
     }
 
     @Override

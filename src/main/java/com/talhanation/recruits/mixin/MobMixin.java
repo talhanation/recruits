@@ -1,7 +1,6 @@
 package com.talhanation.recruits.mixin;
 
 import com.talhanation.recruits.entities.ai.navigation.RecruitsHorsePathNavigation;
-import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
@@ -19,7 +18,7 @@ public class MobMixin {
     @SuppressWarnings("DataFlowIssue")
     @Inject(method = "createNavigation", at = @At(value = "HEAD", target = "Lnet/minecraft/world/entity/Mob;createNavigation(Lnet/minecraft/world/level/Level;)Lnet/minecraft/world/entity/ai/navigation/PathNavigation;"), cancellable = true)
     private void createNavigation(Level world, CallbackInfoReturnable<PathNavigation> callback) {
-        if(((Mob)(Object)this) instanceof Horse horse){
+        if(((Mob)(Object)this) instanceof AbstractHorse horse){
             callback.setReturnValue(new RecruitsHorsePathNavigation(horse, ((Mob)(Object)this).getCommandSenderWorld()));
         }
     }
@@ -27,7 +26,7 @@ public class MobMixin {
     @SuppressWarnings("DataFlowIssue")
     @Inject(method = "getMaxFallDistance", at = @At(value = "HEAD", target = "Lnet/minecraft/world/entity/Mob;getMaxFallDistance()I"), cancellable = true)
     private void getMaxFallDistance(CallbackInfoReturnable<Integer> callback){
-        if(((Mob)(Object)this) instanceof Horse){
+        if(((Mob)(Object)this) instanceof AbstractHorse){
             callback.setReturnValue(1);
         }
     }

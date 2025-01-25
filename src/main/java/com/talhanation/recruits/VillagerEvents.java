@@ -2,6 +2,7 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.*;
+import com.talhanation.recruits.entities.ai.async.EntityCache;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModProfessions;
@@ -74,7 +75,9 @@ public class VillagerEvents {
         if (entity instanceof IronGolem ironGolemEntity) {
 
             if (!ironGolemEntity.isPlayerCreated() && RecruitsServerConfig.OverrideIronGolemSpawn.get()){
-                List<AbstractRecruitEntity> list1 = entity.level.getEntitiesOfClass(AbstractRecruitEntity.class, ironGolemEntity.getBoundingBox().inflate(32));
+                List<AbstractRecruitEntity> list1 = EntityCache.withLevel(entity.getLevel()).getEntitiesOfClass(
+                        AbstractRecruitEntity.class,
+                        ironGolemEntity.getBoundingBox().inflate(32));
                 if (list1.size() > 1) {
                     ironGolemEntity.remove(Entity.RemovalReason.KILLED);
                     //System.out.println(olem was removed");
@@ -116,41 +119,41 @@ public class VillagerEvents {
 
         if (event.getType() == VillagerProfession.ARMORER) {
             Trade block_trade = new Trade(Items.EMERALD, 15, ModBlocks.RECRUIT_SHIELD_BLOCK.get(), 1, 2, 20);
-            List list = event.getTrades().get(2);
+            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
         if (event.getType() == VillagerProfession.WEAPONSMITH) {
             Trade block_trade = new Trade(Items.EMERALD, 8, ModBlocks.RECRUIT_BLOCK.get(), 1, 2, 20);
-            List list = event.getTrades().get(2);
+            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
 
         if (event.getType() == VillagerProfession.FLETCHER) {
             Trade block_trade = new Trade(Items.EMERALD, 10, ModBlocks.BOWMAN_BLOCK.get(), 1, 2, 20);
-            List list = event.getTrades().get(2);
+            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
 
         if (event.getType() == VillagerProfession.FLETCHER) {
             Trade block_trade = new Trade(Items.EMERALD, 20, ModBlocks.CROSSBOWMAN_BLOCK.get(), 1, 2, 20);
-            List list = event.getTrades().get(2);
+            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
 
         if (event.getType() == VillagerProfession.CARTOGRAPHER) {
             Trade block_trade = new Trade(Items.EMERALD, 30, ModBlocks.NOMAD_BLOCK.get(), 1, 2, 20);
-            List list = event.getTrades().get(2);
+            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
 
         if (event.getType() == VillagerProfession.BUTCHER) {
             Trade block_trade = new Trade(Items.EMERALD, 30, ModBlocks.HORSEMAN_BLOCK.get(), 1, 2, 20);
-            List list = event.getTrades().get(2);
+            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }

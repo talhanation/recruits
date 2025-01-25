@@ -2,6 +2,7 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinEntity;
+import com.talhanation.recruits.entities.ai.async.EntityCache;
 import com.talhanation.recruits.pathfinding.AsyncPathfinderMob;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.item.PrimedTnt;
@@ -25,7 +26,10 @@ public class FleeTNT extends Goal {
     @Override
     public void tick() {
         super.tick();
-        List<PrimedTnt> tntEntities = entity.level.getEntitiesOfClass(PrimedTnt.class, entity.getBoundingBox().inflate(10D));
+        List<PrimedTnt> tntEntities = EntityCache.withLevel(entity.getLevel()).getEntitiesOfClass(
+                PrimedTnt.class,
+                entity.getBoundingBox().inflate(10D)
+        );
         if (!tntEntities.isEmpty()) {
             for (PrimedTnt tnt : tntEntities) {
                 double fleeDistance = 10.0D;
