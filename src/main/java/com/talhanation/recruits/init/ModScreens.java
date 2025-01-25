@@ -8,7 +8,6 @@ import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
 import com.talhanation.recruits.entities.MessengerEntity;
-import com.talhanation.recruits.entities.ai.async.EntityCache;
 import com.talhanation.recruits.inventory.*;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.Screen;
@@ -373,19 +372,7 @@ public class ModScreens {
     @Nullable
     public static AbstractRecruitEntity getRecruitByUUID(Player player, UUID uuid) {
         double distance = 10D;
-        AbstractRecruitEntity recruit =  EntityCache.withLevel(player.level).getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                new AABB(
-                        player.getX() - distance,
-                        player.getY() - distance,
-                        player.getZ() - distance,
-                        player.getX() + distance,
-                        player.getY() + distance,
-                        player.getZ() + distance),
-                entity -> entity.getUUID().equals(uuid)
-                ).stream().findAny().orElse(null);
-        if(recruit == null) { // Could be a cache miss because cache warming could be not finished at screen initialization moment
-            recruit = player.getLevel().getEntitiesOfClass(
+        return player.getLevel().getEntitiesOfClass(
                     AbstractRecruitEntity.class,
                     new AABB(
                             player.getX() - distance,
@@ -396,27 +383,12 @@ public class ModScreens {
                             player.getZ() + distance),
                     entity -> entity.getUUID().equals(uuid)
             ).stream().findAny().orElse(null);
-        }
-
-        return recruit;
     }
 
     @Nullable
     public static AssassinLeaderEntity getAssassinByUUID(Player player, UUID uuid) {
         double distance = 10D;
-        AssassinLeaderEntity recruit =  EntityCache.withLevel(player.level).getEntitiesOfClass(
-                AssassinLeaderEntity.class,
-                new AABB(
-                        player.getX() - distance,
-                        player.getY() - distance,
-                        player.getZ() - distance,
-                        player.getX() + distance,
-                        player.getY() + distance,
-                        player.getZ() + distance),
-                entity -> entity.getUUID().equals(uuid)
-        ).stream().findAny().orElse(null);
-        if(recruit == null) { // Could be a cache miss because cache warming could be not finished at screen initialization moment
-            recruit = player.getLevel().getEntitiesOfClass(
+        return player.getLevel().getEntitiesOfClass(
                     AssassinLeaderEntity.class,
                     new AABB(
                             player.getX() - distance,
@@ -427,8 +399,5 @@ public class ModScreens {
                             player.getZ() + distance),
                     entity -> entity.getUUID().equals(uuid)
             ).stream().findAny().orElse(null);
-        }
-
-        return recruit;
     }
 }

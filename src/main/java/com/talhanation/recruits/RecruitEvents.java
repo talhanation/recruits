@@ -4,9 +4,7 @@ import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
-import com.talhanation.recruits.entities.ai.async.EntityCache;
 import com.talhanation.recruits.entities.ai.horse.HorseRiddenByRecruitGoal;
-import com.talhanation.recruits.network.MessageWriteSpawnEgg;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.inventory.PromoteContainer;
 import com.talhanation.recruits.network.MessageOpenPromoteScreen;
@@ -30,14 +28,12 @@ import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.horse.AbstractChestedHorse;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.monster.AbstractIllager;
-import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.scores.Team;
@@ -73,7 +69,7 @@ public class RecruitEvents {
     public static void promoteRecruit(AbstractRecruitEntity recruit, int profession, String name, ServerPlayer player) {
         EntityType<? extends AbstractRecruitEntity> companionType = entitiesByProfession.get(profession);
         AbstractRecruitEntity abstractRecruit = companionType.create(recruit.getCommandSenderWorld());
-        if(abstractRecruit != null && abstractRecruit instanceof ICompanion companion){
+        if(abstractRecruit instanceof ICompanion companion){
             abstractRecruit.setCustomName(Component.literal(name));
             abstractRecruit.copyPosition(recruit);
             companion.applyRecruitValues(recruit);
@@ -128,11 +124,11 @@ public class RecruitEvents {
             double targetY = event.getTargetY();
             double targetZ = event.getTargetZ();
 
-            List <AbstractRecruitEntity> recruits = EntityCache.withLevel(player.getLevel()).getEntitiesOfClass(
+            List <AbstractRecruitEntity> recruits = player.getLevel().getEntitiesOfClass(
                     AbstractRecruitEntity.class,
                     player.getBoundingBox()
                             .inflate(64, 32, 64),
-                    LivingEntity::isAlive
+                    AbstractRecruitEntity::isAlive
             );
 
             recruits.forEach(recruit -> recruit.teleportTo(targetX, targetY, targetZ));

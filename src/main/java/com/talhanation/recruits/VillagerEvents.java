@@ -2,7 +2,6 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.*;
-import com.talhanation.recruits.entities.ai.async.EntityCache;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModProfessions;
@@ -75,9 +74,10 @@ public class VillagerEvents {
         if (entity instanceof IronGolem ironGolemEntity) {
 
             if (!ironGolemEntity.isPlayerCreated() && RecruitsServerConfig.OverrideIronGolemSpawn.get()){
-                List<AbstractRecruitEntity> list1 = EntityCache.withLevel(entity.getLevel()).getEntitiesOfClass(
+                List<AbstractRecruitEntity> list1 = entity.getLevel().getEntitiesOfClass(
                         AbstractRecruitEntity.class,
-                        ironGolemEntity.getBoundingBox().inflate(32));
+                        ironGolemEntity.getBoundingBox().inflate(32)
+                );
                 if (list1.size() > 1) {
                     ironGolemEntity.remove(Entity.RemovalReason.KILLED);
                     //System.out.println(olem was removed");

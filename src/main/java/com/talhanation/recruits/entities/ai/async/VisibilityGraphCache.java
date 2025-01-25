@@ -30,9 +30,6 @@ public class VisibilityGraphCache {
 
     @SubscribeEvent
     public static void onTick(TickEvent.ServerTickEvent event) {
-        if(event.phase != TickEvent.Phase.END) {
-            return;
-        }
         event.getServer().execute(() -> {
             BiDirectionalPair<LivingEntity, Entity> pair;
             while((pair = processQueue.poll()) != null) {

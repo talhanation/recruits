@@ -4,10 +4,8 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
-import com.talhanation.recruits.entities.ai.async.EntityCache;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
@@ -36,10 +34,12 @@ public class MessageAssignGroupToCompanion implements Message<MessageAssignGroup
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        Level level = Objects.requireNonNull(context.getSender()).getLevel();
-        List<AbstractRecruitEntity> list = EntityCache.withLevel(level).getEntitiesOfClass(
+        List<AbstractRecruitEntity> list = Objects.requireNonNull(
+                context.getSender()
+        ).getLevel().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
-                Objects.requireNonNull(context.getSender()).getBoundingBox().inflate(100D));
+                Objects.requireNonNull(context.getSender()).getBoundingBox().inflate(100D)
+        );
 
         int group = -1;
         AbstractLeaderEntity companionEntity = null;

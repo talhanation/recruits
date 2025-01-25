@@ -1,9 +1,7 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.RecruitEvents;
-import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.entities.ai.async.EntityCache;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -12,6 +10,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class MessageOpenPromoteScreen implements Message<MessageOpenPromoteScreen> {
@@ -35,15 +34,19 @@ public class MessageOpenPromoteScreen implements Message<MessageOpenPromoteScree
 
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = context.getSender();
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
         if (!player.getUUID().equals(this.player)) {
             return;
         }
-        EntityCache.withLevel(player.getLevel()).getEntitiesOfClass(
+
+        player.getLevel().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(16.0D),
                 v -> v.getUUID().equals(this.recruit)
-        ).stream().filter(Entity::isAlive).findAny().ifPresent(recruit ->  RecruitEvents.openPromoteScreen(player, recruit));
+        ).stream().
+                filter(Entity::isAlive).
+                findAny().
+                ifPresent(recruit ->  RecruitEvents.openPromoteScreen(player, recruit));
     }
 
     @Override

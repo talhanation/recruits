@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities.ai.async;
 
 import com.google.common.collect.Lists;
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.util.ProcessState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -58,7 +59,10 @@ public class FindTarget<T extends LivingEntity>  {
 
         processState = ProcessState.PROCESSING;
 
-        List<T> list = this.mob.getCommandSenderWorld().getEntitiesOfClass(this.targetType, this.getTargetSearchArea(this.followDistance));
+        List<T> list = this.mob.getCommandSenderWorld().getEntitiesOfClass(
+                this.targetType,
+                this.getTargetSearchArea(this.followDistance)
+        );
 
         List<TargetWithFightMark> testifiedTargets = Lists.newArrayListWithExpectedSize(list.size());
 

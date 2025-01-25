@@ -1,9 +1,6 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.entities.ICompanion;
 import com.talhanation.recruits.entities.MessengerEntity;
-import com.talhanation.recruits.entities.ai.async.EntityCache;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -41,16 +38,16 @@ public class MessageOpenMessengerAnswerScreen implements Message<MessageOpenMess
             return;
         }
 
-        EntityCache.withLevel(player.getLevel()).getEntitiesOfClass(
+        player.getLevel().getEntitiesOfClass(
                 MessengerEntity.class,
                 player.getBoundingBox().inflate(16.0D),
                 v -> v.getUUID().equals(this.recruit)
-        ).stream().filter(Entity::isAlive).findAny().ifPresent(messenger -> messenger.openAnswerGUI(player));;
+        ).stream().filter(Entity::isAlive).findAny().ifPresent(messenger -> messenger.openAnswerGUI(player));
     }
     @Override
     public MessageOpenMessengerAnswerScreen fromBytes(FriendlyByteBuf buf) {
         this.player = buf.readUUID();
-        this.recruit= buf.readUUID();
+        this.recruit = buf.readUUID();
         return this;
     }
 
