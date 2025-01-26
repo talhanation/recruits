@@ -58,13 +58,11 @@ import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.common.Tags;
@@ -345,7 +343,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putInt("Level", this.getXpLevel());
         nbt.putInt("Kills", this.getKills());
         nbt.putFloat("Hunger", this.getHunger());
-        nbt.putFloat("Moral", this.getMoral());
+        nbt.putFloat("Moral", this.getMorale());
         nbt.putBoolean("isOwned", this.getIsOwned());
         nbt.putInt("Cost", this.getCost());
         nbt.putInt("mountTimer", this.getMountTimer());
@@ -521,7 +519,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return entityData.get(OWNED);
     }
 
-    public float getMoral() {
+    public float getMorale() {
         return this.entityData.get(MORAL);
     }
 
@@ -653,13 +651,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     @Nullable
     public LivingEntity getProtectingMob(){
-        List<LivingEntity> list = this.level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(32D));
-        for(LivingEntity living : list){
-            if (this.getProtectUUID() != null && living.getUUID().equals(this.getProtectUUID()) && living.isAlive()){
-                return living;
-            }
-        }
-        return null;
+        List<LivingEntity> list = this.getLevel().getEntitiesOfClass(
+                LivingEntity.class,
+                this.getBoundingBox().inflate(32D),
+                (living) -> this.getProtectUUID() != null && living.getUUID().equals(this.getProtectUUID()) && living.isAlive()
+        );
+        return list.isEmpty() ? null : list.get(0);
     }
 
     public int getColor() {
@@ -1161,7 +1158,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if (entity != null && !(entity instanceof Player) && !(entity instanceof AbstractArrow)) {
                 amt = (amt + 1.0F) / 2.0F;
             }
-            if(this.getMoral() > 0) this.setMoral(this.getMoral() - 0.25F);
+            if(this.getMorale() > 0) this.setMoral(this.getMorale() - 0.25F);
             if(isBlocking()) hurtCurrentlyUsedShield(amt);
 
             if(entity instanceof LivingEntity living && RecruitEvents.canDamageTarget(this, living)){
@@ -1214,7 +1211,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.addXp(1);
         if(this.getHunger() > 0) this.setHunger(this.getHunger() - 0.1F);
         this.checkLevel();
-        if(this.getMoral() < 100) this.setMoral(this.getMoral() + 0.25F);
+        if(this.getMorale() < 100) this.setMoral(this.getMorale() + 0.25F);
         this.damageMainHandItem();
         return true;
     }
@@ -1286,7 +1283,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void updateMorale(){
         //fast recovery
-        float currentMorale = getMoral();
+        float currentMorale = getMorale();
         float newMorale = currentMorale;
 
         if (isStarving() && this.isOwned()){
@@ -1307,9 +1304,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void applyMoralEffects(){
-        boolean confused =  0 <= getMoral() && getMoral() < 20;
-        boolean lowMoral =  20 <= getMoral() && getMoral() < 40;
-        boolean highMoral =  90 <= getMoral() && getMoral() <= 100;
+        boolean confused =  0 <= getMorale() && getMorale() < 20;
+        boolean lowMoral =  20 <= getMorale() && getMorale() < 40;
+        boolean highMoral =  90 <= getMorale() && getMorale() <= 100;
 
         if (confused) {
             if (!this.hasEffect(MobEffects.WEAKNESS))
@@ -1401,8 +1398,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.heal(10F);
             this.recalculateCost();
 
-            if(this.getMoral() < 100)
-                this.setMoral(getMoral() + 5F);
+            if(this.getMorale() < 100)
+                this.setMoral(getMorale() + 5F);
         }
     }
 
@@ -1566,38 +1563,38 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         this.addXp(5);
         this.setKills(this.getKills() + 1);
-        if(this.getMoral() < 100) this.setMoral(this.getMoral() + 1);
+        if(this.getMorale() < 100) this.setMoral(this.getMorale() + 1);
 
         if(living instanceof Player){
             this.addXp(45);
-            if(this.getMoral() < 100) this.setMoral(this.getMoral() + 9);
+            if(this.getMorale() < 100) this.setMoral(this.getMorale() + 9);
         }
 
         if(living instanceof Raider){
             this.addXp(5);
-            if(this.getMoral() < 100) this.setMoral(this.getMoral() + 2);
+            if(this.getMorale() < 100) this.setMoral(this.getMorale() + 2);
         }
 
         if(living instanceof Villager villager){
-            if (villager.isBaby()) if(this.getMoral() > 0) this.setMoral(this.getMoral() - 10);
+            if (villager.isBaby()) if(this.getMorale() > 0) this.setMoral(this.getMorale() - 10);
             else {
-                if (this.getMoral() > 0) this.setMoral(this.getMoral() - 2);
+                if (this.getMorale() > 0) this.setMoral(this.getMorale() - 2);
             }
         }
 
         if(living instanceof WitherBoss){
             this.addXp(99);
-            if(this.getMoral() < 100) this.setMoral(this.getMoral() + 9);
+            if(this.getMorale() < 100) this.setMoral(this.getMorale() + 9);
         }
 
         if(living instanceof IronGolem){
             this.addXp(49);
-            if(this.getMoral() > 0) this.setMoral(this.getMoral() - 1);
+            if(this.getMorale() > 0) this.setMoral(this.getMorale() - 1);
         }
 
         if(living instanceof EnderDragon){
             this.addXp(999);
-            if(this.getMoral() < 100) this.setMoral(this.getMoral() + 49);
+            if(this.getMorale() < 100) this.setMoral(this.getMorale() + 49);
         }
 
         this.checkLevel();
@@ -1953,18 +1950,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     private void pickUpArrows() {
-        List<AbstractArrow> arrows = this.level.getEntitiesOfClass(AbstractArrow.class, this.getBoundingBox().inflate(4D));
-        for (AbstractArrow arrow : arrows){
-            boolean onGround = arrow.inGround;
-            boolean pickUpAllowed = arrow.pickup == AbstractArrow.Pickup.ALLOWED;
-            boolean canAdd = this.getInventory().canAddItem(Items.ARROW.getDefaultInstance());
-
-            if(onGround && pickUpAllowed && canAdd){
-                this.getInventory().addItem(Items.ARROW.getDefaultInstance());
-                arrow.moveTo(this.position());
-                arrow.discard();
-            }
-        }
+        this.getLevel().getEntitiesOfClass(
+                AbstractArrow.class,
+                this.getBoundingBox().inflate(4D),
+                (arrow) -> arrow.inGround &&
+                        arrow.pickup == AbstractArrow.Pickup.ALLOWED &&
+                        this.getInventory().canAddItem(Items.ARROW.getDefaultInstance())
+        ).forEach((arrow) -> {
+            this.getInventory().addItem(Items.ARROW.getDefaultInstance());
+            arrow.moveTo(this.position());
+            arrow.discard();
+        });
     }
 
     @Override

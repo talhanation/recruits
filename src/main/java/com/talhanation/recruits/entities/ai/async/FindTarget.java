@@ -81,7 +81,7 @@ public class FindTarget<T extends LivingEntity>  {
 
         for(TargetWithFightMark t1 : testifiedTargets) {
             double d1 = t1.getTarget().distanceToSqr(this.mob.getX(), this.mob.getY(), this.mob.getZ());
-            if (anyTarget == null && d0 == -1.0D || d1 < d0) {
+            if (anyTarget == null && (d0 == -1.0D || d1 < d0)) {
                 anyTarget = t1.getTarget();
                 d0 = d1;
             } else if (!t1.getInFight() && (anyD0 == -1.0D || d1 < anyD0)){

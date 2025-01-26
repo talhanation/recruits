@@ -309,7 +309,7 @@ public class RecruitEvents {
                     recruit.setTarget(blockBreaker);
                 }
 
-                if(!warn[0] && canDamageTargetBlockEvent(recruit, blockBreaker) && recruit.getState() == 0 && recruit.isOwned()) {
+                if (!warn[0] && canDamageTargetBlockEvent(recruit, blockBreaker) && recruit.getState() == 0 && recruit.isOwned()) {
                     warn[0] = true;
                     name[0] = recruit.getName().toString();
                 }
@@ -335,13 +335,13 @@ public class RecruitEvents {
                     recruit.setTarget(blockBreaker);
                 }
 
-                if(!warn[0] && canDamageTargetBlockEvent(recruit, blockBreaker) && recruit.getState() == 0 && recruit.isOwned()) {
+                if (!warn[0] && canDamageTargetBlockEvent(recruit, blockBreaker) && recruit.getState() == 0 && recruit.isOwned()) {
                     warn[0] = true;
                     name[0] = recruit.getName().toString();
                 }
             });
 
-            if(warn[0]) {
+            if (warn[0]) {
                 warnPlayer(blockBreaker, TEXT_BLOCK_WARN(name[0]));
             }
         }
@@ -353,25 +353,27 @@ public class RecruitEvents {
             Entity blockPlacer = event.getEntity();
 
             if (blockPlacer instanceof LivingEntity livingBlockPlacer) {
-                List<AbstractRecruitEntity> list = livingBlockPlacer.getLevel().
-                        getEntitiesOfClass(
-                                AbstractRecruitEntity.class,
-                                livingBlockPlacer.getBoundingBox().inflate(32.0D)
-                        );
+                final boolean[] warn = {false};
+                final String[] name = new String[1];
 
-                for (AbstractRecruitEntity recruits : list) {
-                    if (canDamageTargetBlockEvent(recruits, livingBlockPlacer) && recruits.getState() == 1) {
-                        recruits.setTarget(livingBlockPlacer);
+                livingBlockPlacer.getLevel().getEntitiesOfClass(
+                        AbstractRecruitEntity.class,
+                        livingBlockPlacer.getBoundingBox().inflate(32.0D),
+                        (recruit) -> canDamageTargetBlockEvent(recruit, livingBlockPlacer)
+                ).forEach((recruit) -> {
+                    if (recruit.getState() == 1) {
+                        recruit.setTarget(livingBlockPlacer);
                     }
-                }
 
-                if (blockPlacer instanceof Player player &&
-                        list.stream().anyMatch(
-                                recruit -> canDamageTargetBlockEvent(
-                                        recruit,
-                                        livingBlockPlacer
-                                ) && recruit.getState() == 0 && recruit.isOwned())) {
-                    warnPlayer(player, TEXT_BLOCK_WARN(list.get(0).getName().getString()));
+                    if (blockPlacer instanceof Player && !warn[0] &&
+                            recruit.getState() == 0 && recruit.isOwned()) {
+                        warn[0] = true;
+                        name[0] = recruit.getName().toString();
+                    }
+                });
+
+                if (blockPlacer instanceof Player player && warn[0]) {
+                    warnPlayer(player, TEXT_BLOCK_WARN(name[0]));
                 }
             }
         }
@@ -379,16 +381,26 @@ public class RecruitEvents {
         if (RecruitsServerConfig.NeutralRecruitsBlockPlaceBreakEvents.get()) {
             Entity blockPlacer = event.getEntity();
 
-            if (blockPlacer instanceof LivingEntity livingBlockPlacer) {
-                List<AbstractRecruitEntity> list = Objects.requireNonNull(livingBlockPlacer.level.getEntitiesOfClass(AbstractRecruitEntity.class, livingBlockPlacer.getBoundingBox().inflate(32.0D)));
-                for (AbstractRecruitEntity recruits : list) {
-                    if (canDamageTargetBlockEvent(recruits, livingBlockPlacer) && recruits.getState() == 0 && recruits.isOwned()) {
-                        recruits.setTarget(livingBlockPlacer);
-                    }
-                }
+            final boolean[] warn = {false};
+            final String[] name = new String[1];
 
-                if (blockPlacer instanceof Player player && list.stream().anyMatch(recruit -> canDamageTargetBlockEvent(recruit, livingBlockPlacer) && recruit.getState() == 0 && recruit.isOwned())) {
-                    warnPlayer(player, TEXT_BLOCK_WARN(list.get(0).getName().getString()));
+            if (blockPlacer instanceof LivingEntity livingBlockPlacer) {
+                livingBlockPlacer.getLevel().getEntitiesOfClass(
+                        AbstractRecruitEntity.class,
+                        livingBlockPlacer.getBoundingBox().inflate(32.0D),
+                        (recruit) -> canDamageTargetBlockEvent(recruit, livingBlockPlacer) &&
+                                recruit.getState() == 0 && recruit.isOwned()
+                ).forEach((recruit) -> {
+                    recruit.setTarget(livingBlockPlacer);
+
+                    if (blockPlacer instanceof Player && !warn[0]) {
+                        warn[0] = true;
+                        name[0] = recruit.getName().toString();
+                    }
+                });
+
+                if (blockPlacer instanceof Player player && warn[0]) {
+                    warnPlayer(player, TEXT_BLOCK_WARN(name[0]));
                 }
             }
         }
@@ -412,10 +424,11 @@ public class RecruitEvents {
                 selectedBlock.is(BlockTags.ANVIL) ||
                 (blockEntity instanceof Container)
         ) {
-
-
             if (RecruitsServerConfig.AggroRecruitsBlockInteractingEvents.get()) {
-                List<AbstractRecruitEntity> list = Objects.requireNonNull(player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(32.0D)));
+                List<AbstractRecruitEntity> list = player.level.getEntitiesOfClass(
+                        AbstractRecruitEntity.class,
+                        player.getBoundingBox().inflate(32.0D)
+                );
                 for (AbstractRecruitEntity recruits : list) {
                     if (canDamageTargetBlockEvent(recruits, player) && recruits.getState() == 1) {
                         recruits.setTarget(player);
@@ -513,23 +526,19 @@ public class RecruitEvents {
         Entity target = event.getEntity();
 
         if (target instanceof AbstractRecruitEntity recruit) {
+            if (!recruit.getIsOwned() || server.overworld().isClientSide()) return;
 
-            //Morale loss when recruits friend die
-            if (recruit.getIsOwned() && !server.overworld().isClientSide()) {
-                UUID owner = recruit.getOwnerUUID();
-                List<AbstractRecruitEntity> recruits = recruit.level.getEntitiesOfClass(AbstractRecruitEntity.class, recruit.getBoundingBox().inflate(64.0D));
-
-                for (AbstractRecruitEntity recruit2 : recruits) {
-                    if (recruit2.getOwnerUUID() != null && recruit2.getOwnerUUID().equals(owner)) {
-                        float currentMoral = recruit2.getMoral();
-                        float newMorale = currentMoral - 0.2F;
-                        if (newMorale > 0) recruit2.setMoral(newMorale);
-                        else recruit2.setMoral(0F);
-
-                        //add to target list
-                    }
-                }
-            }
+            //Morale loss when recruits teammate die
+            UUID owner = recruit.getOwnerUUID();
+            recruit.getLevel().getEntitiesOfClass(
+                    AbstractRecruitEntity.class,
+                    recruit.getBoundingBox().inflate(64.0D),
+                    (entity) -> entity.getOwnerUUID() != null && entity.getOwnerUUID().equals(owner)
+            ).forEach((entity) -> {
+                float currentMoral = entity.getMorale();
+                float newMorale = currentMoral - 0.2F;
+                entity.setMoral(Math.max(newMorale, 0F));
+            });
         }
     }
 

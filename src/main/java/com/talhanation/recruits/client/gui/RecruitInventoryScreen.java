@@ -22,10 +22,8 @@ import net.minecraft.world.item.Items;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @OnlyIn(Dist.CLIENT)
 public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
@@ -403,7 +401,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         super.renderLabels(matrixStack, mouseX, mouseY);
         int health = Mth.ceil(recruit.getHealth());
         int hunger = Mth.ceil(recruit.getHunger());
-        int moral = Mth.ceil(recruit.getMoral());
+        int moral = Mth.ceil(recruit.getMorale());
         this.follow = recruit.getFollowState();
         this.aggro = recruit.getState();
 

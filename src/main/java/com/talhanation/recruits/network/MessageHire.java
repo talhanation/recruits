@@ -30,12 +30,11 @@ public class MessageHire implements Message<MessageHire> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.level.getEntitiesOfClass(
+        player.getLevel().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(16.0D),
                 v -> v.getUUID().equals(this.recruit) && v.isAlive()
-        ).stream().findAny().ifPresent(abstractRecruitEntity ->
-                CommandEvents.handleRecruiting(player, abstractRecruitEntity));
+        ).forEach(recruit -> CommandEvents.handleRecruiting(player, recruit));
     }
 
     public MessageHire fromBytes(FriendlyByteBuf buf) {

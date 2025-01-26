@@ -3,6 +3,7 @@ package com.talhanation.recruits.network;
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -28,13 +29,12 @@ public class MessageAssassinCount implements Message<MessageAssassinCount> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        List<AssassinLeaderEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AssassinLeaderEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
-        for (AssassinLeaderEntity recruits : list){
-
-            if (recruits.getUUID().equals(this.uuid))
-                recruits.setCount(this.count);
-        }
-
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        player.getLevel().getEntitiesOfClass(
+                AssassinLeaderEntity.class,
+                player.getBoundingBox().inflate(16.0D),
+                (leader) -> leader.getUUID().equals(this.uuid)
+        ).forEach((leader) -> leader.setCount(this.count));
     }
     public MessageAssassinCount fromBytes(FriendlyByteBuf buf) {
         this.count = buf.readInt();

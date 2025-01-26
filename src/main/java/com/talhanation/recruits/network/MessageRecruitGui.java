@@ -39,7 +39,7 @@ public class MessageRecruitGui implements Message<MessageRecruitGui> {
             return;
         }
 
-        player.level.getEntitiesOfClass(
+        player.getLevel().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(16.0D),
                 v -> v.getUUID().equals(this.recruit) && v.isAlive()
