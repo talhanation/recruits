@@ -31,7 +31,7 @@ public class Sensing extends net.minecraft.world.entity.ai.sensing.Sensing {
             return false;
         } else {
             this.mob.level.getProfiler().push("hasLineOfSight");
-            boolean flag = VisibilityGraphCache.canSee(this.mob, (LivingEntity) p_148307_);
+            boolean flag = VisibilityGraphCache.canSee(this.mob, p_148307_);
             this.mob.level.getProfiler().pop();
             if (flag) {
                 this.seen.add(i);

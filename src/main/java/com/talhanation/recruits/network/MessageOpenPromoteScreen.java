@@ -42,17 +42,14 @@ public class MessageOpenPromoteScreen implements Message<MessageOpenPromoteScree
         player.getLevel().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(16.0D),
-                v -> v.getUUID().equals(this.recruit)
-        ).stream().
-                filter(Entity::isAlive).
-                findAny().
-                ifPresent(recruit ->  RecruitEvents.openPromoteScreen(player, recruit));
+                v -> v.getUUID().equals(this.recruit) && v.isAlive()
+        ).forEach((recruit) -> RecruitEvents.openPromoteScreen(player, recruit));
     }
 
     @Override
     public MessageOpenPromoteScreen fromBytes(FriendlyByteBuf buf) {
         this.player = buf.readUUID();
-        this.recruit= buf.readUUID();
+        this.recruit = buf.readUUID();
         return this;
     }
 
@@ -61,5 +58,4 @@ public class MessageOpenPromoteScreen implements Message<MessageOpenPromoteScree
         buf.writeUUID(player);
         buf.writeUUID(recruit);
     }
-
 }

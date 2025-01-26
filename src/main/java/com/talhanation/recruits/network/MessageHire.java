@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class MessageHire implements Message<MessageHire> {
@@ -15,7 +16,8 @@ public class MessageHire implements Message<MessageHire> {
     private UUID player;
     private UUID recruit;
 
-    public MessageHire() {}
+    public MessageHire() {
+    }
 
     public MessageHire(UUID player, UUID recruit) {
         this.player = player;
@@ -26,18 +28,14 @@ public class MessageHire implements Message<MessageHire> {
         return Dist.DEDICATED_SERVER;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
-
-        ServerPlayer player = context.getSender();
-        player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
-                .inflate(16.0D), v -> v
-                .getUUID()
-                .equals(this.recruit))
-                .stream()
-                .filter(AbstractRecruitEntity::isAlive)
-                .findAny()
-                .ifPresent(abstractRecruitEntity -> CommandEvents.handleRecruiting(player, abstractRecruitEntity));
-
+    public void executeServerSide(NetworkEvent.Context context) {
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        player.level.getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                player.getBoundingBox().inflate(16.0D),
+                v -> v.getUUID().equals(this.recruit) && v.isAlive()
+        ).stream().findAny().ifPresent(abstractRecruitEntity ->
+                CommandEvents.handleRecruiting(player, abstractRecruitEntity));
     }
 
     public MessageHire fromBytes(FriendlyByteBuf buf) {
@@ -50,5 +48,4 @@ public class MessageHire implements Message<MessageHire> {
         buf.writeUUID(this.player);
         buf.writeUUID(this.recruit);
     }
-
 }

@@ -1,11 +1,8 @@
 package com.talhanation.recruits.entities.ai.async;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.talhanation.recruits.pathfinding.AsyncPath;
-import com.talhanation.recruits.util.CommonThreadExecutor;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.pathfinder.Path;
 import net.minecraftforge.fml.util.thread.SidedThreadGroups;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,21 +19,21 @@ public class FindTargetProcessor {
             TimeUnit.SECONDS,
             new LinkedBlockingQueue<>(),
             new ThreadFactoryBuilder()
-                    .setNameFormat("petal-path-processor-%d")
+                    .setNameFormat("recruits-target-find-processor-%d")
                     .setPriority(Thread.NORM_PRIORITY - 2)
                     .build()
     );
 
     public static <T extends LivingEntity> void queue(@NotNull FindTarget<T> target) {
-        if(Thread.currentThread().getThreadGroup() != SidedThreadGroups.SERVER) return;
+        if (Thread.currentThread().getThreadGroup() != SidedThreadGroups.SERVER) return;
         CompletableFuture.runAsync(target::findTargetNormal, commonExecutor);
     }
 
     public static <T extends LivingEntity> void awaitProcessing(@Nullable FindTarget<T> findTarget, MinecraftServer server, Consumer<@Nullable FindTarget<T>> afterProcessing) {
-        if(Thread.currentThread().getThreadGroup() != SidedThreadGroups.SERVER) return;
+        if (Thread.currentThread().getThreadGroup() != SidedThreadGroups.SERVER) return;
         if (findTarget == null) {
-           afterProcessing.accept(null);
-           return;
+            afterProcessing.accept(null);
+            return;
         }
 
         if (!findTarget.isProcessed()) {
