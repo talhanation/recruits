@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai.async;
 
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -7,7 +8,7 @@ import java.time.Instant;
 import java.util.Random;
 
 public class CacheEntry {
-    private final double timeToLiveMs = 1400 + new Random().nextInt(200);
+    private final double timeToLiveMs = RecruitsServerConfig.VisibilityCacheTimeToLive.get() - 100 + new Random().nextInt(200);
     LivingEntity first;
     Entity second;
     boolean canSee;

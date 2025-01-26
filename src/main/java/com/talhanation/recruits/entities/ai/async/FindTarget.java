@@ -52,7 +52,7 @@ public class FindTarget<T extends LivingEntity>  {
         return this.mob.getBoundingBox().inflate(range, range, range);
     }
 
-    protected synchronized void findTargetNormal() {
+    public synchronized void findTargetNormal() {
         if (this.processState == ProcessState.COMPLETED || this.processState == ProcessState.PROCESSING) {
             return;
         }

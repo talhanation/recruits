@@ -1,6 +1,7 @@
 package com.talhanation.recruits.pathfinding;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.pathfinder.Path;
 import org.jetbrains.annotations.NotNull;
@@ -13,9 +14,9 @@ import java.util.function.Consumer;
  * used to handle the scheduling of async path processing
  */
 public class AsyncPathProcessor {
-    private static final int workersCount = Math.max(Runtime.getRuntime().availableProcessors() / 4, 1);
+    private static final int workersCount = RecruitsServerConfig.AsyncPathfindingThreadsCount.get();
     private static final Executor pathFindingExecutor = new ThreadPoolExecutor(
-            workersCount,
+            1,
             workersCount,
             60,
             TimeUnit.SECONDS,

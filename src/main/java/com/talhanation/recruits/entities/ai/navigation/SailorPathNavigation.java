@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities.ai.navigation;
 
 import com.google.common.collect.ImmutableSet;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.CaptainEntity;
 import com.talhanation.recruits.entities.IBoatController;
 import com.talhanation.recruits.pathfinding.AsyncPathfinder;
@@ -10,13 +11,16 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.navigation.WaterBoundPathNavigation;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.pathfinder.NodeEvaluator;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.pathfinder.PathFinder;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.function.BiFunction;
 
 public class SailorPathNavigation extends AsyncWaterBoundPathNavigation {
+    private static BiFunction<Integer, NodeEvaluator, PathFinder> pathfinderSupplier = (p_26453_, nodeEvaluator) -> new PathFinder(nodeEvaluator, p_26453_);
     CaptainEntity worker;
 
     private static final NodeEvaluatorGenerator nodeEvaluatorGenerator = SailorNodeEvaluator::new;
@@ -24,11 +28,14 @@ public class SailorPathNavigation extends AsyncWaterBoundPathNavigation {
     public SailorPathNavigation(IBoatController sailor, Level level) {
         super(sailor.getCaptain(), level);
         this.worker = sailor.getCaptain();
+        if(RecruitsServerConfig.UseAsyncPathfinding.get()) {
+            pathfinderSupplier = (p_26453_, nodeEvaluator) -> new AsyncPathfinder(nodeEvaluator, p_26453_, nodeEvaluatorGenerator, this.level);
+        }
     }
 
-    protected @NotNull AsyncPathfinder createPathFinder(int maxVisitedNodes) {
+    protected @NotNull PathFinder createPathFinder(int maxVisitedNodes) {
         this.nodeEvaluator = new SailorNodeEvaluator();
-        return new AsyncPathfinder(this.nodeEvaluator, maxVisitedNodes, nodeEvaluatorGenerator, this.level);
+        return pathfinderSupplier.apply(maxVisitedNodes, this.nodeEvaluator);
     }
 
     @Override

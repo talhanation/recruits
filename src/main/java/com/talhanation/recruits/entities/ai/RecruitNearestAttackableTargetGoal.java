@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ai.async.FindTarget;
 import com.talhanation.recruits.entities.ai.async.FindTargetProcessor;
@@ -13,7 +14,7 @@ import java.util.EnumSet;
 import java.util.function.Predicate;
 
 public class RecruitNearestAttackableTargetGoal<T extends LivingEntity> extends TargetGoal {
-    private static final int DEFAULT_RANDOM_INTERVAL = 10;
+    private final Runnable targetFinder;
     private FindTarget<T> findTarget;
     private final Predicate<LivingEntity> predicate;
     protected final Class<T> targetType;
@@ -28,6 +29,15 @@ public class RecruitNearestAttackableTargetGoal<T extends LivingEntity> extends 
         this.randomInterval = reducedTickDelay(randomInterval);
         this.setFlags(EnumSet.of(Goal.Flag.TARGET));
         this.predicate = predicate;
+        if (RecruitsServerConfig.UseAsyncTargetFinding.get()) {
+            this.targetFinder = this::scheduleFindTarget;
+        } else {
+            this.targetFinder = () -> {
+                FindTarget<T> findTarget = new FindTarget<>(this.mob, this.targetType, this.getFollowDistance(), this.predicate);
+                findTarget.findTargetNormal();
+                this.target = findTarget.getTarget();
+            };
+        }
     }
 
     public boolean canUse() {
@@ -38,7 +48,7 @@ public class RecruitNearestAttackableTargetGoal<T extends LivingEntity> extends 
                 return false;
             }
 
-            this.scheduleFindTarget();
+            this.targetFinder.run();
             return this.target != null;
         }
     }
@@ -59,7 +69,7 @@ public class RecruitNearestAttackableTargetGoal<T extends LivingEntity> extends 
             return;
         }
 
-        if(target == null || isInFight(this.target)) this.scheduleFindTarget();
+        if(target == null || isInFight(this.target)) this.targetFinder.run();
     }
 
     private boolean isInFight(LivingEntity living) {

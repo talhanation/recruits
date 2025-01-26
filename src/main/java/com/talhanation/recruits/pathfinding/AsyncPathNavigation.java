@@ -1,6 +1,7 @@
 package com.talhanation.recruits.pathfinding;
 
 import com.google.common.collect.ImmutableSet;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.protocol.game.DebugPackets;
@@ -21,10 +22,12 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class AsyncPathNavigation extends PathNavigation {
+    private static BiFunction<Integer, NodeEvaluator, PathFinder> pathfinderSupplier = (p_26453_, nodeEvaluator) -> new PathFinder(nodeEvaluator, p_26453_);
     @Nullable
     private BlockPos targetPos;
     private int reachRange;
@@ -34,11 +37,14 @@ public abstract class AsyncPathNavigation extends PathNavigation {
     public AsyncPathNavigation(PathfinderMob p_26515_, Level p_26516_) {
         super(p_26515_, p_26516_);
         int i = Mth.floor(p_26515_.getAttributeValue(Attributes.FOLLOW_RANGE) * 16.0D);
+        if(RecruitsServerConfig.UseAsyncPathfinding.get()) {
+            pathfinderSupplier = (p_26453_, nodeEvaluator) -> new AsyncPathfinder(nodeEvaluator, p_26453_, this.level);
+        }
         this.pathFinder = this.createPathFinder(i);
     }
     
     protected @NotNull PathFinder createPathFinder(int p_26531_) {
-        return new AsyncPathfinder(this.nodeEvaluator, p_26531_);
+        return pathfinderSupplier.apply(p_26531_, this.nodeEvaluator);
     }
 
     @Nullable
@@ -106,18 +112,19 @@ public abstract class AsyncPathNavigation extends PathNavigation {
                 this.targetPos = p_148223_.iterator().next(); // petal - assign early a target position. most calls will only have 1 position
 
             // petal start - async
-            AsyncPathProcessor.awaitProcessing(path, this.level.getServer(), processedPath -> {
-                if (processedPath != this.path){
-                    return; // petal - check that processing didn't take so long that we calculated a new path
-                }
+            if(RecruitsServerConfig.UseAsyncPathfinding.get()) {
+                AsyncPathProcessor.awaitProcessing(path, this.level.getServer(), processedPath -> {
+                    if (processedPath != this.path){
+                        return; // petal - check that processing didn't take so long that we calculated a new path
+                    }
 
-                if (processedPath != null) {
-                    this.targetPos = processedPath.getTarget();
-                    this.reachRange = p_148226_;
-                    this.resetStuckTimeout();
-                }
-            });
-
+                    if (processedPath != null) {
+                        this.targetPos = processedPath.getTarget();
+                        this.reachRange = p_148226_;
+                        this.resetStuckTimeout();
+                    }
+                });
+            }
             return path;
         }
     }

@@ -1,5 +1,6 @@
 package com.talhanation.recruits.pathfinding;
 
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -11,7 +12,12 @@ import net.minecraft.world.level.pathfinder.*;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
 public class AsyncGroundPathNavigation extends AsyncPathNavigation {
+    private static BiFunction<Integer, NodeEvaluator, PathFinder> pathfinderSupplier = (p_26453_, nodeEvaluator) -> new PathFinder(nodeEvaluator, p_26453_);
     // petal start
     private static final NodeEvaluatorGenerator nodeEvaluatorGenerator = () -> {
         NodeEvaluator nodeEvaluator = new WalkNodeEvaluator();
@@ -25,12 +31,15 @@ public class AsyncGroundPathNavigation extends AsyncPathNavigation {
 
     public AsyncGroundPathNavigation(PathfinderMob p_26448_, Level p_26449_) {
         super(p_26448_, p_26449_);
+        if(RecruitsServerConfig.UseAsyncPathfinding.get()) {
+            pathfinderSupplier = (p_26453_, nodeEvaluator) -> new AsyncPathfinder(nodeEvaluator, p_26453_, nodeEvaluatorGenerator, this.level);
+        }
     }
 
     protected @NotNull PathFinder createPathFinder(int p_26453_) {
         this.nodeEvaluator = new WalkNodeEvaluator();
         this.nodeEvaluator.setCanPassDoors(true);
-        return new AsyncPathfinder(this.nodeEvaluator, p_26453_, nodeEvaluatorGenerator, this.level);
+        return pathfinderSupplier.apply(p_26453_, this.nodeEvaluator);
     }
 
     protected boolean canUpdatePath() {

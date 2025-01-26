@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities.ai.async;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.fml.util.thread.SidedThreadGroups;
@@ -11,9 +12,9 @@ import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 public class FindTargetProcessor {
-    private static final int workersCount = Math.max(Runtime.getRuntime().availableProcessors() / 6, 1);
+    private static final int workersCount = RecruitsServerConfig.AsyncTargetFindingThreadsCount.get();
     private static final Executor commonExecutor = new ThreadPoolExecutor(
-            workersCount,
+            1,
             workersCount,
             60,
             TimeUnit.SECONDS,

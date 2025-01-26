@@ -25,6 +25,13 @@ public class AsyncPathfinder extends PathFinder {
         this.maxVisitedNodes = p_77426_;
     }
 
+    public AsyncPathfinder(NodeEvaluator p_77425_, int p_77426_, Level level) {
+        super(p_77425_, p_77426_);
+        this.nodeEvaluator = p_77425_;
+        this.maxVisitedNodes = p_77426_;
+        this.level = level;
+    }
+
     public AsyncPathfinder(NodeEvaluator p_77425_, int p_77426_, NodeEvaluatorGenerator nodeEvaluatorGenerator, Level level) {
         super(p_77425_, p_77426_);
         this.maxVisitedNodes = p_77426_;
