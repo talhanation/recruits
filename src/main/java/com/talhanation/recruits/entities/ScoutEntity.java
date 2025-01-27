@@ -212,13 +212,13 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
             potentialPlayerTargets = this.getCommandSenderWorld().getEntitiesOfClass(
                     ServerPlayer.class,
                     this.getBoundingBox().inflate(SEARCH_RADIUS),
-                    (target) -> isNonAlly(target) && this.hasLineOfSight(target)
+                    (target) -> shouldAttack(target) && this.hasLineOfSight(target)
             );
 
             potentialRecruitTargets = this.getCommandSenderWorld().getEntitiesOfClass(
                     AbstractRecruitEntity.class,
                     this.getBoundingBox().inflate(SEARCH_RADIUS),
-                    (target) -> isNonAlly(target) && this.hasLineOfSight(target)
+                    (target) -> shouldAttack(target) && this.hasLineOfSight(target)
             );
 
             if(!potentialPlayerTargets.isEmpty()){
@@ -233,7 +233,7 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
                     result.sendInfo(this);
                 }
             }
-
+            /*
             if(!potentialRecruitTargets.isEmpty()){
                 Map<String, Integer> teamRecruitCount = potentialRecruitTargets.stream()
                         .collect(Collectors.toMap(
@@ -251,6 +251,8 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
                     ScoutingResult result = new ScoutingResult(teamName, recruitCount, distance, direction);
                 }
             }
+
+             */
         }
     }
 
@@ -260,20 +262,6 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
         potentialRecruitTargets.removeIf(predicate);
         return amount;
     }
-
-    private boolean isNonAlly(LivingEntity entity) {
-        if (entity == this || entity == this.getOwner() || !(entity instanceof Player || entity instanceof AbstractRecruitEntity)) {
-            return false;
-        }
-
-        Team scoutTeam = this.getTeam();
-        Team targetTeam = entity.getTeam();
-
-        return targetTeam != null && scoutTeam != null && TeamEvents.recruitsDiplomacyManager != null &&
-                TeamEvents.recruitsDiplomacyManager.getRelation(scoutTeam.getName(), targetTeam.getName())
-                        != RecruitsDiplomacyManager.DiplomacyStatus.ALLY;
-    }
-
 
     private String getHorizontalDirection(BlockPos from, BlockPos to) {
         double dx = to.getX() - from.getX();
@@ -300,17 +288,6 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
             return "North-East";
         }
     }
-
-    public static Component PLAYER_LOCATED(String player){
-        return new TranslatableComponent("gui.recruits.text.scoutLocatedPlayer", player);
-    }
-
-    private static class ScoutedUnits{
-        String team;
-        BlockPos pos;
-
-    }
-
     private static class ScoutingResult {
         RecruitsPlayerInfo playerInfo;
         int recruitsCount;

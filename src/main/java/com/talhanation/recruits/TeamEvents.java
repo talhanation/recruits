@@ -245,7 +245,7 @@ public class  TeamEvents {
                     addPlayerToData(level,teamName,-1, playerName);
 
                 }
-                removeRecruitFromTeam(player, level);
+                removeRecruitFromTeam(teamName, player, level);
                 return true;
             }
             else
@@ -682,9 +682,9 @@ public class  TeamEvents {
 
     }
 
-    public static void removeRecruitFromTeam(ServerPlayer player, ServerLevel level){
+    public static void removeRecruitFromTeam(String teamName, ServerPlayer player, ServerLevel level){
         List<AbstractRecruitEntity> recruits = getRecruitsOfPlayer(player.getUUID(), level);
-        Team team = player.getTeam();
+        Team team = level.getScoreboard().getPlayerTeam(teamName);
         if(team  != null){
             removeRecruitFromTeam(recruits, team, level);
         }
