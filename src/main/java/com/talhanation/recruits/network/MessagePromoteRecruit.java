@@ -30,13 +30,11 @@ public class MessagePromoteRecruit implements Message<MessagePromoteRecruit> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getLevel().getEntitiesOfClass(
+        Objects.requireNonNull(context.getSender()).getLevel().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 context.getSender().getBoundingBox().inflate(16D),
                 livingEntity -> livingEntity.getUUID().equals(this.recruit)
-        );
-        if(list.isEmpty()) return;
-        RecruitEvents.promoteRecruit(list.get(0), profession, name, context.getSender());
+        ).forEach((recruit) -> RecruitEvents.promoteRecruit(recruit, profession, name, context.getSender()));
 
     }
     public MessagePromoteRecruit fromBytes(FriendlyByteBuf buf) {

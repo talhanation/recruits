@@ -256,19 +256,13 @@ public class RecruitEvents {
         if (source instanceof LivingEntity sourceEntity) {
             if (target.getTeam() == null) return;
 
-            List<AbstractRecruitEntity> list = target.getLevel().
-                    getEntitiesOfClass(
-                            AbstractRecruitEntity.class,
-                            target.getBoundingBox().inflate(32D),
-                            (recruit) -> recruit.getTarget() == null &&
-                                    recruit.getTeam() != null &&
-                                    recruit.getTeam().equals(target.getTeam())
-                    );
-
-            if (list.isEmpty()) return;
-            AbstractRecruitEntity recruit = list.get(0);
-
-            recruit.setTarget(sourceEntity);
+            target.getLevel().getEntitiesOfClass(
+                    AbstractRecruitEntity.class,
+                    target.getBoundingBox().inflate(32D),
+                    (recruit) -> recruit.getTarget() == null &&
+                            recruit.getTeam() != null &&
+                            recruit.getTeam().equals(target.getTeam())
+            ).forEach((recruit) -> recruit.setTarget(sourceEntity));
         }
     }
 

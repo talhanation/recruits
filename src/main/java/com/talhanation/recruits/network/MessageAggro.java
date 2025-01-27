@@ -5,6 +5,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -39,12 +40,17 @@ public class MessageAggro implements Message<MessageAggro> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        Function<AbstractRecruitEntity, Boolean> triggerAggro = (recruit) -> !fromGui || recruit.getUUID().equals(this.recruit);
+
+        double boundBoxInflateModifier = 16.0D;
+        if(!fromGui) {
+            boundBoxInflateModifier = 100.0D;
+        }
+
         player.getLevel().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
-                player.getBoundingBox().inflate(16.0D)
+                player.getBoundingBox().inflate(boundBoxInflateModifier)
         ).forEach((recruit) -> {
-            if (!triggerAggro.apply(recruit)) {
+            if (fromGui && !recruit.getUUID().equals(this.recruit)) {
                 return;
             }
 

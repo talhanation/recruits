@@ -8,11 +8,10 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Objects;
 
 public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
     private static final TargetingConditions HURT_BY_TARGETING = TargetingConditions.forCombat().ignoreLineOfSight().ignoreInvisibilityTesting();
-    ;
+
     private boolean alertSameType;
     private int timestamp;
     private Class<?>[] toIgnoreAlert;
@@ -54,37 +53,32 @@ public class RecruitHurtByTargetGoal extends HurtByTargetGoal {
 
     protected void alertOthers() {
         double d0 = this.getFollowDistance();
-        AABB axisalignedbb = AABB.unitCubeFromLowerCorner(this.recruit.position()).
-                inflate(d0, 16.0D, d0);
-        List<? extends AbstractRecruitEntity> list = this.recruit.getLevel().
-                getEntitiesOfClass(
-                        this.recruit.getClass(),
-                        axisalignedbb);
+        AABB axisalignedbb = AABB.unitCubeFromLowerCorner(this.recruit.position())
+                .inflate(d0, 16.0D, d0);
+        List<? extends AbstractRecruitEntity> list = this.recruit.getLevel()
+                .getEntitiesOfClass(this.recruit.getClass(), axisalignedbb);
 
         for (AbstractRecruitEntity recruitToAlert : list) {
-            if (this.recruit != recruitToAlert &&
-                    recruitToAlert.getTarget() == null &&
-                    this.recruit.getLastHurtByMob() != null &&
-                    recruitToAlert.getOwnerUUID() != null &&
-                    this.recruit.getOwnerUUID() != null &&
-                    this.recruit.getOwnerUUID().equals((recruitToAlert).getOwnerUUID()) &&
-                    !recruitToAlert.isAlliedTo(this.recruit.getLastHurtByMob()) &&
-                    this.toIgnoreAlert != null) {
-                boolean flag = false;
+            if (this.recruit == recruitToAlert ||
+                    recruitToAlert.getTarget() != null ||
+                    this.recruit.getLastHurtByMob() == null ||
+                    this.recruit.getLastHurtByMob() == null ||
+                    recruitToAlert.getOwnerUUID() == null ||
+                    !recruitToAlert.getOwnerUUID().equals(this.recruit.getOwnerUUID()) ||
+                    recruitToAlert.isAlliedTo(this.recruit.getLastHurtByMob())) continue;
 
+            boolean shouldIgnore = false;
+            if (this.toIgnoreAlert != null) {
                 for (Class<?> oclass : this.toIgnoreAlert) {
                     if (recruitToAlert.getClass() == oclass) {
-                        flag = true;
+                        shouldIgnore = true;
                         break;
                     }
                 }
-
-                if (!flag) {
-                    continue;
-                }
             }
+            if (shouldIgnore) continue;
 
-            this.alertOther(recruitToAlert, Objects.requireNonNull(this.recruit.getLastHurtByMob()));
+            this.alertOther(recruitToAlert, this.recruit.getLastHurtByMob());
         }
     }
 }
