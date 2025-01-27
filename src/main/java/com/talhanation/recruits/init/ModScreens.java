@@ -24,6 +24,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.UUID;
 
 
@@ -361,7 +362,7 @@ public class ModScreens {
             } catch (Exception e) {
                 logger.error("Could not instantiate {}", screenConstructor.getClass().getSimpleName());
                 logger.error(e.getMessage());
-                logger.error(e.getStackTrace().toString());
+                logger.error(Arrays.toString(e.getStackTrace()));
                 return null;
             }
         });
@@ -371,12 +372,32 @@ public class ModScreens {
     @Nullable
     public static AbstractRecruitEntity getRecruitByUUID(Player player, UUID uuid) {
         double distance = 10D;
-        return player.level.getEntitiesOfClass(AbstractRecruitEntity.class, new AABB(player.getX() - distance, player.getY() - distance, player.getZ() - distance, player.getX() + distance, player.getY() + distance, player.getZ() + distance), entity -> entity.getUUID().equals(uuid)).stream().findAny().orElse(null);
+        return player.getLevel().getEntitiesOfClass(
+                    AbstractRecruitEntity.class,
+                    new AABB(
+                            player.getX() - distance,
+                            player.getY() - distance,
+                            player.getZ() - distance,
+                            player.getX() + distance,
+                            player.getY() + distance,
+                            player.getZ() + distance),
+                    entity -> entity.getUUID().equals(uuid)
+            ).stream().findAny().orElse(null);
     }
 
     @Nullable
     public static AssassinLeaderEntity getAssassinByUUID(Player player, UUID uuid) {
         double distance = 10D;
-        return player.level.getEntitiesOfClass(AssassinLeaderEntity.class, new AABB(player.getX() - distance, player.getY() - distance, player.getZ() - distance, player.getX() + distance, player.getY() + distance, player.getZ() + distance), entity -> entity.getUUID().equals(uuid)).stream().findAny().orElse(null);
+        return player.getLevel().getEntitiesOfClass(
+                    AssassinLeaderEntity.class,
+                    new AABB(
+                            player.getX() - distance,
+                            player.getY() - distance,
+                            player.getZ() - distance,
+                            player.getX() + distance,
+                            player.getY() + distance,
+                            player.getZ() + distance),
+                    entity -> entity.getUUID().equals(uuid)
+            ).stream().findAny().orElse(null);
     }
 }

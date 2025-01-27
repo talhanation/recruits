@@ -18,8 +18,8 @@ public class DebugEvents {
             case 4 -> {recruits.setHunger(recruits.getHunger() + 1);}
             case 5 -> {recruits.setHunger(recruits.getHunger() - 1);}
 
-            case 6 -> {recruits.setMoral(recruits.getMoral() + 1);}
-            case 7 -> {recruits.setMoral(recruits.getMoral() - 1);}
+            case 6 -> {recruits.setMoral(recruits.getMorale() + 1);}
+            case 7 -> {recruits.setMoral(recruits.getMorale() - 1);}
 
             case 8 -> {recruits.setHealth(recruits.getHealth() + 1);}
             case 9 -> {recruits.setHealth(recruits.getHealth() - 1);}

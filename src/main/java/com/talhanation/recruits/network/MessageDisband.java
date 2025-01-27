@@ -3,10 +3,10 @@ package com.talhanation.recruits.network;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -15,28 +15,27 @@ public class MessageDisband implements Message<MessageDisband> {
     private UUID recruit;
     private boolean keepTeam;
 
-    public MessageDisband(){
+    public MessageDisband() {
     }
 
     public MessageDisband(UUID recruit, boolean keepTeam) {
         this.recruit = recruit;
         this.keepTeam = keepTeam;
-
     }
 
     public Dist getExecutingSide() {
         return Dist.DEDICATED_SERVER;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16D));
-        for (AbstractRecruitEntity recruits : list){
-
-            if (recruits.getUUID().equals(this.recruit))
-                recruits.disband(context.getSender(), keepTeam, true);
-        }
-
+    public void executeServerSide(NetworkEvent.Context context) {
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        player.getLevel().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                player.getBoundingBox().inflate(16D),
+                (recruit) -> recruit.getUUID().equals(this.recruit)
+        ).forEach((recruit) -> recruit.disband(context.getSender(), keepTeam, true));
     }
+
     public MessageDisband fromBytes(FriendlyByteBuf buf) {
         this.recruit = buf.readUUID();
         this.keepTeam = buf.readBoolean();
@@ -47,5 +46,4 @@ public class MessageDisband implements Message<MessageDisband> {
         buf.writeUUID(recruit);
         buf.writeBoolean(keepTeam);
     }
-
 }

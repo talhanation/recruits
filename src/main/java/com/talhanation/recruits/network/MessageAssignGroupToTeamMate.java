@@ -31,8 +31,12 @@ public class MessageAssignGroupToTeamMate implements Message<MessageAssignGroupT
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer serverPlayer = context.getSender();
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100D));
+        ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
+        List<AbstractRecruitEntity> list = serverPlayer.getLevel().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                context.getSender().getBoundingBox().inflate(100D),
+                (recruit) -> recruit.getOwnerUUID() != null && recruit.getOwnerUUID().equals(owner)
+        );
         int group = -1;
 
         for (AbstractRecruitEntity recruit1 : list){
@@ -43,8 +47,7 @@ public class MessageAssignGroupToTeamMate implements Message<MessageAssignGroupT
         }
 
         for (AbstractRecruitEntity recruit : list) {
-            UUID recruitOwner = recruit.getOwnerUUID();
-            if (recruitOwner != null && recruitOwner.equals(owner) && recruit.getGroup() == group)
+            if (recruit.getGroup() == group)
                 TeamEvents.assignToTeamMate(serverPlayer, recruit);
         }
     }

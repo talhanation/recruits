@@ -21,6 +21,7 @@ public class MessageSendMessenger implements Message<MessageSendMessenger> {
 
     public MessageSendMessenger() {
     }
+
     public MessageSendMessenger(UUID recruit, String targetPlayer, String message, boolean start) {
         this.recruit = recruit;
         this.message = message;
@@ -32,22 +33,22 @@ public class MessageSendMessenger implements Message<MessageSendMessenger> {
         return Dist.DEDICATED_SERVER;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
-        List<MessengerEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(MessengerEntity.class, context.getSender().getBoundingBox().inflate(16D));
-        for (MessengerEntity messenger : list){
+    public void executeServerSide(NetworkEvent.Context context) {
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        player.getLevel().getEntitiesOfClass(
+                MessengerEntity.class,
+                player.getBoundingBox().inflate(16D),
+                (messenger) -> messenger.getUUID().equals(this.recruit)
+        ).forEach((messenger) -> {
+            messenger.setTargetPlayerName(this.targetPlayer);
+            messenger.setMessage(this.message);
 
-            if (messenger.getUUID().equals(this.recruit)){
-                messenger.setTargetPlayerName(this.targetPlayer);
-                messenger.setMessage(this.message);
-
-                if(start){
-                    messenger.start();
-                }
+            if (start) {
+                messenger.start();
             }
-
-        }
-
+        });
     }
+
     public MessageSendMessenger fromBytes(FriendlyByteBuf buf) {
         this.recruit = buf.readUUID();
         this.start = buf.readBoolean();

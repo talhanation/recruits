@@ -8,6 +8,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.Objects;
+
 public class MessageAddPlayerToTeam implements Message<MessageAddPlayerToTeam> {
 
     private String teamName;
@@ -26,10 +28,10 @@ public class MessageAddPlayerToTeam implements Message<MessageAddPlayerToTeam> {
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = context.getSender();
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
         ServerLevel world = player.getLevel();
 
-        TeamEvents.addPlayerToTeam(context.getSender(), world, this.teamName, this.namePlayerToAdd);
+        TeamEvents.addPlayerToTeam(player, world, this.teamName, this.namePlayerToAdd);
     }
 
     public MessageAddPlayerToTeam fromBytes(FriendlyByteBuf buf) {

@@ -4,6 +4,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
@@ -28,8 +29,9 @@ public class MessageApplyNoGroup implements Message<MessageApplyNoGroup> {
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
         List<AbstractRecruitEntity> recruitList = new ArrayList<>();
-        if(context.getSender().getCommandSenderWorld() instanceof ServerLevel serverLevel){
+        if(player.getCommandSenderWorld() instanceof ServerLevel serverLevel){
             for(Entity entity : serverLevel.getEntities().getAll()){
                 if(entity instanceof AbstractRecruitEntity recruit && recruit.isEffectedByCommand(owner, groupID))
                     recruitList.add(recruit);

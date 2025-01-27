@@ -11,6 +11,8 @@ import net.minecraft.server.players.PlayerList;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.Objects;
+
 public class MessageAssassinate implements Message<MessageAssassinate> {
 
     //private UUID target;
@@ -33,7 +35,7 @@ public class MessageAssassinate implements Message<MessageAssassinate> {
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = context.getSender();
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
         ServerLevel world = player.getLevel();
         MinecraftServer server = world.getServer();
         PlayerList list = server.getPlayerList();

@@ -1,6 +1,5 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
@@ -17,12 +16,11 @@ public class MessageAssignToTeamMate implements Message<MessageAssignToTeamMate>
 
     private UUID recruit;
 
-    public MessageAssignToTeamMate(){
+    public MessageAssignToTeamMate() {
     }
 
     public MessageAssignToTeamMate(UUID recruit) {
         this.recruit = recruit;
-
     }
 
     public Dist getExecutingSide() {
@@ -30,14 +28,16 @@ public class MessageAssignToTeamMate implements Message<MessageAssignToTeamMate>
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer serverPlayer = context.getSender();
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
-
-        for (AbstractRecruitEntity recruit : list) {
-                if(recruit.getUUID().equals(this.recruit))
-                    TeamEvents.assignToTeamMate(serverPlayer, recruit);
-        }
+        ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
+        serverPlayer.getLevel().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                serverPlayer.getBoundingBox().inflate(64.0D),
+                (recruit) -> recruit.getUUID().equals(this.recruit)
+        ).forEach(
+                (recruit) -> TeamEvents.assignToTeamMate(serverPlayer, recruit)
+        );
     }
+
     public MessageAssignToTeamMate fromBytes(FriendlyByteBuf buf) {
         this.recruit = buf.readUUID();
         return this;
@@ -46,5 +46,4 @@ public class MessageAssignToTeamMate implements Message<MessageAssignToTeamMate>
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(this.recruit);
     }
-
 }
