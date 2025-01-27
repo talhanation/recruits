@@ -41,10 +41,11 @@ public class RecruitMoveToPosGoal extends Goal {
                         this.recruit.getJumpControl().jump();
                     }
                 }
-            } else {
-                recruit.setShouldMovePos(false);
-                recruit.clearMovePos();
-                recruit.reachedMovePos = true;
+                else {
+                    recruit.setShouldMovePos(false);
+                    recruit.clearMovePos();
+                    recruit.reachedMovePos = true;
+                }
             }
         }
     }
