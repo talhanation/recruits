@@ -10,7 +10,8 @@
     "MobMixin",
     "WalkNodeEvaluatorMixin",
     "GoalUtilsMixin",
-    "ClassInstanceMultiMapMixin"
+    "ClassInstanceMultiMapMixin",
+    "DoorInteractGoalMixin"
   ],
   "client": [
   ],
