@@ -1338,7 +1338,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         boolean hasFood = this.hasFoodInInv();
         boolean isChest = this.getUpkeepPos() != null;
         boolean isEntity = this.getUpkeepUUID() != null;
-        return (!hasFood && timer == 0 && needsToEat && (isChest || isEntity)) && !getShouldProtect();
+
+        return (forcedUpkeep || (!hasFood && timer == 0 && needsToEat) && (isChest || isEntity)) && !getShouldProtect();
     }
 
     public boolean hasFoodInInv(){
