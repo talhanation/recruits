@@ -176,10 +176,10 @@ public class RecruitEvents {
             return;
         }
 
+
         if (!(entity instanceof Projectile projectile)) {
             return;
         }
-
         Entity owner = projectile.getOwner();
 
         if (rayTrace.getType() != HitResult.Type.ENTITY) {
@@ -187,6 +187,12 @@ public class RecruitEvents {
         }
 
         Entity impactEntity = ((EntityHitResult) rayTrace).getEntity();
+        String encode = impactEntity.getEncodeId();
+        if (encode != null && encode.contains("corpse")) {
+            event.setCanceled(true);
+            return;
+        }
+
         if (!(impactEntity instanceof LivingEntity impactLiving)) {
             return;
         }
@@ -208,14 +214,12 @@ public class RecruitEvents {
                     if (!canAttack(recruit, passengerRecruit)) {
 
                         event.setCanceled(true);
-                        canceledProjectiles.add(projectile);
                         return;
                     }
                 } else if (passenger instanceof Player player) {
                     if (!canAttack(recruit, player)) {
 
                         event.setCanceled(true);
-                        canceledProjectiles.add(projectile);
                         return;
                     }
                 }
@@ -223,7 +227,6 @@ public class RecruitEvents {
 
             if (!canAttack(recruit, impactLiving)) {
                 event.setCanceled(true);
-                canceledProjectiles.add(projectile);
                 return;
             } else {
                 recruit.addXp(2);
@@ -243,16 +246,8 @@ public class RecruitEvents {
         if (owner instanceof Player player) {
             if (!canHarmTeam(player, impactLiving)) {
                 event.setCanceled(true);
-                canceledProjectiles.add(projectile);
                 return;
             }
-        }
-
-        String encode = impactEntity.getEncodeId();
-        if (encode != null && encode.contains("corpse")) {
-            event.setCanceled(true);
-            canceledProjectiles.add(projectile);
-            return;
         }
     }
 
