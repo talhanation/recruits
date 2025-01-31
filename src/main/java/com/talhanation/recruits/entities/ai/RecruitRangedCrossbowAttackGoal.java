@@ -4,6 +4,7 @@ import com.talhanation.recruits.compat.CrossbowWeapon;
 import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.CrossBowmanEntity;
+import com.talhanation.recruits.util.AttackUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
@@ -198,9 +199,23 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
                         }
 
                         case SHOOT -> {
+                            LivingEntity savedTarget = null;
                             if (target != null && target.isAlive() && this.crossBowman.canAttack(target) && this.crossBowman.getState() != 3) {
                                 this.crossBowman.getLookControl().setLookAt(target);
-                                this.weapon.performRangedAttackIWeapon(this.crossBowman, target.getX(), target.getEyeY(), target.getZ(), weapon.getProjectileSpeed());
+
+                                if(AttackUtil.canPerformHorseAttack(this.crossBowman, target)){
+                                    if(target.getVehicle() instanceof LivingEntity) {
+                                        savedTarget = target;
+                                        target = (LivingEntity) target.getVehicle();
+                                    }
+                                }
+
+                                this.weapon.performRangedAttackIWeapon(this.crossBowman, target.getX(), target.getY(), target.getZ(), weapon.getProjectileSpeed());
+
+                                if(savedTarget != null){
+                                    target = savedTarget;
+                                }
+
                                 CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), false);
                             }
                             this.state = State.IDLE;

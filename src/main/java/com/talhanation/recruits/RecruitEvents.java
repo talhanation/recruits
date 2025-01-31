@@ -513,9 +513,23 @@ public class RecruitEvents {
             return canAttackPlayer(attacker, player);
         } else if (target instanceof AbstractRecruitEntity targetRecruit) {
             return canAttackRecruit(attacker, targetRecruit);
+        } else if (target instanceof Animal animal) {
+            return canAttackAnimal(attacker, animal);
         } else {
             return canHarmTeam(attacker, target);
         }
+    }
+
+    public static boolean canAttackAnimal(LivingEntity attacker, Animal animal) {
+        if (attacker instanceof AbstractRecruitEntity recruit ){
+            if(recruit.getVehicle() != null && recruit.getVehicle().getUUID().equals(animal.getUUID())) return false;
+
+            if(animal.isVehicle()){
+                if(animal.getFirstPassenger() instanceof AbstractRecruitEntity targetRecruit) return canAttackRecruit(attacker, targetRecruit);
+                if(animal.getFirstPassenger() instanceof Player playerTarget) return canAttackPlayer(attacker, playerTarget);
+            }
+        }
+        return canHarmTeam(attacker, animal);
     }
 
 
@@ -545,6 +559,7 @@ public class RecruitEvents {
                     attackerRecruit.getProtectUUID().equals(targetRecruit.getProtectUUID())) {
                 return false;
             }
+
         }
 
         return canHarmTeam(attacker, targetRecruit);
