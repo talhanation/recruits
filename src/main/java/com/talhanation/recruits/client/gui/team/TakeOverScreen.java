@@ -24,8 +24,6 @@ public class TakeOverScreen extends RecruitsScreenBase {
     private static final MutableComponent TOOLTIP_TAKE_OWNERSHIP = new TranslatableComponent("gui.recruits.inv.tooltip.takeOwnership");
     private static final MutableComponent TOOLTIP_OPEN_INVENTORY = new TranslatableComponent("gui.recruits.inv.tooltip.openInventory");
     private static final MutableComponent TOOLTIP_MORE = new TranslatableComponent("gui.recruits.inv.tooltip.more");
-    private static final MutableComponent PLAYER_PROMOTION = new TranslatableComponent("gui.recruits.team.playerPromotion");
-    private static final MutableComponent UNIT_MANAGEMENT = new TranslatableComponent("gui.recruits.team.unitManagement");
     private final Player player;
     private final AbstractRecruitEntity recruit;
 
