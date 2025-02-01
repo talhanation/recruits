@@ -128,7 +128,7 @@ public class AsyncPathfinder extends PathFinder {
 
                 for (int l = 0; l < k; ++l) {
                     Node node1 = neighbors[l];
-                    float f = this.distance(node, node1);
+                    float f = node.distanceTo(node1);
                     node1.walkedDistance = node.walkedDistance + f;
                     float f1 = node.g + f + node1.costMalus;
                     if (node1.walkedDistance < p_164720_ && (!node1.inOpenSet() || f1 < node1.g)) {

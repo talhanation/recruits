@@ -4,6 +4,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,7 +31,7 @@ public class VisibilityGraphCache {
 
     @SubscribeEvent
     public static void onTick(TickEvent.ServerTickEvent event) {
-        event.getServer().execute(() -> {
+        ServerLifecycleHooks.getCurrentServer().execute(() -> {
             BiDirectionalPair<LivingEntity, Entity> pair;
             while((pair = processQueue.poll()) != null) {
                 visibilityCache.put(
