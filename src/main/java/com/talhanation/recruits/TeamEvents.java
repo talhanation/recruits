@@ -28,7 +28,7 @@ import net.minecraft.world.scores.Team;
 import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
-import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
@@ -68,7 +68,7 @@ public class  TeamEvents {
     }
 
     @SubscribeEvent
-    public void onWorldSave(WorldEvent.Save event){
+    public void onWorldSave(LevelEvent.Save event){
         recruitsTeamManager.save(server.overworld());
         recruitsDiplomacyManager.save(server.overworld());
     }
@@ -527,7 +527,7 @@ public class  TeamEvents {
 
                         createTeam(false, sender, level, teamName, sender.getName().getString(), mainhand.getItem() instanceof BannerItem ? mainhand : null, ChatFormatting.WHITE, (byte) 0);
                         sourceStack.sendSuccess(Component.translatable("commands.team.add.success", teamName), true);
-                        
+
                         event.setCanceled(true);
                         serverSideUpdateTeam(level);
                     }

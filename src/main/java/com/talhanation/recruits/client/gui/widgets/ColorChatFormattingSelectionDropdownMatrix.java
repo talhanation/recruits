@@ -6,7 +6,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.FastColor;
 
 import java.util.List;
@@ -28,7 +28,7 @@ public class ColorChatFormattingSelectionDropdownMatrix extends AbstractWidget {
     private final String name;
 
     public ColorChatFormattingSelectionDropdownMatrix(TeamEditScreen parent, int x, int y, int width, int height, List<ChatFormatting> options, Consumer<ChatFormatting> onSelect) {
-        super(x, y, width, height, TextComponent.EMPTY);
+        super(x, y, width, height, Component.literal(""));
         this.parent = parent;
         this.selectedOption = parent.getSelectedTeamColor();
         this.name = TeamEditScreen.teamColorsNames.get(parent.getSelectedTeamColorNameIndex()).getString();

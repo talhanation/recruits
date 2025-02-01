@@ -42,6 +42,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.entity.EntityTeleportEvent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
@@ -248,7 +249,7 @@ public class RecruitEvents {
     }
 
     @SubscribeEvent
-    public void onEntityLeaveWorld(EntityLeaveWorldEvent event) {
+    public void onEntityLeaveWorld(EntityLeaveLevelEvent event) {
         Entity entity = event.getEntity();
         if (entity instanceof Projectile projectile) {
             canceledProjectiles.remove(projectile);

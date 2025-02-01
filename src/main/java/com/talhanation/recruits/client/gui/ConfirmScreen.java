@@ -7,7 +7,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 
@@ -21,9 +20,9 @@ public class ConfirmScreen extends RecruitsScreenBase {
     private final Runnable backAction;
     private final Component text;
 
-    private static final MutableComponent BUTTON_YES = new TranslatableComponent("gui.recruits.button.Yes");
-    private static final MutableComponent BUTTON_NO = new TranslatableComponent("gui.recruits.button.No");
-    private static final MutableComponent BUTTON_BACK = new TranslatableComponent("gui.recruits.button.back");
+    private static final MutableComponent BUTTON_YES = Component.translatable("gui.recruits.button.Yes");
+    private static final MutableComponent BUTTON_NO = Component.translatable("gui.recruits.button.No");
+    private static final MutableComponent BUTTON_BACK = Component.translatable("gui.recruits.button.back");
 
 
     public ConfirmScreen(Component title, Component text, Runnable yesAction, Runnable noAction) {

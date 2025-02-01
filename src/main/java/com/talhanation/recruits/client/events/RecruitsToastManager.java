@@ -8,7 +8,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.toasts.Toast;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -78,58 +77,58 @@ public class RecruitsToastManager {
     }
 
     public static Component TOAST_TO(String team){
-        return new TranslatableComponent("gui.recruits.toast.to", team);
+        return Component.translatable("gui.recruits.toast.to", team);
     }
     public static Component TOAST_FOR(String team){
-        return new TranslatableComponent("gui.recruits.toast.for", team);
+        return Component.translatable("gui.recruits.toast.for", team);
     }
 
     public static Component TOAST_FROM(String team){
-        return new TranslatableComponent("gui.recruits.toast.from", team);
+        return Component.translatable("gui.recruits.toast.from", team);
     }
-    public static final Component TOAST_PLAYER_JOINED_TITLE = new TranslatableComponent("gui.recruits.toast.playerJoinedTeamTitle");
-    public static final Component TOAST_TEAM_JOINED_TITLE = new TranslatableComponent("gui.recruits.toast.teamJoinedTitle");
-    public static final Component TOAST_JOIN_REQUEST_TITLE = new TranslatableComponent("gui.recruits.toast.JoinRequestTitle");
-    public static final Component TOAST_SENT_JOIN_REQUEST_TITLE = new TranslatableComponent("gui.recruits.toast.sendJoinRequestTitle");
-    public static final Component TOAST_ENEMY_TITLE = new TranslatableComponent("gui.recruits.toast.enemyTitle").withStyle(ChatFormatting.RED);
-    public static final Component TOAST_NEUTRAL_TITLE  = new TranslatableComponent("gui.recruits.toast.neutralTitle");
-    public static final Component TOAST_ALLY_TITLE  = new TranslatableComponent("gui.recruits.toast.allyTitle").withStyle(ChatFormatting.GREEN);
-    public static final Component TOAST_MESSENGER_ARRIVED_TITLE  = new TranslatableComponent("gui.recruits.toast.messengerArrivedTitle");
-    public static final Component TOAST_RECRUIT_ASSIGNED_TITLE  = new TranslatableComponent("gui.recruits.toast.recruitAssignedTitle");
+    public static final Component TOAST_PLAYER_JOINED_TITLE = Component.translatable("gui.recruits.toast.playerJoinedTeamTitle");
+    public static final Component TOAST_TEAM_JOINED_TITLE = Component.translatable("gui.recruits.toast.teamJoinedTitle");
+    public static final Component TOAST_JOIN_REQUEST_TITLE = Component.translatable("gui.recruits.toast.JoinRequestTitle");
+    public static final Component TOAST_SENT_JOIN_REQUEST_TITLE = Component.translatable("gui.recruits.toast.sendJoinRequestTitle");
+    public static final Component TOAST_ENEMY_TITLE = Component.translatable("gui.recruits.toast.enemyTitle").withStyle(ChatFormatting.RED);
+    public static final Component TOAST_NEUTRAL_TITLE  = Component.translatable("gui.recruits.toast.neutralTitle");
+    public static final Component TOAST_ALLY_TITLE  = Component.translatable("gui.recruits.toast.allyTitle").withStyle(ChatFormatting.GREEN);
+    public static final Component TOAST_MESSENGER_ARRIVED_TITLE  = Component.translatable("gui.recruits.toast.messengerArrivedTitle");
+    public static final Component TOAST_RECRUIT_ASSIGNED_TITLE  = Component.translatable("gui.recruits.toast.recruitAssignedTitle");
 
     public static Component TOAST_PLAYER_JOINED_TEAM(String s){
-        return new TranslatableComponent("gui.recruits.toast.playerJoinedTeam", s);
+        return Component.translatable("gui.recruits.toast.playerJoinedTeam", s);
     }
     public static Component TOAST_TEAM_JOINED(String s){
-        return new TranslatableComponent("gui.recruits.toast.teamJoined", s);
+        return Component.translatable("gui.recruits.toast.teamJoined", s);
     }
     public static Component TOAST_WANTS_TO_JOIN(String s){
-        return new TranslatableComponent("gui.recruits.toast.wantsToJoin", s);
+        return Component.translatable("gui.recruits.toast.wantsToJoin", s);
     }
     public static Component TOAST_ENEMY_INFO(String s){
-        return new TranslatableComponent("gui.recruits.toast.setYouAsEnemy", s).withStyle(ChatFormatting.RED);
+        return Component.translatable("gui.recruits.toast.setYouAsEnemy", s).withStyle(ChatFormatting.RED);
     }
     public static Component TOAST_NEUTRAL_INFO(String s){
-        return new TranslatableComponent("gui.recruits.toast.setYouAsNeutral", s);
+        return Component.translatable("gui.recruits.toast.setYouAsNeutral", s);
     }
     public static Component TOAST_ALLY_INFO(String s) {
-        return new TranslatableComponent("gui.recruits.toast.setYouAsAlly", s).withStyle(ChatFormatting.GREEN);
+        return Component.translatable("gui.recruits.toast.setYouAsAlly", s).withStyle(ChatFormatting.GREEN);
     }
     public static Component TOAST_ENEMY_SET(String s) {
-        return new TranslatableComponent("gui.recruits.toast.setAsEnemy",s);
+        return Component.translatable("gui.recruits.toast.setAsEnemy",s);
     }
     public static Component TOAST_NEUTRAL_SET(String s){
-        return new TranslatableComponent("gui.recruits.toast.setAsNeutral",s);
+        return Component.translatable("gui.recruits.toast.setAsNeutral",s);
     }
     public static Component TOAST_ALLY_SET(String s) {
-        return new TranslatableComponent("gui.recruits.toast.setAsAlly", s);
+        return Component.translatable("gui.recruits.toast.setAsAlly", s);
     }
 
     public static Component TOAST_RECRUIT_ASSIGNED_INFO(String s) {
-        return new TranslatableComponent("gui.recruits.toast.recruitAssigned", s);
+        return Component.translatable("gui.recruits.toast.recruitAssigned", s);
     }
 
     public static Component TOAST_MESSENGER_ARRIVED_INFO(String s) {
-        return new TranslatableComponent("gui.recruits.toast.messengerArrived", s);
+        return Component.translatable("gui.recruits.toast.messengerArrived", s);
     }
 }

@@ -9,7 +9,6 @@ import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.FastColor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -85,10 +84,10 @@ public class RecruitsTeamEntry extends ListScreenEntryBase<RecruitsTeamEntry> {
 
     private Component getPlayersText(int players){
         if(team.maxPlayers > 0){
-            return new TranslatableComponent("gui.recruits.team_list.players_count", players, team.maxPlayers);
+            return Component.translatable("gui.recruits.team_list.players_count", players, team.maxPlayers);
         }
         else
-            return  new TranslatableComponent("gui.recruits.team_list.players_no_count", players);
+            return  Component.translatable("gui.recruits.team_list.players_no_count", players);
 
 
     }

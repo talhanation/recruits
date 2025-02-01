@@ -2,6 +2,7 @@ package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.entities.ai.UseShield;
+import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.recruits.util.FormationUtils;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.ChatFormatting;
@@ -9,7 +10,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -86,8 +86,8 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
     @Nullable
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data, @Nullable CompoundTag nbt) {
         SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
-        ((GroundPathNavigation) this.getNavigation()).setCanOpenDoors(true);
-        this.populateDefaultEquipmentEnchantments(difficultyInstance);
+        ((AsyncGroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
+        this.populateDefaultEquipmentEnchantments(random, difficultyInstance);
 
         this.initSpawn();
 
@@ -193,8 +193,8 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
 
     private void sendMessageToOwner(Component message) {
         if (getOwner() != null) {
-            MutableComponent prefix = new TextComponent(this.getName().getString() + ": ").withStyle(ChatFormatting.GOLD);
-            this.getOwner().sendMessage(prefix.append(message), getOwnerUUID());
+            MutableComponent prefix = Component.literal(this.getName().getString() + ": ").withStyle(ChatFormatting.GOLD);
+            this.getOwner().sendSystemMessage(prefix.append(message));
         }
     }
 
@@ -304,17 +304,17 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
             this.team = team;
         }
         public void sendInfo(ScoutEntity scout) {
-            Component recruitsText = new TextComponent("" + recruitsCount).withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
-            Component distanceText = new TextComponent("" + distance).withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
-            Component directionText = new TextComponent("" + direction).withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
+            Component recruitsText = Component.literal("" + recruitsCount).withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
+            Component distanceText = Component.literal("" + distance).withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
+            Component directionText = Component.literal("" + direction).withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
             if (playerInfo != null) {
-                Component playerName = new TextComponent(playerInfo.getName());
+                Component playerName = Component.literal(playerInfo.getName());
 
                 //Scout: I'm Seeing talhanation (YellowTeam) and 12 units, 125 blocks South from me.
                 if (playerInfo.getRecruitsTeam() != null) {
-                    playerName = new TextComponent(playerInfo.getName()).withStyle(ChatFormatting.getById(playerInfo.getRecruitsTeam().getTeamColor()));
-                    Component teamName = new TextComponent(playerInfo.getRecruitsTeam().getTeamDisplayName()).withStyle(ChatFormatting.getById(playerInfo.getRecruitsTeam().getTeamColor()));
-                    scout.sendMessageToOwner(new TextComponent("")
+                    playerName = Component.literal(playerInfo.getName()).withStyle(ChatFormatting.getById(playerInfo.getRecruitsTeam().getTeamColor()));
+                    Component teamName = Component.literal(playerInfo.getRecruitsTeam().getTeamDisplayName()).withStyle(ChatFormatting.getById(playerInfo.getRecruitsTeam().getTeamColor()));
+                    scout.sendMessageToOwner(Component.literal("")
                             .append(playerName).append(" (")
                             .append(teamName).append("), with ")
                             .append(recruitsText).append(" units, ")
@@ -322,7 +322,7 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
                             .append(directionText).append(" from me.")
                     );
                 } else {//Scout: I'm Seeing talhanation and 12 units, 125 blocks South from me.
-                    scout.sendMessageToOwner(new TextComponent("")
+                    scout.sendMessageToOwner(Component.literal("")
                             .append(playerName).append(" with ")
                             .append(recruitsText).append(" units, ")
                             .append(distanceText).append(" blocks, ")
@@ -331,9 +331,9 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
                 }
             } else {// Scout: I'm Seeing 12 units of YellowTeam, 125 blocks North from me.
                 if (team != null) {
-                    Component teamText = new TextComponent(team);
+                    Component teamText = Component.literal(team);
 
-                    scout.sendMessageToOwner(new TextComponent("")
+                    scout.sendMessageToOwner(Component.literal("")
                             .append(recruitsText).append(" units of ")
                             .append(teamText).append(", ")
                             .append(distanceText).append(" blocks, ")

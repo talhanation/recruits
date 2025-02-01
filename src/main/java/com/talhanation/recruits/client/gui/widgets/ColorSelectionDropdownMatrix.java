@@ -5,7 +5,7 @@ import com.talhanation.recruits.client.gui.team.TeamEditScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.FastColor;
 
 import java.awt.*;
@@ -27,7 +27,7 @@ public class ColorSelectionDropdownMatrix extends AbstractWidget {
     private final int rows;
     private final String name;
     public ColorSelectionDropdownMatrix(TeamEditScreen parent, int x, int y, int width, int height, List<Color> options, Consumer<Color> onSelect) {
-        super(x, y, width, height, TextComponent.EMPTY);
+        super(x, y, width, height, Component.literal(""));
         this.parent = parent;
         this.selectedOption = parent.getSelectedUnitColor();
         this.name = TeamEditScreen.unitColorsNames.get(parent.getSelectedUnitColorNameIndex()).getString();

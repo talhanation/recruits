@@ -3,24 +3,18 @@ package com.talhanation.recruits.client.gui.group;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.client.events.RecruitsToastManager;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
 import com.talhanation.recruits.network.MessageApplyNoGroup;
-import com.talhanation.recruits.network.MessageServerSavePlayerGroups;
 import com.talhanation.recruits.network.MessageToServerRequestUpdateGroupList;
-import com.talhanation.recruits.network.MessageToServerRequestUpdatePlayerList;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 import java.util.Locale;
 
@@ -28,10 +22,10 @@ import java.util.Locale;
 public class RecruitsGroupListScreen extends ListScreenBase {
 
     protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_player.png");
-    protected static final Component TITLE = new TranslatableComponent("gui.recruits.groups.title");
-    protected static final Component ADD_BUTTON = new TranslatableComponent("gui.recruits.groups.add");
-    protected static final Component EDIT_BUTTON = new TranslatableComponent("gui.recruits.groups.edit");
-    protected static final Component REMOVE_BUTTON = new TranslatableComponent("gui.recruits.groups.remove");
+    protected static final Component TITLE = Component.translatable("gui.recruits.groups.title");
+    protected static final Component ADD_BUTTON = Component.translatable("gui.recruits.groups.add");
+    protected static final Component EDIT_BUTTON = Component.translatable("gui.recruits.groups.edit");
+    protected static final Component REMOVE_BUTTON = Component.translatable("gui.recruits.groups.remove");
     protected static final int HEADER_SIZE = 16;
     protected static final int FOOTER_SIZE = 32;
     protected static final int SEARCH_HEIGHT = 16;
@@ -77,7 +71,7 @@ public class RecruitsGroupListScreen extends ListScreenBase {
             groupList = new RecruitsGroupList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this);
         }
         String string = searchBox != null ? searchBox.getValue() : "";
-        searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, new TextComponent(""));
+        searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, Component.literal(""));
         searchBox.setMaxLength(16);
         searchBox.setTextColor(0xFFFFFF);
         searchBox.setValue(string);

@@ -24,8 +24,6 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -41,16 +39,16 @@ import static com.talhanation.recruits.client.gui.team.TeamInspectionScreen.LEAD
 public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
 
     private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/team/team_create_gui.png");
-    private static final Component EDIT = new TranslatableComponent("gui.recruits.team.edit");
-    private static final Component BACK = new TranslatableComponent("gui.recruits.button.back");
-    private static final Component SAVE = new TranslatableComponent("gui.recruits.button.save");
-    private static final Component CREATE = new TranslatableComponent("gui.recruits.team_creation.create_team");
-    private static final Component TEAM_NAME = new TranslatableComponent("gui.recruits.team.team_name");
-    private static final Component LEADER = new TranslatableComponent("gui.recruits.team.leader");
-    private static final Component TEAM_COLOR = new TranslatableComponent("gui.recruits.team.team_color");
-    private static final Component UNITS_COLOR = new TranslatableComponent("gui.recruits.team.units_color");
-    private static final Component MAX_RECRUITS = new TranslatableComponent("gui.recruits.team.max_recruits");
-    private static final Component SELECT_LEADER_TOOLTIP = new TranslatableComponent("gui.recruits.team.select_leader_tooltip");
+    private static final Component EDIT = Component.translatable("gui.recruits.team.edit");
+    private static final Component BACK = Component.translatable("gui.recruits.button.back");
+    private static final Component SAVE = Component.translatable("gui.recruits.button.save");
+    private static final Component CREATE = Component.translatable("gui.recruits.team_creation.create_team");
+    private static final Component TEAM_NAME = Component.translatable("gui.recruits.team.team_name");
+    private static final Component LEADER = Component.translatable("gui.recruits.team.leader");
+    private static final Component TEAM_COLOR = Component.translatable("gui.recruits.team.team_color");
+    private static final Component UNITS_COLOR = Component.translatable("gui.recruits.team.units_color");
+    private static final Component MAX_RECRUITS = Component.translatable("gui.recruits.team.max_recruits");
+    private static final Component SELECT_LEADER_TOOLTIP = Component.translatable("gui.recruits.team.select_leader_tooltip");
     public int maxRecruitsPerPlayer;
     public static ItemStack currency;
     public static int creationPrice;
@@ -98,22 +96,22 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
 
     public static final ArrayList<Component> teamColorsNames = new ArrayList<>(
             Arrays.asList(
-                    new TranslatableComponent("gui.recruits.team_color.black"),
-                    new TranslatableComponent("gui.recruits.team_color.dark_blue"),
-                    new TranslatableComponent("gui.recruits.team_color.dark_green"),
-                    new TranslatableComponent("gui.recruits.team_color.dark_aqua"),
-                    new TranslatableComponent("gui.recruits.team_color.dark_red"),
-                    new TranslatableComponent("gui.recruits.team_color.dark_purple"),
-                    new TranslatableComponent("gui.recruits.team_color.gold"),
-                    new TranslatableComponent("gui.recruits.team_color.gray"),
-                    new TranslatableComponent("gui.recruits.team_color.dark_gray"),
-                    new TranslatableComponent("gui.recruits.team_color.blue"),
-                    new TranslatableComponent("gui.recruits.team_color.green"),
-                    new TranslatableComponent("gui.recruits.team_color.aqua"),
-                    new TranslatableComponent("gui.recruits.team_color.red"),
-                    new TranslatableComponent("gui.recruits.team_color.light_purple"),
-                    new TranslatableComponent("gui.recruits.team_color.yellow"),
-                    new TranslatableComponent("gui.recruits.team_color.white")
+                    Component.translatable("gui.recruits.team_color.black"),
+                    Component.translatable("gui.recruits.team_color.dark_blue"),
+                    Component.translatable("gui.recruits.team_color.dark_green"),
+                    Component.translatable("gui.recruits.team_color.dark_aqua"),
+                    Component.translatable("gui.recruits.team_color.dark_red"),
+                    Component.translatable("gui.recruits.team_color.dark_purple"),
+                    Component.translatable("gui.recruits.team_color.gold"),
+                    Component.translatable("gui.recruits.team_color.gray"),
+                    Component.translatable("gui.recruits.team_color.dark_gray"),
+                    Component.translatable("gui.recruits.team_color.blue"),
+                    Component.translatable("gui.recruits.team_color.green"),
+                    Component.translatable("gui.recruits.team_color.aqua"),
+                    Component.translatable("gui.recruits.team_color.red"),
+                    Component.translatable("gui.recruits.team_color.light_purple"),
+                    Component.translatable("gui.recruits.team_color.yellow"),
+                    Component.translatable("gui.recruits.team_color.white")
             )
     );
 
@@ -150,36 +148,36 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
 
     public static final ArrayList<Component> unitColorsNames = new ArrayList<>(
             Arrays.asList(
-                    new TranslatableComponent("gui.recruits.team_color.white"),
-                    new TranslatableComponent("gui.recruits.team_color.black"),
-                    new TranslatableComponent("gui.recruits.team_color.light_gray"),
-                    new TranslatableComponent("gui.recruits.team_color.gray"),
-                    new TranslatableComponent("gui.recruits.team_color.dark_gray"),
-                    new TranslatableComponent("gui.recruits.team_color.light_blue"),
-                    new TranslatableComponent("gui.recruits.team_color.blue"),
-                    new TranslatableComponent("gui.recruits.team_color.dark_blue"),
-                    new TranslatableComponent("gui.recruits.team_color.light_green"),
-                    new TranslatableComponent("gui.recruits.team_color.green"),
-                    new TranslatableComponent("gui.recruits.team_color.dark_green"),
-                    new TranslatableComponent("gui.recruits.team_color.light_red"),
-                    new TranslatableComponent("gui.recruits.team_color.red"),
-                    new TranslatableComponent("gui.recruits.team_color.dark_red"),
-                    new TranslatableComponent("gui.recruits.team_color.light_brown"),
-                    new TranslatableComponent("gui.recruits.team_color.brown"),
-                    new TranslatableComponent("gui.recruits.team_color.dark_brown"),
-                    new TranslatableComponent("gui.recruits.team_color.light_cyan"),
-                    new TranslatableComponent("gui.recruits.team_color.cyan"),
-                    new TranslatableComponent("gui.recruits.team_color.dark_cyan"),
-                    new TranslatableComponent("gui.recruits.team_color.yellow"),
-                    new TranslatableComponent("gui.recruits.team_color.orange"),
-                    new TranslatableComponent("gui.recruits.team_color.magenta"),
-                    new TranslatableComponent("gui.recruits.team_color.purple"),
-                    new TranslatableComponent("gui.recruits.team_color.gold")
+                    Component.translatable("gui.recruits.team_color.white"),
+                    Component.translatable("gui.recruits.team_color.black"),
+                    Component.translatable("gui.recruits.team_color.light_gray"),
+                    Component.translatable("gui.recruits.team_color.gray"),
+                    Component.translatable("gui.recruits.team_color.dark_gray"),
+                    Component.translatable("gui.recruits.team_color.light_blue"),
+                    Component.translatable("gui.recruits.team_color.blue"),
+                    Component.translatable("gui.recruits.team_color.dark_blue"),
+                    Component.translatable("gui.recruits.team_color.light_green"),
+                    Component.translatable("gui.recruits.team_color.green"),
+                    Component.translatable("gui.recruits.team_color.dark_green"),
+                    Component.translatable("gui.recruits.team_color.light_red"),
+                    Component.translatable("gui.recruits.team_color.red"),
+                    Component.translatable("gui.recruits.team_color.dark_red"),
+                    Component.translatable("gui.recruits.team_color.light_brown"),
+                    Component.translatable("gui.recruits.team_color.brown"),
+                    Component.translatable("gui.recruits.team_color.dark_brown"),
+                    Component.translatable("gui.recruits.team_color.light_cyan"),
+                    Component.translatable("gui.recruits.team_color.cyan"),
+                    Component.translatable("gui.recruits.team_color.dark_cyan"),
+                    Component.translatable("gui.recruits.team_color.yellow"),
+                    Component.translatable("gui.recruits.team_color.orange"),
+                    Component.translatable("gui.recruits.team_color.magenta"),
+                    Component.translatable("gui.recruits.team_color.purple"),
+                    Component.translatable("gui.recruits.team_color.gold")
             )
     );
 
     public TeamEditScreen(TeamEditMenu container, Inventory playerInventory, Component title) {
-        super(TEXTURE, container, playerInventory, new TextComponent(""));
+        super(TEXTURE, container, playerInventory, Component.literal(""));
         this.imageHeight = 240;
         this.imageWidth = 222;
         this.player = playerInventory.player;
@@ -253,7 +251,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
         int widgetsY = 225;
         this.banner = menu.getBanner();
 
-        textFieldTeamName = new EditBox(font, guiLeft + widgetsX, guiTop + imageHeight - widgetsY + (20 + gap ) * 0, 110, 20, new TextComponent(teamName));
+        textFieldTeamName = new EditBox(font, guiLeft + widgetsX, guiTop + imageHeight - widgetsY + (20 + gap ) * 0, 110, 20, Component.literal(teamName));
         textFieldTeamName.setTextColor(-1);
         textFieldTeamName.setTextColorUneditable(-1);
         textFieldTeamName.setBordered(true);
@@ -267,7 +265,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
         addRenderableOnly(new BlackShowingTextField(guiLeft + widgetsX, guiTop + imageHeight - widgetsY + (20 + gap ) * 4, 110, 20, 45, 0, getMaxRecruitsPerPlayerString()));
 
         if (leaderInfo != null) {
-            this.leaderWidget = new SelectedPlayerWidget(font, guiLeft + widgetsX, guiTop + imageHeight - widgetsY + (20 + gap ) * 1, 110, 20, new TextComponent("x"), // Button label
+            this.leaderWidget = new SelectedPlayerWidget(font, guiLeft + widgetsX, guiTop + imageHeight - widgetsY + (20 + gap ) * 1, 110, 20, Component.literal("x"), // Button label
                     () -> {
                         leaderInfo = null;
                         this.leaderWidget.setPlayer(null, null);
@@ -311,7 +309,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
         );
         addRenderableWidget(unitColorDropdownMatrix);
 
-        addRenderableWidget(new Button(guiLeft + widgetsX + 20, guiTop + imageHeight - widgetsY + (20 + gap ) * 4, 20, 20,new TextComponent("-"),
+        addRenderableWidget(new Button(guiLeft + widgetsX + 20, guiTop + imageHeight - widgetsY + (20 + gap ) * 4, 20, 20,Component.literal("-"),
             (button)-> {
                 if(hasShiftDown()){
                     maxRecruitsPerPlayer -= 5;
@@ -324,7 +322,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
                 setWidgets();
             }));
 
-        addRenderableWidget(new Button(guiLeft + widgetsX + 80, guiTop + imageHeight - widgetsY + (20 + gap ) * 4, 20, 20,new TextComponent("+"),
+        addRenderableWidget(new Button(guiLeft + widgetsX + 80, guiTop + imageHeight - widgetsY + (20 + gap ) * 4, 20, 20,Component.literal("+"),
         (button)-> {
             if(hasShiftDown()){
                 maxRecruitsPerPlayer += 5;
@@ -496,7 +494,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
     }
 
     public Component getMaxRecruitsPerPlayerString() {
-        return new TranslatableComponent("gui.recruits.two_values_with_slash", maxRecruitsPerPlayer, maxRecruitsPerPlayerConfigSetting);
+        return Component.translatable("gui.recruits.two_values_with_slash", maxRecruitsPerPlayer, maxRecruitsPerPlayerConfigSetting);
     }
 
     public ChatFormatting getSelectedTeamColor() {

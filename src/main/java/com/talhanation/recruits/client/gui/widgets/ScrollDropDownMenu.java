@@ -5,7 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.FastColor;
 
 import java.util.List;
@@ -37,7 +37,7 @@ public class ScrollDropDownMenu<T> extends AbstractWidget {
     private int scrollbarHandleHeight; // Height of the scrollbar handle
 
     public ScrollDropDownMenu(T selectedOption, int x, int y, int width, int height, List<T> options, Function<T, String> optionTextGetter, Consumer<T> onSelect) {
-        super(x, y, width, height, TextComponent.EMPTY);
+        super(x, y, width, height, Component.literal(""));
         this.selectedOption = selectedOption;
         this.options = options;
         this.onSelect = onSelect;

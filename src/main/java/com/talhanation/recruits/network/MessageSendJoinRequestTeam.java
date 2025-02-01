@@ -3,6 +3,7 @@ package com.talhanation.recruits.network;
 import com.talhanation.recruits.TeamEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,7 +32,7 @@ public class MessageSendJoinRequestTeam implements Message<MessageSendJoinReques
         ServerPlayer player = context.getSender();
         ServerLevel level = player.getLevel();
         if(player.getTeam() == null) TeamEvents.sendJoinRequest(level, player, stringID);
-        player.sendMessage(JOIN_REQUEST(stringID), player.getUUID());
+        player.sendSystemMessage(JOIN_REQUEST(stringID));
     }
 
     public MessageSendJoinRequestTeam fromBytes(FriendlyByteBuf buf) {

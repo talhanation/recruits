@@ -11,19 +11,18 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 
 public class TakeOverScreen extends RecruitsScreenBase {
     private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_big.png");
-    private static final Component TITLE = new TranslatableComponent("gui.recruits.team.manage");
-    private static final MutableComponent MORE = new TranslatableComponent("gui.recruits.inv.more");
-    private static final MutableComponent OPEN_INVENTORY = new TranslatableComponent("gui.recruits.inv.openInventory");
-    private static final MutableComponent TAKE_OWNERSHIP = new TranslatableComponent("gui.recruits.inv.takeOwnership");
-    private static final MutableComponent TOOLTIP_TAKE_OWNERSHIP = new TranslatableComponent("gui.recruits.inv.tooltip.takeOwnership");
-    private static final MutableComponent TOOLTIP_OPEN_INVENTORY = new TranslatableComponent("gui.recruits.inv.tooltip.openInventory");
-    private static final MutableComponent TOOLTIP_MORE = new TranslatableComponent("gui.recruits.inv.tooltip.more");
+    private static final Component TITLE = Component.translatable("gui.recruits.team.manage");
+    private static final MutableComponent MORE = Component.translatable("gui.recruits.inv.more");
+    private static final MutableComponent OPEN_INVENTORY = Component.translatable("gui.recruits.inv.openInventory");
+    private static final MutableComponent TAKE_OWNERSHIP = Component.translatable("gui.recruits.inv.takeOwnership");
+    private static final MutableComponent TOOLTIP_TAKE_OWNERSHIP = Component.translatable("gui.recruits.inv.tooltip.takeOwnership");
+    private static final MutableComponent TOOLTIP_OPEN_INVENTORY = Component.translatable("gui.recruits.inv.tooltip.openInventory");
+    private static final MutableComponent TOOLTIP_MORE = Component.translatable("gui.recruits.inv.tooltip.more");
     private final Player player;
     private final AbstractRecruitEntity recruit;
 

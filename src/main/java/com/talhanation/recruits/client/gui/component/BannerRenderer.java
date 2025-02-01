@@ -11,18 +11,18 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.ModelBakery;
+import net.minecraft.core.Holder;
 import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
 import net.minecraft.world.level.block.entity.BannerPattern;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class BannerRenderer {
-    private List<Pair<BannerPattern, DyeColor>> resultBannerPatterns;
+    private List<Pair<Holder<BannerPattern>, DyeColor>> resultBannerPatterns;
     private final ModelPart flag;
     private ItemStack bannerItem;
     private RecruitsTeam recruitsTeam;

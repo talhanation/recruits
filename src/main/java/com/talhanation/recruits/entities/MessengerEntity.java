@@ -7,6 +7,7 @@ import com.talhanation.recruits.init.ModSounds;
 import com.talhanation.recruits.inventory.MessengerAnswerContainer;
 import com.talhanation.recruits.inventory.MessengerContainer;
 import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.core.BlockPos;
@@ -263,7 +264,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
         this.message = message;
     }
 
-    public RecruitsPlayerInfo setTargetPlayerInfo() {
+    public RecruitsPlayerInfo getTargetPlayerInfo() {
         return this.targetPlayerInfo;
     }
 

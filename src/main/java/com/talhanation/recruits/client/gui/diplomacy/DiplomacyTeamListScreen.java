@@ -10,8 +10,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
@@ -22,11 +20,11 @@ import java.util.Locale;
 public class DiplomacyTeamListScreen extends ListScreenBase {
 
     protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_with_filter.png");
-    protected static final Component TITLE = new TranslatableComponent("gui.recruits.diplomacy.teams_list");
-    protected static final Component SET_STANCE = new TranslatableComponent("gui.recruits.button.setRelation");
-    protected static final Component SHOW_STANCE = new TranslatableComponent("gui.recruits.button.showRelation");
-    protected static final Component TOAST_SEND_JOIN_REQUEST_TITLE = new TranslatableComponent("gui.recruits.toast.sendJoinRequestTitle");
-    protected static final Component BACK_BUTTON = new TranslatableComponent("gui.recruits.button.back");
+    protected static final Component TITLE = Component.translatable("gui.recruits.diplomacy.teams_list");
+    protected static final Component SET_STANCE = Component.translatable("gui.recruits.button.setRelation");
+    protected static final Component SHOW_STANCE = Component.translatable("gui.recruits.button.showRelation");
+    protected static final Component TOAST_SEND_JOIN_REQUEST_TITLE = Component.translatable("gui.recruits.toast.sendJoinRequestTitle");
+    protected static final Component BACK_BUTTON = Component.translatable("gui.recruits.button.back");
     protected static final int HEADER_SIZE = 32;
     protected static final int FOOTER_SIZE = 32;
     protected static final int SEARCH_HEIGHT = 16;
@@ -89,7 +87,7 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
         }
 
         String string = searchBox != null ? searchBox.getValue() : "";
-        searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE - 4, 156, SEARCH_HEIGHT + 4, new TextComponent(""));
+        searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE - 4, 156, SEARCH_HEIGHT + 4, Component.literal(""));
         searchBox.setMaxLength(16);
         searchBox.setTextColor(0xFFFFFF);
         searchBox.setValue(string);
@@ -118,7 +116,7 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
 
         int buttonX = 165;
         int buttonY2 = 28;
-        alliesButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.ALLY, guiLeft + buttonX, guiTop + buttonY2, 21, 21, new TextComponent(""),
+        alliesButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.ALLY, guiLeft + buttonX, guiTop + buttonY2, 21, 21, Component.literal(""),
                 button -> {
                     if(diplomacyFilter != DiplomacyTeamList.DiplomacyFilter.ALLIES){
                         diplomacyFilter = DiplomacyTeamList.DiplomacyFilter.ALLIES;
@@ -129,7 +127,7 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
                     listUpdateFilter();;
                 });
 
-        neutralsButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL,guiLeft + buttonX + 21, guiTop + buttonY2, 21, 21, new TextComponent(""),
+        neutralsButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL,guiLeft + buttonX + 21, guiTop + buttonY2, 21, 21, Component.literal(""),
                 button -> {
                     if(diplomacyFilter != DiplomacyTeamList.DiplomacyFilter.NEUTRALS){
                         diplomacyFilter = DiplomacyTeamList.DiplomacyFilter.NEUTRALS;
@@ -140,7 +138,7 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
                     listUpdateFilter();
                 });
 
-        enemiesButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.ENEMY,guiLeft + buttonX + 21 + 21, guiTop + buttonY2, 21, 21, new TextComponent(""),
+        enemiesButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.ENEMY,guiLeft + buttonX + 21 + 21, guiTop + buttonY2, 21, 21, Component.literal(""),
                 button -> {
                     if(diplomacyFilter != DiplomacyTeamList.DiplomacyFilter.ENEMIES){
                         diplomacyFilter = DiplomacyTeamList.DiplomacyFilter.ENEMIES;
