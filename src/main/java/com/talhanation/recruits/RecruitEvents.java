@@ -137,11 +137,10 @@ public class RecruitEvents {
                     AbstractRecruitEntity.class,
                     player.getBoundingBox()
                             .inflate(64, 32, 64),
-                    AbstractRecruitEntity::isAlive
+                    recruit -> recruit.isAlive() && recruit.getFollowState() == 1 && recruit.getOwnerUUID().equals(player.getUUID())
             );
 
             recruits.forEach(recruit -> recruit.teleportTo(targetX, targetY, targetZ));
-            //wip
         }
     }
 
