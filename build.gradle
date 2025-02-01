@@ -36,7 +36,7 @@ mixin{
     overwriteErrorLevel = 'error'
 }
 
-version = '1.12.3'
+version = '1.13.0'
 
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.19.2'
@@ -49,6 +49,7 @@ minecraft {
 
     runs {
         client {
+
             workingDirectory project.file('run')
 
             property 'forge.logging.markers', 'REGISTRIES'
@@ -58,7 +59,7 @@ minecraft {
 
             Random rnd = new Random()
 
-            args = ['--username', 'talhanation']// + rnd.nextInt(1000)]
+            args = ['--username', 'talhanation2']
 
 
             mods {
@@ -133,7 +134,6 @@ dependencies {
     implementation fg.deobf("curse.maven:mmmmmmmmmmmm-225738:4410143")
     implementation fg.deobf("curse.maven:selene-499980:4983974")
     implementation fg.deobf('curse.maven:musketmod-354562:4030979')
-
 }
 
 // Example for how to get properties into the manifest for reading at runtime.

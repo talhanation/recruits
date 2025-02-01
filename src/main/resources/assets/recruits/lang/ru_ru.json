@@ -101,8 +101,8 @@
   
   "gui.recruits.team.tooltip.add" : "Добавляет этого игрока в отряд в поле зрения.",
   
-  "gui.recruits.team_creation.no_teams": "Нет отрядов.",
-  "gui.recruits.team_creation.delete_team": "Удалить",
+  "gui.recruits.team.no_teams": "Нет отрядов.",
+  "gui.recruits.team.delete_team": "Удалить",
   "gui.recruits.team.assignNewOwner": "Назначить соратнику",
   "gui.recruits.command.tooltip.team": "Открывает экран отряда",
   "gui.recruits.command.text.team": "Отряд",

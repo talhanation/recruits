@@ -5,6 +5,8 @@ import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.client.gui.ConfirmScreen;
+import com.talhanation.recruits.client.gui.team.TakeOverScreen;
 import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
@@ -17,6 +19,8 @@ import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.world.RecruitsTeam;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -42,13 +46,11 @@ import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.OpenDoorGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
-import net.minecraft.world.entity.animal.AbstractFish;
 import net.minecraft.world.entity.animal.IronGolem;
-import net.minecraft.world.entity.animal.Squid;
-import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.monster.AbstractIllager;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Inventory;
@@ -127,7 +129,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public Vec3 holdPosVec;
     public boolean isInFormation;
     private Sensing sensing;
-
+    public boolean needsColorUpdate = true;
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
         this.xpReward = 6;
@@ -171,6 +173,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         updateShield();
         if(this instanceof IRangedRecruit  && this.tickCount % 20 == 0) pickUpArrows();
         if(needsTeamUpdate) updateTeam();
+        if(needsColorUpdate && this.getTeam() != null) updateColor(this.getTeam().getName());
     }
     public void tick() {
         super.tick();
@@ -248,30 +251,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(11, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(12, new RandomLookAroundGoal(this));
         //this.goalSelector.addGoal(13, new RecruitPickupWantedItemGoal(this));
-        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, LivingEntity.class, 10, true, false, (target) -> {
-            return (this.getState() == 2 && this.canAttack(target));
-        }));
-
-        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, Player.class, 10, true, false, (target) -> {
-            return (this.getState() == 1 && this.canAttack(target));
-        }));
-
-        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, AbstractRecruitEntity.class, 10, true, false, (target) -> {
-            return (this.getState() == 1 && this.canAttack(target));
-        }));
-
         this.targetSelector.addGoal(0, new RecruitProtectHurtByTargetGoal(this));
         this.targetSelector.addGoal(1, new RecruitOwnerHurtByTargetGoal(this));
+        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, LivingEntity.class, 20, true, false, this::shouldAttack));
         this.targetSelector.addGoal(3, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
         this.targetSelector.addGoal(4, new RecruitOwnerHurtTargetGoal(this));
 
-        this.targetSelector.addGoal(5, new RecruitNearestAttackableTargetGoal<>(this, AbstractIllager.class, 10, true, false, (target) -> {
-            return (this.getState() != 3);
-        }));
-
-        this.targetSelector.addGoal(6, new RecruitNearestAttackableTargetGoal<>(this, Monster.class, 10, true, false, (target) -> {
-            return this.canAttack(target) && (this.getState() != 3);
-        }));
         this.targetSelector.addGoal(7, new RecruitDefendVillageFromPlayerGoal(this));
     }
 
@@ -732,8 +717,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void disband(@Nullable Player player, boolean keepTeam, boolean increaseCost){
         String name = this.getName().getString();
-
-        RecruitEvents.recruitUnitManager.removeRecruits(this.getOwnerUUID(), 1);
+        RecruitEvents.recruitsPlayerUnitManager.removeRecruits(this.getOwnerUUID(), 1);
         if(player != null){
             player.sendSystemMessage(TEXT_DISBAND(name));
         }
@@ -743,9 +727,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         if(increaseCost) this.recalculateCost();
         if (this.getTeam() != null){
-            if(this.level.isClientSide()) Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(this.getTeam().getName(), -1));
-            else TeamEvents.addNPCToData((ServerLevel) this.level, this.getTeam().getName(), -1);
-
             if(!this.level.isClientSide() && !keepTeam)
                 TeamEvents.removeRecruitFromTeam(this, this.getTeam(), (ServerLevel) this.getCommandSenderWorld());
         }
@@ -1038,6 +1019,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public InteractionResult mobInteract(@NotNull Player player, @NotNull InteractionHand hand) {
         String name = this.getName().getString();
+        Team ownerTeam = this.getTeam();
+        String stringId = ownerTeam != null ? ownerTeam.getName() : "";
         boolean isPlayerTarget = this.getTarget() != null && getTarget().equals(player);
 
         if(isPlayerTarget) return InteractionResult.PASS;
@@ -1080,9 +1063,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     return InteractionResult.SUCCESS;
                 }
             }
-
-            else if (!this.isOwned() && RecruitEvents.recruitUnitManager.canPlayerRecruit(player.getUUID()) && !isPlayerTarget) {
-
+            else if(this.isOwned() && this.getTeam() != null && !player.getUUID().equals(this.getOwnerUUID()) &&
+                    TeamEvents.recruitsTeamManager.getTeamByStringID(this.getTeam().getName()).getTeamLeaderUUID().equals(player.getUUID())){
+                    //this will not work:
+                    Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientOpenTakeOverScreen(this.getUUID()));
+            }
+            else if (!this.isOwned() && RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(stringId, player.getUUID()) && !isPlayerTarget) {
                 this.openHireGUI(player);
                 this.dialogue(name, player);
                 this.navigation.stop();
@@ -1094,7 +1080,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public boolean hire(Player player) {
         String name = this.getName().getString() + ": ";
-        if (!RecruitEvents.recruitUnitManager.canPlayerRecruit(player.getUUID())) {
+        Team ownerTeam = player.getTeam();// player is the new owner
+        String stringId = ownerTeam != null ? ownerTeam.getName() : "";
+        if (!RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(stringId, player.getUUID())) {
 
             player.sendSystemMessage(INFO_RECRUITING_MAX(name));
             return false;
@@ -1110,7 +1098,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setState(0);
             this.despawnTimer = -1;
 
-            Team ownerTeam = player.getTeam();// player is the new owner
             if(!this.level.isClientSide() && ownerTeam != null) TeamEvents.addRecruitToTeam(this, ownerTeam, (ServerLevel) this.getCommandSenderWorld());
 
             int i = this.random.nextInt(4);
@@ -1126,10 +1113,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 }
             }
         }
-        RecruitEvents.recruitUnitManager.addRecruits(player.getUUID(), 1);
 
-        //Adding to team handles event
-
+        RecruitEvents.recruitsPlayerUnitManager.addRecruits(player.getUUID(), 1);
         return true;
     }
 
@@ -1161,7 +1146,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if(this.getMorale() > 0) this.setMoral(this.getMorale() - 0.25F);
             if(isBlocking()) hurtCurrentlyUsedShield(amt);
 
-            if(entity instanceof LivingEntity living && RecruitEvents.canDamageTarget(this, living)){
+            if(entity instanceof LivingEntity living && RecruitEvents.canAttack(this, living)){
                 if(this.getFollowState() == 5){//Protecting
                     List<AbstractRecruitEntity> list = this.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, this.getBoundingBox().inflate(32D));
                     for(AbstractRecruitEntity recruit : list){
@@ -1251,18 +1236,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 .add(Attributes.FOLLOW_RANGE, 32.0D);
     */
 
-    public boolean wantsToAttack(LivingEntity target, LivingEntity owner) {
-        if (target instanceof Player player && owner instanceof Player && !((Player)owner).canHarmPlayer((Player)target)) {
-            return isValidTargetPlayer(player);
-
-        } else if (target instanceof AbstractHorse && ((AbstractHorse)target).isTamed()) {
-            return false;
-        //} else if (target instanceof AbstractOrderAbleEntity && ((AbstractOrderAbleEntity)target).getIsInOrder() && ((AbstractOrderAbleEntity)target).getOwner() != owner) {
-        //    return true;
-        } else {
-            //return !(target instanceof TamableAnimal) || !((TamableAnimal)target).isTame();
-            return isValidTarget(target);
-        }
+    public boolean isAlliedTo(Team p_20032_) {
+        return this.getTeam() != null ? this.getTeam().isAlliedTo(p_20032_) : false;
     }
 
     public void die(DamageSource dmg) {
@@ -1273,7 +1248,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 this.getOwner().sendSystemMessage(deathMessage);
 
                 if(this.isOwned()){
-                    RecruitEvents.recruitUnitManager.removeRecruits(this.getOwnerUUID(), 1);
+                    RecruitEvents.recruitsPlayerUnitManager.removeRecruits(this.getOwnerUUID(), 1);
                 }
             }
         }
@@ -1355,7 +1330,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         boolean isEntity = this.getUpkeepUUID() != null;
 
         return (forcedUpkeep || (!hasFood && timer == 0 && needsToEat) && (isChest || isEntity)) && !getShouldProtect();
-
     }
 
     public boolean hasFoodInInv(){
@@ -1648,7 +1622,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     @Override
     public void openGUI(Player player) {
-
         if (player instanceof ServerPlayer) {
             CommandEvents.updateRecruitInventoryScreen((ServerPlayer) player);
             NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
@@ -1684,55 +1657,53 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugScreen(player, this.getUUID()));
         }
     }
-    public boolean isValidTarget(LivingEntity living){
-        boolean notAllowed = living instanceof AbstractFish || living instanceof Squid || living instanceof AbstractHorse || (living instanceof Monster && living.isUnderWater());
 
-        if (living instanceof AbstractRecruitEntity otherRecruit) {
-            if (otherRecruit.isOwned() && this.isOwned() && !otherRecruit.equals(this)){
-                UUID recruitOwnerUuid = this.getOwnerUUID();
-                UUID otherRecruitOwnerUuid = otherRecruit.getOwnerUUID();
+    public static void openTakeOverGUI(Player player) {
 
-                if(otherRecruit instanceof MessengerEntity messenger && messenger.state != null && messenger.state != MessengerEntity.State.IDLE){
-                    return false;
-                }
-                else if(otherRecruit.getTeam() != null && this.getTeam() != null){
-                    return !otherRecruit.getTeam().isAlliedTo(this.getTeam());
-                }
-                else if(recruitOwnerUuid != null && otherRecruitOwnerUuid != null){
-                    return !recruitOwnerUuid.equals(otherRecruitOwnerUuid);
-                }
-                else if(otherRecruit.getProtectUUID() != null && this.getProtectUUID() != null){
-                    return !otherRecruit.getProtectUUID().equals(this.getProtectUUID());
-                }
-            }
-            else if(otherRecruit.getProtectUUID() != null && this.getProtectUUID() != null){
-                return !otherRecruit.getProtectUUID().equals(this.getProtectUUID());
-            }
-            else
-                return RecruitEvents.canHarmTeam(this, living);
-            return false;
-        }
-        return !notAllowed && !RecruitsServerConfig.TargetBlackList.get().contains(living.getEncodeId());
-    }
-
-    public boolean isValidTargetPlayer(Player player){
-        if(player.getUUID().equals(this.getOwnerUUID())) {
-            return false;
-        }
-        else
-            return RecruitEvents.canHarmTeam(this, player);
     }
 
     @Override
     public boolean canAttack(@Nonnull LivingEntity target) {
-        if (target.canBeSeenAsEnemy() && target.isAlive()){
-            if (target instanceof Player player){
-                return this.isValidTargetPlayer(player);
-            }
-            else
-                return isValidTarget(target);
+        return RecruitEvents.canAttack(this, target);
+    }
+    // 0 = NEUTRAL
+    // 1 = AGGRESSIVE
+    // 2 = RAID
+    // 3 = PASSIVE
+    public boolean shouldAttack(LivingEntity target) {
+        if(RecruitsServerConfig.TargetBlackList.get().contains(target.getEncodeId())) return false;
+        return switch (this.getState()) {
+            case 3 -> false; // Passive mode: never attack
+            case 0 -> shouldAttackOnNeutral(target) && canAttack(target);
+            case 1 -> (shouldAttackOnNeutral(target) || shouldAttackOnAggressive(target)) && canAttack(target);
+            case 2 -> !RecruitEvents.isAlly(this.getTeam(), target.getTeam()) && canAttack(target);
+            default -> canAttack(target);
+        };
+    }
+
+    private boolean shouldAttackOnNeutral(LivingEntity target){
+        return isMonster(target) || isAttackingOwnerOrSelf(this, target) || RecruitEvents.isEnemy(this.getTeam(), target.getTeam());
+    }
+
+    private boolean shouldAttackOnAggressive(LivingEntity target){
+        return (target instanceof AbstractRecruitEntity || target instanceof Player) && (RecruitEvents.isNeutral(this.getTeam(), target.getTeam()) || RecruitEvents.isEnemy(this.getTeam(), target.getTeam()));
+    }
+
+    private boolean isMonster(LivingEntity target) {
+        return target instanceof Enemy;
+    }
+
+    private boolean isAttackingOwnerOrSelf(AbstractRecruitEntity recruit, LivingEntity target) {
+        return target.getLastHurtByMob() != null &&
+                (target.getLastHurtByMob().equals(recruit) || target.getLastHurtByMob().equals(recruit.getOwner()));
+    }
+
+    public boolean isAlliedTo(Entity target) {
+        if (target instanceof LivingEntity livingTarget) {
+            return !RecruitEvents.canHarmTeam(this, livingTarget);
+        } else {
+            return super.isAlliedTo(target);
         }
-        return false;
     }
 
     //
@@ -1764,6 +1735,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     needsTeamUpdate = false;
                 }
                 else if(recruitTeam == ownerTeam){
+                    updateColor(ownerTeam.getName());
                     needsTeamUpdate = false;
                 }
                 else{
@@ -1774,6 +1746,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     TeamEvents.addNPCToData((ServerLevel) this.getCommandSenderWorld(), ownerTeam.getName(), +1 );
                     needsTeamUpdate = false;
                 }
+            }
+        }
+    }
+
+    private void updateColor(String name) {
+        if(!this.getCommandSenderWorld().isClientSide()){
+            RecruitsTeam recruitsTeam = TeamEvents.recruitsTeamManager.getTeamByStringID(name);
+            if(recruitsTeam != null && recruitsTeam.getUnitColor() != this.getColor()){
+                this.setColor(recruitsTeam.getUnitColor());
+                this.needsColorUpdate = false;
             }
         }
     }

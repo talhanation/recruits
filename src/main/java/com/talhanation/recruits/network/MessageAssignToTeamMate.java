@@ -15,12 +15,14 @@ import java.util.UUID;
 public class MessageAssignToTeamMate implements Message<MessageAssignToTeamMate> {
 
     private UUID recruit;
+    private UUID newOwner;
 
     public MessageAssignToTeamMate() {
     }
 
-    public MessageAssignToTeamMate(UUID recruit) {
+    public MessageAssignToTeamMate(UUID recruit, UUID newOwner) {
         this.recruit = recruit;
+        this.newOwner = newOwner;
     }
 
     public Dist getExecutingSide() {
@@ -28,22 +30,25 @@ public class MessageAssignToTeamMate implements Message<MessageAssignToTeamMate>
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
-        serverPlayer.getLevel().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                serverPlayer.getBoundingBox().inflate(64.0D),
-                (recruit) -> recruit.getUUID().equals(this.recruit)
-        ).forEach(
-                (recruit) -> TeamEvents.assignToTeamMate(serverPlayer, recruit)
-        );
+        ServerPlayer serverPlayer = context.getSender();
+        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
+
+        for (AbstractRecruitEntity recruit : list) {
+            if(recruit.getUUID().equals(this.recruit)){
+                TeamEvents.assignToTeamMate(serverPlayer, newOwner, recruit);
+                break;
+            }
+        }
     }
 
     public MessageAssignToTeamMate fromBytes(FriendlyByteBuf buf) {
         this.recruit = buf.readUUID();
+        this.newOwner = buf.readUUID();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(this.recruit);
+        buf.writeUUID(this.newOwner);
     }
 }

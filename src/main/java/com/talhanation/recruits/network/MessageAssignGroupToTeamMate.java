@@ -15,15 +15,16 @@ import java.util.UUID;
 public class MessageAssignGroupToTeamMate implements Message<MessageAssignGroupToTeamMate> {
 
     private UUID owner;
+    private UUID newOwner;
     private UUID recruit;
 
     public MessageAssignGroupToTeamMate(){
     }
 
-    public MessageAssignGroupToTeamMate(UUID owner, UUID recruit) {
+    public MessageAssignGroupToTeamMate(UUID owner, UUID newOwner, UUID recruit) {
         this.owner = owner;
+        this.newOwner = newOwner;
         this.recruit = recruit;
-
     }
 
     public Dist getExecutingSide() {
@@ -47,18 +48,21 @@ public class MessageAssignGroupToTeamMate implements Message<MessageAssignGroupT
         }
 
         for (AbstractRecruitEntity recruit : list) {
-            if (recruit.getGroup() == group)
-                TeamEvents.assignToTeamMate(serverPlayer, recruit);
+            UUID recruitOwner = recruit.getOwnerUUID();
+            if (recruitOwner != null && recruitOwner.equals(owner) && recruit.getGroup() == group)
+                TeamEvents.assignToTeamMate(serverPlayer, newOwner, recruit);
         }
     }
     public MessageAssignGroupToTeamMate fromBytes(FriendlyByteBuf buf) {
         this.owner = buf.readUUID();
+        this.newOwner = buf.readUUID();
         this.recruit = buf.readUUID();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(this.owner);
+        buf.writeUUID(this.newOwner);
         buf.writeUUID(this.recruit);
     }
 

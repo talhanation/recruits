@@ -1,8 +1,7 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.HorsemanEntity;
-import com.talhanation.recruits.network.MessagePatrolLeaderSetCycle;
+import com.talhanation.recruits.util.AttackUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -13,13 +12,10 @@ import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.TieredItem;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
@@ -32,7 +28,6 @@ public class HorsemanAttackAI extends Goal {
     private LivingEntity target;
     private HorsemanEntity.State state;
     private BlockPos movePos;
-    private int ticksUntilNextAttack;
     private int vecRotation = 0;
     private byte timeOut = 0;
     private BlockPos prevPos;
@@ -54,14 +49,12 @@ public class HorsemanAttackAI extends Goal {
         super.start();
         this.target = horseman.getTarget();
         this.state = SELECT_TARGET;
-        this.ticksUntilNextAttack = 10 + getCooldownModifier();
     }
 
     public void tick() {
         if (this.horseman.tickCount % 15 == 0)
             this.prevPos = this.horseman.getOnPos();
 
-        if (ticksUntilNextAttack > 0) ticksUntilNextAttack--;
         switch (state) {
             case SELECT_TARGET -> {
                 this.target = horseman.getTarget();
@@ -90,8 +83,9 @@ public class HorsemanAttackAI extends Goal {
                     this.prevPos = null;
                     return;
                 }
+                double distance = horseman.distanceToSqr(target);
 
-                if (horseman.distanceToSqr(target) > 5F) {
+                if (distance > 5F) {
                     horseman.getNavigation().moveTo(target.position().x, target.position().y, target.position().z, 1.15F);
                 } else
                     state = MOVE_TO_POS;
@@ -99,11 +93,7 @@ public class HorsemanAttackAI extends Goal {
                 horseman.getLookControl().setLookAt(target, 30.0F, 30.0F);
 
                 //Perform Attack
-                if (horseman.distanceToSqr(target) < 7F) {
-                    if (this.ticksUntilNextAttack <= 0) {
-                        this.checkAndPerformAttack(target);
-                    }
-                }
+                AttackUtil.checkAndPerformAttack(distance, AttackUtil.getAttackReachSqr(this.horseman), this.horseman, target);
 
                 if (this.isStuck()) removeLeaves();
                 else this.knockback();
@@ -157,49 +147,5 @@ public class HorsemanAttackAI extends Goal {
             entity.hurt(DamageSource.mobAttack(this.horseman), 1F);
             ;
         });
-    }
-
-    protected void checkAndPerformAttack(LivingEntity target) {
-        if (!horseman.swinging) {
-            this.horseman.swing(InteractionHand.MAIN_HAND);
-            this.horseman.doHurtTarget(target);
-            this.resetAttackCooldown();
-        }
-    }
-
-    protected void resetAttackCooldown() {
-        this.ticksUntilNextAttack = 15 + getCooldownModifier();
-    }
-
-    private int getCooldownModifier() {
-        int modifier = 0;
-        Item item = horseman.getMainHandItem().getItem();
-
-        if (item instanceof TieredItem tieredItem) {
-            modifier = 5 - (int) tieredItem.getTier().getSpeed();
-        }
-
-        if (item instanceof AxeItem) {
-            modifier += 3;
-        }
-
-        return modifier;
-    }
-
-    private boolean canReach(BlockPos pos) {
-        //this.reachCacheTime = reducedTickDelay(10 + this.horseman.getRandom().nextInt(5));
-        Path path = horseman.getNavigation().createPath(pos, 0);
-        if (path == null) {
-            return false;
-        } else {
-            Node node = path.getEndNode();
-            if (node == null) {
-                return false;
-            } else {
-                int i = node.x - pos.getX();
-                int j = node.z - pos.getZ();
-                return (double) (i * i + j * j) <= 200D;
-            }
-        }
     }
 }

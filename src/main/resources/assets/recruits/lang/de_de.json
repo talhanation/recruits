@@ -100,8 +100,8 @@
 
   "gui.recruits.team.tooltip.add": "Fügt diesen Spieler dem Team in Sichtweite hinzu.",
 
-  "gui.recruits.team_creation.no_teams": "Es gibt keine Teams.",
-  "gui.recruits.team_creation.delete_team": "Löschen",
+  "gui.recruits.team.no_teams": "Es gibt keine Teams.",
+  "gui.recruits.team.delete_team": "Löschen",
   "gui.recruits.team.assignNewOwner": "Einem Teamkollegen zuweisen",
   "gui.recruits.command.tooltip.team": "Öffnet den Team-Bildschirm",
   "gui.recruits.command.text.team": "Team",

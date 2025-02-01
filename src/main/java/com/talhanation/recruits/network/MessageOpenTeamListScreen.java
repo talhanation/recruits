@@ -33,7 +33,7 @@ public class MessageOpenTeamListScreen implements Message<MessageOpenTeamListScr
             return;
         }
         ServerPlayer player = context.getSender();
-        TeamEvents.openTeamListScreen(player);
+        //TeamEvents.openTeamListScreen(player);
     }
 
     @Override

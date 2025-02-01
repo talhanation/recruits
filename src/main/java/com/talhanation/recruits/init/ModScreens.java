@@ -2,7 +2,6 @@ package com.talhanation.recruits.init;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.*;
-import com.talhanation.recruits.client.gui.group.GroupManageScreen;
 import com.talhanation.recruits.client.gui.team.*;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
@@ -38,21 +37,14 @@ public class ModScreens {
         registerMenu(COMMAND_CONTAINER_TYPE.get(), CommandScreen::new);
         registerMenu(ASSASSIN_CONTAINER_TYPE.get(), AssassinLeaderScreen::new);
         registerMenu(HIRE_CONTAINER_TYPE.get(), RecruitHireScreen::new);
-        registerMenu(TEAM_CREATION_TYPE.get(), TeamCreationScreen::new);
-        registerMenu(TEAM_MAIN_TYPE.get(), TeamMainScreen::new);
-        registerMenu(TEAM_INSPECTION_TYPE.get(), TeamInspectionScreen::new);
-        registerMenu(TEAM_LIST_TYPE.get(), TeamListScreen::new);
-        registerMenu(TEAM_ADD_PLAYER_TYPE.get(), TeamManagePlayerScreen::new);
-        registerMenu(DISBAND.get(), DisbandScreen::new);
+        registerMenu(TEAM_EDIT_TYPE.get(), TeamEditScreen::new);
         registerMenu(PROMOTE.get(), PromoteScreen::new);
         registerMenu(MESSENGER.get(), MessengerScreen::new);
         registerMenu(MESSENGER_ANSWER.get(), MessengerAnswerScreen::new);
         registerMenu(PATROL_LEADER.get(), PatrolLeaderScreen::new);
-        registerMenu(GROUP_MANAGE_TYPE.get(), GroupManageScreen::new);
 
         logger.info("MenuScreens registered");
     }
-
 
     public static final RegistryObject<MenuType<RecruitInventoryMenu>> RECRUIT_CONTAINER_TYPE =
         MENU_TYPES.register("recruit_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
@@ -170,81 +162,10 @@ public class ModScreens {
                 }
             }));
 
-    public static final RegistryObject<MenuType<TeamCreationContainer>> TEAM_CREATION_TYPE =
-            MENU_TYPES.register("team_creation", () -> IForgeMenuType.create((windowId, inv, data) -> {
+    public static final RegistryObject<MenuType<TeamEditMenu>> TEAM_EDIT_TYPE =
+            MENU_TYPES.register("team_edit", () -> IForgeMenuType.create((windowId, inv, data) -> {
 
-                return new TeamCreationContainer(windowId, inv);
-            }));
-
-
-    public static final RegistryObject<MenuType<TeamMainContainer>> TEAM_MAIN_TYPE =
-            MENU_TYPES.register("team_main_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
-                try {
-                     Player playerEntity = inv.player;
-                    if (playerEntity == null) {
-                        return null;
-                    }
-                    return new TeamMainContainer(windowId, playerEntity);
-
-                } catch (Exception e) {
-                    logger.error("Error in team_main_container: ");
-                    logger.error(e.getMessage());
-                    logger.error(e.getStackTrace().toString());
-                    return null;
-                }
-            }));
-
-
-    public static final RegistryObject<MenuType<TeamInspectionContainer>> TEAM_INSPECTION_TYPE =
-            MENU_TYPES.register("team_inspection_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
-                try {
-                    Player playerEntity = inv.player;
-                    if (playerEntity == null) {
-                        return null;
-                    }
-                    return new TeamInspectionContainer(windowId, playerEntity);
-
-                } catch (Exception e) {
-                    logger.error("Error in team_inspection_container: ");
-                    logger.error(e.getMessage());
-                    logger.error(e.getStackTrace().toString());
-                    return null;
-                }
-            }));
-
-
-    public static final RegistryObject<MenuType<TeamListContainer>> TEAM_LIST_TYPE =
-            MENU_TYPES.register("team_list_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
-                try {
-                    Player playerEntity = inv.player;
-                    if (playerEntity == null) {
-                        return null;
-                    }
-                    return new TeamListContainer(windowId, playerEntity);
-
-                } catch (Exception e) {
-                    logger.error("Error in team_list_container: ");
-                    logger.error(e.getMessage());
-                    logger.error(e.getStackTrace().toString());
-                    return null;
-                }
-            }));
-
-    public static final RegistryObject<MenuType<TeamManagePlayerContainer>> TEAM_ADD_PLAYER_TYPE =
-            MENU_TYPES.register("team_add_player_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
-                try {
-                    Player playerEntity = inv.player;
-                    if (playerEntity == null) {
-                        return null;
-                    }
-                    return new TeamManagePlayerContainer(windowId, playerEntity);
-
-                } catch (Exception e) {
-                    logger.error("Error in team_add_player_container: ");
-                    logger.error(e.getMessage());
-                    logger.error(e.getStackTrace().toString());
-                    return null;
-                }
+                return new TeamEditMenu(windowId, inv);
             }));
 
     public static final RegistryObject<MenuType<DisbandContainer>> DISBAND =
@@ -326,24 +247,6 @@ public class ModScreens {
 
                 } catch (Exception e) {
                     logger.error("Error in disband_container: ");
-                    logger.error(e.getMessage());
-                    logger.error(e.getStackTrace().toString());
-                    return null;
-                }
-            }));
-
-
-    public static final RegistryObject<MenuType<GroupManageContainer>> GROUP_MANAGE_TYPE =
-            MENU_TYPES.register("group_manage_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
-                try {
-                    Player playerEntity = inv.player;
-                    if (playerEntity == null) {
-                        return null;
-                    }
-                    return new GroupManageContainer(windowId, playerEntity);
-
-                } catch (Exception e) {
-                    logger.error("Error in team_main_container: ");
                     logger.error(e.getMessage());
                     logger.error(e.getStackTrace().toString());
                     return null;

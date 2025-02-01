@@ -4,7 +4,6 @@ import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.Mod;
-import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -74,6 +73,11 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.IntValue AsyncTargetFindingThreadsCount;
     public static ForgeConfigSpec.BooleanValue UseVisibilityCache;
     public static ForgeConfigSpec.IntValue VisibilityCacheTimeToLive;
+    public static ForgeConfigSpec.IntValue MaxPlayersInTeam;
+    public static ForgeConfigSpec.IntValue MaxNPCsInTeam;
+    public static ForgeConfigSpec.BooleanValue ShouldTeamEditingBeAllowed;
+    public static ForgeConfigSpec.BooleanValue ShouldTeamManagingBeAllowed;
+
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin", "corpse:corpse", "minecraft:armorstand"));
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
@@ -149,9 +153,9 @@ public class RecruitsServerConfig {
                         
                         Max amount a player can recruit
                         \t(takes effect after restart)
-                        \tdefault: 64""")
+                        \tdefault: 100""")
                 .worldRestart()
-                .defineInRange("MaxRecruitsForPlayer", 64, 1, 1453);
+                .defineInRange("MaxRecruitsForPlayer", 100, 1, 1453);
 
         TargetBlackList = BUILDER.comment("""
                         
@@ -574,7 +578,42 @@ public class RecruitsServerConfig {
                 .worldRestart()
                 .defineInRange("TeamCreationCost", 10, 0, 1453);
 
-        BUILDER.comment("Global Team Settings").push("Global Team Settings");
+        MaxPlayersInTeam = BUILDER.comment("""
+
+                        The amount of players allowed in a team. Set 0 for infinite.
+                        \t(takes effect after restart)
+                        \tdefault: 5""")
+                .worldRestart()
+                .defineInRange("MaxPlayersInTeam", 5, 0, 1453);
+
+        MaxNPCsInTeam = BUILDER.comment("""
+
+                        The amount of recruits allowed in a team. Set 0 for infinite.
+                        \t(takes effect after restart)
+                        \tdefault: 500""")
+                .worldRestart()
+                .defineInRange("MaxRecruitsInTeam", 500, 0, 1453);
+
+        ShouldTeamEditingBeAllowed = BUILDER.comment("""
+
+                        Should editing the team be allowed by team leaders. (Editing Team Colors, Name ,...)
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("ShouldTeamEditingBeAllowed", true);
+
+        ShouldTeamManagingBeAllowed = BUILDER.comment("""
+
+                        Should managing the team be allowed by team leaders. (Add/Remove Players...)
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("ShouldTeamEditingBeAllowed", true);
+
+
+        BUILDER.comment("Global Team Settings")
+
+                .push("Global Team Settings");
 
         GlobalTeamSetting = BUILDER.comment("""
                         

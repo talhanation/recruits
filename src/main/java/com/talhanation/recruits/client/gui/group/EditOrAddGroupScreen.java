@@ -17,24 +17,25 @@ public class EditOrAddGroupScreen extends Screen {
 
     private static final int fontColor = 4210752;
     private EditBox groupNameField;
-    private final GroupManageScreen parent;
-    private RecruitsGroup groupToEdit;
+    private final RecruitsGroupListScreen parent;
+    private final RecruitsGroup groupToEdit;
     private int leftPos;
     private int topPos;
     private int imageWidth;
     private int imageHeight;
-    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/team/team_main_gui.png");
-    private static final MutableComponent TEXT_CANCEL = Component.translatable("gui.recruits.group_creation.cancel");
-    private static final MutableComponent TEXT_SAVE = Component.translatable("gui.recruits.group_creation.save");
-    private static final MutableComponent TEXT_ADD = Component.translatable("gui.recruits.group_creation.add");
-    private static final MutableComponent TEXT_SPLIT = Component.translatable("gui.recruits.group_creation.split");
-    private static final MutableComponent TEXT_EDIT_TITLE = Component.translatable("gui.recruits.group_creation.edit_title");
-    private static final MutableComponent TEXT_ADD_TITLE = Component.translatable("gui.recruits.group_creation.add_title");
-    public EditOrAddGroupScreen(GroupManageScreen parent) {
+    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/gui_small.png");
+    private static final MutableComponent TEXT_CANCEL = Component.translatable("gui.recruits.groups.cancel");
+    private static final MutableComponent TEXT_SAVE = Component.translatable("gui.recruits.groups.save");
+    private static final MutableComponent TEXT_ADD = Component.translatable("gui.recruits.groups.add");
+    private static final MutableComponent TEXT_SPLIT = Component.translatable("gui.recruits.groups.split");
+    private static final MutableComponent TEXT_EDIT_TITLE = Component.translatable("gui.recruits.groups.edit_title");
+    private static final MutableComponent TEXT_ADD_TITLE = Component.translatable("gui.recruits.groups.add_title");
+
+    public EditOrAddGroupScreen(RecruitsGroupListScreen parent) {
         this(parent, null);
     }
 
-    public EditOrAddGroupScreen(GroupManageScreen parent, RecruitsGroup groupToEdit) {
+    public EditOrAddGroupScreen(RecruitsGroupListScreen parent, RecruitsGroup groupToEdit) {
         super(Component.literal(""));
         this.parent = parent;
         this.groupToEdit = groupToEdit;
@@ -61,7 +62,7 @@ public class EditOrAddGroupScreen extends Screen {
             } else {
                 editGroup();
             }
-            parent.saveGroups();
+
         }));
 
         this.addRenderableWidget(new ExtendedButton(leftPos + 170, topPos + 55, 60, 20, TEXT_CANCEL, button -> {
@@ -72,10 +73,12 @@ public class EditOrAddGroupScreen extends Screen {
     private void addGroup() {
         String groupName = groupNameField.getValue();
         if (!groupName.isEmpty()) {
-            int newId = getNewID(GroupManageScreen.groups);
+            int newId = getNewID(RecruitsGroupList.groups);
             RecruitsGroup newGroup = new RecruitsGroup(newId, groupName, false);
-            GroupManageScreen.groups.add(newGroup);
-            this.parent.setList = false;
+            RecruitsGroupList.groups.add(newGroup);
+
+            RecruitsGroupList.saveGroups(false);
+
             this.minecraft.setScreen(this.parent);
         }
     }
@@ -96,11 +99,12 @@ public class EditOrAddGroupScreen extends Screen {
         String newName = groupNameField.getValue();
         if (!newName.isEmpty() && groupToEdit != null) {
             RecruitsGroup copy = groupToEdit;
-            GroupManageScreen.groups.remove(groupToEdit);
+            RecruitsGroupList.groups.remove(groupToEdit);
             copy.setName(newName);
-            GroupManageScreen.groups.add(copy);
+            RecruitsGroupList.groups.add(copy);
 
-            this.parent.setList = false;
+            RecruitsGroupList.saveGroups(false);
+
             this.minecraft.setScreen(this.parent);
         }
     }

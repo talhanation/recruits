@@ -35,7 +35,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        long i = this.recruit.level.getGameTime();
+        long i = this.recruit.getCommandSenderWorld().getGameTime();
         if (i - this.lastCanUseCheck >= 20L) {
             this.lastCanUseCheck = i;
 

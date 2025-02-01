@@ -34,7 +34,7 @@ public class MessageTeamMainScreen implements Message<MessageTeamMainScreen> {
         if (!player.getUUID().equals(uuid)) {
             return;
         }
-        TeamEvents.openTeamMainScreen(player);
+        //TeamEvents.openTeamMainScreen(player);
     }
 
     @Override
