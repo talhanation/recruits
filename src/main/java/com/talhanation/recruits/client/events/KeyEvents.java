@@ -3,6 +3,7 @@ package com.talhanation.recruits.client.events;
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.client.gui.team.TeamMainScreen;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.network.MessageWriteSpawnEgg;
 import net.minecraft.client.Minecraft;
@@ -29,7 +30,7 @@ public class KeyEvents {
         }
 
         if (Main.U_KEY.isDown()) {
-            TeamEvents.openTeamMainScreen(clientPlayerEntity);
+            minecraft.setScreen(new TeamMainScreen(clientPlayerEntity));
         }
     }
 

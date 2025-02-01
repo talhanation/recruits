@@ -4,12 +4,12 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraftforge.common.ForgeMod;
 
+import java.util.Random;
+
 public abstract class AttackUtil {
-
-
     public static void checkAndPerformAttack(double distanceSqrToTarget, double reach, AbstractRecruitEntity recruit, LivingEntity target){
         if(distanceSqrToTarget <= reach){
             performAttack(recruit, target);
@@ -17,12 +17,27 @@ public abstract class AttackUtil {
     }
 
     public static void performAttack(AbstractRecruitEntity recruit, LivingEntity target) {
-
         if(recruit.attackCooldown == 0 && !recruit.swinging && recruit.getLookControl().isLookingAtTarget()){
+            if(canPerformHorseAttack(recruit, target)){
+                if(target.getVehicle() != null) recruit.doHurtTarget(target.getVehicle());
+            }
+            else recruit.doHurtTarget(target);
+
             recruit.swing(InteractionHand.MAIN_HAND);
-            recruit.doHurtTarget(target);
             recruit.attackCooldown = getAttackCooldown(recruit);
         }
+    }
+
+    public static boolean canPerformHorseAttack(AbstractRecruitEntity recruit, LivingEntity target) {
+        Random random = new Random();
+        if(target.getVehicle() instanceof Animal){
+            int level = recruit.getXpLevel();
+            int chance = Math.min(level*2, 100);
+
+            return random.nextInt(0, 100) <= chance;
+        }
+        else
+            return false;
     }
 
     public static int getAttackCooldown(AbstractRecruitEntity recruit) {
@@ -58,9 +73,5 @@ public abstract class AttackUtil {
             }
         }
         return base;
-    }
-
-    public static boolean canAttackTarget(AbstractRecruitEntity recruit, LivingEntity target){
-        return target != null && target.isAlive() && !recruit.equals(target);
     }
 }

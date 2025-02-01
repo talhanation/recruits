@@ -213,7 +213,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
 
         ExtendedButton groupButton = new ExtendedButton(posX, posY, 20, 20, new TextComponent("+/-"),
                 button -> {
-                    CommandEvents.openGroupManageScreen(player);
+                    minecraft.setScreen(new RecruitsGroupListScreen(player));
 
                 });
         addRenderableWidget(groupButton);

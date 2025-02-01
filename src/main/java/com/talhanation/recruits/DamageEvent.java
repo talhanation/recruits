@@ -2,11 +2,15 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.world.RecruitsDiplomacyManager;
+import com.talhanation.recruits.world.RecruitsTeam;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.scores.Team;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -55,20 +59,22 @@ public class DamageEvent {
     public void onEntityHurt(LivingHurtEvent event) {
         if (!event.isCanceled()) {
 
-            LivingEntity entity = event.getEntityLiving();
-            if (entity.getLevel().isClientSide()) {
+            LivingEntity target = event.getEntityLiving();
+            if (target.getLevel().isClientSide()) {
                 return;
             }
-            if(!RecruitsServerConfig.NoDamageImmunity.get()) return;
 
-            LivingEntity target = event.getEntityLiving();
             DamageSource source = event.getSource();
+            Entity sourceEntity = event.getEntity();
+
+            if(!RecruitsServerConfig.NoDamageImmunity.get()) return;
 
             if (target.getLevel().isClientSide()) {
                 return;
             }
+
             //Velocity Damage
-            if(source != null && source.getEntity() != null){
+            if(source != null && sourceEntity != null){
 
             }
 

@@ -33,7 +33,7 @@ public class MessageOpenTeamAddPlayerScreen implements Message<MessageOpenTeamAd
         if (!player.getUUID().equals(uuid)) {
             return;
         }
-        TeamEvents.openTeamAddPlayerScreen(player);
+        //TeamEvents.openTeamAddPlayerScreen(player);
     }
 
     @Override

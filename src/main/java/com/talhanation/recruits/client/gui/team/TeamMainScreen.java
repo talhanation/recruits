@@ -4,72 +4,57 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.TeamEvents;
-import com.talhanation.recruits.inventory.TeamMainContainer;
-import com.talhanation.recruits.network.MessageServerUpdateTeamInspectMenu;
-import de.maxhenkel.corelib.inventory.ScreenBase;
+import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.block.entity.BannerBlockEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
 
-import java.awt.*;
 @OnlyIn(Dist.CLIENT)
-public class TeamMainScreen extends ScreenBase<TeamMainContainer> {
+public class TeamMainScreen extends RecruitsScreenBase {
 
 
-    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/team/team_main_gui.png");
-    Player player;
-    private int leftPos;
-    private int topPos;
+    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID,"textures/gui/gui_small.png");
     private static final MutableComponent CREATE_TEAM = new TranslatableComponent("gui.recruits.team_creation.create_team");
     private static final MutableComponent INSPECT_TEAM = new TranslatableComponent("gui.recruits.team_creation.inspect_team");
     private static final MutableComponent TEAMS_LIST = new TranslatableComponent("gui.recruits.team_creation.teams_list");
-
-    public TeamMainScreen(TeamMainContainer commandContainer, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, commandContainer, playerInventory, new TextComponent(""));
-        imageWidth = 250;
-        imageHeight = 83;
-        player = playerInventory.player;
+    private final Player player;
+    public TeamMainScreen(Player player){
+        super(new TextComponent("TeamMainScreen"),246,84);
+        this.player = player;
     }
 
     @Override
     protected void init() {
         super.init();
-        this.leftPos = (this.width - this.imageWidth) / 2;
-        this.topPos = (this.height - this.imageHeight) / 2;
         boolean isInTeam = TeamEvents.isPlayerInATeam(player);
 
-
         MutableComponent mutableComponent = isInTeam ? INSPECT_TEAM : CREATE_TEAM;
-        addRenderableWidget(new ExtendedButton(leftPos + 20, topPos + 29, 100, 20, mutableComponent, btn -> {
+        addRenderableWidget(new ExtendedButton(guiLeft + 20, guiTop + 29, 100, 20, mutableComponent, btn -> {
             if (isInTeam && player.getTeam() != null) {
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageServerUpdateTeamInspectMenu(player.getTeam()));
-                TeamEvents.openTeamInspectionScreen(player, player.getTeam());
-                onClose();
+                minecraft.setScreen(new TeamInspectionScreen(this, player));
             }
             else {
-                TeamEvents.openTeamCreationScreen(player);
+                TeamEvents.openTeamEditScreen(player);
             }
         }));
 
-        addRenderableWidget(new ExtendedButton(leftPos + 130, topPos + 29, 100, 20, TEAMS_LIST, btn -> {
-            TeamEvents.openTeamListScreen(player);
+        addRenderableWidget(new ExtendedButton(guiLeft + 130, guiTop + 29, 100, 20, TEAMS_LIST, btn -> {
+            minecraft.setScreen(new RecruitsTeamListScreen(this));
         }));
     }
 
-    protected void render(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+    @Override
+    public void renderBackground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
-        this.blit(matrixStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
+        RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
+        RenderSystem.setShaderTexture(0, TEXTURE);
+        blit(poseStack, guiLeft, guiTop, 0, 0, xSize, ySize);
     }
 
 }
