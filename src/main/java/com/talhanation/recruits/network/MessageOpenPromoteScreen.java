@@ -1,7 +1,6 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.RecruitEvents;
-import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -11,6 +10,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class MessageOpenPromoteScreen implements Message<MessageOpenPromoteScreen> {
@@ -34,24 +34,22 @@ public class MessageOpenPromoteScreen implements Message<MessageOpenPromoteScree
 
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = context.getSender();
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
         if (!player.getUUID().equals(this.player)) {
             return;
         }
-        player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
-                        .inflate(16.0D), v -> v
-                        .getUUID()
-                        .equals(this.recruit))
-                .stream()
-                .filter(Entity::isAlive)
-                .findAny()
-                .ifPresent(recruit ->  RecruitEvents.openPromoteScreen(player, recruit));
+
+        player.getCommandSenderWorld().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                player.getBoundingBox().inflate(16.0D),
+                v -> v.getUUID().equals(this.recruit) && v.isAlive()
+        ).forEach((recruit) -> RecruitEvents.openPromoteScreen(player, recruit));
     }
 
     @Override
     public MessageOpenPromoteScreen fromBytes(FriendlyByteBuf buf) {
         this.player = buf.readUUID();
-        this.recruit= buf.readUUID();
+        this.recruit = buf.readUUID();
         return this;
     }
 
@@ -60,5 +58,4 @@ public class MessageOpenPromoteScreen implements Message<MessageOpenPromoteScree
         buf.writeUUID(player);
         buf.writeUUID(recruit);
     }
-
 }

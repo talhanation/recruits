@@ -4,10 +4,10 @@ import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -33,10 +33,11 @@ public class MessageProtectEntity implements Message<MessageProtectEntity> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
-        for (AbstractRecruitEntity recruits : list) {
-            CommandEvents.onProtectButton(uuid, recruits, target, group);
-        }
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        player.getCommandSenderWorld().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                player.getBoundingBox().inflate(100)
+        ).forEach((recruit) -> CommandEvents.onProtectButton(uuid, recruit, target, group));
     }
     public MessageProtectEntity fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();

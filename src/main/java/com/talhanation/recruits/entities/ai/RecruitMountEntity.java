@@ -60,11 +60,15 @@ public class RecruitMountEntity extends Goal {
     }
 
     private void findMount(){
-        List<Entity> list = recruit.getCommandSenderWorld().getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(32D));
-        for(Entity mount : list){
-            if (recruit.getMountUUID() != null && mount.getUUID().equals(recruit.getMountUUID()) && (RecruitsServerConfig.MountWhiteList.get().contains(mount.getEncodeId()) || mount instanceof AbstractHorse)){
-                this.mount = mount;
-            }
-        }
+        recruit.getCommandSenderWorld().getEntitiesOfClass(
+                Entity.class,
+                recruit.getBoundingBox().inflate(32D),
+                (mount) -> recruit.getMountUUID() != null &&
+                        mount.getUUID().equals(recruit.getMountUUID()) &&
+                        (RecruitsServerConfig.MountWhiteList.get().contains(mount.getEncodeId()) ||
+                                mount instanceof AbstractHorse)
+        ).forEach((mount) -> {
+            this.mount = mount;
+        });
     }
 }

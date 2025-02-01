@@ -10,7 +10,10 @@
     "CamelMixin",
     "LivingEntityMixin",
     "MobMixin",
-    "WalkNodeEvaluatorMixin"
+    "WalkNodeEvaluatorMixin",
+    "GoalUtilsMixin",
+    "ClassInstanceMultiMapMixin",
+    "DoorInteractGoalMixin"
   ],
   "client": [
   ],

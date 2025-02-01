@@ -2,7 +2,7 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinEntity;
-import net.minecraft.world.entity.PathfinderMob;
+import com.talhanation.recruits.pathfinding.AsyncPathfinderMob;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.phys.Vec3;
@@ -11,9 +11,10 @@ import java.util.List;
 
 public class FleeTNT extends Goal {
 
-    PathfinderMob entity;
+    private final AsyncPathfinderMob entity;
+    private int cooldown = 0;
 
-    public FleeTNT(PathfinderMob creatureEntity) {
+    public FleeTNT(AsyncPathfinderMob creatureEntity) {
         this.entity = creatureEntity;
     }
 
@@ -24,35 +25,56 @@ public class FleeTNT extends Goal {
 
     @Override
     public void tick() {
-        super.tick();
-        List<PrimedTnt> tntEntities = entity.getCommandSenderWorld().getEntitiesOfClass(PrimedTnt.class, entity.getBoundingBox().inflate(10D));
-        if (!tntEntities.isEmpty()) {
-            for (PrimedTnt tnt : tntEntities) {
-                double fleeDistance = 10.0D;
-                Vec3 vecTarget = new Vec3(tnt.getX(), tnt.getY(), tnt.getZ());
-                Vec3 vecRec = new Vec3(entity.getX(), entity.getY(), entity.getZ());
-                Vec3 fleeDir = vecRec.subtract(vecTarget);
-                fleeDir = fleeDir.normalize();
-                Vec3 fleePos = new Vec3(vecRec.x + fleeDir.x * fleeDistance, vecRec.y + fleeDir.y * fleeDistance, vecRec.z + fleeDir.z * fleeDistance);
-
-                entity.getNavigation().moveTo(fleePos.x, fleePos.y, fleePos.z, 1.25D);
-
-                if (entity instanceof AbstractRecruitEntity recruit) {
-                    recruit.setFleeing(true);
-                }
-                if (entity instanceof AssassinEntity assassin) {
-                    assassin.setFleeing(true);
-                }
-            }
-        }
-        else {
-            if (entity instanceof AbstractRecruitEntity recruit) {
-                recruit.setFleeing(false);
-            }
-            if (entity instanceof AssassinEntity assassin) {
-                assassin.setFleeing(false);
-            }
+        List<PrimedTnt> tntEntities = entity.getCommandSenderWorld().getEntitiesOfClass(
+                PrimedTnt.class,
+                entity.getBoundingBox().inflate(10D)
+        );
+        if (tntEntities.isEmpty()) {
+            setFleeing(false);
+            return;
         }
 
+        Vec3 entityPos = new Vec3(entity.getX(), entity.getY(), entity.getZ());
+        Vec3 combinedFleeDir = Vec3.ZERO;
+
+        for (PrimedTnt tnt : tntEntities) {
+            Vec3 tntPos = new Vec3(tnt.getX(), tnt.getY(), tnt.getZ());
+            Vec3 fleeDir = entityPos.subtract(tntPos);
+
+            double distanceSq = entityPos.distanceToSqr(tntPos);
+            int fuse = tnt.getFuse();
+            double fuseWeight = 1.0 / (fuse + 1.0); // Shorter fuse = higher weight
+            double distanceWeight = 1.0 / (distanceSq + 1.0);
+            double totalWeight = fuseWeight * distanceWeight;
+
+            combinedFleeDir = combinedFleeDir.add(fleeDir.scale(totalWeight));
+        }
+
+        if (combinedFleeDir.lengthSqr() > 0) {
+            combinedFleeDir = combinedFleeDir.normalize();
+
+            // Add a small random offset for natural movement
+            double randomAngle = (entity.getRandom().nextDouble() - 0.5) * 0.5;
+            combinedFleeDir = combinedFleeDir.yRot((float) randomAngle);
+
+            // Calculate flee position
+            double fleeDistance = 10.0D;
+            Vec3 fleePos = entityPos.add(combinedFleeDir.scale(fleeDistance));
+
+            // Move to the flee position
+            entity.getNavigation().moveTo(fleePos.x, fleePos.y, fleePos.z, 1.25D);
+            setFleeing(true);
+        } else {
+            setFleeing(false);
+        }
+    }
+
+    private void setFleeing(boolean fleeing) {
+        if (entity instanceof AbstractRecruitEntity recruit) {
+            recruit.setFleeing(fleeing);
+        }
+        if (entity instanceof AssassinEntity assassin) {
+            assassin.setFleeing(fleeing);
+        }
     }
 }

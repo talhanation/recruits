@@ -6,6 +6,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.PacketDistributor;
@@ -17,7 +18,7 @@ public class MessageRemoveAssignedGroupFromCompanion implements Message<MessageR
     private UUID owner;
     private UUID companion;
 
-    public MessageRemoveAssignedGroupFromCompanion(){
+    public MessageRemoveAssignedGroupFromCompanion() {
     }
 
     public MessageRemoveAssignedGroupFromCompanion(UUID owner, UUID companion) {
@@ -30,20 +31,27 @@ public class MessageRemoveAssignedGroupFromCompanion implements Message<MessageR
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        player.getCommandSenderWorld().getEntitiesOfClass(
+                AbstractLeaderEntity.class,
+                context.getSender().getBoundingBox().inflate(100D),
+                (leader) -> leader.getUUID().equals(this.companion)
+        ).forEach((companionEntity) -> {
+            companionEntity.setRecruitsToHoldPos();
+            companionEntity.setRecruitsToListen();
 
-        List<AbstractLeaderEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractLeaderEntity.class, context.getSender().getBoundingBox().inflate(100D));
-        for (AbstractLeaderEntity companionEntity : list){
-            if(companionEntity.getUUID().equals(this.companion)){
-                companionEntity.setRecruitsToHoldPos();
-                companionEntity.setRecruitsToListen();
-
-                companionEntity.RECRUITS_IN_COMMAND = new Stack<>();
-                companionEntity.currentRecruitsInCommand = new ArrayList<>();
-                Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(context::getSender), new MessageToClientUpdateLeaderScreen(companionEntity.WAYPOINTS, companionEntity.WAYPOINT_ITEMS, companionEntity.getRecruitsInCommand().size()));
-                break;
-            }
-        }
+            companionEntity.RECRUITS_IN_COMMAND = new Stack<>();
+            companionEntity.currentRecruitsInCommand = new ArrayList<>();
+            Main.SIMPLE_CHANNEL.send(
+                    PacketDistributor.PLAYER.with(context::getSender),
+                    new MessageToClientUpdateLeaderScreen(
+                            companionEntity.WAYPOINTS,
+                            companionEntity.WAYPOINT_ITEMS,
+                            companionEntity.getRecruitsInCommand().size())
+            );
+        });
     }
+
     public MessageRemoveAssignedGroupFromCompanion fromBytes(FriendlyByteBuf buf) {
         this.owner = buf.readUUID();
         this.companion = buf.readUUID();
@@ -54,5 +62,4 @@ public class MessageRemoveAssignedGroupFromCompanion implements Message<MessageR
         buf.writeUUID(this.owner);
         buf.writeUUID(this.companion);
     }
-
 }

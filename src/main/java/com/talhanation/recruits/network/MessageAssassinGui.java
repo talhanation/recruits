@@ -2,13 +2,13 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class MessageAssassinGui implements Message<MessageAssassinGui> {
@@ -33,19 +33,16 @@ public class MessageAssassinGui implements Message<MessageAssassinGui> {
 
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
-        if (!context.getSender().getUUID().equals(uuid)) {
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        if (!player.getUUID().equals(uuid)) {
             return;
         }
 
-        ServerPlayer player = context.getSender();
-        player.getCommandSenderWorld().getEntitiesOfClass(AssassinLeaderEntity.class, player.getBoundingBox()
-                        .inflate(16.0D), v -> v
-                        .getUUID()
-                        .equals(this.recruit))
-                .stream()
-                .filter(Entity::isAlive)
-                .findAny()
-                .ifPresent(recruit -> recruit.openGUI(player));
+        player.getCommandSenderWorld().getEntitiesOfClass(
+                AssassinLeaderEntity.class,
+                player.getBoundingBox().inflate(16.0D),
+                v -> v.getUUID().equals(this.recruit) && v.isAlive()
+        ).forEach((recruit) -> recruit.openGUI(player));
     }
 
     @Override
@@ -60,5 +57,4 @@ public class MessageAssassinGui implements Message<MessageAssassinGui> {
         buf.writeUUID(uuid);
         buf.writeUUID(recruit);
     }
-
 }

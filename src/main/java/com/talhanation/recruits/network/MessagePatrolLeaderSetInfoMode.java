@@ -7,13 +7,15 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class MessagePatrolLeaderSetInfoMode implements Message<MessagePatrolLeaderSetInfoMode> {
     private UUID recruit;
     private byte state;
 
-    public MessagePatrolLeaderSetInfoMode() {}
+    public MessagePatrolLeaderSetInfoMode() {
+    }
 
     public MessagePatrolLeaderSetInfoMode(UUID recruit, byte state) {
         this.recruit = recruit;
@@ -24,18 +26,13 @@ public class MessagePatrolLeaderSetInfoMode implements Message<MessagePatrolLead
         return Dist.DEDICATED_SERVER;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
-
-        ServerPlayer player = context.getSender();
-        player.getCommandSenderWorld().getEntitiesOfClass(AbstractLeaderEntity.class, player.getBoundingBox()
-                .inflate(16.0D), v -> v
-                .getUUID()
-                .equals(this.recruit))
-                .stream()
-                .filter(AbstractLeaderEntity::isAlive)
-                .findAny()
-                .ifPresent(abstractRecruitEntity -> abstractRecruitEntity.setInfoMode(state));
-
+    public void executeServerSide(NetworkEvent.Context context) {
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        player.getCommandSenderWorld().getEntitiesOfClass(
+                AbstractLeaderEntity.class,
+                player.getBoundingBox().inflate(16.0D),
+                v -> v.getUUID().equals(this.recruit) && v.isAlive()
+        ).forEach((leader) -> leader.setInfoMode(state));
     }
 
     public MessagePatrolLeaderSetInfoMode fromBytes(FriendlyByteBuf buf) {
@@ -48,5 +45,4 @@ public class MessagePatrolLeaderSetInfoMode implements Message<MessagePatrolLead
         buf.writeUUID(this.recruit);
         buf.writeByte(this.state);
     }
-
 }

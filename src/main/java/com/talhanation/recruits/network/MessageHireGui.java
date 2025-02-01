@@ -8,6 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class MessageHireGui implements Message<MessageHireGui> {
@@ -32,19 +33,16 @@ public class MessageHireGui implements Message<MessageHireGui> {
 
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
-        if (!context.getSender().getUUID().equals(uuid)) {
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        if (!player.getUUID().equals(uuid)) {
             return;
         }
 
-        ServerPlayer player = context.getSender();
-        player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
-                        .inflate(16.0D), v -> v
-                        .getUUID()
-                        .equals(this.recruit))
-                .stream()
-                .filter(AbstractRecruitEntity::isAlive)
-                .findAny()
-                .ifPresent(recruit -> recruit.openHireGUI(player));
+        player.getCommandSenderWorld().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                player.getBoundingBox().inflate(16.0D),
+                v -> v.getUUID().equals(this.recruit) && v.isAlive()
+        ).forEach((recruit -> recruit.openHireGUI(player)));
     }
 
     @Override
@@ -59,5 +57,4 @@ public class MessageHireGui implements Message<MessageHireGui> {
         buf.writeUUID(uuid);
         buf.writeUUID(recruit);
     }
-
 }

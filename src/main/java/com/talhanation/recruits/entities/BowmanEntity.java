@@ -1,6 +1,5 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.RecruitMoveTowardsTargetGoal;
 import com.talhanation.recruits.entities.ai.RecruitStrategicFire;
@@ -21,7 +20,6 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
