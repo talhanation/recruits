@@ -143,7 +143,7 @@ public class  TeamEvents {
             serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
             return false;
         }
-        else if (teamName.chars().count() > 24) {
+        else if (teamName.chars().count() > 32) {
             serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.teamname_to_long").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
             return false;
         }
