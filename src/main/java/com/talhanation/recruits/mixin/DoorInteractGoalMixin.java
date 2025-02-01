@@ -53,7 +53,7 @@ public class DoorInteractGoalMixin {
                     continue;
                 }
 
-                this.hasDoor = DoorBlock.isWoodenDoor(this.mob.level, this.doorPos);
+                this.hasDoor = DoorBlock.isWoodenDoor(this.mob.getCommandSenderWorld(), this.doorPos);
                 if (this.hasDoor) {
                     ci.setReturnValue(true);
                     ci.cancel();
@@ -65,7 +65,7 @@ public class DoorInteractGoalMixin {
         }
 
         this.doorPos = this.mob.blockPosition().above();
-        this.hasDoor = DoorBlock.isWoodenDoor(this.mob.level, this.doorPos);
+        this.hasDoor = DoorBlock.isWoodenDoor(this.mob.getCommandSenderWorld(), this.doorPos);
         ci.setReturnValue(this.hasDoor);
         ci.cancel();
     }

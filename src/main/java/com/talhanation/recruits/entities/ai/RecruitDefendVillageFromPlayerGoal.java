@@ -26,9 +26,9 @@ public class RecruitDefendVillageFromPlayerGoal extends TargetGoal {
 
     public boolean canUse() {
         AABB aabb = this.recruit.getBoundingBox().inflate(30.0D, 8.0D, 30.0D);
-        List<Villager> list = this.recruit.getLevel().getEntitiesOfClass(Villager.class, aabb, (livingEntity) -> !this.attackTargeting.test(this.recruit, livingEntity));
+        List<Villager> list = this.recruit.getCommandSenderWorld().getEntitiesOfClass(Villager.class, aabb, (livingEntity) -> !this.attackTargeting.test(this.recruit, livingEntity));
 
-        List<Player> list1 = this.recruit.getLevel().getEntitiesOfClass(Player.class, aabb);
+        List<Player> list1 = this.recruit.getCommandSenderWorld().getEntitiesOfClass(Player.class, aabb);
 
         for(Villager villager : list) {
             for(Player player : list1) {

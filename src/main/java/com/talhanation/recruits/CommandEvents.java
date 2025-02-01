@@ -334,7 +334,7 @@ public class CommandEvents {
                 if(targetPosition.distanceToSqr(oldPos) > 50){
 
                     List<AbstractRecruitEntity> list = Objects.requireNonNull(serverPlayer).
-                            getLevel().
+                            getCommandSenderWorld().
                             getEntitiesOfClass(
                                     AbstractRecruitEntity.class,
                                     serverPlayer.getBoundingBox().inflate(100)

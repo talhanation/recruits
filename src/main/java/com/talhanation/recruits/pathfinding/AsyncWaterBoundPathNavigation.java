@@ -50,7 +50,7 @@ public class AsyncWaterBoundPathNavigation extends AsyncPathNavigation {
     }
 
     protected boolean canMoveDirectly(@NotNull Vec3 p_186138_, @NotNull Vec3 p_186139_) {
-        return isClearForMovementBetween(this.mob, p_186138_, p_186139_);
+        return isClearForMovementBetween(this.mob, p_186138_, p_186139_, false);
     }
 
     public boolean isStableDestination(@NotNull BlockPos p_26608_) {

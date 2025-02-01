@@ -55,7 +55,7 @@ public class TargetingConditions {
             return false;
         } else {
             if (p_26886_ == null) {
-                return !this.isCombat || (p_26887_.canBeSeenAsEnemy() && p_26887_.level.getDifficulty() != Difficulty.PEACEFUL);
+                return !this.isCombat || (p_26887_.canBeSeenAsEnemy() && p_26887_.getCommandSenderWorld().getDifficulty() != Difficulty.PEACEFUL);
             } else {
                 if (this.isCombat && (!p_26886_.canAttack(p_26887_) || !p_26886_.canAttackType(p_26887_.getType()) || p_26886_.isAlliedTo(p_26887_))) {
                     return false;

@@ -49,7 +49,7 @@ public abstract class AsyncPathNavigation extends PathNavigation {
 
     @Nullable
     public final Path createPathAsync(double p_26525_, double p_26526_, double p_26527_, int p_26528_) {
-        return this.createPath(new BlockPos(p_26525_, p_26526_, p_26527_), p_26528_);
+        return this.createPath(new BlockPos((int) p_26525_, (int) p_26526_, (int) p_26527_), p_26528_);
     }
 
     @Nullable
@@ -131,7 +131,7 @@ public abstract class AsyncPathNavigation extends PathNavigation {
 
     @Override
     public boolean moveTo(double p_26520_, double p_26521_, double p_26522_, double p_26523_) {
-        Path path = this.createPath(new BlockPos(p_26520_, p_26521_, p_26522_), 1);
+        Path path = this.createPath(new BlockPos((int) p_26520_, (int) p_26521_, (int) p_26522_), 1);
         return this.moveTo(path, p_26523_);
     }
 
@@ -225,7 +225,7 @@ public abstract class AsyncPathNavigation extends PathNavigation {
             } else if (this.path != null && !this.path.isDone()) {
                 Vec3 vec3 = this.getTempMobPos();
                 Vec3 vec31 = this.path.getNextEntityPos(this.mob);
-                if (vec3.y > vec31.y && !this.mob.isOnGround() && Mth.floor(vec3.x) == Mth.floor(vec31.x) && Mth.floor(vec3.z) == Mth.floor(vec31.z)) {
+                if (vec3.y > vec31.y && !this.mob.onGround() && Mth.floor(vec3.x) == Mth.floor(vec31.x) && Mth.floor(vec3.z) == Mth.floor(vec31.z)) {
                     this.path.advance();
                 }
             }
@@ -247,7 +247,7 @@ public abstract class AsyncPathNavigation extends PathNavigation {
         double d1 = Math.abs(this.mob.getY() - (double)vec3i.getY());
         double d2 = Math.abs(this.mob.getZ() - ((double)vec3i.getZ() + (this.mob.getBbWidth() + 1) / 2D)); //Forge: Fix MC-94054
         boolean flag = d0 <= (double)this.maxDistanceToWaypoint && d2 <= (double)this.maxDistanceToWaypoint && d1 < 1.0D; //Forge: Fix MC-94054
-        if (flag || this.mob.canCutCorner(this.path.getNextNode().type) && this.shouldTargetNextNodeInDirection(vec3)) {
+        if (flag || this.canCutCorner(this.path.getNextNode().type) && this.shouldTargetNextNodeInDirection(vec3)) {
             this.path.advance();
         }
 
