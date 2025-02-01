@@ -520,14 +520,14 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
     }
 
     private boolean checkCreationCondition(){
-        boolean nameLength = this.textFieldTeamName.getValue().length() >= 3 && this.textFieldTeamName.getValue().length() <= 24;
+        boolean nameLength = this.textFieldTeamName.getValue().length() >= 3 && this.textFieldTeamName.getValue().length() <= 32;
         boolean sufficientEmeralds =  playerCurrencyCount >= creationPrice || player.isCreative();
 
         return this.banner != null && !this.banner.isEmpty() && nameLength && this.leaderInfo != null && sufficientEmeralds;
     }
 
     private boolean checkEditCondition(){
-        boolean nameLength = this.textFieldTeamName != null && this.textFieldTeamName.getValue().length() >= 3 && this.textFieldTeamName.getValue().length() <= 24;
+        boolean nameLength = this.textFieldTeamName != null && this.textFieldTeamName.getValue().length() >= 3 && this.textFieldTeamName.getValue().length() <= 32;
         boolean sufficientEmeralds = playerCurrencyCount >= totalCost || player.isCreative();
 
         return nameLength && this.leaderInfo != null && sufficientEmeralds && hasChanges;
