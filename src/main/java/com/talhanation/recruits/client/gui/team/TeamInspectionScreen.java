@@ -17,166 +17,277 @@ import net.minecraft.client.renderer.blockentity.BannerRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.core.Holder;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.talhanation.recruits.Main;
+import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.client.gui.component.BannerRenderer;
+import com.talhanation.recruits.client.gui.diplomacy.DiplomacyTeamListScreen;
+import com.talhanation.recruits.client.gui.player.IPlayerSelection;
+import com.talhanation.recruits.client.gui.player.PlayersList;
+import com.talhanation.recruits.client.gui.player.RecruitsPlayerEntry;
+import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
+import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
+import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
+import com.talhanation.recruits.client.gui.widgets.SelectedPlayerWidget;
+import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.world.RecruitsPlayerInfo;
+import com.talhanation.recruits.world.RecruitsTeam;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BannerItem;
-import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BannerBlockEntity;
-import net.minecraft.world.level.block.entity.BannerPattern;
-import net.minecraft.world.scores.Team;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
 
-import java.util.List;
-import java.util.UUID;
 @OnlyIn(Dist.CLIENT)
-public class TeamInspectionScreen extends ScreenBase<TeamInspectionContainer> {
+public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelection {
 
-    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/team/team_inspect_gui.png");
-    private static final MutableComponent LEAVE_TEAM = Component.translatable("gui.recruits.team_creation.leave_team");
-    private static final MutableComponent DELETE_TEAM = Component.translatable("gui.recruits.team_creation.delete_team");
-    private static final MutableComponent EDIT_TEAM = Component.translatable("gui.recruits.team_creation.edit_team");
-    private static final MutableComponent MANAGE_TEAM = Component.translatable("gui.recruits.team_creation.add_player");
-
-    private static final MutableComponent TOOLTIP_COMING_SOON = Component.translatable("gui.recruits.team_creation.coming_soon");
-    public static UUID leaderUUID;
-    private static final int fontColor = 4210752;
-    private final Player player;
-    private final Team team;
-    private ModelPart flag;
-    private int leftPos;
-    private int topPos;
-    public static int players;
-    public static int npcs;
-    private int members;
-    private List<Pair<Holder<BannerPattern>, DyeColor>> resultBannerPatterns;
-    public static ItemStack bannerItem;
-    public static String leader;
-
-    public static List<String> playerMembers;
+    protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/team/team_inspect.png");
+    protected static final ResourceLocation LEADER_CROWN = new ResourceLocation(Main.MOD_ID, "textures/gui/image/leader_crown.png");
+    private static final Component LEAVE_BUTTON = Component.translatable("gui.recruits.team.leave");
+    private static final Component DIPLOMACY_BUTTON = Component.translatable("gui.recruits.team.diplomacy");
+    private static final Component EDIT_BUTTON = Component.translatable("gui.recruits.team.edit");
+    private static final Component MANAGE_BUTTON = Component.translatable("gui.recruits.team.manage");
+    private static final Component BACK_BUTTON = Component.translatable("gui.recruits.button.back");
+    private static final Component MEMBERS_TEXT = Component.translatable("gui.recruits.team.members");
+    private static final Component PLAYERS_TEXT = Component.translatable("gui.recruits.team.players");
+    private static final Component NPCS_TEXT = Component.translatable("gui.recruits.team.npcs");
+    private static final Component LEADER_TEXT = Component.translatable("gui.recruits.team.leader");
+    private static final Component SELECT_LEADER = Component.translatable("gui.recruits.team.select_leader");
+    private static final Component SELECT_LEADER_TOOLTIP = Component.translatable("gui.recruits.team.select_leader_tooltip_leaving");
+    protected static final int HEADER_SIZE = 130;
+    protected static final int FOOTER_SIZE = 32;
+    protected static final int SEARCH_HEIGHT = 0;
+    protected static final int UNIT_SIZE = 18;
+    protected static final int CELL_HEIGHT = 32;
+    protected PlayersList playerList;
+    protected int units;
+    protected Screen parent;
+    public RecruitsPlayerInfo selected;
+    private Button backButton;
+    private Button manageButton;
     private Button editButton;
+    private Button diplomacyButton;
+    private Button leaveButton;
+    private final Player player;
+    public static RecruitsTeam recruitsTeam;
+    private BannerRenderer bannerRenderer;
+    private SelectedPlayerWidget selectedPlayerWidget;
+    private boolean postInit;
+    private int gapBottom;
+    private int gapTop;
+    public static boolean isEditingAllowed;
+    public static boolean isManagingAllowed;
 
-    public TeamInspectionScreen(TeamInspectionContainer container, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""));
-        player = container.getPlayerEntity();
-        team = player.getTeam();
-        imageWidth = 220;
-        imageHeight = 250;
+    public TeamInspectionScreen(Screen parent, Player player){
+        super(Component.literal("TeamInspection"),236,0);
+        this.parent = parent;
+        this.player = player;
     }
 
+    @Override
     protected void init() {
         super.init();
-        playerMembers = player.getTeam().getPlayers().stream().filter((name) -> name.length() <= 16).toList();
-        this.flag = this.minecraft.getEntityModels().bakeLayer(ModelLayers.BANNER).getChild("flag");
-        if(bannerItem != null) this.resultBannerPatterns = BannerBlockEntity.createPatterns(((BannerItem)bannerItem.getItem()).getColor(), BannerBlockEntity.getItemPatterns(bannerItem));
+        postInit = false;
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdateTeamInspaction());
 
-        this.leftPos = (this.width - this.imageWidth) / 2;
-        this.topPos = (this.height - this.imageHeight) / 2;
-        this.members = players + npcs;
-        boolean isTeamLeader = player.getUUID().equals(leaderUUID);
+        gapTop = (int) (this.height * 0.1);
+        gapBottom = (int) (this.height * 0.1);
 
-        if(isTeamLeader){
-            editButton = createEditButton();
-            editButton.active = false;
+        guiLeft = guiLeft + 2;
+        guiTop = gapTop;
 
-            //Manage
-            addRenderableWidget(new ExtendedButton(leftPos + 155, topPos + 218, 50, 18, MANAGE_TEAM, button -> {
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenTeamAddPlayerScreen(player));
-            }));
+        int minUnits = Mth.ceil((float) (CELL_HEIGHT + SEARCH_HEIGHT + 4) / (float) UNIT_SIZE);
+        units = Math.max(minUnits, (height - HEADER_SIZE - FOOTER_SIZE - gapTop - gapBottom - SEARCH_HEIGHT) / UNIT_SIZE);
+        ySize = HEADER_SIZE + units * UNIT_SIZE + FOOTER_SIZE;
+
+        minecraft.keyboardHandler.setSendRepeatsToGui(true);
+        if (playerList != null) {
+            playerList.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
+        } else {
+            playerList = new PlayersList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT,  this, PlayersList.FilterType.SAME_TEAM, player, true);
         }
+        addWidget(playerList);
+
+        backButton = new Button(guiLeft + 169, guiTop + HEADER_SIZE + 5 + units * UNIT_SIZE, 60, 20, BACK_BUTTON,
+                button -> {
+                    minecraft.setScreen(parent);
+                });
+        addRenderableWidget(backButton);
+    }
+
+
+    public void postInit(){
+        this.bannerRenderer = new BannerRenderer(recruitsTeam);
+        int buttonY = guiTop + HEADER_SIZE + 5 + units * UNIT_SIZE;
+        this.selectedPlayerWidget = new SelectedPlayerWidget(font, guiLeft + 130, guiTop + 20, 100, 20, Component.literal(""), () -> {});
+        this.selectedPlayerWidget.setButtonActive(false);
+        this.selectedPlayerWidget.setButtonVisible(false);
+        this.selectedPlayerWidget.setPlayer(recruitsTeam.getTeamLeaderUUID(), recruitsTeam.getTeamLeaderName());
+        addRenderableWidget(this.selectedPlayerWidget);
+
+        boolean isTeamLeader = recruitsTeam.getTeamLeaderUUID().equals(player.getUUID());
+
+        editButton = new Button(guiLeft + 169, guiTop + 99, 60, 20, EDIT_BUTTON,
+                button -> {
+                    TeamEvents.openTeamEditScreen(player);
+            //minecraft.setScreen(new TeamEditScreen(this, player, recruitsTeam));
+                });
+        editButton.visible = isTeamLeader && isEditingAllowed;
+        addRenderableWidget(editButton);
+
+        diplomacyButton = new Button(guiLeft + 87, guiTop + 99, 60, 20, DIPLOMACY_BUTTON,
+                button -> {
+                    minecraft.setScreen(new DiplomacyTeamListScreen(this, isTeamLeader));
+                });
+        addRenderableWidget(diplomacyButton);
+
+        manageButton = new Button(guiLeft + 87, buttonY, 60, 20, MANAGE_BUTTON,
+                button -> {
+                    minecraft.setScreen(new TeamManageScreen(this, player, recruitsTeam));
+                });
+        manageButton.visible = isTeamLeader && isManagingAllowed;
+        addRenderableWidget(manageButton);
 
         //leave team
-        addRenderableWidget(new ExtendedButton(leftPos + 85, topPos + 218, 50, 18, (isTeamLeader ? DELETE_TEAM : LEAVE_TEAM), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
-            this.onClose();
-        }));
+        leaveButton = new Button(guiLeft + 7, buttonY, 60, 20, LEAVE_BUTTON,
+            button -> {
+                if(isTeamLeader){
+                    if(playerList != null && playerList.isEmpty()){
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
+                        return;
+                    }
+
+                    Screen selectPlayerScreen = new SelectPlayerScreen(this, player, SELECT_LEADER, SelectPlayerScreen.BUTTON_SELECT, SELECT_LEADER_TOOLTIP, false, PlayersList.FilterType.SAME_TEAM,
+                            (playerInfo) -> {
+                                recruitsTeam.setTeamLeaderID(playerInfo.getUUID());
+                                recruitsTeam.setTeamLeaderName(playerInfo.getName());
+
+                                Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveTeamSettings(recruitsTeam));
+                                onClose();
+                            }
+                    );
+                    minecraft.setScreen(selectPlayerScreen);
+
+                }
+                else {
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
+                    onClose();
+                }
+            });
+
+        addRenderableWidget(leaveButton);
+
+        postInit = true;
     }
+    @Override
+    public void tick() {
+        super.tick();
+        if(playerList != null){
+            playerList.tick();
+        }
 
-    protected void render(GuiGraphics guiGraphics, int partialTicks, int mouseX, int mouseY) {
-        super.render(guiGraphics, partialTicks, mouseX, mouseY);
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
-        guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
-    }
-
-    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
-        //LoomScreen
-        super.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
-
-        if(bannerItem != null) {
-            int k = (int) (41.0F);//                                                 (this.displayPatterns ? 0 : 12)
-            guiGraphics.blit(texture, leftPos + 119, topPos + 13 + k, 232 + 0, 0, 12, 15);
-            Lighting.setupForFlatItems();
-
-            guiGraphics.pose().pushPose();
-            guiGraphics.pose().translate((double) (leftPos) + 110, (double) (topPos) + 94, 0.0D);
-            guiGraphics.pose().scale(54.0F, -54.0F, 1.0F);
-            float f = 0.6666667F;
-            guiGraphics.pose().scale(f, -f, -f);
-            this.flag.xRot = 0.0F;
-            this.flag.y = -32.0F;
-            BannerRenderer.renderPatterns(guiGraphics.pose(), guiGraphics.bufferSource(), 15728880, OverlayTexture.NO_OVERLAY, this.flag, ModelBakery.BANNER_BASE, true, this.resultBannerPatterns);
-            guiGraphics.pose().popPose();
-            guiGraphics.flush();
+        if(recruitsTeam != null && !postInit){
+            this.postInit();
         }
         Lighting.setupFor3DItems();
 
     }
 
     @Override
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        super.renderLabels(guiGraphics, mouseX, mouseY);
-        //Info
-        int fontColorLeader;
-        if(player.getTeam() != null && player.getTeam().getColor().getColor() != null) fontColorLeader = player.getTeam().getColor().getColor();
-        else fontColorLeader = fontColor;
-
-		String teamName = team.getName();
-        int x = teamName.length() * 4;
-        guiGraphics.drawString(font, "" + teamName, 110 - x, 10, fontColor, false);
-
-        guiGraphics.drawString(font, "Leader:", 18, 25, fontColor, false);
-        guiGraphics.drawString(font, "" + leader, 18, 25 + 15, fontColorLeader, false);
-
-        guiGraphics.drawString(font, "Players:", 18, 116, fontColor, false);
-
-        int xOffset = 18;
-        int yOffset = 135;
-        for (int i = 0; i < playerMembers.size(); i++) {
-            String name = playerMembers.get(i);
-            int xPosition = xOffset;
-            int yPosition = yOffset + (12 * i);
-
-            if (i >= 7) {
-                xPosition += 100;
-                yPosition -= 12;
-            }
-
-            guiGraphics.drawString(font, "- " + name, xPosition, yPosition, fontColor, false);
-        }
-
-        guiGraphics.drawString(font, "Members:", 135, 25, fontColor, false);
-        guiGraphics.drawString(font, "" + members, 135 + 50, 25, fontColor, false);
-
-        guiGraphics.drawString(font, "Players:", 135, 40, fontColor, false);
-        guiGraphics.drawString(font, "" + players, 135 + 50, 40, fontColor, false);
-
-        guiGraphics.drawString(font, "NPCs:", 135, 55, fontColor, false);
-        guiGraphics.drawString(font, "" + npcs, 135 + 50, 55, fontColor, false);
+    public boolean keyPressed(int p_96552_, int p_96553_, int p_96554_) {
+        boolean flag = super.keyPressed(p_96552_, p_96553_, p_96554_);
+        this.selected = null;
+        this.playerList.setFocused(null);
+        return flag;
     }
 
-    private Button createEditButton(){
-        //Edit Team
-        return addRenderableWidget(new ExtendedButton(leftPos + 15, topPos + 218, 50, 18, EDIT_TEAM,
-            button -> {
-            }
-        ));
+    @Override
+    public void onClose() {
+        super.onClose();
+        minecraft.keyboardHandler.setSendRepeatsToGui(false);
+    }
 
+    int x1 = 25;
+    int y1 = 80;
+    @Override
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+        super.render(guiGraphics, mouseX, mouseY, delta);
+        if(bannerRenderer != null) bannerRenderer.renderBanner(guiGraphics, this.guiLeft + x1, guiTop + y1, this.width, this.height, 60);
+    }
+    @Override
+    public void renderBackground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
+        RenderSystem.setShaderTexture(0, TEXTURE);
+        blit(poseStack, guiLeft, guiTop, 0, 0, xSize, HEADER_SIZE);
+        for (int i = 0; i < units; i++) {
+            blit(poseStack, guiLeft, guiTop + HEADER_SIZE + UNIT_SIZE * i, 0, HEADER_SIZE, xSize, UNIT_SIZE);
+        }
+        blit(poseStack, guiLeft, guiTop + HEADER_SIZE + UNIT_SIZE * units, 0, HEADER_SIZE + UNIT_SIZE, xSize, FOOTER_SIZE);
+        blit(poseStack, guiLeft + 10, guiTop + HEADER_SIZE + 6 - 2, xSize, 0, 12, 12);
+    }
+
+    @Override
+    public void renderForeground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
+        int textX = width / 2 - 48;
+        int textY = guiTop + 25;
+        int crownX = width / 2 - 6;
+        int crownY = guiTop + 22;
+        int numbersX = 65;
+        if (!playerList.isEmpty()) {
+            playerList.render(poseStack, mouseX, mouseY, delta);
+        }
+
+        if(recruitsTeam != null){
+            int members = recruitsTeam.players + recruitsTeam.npcs;
+            String players = "" + recruitsTeam.players;
+            String npcs = "" + recruitsTeam.npcs;
+
+            if(recruitsTeam.maxNPCs > 0) npcs = npcs + "/" + recruitsTeam.maxNPCs;
+            if(recruitsTeam.maxPlayers > 0) players = players + "/" + recruitsTeam.maxPlayers;
+
+            font.draw(poseStack, this.getTitle(), width / 2F - font.width(getTitle()) / 2F, guiTop + 5, 0xFF000000 | ChatFormatting.getById(recruitsTeam.getTeamColor()).getColor());
+
+            RenderSystem.setShader(GameRenderer::getPositionTexShader);
+            RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
+            RenderSystem.setShaderTexture(0, LEADER_CROWN);
+            GuiComponent.blit(poseStack, crownX, crownY, 0, 0, 16, 16, 16, 16);
+
+            font.draw(poseStack, LEADER_TEXT.getString(), textX, textY, 4210752);
+
+            font.draw(poseStack, MEMBERS_TEXT.getString(), textX, textY + 25, 4210752);
+            font.draw(poseStack, "" + members, textX + numbersX, textY + 25, 4210752);
+
+            font.draw(poseStack, PLAYERS_TEXT.getString(), textX, textY + 40, 4210752);
+            font.draw(poseStack, players, textX + numbersX, textY + 40, 4210752);
+
+            font.draw(poseStack, NPCS_TEXT.getString(), textX, textY + 55, 4210752);
+            font.draw(poseStack, npcs, textX + numbersX, textY + 55, 4210752);
+        }
+    }
+
+
+    @Override
+    public RecruitsPlayerInfo getSelected() {
+        return selected;
+    }
+
+    @Override
+    public ListScreenListBase<RecruitsPlayerEntry> getPlayerList() {
+        return playerList;
+    }
+
+    @Override
+    public Component getTitle() {
+        String name = "";
+
+        if(recruitsTeam != null){
+            name = recruitsTeam.getTeamDisplayName();
+        }
+        return Component.literal(name);
     }
 }

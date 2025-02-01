@@ -36,7 +36,7 @@ mixin{
     overwriteErrorLevel = 'error'
 }
 
-version = '1.12.3'
+version = '1.13.0'
 
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.20.1'
@@ -49,6 +49,7 @@ minecraft {
 
     runs {
         client {
+
             workingDirectory project.file('run')
 
             property 'forge.logging.markers', 'REGISTRIES'
@@ -58,7 +59,7 @@ minecraft {
 
             Random rnd = new Random()
 
-            args = ['--username', 'talhanation']// + rnd.nextInt(1000)]
+            args = ['--username', 'talhanation2']
 
             mods {
                 'recruits' {

@@ -2,7 +2,9 @@ package com.talhanation.recruits.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.inventory.DisbandContainer;
+import com.talhanation.recruits.client.gui.player.PlayersList;
+import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
+import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.network.MessageAssignGroupToTeamMate;
 import com.talhanation.recruits.network.MessageAssignToTeamMate;
 import com.talhanation.recruits.network.MessageDisband;
@@ -11,24 +13,21 @@ import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
 
-import java.util.UUID;
+public class DisbandScreen extends RecruitsScreenBase {
 
-public class DisbandScreen extends ScreenBase<DisbandContainer> {
-
-
-    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/team/team_main_gui.png");
+    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_big.png");
+    private static final Component TITLE = Component.translatable("gui.recruits.more_screen.title");
     private Player player;
-    private UUID recruit;
-    private int leftPos;
-    private int topPos;
+    private AbstractRecruitEntity recruit;
     private static final MutableComponent DISBAND = Component.translatable("gui.recruits.inv.text.disband");
     private static final MutableComponent DISBAND_GROUP = Component.translatable("gui.recruits.inv.text.disbandGroup");
     private static final MutableComponent TOOLTIP_DISBAND = Component.translatable("gui.recruits.inv.tooltip.disband");
@@ -38,89 +37,102 @@ public class DisbandScreen extends ScreenBase<DisbandContainer> {
     private static final MutableComponent TOOLTIP_ASSIGN_GROUP_TO_MATE = Component.translatable("gui.recruits.inv.tooltip.assignGroupToTeamMate");
     private static final MutableComponent TEAM_MATE = Component.translatable("gui.recruits.team.assignNewOwner");
     private static final MutableComponent TEAM_MATE_GROUP = Component.translatable("gui.recruits.team.assignGroupNewOwner");
-    private boolean keepTeam;
 
-    public DisbandScreen(DisbandContainer container, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""));
-        this.imageWidth = 250;
-        this.imageHeight = 83;
-        this.player = container.getPlayerEntity();
-        this.recruit = container.getRecruit();
+    public DisbandScreen(Screen parent, AbstractRecruitEntity recruit, Player player) {
+        super(TITLE, 195,160);
+        this.player = player;
+        this.recruit = recruit;
     }
 
     @Override
     protected void init() {
         super.init();
-        this.leftPos = (this.width - this.imageWidth) / 2;
-        this.topPos = (this.height - this.imageHeight) / 2;
-        keepTeam = false;
-		
+
         setButtons();
     }
 
     private void setButtons(){
         clearWidgets();
 
-        Button buttonKeepTeam = addRenderableWidget(new ExtendedButton(leftPos + 230, topPos + 15, 30, 20, Component.literal(String.valueOf(keepTeam)),
-            btn -> {
-                keepTeam = !keepTeam;
-                setButtons();
-            }
-        ));
-        buttonKeepTeam.setTooltip(Tooltip.create(TOOLTIP_KEEP_TEAM));
-        addRenderableWidget(buttonKeepTeam);
-
-        Button giveToTeamMate = addRenderableWidget(new ExtendedButton(leftPos + 20, topPos + 15, 100, 20, TEAM_MATE,
-            btn -> {
-                if(recruit != null) {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignToTeamMate(this.recruit));
-                    onClose();
+        Button buttonDisband = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 120 - 7, 130, 20, DISBAND,
+                btn -> {
+                    if(this.recruit != null) {
+                        if(this.recruit.getTeam() != null) {
+                            minecraft.setScreen(new ConfirmScreen(DISBAND, TOOLTIP_KEEP_TEAM,
+                                    () -> Main.SIMPLE_CHANNEL.sendToServer(new MessageDisband(this.recruit.getUUID(), true)),
+                                    () -> Main.SIMPLE_CHANNEL.sendToServer(new MessageDisband(this.recruit.getUUID(), false)),
+                                    () -> minecraft.setScreen(DisbandScreen.this)
+                            ));
+                        }
+                        else
+                            Main.SIMPLE_CHANNEL.sendToServer(new MessageDisband(this.recruit.getUUID(), false));
+                    }
                 }
-            }
-        ));
-        giveToTeamMate.setTooltip(Tooltip.create(TOOLTIP_ASSIGN_TO_MATE));
-        addRenderableWidget(giveToTeamMate);
-
-        Button buttonDisband = addRenderableWidget(new ExtendedButton(leftPos + 130, topPos + 15, 100, 20, DISBAND,
-            btn -> {
-                if(this.recruit != null) {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageDisband(this.recruit, this.keepTeam));
-                    onClose();
-                }
-            }
         ));
         buttonDisband.setTooltip(Tooltip.create(TOOLTIP_DISBAND));
-        addRenderableWidget(buttonDisband);
 
-        Button buttonDisbandGroup = addRenderableWidget(new ExtendedButton(leftPos + 130, topPos + 40, 100, 20, DISBAND_GROUP,
+        Button giveToTeamMate = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 98 - 7, 130, 20, TEAM_MATE,
+
+            btn -> {
+                if(recruit != null) {
+                    minecraft.setScreen(new SelectPlayerScreen(this, player, TEAM_MATE, TEAM_MATE, TOOLTIP_ASSIGN_GROUP_TO_MATE, false, PlayersList.FilterType.SAME_TEAM,
+                            (playerInfo) -> {
+                                Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignToTeamMate(this.recruit.getUUID(), playerInfo.getUUID()));
+                                onClose();
+                            } )
+                    );
+                }
+            }
+        ));
+        giveToTeamMate.active = player.getTeam() != null;
+
+
+        Button buttonDisbandGroup = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 76 - 7, 130, 20, DISBAND_GROUP,
             btn -> {
                 if(this.recruit != null) {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageDisbandGroup(this.player.getUUID(), this.recruit, this.keepTeam));
-                    onClose();
+                    if(recruit.getTeam() != null){
+                        minecraft.setScreen(new ConfirmScreen(DISBAND_GROUP, TOOLTIP_KEEP_TEAM,
+                                () ->  Main.SIMPLE_CHANNEL.sendToServer(new MessageDisbandGroup(this.player.getUUID(), this.recruit.getUUID(), true)),
+                                () ->  Main.SIMPLE_CHANNEL.sendToServer(new MessageDisbandGroup(this.player.getUUID(), this.recruit.getUUID(), false)),
+                                () ->  minecraft.setScreen(DisbandScreen.this)
+                        ));
+                    }
+                    else
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageDisbandGroup(this.player.getUUID(), this.recruit.getUUID(), false));
                 }
             }
         ));
         buttonDisbandGroup.setTooltip(Tooltip.create(TOOLTIP_DISBAND_GROUP));
         addRenderableWidget(buttonDisbandGroup);
 
-        Button buttonAssignGroup = addRenderableWidget(new ExtendedButton(leftPos + 20, topPos + 40, 100, 20, TEAM_MATE_GROUP,
+        Button buttonAssignGroup = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 54 - 7, 130, 20, TEAM_MATE_GROUP,
             btn -> {
                 if(recruit != null) {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToTeamMate(this.player.getUUID(), this.recruit));
-                    onClose();
+                    minecraft.setScreen(new SelectPlayerScreen(this, player, TEAM_MATE_GROUP, TEAM_MATE_GROUP, TOOLTIP_ASSIGN_GROUP_TO_MATE, false, PlayersList.FilterType.SAME_TEAM,
+                        (playerInfo) -> {
+                            Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToTeamMate(this.player.getUUID(), playerInfo.getUUID(), this.recruit.getUUID()));
+                            onClose();
+                        } )
+                    );
                 }
             }
         ));
-        buttonAssignGroup.setTooltip(Tooltip.create(TOOLTIP_ASSIGN_GROUP_TO_MATE));
-        addRenderableWidget(buttonAssignGroup);
+        buttonAssignGroup.active = player.getTeam() != null;
     }
 
 
-    protected void render(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+    @Override
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
-        guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
+        RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
+        RenderSystem.setShaderTexture(0, TEXTURE);
+        guiGraphics.blit(TEXTURE, guiLeft, guiTop, 0, 0, xSize, ySize);
+    }
+
+    @Override
+    public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+        guiGraphics.drawString(font, TITLE, guiLeft + xSize / 2 - font.width(TITLE) / 2, guiTop + 7, FONT_COLOR, false);
+
     }
 
 }

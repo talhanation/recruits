@@ -7,6 +7,7 @@ import com.talhanation.recruits.client.gui.component.RecruitsMultiLineEditBox;
 import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.inventory.MessengerAnswerContainer;
 import com.talhanation.recruits.network.MessageAnswerMessenger;
+import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -32,6 +33,8 @@ public class MessengerAnswerScreen extends ScreenBase<MessengerAnswerContainer> 
     private int topPos;
 
     public static String message = "";
+
+    public static RecruitsPlayerInfo playerInfo;
     private static final MutableComponent BUTTON_OK = Component.translatable("gui.recruits.inv.text.ok_messenger");
     private static final int fontColor = 4210752;
 
@@ -91,7 +94,7 @@ public class MessengerAnswerScreen extends ScreenBase<MessengerAnswerContainer> 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         super.renderLabels(guiGraphics, mouseX, mouseY);
-        String targetPlayer = this.recruit.getTargetPlayerName();
+        String targetPlayer = this.playerInfo.getName();
         String owner = this.recruit.getOwnerName();
         String unit = "min";
         int rawtime = this.recruit.getWaitingTime();

@@ -1,10 +1,10 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.MessengerEntity;
+import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import de.maxhenkel.corelib.net.Message;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -16,16 +16,20 @@ public class MessageSendMessenger implements Message<MessageSendMessenger> {
 
     private UUID recruit;
     private boolean start;
-    private String targetPlayer;
+    private CompoundTag nbt;
     private String message;
 
     public MessageSendMessenger() {
     }
-    public MessageSendMessenger(UUID recruit, String targetPlayer, String message, boolean start) {
+
+    public MessageSendMessenger(UUID recruit, RecruitsPlayerInfo targetPlayer, String message, boolean start) {
         this.recruit = recruit;
         this.message = message;
-        this.targetPlayer = targetPlayer;
         this.start = start;
+
+        if(targetPlayer != null){
+            this.nbt = targetPlayer.toNBT();
+        }
     }
 
     public Dist getExecutingSide() {
@@ -37,29 +41,38 @@ public class MessageSendMessenger implements Message<MessageSendMessenger> {
         for (MessengerEntity messenger : list){
 
             if (messenger.getUUID().equals(this.recruit)){
-                messenger.setTargetPlayerName(this.targetPlayer);
                 messenger.setMessage(this.message);
 
                 if(start){
                     messenger.start();
                 }
+
+                if(nbt != null){
+                    messenger.setTargetPlayerInfo(RecruitsPlayerInfo.getFromNBT(this.nbt));
+                }
+                break;
             }
-
         }
-
     }
+
     public MessageSendMessenger fromBytes(FriendlyByteBuf buf) {
         this.recruit = buf.readUUID();
         this.start = buf.readBoolean();
-        this.targetPlayer = buf.readUtf();
         this.message = buf.readUtf();
+
+        if(nbt != null){
+            this.nbt = buf.readNbt();
+        }
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(recruit);
         buf.writeBoolean(start);
-        buf.writeUtf(targetPlayer);
         buf.writeUtf(message);
+
+        if(nbt != null){
+            buf.writeNbt(nbt);
+        }
     }
 }

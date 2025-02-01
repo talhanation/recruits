@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -28,7 +29,7 @@ public class RecruitProtectHurtByTargetGoal extends TargetGoal {
                 int i = protectingMob.getLastHurtByMobTimestamp();
                 return i != this.timestamp
                         && this.canAttack(this.protectLastHurtBy, TargetingConditions.DEFAULT)
-                        && this.recruit.wantsToAttack(this.protectLastHurtBy, protectingMob)
+                        && RecruitEvents.canAttack(protectingMob, this.protectLastHurtBy)
                         && recruit.getState() != 3;
             }
         }

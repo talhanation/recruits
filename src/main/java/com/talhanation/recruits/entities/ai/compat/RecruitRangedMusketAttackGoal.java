@@ -2,6 +2,7 @@ package com.talhanation.recruits.entities.ai.compat;
 
 import com.talhanation.recruits.compat.*;
 import com.talhanation.recruits.entities.CrossBowmanEntity;
+import com.talhanation.recruits.util.AttackUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -229,9 +230,23 @@ public class RecruitRangedMusketAttackGoal extends Goal {
                     }
 
                     case SHOOT -> {
+                        LivingEntity savedTarget = null;
                         if (target != null && target.isAlive() && this.crossBowman.canAttack(target) && this.crossBowman.getState() != 3) {
                             this.crossBowman.getLookControl().setLookAt(target);
+
+                            if(AttackUtil.canPerformHorseAttack(this.crossBowman, target)){
+                                if(target.getVehicle() instanceof LivingEntity) {
+                                    savedTarget = target;
+                                    target = (LivingEntity) target.getVehicle();
+                                }
+                            }
+
                             this.weapon.performRangedAttackIWeapon(this.crossBowman, target.getX(), target.getY(), target.getZ(), weapon.getProjectileSpeed());
+
+                            if(savedTarget != null){
+                                target = savedTarget;
+                            }
+
                             this.weapon.setLoaded(crossBowman.getMainHandItem(), false);
                         }
                         if (canLoad()) this.state = State.RELOAD;

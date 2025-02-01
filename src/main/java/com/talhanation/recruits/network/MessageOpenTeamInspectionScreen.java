@@ -33,7 +33,7 @@ public class MessageOpenTeamInspectionScreen implements Message<MessageOpenTeamI
             return;
         }
         ServerPlayer player = context.getSender();
-        TeamEvents.openTeamInspectionScreen(player, player.getTeam());
+        //TeamEvents.openTeamInspectionScreen(player, player.getTeam());
     }
 
     @Override

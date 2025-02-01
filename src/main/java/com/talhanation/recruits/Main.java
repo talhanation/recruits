@@ -1,5 +1,6 @@
 package com.talhanation.recruits;
 import com.talhanation.recruits.client.events.KeyEvents;
+import com.talhanation.recruits.network.MessageSaveTeamSettings;
 import com.talhanation.recruits.commands.PatrolSpawnCommand;
 import com.talhanation.recruits.commands.RecruitsAdminCommands;
 import com.talhanation.recruits.config.RecruitsClientConfig;
@@ -91,86 +92,108 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(this);
 
         SIMPLE_CHANNEL = CommonRegistry.registerChannel(Main.MOD_ID, "default");
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 0, MessageAggro.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 1, MessageAggroGui.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 2, MessageAssassinate.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 3, MessageAssassinCount.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 4, MessageAssassinGui.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 5, MessageMountEntity.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 6, MessageMountEntityGui.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 7, MessageClearTargetGui.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 8, MessageCommandScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 9, MessageDisband.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 10, MessageMovement.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 11, MessageFollowGui.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 12, MessageGroup.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 13, MessageListen.class);
-        //CommonRegistry.registerMessage(SIMPLE_CHANNEL, 14, MessageMove.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 15, MessageRecruitGui.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 16, MessageHireGui.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 17, MessageHire.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 18, MessageProtectEntity.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 19, MessageDismount.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 20, MessageDismountGui.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 21, MessageUpkeepPos.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 22, MessageStrategicFire.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 23, MessageShields.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 24, MessageDebugGui.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 25, MessageUpkeepEntity.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 26, MessageClearTarget.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 27, MessageCreateTeam.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 28, MessageOpenTeamCreationScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 29, MessageLeaveTeam.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 30, MessageTeamMainScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 31, MessageOpenTeamInspectionScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 32, MessageServerUpdateTeamInspectMenu.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 33, MessageToClientUpdateTeam.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 34, MessageOpenTeamListScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 35, MessageAddPlayerToTeam.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 36, MessageOpenTeamAddPlayerScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 37, MessageAddRecruitToTeam.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 38, MessageSendJoinRequestTeam.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 39, MessageRemoveFromTeam.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 40, MessageOpenDisbandScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 41, MessageAssignToTeamMate.class);
 
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 43, MessageToClientUpdateCommandScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 44, MessageWriteSpawnEgg.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 45, MessageBackToMountEntity.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 46, MessageDisbandGroup.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 47, MessageAssignGroupToTeamMate.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 48, MessagePromoteRecruit.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 49, MessageOpenPromoteScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 50, MessageOpenSpecialScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 51, MessageSendMessenger.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 52, MessagePatrolLeaderSetWaitTime.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 53, MessageToClientUpdateLeaderScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 54, MessagePatrolLeaderAddWayPoint.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 55, MessagePatrolLeaderRemoveWayPoint.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 56, MessagePatrolLeaderSetPatrolState.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 57, MessagePatrolLeaderSetCycle.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 58, MessagePatrolLeaderSetInfoMode.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 59, MessageAssignGroupToCompanion.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 60, MessagePatrolLeaderSetPatrollingSpeed.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 61, MessageToClientUpdateHireScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 62, MessageToClientUpdateTeamCreationScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 63, MessageRemoveAssignedGroupFromCompanion.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 64, MessageToClientUpdateMessengerScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 65, MessageAnswerMessenger.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 66, MessageToClientUpdateMessengerAnswerScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 67, MessageOpenMessengerAnswerScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 68, MessageClearUpkeepGui.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 69, MessageOpenGroupManageScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 70, MessageApplyNoGroup.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 71, MessageServerSavePlayerGroups.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 72, MessageToClientUpdateGroupManageScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 73, MessageToClientUpdateRecruitInventoryScreen.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 74, MessageFormationFollowMovement.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 75, MessageRest.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 76, MessageRangedFire.class);
+        Class[] messages = {
+                MessageAggro.class,
+                MessageAggroGui.class,
+                MessageAssassinate.class,
+                MessageAssassinCount.class,
+                MessageAssassinGui.class,
+                MessageMountEntity.class,
+                MessageMountEntityGui.class,
+                MessageClearTargetGui.class,
+                MessageCommandScreen.class,
+                MessageDisband.class,
+                MessageMovement.class,
+                MessageFollowGui.class,
+                MessageGroup.class,
+                MessageListen.class,
+                MessageRecruitGui.class,
+                MessageHireGui.class,
+                MessageHire.class,
+                MessageProtectEntity.class,
+                MessageDismount.class,
+                MessageDismountGui.class,
+                MessageUpkeepPos.class,
+                MessageStrategicFire.class,
+                MessageShields.class,
+                MessageDebugGui.class,
+                MessageUpkeepEntity.class,
+                MessageClearTarget.class,
+                MessageCreateTeam.class,
+                MessageOpenTeamEditScreen.class,
+                MessageLeaveTeam.class,
+                MessageTeamMainScreen.class,
+                MessageOpenTeamInspectionScreen.class,
+                MessageServerUpdateTeamInspectMenu.class,
+                MessageOpenTeamListScreen.class,
+                MessageAddPlayerToTeam.class,
+                MessageOpenTeamAddPlayerScreen.class,
+                MessageAddRecruitToTeam.class,
+                MessageSendJoinRequestTeam.class,
+                MessageRemoveFromTeam.class,
+                MessageOpenDisbandScreen.class,
+                MessageAssignToTeamMate.class,
+                MessageToClientUpdateCommandScreen.class,
+                MessageWriteSpawnEgg.class,
+                MessageBackToMountEntity.class,
+                MessageDisbandGroup.class,
+                MessageAssignGroupToTeamMate.class,
+                MessagePromoteRecruit.class,
+                MessageOpenPromoteScreen.class,
+                MessageOpenSpecialScreen.class,
+                MessageSendMessenger.class,
+                MessagePatrolLeaderSetWaitTime.class,
+                MessageToClientUpdateLeaderScreen.class,
+                MessagePatrolLeaderAddWayPoint.class,
+                MessagePatrolLeaderRemoveWayPoint.class,
+                MessagePatrolLeaderSetPatrolState.class,
+                MessagePatrolLeaderSetCycle.class,
+                MessagePatrolLeaderSetInfoMode.class,
+                MessageAssignGroupToCompanion.class,
+                MessagePatrolLeaderSetPatrollingSpeed.class,
+                MessageToClientUpdateHireScreen.class,
+                MessageToClientUpdateTeamEditScreen.class,
+                MessageRemoveAssignedGroupFromCompanion.class,
+                MessageToClientUpdateMessengerScreen.class,
+                MessageAnswerMessenger.class,
+                MessageToClientUpdateMessengerAnswerScreen.class,
+                MessageOpenMessengerAnswerScreen.class,
+                MessageClearUpkeepGui.class,
+                MessageToServerRequestUpdateGroupList.class,
+                MessageApplyNoGroup.class,
+                MessageServerSavePlayerGroups.class,
+                MessageToClientUpdateGroupList.class,
+                MessageToClientUpdateRecruitInventoryScreen.class,
+                MessageFormationFollowMovement.class,
+                MessageRest.class,
+                MessageRangedFire.class,
+                MessageSaveFormationFollowMovement.class,
+                MessageClearUpkeep.class,
+                MessageToServerRequestUpdateTeamList.class,
+                MessageToClientUpdateTeamList.class,
+                MessageToServerRequestUpdatePlayerList.class,
+                MessageToClientUpdatePlayerList.class,
+                MessageDiplomacyChangeStatus.class,
+                MessageToClientSetToast.class,
+                MessageToClientUpdateDiplomacyList.class,
+                MessageToServerRequestUpdateDiplomacyList.class,
+                MessageToClientUpdateTeamInspection.class,
+                MessageToServerRequestUpdateTeamInspaction.class,
+                MessageSaveTeamSettings.class,
+                MessageToClientSetDiplomaticToast.class,
+                MessageScoutTask.class,
+                MessageToServerRequestUpdatePlayerCurrencyCount.class,
+                MessageToClientUpdatePlayerCurrencyCount.class,
+                MessageToClientOpenTakeOverScreen.class
+        };
 
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 78,  MessageSaveFormationFollowMovement.class);
-        CommonRegistry.registerMessage(SIMPLE_CHANNEL, 79,  MessageClearUpkeep.class);
+
+        for (int i = 0; i < messages.length; i++){
+            CommonRegistry.registerMessage(SIMPLE_CHANNEL, i, messages[i]);
+        }
+
+
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
         isSmallShipsLoaded = ModList.get().isLoaded("smallships");//small ships
         isSiegeWeaponsLoaded = ModList.get().isLoaded("siegeweapons");//siege weapons

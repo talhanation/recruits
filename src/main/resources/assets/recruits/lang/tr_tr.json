@@ -100,8 +100,8 @@
 
   "gui.recruits.team.tooltip.add": "Bu Oyuncuyu görüş alanındaki takıma ekler.",
 
-  "gui.recruits.team_creation.no_teams": "Hiç Takım Yok.",
-  "gui.recruits.team_creation.delete_team": "Sil",
+  "gui.recruits.team.no_teams": "Hiç Takım Yok.",
+  "gui.recruits.team.delete_team": "Sil",
   "gui.recruits.team.assignNewOwner": "Takım arkadaşına atar",
   "gui.recruits.command.tooltip.team": "Takım ekranını açar",
   "gui.recruits.command.text.team": "Takım",

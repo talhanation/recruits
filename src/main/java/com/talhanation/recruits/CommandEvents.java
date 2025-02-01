@@ -4,7 +4,6 @@ import com.talhanation.recruits.client.gui.group.RecruitsGroup;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.inventory.CommandMenu;
-import com.talhanation.recruits.inventory.GroupManageContainer;
 import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.util.FormationUtils;
 import net.minecraft.core.BlockPos;
@@ -583,29 +582,6 @@ public class CommandEvents {
         }
 
         return availableGroups;
-    }
-
-
-
-    public static void openGroupManageScreen(Player player) {
-        if (player instanceof ServerPlayer) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateGroupManageScreen(getCompoundTagFromRecruitsGroupList(loadPlayersGroupsFromNBT(player))));
-            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
-                @Override
-                public Component getDisplayName() {
-                    return Component.literal("group_manage_screen");
-                }
-
-                @Override
-                public AbstractContainerMenu createMenu(int i, Inventory playerInventory, Player playerEntity) {
-                    return new GroupManageContainer(i, playerEntity);
-                }
-            }, packetBuffer -> {
-                packetBuffer.writeUUID(player.getUUID());
-            });
-        } else {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenGroupManageScreen(player));
-        }
     }
 
     public static List<RecruitsGroup> loadPlayersGroupsFromNBT(Player player) {
