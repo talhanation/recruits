@@ -2,11 +2,11 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.HorsemanEntity;
+import com.talhanation.recruits.pathfinding.AsyncPathfinderMob;
 import com.talhanation.recruits.util.AttackUtil;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
@@ -14,13 +14,12 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ToolActions;
 
 public class UseShield extends Goal {
-    public final PathfinderMob entity;
+    public final AsyncPathfinderMob entity;
 
-    public UseShield(PathfinderMob recruit){
+    public UseShield(AsyncPathfinderMob recruit){
         this.entity = recruit;
     }
 

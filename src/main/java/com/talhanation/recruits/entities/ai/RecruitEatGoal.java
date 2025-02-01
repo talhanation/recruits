@@ -89,8 +89,8 @@ public class RecruitEatGoal extends Goal {
     public void stop() {
         recruit.stopUsingItem();
 
-        if(recruit.getMoral() < 100){
-            recruit.setMoral(recruit.getMoral() + 2.5F);
+        if(recruit.getMorale() < 100){
+            recruit.setMoral(recruit.getMorale() + 2.5F);
         }
 
         recruit.resetItemInHand();

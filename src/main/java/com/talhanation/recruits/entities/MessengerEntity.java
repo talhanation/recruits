@@ -7,6 +7,7 @@ import com.talhanation.recruits.init.ModSounds;
 import com.talhanation.recruits.inventory.MessengerAnswerContainer;
 import com.talhanation.recruits.inventory.MessengerContainer;
 import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.core.BlockPos;
@@ -33,7 +34,6 @@ import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -149,9 +149,8 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     @Nullable
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data, @Nullable CompoundTag nbt) {
         SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
-        ((GroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
+        ((AsyncGroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
         this.populateDefaultEquipmentEnchantments(difficultyInstance);
-
         this.initSpawn();
 
         return ilivingentitydata;
@@ -492,12 +491,10 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     }
 
     private MutableComponent MESSENGER_INFO_AT_TARGET(){
-
         return new TranslatableComponent("chat.recruits.text.messenger_info_to_target", this.getName().getString(), this.getOwnerName());
     }
     private MutableComponent MESSENGER_INFO_AT_TARGET_WITH_ITEM(){
         return new TranslatableComponent("chat.recruits.text.messenger_info_to_target_with_item", this.getName().getString(), this.getOwnerName());
-
     }
 
     public MutableComponent MESSENGER_INFO_ON_MY_WAY(){

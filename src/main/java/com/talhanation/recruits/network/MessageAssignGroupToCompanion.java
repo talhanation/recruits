@@ -6,7 +6,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.PacketDistributor;
@@ -34,8 +34,13 @@ public class MessageAssignGroupToCompanion implements Message<MessageAssignGroup
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
+        List<AbstractRecruitEntity> list = Objects.requireNonNull(
+                context.getSender()
+        ).getLevel().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                Objects.requireNonNull(context.getSender()).getBoundingBox().inflate(100D)
+        );
 
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100D));
         int group = -1;
         AbstractLeaderEntity companionEntity = null;
         for (AbstractRecruitEntity companion : list){
@@ -45,7 +50,7 @@ public class MessageAssignGroupToCompanion implements Message<MessageAssignGroup
                 break;
             }
         }
-        companionEntity.RECRUITS_IN_COMMAND = new Stack<>();
+        Objects.requireNonNull(companionEntity).RECRUITS_IN_COMMAND = new Stack<>();
         for (AbstractRecruitEntity recruit : list) {
             UUID recruitOwner = recruit.getOwnerUUID();
             if (recruitOwner != null && recruitOwner.equals(owner) && recruit.getGroup() == group && !recruit.getUUID().equals(this.companion))

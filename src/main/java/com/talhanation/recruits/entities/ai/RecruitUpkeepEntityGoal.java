@@ -16,6 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Optional;
 
 public class RecruitUpkeepEntityGoal extends Goal {
@@ -48,10 +49,10 @@ public class RecruitUpkeepEntityGoal extends Goal {
         return canUse();
     }
 
-    private boolean isFoodInEntity(Container container){
-        for(int i = 0; i < container.getContainerSize(); i++) {
+    private boolean isFoodInEntity(Container container) {
+        for (int i = 0; i < container.getContainerSize(); i++) {
             ItemStack foodItem = container.getItem(i);
-            if(recruit.canEatItemStack(foodItem)){
+            if (recruit.canEatItemStack(foodItem)) {
                 return true;
             }
         }
@@ -66,26 +67,20 @@ public class RecruitUpkeepEntityGoal extends Goal {
         messageNotInRange = true;
 
         this.entity = findEntity();
-        if(entity.isPresent()){
+        if (entity.isPresent()) {
             this.pos = this.entity.get().getOnPos();
 
             if (entity.get() instanceof AbstractHorse horse) {
                 this.container = horse.inventory;
                 //Main.LOGGER.debug("found horse");
-            }
-
-            else if (entity.get() instanceof InventoryCarrier carrier) {
+            } else if (entity.get() instanceof InventoryCarrier carrier) {
                 this.container = carrier.getInventory();
                 //Main.LOGGER.debug("found carrier");
-            }
-
-            else if (entity.get() instanceof Container containerEntity) {
+            } else if (entity.get() instanceof Container containerEntity) {
                 this.container = containerEntity;
                 //Main.LOGGER.debug("found containerEntity");
             }
-        }
-        else
-        if (recruit.getOwner() != null && messageNotInRange) {
+        } else if (recruit.getOwner() != null && messageNotInRange) {
             recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()), recruit.getOwnerUUID());
             messageNotInRange = false;
             recruit.clearUpkeepEntity();
@@ -104,8 +99,6 @@ public class RecruitUpkeepEntityGoal extends Goal {
                     this.timeToRecalcPath = this.adjustedTickDelay(10);
                     this.recruit.getNavigation().moveTo(pos.getX(), pos.getY(), pos.getZ(), 1.15D);
                 }
-
-
 
 
                 if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
@@ -133,12 +126,10 @@ public class RecruitUpkeepEntityGoal extends Goal {
                                     recruit.getOwner().sendMessage(TEXT_NO_PLACE(recruit.getName().getString()), recruit.getOwnerUUID());
                                     message = false;
                                 }
-
                             }
                         }
                         this.stop();//stop taking food out of the container
-                    }
-                    else {
+                    } else {
                         if (recruit.getOwner() != null && message) {
                             recruit.getOwner().sendMessage(TEXT_FOOD(recruit.getName().getString()), recruit.getOwnerUUID());
                             message = false;
@@ -147,18 +138,17 @@ public class RecruitUpkeepEntityGoal extends Goal {
                     }
 
                     //Try to reequip
-                    for(int i = 0; i < container.getContainerSize(); i++) {
+                    for (int i = 0; i < container.getContainerSize(); i++) {
                         ItemStack itemstack = container.getItem(i);
                         ItemStack equipment;
-                        if(!recruit.canEatItemStack(itemstack) && recruit.wantsToPickUp(itemstack)){
+                        if (!recruit.canEatItemStack(itemstack) && recruit.wantsToPickUp(itemstack)) {
                             if (recruit.canEquipItem(itemstack)) {
                                 equipment = itemstack.copy();
                                 equipment.setCount(1);
                                 recruit.equipItem(equipment);
                                 itemstack.shrink(1);
-                            }
-                            else if (recruit instanceof IRangedRecruit && itemstack.is(ItemTags.ARROWS)){ //all that are ranged
-                                if(recruit.canTakeArrows()){
+                            } else if (recruit instanceof IRangedRecruit && itemstack.is(ItemTags.ARROWS)) { //all that are ranged
+                                if (recruit.canTakeArrows()) {
                                     equipment = itemstack.copy();
                                     recruit.inventory.addItem(equipment);
                                     itemstack.shrink(equipment.getCount());
@@ -166,10 +156,8 @@ public class RecruitUpkeepEntityGoal extends Goal {
                             }
                         }
                     }
-
                 }
-            }
-            else {
+            } else {
                 if (recruit.getOwner() != null && messageNotInRange) {
                     recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()), recruit.getOwnerUUID());
                     messageNotInRange = false;
@@ -183,14 +171,12 @@ public class RecruitUpkeepEntityGoal extends Goal {
 
     private void checkIfMounted(Entity entity) {
         Entity vehicle = this.recruit.getVehicle();
-        if(vehicle != null){
-            if(vehicle.getUUID().equals(entity.getUUID())) {
+        if (vehicle != null) {
+            if (vehicle.getUUID().equals(entity.getUUID())) {
                 this.recruit.stopRiding();
-            }
-            else if(vehicle.getVehicle() != null && vehicle.getVehicle().getUUID().equals(entity.getUUID())){
+            } else if (vehicle.getVehicle() != null && vehicle.getVehicle().getUUID().equals(entity.getUUID())) {
                 vehicle.stopRiding();
             }
-
         }
     }
 
@@ -202,20 +188,23 @@ public class RecruitUpkeepEntityGoal extends Goal {
     }
 
     private Optional<Entity> findEntity() {
-        if(this.recruit.getUpkeepUUID() != null) {
-            return recruit.getCommandSenderWorld().getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(100.0D))
-                    .stream()
-                    .filter(entity -> entity.getUUID().equals(recruit.getUpkeepUUID())).findAny();
-        }
-        else return Optional.empty();
+        if (this.recruit.getUpkeepUUID() == null) return Optional.empty();
+
+        List<Entity> entities = recruit.getCommandSenderWorld().getEntitiesOfClass(
+                Entity.class,
+                recruit.getBoundingBox().inflate(100.0D),
+                (entity) -> entity.getUUID().equals(recruit.getUpkeepUUID())
+        );
+
+        return entities.isEmpty() ? Optional.empty() : Optional.of(entities.get(0));
     }
 
 
     @Nullable
-    private ItemStack getFoodFromInv(Container inv){
+    private ItemStack getFoodFromInv(Container inv) {
         ItemStack itemStack = null;
-        for(int i = 0; i < inv.getContainerSize(); i++){
-            if(recruit.canEatItemStack(inv.getItem(i))){
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            if (recruit.canEatItemStack(inv.getItem(i))) {
                 itemStack = inv.getItem(i);
                 break;
             }
@@ -224,13 +213,14 @@ public class RecruitUpkeepEntityGoal extends Goal {
     }
 
 
-    private boolean canAddFood(){
-        for(int i = 6; i < 14; i++){
-            if(recruit.getInventory().getItem(i).isEmpty())
+    private boolean canAddFood() {
+        for (int i = 6; i < 14; i++) {
+            if (recruit.getInventory().getItem(i).isEmpty())
                 return true;
         }
         return false;
     }
+
     private MutableComponent TEXT_NO_PLACE(String name) {
         return new TranslatableComponent("chat.recruits.text.noPlaceInInv", name);
     }

@@ -19,6 +19,7 @@ import net.minecraftforge.common.Tags;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.PacketDistributor;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class MessagePatrolLeaderAddWayPoint implements Message<MessagePatrolLeaderAddWayPoint> {
@@ -26,6 +27,7 @@ public class MessagePatrolLeaderAddWayPoint implements Message<MessagePatrolLead
     private int x;
     private int y;
     private int z;
+
     public MessagePatrolLeaderAddWayPoint() {
     }
 
@@ -41,30 +43,24 @@ public class MessagePatrolLeaderAddWayPoint implements Message<MessagePatrolLead
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-
-        ServerPlayer player = context.getSender();
-        player.level.getEntitiesOfClass(AbstractLeaderEntity.class, player.getBoundingBox()
-                        .inflate(100.0D), v -> v
-                        .getUUID()
-                        .equals(this.worker))
-                .stream()
-                .filter(AbstractLeaderEntity::isAlive)
-                .findAny()
-                .ifPresent(merchant -> this.addWayPoint(new BlockPos(x,y,z), player, merchant));
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        player.getLevel().getEntitiesOfClass(
+                AbstractLeaderEntity.class,
+                player.getBoundingBox().inflate(100.0D),
+                v -> v.getUUID().equals(this.worker) && v.isAlive()
+        ).forEach((merchant) -> this.addWayPoint(new BlockPos(x, y, z), player, merchant));
     }
 
-    private void addWayPoint(BlockPos pos, Player player, AbstractLeaderEntity leaderEntity){
+    private void addWayPoint(BlockPos pos, Player player, AbstractLeaderEntity leaderEntity) {
         BlockState state = leaderEntity.getCommandSenderWorld().getBlockState(pos);
         while (state.isAir()) {
             pos = pos.below();
             state = leaderEntity.getCommandSenderWorld().getBlockState(pos);
         }
 
-        if(leaderEntity instanceof CaptainEntity captain && !state.is(Blocks.WATER)){
+        if (leaderEntity instanceof CaptainEntity captain && !state.is(Blocks.WATER)) {
             player.sendMessage(TEXT_NOT_WATER_WAYPOINT(captain.getName().getString()), player.getUUID());
-
-        }
-        else {
+        } else {
             leaderEntity.addWaypoint(pos);
             Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateLeaderScreen(leaderEntity.WAYPOINTS, leaderEntity.WAYPOINT_ITEMS, leaderEntity.getRecruitsInCommand().size()));
         }
@@ -88,5 +84,4 @@ public class MessagePatrolLeaderAddWayPoint implements Message<MessagePatrolLead
     private MutableComponent TEXT_NOT_WATER_WAYPOINT(String name) {
         return new TranslatableComponent("chat.recruits.text.notWaterWaypoint", name);
     }
-
 }

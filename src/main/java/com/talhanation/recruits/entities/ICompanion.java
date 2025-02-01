@@ -80,7 +80,7 @@ public interface ICompanion {
         }
         
         //MORALE
-        float newMorale = recruit.getMoral() + 20F;
+        float newMorale = recruit.getMorale() + 20F;
         if(newMorale > 100F) newMorale = 100F;
         this.get().setMoral(newMorale);
 

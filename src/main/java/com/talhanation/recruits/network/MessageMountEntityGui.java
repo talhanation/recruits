@@ -14,13 +14,13 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.extensions.IForgeEntity;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Function;
 
 public class MessageMountEntityGui implements Message<MessageMountEntityGui> {
     private UUID recruit;
     private boolean back;
+
     public MessageMountEntityGui() {
     }
 
@@ -35,37 +35,45 @@ public class MessageMountEntityGui implements Message<MessageMountEntityGui> {
 
     @SuppressWarnings({"all"})
     public void executeServerSide(NetworkEvent.Context context) {
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
 
-        ServerPlayer player = context.getSender();
-
-        player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
-                        .inflate(32.0D), v -> v
-                        .getUUID()
-                        .equals(this.recruit))
-                .stream()
-                .filter(AbstractRecruitEntity::isAlive)
-                .findAny()
-                .ifPresent(this::mount);
+        player.getLevel().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                player.getBoundingBox().inflate(32.0D),
+                v -> v.getUUID().equals(this.recruit) && v.isAlive()
+        ).forEach(this::mount);
     }
 
     @SuppressWarnings({"all"})
     private void mount(AbstractRecruitEntity recruit) {
-        if(this.back && recruit.getMountUUID() != null){
+        if (this.back && recruit.getMountUUID() != null) {
             recruit.shouldMount(true, recruit.getMountUUID());
-        }
-        else if (recruit.getVehicle() == null){
-            ArrayList<Entity> list = (ArrayList<Entity>) recruit.level.getEntitiesOfClass(Entity.class, recruit.getBoundingBox().inflate(8));
+        } else if (recruit.getVehicle() == null) {
+            List<Entity> list = recruit.getLevel().getEntitiesOfClass(
+                    Entity.class,
+                    recruit.getBoundingBox().inflate(8),
+                    (mount) -> !(mount instanceof AbstractHorse horse &&
+                            horse.getFirstPassenger() != null) &&
+                            RecruitsServerConfig.MountWhiteList.get().contains(mount.getEncodeId())
+            );
 
-            list.removeIf(mount -> !RecruitsServerConfig.MountWhiteList.get().contains(mount.getEncodeId()));
-            list.removeIf(mount -> mount instanceof AbstractHorse horse && horse.getFirstPassenger() != null);
-            list.sort(Comparator.comparing(horseInList -> horseInList.distanceTo(recruit)));
+            double d0 = -1.0D;
+            Entity horse = null;
 
-            if(!list.isEmpty()){
-                recruit.shouldMount(true, list.get(0).getUUID());
+            for (Entity entity : list) {
+                double d1 = entity.distanceToSqr(recruit);
+                if (d0 == -1.0D || d1 < d0) {
+                    horse = entity;
+                    d0 = d1;
+                }
             }
-            else//owner cant be null
-                recruit.getOwner().sendMessage(TEXT_NO_MOUNT(recruit.getName().getString()), recruit.getOwner().getUUID());
 
+            if (horse == null) {
+                recruit.getOwner().sendMessage(TEXT_NO_MOUNT(recruit.getName().getString()), recruit.getOwner().getUUID());
+                return;
+            }
+
+            recruit.shouldMount(true, horse.getUUID());
         }
     }
 
@@ -80,7 +88,7 @@ public class MessageMountEntityGui implements Message<MessageMountEntityGui> {
         buf.writeBoolean(this.back);
     }
 
-    private static MutableComponent TEXT_NO_MOUNT(String name){
+    private static MutableComponent TEXT_NO_MOUNT(String name) {
         return new TranslatableComponent("chat.recruits.text.noMount", name);
     }
 }

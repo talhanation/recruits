@@ -3,7 +3,7 @@ package com.talhanation.recruits.entities.ai;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.target.TargetGoal;
-import net.minecraft.world.entity.ai.targeting.TargetingConditions;
+import com.talhanation.recruits.entities.ai.async.TargetingConditions;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
@@ -26,12 +26,11 @@ public class RecruitDefendVillageFromPlayerGoal extends TargetGoal {
 
     public boolean canUse() {
         AABB aabb = this.recruit.getBoundingBox().inflate(30.0D, 8.0D, 30.0D);
-        List<? extends LivingEntity> list = this.recruit.getCommandSenderWorld().getNearbyEntities(Villager.class, this.attackTargeting, this.recruit, aabb);
-        List<Player> list1 = this.recruit.getCommandSenderWorld().getNearbyPlayers(this.attackTargeting, this.recruit, aabb);
+        List<Villager> list = this.recruit.getLevel().getEntitiesOfClass(Villager.class, aabb, (livingEntity) -> !this.attackTargeting.test(this.recruit, livingEntity));
 
-        for(LivingEntity livingentity : list) {
-            Villager villager = (Villager)livingentity;
+        List<Player> list1 = this.recruit.getLevel().getEntitiesOfClass(Player.class, aabb);
 
+        for(Villager villager : list) {
             for(Player player : list1) {
                 int i = villager.getPlayerReputation(player);
                 if (i <= -100) {

@@ -4,6 +4,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.compat.Corpse;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.inventory.RecruitSimpleContainer;
+import com.talhanation.recruits.pathfinding.AsyncPathfinderMob;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.tags.ItemTags;
@@ -26,7 +27,7 @@ import java.util.function.Predicate;
 
 import static net.minecraft.world.entity.EquipmentSlot.*;
 
-public abstract class AbstractInventoryEntity extends PathfinderMob {
+public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
 
 
     //iv slots

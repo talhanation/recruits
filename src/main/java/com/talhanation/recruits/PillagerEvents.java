@@ -41,16 +41,14 @@ public class PillagerEvents {
     public void attackRecruit(EntityJoinWorldEvent event) {
         Entity entity = event.getEntity();
 
-        if (entity instanceof Pillager) {
-            Pillager pillager = (Pillager) entity;
+        if (entity instanceof Pillager pillager) {
             if(RecruitsServerConfig.PillagerIncreasedCombatRange.get()) {
                 pillager.goalSelector.addGoal(2, new FindTargetGoal(pillager, 24.0F));
                 pillager.goalSelector.addGoal(2, new RangedCrossbowAttackGoal<>(pillager, 1.0D, 24.0F));
             }
         }
 
-        if (entity instanceof AbstractIllager) {
-            AbstractIllager illager = (AbstractIllager) entity;
+        if (entity instanceof AbstractIllager illager) {
             illager.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(illager, AbstractRecruitEntity.class, true));
             if (RecruitsServerConfig.PillagerAttackMonsters.get()){
                 illager.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(illager, Zombie.class, true));
@@ -62,8 +60,7 @@ public class PillagerEvents {
             }
         }
 
-        if (entity instanceof Monster) {
-            Monster monster = (Monster) entity;
+        if (entity instanceof Monster monster) {
             if (!(monster instanceof Creeper) && !(monster instanceof EnderMan))
                 monster.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(monster, AbstractRecruitEntity.class, true));
         }
@@ -87,8 +84,7 @@ public class PillagerEvents {
             }
         }
 
-        if (entity instanceof Vindicator && RecruitsServerConfig.VindicatorSpawnItems.get()) {
-            Vindicator vindicator = (Vindicator) entity;
+        if (entity instanceof Vindicator vindicator && RecruitsServerConfig.VindicatorSpawnItems.get()) {
             vindicator.goalSelector.addGoal(0, new PillagerUseShield(vindicator));
             vindicator.setPersistenceRequired();
 
@@ -100,8 +96,7 @@ public class PillagerEvents {
             }
         }
 
-        if (entity instanceof Pillager && RecruitsServerConfig.PillagerSpawnItems.get()) {
-            Pillager pillager = (Pillager) entity;
+        if (entity instanceof Pillager pillager && RecruitsServerConfig.PillagerSpawnItems.get()) {
             pillager.goalSelector.addGoal(0, new PillagerMeleeAttackGoal(pillager, 1.15D, true));
             pillager.goalSelector.addGoal(0, new PillagerUseShield(pillager));
             pillager.setPersistenceRequired();
@@ -113,11 +108,7 @@ public class PillagerEvents {
                     pillager.setItemInHand(InteractionHand.MAIN_HAND, Items.IRON_AXE.getDefaultInstance());
                     pillager.setItemInHand(InteractionHand.OFF_HAND, Items.SHIELD.getDefaultInstance());
                 }
-                case 5 -> {
-                    pillager.setItemInHand(InteractionHand.MAIN_HAND, Items.IRON_SWORD.getDefaultInstance());
-                    pillager.setItemInHand(InteractionHand.OFF_HAND, Items.SHIELD.getDefaultInstance());
-                }
-                case 0 -> {
+                case 5, 0 -> {
                     pillager.setItemInHand(InteractionHand.MAIN_HAND, Items.IRON_SWORD.getDefaultInstance());
                     pillager.setItemInHand(InteractionHand.OFF_HAND, Items.SHIELD.getDefaultInstance());
                 }
@@ -211,8 +202,8 @@ class FindTargetGoal extends Goal {
         super.start();
         this.mob.getNavigation().stop();
 
-        for(Raider abstractraiderentity : this.mob.level.getNearbyEntities(Raider.class, this.shoutTargeting, this.mob, this.mob.getBoundingBox().inflate(8.0D, 8.0D, 8.0D))) {
-            abstractraiderentity.setTarget(this.mob.getTarget());
+        for(Raider abstractRaiderEntity : this.mob.level.getNearbyEntities(Raider.class, this.shoutTargeting, this.mob, this.mob.getBoundingBox().inflate(8.0D, 8.0D, 8.0D))) {
+            abstractRaiderEntity.setTarget(this.mob.getTarget());
         }
 
     }
@@ -221,9 +212,9 @@ class FindTargetGoal extends Goal {
         super.stop();
         LivingEntity livingentity = this.mob.getTarget();
         if (livingentity != null) {
-            for(Raider abstractraiderentity : this.mob.level.getNearbyEntities(Raider.class, this.shoutTargeting, this.mob, this.mob.getBoundingBox().inflate(8.0D, 8.0D, 8.0D))) {
-                abstractraiderentity.setTarget(livingentity);
-                abstractraiderentity.setAggressive(true);
+            for(Raider abstractRaiderEntity : this.mob.level.getNearbyEntities(Raider.class, this.shoutTargeting, this.mob, this.mob.getBoundingBox().inflate(8.0D, 8.0D, 8.0D))) {
+                abstractRaiderEntity.setTarget(livingentity);
+                abstractRaiderEntity.setAggressive(true);
             }
 
             this.mob.setAggressive(true);

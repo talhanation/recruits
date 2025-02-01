@@ -7,13 +7,15 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class MessagePatrolLeaderSetPatrolState implements Message<MessagePatrolLeaderSetPatrolState> {
     private UUID recruit;
     private byte state;
 
-    public MessagePatrolLeaderSetPatrolState() {}
+    public MessagePatrolLeaderSetPatrolState() {
+    }
 
     public MessagePatrolLeaderSetPatrolState(UUID recruit, byte state) {
         this.recruit = recruit;
@@ -24,23 +26,18 @@ public class MessagePatrolLeaderSetPatrolState implements Message<MessagePatrolL
         return Dist.DEDICATED_SERVER;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
-
-        ServerPlayer player = context.getSender();
-        player.level.getEntitiesOfClass(AbstractLeaderEntity.class, player.getBoundingBox()
-                .inflate(16.0D), v -> v
-                .getUUID()
-                .equals(this.recruit))
-                .stream()
-                .filter(AbstractLeaderEntity::isAlive)
-                .findAny()
-                .ifPresent(this::setState);
-
+    public void executeServerSide(NetworkEvent.Context context) {
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        player.getLevel().getEntitiesOfClass(
+                AbstractLeaderEntity.class,
+                player.getBoundingBox().inflate(16.0D),
+                v -> v.getUUID().equals(this.recruit) && v.isAlive()
+        ).forEach(this::setState);
     }
 
     public void setState(AbstractLeaderEntity leader) {
         AbstractLeaderEntity.State leaderState = AbstractLeaderEntity.State.fromIndex(state);
-        switch (leaderState){
+        switch (leaderState) {
             case PATROLLING -> leader.setFollowState(0);
             case STOPPED, PAUSED -> leader.setFollowState(1);
         }
@@ -58,5 +55,4 @@ public class MessagePatrolLeaderSetPatrolState implements Message<MessagePatrolL
         buf.writeUUID(this.recruit);
         buf.writeByte(this.state);
     }
-
 }

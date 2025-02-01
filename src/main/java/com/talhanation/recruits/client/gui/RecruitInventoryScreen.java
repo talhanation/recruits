@@ -415,7 +415,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         super.renderLabels(matrixStack, mouseX, mouseY);
         int health = Mth.ceil(recruit.getHealth());
         int hunger = Mth.ceil(recruit.getHunger());
-        int moral = Mth.ceil(recruit.getMoral());
+        int moral = Mth.ceil(recruit.getMorale());
         this.follow = recruit.getFollowState();
         this.aggro = recruit.getState();
 
