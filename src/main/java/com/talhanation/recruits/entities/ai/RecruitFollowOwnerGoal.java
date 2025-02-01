@@ -1,10 +1,12 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 
 import com.talhanation.recruits.entities.IBoatController;
 import net.minecraft.FieldsAreNonnullByDefault;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.vehicle.Boat;
@@ -31,7 +33,7 @@ public class RecruitFollowOwnerGoal extends Goal {
 
     public boolean canUse() {
         long i = this.recruit.level.getGameTime();
-        if (i - this.lastCanUseCheck >= 20L) {
+        if (i - this.lastCanUseCheck >= 10L) {
             this.lastCanUseCheck = i;
             LivingEntity livingentity = this.recruit.getOwner();
             LivingEntity target = this.recruit.getTarget();
@@ -74,7 +76,6 @@ public class RecruitFollowOwnerGoal extends Goal {
     }
 
     public void tick() {
-
         if (--this.timeToRecalcPath <= 0) {
             this.timeToRecalcPath = this.recruit.getVehicle() != null ? this.adjustedTickDelay(5) : this.adjustedTickDelay(10);
 

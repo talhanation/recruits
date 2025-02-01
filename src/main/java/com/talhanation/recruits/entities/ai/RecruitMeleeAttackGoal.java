@@ -57,11 +57,9 @@ public class RecruitMeleeAttackGoal extends Goal {
         LivingEntity target = this.recruit.getTarget();
         if (target == null || !target.isAlive()) {
             return false;
-        }
-        else if (!this.recruit.getSensing().hasLineOfSight(target)) {
+        } else if (!this.recruit.getSensing().hasLineOfSight(target)) {
             return false;
-        }
-        else {
+        } else {
             boolean canAttackHoldPos = canAttackHoldPos();
             boolean needsToGetFood = recruit.needsToGetFood();
             boolean getShouldMount = recruit.getShouldMount();

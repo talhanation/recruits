@@ -5,12 +5,10 @@ import com.talhanation.recruits.entities.ICompanion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.Comparator;
@@ -31,7 +29,7 @@ public class RestGoal extends Goal {
     }
 
     private boolean isMorale(){
-        return recruit.getMoral() < 45;
+        return recruit.getMorale() < 45;
     }
     private boolean canRest(){
         if(recruit instanceof ICompanion companion && companion.isAtMission()){
@@ -75,7 +73,7 @@ public class RestGoal extends Goal {
         if (recruit.isSleeping()) {
             this.recruit.getNavigation().stop();
             this.recruit.heal(0.0025F);
-            if(this.recruit.getMoral() < 60) this.recruit.setMoral(this.recruit.getMoral() + 0.0025F);
+            if(this.recruit.getMorale() < 60) this.recruit.setMoral(this.recruit.getMorale() + 0.0025F);
             return;
         }
 

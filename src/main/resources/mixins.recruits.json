@@ -8,7 +8,10 @@
     "AbstractHorseMixin",
     "AnimalMixin",
     "MobMixin",
-    "WalkNodeEvaluatorMixin"
+    "WalkNodeEvaluatorMixin",
+    "GoalUtilsMixin",
+    "ClassInstanceMultiMapMixin",
+    "DoorInteractGoalMixin"
   ],
   "client": [
   ],

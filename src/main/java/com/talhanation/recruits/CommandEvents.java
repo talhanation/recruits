@@ -331,7 +331,13 @@ public class CommandEvents {
                 Vec3 targetPosition = serverPlayer.position();
 
                 if(targetPosition.distanceToSqr(oldPos) > 50){
-                    List<AbstractRecruitEntity> list = Objects.requireNonNull(serverPlayer).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, serverPlayer.getBoundingBox().inflate(100));
+
+                    List<AbstractRecruitEntity> list = Objects.requireNonNull(serverPlayer).
+                            getLevel().
+                            getEntitiesOfClass(
+                                    AbstractRecruitEntity.class,
+                                    serverPlayer.getBoundingBox().inflate(100)
+                            );
                     int[] array = getActiveGroups(serverPlayer);
 
                     list.removeIf(recruit -> Arrays.stream(array).noneMatch(x -> recruit.isEffectedByCommand(serverPlayer.getUUID(), x)));

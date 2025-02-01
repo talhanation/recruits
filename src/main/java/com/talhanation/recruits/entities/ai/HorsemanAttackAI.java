@@ -58,10 +58,10 @@ public class HorsemanAttackAI extends Goal {
     }
 
     public void tick() {
-        if(this.horseman.tickCount % 15 == 0)
+        if (this.horseman.tickCount % 15 == 0)
             this.prevPos = this.horseman.getOnPos();
 
-        if(ticksUntilNextAttack > 0) ticksUntilNextAttack--;
+        if (ticksUntilNextAttack > 0) ticksUntilNextAttack--;
         switch (state) {
             case SELECT_TARGET -> {
                 this.target = horseman.getTarget();
@@ -70,17 +70,15 @@ public class HorsemanAttackAI extends Goal {
                     Vec3 movePosVec = target.position().add(moveVec.scale(10)).yRot(this.vecRotation);
                     BlockPos possibleMovePosVec = new BlockPos(movePosVec.x, horseman.position().y, movePosVec.z);
 
-                    if(isFreeSpotAbove(target.getOnPos())) {
+                    if (isFreeSpotAbove(target.getOnPos())) {
                         //horseman.level.setBlock(possibleMovePosVec, Blocks.ICE.defaultBlockState(), 3);
                         this.movePos = possibleMovePosVec;
                         this.vecRotation = 0;
                         this.state = CHARGE_TARGET;
-                    }
-                    else if (vecRotation > 360){
+                    } else if (vecRotation > 360) {
                         vecRotation += 15;
-                    }
-                    else{
-                        stop() ;
+                    } else {
+                        stop();
                     }
                 }
             }
@@ -95,20 +93,19 @@ public class HorsemanAttackAI extends Goal {
 
                 if (horseman.distanceToSqr(target) > 5F) {
                     horseman.getNavigation().moveTo(target.position().x, target.position().y, target.position().z, 1.15F);
-                }
-                else
+                } else
                     state = MOVE_TO_POS;
 
                 horseman.getLookControl().setLookAt(target, 30.0F, 30.0F);
 
                 //Perform Attack
                 if (horseman.distanceToSqr(target) < 7F) {
-                    if(this.ticksUntilNextAttack <= 0) {
+                    if (this.ticksUntilNextAttack <= 0) {
                         this.checkAndPerformAttack(target);
                     }
                 }
 
-                if(this.isStuck()) removeLeaves();
+                if (this.isStuck()) removeLeaves();
                 else this.knockback();
             }
 
@@ -129,7 +126,7 @@ public class HorsemanAttackAI extends Goal {
                     this.prevPos = null;
                 }
 
-                if(this.isStuck()) removeLeaves();
+                if (this.isStuck()) removeLeaves();
                 else this.knockback();
             }
         }
@@ -137,7 +134,8 @@ public class HorsemanAttackAI extends Goal {
 
     private void removeLeaves() {
         BlockState state = this.horseman.getCommandSenderWorld().getBlockState(horseman.getOnPos().above(1));
-        if(state.getBlock() instanceof LeavesBlock) this.horseman.getCommandSenderWorld().destroyBlock(horseman.getOnPos().above(1), true);
+        if (state.getBlock() instanceof LeavesBlock)
+            this.horseman.getCommandSenderWorld().destroyBlock(horseman.getOnPos().above(1), true);
     }
 
     private boolean isStuck() {
@@ -148,21 +146,21 @@ public class HorsemanAttackAI extends Goal {
         BlockState state = this.horseman.getCommandSenderWorld().getBlockState(pos.above(1));
         return state.isAir();
     }
-    private void knockback() {
-        List<LivingEntity> list = horseman.level.getEntitiesOfClass(LivingEntity.class, horseman.getBoundingBox().inflate(8D));
-        for(LivingEntity entity : list){
 
-            if (horseman.distanceToSqr(entity) < 3.75F) {
-                if(horseman.canAttack(entity) && !entity.equals(horseman) && entity.getVehicle() == null){
-                   entity.knockback(0.85, (double) Mth.sin(this.horseman.getYRot() * ((float)Math.PI / 180F)), (double)(-Mth.cos(this.horseman.getYRot() * ((float)Math.PI / 180F))));
-                   entity.hurt(DamageSource.mobAttack(this.horseman), 1F);;
-                }
-            }
-        }
+    private void knockback() {
+        horseman.getLevel().getEntitiesOfClass(
+                LivingEntity.class,
+                horseman.getBoundingBox().inflate(8D),
+                (entity) -> horseman.distanceToSqr(entity) < 3.75F && horseman.canAttack(entity) && !entity.equals(horseman) && entity.getVehicle() == null
+        ).forEach(entity -> {
+            entity.knockback(0.85, Mth.sin(this.horseman.getYRot() * ((float) Math.PI / 180F)), (-Mth.cos(this.horseman.getYRot() * ((float) Math.PI / 180F))));
+            entity.hurt(DamageSource.mobAttack(this.horseman), 1F);
+            ;
+        });
     }
 
     protected void checkAndPerformAttack(LivingEntity target) {
-        if(!horseman.swinging) {
+        if (!horseman.swinging) {
             this.horseman.swing(InteractionHand.MAIN_HAND);
             this.horseman.doHurtTarget(target);
             this.resetAttackCooldown();
@@ -173,15 +171,15 @@ public class HorsemanAttackAI extends Goal {
         this.ticksUntilNextAttack = 15 + getCooldownModifier();
     }
 
-    private int getCooldownModifier(){
+    private int getCooldownModifier() {
         int modifier = 0;
         Item item = horseman.getMainHandItem().getItem();
 
-        if(item instanceof TieredItem tieredItem){
+        if (item instanceof TieredItem tieredItem) {
             modifier = 5 - (int) tieredItem.getTier().getSpeed();
         }
 
-        if (item instanceof AxeItem){
+        if (item instanceof AxeItem) {
             modifier += 3;
         }
 
@@ -200,7 +198,7 @@ public class HorsemanAttackAI extends Goal {
             } else {
                 int i = node.x - pos.getX();
                 int j = node.z - pos.getZ();
-                return (double)(i * i + j * j) <= 200D;
+                return (double) (i * i + j * j) <= 200D;
             }
         }
     }

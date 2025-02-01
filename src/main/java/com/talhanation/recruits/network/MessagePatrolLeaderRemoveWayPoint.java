@@ -11,6 +11,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.PacketDistributor;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class MessagePatrolLeaderRemoveWayPoint implements Message<MessagePatrolLeaderRemoveWayPoint> {
@@ -28,21 +29,17 @@ public class MessagePatrolLeaderRemoveWayPoint implements Message<MessagePatrolL
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-
-        ServerPlayer player = context.getSender();
-        player.level.getEntitiesOfClass(AbstractLeaderEntity.class, player.getBoundingBox()
-                        .inflate(100.0D), v -> v
-                        .getUUID()
-                        .equals(this.worker))
-                .stream()
-                .filter(AbstractLeaderEntity::isAlive)
-                .findAny()
-                .ifPresent(merchant -> this.removeLastWayPoint(player, merchant));
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        player.getLevel().getEntitiesOfClass(
+                AbstractLeaderEntity.class,
+                player.getBoundingBox().inflate(100.0D),
+                v -> v.getUUID().equals(this.worker) && v.isAlive()
+        ).forEach((merchant) -> this.removeLastWayPoint(player, merchant));
     }
 
-    private void removeLastWayPoint(ServerPlayer player, AbstractLeaderEntity leaderEntity){
-        if(leaderEntity.WAYPOINTS.size() > 0) leaderEntity.WAYPOINTS.pop();
-        if(leaderEntity.WAYPOINT_ITEMS.size() > 0) leaderEntity.WAYPOINT_ITEMS.pop();
+    private void removeLastWayPoint(ServerPlayer player, AbstractLeaderEntity leaderEntity) {
+        if (!leaderEntity.WAYPOINTS.isEmpty()) leaderEntity.WAYPOINTS.pop();
+        if (!leaderEntity.WAYPOINT_ITEMS.isEmpty()) leaderEntity.WAYPOINT_ITEMS.pop();
 
         Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new MessageToClientUpdateLeaderScreen(leaderEntity.WAYPOINTS, leaderEntity.WAYPOINT_ITEMS, leaderEntity.getRecruitsInCommand().size()));
     }
