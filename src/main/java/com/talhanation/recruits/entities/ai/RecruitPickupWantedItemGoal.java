@@ -11,7 +11,7 @@ import java.util.List;
 import static com.talhanation.recruits.entities.ai.RecruitPickupWantedItemGoal.State.*;
 
 
-public class RecruitPickupWantedItemGoal extends Goal{
+public class RecruitPickupWantedItemGoal extends Goal {
 
     public AbstractRecruitEntity recruit;
     public State state;
@@ -27,8 +27,9 @@ public class RecruitPickupWantedItemGoal extends Goal{
     public boolean canUse() {
         return recruit.getTarget() == null && !this.recruit.isFollowing() && !recruit.getFleeing() && !recruit.needsToGetFood() && !recruit.getShouldMount() && !recruit.getShouldMovePos() && !recruit.getShouldHoldPos();
     }
+
     @Override
-    public void start(){
+    public void start() {
         super.start();
         timer = 0;
         state = SEARCH;
@@ -42,49 +43,59 @@ public class RecruitPickupWantedItemGoal extends Goal{
 
     @Override
     public void tick() {
-        switch (state){
+        switch (state) {
             case SEARCH -> {
-                List<ItemEntity> list = recruit.level.getEntitiesOfClass(ItemEntity.class, recruit.getBoundingBox().inflate(16.0D, 3.0D, 16.0D), recruit.getAllowedItems());
-                if (!list.isEmpty()) {
-                    for(ItemEntity itemEntity : list){
-                        if(recruit.distanceTo(itemEntity) < 25 && ((itemEntity.getItem().isEdible() && recruit.getHunger() < 30) || (recruit.wantsToPickUp(itemEntity.getItem())))){
-                            this.itemEntityList.add(itemEntity);
-                        }
-                    }
-                }
+                recruit.getLevel().getEntitiesOfClass(
+                        ItemEntity.class,
+                        recruit.getBoundingBox().inflate(16.0D, 3.0D, 16.0D),
+                        (item) -> recruit.getAllowedItems().test(item) &&
+                                recruit.distanceTo(itemEntity) < 25 &&
+                                ((itemEntity.getItem().isEdible() && recruit.getHunger() < 30) ||
+                                        (recruit.wantsToPickUp(itemEntity.getItem())))
+                ).forEach((item) -> {
+                    this.itemEntityList.add(itemEntity);
+                });
 
-                if(itemEntityList.isEmpty()){
+                if (itemEntityList.isEmpty()) {
                     state = SEARCH;
+                } else {
+                    state = SELECT;
                 }
-                else state = SELECT;
             }
 
             case SELECT -> {
-                if(!itemEntityList.isEmpty()){
-                    //TODO: sort to distance
-                    this.itemEntity = itemEntityList.get(0);
+                if (!itemEntityList.isEmpty()) {
+                    ItemEntity result = null;
+                    double d0 = -1.0D;
+
+                    for (ItemEntity item : itemEntityList) {
+                        double d1 = recruit.distanceToSqr(item);
+                        if (d0 == -1.0D || d0 < d1) {
+                            result = item;
+                            d0 = d1;
+                        }
+                    }
+
+                    this.itemEntity = result;
                     this.state = MOVE;
-                }
-                else state = SEARCH;
+                } else state = SEARCH;
             }
 
             case MOVE -> {
-                if(itemEntity != null){
+                if (itemEntity != null) {
                     recruit.getNavigation().moveTo(itemEntity, 1F);
                     recruit.maxUpStep = 1.25F;
-                    if(recruit.distanceTo(itemEntity) < 3F) {
+                    if (recruit.distanceTo(itemEntity) < 3F) {
                         this.state = PICKUP;
                         recruit.maxUpStep = 1F;
-
                     }
-                }
-                else state = SELECT;
+                } else state = SELECT;
             }
 
             case PICKUP -> {
                 recruit.getNavigation().moveTo(itemEntity, 1F);
                 this.recruit.setCanPickUpLoot(true);
-                if(++this.timer > 30){
+                if (++this.timer > 30) {
                     this.itemEntityList.clear();
                     this.recruit.setCanPickUpLoot(false);
                     this.timer = 0;
@@ -95,7 +106,7 @@ public class RecruitPickupWantedItemGoal extends Goal{
     }
 
 
-    enum State{
+    enum State {
         SEARCH,
         SELECT,
         MOVE,

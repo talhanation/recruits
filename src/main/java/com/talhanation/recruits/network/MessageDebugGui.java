@@ -4,11 +4,11 @@ import com.talhanation.recruits.DebugEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -32,16 +32,15 @@ public class MessageDebugGui implements Message<MessageDebugGui> {
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
-        for (AbstractRecruitEntity recruit : list) {
-
-            if (recruit.getUUID().equals(this.uuid)){
-                DebugEvents.handleMessage(id, recruit, context.getSender());
-                recruit.setCustomName(new TextComponent(name));
-            }
-
-        }
-
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        player.getLevel().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                context.getSender().getBoundingBox().inflate(16.0D),
+                (recruit) -> recruit.getUUID().equals(this.uuid)
+        ).forEach((recruit) -> {
+            DebugEvents.handleMessage(id, recruit, context.getSender());
+            recruit.setCustomName(new TextComponent(name));
+        });
     }
 
     public MessageDebugGui fromBytes(FriendlyByteBuf buf) {

@@ -3,9 +3,6 @@ package com.talhanation.recruits.network;
 import com.talhanation.recruits.entities.MessengerEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.entity.animal.Fox;
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -27,7 +24,10 @@ public class MessageAnswerMessenger implements Message<MessageAnswerMessenger> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        List<MessengerEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(MessengerEntity.class, context.getSender().getBoundingBox().inflate(16D));
+        List<MessengerEntity> list = Objects.requireNonNull(context.getSender()).getLevel().getEntitiesOfClass(
+                MessengerEntity.class,
+                context.getSender().getBoundingBox().inflate(16D)
+        );
         for (MessengerEntity messenger : list){
 
             if (messenger.getUUID().equals(this.recruit)){

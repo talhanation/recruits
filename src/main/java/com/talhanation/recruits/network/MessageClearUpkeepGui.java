@@ -1,13 +1,12 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -27,14 +26,15 @@ public class MessageClearUpkeepGui implements Message<MessageClearUpkeepGui> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
-        for (AbstractRecruitEntity recruits : list) {
-            if (recruits.getUUID().equals(this.uuid)){
-                recruits.clearUpkeepPos();
-                recruits.clearUpkeepEntity();
-                break;
-            }
-        }
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        player.getLevel().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                player.getBoundingBox().inflate(16.0D),
+                (recruit) -> recruit.getUUID().equals(this.uuid)
+        ).forEach((recruit) -> {
+            recruit.clearUpkeepPos();
+            recruit.clearUpkeepEntity();
+        });
     }
     public MessageClearUpkeepGui fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();

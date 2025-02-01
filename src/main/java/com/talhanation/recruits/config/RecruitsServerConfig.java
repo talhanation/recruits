@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Mod.EventBusSubscriber
-public class RecruitsServerConfig{
+public class RecruitsServerConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec SERVER;
     public static ForgeConfigSpec.BooleanValue RecruitTablesPOIReleasing;
@@ -71,6 +71,13 @@ public class RecruitsServerConfig{
     public static ForgeConfigSpec.IntValue MaxNPCsInTeam;
     public static ForgeConfigSpec.BooleanValue ShouldTeamEditingBeAllowed;
     public static ForgeConfigSpec.BooleanValue ShouldTeamManagingBeAllowed;
+    public static ForgeConfigSpec.BooleanValue UseAsyncPathfinding;
+    public static ForgeConfigSpec.IntValue AsyncPathfindingThreadsCount;
+    public static ForgeConfigSpec.BooleanValue UseAsyncTargetFinding;
+    public static ForgeConfigSpec.IntValue AsyncTargetFindingThreadsCount;
+    public static ForgeConfigSpec.BooleanValue UseVisibilityCache;
+    public static ForgeConfigSpec.IntValue VisibilityCacheTimeToLive;
+
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin", "corpse:corpse", "minecraft:armorstand"));
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
@@ -78,25 +85,25 @@ public class RecruitsServerConfig{
     public static ArrayList<String> MOUNTS = new ArrayList<>(
             Arrays.asList("minecraft:mule", "minecraft:donkey", "minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "smallships:galley", "smallships:drakkar", "camels:camel"));
     public static ArrayList<List<String>> START_EQUIPMENT_RECRUIT = new ArrayList<>(
-            List.of(Arrays.asList("minecraft:wooden_sword", "","","","", ""),
-                    Arrays.asList("minecraft:stone_sword", "","","","", "")
+            List.of(Arrays.asList("minecraft:wooden_sword", "", "", "", "", ""),
+                    Arrays.asList("minecraft:stone_sword", "", "", "", "", "")
             ));
     public static ArrayList<List<String>> START_EQUIPMENT_SHIELDMAN = new ArrayList<>(
-            List.of(Arrays.asList("minecraft:stone_sword", "minecraft:shield","","","", ""),
-                    Arrays.asList("minecraft:wooden_axe", "minecraft:shield","","","", "")
+            List.of(Arrays.asList("minecraft:stone_sword", "minecraft:shield", "", "", "", ""),
+                    Arrays.asList("minecraft:wooden_axe", "minecraft:shield", "", "", "", "")
             ));
     public static ArrayList<List<String>> START_EQUIPMENT_HORSEMAN = new ArrayList<>(
-            List.of(Arrays.asList("minecraft:stone_sword", "minecraft:shield","","","", ""),
-                    Arrays.asList("minecraft:iron_sword", "minecraft:shield","","","", "")
+            List.of(Arrays.asList("minecraft:stone_sword", "minecraft:shield", "", "", "", ""),
+                    Arrays.asList("minecraft:iron_sword", "minecraft:shield", "", "", "", "")
             ));
     public static ArrayList<List<String>> START_EQUIPMENT_BOWMAN = new ArrayList<>(
-            List.of(Arrays.asList("minecraft:bow", "","","","", "")
+            List.of(Arrays.asList("minecraft:bow", "", "", "", "", "")
             ));
     public static ArrayList<List<String>> START_EQUIPMENT_NOMAD = new ArrayList<>(
-            List.of(Arrays.asList("minecraft:bow", "","","","", "")
+            List.of(Arrays.asList("minecraft:bow", "", "", "", "", "")
             ));
     public static ArrayList<List<String>> START_EQUIPMENT_CROSSBOWMAN = new ArrayList<>(
-            List.of(Arrays.asList("minecraft:crossbow", "","","","", "")
+            List.of(Arrays.asList("minecraft:crossbow", "", "", "", "", "")
             ));
     public static ArrayList<String> DAMAGESOURCE = new ArrayList<>(
             Arrays.asList("inFire", "lava", "sweetBerryBush", "cactus", "lightningBolt", "inWall", "hotFloor", "outOfWorld", "drown"));//add drowning
@@ -119,7 +126,7 @@ public class RecruitsServerConfig{
                 .define("UpdateCheckerServerside", true);
 
         RecruitCurrency = BUILDER.comment("""
-
+                        
                         Currency
                         \t(takes effect after restart)
                         \tThe Item defined here, will be used to hire recruits. For example: ["minecraft:diamond"]\tdefault: ["minecraft:emerald"]""")
@@ -127,7 +134,7 @@ public class RecruitsServerConfig{
                 .define("RecruitCurrency", "minecraft:emerald");
 
         RecruitsMaxXpForLevelUp = BUILDER.comment("""
-
+                        
                         Max XP a Recruit needs to Level Up.
                         \t(takes effect after restart)
                         \tdefault: 250""")
@@ -175,7 +182,7 @@ public class RecruitsServerConfig{
                 .define("MountWhitelist", MOUNTS);
 
         RecruitCost = BUILDER.comment("""
-
+                        
                         The amount of currency required to hire a recruit.
                         \t(takes effect after restart)
                         \tdefault: 4""")
@@ -183,7 +190,7 @@ public class RecruitsServerConfig{
                 .defineInRange("RecruitCost", 4, 0, 1453);
 
         BowmanCost = BUILDER.comment("""
-
+                        
                         The amount of currency required to hire a bowman.
                         \t(takes effect after restart)
                         \tdefault: 6""")
@@ -191,7 +198,7 @@ public class RecruitsServerConfig{
                 .defineInRange("BowmanCost", 6, 0, 1453);
 
         CrossbowmanCost = BUILDER.comment("""
-
+                        
                         The amount of currency required to hire a crossbowman.
                         \t(takes effect after restart)
                         \tdefault: 8""")
@@ -199,7 +206,7 @@ public class RecruitsServerConfig{
                 .defineInRange("CrossbowmanCost", 8, 0, 1453);
 
         ShieldmanCost = BUILDER.comment("""
-
+                        
                         The amount of currency required to hire a shieldman.
                         \t(takes effect after restart)
                         \tdefault: 10""")
@@ -207,7 +214,7 @@ public class RecruitsServerConfig{
                 .defineInRange("ShieldmanCost", 10, 0, 1453);
 
         HorsemanCost = BUILDER.comment("""
-
+                        
                         The amount of currency required to hire a horseman.
                         \t(takes effect after restart)
                         \tdefault: 20""")
@@ -215,7 +222,7 @@ public class RecruitsServerConfig{
                 .defineInRange("HorsemanCost", 20, 0, 1453);
 
         NomadCost = BUILDER.comment("""
-
+                        
                         The amount of currency required to hire a nomad.
                         \t(takes effect after restart)
                         \tdefault: 19""")
@@ -263,7 +270,7 @@ public class RecruitsServerConfig{
         BUILDER.comment("Recruit Village Config:").push("Villages");
 
         RecruitTablesPOIReleasing = BUILDER.comment("""
-
+                        
                         Should Villager Recruits that were created with Tables release the POI for other Villagers?
                         True -> allows multiple villagers to become a recruit with one table.
                         False -> only one villager can become a recruit with one table.
@@ -273,7 +280,7 @@ public class RecruitsServerConfig{
                 .define("RecruitTablesPOIReleasing", true);
 
         OverrideIronGolemSpawn = BUILDER.comment("""
-
+                        
                         Should Recruits instead of Iron Golems spawn in Villages 
                         \t(takes effect after restart)
                         \tdefault: true""")
@@ -281,7 +288,7 @@ public class RecruitsServerConfig{
                 .define("OverrideIronGolemSpawn", true);
 
         MaxSpawnRecruitsInVillage = BUILDER.comment("""
-
+                        
                         Max Recruits in a Village Chunk to Spawn
                         \t(takes effect after restart)
                         \tdefault: 1""")
@@ -302,9 +309,9 @@ public class RecruitsServerConfig{
                 For example, the following configuration will randomize newly spawned recruits either 1 or 2:
                     1. full leather armor set with wooden sword and shield.
                     2. only gold sword.
-                    
+                
                     RecruitStartEquipments=[["minecraft:wooden_sword", "minecraft:shield","minecraft:leather_boots","minecraft:leather_leggings","minecraft:leather_chestplate", "minecraft:leather_helmet"], ["minecraft:gold_sword", "", "", "", "", ""]]
-                    
+                
                 There is no limit of armor-sets and modded armor / weapons are also compatible. The mod item-id can be accessed with /give-command.    
                 """);
         RecruitStartEquipments = BUILDER.comment("""   
@@ -363,7 +370,7 @@ public class RecruitsServerConfig{
         BUILDER.comment("Monster and Pillager Config:").push("Hostiles");
 
         PillagerFriendlyFire = BUILDER.comment("""
-
+                        
                         Should Pillagers do friendly fire
                         \t(takes effect after restart)
                         \tdefault: true""")
@@ -371,55 +378,55 @@ public class RecruitsServerConfig{
                 .define("PillagerFriendlyFire", true);
 
         PillagerSpawn = BUILDER.comment("""
-
+                        
                         Should Pillagers spawn naturally
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
                 .define("PillagerSpawn", false);
 
-        PillagerAttackMonsters= BUILDER.comment("""
-
+        PillagerAttackMonsters = BUILDER.comment("""
+                        
                         Should Pillagers attack Monsters
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
                 .define("PillagerAttackMonsters", false);
 
-        MonstersAttackPillagers= BUILDER.comment("""
-
+        MonstersAttackPillagers = BUILDER.comment("""
+                        
                         Should Monsters attack Pillagers
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
                 .define("MonstersAttackPillagers", false);
 
-        ShouldPillagersRaidNaturally= BUILDER.comment("""
-
+        ShouldPillagersRaidNaturally = BUILDER.comment("""
+                        
                         Should Pillagers attack all Living
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
                 .define("ShouldPillagersRaidNaturally", false);
 
-        PillagerIncreasedCombatRange= BUILDER.comment("""
-
+        PillagerIncreasedCombatRange = BUILDER.comment("""
+                        
                         Should Pillagers have increased Combat Range, so they can shoot from far away.
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
                 .define("PillagerIncreasedCombatRange", false);
 
-        VindicatorSpawnItems= BUILDER.comment("""
-
+        VindicatorSpawnItems = BUILDER.comment("""
+                        
                         Should Vindicators can spawn with shield and sword and AI to use these.
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
                 .define("VindicatorSpawnItems", false);
 
-        PillagerSpawnItems= BUILDER.comment("""
-
+        PillagerSpawnItems = BUILDER.comment("""
+                        
                         Should Pillagers can spawn with shield and sword and AI to use these.
                         \t(takes effect after restart)
                         \tdefault: true""")
@@ -433,32 +440,32 @@ public class RecruitsServerConfig{
         BUILDER.pop();
         BUILDER.comment("Block Event Config:").push("BlockEvents");
 
-        AggroRecruitsBlockPlaceBreakEvents= BUILDER.comment("""
-
+        AggroRecruitsBlockPlaceBreakEvents = BUILDER.comment("""
+                        
                         Should Aggressive Recruits attack enemy players that are placing or breaking blocks immediately?
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
                 .define("AggroRecruitsBlockPlaceBreakEvents", true);
 
-        NeutralRecruitsBlockPlaceBreakEvents= BUILDER.comment("""
-
+        NeutralRecruitsBlockPlaceBreakEvents = BUILDER.comment("""
+                        
                         Should Neutral Recruits attack enemy players that are placing or breaking blocks immediately?
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
                 .define("NeutralRecruitsBlockPlaceBreakEvents", true);
 
-        AggroRecruitsBlockInteractingEvents= BUILDER.comment("""
-
+        AggroRecruitsBlockInteractingEvents = BUILDER.comment("""
+                        
                         Should Aggressive Recruits attack enemy players that are interacting with blocks immediately?
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
                 .define("AggroRecruitsBlockInteractingEvents", true);
 
-        NeutralRecruitsBlockInteractingEvents= BUILDER.comment("""
-
+        NeutralRecruitsBlockInteractingEvents = BUILDER.comment("""
+                        
                         Should Neutral Recruits attack enemy players that are interacting with blocks immediately?
                         \t(takes effect after restart)
                         \tdefault: true""")
@@ -472,16 +479,16 @@ public class RecruitsServerConfig{
         BUILDER.pop();
         BUILDER.comment("Recruit Patrols Config:").push("Patrols");
 
-        ShouldRecruitPatrolsSpawn= BUILDER.comment("""
-
+        ShouldRecruitPatrolsSpawn = BUILDER.comment("""
+                        
                         Should Recruits spawn as Patrols in the world?
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
                 .define("ShouldRecruitPatrolsSpawn", true);
 
-        RecruitPatrolsSpawnChance= BUILDER.comment("""
-
+        RecruitPatrolsSpawnChance = BUILDER.comment("""
+                        
                         Chance that a Recruit Patrol can spawn. (higher values = higher chance to spawn)
                         \t(takes effect after restart)
                         \tdefault: 15.0""")
@@ -489,7 +496,7 @@ public class RecruitsServerConfig{
                 .defineInRange("RecruitPatrolsSpawnChance", 15.0D, 0.0D, 100.0D);
 
         RecruitPatrolSpawnInterval = BUILDER.comment("""
-
+                        
                         The interval in minutes a Recruit Patrol and Caravan can spawn.
                         \t(takes effect after restart)
                         \tdefault: 30""")
@@ -497,7 +504,7 @@ public class RecruitsServerConfig{
                 .defineInRange("RecruitPatrolSpawnInterval", 30, 1, 60);
 
         RecruitPatrolDespawnTime = BUILDER.comment("""
-
+                        
                         The time in minutes a Recruit Patrol and Caravan will despawn.
                         \t(takes effect after restart)
                         \tdefault: 45""")
@@ -506,7 +513,7 @@ public class RecruitsServerConfig{
 
 
         ShouldPillagerPatrolsSpawn = BUILDER.comment("""
-
+                        
                         Should modded Pillager Patrols spawn in the world?
                         \t(takes effect after restart)
                         \tdefault: false""")
@@ -514,7 +521,7 @@ public class RecruitsServerConfig{
                 .define("ShouldPillagerPatrolsSpawn", false);
 
         PillagerPatrolsSpawnChance = BUILDER.comment("""
-
+                        
                         Chance that a modded Pillager Patrol can spawn. (higher values = higher chance to spawn)
                         \t(takes effect after restart)
                         \tdefault: 25.0""")
@@ -522,7 +529,7 @@ public class RecruitsServerConfig{
                 .defineInRange("PillagerPatrolsSpawnChance", 25.0D, 0.0D, 100.0D);
 
         PillagerPatrolSpawnInterval = BUILDER.comment("""
-
+                        
                         The interval in minutes a Pillager Patrol can spawn.
                         \t(takes effect after restart)
                         \tdefault: 45""")
@@ -564,7 +571,7 @@ public class RecruitsServerConfig{
         BUILDER.comment("Recruit Teams Config:").push("Teams");
 
         TeamCreationCost = BUILDER.comment("""
-
+                        
                         The amount of currency needed to create a team. Set 0 to disable.
                         \t(takes effect after restart)
                         \tdefault: 10""")
@@ -609,7 +616,7 @@ public class RecruitsServerConfig{
                 .push("Global Team Settings");
 
         GlobalTeamSetting = BUILDER.comment("""
-
+                        
                         Should Recruits override following team settings on world start for all teams?
                         \t(takes effect after restart)
                         \tdefault: true""")
@@ -640,6 +647,73 @@ public class RecruitsServerConfig{
                         \tdefault: true""")
                 .worldRestart()
                 .define("CompatCorpseMod", true);
+
+        /*
+         Async things config
+         */
+
+        BUILDER.pop();
+        BUILDER.comment("Async Settings").push("Async");
+
+        UseAsyncPathfinding = BUILDER.comment("""
+                        Use asynchronous pathfinding run on multithread executor.
+                        Improves TPS on huge numbers of recruits (and somehow FPS) a lot,
+                            but useless if machine has only one physical core available.
+                        Can lead to some small delays in path finding.
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("UsePathfindingAsync", true);
+
+        AsyncPathfindingThreadsCount = BUILDER.comment("""
+                        How much threads to use for pathfinding.
+                        Needs to be calibrated manually.
+                        Usually good value is n/4, where n is amount of logical cores (threads) you have on CPU.
+                        \t(takes effect after restart)
+                        \tdefault: 1""")
+                .worldRestart()
+                .defineInRange("AsyncPathfindingThreads", 1, 1, Runtime.getRuntime().availableProcessors());
+
+        UseAsyncTargetFinding = BUILDER.comment("""
+                        Use asynchronous target finding run on multithread executor.
+                        Improves TPS on huge numbers of recruits (and somehow FPS) a lot,
+                            but useless if machine has only one physical core available.
+                        Can lead to some small delays in target finding (recruits finding who to attack),
+                            but I have seen none of case when I was testing so should work fine.
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("UseTargetFindingAsync", true);
+
+        AsyncTargetFindingThreadsCount = BUILDER.comment("""
+                        How much threads to use for target finding.
+                        Needs to be calibrated manually.
+                        Usually good value is n/6, where n is amount of logical cores (threads) you have on CPU.
+                        \t(takes effect after restart)
+                        \tdefault: 1""")
+                .worldRestart()
+                .defineInRange("AsyncTargetFindingThreads", 1, 1, Runtime.getRuntime().availableProcessors());
+
+        UseVisibilityCache = BUILDER.comment("""
+                        Use visibility cache (one entity can see the other) to speed up detecting line-of-sight.
+                        Improves TPS on huge numbers of recruits (and somehow FPS) a lot,
+                            but can lead to some weird behavior (like entity stop or starts see the other only after some time).
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("UseVisibilityCache", true);
+
+        VisibilityCacheTimeToLive = BUILDER.comment("""
+                        How long cache stores whether one entity can see the other.
+                        Time of unit is MILLISECONDS.
+                        Adjust it if you think entity see or does not see the other too long.
+                        Forbid to set values lower than 400 milliseconds or larger than 10000 milliseconds.
+                        Remember that final TTL is randomized like +- 100 milliseconds (if TTL is 750, final TTL is from 650 to 850 milliseconds). 
+                        \t(takes effect after restart)
+                        \tdefault: 1600""")
+                .worldRestart()
+                .defineInRange("VisibilityCacheTimeToLive", 1600, 400, 10000);
+
 
         SERVER = BUILDER.build();
     }

@@ -266,7 +266,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
         super.renderLabels(matrixStack, mouseX, mouseY);
         int health = Mth.ceil(recruit.getHealth());
         int maxHealth = Mth.ceil(recruit.getMaxHealth());
-        int moral = Mth.ceil(recruit.getMoral());
+        int moral = Mth.ceil(recruit.getMorale());
 
         double attackReach = recruit.getAttributeValue(ForgeMod.REACH_DISTANCE.get());
         double attackSpeed = recruit.getAttributeValue(Attributes.ATTACK_SPEED);

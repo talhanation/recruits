@@ -4,12 +4,15 @@ import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Function;
 
 public class MessageAggro implements Message<MessageAggro> {
 
@@ -20,13 +23,13 @@ public class MessageAggro implements Message<MessageAggro> {
     private boolean fromGui;
 
 
-    public MessageAggro(){
+    public MessageAggro() {
     }
 
     public MessageAggro(UUID player, int state, int group) {
         this.player = player;
-        this.state  = state;
-        this.group  = group;
+        this.state = state;
+        this.group = group;
         this.fromGui = false;
         this.recruit = null;
     }
@@ -35,20 +38,24 @@ public class MessageAggro implements Message<MessageAggro> {
         return Dist.DEDICATED_SERVER;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
-        if (fromGui){
-            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
-            for (AbstractRecruitEntity recruits : list) {
-                if (recruits.getUUID().equals(this.recruit))
-                CommandEvents.onAggroCommand(this.player, recruits, this.state, group, fromGui);
-            }
+    public void executeServerSide(NetworkEvent.Context context) {
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+
+        double boundBoxInflateModifier = 16.0D;
+        if(!fromGui) {
+            boundBoxInflateModifier = 100.0D;
         }
-        else {
-            List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100.0D));
-            for (AbstractRecruitEntity recruits : list) {
-                CommandEvents.onAggroCommand(this.player, recruits, this.state, group, fromGui);
+
+        player.getLevel().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                player.getBoundingBox().inflate(boundBoxInflateModifier)
+        ).forEach((recruit) -> {
+            if (fromGui && !recruit.getUUID().equals(this.recruit)) {
+                return;
             }
-        }
+
+            CommandEvents.onAggroCommand(this.player, recruit, this.state, group, fromGui);
+        });
     }
 
     public MessageAggro fromBytes(FriendlyByteBuf buf) {
@@ -67,5 +74,4 @@ public class MessageAggro implements Message<MessageAggro> {
         buf.writeBoolean(this.fromGui);
         if (this.recruit != null) buf.writeUUID(this.recruit);
     }
-
 }

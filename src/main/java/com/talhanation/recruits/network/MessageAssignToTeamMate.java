@@ -1,6 +1,5 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
@@ -18,7 +17,7 @@ public class MessageAssignToTeamMate implements Message<MessageAssignToTeamMate>
     private UUID recruit;
     private UUID newOwner;
 
-    public MessageAssignToTeamMate(){
+    public MessageAssignToTeamMate() {
     }
 
     public MessageAssignToTeamMate(UUID recruit, UUID newOwner) {
@@ -31,17 +30,16 @@ public class MessageAssignToTeamMate implements Message<MessageAssignToTeamMate>
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer serverPlayer = context.getSender();
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
-
-        for (AbstractRecruitEntity recruit : list) {
-            if(recruit.getUUID().equals(this.recruit)){
-                TeamEvents.assignToTeamMate(serverPlayer, newOwner, recruit);
-                break;
-            }
-        }
-
+        ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
+        serverPlayer.getLevel().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                serverPlayer.getBoundingBox().inflate(64.0D),
+                (recruit) -> recruit.getUUID().equals(this.recruit)
+        ).forEach(
+                (recruit) -> TeamEvents.assignToTeamMate(serverPlayer, newOwner, recruit)
+        );
     }
+
     public MessageAssignToTeamMate fromBytes(FriendlyByteBuf buf) {
         this.recruit = buf.readUUID();
         this.newOwner = buf.readUUID();
@@ -52,5 +50,4 @@ public class MessageAssignToTeamMate implements Message<MessageAssignToTeamMate>
         buf.writeUUID(this.recruit);
         buf.writeUUID(this.newOwner);
     }
-
 }

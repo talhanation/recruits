@@ -18,7 +18,7 @@ public class MessageShields implements Message<MessageShields> {
     private int group;
     private boolean should;
 
-    public MessageShields(){
+    public MessageShields() {
     }
 
     public MessageShields(UUID player, int group, boolean shields) {
@@ -32,12 +32,21 @@ public class MessageShields implements Message<MessageShields> {
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer serverPlayer = context.getSender();
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
-        for (AbstractRecruitEntity recruits : list) {
-                CommandEvents.onShieldsCommand(serverPlayer, this.player, recruits, group, should);
-        }
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        player.getLevel().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                context.getSender().getBoundingBox().inflate(100),
+                (recruit) -> recruit.isEffectedByCommand(this.player, group)
+        ).forEach((recruit) -> CommandEvents.onShieldsCommand(
+                        player,
+                        this.player,
+                        recruit,
+                        group,
+                        should
+                )
+        );
     }
+
     public MessageShields fromBytes(FriendlyByteBuf buf) {
         this.player = buf.readUUID();
         this.group = buf.readInt();
@@ -50,5 +59,4 @@ public class MessageShields implements Message<MessageShields> {
         buf.writeInt(this.group);
         buf.writeBoolean(this.should);
     }
-
 }

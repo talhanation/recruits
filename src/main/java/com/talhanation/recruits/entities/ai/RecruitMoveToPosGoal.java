@@ -35,7 +35,7 @@ public class RecruitMoveToPosGoal extends Goal {
             if (--this.timeToRecalcPath <= 0) {
                 this.timeToRecalcPath = this.recruit.getVehicle() != null ? this.adjustedTickDelay(5) : this.adjustedTickDelay(10);
                 double horizontalDistance = recruit.distanceToSqr(blockpos.getX(), recruit.getY(), blockpos.getZ());
-                if(horizontalDistance >= 10) {
+                if (horizontalDistance >= 10) {
                     this.recruit.getNavigation().moveTo(blockpos.getX(), blockpos.getY(), blockpos.getZ(), this.speedModifier);
                     if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
                         this.recruit.getJumpControl().jump();

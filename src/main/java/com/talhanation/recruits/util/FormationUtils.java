@@ -10,6 +10,7 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class FormationUtils {
     public static final double spacing = 1.75D;
@@ -467,8 +468,8 @@ public class FormationUtils {
             }
         }
 
-        Vec3 pos1 = farthestRecruit1.position();
-        Vec3 pos2 = farthestRecruit2.position();
+        Vec3 pos1 = Objects.requireNonNull(farthestRecruit1).position();
+        Vec3 pos2 = Objects.requireNonNull(farthestRecruit2).position();
 
         double centerX = (pos1.x + pos2.x) / 2.0;
         double centerY = (pos1.y + pos2.y) / 2.0;

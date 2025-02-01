@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai.pillager;
 
+import com.talhanation.recruits.entities.ai.async.VisibilityGraphCache;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
@@ -111,7 +112,18 @@ public class PillagerMeleeAttackGoal extends Goal {
         this.mob.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
         double d0 = this.mob.distanceToSqr(livingentity.getX(), livingentity.getY(), livingentity.getZ());
         this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
-        if ((this.followingTargetEvenIfNotSeen || this.mob.getSensing().hasLineOfSight(livingentity)) && this.ticksUntilNextPathRecalculation <= 0 && (this.pathedTargetX == 0.0D && this.pathedTargetY == 0.0D && this.pathedTargetZ == 0.0D || livingentity.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) >= 1.0D || this.mob.getRandom().nextFloat() < 0.05F)) {
+        if ((this.followingTargetEvenIfNotSeen ||
+                VisibilityGraphCache.canSee(this.mob, livingentity) &&
+                        this.ticksUntilNextPathRecalculation <= 0 &&
+                        (this.pathedTargetX == 0.0D &&
+                                this.pathedTargetY == 0.0D &&
+                                this.pathedTargetZ == 0.0D ||
+                                livingentity.distanceToSqr(
+                                        this.pathedTargetX,
+                                        this.pathedTargetY,
+                                        this.pathedTargetZ
+                                ) >= 1.0D ||
+                                this.mob.getRandom().nextFloat() < 0.05F))) {
             this.pathedTargetX = livingentity.getX();
             this.pathedTargetY = livingentity.getY();
             this.pathedTargetZ = livingentity.getZ();

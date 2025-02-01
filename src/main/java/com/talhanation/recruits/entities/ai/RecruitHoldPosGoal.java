@@ -42,7 +42,6 @@ public class RecruitHoldPosGoal extends Goal {
         if (pos != null) {
             double distance = recruit.distanceToSqr(pos);
             if(distance >= 0.3) {
-
                 if (--this.timeToRecalcPath <= 0) {
                     this.timeToRecalcPath = this.recruit.getVehicle() != null ? this.adjustedTickDelay(5) : this.adjustedTickDelay(10);
                     this.recruit.getNavigation().moveTo(pos.x(), pos.y(), pos.z(), this.speedModifier);
@@ -51,8 +50,7 @@ public class RecruitHoldPosGoal extends Goal {
                 if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
                     this.recruit.getJumpControl().jump();
                 }
-            }
-            else{
+            } else{
                 if(recruit.rotate){
                     this.recruit.setYRot(recruit.ownerRot);
                     this.recruit.yRotO = this.recruit.ownerRot;
