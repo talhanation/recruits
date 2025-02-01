@@ -6,6 +6,7 @@ import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.inventory.MessengerAnswerContainer;
 import com.talhanation.recruits.inventory.MessengerContainer;
 import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.core.BlockPos;
@@ -18,6 +19,8 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -463,7 +466,6 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     private void playHornSound() {
         this.getCommandSenderWorld().playSound(null, this.getOnPos(), SoundEvents.GOAT_HORN_SOUND_VARIANTS.get(1).get(), SoundSource.NEUTRAL, 128F, 1.0F);
         this.getCommandSenderWorld().gameEvent(GameEvent.INSTRUMENT_PLAY, this.position(), GameEvent.Context.of(this));
-
     }
 
     private void addGlowEffect() {

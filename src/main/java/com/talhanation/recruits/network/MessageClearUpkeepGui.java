@@ -36,7 +36,7 @@ public class MessageClearUpkeepGui implements Message<MessageClearUpkeepGui> {
             recruit.clearUpkeepEntity();
         });
     }
-    
+
     public MessageClearUpkeepGui fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();
         return this;

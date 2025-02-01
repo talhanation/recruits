@@ -140,7 +140,7 @@ public class NomadEntity extends BowmanEntity {
     public void aiStep() {
         super.aiStep();
         this.getCommandSenderWorld().getProfiler().push("looting");
-        if (!this.getCommandSenderWorld().isClientSide && this.canPickUpLoot() && this.isAlive() && !this.dead && net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.level, this)) {
+        if (!this.getCommandSenderWorld().isClientSide && this.canPickUpLoot() && this.isAlive() && !this.dead && net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.getCommandSenderWorld(), this)) {
             this.getCommandSenderWorld().getEntitiesOfClass(
                     ItemEntity.class,
                     this.getBoundingBox().inflate(2.5D, 2.5D, 2.5D),

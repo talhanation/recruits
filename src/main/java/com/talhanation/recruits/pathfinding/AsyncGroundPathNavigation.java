@@ -43,7 +43,7 @@ public class AsyncGroundPathNavigation extends AsyncPathNavigation {
     }
 
     protected boolean canUpdatePath() {
-        return this.mob.isOnGround() || this.isInLiquid() || this.mob.isPassenger();
+        return this.mob.onGround() || this.isInLiquid() || this.mob.isPassenger();
     }
 
     protected @NotNull Vec3 getTempMobPos() {
@@ -66,11 +66,11 @@ public class AsyncGroundPathNavigation extends AsyncPathNavigation {
             p_26475_ = blockpos;
         }
 
-        if (!this.level.getBlockState(p_26475_).getMaterial().isSolid()) {
+        if (!this.level.getBlockState(p_26475_).isSolid()) {
             return super.createPath(p_26475_, p_26476_);
         } else {
             BlockPos blockpos1;
-            for(blockpos1 = p_26475_.above(); blockpos1.getY() < this.level.getMaxBuildHeight() && this.level.getBlockState(blockpos1).getMaterial().isSolid(); blockpos1 = blockpos1.above()) {
+            for(blockpos1 = p_26475_.above(); blockpos1.getY() < this.level.getMaxBuildHeight() && this.level.getBlockState(blockpos1).isSolid(); blockpos1 = blockpos1.above()) {
             }
 
             return super.createPath(blockpos1, p_26476_);
@@ -84,12 +84,12 @@ public class AsyncGroundPathNavigation extends AsyncPathNavigation {
     private int getSurfaceY() {
         if (this.mob.isInWater() && this.canFloat()) {
             int i = this.mob.getBlockY();
-            BlockState blockstate = this.level.getBlockState(new BlockPos(this.mob.getX(), (double)i, this.mob.getZ()));
+            BlockState blockstate = this.level.getBlockState(new BlockPos((int) this.mob.getX(), i, (int) this.mob.getZ()));
             int j = 0;
 
             while(blockstate.is(Blocks.WATER)) {
                 ++i;
-                blockstate = this.level.getBlockState(new BlockPos(this.mob.getX(), (double)i, this.mob.getZ()));
+                blockstate = this.level.getBlockState(new BlockPos((int) this.mob.getX(), i, (int) this.mob.getZ()));
                 ++j;
                 if (j > 16) {
                     return this.mob.getBlockY();
@@ -105,7 +105,7 @@ public class AsyncGroundPathNavigation extends AsyncPathNavigation {
     protected void trimPath() {
         super.trimPath();
         if (this.avoidSun) {
-            if (this.level.canSeeSky(new BlockPos(this.mob.getX(), this.mob.getY() + 0.5D, this.mob.getZ()))) {
+            if (this.level.canSeeSky(new BlockPos((int) this.mob.getX(), (int) (this.mob.getY() + 0.5D), (int) this.mob.getZ()))) {
                 return;
             }
 
