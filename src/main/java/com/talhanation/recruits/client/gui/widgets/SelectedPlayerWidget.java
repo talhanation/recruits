@@ -10,7 +10,6 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FastColor;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +29,7 @@ public class SelectedPlayerWidget extends AbstractWidget {
     private String playerName;
 
     public SelectedPlayerWidget(Font font, int x, int y, int width, int height, Component buttonLabel, Runnable onPress) {
-        super(x, y, width, height, TextComponent.EMPTY);
+        super(x, y, width, height, Component.literal(""));
         this.x = x;
         this.y = y;
         this.width = width;

@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.FastColor;
 
 import java.util.List;
@@ -28,7 +28,7 @@ import java.util.function.Function;public class DropDownMenu<T> extends Abstract
             List<T> options, Function<T, String> optionTextGetter,
             Consumer<T> onSelect
     ) {
-        super(x, y, width, height, TextComponent.EMPTY);
+        super(x, y, width, height, Component.literal(""));
         this.selectedOption = selectedOption;
         this.options = options;
         this.onSelect = onSelect;

@@ -12,8 +12,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
@@ -27,9 +25,9 @@ import static com.talhanation.recruits.client.events.RecruitsToastManager.*;
 public class RecruitsTeamListScreen extends ListScreenBase {
 
     protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_player.png");
-    protected static final Component TITLE = new TranslatableComponent("gui.recruits.team_creation.teams_list");
-    protected static final Component JOIN_BUTTON = new TranslatableComponent("gui.recruits.button.join");
-    protected static final Component BACK_BUTTON = new TranslatableComponent("gui.recruits.button.back");
+    protected static final Component TITLE = Component.translatable("gui.recruits.team_creation.teams_list");
+    protected static final Component JOIN_BUTTON = Component.translatable("gui.recruits.button.join");
+    protected static final Component BACK_BUTTON = Component.translatable("gui.recruits.button.back");
     protected static final int HEADER_SIZE = 16;
     protected static final int FOOTER_SIZE = 32;
     protected static final int SEARCH_HEIGHT = 16;
@@ -75,7 +73,7 @@ public class RecruitsTeamListScreen extends ListScreenBase {
             teamList = new RecruitsTeamList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this);
         }
         String string = searchBox != null ? searchBox.getValue() : "";
-        searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, new TextComponent(""));
+        searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, Component.literal(""));
         searchBox.setMaxLength(16);
         searchBox.setTextColor(0xFFFFFF);
         searchBox.setValue(string);

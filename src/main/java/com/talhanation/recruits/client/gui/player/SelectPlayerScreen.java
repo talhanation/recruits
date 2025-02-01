@@ -11,8 +11,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -23,10 +21,10 @@ import java.util.function.Consumer;
 public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelection{
 
     protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_player.png");
-    public static final Component TITLE = new TranslatableComponent("gui.recruits.select_player_screen.title");
-    public static final Component BUTTON_SELECT = new TranslatableComponent("gui.recruits.select_player_screen.selectPlayer");
-    public static final Component BUTTON_SELECT_TOOLTIP = new TranslatableComponent("gui.recruits.select_player_screen.selectPlayerTooltip");
-    protected static final Component BUTTON_BACK = new TranslatableComponent("gui.recruits.button.back");
+    public static final Component TITLE = Component.translatable("gui.recruits.select_player_screen.title");
+    public static final Component BUTTON_SELECT = Component.translatable("gui.recruits.select_player_screen.selectPlayer");
+    public static final Component BUTTON_SELECT_TOOLTIP = Component.translatable("gui.recruits.select_player_screen.selectPlayerTooltip");
+    protected static final Component BUTTON_BACK = Component.translatable("gui.recruits.button.back");
     protected static Component BUTTON_TEXT;
     protected static Component TOOLTIP_BUTTON;
     protected static final int HEADER_SIZE = 16;
@@ -85,7 +83,7 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
             playerList = new PlayersList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, filterType, player, includeSelf);
         }
         String string = searchBox != null ? searchBox.getValue() : "";
-        searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, new TextComponent("SEARCH_HINT"));
+        searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, Component.literal("SEARCH_HINT"));
         searchBox.setMaxLength(16);
         searchBox.setTextColor(0xFFFFFF);
         searchBox.setValue(string);

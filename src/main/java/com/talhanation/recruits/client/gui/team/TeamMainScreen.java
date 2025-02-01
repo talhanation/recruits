@@ -10,6 +10,7 @@ import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.GuiGraphics;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -26,7 +27,7 @@ public class TeamMainScreen extends RecruitsScreenBase {
     private static final MutableComponent TEAMS_LIST = Component.translatable("gui.recruits.team_creation.teams_list");
     private final Player player;
     public TeamMainScreen(Player player){
-        super(new TextComponent("TeamMainScreen"),246,84);
+        super(Component.literal("TeamMainScreen"),246,84);
         this.player = player;
     }
 

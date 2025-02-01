@@ -2,6 +2,8 @@ package com.talhanation.recruits.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.gui.player.PlayersList;
+import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
 import com.talhanation.recruits.client.gui.widgets.SelectedPlayerWidget;
 import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.inventory.MessengerContainer;
@@ -13,6 +15,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -82,7 +85,7 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
     private void setButtons() {
         clearWidgets();
 
-        this.textFieldMessage = new MultiLineEditBox(font, leftPos + 3, topPos + 47, 186, 150, new TextComponent(""), new TextComponent(""));
+        this.textFieldMessage = new MultiLineEditBox(font, leftPos + 3, topPos + 47, 186, 150, Component.literal(""), Component.literal(""));
         this.textFieldMessage.setValue(message);
         addRenderableWidget(textFieldMessage);
 
@@ -96,7 +99,7 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
         sendButton.active = playerInfo != null;
 
         if(playerInfo != null){
-            this.selectedPlayerWidget = new SelectedPlayerWidget(font, leftPos + 33, topPos + 15, 128, 20, new TextComponent("x"), // Button label
+            this.selectedPlayerWidget = new SelectedPlayerWidget(font, leftPos + 33, topPos + 15, 128, 20, Component.literal("x"), // Button label
                     () -> {
                         playerInfo = null;
                         this.selectedPlayerWidget.setPlayer(null, null);

@@ -9,19 +9,18 @@ import com.talhanation.recruits.network.MessageScoutTask;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 
 public class ScoutScreen extends RecruitsScreenBase {
 
     private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_big.png");
-    private static final Component TITLE = new TranslatableComponent("gui.recruits.more_screen.title");
+    private static final Component TITLE = Component.translatable("gui.recruits.more_screen.title");
     private final Player player;
     private final ScoutEntity scout;
     private ScoutEntity.State task;
-    private static final MutableComponent SCOUTING = new TranslatableComponent("gui.recruits.inv.text.scoutScoutTask");
-    private static final MutableComponent TOOLTIP_SCOUTING = new TranslatableComponent("gui.recruits.inv.tooltip.scoutScoutTask");
+    private static final MutableComponent SCOUTING = Component.translatable("gui.recruits.inv.text.scoutScoutTask");
+    private static final MutableComponent TOOLTIP_SCOUTING = Component.translatable("gui.recruits.inv.tooltip.scoutScoutTask");
     private ActivateableButton buttonScouting;
 
     public ScoutScreen(ScoutEntity scout, Player player) {

@@ -7,14 +7,10 @@ import com.talhanation.recruits.client.gui.group.RecruitsGroup;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.FormattedText;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.gui.GuiUtils;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 @OnlyIn(Dist.CLIENT)
@@ -28,7 +24,7 @@ public class RecruitsDiplomacyButton extends ExtendedButton {
     }
 
     private static Component createDisplayString(RecruitsGroup group) {
-        return new TextComponent(group.getName() + " (" + group.getCount() + ")");
+        return Component.literal(group.getName() + " (" + group.getCount() + ")");
     }
 
     @Override

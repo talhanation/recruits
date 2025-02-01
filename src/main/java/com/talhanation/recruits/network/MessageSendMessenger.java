@@ -5,6 +5,7 @@ import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -36,10 +37,13 @@ public class MessageSendMessenger implements Message<MessageSendMessenger> {
         return Dist.DEDICATED_SERVER;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
-        List<MessengerEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(MessengerEntity.class, context.getSender().getBoundingBox().inflate(16D));
-        for (MessengerEntity messenger : list){
-
+    public void executeServerSide(NetworkEvent.Context context) {
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        player.getLevel().getEntitiesOfClass(
+                MessengerEntity.class,
+                player.getBoundingBox().inflate(16D),
+                (messenger) -> messenger.getUUID().equals(this.recruit)
+        ).forEach((messenger) -> {
             if (messenger.getUUID().equals(this.recruit)){
                 messenger.setMessage(this.message);
 
@@ -50,7 +54,6 @@ public class MessageSendMessenger implements Message<MessageSendMessenger> {
                 if(nbt != null){
                     messenger.setTargetPlayerInfo(RecruitsPlayerInfo.getFromNBT(this.nbt));
                 }
-                break;
             }
         }
     }

@@ -14,23 +14,21 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 
 public class TeamManageScreen extends RecruitsScreenBase {
 
     private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_big.png");
-    private static final Component TITLE = new TranslatableComponent("gui.recruits.team.manage");
-    private static final MutableComponent BACK = new TranslatableComponent("gui.recruits.button.back");
-    private static final MutableComponent ADD_PLAYER = new TranslatableComponent("gui.recruits.team.addPlayer");
-    private static final MutableComponent REMOVE_PLAYER = new TranslatableComponent("gui.recruits.team.removePlayer");
-    private static final MutableComponent TOOLTIP_WIP = new TranslatableComponent("gui.recruits.wip");
-    private static final MutableComponent TOOLTIP_ADD_PLAYER = new TranslatableComponent("gui.recruits.team.tooltip.add");
-    private static final MutableComponent TOOLTIP_REMOVE_PLAYER = new TranslatableComponent("gui.recruits.team.tooltip.remove");
-    private static final MutableComponent PLAYER_PROMOTION = new TranslatableComponent("gui.recruits.team.playerPromotion");
-    private static final MutableComponent UNIT_MANAGEMENT = new TranslatableComponent("gui.recruits.team.unitManagement");
+    private static final Component TITLE = Component.translatable("gui.recruits.team.manage");
+    private static final MutableComponent BACK = Component.translatable("gui.recruits.button.back");
+    private static final MutableComponent ADD_PLAYER = Component.translatable("gui.recruits.team.addPlayer");
+    private static final MutableComponent REMOVE_PLAYER = Component.translatable("gui.recruits.team.removePlayer");
+    private static final MutableComponent TOOLTIP_WIP = Component.translatable("gui.recruits.wip");
+    private static final MutableComponent TOOLTIP_ADD_PLAYER = Component.translatable("gui.recruits.team.tooltip.add");
+    private static final MutableComponent TOOLTIP_REMOVE_PLAYER = Component.translatable("gui.recruits.team.tooltip.remove");
+    private static final MutableComponent PLAYER_PROMOTION = Component.translatable("gui.recruits.team.playerPromotion");
+    private static final MutableComponent UNIT_MANAGEMENT = Component.translatable("gui.recruits.team.unitManagement");
     private final Player player;
     private final RecruitsTeam recruitsTeam;
     private final Screen parent;
@@ -54,7 +52,7 @@ public class TeamManageScreen extends RecruitsScreenBase {
 
         Button addPlayer = addRenderableWidget(new Button(guiLeft + 32, guiTop + ySize - 120 - 7, 130, 20, ADD_PLAYER,
             btn -> {
-                minecraft.setScreen(new SelectPlayerScreen(this, player, TOOLTIP_ADD_PLAYER,  ADD_PLAYER, new TextComponent(""), false, PlayersList.FilterType.TEAM_JOIN_REQUEST,
+                minecraft.setScreen(new SelectPlayerScreen(this, player, TOOLTIP_ADD_PLAYER,  ADD_PLAYER, Component.literal(""), false, PlayersList.FilterType.TEAM_JOIN_REQUEST,
                         (playerInfo) -> {
                             Main.SIMPLE_CHANNEL.sendToServer(new MessageAddPlayerToTeam(recruitsTeam.getStringID(), playerInfo.getName()));
                         }
@@ -67,7 +65,7 @@ public class TeamManageScreen extends RecruitsScreenBase {
 
         Button removePlayer = addRenderableWidget(new Button(guiLeft + 32, guiTop + ySize - 98 - 7, 130, 20, REMOVE_PLAYER,
             btn -> {
-                minecraft.setScreen(new SelectPlayerScreen(this, player, TOOLTIP_REMOVE_PLAYER,  REMOVE_PLAYER, new TextComponent(""), false, PlayersList.FilterType.SAME_TEAM,
+                minecraft.setScreen(new SelectPlayerScreen(this, player, TOOLTIP_REMOVE_PLAYER,  REMOVE_PLAYER, Component.literal(""), false, PlayersList.FilterType.SAME_TEAM,
                         (playerInfo) -> {
                             Main.SIMPLE_CHANNEL.sendToServer(new MessageRemoveFromTeam(playerInfo.getName()));
                         }

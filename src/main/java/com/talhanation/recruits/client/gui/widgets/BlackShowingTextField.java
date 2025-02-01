@@ -5,7 +5,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.util.FastColor;
 
 public class BlackShowingTextField extends AbstractWidget {
@@ -18,7 +17,7 @@ public class BlackShowingTextField extends AbstractWidget {
     }
 
     public BlackShowingTextField(int x, int y, int width, int height, int textXOffset, int textYOffset, Component component){
-        super(x, y, width, height, TextComponent.EMPTY);
+        super(x, y, width, height, Component.empty());
         this.text = component.getString();
         this.textXOffset = textXOffset;
         this.textYOffset = textYOffset;
