@@ -131,16 +131,14 @@ public class RecruitEvents {
             double targetY = event.getTargetY();
             double targetZ = event.getTargetZ();
 
-            List <AbstractRecruitEntity> recruits = player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
-                    .inflate(64, 32, 64), AbstractRecruitEntity::isAlive)
-                    .stream()
-                    .filter(recruit -> recruit.getFollowState() == 1)
-                    .filter(recruit -> recruit.getOwnerUUID().equals(player_uuid))
-                    .toList();
+            List<AbstractRecruitEntity> recruits = player.getCommandSenderWorld().getEntitiesOfClass(
+                    AbstractRecruitEntity.class,
+                    player.getBoundingBox()
+                            .inflate(64, 32, 64),
+                    recruit -> recruit.isAlive() && recruit.getFollowState() == 1 && recruit.getOwnerUUID().equals(player_uuid)
+            );
 
             recruits.forEach(recruit -> recruit.teleportTo(targetX, targetY, targetZ));
-
-            //wip
         }
 
     }
