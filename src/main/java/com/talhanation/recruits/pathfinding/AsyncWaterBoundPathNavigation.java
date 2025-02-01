@@ -5,10 +5,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.NodeEvaluator;
 import net.minecraft.world.level.pathfinder.PathFinder;
 import net.minecraft.world.level.pathfinder.SwimNodeEvaluator;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,7 +52,8 @@ public class AsyncWaterBoundPathNavigation extends AsyncPathNavigation {
     }
 
     protected boolean canMoveDirectly(@NotNull Vec3 p_186138_, @NotNull Vec3 p_186139_) {
-        return isClearForMovementBetween(this.mob, p_186138_, p_186139_);
+        Vec3 vec3 = new Vec3(p_186139_.x, p_186139_.y + (double)this.mob.getBbHeight() * 0.5D, p_186139_.z);
+        return this.level.clip(new ClipContext(p_186138_, vec3, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this.mob)).getType() == HitResult.Type.MISS;
     }
 
     public boolean isStableDestination(@NotNull BlockPos p_26608_) {
