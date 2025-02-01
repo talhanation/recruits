@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.entities.ai.AssassinFleeSuccess;
+import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -10,7 +11,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.Level;
@@ -58,7 +58,7 @@ public class AssassinEntity extends AbstractOrderAbleEntity {
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data, @Nullable CompoundTag nbt) {
         RandomSource randomsource = world.getRandom();
         SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
-        ((GroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
+        ((AsyncGroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
         this.populateDefaultEquipmentEnchantments(randomsource, difficultyInstance);
         this.setEquipment();
         this.setDropEquipment();

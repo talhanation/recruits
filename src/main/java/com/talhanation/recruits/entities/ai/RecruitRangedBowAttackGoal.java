@@ -8,7 +8,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ProjectileWeaponItem;
@@ -18,8 +17,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.EnumSet;
 
 
-public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob> extends Goal {
-    private final T mob;
+public class RecruitRangedBowAttackGoal<T extends BowmanEntity> extends Goal {
+    private final T recruit;
     private final double speedModifier;
     private final int attackIntervalMin;
     private LivingEntity target;
@@ -31,7 +30,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
     private boolean consumeArrows;
 
     public RecruitRangedBowAttackGoal(T mob, double speedModifier, int attackIntervalMin, int attackIntervalMax, float attackRadius, double stopRange) {
-        this.mob = mob;
+        this.recruit = mob;
         this.speedModifier = speedModifier;
         this.attackIntervalMin = attackIntervalMin;
         this.attackIntervalMax = attackIntervalMax;
@@ -42,17 +41,17 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
     }
 
     public boolean canUse() {
-        LivingEntity livingentity = this.mob.getTarget();
-        if (livingentity != null && livingentity.isAlive() && isHoldingBow(mob)) {
+        LivingEntity livingentity = this.recruit.getTarget();
+        if (livingentity != null && livingentity.isAlive() && isHoldingBow(this.recruit)) {
             this.target = livingentity;
-            float distance = this.target.distanceTo(this.mob);
-            // if (mob.getOwner() != null && mob.getShouldFollow() && mob.getOwner().distanceTo(this.mob) <= 25.00D && !(target.distanceTo(this.mob) <= 7.00D)) return false;
+            float distance = this.target.distanceTo(this.recruit);
+            // if (mob.getOwner() != null && mob.getShouldFollow() && mob.getOwner().distanceTo(this.recruit) <= 25.00D && !(target.distanceTo(this.recruit) <= 7.00D)) return false;
             boolean canTackMovePos = canAttackMovePos();
             //boolean notMounting = !mob.getShouldMount();
-            boolean shouldRanged = mob.getShouldRanged();
-            boolean canAttack = this.mob.canAttack(target);
-            boolean notPassive = this.mob.getState() != 3;
-            boolean notNeedsToGetFood = !mob.needsToGetFood();
+            boolean shouldRanged = this.recruit.getShouldRanged();
+            boolean canAttack = this.recruit.canAttack(target);
+            boolean notPassive = this.recruit.getState() != 3;
+            boolean notNeedsToGetFood = !this.recruit.needsToGetFood();
             return distance >= stopRange && canTackMovePos && notNeedsToGetFood && canAttack && notPassive && shouldRanged;
         } else {
             return false;
@@ -75,35 +74,35 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
     }
 
     private boolean hasArrows(){
-        return !consumeArrows || this.mob.getInventory().hasAnyMatching(item -> item.is(ItemTags.ARROWS));
+        return !consumeArrows || this.recruit.getInventory().hasAnyMatching(item -> item.is(ItemTags.ARROWS));
     }
 
     public boolean canContinueToUse() {
-        return this.canUse() && isHoldingBow(mob);
+        return this.canUse() && isHoldingBow(this.recruit);
     }
 
     public void start() {
         super.start();
-        this.mob.setAggressive(true);
+        this.recruit.setAggressive(true);
     }
 
     public void stop() {
         super.stop();
-        this.mob.setAggressive(false);
+        this.recruit.setAggressive(false);
         this.target = null;
         this.seeTime = 0;
         this.attackTime = -1;
-        this.mob.stopUsingItem();
+        this.recruit.stopUsingItem();
     }
 
     public void tick() {
         if(target != null && target.isAlive()) {
-            double distance = target.distanceToSqr(this.mob);
+            double distance = target.distanceToSqr(this.recruit);
             boolean isClose = distance <= 150;
             boolean isFar = distance >= 3500;
             boolean isTooFar = distance >= 4500;
             boolean inRange =  !isFar;
-            boolean canSee = this.mob.getSensing().hasLineOfSight(target);
+            boolean canSee = this.recruit.getSensing().hasLineOfSight(target);
 
             if (canSee) {
                 ++this.seeTime;
@@ -112,49 +111,49 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
             }
 
             if(isTooFar){
-                this.mob.setTarget(null);
+                this.recruit.setTarget(null);
                 this.stop();
                 return;
             }
 
             // movement
-            if (mob.getShouldFollow() && mob.getOwner() != null) {
-                handleFollow(this.mob.getOwner(), inRange, isFar, isClose);
+            if (this.recruit.getShouldFollow() && this.recruit.getOwner() != null) {
+                handleFollow(this.recruit.getOwner(), inRange, isFar, isClose);
             }
-            else if(mob.getShouldHoldPos() && mob.getHoldPos() != null){
-                handleHoldPos(mob.getHoldPos(), inRange, isFar, isClose);
+            else if(this.recruit.getShouldHoldPos() && this.recruit.getHoldPos() != null){
+                handleHoldPos(this.recruit.getHoldPos(), inRange, isFar, isClose);
             }
             else {
                 handleWander(inRange, isFar, isClose);
             }
 
-            this.mob.getLookControl().setLookAt(target, 30.0F, 30.0F);
-            if (this.mob.isUsingItem()) {
+            this.recruit.getLookControl().setLookAt(target, 30.0F, 30.0F);
+            if (this.recruit.isUsingItem()) {
                 if (!canSee && this.seeTime < -60) {
-                    this.mob.stopUsingItem();
+                    this.recruit.stopUsingItem();
                 } else if (canSee) {
-                    int i = this.mob.getTicksUsingItem();
+                    int i = this.recruit.getTicksUsingItem();
                     if (i >= 20) {
-                        this.mob.stopUsingItem();
-                        this.mob.performRangedAttack(target, BowItem.getPowerForTime(i));
+                        this.recruit.stopUsingItem();
+                        this.recruit.performRangedAttack(target, BowItem.getPowerForTime(i));
                         float f = Mth.sqrt((float) distance) / this.attackRadius;
                         this.attackTime = Mth.floor(f * (float) (this.attackIntervalMax - this.attackIntervalMin) + (float) this.attackIntervalMin);
                     }
                 }
             } else if (--this.attackTime <= 0 && this.seeTime >= -60 && this.hasArrows()) {
-                this.mob.startUsingItem(InteractionHand.MAIN_HAND);
+                this.recruit.startUsingItem(InteractionHand.MAIN_HAND);
             }
         }
     }
 
     private boolean canAttackMovePos() {
-        LivingEntity target = this.mob.getTarget();
-        BlockPos pos = mob.getMovePos();
+        LivingEntity target = this.recruit.getTarget();
+        BlockPos pos = this.recruit.getMovePos();
 
-        if (target != null && pos != null && mob.getShouldMovePos()) {
-            boolean targetIsFar = target.distanceToSqr(this.mob) >= 320;
-            boolean posIsClose = pos.distSqr(this.mob.getOnPos()) <= 150;
-            boolean posIsFar = pos.distSqr(this.mob.getOnPos()) > 150D;
+        if (target != null && pos != null && this.recruit.getShouldMovePos()) {
+            boolean targetIsFar = target.distanceToSqr(this.recruit) >= 320;
+            boolean posIsClose = pos.distSqr(this.recruit.getOnPos()) <= 150;
+            boolean posIsFar = pos.distSqr(this.recruit.getOnPos()) > 150D;
 
             if (posIsFar) {
                 return false;
@@ -168,35 +167,35 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity & RangedAttackMob
     }
 
     private void handleFollow(@NotNull LivingEntity owner, boolean inRange, boolean isFar, boolean isClose){
-        boolean ownerClose = owner.distanceToSqr(this.mob) <= 100;
+        boolean ownerClose = owner.distanceToSqr(this.recruit) <= 100;
 
         if (ownerClose) {
-            if (inRange) this.mob.getNavigation().stop();
-            if (isFar) this.mob.getNavigation().moveTo(target, this.speedModifier);
-            if (isClose) this.mob.fleeEntity(target);
+            if (inRange) this.recruit.getNavigation().stop();
+            if (isFar) this.recruit.getNavigation().moveTo(target, this.speedModifier);
+            if (isClose) this.recruit.fleeEntity(target);
         }
         //if (!ownerClose) {
-        //    this.mob.getNavigation().moveTo(owner, this.speedModifier);
+        //    this.recruit.getNavigation().moveTo(owner, this.speedModifier);
         //}
     }
 
     private void handleHoldPos(@NotNull Vec3 pos, boolean inRange, boolean isFar, boolean isClose){
-        boolean posClose = pos.distanceToSqr(this.mob.position()) <= 50;
+        boolean posClose = pos.distanceToSqr(this.recruit.position()) <= 50;
 
         if (posClose) {
-            if (inRange) this.mob.getNavigation().stop();
+            if (inRange) this.recruit.getNavigation().stop();
         }
         else {
-            //this.mob.getNavigation().moveTo(pos.getX(), pos.getY(), pos.getZ(), 1);
+            //this.recruit.getNavigation().moveTo(pos.getX(), pos.getY(), pos.getZ(), 1);
         }
         //if (!ownerClose) {
-        //    this.mob.getNavigation().moveTo(owner, this.speedModifier);
+        //    this.recruit.getNavigation().moveTo(owner, this.speedModifier);
         //}
     }
 
     private void handleWander(boolean inRange, boolean isFar, boolean isClose){
-        if (inRange) this.mob.getNavigation().stop();
-        if (isFar) this.mob.getNavigation().moveTo(target, this.speedModifier);
-        if (isClose) this.mob.fleeEntity(target);
+        if (inRange) this.recruit.getNavigation().stop();
+        if (isFar) this.recruit.getNavigation().moveTo(target, this.speedModifier);
+        if (isClose) this.recruit.fleeEntity(target);
     }
 }

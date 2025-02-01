@@ -5,6 +5,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -18,7 +19,7 @@ public class MessageUpkeepEntity implements Message<MessageUpkeepEntity> {
     private UUID target;
     private int group;
 
-    public MessageUpkeepEntity(){
+    public MessageUpkeepEntity() {
     }
 
     public MessageUpkeepEntity(UUID player_uuid, UUID target, int group) {
@@ -31,12 +32,14 @@ public class MessageUpkeepEntity implements Message<MessageUpkeepEntity> {
         return Dist.DEDICATED_SERVER;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
-        for (AbstractRecruitEntity recruits : list) {
-            CommandEvents.onUpkeepCommand(player_uuid, recruits, group, true, target, null);
-        }
+    public void executeServerSide(NetworkEvent.Context context) {
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        player.getCommandSenderWorld().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                context.getSender().getBoundingBox().inflate(100)
+        ).forEach(recruit -> CommandEvents.onUpkeepCommand(player_uuid, recruit, group, true, target, null));
     }
+
     public MessageUpkeepEntity fromBytes(FriendlyByteBuf buf) {
         this.player_uuid = buf.readUUID();
         this.target = buf.readUUID();
@@ -49,5 +52,4 @@ public class MessageUpkeepEntity implements Message<MessageUpkeepEntity> {
         buf.writeUUID(target);
         buf.writeInt(group);
     }
-
 }

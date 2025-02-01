@@ -8,14 +8,16 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.Objects;
+
 public class MessageRemoveFromTeam implements Message<MessageRemoveFromTeam> {
 
     private String player;
 
-    public MessageRemoveFromTeam(){
+    public MessageRemoveFromTeam() {
     }
 
-    public MessageRemoveFromTeam(String player){
+    public MessageRemoveFromTeam(String player) {
         this.player = player;
     }
 
@@ -24,10 +26,19 @@ public class MessageRemoveFromTeam implements Message<MessageRemoveFromTeam> {
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer sender = context.getSender();
+        ServerPlayer sender = Objects.requireNonNull(context.getSender());
         ServerLevel level = sender.serverLevel();
 
-        level.players().stream().toList().forEach(serverPlayer -> TeamEvents.tryToRemoveFromTeam(serverPlayer.getTeam(), sender, serverPlayer, level, player, true));
+        level.players().forEach(
+                serverPlayer -> TeamEvents.tryToRemoveFromTeam(
+                        serverPlayer.getTeam(),
+                        sender,
+                        serverPlayer,
+                        level,
+                        player,
+                        true
+                )
+        );
     }
 
     public MessageRemoveFromTeam fromBytes(FriendlyByteBuf buf) {

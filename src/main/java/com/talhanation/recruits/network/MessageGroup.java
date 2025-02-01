@@ -3,6 +3,7 @@ package com.talhanation.recruits.network;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -15,7 +16,7 @@ public class MessageGroup implements Message<MessageGroup> {
     private int group;
     private UUID uuid;
 
-    public MessageGroup(){
+    public MessageGroup() {
     }
 
     public MessageGroup(int group, UUID uuid) {
@@ -27,15 +28,15 @@ public class MessageGroup implements Message<MessageGroup> {
         return Dist.DEDICATED_SERVER;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
-        for (AbstractRecruitEntity recruits : list){
-
-            if (recruits.getUUID().equals(this.uuid))
-                recruits.setGroup(this.group);
-        }
-
+    public void executeServerSide(NetworkEvent.Context context) {
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        player.getCommandSenderWorld().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                player.getBoundingBox().inflate(100),
+                (recruit) -> recruit.getUUID().equals(this.uuid)
+        ).forEach((recruit) -> recruit.setGroup(this.group));
     }
+
     public MessageGroup fromBytes(FriendlyByteBuf buf) {
         this.group = buf.readInt();
         this.uuid = buf.readUUID();
@@ -46,5 +47,4 @@ public class MessageGroup implements Message<MessageGroup> {
         buf.writeInt(group);
         buf.writeUUID(uuid);
     }
-
 }

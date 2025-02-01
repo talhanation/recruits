@@ -2,9 +2,9 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinEntity;
+import com.talhanation.recruits.pathfinding.AsyncPathfinderMob;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.FluidTags;
-import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.phys.Vec3;
 
@@ -12,10 +12,10 @@ import java.util.Random;
 
 public class FleeFire extends Goal {
 
-    PathfinderMob entity;
+    AsyncPathfinderMob entity;
     BlockPos fleePos;
 
-    public FleeFire(PathfinderMob entity) {
+    public FleeFire(AsyncPathfinderMob entity) {
     this.entity = entity;
     }
 

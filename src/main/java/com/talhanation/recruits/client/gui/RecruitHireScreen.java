@@ -70,7 +70,7 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
         super.renderLabels(guiGraphics, mouseX, mouseY);
         int health = Mth.ceil(recruit.getHealth());
         int maxHealth = Mth.ceil(recruit.getMaxHealth());
-        int moral = Mth.ceil(recruit.getMoral());
+        int moral = Mth.ceil(recruit.getMorale());
 
         double A_damage = Mth.ceil(recruit.getAttackDamage());
         double speed = recruit.getAttributeBaseValue(Attributes.MOVEMENT_SPEED) / 0.3;

@@ -15,25 +15,27 @@ public class MessageClearUpkeep implements Message<MessageClearUpkeep> {
     private UUID uuid;
     private int group;
 
-    public MessageClearUpkeep(){
+    public MessageClearUpkeep() {
     }
 
     public MessageClearUpkeep(UUID uuid, int group) {
         this.uuid = uuid;
         this.group = group;
-
     }
 
     public Dist getExecutingSide() {
         return Dist.DEDICATED_SERVER;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
-        for (AbstractRecruitEntity recruits : list) {
-            CommandEvents.onClearUpkeepButton(uuid, recruits, group);
-        }
+    public void executeServerSide(NetworkEvent.Context context) {
+        Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                context.getSender().getBoundingBox().inflate(100)
+        ).forEach(
+                (recruit) -> CommandEvents.onClearUpkeepButton(uuid, recruit, group)
+        );
     }
+
     public MessageClearUpkeep fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();
         this.group = buf.readInt();
@@ -44,6 +46,5 @@ public class MessageClearUpkeep implements Message<MessageClearUpkeep> {
         buf.writeUUID(uuid);
         buf.writeInt(group);
     }
-
 }
 

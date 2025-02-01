@@ -18,7 +18,7 @@ public class MessageStrategicFire implements Message<MessageStrategicFire> {
     private int group;
     private boolean should;
 
-    public MessageStrategicFire(){
+    public MessageStrategicFire() {
     }
 
     public MessageStrategicFire(UUID player, int group, boolean should) {
@@ -32,12 +32,21 @@ public class MessageStrategicFire implements Message<MessageStrategicFire> {
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer serverPlayer = context.getSender();
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
-        for (AbstractRecruitEntity recruits : list) {
-                CommandEvents.onStrategicFireCommand(serverPlayer, this.player, recruits, group, should);
-        }
+        ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
+        serverPlayer.getCommandSenderWorld().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                serverPlayer.getBoundingBox().inflate(100)
+        ).forEach((recruit) ->
+                CommandEvents.onStrategicFireCommand(
+                        serverPlayer,
+                        this.player,
+                        recruit,
+                        group,
+                        should
+                )
+        );
     }
+
     public MessageStrategicFire fromBytes(FriendlyByteBuf buf) {
         this.player = buf.readUUID();
         this.group = buf.readInt();
@@ -50,5 +59,4 @@ public class MessageStrategicFire implements Message<MessageStrategicFire> {
         buf.writeInt(this.group);
         buf.writeBoolean(this.should);
     }
-
 }

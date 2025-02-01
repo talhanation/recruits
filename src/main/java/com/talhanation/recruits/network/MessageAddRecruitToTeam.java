@@ -7,6 +7,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.Objects;
+
 public class MessageAddRecruitToTeam implements Message<MessageAddRecruitToTeam> {
 
     private String teamName;
@@ -25,7 +27,7 @@ public class MessageAddRecruitToTeam implements Message<MessageAddRecruitToTeam>
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerLevel level = context.getSender().serverLevel();
+        ServerLevel level = Objects.requireNonNull(context.getSender()).serverLevel();
 
         TeamEvents.addNPCToData(level, teamName, x);
     }

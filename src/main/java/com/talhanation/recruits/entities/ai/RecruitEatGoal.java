@@ -1,6 +1,5 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -90,8 +89,8 @@ public class RecruitEatGoal extends Goal {
     public void stop() {
         recruit.stopUsingItem();
 
-        if(recruit.getMoral() < 100){
-            recruit.setMoral(recruit.getMoral() + 2.5F);
+        if(recruit.getMorale() < 100){
+            recruit.setMoral(recruit.getMorale() + 2.5F);
         }
 
         recruit.resetItemInHand();

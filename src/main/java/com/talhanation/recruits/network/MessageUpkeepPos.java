@@ -1,7 +1,6 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.core.BlockPos;
@@ -10,7 +9,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -20,7 +18,7 @@ public class MessageUpkeepPos implements Message<MessageUpkeepPos> {
     private int group;
     private BlockPos pos;
 
-    public MessageUpkeepPos(){
+    public MessageUpkeepPos() {
     }
 
     public MessageUpkeepPos(UUID player, int group, BlockPos pos) {
@@ -34,11 +32,20 @@ public class MessageUpkeepPos implements Message<MessageUpkeepPos> {
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
-        for (AbstractRecruitEntity recruits : list) {
-            CommandEvents.onUpkeepCommand(this.player, recruits, group, false, null, pos);
-        }
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        player.getCommandSenderWorld().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                player.getBoundingBox().inflate(100)
+        ).forEach((recruit) -> CommandEvents.onUpkeepCommand(
+                this.player,
+                recruit,
+                group,
+                false,
+                null,
+                pos)
+        );
     }
+
     public MessageUpkeepPos fromBytes(FriendlyByteBuf buf) {
         this.player = buf.readUUID();
         this.group = buf.readInt();
@@ -51,5 +58,4 @@ public class MessageUpkeepPos implements Message<MessageUpkeepPos> {
         buf.writeInt(this.group);
         buf.writeBlockPos(this.pos);
     }
-
 }

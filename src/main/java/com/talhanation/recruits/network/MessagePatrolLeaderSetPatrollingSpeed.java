@@ -3,10 +3,10 @@ package com.talhanation.recruits.network;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -16,7 +16,7 @@ public class MessagePatrolLeaderSetPatrollingSpeed implements Message<MessagePat
     private UUID recruit;
     private boolean fast;
 
-    public MessagePatrolLeaderSetPatrollingSpeed(){
+    public MessagePatrolLeaderSetPatrollingSpeed() {
     }
 
     public MessagePatrolLeaderSetPatrollingSpeed(UUID recruit, boolean fast) {
@@ -28,12 +28,13 @@ public class MessagePatrolLeaderSetPatrollingSpeed implements Message<MessagePat
         return Dist.DEDICATED_SERVER;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
-        List<AbstractLeaderEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractLeaderEntity.class, context.getSender().getBoundingBox().inflate(100.0D));
-        for (AbstractLeaderEntity recruit : list) {
-            if(recruit.getUUID().equals(this.recruit))
-                recruit.setFastPatrolling(this.fast);
-        }
+    public void executeServerSide(NetworkEvent.Context context) {
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        player.getCommandSenderWorld().getEntitiesOfClass(
+                AbstractLeaderEntity.class,
+                context.getSender().getBoundingBox().inflate(100.0D),
+                (recruit) -> recruit.getUUID().equals(this.recruit)
+        ).forEach((leader) -> leader.setFastPatrolling(this.fast));
     }
 
     public MessagePatrolLeaderSetPatrollingSpeed fromBytes(FriendlyByteBuf buf) {

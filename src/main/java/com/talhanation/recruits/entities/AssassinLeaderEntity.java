@@ -4,6 +4,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.inventory.AssassinLeaderMenu;
 import com.talhanation.recruits.network.MessageAssassinGui;
+import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -17,7 +18,6 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -61,7 +61,7 @@ public class AssassinLeaderEntity extends AbstractOrderAbleEntity {
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data, @Nullable CompoundTag nbt) {
         RandomSource randomsource = world.getRandom();
         SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
-        ((GroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
+        ((AsyncGroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
         this.populateDefaultEquipmentEnchantments(randomsource, difficultyInstance);
         this.setEquipment();
         //this.setDropEquipment();

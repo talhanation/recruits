@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.pathfinding.AsyncPathfinderMob;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -7,10 +8,10 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import java.util.EnumSet;
 
 public class RecruitFloatGoal extends Goal {
-    private final Mob mob;
+    private final AsyncPathfinderMob mob;
     private long lastCanUseCheck;
 
-    public RecruitFloatGoal(Mob p_25230_) {
+    public RecruitFloatGoal(AsyncPathfinderMob p_25230_) {
         this.mob = p_25230_;
         this.setFlags(EnumSet.of(Goal.Flag.JUMP));
         p_25230_.getNavigation().setCanFloat(true);

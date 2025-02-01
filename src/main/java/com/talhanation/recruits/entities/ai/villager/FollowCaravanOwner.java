@@ -6,6 +6,7 @@ import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.npc.Villager;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.UUID;
 
 public class FollowCaravanOwner extends Goal {
@@ -32,16 +33,20 @@ public class FollowCaravanOwner extends Goal {
 
     @Nullable
     private RecruitEntity getPatrolOwner() {
-        return villager.getCommandSenderWorld().getEntitiesOfClass(RecruitEntity.class, villager.getBoundingBox().inflate(16D))
-                .stream().filter(recruit -> recruit.getUUID().equals(uuid))
-                .findAny().get();
+        List<RecruitEntity> recruits = villager.getCommandSenderWorld().getEntitiesOfClass(
+                RecruitEntity.class,
+                villager.getBoundingBox().inflate(16D),
+                (recruit) -> recruit.getUUID().equals(uuid)
+        );
+
+        return recruits.isEmpty() ? null : recruits.get(0);
     }
 
     @Override
     public void tick() {
         super.tick();
 
-        if (patrolOwner != null && villager.distanceTo(patrolOwner) > 8F){
+        if (patrolOwner != null && villager.distanceTo(patrolOwner) > 8F) {
             villager.getNavigation().moveTo(patrolOwner, 1.05D);
         }
     }

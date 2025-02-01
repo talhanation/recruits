@@ -74,8 +74,10 @@ public class VillagerEvents {
         if (entity instanceof IronGolem ironGolemEntity) {
 
             if (!ironGolemEntity.isPlayerCreated() && RecruitsServerConfig.OverrideIronGolemSpawn.get()){
-                List<AbstractRecruitEntity> list1 = entity.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, ironGolemEntity.getBoundingBox().inflate(32));
-
+                List<AbstractRecruitEntity> list1 = entity.getCommandSenderWorld().getEntitiesOfClass(
+                        AbstractRecruitEntity.class,
+                        ironGolemEntity.getBoundingBox().inflate(32)
+                );
                 if (list1.size() > 1) {
                     ironGolemEntity.remove(Entity.RemovalReason.KILLED);
                     //System.out.println(olem was removed");
@@ -103,7 +105,7 @@ public class VillagerEvents {
 
             Component name = villager.getCustomName();
             if(name  != null) abstractRecruit.setCustomName(name);
-			
+
             villager.getCommandSenderWorld().addFreshEntity(abstractRecruit);
             if(RecruitsServerConfig.RecruitTablesPOIReleasing.get()) villager.releasePoi(MemoryModuleType.JOB_SITE);
             villager.releasePoi(MemoryModuleType.HOME);
@@ -117,41 +119,41 @@ public class VillagerEvents {
 
         if (event.getType() == VillagerProfession.ARMORER) {
             Trade block_trade = new Trade(Items.EMERALD, 15, ModBlocks.RECRUIT_SHIELD_BLOCK.get(), 1, 2, 20);
-            List list = event.getTrades().get(2);
+            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
         if (event.getType() == VillagerProfession.WEAPONSMITH) {
             Trade block_trade = new Trade(Items.EMERALD, 8, ModBlocks.RECRUIT_BLOCK.get(), 1, 2, 20);
-            List list = event.getTrades().get(2);
+            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
 
         if (event.getType() == VillagerProfession.FLETCHER) {
             Trade block_trade = new Trade(Items.EMERALD, 10, ModBlocks.BOWMAN_BLOCK.get(), 1, 2, 20);
-            List list = event.getTrades().get(2);
+            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
 
         if (event.getType() == VillagerProfession.FLETCHER) {
             Trade block_trade = new Trade(Items.EMERALD, 20, ModBlocks.CROSSBOWMAN_BLOCK.get(), 1, 2, 20);
-            List list = event.getTrades().get(2);
+            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
 
         if (event.getType() == VillagerProfession.CARTOGRAPHER) {
             Trade block_trade = new Trade(Items.EMERALD, 30, ModBlocks.NOMAD_BLOCK.get(), 1, 2, 20);
-            List list = event.getTrades().get(2);
+            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
 
         if (event.getType() == VillagerProfession.BUTCHER) {
             Trade block_trade = new Trade(Items.EMERALD, 30, ModBlocks.HORSEMAN_BLOCK.get(), 1, 2, 20);
-            List list = event.getTrades().get(2);
+            List<VillagerTrades.ItemListing> list = event.getTrades().get(2);
             list.add(block_trade);
             event.getTrades().put(2, list);
         }
@@ -433,10 +435,10 @@ public class VillagerEvents {
             this.givenExp = givenExp;
             this.priceMultiplier = 0.05F;
         }
+        
         @Override
         public MerchantOffer getOffer(Entity entity, RandomSource random) {
             return new MerchantOffer(new ItemStack(this.buyingItem, this.buyingAmount), new ItemStack(sellingItem, sellingAmount), maxUses, givenExp, priceMultiplier);
-
         }
     }
 }
