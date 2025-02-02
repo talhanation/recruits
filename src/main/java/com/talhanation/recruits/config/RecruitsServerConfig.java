@@ -638,6 +638,7 @@ public class RecruitsServerConfig {
                 .define("GlobalTeamSeeFriendlyInvisibleSetting", true);
 
         BUILDER.pop();
+        BUILDER.pop();
         BUILDER.comment("Recruit Mod compatibility Config:").push("Compat");
 
         CompatCorpseMod = BUILDER.comment("""
