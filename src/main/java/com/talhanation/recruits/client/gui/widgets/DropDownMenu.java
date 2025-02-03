@@ -2,6 +2,7 @@ package com.talhanation.recruits.client.gui.widgets;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
@@ -9,7 +10,8 @@ import net.minecraft.util.FastColor;
 
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;public class DropDownMenu<T> extends AbstractWidget {
+import java.util.function.Function;
+public class DropDownMenu<T> extends AbstractWidget {
     private int bgFill = FastColor.ARGB32.color(255, 60, 60, 60);
     private int bgFillHovered = FastColor.ARGB32.color(255, 100, 100, 100);
     private int bgFillSelected = FastColor.ARGB32.color(255, 10, 10, 10);
@@ -37,29 +39,29 @@ import java.util.function.Function;public class DropDownMenu<T> extends Abstract
     }
 
     @Override
-    public void renderButton(PoseStack poseStack, int mouseX, int mouseY, float delta) {
+    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         // Render the main button
         if(isMouseOverDisplay(mouseX, mouseY)){
-            fill(poseStack, this.x, this.y, this.x + this.width, this.y + this.height, bgFillHovered);
+            guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, bgFillHovered);
         }
         else
-            fill(poseStack, this.x, this.y, this.x + this.width, this.y + this.height, bgFillSelected);
+            guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, bgFillSelected);
 
-        drawCenteredString(poseStack, Minecraft.getInstance().font, getSelectedText(), this.x + this.width / 2, this.y + (this.height - 8) / 2, displayColor);
+        guiGraphics.drawCenteredString(Minecraft.getInstance().font, getSelectedText(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, displayColor);
 
         if (isOpen) {
             for (int i = 0; i < options.size(); i++) {
-                int optionY = this.y + this.height + i * optionHeight;
+                int optionY = this.getY() + this.height + i * optionHeight;
                 T option = options.get(i);
 
                 if (isMouseOverOption(mouseX, mouseY, optionY)) {
-                    fill(poseStack, this.x, optionY, this.x + this.width, optionY + optionHeight, bgFillHovered);
+                    guiGraphics.fill(this.getX(), optionY, this.getX() + this.width, optionY + optionHeight, bgFillHovered);
                 } else {
-                    fill(poseStack, this.x, optionY, this.x + this.width, optionY + optionHeight, bgFill);
+                    guiGraphics.fill(this.getX(), optionY, this.getX() + this.width, optionY + optionHeight, bgFill);
                 }
 
                 String text = optionTextGetter.apply(option);
-                drawCenteredString(poseStack, Minecraft.getInstance().font, text, this.x + this.width / 2, optionY + (optionHeight - 8) / 2, optionTextColor);
+                guiGraphics.drawCenteredString(Minecraft.getInstance().font, text, this.getX() + this.width / 2, optionY + (optionHeight - 8) / 2, optionTextColor);
             }
         }
     }
@@ -72,7 +74,7 @@ import java.util.function.Function;public class DropDownMenu<T> extends Abstract
     public void onMouseClick(double mouseX, double mouseY) {
         if (isOpen) {
             for (int i = 0; i < options.size(); i++) {
-                int optionY = this.y + this.height + i * optionHeight;
+                int optionY = this.getY() + this.height + i * optionHeight;
 
                 if (isMouseOverOption((int) mouseX, (int) mouseY, optionY)) {
                     selectOption(options.get(i));
@@ -103,14 +105,14 @@ import java.util.function.Function;public class DropDownMenu<T> extends Abstract
     }
 
     private boolean isMouseOverDisplay(int mouseX, int mouseY) {
-        return mouseX >= this.x && mouseX <= this.x + this.width && mouseY >= this.y && mouseY <= this.y + this.height;
+        return mouseX >= this.getX() && mouseX <= this.getX() + this.width && mouseY >= this.getY() && mouseY <= this.getY() + this.height;
     }
 
     private boolean isMouseOverDropdown(int mouseX, int mouseY) {
         if (!isOpen) return false;
 
-        int dropdownStartX = this.x;
-        int dropdownStartY = this.y + this.height;
+        int dropdownStartX = this.getX();
+        int dropdownStartY = this.getY() + this.height;
         int dropdownEndX = dropdownStartX + this.width;
         int dropdownEndY = dropdownStartY + options.size() * optionHeight;
 
@@ -118,7 +120,7 @@ import java.util.function.Function;public class DropDownMenu<T> extends Abstract
     }
 
     private boolean isMouseOverOption(int mouseX, int mouseY, int optionY) {
-        return mouseX >= this.x && mouseX <= this.x + this.width && mouseY >= optionY && mouseY <= optionY + optionHeight;
+        return mouseX >= this.getX() && mouseX <= this.getX() + this.width && mouseY >= optionY && mouseY <= optionY + optionHeight;
     }
 
     private void selectOption(T option) {
@@ -132,8 +134,8 @@ import java.util.function.Function;public class DropDownMenu<T> extends Abstract
     }
 
     @Override
-    public void updateNarration(NarrationElementOutput narrationElementOutput) {
-        // Implement narration if needed
+    protected void updateWidgetNarration(NarrationElementOutput p_259858_) {
+
     }
 
     public void setBgFill(int bgFill) {

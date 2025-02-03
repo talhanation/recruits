@@ -183,7 +183,7 @@ public class RecruitEvents {
         Entity impactEntity = ((EntityHitResult) rayTrace).getEntity();
         String encode = impactEntity.getEncodeId();
         if (encode != null && encode.contains("corpse")) {
-            event.setCanceled(true);
+            event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
             return;
         }
 
@@ -194,7 +194,7 @@ public class RecruitEvents {
         if (projectile instanceof AbstractArrow arrow && arrow.getPierceLevel() > 0) {
 
             if (!canAttack((LivingEntity) owner, impactLiving)) {
-                event.setCanceled(true);
+                event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
                 canceledProjectiles.add(projectile);
                 return;
             }
@@ -207,20 +207,20 @@ public class RecruitEvents {
                 if (passenger instanceof AbstractRecruitEntity passengerRecruit) {
                     if (!canAttack(recruit, passengerRecruit)) {
 
-                        event.setCanceled(true);
+                        event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
                         return;
                     }
                 } else if (passenger instanceof Player player) {
                     if (!canAttack(recruit, player)) {
 
-                        event.setCanceled(true);
+                        event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
                         return;
                     }
                 }
             }
 
             if (!canAttack(recruit, impactLiving)) {
-                event.setCanceled(true);
+                event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
                 return;
             } else {
                 recruit.addXp(2);
@@ -230,7 +230,7 @@ public class RecruitEvents {
 
         if (owner instanceof AbstractIllager illager && !RecruitsServerConfig.PillagerFriendlyFire.get()) {
             if (illager.isAlliedTo(impactLiving)) {
-                event.setCanceled(true);
+                event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
                 canceledProjectiles.add(projectile);
                 return;
             }
@@ -239,7 +239,7 @@ public class RecruitEvents {
 
         if (owner instanceof Player player) {
             if (!canHarmTeam(player, impactLiving)) {
-                event.setCanceled(true);
+                event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
                 return;
             }
         }

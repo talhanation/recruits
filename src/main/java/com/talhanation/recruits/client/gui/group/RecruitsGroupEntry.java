@@ -2,11 +2,11 @@ package com.talhanation.recruits.client.gui.group;
 
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.widgets.ListScreenEntryBase;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.FastColor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -34,28 +34,28 @@ public class RecruitsGroupEntry extends ListScreenEntryBase<RecruitsGroupEntry> 
     }
 
     @Override
-    public void render(PoseStack poseStack, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean hovered, float delta) {
+    public void render(GuiGraphics guiGraphics, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean hovered, float delta) {
         int skinX = left + PADDING;
         int skinY = top + (height - SKIN_SIZE) / 2;
         int textX = skinX + SKIN_SIZE + PADDING;
         int textY = top + (height - minecraft.font.lineHeight) / 2;
 
-        GuiComponent.fill(poseStack, left, top, left + width, top + height, BG_FILL);
+        guiGraphics.fill(left, top, left + width, top + height, BG_FILL);
 
-        renderElement(poseStack, index, top, left, width, height, mouseX, mouseY, hovered, delta, skinX, skinY, textX, textY);
+        renderElement(guiGraphics, index, top, left, width, height, mouseX, mouseY, hovered, delta, skinX, skinY, textX, textY);
     }
 
-    public void renderElement(PoseStack poseStack, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean hovered, float delta, int skinX, int skinY, int textX, int textY) {
+    public void renderElement(GuiGraphics guiGraphics, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean hovered, float delta, int skinX, int skinY, int textX, int textY) {
         boolean selected = group.equals(screen.getSelected());
         if (selected) {
-            GuiComponent.fill(poseStack, left, top, left + width, top + height, BG_FILL_SELECTED);
+            guiGraphics.fill(left, top, left + width, top + height, BG_FILL_SELECTED);
         } else if (hovered) {
-            GuiComponent.fill(poseStack, left, top, left + width, top + height, BG_FILL_HOVERED);
+            guiGraphics.fill(left, top, left + width, top + height, BG_FILL_HOVERED);
         } else {
-            GuiComponent.fill(poseStack, left, top, left + width, top + height, BG_FILL);
+            guiGraphics.fill(left, top, left + width, top + height, BG_FILL);
         }
 
-        minecraft.font.draw(poseStack, group.getName(), (float) textX + 45, (float) textY,  PLAYER_NAME_COLOR);
+        guiGraphics.drawString(minecraft.font, group.getName(), (float) textX + 45, (float) textY,  PLAYER_NAME_COLOR, false);
     }
     public RecruitsGroup getGroup() {
         return group;

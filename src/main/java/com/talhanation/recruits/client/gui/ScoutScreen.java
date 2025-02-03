@@ -6,6 +6,8 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.component.ActivateableButton;
 import com.talhanation.recruits.entities.ScoutEntity;
 import com.talhanation.recruits.network.MessageScoutTask;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -54,30 +56,28 @@ public class ScoutScreen extends RecruitsScreenBase {
 
                     setButtons();
                 }
-            },
-            (button, poseStack, i, i1) -> {
-                this.renderTooltip(poseStack, TOOLTIP_SCOUTING, i, i1);
             }
         );
         buttonScouting.active = task == ScoutEntity.State.SCOUTING;
+        buttonScouting.setTooltip(Tooltip.create(TOOLTIP_SCOUTING));
         addRenderableWidget(buttonScouting);
     }
 
     @Override
-    public void renderBackground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
         RenderSystem.setShaderTexture(0, TEXTURE);
-        blit(poseStack, guiLeft, guiTop, 0, 0, xSize, ySize);
+        guiGraphics.blit(TEXTURE, guiLeft, guiTop, 0, 0, xSize, ySize);
     }
 
     @Override
-    public void renderForeground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
+    public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         if(task != null){
             String text = "";
             if(task == ScoutEntity.State.IDLE) text = "No Active Task";
             else text = "Active Task: " + task.name();
-            font.draw(poseStack, text, guiLeft + xSize / 2 - font.width(text) / 2, guiTop + 17, FONT_COLOR);
+            guiGraphics.drawString(font, text, guiLeft + xSize / 2 - font.width(text) / 2, guiTop + 17, FONT_COLOR, false);
         }
     }
 }

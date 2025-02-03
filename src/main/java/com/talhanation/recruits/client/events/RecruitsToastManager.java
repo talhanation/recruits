@@ -19,7 +19,17 @@ public class RecruitsToastManager {
     private static final ResourceLocation ENEMY_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/enemy.png");
     private static final ResourceLocation NEUTRAL_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/neutral.png");
     private static final ResourceLocation CROWN_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/leader_crown.png");
+    public static Images savedTeamForPlayer;//dirty fix calling twice bug
+    public static Images savedForPlayer;//dirty fix for calling twice bug
     public static void setTeamToastForPlayer(Images id, @Nullable Component title, @Nullable Component text, RecruitsTeam team){
+        if(savedTeamForPlayer == id){
+            savedTeamForPlayer = null;
+            return;
+        }
+        else{
+            savedTeamForPlayer = id;
+        }
+
         Toast toast;
         switch (id) {
             case ALLY -> {
@@ -43,6 +53,14 @@ public class RecruitsToastManager {
         minecraft.getToasts().addToast(toast);
     }
     public static void setToastForPlayer(Images id, @Nullable Component title, @Nullable Component text){
+        if(savedForPlayer == id){
+            savedForPlayer = null;
+            return;
+        }
+        else{
+            savedForPlayer = id;
+        }
+
         Toast toast;
         switch (id){
             case ALLY -> {
@@ -65,6 +83,7 @@ public class RecruitsToastManager {
         Minecraft minecraft = Minecraft.getInstance();
         minecraft.getToasts().addToast(toast);
     }
+
     @OnlyIn(Dist.CLIENT)
     public enum Images{
         NONE,

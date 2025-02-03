@@ -39,7 +39,7 @@ public class MessageSendMessenger implements Message<MessageSendMessenger> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getLevel().getEntitiesOfClass(
+        player.getCommandSenderWorld().getEntitiesOfClass(
                 MessengerEntity.class,
                 player.getBoundingBox().inflate(16D),
                 (messenger) -> messenger.getUUID().equals(this.recruit)
@@ -55,7 +55,7 @@ public class MessageSendMessenger implements Message<MessageSendMessenger> {
                     messenger.setTargetPlayerInfo(RecruitsPlayerInfo.getFromNBT(this.nbt));
                 }
             }
-        }
+        });
     }
 
     public MessageSendMessenger fromBytes(FriendlyByteBuf buf) {

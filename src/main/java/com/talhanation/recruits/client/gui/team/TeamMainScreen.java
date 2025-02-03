@@ -1,12 +1,8 @@
 package com.talhanation.recruits.client.gui.team;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.TeamEvents;
-import com.talhanation.recruits.inventory.TeamMainContainer;
-import com.talhanation.recruits.network.MessageServerUpdateTeamInspectMenu;
-import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.GuiGraphics;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import net.minecraft.client.renderer.GameRenderer;

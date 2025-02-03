@@ -276,11 +276,11 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         this.clearUpkeep.active = this.recruit.hasUpkeep();
 
         //LISTEN
-        addRenderableWidget(new Button(leftPos + 77, topPos + 100, 12, 12, Component.literal("<"), button -> {
+        addRenderableWidget(new ExtendedButton(leftPos + 77, topPos + 100, 12, 12, Component.literal("<"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         }));
 
-        addRenderableWidget(new Button(leftPos + 77 + 81, topPos + 100, 12, 12, Component.literal(">"), button -> {
+        addRenderableWidget(new ExtendedButton(leftPos + 77 + 81, topPos + 100, 12, 12, Component.literal(">"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         }));
 
@@ -381,7 +381,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
 
         if (groupSelectionDropDownMenu != null) {
-            groupSelectionDropDownMenu.renderButton(guiGraphics, mouseX, mouseY, partialTicks);
+            groupSelectionDropDownMenu.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
         }
     }
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {

@@ -27,7 +27,7 @@ public class MessageScoutTask implements Message<MessageScoutTask> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        List<ScoutEntity> list = Objects.requireNonNull(context.getSender()).level.getEntitiesOfClass(ScoutEntity.class, context.getSender().getBoundingBox().inflate(16D));
+        List<ScoutEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(ScoutEntity.class, context.getSender().getBoundingBox().inflate(16D));
         for (ScoutEntity scoutEntity : list){
 
             if (scoutEntity.getUUID().equals(this.recruit)){

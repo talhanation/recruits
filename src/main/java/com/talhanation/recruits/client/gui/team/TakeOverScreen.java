@@ -7,12 +7,15 @@ import com.talhanation.recruits.client.gui.DisbandScreen;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.network.MessageAssignToTeamMate;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 public class TakeOverScreen extends RecruitsScreenBase {
     private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_big.png");
@@ -42,46 +45,40 @@ public class TakeOverScreen extends RecruitsScreenBase {
     private void setButtons(){
         clearWidgets();
 
-        Button takeOwnerShip = addRenderableWidget(new Button(guiLeft + 32, guiTop + ySize - 120 - 7, 130, 20, TAKE_OWNERSHIP,
+        Button takeOwnerShip = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 120 - 7, 130, 20, TAKE_OWNERSHIP,
             btn -> {
                  Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignToTeamMate(this.recruit.getUUID(), this.player.getUUID()));
-            },
-            (button, poseStack, i, i1) -> {
-                this.renderTooltip(poseStack, TOOLTIP_TAKE_OWNERSHIP, i, i1);
             }
         ));
+        takeOwnerShip.setTooltip(Tooltip.create(TOOLTIP_TAKE_OWNERSHIP));
 
-        Button openInventory = addRenderableWidget(new Button(guiLeft + 32, guiTop + ySize - 98 - 7, 130, 20, OPEN_INVENTORY,
+        Button openInventory = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 98 - 7, 130, 20, OPEN_INVENTORY,
             btn -> {
                 this.recruit.openGUI(this.player);
-            },
-            (button, poseStack, i, i1) -> {
-                this.renderTooltip(poseStack, TOOLTIP_OPEN_INVENTORY, i, i1);
             }
         ));
+        openInventory.setTooltip(Tooltip.create(TOOLTIP_OPEN_INVENTORY));
 
-        Button more = addRenderableWidget(new Button(guiLeft + 32, guiTop + ySize - 76 - 7, 130, 20, MORE,
+        Button more = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 76 - 7, 130, 20, MORE,
             btn -> {
                 minecraft.setScreen(new DisbandScreen(this, this.recruit, this.player));
-            },
-            (button, poseStack, i, i1) -> {
-                this.renderTooltip(poseStack, TOOLTIP_MORE, i, i1);
             }
         ));
+        more.setTooltip(Tooltip.create(TOOLTIP_MORE));
     }
 
 
     @Override
-    public void renderBackground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
         RenderSystem.setShaderTexture(0, TEXTURE);
-        blit(poseStack, guiLeft, guiTop, 0, 0, xSize, ySize);
+        guiGraphics.blit(TEXTURE, guiLeft, guiTop, 0, 0, xSize, ySize);
     }
 
     @Override
-    public void renderForeground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
-        font.draw(poseStack, TITLE, guiLeft + xSize / 2 - font.width(TITLE) / 2, guiTop + 7, FONT_COLOR);
+    public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+        guiGraphics.drawString(font, TITLE, guiLeft + xSize / 2 - font.width(TITLE) / 2, guiTop + 7, FONT_COLOR, false);
 
     }
 

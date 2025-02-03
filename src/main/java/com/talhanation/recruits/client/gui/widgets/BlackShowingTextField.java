@@ -2,6 +2,7 @@ package com.talhanation.recruits.client.gui.widgets;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
@@ -22,13 +23,13 @@ public class BlackShowingTextField extends AbstractWidget {
         this.textXOffset = textXOffset;
         this.textYOffset = textYOffset;
     }
-    public void renderButton(PoseStack poseStack, int mouseX, int mouseY, float delta) {
-        fill(poseStack, this.x, this.y, this.x + this.width, this.y + this.height, BG_FILL_SELECTED);
-        drawString(poseStack, Minecraft.getInstance().font, text, this.x + textXOffset, this.y + textYOffset + (this.height - 8) / 2, 0xFFFFFF);
+    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+        guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, BG_FILL_SELECTED);
+        guiGraphics.drawString(Minecraft.getInstance().font, text, this.getX() + textXOffset, this.getY() + textYOffset + (this.height - 8) / 2, 0xFFFFFF, false);
     }
 
     @Override
-    public void updateNarration(NarrationElementOutput p_169152_) {
+    protected void updateWidgetNarration(NarrationElementOutput p_259858_) {
 
     }
 }

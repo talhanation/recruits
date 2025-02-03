@@ -527,7 +527,7 @@ public class  TeamEvents {
                         String teamName = parts[2];
 
                         createTeam(false, sender, level, teamName, sender.getName().getString(), mainhand.getItem() instanceof BannerItem ? mainhand : null, ChatFormatting.WHITE, (byte) 0);
-                        sourceStack.sendSuccess(Component.translatable("commands.team.add.success", teamName), true);
+                        sourceStack.sendSuccess(() -> Component.translatable("commands.team.add.success", teamName), true);
 
                         event.setCanceled(true);
                         serverSideUpdateTeam(level);

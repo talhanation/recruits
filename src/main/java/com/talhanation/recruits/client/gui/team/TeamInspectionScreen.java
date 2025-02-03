@@ -2,23 +2,12 @@ package com.talhanation.recruits.client.gui.team;
 
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.datafixers.util.Pair;
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.inventory.TeamInspectionContainer;
 import com.talhanation.recruits.network.MessageLeaveTeam;
-import com.talhanation.recruits.network.MessageOpenTeamAddPlayerScreen;
-import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.model.geom.ModelLayers;
-import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.blockentity.BannerRenderer;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.ModelBakery;
-import net.minecraft.core.Holder;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.diplomacy.DiplomacyTeamListScreen;
@@ -33,16 +22,15 @@ import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiComponent;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 @OnlyIn(Dist.CLIENT)
 public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelection {
@@ -106,7 +94,6 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         units = Math.max(minUnits, (height - HEADER_SIZE - FOOTER_SIZE - gapTop - gapBottom - SEARCH_HEIGHT) / UNIT_SIZE);
         ySize = HEADER_SIZE + units * UNIT_SIZE + FOOTER_SIZE;
 
-        minecraft.keyboardHandler.setSendRepeatsToGui(true);
         if (playerList != null) {
             playerList.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
         } else {
@@ -114,7 +101,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         }
         addWidget(playerList);
 
-        backButton = new Button(guiLeft + 169, guiTop + HEADER_SIZE + 5 + units * UNIT_SIZE, 60, 20, BACK_BUTTON,
+        backButton = new ExtendedButton(guiLeft + 169, guiTop + HEADER_SIZE + 5 + units * UNIT_SIZE, 60, 20, BACK_BUTTON,
                 button -> {
                     minecraft.setScreen(parent);
                 });
@@ -133,7 +120,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
 
         boolean isTeamLeader = recruitsTeam.getTeamLeaderUUID().equals(player.getUUID());
 
-        editButton = new Button(guiLeft + 169, guiTop + 99, 60, 20, EDIT_BUTTON,
+        editButton = new ExtendedButton(guiLeft + 169, guiTop + 99, 60, 20, EDIT_BUTTON,
                 button -> {
                     TeamEvents.openTeamEditScreen(player);
             //minecraft.setScreen(new TeamEditScreen(this, player, recruitsTeam));
@@ -141,13 +128,13 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         editButton.visible = isTeamLeader && isEditingAllowed;
         addRenderableWidget(editButton);
 
-        diplomacyButton = new Button(guiLeft + 87, guiTop + 99, 60, 20, DIPLOMACY_BUTTON,
+        diplomacyButton = new ExtendedButton(guiLeft + 87, guiTop + 99, 60, 20, DIPLOMACY_BUTTON,
                 button -> {
                     minecraft.setScreen(new DiplomacyTeamListScreen(this, isTeamLeader));
                 });
         addRenderableWidget(diplomacyButton);
 
-        manageButton = new Button(guiLeft + 87, buttonY, 60, 20, MANAGE_BUTTON,
+        manageButton = new ExtendedButton(guiLeft + 87, buttonY, 60, 20, MANAGE_BUTTON,
                 button -> {
                     minecraft.setScreen(new TeamManageScreen(this, player, recruitsTeam));
                 });
@@ -155,7 +142,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         addRenderableWidget(manageButton);
 
         //leave team
-        leaveButton = new Button(guiLeft + 7, buttonY, 60, 20, LEAVE_BUTTON,
+        leaveButton = new ExtendedButton(guiLeft + 7, buttonY, 60, 20, LEAVE_BUTTON,
             button -> {
                 if(isTeamLeader){
                     if(playerList != null && playerList.isEmpty()){
@@ -210,7 +197,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
     @Override
     public void onClose() {
         super.onClose();
-        minecraft.keyboardHandler.setSendRepeatsToGui(false);
+
     }
 
     int x1 = 25;
@@ -221,25 +208,25 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         if(bannerRenderer != null) bannerRenderer.renderBanner(guiGraphics, this.guiLeft + x1, guiTop + y1, this.width, this.height, 60);
     }
     @Override
-    public void renderBackground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         RenderSystem.setShaderTexture(0, TEXTURE);
-        blit(poseStack, guiLeft, guiTop, 0, 0, xSize, HEADER_SIZE);
+        guiGraphics.blit(TEXTURE, guiLeft, guiTop, 0, 0, xSize, HEADER_SIZE);
         for (int i = 0; i < units; i++) {
-            blit(poseStack, guiLeft, guiTop + HEADER_SIZE + UNIT_SIZE * i, 0, HEADER_SIZE, xSize, UNIT_SIZE);
+            guiGraphics.blit(TEXTURE, guiLeft, guiTop + HEADER_SIZE + UNIT_SIZE * i, 0, HEADER_SIZE, xSize, UNIT_SIZE);
         }
-        blit(poseStack, guiLeft, guiTop + HEADER_SIZE + UNIT_SIZE * units, 0, HEADER_SIZE + UNIT_SIZE, xSize, FOOTER_SIZE);
-        blit(poseStack, guiLeft + 10, guiTop + HEADER_SIZE + 6 - 2, xSize, 0, 12, 12);
+        guiGraphics.blit(TEXTURE, guiLeft, guiTop + HEADER_SIZE + UNIT_SIZE * units, 0, HEADER_SIZE + UNIT_SIZE, xSize, FOOTER_SIZE);
+        guiGraphics.blit(TEXTURE, guiLeft + 10, guiTop + HEADER_SIZE + 6 - 2, xSize, 0, 12, 12);
     }
 
     @Override
-    public void renderForeground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
+    public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         int textX = width / 2 - 48;
         int textY = guiTop + 25;
         int crownX = width / 2 - 6;
         int crownY = guiTop + 22;
         int numbersX = 65;
         if (!playerList.isEmpty()) {
-            playerList.render(poseStack, mouseX, mouseY, delta);
+            playerList.render(guiGraphics, mouseX, mouseY, delta);
         }
 
         if(recruitsTeam != null){
@@ -250,23 +237,23 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
             if(recruitsTeam.maxNPCs > 0) npcs = npcs + "/" + recruitsTeam.maxNPCs;
             if(recruitsTeam.maxPlayers > 0) players = players + "/" + recruitsTeam.maxPlayers;
 
-            font.draw(poseStack, this.getTitle(), width / 2F - font.width(getTitle()) / 2F, guiTop + 5, 0xFF000000 | ChatFormatting.getById(recruitsTeam.getTeamColor()).getColor());
+            guiGraphics.drawString(font, this.getTitle().getString(), width / 2F - font.width(getTitle()) / 2F, guiTop + 5, 0xFF000000 | ChatFormatting.getById(recruitsTeam.getTeamColor()).getColor(), false);
 
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
             RenderSystem.setShaderTexture(0, LEADER_CROWN);
-            GuiComponent.blit(poseStack, crownX, crownY, 0, 0, 16, 16, 16, 16);
+            guiGraphics.blit(LEADER_CROWN, crownX, crownY, 0, 0, 16, 16, 16, 16);
 
-            font.draw(poseStack, LEADER_TEXT.getString(), textX, textY, 4210752);
+            guiGraphics.drawString(font, LEADER_TEXT.getString(), textX, textY, 4210752, false);
 
-            font.draw(poseStack, MEMBERS_TEXT.getString(), textX, textY + 25, 4210752);
-            font.draw(poseStack, "" + members, textX + numbersX, textY + 25, 4210752);
+            guiGraphics.drawString(font, MEMBERS_TEXT.getString(), textX, textY + 25, 4210752, false);
+            guiGraphics.drawString(font, "" + members, textX + numbersX, textY + 25, 4210752, false);
 
-            font.draw(poseStack, PLAYERS_TEXT.getString(), textX, textY + 40, 4210752);
-            font.draw(poseStack, players, textX + numbersX, textY + 40, 4210752);
+            guiGraphics.drawString(font, PLAYERS_TEXT.getString(), textX, textY + 40, 4210752, false);
+            guiGraphics.drawString(font, players, textX + numbersX, textY + 40, 4210752, false);
 
-            font.draw(poseStack, NPCS_TEXT.getString(), textX, textY + 55, 4210752);
-            font.draw(poseStack, npcs, textX + numbersX, textY + 55, 4210752);
+            guiGraphics.drawString(font, NPCS_TEXT.getString(), textX, textY + 55, 4210752, false);
+            guiGraphics.drawString(font, npcs, textX + numbersX, textY + 55, 4210752, false);
         }
     }
 

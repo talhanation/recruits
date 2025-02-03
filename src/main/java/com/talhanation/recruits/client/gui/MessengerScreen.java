@@ -89,7 +89,7 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
         this.textFieldMessage.setValue(message);
         addRenderableWidget(textFieldMessage);
 
-        Button sendButton = addRenderableWidget(new Button(leftPos + 33, topPos + 198, 128, 20, BUTTON_SEND_MESSENGER,
+        Button sendButton = addRenderableWidget(new ExtendedButton(leftPos + 33, topPos + 198, 128, 20, BUTTON_SEND_MESSENGER,
                 button -> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageSendMessenger(recruit.getUUID(), playerInfo, textFieldMessage.getValue(), true));
                     this.onClose();
@@ -112,7 +112,7 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
         }
         else
         {
-            Button selectPlayerButton = addRenderableWidget(new Button(leftPos + 33, topPos + 15, 128, 20, SelectPlayerScreen.TITLE,
+            Button selectPlayerButton = addRenderableWidget(new ExtendedButton(leftPos + 33, topPos + 15, 128, 20, SelectPlayerScreen.TITLE,
                     button -> {
                         minecraft.setScreen(new SelectPlayerScreen(this, player, SelectPlayerScreen.TITLE, SelectPlayerScreen.BUTTON_SELECT, SelectPlayerScreen.BUTTON_SELECT_TOOLTIP, false, PlayersList.FilterType.NONE,
                                 (playerInfo) -> {
@@ -121,9 +121,6 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
                                 }
                         ));
 
-                    },
-                    (button1, poseStack, i, i1) -> {
-                        this.renderTooltip(poseStack, TOOLTIP_MESSENGER, i, i1);
                     }
             ));
             selectPlayerButton.setTooltip(Tooltip.create(TOOLTIP_MESSENGER));
@@ -139,7 +136,7 @@ public class MessengerScreen extends ScreenBase<MessengerContainer> {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
-        this.blit(guiGraphics, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
+        guiGraphics.blit(RESOURCE_LOCATION, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
     }
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {

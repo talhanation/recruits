@@ -32,7 +32,7 @@ public class MessageToClientOpenTakeOverScreen implements Message<MessageToClien
     @Override
     public void executeClientSide(NetworkEvent.Context context) {
         Player player = Minecraft.getInstance().player;
-        player.level.getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
+        player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox()
                         .inflate(16.0D), v -> v
                         .getUUID()
                         .equals(this.recruit))

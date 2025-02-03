@@ -3,12 +3,14 @@ package com.talhanation.recruits.client.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 import java.util.List;
 
@@ -43,24 +45,24 @@ public class ConfirmScreen extends RecruitsScreenBase {
         int buttonHeight = 20;
 
 
-        this.addRenderableWidget(new Button(guiLeft + 7, guiTop + ySize - 27, buttonWidth, buttonHeight, BUTTON_YES, button -> {
+        this.addRenderableWidget(new ExtendedButton(guiLeft + 7, guiTop + ySize - 27, buttonWidth, buttonHeight, BUTTON_YES, button -> {
             this.yesAction.run();
             onClose();
         }));
 
         if(backAction != null){
-            this.addRenderableWidget(new Button(guiLeft + 7 + 75 + 2, guiTop + ySize - 27, buttonWidth, buttonHeight, BUTTON_NO, button -> {
+            this.addRenderableWidget(new ExtendedButton(guiLeft + 7 + 75 + 2, guiTop + ySize - 27, buttonWidth, buttonHeight, BUTTON_NO, button -> {
                 this.noAction.run();
                 onClose();
             }));
 
-            this.addRenderableWidget(new Button(guiLeft + 7 + 150 + 4, guiTop + ySize - 27, buttonWidth, buttonHeight, BUTTON_BACK, button -> {
+            this.addRenderableWidget(new ExtendedButton(guiLeft + 7 + 150 + 4, guiTop + ySize - 27, buttonWidth, buttonHeight, BUTTON_BACK, button -> {
                 this.backAction.run();
 
             }));
         }
         else {
-            this.addRenderableWidget(new Button(guiLeft + 7 + 150 + 4, guiTop + ySize - 27, buttonWidth, buttonHeight, BUTTON_NO, button -> {
+            this.addRenderableWidget(new ExtendedButton(guiLeft + 7 + 150 + 4, guiTop + ySize - 27, buttonWidth, buttonHeight, BUTTON_NO, button -> {
                 this.noAction.run();
                 onClose();
             }));
@@ -69,16 +71,16 @@ public class ConfirmScreen extends RecruitsScreenBase {
     }
 
     @Override
-    public void renderBackground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
         RenderSystem.setShaderTexture(0, TEXTURE);
-        blit(poseStack, guiLeft, guiTop, 0, 0, xSize, ySize);
+        guiGraphics.blit(TEXTURE, guiLeft, guiTop, 0, 0, xSize, ySize);
     }
 
     @Override
-    public void renderForeground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
-        font.draw(poseStack, title, guiLeft + xSize / 2 - font.width(title) / 2, guiTop + 7, FONT_COLOR);
+    public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+        guiGraphics.drawString(font, title, guiLeft + xSize / 2 - font.width(title) / 2, guiTop + 7, FONT_COLOR, false);
         int maxWidth = xSize - 20; // xSize minus Padding
 
 
@@ -88,7 +90,7 @@ public class ConfirmScreen extends RecruitsScreenBase {
         int yPosition = guiTop + 27;
 
         for (FormattedCharSequence line : lines) {
-            font.draw(poseStack, line, guiLeft + xSize / 2 - font.width(line) / 2, yPosition, FONT_COLOR);
+            guiGraphics.drawString(font, line, guiLeft + xSize / 2 - font.width(line) / 2, yPosition, FONT_COLOR, false);
             yPosition += lineHeight;
         }
     }

@@ -6,6 +6,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.group.RecruitsGroup;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -46,17 +47,17 @@ public class RecruitsDiplomacyButton extends ExtendedButton {
     }
 
     protected boolean clicked(double p_93681_, double p_93682_) {
-        return this.visible && p_93681_ >= (double)this.x && p_93682_ >= (double)this.y && p_93681_ < (double)(this.x + this.width) && p_93682_ < (double)(this.y + this.height);
+        return this.visible && p_93681_ >= (double) this.getX() && p_93682_ >= (double) this.getY() && p_93681_ < (double)(this.getX() + this.width) && p_93682_ < (double)(this.getY() + this.height);
     }
 
     @Override
-    public void renderButton(PoseStack guiGraphics, int mouseX, int mouseY, float f) {
-        super.renderButton(guiGraphics, mouseX, mouseY, f);
+    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float f) {
+        super.renderWidget(guiGraphics, mouseX, mouseY, f);
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
         RenderSystem.setShaderTexture(0, getTextureLocation());
-        blit(guiGraphics, x, y, 0, 0, 21, 21, 21, 21);
+        guiGraphics.blit(getTextureLocation(), this.getX(), this.getY(), 0, 0, 21, 21, 21, 21);
     }
 
     private ResourceLocation getTextureLocation() {

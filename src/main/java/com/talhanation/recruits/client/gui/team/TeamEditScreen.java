@@ -1,7 +1,6 @@
 package com.talhanation.recruits.client.gui.team;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.player.PlayersList;
@@ -18,9 +17,10 @@ import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import com.talhanation.recruits.world.RecruitsTeam;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
@@ -28,6 +28,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 import javax.annotation.Nullable;
 import java.awt.*;
@@ -279,7 +280,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
             this.leaderWidget.setButtonVisible(recruitsTeam != null);
             addRenderableWidget(this.leaderWidget);
         } else {
-            Button selectPlayerButton = addRenderableWidget(new Button(guiLeft + widgetsX, guiTop + imageHeight - widgetsY + (20 + gap ) * 1, 110, 20, SelectPlayerScreen.TITLE,
+            Button selectPlayerButton = addRenderableWidget(new ExtendedButton(guiLeft + widgetsX, guiTop + imageHeight - widgetsY + (20 + gap ) * 1, 110, 20, SelectPlayerScreen.TITLE,
                 button -> {
                     Screen parent = recruitsTeam == null ? new TeamMainScreen(player) : new TeamInspectionScreen(new TeamMainScreen(player), player);
                     minecraft.setScreen(new SelectPlayerScreen(parent, player, SelectPlayerScreen.TITLE, SelectPlayerScreen.BUTTON_SELECT, SelectPlayerScreen.BUTTON_SELECT_TOOLTIP, false, PlayersList.FilterType.SAME_TEAM,
@@ -289,11 +290,9 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
                             setWidgets();
                         }
                     ));
-                },
-                (button1, poseStack, i, i1) -> {
-                    this.renderTooltip(poseStack, SELECT_LEADER_TOOLTIP, i, i1);
                 }
             ));
+            selectPlayerButton.setTooltip(Tooltip.create(SELECT_LEADER_TOOLTIP));
         }
 
         teamColorDropdownMatrix = new ColorChatFormattingSelectionDropdownMatrix(this, guiLeft + widgetsX, guiTop + imageHeight - widgetsY + (20 + gap ) * 2, 110, 20,
@@ -309,7 +308,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
         );
         addRenderableWidget(unitColorDropdownMatrix);
 
-        addRenderableWidget(new Button(guiLeft + widgetsX + 20, guiTop + imageHeight - widgetsY + (20 + gap ) * 4, 20, 20,Component.literal("-"),
+        addRenderableWidget(new ExtendedButton(guiLeft + widgetsX + 20, guiTop + imageHeight - widgetsY + (20 + gap ) * 4, 20, 20,Component.literal("-"),
             (button)-> {
                 if(hasShiftDown()){
                     maxRecruitsPerPlayer -= 5;
@@ -322,7 +321,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
                 setWidgets();
             }));
 
-        addRenderableWidget(new Button(guiLeft + widgetsX + 80, guiTop + imageHeight - widgetsY + (20 + gap ) * 4, 20, 20,Component.literal("+"),
+        addRenderableWidget(new ExtendedButton(guiLeft + widgetsX + 80, guiTop + imageHeight - widgetsY + (20 + gap ) * 4, 20, 20,Component.literal("+"),
         (button)-> {
             if(hasShiftDown()){
                 maxRecruitsPerPlayer += 5;
@@ -337,7 +336,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
 
         this.banner = menu.getBanner();
         if(recruitsTeam == null){
-            saveButton = new Button(guiLeft + 30, guiTop + imageHeight - 102, 162, 20, CREATE,
+            saveButton = new ExtendedButton(guiLeft + 30, guiTop + imageHeight - 102, 162, 20, CREATE,
                 btn -> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(this.getCorrectFormat(textFieldTeamName.getValue().strip()), banner, teamColor, unitColors.indexOf(unitColor)));
                     minecraft.setScreen(new TeamInspectionScreen(new TeamMainScreen(player), player));
@@ -348,13 +347,13 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
             addRenderableWidget(saveButton);
         }
         else {
-            addRenderableWidget(new Button(guiLeft + 117, guiTop + imageHeight - 102, 75, 20, BACK,
+            addRenderableWidget(new ExtendedButton(guiLeft + 117, guiTop + imageHeight - 102, 75, 20, BACK,
                 btn -> {
                     minecraft.setScreen(parent);
                 }
             ));
 
-            saveButton = new Button(guiLeft + 30, guiTop + imageHeight - 102, 75, 20, SAVE,
+            saveButton = new ExtendedButton(guiLeft + 30, guiTop + imageHeight - 102, 75, 20, SAVE,
                 btn -> {
                     recruitsTeam.setTeamLeaderID(this.leaderInfo.getUUID());
                     recruitsTeam.setTeamDisplayName(textFieldTeamName.getValue());
@@ -455,21 +454,21 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
     int x1 = 15;
     int y1 = 61;
     @Override
-    public void render(PoseStack poseStack, int mouseX, int mouseY, float delta) {
-        super.render(poseStack, mouseX, mouseY, delta);
-        if(bannerRenderer != null) bannerRenderer.renderBanner(poseStack, this.guiLeft + x1, guiTop + y1, this.width, this.height, 50);
-        renderForeground(poseStack, mouseX, mouseY, delta);
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+        super.render(guiGraphics, mouseX, mouseY, delta);
+        if(bannerRenderer != null) bannerRenderer.renderBanner(guiGraphics, this.guiLeft + x1, guiTop + y1, this.width, this.height, 50);
+        renderForeground(guiGraphics, mouseX, mouseY, delta);
     }
 
     @Override
-    protected void renderBg(PoseStack poseStack, float p_97788_, int p_97789_, int p_97790_) {
+    protected void renderBg(GuiGraphics guiGraphics, float p_97788_, int p_97789_, int p_97790_) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
         RenderSystem.setShaderTexture(0, TEXTURE);
-        blit(poseStack, guiLeft, guiTop, 0, 0, imageWidth, imageHeight);
+        guiGraphics.blit(TEXTURE, guiLeft, guiTop, 0, 0, imageWidth, imageHeight);
     }
 
-    public void renderForeground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
+    public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         int crownX = width / 2 - 23;
         int crownY = guiTop + 41;
 
@@ -480,16 +479,16 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
             currencyX = width / 2 + 63;
         }
 
-        font.draw(poseStack, getTitle(), guiLeft + imageWidth / 2 - font.width(getTitle()) / 2, guiTop + 5, FONT_COLOR);
+        guiGraphics.drawString(font, getTitle(), guiLeft + imageWidth / 2 - font.width(getTitle()) / 2, guiTop + 5, FONT_COLOR);
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
         RenderSystem.setShaderTexture(0, LEADER_CROWN);
-        GuiComponent.blit(poseStack, crownX, crownY, 0, 0, 16, 16, 16, 16);
+        guiGraphics.blit(LEADER_CROWN, crownX, crownY, 0, 0, 16, 16, 16, 16);
 
         if(totalCost > 0 && currency != null){
-            itemRenderer.renderGuiItem(currency, currencyX, currencyY);
-            itemRenderer.renderGuiItemDecorations(font, currency, currencyX, currencyY);
+            guiGraphics.renderFakeItem(currency, currencyX, currencyY);
+            guiGraphics.renderItemDecorations(font, currency, currencyX, currencyY);
         }
     }
 

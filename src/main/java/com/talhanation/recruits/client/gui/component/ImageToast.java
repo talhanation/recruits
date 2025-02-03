@@ -1,8 +1,7 @@
 package com.talhanation.recruits.client.gui.component;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.toasts.Toast;
 import net.minecraft.client.gui.components.toasts.ToastComponent;
 import net.minecraft.client.renderer.GameRenderer;
@@ -30,26 +29,26 @@ public class ImageToast implements Toast {
     }
 
     @Override
-    public Visibility render(PoseStack poseStack, ToastComponent toastComponent, long deltaTime) {
+    public Visibility render(GuiGraphics guiGraphics, ToastComponent toastComponent, long deltaTime) {
         toastComponent.getMinecraft().getTextureManager().bindForSetup(TEXTURE);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, TEXTURE);
-        toastComponent.blit(poseStack, 0, 0, 0, 0, this.width(), this.height());
+        guiGraphics.blit(TEXTURE, 0, 0, 0, 0, this.width(), this.height());
 
         if(image != null){
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
             RenderSystem.setShaderTexture(0, this.image);
-            GuiComponent.blit(poseStack, 5, 5, 0, 0, 21, 21, 21, 21);
+            guiGraphics.blit(this.image, 5, 5, 0, 0, 21, 21, 21, 21);
         }
 
-        toastComponent.getMinecraft().font.draw(poseStack, this.title, 30, 7, 0xFFFFFF);
+        guiGraphics.drawString(toastComponent.getMinecraft().font, this.title, 30, 7, 0xFFFFFF, false);
 
-        poseStack.pushPose();
-        poseStack.translate(30, 18, 0); 
-        poseStack.scale(0.5f, 0.5f, 1.0f);
-        toastComponent.getMinecraft().font.draw(poseStack, this.description, 0, 0, 0xCCCCCC);
-        poseStack.popPose();
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(30, 18, 0);
+        guiGraphics.pose().scale(0.5f, 0.5f, 1.0f);
+        guiGraphics.drawString(toastComponent.getMinecraft().font, this.description, 0, 0, 0xCCCCCC, false);
+        guiGraphics.pose().popPose();
 
         if (!this.hasStarted) {
             this.lastChanged = deltaTime;

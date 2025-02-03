@@ -3,10 +3,11 @@ package com.talhanation.recruits.client.gui.component;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 
-public class ActivateableButton extends Button {
-    public ActivateableButton(int p_93728_, int p_93729_, int p_93730_, int p_93731_, Component p_93732_, OnPress p_93733_, OnTooltip p_93734_) {
-        super(p_93728_, p_93729_, p_93730_, p_93731_, p_93732_, p_93733_, p_93734_);
+public class ActivateableButton extends ExtendedButton {
+    public ActivateableButton(int p_93728_, int p_93729_, int p_93730_, int p_93731_, Component p_93732_, OnPress p_93733_) {
+        super(p_93728_, p_93729_, p_93730_, p_93731_, p_93732_, p_93733_);
     }
 
     @Override
@@ -28,6 +29,6 @@ public class ActivateableButton extends Button {
     }
 
     protected boolean clicked(double p_93681_, double p_93682_) {
-        return this.visible && p_93681_ >= (double)this.x && p_93682_ >= (double)this.y && p_93681_ < (double)(this.x + this.width) && p_93682_ < (double)(this.y + this.height);
+        return this.visible && p_93681_ >= (double) this.getX() && p_93682_ >= (double) this.getY() && p_93681_ < (double)(this.getX() + this.width) && p_93682_ < (double)(this.getY() + this.height);
     }
 }

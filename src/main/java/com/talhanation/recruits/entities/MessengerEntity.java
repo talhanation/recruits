@@ -6,7 +6,6 @@ import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.inventory.MessengerAnswerContainer;
 import com.talhanation.recruits.inventory.MessengerContainer;
 import com.talhanation.recruits.network.*;
-import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.core.BlockPos;

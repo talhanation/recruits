@@ -9,13 +9,16 @@ import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
 import com.talhanation.recruits.network.MessageAddPlayerToTeam;
 import com.talhanation.recruits.network.MessageRemoveFromTeam;
 import com.talhanation.recruits.world.RecruitsTeam;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 public class TeamManageScreen extends RecruitsScreenBase {
 
@@ -50,53 +53,43 @@ public class TeamManageScreen extends RecruitsScreenBase {
     private void setButtons(){
         clearWidgets();
 
-        Button addPlayer = addRenderableWidget(new Button(guiLeft + 32, guiTop + ySize - 120 - 7, 130, 20, ADD_PLAYER,
+        Button addPlayer = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 120 - 7, 130, 20, ADD_PLAYER,
             btn -> {
                 minecraft.setScreen(new SelectPlayerScreen(this, player, TOOLTIP_ADD_PLAYER,  ADD_PLAYER, Component.literal(""), false, PlayersList.FilterType.TEAM_JOIN_REQUEST,
                         (playerInfo) -> {
                             Main.SIMPLE_CHANNEL.sendToServer(new MessageAddPlayerToTeam(recruitsTeam.getStringID(), playerInfo.getName()));
                         }
                 ));
-            },
-            (button, poseStack, i, i1) -> {
-                this.renderTooltip(poseStack, TOOLTIP_ADD_PLAYER, i, i1);
             }
         ));
-
-        Button removePlayer = addRenderableWidget(new Button(guiLeft + 32, guiTop + ySize - 98 - 7, 130, 20, REMOVE_PLAYER,
+        addPlayer.setTooltip(Tooltip.create(TOOLTIP_ADD_PLAYER));
+        Button removePlayer = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 98 - 7, 130, 20, REMOVE_PLAYER,
             btn -> {
                 minecraft.setScreen(new SelectPlayerScreen(this, player, TOOLTIP_REMOVE_PLAYER,  REMOVE_PLAYER, Component.literal(""), false, PlayersList.FilterType.SAME_TEAM,
                         (playerInfo) -> {
                             Main.SIMPLE_CHANNEL.sendToServer(new MessageRemoveFromTeam(playerInfo.getName()));
                         }
                 ));
-            },
-            (button, poseStack, i, i1) -> {
-                this.renderTooltip(poseStack, TOOLTIP_REMOVE_PLAYER, i, i1);
             }
         ));
-
-        Button unitManagement = addRenderableWidget(new Button(guiLeft + 32, guiTop + ySize - 76 - 7, 130, 20, UNIT_MANAGEMENT,
+        removePlayer.setTooltip(Tooltip.create(TOOLTIP_REMOVE_PLAYER));
+        Button unitManagement = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 76 - 7, 130, 20, UNIT_MANAGEMENT,
             btn -> {
 
-            },
-            (button, poseStack, i, i1) -> {
-                this.renderTooltip(poseStack, TOOLTIP_WIP, i, i1);
             }
         ));
         unitManagement.active = false;
+        unitManagement.setTooltip(Tooltip.create(TOOLTIP_WIP));
 
-        Button playerPromotion = addRenderableWidget(new Button(guiLeft + 32, guiTop + ySize - 54 - 7, 130, 20, PLAYER_PROMOTION,
+        Button playerPromotion = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 54 - 7, 130, 20, PLAYER_PROMOTION,
             btn -> {
 
-            },
-            (button, poseStack, i, i1) -> {
-                this.renderTooltip(poseStack, TOOLTIP_WIP, i, i1);
             }
         ));
         playerPromotion.active = false;
+        playerPromotion.setTooltip(Tooltip.create(TOOLTIP_WIP));
 
-        Button back = addRenderableWidget(new Button(guiLeft + 32, guiTop + ySize - 32 - 7, 130, 20, BACK,
+        Button back = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 32 - 7, 130, 20, BACK,
             btn -> {
                 minecraft.setScreen(parent);
             }
@@ -105,16 +98,16 @@ public class TeamManageScreen extends RecruitsScreenBase {
 
 
     @Override
-    public void renderBackground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
         RenderSystem.setShaderTexture(0, TEXTURE);
-        blit(poseStack, guiLeft, guiTop, 0, 0, xSize, ySize);
+        guiGraphics.blit(TEXTURE, guiLeft, guiTop, 0, 0, xSize, ySize);
     }
 
     @Override
-    public void renderForeground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
-        font.draw(poseStack, TITLE, guiLeft + xSize / 2 - font.width(TITLE) / 2, guiTop + 7, FONT_COLOR);
+    public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+        guiGraphics.drawString(font, TITLE, guiLeft + xSize / 2 - font.width(TITLE) / 2, guiTop + 7, FONT_COLOR, false);
 
     }
 

@@ -3,6 +3,8 @@ package com.talhanation.recruits.client.gui.widgets;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.client.gui.team.TeamEditScreen;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
@@ -26,6 +28,7 @@ public class ColorSelectionDropdownMatrix extends AbstractWidget {
     private final int columns;
     private final int rows;
     private final String name;
+
     public ColorSelectionDropdownMatrix(TeamEditScreen parent, int x, int y, int width, int height, List<Color> options, Consumer<Color> onSelect) {
         super(x, y, width, height, Component.literal(""));
         this.parent = parent;
@@ -37,18 +40,18 @@ public class ColorSelectionDropdownMatrix extends AbstractWidget {
         this.rows = 5;
     }
 
-    public void renderButton(PoseStack poseStack, int mouseX, int mouseY, float delta) {
+    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         int margin = 2;
-        fill(poseStack, this.x, this.y, this.x + this.width, this.y + this.height, BG_FILL_SELECTED);
-        drawCenteredString(poseStack, Minecraft.getInstance().font, name, this.x + this.width / 2, this.y + (this.height - 8) / 2, 0xFFFFFF);
+        guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, BG_FILL_SELECTED);
+        guiGraphics.drawCenteredString(Minecraft.getInstance().font, name, this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, 0xFFFFFF);
 
 
         int selectedColor = selectedOption.getRGB();
-        fillGradient(poseStack, this.x + margin, this.y + margin, this.x + margin + colorSize, this.y + margin + colorSize, selectedColor, selectedColor);
+        guiGraphics.fillGradient(this.getX() + margin, this.getY() + margin, this.getX() + margin + colorSize, this.getY() + margin + colorSize, selectedColor, selectedColor);
 
         if (isOpen) {
-            int dropdownStartX = this.x + this.width; // Dropdown rechts vom Hauptfeld
-            int dropdownStartY = this.y;
+            int dropdownStartX = this.getX() + this.width; // Dropdown rechts vom Hauptfeld
+            int dropdownStartY = this.getY();
 
             for (int i = 0; i < options.size(); i++) {
                 int col = i % columns;
@@ -61,13 +64,18 @@ public class ColorSelectionDropdownMatrix extends AbstractWidget {
                 int optionColor = Color.getRGB();
 
                 if (isMouseOverOption(mouseX, mouseY, optionX, optionY))
-                    fill(poseStack, optionX, optionY, optionX + cellSize, optionY + cellSize, BG_FILL_HOVERED);
+                    guiGraphics.fill(optionX, optionY, optionX + cellSize, optionY + cellSize, BG_FILL_HOVERED);
                 else
-                    fill(poseStack, optionX, optionY, optionX + cellSize, optionY + cellSize, BG_FILL);
+                    guiGraphics.fill(optionX, optionY, optionX + cellSize, optionY + cellSize, BG_FILL);
 
-                fillGradient(poseStack, optionX + margin, optionY + margin, optionX + margin + colorSize, optionY + margin + colorSize, optionColor, optionColor);
+                guiGraphics.fillGradient(optionX + margin, optionY + margin, optionX + margin + colorSize, optionY + margin + colorSize, optionColor, optionColor);
             }
         }
+    }
+
+    @Override
+    protected void updateWidgetNarration(NarrationElementOutput p_259858_) {
+
     }
 
     public void onMouseClicked(double mouseX, double mouseY) {
@@ -76,8 +84,8 @@ public class ColorSelectionDropdownMatrix extends AbstractWidget {
                 int col = i % columns;
                 int row = i / columns;
 
-                int optionX = this.x + this.width + col * cellSize;
-                int optionY = this.y + row * cellSize;
+                int optionX = this.getX() + this.width + col * cellSize;
+                int optionY = this.getY() + row * cellSize;
 
                 if (isMouseOverOption((int) mouseX, (int) mouseY, optionX, optionY)) {
                     selectOption(options.get(i));
@@ -106,14 +114,14 @@ public class ColorSelectionDropdownMatrix extends AbstractWidget {
     }
 
     private boolean isMouseOverDisplay(int mouseX, int mouseY) {
-        return mouseX >= this.x && mouseX <= this.x + this.width && mouseY >= this.y && mouseY <= this.y + this.height;
+        return mouseX >= this.getX() && mouseX <= this.getX() + this.width && mouseY >= this.getY() && mouseY <= this.getY() + this.height;
     }
 
     private boolean isMouseOverDropdown(int mouseX, int mouseY) {
         if (!isOpen) return false;
 
-        int dropdownStartX = this.x + this.width; // Dropdown rechts der Anzeige
-        int dropdownStartY = this.y;
+        int dropdownStartX = this.getX() + this.width; // Dropdown rechts der Anzeige
+        int dropdownStartY = this.getY();
 
         int dropdownEndX = dropdownStartX + columns * cellSize;
         int dropdownEndY = dropdownStartY + rows * cellSize;
@@ -130,9 +138,5 @@ public class ColorSelectionDropdownMatrix extends AbstractWidget {
         selectedOption = option;
         onSelect.accept(option);
         isOpen = false;
-    }
-
-    @Override
-    public void updateNarration(NarrationElementOutput p_169152_) {
     }
 }

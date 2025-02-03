@@ -8,12 +8,13 @@ import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import com.talhanation.recruits.network.MessageDiplomacyChangeStatus;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsTeam;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -59,7 +60,6 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
         newStance = ownStance;
         setButtons();
 
-        minecraft.keyboardHandler.setSendRepeatsToGui(true);
     }
 
     private void setButtons(){
@@ -99,7 +99,7 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
         this.neutralButton.visible = isLeader;
         this.enemyButton.visible = isLeader;
 
-        confirmButton = new Button(guiLeft + 6, guiTop + ySize - 18 - 7, 90, 20, BUTTON_CONFIRM,
+        confirmButton = new ExtendedButton(guiLeft + 6, guiTop + ySize - 18 - 7, 90, 20, BUTTON_CONFIRM,
                 button -> {
                     this.changeDiplomacyStatus(newStance, otherTeam);
                     this.ownStance = newStance;
@@ -112,7 +112,7 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
         addRenderableWidget(confirmButton);
 
 
-        backButton = new Button(guiLeft + 98, guiTop + ySize - 18 - 7, 90, 20, BUTTON_BACK,
+        backButton = new ExtendedButton(guiLeft + 98, guiTop + ySize - 18 - 7, 90, 20, BUTTON_BACK,
                 button -> {
                     minecraft.setScreen(parent);
                 });
@@ -124,11 +124,11 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
     }
 
     @Override
-    public void renderBackground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
         RenderSystem.setShaderTexture(0, TEXTURE);
-        blit(poseStack, guiLeft, guiTop, 0, 0, xSize, ySize);
+        guiGraphics.blit(TEXTURE, guiLeft, guiTop, 0, 0, xSize, ySize);
     }
     int x3 = 120;
     int y3 = 90;
@@ -143,39 +143,38 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
     int x8 = -25;
     int y8 = -100;
     @Override
-    public void renderForeground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
-        font.draw(poseStack, TITLE, guiLeft + xSize / 2 - font.width(TITLE) / 2, guiTop + 7, FONT_COLOR);
+    public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+        guiGraphics.drawString(font, TITLE, guiLeft + xSize / 2 - font.width(TITLE) / 2, guiTop + 7, FONT_COLOR, false);
 
-        font.draw(poseStack, ownTeam.getTeamDisplayName(), x5 + guiLeft + xSize / 2 - font.width(ownTeam.getTeamDisplayName()) / 2, guiTop + 7 - y5, FONT_COLOR);
-        font.draw(poseStack, otherTeam.getTeamDisplayName(), x6 + guiLeft + xSize / 2 - font.width(otherTeam.getTeamDisplayName()) / 2, guiTop + 7 - y6, FONT_COLOR);
+        guiGraphics.drawString(font, ownTeam.getTeamDisplayName(), x5 + guiLeft + xSize / 2 - font.width(ownTeam.getTeamDisplayName()) / 2, guiTop + 7 - y5, FONT_COLOR, false);
+        guiGraphics.drawString(font, otherTeam.getTeamDisplayName(), x6 + guiLeft + xSize / 2 - font.width(otherTeam.getTeamDisplayName()) / 2, guiTop + 7 - y6, FONT_COLOR, false);
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
         RenderSystem.setShaderTexture(0, getDiplomacyStatusIcon(othersStance));
-        GuiComponent.blit(poseStack, this.guiLeft + x3, guiTop + ySize - y3, 0, 0, 21, 21, 21, 21);
-        font.draw(poseStack, othersStance.name(), x7 + guiLeft + xSize / 2 - font.width(othersStance.name()) / 2, guiTop + 7 - y7, FONT_COLOR);
+        guiGraphics.blit(getDiplomacyStatusIcon(othersStance), this.guiLeft + x3, guiTop + ySize - y3, 0, 0, 21, 21, 21, 21);
+        guiGraphics.drawString(font, othersStance.name(), x7 + guiLeft + xSize / 2 - font.width(othersStance.name()) / 2, guiTop + 7 - y7, FONT_COLOR);
         /*
         if (mouseX >= groupTypeButton.x && mouseY >= groupTypeButton.y && mouseX < groupTypeButton.x + groupTypeButton.getWidth() && mouseY < groupTypeButton.y + groupTypeButton.getHeight()) {
-            renderTooltip(poseStack, groupTypeButton.getTooltip(), mouseX, mouseY);
+            renderTooltip(guiGraphics, groupTypeButton.getTooltip(), mouseX, mouseY);
         }
         */
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
         RenderSystem.setShaderTexture(0, getDiplomacyStatusIcon(newStance));
-        GuiComponent.blit(poseStack, this.guiLeft + x4, guiTop + ySize - y4, 0, 0, 21, 21, 21, 21);
-        font.draw(poseStack, newStance.name(), x8 + guiLeft + xSize / 2 - font.width(newStance.name()) / 2,  guiTop + 7 - y8, FONT_COLOR);
-
+        guiGraphics.blit(getDiplomacyStatusIcon(newStance), this.guiLeft + x4, guiTop + ySize - y4, 0, 0, 21, 21, 21, 21);
+        guiGraphics.drawString(font, newStance.name(), x8 + guiLeft + xSize / 2 - font.width(newStance.name()) / 2,  guiTop + 7 - y8, FONT_COLOR, false);
     }
     int x1 = 15;
     int y1 = 75;
     int x2 = 160;
     int y2 = 75;
     @Override
-    public void render(PoseStack poseStack, int mouseX, int mouseY, float delta) {
-        super.render(poseStack, mouseX, mouseY, delta);
-        bannerOwn.renderBanner(poseStack, this.guiLeft + x1, guiTop + ySize - y1, this.width, this.height, 40);
-        bannerOther.renderBanner(poseStack, this.guiLeft + x2, guiTop + ySize - y2, this.width, this.height, 40);
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+        super.render(guiGraphics, mouseX, mouseY, delta);
+        bannerOwn.renderBanner(guiGraphics, this.guiLeft + x1, guiTop + ySize - y1, this.width, this.height, 40);
+        bannerOther.renderBanner(guiGraphics, this.guiLeft + x2, guiTop + ySize - y2, this.width, this.height, 40);
     }
 
     public ResourceLocation getDiplomacyStatusIcon(RecruitsDiplomacyManager.DiplomacyStatus status){
@@ -192,7 +191,7 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
     @Override
     public void onClose() {
         super.onClose();
-        minecraft.keyboardHandler.setSendRepeatsToGui(false);
+
     }
 
 }

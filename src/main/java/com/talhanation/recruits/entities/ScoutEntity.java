@@ -2,7 +2,6 @@ package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.entities.ai.UseShield;
-import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.recruits.util.FormationUtils;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.ChatFormatting;
@@ -78,7 +77,7 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.1D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
                 .add(Attributes.FOLLOW_RANGE, 128.0D)
-                .add(ForgeMod.REACH_DISTANCE.get(), 0D)
+                .add(ForgeMod.ENTITY_REACH.get(), 0D)
                 .add(Attributes.ATTACK_SPEED);
     }
 
@@ -86,7 +85,7 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
     @Nullable
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data, @Nullable CompoundTag nbt) {
         SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
-        ((AsyncGroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
+        ((GroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
         this.populateDefaultEquipmentEnchantments(random, difficultyInstance);
 
         this.initSpawn();
@@ -243,8 +242,8 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
                     String teamName = entry.getKey();
                     int recruitCount = entry.getValue().size();
                     Vec3 vec = FormationUtils.getCenterOfPositions(entry.getValue(), (ServerLevel) this.getCommandSenderWorld());
-                    int distance = (int) Math.sqrt(this.blockPosition().distSqr(new BlockPos(vec)));
-                    String direction = getHorizontalDirection(this.blockPosition(), new BlockPos(vec));
+                    int distance = (int) Math.sqrt(this.blockPosition().distSqr(new BlockPos((int) vec.x, (int) vec.y, (int) vec.z)));
+                    String direction = getHorizontalDirection(this.blockPosition(), new BlockPos((int) vec.x, (int) vec.y, (int) vec.z));
 
                     ScoutingResult result = new ScoutingResult(teamName, recruitCount, distance, direction);
                     result.sendInfo(this);
