@@ -560,6 +560,8 @@ public class RecruitEvents {
         if (attacker instanceof AbstractRecruitEntity recruit ){
             if(recruit.getVehicle() != null && recruit.getVehicle().getUUID().equals(animal.getUUID())) return false;
 
+            if (recruit.getProtectUUID() != null && recruit.getProtectUUID().equals(recruit.getProtectUUID())) return false;
+
             if(animal.isVehicle()){
                 if(animal.getFirstPassenger() instanceof AbstractRecruitEntity targetRecruit) return canAttackRecruit(attacker, targetRecruit);
                 if(animal.getFirstPassenger() instanceof Player playerTarget) return canAttackPlayer(attacker, playerTarget);
@@ -570,8 +572,13 @@ public class RecruitEvents {
 
 
     public static boolean canAttackPlayer(LivingEntity attacker, Player player) {
-        if (attacker instanceof AbstractRecruitEntity recruit && player.getUUID().equals(recruit.getOwnerUUID())) {
-            return false;
+        if (attacker instanceof AbstractRecruitEntity recruit) {
+            if(player.getUUID().equals(recruit.getOwnerUUID())
+                    || player.getUUID().equals(recruit.getProtectUUID())
+                    || player.isCreative()
+                    || player.isSpectator()
+            )
+                return false;
         }
         return canHarmTeam(attacker, player);
     }
@@ -676,6 +683,22 @@ public class RecruitEvents {
                 float newMorale = currentMoral - 0.2F;
                 entity.setMoral(Math.max(newMorale, 0F));
             });
+        }
+    }
+
+    @SubscribeEvent
+    public void onWorldTickArrowCleaner(TickEvent.LevelTickEvent event) {//for 1.18 and 1.19 use TickEvent.WorldTickEvent
+        if (!RecruitsServerConfig.AllowArrowCleaning.get()) return;
+        if (event.phase != TickEvent.Phase.END) return;
+        if (server == null) return;
+        if (server.overworld().isClientSide()) return;
+
+        for (Entity entity : server.overworld().getEntities().getAll()) {
+            if (entity instanceof AbstractArrow arrow) {
+                if (arrow.pickup == AbstractArrow.Pickup.DISALLOWED && arrow.inGroundTime > 300) {
+                    arrow.discard();
+                }
+            }
         }
     }
 

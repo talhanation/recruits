@@ -77,6 +77,7 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.IntValue MaxNPCsInTeam;
     public static ForgeConfigSpec.BooleanValue ShouldTeamEditingBeAllowed;
     public static ForgeConfigSpec.BooleanValue ShouldTeamManagingBeAllowed;
+    public static ForgeConfigSpec.BooleanValue AllowArrowCleaning;
 
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin", "corpse:corpse", "minecraft:armorstand"));
@@ -649,11 +650,17 @@ public class RecruitsServerConfig {
                 .worldRestart()
                 .define("CompatCorpseMod", true);
 
-        /*
-         Async things config
-         */
 
         BUILDER.pop();
+        BUILDER.comment("Recruit Mod performance Config:").push("Performance");
+        AllowArrowCleaning = BUILDER.comment("""
+                        This feature is cleans up unnecessary Arrows from ground that are eating client and server performance.
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("AllowArrowCleaning", true);
+
+
         BUILDER.comment("Async Settings").push("Async");
 
         UseAsyncPathfinding = BUILDER.comment("""
@@ -714,7 +721,6 @@ public class RecruitsServerConfig {
                         \tdefault: 1600""")
                 .worldRestart()
                 .defineInRange("VisibilityCacheTimeToLive", 1600, 400, 10000);
-
 
         SERVER = BUILDER.build();
     }
