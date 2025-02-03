@@ -153,7 +153,7 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
         RenderSystem.setShaderTexture(0, getDiplomacyStatusIcon(othersStance));
         guiGraphics.blit(getDiplomacyStatusIcon(othersStance), this.guiLeft + x3, guiTop + ySize - y3, 0, 0, 21, 21, 21, 21);
-        guiGraphics.drawString(font, othersStance.name(), x7 + guiLeft + xSize / 2 - font.width(othersStance.name()) / 2, guiTop + 7 - y7, FONT_COLOR);
+        guiGraphics.drawString(font, othersStance.name(), x7 + guiLeft + xSize / 2 - font.width(othersStance.name()) / 2, guiTop + 7 - y7, FONT_COLOR,false);
         /*
         if (mouseX >= groupTypeButton.x && mouseY >= groupTypeButton.y && mouseX < groupTypeButton.x + groupTypeButton.getWidth() && mouseY < groupTypeButton.y + groupTypeButton.getHeight()) {
             renderTooltip(guiGraphics, groupTypeButton.getTooltip(), mouseX, mouseY);

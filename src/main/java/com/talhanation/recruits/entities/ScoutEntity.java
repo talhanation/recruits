@@ -44,7 +44,7 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
     private State state = State.IDLE;
     private final int SEARCH_RADIUS = 200;
-    private int timerScouting = 120;
+    public int timerScouting;
     public ScoutEntity(EntityType<? extends AbstractRecruitEntity> entityType, Level world) {
         super(entityType, world);
     }
@@ -61,12 +61,14 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
 
     public void addAdditionalSaveData(CompoundTag nbt) {
         super.addAdditionalSaveData(nbt);
-
+        nbt.putInt("taskState", this.state.getIndex());
+        nbt.putInt("timerScouting", this.timerScouting);
     }
 
     public void readAdditionalSaveData(CompoundTag nbt) {
         super.readAdditionalSaveData(nbt);
-
+        this.setTaskState(State.fromIndex(nbt.getInt("taskState")));
+        this.timerScouting = nbt.getInt("timerScouting");
     }
 
     //ATTRIBUTES
@@ -167,8 +169,8 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
         super.tick();
 
         if(--timerScouting <= 0){
-            this.startTask(State.fromIndex(getTaskState()));
             timerScouting = 20*60*1; //1 min
+            this.startTask(State.fromIndex(getTaskState()));
         }
     }
     public void startTask(State taskState) {
@@ -180,6 +182,7 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
             }
             case SCOUTING -> {
                 this.findNonFriendlyEntities();
+                timerScouting = 20*60*1; //1 min
             }
             case SEARCHING_LOST_RECRUITS -> {
                 //TBD
@@ -187,7 +190,6 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
             }
             default -> {}
         }
-        this.state = State.IDLE;
     }
 
     private void sendMessageToOwner(Component message) {
