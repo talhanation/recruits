@@ -267,10 +267,18 @@ public class  TeamEvents {
         return false;
     }
 
-    public static void modifyTeam(ServerLevel level, String stringID, RecruitsTeam editedTeam) {
+    public static void modifyTeam(ServerLevel level, String stringID, RecruitsTeam editedTeam, ServerPlayer serverPlayer, int cost) {
         MinecraftServer server = level.getServer();
         RecruitsTeam recruitsTeam = recruitsTeamManager.getTeamByStringID(stringID);
         PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(stringID);
+
+        if(cost > 0 && !playerHasEnoughEmeralds(serverPlayer, cost)) {
+            serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.noenough_money").withStyle(ChatFormatting.RED));
+            return;
+        }
+        else{
+            doPayment(serverPlayer, cost);
+        }
 
         if(recruitsTeam != null && playerTeam != null){
             recruitsTeam.setTeamDisplayName(editedTeam.getTeamDisplayName());
@@ -435,7 +443,7 @@ public class  TeamEvents {
             }
         }
 
-        return playerEmeralds >= price;
+        return playerEmeralds >= price || player.isCreative();
     }
 
     public static void doPayment(Player player, int costs){

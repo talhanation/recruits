@@ -3,6 +3,10 @@ package com.talhanation.recruits.client.gui.team;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.Main;
+import com.talhanation.recruits.network.MessageLeaveTeam;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.renderer.GameRenderer;
 import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.diplomacy.DiplomacyTeamListScreen;
@@ -46,6 +50,8 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
     private static final Component LEADER_TEXT = new TranslatableComponent("gui.recruits.team.leader");
     private static final Component SELECT_LEADER = new TranslatableComponent("gui.recruits.team.select_leader");
     private static final Component SELECT_LEADER_TOOLTIP = new TranslatableComponent("gui.recruits.team.select_leader_tooltip_leaving");
+    private static final Component DELETE_BUTTON = new TranslatableComponent("gui.recruits.team.delete_team");
+
     protected static final int HEADER_SIZE = 130;
     protected static final int FOOTER_SIZE = 32;
     protected static final int SEARCH_HEIGHT = 0;
@@ -141,12 +147,14 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         manageButton.visible = isTeamLeader && isManagingAllowed;
         addRenderableWidget(manageButton);
 
+        boolean deleteActive = isTeamLeader && playerList != null && playerList.size() <= 1;
         //leave team
-        leaveButton = new Button(guiLeft + 7, buttonY, 60, 20, LEAVE_BUTTON,
+        leaveButton = new Button(guiLeft + 7, buttonY, 60, 20, deleteActive ? DELETE_BUTTON : LEAVE_BUTTON,
             button -> {
                 if(isTeamLeader){
-                    if(playerList != null && playerList.isEmpty()){
+                    if(deleteActive){
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
+                        minecraft.setScreen(new TeamMainScreen(player));
                         return;
                     }
 
@@ -155,7 +163,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
                                 recruitsTeam.setTeamLeaderID(playerInfo.getUUID());
                                 recruitsTeam.setTeamLeaderName(playerInfo.getName());
 
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveTeamSettings(recruitsTeam));
+                                Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveTeamSettings(recruitsTeam, 0));
                                 onClose();
                             }
                     );

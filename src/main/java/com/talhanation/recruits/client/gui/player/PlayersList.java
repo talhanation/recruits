@@ -123,6 +123,10 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
         return children().isEmpty();
     }
 
+    public int size(){
+        return children().size();
+    }
+
     public enum FilterType{
         NONE,
         SAME_TEAM,

@@ -225,7 +225,7 @@
   "chat.recruits.team_creation.addPlayerTitle": "Add Players within sight: ",
   "chat.recruits.team_creation.no_Requests": "There are no join requests.",
   "chat.recruits.team_creation.banner_exists" :"A team already uses the same banner!",
-  "chat.recruits.team_creation.noenough_money": "You don't have enough emeralds to create a team!",
+  "chat.recruits.team_creation.noenough_money": "You don't have enough emeralds!",
   "chat.recruits.team_creation.noname": "You need to type a name for your team!",
   "chat.recruits.team_creation.nobanner": "You need a banner to create a team!",
   "chat.recruits.team_creation.wrongbanner": "You cant use a blank banner for your team.",

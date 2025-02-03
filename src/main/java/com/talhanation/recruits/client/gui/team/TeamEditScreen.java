@@ -367,7 +367,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
                     recruitsTeam.setUnitColor((byte) unitColors.indexOf(unitColor));
                     recruitsTeam.setMaxNPCsPerPlayer(maxRecruitsPerPlayer);
 
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveTeamSettings(recruitsTeam));
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveTeamSettings(recruitsTeam, totalCost));
 
                     minecraft.setScreen(new TeamInspectionScreen(new TeamMainScreen(player), player));
                 }
