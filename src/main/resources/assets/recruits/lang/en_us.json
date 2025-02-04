@@ -349,7 +349,7 @@
   "gui.recruits.inv.tooltip.clearUpkeep": "Clears saved upkeep position.",
   "gui.recruits.inv.text.clearUpkeep": "Clear Upkeep",
   "gui.recruits.inv.tooltip.takeOwnership" : "Take ownership of this recruit",
-  "gui.recruits.inv.tooltip.openInventory" : "Open Inventory this recruit",
+  "gui.recruits.inv.tooltip.openInventory" : "Open Inventory of this recruit",
   "gui.recruits.inv.tooltip.more" : "Other",
   "gui.multiLineEditBox.character_limit": "%s/%s",
   "gui.recruits.groups.add_title": "Add New Group:",
