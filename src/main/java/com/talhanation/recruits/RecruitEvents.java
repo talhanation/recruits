@@ -692,7 +692,7 @@ public class RecruitEvents {
     }
 
     @SubscribeEvent
-    public void onWorldTickArrowCleaner(TickEvent.LevelTickEvent event) {//for 1.18 and 1.19 use TickEvent.WorldTickEvent
+    public void onWorldTickArrowCleaner(TickEvent.WorldTickEvent event) {
         if (!RecruitsServerConfig.AllowArrowCleaning.get()) return;
         if (event.phase != TickEvent.Phase.END) return;
         if (server == null) return;

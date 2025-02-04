@@ -273,7 +273,7 @@ public class  TeamEvents {
         PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(stringID);
 
         if(cost > 0 && !playerHasEnoughEmeralds(serverPlayer, cost)) {
-            serverPlayer.sendSystemMessage(Component.translatable("chat.recruits.team_creation.noenough_money").withStyle(ChatFormatting.RED));
+            serverPlayer.sendMessage(new TranslatableComponent("chat.recruits.team_creation.noenough_money").withStyle(ChatFormatting.RED), serverPlayer.getUUID());
             return;
         }
         else{
