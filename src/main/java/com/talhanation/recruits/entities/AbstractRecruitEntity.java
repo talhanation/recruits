@@ -5,13 +5,10 @@ import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.TeamEvents;
-import com.talhanation.recruits.client.gui.ConfirmScreen;
-import com.talhanation.recruits.client.gui.team.TakeOverScreen;
 import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.*;
-import com.talhanation.recruits.entities.ai.async.Sensing;
 import com.talhanation.recruits.entities.ai.compat.BlockWithWeapon;
 import com.talhanation.recruits.entities.ai.navigation.RecruitPathNavigation;
 import com.talhanation.recruits.init.ModItems;
@@ -20,7 +17,6 @@ import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.world.RecruitsTeam;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -49,9 +45,7 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
-import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.entity.monster.Enemy;
-import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -128,7 +122,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private int maxFallDistance;
     public Vec3 holdPosVec;
     public boolean isInFormation;
-    private Sensing sensing;
     public boolean needsColorUpdate = true;
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
@@ -136,7 +129,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.navigation = this.createNavigation(world);
         this.maxUpStep = 1F;
         this.setMaxFallDistance(1);
-        this.sensing = new Sensing(this);
     }
 
     ///////////////////////////////////NAVIGATION/////////////////////////////////////////
@@ -253,7 +245,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         //this.goalSelector.addGoal(13, new RecruitPickupWantedItemGoal(this));
         this.targetSelector.addGoal(0, new RecruitProtectHurtByTargetGoal(this));
         this.targetSelector.addGoal(1, new RecruitOwnerHurtByTargetGoal(this));
-        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, LivingEntity.class, 20, true, false, this::shouldAttack));
+        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, LivingEntity.class, true, false, this::shouldAttack));
         this.targetSelector.addGoal(3, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
         this.targetSelector.addGoal(4, new RecruitOwnerHurtTargetGoal(this));
 
@@ -1237,7 +1229,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     */
 
     public boolean isAlliedTo(Team p_20032_) {
-        return this.getTeam() != null ? this.getTeam().isAlliedTo(p_20032_) : false;
+        return this.getTeam() != null && this.getTeam().isAlliedTo(p_20032_);
     }
 
     public void die(DamageSource dmg) {
@@ -1249,6 +1241,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
                 if(this.isOwned()){
                     RecruitEvents.recruitsPlayerUnitManager.removeRecruits(this.getOwnerUUID(), 1);
+                    TeamEvents.removeRecruitFromTeam(this, this.getTeam(), (ServerLevel) this.getLevel());
+                }
+                if(this.getTeam() != null){
+                    TeamEvents.recruitsTeamManager.getTeamByStringID(this.getTeam().getName()).addNPCs(-1);
                 }
             }
         }
@@ -1924,11 +1920,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     private MutableComponent TEXT_HELLO_3(String name) {
         return Component.translatable("chat.recruits.text.hello_3", name);
-    }
-
-    @Override
-    public @NotNull Sensing getSensing() {
-        return this.sensing;
     }
 
     private void pickUpArrows() {

@@ -71,7 +71,10 @@ public class CommandEvents {
                    Vec3 center = FormationUtils.getGeometricMedian(recruits, (ServerLevel) player.getCommandSenderWorld());
                    Vec3 forward = player.getForward();
                    Vec3 pos = center.add(forward.scale(10));
-                   BlockPos blockPos = player.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
+                   BlockPos blockPos = FormationUtils.getPositionOrSurface(
+                           player.getCommandSenderWorld(),
+                           new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
+                   );
 
                    targetPos = new Vec3(pos.x, blockPos.getY(), pos.z);
                }
@@ -80,7 +83,10 @@ public class CommandEvents {
                    Vec3 center = FormationUtils.getGeometricMedian(recruits, (ServerLevel) player.getCommandSenderWorld());
                    Vec3 forward = player.getForward();
                    Vec3 pos = center.add(forward.scale(-10));
-                   BlockPos blockPos = player.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
+                   BlockPos blockPos = FormationUtils.getPositionOrSurface(
+                           player.getCommandSenderWorld(),
+                           new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
+                   );
 
                    targetPos = new Vec3(pos.x, blockPos.getY(), pos.z);
                }
@@ -136,7 +142,10 @@ public class CommandEvents {
                     case 7 ->{
                         Vec3 forward = player.getForward();
                         Vec3 pos = recruit.position().add(forward.scale(10));
-                        BlockPos blockPos = player.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
+                        BlockPos blockPos = FormationUtils.getPositionOrSurface(
+                                player.getCommandSenderWorld(),
+                                new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
+                        );
 
                         Vec3 targetPos = new Vec3(pos.x, blockPos.getY(), pos.z);
 
@@ -148,7 +157,10 @@ public class CommandEvents {
                     case 8 ->{
                         Vec3 forward = player.getForward();
                         Vec3 pos = recruit.position().add(forward.scale(-10));
-                        BlockPos blockPos = player.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
+                        BlockPos blockPos = FormationUtils.getPositionOrSurface(
+                                player.getCommandSenderWorld(),
+                                new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
+                        );
 
                         Vec3 targetPos = new Vec3(pos.x, blockPos.getY(), pos.z);
 
