@@ -3,7 +3,7 @@ package com.talhanation.recruits.entities.ai;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.target.TargetGoal;
-import com.talhanation.recruits.entities.ai.async.TargetingConditions;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
@@ -16,7 +16,7 @@ public class RecruitDefendVillageFromPlayerGoal extends TargetGoal {
     private final AbstractRecruitEntity recruit;
     @Nullable
     private LivingEntity potentialTarget;
-    private final TargetingConditions attackTargeting = TargetingConditions.forCombat().range(64.0D);
+    private final TargetingConditions attackTargeting = TargetingConditions.forCombat().range(64.0D).ignoreLineOfSight();
 
     public RecruitDefendVillageFromPlayerGoal(AbstractRecruitEntity p_26029_) {
         super(p_26029_, false, true);

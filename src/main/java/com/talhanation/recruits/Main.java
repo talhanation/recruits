@@ -5,7 +5,6 @@ import com.talhanation.recruits.commands.PatrolSpawnCommand;
 import com.talhanation.recruits.commands.RecruitsAdminCommands;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
-import com.talhanation.recruits.entities.ai.async.VisibilityGraphCache;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModItems;
@@ -82,7 +81,6 @@ public class Main {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void setup(final FMLCommonSetupEvent event) {
-        MinecraftForge.EVENT_BUS.register(VisibilityGraphCache.class);
         MinecraftForge.EVENT_BUS.register(new RecruitEvents());
         MinecraftForge.EVENT_BUS.register(new VillagerEvents());
         MinecraftForge.EVENT_BUS.register(new PillagerEvents());
