@@ -68,7 +68,7 @@ public class RecruitsTeamEntry extends ListScreenEntryBase<RecruitsTeamEntry> {
 
         GuiComponent.fill(guiGraphics, left + 10, top + 20, left + 200,top + 10, 0x8000FF00);
          */
-        guiGraphics.drawString(minecraft.font, team.getTeamDisplayName(), (float) textX + 20, (float) textY,  PLAYER_NAME_COLOR, false);
+        guiGraphics.drawString(minecraft.font, team.getTeamDisplayName(), (float) textX + 10, (float) textY,  PLAYER_NAME_COLOR, false);
         guiGraphics.drawString(minecraft.font, getPlayersText(team.getPlayers()).getString(), (float) textX + 120, (float) textY, PLAYER_NAME_COLOR, false);
     }
 

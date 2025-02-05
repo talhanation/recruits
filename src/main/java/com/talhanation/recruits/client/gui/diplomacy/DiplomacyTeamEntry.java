@@ -82,7 +82,7 @@ public class DiplomacyTeamEntry extends ListScreenEntryBase<DiplomacyTeamEntry> 
 
         GuiComponent.fill(poseStack, left + 10, top + 20, left + 200,top + 10, 0x8000FF00);
          */
-       guiGraphics.drawString(minecraft.font, team.getTeamDisplayName(), (float) textX + 25, (float) textY, PLAYER_NAME_COLOR, false);
+       guiGraphics.drawString(minecraft.font, team.getTeamDisplayName(), (float) textX + 10, (float) textY, PLAYER_NAME_COLOR, false);
     }
 
     @Nullable
