@@ -1,10 +1,10 @@
 package com.talhanation.recruits.entities.ai.pillager;
 
-import com.talhanation.recruits.entities.ai.async.VisibilityGraphCache;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.sensing.Sensing;
 import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.AxeItem;
@@ -114,7 +114,7 @@ public class PillagerMeleeAttackGoal extends Goal {
         double d0 = this.mob.distanceToSqr(livingentity.getX(), livingentity.getY(), livingentity.getZ());
         this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
         if ((this.followingTargetEvenIfNotSeen ||
-                VisibilityGraphCache.canSee(this.mob, livingentity) &&
+                new Sensing(this.mob).hasLineOfSight(livingentity) &&
                         this.ticksUntilNextPathRecalculation <= 0 &&
                         (this.pathedTargetX == 0.0D &&
                                 this.pathedTargetY == 0.0D &&
