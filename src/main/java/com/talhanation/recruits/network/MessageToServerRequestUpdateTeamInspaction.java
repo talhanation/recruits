@@ -33,11 +33,14 @@ public class MessageToServerRequestUpdateTeamInspaction implements Message<Messa
         List<RecruitsPlayerInfo> playerInfoList = new ArrayList<>();
         RecruitsTeam recruitsTeam = TeamEvents.recruitsTeamManager.getTeamByStringID(player.getTeam().getName());
 
-        for(ServerPlayer serverPlayer : playerList){
-            if(serverPlayer.getTeam() != null && serverPlayer.getTeam().equals(player.getTeam())){
-                playerInfoList.add(new RecruitsPlayerInfo(serverPlayer.getUUID(), serverPlayer.getScoreboardName(), recruitsTeam));
+        if(recruitsTeam != null){
+            for(ServerPlayer serverPlayer : playerList){
+                if(serverPlayer.getTeam() != null && serverPlayer.getTeam().equals(player.getTeam())){
+                    playerInfoList.add(new RecruitsPlayerInfo(serverPlayer.getUUID(), serverPlayer.getScoreboardName(), recruitsTeam));
+                }
             }
         }
+
 
         Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateTeamInspection(playerInfoList, recruitsTeam, RecruitsServerConfig.ShouldTeamEditingBeAllowed.get(), RecruitsServerConfig.ShouldTeamManagingBeAllowed.get()));
     }

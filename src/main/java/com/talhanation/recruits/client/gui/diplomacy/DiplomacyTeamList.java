@@ -54,7 +54,7 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
         entries.clear();
 
         for (RecruitsTeam team : teams) {
-            if (!team.equals(ownTeam)) {
+            if (ownTeam != null && !team.equals(ownTeam)) {
                 RecruitsDiplomacyManager.DiplomacyStatus status = getRelation(ownTeam.getStringID(), team.getStringID());
 
                 switch (diplomacyFilter) {

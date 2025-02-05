@@ -30,6 +30,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
+import org.lwjgl.glfw.GLFW;
+
 
 import javax.annotation.Nullable;
 import java.awt.*;
@@ -257,12 +260,12 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
         textFieldTeamName.setTextColor(-1);
         textFieldTeamName.setTextColorUneditable(-1);
         textFieldTeamName.setBordered(true);
-        textFieldTeamName.setMaxLength(24);
+        textFieldTeamName.setMaxLength(32);
         textFieldTeamName.setValue(teamName);
         textFieldTeamName.setResponder(this::onTextInput);
 
-        addRenderableWidget(textFieldTeamName);
-        setInitialFocus(textFieldTeamName);
+        addWidget(textFieldTeamName);
+        this.setInitialFocus(textFieldTeamName);
 
         addRenderableOnly(new BlackShowingTextField(guiLeft + widgetsX, guiTop + imageHeight - widgetsY + (20 + gap ) * 4, 110, 20, 45, 0, getMaxRecruitsPerPlayerString()));
 
@@ -493,6 +496,8 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
             itemRenderer.renderGuiItem(currency, currencyX, currencyY);
             itemRenderer.renderGuiItemDecorations(font, currency, currencyX, currencyY);
         }
+
+        if(textFieldTeamName != null)textFieldTeamName.render(guiGraphics, mouseX, mouseY, delta);
     }
 
     public Component getMaxRecruitsPerPlayerString() {
@@ -570,5 +575,21 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
 
          Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdatePlayerCurrencyCount());
         if(saveButton != null) saveButton.active = recruitsTeam != null ? checkEditCondition(): checkCreationCondition();
+    }
+
+    @Override
+    public boolean keyPressed(int key, int a, int b) {
+        if (key == GLFW.GLFW_KEY_ESCAPE) {
+            this.onClose();
+            return true;
+        }
+        setFocused(textFieldTeamName);
+
+        return textFieldTeamName.keyPressed(key, a, b) || textFieldTeamName.canConsumeInput() || super.keyPressed(key, a, b);
+    }
+
+    public void removed() {
+        super.removed();
+        recruitsTeam = null;
     }
 }
