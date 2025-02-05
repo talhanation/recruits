@@ -75,8 +75,10 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.IntValue AsyncPathfindingThreadsCount;
     public static ForgeConfigSpec.BooleanValue UseAsyncTargetFinding;
     public static ForgeConfigSpec.IntValue AsyncTargetFindingThreadsCount;
-    public static ForgeConfigSpec.BooleanValue UseVisibilityCache;
-    public static ForgeConfigSpec.IntValue VisibilityCacheTimeToLive;
+    public static ForgeConfigSpec.IntValue MaxPlayersInTeam;
+    public static ForgeConfigSpec.IntValue MaxNPCsInTeam;
+    public static ForgeConfigSpec.BooleanValue ShouldTeamEditingBeAllowed;
+    public static ForgeConfigSpec.BooleanValue ShouldTeamManagingBeAllowed;
     public static ForgeConfigSpec.BooleanValue AllowArrowCleaning;
 
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
@@ -700,26 +702,6 @@ public class RecruitsServerConfig {
                         \tdefault: 1""")
                 .worldRestart()
                 .defineInRange("AsyncTargetFindingThreads", 1, 1, Runtime.getRuntime().availableProcessors());
-
-        UseVisibilityCache = BUILDER.comment("""
-                        Use visibility cache (one entity can see the other) to speed up detecting line-of-sight.
-                        Improves TPS on huge numbers of recruits (and somehow FPS) a lot,
-                            but can lead to some weird behavior (like entity stop or starts see the other only after some time).
-                        \t(takes effect after restart)
-                        \tdefault: true""")
-                .worldRestart()
-                .define("UseVisibilityCache", true);
-
-        VisibilityCacheTimeToLive = BUILDER.comment("""
-                        How long cache stores whether one entity can see the other.
-                        Time of unit is MILLISECONDS.
-                        Adjust it if you think entity see or does not see the other too long.
-                        Forbid to set values lower than 400 milliseconds or larger than 10000 milliseconds.
-                        Remember that final TTL is randomized like +- 100 milliseconds (if TTL is 750, final TTL is from 650 to 850 milliseconds). 
-                        \t(takes effect after restart)
-                        \tdefault: 1600""")
-                .worldRestart()
-                .defineInRange("VisibilityCacheTimeToLive", 1600, 400, 10000);
 
         SERVER = BUILDER.build();
     }
