@@ -60,11 +60,13 @@ import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.common.Tags;
@@ -1924,6 +1926,21 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     private MutableComponent TEXT_HELLO_3(String name) {
         return Component.translatable("chat.recruits.text.hello_3", name);
+    }
+
+    @Override
+    public boolean hasLineOfSight(Entity target) {
+        if (target.level != this.level) {
+            return false;
+        } else {
+            Vec3 lookVec = new Vec3(this.getX(), this.getEyeY(), this.getZ());
+            Vec3 vec31 = new Vec3(target.getX(), target.getEyeY(), target.getZ());
+            if (vec31.distanceToSqr(lookVec) > 62500.0D) {
+                return false;
+            } else {
+                return this.level.clip(new ClipContext(lookVec, vec31, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this)).getType() == HitResult.Type.MISS;
+            }
+        }
     }
 
     @Override

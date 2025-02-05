@@ -11,8 +11,6 @@ import net.minecraft.world.entity.Mob;
 public class Sensing extends net.minecraft.world.entity.ai.sensing.Sensing {
     private final Function<Entity, Boolean> lineOfSightSupplier;
     private final Mob mob;
-    private final IntSet seen = new IntOpenHashSet();
-    private final IntSet unseen = new IntOpenHashSet();
 
     public Sensing(Mob p_26788_) {
         super(p_26788_);
@@ -25,29 +23,11 @@ public class Sensing extends net.minecraft.world.entity.ai.sensing.Sensing {
     }
 
     @Override
-    public void tick() {
-        this.seen.clear();
-        this.unseen.clear();
-    }
-
-    @Override
     public boolean hasLineOfSight(Entity p_148307_) {
-        int i = p_148307_.getId();
-        if (this.seen.contains(i)) {
-            return true;
-        } else if (this.unseen.contains(i)) {
-            return false;
-        } else {
-            this.mob.level.getProfiler().push("hasLineOfSight");
-            boolean flag = this.lineOfSightSupplier.apply(p_148307_);
-            this.mob.level.getProfiler().pop();
-            if (flag) {
-                this.seen.add(i);
-            } else {
-                this.unseen.add(i);
-            }
+        this.mob.level.getProfiler().push("hasLineOfSight");
+        boolean flag = this.lineOfSightSupplier.apply(p_148307_);
+        this.mob.level.getProfiler().pop();
 
-            return flag;
-        }
+        return flag;
     }
 }

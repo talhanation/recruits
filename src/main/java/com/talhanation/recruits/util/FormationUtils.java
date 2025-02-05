@@ -24,9 +24,12 @@ public class FormationUtils {
         else
             pos = linePos.lerp(linePos.add(rotation.reverse()), index * 1.50);
 
-        BlockPos blockPos = level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
+        BlockPos blockPos = FormationUtils.getPositionOrSurface(
+                level,
+                new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
+        );
         
-        return new Vec3(pos.x, blockPos.getY(), pos.z);
+        return new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ());
     }
     public static void movementFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
         lineFormation(player, recruits, targetPos, 3, 2.0D);
@@ -76,9 +79,12 @@ public class FormationUtils {
             }
 
             if (pos != null) {
-                BlockPos blockPos = player.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
+                BlockPos blockPos = FormationUtils.getPositionOrSurface(
+                        recruit.getCommandSenderWorld(),
+                        new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
+                );
 
-                recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
+                recruit.setHoldPos(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
                 recruit.ownerRot = player.getYRot();
                 recruit.setFollowState(3);
                 recruit.isInFormation = true;
@@ -131,8 +137,12 @@ public class FormationUtils {
             }
 
             if (pos != null) {
-                BlockPos blockPos = player.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
-                recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
+                BlockPos blockPos = FormationUtils.getPositionOrSurface(
+                        recruit.getCommandSenderWorld(),
+                        new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
+                );
+
+                recruit.setHoldPos(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
                 recruit.ownerRot = player.getYRot();
                 recruit.setFollowState(3);
                 recruit.isInFormation = true;
@@ -185,7 +195,10 @@ public class FormationUtils {
             }
 
             if (pos != null) {
-                BlockPos blockPos = player.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
+                BlockPos blockPos = FormationUtils.getPositionOrSurface(
+                        recruit.getCommandSenderWorld(),
+                        new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
+                );
 
                 recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
                 recruit.ownerRot = player.getYRot();
@@ -233,7 +246,10 @@ public class FormationUtils {
             }
 
             if (pos != null) {
-                BlockPos blockPos = player.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
+                BlockPos blockPos = FormationUtils.getPositionOrSurface(
+                        recruit.getCommandSenderWorld(),
+                        new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
+                );
 
                 recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
                 recruit.ownerRot = player.getYRot();
@@ -305,7 +321,11 @@ public class FormationUtils {
             }
 
             if (pos != null) {
-                BlockPos blockPos = player.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
+                BlockPos blockPos = FormationUtils.getPositionOrSurface(
+                        recruit.getCommandSenderWorld(),
+                        new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
+                );
+
                 recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
                 recruit.ownerRot = player.getYRot();
                 recruit.setFollowState(3);
@@ -367,7 +387,11 @@ public class FormationUtils {
             }
 
             if (pos != null) {
-                BlockPos blockPos = player.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
+                BlockPos blockPos = FormationUtils.getPositionOrSurface(
+                        recruit.getCommandSenderWorld(),
+                        new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
+                );
+
                 recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
                 recruit.ownerRot = player.getYRot();
                 recruit.setFollowState(3);
@@ -409,7 +433,11 @@ public class FormationUtils {
             AbstractRecruitEntity recruit = recruits.get(i);
             Vec3 pos = possiblePositions.get(i).position;
 
-            BlockPos blockPos = player.getCommandSenderWorld().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
+            BlockPos blockPos = FormationUtils.getPositionOrSurface(
+                    recruit.getCommandSenderWorld(),
+                    new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
+            );
+
             recruit.setHoldPos(new Vec3(pos.x, blockPos.getY(), pos.z));
             recruit.ownerRot = player.getYRot();
             recruit.setFollowState(3);
@@ -443,7 +471,10 @@ public class FormationUtils {
         double centerY = sumY / recruits.size();
         double centerZ = sumZ / recruits.size();
 
-        BlockPos blockPos = level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) centerX, (int) centerY, (int) centerZ));
+        BlockPos blockPos = FormationUtils.getPositionOrSurface(
+                level,
+                new BlockPos((int) centerX, (int) centerY, (int) centerZ)
+        );
 
         return new Vec3(centerX, blockPos.getY(), centerZ);
     }
@@ -475,7 +506,10 @@ public class FormationUtils {
         double centerY = (pos1.y + pos2.y) / 2.0;
         double centerZ = (pos1.z + pos2.z) / 2.0;
 
-        BlockPos blockPos = level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) centerX, (int) centerY, (int) centerZ));
+        BlockPos blockPos = FormationUtils.getPositionOrSurface(
+                level,
+                new BlockPos((int) centerX, (int) centerY, (int) centerZ)
+        );
 
         return new Vec3(centerX, blockPos.getY(), centerZ);
     }
@@ -526,7 +560,27 @@ public class FormationUtils {
             currentGuess = newGuess;
         }
 
-        BlockPos blockPos = level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos((int) currentGuess.x, (int) currentGuess.y, (int) currentGuess.z));
+        BlockPos blockPos = FormationUtils.getPositionOrSurface(
+                level,
+                new BlockPos((int) currentGuess.x, (int) currentGuess.y, (int) currentGuess.z)
+        );
+
         return new Vec3(currentGuess.x, blockPos.getY(), currentGuess.z);
+    }
+
+    public static BlockPos getPositionOrSurface(Level level, BlockPos pos) {
+        boolean positionFree = true;
+        for(int i = 0; i < 2; i++) {
+            if(!level.getBlockState(pos.above(i)).isCollisionShapeFullBlock(level, pos.above(i))) {
+                positionFree = false;
+                break;
+            }
+        }
+
+        return positionFree ? pos : new BlockPos(
+                pos.getX(),
+                level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE, pos).getY(),
+                pos.getZ()
+        );
     }
 }

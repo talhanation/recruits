@@ -20,7 +20,7 @@ public class VisibilityGraphCache {
         }
 
         if(first == null || second == null ||
-                first.distanceToSqr(second.getPosition(0)) >= 128.0D) {
+                first.distanceToSqr(second.getPosition(0)) >= 62500.0D) {
             return false;
         }
 
