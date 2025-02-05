@@ -1010,7 +1010,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     ////////////////////////////////////is FUNCTIONS////////////////////////////////////
 
     public boolean isEffectedByCommand(UUID player_uuid, int group){
-        return (this.isOwned() && (this.getListen()) && Objects.equals(this.getOwnerUUID(), player_uuid) && (this.getGroup() == group || group == 0));
+        return (this.isOwned() && this.isAlive() && (this.getListen()) && Objects.equals(this.getOwnerUUID(), player_uuid) && (this.getGroup() == group || group == 0));
     }
     public boolean isOwned(){
         return getIsOwned();
