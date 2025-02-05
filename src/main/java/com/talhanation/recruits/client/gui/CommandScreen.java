@@ -5,6 +5,7 @@ import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.events.ClientEvent;
 import com.talhanation.recruits.client.gui.group.*;
+import com.talhanation.recruits.client.gui.team.TeamMainScreen;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.*;
@@ -736,7 +737,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                 //TEAM
                 RecruitsCommandButton teamButton = new RecruitsCommandButton(x - 60, y + 50, TEXT_TEAM,
                         button -> {
-                            Main.SIMPLE_CHANNEL.sendToServer(new MessageTeamMainScreen(player));
+                            minecraft.setScreen(new TeamMainScreen(player));
                         },
                         (button1, poseStack, i, i1) -> {
                             this.renderTooltip(poseStack, TOOLTIP_TEAM, i, i1);

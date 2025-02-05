@@ -151,6 +151,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
                 if(isTeamLeader){
                     if(deleteActive){
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
+
                         minecraft.setScreen(new TeamMainScreen(player));
                         return;
                     }
@@ -197,10 +198,10 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         return flag;
     }
 
-    @Override
-    public void onClose() {
-        super.onClose();
+    public void removed() {
+        super.removed();
         minecraft.keyboardHandler.setSendRepeatsToGui(false);
+        recruitsTeam = null;
     }
 
     int x1 = 25;
