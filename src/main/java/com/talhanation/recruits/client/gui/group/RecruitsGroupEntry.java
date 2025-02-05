@@ -55,7 +55,7 @@ public class RecruitsGroupEntry extends ListScreenEntryBase<RecruitsGroupEntry> 
             guiGraphics.fill(left, top, left + width, top + height, BG_FILL);
         }
 
-        guiGraphics.drawString(minecraft.font, group.getName(), (float) textX + 45, (float) textY,  PLAYER_NAME_COLOR, false);
+        guiGraphics.drawString(minecraft.font, group.getName(), (float) textX + 15, (float) textY,  PLAYER_NAME_COLOR, false);
     }
     public RecruitsGroup getGroup() {
         return group;

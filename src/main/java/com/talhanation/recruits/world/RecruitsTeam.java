@@ -187,7 +187,7 @@ public class RecruitsTeam {
     }
 
     public static RecruitsTeam fromNBT(CompoundTag nbt) {
-        if(nbt.isEmpty()) {
+        if(nbt == null || nbt.isEmpty()) {
             return null;
         }
         RecruitsTeam team = new RecruitsTeam();
