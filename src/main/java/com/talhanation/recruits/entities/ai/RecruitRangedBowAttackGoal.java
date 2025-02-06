@@ -52,7 +52,8 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity> extends Goal {
             boolean canAttack = this.recruit.canAttack(target);
             boolean notPassive = this.recruit.getState() != 3;
             boolean notNeedsToGetFood = !this.recruit.needsToGetFood();
-            return distance >= stopRange && canTackMovePos && notNeedsToGetFood && canAttack && notPassive && shouldRanged;
+            boolean canSee = this.recruit.getSensing().hasLineOfSight(target);
+            return distance >= stopRange && canSee && canTackMovePos && notNeedsToGetFood && canAttack && notPassive && shouldRanged;
         } else {
             return false;
         }

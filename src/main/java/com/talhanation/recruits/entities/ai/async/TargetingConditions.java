@@ -71,7 +71,7 @@ public class TargetingConditions {
                 }
 
                 if (this.checkLineOfSight && p_26886_ instanceof Mob mob) {
-                    return VisibilityGraphCache.canSee(mob, p_26887_);
+                    return new Sensing(mob).hasLineOfSight(p_26887_, true);
                 }
             }
 

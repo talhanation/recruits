@@ -11,15 +11,13 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
 
-
-
 public class RecruitMeleeAttackGoal extends Goal {
     protected final AbstractRecruitEntity recruit;
     private final double speedModifier;
     private Path path;
     private int pathingCooldown;
-    private long lastCanUseCheck;
     private final double range;
+
     public RecruitMeleeAttackGoal(AbstractRecruitEntity recruit, double speedModifier, double range) {
         this.recruit = recruit;
         this.speedModifier = speedModifier;
@@ -29,27 +27,25 @@ public class RecruitMeleeAttackGoal extends Goal {
     }
 
     public boolean canUse() {
-        //check if last use was 20 tick before
-        long i = this.recruit.level.getGameTime();
-        if (i - this.lastCanUseCheck >= 20L) {
-            this.lastCanUseCheck = i;
+        LivingEntity target = this.recruit.getTarget();
 
-            LivingEntity target = this.recruit.getTarget();
-            if (target != null && target.isAlive()) {
-                boolean isClose = target.distanceTo(this.recruit) <= range;
-                boolean canSee = this.recruit.getSensing().hasLineOfSight(target);
-                if (isClose && canSee && canAttackHoldPos() && recruit.getState() != 3 && !recruit.needsToGetFood() && !recruit.getShouldMount() && !recruit.getShouldMovePos()) {
-                    this.path = this.recruit.getNavigation().createPath(target, 0);
-                    if (this.path != null) {
-                        return true;
-                    } else {
-                        double distance = this.recruit.distanceToSqr(target.getX(), target.getY(), target.getZ());
-                        double reach = AttackUtil.getAttackReachSqr(recruit);
-                        return (reach >=  distance) && canAttackHoldPos();
-                    }
-                }
+        if (target == null || !target.isAlive()) {
+            return false;
+        }
+
+        boolean isClose = target.distanceToSqr(this.recruit) <= range * range;
+        boolean canSee = this.recruit.getSensing().hasLineOfSight(target);
+        if (isClose && canSee && canAttackHoldPos() && recruit.getState() != 3 && !recruit.needsToGetFood() && !recruit.getShouldMount() && !recruit.getShouldMovePos()) {
+            double distance = this.recruit.distanceToSqr(target.getX(), target.getY(), target.getZ());
+            this.path = this.recruit.getNavigation().createPath(target, 0);
+            if (this.path != null) {
+                return true;
+            } else {
+                double reach = AttackUtil.getAttackReachSqr(recruit);
+                return (reach >= distance) && canAttackHoldPos();
             }
         }
+
         return false;
     }
 
@@ -64,7 +60,7 @@ public class RecruitMeleeAttackGoal extends Goal {
             boolean needsToGetFood = recruit.needsToGetFood();
             boolean getShouldMount = recruit.getShouldMount();
             boolean getShouldMovePos = recruit.getShouldMovePos();
-            return (!(target instanceof Player) || !target.isSpectator() && !((Player)target).isCreative()) && canAttackHoldPos && recruit.getState() != 3 && !needsToGetFood && !getShouldMount && !getShouldMovePos;
+            return (!(target instanceof Player) || !target.isSpectator() && !((Player) target).isCreative()) && canAttackHoldPos && recruit.getState() != 3 && !needsToGetFood && !getShouldMount && !getShouldMovePos;
         }
     }
 
@@ -80,18 +76,18 @@ public class RecruitMeleeAttackGoal extends Goal {
         }
 
         this.recruit.setAggressive(false);
-        if(!recruit.isFollowing()) this.recruit.getNavigation().stop();
+        if (!recruit.isFollowing()) this.recruit.getNavigation().stop();
     }
 
     public void tick() {
-        if(this.pathingCooldown > 0) this.pathingCooldown--;
+        if (this.pathingCooldown > 0) this.pathingCooldown--;
 
         if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
             this.recruit.getJumpControl().jump();
         }
 
         LivingEntity target = this.recruit.getTarget();
-        if(target != null && target.isAlive()){
+        if (target != null && target.isAlive()) {
             this.recruit.getLookControl().setLookAt(target, 30.0F, 30.0F);
             double distanceToTarget = this.recruit.distanceToSqr(target.getX(), target.getY(), target.getZ());
             double reach = AttackUtil.getAttackReachSqr(recruit);
@@ -100,12 +96,10 @@ public class RecruitMeleeAttackGoal extends Goal {
             boolean isNotFollowing = !recruit.isFollowing();
             boolean coolDownElapsed = this.pathingCooldown <= 0;
 
-            if(distanceToTarget <= reach && this.recruit.getSensing().hasLineOfSight(target)){
-                if(!recruit.isFollowing()) this.recruit.getNavigation().stop();
+            if (distanceToTarget <= reach && canSee) {
+                if (isNotFollowing) this.recruit.getNavigation().stop();
                 AttackUtil.performAttack(this.recruit, target);
-            }
-            else if (canSee && isNotFollowing && coolDownElapsed) {
-
+            } else if (canSee && isNotFollowing && coolDownElapsed) {
                 this.pathingCooldown = 4 + this.recruit.getRandom().nextInt(4);
 
                 if (distanceToTarget > 2024.0D) {
@@ -117,12 +111,13 @@ public class RecruitMeleeAttackGoal extends Goal {
             }
         }
     }
+
     private boolean canAttackHoldPos() {
         Vec3 pos = recruit.getHoldPos();
         LivingEntity target = this.recruit.getTarget();
         if (target != null && pos != null && recruit.getShouldHoldPos()) {
             double distanceToPos = target.distanceToSqr(pos);
-            double ref = recruit.isInFormation ? 75 : 300;
+            double ref = recruit.isInFormation ? 169 : 400;
 
             return distanceToPos < ref;
         }

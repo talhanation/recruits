@@ -255,7 +255,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         //this.goalSelector.addGoal(13, new RecruitPickupWantedItemGoal(this));
         this.targetSelector.addGoal(0, new RecruitProtectHurtByTargetGoal(this));
         this.targetSelector.addGoal(1, new RecruitOwnerHurtByTargetGoal(this));
-        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, LivingEntity.class, 20, true, false, this::shouldAttack));
+        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, LivingEntity.class, 5, true, false, this::shouldAttack));
         this.targetSelector.addGoal(3, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
         this.targetSelector.addGoal(4, new RecruitOwnerHurtTargetGoal(this));
 
@@ -1239,7 +1239,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     */
 
     public boolean isAlliedTo(Team p_20032_) {
-        return this.getTeam() != null ? this.getTeam().isAlliedTo(p_20032_) : false;
+        return this.getTeam() != null && this.getTeam().isAlliedTo(p_20032_);
     }
 
     public void die(DamageSource dmg) {
@@ -1251,6 +1251,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
                 if(this.isOwned()){
                     RecruitEvents.recruitsPlayerUnitManager.removeRecruits(this.getOwnerUUID(), 1);
+                    TeamEvents.removeRecruitFromTeam(this, this.getTeam(), (ServerLevel) this.getLevel());
                 }
             }
         }
@@ -1935,7 +1936,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         } else {
             Vec3 lookVec = new Vec3(this.getX(), this.getEyeY(), this.getZ());
             Vec3 vec31 = new Vec3(target.getX(), target.getEyeY(), target.getZ());
-            if (vec31.distanceToSqr(lookVec) > 62500.0D) {
+            if (vec31.distanceToSqr(lookVec) > 128.0D * 128.0D) {
                 return false;
             } else {
                 return this.level.clip(new ClipContext(lookVec, vec31, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this)).getType() == HitResult.Type.MISS;

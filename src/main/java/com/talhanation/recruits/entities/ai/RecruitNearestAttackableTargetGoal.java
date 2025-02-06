@@ -11,11 +11,13 @@ import net.minecraftforge.fml.util.thread.SidedThreadGroups;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 
 public class RecruitNearestAttackableTargetGoal<T extends LivingEntity> extends TargetGoal {
     private final Runnable targetFinder;
     private FindTarget<T> findTarget;
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private final Predicate<LivingEntity> predicate;
     protected final Class<T> targetType;
     protected final int randomInterval;
@@ -33,9 +35,9 @@ public class RecruitNearestAttackableTargetGoal<T extends LivingEntity> extends 
             this.targetFinder = this::scheduleFindTarget;
         } else {
             this.targetFinder = () -> {
-                FindTarget<T> findTarget = new FindTarget<>(this.mob, this.targetType, this.getFollowDistance(), this.predicate);
-                findTarget.findTargetNormal();
-                this.target = findTarget.getTarget();
+                this.findTarget = new FindTarget<>(this.mob, this.targetType, this.getFollowDistance(), this.predicate);
+                this.findTarget.findTargetNormal();
+                this.target = this.findTarget.getTarget();
             };
         }
     }
@@ -84,18 +86,33 @@ public class RecruitNearestAttackableTargetGoal<T extends LivingEntity> extends 
         return false;
     }
 
-    private void scheduleFindTarget() {
-        if(findTarget != null && !findTarget.isProcessed()) return;
+    private synchronized void scheduleFindTarget() {
+        lock.readLock().lock();
+        try {
+            if (findTarget != null && !findTarget.isProcessed()) return;
+        } finally {
+            lock.readLock().unlock();
+        }
 
-        FindTarget<T> findTarget = new FindTarget<>(this.mob, this.targetType, this.getFollowDistance(), this.predicate);
-        this.findTarget = findTarget;
-        FindTargetProcessor.queue(findTarget);
-        FindTargetProcessor.awaitProcessing(findTarget, this.mob.getServer(), (FindTarget<T> processedFindTarget) -> {
-            if(processedFindTarget != findTarget) {
-                return;
-            }
+        lock.writeLock().lock();
+        try {
+            this.findTarget = new FindTarget<>(this.mob, this.targetType, this.getFollowDistance(), this.predicate);
+        } finally {
+            lock.writeLock().unlock();
+        }
 
-            this.target = processedFindTarget.getTarget();
-        });
+        lock.readLock().lock();
+        try {
+            FindTargetProcessor.queue(this.findTarget, this.mob.getCommandSenderWorld());
+            FindTargetProcessor.awaitProcessing(this.findTarget, this.mob.getCommandSenderWorld(), (FindTarget<T> processedFindTarget) -> {
+                if (processedFindTarget == null || processedFindTarget != this.findTarget) {
+                    return;
+                }
+
+                this.target = processedFindTarget.getTarget();
+            });
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 }

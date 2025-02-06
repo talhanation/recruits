@@ -5,6 +5,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
+import javax.annotation.Nullable;
 import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -13,19 +14,19 @@ public class VisibilityGraphCache {
     private static final ConcurrentLinkedQueue<BiDirectionalPair<LivingEntity, Entity>> processQueue = new ConcurrentLinkedQueue<>();
     private static final ConcurrentHashMap<BiDirectionalPair<LivingEntity, Entity>, CacheEntry> visibilityCache = new ConcurrentHashMap<>();
 
-    public static boolean canSee(LivingEntity first, Entity second) {
+    public static @Nullable CacheEntry canSee(LivingEntity first, Entity second) {
         CacheEntry entry = visibilityCache.get(new BiDirectionalPair<>(first, second));
         if(entry != null && entry.isAlive()){
-            return entry.getCanSee();
+            return entry;
         }
 
         if(first == null || second == null ||
                 first.distanceToSqr(second.getPosition(0)) >= 62500.0D) {
-            return false;
+            return null;
         }
 
         processQueue.add(new BiDirectionalPair<>(first, second));
-        return false;
+        return null;
     }
 
     @SubscribeEvent
