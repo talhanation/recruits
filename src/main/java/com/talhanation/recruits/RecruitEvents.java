@@ -249,6 +249,8 @@ public class RecruitEvents {
 
     @SubscribeEvent
     public void onEntityLeaveWorld(EntityLeaveLevelEvent event) {
+        if(event.getLevel().isClientSide()) return;
+
         Entity entity = event.getEntity();
         if (entity instanceof Projectile projectile) {
             canceledProjectiles.remove(projectile);
@@ -257,6 +259,8 @@ public class RecruitEvents {
 
     @SubscribeEvent
     public void onPlayerInteractWithCaravan(PlayerInteractEvent.EntityInteract entityInteract) {
+        if(entityInteract.getLevel().isClientSide()) return;
+
         Player player = entityInteract.getEntity();
         Entity interacting = entityInteract.getTarget();
 
@@ -278,6 +282,8 @@ public class RecruitEvents {
 
     @SubscribeEvent
     public void onLivingHurt(LivingHurtEvent event) {
+        if(event.getEntity().getCommandSenderWorld().isClientSide()) return;
+
         if (Main.isMusketModLoaded) {
             Entity sourceEntity = event.getSource().getEntity();
             if (sourceEntity instanceof AbstractRecruitEntity owner && IWeapon.isMusketModWeapon(owner.getMainHandItem())) {
@@ -313,6 +319,8 @@ public class RecruitEvents {
 
     @SubscribeEvent
     public void onLivingAttack(LivingAttackEvent event) {
+        if(event.getEntity().getCommandSenderWorld().isClientSide()) return;
+
         Entity target = event.getEntity();
         Entity source = event.getSource().getEntity();
 
@@ -365,6 +373,7 @@ public class RecruitEvents {
 
     @SubscribeEvent
     public void onBlockBreakEvent(BlockEvent.BreakEvent event) {
+        if(event.getLevel().isClientSide()) return;
         if (RecruitsServerConfig.AggroRecruitsBlockPlaceBreakEvents.get()) {
             Player blockBreaker = event.getPlayer();
             if (blockBreaker == null) return;
@@ -419,6 +428,7 @@ public class RecruitEvents {
 
     @SubscribeEvent
     public void onBlockPlaceEvent(BlockEvent.EntityPlaceEvent event) {
+        if(event.getLevel().isClientSide()) return;
         if (RecruitsServerConfig.AggroRecruitsBlockPlaceBreakEvents.get()) {
             Entity blockPlacer = event.getEntity();
 
@@ -478,6 +488,7 @@ public class RecruitEvents {
 
     @SubscribeEvent
     public void onBlockInteract(PlayerInteractEvent.RightClickBlock event) {
+        if(event.getLevel().isClientSide()) return;
         BlockPos pos = event.getHitVec().getBlockPos();
         Player player = event.getEntity();
 
