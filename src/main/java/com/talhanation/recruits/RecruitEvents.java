@@ -178,6 +178,8 @@ public class RecruitEvents {
         }
         Entity owner = projectile.getOwner();
 
+        if(owner == null) return;
+
         if (rayTrace.getType() != HitResult.Type.ENTITY) {
             return;
         }
