@@ -4,6 +4,7 @@ import com.talhanation.recruits.config.RecruitsServerConfig;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -27,7 +28,7 @@ public abstract class AbstractChunkLoaderEntity extends AbstractRecruitEntity {
     }
 
     public void updateChunkLoading(){
-        if (RecruitsServerConfig.RecruitsChunkLoading.get() && !this.getCommandSenderWorld().isClientSide) {
+        if (!this.getCommandSenderWorld().isClientSide() && RecruitsServerConfig.RecruitsChunkLoading.get()) {
             RecruitsChunk currentChunk = new RecruitsChunk(this.chunkPosition().x, this.chunkPosition().z);
             if (loadedChunk.isEmpty()) {
                 this.setForceChunk(currentChunk, true);
@@ -89,8 +90,8 @@ public abstract class AbstractChunkLoaderEntity extends AbstractRecruitEntity {
         ForgeChunkManager.forceChunk((ServerLevel) this.getCommandSenderWorld(), Main.MOD_ID, this, chunk.x, chunk.z, add, false);
     }
 
-    public void kill(){
-        super.kill();
+    public void die(DamageSource dmg) {
+        super.die(dmg);
         if(!this.getCommandSenderWorld().isClientSide) loadedChunk.ifPresent(chunk -> this.getSetOfChunks(chunk).forEach(chunk1 -> this.setForceChunk(chunk1, false)));
     }
 

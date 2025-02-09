@@ -251,7 +251,7 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
     public void die(DamageSource dmg) {
         super.die(dmg);
 
-        if(Main.isCorpseLoaded && !this.getCommandSenderWorld().isClientSide() && RecruitsServerConfig.CompatCorpseMod.get()){
+        if(Main.isCorpseLoaded && !Main.isRPGZLoaded && !this.getCommandSenderWorld().isClientSide() && RecruitsServerConfig.CompatCorpseMod.get()){
             Corpse.spawnCorpse(this);
         }
         else

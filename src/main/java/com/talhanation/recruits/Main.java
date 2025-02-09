@@ -45,6 +45,7 @@ public class Main {
     public static boolean isSiegeWeaponsLoaded;
     public static boolean isEpicKnightsLoaded;
     public static boolean isCorpseLoaded;
+    public static boolean isRPGZLoaded;
 
     public Main() {
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -157,8 +158,7 @@ public class Main {
                 MessageRemoveAssignedGroupFromCompanion.class,
                 MessageToClientUpdateMessengerScreen.class,
                 MessageAnswerMessenger.class,
-                MessageToClientUpdateMessengerAnswerScreen.class,
-                MessageOpenMessengerAnswerScreen.class,
+                MessageToClientOpenMessengerAnswerScreen.class,
                 MessageClearUpkeepGui.class,
                 MessageToServerRequestUpdateGroupList.class,
                 MessageApplyNoGroup.class,
@@ -185,7 +185,8 @@ public class Main {
                 MessageScoutTask.class,
                 MessageToServerRequestUpdatePlayerCurrencyCount.class,
                 MessageToClientUpdatePlayerCurrencyCount.class,
-                MessageToClientOpenTakeOverScreen.class
+                MessageToClientOpenTakeOverScreen.class,
+                MessageToClientOpenMessengerAnswerScreen.class
         };
 
 
@@ -197,6 +198,7 @@ public class Main {
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
         isSmallShipsLoaded = ModList.get().isLoaded("smallships");//small ships
         isSiegeWeaponsLoaded = ModList.get().isLoaded("siegeweapons");//siege weapons
+        isRPGZLoaded = ModList.get().isLoaded("rpgz");//rpgz mod
         isCorpseLoaded = ModList.get().isLoaded("corpse");//corpse mod
         isEpicKnightsLoaded = ModList.get().isLoaded("magistuarmory");//epic knights mod
 

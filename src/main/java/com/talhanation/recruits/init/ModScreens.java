@@ -6,7 +6,6 @@ import com.talhanation.recruits.client.gui.team.*;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
-import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.inventory.*;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.Screen;
@@ -39,8 +38,6 @@ public class ModScreens {
         registerMenu(HIRE_CONTAINER_TYPE.get(), RecruitHireScreen::new);
         registerMenu(TEAM_EDIT_TYPE.get(), TeamEditScreen::new);
         registerMenu(PROMOTE.get(), PromoteScreen::new);
-        registerMenu(MESSENGER.get(), MessengerScreen::new);
-        registerMenu(MESSENGER_ANSWER.get(), MessengerAnswerScreen::new);
         registerMenu(PATROL_LEADER.get(), PatrolLeaderScreen::new);
 
         logger.info("MenuScreens registered");
@@ -196,40 +193,6 @@ public class ModScreens {
 
                 } catch (Exception e) {
                     logger.error("Error in promote_container: ");
-                    logger.error(e.getMessage());
-                    logger.error(e.getStackTrace().toString());
-                    return null;
-                }
-            }));
-
-    public static final RegistryObject<MenuType<MessengerContainer>> MESSENGER =
-            MENU_TYPES.register("messenger_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
-                try {
-                    UUID workerId = data.readUUID();
-                    Player playerEntity = inv.player;
-                    AbstractRecruitEntity rec = getRecruitByUUID(playerEntity, workerId);
-
-                    return new MessengerContainer(windowId, playerEntity, (MessengerEntity) rec);
-
-                } catch (Exception e) {
-                    logger.error("Error in messenger_container: ");
-                    logger.error(e.getMessage());
-                    logger.error(e.getStackTrace().toString());
-                    return null;
-                }
-            }));
-
-    public static final RegistryObject<MenuType<MessengerAnswerContainer>> MESSENGER_ANSWER =
-            MENU_TYPES.register("messenger_answer_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
-                try {
-                    UUID workerId = data.readUUID();
-                    Player playerEntity = inv.player;
-                    AbstractRecruitEntity rec = getRecruitByUUID(playerEntity, workerId);
-
-                    return new MessengerAnswerContainer(windowId, playerEntity, (MessengerEntity) rec);
-
-                } catch (Exception e) {
-                    logger.error("Error in messenger_answer_container: ");
                     logger.error(e.getMessage());
                     logger.error(e.getStackTrace().toString());
                     return null;
