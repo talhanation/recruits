@@ -42,7 +42,7 @@ public class MessageToServerRequestUpdateTeamInspaction implements Message<Messa
         }
 
 
-        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateTeamInspection(playerInfoList, recruitsTeam, RecruitsServerConfig.ShouldTeamEditingBeAllowed.get(), RecruitsServerConfig.ShouldTeamManagingBeAllowed.get()));
+        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateTeamInspection(playerInfoList, recruitsTeam, RecruitsServerConfig.ShouldFactionEditingBeAllowed.get(), RecruitsServerConfig.ShouldFactionManagingBeAllowed.get()));
     }
 
     @Override

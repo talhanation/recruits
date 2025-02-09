@@ -35,6 +35,7 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
     private final Player player;
     private ExtendedButton hireButton;
     public static ItemStack currency;
+    public static boolean canHire;
 
     public RecruitHireScreen(RecruitHireMenu recruitContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, recruitContainer, playerInventory, Component.literal(""));
@@ -45,11 +46,19 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
     }
 
     @Override
+    protected void containerTick() {
+        super.containerTick();
+        if(hireButton != null){
+            hireButton.active = canHire;
+        }
+    }
+
+    @Override
     protected void init() {
         super.init();
 
-        hireButton = createHireButton();
         if(currency != null) currency.setCount(recruit.getCost());
+        hireButton = createHireButton();
     }
 
     private ExtendedButton createHireButton() {

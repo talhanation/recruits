@@ -495,7 +495,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
             itemRenderer.renderGuiItemDecorations(font, currency, currencyX, currencyY);
         }
 
-        if(textFieldTeamName != null)textFieldTeamName.render(guiGraphics, mouseX, mouseY, delta);
+        if(textFieldTeamName != null)textFieldTeamName.render(poseStack, mouseX, mouseY, delta);
     }
 
     public Component getMaxRecruitsPerPlayerString() {

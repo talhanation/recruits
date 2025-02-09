@@ -1012,7 +1012,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public InteractionResult mobInteract(@NotNull Player player, @NotNull InteractionHand hand) {
         String name = this.getName().getString();
         Team ownerTeam = this.getTeam();
-        String stringId = ownerTeam != null ? ownerTeam.getName() : "";
         boolean isPlayerTarget = this.getTarget() != null && getTarget().equals(player);
 
         if(isPlayerTarget) return InteractionResult.PASS;
@@ -1060,7 +1059,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     //this will not work:
                     Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientOpenTakeOverScreen(this.getUUID()));
             }
-            else if (!this.isOwned() && RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(stringId, player.getUUID()) && !isPlayerTarget) {
+            else if (!this.isOwned() && !isPlayerTarget) {
                 this.openHireGUI(player);
                 this.dialogue(name, player);
                 this.navigation.stop();
@@ -1759,7 +1758,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void openHireGUI(Player player) {
         if (player instanceof ServerPlayer) {
             this.navigation.stop();
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateHireScreen(TeamEvents.getCurrency()));
+            Team ownerTeam = player.getTeam();
+            String stringId = ownerTeam != null ? ownerTeam.getName() : "";
+            boolean canHire = RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(stringId, player.getUUID());
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateHireScreen(TeamEvents.getCurrency(), canHire));
             NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {

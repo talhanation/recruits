@@ -5,52 +5,39 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.component.RecruitsMultiLineEditBox;
 import com.talhanation.recruits.entities.MessengerEntity;
-import com.talhanation.recruits.inventory.MessengerAnswerContainer;
 import com.talhanation.recruits.network.MessageAnswerMessenger;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
-import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.MultiLineEditBox;
-import net.minecraft.client.gui.components.MultilineTextField;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 
-public class MessengerAnswerScreen extends ScreenBase<MessengerAnswerContainer> {
+public class MessengerAnswerScreen extends RecruitsScreenBase {
 
-    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/professions/blank_gui.png");
+    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/professions/blank_gui.png");
     private final Player player;
-    private final MessengerEntity recruit;
+    private final MessengerEntity messenger;
     private RecruitsMultiLineEditBox textFieldMessage;
-    private int leftPos;
-    private int topPos;
 
-    public static String message = "";
+    private final String message;
 
-    public static RecruitsPlayerInfo playerInfo;
+    private final RecruitsPlayerInfo playerInfo;
     private static final MutableComponent BUTTON_OK = Component.translatable("gui.recruits.inv.text.ok_messenger");
-    private static final int fontColor = 4210752;
-
-    public MessengerAnswerScreen(MessengerAnswerContainer container, Inventory playerInventory, Component title) {
-        super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""));
-        this.imageWidth = 197;
-        this.imageHeight = 250;
-        this.player = container.getPlayerEntity();
-        this.recruit = container.getRecruit();
+    public MessengerAnswerScreen(MessengerEntity messenger, Player player, String message, RecruitsPlayerInfo playerInfo) {
+        super(Component.literal(""), 197,250);
+        this.player = player;
+        this.messenger = messenger;
+        this.message = message;
+        this.playerInfo = playerInfo;
     }
 
     @Override
     protected void init() {
         super.init();
-        this.leftPos = (this.width - this.imageWidth) / 2;
-        this.topPos = (this.height - this.imageHeight) / 2;
-
-        this.textFieldMessage = new RecruitsMultiLineEditBox(font, leftPos + 3, topPos + 35, 186, 165, Component.empty(), Component.empty());
+        this.textFieldMessage = new RecruitsMultiLineEditBox(font, guiLeft + 3, guiTop + ySize - 215, 186, 165, Component.empty(), Component.empty());
         this.textFieldMessage.setValue(message);
         this.textFieldMessage.setEnableEditing(false);
         this.textFieldMessage.changeFocus(false);
@@ -60,9 +47,9 @@ public class MessengerAnswerScreen extends ScreenBase<MessengerAnswerContainer> 
 
         setOKButton();
     }
-    protected void containerTick() {
-        super.containerTick();
-        this.textFieldMessage.tick();
+    public void tick() {
+        super.tick();
+        if(textFieldMessage != null) this.textFieldMessage.tick();
     }
 
     public boolean mouseClicked(double p_100753_, double p_100754_, int p_100755_) {
@@ -70,10 +57,11 @@ public class MessengerAnswerScreen extends ScreenBase<MessengerAnswerContainer> 
     }
 
     private void setOKButton() {
-        Button sendButton = addRenderableWidget(new Button(leftPos + 33, topPos + 200, 128, 20, BUTTON_OK,
+        Button sendButton = addRenderableWidget(new Button(guiLeft + 33, guiTop + ySize - 50, 128, 20, BUTTON_OK,
                 button -> {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAnswerMessenger(recruit.getUUID()));
-                    this.onClose();
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAnswerMessenger(messenger.getUUID()));
+
+                    onClose();
                 }
         ));
     }
@@ -84,36 +72,36 @@ public class MessengerAnswerScreen extends ScreenBase<MessengerAnswerContainer> 
 
     }
 
-    protected void render(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
+    @Override
+    public void renderBackground(PoseStack poseStack, int mouseX, int mouseY, float delta) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, RESOURCE_LOCATION);
-        this.blit(poseStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
+        RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
+        RenderSystem.setShaderTexture(0, TEXTURE);
+        blit(poseStack, guiLeft, guiTop, 0, 0, xSize, ySize);
     }
 
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
-        super.renderLabels(matrixStack, mouseX, mouseY);
-        String targetPlayer = this.playerInfo.getName();
-        String owner = this.recruit.getOwnerName();
+    public void renderForeground(PoseStack matrixStack, int mouseX, int mouseY, float delta) {
+        String targetPlayer = playerInfo.getName();
+        String owner = this.messenger.getOwnerName();
         String unit = "min";
-        int rawtime = this.recruit.getWaitingTime();
+        int rawtime = this.messenger.getWaitingTime();
         int time = rawtime / 20;
         if (time <= 100) unit = "sec";
         else time = time / 60;
 
         //Info
         int fontColor = 4210752;
-        font.draw(matrixStack, "From:", 9, 9, fontColor);
-        font.draw(matrixStack, "To:", 9, 20, fontColor);
-        font.draw(matrixStack, "" + owner, 50, 9, fontColor);
-        font.draw(matrixStack, "" + targetPlayer, 50, 20, fontColor);
+        font.draw(matrixStack, "From:", guiLeft + 9, guiTop + 9, fontColor);
+        font.draw(matrixStack, "To:", guiLeft + 9,  guiTop + 20, fontColor);
+        font.draw(matrixStack, "" + owner, guiLeft + 50,  guiTop + 9, fontColor);
+        font.draw(matrixStack, "" + targetPlayer, guiLeft + 50,  guiTop + 20, fontColor);
 
-        font.draw(matrixStack, "Time: " + time + unit, 130, 9, fontColor);
+        font.draw(matrixStack, "Time: " + time + unit, guiLeft + 130, guiTop + 9, fontColor);
 
-        if(!recruit.getMainHandItem().isEmpty()){
-            itemRenderer.renderGuiItem(recruit.getMainHandItem(), 120, 202);
-            itemRenderer.renderGuiItemDecorations(font, recruit.getMainHandItem(),120, 202);
+        if(!messenger.getMainHandItem().isEmpty()){
+            itemRenderer.renderGuiItem(messenger.getMainHandItem(), guiLeft + 120, guiTop + ySize - 48);
+            itemRenderer.renderGuiItemDecorations(font, messenger.getMainHandItem(),guiLeft + 120, guiTop + ySize - 48);
         }
     }
 }
