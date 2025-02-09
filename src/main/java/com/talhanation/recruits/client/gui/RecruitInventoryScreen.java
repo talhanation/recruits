@@ -323,6 +323,10 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                             this.minecraft.setScreen(new ScoutScreen(scout, getMinecraft().player));
                             return;
                         }
+                        else if(recruit instanceof MessengerEntity messenger){
+                            this.minecraft.setScreen(new MessengerScreen(messenger, getMinecraft().player));
+                            return;
+                        }
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenSpecialScreen(this.playerInventory.player, recruit.getUUID()));
                         this.onClose();
                     },

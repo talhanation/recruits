@@ -37,7 +37,6 @@ public class MessageAnswerMessenger implements Message<MessageAnswerMessenger> {
                 messenger.dropDeliverItem();
                 messenger.state = MessengerEntity.State.TELEPORT_BACK;
             }
-
         }
 
     }
