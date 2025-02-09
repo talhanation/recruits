@@ -108,7 +108,7 @@ public class  TeamEvents {
 
             Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> serverPlayer),
                     new MessageToClientUpdateTeamEditScreen(TeamEvents.getCurrency(),
-                            RecruitsServerConfig.TeamCreationCost.get(),
+                            RecruitsServerConfig.FactionCreationCost.get(),
                             RecruitsServerConfig.MaxRecruitsForPlayer.get(),
                             recruitsTeam
                     ));
@@ -135,7 +135,7 @@ public class  TeamEvents {
     public static boolean createTeam(boolean menu, ServerPlayer serverPlayer, @NotNull ServerLevel level, String teamName, String playerName, ItemStack banner, ChatFormatting color, byte colorByte) {
         MinecraftServer server = level.getServer();
         PlayerTeam team = server.getScoreboard().getPlayerTeam(teamName);
-        int cost = RecruitsServerConfig.TeamCreationCost.get();
+        int cost = RecruitsServerConfig.FactionCreationCost.get();
         if(banner == null) banner = Items.BROWN_BANNER.getDefaultInstance();
         CompoundTag nbt = banner.serializeNBT();
 

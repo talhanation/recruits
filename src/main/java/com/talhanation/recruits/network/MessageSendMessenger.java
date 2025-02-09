@@ -31,6 +31,10 @@ public class MessageSendMessenger implements Message<MessageSendMessenger> {
         if(targetPlayer != null){
             this.nbt = targetPlayer.toNBT();
         }
+        else {
+            this.nbt = new CompoundTag();
+        }
+
     }
 
     public Dist getExecutingSide() {
@@ -44,14 +48,17 @@ public class MessageSendMessenger implements Message<MessageSendMessenger> {
                 player.getBoundingBox().inflate(16D),
                 (messenger) -> messenger.getUUID().equals(this.recruit)
         ).forEach((messenger) -> {
-            messenger.setMessage(this.message);
+            if (messenger.getUUID().equals(this.recruit)){
 
-            if (start) {
-                messenger.start();
-            }
+                messenger.setMessage(this.message);
 
-            if(nbt != null){
-                messenger.setTargetPlayerInfo(RecruitsPlayerInfo.getFromNBT(this.nbt));
+                if(!this.nbt.isEmpty()){
+                    messenger.setTargetPlayerInfo(RecruitsPlayerInfo.getFromNBT(this.nbt));
+                }
+
+                if(start){
+                    messenger.start();
+                }
             }
         });
     }
@@ -60,10 +67,8 @@ public class MessageSendMessenger implements Message<MessageSendMessenger> {
         this.recruit = buf.readUUID();
         this.start = buf.readBoolean();
         this.message = buf.readUtf();
+        this.nbt = buf.readNbt();
 
-        if(nbt != null){
-            this.nbt = buf.readNbt();
-        }
         return this;
     }
 
@@ -71,9 +76,6 @@ public class MessageSendMessenger implements Message<MessageSendMessenger> {
         buf.writeUUID(recruit);
         buf.writeBoolean(start);
         buf.writeUtf(message);
-
-        if(nbt != null){
-            buf.writeNbt(nbt);
-        }
+        buf.writeNbt(nbt);
     }
 }

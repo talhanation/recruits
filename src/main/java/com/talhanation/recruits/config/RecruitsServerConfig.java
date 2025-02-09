@@ -58,7 +58,7 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.IntValue PillagerPatrolSpawnInterval;
     public static ForgeConfigSpec.IntValue RecruitPatrolSpawnInterval;
     public static ForgeConfigSpec.IntValue RecruitPatrolDespawnTime;
-    public static ForgeConfigSpec.IntValue TeamCreationCost;
+    public static ForgeConfigSpec.IntValue FactionCreationCost;
     public static ForgeConfigSpec.BooleanValue GlobalTeamFriendlyFireSetting;
     public static ForgeConfigSpec.BooleanValue GlobalTeamSeeFriendlyInvisibleSetting;
     public static ForgeConfigSpec.BooleanValue GlobalTeamSetting;
@@ -75,12 +75,11 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.IntValue AsyncPathfindingThreadsCount;
     public static ForgeConfigSpec.BooleanValue UseAsyncTargetFinding;
     public static ForgeConfigSpec.IntValue AsyncTargetFindingThreadsCount;
-    public static ForgeConfigSpec.IntValue MaxPlayersInTeam;
-    public static ForgeConfigSpec.IntValue MaxNPCsInTeam;
-    public static ForgeConfigSpec.BooleanValue ShouldTeamEditingBeAllowed;
-    public static ForgeConfigSpec.BooleanValue ShouldTeamManagingBeAllowed;
+    public static ForgeConfigSpec.IntValue MaxPlayersInFaction;
+    public static ForgeConfigSpec.IntValue MaxNPCsInFaction;
+    public static ForgeConfigSpec.BooleanValue ShouldFactionEditingBeAllowed;
+    public static ForgeConfigSpec.BooleanValue ShouldFactionManagingBeAllowed;
     public static ForgeConfigSpec.BooleanValue AllowArrowCleaning;
-
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin", "corpse:corpse", "minecraft:armorstand"));
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
@@ -154,7 +153,7 @@ public class RecruitsServerConfig {
 
         MaxRecruitsForPlayer = BUILDER.comment("""
                         
-                        Max amount a player can recruit
+                        Max amount a normal player can recruit (Faction Leaders are limited to a different setting)
                         \t(takes effect after restart)
                         \tdefault: 100""")
                 .worldRestart()
@@ -571,70 +570,70 @@ public class RecruitsServerConfig {
         */
 
         BUILDER.pop();
-        BUILDER.comment("Recruit Teams Config:").push("Teams");
+        BUILDER.comment("Recruit Faction Config:").push("Factions");
 
-        TeamCreationCost = BUILDER.comment("""
+        FactionCreationCost = BUILDER.comment("""
                         
-                        The amount of currency needed to create a team. Set 0 to disable.
+                        The amount of currency needed to create a faction. Set 0 to disable.
                         \t(takes effect after restart)
                         \tdefault: 10""")
                 .worldRestart()
-                .defineInRange("TeamCreationCost", 10, 0, 1453);
+                .defineInRange("FactionCreationCost", 10, 0, 1453);
 
-        MaxPlayersInTeam = BUILDER.comment("""
+        MaxPlayersInFaction = BUILDER.comment("""
 
-                        The amount of players allowed in a team. Set 0 for infinite.
+                        The amount of players allowed in a faction. Set 0 for infinite.
                         \t(takes effect after restart)
                         \tdefault: 5""")
                 .worldRestart()
-                .defineInRange("MaxPlayersInTeam", 5, 0, 1453);
+                .defineInRange("MaxPlayersInFaction", 5, 0, 1453);
 
-        MaxNPCsInTeam = BUILDER.comment("""
+        MaxNPCsInFaction = BUILDER.comment("""
 
-                        The amount of recruits allowed in a team. Set 0 for infinite.
+                        The amount of recruits allowed in a faction. Set 0 for infinite.
                         \t(takes effect after restart)
                         \tdefault: 500""")
                 .worldRestart()
-                .defineInRange("MaxRecruitsInTeam", 500, 0, 1453);
+                .defineInRange("MaxNPCsInFaction", 500, 0, 1453);
 
-        ShouldTeamEditingBeAllowed = BUILDER.comment("""
+        ShouldFactionEditingBeAllowed = BUILDER.comment("""
 
-                        Should editing the team be allowed by team leaders. (Editing Team Colors, Name ,...)
+                        Should editing the faction be allowed by their leaders. (Editing Faction Colors, Name ,...)
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
-                .define("ShouldTeamEditingBeAllowed", true);
+                .define("ShouldFactionEditingBeAllowed", true);
 
-        ShouldTeamManagingBeAllowed = BUILDER.comment("""
+        ShouldFactionManagingBeAllowed = BUILDER.comment("""
 
-                        Should managing the team be allowed by team leaders. (Add/Remove Players...)
+                        Should managing the faction be allowed by their leaders. (Add/Remove Players...)
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
-                .define("ShouldTeamEditingBeAllowed", true);
+                .define("ShouldFactionManagingBeAllowed", true);
 
 
-        BUILDER.comment("Global Team Settings")
+        BUILDER.comment("Global Faction/Team Settings")
 
-                .push("Global Team Settings");
+                .push("Global Faction/Team Settings");
 
         GlobalTeamSetting = BUILDER.comment("""
                         
-                        Should Recruits override following team settings on world start for all teams?
+                        Should Recruits override following team settings on world start for all factions?
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
                 .define("GlobalTeamSetting", true);
 
         GlobalTeamFriendlyFireSetting = BUILDER.comment("""
-                        Override Friendly fire true/false for all teams on world start
+                        Override Friendly fire true/false for all factions on world start
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
                 .define("GlobalTeamFriendlyFireSetting", false);
 
         GlobalTeamSeeFriendlyInvisibleSetting = BUILDER.comment("""
-                        Override SeeFriendlyInvisible true/false for all teams on world start.
+                        Override SeeFriendlyInvisible true/false for all factions on world start.
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
@@ -645,8 +644,8 @@ public class RecruitsServerConfig {
         BUILDER.comment("Recruit Mod compatibility Config:").push("Compat");
 
         CompatCorpseMod = BUILDER.comment("""
-                        This feature is only possible when corpse mod is installed.
-                        Should recruits spawn corpse of corpse mod when dead?.
+                        This feature is only possible when corpse-mod is installed. Not possible when rpgz-mod is loaded.
+                        Should recruits spawn corpse of corpse-mod when dead?.
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()

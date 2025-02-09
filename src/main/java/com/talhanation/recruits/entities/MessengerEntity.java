@@ -4,8 +4,6 @@ package com.talhanation.recruits.entities;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.init.ModSounds;
-import com.talhanation.recruits.inventory.MessengerAnswerContainer;
-import com.talhanation.recruits.inventory.MessengerContainer;
 import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
@@ -24,7 +22,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -36,21 +33,19 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.Random;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompanion {
@@ -190,52 +185,25 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     public ServerPlayer getTargetPlayer(){
         if(this.targetPlayerInfo != null && !this.getCommandSenderWorld().isClientSide()){
             ServerLevel serverLevel = (ServerLevel) this.getCommandSenderWorld();
-            return serverLevel.getServer().getPlayerList().getPlayerByName(this.targetPlayerInfo.getName());
+            return serverLevel.getServer().getPlayerList().getPlayer(this.targetPlayerInfo.getUUID());
         }
         return null;
     }
 
     public void openSpecialGUI(Player player) {
-        if (player instanceof ServerPlayer) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateMessengerScreen(this.message, this.targetPlayerInfo));
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
-                @Override
-                public @NotNull Component getDisplayName() {
-                    return MessengerEntity.this.getName();
-                }
-
-                @Override
-                public AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
-                    return new MessengerContainer(i, playerEntity,  MessengerEntity.this);
-                }
-            }, packetBuffer -> {packetBuffer.writeUUID(this.getUUID());});
-        } else {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenSpecialScreen(player, this.getUUID()));
-        }
+        //NOT USED NO CONTAINER NEEDED
     }
 
     public void openAnswerGUI(Player player) {
-        if (player instanceof ServerPlayer) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateMessengerAnswerScreen(this.message, this.targetPlayerInfo));
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
-                @Override
-                public @NotNull Component getDisplayName() {
-                    return MessengerEntity.this.getName();
-                }
-
-                @Override
-                public AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player playerEntity) {
-                    return new MessengerAnswerContainer(i, playerEntity,  MessengerEntity.this);
-                }
-            }, packetBuffer -> {packetBuffer.writeUUID(this.getUUID());});
-        } else {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenMessengerAnswerScreen(player, this.getUUID()));
+        if(player instanceof ServerPlayer serverPlayer && targetPlayerInfo != null){
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new MessageToClientOpenMessengerAnswerScreen(this, this.message, this.targetPlayerInfo));
         }
+
     }
 
     @Override
     public InteractionResult mobInteract(@NotNull Player player, @NotNull InteractionHand hand) {
-        //if(this.state != State.IDLE && !player.isCrouching()){ //For debug
+        //if(!player.isCrouching()){ //For debug
         if(this.getTargetPlayer() != null && this.getTargetPlayer().getUUID().equals(player.getUUID()) && !this.getTargetPlayer().getUUID().equals(getOwnerUUID())){
             openAnswerGUI(player);
             return InteractionResult.CONSUME;
@@ -286,7 +254,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
             ServerLevel serverLevel = (ServerLevel) getCommandSenderWorld();
 
             MinecraftServer server = serverLevel.getServer();
-            ServerPlayer targetPlayer = server.getPlayerList().getPlayerByName(this.targetPlayerInfo.getName());
+            ServerPlayer targetPlayer = server.getPlayerList().getPlayer(this.targetPlayerInfo.getUUID());
             if(this.getOwner() != null){
                 if(targetPlayer == null || targetPlayer.equals(this.getOwner())){
                     this.getOwner().sendMessage(PLAYER_NOT_FOUND(), this.getOwnerUUID());
