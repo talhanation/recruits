@@ -157,8 +157,7 @@ public class Main {
                 MessageRemoveAssignedGroupFromCompanion.class,
                 MessageToClientUpdateMessengerScreen.class,
                 MessageAnswerMessenger.class,
-                MessageToClientUpdateMessengerAnswerScreen.class,
-                MessageOpenMessengerAnswerScreen.class,
+                MessageToClientOpenMessengerAnswerScreen.class,
                 MessageClearUpkeepGui.class,
                 MessageToServerRequestUpdateGroupList.class,
                 MessageApplyNoGroup.class,
@@ -185,7 +184,8 @@ public class Main {
                 MessageScoutTask.class,
                 MessageToServerRequestUpdatePlayerCurrencyCount.class,
                 MessageToClientUpdatePlayerCurrencyCount.class,
-                MessageToClientOpenTakeOverScreen.class
+                MessageToClientOpenTakeOverScreen.class,
+                MessageToClientOpenMessengerAnswerScreen.class
         };
 
 
