@@ -25,8 +25,8 @@ public class RecruitsTeamManager {
     }
 
     public void loadConfig(RecruitsTeam team) {
-        team.maxPlayers = RecruitsServerConfig.MaxPlayersInTeam.get();
-        team.maxNPCs = RecruitsServerConfig.MaxNPCsInTeam.get();
+        team.maxPlayers = RecruitsServerConfig.MaxPlayersInFaction.get();
+        team.maxNPCs = RecruitsServerConfig.MaxNPCsInFaction.get();
     }
 
     public void save(ServerLevel level) {
@@ -80,8 +80,8 @@ public class RecruitsTeamManager {
         recruitsTeam.setUnitColor(color);
         recruitsTeam.setTeamColor(teamColor.getId());
         recruitsTeam.setMaxNPCsPerPlayer(RecruitsServerConfig.MaxRecruitsForPlayer.get());
-        recruitsTeam.setMaxPlayers(RecruitsServerConfig.MaxPlayersInTeam.get());
-        recruitsTeam.setMaxNPCs(RecruitsServerConfig.MaxNPCsInTeam.get());
+        recruitsTeam.setMaxPlayers(RecruitsServerConfig.MaxPlayersInFaction.get());
+        recruitsTeam.setMaxNPCs(RecruitsServerConfig.MaxNPCsInFaction.get());
         teams.put(teamName, recruitsTeam);
     }
     public void removeTeam(String teamName) {
@@ -113,7 +113,7 @@ public class RecruitsTeamManager {
     }
 
     public boolean canPlayerJoin(RecruitsTeam recruitsTeam){
-        int config = RecruitsServerConfig.MaxPlayersInTeam.get();
+        int config = RecruitsServerConfig.MaxPlayersInFaction.get();
         if(config == 0) {
             return true;
         }
@@ -122,12 +122,12 @@ public class RecruitsTeamManager {
     }
 
     public boolean canRecruitJoin(RecruitsTeam recruitsTeam){
-        int config = RecruitsServerConfig.MaxPlayersInTeam.get();
+        int config = RecruitsServerConfig.MaxPlayersInFaction.get();
         if(config == 0){
             return true;
         }
         else
-            return RecruitsServerConfig.MaxNPCsInTeam.get() < recruitsTeam.getNPCs();
+            return RecruitsServerConfig.MaxNPCsInFaction.get() < recruitsTeam.getNPCs();
     }
 }
 
