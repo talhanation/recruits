@@ -1,4 +1,4 @@
-{
+ {
   "required": true,
   "minVersion": "0.8",
   "package": "com.talhanation.recruits.mixin",
@@ -7,13 +7,16 @@
   "mixins": [
     "AbstractHorseMixin",
     "AnimalMixin",
-    "MobMixin",
-    "WalkNodeEvaluatorMixin",
-    "GoalUtilsMixin",
+    "CamelMixin",
     "ClassInstanceMultiMapMixin",
-    "DoorInteractGoalMixin"
+    "DoorInteractGoalMixin",
+    "GoalUtilsMixin",
+    "LivingEntityMixin",
+    "MobMixin",
+    "WalkNodeEvaluatorMixin"
   ],
   "client": [
+    "MixinMinecraft"
   ],
   "injectors": {
     "defaultRequire": 1

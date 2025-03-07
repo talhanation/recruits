@@ -35,7 +35,7 @@ public class MessageAnswerMessenger implements Message<MessageAnswerMessenger> {
                 messenger.teleportWaitTimer = 100;
                 context.getSender().sendMessage(messenger.MESSENGER_INFO_ON_MY_WAY(), context.getSender().getUUID());
                 messenger.dropDeliverItem();
-                messenger.state = MessengerEntity.State.TELEPORT_BACK;
+                messenger.setMessengerState(MessengerEntity.MessengerState.TELEPORT_BACK);
             }
         }
 
