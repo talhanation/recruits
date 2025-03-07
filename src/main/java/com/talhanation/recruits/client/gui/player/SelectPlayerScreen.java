@@ -48,6 +48,8 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
 
     private int gapTop;
     private int gapBottom;
+    private int refreshTime = 60;
+
 
     public SelectPlayerScreen(Screen parent, Player player, Component title, Component buttonText, Component buttonTooltip, boolean includeSelf, PlayersList.FilterType filterType, Consumer<RecruitsPlayerInfo> buttonAction){
         super(title,236,0);
@@ -58,13 +60,13 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
         this.filterType = filterType;
         BUTTON_TEXT = buttonText;
         TOOLTIP_BUTTON = buttonTooltip;
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdatePlayerList());
     }
 
 
     @Override
     protected void init() {
         super.init();
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdatePlayerList());
 
         gapTop = (int) (this.height * 0.1);
         gapBottom = (int) (this.height * 0.1);
@@ -103,6 +105,11 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
         actionButton = new Button(guiLeft + 7, buttonY, 100, 20, BUTTON_TEXT,
                 button -> {
                 buttonAction.accept(selected);
+                PlayersList.onlinePlayers.remove(selected);
+                this.playerList.setFocused(null);
+                this.playerList.updateEntryList();
+                this.selected = null;
+                this.init();
         });
         actionButton.active = false;
 
@@ -118,6 +125,14 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
         }
         if(playerList != null){
             playerList.tick();
+        }
+
+        if(--refreshTime <= 0){
+            refreshTime = 60;
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdatePlayerList());
+            if(playerList != null){
+                playerList.updateEntryList();
+            }
         }
     }
 
