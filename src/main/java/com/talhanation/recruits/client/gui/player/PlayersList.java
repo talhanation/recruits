@@ -34,11 +34,9 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
         setRenderSelection(true);
     }
 
-    public boolean hasUpdated;
     public void tick() {
-        if(!hasUpdated && onlinePlayers != null){
+        if(onlinePlayers != null){
             updateEntryList();
-            hasUpdated = true;
         }
     }
 
