@@ -66,6 +66,8 @@ public class RecruitsPlayerInfo {
     }
 
     public static RecruitsPlayerInfo getFromNBT(CompoundTag nbt) {
+        if(nbt == null || nbt.isEmpty()) return null;
+
         UUID uuid = nbt.getUUID("UUID");
         String name = nbt.getString("Name");
         RecruitsTeam team = RecruitsTeam.fromNBT(nbt.getCompound("RecruitsTeam"));

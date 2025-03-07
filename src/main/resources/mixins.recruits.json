@@ -8,14 +8,15 @@
     "AbstractHorseMixin",
     "AnimalMixin",
     "CamelMixin",
+    "ClassInstanceMultiMapMixin",
+    "DoorInteractGoalMixin",
+    "GoalUtilsMixin",
     "LivingEntityMixin",
     "MobMixin",
-    "WalkNodeEvaluatorMixin",
-    "GoalUtilsMixin",
-    "ClassInstanceMultiMapMixin",
-    "DoorInteractGoalMixin"
+    "WalkNodeEvaluatorMixin"
   ],
   "client": [
+    "MixinMinecraft"
   ],
   "injectors": {
     "defaultRequire": 1
