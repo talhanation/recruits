@@ -44,9 +44,8 @@ public class RecruitsPlayerEntry extends ListScreenEntryBase<RecruitsPlayerEntry
 
         renderElement(poseStack, index, top, left, width, height, mouseX, mouseY, hovered, delta, skinX, skinY, textX, textY);
     }
-
     public void renderElement(PoseStack poseStack, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean hovered, float delta, int skinX, int skinY, int textX, int textY){
-        boolean selected = player.equals(screen.getSelected());
+        boolean selected = screen.getSelected() != null && player.getUUID().equals(screen.getSelected().getUUID());
         if (selected) {
             GuiComponent.fill(poseStack, left, top, left + width, top + height, BG_FILL_SELECTED);
         } else if (hovered) {

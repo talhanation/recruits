@@ -48,7 +48,7 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
 
     private int gapTop;
     private int gapBottom;
-    private int refreshTime = 60;
+    private int refreshTime = 20;
 
 
     public SelectPlayerScreen(Screen parent, Player player, Component title, Component buttonText, Component buttonTooltip, boolean includeSelf, PlayersList.FilterType filterType, Consumer<RecruitsPlayerInfo> buttonAction){
@@ -106,6 +106,7 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
                 button -> {
                 buttonAction.accept(selected);
                 PlayersList.onlinePlayers.remove(selected);
+                playerList.recruitsTeam.removeJoinRequest(selected.getName());
                 this.playerList.setFocused(null);
                 this.playerList.updateEntryList();
                 this.selected = null;
@@ -123,16 +124,14 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
         if(searchBox != null){
             searchBox.tick();
         }
+
         if(playerList != null){
             playerList.tick();
         }
 
         if(--refreshTime <= 0){
-            refreshTime = 60;
+            refreshTime = 20;
             Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdatePlayerList());
-            if(playerList != null){
-                playerList.updateEntryList();
-            }
         }
     }
 

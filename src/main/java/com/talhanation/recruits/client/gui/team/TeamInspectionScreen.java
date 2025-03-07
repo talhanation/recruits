@@ -158,10 +158,12 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
 
                     Screen selectPlayerScreen = new SelectPlayerScreen(this, player, SELECT_LEADER, SelectPlayerScreen.BUTTON_SELECT, SELECT_LEADER_TOOLTIP, false, PlayersList.FilterType.SAME_TEAM,
                             (playerInfo) -> {
-                                recruitsTeam.setTeamLeaderID(playerInfo.getUUID());
-                                recruitsTeam.setTeamLeaderName(playerInfo.getName());
+                                RecruitsTeam team = playerInfo.getRecruitsTeam();
+                                team.setTeamLeaderID(playerInfo.getUUID());
+                                team.setTeamLeaderName(playerInfo.getName());
 
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveTeamSettings(recruitsTeam, 0));
+                                Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveTeamSettings(team, 0));
+                                Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
                                 onClose();
                             }
                     );
