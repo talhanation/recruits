@@ -41,6 +41,8 @@ public class RecruitsDiplomacyManager {
         
         diplomacyMap.computeIfAbsent(team, k -> new HashMap<>()).put(otherTeam, relation);
         this.notifyPlayersInTeam(team, otherTeam, relation, level);
+
+        this.save(level);
     }
 
     public DiplomacyStatus getRelation(String team, String otherTeam) {

@@ -52,6 +52,7 @@ public class  TeamEvents {
         for(PlayerTeam playerTeam : list){
             playerTeam.setAllowFriendlyFire(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamFriendlyFireSetting.get());
             playerTeam.setSeeFriendlyInvisibles(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
+
         }
 
         recruitsTeamManager = new RecruitsTeamManager();
@@ -188,6 +189,9 @@ public class  TeamEvents {
             addRecruitToTeam(recruits, newTeam, level);
 
             Main.LOGGER.info("The new Team " + teamName + " has been created by " + playerName + ".");
+
+            recruitsTeamManager.save(server.overworld());
+
             return true;
         }
     }
@@ -261,7 +265,7 @@ public class  TeamEvents {
             }
 
         }
-
+        recruitsTeamManager.save(server.overworld());
         return false;
     }
 
@@ -303,6 +307,7 @@ public class  TeamEvents {
 
             recruitsTeamManager.removeTeam(teamName);
         }
+        recruitsTeamManager.save(server.overworld());
     }
 
     private static void removeRecruitsTeamData(String teamName) {
@@ -342,6 +347,8 @@ public class  TeamEvents {
                 if(!teamPlayer.getUUID().equals(playerToAdd.getUUID()))
                     Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> teamPlayer), new MessageToClientSetDiplomaticToast(9, recruitsTeam, playerToAdd.getName().getString()));
             }
+
+            recruitsTeamManager.save(server.overworld());
             return true;
         }
         else
@@ -620,17 +627,19 @@ public class  TeamEvents {
             if (teamName.chars().count() <= 13) {
                 if (!(teamName.isBlank() || teamName.isEmpty())) {
                     if (!recruitsTeamManager.isNameInUse(teamName)) {
-                            Scoreboard scoreboard = server.getScoreboard();
-                            PlayerTeam newTeam = scoreboard.addPlayerTeam(teamName);
-                            newTeam.setDisplayName(Component.literal(teamName));
+                        Scoreboard scoreboard = server.getScoreboard();
+                        PlayerTeam newTeam = scoreboard.addPlayerTeam(teamName);
+                        newTeam.setDisplayName(Component.literal(teamName));
 
-                            newTeam.setColor(Objects.requireNonNull(ChatFormatting.getByName(color)));
-                            newTeam.setAllowFriendlyFire(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamFriendlyFireSetting.get());
-                            newTeam.setSeeFriendlyInvisibles(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
+                        newTeam.setColor(Objects.requireNonNull(ChatFormatting.getByName(color)));
+                        newTeam.setAllowFriendlyFire(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamFriendlyFireSetting.get());
+                        newTeam.setSeeFriendlyInvisibles(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
 
-                            recruitsTeamManager.addTeam(teamName,new UUID(0,0),"none", banner.serializeNBT(), colorByte, newTeam.getColor());
+                        recruitsTeamManager.addTeam(teamName,new UUID(0,0),"none", banner.serializeNBT(), colorByte, newTeam.getColor());
 
-                            Main.LOGGER.info("The new Team " + teamName + " has been created by console.");
+                        Main.LOGGER.info("The new Team " + teamName + " has been created by console.");
+
+                        recruitsTeamManager.save(server.overworld());
                     }
                     else
                         sourceStack.sendFailure(Component.translatable("chat.recruits.team_creation.team_exists").withStyle(ChatFormatting.RED));
@@ -655,6 +664,8 @@ public class  TeamEvents {
         for(AbstractRecruitEntity recruit : recruitList){
             recruit.needsTeamUpdate = true;
         }
+
+        recruitsTeamManager.save(level);
     }
 
     ////////////////////////////////////Recruit TEAM JOIN AND REMOVE////////////////////////////
@@ -687,7 +698,6 @@ public class  TeamEvents {
             recruit.setTarget(null);// fix "if owner was other team and now same team und was target"
             if(recruitsTeam != null) recruit.setColor(recruitsTeam.getUnitColor());
         }
-
     }
 
     public static void removeRecruitFromTeam(String teamName, ServerPlayer player, ServerLevel level){

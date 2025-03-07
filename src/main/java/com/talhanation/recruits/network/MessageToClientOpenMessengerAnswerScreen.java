@@ -10,10 +10,10 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.UUID;
-
 
 public class MessageToClientOpenMessengerAnswerScreen implements Message<MessageToClientOpenMessengerAnswerScreen> {
 
@@ -36,6 +36,7 @@ public class MessageToClientOpenMessengerAnswerScreen implements Message<Message
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void executeClientSide(NetworkEvent.Context context) {
         Player player = Minecraft.getInstance().player;
         player.getCommandSenderWorld().getEntitiesOfClass(MessengerEntity.class, player.getBoundingBox()
