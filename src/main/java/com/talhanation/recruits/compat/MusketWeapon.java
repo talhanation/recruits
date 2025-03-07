@@ -3,7 +3,6 @@ package com.talhanation.recruits.compat;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 
-import ewewukek.musketmod.Config;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
