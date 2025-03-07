@@ -21,7 +21,7 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
     protected final boolean includeSelf;
 
 
-    public  PlayersList(int width, int height, int x, int y, int size, IPlayerSelection screen, PlayersList.FilterType filterType, Player player, boolean includeSelf) {
+    public PlayersList(int width, int height, int x, int y, int size, IPlayerSelection screen, PlayersList.FilterType filterType, Player player, boolean includeSelf) {
         super(width, height, x, y, size);
         this.screen = screen;
         this.entries = Lists.newArrayList();
@@ -32,10 +32,9 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
         setRenderBackground(false);
         setRenderTopAndBottom(false);
         setRenderSelection(true);
-
     }
 
-    boolean hasUpdated;
+    public boolean hasUpdated;
     public void tick() {
         if(!hasUpdated && onlinePlayers != null){
             updateEntryList();

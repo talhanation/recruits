@@ -322,7 +322,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
                 setWidgets();
             }));
 
-        addRenderableWidget(new ExtendedButton(guiLeft + widgetsX + 80, guiTop + imageHeight - widgetsY + (20 + gap ) * 4, 20, 20,Component.literal("+"),
+        addRenderableWidget(new ExtendedButton(guiLeft + widgetsX + 90, guiTop + imageHeight - widgetsY + (20 + gap ) * 4, 20, 20,Component.literal("+"),
         (button)-> {
             if(hasShiftDown()){
                 maxRecruitsPerPlayer += 5;
@@ -522,7 +522,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
     }
 
     private boolean checkCreationCondition(){
-        boolean nameLength = this.textFieldTeamName.getValue().length() >= 3 && this.textFieldTeamName.getValue().length() <= 32;
+        boolean nameLength = this.textFieldTeamName != null && this.textFieldTeamName.getValue().length() >= 3 && this.textFieldTeamName.getValue().length() <= 32;
         boolean sufficientEmeralds =  playerCurrencyCount >= creationPrice || player.isCreative();
 
         return this.banner != null && !this.banner.isEmpty() && nameLength && this.leaderInfo != null && sufficientEmeralds;
@@ -578,6 +578,8 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
             this.onClose();
             return true;
         }
+        if(this.textFieldTeamName == null) super.keyPressed(key, a, b);
+
         setFocused(textFieldTeamName);
 
         return textFieldTeamName.keyPressed(key, a, b) || textFieldTeamName.canConsumeInput() || super.keyPressed(key, a, b);
