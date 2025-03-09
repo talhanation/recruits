@@ -326,7 +326,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
 
                 setWidgets();
             }));
-        
+
         addRenderableWidget(new Button(guiLeft + widgetsX + 90, guiTop + imageHeight - widgetsY + (20 + gap ) * 4, 20, 20,new TextComponent("+"),
         (button)-> {
             if(hasShiftDown()){
