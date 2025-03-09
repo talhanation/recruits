@@ -190,6 +190,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     private void recruitCheckDespawn() {
+        if(this.isOwned()) return;
         Entity entity = this.getCommandSenderWorld().getNearestPlayer(this, -1.0D);
 
         if (entity != null) {
