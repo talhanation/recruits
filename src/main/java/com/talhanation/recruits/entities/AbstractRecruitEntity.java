@@ -1928,7 +1928,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private void pickUpArrows() {
         this.getLevel().getEntitiesOfClass(
                 AbstractArrow.class,
-                this.getBoundingBox().inflate(4D),
+                this.getBoundingBox().inflate(7D),
                 (arrow) -> arrow.inGround &&
                         arrow.pickup == AbstractArrow.Pickup.ALLOWED &&
                         this.getInventory().canAddItem(Items.ARROW.getDefaultInstance())
