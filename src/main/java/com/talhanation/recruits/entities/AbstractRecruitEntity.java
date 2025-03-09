@@ -942,6 +942,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
+    @Override
+    public void setTarget(@org.jetbrains.annotations.Nullable LivingEntity p_21544_) {
+        super.setTarget(p_21544_);
+
+        this.setUpkeepTimer(500);
+    }
+
     public List<List<String>> getEquipment() {
         return null;
     }
