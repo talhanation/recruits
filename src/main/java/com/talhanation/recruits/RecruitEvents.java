@@ -700,6 +700,9 @@ public class RecruitEvents {
         }
     }
 
+    private final List<AbstractArrow> trackedArrows = new ArrayList<>();
+    private int tickCounter = 0;
+
     @SubscribeEvent
     public void onWorldTickArrowCleaner(TickEvent.LevelTickEvent event) {//for 1.18 and 1.19 use TickEvent.WorldTickEvent
         if (event.level.isClientSide()) return;
@@ -707,12 +710,27 @@ public class RecruitEvents {
         if (event.phase != TickEvent.Phase.END) return;
         if (server == null) return;
 
-        for (Entity entity : server.overworld().getEntities().getAll()) {
-            if (entity instanceof AbstractArrow arrow) {
-                if (arrow.pickup == AbstractArrow.Pickup.DISALLOWED && arrow.inGroundTime > 300) {
-                    arrow.discard();
-                }
+
+        if (++tickCounter < 100) return; // Alle 5 Sekunden
+        tickCounter = 0;
+
+
+        List<AbstractArrow> arrows = event.level.getEntitiesOfClass(AbstractArrow.class, event.level.getWorldBorder().getCollisionShape().bounds());
+        trackedArrows.addAll(arrows);
+
+
+        Iterator<AbstractArrow> iterator = trackedArrows.iterator();
+        while (iterator.hasNext()) {
+            AbstractArrow arrow = iterator.next();
+            if (arrow.pickup == AbstractArrow.Pickup.DISALLOWED && arrow.inGroundTime > 300) {
+                arrow.discard();
+                iterator.remove();
             }
+        }
+    }
+    private void removeArrow(Entity entity){
+        if(entity instanceof AbstractArrow arrow && arrow.pickup == AbstractArrow.Pickup.DISALLOWED && arrow.inGroundTime > 300){
+            entity.discard();
         }
     }
 

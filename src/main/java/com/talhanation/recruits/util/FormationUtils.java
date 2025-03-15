@@ -4,6 +4,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
@@ -15,7 +16,6 @@ import java.util.Objects;
 public class FormationUtils {
     public static final double spacing = 1.75D;
     public static Vec3 calculateLineBlockPosition(Vec3 targetPos, Vec3 linePos, int size, int index, Level level) {
-
         Vec3 toTarget = linePos.vectorTo(targetPos).normalize();
         Vec3 rotation = toTarget.yRot(3.14F/2).normalize();
         Vec3 pos;
@@ -33,15 +33,17 @@ public class FormationUtils {
 
     }
     public static void movementFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
-        lineFormation(player, recruits, targetPos, 3, 2.0D);
+        float yaw = player.getYRot();
+        Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
+        lineFormation(forward, recruits, targetPos, 3, 2.0D);
     }
 
     public static void lineUpFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
-        lineFormation(player, recruits, targetPos, 20, 1.75D);
-    }
-    public static void lineFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, int maxInRow, double spacing) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
+        lineFormation(forward, recruits, targetPos, 20, 1.75D);
+    }
+    public static void lineFormation(Vec3 forward, List<AbstractRecruitEntity> recruits, Vec3 targetPos, int maxInRow, double spacing) {
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
 
         List<FormationPosition> possiblePositions = new ArrayList<>();
@@ -86,20 +88,20 @@ public class FormationUtils {
                 );
 
                 recruit.setHoldPos(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
-                recruit.ownerRot = player.getYRot();
+                //recruit.ownerRot = player.getYRot();
                 recruit.setFollowState(3);
                 recruit.isInFormation = true;
             }
         }
     }
-
-
     public static void squareFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
-        Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
+        squareFormation(forward, recruits, targetPos, 2.5);
+    }
 
-        double spacing = 2.5;
+    public static void squareFormation(Vec3 forward, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacing) {
+        Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
 
         int numRecruits = recruits.size();
         int sideLength = (int) Math.ceil(Math.sqrt(numRecruits));
@@ -144,7 +146,7 @@ public class FormationUtils {
                 );
 
                 recruit.setHoldPos(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
-                recruit.ownerRot = player.getYRot();
+                //recruit.ownerRot = forwar;
                 recruit.setFollowState(3);
                 recruit.isInFormation = true;
             }
@@ -456,12 +458,12 @@ public class FormationUtils {
         }
     }
 
-    public static Vec3 getCenterOfPositions(List<AbstractRecruitEntity> recruits, ServerLevel level) {
+    public static Vec3 getCenterOfPositions(List<LivingEntity> recruits, ServerLevel level) {
         double sumX = 0;
         double sumY = 0;
         double sumZ = 0;
 
-        for (AbstractRecruitEntity recruit : recruits) {
+        for (LivingEntity recruit : recruits) {
             Vec3 pos = recruit.position();
             sumX += pos.x;
             sumY += pos.y;

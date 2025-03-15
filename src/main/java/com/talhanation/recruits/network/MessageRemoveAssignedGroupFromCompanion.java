@@ -4,6 +4,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
+import com.talhanation.recruits.util.RecruitCommanderUtil;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -32,23 +33,18 @@ public class MessageRemoveAssignedGroupFromCompanion implements Message<MessageR
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractLeaderEntity.class,
+        player.getCommandSenderWorld().getEntitiesOfClass(AbstractLeaderEntity.class,
                 context.getSender().getBoundingBox().inflate(100D),
                 (leader) -> leader.getUUID().equals(this.companion)
         ).forEach((companionEntity) -> {
-            companionEntity.setRecruitsToHoldPos();
-            companionEntity.setRecruitsToListen();
+            RecruitCommanderUtil.setRecruitsListen(companionEntity.army.getAllRecruitUnits(), true);
+            RecruitCommanderUtil.setRecruitsFollow(companionEntity.army.getAllRecruitUnits(), null);
+            RecruitCommanderUtil.setRecruitsHoldPos(companionEntity.army.getAllRecruitUnits());
+            RecruitCommanderUtil.setRecruitsMoveSpeed(companionEntity.army.getAllRecruitUnits(), 1F);
 
-            companionEntity.RECRUITS_IN_COMMAND = new Stack<>();
-            companionEntity.currentRecruitsInCommand = new ArrayList<>();
-            Main.SIMPLE_CHANNEL.send(
-                    PacketDistributor.PLAYER.with(context::getSender),
-                    new MessageToClientUpdateLeaderScreen(
-                            companionEntity.WAYPOINTS,
-                            companionEntity.WAYPOINT_ITEMS,
-                            companionEntity.getRecruitsInCommand().size())
-            );
+            companionEntity.army = null;
+
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(context::getSender), new MessageToClientUpdateLeaderScreen(companionEntity.WAYPOINTS, companionEntity.WAYPOINT_ITEMS, companionEntity.getArmySize()));
         });
     }
 

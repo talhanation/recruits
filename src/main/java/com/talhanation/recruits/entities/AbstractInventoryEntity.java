@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.compat.Corpse;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.inventory.RecruitSimpleContainer;
@@ -8,6 +9,7 @@ import com.talhanation.recruits.pathfinding.AsyncPathfinderMob;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.world.Container;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.SimpleContainer;
@@ -532,6 +534,42 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
 
         this.setBeforeItemSlot(-1); // means eating was successfully without interrupt
     }
+
+
+    public boolean isPaymentInContainer(Container container){
+        int amount = 0;
+        for(int i = 0; i < container.getContainerSize(); i++) {
+            ItemStack itemStack = container.getItem(i);
+            if(itemStack.is(TeamEvents.getCurrency().getItem())){
+                amount += itemStack.getCount();
+            }
+        }
+        return amount >= RecruitsServerConfig.RecruitsPaymentAmount.get();
+    }
+
+    @Nullable
+    public ItemStack getCurrencyFromInv(Container inv){
+        ItemStack currency = null;
+        for(int i = 0; i < inv.getContainerSize(); i++){
+            ItemStack itemStack = inv.getItem(i);
+            if(itemStack.is(TeamEvents.getCurrency().getItem())){
+                currency = itemStack;
+                break;
+            }
+        }
+        return currency;
+    }
+
+    public void doPayment(Container container){
+        int amount = RecruitsServerConfig.RecruitsPaymentAmount.get();
+        for (int i = 0; i < amount; i++) {
+            ItemStack currency = this.getCurrencyFromInv(container);
+            if (currency != null) {
+                currency.shrink(amount);
+            }
+        }
+    }
+
 
     public void setBeforeItemSlot(int i) {
         beforeItemSlot = i;

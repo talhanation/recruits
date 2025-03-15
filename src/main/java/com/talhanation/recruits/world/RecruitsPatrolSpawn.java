@@ -776,7 +776,7 @@ public class RecruitsPatrolSpawn {
 
         setRecruitFood(recruitEntity);
 
-        ICompanion.assignToLeaderCompanion(leader, recruitEntity);
+        //ICompanion.assignToLeaderCompanion(leader, recruitEntity);
 
         world.addFreshEntity(recruitEntity);
     }
