@@ -28,6 +28,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
     public BlockPos pos;
     public int timeToRecalcPath;
     private long lastCanUseCheck;
+    public boolean canResetPaymentTimer = false;
 
     public RecruitUpkeepEntityGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
@@ -80,9 +81,12 @@ public class RecruitUpkeepEntityGoal extends Goal {
                 this.container = containerEntity;
                 //Main.LOGGER.debug("found containerEntity");
             }
-        } else if (recruit.getOwner() != null && messageNotInRange) {
-            recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()), recruit.getOwnerUUID());
-            messageNotInRange = false;
+        }
+        else {
+            if (recruit.getOwner() != null && messageNotInRange) {
+                recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString(), recruit.getOwnerUUID()));
+                messageNotInRange = false;
+            }
             recruit.clearUpkeepEntity();
             this.stop();
         }
@@ -91,82 +95,69 @@ public class RecruitUpkeepEntityGoal extends Goal {
     @Override
     public void tick() {
         super.tick();
+        //Main.LOGGER.debug("searching upkeep entity");
+        if (entity.isPresent()) {
+            if (--this.timeToRecalcPath <= 0) {
+                this.timeToRecalcPath = this.adjustedTickDelay(10);
+                this.recruit.getNavigation().moveTo(pos.getX(), pos.getY(), pos.getZ(), 1.15D);
+            }
 
-        if (recruit.getUpkeepTimer() == 0) {
-            //Main.LOGGER.debug("searching upkeep entity");
-            if (entity.isPresent()) {
-                if (--this.timeToRecalcPath <= 0) {
-                    this.timeToRecalcPath = this.adjustedTickDelay(10);
-                    this.recruit.getNavigation().moveTo(pos.getX(), pos.getY(), pos.getZ(), 1.15D);
+
+            if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
+                this.recruit.getJumpControl().jump();
+            }
+            double distance = this.recruit.position().distanceToSqr(Vec3.atCenterOf(pos));
+            if (distance < 50 && container != null) {
+
+                this.checkIfMounted(entity.get());
+
+                this.recruit.getNavigation().stop();
+                this.recruit.getLookControl().setLookAt(entity.get().getX(), entity.get().getY() + 1, entity.get().getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
+
+                if(recruit.paymentTimer == 0){
+                    recruit.checkPayment(container);
+                    canResetPaymentTimer = true;
                 }
 
+                this.recruit.upkeepReequip(container);
 
-                if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
-                    this.recruit.getJumpControl().jump();
-                }
-                double distance = this.recruit.position().distanceToSqr(Vec3.atCenterOf(pos));
-                if (distance < 50 && container != null) {
-
-                    this.checkIfMounted(entity.get());
-
-                    this.recruit.getNavigation().stop();
-                    this.recruit.getLookControl().setLookAt(entity.get().getX(), entity.get().getY() + 1, entity.get().getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
-
-                    if (isFoodInEntity(container)) {
-                        for (int i = 0; i < 3; i++) {
-                            ItemStack foodItem = this.getFoodFromInv(container);
-                            ItemStack food;
-                            if (foodItem != null && canAddFood()) {
-                                food = foodItem.copy();
-                                food.setCount(1);
-                                recruit.getInventory().addItem(food);
-                                foodItem.shrink(1);
-                            } else {
-                                if (recruit.getOwner() != null && message) {
-                                    recruit.getOwner().sendMessage(TEXT_NO_PLACE(recruit.getName().getString()), recruit.getOwnerUUID());
-                                    message = false;
-                                }
-                            }
-                        }
-                        this.stop();//stop taking food out of the container
-                    } else {
-                        if (recruit.getOwner() != null && message) {
-                            recruit.getOwner().sendMessage(TEXT_FOOD(recruit.getName().getString()), recruit.getOwnerUUID());
-                            message = false;
-                            this.stop();
-                        }
-                    }
-
-                    //Try to reequip
-                    for (int i = 0; i < container.getContainerSize(); i++) {
-                        ItemStack itemstack = container.getItem(i);
-                        ItemStack equipment;
-                        if (!recruit.canEatItemStack(itemstack) && recruit.wantsToPickUp(itemstack)) {
-                            if (recruit.canEquipItem(itemstack)) {
-                                equipment = itemstack.copy();
-                                equipment.setCount(1);
-                                recruit.equipItem(equipment);
-                                itemstack.shrink(1);
-                            } else if (recruit instanceof IRangedRecruit && itemstack.is(ItemTags.ARROWS)) { //all that are ranged
-                                if (recruit.canTakeArrows()) {
-                                    equipment = itemstack.copy();
-                                    recruit.inventory.addItem(equipment);
-                                    itemstack.shrink(equipment.getCount());
-                                }
+                if (isFoodInEntity(container)) {
+                    for (int i = 0; i < 3; i++) {
+                        ItemStack foodItem = this.getFoodFromInv(container);
+                        ItemStack food;
+                        if (foodItem != null && canAddFood()) {
+                            food = foodItem.copy();
+                            food.setCount(1);
+                            recruit.getInventory().addItem(food);
+                            foodItem.shrink(1);
+                        } else {
+                            if (recruit.getOwner() != null && message) {
+                                recruit.getOwner().sendMessage(TEXT_NO_PLACE(recruit.getName().getString()), recruit.getOwnerUUID());
+                                message = false;
                             }
                         }
                     }
-                }
-            } else {
-                if (recruit.getOwner() != null && messageNotInRange) {
-                    recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()), recruit.getOwnerUUID());
-                    messageNotInRange = false;
-
-                    recruit.clearUpkeepEntity();
+                    this.stop(); //stop taking food out of the container
+                    return;
+                } else {
+                    if (recruit.getOwner() != null && message) {
+                        recruit.getOwner().sendMessage(TEXT_FOOD(recruit.getName().getString()), recruit.getOwnerUUID());
+                        message = false;
+                    }
                     this.stop();
+                    return;
                 }
             }
+        } else {
+            if (recruit.getOwner() != null && messageNotInRange) {
+                recruit.getOwner().sendSystemMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()));
+                messageNotInRange = false;
+
+                recruit.clearUpkeepEntity();
+                this.stop();
+            }
         }
+
     }
 
     private void checkIfMounted(Entity entity) {
@@ -185,6 +176,10 @@ public class RecruitUpkeepEntityGoal extends Goal {
         super.stop();
         recruit.setUpkeepTimer(recruit.getUpkeepCooldown());
         recruit.forcedUpkeep = false;
+        if(recruit.paymentTimer == 0 && canResetPaymentTimer){
+            canResetPaymentTimer = false;
+            recruit.resetPaymentTimer();
+        }
     }
 
     private Optional<Entity> findEntity() {

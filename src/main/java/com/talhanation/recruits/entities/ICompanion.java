@@ -33,9 +33,6 @@ public interface ICompanion {
 
         recruit.setTarget(null);
         recruit.setState(leader.getState());
-
-        leader.RECRUITS_IN_COMMAND.push(recruit.getUUID());
-        leader.currentRecruitsInCommand = leader.getRecruitsInCommand();
     }
 
     AbstractRecruitEntity get();

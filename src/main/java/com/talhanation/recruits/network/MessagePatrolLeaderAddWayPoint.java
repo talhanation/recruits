@@ -62,7 +62,7 @@ public class MessagePatrolLeaderAddWayPoint implements Message<MessagePatrolLead
             player.sendMessage(TEXT_NOT_WATER_WAYPOINT(captain.getName().getString()), player.getUUID());
         } else {
             leaderEntity.addWaypoint(pos);
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateLeaderScreen(leaderEntity.WAYPOINTS, leaderEntity.WAYPOINT_ITEMS, leaderEntity.getRecruitsInCommand().size()));
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateLeaderScreen(leaderEntity.WAYPOINTS, leaderEntity.WAYPOINT_ITEMS, leaderEntity.getArmySize()));
         }
     }
 

@@ -1,11 +1,11 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.entities.ai.CaptainAttackAI;
 import com.talhanation.recruits.entities.ai.CaptainControlBoatAI;
-import com.talhanation.recruits.entities.ai.PatrolLeaderAttackAI;
 import com.talhanation.recruits.entities.ai.UseShield;
+import com.talhanation.recruits.entities.ai.controller.CaptainAttackController;
 import com.talhanation.recruits.entities.ai.navigation.SailorPathNavigation;
 import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
+import com.talhanation.recruits.util.RecruitCommanderUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -42,6 +42,7 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
     public CaptainEntity(EntityType<? extends AbstractLeaderEntity> entityType, Level world) {
         super(entityType, world);
+        attackController = new CaptainAttackController(this);
     }
     protected void defineSynchedData() {
         super.defineSynchedData();
@@ -52,7 +53,6 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        this.goalSelector.addGoal(0, new CaptainAttackAI(this));
         this.goalSelector.addGoal(0, new CaptainControlBoatAI(this));
         this.goalSelector.addGoal(2, new UseShield(this));
     }
@@ -242,8 +242,8 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
     }
 
     public boolean canAttackWhilePatrolling(LivingEntity target) {
-        if(target != null && target.isAlive() && this.getSensing().hasLineOfSight(target)) {
-            if(this.getRecruitsInCommand().stream().anyMatch(PatrolLeaderAttackAI::isRanged)){
+        if(enemyArmySpotted() || target != null && target.isAlive()) {
+            if(this.army != null && !this.army.getRanged().isEmpty()){
                 return true;
             }
             else if(this.getVehicle() != null){
@@ -260,13 +260,13 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
             double speed = IBoatController.getSmallshipSpeed(this.getVehicle());
             if(speed < 0.01){
                 this.stopRiding();
-                this.setRecruitsDismount();
+                RecruitCommanderUtil.setRecruitsDismount(army.getAllRecruitUnits());
             }
         }
 
         if(waitForRecruitsUpkeepTime == 0){
             this.shouldMount(true, this.getMountUUID());
-            this.setRecruitsToFollow();
+            RecruitCommanderUtil.setRecruitsFollow(this.army.getAllRecruitUnits(), this.getUUID());
             if(this.getVehicle() != null && this.getVehicle().getUUID().equals(this.getMountUUID())){
                 if(isRecruitsInCommandOnBoard()){
                     waitForRecruitsUpkeepTime = this.getAgainResupplyTime(); // time to resupply again
@@ -277,7 +277,7 @@ public class CaptainEntity extends AbstractLeaderEntity implements IBoatControll
     }
 
     private boolean isRecruitsInCommandOnBoard() {
-        return getRecruitsInCommand().stream().allMatch(recruit -> recruit.getVehicle() != null && recruit.getVehicle().equals(this.getVehicle()));
+        return this.army.getAllRecruitUnits().stream().allMatch(recruit -> recruit.getVehicle() != null && recruit.getVehicle().equals(this.getVehicle()));
     }
 
     public int getResupplyTime() {

@@ -133,7 +133,6 @@ dependencies {
     implementation fg.deobf("curse.maven:fantasys-furniture-579564:4183201")
     implementation fg.deobf("curse.maven:debug-utils-forge-783008:5337487")
     implementation fg.deobf("curse.maven:simple-voice-chat-416089:5716508")
-
 }
 
 // Example for how to get properties into the manifest for reading at runtime.

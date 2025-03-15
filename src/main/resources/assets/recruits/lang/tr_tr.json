@@ -168,6 +168,7 @@
   "chat.recruits.text.recruited3": "%s: Senin yolun benim yolumdur. Onur duyarım.",
   "chat.recruits.text.protect_died": "%s: Koruma altındaki olan malesef öldürüldü.",
   "chat.recruits.text.noMount": "%s: Binilecek mob veya araç yakınımda yok!",
+  "chat.recruits.text.noPaymentInUpkeep": "%s: Bakımda veya Envanterimde maaşım yok!",
 
   "chat.recruits.text.hire_costs": "%s: Beni işe almak için %s %s'ye ihtiyacın var!",
   "chat.recruits.info.reached_max": "En fazla sayıda asker işe alındı.",

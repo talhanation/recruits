@@ -2,6 +2,7 @@ package com.talhanation.recruits.config;
 
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
+import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.Mod;
 
@@ -80,6 +81,10 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.BooleanValue ShouldFactionEditingBeAllowed;
     public static ForgeConfigSpec.BooleanValue ShouldFactionManagingBeAllowed;
     public static ForgeConfigSpec.BooleanValue AllowArrowCleaning;
+    public static ForgeConfigSpec.BooleanValue RecruitsPayment;
+    public static ForgeConfigSpec.IntValue RecruitsPaymentInterval;
+    public static ForgeConfigSpec.IntValue RecruitsPaymentAmount;
+    public static ForgeConfigSpec.EnumValue<AbstractRecruitEntity.NoPaymentAction> RecruitsNoPaymentAction;
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin", "corpse:corpse", "minecraft:armorstand"));
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
@@ -230,6 +235,49 @@ public class RecruitsServerConfig {
                         \tdefault: 19""")
                 .worldRestart()
                 .defineInRange("NomadCost", 19, 0, 1453);
+
+        RecruitsPayment = BUILDER.comment("""
+                        
+                        RecruitsPayment
+                        \t(takes effect after restart)
+                        \t
+                        Should recruits need to be payed in intervals?
+                        default: false""")
+
+                .worldRestart()
+                .define("RecruitsPayment", false);
+
+        RecruitsPaymentInterval = BUILDER.comment("""
+                        
+                        RecruitsPaymentInterval
+                        \t(takes effect after restart)
+                        \t
+                        The interval in minutes recruits need to be payed?
+                        default: 15""")
+
+                .worldRestart()
+                .defineInRange("RecruitsPaymentInterval", 15,1,1453);
+        RecruitsPaymentAmount = BUILDER.comment("""
+                        
+                        RecruitsPaymentAmount
+                        \t(takes effect after restart)
+                        \t
+                        The amount of currency recruits need to be payed?
+                        default: 1""")
+
+                .worldRestart()
+                .defineInRange("RecruitsPaymentAmount", 1,1,1453);
+
+        RecruitsNoPaymentAction = BUILDER.comment("""
+                        
+                        RecruitsNoPaymentAction
+                        \t(takes effect after restart)
+                        \t
+                        The action the recruits will do when they don't get payed.
+                        default: MORALE_LOSS""")
+
+                .worldRestart()
+                .defineEnum("RecruitsNoPaymentAction", AbstractRecruitEntity.NoPaymentAction.MORALE_LOSS);
 
         RecruitHorseUnitsHorse = BUILDER.comment("""
                         

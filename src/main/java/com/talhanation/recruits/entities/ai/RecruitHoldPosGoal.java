@@ -10,12 +10,10 @@ import java.util.EnumSet;
 public class RecruitHoldPosGoal extends Goal {
     private final AbstractRecruitEntity recruit;
 
-    private final double speedModifier;
     private int timeToRecalcPath;
 
-    public RecruitHoldPosGoal(AbstractRecruitEntity recruit, double v, double within) {
+    public RecruitHoldPosGoal(AbstractRecruitEntity recruit, double within) {
       this.recruit = recruit;
-      this.speedModifier = v;
       this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
 
@@ -44,7 +42,7 @@ public class RecruitHoldPosGoal extends Goal {
             if(distance >= 0.3) {
                 if (--this.timeToRecalcPath <= 0) {
                     this.timeToRecalcPath = this.recruit.getVehicle() != null ? this.adjustedTickDelay(5) : this.adjustedTickDelay(10);
-                    this.recruit.getNavigation().moveTo(pos.x(), pos.y(), pos.z(), this.speedModifier);
+                    this.recruit.getNavigation().moveTo(pos.x(), pos.y(), pos.z(), this.recruit.moveSpeed);
                 }
 
                 if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {

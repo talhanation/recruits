@@ -443,7 +443,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
             }
         }
     }
-    
+
     private void playHornSound() {
         this.playSound(ModSounds.MESSENGER_HORN.get(), this.getSoundSource(), 20F, 0.8F + 0.4F * this.random.nextFloat());
     }
