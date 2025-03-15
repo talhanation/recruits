@@ -236,12 +236,12 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
             }
 
             if(!potentialRecruitTargets.isEmpty()){
-                Map<String, List<AbstractRecruitEntity>> teamedRecruitsMap = potentialRecruitTargets.stream()
+                Map<String, List<LivingEntity>> teamedRecruitsMap = potentialRecruitTargets.stream()
                         .collect(Collectors.groupingBy(
                                 recruit -> recruit.getTeam() != null ? recruit.getTeam().getName() : "No Team"
                         ));
 
-                for (Map.Entry<String, List<AbstractRecruitEntity>> entry : teamedRecruitsMap.entrySet()) {
+                for (Map.Entry<String, List<LivingEntity>> entry : teamedRecruitsMap.entrySet()) {
                     String teamName = entry.getKey();
                     int recruitCount = entry.getValue().size();
                     Vec3 vec = FormationUtils.getCenterOfPositions(entry.getValue(), (ServerLevel) this.getCommandSenderWorld());

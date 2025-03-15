@@ -1,20 +1,15 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.Main;
-import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.entities.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.CompoundContainer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.BarrelBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -39,6 +34,7 @@ public class RecruitUpkeepPosGoal extends Goal {
     public int timeToRecalcPath = 0;
     public int timer = 0;
     public boolean setTimer = false;
+    public boolean canResetPaymentTimer = false;
     public RecruitUpkeepPosGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
     }
@@ -75,6 +71,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                     messageNotChest = false;
                 }
                 this.chestPos = null;
+                recruit.clearUpkeepPos();
             }
             if(chestPos != null){
                 double distance = this.recruit.position().distanceToSqr(Vec3.atCenterOf(chestPos));
@@ -83,7 +80,6 @@ public class RecruitUpkeepPosGoal extends Goal {
                         recruit.getOwner().sendSystemMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()));
                         messageNotInRange = false;
                     }
-
                     recruit.clearUpkeepPos();
                     stop();
                 }
@@ -100,83 +96,83 @@ public class RecruitUpkeepPosGoal extends Goal {
             return;
         }
 
-        if(recruit.getUpkeepTimer() == 0){
-            if (container != null && chestPos != null){
-
-                if (--this.timeToRecalcPath <= 0) {
-                    this.timeToRecalcPath = this.adjustedTickDelay(10);
-                    this.recruit.getNavigation().moveTo(chestPos.getX(), chestPos.getY(), chestPos.getZ(), 1.15D);
-                }
-
-                if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
-                    this.recruit.getJumpControl().jump();
-                }
-
-                if (chestPos.closerThan(recruit.getOnPos(), 3) && container != null) {
-
-                    this.recruit.getNavigation().stop();
-                    this.recruit.getLookControl().setLookAt(chestPos.getX(), chestPos.getY() + 1, chestPos.getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
-
-                    if(!setTimer){
-                        if (isFoodInContainer(container)) {
-                            interactChest(container, true);
-                            for (int i = 0; i < 3; i++) {
-                                ItemStack foodItem = this.getFoodFromInv(container);
-                                ItemStack food;
-                                if (foodItem != null && canAddFood()){
-                                    food = foodItem.copy();
-                                    food.setCount(1);
-                                    recruit.getInventory().addItem(food);
-                                    foodItem.shrink(1);
-                                } else {
-                                    if(recruit.getOwner() != null && message){
-                                        recruit.getOwner().sendSystemMessage(TEXT_NO_PLACE(recruit.getName().getString()));
-                                        message = false;
-                                    }
-                                    this.stop();
-                                }
-                            }
-                        }
-                        else {
-                            if(recruit.getOwner() != null && message){
-                                recruit.getOwner().sendSystemMessage(TEXT_FOOD(recruit.getName().getString()));
-                                message = false;
-                            }
-                            this.stop();
-                        }
-
-                        this.recruit.upkeepReequip(container);
-
-                        timer = 30;
-                        setTimer = true;
-
-                    }
-
-                }
+        if (container != null && chestPos != null){
+            if (--this.timeToRecalcPath <= 0) {
+                this.timeToRecalcPath = this.adjustedTickDelay(10);
+                this.recruit.getNavigation().moveTo(chestPos.getX(), chestPos.getY(), chestPos.getZ(), 1.15D);
             }
-            else {
-                this.chestPos = findInvPos();
 
-                if(chestPos == null){
-                    if(recruit.getOwner() != null && messageNeedNewChest){
-                        recruit.getOwner().sendSystemMessage(NEED_NEW_UPKEEP(recruit.getName().getString()));
-                        messageNeedNewChest = false;
+            if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
+                this.recruit.getJumpControl().jump();
+            }
+
+            if (chestPos.closerThan(recruit.getOnPos(), 3) && container != null) {
+
+                this.recruit.getNavigation().stop();
+                this.recruit.getLookControl().setLookAt(chestPos.getX(), chestPos.getY() + 1, chestPos.getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
+
+                if(!setTimer){
+                    if(recruit.paymentTimer == 0){
+                        recruit.checkPayment(container);
+                        canResetPaymentTimer = true;
                     }
+                    this.recruit.upkeepReequip(container);
+                    timer = 30;
+                    setTimer = true;
 
-                    recruit.clearUpkeepPos();
-                    stop();
+                    if (isFoodInContainer(container)) {
+                        interactChest(container, true);
+                        for (int i = 0; i < 3; i++) {
+                            ItemStack foodItem = this.getFoodFromInv(container);
+                            ItemStack food;
+                            if (foodItem != null && canAddFood()){
+                                food = foodItem.copy();
+                                food.setCount(1);
+                                recruit.getInventory().addItem(food);
+                                foodItem.shrink(1);
+                            } else {
+                                if(recruit.getOwner() != null && message){
+                                    recruit.getOwner().sendSystemMessage(TEXT_NO_PLACE(recruit.getName().getString()));
+                                    message = false;
+                                }
+                                this.stop();
+                                return;
+                            }
+                        }
+                    }
+                    else {
+                        if(recruit.getOwner() != null && message){
+                            recruit.getOwner().sendSystemMessage(TEXT_FOOD(recruit.getName().getString()));
+                            message = false;
+                        }
+                        this.stop();
+                        return;
+                    }
                 }
-                else recruit.setUpkeepPos(chestPos);
-                //Main.LOGGER.debug("Chest not found");
             }
         }
+        else {
+            this.chestPos = findInvPos();
+
+            if(chestPos == null){
+                if(recruit.getOwner() != null && messageNeedNewChest){
+                    recruit.getOwner().sendSystemMessage(NEED_NEW_UPKEEP(recruit.getName().getString()));
+                    messageNeedNewChest = false;
+                }
+
+                recruit.clearUpkeepPos();
+                stop();
+            }
+            else recruit.setUpkeepPos(chestPos);
+            //Main.LOGGER.debug("Chest not found"
+        }
+
 
         if(setTimer){
             if(timer > 0) timer--;
             if(timer == 0) stop();
         }
     }
-
     @Override
     public void stop() {
         super.stop();
@@ -184,6 +180,11 @@ public class RecruitUpkeepPosGoal extends Goal {
         recruit.forcedUpkeep = false;
         timer = 0;
         setTimer = false;
+
+        if(recruit.paymentTimer == 0 && canResetPaymentTimer){
+            canResetPaymentTimer = false;
+            recruit.resetPaymentTimer();
+        }
 
         if(container != null) {
             interactChest(container, false);

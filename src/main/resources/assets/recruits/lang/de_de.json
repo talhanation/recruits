@@ -170,6 +170,7 @@
   "chat.recruits.text.recruited3": "%s: Dein Weg ist auch meiner. Ich fühle mich geehrt.",
   "chat.recruits.text.protect_died": "%s: Der geschützte Mob wurde getötet.",
   "chat.recruits.text.noMount": "%s: Es gibt kein Transportmittel in meiner Nähe!",
+  "chat.recruits.text.noPaymentInUpkeep": "%s: Es gibt kein Lohn in meiner Versorgung oder in meinem Inventar!",
 
   "chat.recruits.text.hire_costs": "%s: Du benötigst %s %s, um mich anzuwerben!",
   "chat.recruits.info.reached_max": "Du hast das maximale Limit erreicht, das du anwerben kannst.",

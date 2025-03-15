@@ -1,10 +1,7 @@
 package com.talhanation.recruits.entities;
 //ezgi&talha kantar
 
-import com.talhanation.recruits.CommandEvents;
-import com.talhanation.recruits.Main;
-import com.talhanation.recruits.RecruitEvents;
-import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.*;
 import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
@@ -116,6 +113,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public int despawnTimer = -1;
     public boolean reachedMovePos;
     public int attackCooldown = 0;
+    public int paymentTimer;
     public boolean rotate;
     public float ownerRot;
     public int formationPos = -1;
@@ -123,6 +121,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public Vec3 holdPosVec;
     public boolean isInFormation;
     public boolean needsColorUpdate = true;
+    public float moveSpeed = 1;
+
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
         this.xpReward = 6;
@@ -169,8 +169,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
     public void tick() {
         super.tick();
+        if(this.level().isClientSide()) return;
+
         if(despawnTimer > 0) despawnTimer--;
         if(despawnTimer == 0) recruitCheckDespawn();
+
+        if(paymentTimer > 0) paymentTimer--;
+        if(paymentTimer == 0) {
+            if(getUpkeepPos() != null || getUpkeepUUID() != null) forcedUpkeep = true;
+            else checkPayment(this.getInventory());
+        }
+
         if(getMountTimer() > 0) setMountTimer(getMountTimer() - 1);
         if(getUpkeepTimer() > 0) setUpkeepTimer(getUpkeepTimer() - 1);
         if(getHunger() >=  70F && getHealth() < getMaxHealth()){
@@ -237,7 +246,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.05D));
         this.goalSelector.addGoal(2, new RecruitFollowOwnerGoal(this, 1.05D, 300, 100));
         this.goalSelector.addGoal(2, new RecruitMeleeAttackGoal(this, 1.05D, this.getMeleeStartRange()));
-        this.goalSelector.addGoal(3, new RecruitHoldPosGoal(this, 1.0D, 32.0F));
+        this.goalSelector.addGoal(3, new RecruitHoldPosGoal(this, 32.0F));
         //this.goalSelector.addGoal(7, new RecruitDodgeGoal(this));
         this.goalSelector.addGoal(4, new RestGoal(this));
         this.goalSelector.addGoal(10, new RecruitWanderGoal(this));
@@ -333,6 +342,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putBoolean("ShouldRest", this.getShouldRest());
         nbt.putBoolean("ShouldRanged", this.getShouldRanged());
         nbt.putBoolean("isInFormation", this.isInFormation);
+        nbt.putInt("paymentTimer", this.paymentTimer);
 
         if(this.getHoldPos() != null){
             nbt.putDouble("HoldPosX", this.getHoldPos().x());
@@ -404,6 +414,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.formationPos = (nbt.getInt("formationPos"));
         this.setShouldRest(nbt.getBoolean("ShouldRest"));
         this.isInFormation = nbt.getBoolean("isInFormation");
+
+        if(nbt.contains("paymentTimer")){
+            this.paymentTimer = (nbt.getInt("paymentTimer"));
+        }
+        else{
+            resetPaymentTimer();
+        }
 
         if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
             this.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
@@ -1932,6 +1949,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return Component.translatable("chat.recruits.text.hello_3", name);
     }
 
+    private MutableComponent TEXT_NO_PAYMENT(String name) {
+        return Component.translatable("chat.recruits.text.noPaymentInUpkeep", name);
+    }
+
     private void pickUpArrows() {
         this.getLevel().getEntitiesOfClass(
                 AbstractArrow.class,
@@ -1964,5 +1985,72 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             return false;
         }
         return stack.isEdible();
+    }
+
+    public void checkPayment(Container container) {
+        if(RecruitsServerConfig.RecruitsPayment.get() && isOwned()){
+            if(isPaymentInContainer(container)){
+                doPayment(container);
+            }
+            else{
+                if(isPaymentInContainer(this.getInventory())){
+                    doPayment(this.getInventory());
+                }
+                else{
+                    this.doNoPaymentAction();
+                    if(this.getOwner() != null){
+                        this.getOwner().sendSystemMessage(TEXT_NO_PAYMENT(this.getName().getString()));
+                    }
+                }
+
+
+            }
+
+            resetPaymentTimer();
+        }
+    }
+
+    public void doNoPaymentAction(){
+        NoPaymentAction action = RecruitsServerConfig.RecruitsNoPaymentAction.get();
+        switch (action){
+            case MORALE_LOSS -> {
+                float current = this.getMorale();
+                float newMorale = (float) Math.max(0, current * 0.7);//30% loss
+                this.setMoral(newMorale);
+            }
+
+            case DISBAND_KEEP_TEAM -> {
+                this.disband(this.getOwner(), true, true);
+            }
+
+            case DISBAND -> {
+                this.disband(this.getOwner(), false, true);
+            }
+
+            case DESPAWN -> {
+                this.discard();
+            }
+        }
+
+    }
+
+    public void resetPaymentTimer(){
+        int interval = RecruitsServerConfig.RecruitsPaymentInterval.get();
+        this.paymentTimer = 20*60*interval;
+    }
+
+    public enum NoPaymentAction{
+        MORALE_LOSS,
+        DISBAND,
+        DISBAND_KEEP_TEAM,
+        DESPAWN;
+
+        public static NoPaymentAction fromString(String name) {
+            try {
+                return NoPaymentAction.valueOf(name.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return MORALE_LOSS;
+            }
+        }
     }
 }

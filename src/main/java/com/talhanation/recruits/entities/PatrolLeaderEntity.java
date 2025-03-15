@@ -1,7 +1,8 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.entities.ai.PatrolLeaderAttackAI;
 import com.talhanation.recruits.entities.ai.UseShield;
+import com.talhanation.recruits.entities.ai.controller.CaptainAttackController;
+import com.talhanation.recruits.entities.ai.controller.PatrolLeaderAttackController;
 import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.DifficultyInstance;
@@ -26,6 +27,7 @@ public class PatrolLeaderEntity extends AbstractLeaderEntity {
 
     public PatrolLeaderEntity(EntityType<? extends AbstractLeaderEntity> entityType, Level world) {
         super(entityType, world);
+        attackController = new PatrolLeaderAttackController(this);
     }
 
     protected void defineSynchedData() {
@@ -35,7 +37,6 @@ public class PatrolLeaderEntity extends AbstractLeaderEntity {
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        this.goalSelector.addGoal(0, new PatrolLeaderAttackAI(this));
         this.goalSelector.addGoal(2, new UseShield(this));
     }
 
