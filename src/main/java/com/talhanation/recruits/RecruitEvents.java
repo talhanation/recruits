@@ -189,7 +189,8 @@ public class RecruitEvents {
 
         Entity impactEntity = ((EntityHitResult) rayTrace).getEntity();
         String encode = impactEntity.getEncodeId();
-        if (encode != null && encode.contains("corpse")) {
+
+        if (encode != null && encode.contains("corpse:corpse")) {
             event.setCanceled(true);
             return;
         }
