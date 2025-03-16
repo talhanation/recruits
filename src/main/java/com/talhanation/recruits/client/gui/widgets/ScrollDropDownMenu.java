@@ -19,8 +19,8 @@ public class ScrollDropDownMenu<T> extends AbstractWidget {
     private int bgFillSelected = FastColor.ARGB32.color(255, 10, 10, 10);
     private int displayColor = FastColor.ARGB32.color(255, 255, 255, 255);
     private int optionTextColor = FastColor.ARGB32.color(255, 255, 255, 255);
-    private int scrollbarColor = FastColor.ARGB32.color(255, 150, 150, 150);
-    private int scrollbarHandleColor = FastColor.ARGB32.color(255, 200, 200, 200);
+    private int scrollbarColor = FastColor.ARGB32.color(255, 100, 100, 100);
+    private int scrollbarHandleColor = FastColor.ARGB32.color(255, 150, 150, 150);
 
     private final List<T> options;
     private final Consumer<T> onSelect;
@@ -84,7 +84,7 @@ public class ScrollDropDownMenu<T> extends AbstractWidget {
             }
 
             RenderSystem.disableScissor();
-            guiGraphics.pose().popPose();
+
 
             // Render the scrollbar
             if (options.size() > maxVisibleOptions) {
@@ -98,6 +98,8 @@ public class ScrollDropDownMenu<T> extends AbstractWidget {
                 // Scrollbar handle
                 guiGraphics.fill(scrollbarX, scrollbarY, scrollbarX + scrollbarWidth, scrollbarY + scrollbarHeight, scrollbarHandleColor);
             }
+
+            guiGraphics.pose().popPose();
         }
     }
 
