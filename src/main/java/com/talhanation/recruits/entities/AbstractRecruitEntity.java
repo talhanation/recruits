@@ -174,10 +174,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if(despawnTimer > 0) despawnTimer--;
         if(despawnTimer == 0) recruitCheckDespawn();
 
-        if(paymentTimer > 0) paymentTimer--;
-        if(paymentTimer == 0) {
-            if(getUpkeepPos() != null || getUpkeepUUID() != null) forcedUpkeep = true;
-            else checkPayment(this.getInventory());
+        if(RecruitsServerConfig.RecruitsPayment.get()){
+            if(paymentTimer > 0) paymentTimer--;
+            if(paymentTimer == 0) {
+                if(getUpkeepPos() != null || getUpkeepUUID() != null) forcedUpkeep = true;
+                else checkPayment(this.getInventory());
+            }
         }
 
         if(getMountTimer() > 0) setMountTimer(getMountTimer() - 1);
@@ -1106,6 +1108,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         else {
             this.makeHireSound();
 
+            this.resetPaymentTimer();
             this.setOwnerUUID(Optional.of(player.getUUID()));
             this.setIsOwned(true);
             this.navigation.stop();
