@@ -132,7 +132,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                                 foodItem.shrink(1);
                             } else {
                                 if(recruit.getOwner() != null && message){
-                                    recruit.getOwner().sendMessage(TEXT_NO_PLACE(recruit.getName().getString(), recruit.getOwnerUUID()));
+                                    recruit.getOwner().sendMessage(TEXT_NO_PLACE(recruit.getName().getString()), recruit.getOwnerUUID());
                                     message = false;
                                 }
                                 this.stop();
@@ -142,7 +142,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                     }
                     else {
                         if(recruit.getOwner() != null && message){
-                            recruit.getOwner().sendMessage(TEXT_FOOD(recruit.getName().getString(), recruit.getOwnerUUID()));
+                            recruit.getOwner().sendMessage(TEXT_FOOD(recruit.getName().getString()), recruit.getOwnerUUID());
                             message = false;
                         }
                         this.stop();
@@ -156,7 +156,7 @@ public class RecruitUpkeepPosGoal extends Goal {
 
             if(chestPos == null){
                 if(recruit.getOwner() != null && messageNeedNewChest){
-                    recruit.getOwner().sendMessage(NEED_NEW_UPKEEP(recruit.getName().getString(), recruit.getOwnerUUID()));
+                    recruit.getOwner().sendMessage(NEED_NEW_UPKEEP(recruit.getName().getString()), recruit.getOwnerUUID());
                     messageNeedNewChest = false;
                 }
 

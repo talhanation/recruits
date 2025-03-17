@@ -6,6 +6,7 @@ import com.talhanation.recruits.util.RecruitCommanderUtil;
 import com.talhanation.recruits.util.NPCArmy;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
@@ -57,7 +58,7 @@ public class PatrolLeaderAttackController implements IAttackController {
                 commandArmy(this.leader.army, this.leader.enemyArmy);
             }
             else{
-                if(leader.getOwner() != null) this.leader.getOwner().sendSystemMessage(Component.literal(leader.getName().getString() + ": Enemy contact! Im advancing, their size is " + leader.enemyArmy.size()));
+                if(leader.getOwner() != null) this.leader.getOwner().sendMessage(new TextComponent(leader.getName().getString() + ": Enemy contact! Im advancing, their size is " + leader.enemyArmy.size()), leader.getOwnerUUID());
                 forwarding();
                 leader.commandCooldown = 250;
             }
@@ -280,7 +281,7 @@ public class PatrolLeaderAttackController implements IAttackController {
 
     public void sendToOwner(String string){
         if(leader.getOwner() != null)
-            this.leader.getOwner().sendSystemMessage(Component.literal(leader.getName().getString() + ": " + string));
+            this.leader.getOwner().sendMessage(new TextComponent(leader.getName().getString() + ": " + string), leader.getOwnerUUID());
 
     }
 

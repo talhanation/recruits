@@ -25,6 +25,7 @@ import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
@@ -196,7 +197,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     }
 
     public void openAnswerGUI(Player player) {
-        if(this.level().isClientSide())return;
+        if(this.getCommandSenderWorld().isClientSide())return;
         if(player instanceof ServerPlayer serverPlayer && getTargetPlayerInfo() != null){
             Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new MessageToClientOpenMessengerAnswerScreen(MessengerEntity.this, this.message, this.getTargetPlayerInfo()));
         }
@@ -445,7 +446,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     }
 
     private void playHornSound() {
-        this.playSound(ModSounds.MESSENGER_HORN.get(), this.getSoundSource(), 20F, 0.8F + 0.4F * this.random.nextFloat());
+        this.playSound(ModSounds.MESSENGER_HORN.get(), 20F, 0.8F + 0.4F * this.random.nextFloat());
     }
 
     public void arriveAtTargetPlayer(ServerPlayer target){
@@ -474,7 +475,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     }
 
     private MutableComponent MESSENGER_ARRIVED_AT_TARGET_OWNER(){
-        return new TranslatableComponent("chat.recruits.text.messenger_arrived_at_target_owner", this.getName().getString(), this.targetPlayerInfo.getName());
+        return new TranslatableComponent("chat.recruits.text.messenger_arrived_at_target_owner", this.getName().getString(), this.getTargetPlayerInfo().getName());
 
     }
 
@@ -490,7 +491,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     }
 
     private MutableComponent MESSENGER_ARRIVED_NO_TARGET_PLAYER(){
-        return new TranslatableComponent("chat.recruits.text.messenger_arrived_no_player", this.getName().getString(), this.targetPlayerInfo.getName());
+        return new TranslatableComponent("chat.recruits.text.messenger_arrived_no_player", this.getName().getString(), this.getTargetPlayerInfo().getName());
     }
 
     private MutableComponent MESSENGER_ARRIVED_TARGET_PLAYER_NOT_ANSWERED(){

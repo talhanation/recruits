@@ -172,7 +172,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
     public void tick() {
         super.tick();
-        if(this.level().isClientSide()) return;
+        if(this.getCommandSenderWorld().isClientSide()) return;
 
         if(despawnTimer > 0) despawnTimer--;
         if(despawnTimer == 0) recruitCheckDespawn();
@@ -1960,7 +1960,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     private MutableComponent TEXT_NO_PAYMENT(String name) {
-        return Component.translatable("chat.recruits.text.noPaymentInUpkeep", name);
+        return new TranslatableComponent("chat.recruits.text.noPaymentInUpkeep", name);
     }
 
     private void pickUpArrows() {
@@ -2009,7 +2009,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 else{
                     this.doNoPaymentAction();
                     if(this.getOwner() != null){
-                        this.getOwner().sendSystemMessage(TEXT_NO_PAYMENT(this.getName().getString()));
+                        this.getOwner().sendMessage(TEXT_NO_PAYMENT(this.getName().getString()), this.getOwnerUUID());
                     }
                 }
 

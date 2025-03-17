@@ -711,7 +711,7 @@ public class RecruitEvents {
 
     @SubscribeEvent
     public void onWorldTickArrowCleaner(TickEvent.WorldTickEvent event) {
-        if (event.level.isClientSide()) return;
+        if (event.world.isClientSide()) return;
         if (!RecruitsServerConfig.AllowArrowCleaning.get()) return;
         if (event.phase != TickEvent.Phase.END) return;
         if (server == null) return;
@@ -721,7 +721,7 @@ public class RecruitEvents {
         tickCounter = 0;
 
 
-        List<AbstractArrow> arrows = event.level.getEntitiesOfClass(AbstractArrow.class, event.level.getWorldBorder().getCollisionShape().bounds());
+        List<AbstractArrow> arrows = event.world.getEntitiesOfClass(AbstractArrow.class, event.world.getWorldBorder().getCollisionShape().bounds());
         trackedArrows.addAll(arrows);
 
 

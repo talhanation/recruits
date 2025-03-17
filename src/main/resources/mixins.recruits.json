@@ -7,11 +7,9 @@
   "mixins": [
     "AbstractHorseMixin",
     "AnimalMixin",
-    "CamelMixin",
     "ClassInstanceMultiMapMixin",
     "DoorInteractGoalMixin",
     "GoalUtilsMixin",
-    "LivingEntityMixin",
     "MobMixin",
     "WalkNodeEvaluatorMixin"
   ],

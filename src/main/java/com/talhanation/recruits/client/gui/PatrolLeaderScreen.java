@@ -1,6 +1,7 @@
 package com.talhanation.recruits.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.CaptainEntity;
@@ -274,7 +275,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
                 }
         ));
         buttonFastPatrolling.active = false;
-        buttonFastPatrolling.setTooltip(Tooltip.create(TOOLTIP_FAST_PATROLLING));
+        //buttonFastPatrolling.setTooltip(Tooltip.create(TOOLTIP_FAST_PATROLLING));
     }
 
     public void setStartButtons(Component start, Component tooltip) {

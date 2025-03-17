@@ -84,7 +84,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
         }
         else {
             if (recruit.getOwner() != null && messageNotInRange) {
-                recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString(), recruit.getOwnerUUID()));
+                recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()), recruit.getOwnerUUID());
                 messageNotInRange = false;
             }
             recruit.clearUpkeepEntity();
@@ -150,7 +150,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
             }
         } else {
             if (recruit.getOwner() != null && messageNotInRange) {
-                recruit.getOwner().sendSystemMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()));
+                recruit.getOwner().sendMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()), recruit.getOwnerUUID());
                 messageNotInRange = false;
 
                 recruit.clearUpkeepEntity();
