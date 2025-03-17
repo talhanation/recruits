@@ -168,7 +168,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     private boolean checkForArmy = false;
     public void tick(){
         super.tick();
-        if(this.level().isClientSide())return;
+        if(this.getCommandSenderWorld().isClientSide())return;
 
         if(!checkForArmy && this.army != null ){
             checkForArmy = true;
@@ -302,14 +302,14 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     }
 
     private void checkForPotentialEnemies() {
-        if(!level().isClientSide()){
+        if(!getCommandSenderWorld().isClientSide()){
             List<LivingEntity> targets = this.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(100D)).stream()
                     .filter((target) -> shouldAttack(target) && this.hasLineOfSight(target))
                     .toList();
 
             if(targets.isEmpty()) return;
 
-            this.enemyArmy = new NPCArmy((ServerLevel) level(), targets, null);
+            this.enemyArmy = new NPCArmy((ServerLevel) getCommandSenderWorld(), targets, null);
             if(state != State.ATTACKING) this.setPatrolState(State.ATTACKING);
         }
 
@@ -363,7 +363,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         this.waitingTime = 0;
         RecruitCommanderUtil.setRecruitsClearTargets(army.getAllRecruitUnits());
 
-        Vec3 forward = this.position().normalize().vectorTo(this.currentWaypoint.getCenter().normalize());
+        Vec3 forward = this.position().normalize().vectorTo(Vec3.atCenterOf(this.currentWaypoint).normalize());
         FormationUtils.squareFormation(forward, army.getAllRecruitUnits(), this.position().normalize(), 1.25);
 
         RecruitCommanderUtil.setRecruitsShields(army.getAllRecruitUnits(),false);
@@ -375,7 +375,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     protected void moveToCurrentWaypoint() {
         if(this.tickCount % 20 == 0){
             this.getNavigation().moveTo(currentWaypoint.getX(), currentWaypoint.getY(), currentWaypoint.getZ(), this.getFastPatrolling() ? 1F : 0.6F);
-            Vec3 forward = this.position().vectorTo(this.currentWaypoint.getCenter());
+            Vec3 forward = this.position().vectorTo(Vec3.atCenterOf(this.currentWaypoint));
 
             if(army != null){
                 FormationUtils.lineFormation(forward.normalize(), army.getAllRecruitUnits(), this.position(), 4, 1.75);

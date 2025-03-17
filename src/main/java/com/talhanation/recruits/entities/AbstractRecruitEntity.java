@@ -169,7 +169,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
     public void tick() {
         super.tick();
-        if(this.level().isClientSide()) return;
+        if(this.getCommandSenderWorld().isClientSide()) return;
 
         if(despawnTimer > 0) despawnTimer--;
         if(despawnTimer == 0) recruitCheckDespawn();
