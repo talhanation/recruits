@@ -100,6 +100,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
         return Mob.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.31D)
+                .add(ForgeMod.SWIM_SPEED.get(), 0.3D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
                 .add(Attributes.FOLLOW_RANGE, 64.0D) //do not change as ranged ai dependants on it

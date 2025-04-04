@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.CaptainEntity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.Entity;
@@ -55,13 +56,15 @@ public class RecruitProtectEntityGoal extends Goal {
 
         if(this.protectingMob != null) {
 
-
             boolean isClose = protectingMob.distanceTo(this.recruit) <= range;
             if(!isClose){
                 if (--this.timeToRecalcPath <= 0) {
                     this.timeToRecalcPath = this.adjustedTickDelay(10);
                     recruit.getNavigation().moveTo(protectingMob, 1.15F);
 
+                    if(this.recruit instanceof CaptainEntity captain && captain.getVehicle() instanceof Boat){
+                        captain.setSailPos(this.protectingMob.getOnPos());
+                    }
                 }
 
                 if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
@@ -104,7 +107,10 @@ public class RecruitProtectEntityGoal extends Goal {
                 else this.recruit.stopRiding();
             }
             else if(protectingVehicle instanceof Boat boat) {
-                if(ownVehicle instanceof AbstractHorse) {
+                if(ownVehicle instanceof Boat && this.recruit instanceof CaptainEntity) {
+                    return;
+                }
+                else if(ownVehicle instanceof AbstractHorse) {
                     ownVehicle.startRiding(boat);
                 }
                 else this.recruit.shouldMount(true, boat.getUUID());

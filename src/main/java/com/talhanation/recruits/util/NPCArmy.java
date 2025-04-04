@@ -1,5 +1,6 @@
 package com.talhanation.recruits.util;
 
+import com.talhanation.recruits.compat.SmallShips;
 import com.talhanation.recruits.entities.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -8,9 +9,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ShieldItem;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
@@ -25,6 +28,7 @@ public class NPCArmy {
     private List<LivingEntity> shieldmen;
     private List<LivingEntity> infantry;
     private List<LivingEntity> cavalry;
+    public List<Boat> ships;
     private List<UUID> uuids;
     private final ServerLevel level;
 
@@ -32,6 +36,11 @@ public class NPCArmy {
         this.level = level;
         this.allUnits = units;
         this.uuids = uuids;
+
+        if(this.uuids == null && this.allUnits == null){
+            this.initLists();
+            return;
+        }
 
         initRecruits(this.uuids != null && allUnits == null);
     }
@@ -132,6 +141,40 @@ public class NPCArmy {
                 .collect(Collectors.toList());
 
         initRecruits(false);
+        updateShips();
+    }
+
+    public void updateShips() {
+        ships = ships.stream()
+                .filter(boat -> SmallShips.isSmallShip(boat) && !boat.isUnderWater() && hasOnBoard(boat))
+                .collect(Collectors.toList());
+
+
+        List<Boat> nearbyBoats = level.getEntitiesOfClass(Boat.class, getShipSearchArea());
+        for (Boat boat : nearbyBoats) {
+            if (SmallShips.isSmallShip(boat) && !ships.contains(boat) && hasOnBoard(boat)) {
+                ships.add(boat);
+            }
+        }
+    }
+
+    private AABB getShipSearchArea() {
+        Vec3 center = getPosition();
+        double radius = 100.0;
+        return new AABB(center.x - radius, center.y - 10, center.z - radius,
+                center.x + radius, center.y + 10, center.z + radius);
+    }
+
+
+    private boolean hasOnBoard(Boat boat) {
+        for (Entity passenger : boat.getPassengers()) {
+            if (passenger instanceof LivingEntity livingEntity) {
+                if (allUnits.contains(livingEntity)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     // Get a list of all recruits in the army
@@ -229,14 +272,18 @@ public class NPCArmy {
                 .collect(Collectors.toList());
     }
 
-
-    public void initRecruits(boolean fromUUID) {
-        if(uuids == null || uuids.isEmpty() && allUnits != null && !allUnits.isEmpty()) this.uuids = getUUIDListFromRecruits(allUnits);
-        if(fromUUID) this.allUnits = getFromUUIDListRecruits(uuids);
+    private void initLists(){
+        if(allUnits == null)this.allUnits = new ArrayList<>();
         this.ranged = new ArrayList<>();
         this.shieldmen = new ArrayList<>();
         this.infantry = new ArrayList<>();
         this.cavalry = new ArrayList<>();
+        this.ships = new ArrayList<>();
+    }
+    public void initRecruits(boolean fromUUID) {
+        this.initLists();
+        if(uuids == null || uuids.isEmpty() && allUnits != null && !allUnits.isEmpty()) this.uuids = getUUIDListFromRecruits(allUnits);
+        if(fromUUID) this.allUnits = getFromUUIDListRecruits(uuids);
 
         for (LivingEntity recruit : allUnits) {
             if (isRanged(recruit)) {
@@ -249,6 +296,8 @@ public class NPCArmy {
                 infantry.add(recruit);
             }
         }
+
+        updateShips();
     }
 
     public Vec3 getPosition() {

@@ -24,6 +24,7 @@ import net.minecraft.server.commands.TeamCommand;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraftforge.server.command.EnumArgument;
 
@@ -58,7 +59,14 @@ public class RecruitsAdminCommands {
                 .then(Commands.literal("getUnitsCount")
                         .then(Commands.argument("Player", ScoreHolderArgument.scoreHolders()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS)
                             .executes((context) -> {
-                                ServerPlayer player = context.getSource().getPlayerOrException();
+                                String playerName = ScoreHolderArgument.getName(context, "Player");
+                                ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayerByName(playerName);
+
+                                if(player == null) {
+                                    context.getSource().sendFailure(Component.literal("No Player found!").withStyle(ChatFormatting.RED));
+                                    return 0;
+                                }
+
                                 int unitCount = getUnitsCount(player);
                                 context.getSource().sendSuccess(() ->
                                         Component.literal(player.getName().getString() + " has " + unitCount + " from max. " + RecruitsServerConfig.MaxRecruitsForPlayer.get()), false);
@@ -69,7 +77,14 @@ public class RecruitsAdminCommands {
                         .then(Commands.argument("Player", ScoreHolderArgument.scoreHolders()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS)
                                 .then(Commands.argument("Amount", IntegerArgumentType.integer(0))
                                         .executes((context) -> {
-                                            ServerPlayer player = context.getSource().getPlayerOrException();
+                                            String playerName = ScoreHolderArgument.getName(context, "Player");
+                                            ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayerByName(playerName);
+
+                                            if(player == null) {
+                                                context.getSource().sendFailure(Component.literal("No Player found!").withStyle(ChatFormatting.RED));
+                                                return 0;
+                                            }
+
                                             int amount = IntegerArgumentType.getInteger(context, "Amount");
 
                                             return setUnitsCount(context, player, amount);
@@ -109,6 +124,61 @@ public class RecruitsAdminCommands {
                                         })
                                 )
                         )
+                )
+                .then(Commands.literal("getLeader")
+                        .then(Commands.argument("Faction", TeamArgument.team())
+                                .executes((context) -> {
+                                    PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
+                                    RecruitsTeam faction = TeamEvents.recruitsTeamManager.getTeamByStringID(playerTeam.getName());
+                                    if(faction == null) {
+                                        context.getSource().sendFailure(Component.literal("No Faction found!").withStyle(ChatFormatting.RED));
+                                        return 0;
+                                    }
+                                    context.getSource().sendSuccess(() ->
+                                            Component.literal("The Leader of " + faction.getTeamDisplayName() + " is " + faction.getTeamLeaderName()), false);
+                                    return 1;
+                                }))
+                )
+                .then(Commands.literal("setLeader")
+                    .then(Commands.argument("Faction", TeamArgument.team())
+                        .then(Commands.argument("Player", ScoreHolderArgument.scoreHolders()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS)
+                            .executes((context) -> {
+                                PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
+                                RecruitsTeam faction = TeamEvents.recruitsTeamManager.getTeamByStringID(playerTeam.getName());
+
+                                String playerName = ScoreHolderArgument.getName(context, "Player");
+                                ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayerByName(playerName);
+
+                                if(faction == null) {
+                                    context.getSource().sendFailure(Component.literal("No Faction found!").withStyle(ChatFormatting.RED));
+                                    return 0;
+                                }
+
+                                if(player == null) {
+                                    context.getSource().sendFailure(Component.literal("No Player found!").withStyle(ChatFormatting.RED));
+                                    return 0;
+                                }
+
+                                if(TeamEvents.isPlayerAlreadyAFactionLeader(player)){
+                                    context.getSource().sendFailure(Component.literal("Player is already a Leader of another Faction!").withStyle(ChatFormatting.RED));
+                                    return 0;
+                                }
+
+                                if(!playerTeam.getPlayers().contains(playerName)){
+                                    TeamEvents.addPlayerToTeam(null, context.getSource().getLevel(), faction.getStringID(), playerName);
+                                }
+
+                                faction.setTeamLeaderID(player.getUUID());
+                                faction.setTeamLeaderName(player.getName().getString());
+
+                                TeamEvents.modifyTeam(context.getSource().getLevel(), faction.getStringID(), faction, context.getSource().getPlayer(), 0);
+
+                                TeamEvents.recruitsTeamManager.save(context.getSource().getLevel());
+
+                                context.getSource().sendSuccess(() ->
+                                        Component.literal("The Leader of " + faction.getTeamDisplayName() + " is now " + faction.getTeamLeaderName()), false);
+                                return 1;
+                            })))
                 )
             )
             .then(Commands.literal("diplomacyManager")

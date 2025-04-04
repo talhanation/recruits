@@ -392,6 +392,9 @@
    "gui.recruits.toast.wantsToJoin" : "%s wants to join your Faction",
    "gui.recruits.toast.teamJoined" : "You joined %s",
    "gui.recruits.toast.playerJoinedTeam" : "%s joined your Faction",
+   "gui.recruits.toast.newLeader" : "%s is now Leader of your Faction",
+   "gui.recruits.toast.newName" : "Your Faction is now called %s",
+   "gui.recruits.toast.newBanner" : "Your Faction has new banner!",
 
    "gui.recruits.toast.messengerArrivedTitle" : "Messenger Arrived",
    "gui.recruits.toast.recruitAssignedTitle" : "Recruit Assigned",
@@ -400,6 +403,9 @@
    "gui.recruits.toast.teamJoinedTitle" : "Faction Joined",
    "gui.recruits.toast.JoinRequestTitle" : "Join Request",
    "gui.recruits.toast.playerJoinedTeamTitle" : "Player Joined Faction",
+   "gui.recruits.toast.newTeamLeaderTitle" : "New Faction Leader",
+   "gui.recruits.toast.newFactionNameTitle" : "New Faction Name",
+   "gui.recruits.toast.newFactionBannerTitle" : "New Faction Banner",
 
    "gui.recruits.button.join" : "Join",
    "gui.recruits.diplomacy_edit.title" : "Relations",

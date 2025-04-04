@@ -13,6 +13,7 @@ import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -1257,18 +1258,25 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 .add(Attributes.ATTACK_DAMAGE, 1.0D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D);
     */
-
-    public boolean isAlliedTo(Team p_20032_) {
-        return this.getTeam() != null && this.getTeam().isAlliedTo(p_20032_);
+    /**
+        Important for mod compat: See smallships or siege weapons mod
+    **/
+    public boolean isAlliedTo(@NotNull Team team) {
+        if(!this.getCommandSenderWorld().isClientSide() && this.getTeam() != null){
+            RecruitsDiplomacyManager.DiplomacyStatus status = TeamEvents.recruitsDiplomacyManager.getRelation(this.getTeam().getName(), team.getName());
+            return status == RecruitsDiplomacyManager.DiplomacyStatus.ALLY;
+        }
+        return super.isAlliedTo(team);
     }
 
     public void die(DamageSource dmg) {
         net.minecraft.network.chat.Component deathMessage = this.getCombatTracker().getDeathMessage();
         super.die(dmg);
         if (this.dead) {
-            if (!this.getCommandSenderWorld().isClientSide && this.getCommandSenderWorld().getGameRules().getBoolean(GameRules.RULE_SHOWDEATHMESSAGES) && this.getOwner() instanceof ServerPlayer) {
-                this.getOwner().sendSystemMessage(deathMessage);
-
+            if (!this.getCommandSenderWorld().isClientSide()){
+                if (this.getCommandSenderWorld().getGameRules().getBoolean(GameRules.RULE_SHOWDEATHMESSAGES) && this.getOwner() instanceof ServerPlayer) {
+                    this.getOwner().sendSystemMessage(deathMessage);
+                }
                 if(this.isOwned()){
                     RecruitEvents.recruitsPlayerUnitManager.removeRecruits(this.getOwnerUUID(), 1);
                     TeamEvents.removeRecruitFromTeam(this, this.getTeam(), (ServerLevel) this.getCommandSenderWorld());

@@ -51,12 +51,12 @@ import java.util.function.Predicate;
 
 public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompanion {
     private static final EntityDataAccessor<String> OWNER_NAME = SynchedEntityData.defineId(MessengerEntity.class, EntityDataSerializers.STRING);
-
     private static final EntityDataAccessor<Integer> MESSENGER_STATE = SynchedEntityData.defineId(MessengerEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> WAITING_TIME = SynchedEntityData.defineId(MessengerEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<CompoundTag> TARGETPLAYER = SynchedEntityData.defineId(MessengerEntity.class, EntityDataSerializers.COMPOUND_TAG);
+    private static final EntityDataAccessor<String> MESSAGE = SynchedEntityData.defineId(MessengerEntity.class, EntityDataSerializers.STRING);
+
     private String ownerName = "";
-    private String message = "";
     public int teleportWaitTimer;
     private int arrivedWaitTimer;
     public boolean targetPlayerOpened;
@@ -75,6 +75,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
         this.entityData.define(MESSENGER_STATE, 0);
         this.entityData.define(WAITING_TIME, 0);
         this.entityData.define(TARGETPLAYER, new CompoundTag());
+        this.entityData.define(MESSAGE, "");
     }
 
     @Override
@@ -133,6 +134,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
+                .add(ForgeMod.SWIM_SPEED.get(), 0.3D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.1D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D)
@@ -198,7 +200,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     public void openAnswerGUI(Player player) {
         if(this.level().isClientSide())return;
         if(player instanceof ServerPlayer serverPlayer && getTargetPlayerInfo() != null){
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new MessageToClientOpenMessengerAnswerScreen(MessengerEntity.this, this.message, this.getTargetPlayerInfo()));
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new MessageToClientOpenMessengerAnswerScreen(MessengerEntity.this, this.getMessage(), this.getTargetPlayerInfo()));
         }
 
     }
@@ -232,11 +234,11 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     }
 
     public String getMessage() {
-        return this.message;
+        return this.entityData.get(MESSAGE);
     }
 
     public void setMessage(String message) {
-        this.message = message;
+        this.entityData.set(MESSAGE, message);
     }
 
     public RecruitsPlayerInfo getTargetPlayerInfo() {

@@ -30,7 +30,7 @@ public class MessageToClientUpdateMessengerScreen implements Message<MessageToCl
 
     @Override
     public void executeClientSide(NetworkEvent.Context context) {
-        MessengerScreen.message = this.message;
+        //MessengerScreen.message = this.message;
 
         if(nbt != null){
             MessengerScreen.playerInfo = RecruitsPlayerInfo.getFromNBT(nbt);

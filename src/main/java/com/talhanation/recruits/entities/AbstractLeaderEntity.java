@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.compat.SmallShips;
 import com.talhanation.recruits.entities.ai.controller.IAttackController;
 import com.talhanation.recruits.inventory.PatrolLeaderContainer;
 import com.talhanation.recruits.network.MessageOpenSpecialScreen;
@@ -64,6 +65,9 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
 
     public AbstractLeaderEntity(EntityType<? extends AbstractLeaderEntity> entityType, Level world) {
         super(entityType, world);
+        if(army == null && !this.level().isClientSide()){
+            this.army = new NPCArmy((ServerLevel) this.level(), null, null);
+        }
     }
 
     public Stack<BlockPos> WAYPOINTS = new Stack<>();
@@ -168,7 +172,8 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     private boolean checkForArmy = false;
     public void tick(){
         super.tick();
-        if(this.level().isClientSide())return;
+        if(this.level().isClientSide()) return;
+
 
         if(!checkForArmy && this.army != null ){
             checkForArmy = true;
@@ -187,6 +192,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
 
         double distance = 0D;
         if(currentWaypoint != null) distance = this.distanceToSqr(currentWaypoint.getX(), currentWaypoint.getY(), currentWaypoint.getZ());
+        //if(this.getOwner() != null) this.getOwner().sendSystemMessage(Component.literal(this.getName().getString() + ": " + state));
         switch (state){
             case IDLE, PAUSED, STOPPED -> {
             }
@@ -200,7 +206,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                         //re-supply at first waypoint
                         boolean isFirstWaypoint = getWaypointIndex() == 0;
                         BlockPos pos = this.getUpkeepPos();
-                        if(pos != null && pos.distSqr(this.getOnPos()) < 5000 && isFirstWaypoint && waitForRecruitsUpkeepTime == 0){
+                        if(pos != null && pos.distSqr(this.getOnPos()) < 5000 && isFirstWaypoint && (waitForRecruitsUpkeepTime == 0 || getOtherUpkeepInterruption())){
 
                             this.handleResupply();
 
@@ -270,6 +276,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
 
                 if(this.retreating && WAYPOINTS != null && WAYPOINTS.size() > 0){
                     this.setPatrolState(State.RETREATING);
+                    return;
                 }
                 if(army == null || enemyArmy == null){
                     this.setFollowState(0);
@@ -301,18 +308,33 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         }
     }
 
+    public boolean getOtherUpkeepInterruption() {
+        if(army != null && army.size() != 0 && army.getAverageHealth() < 25){
+            return true;
+        }
+
+        if(army != null && army.size() != 0 && army.getAverageMorale() < 40){
+            return true;
+        }
+        return false;
+    }
+
     private void checkForPotentialEnemies() {
         if(!level().isClientSide()){
             List<LivingEntity> targets = this.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(100D)).stream()
-                    .filter((target) -> shouldAttack(target) && this.hasLineOfSight(target))
+                    .filter((target) -> shouldAttack(target) && this.hasLineOfSight(target) && !target.isUnderWater())
                     .toList();
 
             if(targets.isEmpty()) return;
 
             this.enemyArmy = new NPCArmy((ServerLevel) level(), targets, null);
-            if(state != State.ATTACKING) this.setPatrolState(State.ATTACKING);
+            if(state != State.ATTACKING && canAttackWhilePatrolling()) this.setPatrolState(State.ATTACKING);
         }
 
+    }
+
+    public boolean canAttackWhilePatrolling() {
+        return true;
     }
 
     @Override
@@ -335,8 +357,10 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     }
 
     public boolean enemyArmySpotted() {
+        if(enemyArmy == null || army == null) return false;
+
         double distanceToTarget = this.army.getPosition().distanceToSqr(enemyArmy.getPosition());
-        if(enemyArmy != null && !enemyArmy.getAllRecruitUnits().isEmpty() && distanceToTarget < 5000){
+        if(enemyArmy != null && !enemyArmy.getAllRecruitUnits().isEmpty() && (distanceToTarget < 5000 || Double.isNaN(distanceToTarget)) ){
             attackController.setInitPos(enemyArmy.getPosition());
             return true;
         }
@@ -344,6 +368,8 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     }
 
     public void handleResupply() {
+        if(army == null) return;
+
         RecruitCommanderUtil.setRecruitsWanderFreely(army.getAllRecruitUnits());
         RecruitCommanderUtil.setRecruitsUpkeep(army.getAllRecruitUnits(), this.getUpkeepPos(), this.getUpkeepUUID());
         this.forcedUpkeep = true;
@@ -535,7 +561,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         ItemStack itemStack;
         if (state.is(Blocks.WATER) || state.is(Blocks.KELP) || state.is(Blocks.KELP_PLANT)){
             if(this instanceof CaptainEntity){
-                itemStack = IBoatController.getSmallShipsItem();
+                itemStack = SmallShips.getSmallShipsItem();
                 if(itemStack == null) {
                     itemStack = Items.OAK_BOAT.getDefaultInstance();
                 }

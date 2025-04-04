@@ -3,13 +3,11 @@ package com.talhanation.recruits.entities.ai.navigation;
 import com.google.common.collect.ImmutableSet;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.CaptainEntity;
-import com.talhanation.recruits.entities.IBoatController;
 import com.talhanation.recruits.pathfinding.AsyncPathfinder;
 import com.talhanation.recruits.pathfinding.AsyncWaterBoundPathNavigation;
 import com.talhanation.recruits.pathfinding.NodeEvaluatorGenerator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.navigation.WaterBoundPathNavigation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.NodeEvaluator;
 import net.minecraft.world.level.pathfinder.Path;
@@ -21,13 +19,13 @@ import java.util.function.BiFunction;
 
 public class SailorPathNavigation extends AsyncWaterBoundPathNavigation {
     private static BiFunction<Integer, NodeEvaluator, PathFinder> pathfinderSupplier = (p_26453_, nodeEvaluator) -> new PathFinder(nodeEvaluator, p_26453_);
-    CaptainEntity worker;
+    CaptainEntity captain;
 
     private static final NodeEvaluatorGenerator nodeEvaluatorGenerator = SailorNodeEvaluator::new;
 
-    public SailorPathNavigation(IBoatController sailor, Level level) {
-        super(sailor.getCaptain(), level);
-        this.worker = sailor.getCaptain();
+    public SailorPathNavigation(CaptainEntity sailor, Level level) {
+        super(sailor, level);
+        this.captain = sailor;
         if(RecruitsServerConfig.UseAsyncPathfinding.get()) {
             pathfinderSupplier = (p_26453_, nodeEvaluator) -> new AsyncPathfinder(nodeEvaluator, p_26453_, nodeEvaluatorGenerator, this.level);
         }

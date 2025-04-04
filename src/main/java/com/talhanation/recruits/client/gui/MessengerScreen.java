@@ -30,8 +30,6 @@ public class MessengerScreen extends RecruitsScreenBase {
     public static RecruitsPlayerInfo playerInfo;
     private final MessengerEntity messenger;
     private MultiLineEditBox textFieldMessage;
-
-    public static String message = "Message";
     private SelectedPlayerWidget selectedPlayerWidget;
     private static final MutableComponent TOOLTIP_MESSENGER = Component.translatable("gui.recruits.inv.tooltip.messenger");
     private static final MutableComponent BUTTON_SEND_MESSENGER = Component.translatable("gui.recruits.inv.text.send_messenger");
@@ -56,7 +54,6 @@ public class MessengerScreen extends RecruitsScreenBase {
     protected void init() {
         super.init();
 
-
         setButtons();
     }
     public void tick() {
@@ -75,7 +72,7 @@ public class MessengerScreen extends RecruitsScreenBase {
         clearWidgets();
 
         this.textFieldMessage = new MultiLineEditBox(font, guiLeft + 3, guiTop + ySize - 203,  186, 150, Component.literal(""), Component.literal(""));
-        this.textFieldMessage.setValue(message);
+        this.textFieldMessage.setValue(messenger.getMessage());
         addRenderableWidget(textFieldMessage);
 
         Button sendButton = addRenderableWidget(new ExtendedButton(guiLeft + 33, guiTop + ySize - 52 , 128, 20, BUTTON_SEND_MESSENGER,
@@ -91,6 +88,7 @@ public class MessengerScreen extends RecruitsScreenBase {
             this.selectedPlayerWidget = new SelectedPlayerWidget(font, guiLeft + 33, guiTop + ySize - 235, 128, 20, Component.literal("x"), // Button label
                     () -> {
                         playerInfo = null;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageSendMessenger(messenger.getUUID(), playerInfo, textFieldMessage.getValue(), false));
                         this.selectedPlayerWidget.setPlayer(null, null);
                         this.setButtons();
                     }
@@ -103,6 +101,7 @@ public class MessengerScreen extends RecruitsScreenBase {
         {
             Button selectPlayerButton = addRenderableWidget(new ExtendedButton(guiLeft + 33, guiTop + ySize - 235, 128, 20, SelectPlayerScreen.TITLE,
                     button -> {
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageSendMessenger(messenger.getUUID(), playerInfo, textFieldMessage.getValue(), false));
                         minecraft.setScreen(new SelectPlayerScreen(this, player, SelectPlayerScreen.TITLE, SelectPlayerScreen.BUTTON_SELECT, SelectPlayerScreen.BUTTON_SELECT_TOOLTIP, false, PlayersList.FilterType.NONE,
                                 (playerInfo) -> {
                                     MessengerScreen.playerInfo = playerInfo;

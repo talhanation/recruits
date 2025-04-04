@@ -44,6 +44,9 @@ public class RecruitsToastManager {
             case TEAM_JOIN -> {
                 toast = new RecruitsTeamImageToast(null, title, text, team);
             }
+            case CROWN -> {
+                toast = new RecruitsTeamImageToast(CROWN_IMAGE, title, text, team);
+            }
             default -> {
                 toast = new RecruitsTeamImageToast(LETTER_IMAGE, title, text, team);
             }
@@ -115,11 +118,15 @@ public class RecruitsToastManager {
     public static final Component TOAST_MESSENGER_ARRIVED_TITLE  = Component.translatable("gui.recruits.toast.messengerArrivedTitle");
     public static final Component TOAST_RECRUIT_ASSIGNED_TITLE  = Component.translatable("gui.recruits.toast.recruitAssignedTitle");
 
+    public static final Component TOAST_NEW_LEADER_TITLE = Component.translatable("gui.recruits.toast.newTeamLeaderTitle");
+    public static final Component TOAST_NEW_FACTION_NAME_TITLE = Component.translatable("gui.recruits.toast.newFactionNameTitle");
+    public static final Component TOAST_NEW_BANNER_TITLE = Component.translatable("gui.recruits.toast.newFactionBannerTitle");
+
     public static Component TOAST_PLAYER_JOINED_TEAM(String s){
         return Component.translatable("gui.recruits.toast.playerJoinedTeam", s);
     }
-    public static Component TOAST_TEAM_JOINED(String s){
-        return Component.translatable("gui.recruits.toast.teamJoined", s);
+    public static Component TOAST_NEW_LEADER(String s){
+        return Component.translatable("gui.recruits.toast.newLeader", s);
     }
     public static Component TOAST_WANTS_TO_JOIN(String s){
         return Component.translatable("gui.recruits.toast.wantsToJoin", s);
@@ -149,5 +156,16 @@ public class RecruitsToastManager {
 
     public static Component TOAST_MESSENGER_ARRIVED_INFO(String s) {
         return Component.translatable("gui.recruits.toast.messengerArrived", s);
+    }
+    public static Component TOAST_TEAM_JOINED(String s){
+        return Component.translatable("gui.recruits.toast.teamJoined", s);
+    }
+
+    public static Component TOAST_NEW_FACTION_NAME(String s){
+        return Component.translatable("gui.recruits.toast.newName", s);
+    }
+
+    public static Component TOAST_NEW_BANNER(){
+        return Component.translatable("gui.recruits.toast.newBanner");
     }
 }

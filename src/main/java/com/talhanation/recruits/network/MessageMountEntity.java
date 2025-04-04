@@ -45,7 +45,7 @@ public class MessageMountEntity implements Message<MessageMountEntity> {
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(100),
-                (recruit) -> recruit.isEffectedByCommand(uuid, group) && recruit.getMountUUID() == null
+                (recruit) -> recruit.isEffectedByCommand(uuid, group)
         ).forEach((recruit) -> CommandEvents.onMountButton(uuid, recruit, target, group));
     }
 

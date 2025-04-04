@@ -1,6 +1,7 @@
 package com.talhanation.recruits.util;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.CaptainEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -47,6 +48,13 @@ public class FormationUtils {
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
 
         List<FormationPosition> possiblePositions = new ArrayList<>();
+
+        for(AbstractRecruitEntity rec : recruits){
+            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+                spacing *= 10;
+                break;
+            }
+        }
 
         for (int i = 0; i < recruits.size(); i++) {
             int row = i / maxInRow;
@@ -102,6 +110,13 @@ public class FormationUtils {
 
     public static void squareFormation(Vec3 forward, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacing) {
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
+
+        for(AbstractRecruitEntity rec : recruits){
+            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+                spacing *= 10;
+                break;
+            }
+        }
 
         int numRecruits = recruits.size();
         int sideLength = (int) Math.ceil(Math.sqrt(numRecruits));
@@ -163,6 +178,13 @@ public class FormationUtils {
         double spacing = 2.5;
         int numRecruits = recruits.size();
 
+        for(AbstractRecruitEntity rec : recruits){
+            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+                spacing *= 10;
+                break;
+            }
+        }
+
         List<FormationPosition> possiblePositions = new ArrayList<>();
 
         int index = 0;
@@ -215,6 +237,13 @@ public class FormationUtils {
         double spacing = 2.5; // Distance between recruits in the circle
         int numRecruits = recruits.size();
 
+        for(AbstractRecruitEntity rec : recruits){
+            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+                spacing *= 10;
+                break;
+            }
+        }
+
         double radius = spacing * numRecruits / (2 * Math.PI); // Calculate radius based on the number of recruits
         List<FormationPosition> possiblePositions = new ArrayList<>();
 
@@ -264,6 +293,13 @@ public class FormationUtils {
     public static void circleFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
         double spacing = 2.5; // Abstand zwischen den Rekruten in jedem Ring
         int numRecruits = recruits.size();
+
+        for(AbstractRecruitEntity rec : recruits){
+            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+                spacing *= 10;
+                break;
+            }
+        }
 
         // Aufteilen der Rekruten auf drei Ringe
         int innerRingCount = Math.min(5, numRecruits); // Innerer Ring hat max 5
@@ -345,6 +381,13 @@ public class FormationUtils {
         int recruitsPerSide = Math.max(2, recruits.size() / 4); // Ensure at least 2 recruits per side
         double spacing = 2.5;
 
+        for(AbstractRecruitEntity rec : recruits){
+            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+                spacing *= 10;
+                break;
+            }
+        }
+
         int totalRecruitsNeeded = recruitsPerSide * 4;
         if (totalRecruitsNeeded > recruits.size()) {
             recruitsPerSide = recruits.size() / 4;
@@ -411,6 +454,13 @@ public class FormationUtils {
 
         double spacing = 2.5;
         int recruitsPerWing = recruits.size() / 2;
+
+        for(AbstractRecruitEntity rec : recruits){
+            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+                spacing *= 10;
+                break;
+            }
+        }
 
         List<FormationPosition> possiblePositions = new ArrayList<>();
 
@@ -573,8 +623,8 @@ public class FormationUtils {
 
     public static BlockPos getPositionOrSurface(Level level, BlockPos pos) {
         boolean positionFree = true;
-        for(int i = 0; i < 2; i++) {
-            if(!level.getBlockState(pos.above(i)).isCollisionShapeFullBlock(level, pos.above(i))) {
+        for(int i = 0; i < 3; i++) {
+            if(!level.getBlockState(pos.above(i)).isAir( )) {
                 positionFree = false;
                 break;
             }

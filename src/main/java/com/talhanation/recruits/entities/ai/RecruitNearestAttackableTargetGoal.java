@@ -3,6 +3,7 @@ package com.talhanation.recruits.entities.ai;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.entities.ai.async.FindTarget;
 import com.talhanation.recruits.entities.ai.async.FindTargetProcessor;
 import com.talhanation.recruits.util.ProcessState;
@@ -90,15 +91,35 @@ import java.util.function.Predicate;public class RecruitNearestAttackableTargetG
     }
 
     private void selectNextTarget() {
+        boolean hasNonFightingTarget = false;
+
+
+        for (LivingEntity target : targets) {
+            if (target != null && target.isAlive() && !isInFight(target)) {
+                hasNonFightingTarget = true;
+                break;
+            }
+        }
+
         while (!targets.isEmpty()) {
             LivingEntity target = targets.pop();
             if (target == null) return;
 
+
             boolean seeing = this.recruit.hasLineOfSight(target);
             boolean isInFight = isInFight(target);
             boolean alive = target.isAlive();
+            double distanceSqr = this.recruit.distanceToSqr(target.position());
+            boolean underWater = target.isUnderWater();
+            boolean isMessenger = target instanceof MessengerEntity messenger && messenger.isAtMission();
+            // Wenn es nicht kämpfende Mobs gibt, priorisieren wir sie
+            boolean validTarget = alive && seeing && !isMessenger && (!underWater || distanceSqr < 100);
 
-            if (alive && seeing && !isInFight) {
+            if (hasNonFightingTarget) {
+                validTarget = validTarget && !isInFight;
+            }
+
+            if (validTarget) {
                 this.recruit.setTarget(target);
                 return;
             }

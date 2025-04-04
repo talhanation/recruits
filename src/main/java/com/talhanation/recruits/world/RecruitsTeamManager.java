@@ -107,7 +107,7 @@ public class RecruitsTeamManager {
         return false;
     }
 
-    public boolean isBannerBlank(ItemStack itemStack){
+    public static boolean isBannerBlank(ItemStack itemStack){
         CompoundTag compoundtag = BlockItem.getBlockEntityData(itemStack);
         return compoundtag == null || !compoundtag.contains("Patterns");
     }

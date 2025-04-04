@@ -76,6 +76,11 @@ public class PatrolLeaderAttackController implements IAttackController {
         initPos = pos;
     }
 
+    @Override
+    public boolean isTargetInRange() {
+        return false;
+    }
+
     private boolean isArmyScattered() {
         List<AbstractRecruitEntity> recruits = this.leader.army.getAllRecruitUnits();
         if (recruits.isEmpty()) return false;

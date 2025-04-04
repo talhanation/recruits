@@ -54,7 +54,11 @@ public class MessageAssignGroupToCompanion implements Message<MessageAssignGroup
         if(companionEntity == null) return;
 
         int finalGroup = group;
-        list.removeIf(living -> !(living instanceof AbstractRecruitEntity recruit) || (recruit.getOwnerUUID() != null && !recruit.getOwnerUUID().equals(ownerUUID)) || recruit.getGroup() != finalGroup || recruit.getUUID().equals(this.companionUUID));
+        list.removeIf(living -> !(living instanceof AbstractRecruitEntity recruit)
+                || (!recruit.isEffectedByCommand(ownerUUID, finalGroup))
+                || recruit.getGroup() != finalGroup
+                || recruit.getUUID().equals(this.companionUUID));
+
         for (LivingEntity living : list) {
             if(living instanceof AbstractRecruitEntity recruit) ICompanion.assignToLeaderCompanion(companionEntity, recruit);
         }

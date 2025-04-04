@@ -107,7 +107,7 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
                 button -> {
                 buttonAction.accept(selected);
                 PlayersList.onlinePlayers.remove(selected);
-                playerList.recruitsTeam.removeJoinRequest(selected.getName());
+                if(playerList.recruitsTeam != null) playerList.recruitsTeam.removeJoinRequest(selected.getName());
                 this.playerList.setFocused(null);
                 this.playerList.updateEntryList();
                 this.selected = null;

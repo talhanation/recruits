@@ -105,6 +105,7 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
         return Mob.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
+                .add(ForgeMod.SWIM_SPEED.get(), 0.3D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
                 .add(Attributes.ATTACK_DAMAGE, 1.5D)
                 .add(Attributes.FOLLOW_RANGE, 64.0D)

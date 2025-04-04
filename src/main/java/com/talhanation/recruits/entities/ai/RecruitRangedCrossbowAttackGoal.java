@@ -210,7 +210,7 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
                                     }
                                 }
 
-                                this.weapon.performRangedAttackIWeapon(this.crossBowman, target.getX(), target.getY(), target.getZ(), weapon.getProjectileSpeed());
+                                this.weapon.performRangedAttackIWeapon(this.crossBowman, target.getX(), target.getY() + target.getEyeHeight(), target.getZ(), weapon.getProjectileSpeed());
 
                                 if(savedTarget != null){
                                     target = savedTarget;

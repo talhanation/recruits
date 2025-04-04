@@ -256,12 +256,12 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
         if(Main.isCorpseLoaded && !Main.isRPGZLoaded && !this.getCommandSenderWorld().isClientSide() && RecruitsServerConfig.CompatCorpseMod.get()){
             Corpse.spawnCorpse(this);
         }
-        else
+        else{
+            if(this.getCommandSenderWorld().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS))
+                for (int i = 0; i < this.inventory.getContainerSize(); i++)
+                    this.spawnAtLocation(this.inventory.getItem(i));// Containers.dropItemStack(this.getCommandSenderWorld(), getX(), getY(), getZ(), );
 
-        if(this.getCommandSenderWorld().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS))
-            for (int i = 0; i < this.inventory.getContainerSize(); i++)
-                 this.spawnAtLocation(this.inventory.getItem(i));// Containers.dropItemStack(this.getCommandSenderWorld(), getX(), getY(), getZ(), );
-
+        }
     }
 
     protected void pickUpItem(ItemEntity itemEntity) {

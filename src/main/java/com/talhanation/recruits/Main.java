@@ -156,7 +156,6 @@ public class Main {
                 MessageToClientUpdateHireScreen.class,
                 MessageToClientUpdateTeamEditScreen.class,
                 MessageRemoveAssignedGroupFromCompanion.class,
-                MessageToClientUpdateMessengerScreen.class,
                 MessageAnswerMessenger.class,
                 MessageToClientOpenMessengerAnswerScreen.class,
                 MessageClearUpkeepGui.class,

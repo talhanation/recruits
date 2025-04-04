@@ -36,6 +36,8 @@ public class MessageMovement implements Message<MessageMovement> {
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
         list.removeIf(recruit -> !recruit.isEffectedByCommand(this.player_uuid, this.group));
 
+
+
         CommandEvents.onMovementCommand(context.getSender(), list, this.state, this.formation);
     }
 

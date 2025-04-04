@@ -1,11 +1,15 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.Main;
+import com.talhanation.recruits.compat.SmallShips;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.CaptainEntity;
+import com.talhanation.recruits.util.Kalkuel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.entity.ai.util.LandRandomPos;
+import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
@@ -25,8 +29,17 @@ public class RecruitWanderGoal extends Goal {
         this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
     private boolean canWander(){
-        return recruit.getFollowState() == 0 && recruit.getTarget() == null && !recruit.getShouldRest() && !recruit.getShouldMovePos() &&
-                !recruit.getShouldProtect() && !recruit.getShouldFollow() && !recruit.getFleeing() && !recruit.needsToGetFood() && !recruit.getShouldMount();
+        LivingEntity living = recruit.getTarget();
+        boolean state = recruit.getFollowState() == 0;
+        boolean target = living == null || !living.isAlive() || living.distanceToSqr(recruit) < 300;
+        boolean rest = !recruit.getShouldRest();
+        boolean move = !recruit.getShouldMovePos();
+        boolean protect = !recruit.getShouldProtect();
+        boolean follow = !recruit.getShouldFollow();
+        boolean fleeing = !recruit.getFleeing();
+        boolean needFood = !recruit.needsToGetFood();
+        boolean mount = !recruit.getShouldMount();
+        return state && target && rest && move && protect && follow && fleeing && needFood && mount;
     }
     public boolean canUse() {
         long i = this.recruit.getCommandSenderWorld().getGameTime();
@@ -58,9 +71,14 @@ public class RecruitWanderGoal extends Goal {
         }
 
         if (--this.timeToRecalcPath <= 0) {
+            if(this.recruit instanceof CaptainEntity captain && captain.getVehicle() instanceof Boat boat && SmallShips.isSmallShip(boat)){
+                Vec3 vec3 = Kalkuel.SailPointCalculator.getRandomSailPoint(captain.getCommandSenderWorld(), initialPosition.getCenter(), 100);
+
+                captain.setSailPos(new BlockPos((int) vec3.x, (int) captain.getY(), (int) vec3.z));
+                captain.smallShipsController.calculatePath();
+            }
+
             this.timeToRecalcPath = this.adjustedTickDelay(200) + recruit.getRandom().nextInt(50);
-
-
             Vec3 vec3 = this.getPosition();
             if (vec3 != null) {
                 this.wantedX = vec3.x;

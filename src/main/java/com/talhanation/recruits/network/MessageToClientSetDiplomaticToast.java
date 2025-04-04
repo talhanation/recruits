@@ -6,6 +6,7 @@ import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.network.NetworkEvent;
 
 import static com.talhanation.recruits.client.events.RecruitsToastManager.*;
@@ -34,6 +35,7 @@ public class MessageToClientSetDiplomaticToast implements Message<MessageToClien
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void executeClientSide(NetworkEvent.Context context) {
         RecruitsTeam team = RecruitsTeam.fromNBT(nbt);
         switch (x){
@@ -48,6 +50,10 @@ public class MessageToClientSetDiplomaticToast implements Message<MessageToClien
 
             case 8 -> RecruitsToastManager.setTeamToastForPlayer(Images.TEAM_JOIN, TOAST_TEAM_JOINED_TITLE, TOAST_TEAM_JOINED(s), team);//
             case 9 -> RecruitsToastManager.setTeamToastForPlayer(Images.TEAM_JOIN, TOAST_PLAYER_JOINED_TITLE, TOAST_PLAYER_JOINED_TEAM(s), team);//
+
+            case 10 -> RecruitsToastManager.setTeamToastForPlayer(Images.CROWN, TOAST_NEW_LEADER_TITLE, TOAST_NEW_LEADER(s), team);
+            case 11 -> RecruitsToastManager.setTeamToastForPlayer(Images.CROWN, TOAST_NEW_FACTION_NAME_TITLE, TOAST_NEW_FACTION_NAME(s), team);
+            case 12 -> RecruitsToastManager.setTeamToastForPlayer(Images.CROWN, TOAST_NEW_BANNER_TITLE, TOAST_NEW_BANNER(), team);
         }
     }
 

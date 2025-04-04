@@ -1,18 +1,11 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 
-import com.talhanation.recruits.entities.IBoatController;
-import net.minecraft.FieldsAreNonnullByDefault;
+import com.talhanation.recruits.entities.CaptainEntity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
-
-import java.util.EnumSet;
 
 
 public class RecruitFollowOwnerGoal extends Goal {
@@ -82,8 +75,8 @@ public class RecruitFollowOwnerGoal extends Goal {
             this.recruit.getLookControl().setLookAt(this.owner, 10.0F, (float)this.recruit.getMaxHeadXRot());
             this.recruit.getNavigation().moveTo(this.owner, this.speedModifier);
 
-            if(this.recruit instanceof IBoatController sailor && this.recruit.getVehicle() instanceof Boat){
-                sailor.setSailPos(this.owner.getOnPos());
+            if(this.recruit instanceof CaptainEntity captain && captain.getVehicle() instanceof Boat){
+                captain.setSailPos(this.owner.getOnPos());
             }
         }
     }

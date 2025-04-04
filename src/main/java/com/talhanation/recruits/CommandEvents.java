@@ -16,14 +16,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -64,14 +62,14 @@ public class CommandEvents {
                }
 
                case 6 -> {//move
-                   HitResult hitResult = player.pick(100, 1F, true);
+                   HitResult hitResult = player.pick(200, 1F, true);
                    targetPos = hitResult.getLocation();
                }
 
                case 7 -> {//forward
                    Vec3 center = FormationUtils.getGeometricMedian(recruits, (ServerLevel) player.getCommandSenderWorld());
                    Vec3 forward = player.getForward();
-                   Vec3 pos = center.add(forward.scale(10));
+                   Vec3 pos = center.add(forward.scale(getForwardScale(recruits)));
                    BlockPos blockPos = FormationUtils.getPositionOrSurface(
                            player.getCommandSenderWorld(),
                            new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
@@ -83,7 +81,7 @@ public class CommandEvents {
                case 8 -> {//backward
                    Vec3 center = FormationUtils.getGeometricMedian(recruits, (ServerLevel) player.getCommandSenderWorld());
                    Vec3 forward = player.getForward();
-                   Vec3 pos = center.add(forward.scale(-10));
+                   Vec3 pos = center.add(forward.scale(-getForwardScale(recruits)));
                    BlockPos blockPos = FormationUtils.getPositionOrSurface(
                            player.getCommandSenderWorld(),
                            new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
@@ -142,7 +140,7 @@ public class CommandEvents {
                     //FORWARD
                     case 7 ->{
                         Vec3 forward = player.getForward();
-                        Vec3 pos = recruit.position().add(forward.scale(10));
+                        Vec3 pos = recruit.position().add(forward.scale(getForwardScale(recruit)));
                         BlockPos blockPos = FormationUtils.getPositionOrSurface(
                                 player.getCommandSenderWorld(),
                                 new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
@@ -157,7 +155,7 @@ public class CommandEvents {
                     //BACKWARD
                     case 8 ->{
                         Vec3 forward = player.getForward();
-                        Vec3 pos = recruit.position().add(forward.scale(-10));
+                        Vec3 pos = recruit.position().add(forward.scale(-getForwardScale(recruit)));
                         BlockPos blockPos = FormationUtils.getPositionOrSurface(
                                 player.getCommandSenderWorld(),
                                 new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)
@@ -177,12 +175,21 @@ public class CommandEvents {
          for(AbstractRecruitEntity recruit : recruits) {
              recruit.setUpkeepTimer(recruit.getUpkeepCooldown());
              if (recruit.getShouldMount()) recruit.setShouldMount(false);
-             if (recruit instanceof CaptainEntity captain) captain.shipAttacking = false;
+
              checkPatrolLeaderState(recruit);
              recruit.forcedUpkeep = false;
          }
     }
 
+    private static double getForwardScale(List<AbstractRecruitEntity> recruits) {
+        for (AbstractRecruitEntity recruit : recruits){
+            if(recruit instanceof CaptainEntity) return getForwardScale(recruit);
+        }
+        return 10;
+    }
+    private static double getForwardScale(AbstractRecruitEntity recruit) {
+        return (recruit instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()) ? 25 : 10;
+    }
     public static void applyFormation(int formation, List<AbstractRecruitEntity> recruits, ServerPlayer player, Vec3 targetPos) {
         switch (formation){
             case 1 ->{//LINE UP
@@ -244,7 +251,7 @@ public class CommandEvents {
 
         recruit.setUpkeepTimer(recruit.getUpkeepCooldown());
         if (recruit.getShouldMount()) recruit.setShouldMount(false);
-        if (recruit instanceof CaptainEntity captain) captain.shipAttacking = false;
+        //if (recruit instanceof CaptainEntity captain) captain.attackController. = false;
         checkPatrolLeaderState(recruit);
         recruit.forcedUpkeep = false;
     }
@@ -344,17 +351,15 @@ public class CommandEvents {
 
                 if(targetPosition.distanceToSqr(oldPos) > 50){
 
-                    List<AbstractRecruitEntity> list = Objects.requireNonNull(serverPlayer).
-                            getCommandSenderWorld().
-                            getEntitiesOfClass(
+                    List<AbstractRecruitEntity> list = Objects.requireNonNull(serverPlayer).getCommandSenderWorld().getEntitiesOfClass(
                                     AbstractRecruitEntity.class,
-                                    serverPlayer.getBoundingBox().inflate(100)
+                                    serverPlayer.getBoundingBox().inflate(200)
                             );
                     int[] array = getActiveGroups(serverPlayer);
 
                     list.removeIf(recruit -> Arrays.stream(array).noneMatch(x -> recruit.isEffectedByCommand(serverPlayer.getUUID(), x)));
 
-                    CommandEvents.applyFormation(formation, list, serverPlayer, targetPosition);
+                    applyFormation(formation, list, serverPlayer, targetPosition);
                     int[] position = new int[]{(int) targetPosition.x, (int) targetPosition.z};
                     saveFormationPos(serverPlayer, position);
                 }

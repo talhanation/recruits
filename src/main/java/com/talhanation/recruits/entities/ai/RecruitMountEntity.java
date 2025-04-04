@@ -63,10 +63,10 @@ public class RecruitMountEntity extends Goal {
         recruit.getCommandSenderWorld().getEntitiesOfClass(
                 Entity.class,
                 recruit.getBoundingBox().inflate(32D),
-                (mount) -> recruit.getMountUUID() != null &&
+                (mount) ->
+                        recruit.getMountUUID() != null &&
                         mount.getUUID().equals(recruit.getMountUUID()) &&
-                        (RecruitsServerConfig.MountWhiteList.get().contains(mount.getEncodeId()) ||
-                                mount instanceof AbstractHorse)
+                        (RecruitsServerConfig.MountWhiteList.get().contains(mount.getEncodeId()) || mount instanceof AbstractHorse)
         ).forEach((mount) -> {
             this.mount = mount;
         });

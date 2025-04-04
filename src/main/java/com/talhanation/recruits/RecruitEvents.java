@@ -4,6 +4,7 @@ import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
+import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.entities.ai.horse.HorseRiddenByRecruitGoal;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.inventory.PromoteContainer;
@@ -617,6 +618,7 @@ public class RecruitEvents {
                 return false;
             }
 
+            if(targetRecruit instanceof MessengerEntity messenger && messenger.isAtMission()) return false;
         }
 
         return canHarmTeam(attacker, targetRecruit);

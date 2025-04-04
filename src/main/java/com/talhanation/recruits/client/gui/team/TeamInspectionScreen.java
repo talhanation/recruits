@@ -122,6 +122,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
 
         editButton = new ExtendedButton(guiLeft + 169, guiTop + 99, 60, 20, EDIT_BUTTON,
                 button -> {
+                    TeamEditScreen.leaderInfo = null;
                     TeamEvents.openTeamEditScreen(player);
             //minecraft.setScreen(new TeamEditScreen(this, player, recruitsTeam));
                 });

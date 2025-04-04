@@ -2,6 +2,7 @@ package com.talhanation.recruits.client.gui.team;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.player.PlayersList;
 import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
@@ -15,6 +16,7 @@ import com.talhanation.recruits.network.MessageSaveTeamSettings;
 import com.talhanation.recruits.network.MessageToServerRequestUpdatePlayerCurrencyCount;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsTeamManager;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
@@ -65,7 +67,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
     private BannerRenderer bannerRenderer;
     private EditBox textFieldTeamName;
     private SelectedPlayerWidget leaderWidget;
-    private RecruitsPlayerInfo leaderInfo;
+    public static RecruitsPlayerInfo leaderInfo;
     private ItemStack banner;
     private Button saveButton;
     public static int maxRecruitsPerPlayerConfigSetting;
@@ -200,7 +202,9 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
         if(recruitsTeam != null){
             this.teamColor = ChatFormatting.getById(recruitsTeam.getTeamColor());
             this.unitColor = unitColors.get(recruitsTeam.getUnitColor());
-            this.leaderInfo = new RecruitsPlayerInfo(recruitsTeam.getTeamLeaderUUID(), recruitsTeam.getTeamLeaderName(), recruitsTeam);
+            if(leaderInfo == null){
+                leaderInfo = new RecruitsPlayerInfo(recruitsTeam.getTeamLeaderUUID(), recruitsTeam.getTeamLeaderName(), recruitsTeam);
+            }
 
             maxRecruitsPerPlayer = recruitsTeam.getMaxNPCsPerPlayer();
             if(maxRecruitsPerPlayer == -1) maxRecruitsPerPlayer = maxRecruitsPerPlayerConfigSetting;
@@ -211,7 +215,9 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
         else {
             this.teamColor = teamColors.get(15);
             this.unitColor = unitColors.get(0);
-            this.leaderInfo = new RecruitsPlayerInfo(player.getUUID(), player.getName().getString());
+            if(leaderInfo == null) {
+                leaderInfo = new RecruitsPlayerInfo(player.getUUID(), player.getName().getString());
+            }
             maxRecruitsPerPlayer = maxRecruitsPerPlayerConfigSetting;
             this.parent = new TeamMainScreen(player);
             this.bannerRenderer = new BannerRenderer(null);
@@ -286,8 +292,8 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
                     Screen parent = recruitsTeam == null ? new TeamMainScreen(player) : new TeamInspectionScreen(new TeamMainScreen(player), player);
                     minecraft.setScreen(new SelectPlayerScreen(parent, player, SelectPlayerScreen.TITLE, SelectPlayerScreen.BUTTON_SELECT, SelectPlayerScreen.BUTTON_SELECT_TOOLTIP, false, PlayersList.FilterType.SAME_TEAM,
                         (playerInfo) -> {
-                            this.leaderInfo = playerInfo;
-                            minecraft.setScreen(this);
+                            leaderInfo = playerInfo;
+                            TeamEvents.openTeamEditScreen(player);
                             setWidgets();
                         }
                     ));
@@ -340,6 +346,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
             saveButton = new ExtendedButton(guiLeft + 30, guiTop + imageHeight - 102, 162, 20, CREATE,
                 btn -> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(this.getCorrectFormat(textFieldTeamName.getValue().strip()), banner, teamColor, unitColors.indexOf(unitColor)));
+                    leaderInfo = null;
                     minecraft.setScreen(new TeamInspectionScreen(new TeamMainScreen(player), player));
                 }
             );
@@ -350,13 +357,15 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
         else {
             addRenderableWidget(new ExtendedButton(guiLeft + 117, guiTop + imageHeight - 102, 75, 20, BACK,
                 btn -> {
+                    leaderInfo = null;
                     minecraft.setScreen(parent);
                 }
             ));
 
             saveButton = new ExtendedButton(guiLeft + 30, guiTop + imageHeight - 102, 75, 20, SAVE,
                 btn -> {
-                    recruitsTeam.setTeamLeaderID(this.leaderInfo.getUUID());
+                    recruitsTeam.setTeamLeaderID(leaderInfo.getUUID());
+                    recruitsTeam.setTeamLeaderName(leaderInfo.getName());
                     recruitsTeam.setTeamDisplayName(textFieldTeamName.getValue());
                     recruitsTeam.setTeamColor(teamColor.getId());
                     if(banner != null && !banner.isEmpty()){
@@ -389,7 +398,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
             hasChanges = false;
             totalCost = 0;
 
-            if (recruitsTeam.getTeamColor() != teamColor.getId()) {
+            if (teamColor != null && recruitsTeam.getTeamColor() != teamColor.getId()) {
                 totalCost += creationPrice;
                 hasChanges = true;
             }
@@ -404,7 +413,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
                 hasChanges = true;
             }
 
-            if (!recruitsTeam.getTeamDisplayName().equals(textFieldTeamName.getValue())) {
+            if (textFieldTeamName != null && !recruitsTeam.getTeamDisplayName().equals(textFieldTeamName.getValue())) {
                 totalCost += creationPrice;
                 hasChanges = true;
             }
@@ -524,15 +533,15 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
     private boolean checkCreationCondition(){
         boolean nameLength = this.textFieldTeamName != null && this.textFieldTeamName.getValue().length() >= 3 && this.textFieldTeamName.getValue().length() <= 32;
         boolean sufficientEmeralds =  playerCurrencyCount >= creationPrice || player.isCreative();
-
-        return this.banner != null && !this.banner.isEmpty() && nameLength && this.leaderInfo != null && sufficientEmeralds;
+        boolean bannerNotEmpty = this.banner != null && !this.banner.isEmpty() && !RecruitsTeamManager.isBannerBlank(banner);
+        return bannerNotEmpty && nameLength && leaderInfo != null && sufficientEmeralds;
     }
 
     private boolean checkEditCondition(){
         boolean nameLength = this.textFieldTeamName != null && this.textFieldTeamName.getValue().length() >= 3 && this.textFieldTeamName.getValue().length() <= 32;
         boolean sufficientEmeralds = playerCurrencyCount >= totalCost || player.isCreative();
 
-        return nameLength && this.leaderInfo != null && sufficientEmeralds && hasChanges;
+        return nameLength && leaderInfo != null && sufficientEmeralds && hasChanges;
     }
 
     @Override
@@ -552,7 +561,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
             }
         }
         calculateCost();
-        if(saveButton != null) saveButton.active =checkEditCondition();
+        if(saveButton != null) saveButton.active = checkEditCondition();
     }
 
     private void onTextInput(String string) {

@@ -5,6 +5,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.client.gui.group.RecruitsGroup;
 import com.talhanation.recruits.client.gui.widgets.ScrollDropDownMenu;
+import com.talhanation.recruits.compat.SmallShips;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
@@ -493,7 +494,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
             profItem2 = Items.GOAT_HORN.getDefaultInstance();
         }
         else if(this.recruit instanceof CaptainEntity){
-            profItem1 = IBoatController.getSmallShipsItem();
+            profItem1 = SmallShips.getSmallShipsItem();
         }
         guiGraphics.pose().pushPose();
         guiGraphics.pose().scale(0.8F, 0.8F, 1F);
