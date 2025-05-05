@@ -1,11 +1,12 @@
 {
   "homepage": "https://www.curseforge.com/minecraft/mc-mods/recruits/files",
   "promos": {
-    "1.20.1-recommended": "1.13.2",
+    "1.20.1-recommended": "1.13.3",
     "1.19.2-recommended": "1.13.2",
     "1.18.2-recommended": "1.13.2"
   },
   "1.18.2": {
+    "1.13.3": "Diplomacy and Performance Update: improved captain path finding and ship control",
     "1.13.2": "Diplomacy and Performance Update: Fixed messenger, commander and crashes",
     "1.13.1": "Diplomacy and Performance Update: Fixed targeting issue and crashes",
     "1.13.0": "Diplomacy and Performance Update",
@@ -47,6 +48,7 @@
     "1.9.0": "Team Screen, Hail of Arrows, Upkeep, Configurations and more!"
   },
   "1.19.2": {
+    "1.13.3": "Diplomacy and Performance Update: improved captain path finding and ship control",
     "1.13.2": "Diplomacy and Performance Update: Fixed messenger, commander and crashes",
     "1.13.1": "Diplomacy and Performance Update: Fixed targeting issue and crashes",
     "1.13.0": "Diplomacy and Performance Update",
@@ -87,6 +89,7 @@
     "1.9.2": "added modded armor support."
   },
   "1.20.1": {
+    "1.13.3": "Diplomacy and Performance Update: improved captain path finding and ship control",
     "1.13.2": "Diplomacy and Performance Update: Fixed messenger, commander and crashes",
     "1.13.1": "Diplomacy and Performance Update: Fixed targeting issue and crashes",
     "1.13.0": "Diplomacy and Performance Update",
