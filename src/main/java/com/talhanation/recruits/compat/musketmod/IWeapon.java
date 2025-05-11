@@ -1,4 +1,4 @@
-package com.talhanation.recruits.compat;
+package com.talhanation.recruits.compat.musketmod;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;

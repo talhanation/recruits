@@ -87,7 +87,7 @@ public class RecruitsServerConfig {
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:poisonous_potato", "minecraft:spider_eye", "minecraft:pufferfish"));
     public static ArrayList<String> MOUNTS = new ArrayList<>(
-            Arrays.asList("minecraft:mule", "minecraft:donkey", "minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "smallships:galley", "smallships:drakkar", "camels:camel"));
+            Arrays.asList("minecraft:camel", "minecraft:mule", "minecraft:donkey", "minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "smallships:galley", "smallships:drakkar", "siegeweapons:catapult", "siegeweapons:ballista"));
     public static ArrayList<List<String>> START_EQUIPMENT_RECRUIT = new ArrayList<>(
             List.of(Arrays.asList("minecraft:wooden_sword", "", "", "", "", ""),
                     Arrays.asList("minecraft:stone_sword", "", "", "", "", "")

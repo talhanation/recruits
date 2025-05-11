@@ -5,7 +5,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.client.gui.group.RecruitsGroup;
 import com.talhanation.recruits.client.gui.widgets.ScrollDropDownMenu;
-import com.talhanation.recruits.compat.SmallShips;
+import com.talhanation.recruits.compat.smallships.SmallShips;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;

@@ -61,12 +61,15 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
 
     public void addAdditionalSaveData(CompoundTag nbt) {
         super.addAdditionalSaveData(nbt);
+        nbt.putString("OwnerName", this.getOwnerName());
         nbt.putInt("taskState", this.state.getIndex());
         nbt.putInt("timerScouting", this.timerScouting);
     }
 
     public void readAdditionalSaveData(CompoundTag nbt) {
         super.readAdditionalSaveData(nbt);
+        this.setOwnerName(nbt.getString("OwnerName"));
+
         this.setTaskState(State.fromIndex(nbt.getInt("taskState")));
         this.timerScouting = nbt.getInt("timerScouting");
     }

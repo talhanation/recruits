@@ -1,6 +1,6 @@
 package com.talhanation.recruits;
 
-import com.talhanation.recruits.compat.IWeapon;
+import com.talhanation.recruits.compat.musketmod.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
@@ -69,8 +69,9 @@ public class RecruitEvents {
         {
             put(0, ModEntityTypes.MESSENGER.get());
             put(1, ModEntityTypes.SCOUT.get());
-            put(2, ModEntityTypes.PATROL_LEADER.get());
+            put(2, ModEntityTypes.SIEGE_ENGINEER.get());
             put(3, ModEntityTypes.CAPTAIN.get());
+            put(4, ModEntityTypes.PATROL_LEADER.get());
         }
     };
 
@@ -92,7 +93,7 @@ public class RecruitEvents {
         if (player instanceof ServerPlayer) {
             NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
                 @Override
-                public @NotNull Component getDisplayName() {
+                public @NotNull Component getDisplayName()  {
                     return recruit.getName();
                 }
 

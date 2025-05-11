@@ -8,7 +8,7 @@ import com.talhanation.recruits.client.render.layer.RecruitVillagerBiomeLayer;
 import com.talhanation.recruits.client.render.layer.RecruitVillagerCompanionLayer;
 import com.talhanation.recruits.client.render.layer.RecruitVillagerTeamColorLayer;
 import com.talhanation.recruits.client.render.layer.VillagerRecruitCustomHeadLayer;
-import com.talhanation.recruits.compat.IWeapon;
+import com.talhanation.recruits.compat.musketmod.IWeapon;
 import com.talhanation.recruits.entities.AbstractInventoryEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.CrossBowmanEntity;

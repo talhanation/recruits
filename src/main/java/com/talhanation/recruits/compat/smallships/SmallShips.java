@@ -1,4 +1,4 @@
-package com.talhanation.recruits.compat;
+package com.talhanation.recruits.compat.smallships;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;

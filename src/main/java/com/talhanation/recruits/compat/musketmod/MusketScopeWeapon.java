@@ -1,4 +1,4 @@
-package com.talhanation.recruits.compat;
+package com.talhanation.recruits.compat.musketmod;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
@@ -8,7 +8,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.AbstractHurtingProjectile;
-import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -20,7 +19,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class MusketBayonetWeapon implements IWeapon {
+public class MusketScopeWeapon implements IWeapon {
     @Override
     @Nullable
     public Item getWeapon() {
@@ -28,8 +27,8 @@ public class MusketBayonetWeapon implements IWeapon {
             Class<?> itemClass = Class.forName("ewewukek.musketmod.Items");
             Object musketWeaponInstance = itemClass.newInstance();
 
-            Field musketItemField = musketWeaponInstance.getClass().getField("MUSKET_WITH_BAYONET");
-            Object item = musketItemField.get("MUSKET_WITH_BAYONET");
+            Field musketItemField = musketWeaponInstance.getClass().getField("MUSKET_WITH_SCOPE");
+            Object item = musketItemField.get("MUSKET_WITH_SCOPE");
             return (Item) item;
         }
         catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException | InstantiationException e) {
@@ -138,7 +137,7 @@ public class MusketBayonetWeapon implements IWeapon {
 
 
                     projectile.setDeltaMovement(vec3);
-                    projectile.shoot(x, y + d3 * (double) 0.065, z, 4.5F, (float) (3));
+                    projectile.shoot(x, y + d3 * (double) 0.065, z, 4.5F, (float) (0));
                 }
 
             } catch (NoSuchFieldException e) {

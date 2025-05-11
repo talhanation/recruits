@@ -46,6 +46,7 @@ public class ClientEvent {
             EntityRenderers.register(ModEntityTypes.SCOUT.get(), RecruitVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.PATROL_LEADER.get(), RecruitVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.CAPTAIN.get(), RecruitVillagerRenderer::new );
+            EntityRenderers.register(ModEntityTypes.SIEGE_ENGINEER.get(), RecruitVillagerRenderer::new );
 
         }
         else{
@@ -61,6 +62,7 @@ public class ClientEvent {
             EntityRenderers.register(ModEntityTypes.SCOUT.get(), RecruitHumanRenderer::new );
             EntityRenderers.register(ModEntityTypes.PATROL_LEADER.get(), RecruitHumanRenderer::new );
             EntityRenderers.register(ModEntityTypes.CAPTAIN.get(), RecruitHumanRenderer::new );
+            EntityRenderers.register(ModEntityTypes.SIEGE_ENGINEER.get(), RecruitHumanRenderer::new );
         }
     }
 

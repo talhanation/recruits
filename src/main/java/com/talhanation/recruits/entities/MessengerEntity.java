@@ -212,7 +212,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
         if(this.getTargetPlayer() != null
                 && this.getTargetPlayer().getUUID().equals(player.getUUID())
                 && !this.getTargetPlayer().getUUID().equals(getOwnerUUID())
-                && state == MessengerState.ARRIVED || state == MessengerState.WAITING || state == MessengerState.MOVING_TO_TARGET_PLAYER)
+                && (state == MessengerState.ARRIVED || state == MessengerState.WAITING || state == MessengerState.MOVING_TO_TARGET_PLAYER))
         {
             openAnswerGUI(player);
             return InteractionResult.CONSUME;
@@ -502,7 +502,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
 
         if(getTargetPlayerInfo() != null && clientPlayer != null){
             UUID uuid = getTargetPlayerInfo().getUUID();
-            return clientPlayer.getUUID().equals(uuid) && messengerState == MessengerState.ARRIVED || messengerState == MessengerState.MOVING_TO_TARGET_PLAYER;
+            return clientPlayer.getUUID().equals(uuid) && (messengerState == MessengerState.ARRIVED || messengerState == MessengerState.MOVING_TO_TARGET_PLAYER);
         }
         return false;
     }

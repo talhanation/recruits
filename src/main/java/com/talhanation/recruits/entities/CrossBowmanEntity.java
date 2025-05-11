@@ -1,6 +1,6 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.compat.IWeapon;
+import com.talhanation.recruits.compat.musketmod.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.RecruitMoveTowardsTargetGoal;
 import com.talhanation.recruits.entities.ai.RecruitRangedCrossbowAttackGoal;
@@ -203,10 +203,6 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
     }
     public BlockPos getStrategicFirePos(){
         return this.entityData.get(STRATEGIC_FIRE_POS).orElse(null);
-    }
-
-    public void clearArrowsPos(){
-        this.entityData.set(STRATEGIC_FIRE_POS, Optional.empty());
     }
 
     public void setShouldStrategicFire(boolean bool) {

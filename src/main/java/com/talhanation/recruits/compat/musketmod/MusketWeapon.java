@@ -1,4 +1,4 @@
-package com.talhanation.recruits.compat;
+package com.talhanation.recruits.compat.musketmod;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
@@ -9,7 +9,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.AbstractHurtingProjectile;
-import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -21,8 +20,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-
-public class PistolWeapon implements IWeapon {
+public class MusketWeapon implements IWeapon {
     @Override
     @Nullable
     public Item getWeapon() {
@@ -30,8 +28,8 @@ public class PistolWeapon implements IWeapon {
             Class<?> itemClass = Class.forName("ewewukek.musketmod.Items");
             Object musketWeaponInstance = itemClass.newInstance();
 
-            Field musketItemField = musketWeaponInstance.getClass().getField("PISTOL");
-            Object item = musketItemField.get("PISTOL");
+            Field musketItemField = musketWeaponInstance.getClass().getField("MUSKET");
+            Object item = musketItemField.get("MUSKET");
             return (Item) item;
         }
         catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException | InstantiationException e) {
@@ -47,12 +45,12 @@ public class PistolWeapon implements IWeapon {
 
     @Override
     public int getAttackCooldown() {
-        return 30;//MusketItem.RELOAD_DURATION;
+        return 40;//MusketItem.RELOAD_DURATION;
     }
 
     @Override
     public int getWeaponLoadTime() {
-        return 50; //return MusketItem.LOADING_STAGE_1 + MusketItem.LOADING_STAGE_2 + MusketItem.LOADING_STAGE_3;
+        return 60; //return MusketItem.LOADING_STAGE_1 + MusketItem.LOADING_STAGE_2 + MusketItem.LOADING_STAGE_3;
     }
 
     @Override
@@ -60,15 +58,15 @@ public class PistolWeapon implements IWeapon {
         return 2.0F;
     }
 
-    public boolean isLoaded(ItemStack itemStack) {
+    public boolean isLoaded(ItemStack stack) {
         try {
-            Class<?> pistolItemClass = Class.forName("ewewukek.musketmod.PistolItem");
+            Class<?> musketItemClass = Class.forName("ewewukek.musketmod.MusketItem");
 
-            Method pistolItemIsLoaded = pistolItemClass.getMethod("isLoaded", ItemStack.class);
-            return (boolean) pistolItemIsLoaded.invoke(pistolItemClass, itemStack);
+            Method musketItemIsLoaded = musketItemClass.getMethod("isLoaded", ItemStack.class);
+            return (boolean) musketItemIsLoaded.invoke(musketItemClass, stack);
         }
         catch (ClassNotFoundException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-            Main.LOGGER.info("pistolItem was not found");
+            Main.LOGGER.info("MusketItem was not found");
             return false;
         }
     }
@@ -76,7 +74,7 @@ public class PistolWeapon implements IWeapon {
     @Override
     public void setLoaded(ItemStack stack, boolean loaded) {
         try {
-            Class<?> musketItemClass = Class.forName("ewewukek.musketmod.PistolItem");
+            Class<?> musketItemClass = Class.forName("ewewukek.musketmod.MusketItem");
 
             Method musketItemSetLoaded = musketItemClass.getMethod("setLoaded", ItemStack.class, boolean.class);
 
@@ -91,7 +89,7 @@ public class PistolWeapon implements IWeapon {
     public AbstractHurtingProjectile getProjectile(LivingEntity shooter) {
         try {
             Class<?> bulletClass = Class.forName("ewewukek.musketmod.BulletEntity");
-            Class<?>[] constructorParamTypes = { Level.class };
+            Class<?>[] constructorParamTypes = {Level.class};
             Constructor<?> bulletConstructor = bulletClass.getConstructor(constructorParamTypes);
             Level level = shooter.getCommandSenderWorld();
             Object bulletInstance = bulletConstructor.newInstance(level);
@@ -133,12 +131,12 @@ public class PistolWeapon implements IWeapon {
                     Method bulletClassSetInitialSpeedMethod = bullet.getClass().getMethod("setInitialSpeed", float.class);
 
                     bulletClassSetInitialSpeedMethod.invoke(bullet, 5F);
-                    bulletDamageField.setFloat(bullet, 40F);//player damage is 15 hp this value is tasted to match
+                    bulletDamageField.setFloat(bullet, 60F);//player damage is 15 hp this value is tasted to match
 
 
 
                     projectile.setDeltaMovement(vec3);
-                    projectile.shoot(x, y + d3 * (double) 0.065, z, 4.5F, (float) (1));
+                    projectile.shoot(x, y + d3 * (double) 0.065, z, 4.5F, (float) (2));
                 }
 
             } catch (NoSuchFieldException e) {
@@ -190,8 +188,8 @@ public class PistolWeapon implements IWeapon {
             Class<?> itemClass = Class.forName("ewewukek.musketmod.Sounds");
             Object musketWeaponInstance = itemClass.newInstance();
 
-            Field musketItemField = musketWeaponInstance.getClass().getField("PISTOL_FIRE");
-            Object soundEvent = musketItemField.get("PISTOL_FIRE");
+            Field musketItemField = musketWeaponInstance.getClass().getField("MUSKET_FIRE");
+            Object soundEvent = musketItemField.get("MUSKET_FIRE");
             return (SoundEvent) soundEvent;
         }
         catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException | InstantiationException e) {
@@ -199,7 +197,7 @@ public class PistolWeapon implements IWeapon {
             return null;
         }
     }
-    
+
     @Override
     public SoundEvent getLoadSound() {
         try {
@@ -242,6 +240,7 @@ public class PistolWeapon implements IWeapon {
         double d0 = x - shooter.getX();
         double d1 = y + 0.5D - projectileEntity.getY();
         double d2 = z - shooter.getZ();
+
 
         this.shoot(shooter, projectileEntity, d0, d1, d2);
 

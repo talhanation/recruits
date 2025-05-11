@@ -1,6 +1,6 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.compat.SmallShips;
+import com.talhanation.recruits.compat.smallships.SmallShips;
 import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.entities.ai.controller.SmallShipsController;
 import com.talhanation.recruits.entities.ai.controller.CaptainPrepareShipAttackController;
@@ -343,7 +343,7 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
         return this.army.getAllRecruitUnits().stream().allMatch(recruit -> recruit.getVehicle() != null && recruit.getVehicle().equals(this.getVehicle()));
     }
 
-    public int getResupplyTime() {
+    public int getResupplyTime()  {
         return 1000;
     }
 
