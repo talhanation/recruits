@@ -53,7 +53,11 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity> extends Goal {
             boolean notPassive = this.recruit.getState() != 3;
             boolean notNeedsToGetFood = !this.recruit.needsToGetFood();
             boolean canSee = this.recruit.getSensing().hasLineOfSight(target);
-            return distance >= stopRange && canSee && canTackMovePos && notNeedsToGetFood && canAttack && notPassive && shouldRanged;
+            if(!canSee){
+                recruit.setTarget(null);
+                return false;
+            }
+            return distance >= stopRange && canTackMovePos && notNeedsToGetFood && canAttack && notPassive && shouldRanged;
         } else {
             return false;
         }
@@ -132,7 +136,8 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity> extends Goal {
             if (this.recruit.isUsingItem()) {
                 if (!canSee && this.seeTime < -60) {
                     this.recruit.stopUsingItem();
-                } else if (canSee) {
+                }
+                else if (canSee) {
                     int i = this.recruit.getTicksUsingItem();
                     if (i >= 20) {
                         this.recruit.stopUsingItem();
@@ -141,7 +146,8 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity> extends Goal {
                         this.attackTime = Mth.floor(f * (float) (this.attackIntervalMax - this.attackIntervalMin) + (float) this.attackIntervalMin);
                     }
                 }
-            } else if (--this.attackTime <= 0 && this.seeTime >= -60 && this.hasArrows()) {
+            }
+            else if (--this.attackTime <= 0 && this.seeTime >= -60 && this.hasArrows()) {
                 this.recruit.startUsingItem(InteractionHand.MAIN_HAND);
             }
         }
