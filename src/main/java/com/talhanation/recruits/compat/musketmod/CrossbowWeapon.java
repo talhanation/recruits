@@ -1,4 +1,4 @@
-package com.talhanation.recruits.compat;
+package com.talhanation.recruits.compat.musketmod;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
@@ -19,7 +19,6 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.phys.Vec3;
 import net.royawesome.jlibnoise.module.modifier.Abs;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.system.CallbackI;
 
 
 public class CrossbowWeapon implements IWeapon {

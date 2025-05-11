@@ -1,4 +1,4 @@
-package com.talhanation.recruits.compat;
+package com.talhanation.recruits.compat.corpse;
 
 
 import com.talhanation.recruits.Main;

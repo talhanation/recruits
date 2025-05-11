@@ -1,7 +1,7 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.compat.CrossbowWeapon;
-import com.talhanation.recruits.compat.IWeapon;
+import com.talhanation.recruits.compat.musketmod.CrossbowWeapon;
+import com.talhanation.recruits.compat.musketmod.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.CrossBowmanEntity;
 import com.talhanation.recruits.util.AttackUtil;

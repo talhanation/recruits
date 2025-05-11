@@ -3,7 +3,7 @@ package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.*;
 import com.talhanation.recruits.RecruitEvent;
-import com.talhanation.recruits.compat.IWeapon;
+import com.talhanation.recruits.compat.musketmod.IWeapon;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.*;

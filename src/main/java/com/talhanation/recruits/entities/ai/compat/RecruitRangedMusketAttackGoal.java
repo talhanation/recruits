@@ -1,6 +1,6 @@
 package com.talhanation.recruits.entities.ai.compat;
 
-import com.talhanation.recruits.compat.*;
+import com.talhanation.recruits.compat.musketmod.*;
 import com.talhanation.recruits.entities.CrossBowmanEntity;
 import com.talhanation.recruits.util.AttackUtil;
 import net.minecraft.core.BlockPos;

@@ -1,6 +1,6 @@
 package com.talhanation.recruits.util;
 
-import com.talhanation.recruits.compat.SmallShips;
+import com.talhanation.recruits.compat.smallships.SmallShips;
 import com.talhanation.recruits.entities.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;

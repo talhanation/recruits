@@ -1,6 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.compat.SmallShips;
+import com.talhanation.recruits.compat.smallships.SmallShips;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.CaptainEntity;
 import com.talhanation.recruits.util.Kalkuel;
