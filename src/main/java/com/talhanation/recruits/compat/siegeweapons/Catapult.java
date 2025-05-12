@@ -5,6 +5,9 @@ import com.talhanation.recruits.entities.SiegeEngineerEntity;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 import java.lang.reflect.InvocationTargetException;
@@ -147,6 +150,29 @@ public class Catapult extends SiegeWeapon {
     public int getProjectile(SiegeEngineerEntity siegeEngineer) {
         SimpleContainer inventory = siegeEngineer.getInventory();
 
-        for
+        for(int i = 0; i < inventory.getContainerSize(); i++){
+            ItemStack stack = inventory.getItem(i);
+            String name = stack.getDescriptionId();
+            if(name.contains("siegeweapons") || stack.is(Items.COBBLESTONE)){
+                if(stack.is(Items.COBBLESTONE)){
+                    stack.shrink(1);
+                    return 1;
+                }
+                else if(name.contains("fire_pot_item")){
+                    stack.shrink(1);
+                    return 2;
+                }
+                else if(name.contains("explosive_pot_item")){
+                    stack.shrink(1);
+                    return 3;
+                }
+                else if(name.contains("cobble_cluster_item")){
+                    stack.shrink(1);
+                    return 4;
+                }
+            }
+        }
+
+        return 0;
     }
 }
