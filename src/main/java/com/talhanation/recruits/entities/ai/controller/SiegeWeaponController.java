@@ -2,11 +2,9 @@ package com.talhanation.recruits.entities.ai.controller;
 
 import com.talhanation.recruits.compat.siegeweapons.Catapult;
 import com.talhanation.recruits.compat.siegeweapons.SiegeWeapon;
-import com.talhanation.recruits.entities.CaptainEntity;
 import com.talhanation.recruits.entities.SiegeEngineerEntity;
 import com.talhanation.recruits.entities.ai.navigation.RecruitPathNavigation;
 import com.talhanation.recruits.util.Kalkuel;
-import com.talhanation.siegeweapons.entities.CatapultEntity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -155,7 +153,7 @@ public class SiegeWeaponController {
         }
 
         if(siegeWeapon instanceof Catapult catapult){
-            if()
+            //if()
 
             if(!catapult.isProjectileLoaded()){
                 if(!catapult.isLoaded()){
@@ -165,7 +163,7 @@ public class SiegeWeaponController {
                     catapult.trigger(false); //catapult is loaded need to add projectile
 
                     int index = catapult.getProjectile(siegeEngineer);
-                    catapult.loadProjectile(1);//COBBLE SHOT
+                    catapult.loadProjectile(index);
                 }
             }
         }
