@@ -1,7 +1,8 @@
-package com.talhanation.recruits.entities.ai.controller;
+package com.talhanation.recruits.entities.ai.controller.siegeengineer;
 
 import com.talhanation.recruits.compat.siegeweapons.Catapult;
 import com.talhanation.recruits.compat.siegeweapons.SiegeWeapon;
+import com.talhanation.recruits.entities.IRangedRecruit;
 import com.talhanation.recruits.entities.SiegeEngineerEntity;
 import com.talhanation.recruits.entities.ai.navigation.RecruitPathNavigation;
 import com.talhanation.recruits.util.Kalkuel;
@@ -14,12 +15,12 @@ import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
 
-public class SiegeWeaponController {
+public class SiegeWeaponCatapultController implements ISiegeController {
     public final boolean DEBUG = true;
     public static final int REACH = 115;
     public static final int RECALCULATION_TIME = 300;
     public final SiegeEngineerEntity siegeEngineer;
-    public SiegeWeapon siegeWeapon;
+    public Catapult catapult;
     private final Level world;
     private final PathNavigation pathNavigation;
     private Node currentNode;
@@ -33,36 +34,37 @@ public class SiegeWeaponController {
     public boolean backward;
     public double reach;
     private int recalcPath;
-    public SiegeWeaponController(SiegeEngineerEntity siegeEngineer, Level world){
+    public SiegeWeaponCatapultController(SiegeEngineerEntity siegeEngineer, Level world){
         pathNavigation = new RecruitPathNavigation(siegeEngineer, world);
         this.world = world;
         this.siegeEngineer = siegeEngineer;
         this.pathNavigation.setCanFloat(false);
     }
 
-    public void tryMountSiegeWeapon(Entity entity) {
+    public void tryMount(Entity entity) {
         if(Catapult.isCatapult(entity)){
-            siegeWeapon = new Catapult(entity, this.siegeEngineer);
+            catapult = new Catapult(entity, this.siegeEngineer);
         }
         //else if(Ballista.isBallista(entity)){
         //  siegeWeapon = new Ballista(entity, this.siegeEngineer);
         //}
     }
     public void tryDismount() {
+        this.reset();
         Entity entity = this.siegeEngineer.getVehicle();
         if (SiegeWeapon.isSiegeWeapon(entity)) {
-            siegeWeapon = null;
+            catapult = null;
         }
     }
 
     public void tick(){
         if(this.world.isClientSide() || this.siegeEngineer.level().isClientSide()) return;
-        if(siegeEngineer.getVehicle() == null || siegeWeapon == null) return;
-        if(!siegeWeapon.isSiegeEngineerDriver()) return;
+        if(siegeEngineer.getVehicle() == null || catapult == null) return;
+        if(!catapult.isSiegeEngineerDriver()) return;
 
-        siegeWeapon.forward(forward);
-        siegeWeapon.steerLeft(left);
-        siegeWeapon.steerRight(right);
+        catapult.forward(forward);
+        catapult.steerLeft(left);
+        catapult.steerRight(right);
 
         if(updateAttacking()) return;
 
@@ -82,9 +84,9 @@ public class SiegeWeaponController {
         }
 
         if (movementPos != null) {
-            Vec3 forward = siegeWeapon.getEntity().getForward().yRot((float) (Math.PI/2)).normalize();
+            Vec3 forward = catapult.getEntity().getForward().yRot((float) (Math.PI/2)).normalize();
             Vec3 target = new Vec3(movementPos.x, 0, movementPos.z);
-            Vec3 toTarget = target.subtract(siegeWeapon.getEntity().position()).normalize();
+            Vec3 toTarget = target.subtract(catapult.getEntity().position()).normalize();
 
             double phi = Kalkuel.horizontalAngleBetweenVectors(forward, toTarget);
             if(DEBUG && siegeEngineer.getOwner() != null) this.siegeEngineer.getOwner().sendSystemMessage(Component.literal("phi: " + phi));
@@ -142,35 +144,94 @@ public class SiegeWeaponController {
 
             if(DEBUG && siegeEngineer.getOwner() != null) this.siegeEngineer.getOwner().sendSystemMessage(Component.literal(siegeEngineer.getName().getString() + ": FOLLOWING PATH"));
         }
-
     }
+
+    private static final int LOAD_DELAY_TICKS = 50; // 2 Sekunden bei 20 TPS
+    private int loadDelay = 0;
+    private boolean wasJustLoaded = false;
     public Vec3 targetPos;
-    public double distanceToTarget;
-    private boolean updateAttacking() {
-        getTargetPos();
-        if(targetPos == null){
+    public float distanceToTarget;
+    public boolean noAmmoMessage = false;
+
+    public boolean updateAttacking() {
+        calculateTargetPos();
+
+        boolean isProjectileLoaded = catapult.isProjectileLoaded();
+        boolean isLoaded = catapult.isLoaded();
+        boolean isShot = catapult.isShot();
+        boolean isLoading = catapult.isLoading();
+        boolean isShooting = catapult.isShooting();
+
+        // Block Steuerung während Schussanimation
+        if (isShooting) {
+            resetSteering();
+            return true;
+        }
+
+        // Automatisches Nachladen nach dem Schuss
+        if (isShot || isLoading) {
+            catapult.trigger(true);
+            resetSteering();
+            return true;
+        }
+
+
+        if (targetPos == null) {
+            catapult.trigger(false);
             return false;
         }
 
-        if(siegeWeapon instanceof Catapult catapult){
-            //if()
-
-            if(!catapult.isProjectileLoaded()){
-                if(!catapult.isLoaded()){
-                    catapult.trigger(true);// load catapult
-                }
-                else{
-                    catapult.trigger(false); //catapult is loaded need to add projectile
-
-                    int index = catapult.getProjectile(siegeEngineer);
-                    catapult.loadProjectile(index);
-                }
-            }
+        // Falls geladen, erstmal Trigger aus
+        if (isLoaded) {
+            catapult.trigger(false);
         }
 
+        // Rotation und Zielausrichtung
+        if (!rotateAndCheckAngle()) {
+            return true; // Noch in Bewegung, weiter warten
+        }
 
-        this.distanceToTarget = this.siegeWeapon.entity.distanceToSqr(targetPos.x, this.siegeWeapon.entity.position().y, targetPos.z);
-        //if(distanceToTarget > attackRange) return false;
+        // Range setzen
+        float range = IRangedRecruit.calcRangeForCatapult(siegeEngineer, distanceToTarget);
+        catapult.setRange(range);
+
+        // Noch kein Projektil geladen
+        if (!isProjectileLoaded) {
+            int index = catapult.getProjectile(siegeEngineer);
+
+            if (index == 0) {
+                if (!noAmmoMessage) {
+                    noAmmoMessage = true;
+                    if (siegeEngineer.getOwner() != null) {
+                        siegeEngineer.getOwner().sendSystemMessage(
+                                Component.literal(siegeEngineer.getName().getString() + ": I have no Ammo for the catapult.")
+                        );
+                    }
+                }
+                return false;
+            }
+
+            if (isLoaded) {
+                catapult.loadProjectile(index);
+                loadDelay = LOAD_DELAY_TICKS;
+                noAmmoMessage = false;
+            }
+
+            return true;
+        }
+
+        if (--loadDelay > 0) {
+            return true;
+        }
+
+        catapult.trigger(true);
+        return true;
+    }
+
+    private void resetSteering() {
+        catapult.steerLeft(false);
+        catapult.steerRight(false);
+    }
 
 /*
         if(isTooFarFromMovementRange()){
@@ -179,29 +240,35 @@ public class SiegeWeaponController {
         }
 */
 
-        if(this.rotateAndCheckAngle()) {
-            if(siegeWeapon instanceof Catapult catapult){
-                catapult.setRange(100); //Range 1 == 900distance;
-
-                if(catapult.isProjectileLoaded()){
-                    catapult.trigger(true);
-                }
-            }
-        }
 
 
-        return true;
+    public Vec3 getTargetPos(){
+        return targetPos;
     }
 
-    private void getTargetPos() {
-        if(siegeEngineer.tickCount % 20 == 0){
+    @Override
+    public void setTargetPos(Vec3 vec3) {
+        this.targetPos = vec3;
+    }
 
-            if(siegeEngineer.getShouldStrategicFire()){
-                this.targetPos = siegeEngineer.getStrategicFirePos().getCenter();
+    private void calculateTargetPos() {
+        if(siegeEngineer.tickCount % 20 != 0) return;
+
+        if(siegeEngineer.getShouldStrategicFire()){
+            this.setTargetPos(siegeEngineer.getStrategicFirePos().getCenter());
+        }
+        else {
+            this.siegeEngineer.checkForPotentialEnemies();
+        }
+
+        if(targetPos != null){
+            this.distanceToTarget = (float) this.catapult.entity.distanceToSqr(targetPos.x, this.catapult.entity.position().y, targetPos.z);
+
+            if(distanceToTarget < 900 || distanceToTarget > 15000){
+                targetPos = null;
             }
         }
-        //!target.isAlive() || target.isUnderWater() || !this.siegeEngineer.getSensing().hasLineOfSight(target)
-        //this.target = ????;
+
     }
 
     private void calculateMovementPos() {
@@ -231,9 +298,9 @@ public class SiegeWeaponController {
     }
 
     private boolean rotateAndCheckAngle() {
-        Vec3 forward = siegeWeapon.getEntity().getForward().yRot((float) (Math.PI/2)).normalize();
+        Vec3 forward = catapult.getEntity().getForward().yRot((float) (Math.PI/2)).normalize();
         Vec3 target = new Vec3(targetPos.x, 0, targetPos.z);
-        Vec3 toTarget = target.subtract(siegeWeapon.getEntity().position()).normalize();
+        Vec3 toTarget = target.subtract(catapult.getEntity().position()).normalize();
 
         double phi = Kalkuel.horizontalAngleBetweenVectors(forward, toTarget);
 
@@ -243,19 +310,25 @@ public class SiegeWeaponController {
         left = phi < (ref - tolerance);
         right = phi > (ref + tolerance);
 
-        return !(phi > (ref + 20)) && !(phi < (ref - 20));
+        return !(phi > (ref + 4)) && !(phi < (ref - 4));
     }
     public void calculatePath() {
         this.recalcPath = 0;
     }
 
-    public void resetSiegeWeapon(){
-        if(siegeWeapon != null){
-            siegeWeapon.trigger(false);
-            siegeWeapon.forward(false);
-            siegeWeapon.steerLeft(false);
-            siegeWeapon.steerRight(false);
-            siegeWeapon.backward(false);
+    public void reset(){
+        if(catapult != null){
+            catapult.trigger(false);
+            catapult.forward(false);
+            catapult.steerLeft(false);
+            catapult.steerRight(false);
+            catapult.backward(false);
         }
+    }
+
+    @Override
+    public Entity getSiegeEntity() {
+        if(catapult == null) return null;
+        else return catapult.getEntity();
     }
 }

@@ -148,4 +148,128 @@ public interface IRangedRecruit extends RangedAttackMob {
     static double getCannonAngleHeightModifier(double distance, double heightDiff) {
         return heightDiff * (2.55);
     }
+
+    static float calcRangeForCatapult(SiegeEngineerEntity siegeEngineer, float distance) {
+        if (distance <= 1000) return 0;
+        if (distance >= 15000) return 100;
+
+        // Linearisierung über eine Wurzel-Kurve
+        float minDist = 1000;
+        float maxDist = 15000;
+        float normDist = (distance - minDist) / (maxDist - minDist); // → 0 bis 1
+
+        // Wurzelfunktion, die langsamer ansteigt
+        float curved = (float) Math.sqrt(normDist);
+
+        // Skalierung auf Zielbereich
+        float result = curved * 88F;//TODO: Need test higher distances
+
+        // Optional kleine Zufallsabweichung (max ±2) 
+        //result += siegeEngineer.getRandom().nextInt(3) - siegeEngineer.getRandom().nextInt(3);
+
+        return Math.min(result, 100);
+    }
+
+    /*
+    static float calcRangeForCatapult(SiegeEngineerEntity siegeEngineer, float distance) {
+        if(distance < 1000) return 0;
+        float range = 0;
+        if(distance < 1500){
+            range =+ 5;
+        }
+        else if(distance < 2000){
+            range =+ 20;
+        }
+        else if(distance < 2500){
+            range =+ 25;
+        }
+        else if(distance < 3000){
+            range =+ 30;
+        }
+        else if(distance < 3500){
+            range =+ 25;
+        }
+        else if(distance < 4000){
+            range =+ 30;
+        }
+        else if(distance < 4500){
+            range =+ 35;
+        }
+        else if(distance < 5000){
+            range =+ 40;
+        }
+        else if(distance < 5500){
+            range =+ 45;
+        }
+        else if(distance < 6000){
+            range =+ 48;
+        }
+        else if(distance < 6500){
+            range =+ 52;
+        }
+        else if(distance < 7000){
+            range =+ 50;
+        }
+        else if(distance < 7500){
+            range =+ 52;
+        }
+        else if(distance < 8000){
+            range =+ 55;
+        }
+        else if(distance < 8500){
+            range =+ 57;
+        }
+        else if(distance < 9000){
+            range =+ 62;
+        }
+        else if(distance < 9500){
+            range =+ 60;
+        }
+        else if(distance < 10000){
+            range =+ 68;
+        }
+        else if(distance < 10500){
+            range =+ 70;
+        }
+        else if(distance < 11000){
+            range =+ 72;
+        }
+        else if(distance < 11500){
+            range =+ 75;
+        }
+        else if(distance < 12000){
+            range =+ 77;
+        }
+        else if(distance < 12500){
+            range =+ 80;
+        }
+        else if(distance < 13000){
+            range =+ 82;
+        }
+        else if(distance < 13500){
+            range =+ 85;
+        }
+        else if(distance < 14000){
+            range =+ 87;
+        }
+        else if(distance < 14500){
+            range =+ 90;
+        }
+        else if(distance < 15000){
+            range =+ 92;
+        }
+        else if(distance < 15500){
+            range =+ 95;
+        }
+        else if(distance < 16000){
+            range =+ 98;
+        }
+        else{
+            range =+ 100;
+        }
+
+        return range;// + siegeEngineer.getRandom().nextInt(2) - siegeEngineer.getRandom().nextInt(4);
+    }
+
+     */
 }

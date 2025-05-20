@@ -301,7 +301,7 @@ public class CommandEvents {
         if (recruit.isEffectedByCommand(player_uuid, group)){
 
             if (recruit instanceof IStrategicFire bowman){
-                HitResult hitResult = player.pick(100, 1F, false);
+                HitResult hitResult = player.pick(200, 1F, true);
                 bowman.setShouldStrategicFire(should);
                 if (hitResult != null) {
                     if (hitResult.getType() == HitResult.Type.BLOCK) {
@@ -583,7 +583,7 @@ public class CommandEvents {
     }
 
     public static List<RecruitsGroup> getAvailableGroups(ServerPlayer player) {
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(120)));
+        List<AbstractRecruitEntity> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(200)));
         list.removeIf(recruit -> !recruit.isEffectedByCommand(player.getUUID(), 0));
 
         List<RecruitsGroup> allGroups = loadPlayersGroupsFromNBT(player);

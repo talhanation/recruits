@@ -4,11 +4,8 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.SiegeEngineerEntity;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.common.ForgeConfigSpec;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -73,6 +70,40 @@ public class Catapult extends SiegeWeapon {
                 Method getState = catapultClass.getMethod("getState");
                 Enum<?> state = (Enum<?>) getState.invoke(catapult);
                 return state.ordinal() == 4;
+            }
+
+        }
+        catch (ClassNotFoundException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            Main.LOGGER.info("CatapultClass was not found");
+        }
+        return false;
+    }
+
+    public boolean isLoading(){
+        try{
+            Class<?> catapultClass = Class.forName("com.talhanation.siegeweapons.entities.CatapultEntity");
+            if(catapultClass.isInstance(entity)){
+                Object catapult = catapultClass.cast(entity);
+                Method getState = catapultClass.getMethod("getState");
+                Enum<?> state = (Enum<?>) getState.invoke(catapult);
+                return state.ordinal() == 0;
+            }
+
+        }
+        catch (ClassNotFoundException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            Main.LOGGER.info("CatapultClass was not found");
+        }
+        return false;
+    }
+
+    public boolean isShooting(){
+        try{
+            Class<?> catapultClass = Class.forName("com.talhanation.siegeweapons.entities.CatapultEntity");
+            if(catapultClass.isInstance(entity)){
+                Object catapult = catapultClass.cast(entity);
+                Method getState = catapultClass.getMethod("getState");
+                Enum<?> state = (Enum<?>) getState.invoke(catapult);
+                return state.ordinal() == 3;
             }
 
         }
