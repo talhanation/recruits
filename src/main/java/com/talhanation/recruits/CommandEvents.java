@@ -375,7 +375,7 @@ public class CommandEvents {
         if (recruit.isEffectedByCommand(player_uuid, group)){
 
             if (recruit instanceof IStrategicFire bowman){
-                HitResult hitResult = player.pick(100, 1F, false);
+                HitResult hitResult = player.pick(200, 1F, true);
                 bowman.setShouldStrategicFire(should);
                 if (hitResult != null) {
                     if (hitResult.getType() == HitResult.Type.BLOCK) {
@@ -701,5 +701,156 @@ public class CommandEvents {
 
     private static MutableComponent TEXT_HIRE_COSTS(String name, int sollPrice, Item item) {
         return Component.translatable("chat.recruits.text.hire_costs", name, String.valueOf(sollPrice), item.getDescription().getString());
+    }
+
+    private static final List<RecruitsGroup> GROUP_DEFAULT_SETTING = new ArrayList<>(
+            Arrays.asList(
+                    new RecruitsGroup(0, "No Group", false),
+                    new RecruitsGroup(1, "Infantry", false),
+                    new RecruitsGroup(2, "Ranged", false),
+                    new RecruitsGroup(3, "Cavalry", false)
+            )
+    );
+    public static void updateCommandScreen(ServerPlayer player) {
+        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateCommandScreen(getCompoundTagFromRecruitsGroupList(getAvailableGroups(player))));
+    }
+
+    public static void updateRecruitInventoryScreen(ServerPlayer player) {
+        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateRecruitInventoryScreen(getCompoundTagFromRecruitsGroupList(loadPlayersGroupsFromNBT(player))));
+    }
+
+    public static List<RecruitsGroup> getAvailableGroups(ServerPlayer player) {
+        List<AbstractRecruitEntity> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(200)));
+        list.removeIf(recruit -> !recruit.isEffectedByCommand(player.getUUID(), 0));
+
+        List<RecruitsGroup> allGroups = loadPlayersGroupsFromNBT(player);
+
+        Map<Integer, Integer> groupCounts = new HashMap<>();
+
+        for (AbstractRecruitEntity recruit : list) {
+            int groupId = recruit.getGroup();
+            groupCounts.put(groupId, groupCounts.getOrDefault(groupId, 0) + 1);
+        }
+
+        // Liste der verfügbaren Gruppen erstellen und die Anzahl der Rekruten sowie den disabled-Status aktualisieren
+        List<RecruitsGroup> availableGroups = new ArrayList<>();
+        for (RecruitsGroup group : allGroups) {
+            if (groupCounts.containsKey(group.getId())) {
+                group.setCount(groupCounts.get(group.getId()));
+                availableGroups.add(group);
+            }
+        }
+
+        return availableGroups;
+    }
+
+    public static List<RecruitsGroup> loadPlayersGroupsFromNBT(Player player) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
+
+        List<RecruitsGroup> groups = getRecruitsGroupListFormNBT(nbt);
+
+        if(groups.isEmpty())
+            groups = GROUP_DEFAULT_SETTING;
+
+        return groups;
+    }
+
+    public static void savePlayersGroupsToNBT(ServerPlayer player, List<RecruitsGroup> groups, boolean update) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
+
+        if(update)
+            updateCompoundTag(groups, nbt, player);
+        else{
+            overrideCompoundTag(groups, nbt, player);
+        }
+
+
+        playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
+    }
+
+    public static List<RecruitsGroup> getRecruitsGroupListFormNBT(CompoundTag nbt){
+        List<RecruitsGroup> groups = new ArrayList<>();
+
+        if(nbt.contains("recruits-groups")){
+            ListTag groupList = nbt.getList("recruits-groups", 10);
+            for (int i = 0; i < groupList.size(); ++i) {
+                CompoundTag compoundnbt = groupList.getCompound(i);
+                int id = compoundnbt.getInt("id");
+                int count = compoundnbt.getInt("count");
+                String name = compoundnbt.getString("name");
+                boolean disabled = compoundnbt.getBoolean("disabled");
+
+                RecruitsGroup recruitsGroup = new RecruitsGroup(id, name, disabled);
+                recruitsGroup.setCount(count);
+
+                groups.add(recruitsGroup);
+            }
+        }
+        return groups;
+    }
+
+    public static CompoundTag updateCompoundTag(List<RecruitsGroup> groups, CompoundTag nbt, ServerPlayer player) {
+        List<RecruitsGroup> currentList = loadPlayersGroupsFromNBT(player);
+
+        Map<Integer, RecruitsGroup> groupMap = new HashMap<>();
+        for (RecruitsGroup group : currentList) {
+            groupMap.put(group.getId(), group);
+        }
+
+        for (RecruitsGroup group : groups) {
+            if (group != null) {
+                groupMap.put(group.getId(), group);
+            }
+        }
+
+        ListTag groupList = new ListTag();
+        for (RecruitsGroup group : groupMap.values()) {
+            CompoundTag compoundnbt = new CompoundTag();
+            compoundnbt.putInt("id", group.getId());
+            compoundnbt.putInt("count", group.getCount());
+            compoundnbt.putString("name", group.getName());
+            compoundnbt.putBoolean("disabled", group.isDisabled());
+
+            groupList.add(compoundnbt);
+        }
+        nbt.put("recruits-groups", groupList);
+
+        return nbt;
+    }
+
+    public static CompoundTag overrideCompoundTag(List<RecruitsGroup> groups, CompoundTag nbt, ServerPlayer player) {
+        ListTag groupList = new ListTag();
+        for (RecruitsGroup group : groups) {
+            CompoundTag compoundnbt = new CompoundTag();
+            compoundnbt.putInt("id", group.getId());
+            compoundnbt.putInt("count", group.getCount());
+            compoundnbt.putString("name", group.getName());
+            compoundnbt.putBoolean("disabled", group.isDisabled());
+
+            groupList.add(compoundnbt);
+        }
+
+        nbt.put("recruits-groups", groupList);
+
+        return nbt;
+    }
+
+    public static CompoundTag getCompoundTagFromRecruitsGroupList(List<RecruitsGroup> groups){
+        CompoundTag nbt = new CompoundTag();
+        ListTag groupList = new ListTag();
+        for (RecruitsGroup group : groups) {
+            CompoundTag compoundnbt = new CompoundTag();
+            compoundnbt.putInt("id", group.getId());
+            compoundnbt.putInt("count", group.getCount());
+            compoundnbt.putString("name", group.getName());
+            compoundnbt.putBoolean("disabled", group.isDisabled());
+
+            groupList.add(compoundnbt);
+        }
+        nbt.put("recruits-groups", groupList);
+
+        return nbt;
     }
 }

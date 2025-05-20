@@ -35,7 +35,7 @@ public class MessageStrategicFire implements Message<MessageStrategicFire> {
         ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
         serverPlayer.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
-                serverPlayer.getBoundingBox().inflate(100)
+                serverPlayer.getBoundingBox().inflate(200)
         ).forEach((recruit) ->
                 CommandEvents.onStrategicFireCommand(
                         serverPlayer,

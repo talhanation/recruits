@@ -50,7 +50,6 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     public static boolean tightFormation;
     public boolean mouseGroupsInverted;
     private List<RecruitsGroupButton> groupButtons;
-
     public CommandScreen(CommandMenu commandContainer, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, commandContainer, playerInventory, Component.literal(""));
         player = playerInventory.player;
@@ -424,7 +423,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
 
     @Nullable
     private BlockPos getBlockPos(){
-        HitResult rayTraceResult = player.pick(100, 1F, true);
+        HitResult rayTraceResult = player.pick(200, 1F, true);
         if (rayTraceResult != null) {
             if (rayTraceResult.getType() == HitResult.Type.BLOCK) {
                 BlockHitResult blockraytraceresult = (BlockHitResult) rayTraceResult;
