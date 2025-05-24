@@ -152,7 +152,7 @@ public class SiegeWeaponCatapultController implements ISiegeController {
     public Vec3 targetPos;
     public float distanceToTarget;
     public boolean noAmmoMessage = false;
-
+    public int range;
     public boolean updateAttacking() {
         calculateTargetPos();
 
@@ -192,7 +192,7 @@ public class SiegeWeaponCatapultController implements ISiegeController {
         }
 
         // Range setzen
-        float range = IRangedRecruit.calcRangeForCatapult(siegeEngineer, distanceToTarget);
+        range = this.calcRange(distanceToTarget);
         catapult.setRange(range);
 
         // Noch kein Projektil geladen
@@ -226,6 +226,19 @@ public class SiegeWeaponCatapultController implements ISiegeController {
 
         catapult.trigger(true);
         return true;
+    }
+
+    private int calcRange(float distanceToTarget) {
+        int heightDiff = (int) (targetPos.y - catapult.entity.getY());
+        float baseRange = IRangedRecruit.calcBaseRangeForCatapult(distanceToTarget);
+
+        float heightCorrection = 0;
+        if(heightDiff > 0){
+            heightCorrection = IRangedRecruit.applyPositiveHeightCorrection(distanceToTarget, heightDiff);
+        }
+        else heightCorrection = IRangedRecruit.applyNegativeHeightCorrection(distanceToTarget, heightDiff);
+
+        return (int) (baseRange + heightCorrection);
     }
 
     private void resetSteering() {
@@ -264,11 +277,10 @@ public class SiegeWeaponCatapultController implements ISiegeController {
         if(targetPos != null){
             this.distanceToTarget = (float) this.catapult.entity.distanceToSqr(targetPos.x, this.catapult.entity.position().y, targetPos.z);
 
-            if(distanceToTarget < 900 || distanceToTarget > 15000){
+            if(distanceToTarget < 900 || distanceToTarget > 19000){
                 targetPos = null;
             }
         }
-
     }
 
     private void calculateMovementPos() {
@@ -305,12 +317,12 @@ public class SiegeWeaponCatapultController implements ISiegeController {
         double phi = Kalkuel.horizontalAngleBetweenVectors(forward, toTarget);
 
         double ref = 90;
-        double tolerance = 2.0;
+        double tolerance = 1.0;
 
         left = phi < (ref - tolerance);
         right = phi > (ref + tolerance);
 
-        return !(phi > (ref + 4)) && !(phi < (ref - 4));
+        return !(phi > (ref + 2)) && !(phi < (ref - 2));
     }
     public void calculatePath() {
         this.recalcPath = 0;
