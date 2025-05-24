@@ -1,6 +1,5 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.Main;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 
 import java.util.Random;
@@ -149,127 +148,85 @@ public interface IRangedRecruit extends RangedAttackMob {
         return heightDiff * (2.55);
     }
 
-    static float calcRangeForCatapult(SiegeEngineerEntity siegeEngineer, float distance) {
-        if (distance <= 1000) return 0;
-        if (distance >= 15000) return 100;
-
-        // Linearisierung über eine Wurzel-Kurve
-        float minDist = 1000;
-        float maxDist = 15000;
-        float normDist = (distance - minDist) / (maxDist - minDist); // → 0 bis 1
-
-        // Wurzelfunktion, die langsamer ansteigt
-        float curved = (float) Math.sqrt(normDist);
-
-        // Skalierung auf Zielbereich
-        float result = curved * 88F;//TODO: Need test higher distances
-
-        // Optional kleine Zufallsabweichung (max ±2) 
-        //result += siegeEngineer.getRandom().nextInt(3) - siegeEngineer.getRandom().nextInt(3);
-
-        return Math.min(result, 100);
-    }
 
     /*
-    static float calcRangeForCatapult(SiegeEngineerEntity siegeEngineer, float distance) {
-        if(distance < 1000) return 0;
-        float range = 0;
-        if(distance < 1500){
-            range =+ 5;
-        }
-        else if(distance < 2000){
-            range =+ 20;
-        }
-        else if(distance < 2500){
-            range =+ 25;
-        }
-        else if(distance < 3000){
-            range =+ 30;
-        }
-        else if(distance < 3500){
-            range =+ 25;
-        }
-        else if(distance < 4000){
-            range =+ 30;
-        }
-        else if(distance < 4500){
-            range =+ 35;
-        }
-        else if(distance < 5000){
-            range =+ 40;
-        }
-        else if(distance < 5500){
-            range =+ 45;
-        }
-        else if(distance < 6000){
-            range =+ 48;
-        }
-        else if(distance < 6500){
-            range =+ 52;
-        }
-        else if(distance < 7000){
-            range =+ 50;
-        }
-        else if(distance < 7500){
-            range =+ 52;
-        }
-        else if(distance < 8000){
-            range =+ 55;
-        }
-        else if(distance < 8500){
-            range =+ 57;
-        }
-        else if(distance < 9000){
-            range =+ 62;
-        }
-        else if(distance < 9500){
-            range =+ 60;
-        }
-        else if(distance < 10000){
-            range =+ 68;
-        }
-        else if(distance < 10500){
-            range =+ 70;
-        }
-        else if(distance < 11000){
-            range =+ 72;
-        }
-        else if(distance < 11500){
-            range =+ 75;
-        }
-        else if(distance < 12000){
-            range =+ 77;
-        }
-        else if(distance < 12500){
-            range =+ 80;
-        }
-        else if(distance < 13000){
-            range =+ 82;
-        }
-        else if(distance < 13500){
-            range =+ 85;
-        }
-        else if(distance < 14000){
-            range =+ 87;
-        }
-        else if(distance < 14500){
-            range =+ 90;
-        }
-        else if(distance < 15000){
-            range =+ 92;
-        }
-        else if(distance < 15500){
-            range =+ 95;
-        }
-        else if(distance < 16000){
-            range =+ 98;
-        }
-        else{
-            range =+ 100;
+     *   0 Range == 1123 Distance
+     *  25 Range == 2863 Distance
+     *  50 Range == 6322 Distance
+     *  75 Range == 10922 Distance
+     * 100 Range == 18095 Distance
+     */
+    /* Height Diff
+     *  1123 Distance = diff == 1.25 Range
+     *  6322 Distance = diff == 1.25 Range
+     *  10922 Distance = diff == 0.75 Range
+     *  18095 Distance = diff == 0.40 Range
+     */
+    static float calcBaseRangeForCatapult(float distance) {
+        float[] distances = {1123, 2863, 6322, 10922, 18095};
+        float[] ranges =    {0,    25,   50,   75,    100};
+
+        if (distance <= distances[0]) return ranges[0];
+        if (distance >= distances[distances.length - 1]) return ranges[ranges.length - 1];
+
+        for (int i = 0; i < distances.length - 1; i++) {
+            float d0 = distances[i];
+            float d1 = distances[i + 1];
+            float r0 = ranges[i];
+            float r1 = ranges[i + 1];
+
+            if (distance >= d0 && distance <= d1) {
+                float factor = (distance - d0) / (d1 - d0);
+                return r0 + factor * (r1 - r0);
+            }
         }
 
-        return range;// + siegeEngineer.getRandom().nextInt(2) - siegeEngineer.getRandom().nextInt(4);
+        return 0;
     }
 
-     */
+    static float applyPositiveHeightCorrection(float distance, float heightDiff) {
+        float[] distances = {1123f, 6322f, 10922f, 18095f};
+        float[] factors = {1.25f, 1.0f, 0.75f, 0.40f};
+
+        if (distance <= distances[0]) return heightDiff * factors[0];
+        if (distance >= distances[distances.length - 1]) return heightDiff * factors[factors.length - 1];
+
+        for (int i = 0; i < distances.length - 1; i++) {
+            float d0 = distances[i];
+            float d1 = distances[i + 1];
+            float f0 = factors[i];
+            float f1 = factors[i + 1];
+
+            if (distance >= d0 && distance <= d1) {
+                float t = (distance - d0) / (d1 - d0);
+                float interpolatedFactor = f0 + t * (f1 - f0);
+                return heightDiff * interpolatedFactor;
+            }
+        }
+
+        return heightDiff;
+    }
+
+    static float applyNegativeHeightCorrection(float distance, float heightDiff) {//TEST
+        float[] distances = {1123f, 5620,  6322f, 10922f, 18095f};
+        float[] factors = {1.15f,  1.35f ,1.25f, 0.85f, 0.60f};
+
+        if (distance <= distances[0]) return heightDiff * factors[0];
+        if (distance >= distances[distances.length - 1]) return heightDiff * factors[factors.length - 1];
+
+        for (int i = 0; i < distances.length - 1; i++) {
+            float d0 = distances[i];
+            float d1 = distances[i + 1];
+            float f0 = factors[i];
+            float f1 = factors[i + 1];
+
+            if (distance >= d0 && distance <= d1) {
+                float t = (distance - d0) / (d1 - d0);
+                float interpolatedFactor = f0 + t * (f1 - f0);
+                return heightDiff * interpolatedFactor;
+            }
+        }
+
+        return heightDiff;
+    }
 }
