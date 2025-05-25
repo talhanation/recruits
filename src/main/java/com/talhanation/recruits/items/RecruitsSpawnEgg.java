@@ -17,6 +17,7 @@ import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraft.world.phys.Vec3;
 
 import net.minecraft.world.scores.PlayerTeam;
+import net.royawesome.jlibnoise.module.modifier.Abs;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -39,8 +40,6 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
             if(entityTag.contains("id", 8)) {
                 return EntityType.byString(entityTag.getString("id")).orElse(this.entityType.get());
             }
-
-
         }
         return this.entityType.get();
     }
@@ -60,118 +59,8 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
 
             CompoundTag entityTag = stack.getTag();
             if(entity instanceof AbstractRecruitEntity recruit && entityTag != null) {
-                CompoundTag nbt = entityTag.getCompound("EntityTag");
 
-
-                if (nbt.contains("Team")) {
-                    String s = nbt.getString("Team");
-
-                    PlayerTeam playerteam = recruit.getCommandSenderWorld().getScoreboard().getPlayerTeam(s);
-                    boolean flag = playerteam != null && recruit.getCommandSenderWorld().getScoreboard().addPlayerToTeam(recruit.getStringUUID(), playerteam);
-
-                    if (!flag) {
-                        Main.LOGGER.warn("Unable to add mob to team \"{}\" (that team probably doesn't exist)", (Object)s);
-                    }
-                }
-                String name = nbt.getString("Name");
-                recruit.setCustomName(Component.literal(name));
-
-                recruit.setXpLevel(nbt.getInt("Level"));
-                recruit.setState(nbt.getInt("AggroState"));
-                recruit.setFollowState(nbt.getInt("FollowState"));
-                recruit.setShouldFollow(nbt.getBoolean("ShouldFollow"));
-                recruit.setShouldMount(nbt.getBoolean("ShouldMount"));
-                recruit.setShouldBlock(nbt.getBoolean("ShouldBlock"));
-                recruit.setShouldProtect(nbt.getBoolean("ShouldProtect"));
-                recruit.setFleeing(nbt.getBoolean("Fleeing"));
-                recruit.setGroup(nbt.getInt("Group"));
-                recruit.setListen(nbt.getBoolean("Listen"));
-                recruit.setIsFollowing(nbt.getBoolean("isFollowing"));
-                recruit.setXp(nbt.getInt("Xp"));
-                recruit.setKills(nbt.getInt("Kills"));
-                recruit.setVariant(nbt.getInt("Variant"));
-                recruit.setHunger(nbt.getFloat("Hunger"));
-                recruit.setMoral(nbt.getFloat("Moral"));
-                recruit.setIsOwned(nbt.getBoolean("isOwned"));
-                recruit.setCost(nbt.getInt("Cost"));
-                recruit.setMountTimer(nbt.getInt("mountTimer"));
-                recruit.setUpkeepTimer(nbt.getInt("UpkeepTimer"));
-                recruit.setColor(nbt.getByte("Color"));
-                recruit.setBiome(nbt.getByte("Biome"));
-
-                recruit.setHoldPos(Vec3.atCenterOf(context.getClickedPos()));
-
-                /*
-                if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
-                    recruit.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
-                    recruit.setHoldPos(new BlockPos (
-                            nbt.getInt("HoldPosX"),
-                            nbt.getInt("HoldPosY"),
-                            nbt.getInt("HoldPosZ")));
-                }
-                */
-
-                if (nbt.contains("MovePosX") && nbt.contains("MovePosY") && nbt.contains("MovePosZ")) {
-                    recruit.setShouldMovePos(nbt.getBoolean("ShouldMovePos"));
-                    recruit.setMovePos(new BlockPos (
-                            nbt.getInt("MovePosX"),
-                            nbt.getInt("MovePosY"),
-                            nbt.getInt("MovePosZ")));
-                }
-
-                if (nbt.contains("OwnerUUID")){
-                    Optional<UUID> uuid = Optional.of(nbt.getUUID("OwnerUUID"));
-                    recruit.setOwnerUUID(uuid);
-                }
-
-                if (nbt.contains("ProtectUUID")){
-                    Optional<UUID> uuid = Optional.of(nbt.getUUID("ProtectUUID"));
-                    recruit.setProtectUUID(uuid);
-                }
-
-                if (nbt.contains("MountUUID")){
-                    Optional<UUID> uuid = Optional.of(nbt.getUUID("MountUUID"));
-                    recruit.setMountUUID(uuid);
-                }
-
-                if (nbt.contains("UpkeepUUID")){
-                    Optional<UUID> uuid = Optional.of(nbt.getUUID("UpkeepUUID"));
-                    recruit.setUpkeepUUID(uuid);
-                }
-
-                if (nbt.contains("UpkeepPosX") && nbt.contains("UpkeepPosY") && nbt.contains("UpkeepPosZ")) {
-                    recruit.setUpkeepPos(new BlockPos (
-                            nbt.getInt("UpkeepPosX"),
-                            nbt.getInt("UpkeepPosY"),
-                            nbt.getInt("UpkeepPosZ")));
-                }
-
-                ListTag listnbt = nbt.getList("Items", 10);//muss 10 sein amk sonst nix save
-                recruit.createInventory();
-                recruit.setPersistenceRequired();
-
-                for (int i = 0; i < listnbt.size(); ++i) {
-                    CompoundTag compoundnbt = listnbt.getCompound(i);
-                    int j = compoundnbt.getByte("Slot") & 255;
-                    if (j < recruit.inventory.getContainerSize()) {
-                        recruit.inventory.setItem(j, ItemStack.of(compoundnbt));
-                    }
-                }
-
-                ListTag armorItems = nbt.getList("ArmorItems", 10);
-                for (int i = 0; i < recruit.armorItems.size(); ++i) {
-                    int index = recruit.getInventorySlotIndex(Mob.getEquipmentSlotForItem(ItemStack.of(armorItems.getCompound(i))));
-                    recruit.setItemSlot(recruit.getEquipmentSlotIndex(index), ItemStack.of(armorItems.getCompound(i)));
-                }
-
-                ListTag handItems = nbt.getList("HandItems", 10);
-                for (int i = 0; i < recruit.handItems.size(); ++i) {
-                    int index = i == 0 ? 5 : 4; //5 = mainhand 4 = offhand
-                    recruit.setItemSlot(recruit.getEquipmentSlotIndex(index), ItemStack.of(handItems.getCompound(i)));
-                }
-
-                recruit.setPos(pos.getX() + 0.5, pos.getY() + 1 , pos.getZ() + 0.5);
-                //if(recruit instanceof BowmanEntity bowman) bowman.reassessWeaponGoal();
+                fillRecruit(recruit, entityTag, pos);
 
                 world.addFreshEntity(recruit);
 
@@ -184,5 +73,121 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
                 return super.useOn(context);
             }
         }
+    }
+
+    public static void fillRecruit(AbstractRecruitEntity recruit, CompoundTag entityTag, BlockPos pos){
+        CompoundTag nbt = entityTag.getCompound("EntityTag");
+
+
+        if (nbt.contains("Team")) {
+            String s = nbt.getString("Team");
+
+            PlayerTeam playerteam = recruit.getCommandSenderWorld().getScoreboard().getPlayerTeam(s);
+            boolean flag = playerteam != null && recruit.getCommandSenderWorld().getScoreboard().addPlayerToTeam(recruit.getStringUUID(), playerteam);
+
+            if (!flag) {
+                Main.LOGGER.warn("Unable to add mob to team \"{}\" (that team probably doesn't exist)", (Object)s);
+            }
+        }
+        String name = nbt.getString("Name");
+        recruit.setCustomName(Component.literal(name));
+
+        recruit.setXpLevel(nbt.getInt("Level"));
+        recruit.setState(nbt.getInt("AggroState"));
+        recruit.setFollowState(nbt.getInt("FollowState"));
+        recruit.setShouldFollow(nbt.getBoolean("ShouldFollow"));
+        recruit.setShouldMount(nbt.getBoolean("ShouldMount"));
+        recruit.setShouldBlock(nbt.getBoolean("ShouldBlock"));
+        recruit.setShouldProtect(nbt.getBoolean("ShouldProtect"));
+        recruit.setFleeing(nbt.getBoolean("Fleeing"));
+        recruit.setGroup(nbt.getInt("Group"));
+        recruit.setListen(nbt.getBoolean("Listen"));
+        recruit.setIsFollowing(nbt.getBoolean("isFollowing"));
+        recruit.setXp(nbt.getInt("Xp"));
+        recruit.setKills(nbt.getInt("Kills"));
+        recruit.setVariant(nbt.getInt("Variant"));
+        recruit.setHunger(nbt.getFloat("Hunger"));
+        recruit.setMoral(nbt.getFloat("Moral"));
+        recruit.setIsOwned(nbt.getBoolean("isOwned"));
+        recruit.setCost(nbt.getInt("Cost"));
+        recruit.setMountTimer(nbt.getInt("mountTimer"));
+        recruit.setUpkeepTimer(nbt.getInt("UpkeepTimer"));
+        recruit.setColor(nbt.getByte("Color"));
+        recruit.setBiome(nbt.getByte("Biome"));
+
+        recruit.setHoldPos(Vec3.atCenterOf(pos));
+
+                /*
+                if (nbt.contains("HoldPosX") && nbt.contains("HoldPosY") && nbt.contains("HoldPosZ")) {
+                    recruit.setShouldHoldPos(nbt.getBoolean("ShouldHoldPos"));
+                    recruit.setHoldPos(new BlockPos (
+                            nbt.getInt("HoldPosX"),
+                            nbt.getInt("HoldPosY"),
+                            nbt.getInt("HoldPosZ")));
+                }
+                */
+
+        if (nbt.contains("MovePosX") && nbt.contains("MovePosY") && nbt.contains("MovePosZ")) {
+            recruit.setShouldMovePos(nbt.getBoolean("ShouldMovePos"));
+            recruit.setMovePos(new BlockPos (
+                    nbt.getInt("MovePosX"),
+                    nbt.getInt("MovePosY"),
+                    nbt.getInt("MovePosZ")));
+        }
+
+        if (nbt.contains("OwnerUUID")){
+            Optional<UUID> uuid = Optional.of(nbt.getUUID("OwnerUUID"));
+            recruit.setOwnerUUID(uuid);
+        }
+
+        if (nbt.contains("ProtectUUID")){
+            Optional<UUID> uuid = Optional.of(nbt.getUUID("ProtectUUID"));
+            recruit.setProtectUUID(uuid);
+        }
+
+        if (nbt.contains("MountUUID")){
+            Optional<UUID> uuid = Optional.of(nbt.getUUID("MountUUID"));
+            recruit.setMountUUID(uuid);
+        }
+
+        if (nbt.contains("UpkeepUUID")){
+            Optional<UUID> uuid = Optional.of(nbt.getUUID("UpkeepUUID"));
+            recruit.setUpkeepUUID(uuid);
+        }
+
+        if (nbt.contains("UpkeepPosX") && nbt.contains("UpkeepPosY") && nbt.contains("UpkeepPosZ")) {
+            recruit.setUpkeepPos(new BlockPos (
+                    nbt.getInt("UpkeepPosX"),
+                    nbt.getInt("UpkeepPosY"),
+                    nbt.getInt("UpkeepPosZ")));
+        }
+
+        ListTag listnbt = nbt.getList("Items", 10);//muss 10 sein amk sonst nix save
+        recruit.createInventory();
+        recruit.setPersistenceRequired();
+
+        for (int i = 0; i < listnbt.size(); ++i) {
+            CompoundTag compoundnbt = listnbt.getCompound(i);
+            int j = compoundnbt.getByte("Slot") & 255;
+            if (j < recruit.inventory.getContainerSize()) {
+                recruit.inventory.setItem(j, ItemStack.of(compoundnbt));
+            }
+        }
+
+        ListTag armorItems = nbt.getList("ArmorItems", 10);
+        for (int i = 0; i < recruit.armorItems.size(); ++i) {
+            int index = recruit.getInventorySlotIndex(Mob.getEquipmentSlotForItem(ItemStack.of(armorItems.getCompound(i))));
+            recruit.setItemSlot(recruit.getEquipmentSlotIndex(index), ItemStack.of(armorItems.getCompound(i)));
+        }
+
+        ListTag handItems = nbt.getList("HandItems", 10);
+        for (int i = 0; i < recruit.handItems.size(); ++i) {
+            int index = i == 0 ? 5 : 4; //5 = mainhand 4 = offhand
+            recruit.setItemSlot(recruit.getEquipmentSlotIndex(index), ItemStack.of(handItems.getCompound(i)));
+        }
+
+        recruit.setPos(pos.getX() + 0.5, pos.getY() + 1 , pos.getZ() + 0.5);
+        //if(recruit instanceof BowmanEntity bowman) bowman.reassessWeaponGoal();
+
     }
 }

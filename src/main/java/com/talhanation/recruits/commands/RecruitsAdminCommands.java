@@ -10,6 +10,9 @@ import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.init.ModItems;
+import com.talhanation.recruits.items.RecruitsSpawnEgg;
+import com.talhanation.recruits.util.FormationUtils;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.ChatFormatting;
@@ -18,13 +21,17 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.ScoreHolderArgument;
 import net.minecraft.commands.arguments.TeamArgument;
 import net.minecraft.commands.synchronization.SuggestionProviders;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.commands.TeamCommand;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraftforge.server.command.EnumArgument;
 
@@ -223,6 +230,48 @@ public class RecruitsAdminCommands {
                                     )
                             )
                     )
+            )
+            .then(Commands.literal("debugManager")
+                .then(Commands.literal("spawnFromEgg")
+                    .then(Commands.argument("Amount", IntegerArgumentType.integer(0))
+                        .executes((context) -> {
+                            int amount = IntegerArgumentType.getInteger(context, "Amount");
+                            ServerPlayer player = context.getSource().getPlayer();
+                            ServerLevel serverLevel = context.getSource().getLevel();
+                            if(player == null) return 0;
+
+                            ItemStack handItem = player.getMainHandItem();
+
+                            if(handItem.getItem() instanceof RecruitsSpawnEgg recruitsSpawnEgg){
+                                BlockPos pos = player.getOnPos();
+                                EntityType<?> entitytype = recruitsSpawnEgg.getType(handItem.getTag());
+                                List<AbstractRecruitEntity> recruitEntities = new ArrayList<>();
+
+                                for(int i = 0; i < amount; i++){
+                                    Entity entity = entitytype.create(serverLevel);
+                                    CompoundTag entityTag = handItem.getTag();
+
+                                    if(entity instanceof AbstractRecruitEntity recruit && entityTag != null) {
+                                        RecruitsSpawnEgg.fillRecruit(recruit, entityTag, pos);
+                                        recruitEntities.add((AbstractRecruitEntity)entity);
+                                    }
+                                }
+
+                                //FormationUtils.squareFormation(player, recruitEntities, pos.getCenter());
+
+                                for(Entity entity : recruitEntities){
+                                    serverLevel.addFreshEntity(entity);
+                                }
+
+                            }
+                            else{
+                                context.getSource().sendFailure(Component.literal("No Spawn Egg found!").withStyle(ChatFormatting.RED));
+                                return 0;
+                            }
+                            return 1;
+                        })
+                    )
+                )
             )
         );
         dispatcher.register(literalBuilder);
