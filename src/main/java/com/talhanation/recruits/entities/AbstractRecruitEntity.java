@@ -6,6 +6,8 @@ import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.*;
+import com.talhanation.recruits.entities.ai.async.AsyncManager;
+import com.talhanation.recruits.entities.ai.async.AsyncTaskWithCallback;
 import com.talhanation.recruits.entities.ai.compat.BlockWithWeapon;
 import com.talhanation.recruits.entities.ai.navigation.RecruitPathNavigation;
 import com.talhanation.recruits.init.ModItems;
@@ -41,6 +43,7 @@ import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.OpenDoorGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
@@ -58,6 +61,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.common.Tags;
@@ -68,10 +72,9 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Integer> DATA_REMAINING_ANGER_TIME = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
@@ -124,11 +127,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public boolean isInFormation;
     public boolean needsColorUpdate = true;
     public float moveSpeed = 1;
+    public TargetingConditions targetingConditions;
 
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
         this.xpReward = 6;
         this.navigation = this.createNavigation(world);
+        this.targetingConditions = TargetingConditions.forCombat().ignoreInvisibilityTesting().selector(this::shouldAttack);
         this.setMaxUpStep(1F);
         this.setMaxFallDistance(1);
     }
@@ -197,6 +202,41 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         if(this.attackCooldown > 0) this.attackCooldown--;
 
+
+        if(this.isAlive() && this.tickCount % 20 == 0 && this.getState() != 3){
+            searchForTargetsAsync();
+        }
+
+        LivingEntity currentTarget = this.getTarget();
+        if(currentTarget != null && (currentTarget.isDeadOrDying() || currentTarget.isRemoved())) this.setTarget(null);
+
+    }
+
+    private void searchForTargetsAsync() {
+        if (!(this.getCommandSenderWorld() instanceof ServerLevel serverLevel)) return;
+
+        AABB searchBox = this.getBoundingBox().inflate(40);
+        List<LivingEntity> nearby = serverLevel.getEntitiesOfClass(
+                LivingEntity.class,
+                searchBox,
+                entity -> entity != this
+        );
+
+        //MULTI THREADED
+        Supplier<List<LivingEntity>> findTargetsTask = () -> {
+            List<LivingEntity> copy = new ArrayList<>(nearby);
+            copy.removeIf(potTarget -> !targetingConditions.test(this, potTarget));
+            copy.sort(Comparator.comparingDouble(e -> e.distanceToSqr(this)));
+            return copy.stream().limit(10).toList();
+        };
+
+        Consumer<List<LivingEntity>> handleTargets = targets -> {
+            if (!targets.isEmpty()) {
+                this.setTarget(targets.get(this.getRandom().nextInt(targets.size())));
+            }
+        };
+
+        AsyncManager.executor.execute(new AsyncTaskWithCallback<>(findTargetsTask, handleTargets, serverLevel));
     }
 
     private void recruitCheckDespawn() {
@@ -257,9 +297,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(11, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(12, new RandomLookAroundGoal(this));
         //this.goalSelector.addGoal(13, new RecruitPickupWantedItemGoal(this));
-        this.targetSelector.addGoal(0, new RecruitProtectHurtByTargetGoal(this));
-        this.targetSelector.addGoal(1, new RecruitOwnerHurtByTargetGoal(this));
-        this.targetSelector.addGoal(2, new RecruitNearestAttackableTargetGoal<>(this, LivingEntity.class, true, false, this::shouldAttack));
+
+        this.targetSelector.addGoal(1, new RecruitProtectHurtByTargetGoal(this));
+        this.targetSelector.addGoal(2, new RecruitOwnerHurtByTargetGoal(this));
+
         this.targetSelector.addGoal(3, (new RecruitHurtByTargetGoal(this)).setAlertOthers());
         this.targetSelector.addGoal(4, new RecruitOwnerHurtTargetGoal(this));
 
@@ -583,7 +624,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public boolean getShouldRanged() {
         return entityData.get(SHOULD_RANGED);
     }
-        public int getState() {
+    public int getState() {
         return entityData.get(STATE);
     }
     //STATE
@@ -960,7 +1001,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     @Override
-    public void setTarget(@org.jetbrains.annotations.Nullable LivingEntity p_21544_) {
+    public void setTarget(@Nullable LivingEntity p_21544_) {
         super.setTarget(p_21544_);
 
         this.setUpkeepTimer(500);
@@ -1053,6 +1094,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         } else {
             if (player.isCreative() && player.getItemInHand(hand).getItem().equals(ModItems.RECRUIT_SPAWN_EGG.get())){
                 openDebugScreen(player);
+                Main.LOGGER.warn("" + this.getName().getString() + " Target: " + getTarget());
+
                 return InteractionResult.SUCCESS;
             }
             if ((this.isOwned() && player.getUUID().equals(this.getOwnerUUID()))) {
@@ -1215,7 +1258,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.doEnchantDamageEffects(this, entity);
             this.setLastHurtMob(entity);
         }
-
         this.addXp(1);
         if(this.getHunger() > 0) this.setHunger(this.getHunger() - 0.1F);
         this.checkLevel();
@@ -1712,6 +1754,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     // 3 = PASSIVE
     public boolean shouldAttack(LivingEntity target) {
         if(RecruitsServerConfig.TargetBlackList.get().contains(target.getEncodeId())) return false;
+        if(target instanceof MessengerEntity messenger && messenger.isAtMission()) return false;
         return switch (this.getState()) {
             case 3 -> false; // Passive mode: never attack
             case 0 -> shouldAttackOnNeutral(target) && canAttack(target);
