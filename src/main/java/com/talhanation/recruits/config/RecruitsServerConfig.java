@@ -81,6 +81,7 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.IntValue RecruitsPaymentInterval;
     public static ForgeConfigSpec.IntValue RecruitsPaymentAmount;
     public static ForgeConfigSpec.EnumValue<AbstractRecruitEntity.NoPaymentAction> RecruitsNoPaymentAction;
+    public static ForgeConfigSpec.BooleanValue QuickStartPillagerRaid;
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin", "corpse:corpse", "minecraft:armorstand"));
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
@@ -478,6 +479,14 @@ public class RecruitsServerConfig {
                         \tdefault: true""")
                 .worldRestart()
                 .define("PillagerSpawnItems", false);
+
+        QuickStartPillagerRaid = BUILDER.comment("""
+                        
+                        Should the player that burns a ominous banner item get the "Bad Omen" effect?
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("QuickStartPillagerRaid", true);
 
         /*
         Block Event Config

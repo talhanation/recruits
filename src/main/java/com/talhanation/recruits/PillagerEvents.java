@@ -146,6 +146,7 @@ public class PillagerEvents {
 
     @SubscribeEvent
     public void raidStartOnBurningOminous(EntityEvent event) {
+        if(!RecruitsServerConfig.QuickStartPillagerRaid.get()) return;
         Entity entity = event.getEntity();
 
         if (entity instanceof ItemEntity itemEntity) {
