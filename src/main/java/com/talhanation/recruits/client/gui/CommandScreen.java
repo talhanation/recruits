@@ -1,6 +1,5 @@
 package com.talhanation.recruits.client.gui;
 
-import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.events.ClientEvent;
 import com.talhanation.recruits.client.gui.group.*;
@@ -16,10 +15,16 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.npc.InventoryCarrier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.api.distmarker.Dist;
@@ -274,6 +279,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         movementButton.active = selection == Selection.MOVEMENT;
         combatButton.active = selection == Selection.COMBAT;
         otherButton.active = selection == Selection.OTHER;
+        boolean isOneGroupActive = groups.stream().anyMatch(recruitsGroup -> !recruitsGroup.isDisabled());
 
         switch (selection){
             case MOVEMENT -> {
@@ -284,6 +290,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             sendCommandInChat(6);
                         });
                 moveButton.setTooltip(Tooltip.create(TOOLTIP_MOVE));
+                moveButton.active = isOneGroupActive && rayBlockPos != null;
                 addRenderableWidget(moveButton);
 
                 //FORWARD
@@ -293,6 +300,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             sendCommandInChat(7);
                 });
                 forwardButton.setTooltip(Tooltip.create(TOOLTIP_FORWARD));
+                forwardButton.active = isOneGroupActive;
                 addRenderableWidget(forwardButton);
 
                 //FOLLOW
@@ -319,6 +327,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             sendCommandInChat(1);
                         });
                 followButton.setTooltip(Tooltip.create(TOOLTIP_FOLLOW));
+                followButton.active = isOneGroupActive;
                 addRenderableWidget(followButton);
 
 
@@ -330,6 +339,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
 
                         });
                 wanderButton.setTooltip(Tooltip.create(TOOLTIP_WANDER));
+                wanderButton.active = isOneGroupActive;
                 addRenderableWidget(wanderButton);
 
                 //BACK TO POS
@@ -340,6 +350,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
 
                         });
                 backToPosButton.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_POS));
+                backToPosButton.active = isOneGroupActive;
                 addRenderableWidget(backToPosButton);
 
                 //HOLDPOS
@@ -349,6 +360,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             sendCommandInChat(2);
                         });
                 holdPosButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_POS));
+                holdPosButton.active = isOneGroupActive;
                 addRenderableWidget(holdPosButton);
 
                 //BACKWARD
@@ -358,6 +370,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             sendCommandInChat(8);
                         });
                 backwardButton.setTooltip(Tooltip.create(TOOLTIP_BACKWARD));
+                backwardButton.active = isOneGroupActive;
                 addRenderableWidget(backwardButton);
 
                 //NONE
@@ -457,6 +470,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
 
                         });
                 strategicFireButton.setTooltip(Tooltip.create(TOOLTIP_STRATEGIC_FIRE));
+                strategicFireButton.active = isOneGroupActive && rayBlockPos != null;
                 addRenderableWidget(strategicFireButton);
 
                 //HOLD STRATEGIC FIRE
@@ -473,6 +487,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
 
                         });
                 holdStrategicFireButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_STRATEGIC_FIRE));
+                holdStrategicFireButton.active = isOneGroupActive;
                 addRenderableWidget(holdStrategicFireButton);
 
                 //FIRE AT WILL
@@ -488,6 +503,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             }
                         });
                 fireAtWillButton.setTooltip(Tooltip.create(TOOLTIP_FIRE_AT_WILL));
+                fireAtWillButton.active = isOneGroupActive;
                 addRenderableWidget(fireAtWillButton);
 
                 //HOLD FIRE
@@ -504,6 +520,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             }
                         });
                 holdFireButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_FIRE));
+                holdFireButton.active = isOneGroupActive;
                 addRenderableWidget(holdFireButton);
 
                 //SHIELDS UP
@@ -519,6 +536,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             }
                         });
                 shieldsUpButton.setTooltip(Tooltip.create(TOOLTIP_SHIELDS_UP));
+                shieldsUpButton.active = isOneGroupActive;
                 addRenderableWidget(shieldsUpButton);
 
                 //SHIELDS DOWN
@@ -534,6 +552,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             }
                         });
                 shieldsDownButton.setTooltip(Tooltip.create(TOOLTIP_SHIELDS_DOWN));
+                shieldsDownButton.active = isOneGroupActive;
                 addRenderableWidget(shieldsDownButton);
 
                 //FORGET TARGETS
@@ -549,6 +568,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             }
                         });
                 clearTargetsButton.setTooltip(Tooltip.create(TOOLTIP_CLEAR_TARGET));
+                clearTargetsButton.active = isOneGroupActive;
                 addRenderableWidget(clearTargetsButton);
 
                 //PASSIVE
@@ -564,6 +584,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             }
                         });
                 passiveButton.setTooltip(Tooltip.create(TOOLTIP_PASSIVE));
+                passiveButton.active = isOneGroupActive;
                 addRenderableWidget(passiveButton);
 
                 //NEUTRAL
@@ -579,6 +600,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             }
                         });
                 neutralButton.setTooltip(Tooltip.create(TOOLTIP_NEUTRAL));
+                neutralButton.active = isOneGroupActive;
                 addRenderableWidget(neutralButton);
 
                 //RAID
@@ -594,6 +616,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             }
                         });
                 raidButton.setTooltip(Tooltip.create(TOOLTIP_RAID));
+                raidButton.active = isOneGroupActive;
                 addRenderableWidget(raidButton);
 
                 //AGGRESSIVE
@@ -609,6 +632,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             }
                         });
                 aggressiveButton.setTooltip(Tooltip.create(TOOLTIP_AGGRESSIVE));
+                aggressiveButton.active = isOneGroupActive;
                 addRenderableWidget(aggressiveButton);
             }
 
@@ -627,6 +651,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             }
                         });
                 protectButton.setTooltip(Tooltip.create(TOOLTIP_PROTECT));
+                protectButton.active = isOneGroupActive && rayEntity != null;
                 addRenderableWidget(protectButton);
 
                 //MOUNT
@@ -642,15 +667,16 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             }
                         });
                 mountButton.setTooltip(Tooltip.create(TOOLTIP_MOUNT));
+                mountButton.active = isOneGroupActive && rayEntity != null;
                 addRenderableWidget(mountButton);
 
                 //TEAM
-                RecruitsCommandButton teamButton = new RecruitsCommandButton(x - 60, y + 50, TEXT_TEAM,
+                RecruitsCommandButton factionButton = new RecruitsCommandButton(x - 60, y + 50, TEXT_TEAM,
                         button -> {
                             minecraft.setScreen(new TeamMainScreen(player));
                         });
-                teamButton.setTooltip(Tooltip.create(TOOLTIP_TEAM));
-                addRenderableWidget(teamButton);
+                factionButton.setTooltip(Tooltip.create(TOOLTIP_TEAM));
+                addRenderableWidget(factionButton);
 
                 //BACK TO MOUNT
                 RecruitsCommandButton backToMountButton = new RecruitsCommandButton(x + 100, y + 25, TEXT_BACK_TO_MOUNT,
@@ -665,6 +691,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             }
                         });
                 backToMountButton.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_MOUNT));
+                backToMountButton.active = isOneGroupActive;
                 addRenderableWidget(backToMountButton);
 
                 //DISMOUNT
@@ -680,6 +707,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             }
                         });
                 dismountButton.setTooltip(Tooltip.create(TOOLTIP_DISMOUNT));
+                dismountButton.active = isOneGroupActive;
                 addRenderableWidget(dismountButton);
 
                 //UPKEEP
@@ -696,6 +724,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             }
                         });
                 upkeepButton.setTooltip(Tooltip.create(TOOLTIP_UPKEEP));
+                upkeepButton.active = isOneGroupActive && (isUpkeepPosition(rayBlockPos)|| isUpkeepEntity(rayEntity));
                 addRenderableWidget(upkeepButton);
 
                 //Clear Upkeep
@@ -710,7 +739,8 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                                 this.sendCommandInChat(93);
                             }
                         });
-                upkeepButton.setTooltip(Tooltip.create(TOOLTIP_CLEAR_UPKEEP));
+                clearUpkeepButton.setTooltip(Tooltip.create(TOOLTIP_CLEAR_UPKEEP));
+                clearUpkeepButton.active = isOneGroupActive;
                 addRenderableWidget(clearUpkeepButton);
 
                 //REST
@@ -726,10 +756,27 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
                             }
                         });
                 restButton.setTooltip(Tooltip.create(TOOLTIP_REST));
+                restButton.active = isOneGroupActive;
                 addRenderableWidget(restButton);
             }
         }
     }
+
+    private boolean isUpkeepPosition(BlockPos rayBlockPos) {
+        if(rayBlockPos == null) return false;
+
+        BlockEntity entity = player.getCommandSenderWorld().getBlockEntity(rayBlockPos);
+        BlockState blockState = player.getCommandSenderWorld().getBlockState(rayBlockPos);
+
+         return entity instanceof Container || blockState.getBlock() instanceof ChestBlock;
+    }
+
+    private boolean isUpkeepEntity(Entity rayEntity) {
+        if(rayEntity == null) return false;
+
+        return rayEntity instanceof Container || rayEntity instanceof InventoryCarrier || rayEntity instanceof AbstractHorse;
+    }
+
     private void sendMovementCommandToServer(int state) {
         if(state != 1){
             Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveFormationFollowMovement(player.getUUID(), new int[]{}, -1));
