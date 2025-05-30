@@ -112,7 +112,7 @@ public class RestGoal extends Goal {
                 (float) this.recruit.getMaxHeadXRot()
         );
 
-        if (bedPos.distToCenterSqr(recruit.position()) <= 75) {
+        if (bedPos.distToCenterSqr(recruit.position()) <= 35) {
             this.recruit.startSleeping(bedPos);
             this.recruit.setSleepingPos(bedPos);
             pathFinder.stop();
@@ -135,7 +135,7 @@ public class RestGoal extends Goal {
                             if (state.getValue(MULTI_BLOCK_INDEX) == 1){
                                 stack.push(pos);
                             }
-                            else if(state.getValue(BlockStateProperties.BED_PART) == BedPart.HEAD){
+                            else if(state.getValue(BlockStateProperties.BED_PART) == BedPart.FOOT){
                                 stack.push(pos);
                             }
 
