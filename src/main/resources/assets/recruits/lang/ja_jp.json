@@ -294,14 +294,14 @@
 "gui.recruits.inv.text.special": "特殊",
 "gui.recruits.inv.tooltip.special": "特殊能力用のコンパニオン画面を開きます。",
 
-  "chat.recruits.text.messenger_player_not_found": "%s: There is no Player with this name, my lord.",
-  "chat.recruits.text.messenger_arrived_at_target": "The Messenger %s of %s arrived next to you!",
-  "chat.recruits.text.messenger_arrived_at_target_team": "The Messenger %s of %s from %s arrived next to you!",
-  "chat.recruits.text.messenger_arrived_at_target_owner": "%s: I've arrived at %s!",
-  "gui.recruits.inv.text.send_messenger": "Send Messenger",
-  "chat.recruits.text.patrol_leader_enemy_contact": "%s: Contact with enemy %s at x= %s y= %s z= %s!",
-  "chat.recruits.text.patrol_leader_hostile_contact": "%s: Contact with hostile at x= %s y= %s z= %s!",
-  "chat.recruits.text.patrol_leader_retreating": "%s: Im retreating to first patrol point!",
+"chat.recruits.text.messenger_player_not_found": "%s: There is no Player with this name, my lord.",
+"chat.recruits.text.messenger_arrived_at_target": "The Messenger %s of %s arrived next to you!",
+"chat.recruits.text.messenger_arrived_at_target_team": "The Messenger %s of %s from %s arrived next to you!",
+"chat.recruits.text.messenger_arrived_at_target_owner": "%s: I've arrived at %s!",
+"gui.recruits.inv.text.send_messenger": "Send Messenger",
+"chat.recruits.text.patrol_leader_enemy_contact": "%s: Contact with enemy %s at x= %s y= %s z= %s!",
+"chat.recruits.text.patrol_leader_hostile_contact": "%s: Contact with hostile at x= %s y= %s z= %s!",
+"chat.recruits.text.patrol_leader_retreating": "%s: Im retreating to first patrol point!",
 "gui.recruits.inv.text.start": "開始",
 "gui.recruits.inv.text.stop": "停止",
 "gui.recruits.inv.text.pause": "一時停止",
@@ -454,5 +454,7 @@
 "gui.recruits.team_color.dark_cyan": "濃いシアン",
 "gui.recruits.team_color.orange": "オレンジ",
 "gui.recruits.team_color.magenta": "マゼンタ",
-"gui.recruits.team_color.purple": "紫"
+"gui.recruits.team_color.purple": "紫",
+"gui.recruits.command.tip.de_select_groups" : "[右クリック] - すべてのグループを選択",
+"gui.recruits.command.tip.scrollCategories" : "[マウスホイール] - カテゴリをスクロール"
  }

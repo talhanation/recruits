@@ -8,6 +8,7 @@ import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.inventory.ScreenBase;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.core.BlockPos;
@@ -806,6 +807,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     public void sendCommandInChat(int state){
         StringBuilder group_string = new StringBuilder();
         int i = 0;
+
         for(RecruitsGroup group : groups){
             if(!group.isDisabled()) i++;
         }
@@ -958,9 +960,25 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static MutableComponent TEXT_HOLD_FIRE(String group_string) {
         return Component.translatable("chat.recruits.command.hold_fire", group_string);
     }
+
+    private static MutableComponent TEXT_SELECT_ALL_GROUPS() {
+        return Component.translatable("gui.recruits.command.tip.de_select_groups");
+    }
+    private static MutableComponent TEXT_SCROLL_CATEGORIES() {
+        return Component.translatable("gui.recruits.command.tip.scrollCategories");
+    }
+
+    int xTipPos = 140;
+    int yTipPos = 157;
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         super.renderLabels(guiGraphics, mouseX, mouseY);
+
+        String tipAllGroups = TEXT_SELECT_ALL_GROUPS().getString();
+        String tipScroll = TEXT_SCROLL_CATEGORIES().getString();
+        guiGraphics.drawString(font, tipAllGroups, xTipPos, yTipPos, FONT_COLOR, false);
+        guiGraphics.drawString(font, tipScroll, xTipPos, yTipPos + 15, FONT_COLOR, false);
+
     }
 
     protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {

@@ -437,5 +437,8 @@
   "gui.recruits.team_color.red": "Красный",
   "gui.recruits.team_color.light_purple": "Светло-фиолетовый",
   "gui.recruits.team_color.yellow": "Жёлтый",
-  "gui.recruits.team_color.white": "Белый"
+  "gui.recruits.team_color.white": "Белый",
+
+  "gui.recruits.command.tip.de_select_groups" : "[Правая кнопка мыши] – Выбрать все группы",
+  "gui.recruits.command.tip.scrollCategories" : "[Колесо мыши] – Прокрутить категории"
 }

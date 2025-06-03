@@ -454,5 +454,8 @@
   "gui.recruits.team_color.dark_cyan": "Koyu Camgöbeği",
   "gui.recruits.team_color.orange": "Turuncu",
   "gui.recruits.team_color.magenta": "Eflatun",
-  "gui.recruits.team_color.purple": "Mor"
+  "gui.recruits.team_color.purple": "Mor",
+
+  "gui.recruits.command.tip.de_select_groups" : "[Sağ Tıklama] – Tüm Grupları Seç",
+  "gui.recruits.command.tip.scrollCategories" : "[Fare Tekerleği] – Kategorileri Kaydır"
 }

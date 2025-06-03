@@ -451,6 +451,8 @@
    "gui.recruits.inv.text.scoutScoutTask" : "Scouting",
    "gui.recruits.inv.tooltip.scoutScoutTask" : "",
 
+   "gui.recruits.command.tip.de_select_groups" : "[Right Click] - Select all Groups",
+   "gui.recruits.command.tip.scrollCategories" : "[Mouse Wheel] - Scroll Categories",
 
    "gui.recruits.team_color.black" : "Black",
    "gui.recruits.team_color.dark_blue" : "Dark Blue",

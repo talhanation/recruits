@@ -460,5 +460,8 @@
   "gui.recruits.toast.newBanner": "Your Faction has new banner!",
   "gui.recruits.toast.newTeamLeaderTitle": "New Faction Leader",
   "gui.recruits.toast.newFactionNameTitle": "New Faction Name",
-  "gui.recruits.toast.newFactionBannerTitle": "New Faction Banner"
+  "gui.recruits.toast.newFactionBannerTitle": "New Faction Banner",
+
+  "gui.recruits.command.tip.de_select_groups": "[Rechtsklick] - Alle Gruppen auswählen",
+  "gui.recruits.command.tip.scrollCategories": "[Mausrad] - Kategorien scrollen"
 }
