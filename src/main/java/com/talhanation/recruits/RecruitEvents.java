@@ -53,7 +53,6 @@ import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
-import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
@@ -190,7 +189,7 @@ public class RecruitEvents {
         Entity impactEntity = ((EntityHitResult) rayTrace).getEntity();
         String encode = impactEntity.getEncodeId();
         if (encode != null && encode.contains("corpse:corpse")) {
-            event.setResult(Event.Result.DENY);
+            event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
             return;
         }
 
@@ -201,7 +200,7 @@ public class RecruitEvents {
         if (projectile instanceof AbstractArrow arrow && arrow.getPierceLevel() > 0) {
 
             if (!canAttack((LivingEntity) owner, impactLiving)) {
-                event.setResult(Event.Result.DENY);
+                event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
                 canceledProjectiles.add(projectile);
                 return;
             }
@@ -214,20 +213,20 @@ public class RecruitEvents {
                 if (passenger instanceof AbstractRecruitEntity passengerRecruit) {
                     if (!canAttack(recruit, passengerRecruit)) {
 
-                        event.setResult(Event.Result.DENY);
+                        event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
                         return;
                     }
                 } else if (passenger instanceof Player player) {
                     if (!canAttack(recruit, player)) {
 
-                        event.setResult(Event.Result.DENY);
+                        event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
                         return;
                     }
                 }
             }
 
             if (!canAttack(recruit, impactLiving)) {
-                event.setResult(Event.Result.DENY);
+                event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
                 return;
             } else {
                 recruit.addXp(2);
@@ -237,7 +236,7 @@ public class RecruitEvents {
 
         if (owner instanceof AbstractIllager illager && !RecruitsServerConfig.PillagerFriendlyFire.get()) {
             if (illager.isAlliedTo(impactLiving)) {
-                event.setResult(Event.Result.DENY);
+                event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
                 canceledProjectiles.add(projectile);
                 return;
             }
@@ -246,7 +245,7 @@ public class RecruitEvents {
 
         if (owner instanceof Player player) {
             if (!canHarmTeam(player, impactLiving)) {
-                event.setResult(Event.Result.DENY);
+                event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
                 return;
             }
         }
