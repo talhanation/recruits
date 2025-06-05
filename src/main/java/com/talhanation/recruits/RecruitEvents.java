@@ -241,7 +241,6 @@ public class RecruitEvents {
             }
         }
 
-
         if (owner instanceof Player player) {
             if (!canHarmTeam(player, impactLiving)) {
                 event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);

@@ -1,5 +1,10 @@
 package com.talhanation.recruits;
+
+import com.talhanation.recruits.client.events.CommandCategoryManager;
 import com.talhanation.recruits.client.events.KeyEvents;
+import com.talhanation.recruits.client.gui.commandscreen.CombatCategory;
+import com.talhanation.recruits.client.gui.commandscreen.MovementCategory;
+import com.talhanation.recruits.client.gui.commandscreen.OtherCategory;
 import com.talhanation.recruits.network.MessageSaveTeamSettings;
 import com.talhanation.recruits.commands.PatrolSpawnCommand;
 import com.talhanation.recruits.commands.RecruitsAdminCommands;
@@ -213,6 +218,9 @@ public class Main {
     public void clientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(ModScreens::registerMenus);
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
+        CommandCategoryManager.register(new MovementCategory());
+        CommandCategoryManager.register(new CombatCategory());
+        CommandCategoryManager.register(new OtherCategory());
     }
 
     private void addCreativeTabs(BuildCreativeModeTabContentsEvent event) {

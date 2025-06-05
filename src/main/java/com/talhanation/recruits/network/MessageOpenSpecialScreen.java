@@ -1,5 +1,6 @@
 package com.talhanation.recruits.network;
 
+import com.talhanation.recruits.compat.workers.IVillagerWorker;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
 import de.maxhenkel.corelib.net.Message;
@@ -46,8 +47,12 @@ public class MessageOpenSpecialScreen implements Message<MessageOpenSpecialScree
     }
 
     private void tryToOpenSpecialGUI(AbstractRecruitEntity recruit, ServerPlayer player) {
-        if (recruit instanceof ICompanion companion)
+        if(recruit instanceof ICompanion companion) {
             companion.openSpecialGUI(player);
+        }
+        else if (recruit instanceof IVillagerWorker worker){
+            worker.openSpecialGUI(player);
+        }
     }
 
     @Override

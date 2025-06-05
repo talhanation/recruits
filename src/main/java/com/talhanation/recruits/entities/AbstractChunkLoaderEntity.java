@@ -24,7 +24,11 @@ public abstract class AbstractChunkLoaderEntity extends AbstractRecruitEntity {
 
     public void tick() {
         super.tick();
-        updateChunkLoading();
+        if(shouldLoadChunk()) updateChunkLoading();
+    }
+
+    public boolean shouldLoadChunk(){
+        return true;
     }
 
     public void updateChunkLoading(){

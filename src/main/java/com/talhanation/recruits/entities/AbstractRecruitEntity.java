@@ -354,6 +354,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         //3 = back to position
         //4 = hold my position
         //5 = Protect
+        //6 = Work
 
     }
     @Override
@@ -645,6 +646,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     //3 = back to position
     //4 = hold my position
     //5 = Protect
+    //6 = Work
     public int getFollowState(){
         return entityData.get(FOLLOW_STATE);
     }
@@ -890,10 +892,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     //3 = back to position
     //4 = hold my position
     //5 = Protect
-
+    //6 = Work
     public void setFollowState(int state){
         switch (state) {
-            case 0 -> {
+            case 0,6 -> {
                 setShouldFollow(false);
                 setShouldHoldPos(false);
                 setShouldProtect(false);

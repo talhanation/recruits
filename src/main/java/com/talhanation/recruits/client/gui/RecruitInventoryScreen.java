@@ -6,6 +6,7 @@ import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.client.gui.group.RecruitsGroup;
 import com.talhanation.recruits.client.gui.widgets.ScrollDropDownMenu;
 import com.talhanation.recruits.compat.SmallShips;
+import com.talhanation.recruits.compat.workers.IVillagerWorker;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
@@ -48,6 +49,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TEXT_INFO_IGNORE = Component.translatable("gui.recruits.inv.info.text.ignore");
     private static final MutableComponent TEXT_INFO_RAID = Component.translatable("gui.recruits.inv.info.text.raid");
     private static final MutableComponent TEXT_INFO_PROTECT = Component.translatable("gui.recruits.inv.info.text.protect");
+    private static final MutableComponent TEXT_INFO_WORKING = Component.translatable("gui.recruits.inv.info.text.working");
     private static final MutableComponent TEXT_DISMOUNT = Component.translatable("gui.recruits.inv.text.dismount");
     private static final MutableComponent TEXT_BACK_TO_MOUNT = Component.translatable("gui.recruits.inv.text.backToMount");
     private static final MutableComponent TOOLTIP_DISMOUNT = Component.translatable("gui.recruits.inv.tooltip.dismount");
@@ -99,7 +101,6 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         this.playerInventory = playerInventory;
         imageWidth = 176;
         imageHeight = 223;
-
     }
 
     @Override
@@ -287,12 +288,11 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         addRenderableWidget(new ExtendedButton(leftPos + 77 + 55, topPos + 4, 40, 12, Component.literal("..."),
                 button -> {
                     minecraft.setScreen(new DisbandScreen(this, this.recruit, this.playerInventory.player));
-
                 }
         ));
 
         //promote
-        if(recruit instanceof ICompanion){
+        if(recruit instanceof ICompanion || recruit instanceof IVillagerWorker){
             Button promoteButton = addRenderableWidget(new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 8, 80, 20, TEXT_SPECIAL,
                     button -> {
                         if(recruit instanceof ScoutEntity scout){
@@ -301,6 +301,10 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                         }
                         else if(recruit instanceof MessengerEntity messenger){
                             this.minecraft.setScreen(new MessengerScreen(messenger, getMinecraft().player));
+                            return;
+                        }
+                        else if(recruit instanceof IVillagerWorker worker && worker.hasOnlyScreen()){
+                            this.minecraft.setScreen(worker.getSpecialScreen(recruit, getMinecraft().player));
                             return;
                         }
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenSpecialScreen(this.playerInventory.player, recruit.getUUID()));
@@ -439,6 +443,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
             case 1 -> TEXT_INFO_FOLLOW.getString();
             case 2, 3, 4 -> TEXT_INFO_HOLD_POS.getString();
             case 5 -> TEXT_INFO_PROTECT.getString();
+            case 6 -> TEXT_INFO_WORKING.getString();
             default -> throw new IllegalStateException("Unexpected value: " + this.follow);
         };
         guiGraphics.drawString(font, follow, k + 15, l + 58 + 0, fontColor, false);
@@ -495,6 +500,9 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         }
         else if(this.recruit instanceof CaptainEntity){
             profItem1 = SmallShips.getSmallShipsItem();
+        }
+        else if (this instanceof IVillagerWorker worker){
+            profItem1 = worker.getCustomProfessionItem();
         }
         guiGraphics.pose().pushPose();
         guiGraphics.pose().scale(0.8F, 0.8F, 1F);
