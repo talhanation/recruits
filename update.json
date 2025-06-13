@@ -1,0 +1,31 @@
+{
+  "homepage": "https://www.curseforge.com/minecraft/mc-mods/recruits/files",
+  "promos": {
+    "1.20.1-recommended": "1.13.5",
+  },
+  "1.20.1": {
+    "1.13.5": "Diplomacy and Performance Update: fixed arrows do not pass through allies, added API stuff",
+    "1.13.4": "Diplomacy and Performance Update: improved mutlithreading and target findig, improved command gui",
+    "1.13.3": "Diplomacy and Performance Update: improved captain path finding and ship control",
+    "1.13.2": "Diplomacy and Performance Update: Fixed messenger, commander and crashes",
+    "1.13.1": "Diplomacy and Performance Update: Fixed targeting issue and crashes",
+    "1.13.0": "Diplomacy and Performance Update",
+    "1.12.2": "added 2 new formations, fixed crashes compatible again with musket mod",
+    "1.12.1": "Formation update!, fixed crash and texts",
+    "1.12.0": "Formation update!",
+    "1.11.5": "fixed compat with small ships and rpgz, fixed arrow flight",
+    "1.11.4": "fixed layers not rendering // fixed coprse not spwanng on servers // fixed morale not updating",
+    "1.11.3": "fix crashes // improved captain sailor AI",
+    "1.11.2": "Companion Part 1 // improved server side performance",
+    "1.10.15": "fixed teams related stuff // fixed endermen attack recruits",
+    "1.10.14": "fixed hired patrol despawn // fixed team leader can join other teams // fixed performance issues",
+    "1.10.13": "fixed crossbowman // fixed team join and leave // fixed melee friendly fire to friendly horses",
+    "1.10.12": "fixed crash // fixed recruits disappearing",
+    "1.10.11": "major bugfixes // ranged units improvments // config improvments",
+    "1.10.10": "fixed recruits get stuck pathfinding // added group disband and group teammate assigning",
+    "1.10.9": "added compat to most modded bows // buffed ranged troops // recruits duplication bug when eating // recruit/pillager patrols can spawn in villages // wrong calculation of food nutrition and saturation // ",
+    "1.10.8": "fixed recruits are not eating // fixed horse unit recruits pathing // fixed mp bugs // added configs // add indictaions in screens // ",
+    "1.10.7.1": "fixed crash in mp // fixed team inspection screen not rendering",
+    "1.10.7": "fixed crash in teeam list // fixed log spamm // buffed horse units // added back to mount command // improved recruit follow // "
+  }
+}
