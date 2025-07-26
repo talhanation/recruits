@@ -433,6 +433,7 @@
    "gui.recruits.team.manage": "Manage",
    "gui.recruits.team.max_recruits": "NPCs p.p:",
    "gui.recruits.two_values_with_slash": "%s/%s",
+   "gui.recruits.team.claim": "Claim",
 
    "gui.recruits.team.unitManagement": "Unit Management",
    "gui.recruits.team.playerPromotion": "Player Promotion",
@@ -482,5 +483,7 @@
    "gui.recruits.team_color.dark_cyan" : "Dark Cyan",
    "gui.recruits.team_color.orange" : "Orange",
    "gui.recruits.team_color.magenta" : "Magenta",
-   "gui.recruits.team_color.purple": "Purple"
+   "gui.recruits.team_color.purple": "Purple",
+
+   "gui.recruits.claim_map.title" : "Claim Map"
  }

@@ -3,6 +3,7 @@ package com.talhanation.recruits.client.gui.team;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.gui.claim.ClaimMapScreen;
 import com.talhanation.recruits.network.MessageLeaveTeam;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -36,6 +37,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
 
     protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/team/team_inspect.png");
     protected static final ResourceLocation LEADER_CROWN = new ResourceLocation(Main.MOD_ID, "textures/gui/image/leader_crown.png");
+    private static final Component CLAIM_BUTTON = Component.translatable("gui.recruits.team.claim");
     private static final Component LEAVE_BUTTON = Component.translatable("gui.recruits.team.leave");
     private static final Component DELETE_BUTTON = Component.translatable("gui.recruits.team.delete_team");
     private static final Component DIPLOMACY_BUTTON = Component.translatable("gui.recruits.team.diplomacy");
@@ -62,6 +64,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
     private Button editButton;
     private Button diplomacyButton;
     private Button leaveButton;
+    private Button claimMapButton;
     private final Player player;
     public static RecruitsTeam recruitsTeam;
     private BannerRenderer bannerRenderer;
@@ -119,7 +122,12 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         addRenderableWidget(this.selectedPlayerWidget);
 
         boolean isTeamLeader = recruitsTeam.getTeamLeaderUUID().equals(player.getUUID());
-
+        claimMapButton = new ExtendedButton(guiLeft + 200, guiTop + 99, 60, 20, CLAIM_BUTTON,
+                button -> {
+                    minecraft.setScreen(new ClaimMapScreen(this, player, recruitsTeam));
+                });
+        //claimMapButton.visible = isTeamLeader;// && isClaimingAllowed;
+        addRenderableWidget(claimMapButton);
         editButton = new ExtendedButton(guiLeft + 169, guiTop + 99, 60, 20, EDIT_BUTTON,
                 button -> {
                     TeamEditScreen.leaderInfo = null;

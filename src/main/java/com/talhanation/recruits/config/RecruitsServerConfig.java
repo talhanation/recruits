@@ -46,10 +46,6 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.ConfigValue<List<List<String>>> NomadStartEquipments;
     public static ForgeConfigSpec.ConfigValue<List<String>> AcceptedDamagesourceImmunity;
     public static ForgeConfigSpec.ConfigValue<List<String>> FoodBlackList;
-    public static ForgeConfigSpec.BooleanValue AggroRecruitsBlockPlaceBreakEvents;
-    public static ForgeConfigSpec.BooleanValue NeutralRecruitsBlockPlaceBreakEvents;
-    public static ForgeConfigSpec.BooleanValue AggroRecruitsBlockInteractingEvents;
-    public static ForgeConfigSpec.BooleanValue NeutralRecruitsBlockInteractingEvents;
     public static ForgeConfigSpec.BooleanValue ShouldRecruitPatrolsSpawn;
     public static ForgeConfigSpec.BooleanValue ShouldPillagerPatrolsSpawn;
     public static ForgeConfigSpec.DoubleValue RecruitPatrolsSpawnChance;
@@ -82,6 +78,11 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.IntValue RecruitsPaymentAmount;
     public static ForgeConfigSpec.EnumValue<AbstractRecruitEntity.NoPaymentAction> RecruitsNoPaymentAction;
     public static ForgeConfigSpec.BooleanValue QuickStartPillagerRaid;
+
+    public static ForgeConfigSpec.BooleanValue BlockPlacingBreakingOnlyWhenClaimed;
+    public static ForgeConfigSpec.IntValue ClaimingCost;
+    public static ForgeConfigSpec.IntValue SiegingClaimsRecruitsAmount;
+    public static ForgeConfigSpec.IntValue SiegingClaimsConquerTime;
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin", "corpse:corpse", "minecraft:armorstand"));
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
@@ -489,45 +490,6 @@ public class RecruitsServerConfig {
                 .define("QuickStartPillagerRaid", true);
 
         /*
-        Block Event Config
-         */
-
-        BUILDER.pop();
-        BUILDER.comment("Block Event Config:").push("BlockEvents");
-
-        AggroRecruitsBlockPlaceBreakEvents = BUILDER.comment("""
-                        
-                        Should Aggressive Recruits attack enemy players that are placing or breaking blocks immediately?
-                        \t(takes effect after restart)
-                        \tdefault: true""")
-                .worldRestart()
-                .define("AggroRecruitsBlockPlaceBreakEvents", true);
-
-        NeutralRecruitsBlockPlaceBreakEvents = BUILDER.comment("""
-                        
-                        Should Neutral Recruits attack enemy players that are placing or breaking blocks immediately?
-                        \t(takes effect after restart)
-                        \tdefault: true""")
-                .worldRestart()
-                .define("NeutralRecruitsBlockPlaceBreakEvents", true);
-
-        AggroRecruitsBlockInteractingEvents = BUILDER.comment("""
-                        
-                        Should Aggressive Recruits attack enemy players that are interacting with blocks immediately?
-                        \t(takes effect after restart)
-                        \tdefault: true""")
-                .worldRestart()
-                .define("AggroRecruitsBlockInteractingEvents", true);
-
-        NeutralRecruitsBlockInteractingEvents = BUILDER.comment("""
-                        
-                        Should Neutral Recruits attack enemy players that are interacting with blocks immediately?
-                        \t(takes effect after restart)
-                        \tdefault: true""")
-                .worldRestart()
-                .define("NeutralRecruitsBlockInteractingEvents", true);
-
-        /*
         Patrol Config
          */
 
@@ -758,6 +720,37 @@ public class RecruitsServerConfig {
                         \tdefault: 1""")
                 .worldRestart()
                 .defineInRange("AsyncTargetFindingThreads", 1, 1, Runtime.getRuntime().availableProcessors());
+
+        BUILDER.pop();
+        BUILDER.comment("Claiming Config:").push("Claiming");
+
+        ClaimingCost = BUILDER.comment("""
+                        The amount of currency that claiming a chunk should cost.
+                        \t(takes effect after restart)
+                        \tdefault: 7""")
+                .worldRestart()
+                .defineInRange("ClaimingCost", 7, 0, 1453);
+
+        BlockPlacingBreakingOnlyWhenClaimed = BUILDER.comment("""
+                        Should block breaking and placing for players only be possible when the chunk is claimed by the faction.
+                        \t(takes effect after restart)
+                        \tdefault: false""")
+                .worldRestart()
+                .define("BlockPlacingBreakingOnlyWhenClaimed", false);
+
+        SiegingClaimsRecruitsAmount = BUILDER.comment("""
+                        The amount of man power that is required to start a siege on a Claim.
+                        \t(takes effect after restart)
+                        \tdefault: 10""")
+                .worldRestart()
+                .defineInRange("SiegingClaimsRecruitsAmount", 10, 0, 1453);
+
+        SiegingClaimsConquerTime = BUILDER.comment("""
+                        The time in minutes that is required to conquer a Claim.
+                        \t(takes effect after restart)
+                        \tdefault: 10""")
+                .worldRestart()
+                .defineInRange("SiegingClaimsRecruitsAmount", 10, 0, 1453);
 
         SERVER = BUILDER.build();
     }

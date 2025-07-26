@@ -36,7 +36,6 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
     protected final BannerRenderer bannerOwn;
     protected final BannerRenderer bannerOther;
     private  boolean stanceChanged;
-
     private Button confirmButton;
     private Button backButton;
     private final boolean isLeader;
