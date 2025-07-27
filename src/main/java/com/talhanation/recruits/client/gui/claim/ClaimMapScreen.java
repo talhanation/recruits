@@ -6,6 +6,7 @@ import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ChunkPos;
 
 public class ClaimMapScreen extends RecruitsScreenBase {
 
@@ -26,7 +27,7 @@ public class ClaimMapScreen extends RecruitsScreenBase {
     protected void init() {
         super.init();
 
-        mapWidget = new ChunkMapWidget(guiLeft - 100, guiTop - ySize, 10);
+        mapWidget = new ChunkMapWidget(this,guiLeft - 100, guiTop - ySize, 10);
         mapWidget.setWidth(300);
         mapWidget.setHeight(300);
         this.addRenderableWidget(mapWidget);
@@ -48,5 +49,10 @@ public class ClaimMapScreen extends RecruitsScreenBase {
     public boolean mouseDragged(double p_94699_, double p_94700_, int p_94701_, double p_94702_, double p_94703_) {
         if(mapWidget != null) mapWidget.mouseDragged(p_94699_, p_94700_, p_94701_, p_94702_, p_94703_);
         return super.mouseDragged(p_94699_, p_94700_, p_94701_, p_94702_, p_94703_);
+    }
+
+    public void claimArea(ChunkPos chunk) {
+    }
+    public void claimChunk(ChunkPos chunk) {
     }
 }
