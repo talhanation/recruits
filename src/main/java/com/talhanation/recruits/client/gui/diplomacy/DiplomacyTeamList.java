@@ -1,6 +1,7 @@
 package com.talhanation.recruits.client.gui.diplomacy;
 
 import com.google.common.collect.Lists;
+import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsTeam;
@@ -12,8 +13,6 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
     protected DiplomacyTeamListScreen screen;
     protected final List<DiplomacyTeamEntry> entries;
     protected String filter;
-    public static List<RecruitsTeam> teams;
-    public static Map<String, Map<String, RecruitsDiplomacyManager.DiplomacyStatus>> diplomacyMap;
     public RecruitsTeam ownTeam;
     public DiplomacyFilter diplomacyFilter;
 
@@ -32,8 +31,8 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
     public boolean hasUpdated;
 
     public void tick() {
-        if (!hasUpdated && teams != null && diplomacyMap != null) {
-            this.ownTeam = getOwnTeam(teams);
+        if (!hasUpdated && ClientManager.teams != null && ClientManager.diplomacyMap != null) {
+            this.ownTeam = getOwnTeam(ClientManager.teams);
             screen.ownTeam = this.ownTeam;
             updateEntryList();
             hasUpdated = true;
@@ -53,7 +52,7 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
     public void updateEntryList() {
         entries.clear();
 
-        for (RecruitsTeam team : teams) {
+        for (RecruitsTeam team : ClientManager.teams) {
             if (ownTeam != null && !team.equals(ownTeam)) {
                 RecruitsDiplomacyManager.DiplomacyStatus status = getRelation(ownTeam.getStringID(), team.getStringID());
 
@@ -84,7 +83,7 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
     }
 
     public RecruitsDiplomacyManager.DiplomacyStatus getRelation(String team, String otherTeam) {
-        return diplomacyMap.getOrDefault(team, new HashMap<>()).getOrDefault(otherTeam, RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL);
+        return ClientManager.diplomacyMap.getOrDefault(team, new HashMap<>()).getOrDefault(otherTeam, RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL);
     }
 
     public void updateFilter() {

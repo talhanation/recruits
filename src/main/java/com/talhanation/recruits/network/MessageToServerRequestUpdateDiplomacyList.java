@@ -34,8 +34,6 @@ public class MessageToServerRequestUpdateDiplomacyList implements Message<Messag
 
             Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateDiplomacyList(teamList, map));
         }
-
-
     }
 
     @Override

@@ -55,13 +55,22 @@ public class RecruitsClaimManager {
         return new HashSet<>(this.claims.values());
     }
 
-    public boolean claimExists(RecruitsClaim claim) {
-        for (ChunkPos pos : claim.getClaimedChunks()) {
+    public boolean claimExists(RecruitsClaim claim, List<ChunkPos> allPos) {
+        for (ChunkPos pos : allPos) {
             if (claims.containsKey(pos)) {
                 return true;
             }
         }
         return false;
+    }
+
+    public static RecruitsClaim getClaimAt(ChunkPos pos, List<RecruitsClaim> allClaims) {
+        for (RecruitsClaim claim : allClaims) {
+            if (claim.containsChunk(pos)) {
+                return claim;
+            }
+        }
+        return null;
     }
 }
 

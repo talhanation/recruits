@@ -41,7 +41,7 @@ public class ClaimEvents {
 
         recruitsClaimManager = new RecruitsClaimManager();
         recruitsClaimManager.load(level);
-
+        /*
         RecruitsClaim recruitsClaim = new RecruitsClaim("RedLands", TeamEvents.recruitsTeamManager.getTeamByStringID("reds"));
         recruitsClaim.setBlockBreakingAllowed(false);
         recruitsClaim.setBlockInteractionAllowed(false);
@@ -73,6 +73,8 @@ public class ClaimEvents {
         recruitsClaim1.addChunk(new ChunkPos(-1, -1));
 
         recruitsClaimManager.addOrUpdateClaim(recruitsClaim1);
+        */
+         
     }
 
     @SubscribeEvent

@@ -245,8 +245,6 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
         if(saveButton != null){
             saveButton.active = recruitsTeam != null ? checkEditCondition(): checkCreationCondition();
         }
-
-
     }
 
     private void setWidgets() {

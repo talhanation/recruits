@@ -1,0 +1,72 @@
+package com.talhanation.recruits.client.gui.overlay;
+
+import com.talhanation.recruits.client.gui.component.BannerRenderer;
+import com.talhanation.recruits.client.gui.team.TeamEditScreen;
+import com.talhanation.recruits.world.RecruitsTeam;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+
+public class FactionClaimBannerOverlay {
+    private static final int DISPLAY_DURATION = 100000; // 3 Sekunden bei 20 TPS
+    private static final int ANIMATION_TIME = 5000;
+
+    private static int timer = 0;
+    private static RecruitsTeam currentTeam;
+    private static String claimName;
+    private static BannerRenderer bannerRenderer;
+
+    public static void display(RecruitsTeam team, String claimName) {
+        FactionClaimBannerOverlay.currentTeam = team;
+        FactionClaimBannerOverlay.claimName = claimName;
+        FactionClaimBannerOverlay.bannerRenderer = new BannerRenderer(team);
+        FactionClaimBannerOverlay.timer = DISPLAY_DURATION + ANIMATION_TIME * 2;
+    }
+
+    public static void renderOverlay(GuiGraphics guiGraphics, int screenWidth) {
+        if (timer <= 0 || currentTeam == null) return;
+
+        int totalTime = DISPLAY_DURATION + ANIMATION_TIME * 2;
+        int elapsed = totalTime - timer;
+
+        int yOffset;
+        if (elapsed < ANIMATION_TIME) {
+            // Einblenden
+            float t = elapsed / (float) ANIMATION_TIME;
+            yOffset = (int) (-50 + 50 * t);
+        } else if (elapsed < ANIMATION_TIME + DISPLAY_DURATION) {
+            yOffset = 0;
+        } else {
+            // Ausblenden
+            float t = (elapsed - ANIMATION_TIME - DISPLAY_DURATION) / (float) ANIMATION_TIME;
+            yOffset = (int) (-50 * t);
+        }
+
+        int width = 150;
+        int height = 50;
+        int x = (screenWidth - width) / 2;
+        int y = 10 + yOffset;
+
+        // Hintergrund
+        int alpha = 190;
+        int rgb = TeamEditScreen.unitColors.get(currentTeam.getUnitColor()).getRGB();
+        int r = (rgb >> 16) & 0xFF;
+        int g = (rgb >> 8) & 0xFF;
+        int b = rgb & 0xFF;
+        int argb = (alpha << 24) | (r << 16) | (g << 8) | b;
+        guiGraphics.fill(x - 5, y - 5, x + width + 5, y + height + 5, argb);
+
+        // Banner rendern
+        bannerRenderer.renderBanner(guiGraphics, x + 5, y + 15, width, height, 25);
+
+        // Claim- & Factionname
+        Font font = Minecraft.getInstance().font;
+        guiGraphics.drawString(font, Component.literal(claimName), x + 40, y + 5, 0xFFFFFF);
+        guiGraphics.drawString(font, Component.literal(currentTeam.getTeamDisplayName()), x + 40, y + 20, 0xAAAAAA);
+
+
+        timer--;
+    }
+}
+

@@ -1,5 +1,6 @@
 package com.talhanation.recruits.network;
 
+import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.diplomacy.DiplomacyTeamList;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsTeam;
@@ -31,8 +32,8 @@ public class MessageToClientUpdateDiplomacyList implements Message<MessageToClie
 
     @Override
     public void executeClientSide(NetworkEvent.Context context) {
-        DiplomacyTeamList.teams = RecruitsTeam.getListFromNBT(teamsNbt);
-        DiplomacyTeamList.diplomacyMap = RecruitsDiplomacyManager.mapFromNbt(diplomacyNbt);
+        ClientManager.teams = RecruitsTeam.getListFromNBT(teamsNbt);
+        ClientManager.diplomacyMap = RecruitsDiplomacyManager.mapFromNbt(diplomacyNbt);
     }
 
     @Override

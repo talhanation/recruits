@@ -19,14 +19,22 @@ public class RecruitsClaim {
     private boolean allowBlockBreaking    = true;
     public List<RecruitsTeam> defendingParties = new ArrayList<>();
     public List<RecruitsTeam> attackingParties = new ArrayList<>();
+    public ChunkPos center;
     public boolean isUnderSiege;
     public int health;
+    public RecruitsPlayerInfo playerInfo;
     public RecruitsClaim(String name, RecruitsTeam ownerFaction) {
         this.name = name;
         this.ownerFaction = ownerFaction;
         resetHealth();
     }
+    public void setCenter(ChunkPos center){
+        this.center = center;
+    }
 
+    public ChunkPos getCenter(){
+        return this.center;
+    }
     public void addChunk(ChunkPos chunkPos) {
         if (!claimedChunks.contains(chunkPos)) {
             claimedChunks.add(chunkPos);
@@ -45,7 +53,6 @@ public class RecruitsClaim {
         return claimedChunks;
     }
 
-
     public String getName() {
         return name;
     }
@@ -55,6 +62,9 @@ public class RecruitsClaim {
     }
     public RecruitsTeam getOwnerFaction(){
         return ownerFaction;
+    }
+    public RecruitsPlayerInfo getPlayerInfo(){
+        return playerInfo;
     }
     public boolean isBlockInteractionAllowed() {
         return allowBlockInteraction;
@@ -75,7 +85,9 @@ public class RecruitsClaim {
     public void setOwnerFaction(RecruitsTeam faction) {
         this.ownerFaction = faction;
     }
-
+    public void setPlayer(RecruitsPlayerInfo playerInfo) {
+        this.playerInfo = playerInfo;
+    }
     public void setBlockInteractionAllowed(boolean allow) {
         this.allowBlockInteraction = allow;
     }
@@ -105,6 +117,7 @@ public class RecruitsClaim {
         CompoundTag nbt = new CompoundTag();
         nbt.putString("name", name);
         if(ownerFaction != null) nbt.put("ownerFaction", ownerFaction.toNBT());
+        if(playerInfo != null) nbt.put("playerInfo", playerInfo.toNBT());
         nbt.putBoolean("allowInteraction", allowBlockInteraction);
         nbt.putBoolean("allowPlacement",   allowBlockPlacement);
         nbt.putBoolean("allowBreaking",    allowBlockBreaking);
@@ -118,6 +131,10 @@ public class RecruitsClaim {
         }
         nbt.put("chunks", chunkList);
 
+        nbt.putInt("centerX", this.getCenter().x);
+        nbt.putInt("centerY", this.getCenter().z);
+
+        nbt.putInt("health", this.getHealth());
         return nbt;
     }
 
@@ -125,6 +142,9 @@ public class RecruitsClaim {
         String name = nbt.getString("name");
         RecruitsTeam recruitsTeam = RecruitsTeam.fromNBT(nbt.getCompound("ownerFaction"));
         RecruitsClaim claim = new RecruitsClaim(name, recruitsTeam);
+        RecruitsPlayerInfo playerInfo = RecruitsPlayerInfo.getFromNBT(nbt.getCompound("playerInfo"));
+        if(playerInfo != null) claim.setPlayer(playerInfo);
+
         claim.setBlockInteractionAllowed(nbt.getBoolean("allowInteraction"));
         claim.setBlockPlacementAllowed(nbt.getBoolean("allowPlacement"));
         claim.setBlockBreakingAllowed(nbt.getBoolean("allowBreaking"));
@@ -138,6 +158,12 @@ public class RecruitsClaim {
                 claim.addChunk(new ChunkPos(x, z));
             }
         }
+        int x = nbt.getInt("centerX");
+        int z = nbt.getInt("centerZ");
+
+        claim.setCenter(new ChunkPos(x, z));
+
+        claim.setHealth(nbt.getInt("health"));
 
         return claim;
     }
