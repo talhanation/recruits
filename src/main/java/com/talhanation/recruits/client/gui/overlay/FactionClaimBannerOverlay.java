@@ -1,11 +1,13 @@
 package com.talhanation.recruits.client.gui.overlay;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.team.TeamEditScreen;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 
 public class FactionClaimBannerOverlay {
@@ -49,16 +51,24 @@ public class FactionClaimBannerOverlay {
         int y = 10 + yOffset;
 
         // Hintergrund
-        int alpha = 190;
+        int alpha = 10;
         int rgb = TeamEditScreen.unitColors.get(currentTeam.getUnitColor()).getRGB();
         int r = (rgb >> 16) & 0xFF;
         int g = (rgb >> 8) & 0xFF;
         int b = rgb & 0xFF;
         int argb = (alpha << 24) | (r << 16) | (g << 8) | b;
+
+
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+
         guiGraphics.fill(x - 5, y - 5, x + width + 5, y + height + 5, argb);
 
+        RenderSystem.disableBlend();
+
         // Banner rendern
-        bannerRenderer.renderBanner(guiGraphics, x + 5, y + 15, width, height, 25);
+        bannerRenderer.renderBanner(guiGraphics, x + 5, y + 17, width, height, 25);
 
         // Claim- & Factionname
         Font font = Minecraft.getInstance().font;

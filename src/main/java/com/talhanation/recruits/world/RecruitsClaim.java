@@ -23,6 +23,7 @@ public class RecruitsClaim {
     public boolean isUnderSiege;
     public int health;
     public RecruitsPlayerInfo playerInfo;
+    public boolean isAdmin;
     public RecruitsClaim(String name, RecruitsTeam ownerFaction) {
         this.name = name;
         this.ownerFaction = ownerFaction;
@@ -81,7 +82,9 @@ public class RecruitsClaim {
     public void setName(String name) {
         this.name = name;
     }
-
+    public void setAdminClaim(boolean admin){
+        this.isAdmin = admin;
+    }
     public void setOwnerFaction(RecruitsTeam faction) {
         this.ownerFaction = faction;
     }
@@ -121,6 +124,7 @@ public class RecruitsClaim {
         nbt.putBoolean("allowInteraction", allowBlockInteraction);
         nbt.putBoolean("allowPlacement",   allowBlockPlacement);
         nbt.putBoolean("allowBreaking",    allowBlockBreaking);
+        nbt.putBoolean("isAdmin",    isAdmin);
 
         ListTag chunkList = new ListTag();
         for (ChunkPos pos : claimedChunks) {
@@ -148,6 +152,7 @@ public class RecruitsClaim {
         claim.setBlockInteractionAllowed(nbt.getBoolean("allowInteraction"));
         claim.setBlockPlacementAllowed(nbt.getBoolean("allowPlacement"));
         claim.setBlockBreakingAllowed(nbt.getBoolean("allowBreaking"));
+        claim.setAdminClaim(nbt.getBoolean("isAdmin"));
 
         if (nbt.contains("chunks", Tag.TAG_LIST)) {
             ListTag chunkList = nbt.getList("chunks", Tag.TAG_COMPOUND);

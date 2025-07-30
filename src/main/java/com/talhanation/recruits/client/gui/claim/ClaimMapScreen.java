@@ -1,7 +1,6 @@
 package com.talhanation.recruits.client.gui.claim;
 
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
-import com.talhanation.recruits.client.gui.widgets.ChunkMapWidget;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.client.gui.screens.Screen;

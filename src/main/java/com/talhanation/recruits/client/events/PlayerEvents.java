@@ -4,7 +4,6 @@ import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.overlay.FactionClaimBannerOverlay;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsClaimManager;
-import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
@@ -33,6 +32,7 @@ public class PlayerEvents {
                 currentClaim = claim;
                 FactionClaimBannerOverlay.display(claim.getOwnerFaction(), claim.getName());
             }
+            else currentClaim = null;
         }
     }
 

@@ -1,13 +1,10 @@
 package com.talhanation.recruits.client.gui.claim;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import com.talhanation.recruits.client.gui.player.PlayersList;
 import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
 import com.talhanation.recruits.client.gui.team.TeamEditScreen;
-import com.talhanation.recruits.client.gui.team.TeamInspectionScreen;
-import com.talhanation.recruits.client.gui.team.TeamMainScreen;
 import com.talhanation.recruits.client.gui.widgets.RecruitsCheckBox;
 import com.talhanation.recruits.client.gui.widgets.SelectedPlayerWidget;
 import com.talhanation.recruits.world.RecruitsClaim;
@@ -17,8 +14,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
@@ -252,8 +247,8 @@ public class ClaimEditScreen extends RecruitsScreenBase {
         float cx = offsetX + (center.x - minX + 0.5f) * cellSize;
         float cz = offsetY + (center.z - minZ + 0.5f) * cellSize;
 
-        //int textWidth = font.width(claim.getName());
-        //guiGraphics.drawString(font, claim.getName(), (int) (cx - textWidth / 2f), (int) (cz - 6), 0xFFFFFF, false);
+        int textWidth = font.width(claim.getName());
+        guiGraphics.drawString(font, claim.getName(), (int) (cx - textWidth / 2f), (int) (cz - 6), 0xFFFFFF, false);
 
         RenderSystem.disableScissor();
     }

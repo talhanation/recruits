@@ -1,5 +1,6 @@
 package com.talhanation.recruits;
 
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.util.ClaimUtil;
 import com.talhanation.recruits.world.RecruitsClaim;
@@ -74,7 +75,7 @@ public class ClaimEvents {
 
         recruitsClaimManager.addOrUpdateClaim(recruitsClaim1);
         */
-         
+
     }
 
     @SubscribeEvent
@@ -95,6 +96,7 @@ public class ClaimEvents {
         for(RecruitsClaim claim : recruitsClaimManager.getAllClaims()){
             ServerLevel level = server.overworld();
             if (claim == null) return;
+            if(claim.isAdmin) return;
 
             List<LivingEntity> attackers = ClaimUtil.getLivingEntitiesInClaim(level, claim,
                     livingEntity -> livingEntity.isAlive() && livingEntity.getTeam() != null
@@ -119,7 +121,7 @@ public class ClaimEvents {
             }
 
             if(claim.isUnderSiege){
-                if(attackerSize < 10){//Siege FAIL
+                if(attackerSize < RecruitsServerConfig.SiegingClaimsRecruitsAmount.get()){//Siege FAIL
                     claim.setUnderSiege(false, level);
                     claim.resetHealth();
                     claim.attackingParties.clear();
@@ -136,7 +138,7 @@ public class ClaimEvents {
                 }
             }
             //initial
-            else if(defendersSize < attackerSize && attackerSize >= 10){//TODO: START SIEGE WHEN IN NEXT 3 NEIGHBOR CHUNKS
+            else if(defendersSize < attackerSize && attackerSize >= RecruitsServerConfig.SiegingClaimsRecruitsAmount.get()){
                 claim.setUnderSiege( true, level);
             }
         }

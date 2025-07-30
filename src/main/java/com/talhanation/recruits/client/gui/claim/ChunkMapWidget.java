@@ -1,4 +1,4 @@
-package com.talhanation.recruits.client.gui.widgets;
+package com.talhanation.recruits.client.gui.claim;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.client.ClientManager;
@@ -6,6 +6,7 @@ import com.talhanation.recruits.client.gui.claim.ChunkMiniMap;
 import com.talhanation.recruits.client.gui.claim.ClaimMapScreen;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.team.TeamEditScreen;
+import com.talhanation.recruits.client.gui.widgets.ContextMenuEntry;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import com.talhanation.recruits.world.RecruitsTeam;
@@ -38,11 +39,12 @@ public class ChunkMapWidget extends AbstractWidget {
     private final BannerRenderer bannerRenderer;
     private RecruitsClaim selectedClaim;
     private final RecruitsTeam ownFaction;
-    private List<ContextMenuEntry> contextMenuEntries = new ArrayList<>();
+    private final List<ContextMenuEntry> contextMenuEntries = new ArrayList<>();
     private int contextMenuX, contextMenuY;
     private boolean contextMenuVisible = false;
 
     public Player player;
+    Set<RecruitsClaim> claimsToDrawNames = new HashSet<>();
     public ChunkMapWidget(ClaimMapScreen screen, Player player, int x, int y, int viewRadius, RecruitsTeam ownFaction) {
         super(x, y, (viewRadius*2+1)*16, (viewRadius*2+1)*16, Component.empty());
         this.screen = screen;
@@ -118,14 +120,7 @@ public class ChunkMapWidget extends AbstractWidget {
                         int argb = (alpha << 24) | (r << 16) | (g << 8) | b;
                         guiGraphics.fill(px, py, px + cellSize, py + cellSize, argb);
 
-                        if (claim.getCenter().equals(pos)) {
-                            String name = claim.getName();
-                            int textWidth = Minecraft.getInstance().font.width(name);
-                            int textX = px + (cellSize / 2) - (textWidth / 2);
-                            int textY = py + (cellSize / 2) - 4; // etwas oberhalb der Mitte
-
-                            guiGraphics.drawString(Minecraft.getInstance().font, name, textX, textY, 0xFFFFFF, false);
-                        }
+                        claimsToDrawNames.add(claim);
 
                         if (selectedClaim != null && selectedClaim.containsChunk(pos)) {
                             // Kanten prüfen: oben, unten, links, rechts
@@ -150,7 +145,9 @@ public class ChunkMapWidget extends AbstractWidget {
 
                         break;
                     }
+
                 }
+
             }
         }
 
@@ -169,34 +166,23 @@ public class ChunkMapWidget extends AbstractWidget {
             guiGraphics.fill(px + cellSize - 1, py, px + cellSize, py + cellSize, glowColor); // right
         }
 
-        RenderSystem.disableScissor();
 
-        int panelX = getX() + width + 10;
-        int panelY = getY();
-        int panelWidth = 150;
-        int panelHeight = 225;
-        guiGraphics.fill(panelX - 1, panelY - 1, panelX + panelWidth + 1, panelY + panelHeight + 1, 0xFF555555);
-        guiGraphics.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xFF222222);
-        Minecraft minecraft = Minecraft.getInstance();
-        Font font = minecraft.font;
-        if(selectedClaim != null){
-            guiGraphics.drawString(font, selectedClaim.getName(), panelX + 5, panelY + 5, 0xFFFFFF);
-            bannerRenderer.renderBanner(guiGraphics, panelX + 65, panelY + 80, this.width, this.height, 60);
+        Font font = Minecraft.getInstance().font;
+        for (RecruitsClaim claim : claimsToDrawNames) {
+            ChunkPos centerPos = claim.getCenter();
 
-            guiGraphics.drawString(font, "Faction: ", panelX + 5, panelY + 130, 0xFFFFFF);
-            guiGraphics.drawString(font, selectedClaim.getOwnerFaction().getTeamDisplayName(), panelX + 90, panelY + 130, 0xFFFFFF);
+            int dx = centerPos.x - center.x + (int)(offsetX / cellSize);
+            int dz = centerPos.z - center.z + (int)(offsetZ / cellSize);
 
-            guiGraphics.drawString(font, "Player: ", panelX + 5, panelY + 150, 0xFFFFFF);
-            guiGraphics.drawString(font, selectedClaim.getPlayerInfo() != null ? selectedClaim.getPlayerInfo().getName() : selectedClaim.getOwnerFaction().getTeamLeaderName(), panelX + 90, panelY + 150, 0xFFFFFF);
+            int px = getX() + (dx + viewRadius) * cellSize + (int)(offsetX % cellSize);
+            int py = getY() + (dz + viewRadius) * cellSize + (int)(offsetZ % cellSize);
 
-            guiGraphics.drawString(font, "Block Placing:   ", panelX + 5, panelY + 170, 0xFFFFFF);
-            guiGraphics.drawString(font, selectedClaim.isBlockPlacementAllowed() ? "true":"false", panelX + 90, panelY + 170, 0xFFFFFF);
+            String name = claim.getName();
+            int textWidth = font.width(name);
+            int textX = px + (cellSize / 2) - (textWidth / 2);
+            int textY = py + (cellSize / 2) - 4;
 
-            guiGraphics.drawString(font, "Block Breaking:", panelX + 5, panelY + 190, 0xFFFFFF);
-            guiGraphics.drawString(font, selectedClaim.isBlockBreakingAllowed() ? "true":"false", panelX + 90, panelY + 190, 0xFFFFFF);
-
-            guiGraphics.drawString(font, "Block Interact:", panelX + 5, panelY + 210, 0xFFFFFF);
-            guiGraphics.drawString(font, selectedClaim.isBlockInteractionAllowed() ? "true":"false", panelX + 90, panelY + 210, 0xFFFFFF);
+            guiGraphics.drawString(font, name, textX, textY, 0xFFFFFF, true);
         }
 
         // ─── Context-Menü ─────────────────────────
@@ -221,6 +207,37 @@ public class ChunkMapWidget extends AbstractWidget {
                 guiGraphics.drawString(mc.font, entry.label, contextMenuX + 5, entryY + 2, color);
             }
         }
+
+        RenderSystem.disableScissor();
+
+        int panelX = getX() + width + 10;
+        int panelY = getY();
+        int panelWidth = 150;
+        int panelHeight = 225;
+        guiGraphics.fill(panelX - 1, panelY - 1, panelX + panelWidth + 1, panelY + panelHeight + 1, 0xFF555555);
+        guiGraphics.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xFF222222);
+
+        if(selectedClaim != null){
+            guiGraphics.drawString(font, selectedClaim.getName(), panelX + 5, panelY + 5, 0xFFFFFF);
+            bannerRenderer.renderBanner(guiGraphics, panelX + 65, panelY + 80, this.width, this.height, 60);
+
+            guiGraphics.drawString(font, "Faction: ", panelX + 5, panelY + 130, 0xFFFFFF);
+            guiGraphics.drawString(font, selectedClaim.getOwnerFaction().getTeamDisplayName(), panelX + 90, panelY + 130, 0xFFFFFF);
+
+            guiGraphics.drawString(font, "Player: ", panelX + 5, panelY + 150, 0xFFFFFF);
+            guiGraphics.drawString(font, selectedClaim.getPlayerInfo() != null ? selectedClaim.getPlayerInfo().getName() : selectedClaim.getOwnerFaction().getTeamLeaderName(), panelX + 90, panelY + 150, 0xFFFFFF);
+
+            guiGraphics.drawString(font, "Block Placing:   ", panelX + 5, panelY + 170, 0xFFFFFF);
+            guiGraphics.drawString(font, selectedClaim.isBlockPlacementAllowed() ? "true":"false", panelX + 90, panelY + 170, 0xFFFFFF);
+
+            guiGraphics.drawString(font, "Block Breaking:", panelX + 5, panelY + 190, 0xFFFFFF);
+            guiGraphics.drawString(font, selectedClaim.isBlockBreakingAllowed() ? "true":"false", panelX + 90, panelY + 190, 0xFFFFFF);
+
+            guiGraphics.drawString(font, "Block Interact:", panelX + 5, panelY + 210, 0xFFFFFF);
+            guiGraphics.drawString(font, selectedClaim.isBlockInteractionAllowed() ? "true":"false", panelX + 90, panelY + 210, 0xFFFFFF);
+        }
+
+
     }
 
 
@@ -250,26 +267,31 @@ public class ChunkMapWidget extends AbstractWidget {
     private void openClaimContextMenu(RecruitsClaim claim, ChunkPos savedHoverChunk) {
         contextMenuEntries.clear();
 
+        ChunkPos rightTop = claim.getClaimedChunks().stream()
+                .max(Comparator.<ChunkPos>comparingInt(pos -> pos.x)
+                        .thenComparingInt(pos -> pos.z))
+                .orElse(claim.getCenter());
+
         int chunkOffsetX = (int)(offsetX / cellSize);
         int chunkOffsetZ = (int)(offsetZ / cellSize);
         int pixelOffsetX = (int)(offsetX % cellSize);
         int pixelOffsetZ = (int)(offsetZ % cellSize);
 
-        int dx = claim.getCenter().x - center.x + chunkOffsetX;
-        int dz = claim.getCenter().z - center.z + chunkOffsetZ;
+        int dx = rightTop.x - center.x + chunkOffsetX;
+        int dz = rightTop.z - center.z + chunkOffsetZ;
 
         int px = getX() + (dx + viewRadius) * cellSize + pixelOffsetX;
         int py = getY() + (dz + viewRadius) * cellSize + pixelOffsetZ;
 
-        contextMenuX = px + cellSize + 5; // rechts neben dem Chunk
+        contextMenuX = px + cellSize + 5;
         contextMenuY = py;
         //OTHERS CLAIM
         if(!claim.getOwnerFaction().getStringID().equals(ownFaction.getStringID())){
             contextMenuEntries.add(new ContextMenuEntry("Diplomacy",
                     () -> screen.openDiplomacyOf(claim.getOwnerFaction()), true));
         }
-        else
-        {   //OWN CLAIM
+        else {
+            //OWN CLAIM
             if(player.getUUID().equals(ownFaction.getTeamLeaderUUID()) || player.getUUID().equals(claim.getPlayerInfo().getUUID())){
                 contextMenuEntries.add(new ContextMenuEntry("Edit Claim",
                         () -> screen.openClaimEditScreen(claim), true));
@@ -281,9 +303,7 @@ public class ChunkMapWidget extends AbstractWidget {
                         },
                         canRemoveChunk(savedHoverChunk, claim)));
             }
-
         }
-
 
         contextMenuVisible = true;
     }
@@ -398,7 +418,7 @@ public class ChunkMapWidget extends AbstractWidget {
                 int dx = Math.abs(chunkPos.x - chunk.x);
                 int dz = Math.abs(chunkPos.z - chunk.z);
 
-                if (dx <= 5 && dz <= 5 && !claim.getOwnerFaction().equals(team)) {
+                if (dx <= 5 && dz <= 5 && !claim.getOwnerFaction().getStringID().equals(team.getStringID())) {
                     return false; // zu nah an fremdem Claim
                 }
             }
@@ -406,7 +426,7 @@ public class ChunkMapWidget extends AbstractWidget {
 
         if (neighborSameFactionRequired) {
             RecruitsClaim neighborClaim = getNeighborClaim(chunk, allClaims);
-            return neighborClaim != null && neighborClaim.getOwnerFaction().equals(team);
+            return neighborClaim != null && neighborClaim.getOwnerFaction().getStringID().equals(team.getStringID());
         }
 
         return true;
@@ -441,7 +461,11 @@ public class ChunkMapWidget extends AbstractWidget {
 
     public void claimChunk(ChunkPos centerChunk, RecruitsTeam ownTeam, List<RecruitsClaim> allClaims) {
         RecruitsClaim neighborClaim = getNeighborClaim(centerChunk, allClaims);
-        if(neighborClaim != null && !ownTeam.equals(neighborClaim.getOwnerFaction())) return;
+        if(neighborClaim == null) return;
+
+        String ownerID = ownTeam.getStringID();
+        String neighborID = neighborClaim.getOwnerFaction().getStringID();
+        if(!Objects.equals(ownerID, neighborID)) return;
 
         for(RecruitsClaim claim : allClaims){
             if(claim.equals(neighborClaim)){
