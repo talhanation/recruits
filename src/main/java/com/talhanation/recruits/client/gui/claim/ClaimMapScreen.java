@@ -1,6 +1,8 @@
 package com.talhanation.recruits.client.gui.claim;
 
+import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
+import com.talhanation.recruits.client.gui.diplomacy.DiplomacyEditScreen;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.client.gui.screens.Screen;
@@ -72,6 +74,8 @@ public class ClaimMapScreen extends RecruitsScreenBase {
     }
 
     public void openDiplomacyOf(RecruitsTeam othersFaction) {
+        boolean isLeader = player.getUUID().equals(ownFaction.getTeamLeaderUUID());
+        minecraft.setScreen(new DiplomacyEditScreen(this, ownFaction, othersFaction, ClientManager.getRelation(ownFaction.getStringID(), ownFaction.getStringID()), ClientManager.getRelation(ownFaction.getStringID(), ownFaction.getStringID()), isLeader));
 
     }
 

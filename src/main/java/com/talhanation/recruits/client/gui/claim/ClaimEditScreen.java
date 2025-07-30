@@ -1,12 +1,14 @@
 package com.talhanation.recruits.client.gui.claim;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import com.talhanation.recruits.client.gui.player.PlayersList;
 import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
 import com.talhanation.recruits.client.gui.team.TeamEditScreen;
 import com.talhanation.recruits.client.gui.widgets.RecruitsCheckBox;
 import com.talhanation.recruits.client.gui.widgets.SelectedPlayerWidget;
+import com.talhanation.recruits.network.MessageUpdateClaim;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.client.Minecraft;
@@ -142,7 +144,7 @@ public class ClaimEditScreen extends RecruitsScreenBase {
                     this.claim.setBlockPlacementAllowed(this.allowBlockPlacing);
                     this.claim.setBlockBreakingAllowed(this.allowBlockBreaking);
 
-                    //Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(selectedClaim));
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(this.claim));
                 });
         addRenderableWidget(saveButton);
         this.checkSaveActive();

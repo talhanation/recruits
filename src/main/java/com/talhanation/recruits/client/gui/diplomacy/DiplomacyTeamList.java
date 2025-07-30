@@ -54,7 +54,7 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
 
         for (RecruitsTeam team : ClientManager.teams) {
             if (ownTeam != null && !team.equals(ownTeam)) {
-                RecruitsDiplomacyManager.DiplomacyStatus status = getRelation(ownTeam.getStringID(), team.getStringID());
+                RecruitsDiplomacyManager.DiplomacyStatus status = ClientManager.getRelation(ownTeam.getStringID(), team.getStringID());
 
                 switch (diplomacyFilter) {
                     case ALL -> {
@@ -80,10 +80,6 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
         }
 
         updateFilter();
-    }
-
-    public RecruitsDiplomacyManager.DiplomacyStatus getRelation(String team, String otherTeam) {
-        return ClientManager.diplomacyMap.getOrDefault(team, new HashMap<>()).getOrDefault(otherTeam, RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL);
     }
 
     public void updateFilter() {

@@ -1,18 +1,19 @@
 package com.talhanation.recruits.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import com.talhanation.recruits.ClaimEvents;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.init.ModItems;
 import com.talhanation.recruits.items.RecruitsSpawnEgg;
-import com.talhanation.recruits.util.FormationUtils;
+import com.talhanation.recruits.world.RecruitsClaim;
+import com.talhanation.recruits.world.RecruitsClaimManager;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.ChatFormatting;
@@ -25,13 +26,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.commands.TeamCommand;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraftforge.server.command.EnumArgument;
 
@@ -230,6 +230,68 @@ public class RecruitsAdminCommands {
                                     )
                             )
                     )
+            )
+            .then(Commands.literal("getClaimAtPosition")
+                    .executes(ctx -> {
+                        ServerPlayer player = ctx.getSource().getPlayerOrException();
+
+                        ChunkPos chunkPos = player.chunkPosition();
+                        RecruitsClaim claim = RecruitsClaimManager.getClaimAt(chunkPos, ClaimEvents.recruitsClaimManager.getAllClaims().stream().toList());
+
+                        if (claim == null) {
+                            ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
+                            return 0;
+                        }
+
+                        ctx.getSource().sendSuccess(() ->
+                                Component.literal("Claim: [" + claim + "]"), false);
+
+                        return 1;
+                    })
+
+            )
+            .then(Commands.literal("setAdminChunk")
+                    .then(Commands.argument("isAdmin", BoolArgumentType.bool())
+                            .executes(ctx -> {
+                                ServerPlayer player = ctx.getSource().getPlayerOrException();
+                                boolean isAdmin = BoolArgumentType.getBool(ctx, "isAdmin");
+
+                                ChunkPos chunkPos = player.chunkPosition();
+                                RecruitsClaim claim = RecruitsClaimManager.getClaimAt(chunkPos, ClaimEvents.recruitsClaimManager.getAllClaims().stream().toList());
+
+                                if (claim == null) {
+                                    ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
+                                    return 0;
+                                }
+
+                                claim.setAdminClaim(isAdmin);
+                                ctx.getSource().sendSuccess(() ->
+                                        Component.literal("Claim [" + claim + "] is now set to admin = " + isAdmin), false);
+                                ClaimEvents.recruitsClaimManager.broadcastClaimsToAll(ctx.getSource().getLevel());
+                                return 1;
+                            })
+                    )
+            )
+            .then(Commands.literal("deleteClaim")
+                    .executes(ctx -> {
+                        ServerPlayer player = ctx.getSource().getPlayerOrException();
+
+                        ChunkPos chunkPos = player.chunkPosition();
+                        RecruitsClaim claim = RecruitsClaimManager.getClaimAt(chunkPos, ClaimEvents.recruitsClaimManager.getAllClaims().stream().toList());
+
+                        if (claim == null) {
+                            ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
+                            return 0;
+                        }
+
+                        ClaimEvents.recruitsClaimManager.getAllClaims().remove(claim);
+
+                        ctx.getSource().sendSuccess(() ->
+                                Component.literal("Claim [" + claim + "] is now deleted."), false);
+                        ClaimEvents.recruitsClaimManager.broadcastClaimsToAll(ctx.getSource().getLevel());
+                        return 1;
+                    })
+
             )
             .then(Commands.literal("debugManager")
                 .then(Commands.literal("spawnFromEgg")

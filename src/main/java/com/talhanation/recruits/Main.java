@@ -192,7 +192,9 @@ public class Main {
                 MessageToServerRequestUpdatePlayerCurrencyCount.class,
                 MessageToClientUpdatePlayerCurrencyCount.class,
                 MessageToClientOpenTakeOverScreen.class,
-                MessageToClientOpenMessengerAnswerScreen.class
+                MessageToClientOpenMessengerAnswerScreen.class,
+                MessageToClientUpdateClaims.class,
+                MessageUpdateClaim.class
         };
 
 

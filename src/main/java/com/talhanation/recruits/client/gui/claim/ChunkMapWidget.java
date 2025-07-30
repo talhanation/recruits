@@ -1,12 +1,14 @@
 package com.talhanation.recruits.client.gui.claim;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.claim.ChunkMiniMap;
 import com.talhanation.recruits.client.gui.claim.ClaimMapScreen;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.team.TeamEditScreen;
 import com.talhanation.recruits.client.gui.widgets.ContextMenuEntry;
+import com.talhanation.recruits.network.MessageUpdateClaim;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import com.talhanation.recruits.world.RecruitsTeam;
@@ -334,6 +336,7 @@ public class ChunkMapWidget extends AbstractWidget {
                 for (RecruitsClaim claim : ClientManager.recruitsClaims) {
                     if (claim.containsChunk(hoverChunk)) {
                         selectedClaim = claim;
+                        this.bannerRenderer.setRecruitsTeam(selectedClaim.getOwnerFaction());
                         openClaimContextMenu(selectedClaim, hoverChunk);
                         return true;
                     }
@@ -375,6 +378,7 @@ public class ChunkMapWidget extends AbstractWidget {
                 for (RecruitsClaim claim : ClientManager.recruitsClaims) {
                     if (claim.containsChunk(hoverChunk)) {
                         selectedClaim = claim;
+                        this.bannerRenderer.setRecruitsTeam(selectedClaim.getOwnerFaction());
                         selectedChunk = null;
                         return true;
                     }
@@ -497,6 +501,7 @@ public class ChunkMapWidget extends AbstractWidget {
         newClaim.setPlayer(new RecruitsPlayerInfo(player.getUUID(), player.getName().getString()));
 
         ClientManager.recruitsClaims.add(newClaim);
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(newClaim));
     }
 
     public void recalculateCenter(RecruitsClaim claim) {

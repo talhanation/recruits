@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.level.LevelEvent;
@@ -42,39 +43,6 @@ public class ClaimEvents {
 
         recruitsClaimManager = new RecruitsClaimManager();
         recruitsClaimManager.load(level);
-        /*
-        RecruitsClaim recruitsClaim = new RecruitsClaim("RedLands", TeamEvents.recruitsTeamManager.getTeamByStringID("reds"));
-        recruitsClaim.setBlockBreakingAllowed(false);
-        recruitsClaim.setBlockInteractionAllowed(false);
-        recruitsClaim.setBlockPlacementAllowed(false);
-        recruitsClaim.addChunk(new ChunkPos(10, 10));
-        recruitsClaim.addChunk(new ChunkPos(10, 11));
-        recruitsClaim.addChunk(new ChunkPos(10, -11));
-        recruitsClaim.addChunk(new ChunkPos(11, 10));
-        recruitsClaim.addChunk(new ChunkPos(11, 11));
-        recruitsClaim.addChunk(new ChunkPos(11, -11));
-        recruitsClaim.addChunk(new ChunkPos(-11, 10));
-        recruitsClaim.addChunk(new ChunkPos(-11, 11));
-        recruitsClaim.addChunk(new ChunkPos(-11, -11));
-
-        recruitsClaimManager.addOrUpdateClaim(recruitsClaim);
-
-        RecruitsClaim recruitsClaim1 = new RecruitsClaim("BlueLands", TeamEvents.recruitsTeamManager.getTeamByStringID("blues"));
-        recruitsClaim1.setBlockBreakingAllowed(false);
-        recruitsClaim1.setBlockInteractionAllowed(false);
-        recruitsClaim1.setBlockPlacementAllowed(false);
-        recruitsClaim1.addChunk(new ChunkPos(0, 0));
-        recruitsClaim1.addChunk(new ChunkPos(0, 1));
-        recruitsClaim1.addChunk(new ChunkPos(0, -1));
-        recruitsClaim1.addChunk(new ChunkPos(1, 0));
-        recruitsClaim1.addChunk(new ChunkPos(1, 1));
-        recruitsClaim1.addChunk(new ChunkPos(1, -1));
-        recruitsClaim1.addChunk(new ChunkPos(-1, 0));
-        recruitsClaim1.addChunk(new ChunkPos(-1, 1));
-        recruitsClaim1.addChunk(new ChunkPos(-1, -1));
-
-        recruitsClaimManager.addOrUpdateClaim(recruitsClaim1);
-        */
 
     }
 
@@ -87,6 +55,14 @@ public class ClaimEvents {
     public void onWorldSave(LevelEvent.Save event){
         recruitsClaimManager.save(server.overworld());
     }
+
+    @SubscribeEvent
+    public void onPlayerJoin(EntityJoinLevelEvent event){
+        if(event.getEntity() instanceof Player){
+            recruitsClaimManager.broadcastClaimsToAll(server.overworld());
+        }
+    }
+
     public static int counter;
     @SubscribeEvent
     public void onServerTick(TickEvent.ServerTickEvent event){
@@ -126,6 +102,7 @@ public class ClaimEvents {
                     claim.resetHealth();
                     claim.attackingParties.clear();
                     claim.defendingParties.clear();
+                    recruitsClaimManager.broadcastClaimsToAll(level);
                     return;
                 }
                 else{
@@ -133,6 +110,7 @@ public class ClaimEvents {
 
                     if(claim.getHealth() <= 0){//Siege SUCCESS
                         claim.setSiegeSuccsess(level);
+                        recruitsClaimManager.broadcastClaimsToAll(level);
                         return;
                     }
                 }
@@ -140,6 +118,7 @@ public class ClaimEvents {
             //initial
             else if(defendersSize < attackerSize && attackerSize >= RecruitsServerConfig.SiegingClaimsRecruitsAmount.get()){
                 claim.setUnderSiege( true, level);
+                recruitsClaimManager.broadcastClaimsToAll(level);
             }
         }
     }

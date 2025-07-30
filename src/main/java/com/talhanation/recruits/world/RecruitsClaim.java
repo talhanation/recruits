@@ -173,6 +173,31 @@ public class RecruitsClaim {
         return claim;
     }
 
+    public static CompoundTag toNBT(List<RecruitsClaim> list) {
+        CompoundTag nbt = new CompoundTag();
+        ListTag claimList = new ListTag();
+
+        for (RecruitsClaim claim : list) {
+            claimList.add(claim.toNBT());
+        }
+
+        nbt.put("Claims", claimList);
+        return nbt;
+    }
+
+    public static List<RecruitsClaim> getListFromNBT(CompoundTag nbt) {
+        List<RecruitsClaim> list = new ArrayList<>();
+        ListTag claimList = nbt.getList("Claims", Tag.TAG_COMPOUND);
+
+        for (int i = 0; i < claimList.size(); i++) {
+            CompoundTag claimTag = claimList.getCompound(i);
+            RecruitsClaim claim = RecruitsClaim.fromNBT(claimTag);
+            list.add(claim);
+        }
+
+        return list;
+    }
+
     public void setUnderSiege(boolean underSiege, ServerLevel level) {
         RecruitsTeam ownerFaction = TeamEvents.recruitsTeamManager.getTeamByStringID(this.getOwnerFactionStringID());
         if(ownerFaction == null) return;

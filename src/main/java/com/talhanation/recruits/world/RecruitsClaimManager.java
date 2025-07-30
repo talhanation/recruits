@@ -1,10 +1,14 @@
 package com.talhanation.recruits.world;
 
+import com.talhanation.recruits.Main;
+import com.talhanation.recruits.network.MessageToClientUpdateClaims;
+import com.talhanation.recruits.network.MessageToClientUpdateCommandScreen;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.AABB;
+import net.minecraftforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -51,8 +55,8 @@ public class RecruitsClaimManager {
         return this.getClaim(new ChunkPos(chunkX, chunkZ));
     }
 
-    public Collection<RecruitsClaim> getAllClaims() {
-        return new HashSet<>(this.claims.values());
+    public List<RecruitsClaim> getAllClaims() {
+        return new HashSet<>(this.claims.values()).stream().toList();
     }
 
     public boolean claimExists(RecruitsClaim claim, List<ChunkPos> allPos) {
@@ -71,6 +75,12 @@ public class RecruitsClaimManager {
             }
         }
         return null;
+    }
+
+    public void broadcastClaimsToAll(ServerLevel level) {
+        for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateClaims(this.getAllClaims()));
+        }
     }
 }
 

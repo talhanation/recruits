@@ -2,6 +2,7 @@ package com.talhanation.recruits.client.gui.diplomacy;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
 import com.talhanation.recruits.network.MessageToServerRequestUpdateDiplomacyList;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
@@ -108,7 +109,7 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
 
         setStanceButton = new ExtendedButton(guiLeft + 7, buttonY, 100, 20, this.isLeader ? SET_STANCE : SHOW_STANCE,
                 button -> {
-                     minecraft.setScreen(new DiplomacyEditScreen(this, ownTeam, selected, list.getRelation(ownTeam.getStringID(), selected.getStringID()), list.getRelation(selected.getStringID(), ownTeam.getStringID()), isLeader));
+                     minecraft.setScreen(new DiplomacyEditScreen(this, ownTeam, selected, ClientManager.getRelation(ownTeam.getStringID(), selected.getStringID()), ClientManager.getRelation(selected.getStringID(), ownTeam.getStringID()), isLeader));
                      this.selected = null;
                 });
         setStanceButton.active = ownTeam != null && ownTeam.getTeamLeaderUUID().equals(this.minecraft.player.getUUID());
