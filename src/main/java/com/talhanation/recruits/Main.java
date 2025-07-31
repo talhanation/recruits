@@ -194,7 +194,8 @@ public class Main {
                 MessageToClientOpenTakeOverScreen.class,
                 MessageToClientOpenMessengerAnswerScreen.class,
                 MessageToClientUpdateClaims.class,
-                MessageUpdateClaim.class
+                MessageUpdateClaim.class,
+                MessageDoPayment.class
         };
 
 

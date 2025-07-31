@@ -1,6 +1,8 @@
 package com.talhanation.recruits.world;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.network.MessageToClientUpdateClaims;
 import com.talhanation.recruits.network.MessageToClientUpdateCommandScreen;
 import net.minecraft.server.level.ServerLevel;
@@ -38,8 +40,7 @@ public class RecruitsClaimManager {
         }
     }
 
-    public void removeClaim(ChunkPos pos) {
-        RecruitsClaim claim = this.claims.get(pos);
+    public void removeClaim(RecruitsClaim claim) {
         if (claim != null) {
             for (ChunkPos cp : claim.getClaimedChunks()) {
                 this.claims.remove(cp);
@@ -79,7 +80,8 @@ public class RecruitsClaimManager {
 
     public void broadcastClaimsToAll(ServerLevel level) {
         for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateClaims(this.getAllClaims()));
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player),
+                    new MessageToClientUpdateClaims(this.getAllClaims(), RecruitsServerConfig.ClaimingCost.get(), RecruitsServerConfig.ChunkCost.get(), RecruitsServerConfig.CascadeThePriceOfClaims.get(), TeamEvents.getCurrency()));
         }
     }
 }

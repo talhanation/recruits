@@ -15,7 +15,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -97,7 +96,7 @@ public class ClaimEvents {
             }
 
             if(claim.isUnderSiege){
-                if(attackerSize < RecruitsServerConfig.SiegingClaimsRecruitsAmount.get()){//Siege FAIL
+                if(attackerSize < RecruitsServerConfig.SiegeClaimsRecruitsAmount.get()){//Siege FAIL
                     claim.setUnderSiege(false, level);
                     claim.resetHealth();
                     claim.attackingParties.clear();
@@ -116,7 +115,7 @@ public class ClaimEvents {
                 }
             }
             //initial
-            else if(defendersSize < attackerSize && attackerSize >= RecruitsServerConfig.SiegingClaimsRecruitsAmount.get()){
+            else if(defendersSize < attackerSize && attackerSize >= RecruitsServerConfig.SiegeClaimsRecruitsAmount.get()){
                 claim.setUnderSiege( true, level);
                 recruitsClaimManager.broadcastClaimsToAll(level);
             }

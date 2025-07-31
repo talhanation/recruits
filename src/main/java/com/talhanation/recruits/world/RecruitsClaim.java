@@ -136,7 +136,7 @@ public class RecruitsClaim {
         nbt.put("chunks", chunkList);
 
         nbt.putInt("centerX", this.getCenter().x);
-        nbt.putInt("centerY", this.getCenter().z);
+        nbt.putInt("centerZ", this.getCenter().z);
 
         nbt.putInt("health", this.getHealth());
         return nbt;

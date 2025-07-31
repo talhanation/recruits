@@ -80,9 +80,11 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.BooleanValue QuickStartPillagerRaid;
 
     public static ForgeConfigSpec.BooleanValue BlockPlacingBreakingOnlyWhenClaimed;
+    public static ForgeConfigSpec.BooleanValue CascadeThePriceOfClaims;
     public static ForgeConfigSpec.IntValue ClaimingCost;
-    public static ForgeConfigSpec.IntValue SiegingClaimsRecruitsAmount;
-    public static ForgeConfigSpec.IntValue SiegingClaimsConquerTime;
+    public static ForgeConfigSpec.IntValue ChunkCost;
+    public static ForgeConfigSpec.IntValue SiegeClaimsRecruitsAmount;
+    public static ForgeConfigSpec.IntValue SiegeClaimsConquerTime;
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin", "corpse:corpse", "minecraft:armorstand"));
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
@@ -722,14 +724,30 @@ public class RecruitsServerConfig {
                 .defineInRange("AsyncTargetFindingThreads", 1, 1, Runtime.getRuntime().availableProcessors());
 
         BUILDER.pop();
+        BUILDER.pop();
         BUILDER.comment("Claiming Config:").push("Claiming");
 
         ClaimingCost = BUILDER.comment("""
-                        The amount of currency that claiming a chunk should cost.
+                        The amount of currency that claiming a 5x5 area of chunk should cost.
                         \t(takes effect after restart)
-                        \tdefault: 7""")
+                        \tdefault: 64""")
                 .worldRestart()
-                .defineInRange("ClaimingCost", 7, 0, 1453);
+                .defineInRange("ClaimingCost", 64, 0, 1453);
+
+        ChunkCost = BUILDER.comment("""
+                        The amount of currency that increasing the claim by a chunk should cost.
+                        \t(takes effect after restart)
+                        \tdefault: 20""")
+                .worldRestart()
+                .defineInRange("ChunkCost", 15, 0, 1453);
+
+        CascadeThePriceOfClaims = BUILDER.comment("""
+                        Should the price of claiming an area increase by the specified amount?
+                        Example: 1 Faction has already one Claim, the second would cost 2 x 64 = 128.
+                        \t(takes effect after restart)
+                        \tdefault: false""")
+                .worldRestart()
+                .define("CascadeThePriceOfClaims", false);
 
         BlockPlacingBreakingOnlyWhenClaimed = BUILDER.comment("""
                         Should block breaking and placing for players only be possible when the chunk is claimed by the faction.
@@ -738,19 +756,19 @@ public class RecruitsServerConfig {
                 .worldRestart()
                 .define("BlockPlacingBreakingOnlyWhenClaimed", false);
 
-        SiegingClaimsRecruitsAmount = BUILDER.comment("""
+        SiegeClaimsRecruitsAmount = BUILDER.comment("""
                         The amount of man power that is required to start a siege on a Claim.
                         \t(takes effect after restart)
                         \tdefault: 10""")
                 .worldRestart()
-                .defineInRange("SiegingClaimsRecruitsAmount", 10, 0, 1453);
+                .defineInRange("SiegeClaimsRecruitsAmount", 10, 0, 1453);
 
-        SiegingClaimsConquerTime = BUILDER.comment("""
+        SiegeClaimsConquerTime = BUILDER.comment("""
                         The time in minutes that is required to conquer a Claim.
                         \t(takes effect after restart)
                         \tdefault: 10""")
                 .worldRestart()
-                .defineInRange("SiegingClaimsRecruitsAmount", 10, 0, 1453);
+                .defineInRange("SiegeClaimsConquerTime", 10, 0, 1453);
 
         SERVER = BUILDER.build();
     }

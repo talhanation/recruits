@@ -8,6 +8,8 @@ import com.talhanation.recruits.client.gui.claim.ClaimMapScreen;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.team.TeamEditScreen;
 import com.talhanation.recruits.client.gui.widgets.ContextMenuEntry;
+import com.talhanation.recruits.network.MessageDoPayment;
+import com.talhanation.recruits.network.MessageToServerRequestUpdateDiplomacyList;
 import com.talhanation.recruits.network.MessageUpdateClaim;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
@@ -260,8 +262,8 @@ public class ChunkMapWidget extends AbstractWidget {
         contextMenuX = px + cellSize + 5; // rechts neben dem Chunk
         contextMenuY = py;
 
-        contextMenuEntries.add(new ContextMenuEntry("Claim Chunk", () -> claimChunk(chunk, ownFaction, ClientManager.recruitsClaims), canClaimChunk(chunk, ownFaction, ClientManager.recruitsClaims, true)));
-        contextMenuEntries.add(new ContextMenuEntry("Claim Area", () -> claimArea(chunk, ownFaction, ClientManager.recruitsClaims), canClaimChunks(getClaimArea(chunk), ownFaction, ClientManager.recruitsClaims)));
+        contextMenuEntries.add(new ContextMenuEntry("Claim Chunk", () -> claimChunk(chunk, ownFaction, ClientManager.recruitsClaims), screen.canPlayerClaim(ClientManager.configValueChunkCost, player) && canClaimChunk(chunk, ownFaction, ClientManager.recruitsClaims, true)));
+        contextMenuEntries.add(new ContextMenuEntry("Claim Area", () -> claimArea(chunk, ownFaction, ClientManager.recruitsClaims), screen.canPlayerClaim(screen.getClaimCost(ownFaction), player) && canClaimChunks(getClaimArea(chunk), ownFaction, ClientManager.recruitsClaims)));
 
         contextMenuVisible = true;
     }
@@ -289,6 +291,7 @@ public class ChunkMapWidget extends AbstractWidget {
         contextMenuY = py;
         //OTHERS CLAIM
         if(!claim.getOwnerFaction().getStringID().equals(ownFaction.getStringID())){
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdateDiplomacyList());
             contextMenuEntries.add(new ContextMenuEntry("Diplomacy",
                     () -> screen.openDiplomacyOf(claim.getOwnerFaction()), true));
         }
@@ -478,6 +481,9 @@ public class ChunkMapWidget extends AbstractWidget {
                 break;
             }
         }
+
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(neighborClaim));
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageDoPayment(player.getUUID(), ClientManager.configValueChunkCost));
     }
 
     public void claimArea(ChunkPos centerChunk, RecruitsTeam team, List<RecruitsClaim> allClaims) {
@@ -502,6 +508,7 @@ public class ChunkMapWidget extends AbstractWidget {
 
         ClientManager.recruitsClaims.add(newClaim);
         Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(newClaim));
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageDoPayment(player.getUUID(), screen.getClaimCost(this.ownFaction)));
     }
 
     public void recalculateCenter(RecruitsClaim claim) {
@@ -546,4 +553,5 @@ public class ChunkMapWidget extends AbstractWidget {
 
         return unclaimedNeighborCount >= 2;
     }
+
 }
