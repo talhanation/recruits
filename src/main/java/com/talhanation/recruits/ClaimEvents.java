@@ -121,7 +121,14 @@ public class ClaimEvents {
             }
         }
     }
+    /*
+    BUGS:
+    - Creative de block kirma, sadece oplar icin
+    - lower alpha value on background
+    - altaki isim
+    - siege olmuyor
 
+     */
     public static List<AbstractRecruitEntity> getRecruitsOfTeamInRange(Level level, Player attackingPlayer, double radius, String teamId) {
 
         return level.getEntitiesOfClass(AbstractRecruitEntity.class, attackingPlayer.getBoundingBox().inflate(radius)).stream()
