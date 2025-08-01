@@ -27,6 +27,7 @@ public class RecruitsClaim {
     public RecruitsClaim(String name, RecruitsTeam ownerFaction) {
         this.name = name;
         this.ownerFaction = ownerFaction;
+        this.isAdmin = false;
         resetHealth();
     }
     public void setCenter(ChunkPos center){

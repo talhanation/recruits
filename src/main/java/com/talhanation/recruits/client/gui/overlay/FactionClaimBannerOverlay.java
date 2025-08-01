@@ -51,7 +51,7 @@ public class FactionClaimBannerOverlay {
         int y = 10 + yOffset;
 
         // Hintergrund
-        int alpha = 10;
+        int alpha = 3;
         int rgb = TeamEditScreen.unitColors.get(currentTeam.getUnitColor()).getRGB();
         int r = (rgb >> 16) & 0xFF;
         int g = (rgb >> 8) & 0xFF;

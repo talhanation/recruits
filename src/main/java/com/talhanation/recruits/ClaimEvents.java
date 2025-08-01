@@ -123,11 +123,8 @@ public class ClaimEvents {
     }
     /*
     BUGS:
-    - Creative de block kirma, sadece oplar icin
-    - lower alpha value on background
-    - altaki isim
-    - siege olmuyor
-
+    - siege does not work when different player create a claim and other player is in the claim
+    - but siege works if the same player is siegeing a claim that aws already set by him and he change the team afterwards
      */
     public static List<AbstractRecruitEntity> getRecruitsOfTeamInRange(Level level, Player attackingPlayer, double radius, String teamId) {
 
@@ -143,6 +140,15 @@ public class ClaimEvents {
         RecruitsClaim claim = recruitsClaimManager.getClaim(access.getPos());
         Player player = event.getPlayer();
 
+        if(player.isCreative() && player.hasPermissions(2)){
+            return;
+        }
+
+        if(RecruitsServerConfig.BlockPlacingBreakingOnlyWhenClaimed.get()){
+            event.setCanceled(true);
+            return;
+        }
+
         if(claim == null) return;
         if(!claim.isBlockBreakingAllowed()){
             boolean isInTeam = player.getTeam() != null && player.getTeam().getName().equals(claim.getOwnerFactionStringID());
@@ -157,6 +163,15 @@ public class ClaimEvents {
         ChunkAccess access = server.overworld().getChunk(event.getPos());
         RecruitsClaim claim = recruitsClaimManager.getClaim(access.getPos());
         Entity entity = event.getEntity();
+
+        if(entity instanceof Player player && player.isCreative() && player.hasPermissions(2)){
+            return;
+        }
+
+        if(RecruitsServerConfig.BlockPlacingBreakingOnlyWhenClaimed.get()){
+            event.setCanceled(true);
+            return;
+        }
 
         if(claim == null) return;
         if(!claim.isBlockPlacementAllowed()){
@@ -174,6 +189,10 @@ public class ClaimEvents {
 
         BlockPos pos = event.getHitVec().getBlockPos();
         Player player = event.getEntity();
+
+        if(player.isCreative() && player.hasPermissions(2)){
+            return;
+        }
 
         BlockState selectedBlock = player.getCommandSenderWorld().getBlockState(pos);
         BlockEntity blockEntity = player.getCommandSenderWorld().getBlockEntity(pos);

@@ -63,8 +63,8 @@ public class ClaimMapScreen extends RecruitsScreenBase {
         currencyChunk.setCount(ClientManager.configValueChunkCost);
         currencyClaim.setCount(this.getClaimCost(ownFaction));
 
-        currencyWidgetClaim = new ItemWithLabelWidget(x + 60, y + 120, 100, 20, currencyClaim, Component.literal("Claim Area"), true, true);
-        currencyWidgetChunk = new ItemWithLabelWidget(x + 60, y + 140, 100, 20, currencyChunk, Component.literal("Claim Chunk"), true, true);
+        currencyWidgetClaim = new ItemWithLabelWidget(x + 60, y + 100, 100, 20, currencyClaim, Component.literal("Claim Area"), true, true);
+        currencyWidgetChunk = new ItemWithLabelWidget(x + 60, y + 120, 100, 20, currencyChunk, Component.literal("Claim Chunk"), true, true);
 
         this.addRenderableWidget(currencyWidgetClaim);
         this.addRenderableWidget(currencyWidgetChunk);
