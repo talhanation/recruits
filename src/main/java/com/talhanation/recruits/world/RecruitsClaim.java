@@ -209,12 +209,23 @@ public class RecruitsClaim {
             for(Player player : TeamEvents.recruitsTeamManager.getPlayersInTeam(this.getOwnerFactionStringID(), level)){
                 player.sendSystemMessage(Component.literal("" + this.getName() + ", is now under siege by " + attackingParties));
             }
+            for(RecruitsTeam attacker: attackingParties){
+                for(Player player : TeamEvents.recruitsTeamManager.getPlayersInTeam(attacker.getStringID(), level)){
+                    player.sendSystemMessage(Component.literal("" + this.getName() + ", is now under siege by " + attackingParties));
+                }
+            }
+
         }
         else if(this.isUnderSiege && !underSiege){
             this.isUnderSiege = false;
 
             for(Player player : TeamEvents.recruitsTeamManager.getPlayersInTeam(this.getOwnerFactionStringID(), level)){
-                player.sendSystemMessage(Component.literal("" + this.getName() + ", has defeated the siege."));
+                player.sendSystemMessage(Component.literal("" + this.getName() + ", has defeated the siege!"));
+            }
+            for(RecruitsTeam attacker: attackingParties){
+                for(Player player : TeamEvents.recruitsTeamManager.getPlayersInTeam(attacker.getStringID(), level)){
+                    player.sendSystemMessage(Component.literal("The Siege on " + this.getName() + " has failed!"));
+                }
             }
         }
     }
