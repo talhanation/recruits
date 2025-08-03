@@ -4,6 +4,7 @@ import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.*;
 import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsTeam;
 import com.talhanation.recruits.world.RecruitsTeamManager;
@@ -309,6 +310,15 @@ public class TeamEvents {
 
             playerTeam.setDisplayName(Component.literal(editedTeam.getTeamDisplayName()));
             playerTeam.setColor(ChatFormatting.getById(editedTeam.getTeamColor()));
+
+
+            for(RecruitsClaim claim : ClaimEvents.recruitsClaimManager.getAllClaims()){
+                if(claim.getOwnerFaction().getStringID().equals(editedTeam.getStringID())){
+                    claim.setOwnerFaction(editedTeam);
+                }
+            }
+
+            ClaimEvents.recruitsClaimManager.broadcastClaimsToAll(level);
         }
     }
 

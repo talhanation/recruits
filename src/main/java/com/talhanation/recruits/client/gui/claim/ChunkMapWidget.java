@@ -48,6 +48,7 @@ public class ChunkMapWidget extends AbstractWidget {
     private boolean contextMenuVisible = false;
 
     public Player player;
+    private ChunkPos lastPlayerChunk;
     Set<RecruitsClaim> claimsToDrawNames = new HashSet<>();
     public ChunkMapWidget(ClaimMapScreen screen, Player player, int x, int y, int viewRadius, RecruitsTeam ownFaction) {
         super(x, y, (viewRadius*2+1)*16, (viewRadius*2+1)*16, Component.empty());
@@ -59,6 +60,17 @@ public class ChunkMapWidget extends AbstractWidget {
         this.bannerRenderer.setRecruitsTeam(ownFaction);
         this.player = player;
         this.center = player.chunkPosition();
+    }
+
+    public void tick() {
+        ChunkPos currentChunk = player.chunkPosition();
+        if (lastPlayerChunk == null || !lastPlayerChunk.equals(currentChunk)) {
+            lastPlayerChunk = currentChunk;
+            this.center = currentChunk;
+
+            // Optional: Leere claimsToDrawNames, um ein Neuladen zu forcieren
+            claimsToDrawNames.clear();
+        }
     }
 
     public void setWidth(int w) {

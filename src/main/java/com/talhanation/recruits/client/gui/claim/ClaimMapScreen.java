@@ -47,28 +47,71 @@ public class ClaimMapScreen extends RecruitsScreenBase {
     @Override
     public void tick() {
         super.tick();
-
-
+        if (mapWidget != null) {
+            mapWidget.tick();
+        }
     }
 
-    private void setButtons(){
-        mapWidget = new ChunkMapWidget(this, player, x - 250, y - 150, 10, ownFaction);
-        mapWidget.setWidth(300);
-        mapWidget.setHeight(300);
+    private void setButtons() {
+        int guiScaleSetting = minecraft.options.guiScale().get();
+        int fallbackScaleForAuto = 3;
+        int guiScale = (guiScaleSetting == 0) ? fallbackScaleForAuto : guiScaleSetting;
+
+        // Maximalgröße basierend auf Screen
+        int screenW = this.width;
+        int screenH = this.height;
+
+        // Dynamische Breite und Höhe (zwischen min/max)
+        int minWidth = 70;
+        int minHeight = 100;
+        int maxWidth = (int)(screenW * 0.95F);
+        int maxHeight = (int)(screenH * 0.95F);
+
+        float widthFactor;
+        float heightFactor;
+
+        if (guiScale <= 1) {
+            widthFactor = 1.0F;
+            heightFactor = 1.0F;
+        } else if (guiScale == 2) {
+            widthFactor = 0.85F;
+            heightFactor = 0.85F;
+        } else if (guiScale == 3) {
+            widthFactor = 0.75F;
+            heightFactor = 0.75F;
+        } else {
+            widthFactor = 0.65F;
+            heightFactor = 0.65F;
+        }
+
+        int widgetWidth = Math.max(minWidth, Math.min(maxWidth, (int)(screenW * widthFactor)));
+        int widgetHeight = Math.max(minHeight, Math.min(maxHeight, (int)(screenH * heightFactor)));
+
+        // Bei kleiner Skala links oben platzieren, sonst zentrieren
+        int widgetX = (guiScale <= 1) ? 0 : (screenW - widgetWidth) / 2;
+        int widgetY = (guiScale <= 1) ? 0 : (screenH - widgetHeight) / 2;
+
+        widgetX -= 85;
+        widgetY -= 35;
+
+        // ChunkMapWidget anpassen
+        mapWidget = new ChunkMapWidget(this, player, widgetX, widgetY, Math.max(10, guiScaleSetting * 3), ownFaction);
+        mapWidget.setWidth(widgetWidth);
+        mapWidget.setHeight(widgetHeight);
         this.addRenderableWidget(mapWidget);
 
         currencyClaim = ClientManager.currencyItemStack.copy();
         currencyChunk = ClientManager.currencyItemStack.copy();
-
         currencyChunk.setCount(ClientManager.configValueChunkCost);
         currencyClaim.setCount(this.getClaimCost(ownFaction));
 
-        currencyWidgetClaim = new ItemWithLabelWidget(x + 60, y + 100, 100, 20, currencyClaim, Component.literal("Claim Area"), true, true);
-        currencyWidgetChunk = new ItemWithLabelWidget(x + 60, y + 120, 100, 20, currencyChunk, Component.literal("Claim Chunk"), true, true);
+        currencyWidgetClaim = new ItemWithLabelWidget(widgetX + 10, widgetY + 2, 100, 20, currencyClaim, Component.literal("Claim Area"), true, true);
+        currencyWidgetChunk = new ItemWithLabelWidget(widgetX + 10, widgetY + 2 + 20, 100, 20, currencyChunk, Component.literal("Claim Chunk"), true, true);
 
         this.addRenderableWidget(currencyWidgetClaim);
         this.addRenderableWidget(currencyWidgetChunk);
     }
+
     @Override
     public boolean mouseClicked(double p_94695_, double p_94696_, int p_94697_) {
         if(mapWidget != null) mapWidget.mouseClicked(p_94695_, p_94696_, p_94697_);

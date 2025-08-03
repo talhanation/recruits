@@ -36,7 +36,7 @@ public class MessageDoPayment implements Message<MessageDoPayment> {
         if(serverPlayer.isCreative() && serverPlayer.hasPermissions(2)){
             return;
         }
-        
+
         TeamEvents.doPayment(serverPlayer, this.amount);
     }
     public MessageDoPayment fromBytes(FriendlyByteBuf buf) {

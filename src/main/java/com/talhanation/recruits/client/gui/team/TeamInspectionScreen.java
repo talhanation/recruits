@@ -122,7 +122,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         addRenderableWidget(this.selectedPlayerWidget);
 
         boolean isTeamLeader = recruitsTeam.getTeamLeaderUUID().equals(player.getUUID());
-        claimMapButton = new ExtendedButton(guiLeft + 200, guiTop + 99, 60, 20, CLAIM_BUTTON,
+        claimMapButton = new ExtendedButton(guiLeft + 109, guiTop + 99, 60, 20, CLAIM_BUTTON,
                 button -> {
                     minecraft.setScreen(new ClaimMapScreen(this, player, recruitsTeam));
                 });
@@ -137,7 +137,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         editButton.visible = isTeamLeader && isEditingAllowed;
         addRenderableWidget(editButton);
 
-        diplomacyButton = new ExtendedButton(guiLeft + 87, guiTop + 99, 60, 20, DIPLOMACY_BUTTON,
+        diplomacyButton = new ExtendedButton(guiLeft + 49, guiTop + 99, 60, 20, DIPLOMACY_BUTTON,
                 button -> {
                     minecraft.setScreen(new DiplomacyTeamListScreen(this, isTeamLeader));
                 });
