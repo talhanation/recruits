@@ -57,6 +57,8 @@ public class ClaimEvents {
 
     @SubscribeEvent
     public void onPlayerJoin(EntityJoinLevelEvent event){
+        if(event.getLevel().isClientSide()) return;
+
         if(event.getEntity() instanceof Player){
             recruitsClaimManager.broadcastClaimsToAll(server.overworld());
         }
@@ -71,7 +73,7 @@ public class ClaimEvents {
         for(RecruitsClaim claim : recruitsClaimManager.getAllClaims()){
             ServerLevel level = server.overworld();
             if (claim == null) return;
-            if(claim.isAdmin) return;
+            if (claim.isAdmin) return;
 
             List<LivingEntity> attackers = ClaimUtil.getLivingEntitiesInClaim(level, claim,
                     livingEntity -> livingEntity.isAlive() && livingEntity.getTeam() != null

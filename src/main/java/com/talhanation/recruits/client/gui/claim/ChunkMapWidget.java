@@ -59,7 +59,6 @@ public class ChunkMapWidget extends AbstractWidget {
         this.ownFaction = ownFaction;
         this.bannerRenderer.setRecruitsTeam(ownFaction);
         this.player = player;
-        this.center = player.chunkPosition();
     }
 
     public void tick() {
@@ -79,6 +78,7 @@ public class ChunkMapWidget extends AbstractWidget {
         Minecraft mc = Minecraft.getInstance();
         ClientLevel level = mc.level;
         if (level == null) return;
+        if (center == null) return;
 
         guiGraphics.fill(getX() - 1, getY() - 1, getX() + getWidth() + 1, getY() + getHeight() + 1, 0xFF555555);
         guiGraphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xFF222222);
