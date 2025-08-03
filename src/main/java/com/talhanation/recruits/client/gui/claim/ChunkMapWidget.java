@@ -59,6 +59,7 @@ public class ChunkMapWidget extends AbstractWidget {
         this.ownFaction = ownFaction;
         this.bannerRenderer.setRecruitsTeam(ownFaction);
         this.player = player;
+        chunkImageCache.clear();
     }
 
     public void tick() {
@@ -215,7 +216,7 @@ public class ChunkMapWidget extends AbstractWidget {
             guiGraphics.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xFF222222);
 
             guiGraphics.drawString(font, selectedClaim.getName(), panelX + 5, panelY + 5, 0xFFFFFF);
-            bannerRenderer.renderBanner(guiGraphics, panelX + 65, panelY + 80, this.width, this.height, 60);
+            bannerRenderer.renderBanner(guiGraphics, panelX + 60, panelY + 80, this.width, this.height, 60);
 
             guiGraphics.drawString(font, "Faction: ", panelX + 5, panelY + 130, 0xFFFFFF);
             guiGraphics.drawString(font, selectedClaim.getOwnerFaction().getTeamDisplayName(), panelX + 90, panelY + 130, 0xFFFFFF);
