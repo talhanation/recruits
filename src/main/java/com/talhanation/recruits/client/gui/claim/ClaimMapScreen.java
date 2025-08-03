@@ -1,5 +1,6 @@
 package com.talhanation.recruits.client.gui.claim;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import com.talhanation.recruits.client.gui.diplomacy.DiplomacyEditScreen;
@@ -11,9 +12,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ChunkPos;
-
-import java.util.List;
 
 public class ClaimMapScreen extends RecruitsScreenBase {
 
@@ -53,51 +51,15 @@ public class ClaimMapScreen extends RecruitsScreenBase {
     }
 
     private void setButtons() {
-        int guiScaleSetting = minecraft.options.guiScale().get();
-        int fallbackScaleForAuto = 3;
-        int guiScale = (guiScaleSetting == 0) ? fallbackScaleForAuto : guiScaleSetting;
-
-        // Maximalgröße basierend auf Screen
-        int screenW = this.width;
-        int screenH = this.height;
-
-        // Dynamische Breite und Höhe (zwischen min/max)
-        int minWidth = 70;
-        int minHeight = 100;
-        int maxWidth = (int)(screenW * 0.95F);
-        int maxHeight = (int)(screenH * 0.95F);
-
-        float widthFactor;
-        float heightFactor;
-
-        if (guiScale <= 1) {
-            widthFactor = 1.0F;
-            heightFactor = 1.0F;
-        } else if (guiScale == 2) {
-            widthFactor = 0.85F;
-            heightFactor = 0.85F;
-        } else if (guiScale == 3) {
-            widthFactor = 0.75F;
-            heightFactor = 0.75F;
-        } else {
-            widthFactor = 0.65F;
-            heightFactor = 0.65F;
-        }
-
-        int widgetWidth = Math.max(minWidth, Math.min(maxWidth, (int)(screenW * widthFactor)));
-        int widgetHeight = Math.max(minHeight, Math.min(maxHeight, (int)(screenH * heightFactor)));
-
-        // Bei kleiner Skala links oben platzieren, sonst zentrieren
-        int widgetX = (guiScale <= 1) ? 0 : (screenW - widgetWidth) / 2;
-        int widgetY = (guiScale <= 1) ? 0 : (screenH - widgetHeight) / 2;
-
-        widgetX -= 85;
-        widgetY -= 35;
-
         // ChunkMapWidget anpassen
-        mapWidget = new ChunkMapWidget(this, player, widgetX, widgetY, Math.max(10, guiScaleSetting * 3), ownFaction);
-        mapWidget.setWidth(widgetWidth);
-        mapWidget.setHeight(widgetHeight);
+        int cellSize = 16;
+        int viewRadiusX = (width / cellSize) / 2;
+        int viewRadiusY = (height / cellSize) / 2;
+        int viewRadius = Math.max(viewRadiusX, viewRadiusY);
+
+        mapWidget = new ChunkMapWidget(this, player, 0, 0, viewRadius, ownFaction);
+        mapWidget.setWidth(width);
+        mapWidget.setHeight(height);
         this.addRenderableWidget(mapWidget);
 
         currencyClaim = ClientManager.currencyItemStack.copy();
@@ -105,11 +67,16 @@ public class ClaimMapScreen extends RecruitsScreenBase {
         currencyChunk.setCount(ClientManager.configValueChunkCost);
         currencyClaim.setCount(this.getClaimCost(ownFaction));
 
-        currencyWidgetClaim = new ItemWithLabelWidget(widgetX + 10, widgetY + 2, 100, 20, currencyClaim, Component.literal("Claim Area"), true, true);
-        currencyWidgetChunk = new ItemWithLabelWidget(widgetX + 10, widgetY + 2 + 20, 100, 20, currencyChunk, Component.literal("Claim Chunk"), true, true);
+        currencyWidgetClaim = new ItemWithLabelWidget(0, 0, 100, 20, currencyClaim, Component.literal("Claim Area"), true, true);
+        currencyWidgetChunk = new ItemWithLabelWidget(0, 20, 100, 20, currencyChunk, Component.literal("Claim Chunk"), true, true);
 
         this.addRenderableWidget(currencyWidgetClaim);
         this.addRenderableWidget(currencyWidgetChunk);
+    }
+
+    @Override
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        super.render(graphics, mouseX, mouseY, partialTicks); // Muss da sein!
     }
 
     @Override
@@ -137,6 +104,8 @@ public class ClaimMapScreen extends RecruitsScreenBase {
     }
 
     public void openClaimEditScreen(RecruitsClaim claim){
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdateClaims());
+
         this.minecraft.setScreen(new ClaimEditScreen(this, claim, player));
     }
 

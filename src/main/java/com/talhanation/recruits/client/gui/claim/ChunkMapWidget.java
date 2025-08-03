@@ -38,7 +38,7 @@ public class ChunkMapWidget extends AbstractWidget {
     private ChunkPos selectedChunk = null;
     @Nullable
     private ChunkPos hoverChunk;
-    private double offsetX = 0, offsetZ = 0;
+    private double offsetX = 0, offsetZ = -100;
     private boolean dragging = false;
     private final BannerRenderer bannerRenderer;
     private RecruitsClaim selectedClaim;
@@ -68,16 +68,8 @@ public class ChunkMapWidget extends AbstractWidget {
             lastPlayerChunk = currentChunk;
             this.center = currentChunk;
 
-            // Optional: Leere claimsToDrawNames, um ein Neuladen zu forcieren
             claimsToDrawNames.clear();
         }
-    }
-
-    public void setWidth(int w) {
-        this.width = w;
-    }
-    public void setHeight(int h) {
-        this.height = h;
     }
 
     public static final Map<ChunkPos, ChunkMiniMap> chunkImageCache = new HashMap<>();
@@ -90,16 +82,6 @@ public class ChunkMapWidget extends AbstractWidget {
 
         guiGraphics.fill(getX() - 1, getY() - 1, getX() + getWidth() + 1, getY() + getHeight() + 1, 0xFF555555);
         guiGraphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xFF222222);
-
-        int screenHeight = mc.getWindow().getHeight();
-        int scale = (int) mc.getWindow().getGuiScale();
-
-        int scissorX = getX() * scale;
-        int scissorY = screenHeight - (getY() + getHeight()) * scale;
-        int scissorWidth = getWidth() * scale;
-        int scissorHeight = getHeight() * scale;
-
-        RenderSystem.enableScissor(scissorX, scissorY, scissorWidth, scissorHeight);
 
         int chunkOffsetX = (int)(offsetX / cellSize);
         int chunkOffsetZ = (int)(offsetZ / cellSize);
@@ -224,16 +206,14 @@ public class ChunkMapWidget extends AbstractWidget {
             }
         }
 
-        RenderSystem.disableScissor();
-
-        int panelX = getX() + width + 10;
-        int panelY = getY();
-        int panelWidth = 150;
-        int panelHeight = 225;
-        guiGraphics.fill(panelX - 1, panelY - 1, panelX + panelWidth + 1, panelY + panelHeight + 1, 0xFF555555);
-        guiGraphics.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xFF222222);
-
         if(selectedClaim != null){
+            int panelWidth = 135;
+            int panelHeight = 225;
+            int panelX = width - panelWidth - 2;
+            int panelY = height - panelHeight - 2;
+            guiGraphics.fill(panelX - 1, panelY - 1, panelX + panelWidth + 1, panelY + panelHeight + 1, 0xFF555555);
+            guiGraphics.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xFF222222);
+
             guiGraphics.drawString(font, selectedClaim.getName(), panelX + 5, panelY + 5, 0xFFFFFF);
             bannerRenderer.renderBanner(guiGraphics, panelX + 65, panelY + 80, this.width, this.height, 60);
 
@@ -252,11 +232,7 @@ public class ChunkMapWidget extends AbstractWidget {
             guiGraphics.drawString(font, "Block Interact:", panelX + 5, panelY + 210, 0xFFFFFF);
             guiGraphics.drawString(font, selectedClaim.isBlockInteractionAllowed() ? "true":"false", panelX + 90, panelY + 210, 0xFFFFFF);
         }
-
-
     }
-
-
     private void openContextMenu(ChunkPos chunk) {
         contextMenuEntries.clear();
 
