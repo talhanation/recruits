@@ -104,8 +104,6 @@ public class ClaimMapScreen extends RecruitsScreenBase {
     }
 
     public void openClaimEditScreen(RecruitsClaim claim){
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdateClaims());
-
         this.minecraft.setScreen(new ClaimEditScreen(this, claim, player));
     }
 
