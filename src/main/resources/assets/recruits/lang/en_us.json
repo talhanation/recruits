@@ -485,8 +485,25 @@
    "gui.recruits.team_color.magenta" : "Magenta",
    "gui.recruits.team_color.purple": "Purple",
 
-   "gui.recruits.claim_map.title" : "Claim Map",
    "gui.recruits.checkbox.allowBlockBreaking" : "Allow Block Breaking",
    "gui.recruits.checkbox.allowBlockPlacing": "Allow Block Placing",
-   "gui.recruits.checkbox.allowBlockInteracting": "Allow Block Interacting"
+   "gui.recruits.checkbox.allowBlockInteracting": "Allow Block Interacting",
+   "gui.recruits.claim.player" : "Owner",
+   "gui.recruits.claim.editClaim" : "Edit Claim",
+   "gui.recruits.claim.diplomacy" : "Diplomacy",
+   "gui.recruits.claim.claimArea" : "Claim Area",
+   "gui.recruits.claim.claimChunk" : "Claim Chunk",
+   "gui.recruits.claim.removeChunk" : "Remove Chunk",
+   "gui.recruits.claim.faction" : "Faction",
+   "gui.recruits.claim.true" : "True",
+   "gui.recruits.claim.false" : "False",
+   "gui.recruits.claim.block_placing" : "Block-Placing",
+   "gui.recruits.claim.block_breaking" : "Block-Breaking",
+   "gui.recruits.claim.block_interaction" : "Block-Using",
+   "chat.recruits.text.siegeStartAttacker": "Siege on %s has started! Capture the claim!",
+   "chat.recruits.text.siegeStartDefender": "%s is now under siege by %s!",
+   "chat.recruits.text.siegeSuccessAttacker": "%s has been captured successfully!",
+   "chat.recruits.text.siegeSuccessDefender": "%s has been lost!",
+   "chat.recruits.text.siegeFailedAttacker": "Siege on %s has failed!",
+   "chat.recruits.text.siegeFailedDefender": "Siege on %s has been repelled!"
  }

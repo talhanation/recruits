@@ -463,5 +463,26 @@
   "gui.recruits.toast.newFactionBannerTitle": "New Faction Banner",
 
   "gui.recruits.command.tip.de_select_groups": "[Rechtsklick] - Alle Gruppen auswählen",
-  "gui.recruits.command.tip.scrollCategories": "[Mausrad] - Kategorien scrollen"
+  "gui.recruits.command.tip.scrollCategories": "[Mausrad] - Kategorien scrollen",
+
+  "gui.recruits.checkbox.allowBlockBreaking": "Blockabbau erlauben",
+  "gui.recruits.checkbox.allowBlockPlacing": "Blockplatzierung erlauben",
+  "gui.recruits.checkbox.allowBlockInteracting": "Blockinteraktion erlauben",
+  "gui.recruits.claim.player": "Besitzer",
+  "gui.recruits.claim.editClaim": "Gebiet bearbeiten",
+  "gui.recruits.claim.diplomacy": "Diplomatie",
+  "gui.recruits.claim.claimChunk": "Chunk beanspruchen",
+  "gui.recruits.claim.claimArea" : "Gebiet beanspruchen",
+  "gui.recruits.claim.removeChunk": "Chunk entfernen",
+  "gui.recruits.claim.true": "Ja",
+  "gui.recruits.claim.false": "Nein",
+  "gui.recruits.claim.block_placing": "Blockplatzierung",
+  "gui.recruits.claim.block_breaking": "Blockabbau",
+  "gui.recruits.claim.block_interaction": "Blocknutzung",
+  "chat.recruits.text.siegeStartAttacker": "Die Belagerung von %s hat begonnen! Erobert das Gebiet!",
+  "chat.recruits.text.siegeStartDefender": "%s wird nun von %s belagert!",
+  "chat.recruits.text.siegeSuccessAttacker": "%s wurde erfolgreich eingenommen!",
+  "chat.recruits.text.siegeSuccessDefender": "%s wurde verloren!",
+  "chat.recruits.text.siegeFailedAttacker": "Die Belagerung von %s ist gescheitert!",
+  "chat.recruits.text.siegeFailedDefender": "Die Belagerung von %s wurde abgewehrt!"
 }

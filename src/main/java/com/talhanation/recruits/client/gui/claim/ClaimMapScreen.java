@@ -16,9 +16,11 @@ import net.minecraft.world.item.ItemStack;
 public class ClaimMapScreen extends RecruitsScreenBase {
 
     private static final Component TITLE = Component.translatable("gui.recruits.claim_map.title");
+    public static final Component CLAIM_AREA = Component.translatable("gui.recruits.claim.claimArea");
+    public static final Component CLAIM_CHUNK = Component.translatable("gui.recruits.claim.claimChunk");
+
     private final Player player;
     private final Screen parent;
-
     public static RecruitsTeam ownFaction;
     private ChunkMapWidget mapWidget;
     private ItemWithLabelWidget currencyWidgetClaim;
@@ -67,8 +69,8 @@ public class ClaimMapScreen extends RecruitsScreenBase {
         currencyChunk.setCount(ClientManager.configValueChunkCost);
         currencyClaim.setCount(this.getClaimCost(ownFaction));
 
-        currencyWidgetClaim = new ItemWithLabelWidget(0, 0, 100, 20, currencyClaim, Component.literal("Claim Area"), true, true);
-        currencyWidgetChunk = new ItemWithLabelWidget(0, 20, 100, 20, currencyChunk, Component.literal("Claim Chunk"), true, true);
+        currencyWidgetClaim = new ItemWithLabelWidget(0, 0, 100, 20, currencyClaim, CLAIM_AREA, true, true);
+        currencyWidgetChunk = new ItemWithLabelWidget(0, 20, 100, 20, currencyChunk, CLAIM_CHUNK, true, true);
 
         this.addRenderableWidget(currencyWidgetClaim);
         this.addRenderableWidget(currencyWidgetChunk);

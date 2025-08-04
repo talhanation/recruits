@@ -1,5 +1,6 @@
 package com.talhanation.recruits.world;
 import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -207,11 +208,11 @@ public class RecruitsClaim {
             this.isUnderSiege = true;
 
             for(Player player : TeamEvents.recruitsTeamManager.getPlayersInTeam(this.getOwnerFactionStringID(), level)){
-                player.sendSystemMessage(Component.literal("" + this.getName() + ", is now under siege by " + attackingParties));
+                player.sendSystemMessage(SIEGE_START_DEFENDER(this.getName(), attackingParties.toString()));
             }
             for(RecruitsTeam attacker: attackingParties){
                 for(Player player : TeamEvents.recruitsTeamManager.getPlayersInTeam(attacker.getStringID(), level)){
-                    player.sendSystemMessage(Component.literal("" + this.getName() + ", is now under siege by " + attackingParties));
+                    player.sendSystemMessage(SIEGE_START_ATTACKER(this.getName()));
                 }
             }
 
@@ -220,19 +221,19 @@ public class RecruitsClaim {
             this.isUnderSiege = false;
 
             for(Player player : TeamEvents.recruitsTeamManager.getPlayersInTeam(this.getOwnerFactionStringID(), level)){
-                player.sendSystemMessage(Component.literal("" + this.getName() + ", has defeated the siege!"));
+                player.sendSystemMessage(SIEGE_FAILED_DEFENDER(this.getName()));
             }
             for(RecruitsTeam attacker: attackingParties){
                 for(Player player : TeamEvents.recruitsTeamManager.getPlayersInTeam(attacker.getStringID(), level)){
-                    player.sendSystemMessage(Component.literal("The Siege on " + this.getName() + " has failed!"));
+                    player.sendSystemMessage(SIEGE_FAILED_ATTACKER(this.getName()));
                 }
             }
         }
     }
 
-    public void setSiegeSuccsess(ServerLevel level){
+    public void setSiegeSuccess(ServerLevel level){
         for(Player player : TeamEvents.recruitsTeamManager.getPlayersInTeam(this.getOwnerFactionStringID(), level)){
-            player.sendSystemMessage(Component.literal("" + this.getName() + " has fallen... "));
+            player.sendSystemMessage(SIEGE_SUCCESS_DEFENDER(this.getName()));
         }
 
         this.setOwnerFaction(attackingParties.get(0));
@@ -240,7 +241,7 @@ public class RecruitsClaim {
         this.resetHealth();
 
         for(Player player : TeamEvents.recruitsTeamManager.getPlayersInTeam(this.getOwnerFactionStringID(), level)){
-            player.sendSystemMessage(Component.literal("" + this.getName() + " has been captured!"));
+            player.sendSystemMessage(SIEGE_SUCCESS_ATTACKER(this.getName()));
         }
 
         this.attackingParties.clear();
@@ -248,6 +249,28 @@ public class RecruitsClaim {
     }
 
     public void resetHealth() {
-        this.health = 60 * 1 ; //10 min
+        this.health = 60 * RecruitsServerConfig.SiegeClaimsConquerTime.get(); //10 min
+    }
+
+    public Component SIEGE_START_ATTACKER(String claim){
+        return Component.translatable("chat.recruits.text.siegeStartAttacker", claim);
+    }
+    public Component SIEGE_START_DEFENDER(String claim, String attackers){
+        return Component.translatable("chat.recruits.text.siegeStartDefender", claim, attackers);
+    }
+
+    public Component SIEGE_FAILED_ATTACKER(String claim){
+        return Component.translatable("chat.recruits.text.siegeFailedAttacker", claim);
+    }
+
+    public Component SIEGE_FAILED_DEFENDER(String claim){
+        return Component.translatable("chat.recruits.text.siegeFailedDefender", claim);
+    }
+    public Component SIEGE_SUCCESS_ATTACKER(String claim){
+        return Component.translatable("chat.recruits.text.siegeSuccessAttacker", claim);
+    }
+
+    public Component SIEGE_SUCCESS_DEFENDER(String claim){
+        return Component.translatable("chat.recruits.text.siegeSuccessDefender", claim);
     }
 }

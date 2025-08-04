@@ -457,5 +457,27 @@
   "gui.recruits.team_color.purple": "Mor",
 
   "gui.recruits.command.tip.de_select_groups" : "[Sağ Tıklama] – Tüm Grupları Seç",
-  "gui.recruits.command.tip.scrollCategories" : "[Fare Tekerleği] – Kategorileri Kaydır"
+  "gui.recruits.command.tip.scrollCategories" : "[Fare Tekerleği] – Kategorileri Kaydır",
+
+  "gui.recruits.checkbox.allowBlockBreaking": "Blok kırma",
+  "gui.recruits.checkbox.allowBlockPlacing": "Blok koyma",
+  "gui.recruits.checkbox.allowBlockInteracting": "Blok etkileşimi",
+  "gui.recruits.claim.player": "Sahib",
+  "gui.recruits.claim.faction": "Beylik",
+  "gui.recruits.claim.editClaim": "Bölgeyi düzenle",
+  "gui.recruits.claim.diplomacy": "Diplomasi",
+  "gui.recruits.claim.claimChunk": "Chunk sahip ol",
+  "gui.recruits.claim.claimArea": "Bölgeyi sahip ol",
+  "gui.recruits.claim.removeChunk": "Chunk'u kaldır",
+  "gui.recruits.claim.true": "Evet",
+  "gui.recruits.claim.false": "Hayır",
+  "gui.recruits.claim.block_placing": "Blok koymaya",
+  "gui.recruits.claim.block_breaking": "Blok kırma",
+  "gui.recruits.claim.block_interaction": "Blok etkileşimi",
+  "chat.recruits.text.siegeStartAttacker": "%s kuşatması başladı! Bölgeyi ele geçir!",
+  "chat.recruits.text.siegeStartDefender": "%s, %s tarafından kuşatılıyor!",
+  "chat.recruits.text.siegeSuccessAttacker": "%s başarıyla ele geçirildi!",
+  "chat.recruits.text.siegeSuccessDefender": "%s kaybedildi!",
+  "chat.recruits.text.siegeFailedAttacker": "%s kuşatması başarısız oldu!",
+  "chat.recruits.text.siegeFailedDefender": "%s kuşatması püskürtüldü!"
 }

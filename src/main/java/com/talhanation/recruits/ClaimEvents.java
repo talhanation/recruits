@@ -110,7 +110,7 @@ public class ClaimEvents {
                     claim.setHealth(claim.getHealth() - 3);
 
                     if(claim.getHealth() <= 0){//Siege SUCCESS
-                        claim.setSiegeSuccsess(level);
+                        claim.setSiegeSuccess(level);
                         recruitsClaimManager.broadcastClaimsToAll(level);
                         return;
                     }
@@ -123,11 +123,7 @@ public class ClaimEvents {
             }
         }
     }
-    /*
-    BUGS:
-    - siege does not work when different player create a claim and other player is in the claim
-    - but siege works if the same player is siegeing a claim that aws already set by him and he change the team afterwards
-     */
+
     public static List<AbstractRecruitEntity> getRecruitsOfTeamInRange(Level level, Player attackingPlayer, double radius, String teamId) {
 
         return level.getEntitiesOfClass(AbstractRecruitEntity.class, attackingPlayer.getBoundingBox().inflate(radius)).stream()
@@ -180,10 +176,6 @@ public class ClaimEvents {
         if(!claim.isBlockPlacementAllowed()){
             boolean isInTeam = entity instanceof LivingEntity livingEntity && livingEntity.getTeam() != null && livingEntity.getTeam().getName().equals(claim.getOwnerFactionStringID());
             if(!isInTeam) event.setCanceled(true);
-        }
-
-        if(RecruitsServerConfig.BlockPlacingBreakingOnlyWhenClaimed.get()){
-            event.setCanceled(true);
         }
     }
 

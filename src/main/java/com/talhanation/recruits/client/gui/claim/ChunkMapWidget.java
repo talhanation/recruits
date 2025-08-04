@@ -29,7 +29,16 @@ import java.util.*;
 
 
 public class ChunkMapWidget extends AbstractWidget {
-
+    private static final Component EDIT_CLAIM = Component.translatable("gui.recruits.claim.editClaim");
+    private static final Component REMOVE_CHUNK = Component.translatable("gui.recruits.claim.removeChunk");
+    private static final Component FACTION_TEXT = Component.translatable("gui.recruits.claim.faction");
+    private static final Component DIPLOMACY_TEXT = Component.translatable("gui.recruits.claim.diplomacy");
+    private static final Component TRUE_TEXT = Component.translatable("gui.recruits.claim.true");
+    private static final Component FALSE_TEXT = Component.translatable("gui.recruits.claim.false");
+    private static final Component PLAYER_TEXT = Component.translatable("gui.recruits.claim.player");
+    private static final Component BLOCK_PLACING_TEXT = Component.translatable("gui.recruits.claim.block_placing");
+    private static final Component BLOCK_BREAKING_TEXT = Component.translatable("gui.recruits.claim.block_breaking");
+    private static final Component BLOCK_INTERACTION_TEXT = Component.translatable("gui.recruits.claim.block_interaction");
     private final ClaimMapScreen screen;
     private final int viewRadius;
     private final int cellSize;
@@ -218,20 +227,20 @@ public class ChunkMapWidget extends AbstractWidget {
             guiGraphics.drawString(font, selectedClaim.getName(), panelX + 5, panelY + 5, 0xFFFFFF);
             bannerRenderer.renderBanner(guiGraphics, panelX + 60, panelY + 80, this.width, this.height, 60);
 
-            guiGraphics.drawString(font, "Faction: ", panelX + 5, panelY + 130, 0xFFFFFF);
+            guiGraphics.drawString(font, FACTION_TEXT.getString() + ": ", panelX + 5, panelY + 130, 0xFFFFFF);
             guiGraphics.drawString(font, selectedClaim.getOwnerFaction().getTeamDisplayName(), panelX + 90, panelY + 130, 0xFFFFFF);
 
-            guiGraphics.drawString(font, "Player: ", panelX + 5, panelY + 150, 0xFFFFFF);
+            guiGraphics.drawString(font, PLAYER_TEXT.getString() + ": ", panelX + 5, panelY + 150, 0xFFFFFF);
             guiGraphics.drawString(font, selectedClaim.getPlayerInfo() != null ? selectedClaim.getPlayerInfo().getName() : selectedClaim.getOwnerFaction().getTeamLeaderName(), panelX + 90, panelY + 150, 0xFFFFFF);
 
-            guiGraphics.drawString(font, "Block Placing:   ", panelX + 5, panelY + 170, 0xFFFFFF);
-            guiGraphics.drawString(font, selectedClaim.isBlockPlacementAllowed() ? "true":"false", panelX + 90, panelY + 170, 0xFFFFFF);
+            guiGraphics.drawString(font, BLOCK_PLACING_TEXT.getString() + ": ", panelX + 5, panelY + 170, 0xFFFFFF);
+            guiGraphics.drawString(font, selectedClaim.isBlockPlacementAllowed() ? TRUE_TEXT.getString() : FALSE_TEXT.getString(), panelX + 90, panelY + 170, 0xFFFFFF);
 
-            guiGraphics.drawString(font, "Block Breaking:", panelX + 5, panelY + 190, 0xFFFFFF);
-            guiGraphics.drawString(font, selectedClaim.isBlockBreakingAllowed() ? "true":"false", panelX + 90, panelY + 190, 0xFFFFFF);
+            guiGraphics.drawString(font, BLOCK_BREAKING_TEXT.getString() + ": ", panelX + 5, panelY + 190, 0xFFFFFF);
+            guiGraphics.drawString(font, selectedClaim.isBlockBreakingAllowed() ? TRUE_TEXT.getString(): FALSE_TEXT.getString(), panelX + 90, panelY + 190, 0xFFFFFF);
 
-            guiGraphics.drawString(font, "Block Interact:", panelX + 5, panelY + 210, 0xFFFFFF);
-            guiGraphics.drawString(font, selectedClaim.isBlockInteractionAllowed() ? "true":"false", panelX + 90, panelY + 210, 0xFFFFFF);
+            guiGraphics.drawString(font, BLOCK_INTERACTION_TEXT.getString() + ": ", panelX + 5, panelY + 210, 0xFFFFFF);
+            guiGraphics.drawString(font, selectedClaim.isBlockInteractionAllowed() ? TRUE_TEXT.getString(): FALSE_TEXT.getString(), panelX + 90, panelY + 210, 0xFFFFFF);
         }
     }
     private void openContextMenu(ChunkPos chunk) {
@@ -251,8 +260,8 @@ public class ChunkMapWidget extends AbstractWidget {
         contextMenuX = px + cellSize + 5; // rechts neben dem Chunk
         contextMenuY = py;
 
-        contextMenuEntries.add(new ContextMenuEntry("Claim Chunk", () -> claimChunk(chunk, ownFaction, ClientManager.recruitsClaims), screen.canPlayerClaim(ClientManager.configValueChunkCost, player) && canClaimChunk(chunk, ownFaction, ClientManager.recruitsClaims, true)));
-        contextMenuEntries.add(new ContextMenuEntry("Claim Area", () -> claimArea(chunk, ownFaction, ClientManager.recruitsClaims), screen.canPlayerClaim(screen.getClaimCost(ownFaction), player) && canClaimChunks(getClaimArea(chunk), ownFaction, ClientManager.recruitsClaims)));
+        contextMenuEntries.add(new ContextMenuEntry(ClaimMapScreen.CLAIM_CHUNK.getString(), () -> claimChunk(chunk, ownFaction, ClientManager.recruitsClaims), screen.canPlayerClaim(ClientManager.configValueChunkCost, player) && canClaimChunk(chunk, ownFaction, ClientManager.recruitsClaims, true)));
+        contextMenuEntries.add(new ContextMenuEntry(ClaimMapScreen.CLAIM_AREA.getString(), () -> claimArea(chunk, ownFaction, ClientManager.recruitsClaims), screen.canPlayerClaim(screen.getClaimCost(ownFaction), player) && canClaimChunks(getClaimArea(chunk), ownFaction, ClientManager.recruitsClaims)));
 
         contextMenuVisible = true;
     }
@@ -281,16 +290,16 @@ public class ChunkMapWidget extends AbstractWidget {
         //OTHERS CLAIM
         if(!claim.getOwnerFaction().getStringID().equals(ownFaction.getStringID())){
             Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdateDiplomacyList());
-            contextMenuEntries.add(new ContextMenuEntry("Diplomacy",
+            contextMenuEntries.add(new ContextMenuEntry(DIPLOMACY_TEXT.getString(),
                     () -> screen.openDiplomacyOf(claim.getOwnerFaction()), true));
         }
         else {
             //OWN CLAIM
             if(player.getUUID().equals(ownFaction.getTeamLeaderUUID()) || player.getUUID().equals(claim.getPlayerInfo().getUUID())){
-                contextMenuEntries.add(new ContextMenuEntry("Edit Claim",
+                contextMenuEntries.add(new ContextMenuEntry(EDIT_CLAIM.getString(),
                         () -> screen.openClaimEditScreen(claim), true));
 
-                contextMenuEntries.add(new ContextMenuEntry("Remove Chunk",
+                contextMenuEntries.add(new ContextMenuEntry(REMOVE_CHUNK.getString(),
                         () -> {
                             claim.removeChunk(savedHoverChunk);
                             recalculateCenter(claim);
