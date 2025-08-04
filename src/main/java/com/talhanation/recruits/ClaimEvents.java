@@ -146,15 +146,13 @@ public class ClaimEvents {
             return;
         }
 
-        if(RecruitsServerConfig.BlockPlacingBreakingOnlyWhenClaimed.get()){
-            event.setCanceled(true);
-            return;
-        }
-
         if(claim == null) return;
         if(!claim.isBlockBreakingAllowed()){
             boolean isInTeam = player.getTeam() != null && player.getTeam().getName().equals(claim.getOwnerFactionStringID());
             if(!isInTeam) event.setCanceled(true);
+        }
+        if(RecruitsServerConfig.BlockPlacingBreakingOnlyWhenClaimed.get()){
+            event.setCanceled(true);
         }
     }
 
@@ -170,15 +168,14 @@ public class ClaimEvents {
             return;
         }
 
-        if(RecruitsServerConfig.BlockPlacingBreakingOnlyWhenClaimed.get()){
-            event.setCanceled(true);
-            return;
-        }
-
         if(claim == null) return;
         if(!claim.isBlockPlacementAllowed()){
             boolean isInTeam = entity instanceof LivingEntity livingEntity && livingEntity.getTeam() != null && livingEntity.getTeam().getName().equals(claim.getOwnerFactionStringID());
             if(!isInTeam) event.setCanceled(true);
+        }
+
+        if(RecruitsServerConfig.BlockPlacingBreakingOnlyWhenClaimed.get()){
+            event.setCanceled(true);
         }
     }
 
