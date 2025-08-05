@@ -1,6 +1,7 @@
 package com.talhanation.recruits.world;
 import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.config.RecruitsServerConfig;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -259,24 +260,24 @@ public class RecruitsClaim {
     }
 
     public Component SIEGE_START_ATTACKER(String claim){
-        return Component.translatable("chat.recruits.text.siegeStartAttacker", claim);
+        return Component.translatable("chat.recruits.text.siegeStartAttacker", claim).withStyle(ChatFormatting.GOLD);
     }
     public Component SIEGE_START_DEFENDER(String claim, String attackers){
-        return Component.translatable("chat.recruits.text.siegeStartDefender", claim, attackers);
+        return Component.translatable("chat.recruits.text.siegeStartDefender", claim, attackers).withStyle(ChatFormatting.GOLD);
     }
 
     public Component SIEGE_FAILED_ATTACKER(String claim){
-        return Component.translatable("chat.recruits.text.siegeFailedAttacker", claim);
+        return Component.translatable("chat.recruits.text.siegeFailedAttacker", claim).withStyle(ChatFormatting.GOLD);
     }
 
     public Component SIEGE_FAILED_DEFENDER(String claim){
-        return Component.translatable("chat.recruits.text.siegeFailedDefender", claim);
+        return Component.translatable("chat.recruits.text.siegeFailedDefender", claim).withStyle(ChatFormatting.GOLD);
     }
     public Component SIEGE_SUCCESS_ATTACKER(String claim){
-        return Component.translatable("chat.recruits.text.siegeSuccessAttacker", claim);
+        return Component.translatable("chat.recruits.text.siegeSuccessAttacker", claim).withStyle(ChatFormatting.GOLD);
     }
 
     public Component SIEGE_SUCCESS_DEFENDER(String claim){
-        return Component.translatable("chat.recruits.text.siegeSuccessDefender", claim);
+        return Component.translatable("chat.recruits.text.siegeSuccessDefender", claim).withStyle(ChatFormatting.GOLD);
     }
 }
