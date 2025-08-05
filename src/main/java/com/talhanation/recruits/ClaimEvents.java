@@ -67,6 +67,7 @@ public class ClaimEvents {
     public static int counter;
     @SubscribeEvent
     public void onServerTick(TickEvent.ServerTickEvent event){
+        if(event.getServer().overworld().isClientSide()) return;
         if(counter++ < 100) return;
 
         counter = 0;
