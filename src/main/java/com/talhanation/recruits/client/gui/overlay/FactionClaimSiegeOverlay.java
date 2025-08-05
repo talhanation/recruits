@@ -14,7 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 public class FactionClaimSiegeOverlay {
     private static final int DISPLAY_DURATION = 100000;
     private static final int ANIMATION_TIME = 5000;
-    private static final ResourceLocation CENTER_ICON = new ResourceLocation("recruits:textures/gui/victory_icon.png");
+    private static final ResourceLocation CENTER_ICON = new ResourceLocation("recruits:textures/gui/image/enemy.png");
 
     private static int timer = 0;
     private static String claimName;

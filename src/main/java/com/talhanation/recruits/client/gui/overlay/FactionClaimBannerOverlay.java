@@ -11,10 +11,11 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 
 public class FactionClaimBannerOverlay {
-    private static final int DISPLAY_DURATION = 100000; // 3 Sekunden bei 20 TPS
-    private static final int ANIMATION_TIME = 5000;
+    private static final long DISPLAY_DURATION = 4000;
+    private static final long ANIMATION_TIME = 1000;
 
-    private static int timer = 0;
+    private static long startTime = -1;
+
     private static RecruitsTeam currentTeam;
     private static String claimName;
     private static BannerRenderer bannerRenderer;
@@ -23,14 +24,20 @@ public class FactionClaimBannerOverlay {
         FactionClaimBannerOverlay.currentTeam = team;
         FactionClaimBannerOverlay.claimName = claimName;
         FactionClaimBannerOverlay.bannerRenderer = new BannerRenderer(team);
-        FactionClaimBannerOverlay.timer = DISPLAY_DURATION + ANIMATION_TIME * 2;
+        FactionClaimBannerOverlay.startTime = System.currentTimeMillis();
     }
 
     public static void renderOverlay(GuiGraphics guiGraphics, int screenWidth) {
-        if (timer <= 0 || currentTeam == null) return;
+        if (startTime <= 0 || currentTeam == null) return;
 
-        int totalTime = DISPLAY_DURATION + ANIMATION_TIME * 2;
-        int elapsed = totalTime - timer;
+        long now = System.currentTimeMillis();
+        long elapsed = now - startTime;
+        long totalTime = DISPLAY_DURATION + ANIMATION_TIME * 2;
+
+        if (elapsed >= totalTime) {
+            startTime = -1;
+            return;
+        }
 
         int yOffset;
         if (elapsed < ANIMATION_TIME) {
@@ -58,7 +65,6 @@ public class FactionClaimBannerOverlay {
         int b = rgb & 0xFF;
         int argb = (alpha << 24) | (r << 16) | (g << 8) | b;
 
-
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
@@ -74,9 +80,5 @@ public class FactionClaimBannerOverlay {
         Font font = Minecraft.getInstance().font;
         guiGraphics.drawString(font, Component.literal(claimName), x + 40, y + 5, 0xFFFFFF);
         guiGraphics.drawString(font, Component.literal(currentTeam.getTeamDisplayName()), x + 40, y + 20, 0xAAAAAA);
-
-
-        timer--;
     }
 }
-
