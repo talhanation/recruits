@@ -127,6 +127,7 @@ public class RecruitsClaim {
         nbt.putBoolean("allowPlacement",   allowBlockPlacement);
         nbt.putBoolean("allowBreaking",    allowBlockBreaking);
         nbt.putBoolean("isAdmin",    isAdmin);
+        nbt.putBoolean("isUnderSiege", isUnderSiege);
 
         ListTag chunkList = new ListTag();
         for (ChunkPos pos : claimedChunks) {
@@ -155,6 +156,7 @@ public class RecruitsClaim {
         claim.setBlockPlacementAllowed(nbt.getBoolean("allowPlacement"));
         claim.setBlockBreakingAllowed(nbt.getBoolean("allowBreaking"));
         claim.setAdminClaim(nbt.getBoolean("isAdmin"));
+        claim.isUnderSiege = nbt.getBoolean("isUnderSiege");
 
         if (nbt.contains("chunks", Tag.TAG_LIST)) {
             ListTag chunkList = nbt.getList("chunks", Tag.TAG_COMPOUND);
@@ -249,7 +251,11 @@ public class RecruitsClaim {
     }
 
     public void resetHealth() {
-        this.health = 60 * RecruitsServerConfig.SiegeClaimsConquerTime.get(); //10 min
+        this.health = getMaxHealth();
+    }
+
+    public int getMaxHealth(){
+        return 60 * RecruitsServerConfig.SiegeClaimsConquerTime.get();
     }
 
     public Component SIEGE_START_ATTACKER(String claim){
