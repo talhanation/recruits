@@ -485,6 +485,7 @@
    "gui.recruits.team_color.magenta" : "Magenta",
    "gui.recruits.team_color.purple": "Purple",
 
+   "gui.recruits.claim" : "Claim",
    "gui.recruits.checkbox.allowBlockBreaking" : "Allow Block Breaking",
    "gui.recruits.checkbox.allowBlockPlacing": "Allow Block Placing",
    "gui.recruits.checkbox.allowBlockInteracting": "Allow Block Interacting",

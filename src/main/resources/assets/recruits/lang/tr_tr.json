@@ -459,6 +459,7 @@
   "gui.recruits.command.tip.de_select_groups" : "[Sağ Tıklama] – Tüm Grupları Seç",
   "gui.recruits.command.tip.scrollCategories" : "[Fare Tekerleği] – Kategorileri Kaydır",
 
+  "gui.recruits.claim" : "Bölgeler",
   "gui.recruits.checkbox.allowBlockBreaking": "Blok kırma",
   "gui.recruits.checkbox.allowBlockPlacing": "Blok koyma",
   "gui.recruits.checkbox.allowBlockInteracting": "Blok etkileşimi",

@@ -465,6 +465,7 @@
   "gui.recruits.command.tip.de_select_groups": "[Rechtsklick] - Alle Gruppen auswählen",
   "gui.recruits.command.tip.scrollCategories": "[Mausrad] - Kategorien scrollen",
 
+  "gui.recruits.claim" : "Gebiete",
   "gui.recruits.checkbox.allowBlockBreaking": "Blockabbau erlauben",
   "gui.recruits.checkbox.allowBlockPlacing": "Blockplatzierung erlauben",
   "gui.recruits.checkbox.allowBlockInteracting": "Blockinteraktion erlauben",
