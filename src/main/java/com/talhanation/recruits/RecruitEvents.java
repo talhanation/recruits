@@ -501,7 +501,7 @@ public class RecruitEvents {
         Entity target = event.getEntity();
 
         if (target instanceof AbstractRecruitEntity recruit) {
-            if (!recruit.getIsOwned() || server.overworld().isClientSide()) return;
+            if (!recruit.getIsOwned() || server == null) return;
 
             //Morale loss when recruits teammate die
             UUID owner = recruit.getOwnerUUID();

@@ -273,6 +273,68 @@ public class RecruitsAdminCommands {
                                 })
                         )
                 )
+                .then(Commands.literal("setHealth")
+                    .then(Commands.argument("amount", IntegerArgumentType.integer())
+                        .executes(ctx -> {
+                            ServerPlayer player = ctx.getSource().getPlayerOrException();
+                            int amount = IntegerArgumentType.getInteger(ctx, "amount");
+
+                            ChunkPos chunkPos = player.chunkPosition();
+                            RecruitsClaim claim = RecruitsClaimManager.getClaimAt(chunkPos, ClaimEvents.recruitsClaimManager.getAllClaims().stream().toList());
+
+                            if (claim == null) {
+                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
+                                return 0;
+                            }
+
+                            claim.setHealth(amount);
+                            ctx.getSource().sendSuccess(() ->
+                                    Component.literal("Claim health was set to " + claim.getHealth()), false);
+                            ClaimEvents.recruitsClaimManager.broadcastClaimsToAll(ctx.getSource().getLevel());
+                            return 1;
+                        })
+                    )
+                )
+                .then(Commands.literal("getHealth")
+                        .executes(ctx -> {
+                            ServerPlayer player = ctx.getSource().getPlayerOrException();
+
+                            ChunkPos chunkPos = player.chunkPosition();
+                            RecruitsClaim claim = RecruitsClaimManager.getClaimAt(chunkPos, ClaimEvents.recruitsClaimManager.getAllClaims().stream().toList());
+
+                            if (claim == null) {
+                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
+                                return 0;
+                            }
+
+                            ctx.getSource().sendSuccess(() ->
+                                    Component.literal(claim + " has " + claim.getHealth() + "health"), false);
+
+                            return 1;
+                        })
+                )
+                .then(Commands.literal("setSiege")
+                        .then(Commands.argument("siege", BoolArgumentType.bool())
+                            .executes(ctx -> {
+                                ServerPlayer player = ctx.getSource().getPlayerOrException();
+                                boolean siege = BoolArgumentType.getBool(ctx, "siege");
+
+                                ChunkPos chunkPos = player.chunkPosition();
+                                RecruitsClaim claim = RecruitsClaimManager.getClaimAt(chunkPos, ClaimEvents.recruitsClaimManager.getAllClaims().stream().toList());
+
+                                if (claim == null) {
+                                    ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
+                                    return 0;
+                                }
+
+                                claim.setAdminClaim(siege);
+                                ctx.getSource().sendSuccess(() ->
+                                        Component.literal("Claim [" + claim + "] is setSiege= " + siege), false);
+                                ClaimEvents.recruitsClaimManager.broadcastClaimsToAll(ctx.getSource().getLevel());
+                                return 1;
+                            })
+                        )
+                )
                 .then(Commands.literal("deleteClaim")
                         .executes(ctx -> {
                             ServerPlayer player = ctx.getSource().getPlayerOrException();

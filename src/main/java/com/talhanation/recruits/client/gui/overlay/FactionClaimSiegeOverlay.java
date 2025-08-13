@@ -3,6 +3,7 @@ package com.talhanation.recruits.client.gui.overlay;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.team.TeamEditScreen;
+import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -12,52 +13,73 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 public class FactionClaimSiegeOverlay {
-    private static final int DISPLAY_DURATION = 100000;
-    private static final int ANIMATION_TIME = 5000;
     private static final ResourceLocation CENTER_ICON = new ResourceLocation("recruits:textures/gui/image/enemy.png");
-
-    private static int timer = 0;
+    private static final int ANIMATION_TIME = 1000;
     private static String claimName;
     private static RecruitsTeam defenderTeam;
     private static RecruitsTeam attackerTeam;
-    private static float claimHealth; // 0.0 - 1.0
+    private static float currentHealth;
+    private static float maxHealth;
     private static BannerRenderer defenderBanner;
     private static BannerRenderer attackerBanner;
 
-    public static void display(String claimName, RecruitsTeam defender, RecruitsTeam attacker, float healthRatio) {
+    private static boolean active = false;
+    private static boolean animatingOut = false;
+    private static long animationStart = -1;
+
+    public static void activate(String claimName, RecruitsTeam defender, RecruitsTeam attacker, float currentHealth, float maxHealth) {
         FactionClaimSiegeOverlay.claimName = claimName;
         FactionClaimSiegeOverlay.defenderTeam = defender;
         FactionClaimSiegeOverlay.attackerTeam = attacker;
-        FactionClaimSiegeOverlay.claimHealth = healthRatio;
+        FactionClaimSiegeOverlay.currentHealth = currentHealth;
+        FactionClaimSiegeOverlay.maxHealth = maxHealth;
         FactionClaimSiegeOverlay.defenderBanner = new BannerRenderer(defender);
         FactionClaimSiegeOverlay.attackerBanner = new BannerRenderer(attacker);
-        FactionClaimSiegeOverlay.timer = DISPLAY_DURATION + ANIMATION_TIME * 2;
+
+        active = true;
+        animatingOut = false;
+        animationStart = System.currentTimeMillis();
+    }
+
+    public static void deactivate() {
+        if (!active || animatingOut) return;
+        animatingOut = true;
+        animationStart = System.currentTimeMillis();
     }
 
     public static void renderOverlay(GuiGraphics guiGraphics, int screenWidth) {
-        if (timer <= 0 || defenderTeam == null || attackerTeam == null) return;
+        if (!active && !animatingOut) return;
 
-        int totalTime = DISPLAY_DURATION + ANIMATION_TIME * 2;
-        int elapsed = totalTime - timer;
+        long now = System.currentTimeMillis();
+        float progress = Math.min(1f, (now - animationStart) / (float) ANIMATION_TIME);
 
         int yOffset;
-        if (elapsed < ANIMATION_TIME) {
-            float t = elapsed / (float) ANIMATION_TIME;
-            yOffset = (int) (-60 + 60 * t);
-        } else if (elapsed < ANIMATION_TIME + DISPLAY_DURATION) {
-            yOffset = 0;
+        if (!animatingOut) {
+            if (progress < 1f) {
+                yOffset = (int) (-60 + 60 * progress);
+            } else {
+                yOffset = 0;
+            }
         } else {
-            float t = (elapsed - ANIMATION_TIME - DISPLAY_DURATION) / (float) ANIMATION_TIME;
-            yOffset = (int) (-60 * t);
+
+            if (progress < 1f) {
+                yOffset = (int) (-60 * progress);
+            } else {
+                reset();
+                return;
+            }
         }
 
-        int panelWidth = 250;
-        int panelHeight = 70;
+        drawSiegePanel(guiGraphics, screenWidth, yOffset);
+    }
+
+    private static void drawSiegePanel(GuiGraphics guiGraphics, int screenWidth, int yOffset) {
+        int panelWidth = 190;
+        int panelHeight = 40;
         int x = (screenWidth - panelWidth) / 2;
         int y = 10 + yOffset;
 
-        // Hintergrundfarbe vom Defender
-        int alpha = 3;
+        int alpha = 7;
         int rgb = TeamEditScreen.unitColors.get(defenderTeam.getUnitColor()).getRGB();
         int r = (rgb >> 16) & 0xFF;
         int g = (rgb >> 8) & 0xFF;
@@ -66,35 +88,58 @@ public class FactionClaimSiegeOverlay {
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        guiGraphics.fill(x - 5, y - 5, x + panelWidth + 5, y + panelHeight + 5, argb);
+        guiGraphics.fill(x - 4, y - 4, x + panelWidth + 4, y + panelHeight + 8, argb);
         RenderSystem.disableBlend();
 
         Font font = Minecraft.getInstance().font;
 
-        // Claim Name zentriert oben
-        guiGraphics.drawCenteredString(font, Component.literal(claimName), x + panelWidth / 2, y + 5, 0xFFFFFF);
+        guiGraphics.drawCenteredString(font, Component.literal(claimName), x + panelWidth / 2, y + 1, 0xFFFFFF);
 
-        // Defender Banner + Name links
-        defenderBanner.renderBanner(guiGraphics, x + 5, y + 25, 25, 25, 25);
-        guiGraphics.drawCenteredString(font, Component.literal(defenderTeam.getTeamDisplayName()), x + 17, y + 15, 0xAAAAAA);
+        if(defenderTeam != null && defenderBanner != null){
+            defenderBanner.renderBanner(guiGraphics, x + 5, y + 20, 20, 20, 20);
+            guiGraphics.drawCenteredString(font, Component.literal(defenderTeam.getTeamDisplayName()), x + 15, y + 1, 0xAAAAAA);
 
-        // Attacker Banner + Name rechts
-        attackerBanner.renderBanner(guiGraphics, x + panelWidth - 30, y + 25, 25, 25, 25);
-        guiGraphics.drawCenteredString(font, Component.literal(attackerTeam.getTeamDisplayName()), x + panelWidth - 17, y + 15, 0xAAAAAA);
+        }
+        if(attackerTeam != null){
+            attackerBanner.renderBanner(guiGraphics, x + panelWidth - 25, y + 20, 20, 20, 20);
+            guiGraphics.drawCenteredString(font, Component.literal(attackerTeam.getTeamDisplayName()), x + panelWidth - 15, y + 1, 0xAAAAAA);
+        }
 
-        // Center Icon
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, CENTER_ICON);
-        guiGraphics.blit(CENTER_ICON, x + panelWidth / 2 - 10, y + 27, 0, 0, 21, 21, 21, 21);
+        int iconSize = 18;
+        guiGraphics.blit(CENTER_ICON, x + panelWidth / 2 - iconSize / 2, y + 14, 0, 0, iconSize, iconSize, iconSize, iconSize);
 
-        // Health Bar unter dem Icon
-        int barX = x + panelWidth / 2 - 75;
-        int barY = y + 52;
-        guiGraphics.fill(barX, barY, barX + 150, barY + 5, 0xFF000000); // Hintergrund
-        guiGraphics.fill(barX, barY, barX + (int)(150 * claimHealth), barY + 5, 0xFF00FF00); // Grün je nach Health
+        int barWidth = 100;
+        int barHeight = 4;
+        int barX = x + panelWidth / 2 - barWidth / 2;
+        int barY = y + 34;
+        guiGraphics.fill(barX, barY, barX + barWidth, barY + barHeight, 0xFF000000);
 
-        timer--;
+        if (maxHealth > 0) {
+            float ratio = currentHealth / maxHealth;
+            guiGraphics.fill(barX, barY, barX + (int) (barWidth * ratio), barY + barHeight, 0xFF00FF00);
+        }
+    }
+
+    private static void reset() {
+        active = false;
+        animatingOut = false;
+        animationStart = -1;
+        claimName = null;
+        defenderTeam = null;
+        attackerTeam = null;
+        defenderBanner = null;
+        attackerBanner = null;
+    }
+
+    public static void update(RecruitsClaim claim) {
+        currentHealth = claim.getHealth();
+        maxHealth = claim.getMaxHealth();
+        attackerTeam = claim.attackingParties != null && !claim.attackingParties.isEmpty() ? claim.attackingParties.get(0) : null;
+        defenderTeam = claim.getOwnerFaction();
+        FactionClaimSiegeOverlay.defenderBanner = new BannerRenderer(defenderTeam);
+        FactionClaimSiegeOverlay.attackerBanner = new BannerRenderer(attackerTeam);
     }
 }
 

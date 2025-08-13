@@ -122,14 +122,15 @@ public class RecruitsClaim {
     public CompoundTag toNBT() {
         CompoundTag nbt = new CompoundTag();
         nbt.putString("name", name);
-        if(ownerFaction != null) nbt.put("ownerFaction", ownerFaction.toNBT());
-        if(playerInfo != null) nbt.put("playerInfo", playerInfo.toNBT());
+        if (ownerFaction != null) nbt.put("ownerFaction", ownerFaction.toNBT());
+        if (playerInfo != null) nbt.put("playerInfo", playerInfo.toNBT());
         nbt.putBoolean("allowInteraction", allowBlockInteraction);
-        nbt.putBoolean("allowPlacement",   allowBlockPlacement);
-        nbt.putBoolean("allowBreaking",    allowBlockBreaking);
-        nbt.putBoolean("isAdmin",    isAdmin);
+        nbt.putBoolean("allowPlacement", allowBlockPlacement);
+        nbt.putBoolean("allowBreaking", allowBlockBreaking);
+        nbt.putBoolean("isAdmin", isAdmin);
         nbt.putBoolean("isUnderSiege", isUnderSiege);
 
+        // Claimed Chunks
         ListTag chunkList = new ListTag();
         for (ChunkPos pos : claimedChunks) {
             CompoundTag chunkTag = new CompoundTag();
@@ -141,8 +142,22 @@ public class RecruitsClaim {
 
         nbt.putInt("centerX", this.getCenter().x);
         nbt.putInt("centerZ", this.getCenter().z);
-
         nbt.putInt("health", this.getHealth());
+
+        // Defending Parties
+        ListTag defendingList = new ListTag();
+        for (RecruitsTeam team : defendingParties) {
+            defendingList.add(team.toNBT());
+        }
+        nbt.put("defendingParties", defendingList);
+
+        // Attacking Parties
+        ListTag attackingList = new ListTag();
+        for (RecruitsTeam team : attackingParties) {
+            attackingList.add(team.toNBT());
+        }
+        nbt.put("attackingParties", attackingList);
+
         return nbt;
     }
 
@@ -151,7 +166,7 @@ public class RecruitsClaim {
         RecruitsTeam recruitsTeam = RecruitsTeam.fromNBT(nbt.getCompound("ownerFaction"));
         RecruitsClaim claim = new RecruitsClaim(name, recruitsTeam);
         RecruitsPlayerInfo playerInfo = RecruitsPlayerInfo.getFromNBT(nbt.getCompound("playerInfo"));
-        if(playerInfo != null) claim.setPlayer(playerInfo);
+        if (playerInfo != null) claim.setPlayer(playerInfo);
 
         claim.setBlockInteractionAllowed(nbt.getBoolean("allowInteraction"));
         claim.setBlockPlacementAllowed(nbt.getBoolean("allowPlacement"));
@@ -168,15 +183,32 @@ public class RecruitsClaim {
                 claim.addChunk(new ChunkPos(x, z));
             }
         }
+
         int x = nbt.getInt("centerX");
         int z = nbt.getInt("centerZ");
-
         claim.setCenter(new ChunkPos(x, z));
 
         claim.setHealth(nbt.getInt("health"));
 
+        // Defending Parties
+        if (nbt.contains("defendingParties", Tag.TAG_LIST)) {
+            ListTag defendingList = nbt.getList("defendingParties", Tag.TAG_COMPOUND);
+            for (Tag tag : defendingList) {
+                claim.defendingParties.add(RecruitsTeam.fromNBT((CompoundTag) tag));
+            }
+        }
+
+        // Attacking Parties
+        if (nbt.contains("attackingParties", Tag.TAG_LIST)) {
+            ListTag attackingList = nbt.getList("attackingParties", Tag.TAG_COMPOUND);
+            for (Tag tag : attackingList) {
+                claim.attackingParties.add(RecruitsTeam.fromNBT((CompoundTag) tag));
+            }
+        }
+
         return claim;
     }
+
 
     public static CompoundTag toNBT(List<RecruitsClaim> list) {
         CompoundTag nbt = new CompoundTag();
