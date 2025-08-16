@@ -1,11 +1,16 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.BowmanEntity;
+import com.talhanation.recruits.entities.CrossBowmanEntity;
 import com.talhanation.recruits.util.AttackUtil;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.CrossbowItem;
+import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
 
@@ -67,12 +72,19 @@ public class RecruitMeleeAttackGoal extends Goal {
     public void start() {
         this.recruit.setAggressive(true);
         this.pathingCooldown = 0;
+
+        this.recruit.switchMainHandItem(itemStack -> itemStack.getItem() instanceof SwordItem);
     }
 
     public void stop() {
         LivingEntity target = this.recruit.getTarget();
         if (!EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(target)) {
             this.recruit.setTarget(null);
+        }
+
+        if(recruit.getShouldRanged()){
+            if(this.recruit instanceof CrossBowmanEntity) this.recruit.switchMainHandItem(itemStack -> itemStack.getItem() instanceof CrossbowItem);
+            if(this.recruit instanceof BowmanEntity) this.recruit.switchMainHandItem(itemStack -> itemStack.getItem() instanceof BowItem);
         }
 
         this.recruit.setAggressive(false);

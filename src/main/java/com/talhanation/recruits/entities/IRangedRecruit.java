@@ -1,12 +1,14 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.Main;
 import net.minecraft.world.entity.monster.RangedAttackMob;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.Random;
+import java.util.function.Predicate;
 
 public interface IRangedRecruit extends RangedAttackMob {
     Random random = new Random();
+    Predicate<ItemStack> getWeaponType();
     static double getAngleHeightModifier(double distance, double heightDiff, double modifier) {
         if(distance >= 2000){
             return heightDiff * (1.15 * modifier);

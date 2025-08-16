@@ -91,7 +91,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
     }
     @Override
     public double getMeleeStartRange() {
-        return 3D;
+        return 5D;
     }
 
 
@@ -286,5 +286,10 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
 
     public List<List<String>> getEquipment(){
         return RecruitsServerConfig.BowmanStartEquipments.get();
+    }
+
+    @Override
+    public Predicate<ItemStack> getWeaponType() {
+        return itemStack -> itemStack.getItem() instanceof BowItem;
     }
 }

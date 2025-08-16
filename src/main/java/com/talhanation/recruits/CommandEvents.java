@@ -19,9 +19,7 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.*;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -553,6 +551,14 @@ public class CommandEvents {
     public static void onRangedFireCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean should) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             recruit.setShouldRanged(should);
+
+            if(should){
+                if(recruit instanceof CrossBowmanEntity) recruit.switchMainHandItem(itemStack -> itemStack.getItem() instanceof CrossbowItem);
+                if(recruit instanceof BowmanEntity) recruit.switchMainHandItem(itemStack -> itemStack.getItem() instanceof BowItem);
+            }
+            else{
+                recruit.switchMainHandItem(itemStack -> itemStack.getItem() instanceof SwordItem);
+            }
         }
     }
 

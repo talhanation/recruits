@@ -578,4 +578,22 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
     public int getBeforeItemSlot(){
         return beforeItemSlot;
     }
+
+    public void switchMainHandItem(Predicate<ItemStack> predicate) {
+        if (!this.isAlive() || predicate == null) return;
+
+        SimpleContainer inventory = this.getInventory();
+        ItemStack mainHand = this.getMainHandItem();
+        if (predicate.test(mainHand)) return;
+
+        for (int i = 6; i < inventory.getContainerSize(); i++) {
+            ItemStack stack = inventory.getItem(i);
+            if (predicate.test(stack)) {
+
+                inventory.setItem(i, mainHand);
+                this.setItemInHand(InteractionHand.MAIN_HAND, stack);
+                return;
+            }
+        }
+    }
 }
