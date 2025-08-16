@@ -17,6 +17,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.phys.Vec3;
+import net.royawesome.jlibnoise.module.modifier.Abs;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.system.CallbackI;
 
@@ -88,7 +89,11 @@ public class CrossbowWeapon implements IWeapon {
         double d3 = Mth.sqrt((float) (d0 * d0 + d2 * d2));
 
         float force = 2.25F;
-        float accuracy = 0.2F; // 0 = 100%
+        double morale = 100;
+        if(shooter instanceof AbstractRecruitEntity recruit){
+            morale = recruit.getMorale();
+        }
+        float accuracy = Math.max(6 - (float) (0.1F * morale), 0);
 
 
         double angle = IRangedRecruit.getAngleDistanceModifier(distance, 85, 4) + IRangedRecruit.getCrossbowAngleHeightModifier(distance, heightDiff) / 100;

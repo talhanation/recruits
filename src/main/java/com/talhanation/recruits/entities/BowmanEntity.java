@@ -175,7 +175,8 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
 
             double angle = IRangedRecruit.getAngleDistanceModifier(distance, 47, 4) + IRangedRecruit.getAngleHeightModifier(distance, heightDiff, 1.00D) / 100;
             float force = 1.90F + IRangedRecruit.getForceDistanceModifier(distance, 1.90F);
-            float accuracy = 0.75F; // 0 = 100%
+            double morale = this.getMorale();
+            float accuracy = Math.max(6 - (float) (0.1F * morale), 0);
             //Main.LOGGER.info("Distance: " + distance);
                                                 //angle   = 0.196F           //force     //accuracy 0 = 100%
             arrow.shoot(d0, d1 + d3 * angle, d2, force, accuracy);
@@ -220,8 +221,10 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
             double d1 = y - this.getY();
             double d2 = z - this.getZ();
             double d3 = Mth.sqrt((float) (d0 * d0 + d2 * d2));
+            double morale = this.getMorale();
+            float accuracy = 3F + Math.max(6 - (float) (0.1F * morale), 0);
                                                      //angle            //force             //accuracy 0 = 100%
-            arrow.shoot(d0, d1 + d3 + angle, d2, force + 1.95F, 2.5F);
+            arrow.shoot(d0, d1 + d3 + angle, d2, force + 1.95F, accuracy);
 
             this.playSound(SoundEvents.ARROW_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
             this.getCommandSenderWorld().addFreshEntity(arrow);
