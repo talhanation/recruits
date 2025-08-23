@@ -59,7 +59,10 @@ public class ClaimEditScreen extends RecruitsScreenBase {
     public int y;
     @Override
     protected void init() {
-        clearWidgets();
+        this.allowBlockBreaking = claim.isBlockBreakingAllowed();
+        this.allowBlockPlacing = claim.isBlockPlacementAllowed();
+        this.allowBlockInteracting = claim.isBlockInteractionAllowed();
+
         if(savedName == null) savedName = claim.getName();
         x = this.width / 2;
         y = this.height / 2;
@@ -68,6 +71,7 @@ public class ClaimEditScreen extends RecruitsScreenBase {
     }
 
     private void setWidgets(){
+        clearWidgets();
         editNameBox = new EditBox(font, x - 70, y - 110, 140, 20, Component.literal(""));
         editNameBox.setTextColor(-1);
         editNameBox.setTextColorUneditable(-1);
@@ -82,7 +86,7 @@ public class ClaimEditScreen extends RecruitsScreenBase {
                         playerInfo = null;
                         this.selectedPlayerWidget.setPlayer(null, null);
 
-                        this.setWidgets();
+                        setWidgets();
                     }
             );
             selectedPlayerWidget.setPlayer(claim.playerInfo.getUUID(), claim.playerInfo.getName());
@@ -91,11 +95,11 @@ public class ClaimEditScreen extends RecruitsScreenBase {
         else{
             Button selectPlayerButton = addRenderableWidget(new ExtendedButton(x - 70, y - 87, 140, 20, SelectPlayerScreen.TITLE,
                 button -> {
-                    minecraft.setScreen(new SelectPlayerScreen(this, player, SelectPlayerScreen.TITLE, SelectPlayerScreen.BUTTON_SELECT, SelectPlayerScreen.BUTTON_SELECT_TOOLTIP, false, PlayersList.FilterType.NONE,
+                    minecraft.setScreen(new SelectPlayerScreen(this, player, SelectPlayerScreen.TITLE, SelectPlayerScreen.BUTTON_SELECT, SelectPlayerScreen.BUTTON_SELECT_TOOLTIP, true, PlayersList.FilterType.NONE,
                         (playerInfo) -> {
                             this.playerInfo = playerInfo;
+                            this.claim.setPlayer(playerInfo);
                             minecraft.setScreen(this);
-                            setWidgets();
                         }
                     ));
                 }
@@ -106,7 +110,16 @@ public class ClaimEditScreen extends RecruitsScreenBase {
         int checkBoxWidth = 140;
         int checkBoxHeight = 20;
 
-        this.blockBreakingCheckBox = new RecruitsCheckBox(x - 70, y + 20, checkBoxWidth, checkBoxHeight, CHECKBOX_ALLOW_BREAKING,
+        this.blockPlacingCheckBox = new RecruitsCheckBox(x - 70, y + 20, checkBoxWidth, checkBoxHeight, CHECKBOX_ALLOW_PLACING,
+                this.allowBlockPlacing,
+                (bool) -> {
+                    this.allowBlockPlacing = bool;
+                }
+        );
+        this.addRenderableWidget(blockPlacingCheckBox);
+
+
+        this.blockBreakingCheckBox = new RecruitsCheckBox(x - 70, y + 40, checkBoxWidth, checkBoxHeight, CHECKBOX_ALLOW_BREAKING,
                 this.allowBlockBreaking,
                 (bool) -> {
                     this.allowBlockBreaking = bool;
@@ -114,13 +127,6 @@ public class ClaimEditScreen extends RecruitsScreenBase {
         );
         this.addRenderableWidget(blockBreakingCheckBox);
 
-        this.blockPlacingCheckBox = new RecruitsCheckBox(x - 70, y + 40, checkBoxWidth, checkBoxHeight, CHECKBOX_ALLOW_PLACING,
-                this.allowBlockPlacing,
-                (bool) -> {
-                    this.allowBlockPlacing = bool;
-                }
-        );
-        this.addRenderableWidget(blockPlacingCheckBox);
 
         this.blockInteractionCheckBox = new RecruitsCheckBox(x - 70, y + 60, checkBoxWidth, checkBoxHeight, CHECKBOX_ALLOW_INTERACTING,
                 this.allowBlockInteracting,
@@ -140,6 +146,8 @@ public class ClaimEditScreen extends RecruitsScreenBase {
                 button -> {
                     this.claim.setName(editNameBox.getValue());
                     this.claim.setPlayer(playerInfo);
+                    this.claim.setOwnerFaction(playerInfo.getRecruitsTeam());
+                    this.claim.attackingParties.clear();
                     this.claim.setBlockInteractionAllowed(this.allowBlockInteracting);
                     this.claim.setBlockPlacementAllowed(this.allowBlockPlacing);
                     this.claim.setBlockBreakingAllowed(this.allowBlockBreaking);
