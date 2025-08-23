@@ -2,7 +2,7 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.client.events.CommandCategoryManager;
 import com.talhanation.recruits.client.events.KeyEvents;
-import com.talhanation.recruits.client.events.PlayerEvents;
+import com.talhanation.recruits.client.events.ClientPlayerEvents;
 import com.talhanation.recruits.client.gui.commandscreen.CombatCategory;
 import com.talhanation.recruits.client.gui.commandscreen.MovementCategory;
 import com.talhanation.recruits.client.gui.commandscreen.OtherCategory;
@@ -195,7 +195,8 @@ public class Main {
                 MessageToClientOpenMessengerAnswerScreen.class,
                 MessageToClientUpdateClaims.class,
                 MessageUpdateClaim.class,
-                MessageDoPayment.class
+                MessageDoPayment.class,
+                MessageToClientUpdateClaim.class
         };
 
 
@@ -223,7 +224,7 @@ public class Main {
     public void clientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(ModScreens::registerMenus);
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
-        MinecraftForge.EVENT_BUS.register(new PlayerEvents());
+        MinecraftForge.EVENT_BUS.register(new ClientPlayerEvents());
         CommandCategoryManager.register(new MovementCategory());
         CommandCategoryManager.register(new CombatCategory());
         CommandCategoryManager.register(new OtherCategory());

@@ -96,12 +96,12 @@ public class FactionClaimSiegeOverlay {
         guiGraphics.drawCenteredString(font, Component.literal(claimName), x + panelWidth / 2, y + 1, 0xFFFFFF);
 
         if(defenderTeam != null && defenderBanner != null){
-            defenderBanner.renderBanner(guiGraphics, x + 5, y + 20, 20, 20, 20);
+            defenderBanner.renderBanner(guiGraphics, x + 5, y + 18, 20, 20, 20);
             guiGraphics.drawCenteredString(font, Component.literal(defenderTeam.getTeamDisplayName()), x + 15, y + 1, 0xAAAAAA);
 
         }
         if(attackerTeam != null){
-            attackerBanner.renderBanner(guiGraphics, x + panelWidth - 25, y + 20, 20, 20, 20);
+            attackerBanner.renderBanner(guiGraphics, x + panelWidth - 25, y + 18, 20, 20, 20);
             guiGraphics.drawCenteredString(font, Component.literal(attackerTeam.getTeamDisplayName()), x + panelWidth - 15, y + 1, 0xAAAAAA);
         }
 

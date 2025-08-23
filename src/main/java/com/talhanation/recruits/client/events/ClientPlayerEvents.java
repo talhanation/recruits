@@ -14,10 +14,9 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 
-public class PlayerEvents {
+public class ClientPlayerEvents {
 
-    private static ChunkPos lastPlayerChunk = null;
-    private static RecruitsClaim currentClaim = null;
+    private State state;
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
         Player player = Minecraft.getInstance().player;
@@ -26,21 +25,27 @@ public class PlayerEvents {
         ChunkPos currentChunk = player.chunkPosition();
         RecruitsClaim claim = RecruitsClaimManager.getClaimAt(currentChunk, ClientManager.recruitsClaims);
 
-        // Wenn Claim wechselt → Overlay initialisieren
-        if (!currentChunk.equals(lastPlayerChunk)) {
-            lastPlayerChunk = currentChunk;
+        if(state == null) {
+            state = State.NO_CLAIM;
+            FactionClaimBannerOverlay.deactivate();
+            FactionClaimSiegeOverlay.deactivate();
+        }
 
-            if (claim != null) {
-                if (currentClaim == null || !currentClaim.getOwnerFactionStringID().equals(claim.getOwnerFactionStringID())) {
-                    currentClaim = claim;
+        switch (state) {
+            case NO_CLAIM -> {
+                if(claim != null){
+                    if(!claim.isUnderSiege) FactionClaimBannerOverlay.activate(claim);
+                    state = State.IN_CLAIM;
+                }
+            }
 
-                    // Erst alle Overlays deaktivieren
-                    FactionClaimBannerOverlay.deactivate();
-                    FactionClaimSiegeOverlay.deactivate();
-
-                    if (claim.isUnderSiege) {
+            case IN_CLAIM -> {
+                if(claim != null){
+                    if(claim.isUnderSiege){
                         RecruitsTeam defender = claim.getOwnerFaction();
                         RecruitsTeam attacker = claim.attackingParties != null && !claim.attackingParties.isEmpty() ? claim.attackingParties.get(0) : null;
+
+                        FactionClaimBannerOverlay.deactivate();
 
                         FactionClaimSiegeOverlay.activate(
                                 claim.getName(),
@@ -49,21 +54,29 @@ public class PlayerEvents {
                                 claim.getHealth(),
                                 claim.getMaxHealth()
                         );
-                    } else {
-                        FactionClaimBannerOverlay.activate(claim.getOwnerFaction(), claim.getName());
+                        state = State.SIEGE;
                     }
                 }
-            } else {
-                if (currentClaim != null) {
-                    currentClaim = null;
+                else {
                     FactionClaimBannerOverlay.deactivate();
-                    FactionClaimSiegeOverlay.deactivate();
+                    state = State.NO_CLAIM;
                 }
             }
-        }
 
-        if (claim != null && claim.isUnderSiege) {
-            FactionClaimSiegeOverlay.update(claim);
+            case SIEGE -> {
+                if(claim == null){
+                    FactionClaimSiegeOverlay.deactivate();
+                    state = State.NO_CLAIM;
+                }
+                else if(!claim.isUnderSiege){
+                    FactionClaimBannerOverlay.activate(claim);
+                    FactionClaimSiegeOverlay.deactivate();
+                    state = State.IN_CLAIM;
+                }
+                else {
+                    FactionClaimSiegeOverlay.update(claim);
+                }
+            }
         }
     }
 
@@ -74,4 +87,9 @@ public class PlayerEvents {
         FactionClaimSiegeOverlay.renderOverlay(event.getGuiGraphics(), event.getWindow().getGuiScaledWidth());
     }
 
+    enum State{
+        NO_CLAIM,
+        IN_CLAIM,
+        SIEGE
+    }
 }

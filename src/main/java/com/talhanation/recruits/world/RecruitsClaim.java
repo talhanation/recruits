@@ -13,6 +13,8 @@ import net.minecraft.world.level.ChunkPos;
 import java.util.*;
 
 public class RecruitsClaim {
+
+    private final UUID uuid;
     private final List<ChunkPos> claimedChunks = new ArrayList<>();
     private String name;
     private RecruitsTeam ownerFaction;
@@ -27,11 +29,24 @@ public class RecruitsClaim {
     public RecruitsPlayerInfo playerInfo;
     public boolean isAdmin;
     public RecruitsClaim(String name, RecruitsTeam ownerFaction) {
+        this.uuid = UUID.randomUUID();
         this.name = name;
         this.ownerFaction = ownerFaction;
         this.isAdmin = false;
         resetHealth();
     }
+
+    private RecruitsClaim(UUID uuid, String name, RecruitsTeam ownerFaction){
+        this.uuid = uuid;
+        this.name = name;
+        this.ownerFaction = ownerFaction;
+        this.isAdmin = false;
+    }
+
+    public UUID getUUID() {
+        return uuid;
+    }
+
     public void setCenter(ChunkPos center){
         this.center = center;
     }
@@ -121,6 +136,7 @@ public class RecruitsClaim {
 
     public CompoundTag toNBT() {
         CompoundTag nbt = new CompoundTag();
+        nbt.putUUID("UUID", this.uuid);
         nbt.putString("name", name);
         if (ownerFaction != null) nbt.put("ownerFaction", ownerFaction.toNBT());
         if (playerInfo != null) nbt.put("playerInfo", playerInfo.toNBT());
@@ -162,11 +178,13 @@ public class RecruitsClaim {
     }
 
     public static RecruitsClaim fromNBT(CompoundTag nbt) {
+        UUID uuid = nbt.getUUID("UUID");
         String name = nbt.getString("name");
         RecruitsTeam recruitsTeam = RecruitsTeam.fromNBT(nbt.getCompound("ownerFaction"));
-        RecruitsClaim claim = new RecruitsClaim(name, recruitsTeam);
+        RecruitsClaim claim = new RecruitsClaim(uuid, name, recruitsTeam);
         RecruitsPlayerInfo playerInfo = RecruitsPlayerInfo.getFromNBT(nbt.getCompound("playerInfo"));
         if (playerInfo != null) claim.setPlayer(playerInfo);
+
 
         claim.setBlockInteractionAllowed(nbt.getBoolean("allowInteraction"));
         claim.setBlockPlacementAllowed(nbt.getBoolean("allowPlacement"));

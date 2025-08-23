@@ -3,6 +3,7 @@ package com.talhanation.recruits.client.gui.overlay;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.team.TeamEditScreen;
+import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -21,12 +22,11 @@ public class FactionClaimBannerOverlay {
     private static String playerName;
     private static BannerRenderer bannerRenderer;
 
-    public static void activate(RecruitsTeam team, String claimName) {
-        currentTeam = team;
-        FactionClaimBannerOverlay.claimName = claimName;
-        playerName = Minecraft.getInstance().player != null ?
-                Minecraft.getInstance().player.getName().getString() : "";
-        bannerRenderer = new BannerRenderer(team);
+    public static void activate(RecruitsClaim claim) {
+        currentTeam = claim.getOwnerFaction();
+        FactionClaimBannerOverlay.claimName = claim.getName();
+        playerName = claim.getPlayerInfo().getName();
+        bannerRenderer = new BannerRenderer(claim.getOwnerFaction());
         startTime = System.currentTimeMillis();
         stripStartTime = -1;
         active = true;
@@ -146,6 +146,12 @@ public class FactionClaimBannerOverlay {
         claimName = null;
         playerName = null;
         bannerRenderer = null;
+    }
+
+    public static void update(RecruitsClaim claim) {
+        claimName = claim.getName();
+        playerName = claim.getPlayerInfo().getName();
+        currentTeam = claim.getOwnerFaction();
     }
 }
 

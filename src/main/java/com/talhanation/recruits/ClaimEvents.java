@@ -10,6 +10,7 @@ import com.talhanation.recruits.world.RecruitsTeam;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
@@ -28,6 +29,7 @@ import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ClaimEvents {
@@ -81,7 +83,7 @@ public class ClaimEvents {
                             && TeamEvents.recruitsDiplomacyManager.getRelation(livingEntity.getTeam().getName(), claim.getOwnerFactionStringID()) == RecruitsDiplomacyManager.DiplomacyStatus.ENEMY);
             List<LivingEntity> defenders = ClaimUtil.getLivingEntitiesInClaim(level, claim,
                     livingEntity -> livingEntity.isAlive() && livingEntity.getTeam() != null
-                            && TeamEvents.recruitsDiplomacyManager.getRelation(livingEntity.getTeam().getName(), claim.getOwnerFactionStringID()) == RecruitsDiplomacyManager.DiplomacyStatus.ALLY);
+                            && (livingEntity.getTeam().getName().equals(claim.getOwnerFactionStringID()) || TeamEvents.recruitsDiplomacyManager.getRelation(livingEntity.getTeam().getName(), claim.getOwnerFactionStringID()) == RecruitsDiplomacyManager.DiplomacyStatus.ALLY));
 
             int attackerSize = attackers.size();
             int defendersSize = defenders.size();
@@ -115,10 +117,14 @@ public class ClaimEvents {
                         recruitsClaimManager.broadcastClaimsToAll(level);
                         return;
                     }
+                    List<ServerPlayer> players = attackers.stream().filter(livingEntity -> livingEntity instanceof ServerPlayer).map(e -> (ServerPlayer) e).toList();
+                    recruitsClaimManager.broadcastClaimUpdateTo(claim, players);
+                    players = defenders.stream().filter(livingEntity -> livingEntity instanceof ServerPlayer).map(e -> (ServerPlayer) e).toList();
+                    recruitsClaimManager.broadcastClaimUpdateTo(claim, players);
                 }
             }
             //initial
-            else if(defendersSize < attackerSize && attackerSize >= RecruitsServerConfig.SiegeClaimsRecruitsAmount.get()){
+            else if(attackerSize >= RecruitsServerConfig.SiegeClaimsRecruitsAmount.get()){
                 claim.setUnderSiege( true, level);
                 recruitsClaimManager.broadcastClaimsToAll(level);
             }

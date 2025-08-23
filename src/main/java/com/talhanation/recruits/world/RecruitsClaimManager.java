@@ -3,11 +3,13 @@ package com.talhanation.recruits.world;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.TeamEvents;
 import com.talhanation.recruits.config.RecruitsServerConfig;
+import com.talhanation.recruits.network.MessageToClientUpdateClaim;
 import com.talhanation.recruits.network.MessageToClientUpdateClaims;
 import com.talhanation.recruits.network.MessageToClientUpdateCommandScreen;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.network.PacketDistributor;
@@ -82,6 +84,15 @@ public class RecruitsClaimManager {
         for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
             Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player),
                     new MessageToClientUpdateClaims(this.getAllClaims(), RecruitsServerConfig.ClaimingCost.get(), RecruitsServerConfig.ChunkCost.get(), RecruitsServerConfig.CascadeThePriceOfClaims.get(), TeamEvents.getCurrency()));
+        }
+    }
+
+    public void broadcastClaimUpdateTo(RecruitsClaim claim, List<ServerPlayer> players) {
+        if (claim == null || players == null || players.isEmpty()) return;
+
+        for (ServerPlayer player : players) {
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player),
+                    new MessageToClientUpdateClaim(claim));
         }
     }
 }

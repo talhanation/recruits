@@ -59,8 +59,8 @@ minecraft {
 
             Random rnd = new Random()
 
-            args = ['--username', 'talhanation']
-            //args = ['--username', 'ezgination']
+            //args = ['--username', 'talhanation']
+            args = ['--username', 'ezgination']
 
             mods {
                 'recruits' {
