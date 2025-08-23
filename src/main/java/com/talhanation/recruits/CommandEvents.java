@@ -564,6 +564,7 @@ public class CommandEvents {
 
     public static void onRestCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean should) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
+            onClearTargetButton(player_uuid, recruit, group);
             recruit.setShouldRest(should);
         }
     }
