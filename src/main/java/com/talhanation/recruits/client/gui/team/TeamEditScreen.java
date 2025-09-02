@@ -388,6 +388,8 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
         addRenderableOnly(new BlackShowingTextField(guiLeft + textsX, guiTop + imageHeight - widgetsY + (20 + gap ) * 2, 60, 20, TEAM_COLOR));
         addRenderableOnly(new BlackShowingTextField(guiLeft + textsX, guiTop + imageHeight - widgetsY + (20 + gap ) * 3, 60, 20, UNITS_COLOR));
         addRenderableOnly(new BlackShowingTextField(guiLeft + textsX, guiTop + imageHeight - widgetsY + (20 + gap ) * 4, 60, 20, MAX_RECRUITS));
+
+        saveButton.setTooltip(getErrorMessage());
     }
 
     private void calculateCost() {
@@ -530,14 +532,31 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
 
     private boolean checkCreationCondition(){
         boolean nameLength = this.textFieldTeamName != null && this.textFieldTeamName.getValue().length() >= 3 && this.textFieldTeamName.getValue().length() <= 32;
-        boolean sufficientEmeralds =  playerCurrencyCount >= creationPrice || player.isCreative();
-        boolean bannerNotEmpty = this.banner != null && !this.banner.isEmpty() && !RecruitsTeamManager.isBannerBlank(banner);
-        return bannerNotEmpty && nameLength && leaderInfo != null && sufficientEmeralds;
+        boolean sufficientEmeralds = player.isCreative() || getPlayerCurrencyAmount() >= factionCreationPrice;
+        boolean bannerNotEmpty = this.banner != null && !this.banner.isEmpty() && !RecruitsTeamManager.isBannerBlank(this.banner);
+        boolean bannerNotInUse = this.banner != null && !RecruitsTeamManager.isBannerInUse(this.banner.serializeNBT(), factions);
+        boolean factionNameOK = !RecruitsTeamManager.isNameInUse(this.textFieldTeamName.getValue(), factions);
+
+        return bannerNotInUse && bannerNotEmpty && factionNameOK && nameLength && leaderInfo != null && sufficientEmeralds;
     }
 
     private boolean checkEditCondition(){
         boolean nameLength = this.textFieldTeamName != null && this.textFieldTeamName.getValue().length() >= 3 && this.textFieldTeamName.getValue().length() <= 32;
-        boolean sufficientEmeralds = playerCurrencyCount >= totalCost || player.isCreative();
+        boolean sufficientEmeralds = getPlayerCurrencyAmount() >= totalCost || player.isCreative();
+        boolean nameEquals = this.textFieldTeamName.getValue().equals(ownFaction.getTeamDisplayName());
+        boolean displayNameOK = nameEquals || !RecruitsTeamManager.isDisplayNameInUse(this.textFieldTeamName.getValue(), factions) && !RecruitsTeamManager.isNameInUse(this.textFieldTeamName.getValue(), factions);
+        boolean bannerNotEmpty =  true;
+
+        if (banner != null && !banner.isEmpty()) {
+            if(RecruitsTeamManager.isBannerBlank(banner)) {
+                bannerNotEmpty = false;
+            }
+            else if (!ItemStack.isSameItemSameTags(banner, ItemStack.of(ownFaction.getBanner())) && RecruitsTeamManager.isBannerInUse(banner.serializeNBT(), factions)) {
+                bannerNotEmpty = false;
+            }
+        }
+
+        boolean bannerNotInUse = this.banner != null && !RecruitsTeamManager.isBannerInUse(this.banner.serializeNBT(), factions);
 
         return nameLength && leaderInfo != null && sufficientEmeralds && hasChanges;
     }
@@ -559,7 +578,11 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
             }
         }
         calculateCost();
-        if(saveButton != null) saveButton.active = checkEditCondition();
+        if(saveButton != null){
+            saveButton.active = ownFaction != null ? checkEditCondition() : checkCreationCondition();
+            this.saveButton.setTooltip(getErrorMessage());
+        }
+
     }
 
     private void onTextInput(String string) {
@@ -571,6 +594,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
             saveButton.active = checkEditCondition();
         }
         this.teamNameSavedValue = string;
+        this.saveButton.setTooltip(getErrorMessage());
     }
 
     public void onPlayerInventoryChanged(){
@@ -594,6 +618,114 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
 
     public void removed() {
         super.removed();
-        recruitsTeam = null;
+    }
+
+    private List<FactionCreationError> getCreationErrors() {
+        List<FactionCreationError> errors = new ArrayList<>();
+
+        if (textFieldTeamName == null || textFieldTeamName.getValue().length() < 3) {
+            errors.add(FactionCreationError.NAME_TOO_SHORT);
+        }
+        else if (textFieldTeamName.getValue().length() > 32) {
+            errors.add(FactionCreationError.NAME_TOO_LONG);
+        }
+        else if (RecruitsTeamManager.isNameInUse(textFieldTeamName.getValue(), factions)) {
+            errors.add(FactionCreationError.NAME_ALREADY_IN_USE);
+        }
+
+        if (!(player.isCreative() || getPlayerCurrencyAmount() >= factionCreationPrice)) {
+            errors.add(FactionCreationError.INSUFFICIENT_EMERALDS);
+        }
+
+        if (banner == null || banner.isEmpty() || RecruitsTeamManager.isBannerBlank(banner)) {
+            errors.add(FactionCreationError.BANNER_EMPTY);
+        }
+        else if (RecruitsTeamManager.isBannerInUse(banner.serializeNBT(), factions)) {
+            errors.add(FactionCreationError.BANNER_IN_USE);
+        }
+
+        if (leaderInfo == null) {
+            errors.add(FactionCreationError.LEADER_MISSING);
+        }
+
+        return errors;
+    }
+
+    private List<FactionCreationError> getEditingErrors() {
+        List<FactionCreationError> errors = new ArrayList<>();
+
+        String newName = textFieldTeamName != null ? textFieldTeamName.getValue() : "";
+
+        if (newName.length() < 3) {
+            errors.add(FactionCreationError.NAME_TOO_SHORT);
+        }
+        else if (newName.length() > 32) {
+            errors.add(FactionCreationError.NAME_TOO_LONG);
+        }
+        else if (!newName.equals(ownFaction.getTeamDisplayName())
+                && RecruitsTeamManager.isDisplayNameInUse(newName, factions)) {
+            errors.add(FactionCreationError.NAME_ALREADY_IN_USE);
+        }
+
+        if (!(player.isCreative() || getPlayerCurrencyAmount() >= totalCost)) {
+            errors.add(FactionCreationError.INSUFFICIENT_EMERALDS);
+        }
+
+        if (banner != null && !banner.isEmpty()) {
+            if(RecruitsTeamManager.isBannerBlank(banner)) {
+                errors.add(FactionCreationError.BANNER_EMPTY);
+            }
+            else if (!ItemStack.isSameItemSameTags(banner, ItemStack.of(ownFaction.getBanner())) && RecruitsTeamManager.isBannerInUse(banner.serializeNBT(), factions)) {
+                errors.add(FactionCreationError.BANNER_IN_USE);
+            }
+        }
+
+        if (leaderInfo == null) {
+            errors.add(FactionCreationError.LEADER_MISSING);
+        }
+
+        if (!hasChanges) {
+            errors.add(FactionCreationError.NO_CHANGES);
+        }
+
+        return errors;
+    }
+
+    private Tooltip getErrorMessage() {
+        List<FactionCreationError> errors = ownFaction != null ? getEditingErrors(): getCreationErrors();
+
+        if (errors.isEmpty()) {
+            return Tooltip.create(Component.empty());
+        }
+
+        // Ersten Fehler oder eine Liste anzeigen
+        MutableComponent tooltip = Component.literal("");
+        for (int i = 0; i < errors.size(); i++) {
+            tooltip.append(Component.literal("- ").append(errors.get(i).getMessage()));
+            if (i < errors.size() - 1) {
+                tooltip.append(Component.literal("\n"));
+            }
+        }
+        return Tooltip.create(tooltip);
+    }
+
+    public enum FactionCreationError {
+        NAME_TOO_SHORT(Component.translatable("gui.recruits.error.name_too_short")),
+        NAME_TOO_LONG(Component.translatable("gui.recruits.error.name_too_long")),
+        NAME_ALREADY_IN_USE(Component.translatable("gui.recruits.error.name_in_use")),
+        INSUFFICIENT_EMERALDS(Component.translatable("gui.recruits.error.not_enough_emeralds")),
+        BANNER_EMPTY(Component.translatable("gui.recruits.error.banner_empty")),
+        BANNER_IN_USE(Component.translatable("gui.recruits.error.banner_in_use")),
+        NO_CHANGES(Component.translatable("gui.recruits.error.no_changes")),
+        LEADER_MISSING(Component.translatable("gui.recruits.error.leader_missing"));
+        private final Component message;
+
+        FactionCreationError(Component message) {
+            this.message = message;
+        }
+
+        public Component getMessage() {
+            return message;
+        }
     }
 }

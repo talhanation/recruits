@@ -22,6 +22,7 @@
   "category.recruits" : "Recruits",
   "key.recruits.command_screen_key": "Open Command Screen",
   "key.recruits.team_screen_key": "Open Faction Screen",
+   "key.recruits.map_screen_key": "Open Claim-Map Screen",
 
   "gui.recruits.inv.health" : "Hp:",
   "gui.recruits.inv.level": "Lvl:",
@@ -506,5 +507,14 @@
    "chat.recruits.text.siegeSuccessAttacker": "%s has been captured successfully!",
    "chat.recruits.text.siegeSuccessDefender": "%s has been lost!",
    "chat.recruits.text.siegeFailedAttacker": "Siege on %s has failed!",
-   "chat.recruits.text.siegeFailedDefender": "Siege on %s has been repelled!"
+   "chat.recruits.text.siegeFailedDefender": "Siege on %s has been repelled!",
+
+   "gui.recruits.error.name_too_short": "Name too short!",
+   "gui.recruits.error.name_too_long": "Name too long!",
+   "gui.recruits.error.name_in_use": "Name already in use!",
+   "gui.recruits.error.not_enough_emeralds": "Not enough emeralds!",
+   "gui.recruits.error.banner_empty" : "Banner cannot be blank!",
+   "gui.recruits.error.banner_in_use" : "Banner already in use!",
+   "gui.recruits.error.no_changes" : "No Changes.",
+   "gui.recruits.error.leader_missing": "No Leader assigned!"
  }
