@@ -9,7 +9,6 @@
     "AnimalMixin",
     "CamelMixin",
     "ClassInstanceMultiMapMixin",
-    "DoorInteractGoalMixin",
     "GoalUtilsMixin",
     "LivingEntityMixin",
     "MobMixin",
