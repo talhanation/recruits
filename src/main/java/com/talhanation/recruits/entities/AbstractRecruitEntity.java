@@ -10,6 +10,7 @@ import com.talhanation.recruits.entities.ai.async.AsyncManager;
 import com.talhanation.recruits.entities.ai.async.AsyncTaskWithCallback;
 import com.talhanation.recruits.entities.ai.compat.BlockWithWeapon;
 import com.talhanation.recruits.entities.ai.navigation.RecruitPathNavigation;
+import com.talhanation.recruits.entities.ai.navigation.RecruitsOpenDoorGoal;
 import com.talhanation.recruits.init.ModItems;
 import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
@@ -204,7 +205,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
 
         if(this.isAlive() && this.tickCount % 20 == 0 && this.getState() != 3){
-            searchForTargetsAsync();
+            this.searchForTargets();
         }
 
         LivingEntity currentTarget = this.getTarget();
@@ -212,9 +213,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     }
 
-    private void searchForTargetsAsync() {
+    public void searchForTargets() {
         if (!(this.getCommandSenderWorld() instanceof ServerLevel serverLevel)) return;
 
+        if(RecruitsServerConfig.UseAsyncTargetFinding.get()) searchForTargetsAsync(serverLevel);
+        else searchForTargetsSync(serverLevel);
+    }
+
+    private void searchForTargetsAsync(ServerLevel serverLevel) {
         AABB searchBox = this.getBoundingBox().inflate(40);
         List<LivingEntity> nearby = serverLevel.getEntitiesOfClass(
                 LivingEntity.class,
@@ -222,7 +228,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 entity -> entity != this
         );
 
-        //MULTI THREADED
+        // MULTI THREADED
         Supplier<List<LivingEntity>> findTargetsTask = () -> {
             List<LivingEntity> copy = new ArrayList<>(nearby);
             copy.removeIf(potTarget -> !targetingConditions.test(this, potTarget));
@@ -237,6 +243,26 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         };
 
         AsyncManager.executor.execute(new AsyncTaskWithCallback<>(findTargetsTask, handleTargets, serverLevel));
+    }
+
+    private void searchForTargetsSync(ServerLevel serverLevel) {
+        AABB searchBox = this.getBoundingBox().inflate(40);
+        List<LivingEntity> nearby = serverLevel.getEntitiesOfClass(
+                LivingEntity.class,
+                searchBox,
+                entity -> entity != this
+        );
+
+        nearby.removeIf(potTarget -> !targetingConditions.test(this, potTarget));
+        nearby.sort(Comparator.comparingDouble(e -> e.distanceToSqr(this)));
+
+        if (!nearby.isEmpty()) {
+            LivingEntity target = nearby.stream()
+                    .limit(10)
+                    .toList()
+                    .get(this.getRandom().nextInt(Math.min(10, nearby.size())));
+            this.setTarget(target);
+        }
     }
 
     private void recruitCheckDespawn() {
