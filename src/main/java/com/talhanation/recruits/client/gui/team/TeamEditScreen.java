@@ -558,7 +558,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
 
         boolean bannerNotInUse = this.banner != null && !RecruitsTeamManager.isBannerInUse(this.banner.serializeNBT(), factions);
 
-        return nameLength && leaderInfo != null && sufficientEmeralds && hasChanges;
+        return bannerNotInUse && bannerNotEmpty && nameLength && leaderInfo != null && sufficientEmeralds && hasChanges && displayNameOK;
     }
 
     @Override
