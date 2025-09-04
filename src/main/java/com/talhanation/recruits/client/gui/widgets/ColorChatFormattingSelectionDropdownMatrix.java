@@ -1,6 +1,6 @@
 package com.talhanation.recruits.client.gui.widgets;
 
-import com.talhanation.recruits.client.gui.team.TeamEditScreen;
+import com.talhanation.recruits.client.gui.faction.TeamEditScreen;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;

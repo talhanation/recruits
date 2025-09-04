@@ -1,6 +1,6 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -50,7 +50,7 @@ public class MessageAssignGroupToTeamMate implements Message<MessageAssignGroupT
         for (AbstractRecruitEntity recruit : list) {
             UUID recruitOwner = recruit.getOwnerUUID();
             if (recruitOwner != null && recruitOwner.equals(owner) && recruit.getGroup() == group)
-                TeamEvents.assignToTeamMate(serverPlayer, newOwner, recruit);
+                FactionEvents.assignToTeamMate(serverPlayer, newOwner, recruit);
         }
     }
     public MessageAssignGroupToTeamMate fromBytes(FriendlyByteBuf buf) {

@@ -13,7 +13,7 @@ import java.util.Map;
 public class RecruitsTeamSaveData extends SavedData {
 
     public static final String FILE_ID = "recruitsTeamSaveData";
-    private Map<String, RecruitsTeam> teams = new HashMap<>();
+    private Map<String, RecruitsFaction> teams = new HashMap<>();
 
     public static RecruitsTeamSaveData get(ServerLevel level) {
         DimensionDataStorage storage = level.getDataStorage();
@@ -28,33 +28,33 @@ public class RecruitsTeamSaveData extends SavedData {
         return data;
     }
 
-    private static Map<String, RecruitsTeam> loadTeams(ListTag list) {
-        Map<String, RecruitsTeam> loadedTeams = new HashMap<>();
+    private static Map<String, RecruitsFaction> loadTeams(ListTag list) {
+        Map<String, RecruitsFaction> loadedTeams = new HashMap<>();
         for (int i = 0; i < list.size(); ++i) {
             CompoundTag nbt = list.getCompound(i);
-            RecruitsTeam recruitsTeam = new RecruitsTeam();
+            RecruitsFaction recruitsFaction = new RecruitsFaction();
 
-            recruitsTeam.setStringID(nbt.getString("TeamName"));
-            recruitsTeam.setTeamDisplayName(nbt.getString("TeamDisplayName"));
-            recruitsTeam.setTeamLeaderID(nbt.getUUID("TeamLeaderID"));
-            recruitsTeam.setTeamLeaderName(nbt.getString("TeamLeaderName"));
-            recruitsTeam.setBanner((CompoundTag) nbt.get("TeamBanner"));
-            recruitsTeam.setPlayers(nbt.getInt("Players"));
-            recruitsTeam.setNPCs(nbt.getInt("NPCs"));
+            recruitsFaction.setStringID(nbt.getString("TeamName"));
+            recruitsFaction.setTeamDisplayName(nbt.getString("TeamDisplayName"));
+            recruitsFaction.setTeamLeaderID(nbt.getUUID("TeamLeaderID"));
+            recruitsFaction.setTeamLeaderName(nbt.getString("TeamLeaderName"));
+            recruitsFaction.setBanner((CompoundTag) nbt.get("TeamBanner"));
+            recruitsFaction.setPlayers(nbt.getInt("Players"));
+            recruitsFaction.setNPCs(nbt.getInt("NPCs"));
 
-            recruitsTeam.setMaxPlayers(nbt.getInt("MaxPlayers"));
-            recruitsTeam.setMaxNPCs(nbt.getInt("MaxNPCs"));
+            recruitsFaction.setMaxPlayers(nbt.getInt("MaxPlayers"));
+            recruitsFaction.setMaxNPCs(nbt.getInt("MaxNPCs"));
 
             ListTag joinRequestsList = nbt.getList("JoinRequests", 8);
             for (int j = 0; j < joinRequestsList.size(); ++j) {
-                recruitsTeam.getJoinRequests().add(joinRequestsList.getString(j));
+                recruitsFaction.getJoinRequests().add(joinRequestsList.getString(j));
             }
 
-            recruitsTeam.setUnitColor(nbt.getByte("Color"));
-            recruitsTeam.setTeamColor(nbt.getInt("TeamColor"));
-            recruitsTeam.setMaxNPCsPerPlayer(nbt.getInt("maxNpcsPerPlayer"));
+            recruitsFaction.setUnitColor(nbt.getByte("Color"));
+            recruitsFaction.setTeamColor(nbt.getInt("TeamColor"));
+            recruitsFaction.setMaxNPCsPerPlayer(nbt.getInt("maxNpcsPerPlayer"));
 
-            loadedTeams.put(recruitsTeam.getStringID(), recruitsTeam);
+            loadedTeams.put(recruitsFaction.getStringID(), recruitsFaction);
         }
         return loadedTeams;
     }
@@ -67,7 +67,7 @@ public class RecruitsTeamSaveData extends SavedData {
 
     private ListTag saveTeams() {
         ListTag listTag = new ListTag();
-        for (RecruitsTeam team : teams.values()) {
+        for (RecruitsFaction team : teams.values()) {
             CompoundTag nbt = new CompoundTag();
             nbt.putString("TeamName", team.getStringID());
             nbt.putString("TeamDisplayName", team.getTeamDisplayName());
@@ -94,11 +94,11 @@ public class RecruitsTeamSaveData extends SavedData {
         return listTag;
     }
 
-    public Map<String, RecruitsTeam> getTeams() {
+    public Map<String, RecruitsFaction> getTeams() {
         return teams;
     }
 
-    public void setTeams(Map<String, RecruitsTeam> teams) {
+    public void setTeams(Map<String, RecruitsFaction> teams) {
         this.teams = teams;
     }
 }

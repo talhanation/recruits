@@ -1,14 +1,13 @@
-package com.talhanation.recruits.client.gui.team;
+package com.talhanation.recruits.client.gui.faction;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import com.talhanation.recruits.client.gui.player.PlayersList;
 import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
 import com.talhanation.recruits.network.MessageAddPlayerToTeam;
 import com.talhanation.recruits.network.MessageRemoveFromTeam;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
@@ -33,14 +32,14 @@ public class TeamManageScreen extends RecruitsScreenBase {
     private static final MutableComponent PLAYER_PROMOTION = Component.translatable("gui.recruits.team.playerPromotion");
     private static final MutableComponent UNIT_MANAGEMENT = Component.translatable("gui.recruits.team.unitManagement");
     private final Player player;
-    private final RecruitsTeam recruitsTeam;
+    private final RecruitsFaction recruitsFaction;
     private final Screen parent;
 
-    public TeamManageScreen(Screen parent, Player player, RecruitsTeam recruitsTeam) {
+    public TeamManageScreen(Screen parent, Player player, RecruitsFaction recruitsFaction) {
         super(TITLE, 195,160);
         this.parent = parent;
         this.player = player;
-        this.recruitsTeam = recruitsTeam;
+        this.recruitsFaction = recruitsFaction;
     }
 
     @Override
@@ -57,8 +56,8 @@ public class TeamManageScreen extends RecruitsScreenBase {
             btn -> {
                 minecraft.setScreen(new SelectPlayerScreen(this, player, TOOLTIP_ADD_PLAYER,  ADD_PLAYER, Component.literal(""), false, PlayersList.FilterType.TEAM_JOIN_REQUEST,
                         (playerInfo) -> {
-                            recruitsTeam.removeJoinRequest(playerInfo.getName());
-                            Main.SIMPLE_CHANNEL.sendToServer(new MessageAddPlayerToTeam(recruitsTeam.getStringID(), playerInfo.getName()));
+                            recruitsFaction.removeJoinRequest(playerInfo.getName());
+                            Main.SIMPLE_CHANNEL.sendToServer(new MessageAddPlayerToTeam(recruitsFaction.getStringID(), playerInfo.getName()));
                         }
                 ));
             }

@@ -1,12 +1,10 @@
 package com.talhanation.recruits.client.gui.diplomacy;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
-import com.talhanation.recruits.network.MessageToServerRequestUpdateDiplomacyList;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -19,6 +17,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 import java.util.Locale;
+
+import static com.talhanation.recruits.client.ClientManager.ownFaction;
+
 @OnlyIn(Dist.CLIENT)
 public class DiplomacyTeamListScreen extends ListScreenBase {
 
@@ -40,8 +41,7 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
     protected int units;
 
     protected Screen parent;
-    private RecruitsTeam selected;
-    protected RecruitsTeam ownTeam;
+    private RecruitsFaction selected;
     private Button backButton;
     private Button setStanceButton;
     private final boolean isLeader;
@@ -64,8 +64,6 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
     protected void init() {
         super.init();
         this.clearWidgets();
-
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdateDiplomacyList());
 
         gapTop = (int) (this.height * 0.1);
         gapBottom = (int) (this.height * 0.1);
@@ -109,10 +107,10 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
 
         setStanceButton = new ExtendedButton(guiLeft + 7, buttonY, 100, 20, this.isLeader ? SET_STANCE : SHOW_STANCE,
                 button -> {
-                     minecraft.setScreen(new DiplomacyEditScreen(this, ownTeam, selected, ClientManager.getRelation(ownTeam.getStringID(), selected.getStringID()), ClientManager.getRelation(selected.getStringID(), ownTeam.getStringID()), isLeader));
+                     minecraft.setScreen(new DiplomacyEditScreen(this, selected));
                      this.selected = null;
                 });
-        setStanceButton.active = ownTeam != null && ownTeam.getTeamLeaderUUID().equals(this.minecraft.player.getUUID());
+        setStanceButton.active = ownFaction != null && ownFaction.getTeamLeaderUUID().equals(this.minecraft.player.getUUID());
 
         addRenderableWidget(setStanceButton);
 
@@ -162,7 +160,6 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
         neutralsButton.active = diplomacyFilter == DiplomacyTeamList.DiplomacyFilter.NEUTRALS;
 
         list.diplomacyFilter = diplomacyFilter;
-        list.hasUpdated = false;
     }
     @Override
     public void tick() {
@@ -236,7 +233,7 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
     }
 
 
-    public RecruitsTeam getSelected() {
+    public RecruitsFaction getSelected() {
         return this.selected;
     }
 

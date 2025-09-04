@@ -1,6 +1,6 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.client.gui.team.TakeOverScreen;
+import com.talhanation.recruits.client.gui.faction.TakeOverScreen;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.client.Minecraft;

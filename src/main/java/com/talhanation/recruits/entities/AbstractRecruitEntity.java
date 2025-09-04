@@ -17,7 +17,7 @@ import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -41,7 +41,6 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
-import net.minecraft.world.entity.ai.goal.OpenDoorGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
@@ -813,7 +812,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (this.getTeam() != null){
 
             if(!this.getCommandSenderWorld().isClientSide() && !keepTeam)
-                TeamEvents.removeRecruitFromTeam(this, this.getTeam(), (ServerLevel) this.getCommandSenderWorld());
+                FactionEvents.removeRecruitFromTeam(this, this.getTeam(), (ServerLevel) this.getCommandSenderWorld());
         }
     }
 
@@ -1157,7 +1156,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 }
             }
             else if(this.isOwned() && this.getTeam() != null && !player.getUUID().equals(this.getOwnerUUID()) &&
-                    TeamEvents.recruitsTeamManager.getTeamByStringID(this.getTeam().getName()).getTeamLeaderUUID().equals(player.getUUID())){
+                    FactionEvents.recruitsFactionManager.getTeamByStringID(this.getTeam().getName()).getTeamLeaderUUID().equals(player.getUUID())){
                     //this will not work:
                     Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientOpenTakeOverScreen(this.getUUID()));
             }
@@ -1192,7 +1191,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setState(0);
             this.despawnTimer = -1;
 
-            if(!this.getCommandSenderWorld().isClientSide() && ownerTeam != null) TeamEvents.addRecruitToTeam(this, ownerTeam, (ServerLevel) this.getCommandSenderWorld());
+            if(!this.getCommandSenderWorld().isClientSide() && ownerTeam != null) FactionEvents.addRecruitToTeam(this, ownerTeam, (ServerLevel) this.getCommandSenderWorld());
 
             int i = this.random.nextInt(4);
             switch (i) {
@@ -1333,7 +1332,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     **/
     public boolean isAlliedTo(@NotNull Team team) {
         if(!this.getCommandSenderWorld().isClientSide() && this.getTeam() != null){
-            RecruitsDiplomacyManager.DiplomacyStatus status = TeamEvents.recruitsDiplomacyManager.getRelation(this.getTeam().getName(), team.getName());
+            RecruitsDiplomacyManager.DiplomacyStatus status = FactionEvents.recruitsDiplomacyManager.getRelation(this.getTeam().getName(), team.getName());
             return status == RecruitsDiplomacyManager.DiplomacyStatus.ALLY;
         }
         return super.isAlliedTo(team);
@@ -1349,10 +1348,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 }
                 if(this.isOwned()){
                     RecruitEvents.recruitsPlayerUnitManager.removeRecruits(this.getOwnerUUID(), 1);
-                    TeamEvents.removeRecruitFromTeam(this, this.getTeam(), (ServerLevel) this.getCommandSenderWorld());
+                    FactionEvents.removeRecruitFromTeam(this, this.getTeam(), (ServerLevel) this.getCommandSenderWorld());
                 }
                 if(this.getTeam() != null){
-                    TeamEvents.recruitsTeamManager.getTeamByStringID(this.getTeam().getName()).addNPCs(-1);
+                    FactionEvents.recruitsFactionManager.getTeamByStringID(this.getTeam().getName()).addNPCs(-1);
                 }
             }
         }
@@ -1834,15 +1833,15 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 if (ownerTeam == null) {
                     if(recruitTeam != null){
                         //Remove from current team because ownerTeam is null
-                        TeamEvents.removeRecruitFromTeam(this, recruitTeam, (ServerLevel) this.getCommandSenderWorld());
-                        TeamEvents.addNPCToData((ServerLevel) this.getCommandSenderWorld(), recruitTeam.getName(), -1 );
+                        FactionEvents.removeRecruitFromTeam(this, recruitTeam, (ServerLevel) this.getCommandSenderWorld());
+                        FactionEvents.addNPCToData((ServerLevel) this.getCommandSenderWorld(), recruitTeam.getName(), -1 );
                     }
                     //recruit team is also null, so no do nothing
                     needsTeamUpdate = false;
                 }
                 else if(recruitTeam == null){
-                    TeamEvents.addRecruitToTeam(this, ownerTeam, (ServerLevel) this.getCommandSenderWorld());
-                    TeamEvents.addNPCToData((ServerLevel) this.getCommandSenderWorld(), ownerTeam.getName(), +1 );
+                    FactionEvents.addRecruitToTeam(this, ownerTeam, (ServerLevel) this.getCommandSenderWorld());
+                    FactionEvents.addNPCToData((ServerLevel) this.getCommandSenderWorld(), ownerTeam.getName(), +1 );
                     needsTeamUpdate = false;
                 }
                 else if(recruitTeam == ownerTeam){
@@ -1850,11 +1849,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     needsTeamUpdate = false;
                 }
                 else{
-                    TeamEvents.removeRecruitFromTeam(this, recruitTeam, (ServerLevel) this.getCommandSenderWorld());
-                    TeamEvents.addNPCToData((ServerLevel) this.getCommandSenderWorld(), recruitTeam.getName(), -1 );
+                    FactionEvents.removeRecruitFromTeam(this, recruitTeam, (ServerLevel) this.getCommandSenderWorld());
+                    FactionEvents.addNPCToData((ServerLevel) this.getCommandSenderWorld(), recruitTeam.getName(), -1 );
 
-                    TeamEvents.addRecruitToTeam(this, ownerTeam, (ServerLevel) this.getCommandSenderWorld());
-                    TeamEvents.addNPCToData((ServerLevel) this.getCommandSenderWorld(), ownerTeam.getName(), +1 );
+                    FactionEvents.addRecruitToTeam(this, ownerTeam, (ServerLevel) this.getCommandSenderWorld());
+                    FactionEvents.addNPCToData((ServerLevel) this.getCommandSenderWorld(), ownerTeam.getName(), +1 );
                     needsTeamUpdate = false;
                 }
             }
@@ -1863,9 +1862,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     private void updateColor(String name) {
         if(!this.getCommandSenderWorld().isClientSide()){
-            RecruitsTeam recruitsTeam = TeamEvents.recruitsTeamManager.getTeamByStringID(name);
-            if(recruitsTeam != null && recruitsTeam.getUnitColor() != this.getColor()){
-                this.setColor(recruitsTeam.getUnitColor());
+            RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getTeamByStringID(name);
+            if(recruitsFaction != null && recruitsFaction.getUnitColor() != this.getColor()){
+                this.setColor(recruitsFaction.getUnitColor());
                 this.needsColorUpdate = false;
             }
         }
@@ -1877,7 +1876,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             Team ownerTeam = player.getTeam();
             String stringId = ownerTeam != null ? ownerTeam.getName() : "";
             boolean canHire = RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(stringId, player.getUUID());
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateHireScreen(TeamEvents.getCurrency(), canHire));
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateHireScreen(FactionEvents.getCurrency(), canHire));
             NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {

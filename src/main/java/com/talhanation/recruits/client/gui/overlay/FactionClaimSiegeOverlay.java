@@ -2,9 +2,9 @@ package com.talhanation.recruits.client.gui.overlay;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
-import com.talhanation.recruits.client.gui.team.TeamEditScreen;
+import com.talhanation.recruits.client.gui.faction.TeamEditScreen;
 import com.talhanation.recruits.world.RecruitsClaim;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -16,8 +16,8 @@ public class FactionClaimSiegeOverlay {
     private static final ResourceLocation CENTER_ICON = new ResourceLocation("recruits:textures/gui/image/enemy.png");
     private static final int ANIMATION_TIME = 1000;
     private static String claimName;
-    private static RecruitsTeam defenderTeam;
-    private static RecruitsTeam attackerTeam;
+    private static RecruitsFaction defenderTeam;
+    private static RecruitsFaction attackerTeam;
     private static float currentHealth;
     private static float maxHealth;
     private static BannerRenderer defenderBanner;
@@ -27,7 +27,7 @@ public class FactionClaimSiegeOverlay {
     private static boolean animatingOut = false;
     private static long animationStart = -1;
 
-    public static void activate(String claimName, RecruitsTeam defender, RecruitsTeam attacker, float currentHealth, float maxHealth) {
+    public static void activate(String claimName, RecruitsFaction defender, RecruitsFaction attacker, float currentHealth, float maxHealth) {
         FactionClaimSiegeOverlay.claimName = claimName;
         FactionClaimSiegeOverlay.defenderTeam = defender;
         FactionClaimSiegeOverlay.attackerTeam = attacker;

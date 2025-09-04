@@ -5,7 +5,7 @@ import com.talhanation.recruits.client.gui.overlay.FactionClaimBannerOverlay;
 import com.talhanation.recruits.client.gui.overlay.FactionClaimSiegeOverlay;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsClaimManager;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
@@ -42,8 +42,8 @@ public class ClientPlayerEvents {
             case IN_CLAIM -> {
                 if(claim != null){
                     if(claim.isUnderSiege){
-                        RecruitsTeam defender = claim.getOwnerFaction();
-                        RecruitsTeam attacker = claim.attackingParties != null && !claim.attackingParties.isEmpty() ? claim.attackingParties.get(0) : null;
+                        RecruitsFaction defender = claim.getOwnerFaction();
+                        RecruitsFaction attacker = claim.attackingParties != null && !claim.attackingParties.isEmpty() ? claim.attackingParties.get(0) : null;
 
                         FactionClaimBannerOverlay.deactivate();
 

@@ -1,8 +1,7 @@
 package com.talhanation.recruits.client.gui.component;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.toasts.ToastComponent;
 import net.minecraft.client.renderer.GameRenderer;
@@ -15,9 +14,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class RecruitsTeamImageToast extends ImageToast {
 
     private final BannerRenderer bannerRenderer;
-    public RecruitsTeamImageToast(ResourceLocation image, Component title, Component description, RecruitsTeam recruitsTeam) {
+    public RecruitsTeamImageToast(ResourceLocation image, Component title, Component description, RecruitsFaction recruitsFaction) {
         super(image, title, description);
-        this.bannerRenderer = new BannerRenderer(recruitsTeam);
+        this.bannerRenderer = new BannerRenderer(recruitsFaction);
     }
 
     @Override

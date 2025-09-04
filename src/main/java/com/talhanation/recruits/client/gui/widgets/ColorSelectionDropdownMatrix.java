@@ -1,9 +1,7 @@
 package com.talhanation.recruits.client.gui.widgets;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.talhanation.recruits.client.gui.team.TeamEditScreen;
+import com.talhanation.recruits.client.gui.faction.TeamEditScreen;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;

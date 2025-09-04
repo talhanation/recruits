@@ -13,15 +13,12 @@ import com.talhanation.recruits.world.PillagerPatrolSpawn;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsPlayerUnitManager;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
-import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -35,8 +32,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.scores.Team;
@@ -49,7 +44,6 @@ import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
@@ -356,10 +350,10 @@ public class RecruitEvents {
         String attackerTeamName = attackerTeam.getName();
         String targetTeamName = targetTeam.getName();
 
-        if (TeamEvents.recruitsDiplomacyManager != null) {
-            TeamEvents.recruitsDiplomacyManager.setRelation(attackerTeamName, targetTeamName,
+        if (FactionEvents.recruitsDiplomacyManager != null) {
+            FactionEvents.recruitsDiplomacyManager.setRelation(attackerTeamName, targetTeamName,
                     RecruitsDiplomacyManager.DiplomacyStatus.ENEMY, level);
-            TeamEvents.recruitsDiplomacyManager.setRelation(targetTeamName, attackerTeamName,
+            FactionEvents.recruitsDiplomacyManager.setRelation(targetTeamName, attackerTeamName,
                     RecruitsDiplomacyManager.DiplomacyStatus.ENEMY, level);
         }
     }
@@ -440,26 +434,26 @@ public class RecruitEvents {
     }
 
     public static boolean isAlly(Team team1, Team team2) {
-        if (team1 == null || team2 == null || TeamEvents.recruitsDiplomacyManager == null) {
+        if (team1 == null || team2 == null || FactionEvents.recruitsDiplomacyManager == null) {
             return false;
         }
-        return TeamEvents.recruitsDiplomacyManager.getRelation(team1.getName(), team2.getName()) ==
+        return FactionEvents.recruitsDiplomacyManager.getRelation(team1.getName(), team2.getName()) ==
                 RecruitsDiplomacyManager.DiplomacyStatus.ALLY;
     }
 
     public static boolean isEnemy(Team team1, Team team2) {
-        if (team1 == null || team2 == null || TeamEvents.recruitsDiplomacyManager == null) {
+        if (team1 == null || team2 == null || FactionEvents.recruitsDiplomacyManager == null) {
             return false;
         }
-        return TeamEvents.recruitsDiplomacyManager.getRelation(team1.getName(), team2.getName()) ==
+        return FactionEvents.recruitsDiplomacyManager.getRelation(team1.getName(), team2.getName()) ==
                 RecruitsDiplomacyManager.DiplomacyStatus.ENEMY;
     }
 
     public static boolean isNeutral(Team team1, Team team2) {
-        if (team1 == null || team2 == null || TeamEvents.recruitsDiplomacyManager == null) {
+        if (team1 == null || team2 == null || FactionEvents.recruitsDiplomacyManager == null) {
             return true;
         }
-        return TeamEvents.recruitsDiplomacyManager.getRelation(team1.getName(), team2.getName()) ==
+        return FactionEvents.recruitsDiplomacyManager.getRelation(team1.getName(), team2.getName()) ==
                 RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL;
     }
 
@@ -490,7 +484,7 @@ public class RecruitEvents {
             return false;
         }
         else {
-            RecruitsDiplomacyManager.DiplomacyStatus relation = TeamEvents.recruitsDiplomacyManager.getRelation(team.getName(), team1.getName());
+            RecruitsDiplomacyManager.DiplomacyStatus relation = FactionEvents.recruitsDiplomacyManager.getRelation(team.getName(), team1.getName());
 
             return relation != RecruitsDiplomacyManager.DiplomacyStatus.ALLY;
         }

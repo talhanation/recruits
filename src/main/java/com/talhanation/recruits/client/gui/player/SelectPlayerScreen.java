@@ -1,11 +1,10 @@
 package com.talhanation.recruits.client.gui.player;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
-import com.talhanation.recruits.network.MessageToServerRequestUpdatePlayerList;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -50,8 +49,6 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
 
     private int gapTop;
     private int gapBottom;
-    private int refreshTime = 20;
-
 
     public SelectPlayerScreen(Screen parent, Player player, Component title, Component buttonText, Component buttonTooltip, boolean includeSelf, PlayersList.FilterType filterType, Consumer<RecruitsPlayerInfo> buttonAction){
         super(title,236,0);
@@ -62,7 +59,6 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
         this.filterType = filterType;
         BUTTON_TEXT = buttonText;
         TOOLTIP_BUTTON = buttonTooltip;
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdatePlayerList());
     }
 
 
@@ -106,8 +102,8 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
         actionButton = new ExtendedButton(guiLeft + 7, buttonY, 100, 20, BUTTON_TEXT,
                 button -> {
                 buttonAction.accept(selected);
-                PlayersList.onlinePlayers.remove(selected);
-                if(playerList.recruitsTeam != null) playerList.recruitsTeam.removeJoinRequest(selected.getName());
+
+                if(ClientManager.ownFaction != null) ClientManager.ownFaction.removeJoinRequest(selected.getName());
                 this.playerList.setFocused(null);
                 this.playerList.updateEntryList();
                 this.selected = null;
@@ -128,11 +124,6 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
 
         if(playerList != null){
             playerList.tick();
-        }
-
-        if(--refreshTime <= 0){
-            refreshTime = 20;
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdatePlayerList());
         }
     }
 

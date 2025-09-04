@@ -1,9 +1,10 @@
-package com.talhanation.recruits.client.gui.team;
+package com.talhanation.recruits.client.gui.faction;
 
 
 import com.google.common.collect.Lists;
+import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +15,7 @@ public class RecruitsTeamList extends ListScreenListBase<RecruitsTeamEntry> {
     protected RecruitsTeamListScreen screen;
     protected final List<RecruitsTeamEntry> entries;
     protected String filter;
-    public static List<RecruitsTeam> teams;
+
     public RecruitsTeamList(int width, int height, int x, int y, int size, RecruitsTeamListScreen screen) {
         super(width, height, x, y, size);
         this.screen = screen;
@@ -24,19 +25,15 @@ public class RecruitsTeamList extends ListScreenListBase<RecruitsTeamEntry> {
         setRenderTopAndBottom(false);
         setRenderSelection(true);
     }
-
-    boolean hasUpdated;
     public void tick() {
-        if(!hasUpdated && teams != null){
+        if(ClientManager.factions != null){
             updateEntryList();
-            hasUpdated = true;
         }
     }
-
     public void updateEntryList() {
         entries.clear();
 
-        for (RecruitsTeam team : teams) {
+        for (RecruitsFaction team : ClientManager.factions) {
             entries.add(new RecruitsTeamEntry(screen, team));
         }
 

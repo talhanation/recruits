@@ -1,6 +1,6 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.util.FormationUtils;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
@@ -225,7 +225,7 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
             if(!potentialPlayerTargets.isEmpty()){
                 for(ServerPlayer player : potentialPlayerTargets){
                     String teamName = player.getTeam() != null ? player.getTeam().getName() : "";
-                    RecruitsPlayerInfo playerInfo = new RecruitsPlayerInfo(player.getUUID(), player.getName().getString(), TeamEvents.recruitsTeamManager.getTeamByStringID(teamName));
+                    RecruitsPlayerInfo playerInfo = new RecruitsPlayerInfo(player.getUUID(), player.getName().getString(), FactionEvents.recruitsFactionManager.getTeamByStringID(teamName));
                     int recruitsCount = countRecruits(player.getUUID());
                     int distance = (int) Math.sqrt(this.blockPosition().distSqr(player.blockPosition()));
                     String direction = getHorizontalDirection(this.blockPosition(), player.blockPosition());

@@ -5,7 +5,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import com.talhanation.recruits.client.gui.player.PlayersList;
 import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
-import com.talhanation.recruits.client.gui.team.TeamEditScreen;
+import com.talhanation.recruits.client.gui.faction.TeamEditScreen;
 import com.talhanation.recruits.client.gui.widgets.RecruitsCheckBox;
 import com.talhanation.recruits.client.gui.widgets.SelectedPlayerWidget;
 import com.talhanation.recruits.network.MessageUpdateClaim;
@@ -44,6 +44,7 @@ public class ClaimEditScreen extends RecruitsScreenBase {
     private RecruitsPlayerInfo playerInfo;
     private Button saveButton;
     private Button backButton;
+    private Button deleteButton;
     private String claimName;
     private String savedName;
     private ClaimMapScreen parent;
@@ -95,7 +96,7 @@ public class ClaimEditScreen extends RecruitsScreenBase {
         else{
             Button selectPlayerButton = addRenderableWidget(new ExtendedButton(x - 70, y - 87, 140, 20, SelectPlayerScreen.TITLE,
                 button -> {
-                    minecraft.setScreen(new SelectPlayerScreen(this, player, SelectPlayerScreen.TITLE, SelectPlayerScreen.BUTTON_SELECT, SelectPlayerScreen.BUTTON_SELECT_TOOLTIP, true, PlayersList.FilterType.NONE,
+                    minecraft.setScreen(new SelectPlayerScreen(this, player, SelectPlayerScreen.TITLE, SelectPlayerScreen.BUTTON_SELECT, SelectPlayerScreen.BUTTON_SELECT_TOOLTIP, true, PlayersList.FilterType.ANY_TEAM,
                         (playerInfo) -> {
                             this.playerInfo = playerInfo;
                             this.claim.setPlayer(playerInfo);
@@ -153,9 +154,24 @@ public class ClaimEditScreen extends RecruitsScreenBase {
                     this.claim.setBlockBreakingAllowed(this.allowBlockBreaking);
 
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(this.claim));
+
+                    this.minecraft.setScreen(this.parent);
                 });
         addRenderableWidget(saveButton);
         this.checkSaveActive();
+
+        /*
+        deleteButton = new ExtendedButton(x - 75 + 35, y + 112, 70, 20, BUTTON_DELETE,
+                button -> {
+                    ClientManager.recruitsClaims.remove(this.claim);
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageDeleteClaim(this.claim));
+
+                    this.minecraft.setScreen(this.parent);
+                });
+        addRenderableWidget(deleteButton);
+
+         */
+
     }
 
     public void checkSaveActive(){
@@ -189,6 +205,7 @@ public class ClaimEditScreen extends RecruitsScreenBase {
     private void renderClaimMiniMapAreaFramed(GuiGraphics guiGraphics, int x, int y, int width, int height, RecruitsClaim claim) {
         List<ChunkPos> chunks = claim.getClaimedChunks();
         if (chunks.isEmpty()) return;
+        if (claim.getOwnerFaction() == null) return;
 
         Minecraft mc = Minecraft.getInstance();
         Font font = mc.font;

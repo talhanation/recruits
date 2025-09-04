@@ -1,6 +1,6 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.FactionEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
@@ -31,7 +31,7 @@ public class MessageAddPlayerToTeam implements Message<MessageAddPlayerToTeam> {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         ServerLevel world = player.serverLevel();
 
-        TeamEvents.addPlayerToTeam(player, world, this.teamName, this.namePlayerToAdd);
+        FactionEvents.addPlayerToTeam(player, world, this.teamName, this.namePlayerToAdd);
     }
 
     public MessageAddPlayerToTeam fromBytes(FriendlyByteBuf buf) {

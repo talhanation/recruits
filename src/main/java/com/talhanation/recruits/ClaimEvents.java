@@ -6,7 +6,7 @@ import com.talhanation.recruits.util.ClaimUtil;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsClaimManager;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -29,7 +29,6 @@ import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ClaimEvents {
@@ -44,7 +43,6 @@ public class ClaimEvents {
 
         recruitsClaimManager = new RecruitsClaimManager();
         recruitsClaimManager.load(level);
-
     }
 
     @SubscribeEvent
@@ -80,24 +78,24 @@ public class ClaimEvents {
 
             List<LivingEntity> attackers = ClaimUtil.getLivingEntitiesInClaim(level, claim,
                     livingEntity -> livingEntity.isAlive() && livingEntity.getTeam() != null
-                            && TeamEvents.recruitsDiplomacyManager.getRelation(livingEntity.getTeam().getName(), claim.getOwnerFactionStringID()) == RecruitsDiplomacyManager.DiplomacyStatus.ENEMY);
+                            && FactionEvents.recruitsDiplomacyManager.getRelation(livingEntity.getTeam().getName(), claim.getOwnerFactionStringID()) == RecruitsDiplomacyManager.DiplomacyStatus.ENEMY);
             List<LivingEntity> defenders = ClaimUtil.getLivingEntitiesInClaim(level, claim,
                     livingEntity -> livingEntity.isAlive() && livingEntity.getTeam() != null
-                            && (livingEntity.getTeam().getName().equals(claim.getOwnerFactionStringID()) || TeamEvents.recruitsDiplomacyManager.getRelation(livingEntity.getTeam().getName(), claim.getOwnerFactionStringID()) == RecruitsDiplomacyManager.DiplomacyStatus.ALLY));
+                            && (livingEntity.getTeam().getName().equals(claim.getOwnerFactionStringID()) || FactionEvents.recruitsDiplomacyManager.getRelation(livingEntity.getTeam().getName(), claim.getOwnerFactionStringID()) == RecruitsDiplomacyManager.DiplomacyStatus.ALLY));
 
             int attackerSize = attackers.size();
             int defendersSize = defenders.size();
 
             for(LivingEntity livingEntity : defenders){
                 if(livingEntity.getTeam() == null) continue;
-                RecruitsTeam recruitsTeam = TeamEvents.recruitsTeamManager.getTeamByStringID(livingEntity.getTeam().getName());
-                if(!claim.defendingParties.contains(recruitsTeam) && claim.getOwnerFaction() != recruitsTeam) claim.defendingParties.add(recruitsTeam);
+                RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getTeamByStringID(livingEntity.getTeam().getName());
+                if(!claim.defendingParties.contains(recruitsFaction) && claim.getOwnerFaction() != recruitsFaction) claim.defendingParties.add(recruitsFaction);
             }
 
             for(LivingEntity livingEntity : attackers){
                 if(livingEntity.getTeam() == null) continue;
-                RecruitsTeam recruitsTeam = TeamEvents.recruitsTeamManager.getTeamByStringID(livingEntity.getTeam().getName());
-                if(!claim.attackingParties.contains(recruitsTeam)) claim.attackingParties.add(recruitsTeam);
+                RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getTeamByStringID(livingEntity.getTeam().getName());
+                if(!claim.attackingParties.contains(recruitsFaction)) claim.attackingParties.add(recruitsFaction);
             }
 
             if(claim.isUnderSiege){

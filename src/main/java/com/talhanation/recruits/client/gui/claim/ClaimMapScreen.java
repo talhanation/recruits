@@ -1,12 +1,11 @@
 package com.talhanation.recruits.client.gui.claim;
 
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import com.talhanation.recruits.client.gui.diplomacy.DiplomacyEditScreen;
 import com.talhanation.recruits.client.gui.widgets.ItemWithLabelWidget;
 import com.talhanation.recruits.world.RecruitsClaim;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -21,15 +20,13 @@ public class ClaimMapScreen extends RecruitsScreenBase {
 
     private final Player player;
     private final Screen parent;
-    public static RecruitsTeam ownFaction;
     private ChunkMapWidget mapWidget;
     private ItemWithLabelWidget currencyWidgetClaim;
     private ItemWithLabelWidget currencyWidgetChunk;
     private ItemStack currencyClaim;
     private ItemStack currencyChunk;
-    public ClaimMapScreen(Screen parent, Player player, RecruitsTeam ownFaction) {
+    public ClaimMapScreen(Screen parent, Player player) {
         super(TITLE, 195,160);
-        this.ownFaction = ownFaction;
         this.parent = parent;
         this.player = player;
     }
@@ -59,7 +56,7 @@ public class ClaimMapScreen extends RecruitsScreenBase {
         int viewRadiusY = (height / cellSize) / 2;
         int viewRadius = Math.max(viewRadiusX, viewRadiusY);
 
-        mapWidget = new ChunkMapWidget(this, player, 0, 0, viewRadius, ownFaction);
+        mapWidget = new ChunkMapWidget(this, player, 0, 0, viewRadius);
         mapWidget.setWidth(width);
         mapWidget.setHeight(height);
         this.addRenderableWidget(mapWidget);
@@ -67,7 +64,7 @@ public class ClaimMapScreen extends RecruitsScreenBase {
         currencyClaim = ClientManager.currencyItemStack.copy();
         currencyChunk = ClientManager.currencyItemStack.copy();
         currencyChunk.setCount(ClientManager.configValueChunkCost);
-        currencyClaim.setCount(this.getClaimCost(ownFaction));
+        currencyClaim.setCount(this.getClaimCost(ClientManager.ownFaction));
 
         currencyWidgetClaim = new ItemWithLabelWidget(0, 0, 100, 20, currencyClaim, CLAIM_AREA, true, true);
         currencyWidgetChunk = new ItemWithLabelWidget(0, 20, 100, 20, currencyChunk, CLAIM_CHUNK, true, true);
@@ -84,7 +81,7 @@ public class ClaimMapScreen extends RecruitsScreenBase {
     @Override
     public boolean mouseClicked(double p_94695_, double p_94696_, int p_94697_) {
         if(mapWidget != null) mapWidget.mouseClicked(p_94695_, p_94696_, p_94697_);
-        currencyClaim.setCount(this.getClaimCost(ownFaction));
+        currencyClaim.setCount(this.getClaimCost(ClientManager.ownFaction));
         return super.mouseClicked(p_94695_, p_94696_, p_94697_);
     }
 
@@ -99,9 +96,8 @@ public class ClaimMapScreen extends RecruitsScreenBase {
         return super.mouseDragged(p_94699_, p_94700_, p_94701_, p_94702_, p_94703_);
     }
 
-    public void openDiplomacyOf(RecruitsTeam othersFaction) {
-        boolean isLeader = player.getUUID().equals(ownFaction.getTeamLeaderUUID());
-        minecraft.setScreen(new DiplomacyEditScreen(this, ownFaction, othersFaction, ClientManager.getRelation(ownFaction.getStringID(), ownFaction.getStringID()), ClientManager.getRelation(ownFaction.getStringID(), ownFaction.getStringID()), isLeader));
+    public void openDiplomacyOf(RecruitsFaction othersFaction) {
+        minecraft.setScreen(new DiplomacyEditScreen(this, othersFaction));
 
     }
 
@@ -115,7 +111,7 @@ public class ClaimMapScreen extends RecruitsScreenBase {
 
     }
 
-    public int getClaimCost(RecruitsTeam ownerTeam) {
+    public int getClaimCost(RecruitsFaction ownerTeam) {
         if (!ClientManager.configValueCascadeClaimCost) {
             return ClientManager.configValueClaimCost;
         }
@@ -132,8 +128,8 @@ public class ClaimMapScreen extends RecruitsScreenBase {
     }
 
     public boolean canPlayerClaim(int cost, Player player){
-        if(!ownFaction.getTeamLeaderUUID().equals(player.getUUID())) return false;
+        if(!ClientManager.ownFaction.getTeamLeaderUUID().equals(player.getUUID())) return false;
 
-        return cost <= player.getInventory().countItem(ClientManager.currencyItemStack.getItem());
+        return player.isCreative() || cost <= player.getInventory().countItem(ClientManager.currencyItemStack.getItem());
     }
 }

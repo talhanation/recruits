@@ -1,13 +1,14 @@
 package com.talhanation.recruits.client.gui.diplomacy;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
-import com.talhanation.recruits.network.MessageDiplomacyChangeStatus;
+import com.talhanation.recruits.network.MessageChangeDiplomacyStatus;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -25,8 +26,7 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
     protected static final Component BUTTON_CONFIRM = Component.translatable("gui.recruits.button.confirm");
     protected static final Component BUTTON_BACK = Component.translatable("gui.recruits.button.back");
     private Screen parent;
-    private RecruitsTeam ownTeam;
-    private  RecruitsTeam otherTeam;
+    private RecruitsFaction otherTeam;
     private RecruitsDiplomacyButton allyButton;
     private RecruitsDiplomacyButton neutralButton;
     private RecruitsDiplomacyButton enemyButton;
@@ -35,30 +35,36 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
     public RecruitsDiplomacyManager.DiplomacyStatus newStance;
     protected final BannerRenderer bannerOwn;
     protected final BannerRenderer bannerOther;
-    private  boolean stanceChanged;
+    private boolean stanceChanged;
     private Button confirmButton;
     private Button backButton;
-    private final boolean isLeader;
+    private boolean isLeader;
 
-    public DiplomacyEditScreen(Screen parent, @NotNull RecruitsTeam ownTeam , @NotNull RecruitsTeam otherTeam,  RecruitsDiplomacyManager.DiplomacyStatus ownStance,  RecruitsDiplomacyManager.DiplomacyStatus othersStance, boolean isLeader) {
+    public DiplomacyEditScreen(Screen parent, @NotNull RecruitsFaction otherTeam) {
         super(TITLE, 195,160);
-        this.ownTeam = ownTeam;
         this.otherTeam = otherTeam;
         this.parent = parent;
-        this.othersStance = othersStance;
-        this.ownStance = ownStance;
-        this.bannerOwn = new BannerRenderer(ownTeam);
+        this.bannerOwn = new BannerRenderer(ClientManager.ownFaction);
         this.bannerOther = new BannerRenderer(otherTeam);
-        this.isLeader = isLeader;
     }
 
     @Override
     protected void init() {
         super.init();
+        if(ClientManager.ownFaction == null) return;
+        isLeader = ClientManager.ownFaction.teamLeaderID.equals(Minecraft.getInstance().player.getUUID());
+        othersStance = ClientManager.getRelation(otherTeam.getStringID(), ClientManager.ownFaction.getStringID());
+        ownStance = ClientManager.getRelation(ClientManager.ownFaction.getStringID(), otherTeam.getStringID());
         hoverAreas.clear();
         newStance = ownStance;
         setButtons();
+    }
 
+    @Override
+    public void tick() {
+        super.tick();
+        othersStance = ClientManager.getRelation(otherTeam.getStringID(), ClientManager.ownFaction.getStringID());
+        ownStance = ClientManager.getRelation(ClientManager.ownFaction.getStringID(), otherTeam.getStringID());
     }
 
     private void setButtons(){
@@ -118,8 +124,8 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
         addRenderableWidget(backButton);
     }
 
-    private void changeDiplomacyStatus(RecruitsDiplomacyManager.DiplomacyStatus status, RecruitsTeam otherTeam) {
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageDiplomacyChangeStatus(ownTeam, otherTeam, status));
+    private void changeDiplomacyStatus(RecruitsDiplomacyManager.DiplomacyStatus status, RecruitsFaction otherTeam) {
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageChangeDiplomacyStatus(ClientManager.ownFaction, otherTeam, status));
     }
 
     @Override
@@ -143,9 +149,11 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
     int y8 = -100;
     @Override
     public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+        if(ClientManager.ownFaction == null) return;
+
         guiGraphics.drawString(font, TITLE, guiLeft + xSize / 2 - font.width(TITLE) / 2, guiTop + 7, FONT_COLOR, false);
 
-        guiGraphics.drawString(font, ownTeam.getTeamDisplayName(), x5 + guiLeft + xSize / 2 - font.width(ownTeam.getTeamDisplayName()) / 2, guiTop + 7 - y5, FONT_COLOR, false);
+        guiGraphics.drawString(font, ClientManager.ownFaction.getTeamDisplayName(), x5 + guiLeft + xSize / 2 - font.width(ClientManager.ownFaction.getTeamDisplayName()) / 2, guiTop + 7 - y5, FONT_COLOR, false);
         guiGraphics.drawString(font, otherTeam.getTeamDisplayName(), x6 + guiLeft + xSize / 2 - font.width(otherTeam.getTeamDisplayName()) / 2, guiTop + 7 - y6, FONT_COLOR, false);
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);

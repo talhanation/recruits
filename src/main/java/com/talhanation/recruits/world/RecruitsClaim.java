@@ -1,5 +1,5 @@
 package com.talhanation.recruits.world;
-import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
@@ -17,18 +17,18 @@ public class RecruitsClaim {
     private final UUID uuid;
     private final List<ChunkPos> claimedChunks = new ArrayList<>();
     private String name;
-    private RecruitsTeam ownerFaction;
+    private RecruitsFaction ownerFaction;
     private boolean allowBlockInteraction = true;
     private boolean allowBlockPlacement   = true;
     private boolean allowBlockBreaking    = true;
-    public List<RecruitsTeam> defendingParties = new ArrayList<>();
-    public List<RecruitsTeam> attackingParties = new ArrayList<>();
+    public List<RecruitsFaction> defendingParties = new ArrayList<>();
+    public List<RecruitsFaction> attackingParties = new ArrayList<>();
     public ChunkPos center;
     public boolean isUnderSiege;
     public int health;
     public RecruitsPlayerInfo playerInfo;
     public boolean isAdmin;
-    public RecruitsClaim(String name, RecruitsTeam ownerFaction) {
+    public RecruitsClaim(String name, RecruitsFaction ownerFaction) {
         this.uuid = UUID.randomUUID();
         this.name = name;
         this.ownerFaction = ownerFaction;
@@ -36,7 +36,7 @@ public class RecruitsClaim {
         resetHealth();
     }
 
-    private RecruitsClaim(UUID uuid, String name, RecruitsTeam ownerFaction){
+    private RecruitsClaim(UUID uuid, String name, RecruitsFaction ownerFaction){
         this.uuid = uuid;
         this.name = name;
         this.ownerFaction = ownerFaction;
@@ -79,7 +79,7 @@ public class RecruitsClaim {
     public String getOwnerFactionStringID() {
         return ownerFaction.getStringID();
     }
-    public RecruitsTeam getOwnerFaction(){
+    public RecruitsFaction getOwnerFaction(){
         return ownerFaction;
     }
     public RecruitsPlayerInfo getPlayerInfo(){
@@ -103,7 +103,7 @@ public class RecruitsClaim {
     public void setAdminClaim(boolean admin){
         this.isAdmin = admin;
     }
-    public void setOwnerFaction(RecruitsTeam faction) {
+    public void setOwnerFaction(RecruitsFaction faction) {
         this.ownerFaction = faction;
     }
     public void setPlayer(RecruitsPlayerInfo playerInfo) {
@@ -162,14 +162,14 @@ public class RecruitsClaim {
 
         // Defending Parties
         ListTag defendingList = new ListTag();
-        for (RecruitsTeam team : defendingParties) {
+        for (RecruitsFaction team : defendingParties) {
             defendingList.add(team.toNBT());
         }
         nbt.put("defendingParties", defendingList);
 
         // Attacking Parties
         ListTag attackingList = new ListTag();
-        for (RecruitsTeam team : attackingParties) {
+        for (RecruitsFaction team : attackingParties) {
             attackingList.add(team.toNBT());
         }
         nbt.put("attackingParties", attackingList);
@@ -180,8 +180,8 @@ public class RecruitsClaim {
     public static RecruitsClaim fromNBT(CompoundTag nbt) {
         UUID uuid = nbt.getUUID("UUID");
         String name = nbt.getString("name");
-        RecruitsTeam recruitsTeam = RecruitsTeam.fromNBT(nbt.getCompound("ownerFaction"));
-        RecruitsClaim claim = new RecruitsClaim(uuid, name, recruitsTeam);
+        RecruitsFaction recruitsFaction = RecruitsFaction.fromNBT(nbt.getCompound("ownerFaction"));
+        RecruitsClaim claim = new RecruitsClaim(uuid, name, recruitsFaction);
         RecruitsPlayerInfo playerInfo = RecruitsPlayerInfo.getFromNBT(nbt.getCompound("playerInfo"));
         if (playerInfo != null) claim.setPlayer(playerInfo);
 
@@ -212,7 +212,7 @@ public class RecruitsClaim {
         if (nbt.contains("defendingParties", Tag.TAG_LIST)) {
             ListTag defendingList = nbt.getList("defendingParties", Tag.TAG_COMPOUND);
             for (Tag tag : defendingList) {
-                claim.defendingParties.add(RecruitsTeam.fromNBT((CompoundTag) tag));
+                claim.defendingParties.add(RecruitsFaction.fromNBT((CompoundTag) tag));
             }
         }
 
@@ -220,7 +220,7 @@ public class RecruitsClaim {
         if (nbt.contains("attackingParties", Tag.TAG_LIST)) {
             ListTag attackingList = nbt.getList("attackingParties", Tag.TAG_COMPOUND);
             for (Tag tag : attackingList) {
-                claim.attackingParties.add(RecruitsTeam.fromNBT((CompoundTag) tag));
+                claim.attackingParties.add(RecruitsFaction.fromNBT((CompoundTag) tag));
             }
         }
 
@@ -254,17 +254,17 @@ public class RecruitsClaim {
     }
 
     public void setUnderSiege(boolean underSiege, ServerLevel level) {
-        RecruitsTeam ownerFaction = TeamEvents.recruitsTeamManager.getTeamByStringID(this.getOwnerFactionStringID());
+        RecruitsFaction ownerFaction = FactionEvents.recruitsFactionManager.getTeamByStringID(this.getOwnerFactionStringID());
         if(ownerFaction == null) return;
 
         if(!this.isUnderSiege && underSiege){
             this.isUnderSiege = true;
 
-            for(Player player : TeamEvents.recruitsTeamManager.getPlayersInTeam(this.getOwnerFactionStringID(), level)){
+            for(Player player : FactionEvents.recruitsFactionManager.getPlayersInTeam(this.getOwnerFactionStringID(), level)){
                 player.sendSystemMessage(SIEGE_START_DEFENDER(this.getName(), attackingParties.toString()));
             }
-            for(RecruitsTeam attacker: attackingParties){
-                for(Player player : TeamEvents.recruitsTeamManager.getPlayersInTeam(attacker.getStringID(), level)){
+            for(RecruitsFaction attacker: attackingParties){
+                for(Player player : FactionEvents.recruitsFactionManager.getPlayersInTeam(attacker.getStringID(), level)){
                     player.sendSystemMessage(SIEGE_START_ATTACKER(this.getName()));
                 }
             }
@@ -273,11 +273,11 @@ public class RecruitsClaim {
         else if(this.isUnderSiege && !underSiege){
             this.isUnderSiege = false;
 
-            for(Player player : TeamEvents.recruitsTeamManager.getPlayersInTeam(this.getOwnerFactionStringID(), level)){
+            for(Player player : FactionEvents.recruitsFactionManager.getPlayersInTeam(this.getOwnerFactionStringID(), level)){
                 player.sendSystemMessage(SIEGE_FAILED_DEFENDER(this.getName()));
             }
-            for(RecruitsTeam attacker: attackingParties){
-                for(Player player : TeamEvents.recruitsTeamManager.getPlayersInTeam(attacker.getStringID(), level)){
+            for(RecruitsFaction attacker: attackingParties){
+                for(Player player : FactionEvents.recruitsFactionManager.getPlayersInTeam(attacker.getStringID(), level)){
                     player.sendSystemMessage(SIEGE_FAILED_ATTACKER(this.getName()));
                 }
             }
@@ -285,7 +285,7 @@ public class RecruitsClaim {
     }
 
     public void setSiegeSuccess(ServerLevel level){
-        for(Player player : TeamEvents.recruitsTeamManager.getPlayersInTeam(this.getOwnerFactionStringID(), level)){
+        for(Player player : FactionEvents.recruitsFactionManager.getPlayersInTeam(this.getOwnerFactionStringID(), level)){
             player.sendSystemMessage(SIEGE_SUCCESS_DEFENDER(this.getName()));
         }
 
@@ -293,7 +293,7 @@ public class RecruitsClaim {
         this.isUnderSiege = false;
         this.resetHealth();
 
-        for(Player player : TeamEvents.recruitsTeamManager.getPlayersInTeam(this.getOwnerFactionStringID(), level)){
+        for(Player player : FactionEvents.recruitsFactionManager.getPlayersInTeam(this.getOwnerFactionStringID(), level)){
             player.sendSystemMessage(SIEGE_SUCCESS_ATTACKER(this.getName()));
         }
 

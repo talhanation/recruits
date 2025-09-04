@@ -1,6 +1,6 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -35,7 +35,7 @@ public class MessageAssignToTeamMate implements Message<MessageAssignToTeamMate>
 
         for (AbstractRecruitEntity recruit : list) {
             if(recruit.getUUID().equals(this.recruit)){
-                TeamEvents.assignToTeamMate(serverPlayer, newOwner, recruit);
+                FactionEvents.assignToTeamMate(serverPlayer, newOwner, recruit);
                 break;
             }
         }

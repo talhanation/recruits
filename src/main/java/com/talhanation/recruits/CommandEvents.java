@@ -475,7 +475,7 @@ public class CommandEvents {
                     }
                     else {
                         ServerPlayer serverPlayer = (ServerPlayer) player;
-                        TeamEvents.addNPCToData(serverPlayer.serverLevel(), player.getTeam().getName(), 1);
+                        FactionEvents.addNPCToData(serverPlayer.serverLevel(), player.getTeam().getName(), 1);
                     }
                 }
             }

@@ -1,7 +1,7 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.TeamEvents;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.FactionEvents;
+import com.talhanation.recruits.world.RecruitsFaction;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -17,7 +17,7 @@ public class MessageSaveTeamSettings implements Message<MessageSaveTeamSettings>
     public MessageSaveTeamSettings() {
     }
 
-    public MessageSaveTeamSettings(RecruitsTeam team, int cost) {
+    public MessageSaveTeamSettings(RecruitsFaction team, int cost) {
         this.nbt = team.toNBT();
         this.stringID = team.getStringID();
         this.cost = cost;
@@ -30,8 +30,8 @@ public class MessageSaveTeamSettings implements Message<MessageSaveTeamSettings>
 
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
-        RecruitsTeam editedTeam = RecruitsTeam.fromNBT(nbt);
-        TeamEvents.modifyTeam(context.getSender().server.overworld(), stringID, editedTeam, context.getSender(), cost);
+        RecruitsFaction editedTeam = RecruitsFaction.fromNBT(nbt);
+        FactionEvents.modifyTeam(context.getSender().server.overworld(), stringID, editedTeam, context.getSender(), cost);
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.FactionEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.FriendlyByteBuf;
@@ -34,7 +34,7 @@ public class MessageCreateTeam implements Message<MessageCreateTeam> {
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = context.getSender();
         ServerLevel world = player.serverLevel();
-        TeamEvents.createTeam(true, context.getSender(), world, this.teamName, player.getName().getString(), this.banner, this.color, (byte) index);
+        FactionEvents.createTeam(true, context.getSender(), world, this.teamName, player.getName().getString(), this.banner, this.color, (byte) index);
     }
 
     public MessageCreateTeam fromBytes(FriendlyByteBuf buf) {

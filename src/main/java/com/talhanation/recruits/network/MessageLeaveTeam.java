@@ -1,6 +1,6 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.FactionEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
@@ -20,7 +20,7 @@ public class MessageLeaveTeam implements Message<MessageLeaveTeam> {
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = context.getSender();
         ServerLevel level = player.serverLevel();
-        TeamEvents.leaveTeam(false, player, null, level, false);
+        FactionEvents.leaveTeam(false, player, null, level, false);
     }
 
     public MessageLeaveTeam fromBytes(FriendlyByteBuf buf) {

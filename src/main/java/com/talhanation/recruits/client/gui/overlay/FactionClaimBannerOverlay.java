@@ -2,9 +2,9 @@ package com.talhanation.recruits.client.gui.overlay;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
-import com.talhanation.recruits.client.gui.team.TeamEditScreen;
+import com.talhanation.recruits.client.gui.faction.TeamEditScreen;
 import com.talhanation.recruits.world.RecruitsClaim;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -17,7 +17,7 @@ public class FactionClaimBannerOverlay {
     private static long stripStartTime = -1;
     private static boolean active = false;
 
-    private static RecruitsTeam currentTeam;
+    private static RecruitsFaction currentTeam;
     private static String claimName;
     private static String playerName;
     private static BannerRenderer bannerRenderer;

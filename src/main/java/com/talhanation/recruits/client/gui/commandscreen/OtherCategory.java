@@ -4,7 +4,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.CommandScreen;
 import com.talhanation.recruits.client.gui.group.RecruitsCommandButton;
 import com.talhanation.recruits.client.gui.group.RecruitsGroup;
-import com.talhanation.recruits.client.gui.team.TeamMainScreen;
+import com.talhanation.recruits.client.gui.faction.TeamMainScreen;
 import com.talhanation.recruits.network.*;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.core.BlockPos;

@@ -1,9 +1,10 @@
 package com.talhanation.recruits.client.gui.player;
 
 import com.google.common.collect.Lists;
+import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.*;
@@ -15,11 +16,8 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
     protected final List<RecruitsPlayerEntry> entries;
     protected String filter;
     protected final PlayersList.FilterType filterType;
-    public static List<RecruitsPlayerInfo> onlinePlayers;
     public final Player player;
-    public RecruitsTeam recruitsTeam;
     protected final boolean includeSelf;
-
 
     public PlayersList(int width, int height, int x, int y, int size, IPlayerSelection screen, PlayersList.FilterType filterType, Player player, boolean includeSelf) {
         super(width, height, x, y, size);
@@ -35,17 +33,15 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
     }
 
     public void tick() {
-        if(onlinePlayers != null){
+        if(ClientManager.onlinePlayers != null){
             updateEntryList();
         }
     }
 
     public void updateEntryList() {
         entries.clear();
-        this.recruitsTeam = this.getRecruitsTeam();
 
-
-        for (RecruitsPlayerInfo player : onlinePlayers) {
+        for (RecruitsPlayerInfo player : ClientManager.onlinePlayers) {
 
             if(includeSelf || !player.getUUID().equals(this.player.getUUID())){
 
@@ -54,15 +50,23 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
                         entries.add(new RecruitsPlayerEntry(screen, player));
                     }
                     case SAME_TEAM -> {
-                        RecruitsTeam recruitsTeam = player.getRecruitsTeam();
+                        RecruitsFaction recruitsFaction = player.getRecruitsTeam();
 
-                        if(recruitsTeam != null && recruitsTeam.getStringID().equals(this.recruitsTeam.getStringID())){
+                        if(recruitsFaction != null && ClientManager.ownFaction != null && recruitsFaction.getStringID().equals(ClientManager.ownFaction.getStringID())){
                             entries.add(new RecruitsPlayerEntry(screen, player));
                         }
                     }
 
                     case TEAM_JOIN_REQUEST -> {
-                        if(this.recruitsTeam != null && this.recruitsTeam.getJoinRequests().contains(player.getName())){
+                        if(ClientManager.ownFaction != null && ClientManager.ownFaction.getJoinRequests().contains(player.getName())){
+                            entries.add(new RecruitsPlayerEntry(screen, player));
+                        }
+                    }
+
+                    case ANY_TEAM -> {
+                        RecruitsFaction recruitsFaction = player.getRecruitsTeam();
+
+                        if(recruitsFaction != null){
                             entries.add(new RecruitsPlayerEntry(screen, player));
                         }
                     }
@@ -71,17 +75,6 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
         }
 
         updateFilter();
-    }
-
-    private RecruitsTeam getRecruitsTeam() {
-        RecruitsTeam recruitsTeam = null;
-        for (RecruitsPlayerInfo player : onlinePlayers) {
-            if(player.getUUID().equals(this.player.getUUID())){
-                recruitsTeam = player.getRecruitsTeam();
-                break;
-            }
-        }
-        return recruitsTeam;
     }
 
     public void updateFilter() {
@@ -127,6 +120,7 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
     public enum FilterType{
         NONE,
         SAME_TEAM,
-        TEAM_JOIN_REQUEST
+        TEAM_JOIN_REQUEST,
+        ANY_TEAM
     }
 }

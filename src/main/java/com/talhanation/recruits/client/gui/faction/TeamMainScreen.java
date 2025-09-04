@@ -1,8 +1,9 @@
-package com.talhanation.recruits.client.gui.team;
+package com.talhanation.recruits.client.gui.faction;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.FactionEvents;
+import com.talhanation.recruits.client.ClientManager;
 import net.minecraft.client.gui.GuiGraphics;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import net.minecraft.client.renderer.GameRenderer;
@@ -30,15 +31,14 @@ public class TeamMainScreen extends RecruitsScreenBase {
     @Override
     protected void init() {
         super.init();
-        boolean isInTeam = TeamEvents.isPlayerInATeam(player);
 
-        MutableComponent mutableComponent = isInTeam ? INSPECT_TEAM : CREATE_TEAM;
+        MutableComponent mutableComponent = ClientManager.ownFaction != null ? INSPECT_TEAM : CREATE_TEAM;
         addRenderableWidget(new ExtendedButton(guiLeft + 20, guiTop + 29, 100, 20, mutableComponent, btn -> {
-            if (isInTeam && player.getTeam() != null) {
+            if (ClientManager.ownFaction != null) {
                 minecraft.setScreen(new TeamInspectionScreen(this, player));
             }
             else {
-                TeamEvents.openTeamEditScreen(player);
+                FactionEvents.openTeamEditScreen(player);
             }
         }));
 

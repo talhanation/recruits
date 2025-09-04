@@ -8,14 +8,14 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.talhanation.recruits.ClaimEvents;
 import com.talhanation.recruits.RecruitEvents;
-import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.items.RecruitsSpawnEgg;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsClaimManager;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -105,7 +105,7 @@ public class RecruitsAdminCommands {
                         .then(Commands.argument("Faction", TeamArgument.team())
                                 .executes((context) -> {
                                     PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
-                                    RecruitsTeam faction = TeamEvents.recruitsTeamManager.getTeamByStringID(playerTeam.getName());
+                                    RecruitsFaction faction = FactionEvents.recruitsFactionManager.getTeamByStringID(playerTeam.getName());
                                     if(faction == null) {
                                         context.getSource().sendFailure(Component.literal("No Faction found!").withStyle(ChatFormatting.RED));
                                         return 0;
@@ -120,7 +120,7 @@ public class RecruitsAdminCommands {
                                 .then(Commands.argument("Amount", IntegerArgumentType.integer(0))
                                         .executes((context) -> {
                                             PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
-                                            RecruitsTeam faction = TeamEvents.recruitsTeamManager.getTeamByStringID(playerTeam.getName());
+                                            RecruitsFaction faction = FactionEvents.recruitsFactionManager.getTeamByStringID(playerTeam.getName());
                                             if(faction == null) {
                                                 context.getSource().sendFailure(Component.literal("No Faction found!").withStyle(ChatFormatting.RED));
                                                 return 0;
@@ -136,7 +136,7 @@ public class RecruitsAdminCommands {
                         .then(Commands.argument("Faction", TeamArgument.team())
                                 .executes((context) -> {
                                     PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
-                                    RecruitsTeam faction = TeamEvents.recruitsTeamManager.getTeamByStringID(playerTeam.getName());
+                                    RecruitsFaction faction = FactionEvents.recruitsFactionManager.getTeamByStringID(playerTeam.getName());
                                     if(faction == null) {
                                         context.getSource().sendFailure(Component.literal("No Faction found!").withStyle(ChatFormatting.RED));
                                         return 0;
@@ -151,7 +151,7 @@ public class RecruitsAdminCommands {
                         .then(Commands.argument("Player", ScoreHolderArgument.scoreHolders()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS)
                             .executes((context) -> {
                                 PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
-                                RecruitsTeam faction = TeamEvents.recruitsTeamManager.getTeamByStringID(playerTeam.getName());
+                                RecruitsFaction faction = FactionEvents.recruitsFactionManager.getTeamByStringID(playerTeam.getName());
 
                                 String playerName = ScoreHolderArgument.getName(context, "Player");
                                 ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayerByName(playerName);
@@ -166,21 +166,21 @@ public class RecruitsAdminCommands {
                                     return 0;
                                 }
 
-                                if(TeamEvents.isPlayerAlreadyAFactionLeader(player)){
+                                if(FactionEvents.isPlayerAlreadyAFactionLeader(player)){
                                     context.getSource().sendFailure(Component.literal("Player is already a Leader of another Faction!").withStyle(ChatFormatting.RED));
                                     return 0;
                                 }
 
                                 if(!playerTeam.getPlayers().contains(playerName)){
-                                    TeamEvents.addPlayerToTeam(null, context.getSource().getLevel(), faction.getStringID(), playerName);
+                                    FactionEvents.addPlayerToTeam(null, context.getSource().getLevel(), faction.getStringID(), playerName);
                                 }
 
                                 faction.setTeamLeaderID(player.getUUID());
                                 faction.setTeamLeaderName(player.getName().getString());
 
-                                TeamEvents.modifyTeam(context.getSource().getLevel(), faction.getStringID(), faction, context.getSource().getPlayer(), 0);
+                                FactionEvents.modifyTeam(context.getSource().getLevel(), faction.getStringID(), faction, context.getSource().getPlayer(), 0);
 
-                                TeamEvents.recruitsTeamManager.save(context.getSource().getLevel());
+                                FactionEvents.recruitsFactionManager.save(context.getSource().getLevel());
 
                                 context.getSource().sendSuccess(() ->
                                         Component.literal("The Leader of " + faction.getTeamDisplayName() + " is now " + faction.getTeamLeaderName()), false);
@@ -214,13 +214,13 @@ public class RecruitsAdminCommands {
                                                             return 0;
                                                         }
 
-                                                        if(TeamEvents.recruitsDiplomacyManager == null){
+                                                        if(FactionEvents.recruitsDiplomacyManager == null){
                                                             context.getSource().sendFailure(Component.literal("recruitsDiplomacyManager == null!").withStyle(ChatFormatting.RED));
                                                             return 0;
                                                         }
 
-                                                        TeamEvents.recruitsDiplomacyManager.setRelation(playerTeam1.getName(), playerTeam2.getName(), status, context.getSource().getLevel());
-                                                        TeamEvents.recruitsDiplomacyManager.setRelation(playerTeam2.getName(), playerTeam1.getName(), status, context.getSource().getLevel());
+                                                        FactionEvents.recruitsDiplomacyManager.setRelation(playerTeam1.getName(), playerTeam2.getName(), status, context.getSource().getLevel());
+                                                        FactionEvents.recruitsDiplomacyManager.setRelation(playerTeam2.getName(), playerTeam1.getName(), status, context.getSource().getLevel());
 
                                                         context.getSource().sendSuccess(() ->
                                                                 Component.literal(playerTeam1.getName() + " and " + playerTeam2.getName() + " are now " + status), false);
@@ -450,11 +450,11 @@ public class RecruitsAdminCommands {
         return 0;
     }
 
-    private static int setFactionNPCsCount(CommandContext<CommandSourceStack> context, RecruitsTeam faction, int x) {
-        if(TeamEvents.recruitsTeamManager != null){
+    private static int setFactionNPCsCount(CommandContext<CommandSourceStack> context, RecruitsFaction faction, int x) {
+        if(FactionEvents.recruitsFactionManager != null){
             faction.setNPCs(x);
 
-            TeamEvents.recruitsTeamManager.save(context.getSource().getLevel());
+            FactionEvents.recruitsFactionManager.save(context.getSource().getLevel());
             context.getSource().sendSuccess(() ->
                     Component.literal("The npc count of " + faction.getStringID() + " has been set to " + x + "."), false);
 

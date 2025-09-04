@@ -1,15 +1,13 @@
 package com.talhanation.recruits.client.gui.diplomacy;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.widgets.ListScreenEntryBase;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.ResourceLocation;
@@ -31,11 +29,11 @@ public class DiplomacyTeamEntry extends ListScreenEntryBase<DiplomacyTeamEntry> 
 
     protected final Minecraft minecraft;
     protected final DiplomacyTeamListScreen screen;
-    protected final @NotNull RecruitsTeam team;
+    protected final @NotNull RecruitsFaction team;
     protected final BannerRenderer bannerRenderer;
     protected final RecruitsDiplomacyManager.DiplomacyStatus status;
 
-    public DiplomacyTeamEntry(DiplomacyTeamListScreen screen, @NotNull RecruitsTeam team, RecruitsDiplomacyManager.DiplomacyStatus status) {
+    public DiplomacyTeamEntry(DiplomacyTeamListScreen screen, @NotNull RecruitsFaction team, RecruitsDiplomacyManager.DiplomacyStatus status) {
         this.minecraft = Minecraft.getInstance();
         this.screen = screen;
         this.team = team;
@@ -86,7 +84,7 @@ public class DiplomacyTeamEntry extends ListScreenEntryBase<DiplomacyTeamEntry> 
     }
 
     @Nullable
-    public RecruitsTeam getTeamInfo() {
+    public RecruitsFaction getTeamInfo() {
         return team;
     }
 

@@ -1,6 +1,6 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.FactionEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -33,7 +33,7 @@ public class MessageOpenTeamEditScreen implements Message<MessageOpenTeamEditScr
             return;
         }
         ServerPlayer player = context.getSender();
-        TeamEvents.openTeamEditScreen(player);
+        FactionEvents.openTeamEditScreen(player);
     }
 
     @Override

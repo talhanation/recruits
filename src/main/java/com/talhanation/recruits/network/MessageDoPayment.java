@@ -1,6 +1,6 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.FactionEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -37,7 +37,7 @@ public class MessageDoPayment implements Message<MessageDoPayment> {
             return;
         }
 
-        TeamEvents.doPayment(serverPlayer, this.amount);
+        FactionEvents.doPayment(serverPlayer, this.amount);
     }
     public MessageDoPayment fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();

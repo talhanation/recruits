@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 
-public class RecruitsTeam {
+public class RecruitsFaction {
     public String stringID;
     public String teamDisplayName;
     public UUID teamLeaderID;
@@ -24,14 +24,14 @@ public class RecruitsTeam {
     public int maxNPCs;
     public int maxNPCsPerPlayer = -1;
     private int biome = -1;
-    public RecruitsTeam(String stringID, String teamLeaderName, CompoundTag banner) {
+    public RecruitsFaction(String stringID, String teamLeaderName, CompoundTag banner) {
         this.stringID = stringID;
         this.teamDisplayName = stringID;
         this.teamLeaderName = teamLeaderName;
         this.banner = banner;
     }
 
-    public RecruitsTeam() {
+    public RecruitsFaction() {
 
     }
 
@@ -186,11 +186,11 @@ public class RecruitsTeam {
         return nbt;
     }
 
-    public static RecruitsTeam fromNBT(CompoundTag nbt) {
+    public static RecruitsFaction fromNBT(CompoundTag nbt) {
         if(nbt == null || nbt.isEmpty()) {
             return null;
         }
-        RecruitsTeam team = new RecruitsTeam();
+        RecruitsFaction team = new RecruitsFaction();
         team.setStringID(nbt.getString("teamName"));
         if(nbt.getString("teamDisplayName").isEmpty()){
             team.setTeamDisplayName(team.getStringID());
@@ -219,11 +219,11 @@ public class RecruitsTeam {
         return team;
     }
 
-    public static CompoundTag toNBT(List<RecruitsTeam> list) {
+    public static CompoundTag toNBT(List<RecruitsFaction> list) {
         CompoundTag nbt = new CompoundTag();
         ListTag teamList = new ListTag();
 
-        for (RecruitsTeam team : list) {
+        for (RecruitsFaction team : list) {
             teamList.add(team.toNBT());
         }
 
@@ -231,13 +231,13 @@ public class RecruitsTeam {
         return nbt;
     }
 
-    public static List<RecruitsTeam> getListFromNBT(CompoundTag nbt) {
-        List<RecruitsTeam> list = new ArrayList<>();
+    public static List<RecruitsFaction> getListFromNBT(CompoundTag nbt) {
+        List<RecruitsFaction> list = new ArrayList<>();
         ListTag teamList = nbt.getList("Teams", 10); // 10 corresponds to CompoundTag type
 
         for (int i = 0; i < teamList.size(); i++) {
             CompoundTag teamTag = teamList.getCompound(i);
-            list.add(RecruitsTeam.fromNBT(teamTag));
+            list.add(RecruitsFaction.fromNBT(teamTag));
         }
 
         return list;

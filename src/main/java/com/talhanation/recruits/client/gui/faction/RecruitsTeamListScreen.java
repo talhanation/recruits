@@ -1,13 +1,11 @@
-package com.talhanation.recruits.client.gui.team;
+package com.talhanation.recruits.client.gui.faction;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.events.RecruitsToastManager;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
 import com.talhanation.recruits.network.MessageSendJoinRequestTeam;
-import com.talhanation.recruits.network.MessageToServerRequestUpdateTeamList;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -42,7 +40,7 @@ public class RecruitsTeamListScreen extends ListScreenBase {
     protected int units;
 
     protected Screen parent;
-    private RecruitsTeam selected;
+    private RecruitsFaction selected;
     private Button backButton;
     private Button sendJoinRequestButton;
 
@@ -57,7 +55,6 @@ public class RecruitsTeamListScreen extends ListScreenBase {
     @Override
     protected void init() {
         super.init();
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdateTeamList());
 
         gapTop = (int) (this.height * 0.1);
         gapBottom = (int) (this.height * 0.1);
@@ -177,7 +174,7 @@ public class RecruitsTeamListScreen extends ListScreenBase {
     }
 
 
-    public RecruitsTeam getSelected(){
+    public RecruitsFaction getSelected(){
         return this.selected;
     }
 

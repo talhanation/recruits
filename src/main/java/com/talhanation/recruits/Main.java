@@ -93,7 +93,7 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new PillagerEvents());
         MinecraftForge.EVENT_BUS.register(new CommandEvents());
         MinecraftForge.EVENT_BUS.register(new DebugEvents());
-        MinecraftForge.EVENT_BUS.register(new TeamEvents());
+        MinecraftForge.EVENT_BUS.register(new FactionEvents());
         MinecraftForge.EVENT_BUS.register(new DamageEvent());
         MinecraftForge.EVENT_BUS.register(new UpdateChecker());
         MinecraftForge.EVENT_BUS.register(new ClaimEvents());
@@ -133,7 +133,6 @@ public class Main {
                 MessageLeaveTeam.class,
                 MessageTeamMainScreen.class,
                 MessageOpenTeamInspectionScreen.class,
-                MessageServerUpdateTeamInspectMenu.class,
                 MessageOpenTeamListScreen.class,
                 MessageAddPlayerToTeam.class,
                 MessageOpenTeamAddPlayerScreen.class,
@@ -161,7 +160,6 @@ public class Main {
                 MessageAssignGroupToCompanion.class,
                 MessagePatrolLeaderSetPatrollingSpeed.class,
                 MessageToClientUpdateHireScreen.class,
-                MessageToClientUpdateTeamEditScreen.class,
                 MessageRemoveAssignedGroupFromCompanion.class,
                 MessageAnswerMessenger.class,
                 MessageToClientOpenMessengerAnswerScreen.class,
@@ -176,27 +174,22 @@ public class Main {
                 MessageRangedFire.class,
                 MessageSaveFormationFollowMovement.class,
                 MessageClearUpkeep.class,
-                MessageToServerRequestUpdateTeamList.class,
-                MessageToClientUpdateTeamList.class,
-                MessageToServerRequestUpdatePlayerList.class,
-                MessageToClientUpdatePlayerList.class,
-                MessageDiplomacyChangeStatus.class,
+                MessageToClientUpdateFactions.class,
+                MessageToClientUpdateOnlinePlayers.class,
+                MessageChangeDiplomacyStatus.class,
                 MessageToClientSetToast.class,
                 MessageToClientUpdateDiplomacyList.class,
-                MessageToServerRequestUpdateDiplomacyList.class,
-                MessageToClientUpdateTeamInspection.class,
-                MessageToServerRequestUpdateTeamInspaction.class,
                 MessageSaveTeamSettings.class,
                 MessageToClientSetDiplomaticToast.class,
                 MessageScoutTask.class,
-                MessageToServerRequestUpdatePlayerCurrencyCount.class,
-                MessageToClientUpdatePlayerCurrencyCount.class,
                 MessageToClientOpenTakeOverScreen.class,
                 MessageToClientOpenMessengerAnswerScreen.class,
                 MessageToClientUpdateClaims.class,
                 MessageUpdateClaim.class,
                 MessageDoPayment.class,
-                MessageToClientUpdateClaim.class
+                MessageToClientUpdateClaim.class,
+                MessageToClientUpdateOwnFaction.class,
+                MessageDeleteClaim.class
         };
 
 
@@ -225,9 +218,11 @@ public class Main {
         event.enqueueWork(ModScreens::registerMenus);
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
         MinecraftForge.EVENT_BUS.register(new ClientPlayerEvents());
+
         CommandCategoryManager.register(new MovementCategory());
         CommandCategoryManager.register(new CombatCategory());
         CommandCategoryManager.register(new OtherCategory());
+
     }
 
     private void addCreativeTabs(BuildCreativeModeTabContentsEvent event) {

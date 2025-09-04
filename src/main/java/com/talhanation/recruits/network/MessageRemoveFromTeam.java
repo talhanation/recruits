@@ -1,6 +1,6 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.FactionEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
@@ -30,7 +30,7 @@ public class MessageRemoveFromTeam implements Message<MessageRemoveFromTeam> {
         ServerLevel level = sender.serverLevel();
 
         level.players().forEach(
-                serverPlayer -> TeamEvents.tryToRemoveFromTeam(
+                serverPlayer -> FactionEvents.tryToRemoveFromTeam(
                         serverPlayer.getTeam(),
                         sender,
                         serverPlayer,

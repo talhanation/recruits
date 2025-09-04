@@ -13,15 +13,15 @@ public class RecruitsPlayerInfo {
     private UUID uuid;
     private String name;
     @Nullable
-    private final RecruitsTeam recruitsTeam;
+    private final RecruitsFaction recruitsFaction;
 
     public RecruitsPlayerInfo(UUID uuid, String name) {
         this(uuid, name, null);
     }
-    public RecruitsPlayerInfo(UUID uuid, String name, @Nullable RecruitsTeam recruitsTeam) {
+    public RecruitsPlayerInfo(UUID uuid, String name, @Nullable RecruitsFaction recruitsFaction) {
         this.uuid = uuid;
         this.name = name;
-        this.recruitsTeam = recruitsTeam;
+        this.recruitsFaction = recruitsFaction;
     }
 
     public UUID getUUID() {
@@ -41,15 +41,15 @@ public class RecruitsPlayerInfo {
     }
 
     @Nullable
-    public RecruitsTeam getRecruitsTeam(){
-        return recruitsTeam;
+    public RecruitsFaction getRecruitsTeam(){
+        return recruitsFaction;
     }
     @Override
     public String toString() {
         return "{" +
                 ", uuid=" + uuid +
                 ", name=" + name +
-                ", team=" + recruitsTeam +
+                ", team=" + recruitsFaction +
                 '}';
     }
 
@@ -58,8 +58,8 @@ public class RecruitsPlayerInfo {
         CompoundTag nbt = new CompoundTag();
         nbt.putUUID("UUID", uuid);
         nbt.putString("Name", name);
-        if(recruitsTeam != null){
-            nbt.put("RecruitsTeam", this.recruitsTeam.toNBT());
+        if(recruitsFaction != null){
+            nbt.put("RecruitsTeam", this.recruitsFaction.toNBT());
         }
 
         return nbt;
@@ -70,7 +70,7 @@ public class RecruitsPlayerInfo {
 
         UUID uuid = nbt.getUUID("UUID");
         String name = nbt.getString("Name");
-        RecruitsTeam team = RecruitsTeam.fromNBT(nbt.getCompound("RecruitsTeam"));
+        RecruitsFaction team = RecruitsFaction.fromNBT(nbt.getCompound("RecruitsTeam"));
 
         return new RecruitsPlayerInfo(uuid, name, team);
     }

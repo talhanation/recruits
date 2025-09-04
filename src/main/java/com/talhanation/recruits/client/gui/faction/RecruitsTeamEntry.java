@@ -1,11 +1,10 @@
-package com.talhanation.recruits.client.gui.team;
+package com.talhanation.recruits.client.gui.faction;
 
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.widgets.ListScreenEntryBase;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -27,10 +26,10 @@ public class RecruitsTeamEntry extends ListScreenEntryBase<RecruitsTeamEntry> {
 
     protected final Minecraft minecraft;
     protected final RecruitsTeamListScreen screen;
-    protected final @NotNull RecruitsTeam team;
+    protected final @NotNull RecruitsFaction team;
     protected final BannerRenderer bannerRenderer;
 
-    public RecruitsTeamEntry(RecruitsTeamListScreen screen, @NotNull RecruitsTeam team) {
+    public RecruitsTeamEntry(RecruitsTeamListScreen screen, @NotNull RecruitsFaction team) {
         this.minecraft = Minecraft.getInstance();
         this.screen = screen;
         this.team = team;
@@ -73,7 +72,7 @@ public class RecruitsTeamEntry extends ListScreenEntryBase<RecruitsTeamEntry> {
     }
 
     @Nullable
-    public RecruitsTeam getTeamInfo() {
+    public RecruitsFaction getTeamInfo() {
         return team;
     }
 

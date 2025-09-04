@@ -1,19 +1,15 @@
 package com.talhanation.recruits.client.gui.claim;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
-import com.talhanation.recruits.client.gui.claim.ChunkMiniMap;
-import com.talhanation.recruits.client.gui.claim.ClaimMapScreen;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
-import com.talhanation.recruits.client.gui.team.TeamEditScreen;
+import com.talhanation.recruits.client.gui.faction.TeamEditScreen;
 import com.talhanation.recruits.client.gui.widgets.ContextMenuEntry;
 import com.talhanation.recruits.network.MessageDoPayment;
-import com.talhanation.recruits.network.MessageToServerRequestUpdateDiplomacyList;
 import com.talhanation.recruits.network.MessageUpdateClaim;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -26,6 +22,8 @@ import net.minecraft.world.level.ChunkPos;
 
 import javax.annotation.Nullable;
 import java.util.*;
+
+import static com.talhanation.recruits.client.ClientManager.ownFaction;
 
 
 public class ChunkMapWidget extends AbstractWidget {
@@ -51,7 +49,6 @@ public class ChunkMapWidget extends AbstractWidget {
     private boolean dragging = false;
     private final BannerRenderer bannerRenderer;
     private RecruitsClaim selectedClaim;
-    private final RecruitsTeam ownFaction;
     private final List<ContextMenuEntry> contextMenuEntries = new ArrayList<>();
     private int contextMenuX, contextMenuY;
     private boolean contextMenuVisible = false;
@@ -59,13 +56,12 @@ public class ChunkMapWidget extends AbstractWidget {
     public Player player;
     private ChunkPos lastPlayerChunk;
     Set<RecruitsClaim> claimsToDrawNames = new HashSet<>();
-    public ChunkMapWidget(ClaimMapScreen screen, Player player, int x, int y, int viewRadius, RecruitsTeam ownFaction) {
+    public ChunkMapWidget(ClaimMapScreen screen, Player player, int x, int y, int viewRadius) {
         super(x, y, (viewRadius*2+1)*16, (viewRadius*2+1)*16, Component.empty());
         this.screen = screen;
         this.viewRadius = viewRadius;
         this.cellSize = 16;//DO NOT CHANGE
         this.bannerRenderer = new BannerRenderer(null);
-        this.ownFaction = ownFaction;
         this.bannerRenderer.setRecruitsTeam(ownFaction);
         this.player = player;
         chunkImageCache.clear();
@@ -245,6 +241,7 @@ public class ChunkMapWidget extends AbstractWidget {
     }
     private void openContextMenu(ChunkPos chunk) {
         contextMenuEntries.clear();
+        if(ownFaction == null) return;
 
         int chunkOffsetX = (int)(offsetX / cellSize);
         int chunkOffsetZ = (int)(offsetZ / cellSize);
@@ -268,7 +265,7 @@ public class ChunkMapWidget extends AbstractWidget {
 
     private void openClaimContextMenu(RecruitsClaim claim, ChunkPos savedHoverChunk) {
         contextMenuEntries.clear();
-
+        if(ownFaction == null) return;
         ChunkPos rightTop = claim.getClaimedChunks().stream()
                 .max(Comparator.<ChunkPos>comparingInt(pos -> pos.x)
                         .thenComparingInt(pos -> pos.z))
@@ -289,7 +286,7 @@ public class ChunkMapWidget extends AbstractWidget {
         contextMenuY = py;
         //OTHERS CLAIM
         if(!claim.getOwnerFaction().getStringID().equals(ownFaction.getStringID())){
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageToServerRequestUpdateDiplomacyList());
+
             contextMenuEntries.add(new ContextMenuEntry(DIPLOMACY_TEXT.getString(),
                     () -> screen.openDiplomacyOf(claim.getOwnerFaction()), true));
         }
@@ -303,6 +300,7 @@ public class ChunkMapWidget extends AbstractWidget {
                         () -> {
                             claim.removeChunk(savedHoverChunk);
                             recalculateCenter(claim);
+                            Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(claim));
                         },
                         canRemoveChunk(savedHoverChunk, claim)));
             }
@@ -375,7 +373,7 @@ public class ChunkMapWidget extends AbstractWidget {
                     return true;
                 }
 
-                //Left-click on claim -> select claim
+
                 for (RecruitsClaim claim : ClientManager.recruitsClaims) {
                     if (claim.containsChunk(hoverChunk)) {
                         selectedClaim = claim;
@@ -413,7 +411,7 @@ public class ChunkMapWidget extends AbstractWidget {
         return false;
     }
 
-    public boolean canClaimChunk(ChunkPos chunk, RecruitsTeam team, List<RecruitsClaim> allClaims, boolean neighborSameFactionRequired) {
+    public boolean canClaimChunk(ChunkPos chunk, RecruitsFaction team, List<RecruitsClaim> allClaims, boolean neighborSameFactionRequired) {
         for (RecruitsClaim claim : allClaims) {
             for (ChunkPos chunkPos : claim.getClaimedChunks()) {
                 if (chunkPos.equals(chunk)) {
@@ -457,14 +455,14 @@ public class ChunkMapWidget extends AbstractWidget {
         return null;
     }
 
-    public boolean canClaimChunks(List<ChunkPos> chunksToClaim, RecruitsTeam team, List<RecruitsClaim> allClaims) {
+    public boolean canClaimChunks(List<ChunkPos> chunksToClaim, RecruitsFaction team, List<RecruitsClaim> allClaims) {
         for (ChunkPos pos : chunksToClaim) {
             if (!canClaimChunk(pos, team, allClaims, false)) return false;
         }
         return true;
     }
 
-    public void claimChunk(ChunkPos centerChunk, RecruitsTeam ownTeam, List<RecruitsClaim> allClaims) {
+    public void claimChunk(ChunkPos centerChunk, RecruitsFaction ownTeam, List<RecruitsClaim> allClaims) {
         RecruitsClaim neighborClaim = getNeighborClaim(centerChunk, allClaims);
         if(neighborClaim == null) return;
 
@@ -484,7 +482,7 @@ public class ChunkMapWidget extends AbstractWidget {
         Main.SIMPLE_CHANNEL.sendToServer(new MessageDoPayment(player.getUUID(), ClientManager.configValueChunkCost));
     }
 
-    public void claimArea(ChunkPos centerChunk, RecruitsTeam team, List<RecruitsClaim> allClaims) {
+    public void claimArea(ChunkPos centerChunk, RecruitsFaction team, List<RecruitsClaim> allClaims) {
         List<ChunkPos> area = new ArrayList<>();
 
         int range = 2;
@@ -496,17 +494,17 @@ public class ChunkMapWidget extends AbstractWidget {
 
         if (!canClaimChunks(area, team, allClaims)) return;
 
-        RecruitsClaim newClaim = new RecruitsClaim("Claim of " + team.getTeamDisplayName(), team);
+        RecruitsClaim newClaim = new RecruitsClaim(team.getTeamDisplayName(), team);
         for (ChunkPos pos : area) {
             newClaim.addChunk(pos);
         }
 
         newClaim.setCenter(centerChunk);
-        newClaim.setPlayer(new RecruitsPlayerInfo(player.getUUID(), player.getName().getString()));
+        newClaim.setPlayer(new RecruitsPlayerInfo(player.getUUID(), player.getName().getString(), ownFaction));
 
         ClientManager.recruitsClaims.add(newClaim);
         Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(newClaim));
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageDoPayment(player.getUUID(), screen.getClaimCost(this.ownFaction)));
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageDoPayment(player.getUUID(), screen.getClaimCost(ownFaction)));
     }
 
     public void recalculateCenter(RecruitsClaim claim) {

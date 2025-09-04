@@ -1,7 +1,7 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.client.events.RecruitsToastManager;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -20,10 +20,10 @@ public class MessageToClientSetDiplomaticToast implements Message<MessageToClien
 
     public MessageToClientSetDiplomaticToast() {
     }
-    public MessageToClientSetDiplomaticToast(int x, RecruitsTeam team) {
+    public MessageToClientSetDiplomaticToast(int x, RecruitsFaction team) {
         this(x, team, team.getTeamDisplayName());
     }
-    public MessageToClientSetDiplomaticToast(int x, RecruitsTeam team, String s) {
+    public MessageToClientSetDiplomaticToast(int x, RecruitsFaction team, String s) {
         this.x = x;
         this.s = s;
         this.nbt = team.toNBT();
@@ -37,7 +37,7 @@ public class MessageToClientSetDiplomaticToast implements Message<MessageToClien
     @Override
     @OnlyIn(Dist.CLIENT)
     public void executeClientSide(NetworkEvent.Context context) {
-        RecruitsTeam team = RecruitsTeam.fromNBT(nbt);
+        RecruitsFaction team = RecruitsFaction.fromNBT(nbt);
         switch (x){
             case 0 -> RecruitsToastManager.setTeamToastForPlayer(Images.NEUTRAL, TOAST_NEUTRAL_TITLE, TOAST_NEUTRAL_SET(s), team);//
             case 1 -> RecruitsToastManager.setTeamToastForPlayer(Images.ALLY, TOAST_ALLY_TITLE, TOAST_ALLY_SET(s), team);//

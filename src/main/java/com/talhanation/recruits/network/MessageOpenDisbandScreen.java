@@ -1,7 +1,6 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.RecruitEvents;
-import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.FactionEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -36,7 +35,7 @@ public class MessageOpenDisbandScreen implements Message<MessageOpenDisbandScree
         if (!player.getUUID().equals(this.player)) {
             return;
         }
-        TeamEvents.openDisbandingScreen(player, recruit);
+        FactionEvents.openDisbandingScreen(player, recruit);
     }
 
     @Override

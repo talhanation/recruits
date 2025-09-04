@@ -1,16 +1,14 @@
 package com.talhanation.recruits.client.gui.component;
 
 import com.mojang.blaze3d.platform.Lighting;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.core.Holder;
 import net.minecraft.world.item.BannerItem;
@@ -26,10 +24,10 @@ public class BannerRenderer {
     private List<Pair<Holder<BannerPattern>, DyeColor>> resultBannerPatterns;
     private final ModelPart flag;
     private ItemStack bannerItem;
-    private RecruitsTeam recruitsTeam;
+    private RecruitsFaction recruitsFaction;
     private final Minecraft minecraft;
-    public BannerRenderer(@Nullable RecruitsTeam team) {
-        this.recruitsTeam = team;
+    public BannerRenderer(@Nullable RecruitsFaction team) {
+        this.recruitsFaction = team;
         boolean fail = true;
         if (team != null && team.getBanner() != null){
             ItemStack itemStack = ItemStack.of(team.getBanner());
@@ -83,8 +81,9 @@ public class BannerRenderer {
         }
     }
 
-    public void setRecruitsTeam(RecruitsTeam team){
-        this.recruitsTeam = team;
+    public void setRecruitsTeam(RecruitsFaction team){
+        if(team == null) return;
+        this.recruitsFaction = team;
         this.bannerItem = ItemStack.of(team.getBanner());
         this.resultBannerPatterns = BannerBlockEntity.createPatterns(((BannerItem) this.bannerItem.getItem()).getColor(), BannerBlockEntity.getItemPatterns(this.bannerItem));
     }

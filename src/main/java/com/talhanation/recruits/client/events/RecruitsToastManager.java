@@ -3,7 +3,7 @@ package com.talhanation.recruits.client.events;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.component.ImageToast;
 import com.talhanation.recruits.client.gui.component.RecruitsTeamImageToast;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.toasts.Toast;
@@ -21,7 +21,7 @@ public class RecruitsToastManager {
     private static final ResourceLocation CROWN_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/leader_crown.png");
     public static Images savedTeamForPlayer;//dirty fix calling twice bug
     public static Images savedForPlayer;//dirty fix for calling twice bug
-    public static void setTeamToastForPlayer(Images id, @Nullable Component title, @Nullable Component text, RecruitsTeam team){
+    public static void setTeamToastForPlayer(Images id, @Nullable Component title, @Nullable Component text, RecruitsFaction team){
         if(savedTeamForPlayer == id){
             savedTeamForPlayer = null;
             return;

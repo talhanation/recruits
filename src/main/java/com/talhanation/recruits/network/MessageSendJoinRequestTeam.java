@@ -1,6 +1,6 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.FactionEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -31,7 +31,7 @@ public class MessageSendJoinRequestTeam implements Message<MessageSendJoinReques
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = context.getSender();
         ServerLevel level = (ServerLevel) player.getCommandSenderWorld();
-        if(player.getTeam() == null) TeamEvents.sendJoinRequest(level, player, stringID);
+        if(player.getTeam() == null) FactionEvents.sendJoinRequest(level, player, stringID);
         player.sendSystemMessage(JOIN_REQUEST(stringID));
     }
 

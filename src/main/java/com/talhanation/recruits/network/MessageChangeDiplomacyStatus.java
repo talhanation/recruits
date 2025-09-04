@@ -1,8 +1,8 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.TeamEvents;
+import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
-import com.talhanation.recruits.world.RecruitsTeam;
+import com.talhanation.recruits.world.RecruitsFaction;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
@@ -10,15 +10,15 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
 
-public class MessageDiplomacyChangeStatus implements Message<MessageDiplomacyChangeStatus> {
+public class MessageChangeDiplomacyStatus implements Message<MessageChangeDiplomacyStatus> {
     private String ownTeam;
     private String otherTeam;
     private byte status;
 
-    public MessageDiplomacyChangeStatus(){
+    public MessageChangeDiplomacyStatus(){
     }
 
-    public MessageDiplomacyChangeStatus(RecruitsTeam ownTeam, RecruitsTeam otherTeam, RecruitsDiplomacyManager.DiplomacyStatus status) {
+    public MessageChangeDiplomacyStatus(RecruitsFaction ownTeam, RecruitsFaction otherTeam, RecruitsDiplomacyManager.DiplomacyStatus status) {
         this.status = status.getByteValue();
         this.ownTeam = ownTeam.getStringID();
         this.otherTeam = otherTeam.getStringID();
@@ -31,10 +31,10 @@ public class MessageDiplomacyChangeStatus implements Message<MessageDiplomacyCha
     public void executeServerSide(NetworkEvent.Context context){
         RecruitsDiplomacyManager.DiplomacyStatus status = RecruitsDiplomacyManager.DiplomacyStatus.fromByte(this.status);
 
-        TeamEvents.recruitsDiplomacyManager.setRelation(ownTeam, otherTeam, status, (ServerLevel) context.getSender().getCommandSenderWorld());
+        FactionEvents.recruitsDiplomacyManager.setRelation(ownTeam, otherTeam, status, (ServerLevel) context.getSender().getCommandSenderWorld());
 
     }
-    public MessageDiplomacyChangeStatus fromBytes(FriendlyByteBuf buf) {
+    public MessageChangeDiplomacyStatus fromBytes(FriendlyByteBuf buf) {
         this.ownTeam = buf.readUtf();
         this.otherTeam = buf.readUtf();
         this.status = buf.readByte();
