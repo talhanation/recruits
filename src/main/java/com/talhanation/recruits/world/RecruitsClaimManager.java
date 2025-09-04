@@ -12,7 +12,6 @@ import net.minecraftforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.*;
-
 public class RecruitsClaimManager {
     private final Map<ChunkPos, RecruitsClaim> claims = new HashMap<>();
 
@@ -32,30 +31,36 @@ public class RecruitsClaimManager {
         data.setDirty();
     }
 
-    public void addOrUpdateClaim(RecruitsClaim claim) {
+    public void addOrUpdateClaim(ServerLevel level, RecruitsClaim claim) {
+        if (claim == null) return;
+
+        claims.entrySet().removeIf(entry -> entry.getValue().getUUID().equals(claim.getUUID()));
+
         for (ChunkPos pos : claim.getClaimedChunks()) {
             this.claims.put(pos, claim);
         }
+
+        this.broadcastClaimsToAll(level);
     }
 
     public void removeClaim(RecruitsClaim claim) {
         if (claim != null) {
-            for (ChunkPos cp : claim.getClaimedChunks()) {
-                this.claims.remove(cp);
-            }
+            claims.entrySet().removeIf(entry -> entry.getValue().equals(claim));
         }
     }
+
     @Nullable
     public RecruitsClaim getClaim(ChunkPos chunkPos) {
         return this.claims.get(chunkPos);
     }
+
     @Nullable
     public RecruitsClaim getClaim(int chunkX, int chunkZ) {
         return this.getClaim(new ChunkPos(chunkX, chunkZ));
     }
 
     public List<RecruitsClaim> getAllClaims() {
-        return new HashSet<>(this.claims.values()).stream().toList();
+        return new ArrayList<>(new HashSet<>(this.claims.values()));
     }
 
     public boolean claimExists(RecruitsClaim claim, List<ChunkPos> allPos) {
@@ -78,8 +83,14 @@ public class RecruitsClaimManager {
 
     public void broadcastClaimsToAll(ServerLevel level) {
         for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player),
-                    new MessageToClientUpdateClaims(this.getAllClaims(), RecruitsServerConfig.ClaimingCost.get(), RecruitsServerConfig.ChunkCost.get(), RecruitsServerConfig.CascadeThePriceOfClaims.get(), FactionEvents.getCurrency()));
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
+                    new MessageToClientUpdateClaims(
+                            this.getAllClaims(),
+                            RecruitsServerConfig.ClaimingCost.get(),
+                            RecruitsServerConfig.ChunkCost.get(),
+                            RecruitsServerConfig.CascadeThePriceOfClaims.get(),
+                            FactionEvents.getCurrency()
+                    ));
         }
     }
 
@@ -87,7 +98,7 @@ public class RecruitsClaimManager {
         if (claim == null || players == null || players.isEmpty()) return;
 
         for (ServerPlayer player : players) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player),
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
                     new MessageToClientUpdateClaim(claim));
         }
     }

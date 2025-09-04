@@ -29,8 +29,7 @@ public class MessageUpdateClaim implements Message<MessageUpdateClaim> {
     public void executeServerSide(NetworkEvent.Context context){
         RecruitsClaim updatedClaim = RecruitsClaim.fromNBT(this.claimNBT);
 
-        ClaimEvents.recruitsClaimManager.addOrUpdateClaim(updatedClaim);
-        ClaimEvents.recruitsClaimManager.broadcastClaimsToAll((ServerLevel) context.getSender().getCommandSenderWorld());
+        ClaimEvents.recruitsClaimManager.addOrUpdateClaim((ServerLevel) context.getSender().getCommandSenderWorld(), updatedClaim);
     }
     public MessageUpdateClaim fromBytes(FriendlyByteBuf buf) {
         this.claimNBT = buf.readNbt();
