@@ -1,5 +1,8 @@
 package com.talhanation.recruits.client.gui.claim;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
@@ -16,9 +19,14 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
+import org.joml.Matrix4f;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -26,7 +34,10 @@ import java.util.*;
 import static com.talhanation.recruits.client.ClientManager.ownFaction;
 
 
+
 public class ChunkMapWidget extends AbstractWidget {
+
+    private static final ResourceLocation MAP_ICONS = new ResourceLocation("textures/map/map_icons.png");
     private static final Component EDIT_CLAIM = Component.translatable("gui.recruits.claim.editClaim");
     private static final Component REMOVE_CHUNK = Component.translatable("gui.recruits.claim.removeChunk");
     private static final Component FACTION_TEXT = Component.translatable("gui.recruits.claim.faction");
@@ -45,7 +56,7 @@ public class ChunkMapWidget extends AbstractWidget {
     private ChunkPos selectedChunk = null;
     @Nullable
     private ChunkPos hoverChunk;
-    private double offsetX = 0, offsetZ = -100;
+    private double offsetX, offsetZ;
     private boolean dragging = false;
     private final BannerRenderer bannerRenderer;
     private RecruitsClaim selectedClaim;
@@ -64,6 +75,9 @@ public class ChunkMapWidget extends AbstractWidget {
         this.bannerRenderer.setRecruitsTeam(ownFaction);
         this.player = player;
         chunkImageCache.clear();
+
+        this.center = player.chunkPosition();
+        centerOnPlayer();
     }
 
     public void tick() {
@@ -71,9 +85,27 @@ public class ChunkMapWidget extends AbstractWidget {
         if (lastPlayerChunk == null || !lastPlayerChunk.equals(currentChunk)) {
             lastPlayerChunk = currentChunk;
             this.center = currentChunk;
+            centerOnPlayer();
         }
     }
+    private void centerOnPlayer() {
+        if (player == null || center == null) return;
 
+        double playerWorldX = player.getX();
+        double playerWorldZ = player.getZ();
+        ChunkPos playerChunk = player.chunkPosition();
+
+        double localInChunkX = playerWorldX - playerChunk.getMinBlockX();
+        double localInChunkZ = playerWorldZ - playerChunk.getMinBlockZ();
+
+        double widgetCenterX = getWidth() / 2.0;
+        double widgetCenterY = getHeight() / 2.0;
+
+        this.offsetX = widgetCenterX - (double) viewRadius * cellSize - localInChunkX;
+        this.offsetZ = widgetCenterY - (double) viewRadius * cellSize - localInChunkZ;
+
+        this.center = playerChunk;
+    }
     public static final Map<ChunkPos, ChunkMiniMap> chunkImageCache = new HashMap<>();
 
     @Override
@@ -82,15 +114,20 @@ public class ChunkMapWidget extends AbstractWidget {
         ClientLevel level = mc.level;
         if (level == null || center == null) return;
 
+        double baseX = getX() + offsetX + (double) viewRadius * cellSize;
+        double baseY = getY() + offsetZ + (double) viewRadius * cellSize;
+
         renderBackground(guiGraphics);
 
-        renderChunksAndClaims(guiGraphics, level, mouseX, mouseY);
+        renderChunksAndClaims(guiGraphics, level, baseX, baseY, mouseX, mouseY, partialTicks);
 
         renderSelectedChunkBorder(guiGraphics);
 
         renderContextMenu(guiGraphics, mc, mouseX, mouseY);
 
         renderSelectedClaimPanel(guiGraphics, mc);
+
+        renderPlayerIconAt(guiGraphics, baseX, baseY);
     }
 
     private void renderBackground(GuiGraphics guiGraphics) {
@@ -98,23 +135,18 @@ public class ChunkMapWidget extends AbstractWidget {
         guiGraphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xFF222222);
     }
 
-    private void renderChunksAndClaims(GuiGraphics guiGraphics, ClientLevel level, int mouseX, int mouseY) {
-        int chunkOffsetX = (int)(offsetX / cellSize);
-        int chunkOffsetZ = (int)(offsetZ / cellSize);
-        int pixelOffsetX = (int)(offsetX % cellSize);
-        int pixelOffsetZ = (int)(offsetZ % cellSize);
-
+    private void renderChunksAndClaims(GuiGraphics guiGraphics, ClientLevel level, double baseX, double baseY, int mouseX, int mouseY, float partialTicks) {
         int renderMargin = 1;
         hoverChunk = null;
 
         for (int dx = -viewRadius - renderMargin; dx <= viewRadius + renderMargin; dx++) {
             for (int dz = -viewRadius - renderMargin; dz <= viewRadius + renderMargin; dz++) {
-                int chunkX = center.x + dx - chunkOffsetX;
-                int chunkZ = center.z + dz - chunkOffsetZ;
+                int chunkX = center.x + dx;
+                int chunkZ = center.z + dz;
                 ChunkPos pos = new ChunkPos(chunkX, chunkZ);
 
-                int px = getX() + (dx + viewRadius) * cellSize + pixelOffsetX;
-                int py = getY() + (dz + viewRadius) * cellSize + pixelOffsetZ;
+                int px = (int) Math.round(baseX + dx * cellSize);
+                int py = (int) Math.round(baseY + dz * cellSize);
 
                 boolean hovered = mouseX >= px && mouseX < px + cellSize && mouseY >= py && mouseY < py + cellSize;
                 if (hovered) hoverChunk = pos;
@@ -125,6 +157,47 @@ public class ChunkMapWidget extends AbstractWidget {
                 renderClaimOverlay(guiGraphics, pos, px, py);
             }
         }
+    }
+
+    private void renderPlayerIconAt(GuiGraphics guiGraphics, double baseX, double baseY) {
+        ChunkPos pChunk = player.chunkPosition();
+        double localPixelX = player.getX() - pChunk.getMinBlockX();
+        double localPixelZ = player.getZ() - pChunk.getMinBlockZ();
+
+        int chunkDx = pChunk.x - center.x;
+        int chunkDz = pChunk.z - center.z;
+
+        int playerScreenX = (int) Math.round(baseX + chunkDx * cellSize + localPixelX);
+        int playerScreenY = (int) Math.round(baseY + chunkDz * cellSize + localPixelZ);
+
+        PoseStack pose = guiGraphics.pose();
+        pose.pushPose();
+        pose.translate(playerScreenX, playerScreenY, 0);
+        pose.mulPose(Axis.ZP.rotationDegrees(player.getYRot()));
+        pose.scale(5.0f, 5.0f, 1.0f);
+
+        // Vanilla Map Player-Icon UV
+        int iconIndex = 0;
+        float u0 = (iconIndex % 16) / 16f;
+        float v0 = (iconIndex / 16) / 16f;
+        float u1 = u0 + 1f / 16f;
+        float v1 = v0 + 1f / 16f;
+
+        VertexConsumer consumer = guiGraphics.bufferSource().getBuffer(RenderType.text(MAP_ICONS));
+        Matrix4f matrix = pose.last().pose();
+        int light = 0xF000F0;
+        int color = 0xFFFFFFFF;
+
+        consumer.vertex(matrix, -1f, 1f, 0f).color(color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF, color >> 24 & 0xFF)
+                .uv(u0, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, -1).endVertex();
+        consumer.vertex(matrix, 1f, 1f, 0f).color(color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF, color >> 24 & 0xFF)
+                .uv(u1, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, -1).endVertex();
+        consumer.vertex(matrix, 1f, -1f, 0f).color(color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF, color >> 24 & 0xFF)
+                .uv(u1, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, -1).endVertex();
+        consumer.vertex(matrix, -1f, -1f, 0f).color(color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF, color >> 24 & 0xFF)
+                .uv(u0, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, -1).endVertex();
+
+        pose.popPose();
     }
 
     private void renderClaimOverlay(GuiGraphics guiGraphics, ChunkPos pos, int px, int py) {
