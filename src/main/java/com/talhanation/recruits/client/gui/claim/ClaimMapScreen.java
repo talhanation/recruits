@@ -79,6 +79,12 @@ public class ClaimMapScreen extends RecruitsScreenBase {
     }
 
     @Override
+    public boolean mouseScrolled(double p_94686_, double p_94687_, double p_94688_) {
+        if(mapWidget != null) mapWidget.mouseScrolled(p_94686_, p_94687_, p_94688_);
+        return super.mouseScrolled(p_94686_, p_94687_, p_94688_);
+    }
+
+    @Override
     public boolean mouseClicked(double p_94695_, double p_94696_, int p_94697_) {
         if(mapWidget != null) mapWidget.mouseClicked(p_94695_, p_94696_, p_94697_);
         currencyClaim.setCount(this.getClaimCost(ClientManager.ownFaction));

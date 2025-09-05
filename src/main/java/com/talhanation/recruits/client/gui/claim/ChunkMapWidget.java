@@ -1,5 +1,6 @@
 package com.talhanation.recruits.client.gui.claim;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -27,6 +28,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -66,6 +68,7 @@ public class ChunkMapWidget extends AbstractWidget {
 
     public Player player;
     private ChunkPos lastPlayerChunk;
+    private static double zoomLevel  = 1.0D;
     public ChunkMapWidget(ClaimMapScreen screen, Player player, int x, int y, int viewRadius) {
         super(x, y, (viewRadius*2+1)*16, (viewRadius*2+1)*16, Component.empty());
         this.screen = screen;
@@ -91,18 +94,24 @@ public class ChunkMapWidget extends AbstractWidget {
     private void centerOnPlayer() {
         if (player == null || center == null) return;
 
-        double playerWorldX = player.getX();
-        double playerWorldZ = player.getZ();
+        double scaledCellSize = cellSize * zoomLevel; // pixels per chunk (aktuell)
         ChunkPos playerChunk = player.chunkPosition();
 
-        double localInChunkX = playerWorldX - playerChunk.getMinBlockX();
-        double localInChunkZ = playerWorldZ - playerChunk.getMinBlockZ();
+        // Player local block coords inside the chunk (0..15 + fraction)
+        double localInChunkXBlocks = player.getX() - playerChunk.getMinBlockX();
+        double localInChunkZBlocks = player.getZ() - playerChunk.getMinBlockZ();
+
+        // convert block-units to pixel-units (1 block => scaledCellSize / 16 pixels)
+        double pixelsPerBlock = scaledCellSize / 16.0;
+        double localInChunkX = localInChunkXBlocks * pixelsPerBlock;
+        double localInChunkZ = localInChunkZBlocks * pixelsPerBlock;
 
         double widgetCenterX = getWidth() / 2.0;
         double widgetCenterY = getHeight() / 2.0;
 
-        this.offsetX = widgetCenterX - (double) viewRadius * cellSize - localInChunkX;
-        this.offsetZ = widgetCenterY - (double) viewRadius * cellSize - localInChunkZ;
+        // offset so that player's pixel position is at widget center
+        offsetX = widgetCenterX - (double) viewRadius * scaledCellSize - localInChunkX;
+        offsetZ = widgetCenterY - (double) viewRadius * scaledCellSize - localInChunkZ;
 
         this.center = playerChunk;
     }
@@ -114,20 +123,22 @@ public class ChunkMapWidget extends AbstractWidget {
         ClientLevel level = mc.level;
         if (level == null || center == null) return;
 
-        double baseX = getX() + offsetX + (double) viewRadius * cellSize;
-        double baseY = getY() + offsetZ + (double) viewRadius * cellSize;
+        double scaledCellSize = cellSize * zoomLevel;
+
+        double baseX = getX() + offsetX + (double) viewRadius * scaledCellSize;
+        double baseY = getY() + offsetZ + (double) viewRadius * scaledCellSize;
 
         renderBackground(guiGraphics);
 
-        renderChunksAndClaims(guiGraphics, level, baseX, baseY, mouseX, mouseY, partialTicks);
+        renderChunksAndClaims(guiGraphics, level, baseX, baseY, mouseX, mouseY, scaledCellSize);
 
-        renderSelectedChunkBorder(guiGraphics);
+        renderSelectedChunkBorder(guiGraphics, scaledCellSize);
 
         renderContextMenu(guiGraphics, mc, mouseX, mouseY);
 
         renderSelectedClaimPanel(guiGraphics, mc);
 
-        renderPlayerIconAt(guiGraphics, baseX, baseY);
+        renderPlayerIconAt(guiGraphics, baseX, baseY, scaledCellSize);
     }
 
     private void renderBackground(GuiGraphics guiGraphics) {
@@ -135,7 +146,7 @@ public class ChunkMapWidget extends AbstractWidget {
         guiGraphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xFF222222);
     }
 
-    private void renderChunksAndClaims(GuiGraphics guiGraphics, ClientLevel level, double baseX, double baseY, int mouseX, int mouseY, float partialTicks) {
+    private void renderChunksAndClaims(GuiGraphics guiGraphics, ClientLevel level, double baseX, double baseY, int mouseX, int mouseY, double cellSize) {
         int renderMargin = 1;
         hoverChunk = null;
 
@@ -152,21 +163,34 @@ public class ChunkMapWidget extends AbstractWidget {
                 if (hovered) hoverChunk = pos;
 
                 ChunkMiniMap preview = chunkImageCache.computeIfAbsent(pos, p -> new ChunkMiniMap(level, p));
-                preview.draw(guiGraphics, px, py, hovered);
+                //RenderSystem.setShaderTexture(0, textureId);
 
-                renderClaimOverlay(guiGraphics, pos, px, py);
+                RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
+                RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+                preview.draw(guiGraphics, px, py, (int) cellSize, (int) cellSize, hovered);
+
+                renderClaimOverlay(guiGraphics, pos, px, py, cellSize);
             }
         }
     }
 
-    private void renderPlayerIconAt(GuiGraphics guiGraphics, double baseX, double baseY) {
+    private void renderPlayerIconAt(GuiGraphics guiGraphics, double baseX, double baseY, double cellSize) {
+        // pChunk: chunk wo der player gerade ist
         ChunkPos pChunk = player.chunkPosition();
-        double localPixelX = player.getX() - pChunk.getMinBlockX();
-        double localPixelZ = player.getZ() - pChunk.getMinBlockZ();
+
+        // local in block units (0..15 + fraction)
+        double localBlocksX = player.getX() - pChunk.getMinBlockX();
+        double localBlocksZ = player.getZ() - pChunk.getMinBlockZ();
+
+        // convert to pixel-units using cellSize = pixels per chunk
+        double pixelsPerBlock = cellSize / 16.0;
+        double localPixelX = localBlocksX * pixelsPerBlock;
+        double localPixelZ = localBlocksZ * pixelsPerBlock;
 
         int chunkDx = pChunk.x - center.x;
         int chunkDz = pChunk.z - center.z;
 
+        // final screen position
         int playerScreenX = (int) Math.round(baseX + chunkDx * cellSize + localPixelX);
         int playerScreenY = (int) Math.round(baseY + chunkDz * cellSize + localPixelZ);
 
@@ -176,7 +200,7 @@ public class ChunkMapWidget extends AbstractWidget {
         pose.mulPose(Axis.ZP.rotationDegrees(player.getYRot()));
         pose.scale(5.0f, 5.0f, 1.0f);
 
-        // Vanilla Map Player-Icon UV
+        // Vanilla Map Player-Icon UV (wie vorher)
         int iconIndex = 0;
         float u0 = (iconIndex % 16) / 16f;
         float v0 = (iconIndex / 16) / 16f;
@@ -188,19 +212,19 @@ public class ChunkMapWidget extends AbstractWidget {
         int light = 0xF000F0;
         int color = 0xFFFFFFFF;
 
-        consumer.vertex(matrix, -1f, 1f, 0f).color(color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF, color >> 24 & 0xFF)
+        consumer.vertex(matrix, -1f, 1f, 0f).color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF)
                 .uv(u0, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, -1).endVertex();
-        consumer.vertex(matrix, 1f, 1f, 0f).color(color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF, color >> 24 & 0xFF)
+        consumer.vertex(matrix, 1f, 1f, 0f).color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF)
                 .uv(u1, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, -1).endVertex();
-        consumer.vertex(matrix, 1f, -1f, 0f).color(color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF, color >> 24 & 0xFF)
+        consumer.vertex(matrix, 1f, -1f, 0f).color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF)
                 .uv(u1, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, -1).endVertex();
-        consumer.vertex(matrix, -1f, -1f, 0f).color(color >> 16 & 0xFF, color >> 8 & 0xFF, color & 0xFF, color >> 24 & 0xFF)
+        consumer.vertex(matrix, -1f, -1f, 0f).color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF)
                 .uv(u0, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, -1).endVertex();
 
         pose.popPose();
     }
 
-    private void renderClaimOverlay(GuiGraphics guiGraphics, ChunkPos pos, int px, int py) {
+    private void renderClaimOverlay(GuiGraphics guiGraphics, ChunkPos pos, int px, int py, double cellSize) {
         for (RecruitsClaim claim : ClientManager.recruitsClaims) {
             if (claim.containsChunk(pos)) {
                 int alpha = 190;
@@ -210,16 +234,31 @@ public class ChunkMapWidget extends AbstractWidget {
                 int b = rgb & 0xFF;
 
                 int argb = (alpha << 24) | (r << 16) | (g << 8) | b;
-                guiGraphics.fill(px, py, px + cellSize, py + cellSize, argb);
+
+                // ➤ kleine Überlappung gegen Lücken
+                double overlap = 0.5; // kannst du auf 1.0 erhöhen, falls immer noch Lücken sichtbar sind
+
+                double x1 = px;
+                double y1 = py;
+                double x2 = px + cellSize + overlap;
+                double y2 = py + cellSize + overlap;
+
+                guiGraphics.fill(
+                        (int) Math.floor(x1),
+                        (int) Math.floor(y1),
+                        (int) Math.ceil(x2),
+                        (int) Math.ceil(y2),
+                        argb
+                );
 
                 // Borders vom ausgewählten Claim
                 if (selectedClaim != null && selectedClaim.containsChunk(pos)) {
-                    renderSelectedClaimBorder(guiGraphics, pos, px, py);
+                    renderSelectedClaimBorder(guiGraphics, pos, px, py, cellSize);
                 }
 
                 // Claim-Namen nur am Center zeichnen
                 if (claim.getCenter().equals(pos)) {
-                    renderClaimName(guiGraphics, claim, px, py);
+                    renderClaimName(guiGraphics, claim, px, py, cellSize);
                 }
 
                 break;
@@ -227,18 +266,19 @@ public class ChunkMapWidget extends AbstractWidget {
         }
     }
 
-    private void renderClaimName(GuiGraphics guiGraphics, RecruitsClaim claim, int px, int py) {
+
+    private void renderClaimName(GuiGraphics guiGraphics, RecruitsClaim claim, int px, int py, double cellSize) {
         Font font = Minecraft.getInstance().font;
         String name = claim.getName();
 
         int textWidth = font.width(name);
-        int textX = px + (cellSize / 2) - (textWidth / 2);
-        int textY = py + (cellSize / 2) - 4;
+        int textX = (int) (px + (cellSize / 2) - (textWidth / 2));
+        int textY = (int) (py + (cellSize / 2) - 4);
 
         guiGraphics.drawString(font, name, textX, textY, 0xFFFFFF, true);
     }
 
-    private void renderSelectedClaimBorder(GuiGraphics guiGraphics, ChunkPos pos, int px, int py) {
+    private void renderSelectedClaimBorder(GuiGraphics guiGraphics, ChunkPos pos, int px, int py, double cellSize) {
         ChunkPos[] directions = {
                 new ChunkPos(pos.x, pos.z - 1),
                 new ChunkPos(pos.x, pos.z + 1),
@@ -253,27 +293,27 @@ public class ChunkMapWidget extends AbstractWidget {
 
         int borderColor = 0xFFFFFFFF;
 
-        if (top) guiGraphics.fill(px, py, px + cellSize, py + 1, borderColor);
-        if (bottom) guiGraphics.fill(px, py + cellSize - 1, px + cellSize, py + cellSize, borderColor);
-        if (left) guiGraphics.fill(px, py, px + 1, py + cellSize, borderColor);
-        if (right) guiGraphics.fill(px + cellSize - 1, py, px + cellSize, py + cellSize, borderColor);
+        if (top) guiGraphics.fill(px, py, (int) (px + cellSize), py + 1, borderColor);
+        if (bottom) guiGraphics.fill(px, (int) (py + cellSize - 1), (int) (px + cellSize), (int) (py + cellSize), borderColor);
+        if (left) guiGraphics.fill(px, py, px + 1, (int) (py + cellSize), borderColor);
+        if (right) guiGraphics.fill((int) (px + cellSize - 1), py, (int) (px + cellSize), (int) (py + cellSize), borderColor);
     }
 
-    private void renderSelectedChunkBorder(GuiGraphics guiGraphics) {
+    private void renderSelectedChunkBorder(GuiGraphics guiGraphics, double cellSize) {
         if (selectedChunk == null) return;
 
         int dx = selectedChunk.x - center.x + (int)(offsetX / cellSize);
         int dz = selectedChunk.z - center.z + (int)(offsetZ / cellSize);
 
-        int px = getX() + (dx + viewRadius) * cellSize + (int)(offsetX % cellSize);
-        int py = getY() + (dz + viewRadius) * cellSize + (int)(offsetZ % cellSize);
+        int px = (int) (getX() + (dx + viewRadius) * cellSize + (int)(offsetX % cellSize));
+        int py = (int) (getY() + (dz + viewRadius) * cellSize + (int)(offsetZ % cellSize));
 
         int glowColor = 0xFFFFFFFF;
 
-        guiGraphics.fill(px, py, px + cellSize, py + 1, glowColor); // top
-        guiGraphics.fill(px, py + cellSize - 1, px + cellSize, py + cellSize, glowColor); // bottom
-        guiGraphics.fill(px, py, px + 1, py + cellSize, glowColor); // left
-        guiGraphics.fill(px + cellSize - 1, py, px + cellSize, py + cellSize, glowColor); // right
+        guiGraphics.fill(px, py, (int) (px + cellSize), py + 1, glowColor); // top
+        guiGraphics.fill(px, (int) (py + cellSize - 1), (int) (px + cellSize), (int) (py + cellSize), glowColor); // bottom
+        guiGraphics.fill(px, py, px + 1, (int) (py + cellSize), glowColor); // left
+        guiGraphics.fill((int) (px + cellSize - 1), py, (int) (px + cellSize), (int) (py + cellSize), glowColor); // right
     }
 
     private void renderContextMenu(GuiGraphics guiGraphics, Minecraft mc, int mouseX, int mouseY) {
@@ -418,6 +458,41 @@ public class ChunkMapWidget extends AbstractWidget {
     protected void updateWidgetNarration(NarrationElementOutput p_169152_) {
         // Keine Narration
     }
+
+    public void zoom(double delta, double mouseX, double mouseY) {
+        double oldZoom = zoomLevel;
+        double newZoom = Mth.clamp(zoomLevel + delta * 0.1, 0.5, 4.0); // min 0.5x, max 4x
+        if (newZoom == oldZoom) return;
+
+        double oldScaled = cellSize * oldZoom;
+        double newScaled = cellSize * newZoom;
+
+        // Base = Bildschirm-X des (viewRadius, viewRadius) center-chunks (oben links = getX())
+        double baseXOld = getX() + offsetX + (double) viewRadius * oldScaled;
+        double baseYOld = getY() + offsetZ + (double) viewRadius * oldScaled;
+
+        // Welt-Position (in chunk-pixel-einheiten, float) unter der Maus vor dem Zoom
+        double worldPosX = (mouseX - baseXOld) / oldScaled; // kann negativ sein
+        double worldPosY = (mouseY - baseYOld) / oldScaled;
+
+        // Berechne neuen offset so dass worldPos unter der Maus gleich bleibt:
+        // mouseX = getX() + offsetXNew + (viewRadius + worldPosX) * newScaled
+        double offsetXNew = mouseX - getX() - (viewRadius + worldPosX) * newScaled;
+        double offsetZNew = mouseY - getY() - (viewRadius + worldPosY) * newScaled;
+
+        // Übernehme neue Werte
+        zoomLevel = newZoom;
+        offsetX = offsetXNew;
+        offsetZ = offsetZNew;
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+        // delta ist positive beim Scroll hoch (typisch); wir wollen intuitiv zoomen
+        zoom(delta, mouseX, mouseY);
+        return true;
+    }
+
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
