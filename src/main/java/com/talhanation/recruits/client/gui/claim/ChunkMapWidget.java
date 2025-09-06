@@ -52,7 +52,7 @@ public class ChunkMapWidget extends AbstractWidget {
     private static final Component BLOCK_BREAKING_TEXT = Component.translatable("gui.recruits.claim.block_breaking");
     private static final Component BLOCK_INTERACTION_TEXT = Component.translatable("gui.recruits.claim.block_interaction");
     private final ClaimMapScreen screen;
-    private final int viewRadius;
+    private int viewRadius;
     private final int cellSize;
     private ChunkPos center;
     @Nullable
@@ -70,28 +70,35 @@ public class ChunkMapWidget extends AbstractWidget {
     public Player player;
     private ChunkPos lastPlayerChunk;
     private static double zoomLevel  = 1.0D;
-    public ChunkMapWidget(ClaimMapScreen screen, Player player, int x, int y, int viewRadius) {
-        super(x, y, (viewRadius*2+1)*16, (viewRadius*2+1)*16, Component.empty());
+    private double lastBaseX = 0;
+    private double lastBaseY = 0;
+    private double lastScaledCellSize  = 16.0;
+    public ChunkMapWidget(ClaimMapScreen screen, Player player, int x, int y) {
+        super(x, y, screen.width, screen.height, Component.empty());
         this.screen = screen;
-        this.viewRadius = viewRadius;
         this.cellSize = 16;//DO NOT CHANGE
         this.bannerRenderer = new BannerRenderer(null);
         this.bannerRenderer.setRecruitsTeam(ownFaction);
         this.player = player;
-
+        recalcViewRadius();
         this.center = player.chunkPosition();
         centerOnPlayer();
     }
 
+    private void recalcViewRadius() {
+        int chunksX = (int) Math.ceil((double) this.width / cellSize);
+        int chunksY = (int) Math.ceil((double) this.height / cellSize);
+        this.viewRadius = Math.max(chunksX, chunksY) + 5; // +2 als Buffer
+    }
+
     public void tick() {
-        if(player.tickCount % 20 != 0) return;
-        // center update wie gehabt
         ChunkPos currentChunk = player.chunkPosition();
         if (lastPlayerChunk == null || !lastPlayerChunk.equals(currentChunk)) {
             lastPlayerChunk = currentChunk;
             this.center = currentChunk;
             centerOnPlayer();
         }
+        if(player.tickCount % 20 != 0) return;
 
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null || center == null) return;
@@ -138,7 +145,7 @@ public class ChunkMapWidget extends AbstractWidget {
                     // nicht sinnvoll
                     if (hasSaved) {
                         // lade statt überschreiben und verwende gespeichertes Bild
-                        Optional<NativeImage> maybe = ChunkMapPersistence.loadChunk(dim, pos);
+                        Optional<NativeImage> maybe = ChunkMapPersistence.loadChunkSync(dim, pos);
                         if (maybe.isPresent()) {
                             ChunkPreview fromDisk = ChunkPreview.fromNativeImage(level, pos, maybe.get());
                             // free generated texture
@@ -158,7 +165,7 @@ public class ChunkMapWidget extends AbstractWidget {
                 // im Fehlerfall nichts überschreiben: wenn es eine gespeicherte Datei gab, lade sie
                 try {
                     if (ChunkMapPersistence.chunkExists(dim, pos)) {
-                        Optional<NativeImage> maybe = ChunkMapPersistence.loadChunk(dim, pos);
+                        Optional<NativeImage> maybe = ChunkMapPersistence.loadChunkSync(dim, pos);
                         if (maybe.isPresent()) {
                             ChunkPreview fromDisk = ChunkPreview.fromNativeImage(level, pos, maybe.get());
                             chunkImageCache.put(pos, fromDisk);
@@ -179,7 +186,7 @@ public class ChunkMapWidget extends AbstractWidget {
 
                 // 1) versuchen zu laden von disk
                 try {
-                    Optional<NativeImage> maybe = ChunkMapPersistence.loadChunk(dim, pos);
+                    Optional<NativeImage> maybe = ChunkMapPersistence.loadChunkSync(dim, pos);
                     if (maybe.isPresent()) {
                         ChunkPreview cm = ChunkPreview.fromNativeImage(level, pos, maybe.get());
                         chunkImageCache.put(pos, cm);
@@ -243,11 +250,16 @@ public class ChunkMapWidget extends AbstractWidget {
         double baseX = getX() + offsetX + (double) viewRadius * scaledCellSize;
         double baseY = getY() + offsetZ + (double) viewRadius * scaledCellSize;
 
+        // speichere die Basiswerte (Quelle der Wahrheit)
+        this.lastBaseX = baseX;
+        this.lastBaseY = baseY;
+        this.lastScaledCellSize = scaledCellSize;
+
         renderBackground(guiGraphics);
 
         renderChunksAndClaims(guiGraphics, level, baseX, baseY, mouseX, mouseY, scaledCellSize);
 
-        renderSelectedChunkBorder(guiGraphics, scaledCellSize);
+        renderSelectedChunkBorder(guiGraphics); // nutzt jetzt lastBaseX/Y/ScaledCellSize
 
         renderContextMenu(guiGraphics, mc, mouseX, mouseY);
 
@@ -417,28 +429,37 @@ public class ChunkMapWidget extends AbstractWidget {
 
         int borderColor = 0xFFFFFFFF;
 
+        RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
+        RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+
         if (top) guiGraphics.fill(px, py, (int) (px + cellSize), py + 1, borderColor);
         if (bottom) guiGraphics.fill(px, (int) (py + cellSize - 1), (int) (px + cellSize), (int) (py + cellSize), borderColor);
         if (left) guiGraphics.fill(px, py, px + 1, (int) (py + cellSize), borderColor);
         if (right) guiGraphics.fill((int) (px + cellSize - 1), py, (int) (px + cellSize), (int) (py + cellSize), borderColor);
     }
 
-    private void renderSelectedChunkBorder(GuiGraphics guiGraphics, double cellSize) {
-        if (selectedChunk == null) return;
+    private void renderSelectedChunkBorder(GuiGraphics guiGraphics) {
+        if (selectedChunk == null || center == null) return;
 
-        int dx = selectedChunk.x - center.x + (int)(offsetX / cellSize);
-        int dz = selectedChunk.z - center.z + (int)(offsetZ / cellSize);
+        int dx = selectedChunk.x - center.x;
+        int dz = selectedChunk.z - center.z;
 
-        int px = (int) (getX() + (dx + viewRadius) * cellSize + (int)(offsetX % cellSize));
-        int py = (int) (getY() + (dz + viewRadius) * cellSize + (int)(offsetZ % cellSize));
+        int px = (int) Math.round(lastBaseX + dx * lastScaledCellSize);
+        int py = (int) Math.round(lastBaseY + dz * lastScaledCellSize);
 
         int glowColor = 0xFFFFFFFF;
 
-        guiGraphics.fill(px, py, (int) (px + cellSize), py + 1, glowColor); // top
-        guiGraphics.fill(px, (int) (py + cellSize - 1), (int) (px + cellSize), (int) (py + cellSize), glowColor); // bottom
-        guiGraphics.fill(px, py, px + 1, (int) (py + cellSize), glowColor); // left
-        guiGraphics.fill((int) (px + cellSize - 1), py, (int) (px + cellSize), (int) (py + cellSize), glowColor); // right
+        int cs = (int) Math.round(lastScaledCellSize);
+
+        RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
+        RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+
+        guiGraphics.fill(px, py, px + cs, py + 1, glowColor); // top
+        guiGraphics.fill(px, py + cs - 1, px + cs, py + cs, glowColor); // bottom
+        guiGraphics.fill(px, py, px + 1, py + cs, glowColor); // left
+        guiGraphics.fill(px + cs - 1, py, px + cs, py + cs, glowColor); // right
     }
+
 
     private void renderContextMenu(GuiGraphics guiGraphics, Minecraft mc, int mouseX, int mouseY) {
         if (!contextMenuVisible || contextMenuEntries.isEmpty()) return;
@@ -497,58 +518,52 @@ public class ChunkMapWidget extends AbstractWidget {
 
     private void openContextMenu(ChunkPos chunk) {
         contextMenuEntries.clear();
-        if(ownFaction == null) return;
+        if (ownFaction == null) return;
 
-        int chunkOffsetX = (int)(offsetX / cellSize);
-        int chunkOffsetZ = (int)(offsetZ / cellSize);
-        int pixelOffsetX = (int)(offsetX % cellSize);
-        int pixelOffsetZ = (int)(offsetZ % cellSize);
+        int dx = chunk.x - center.x;
+        int dz = chunk.z - center.z;
 
-        int dx = chunk.x - center.x + chunkOffsetX;
-        int dz = chunk.z - center.z + chunkOffsetZ;
+        int px = (int) Math.round(lastBaseX + dx * lastScaledCellSize);
+        int py = (int) Math.round(lastBaseY + dz * lastScaledCellSize);
 
-        int px = getX() + (dx + viewRadius) * cellSize + pixelOffsetX;
-        int py = getY() + (dz + viewRadius) * cellSize + pixelOffsetZ;
-
-        contextMenuX = px + cellSize + 5; // rechts neben dem Chunk
+        contextMenuX = px + (int) Math.round(lastScaledCellSize) + 5;
         contextMenuY = py;
 
-        contextMenuEntries.add(new ContextMenuEntry(ClaimMapScreen.CLAIM_CHUNK.getString(), () -> claimChunk(chunk, ownFaction, ClientManager.recruitsClaims), screen.canPlayerClaim(ClientManager.configValueChunkCost, player) && canClaimChunk(chunk, ownFaction, ClientManager.recruitsClaims, true)));
-        contextMenuEntries.add(new ContextMenuEntry(ClaimMapScreen.CLAIM_AREA.getString(), () -> claimArea(chunk, ownFaction, ClientManager.recruitsClaims), screen.canPlayerClaim(screen.getClaimCost(ownFaction), player) && canClaimChunks(getClaimArea(chunk), ownFaction, ClientManager.recruitsClaims)));
+        contextMenuEntries.add(new ContextMenuEntry(ClaimMapScreen.CLAIM_CHUNK.getString(),
+                () -> claimChunk(chunk, ownFaction, ClientManager.recruitsClaims),
+                screen.canPlayerClaim(ClientManager.configValueChunkCost, player) && canClaimChunk(chunk, ownFaction, ClientManager.recruitsClaims, true)));
+        contextMenuEntries.add(new ContextMenuEntry(ClaimMapScreen.CLAIM_AREA.getString(),
+                () -> claimArea(chunk, ownFaction, ClientManager.recruitsClaims),
+                screen.canPlayerClaim(screen.getClaimCost(ownFaction), player) && canClaimChunks(getClaimArea(chunk), ownFaction, ClientManager.recruitsClaims)));
 
         contextMenuVisible = true;
     }
 
+
     private void openClaimContextMenu(RecruitsClaim claim, ChunkPos savedHoverChunk) {
         contextMenuEntries.clear();
-        if(ownFaction == null) return;
+        if (ownFaction == null) return;
+
         ChunkPos rightTop = claim.getClaimedChunks().stream()
                 .max(Comparator.<ChunkPos>comparingInt(pos -> pos.x)
                         .thenComparingInt(pos -> pos.z))
                 .orElse(claim.getCenter());
 
-        int chunkOffsetX = (int)(offsetX / cellSize);
-        int chunkOffsetZ = (int)(offsetZ / cellSize);
-        int pixelOffsetX = (int)(offsetX % cellSize);
-        int pixelOffsetZ = (int)(offsetZ % cellSize);
+        int dx = rightTop.x - center.x;
+        int dz = rightTop.z - center.z;
 
-        int dx = rightTop.x - center.x + chunkOffsetX;
-        int dz = rightTop.z - center.z + chunkOffsetZ;
+        int px = (int) Math.round(lastBaseX + dx * lastScaledCellSize);
+        int py = (int) Math.round(lastBaseY + dz * lastScaledCellSize);
 
-        int px = getX() + (dx + viewRadius) * cellSize + pixelOffsetX;
-        int py = getY() + (dz + viewRadius) * cellSize + pixelOffsetZ;
-
-        contextMenuX = px + cellSize + 5;
+        contextMenuX = px + (int) Math.round(lastScaledCellSize) + 5;
         contextMenuY = py;
-        //OTHERS CLAIM
-        if(!claim.getOwnerFaction().getStringID().equals(ownFaction.getStringID())){
 
+        if (!claim.getOwnerFaction().getStringID().equals(ownFaction.getStringID())) {
             contextMenuEntries.add(new ContextMenuEntry(DIPLOMACY_TEXT.getString(),
                     () -> screen.openDiplomacyOf(claim.getOwnerFaction()), true));
-        }
-        else {
-            //OWN CLAIM
-            if(player.getUUID().equals(ownFaction.getTeamLeaderUUID()) || player.getUUID().equals(claim.getPlayerInfo().getUUID())){
+        } else {
+            // OWN CLAIM
+            if (player.getUUID().equals(ownFaction.getTeamLeaderUUID()) || player.getUUID().equals(claim.getPlayerInfo().getUUID())) {
                 contextMenuEntries.add(new ContextMenuEntry(EDIT_CLAIM.getString(),
                         () -> screen.openClaimEditScreen(claim), true));
 
@@ -564,6 +579,7 @@ public class ChunkMapWidget extends AbstractWidget {
 
         contextMenuVisible = true;
     }
+
 
     private List<ChunkPos> getClaimArea(ChunkPos center) {
         List<ChunkPos> list = new ArrayList<>();
@@ -608,6 +624,8 @@ public class ChunkMapWidget extends AbstractWidget {
         zoomLevel = newZoom;
         offsetX = offsetXNew;
         offsetZ = offsetZNew;
+
+        recalcViewRadius();
     }
 
     @Override

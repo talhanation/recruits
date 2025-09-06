@@ -50,13 +50,7 @@ public class ClaimMapScreen extends RecruitsScreenBase {
     }
 
     private void setButtons() {
-        // ChunkMapWidget anpassen
-        int cellSize = 16;
-        int viewRadiusX = (width / cellSize) / 2;
-        int viewRadiusY = (height / cellSize) / 2;
-        int viewRadius = Math.max(viewRadiusX, viewRadiusY);
-
-        mapWidget = new ChunkMapWidget(this, player, 0, 0, viewRadius);
+        mapWidget = new ChunkMapWidget(this, player, 0, 0);
         mapWidget.setWidth(width);
         mapWidget.setHeight(height);
         this.addRenderableWidget(mapWidget);
