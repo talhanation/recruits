@@ -1,5 +1,6 @@
 package com.talhanation.recruits.client.gui.claim;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -77,20 +78,134 @@ public class ChunkMapWidget extends AbstractWidget {
         this.bannerRenderer = new BannerRenderer(null);
         this.bannerRenderer.setRecruitsTeam(ownFaction);
         this.player = player;
-        chunkImageCache.clear();
 
         this.center = player.chunkPosition();
         centerOnPlayer();
     }
 
     public void tick() {
+        if(player.tickCount % 20 != 0) return;
+        // center update wie gehabt
         ChunkPos currentChunk = player.chunkPosition();
         if (lastPlayerChunk == null || !lastPlayerChunk.equals(currentChunk)) {
             lastPlayerChunk = currentChunk;
             this.center = currentChunk;
             centerOnPlayer();
         }
+
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null || center == null) return;
+
+        ResourceLocation dim = level.dimension().location();
+
+        // 1) PRIORITY: immer neu generieren (und speichern/überschreiben) innerhalb radius 10, sortiert nach Distanz (nächste zuerst)
+        final int priorityRadius = 10;
+        List<ChunkPos> priorityList = new ArrayList<>();
+        for (int dx = -priorityRadius; dx <= priorityRadius; dx++) {
+            for (int dz = -priorityRadius; dz <= priorityRadius; dz++) {
+                priorityList.add(new ChunkPos(center.x + dx, center.z + dz));
+            }
+        }
+        // sortiere nach quadratischer Distanz (nächste zuerst)
+        priorityList.sort(Comparator.comparingInt(p -> {
+            int ddx = p.x - center.x;
+            int ddz = p.z - center.z;
+            return ddx * ddx + ddz * ddz;
+        }));
+
+        final double minMeaningfulRatio = 0.05; // anpassen
+
+        for (ChunkPos pos : priorityList) {
+            try {
+                // Falls bereits im Cache vorhanden: close, wir werden neu prüfen/generieren
+                ChunkPreview old = chunkImageCache.get(pos);
+                if (old != null) {
+                    try { old.close(); } catch (Exception ignored) {}
+                }
+                // Versuche zu generieren (synchron)
+                ChunkPreview generated = new ChunkPreview(level, pos);
+                NativeImage generatedImg = generated.getNativeImage();
+
+                boolean meaningful = generated.imageIsMeaningful(minMeaningfulRatio);
+                boolean hasSaved = ChunkMapPersistence.chunkExists(dim, pos);
+
+                if (meaningful) {
+                    // sinnvoll -> speichern und in Cache aufnehmen
+                    try { ChunkMapPersistence.saveChunk(dim, pos, generatedImg); }
+                    catch (Exception e) { e.printStackTrace(); }
+                    chunkImageCache.put(pos, generated); // keep generated
+                } else {
+                    // nicht sinnvoll
+                    if (hasSaved) {
+                        // lade statt überschreiben und verwende gespeichertes Bild
+                        Optional<NativeImage> maybe = ChunkMapPersistence.loadChunk(dim, pos);
+                        if (maybe.isPresent()) {
+                            ChunkPreview fromDisk = ChunkPreview.fromNativeImage(level, pos, maybe.get());
+                            // free generated texture
+                            try { generated.close(); } catch (Exception ignored) {}
+                            chunkImageCache.put(pos, fromDisk);
+                        } else {
+                            // gespeicherte Datei angeblich vorhanden, aber nicht ladbar -> verwende generated, aber NICHT speichern
+                            chunkImageCache.put(pos, generated);
+                        }
+                    } else {
+                        // kein gespeichertes Bild vorhanden -> benutze generated, aber speichere NICHT (um keine schwarzen NBT zu erzeugen)
+                        chunkImageCache.put(pos, generated);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                // im Fehlerfall nichts überschreiben: wenn es eine gespeicherte Datei gab, lade sie
+                try {
+                    if (ChunkMapPersistence.chunkExists(dim, pos)) {
+                        Optional<NativeImage> maybe = ChunkMapPersistence.loadChunk(dim, pos);
+                        if (maybe.isPresent()) {
+                            ChunkPreview fromDisk = ChunkPreview.fromNativeImage(level, pos, maybe.get());
+                            chunkImageCache.put(pos, fromDisk);
+                        }
+                    }
+                } catch (Exception e2) { e2.printStackTrace(); }
+            }
+        }
+
+        // 2) Sichtbarer Bereich: sicherstellen, dass alle sichtbaren Chunks im Cache sind.
+        //    (Falls bereits generiert/überschrieben durch Priorität, wird containsKey true.)
+        int renderMargin = 1;
+        for (int dx = -viewRadius - renderMargin; dx <= viewRadius + renderMargin; dx++) {
+            for (int dz = -viewRadius - renderMargin; dz <= viewRadius + renderMargin; dz++) {
+                ChunkPos pos = new ChunkPos(center.x + dx, center.z + dz);
+
+                if (chunkImageCache.containsKey(pos)) continue; // bereits vorhanden (evtl. durch Priorität)
+
+                // 1) versuchen zu laden von disk
+                try {
+                    Optional<NativeImage> maybe = ChunkMapPersistence.loadChunk(dim, pos);
+                    if (maybe.isPresent()) {
+                        ChunkPreview cm = ChunkPreview.fromNativeImage(level, pos, maybe.get());
+                        chunkImageCache.put(pos, cm);
+                        continue;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                // 2) nicht gefunden -> synchron generieren & speichern (aber nur für sichtbare Region)
+                try {
+                    ChunkPreview cm = new ChunkPreview(level, pos);
+                    chunkImageCache.put(pos, cm);
+
+                    NativeImage img = cm.getNativeImage();
+                    if (img != null) {
+                        ChunkMapPersistence.saveChunk(dim, pos, img);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
+
+
     private void centerOnPlayer() {
         if (player == null || center == null) return;
 
@@ -115,7 +230,7 @@ public class ChunkMapWidget extends AbstractWidget {
 
         this.center = playerChunk;
     }
-    public static final Map<ChunkPos, ChunkMiniMap> chunkImageCache = new HashMap<>();
+    public static final Map<ChunkPos, ChunkPreview> chunkImageCache = new HashMap<>();
 
     @Override
     public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
@@ -150,6 +265,8 @@ public class ChunkMapWidget extends AbstractWidget {
         int renderMargin = 1;
         hoverChunk = null;
 
+        int intCellSize = Math.max(1, (int) Math.round(cellSize)); // Sicherstellen, dass Zellgröße sinnvoll ist
+
         for (int dx = -viewRadius - renderMargin; dx <= viewRadius + renderMargin; dx++) {
             for (int dz = -viewRadius - renderMargin; dz <= viewRadius + renderMargin; dz++) {
                 int chunkX = center.x + dx;
@@ -159,20 +276,27 @@ public class ChunkMapWidget extends AbstractWidget {
                 int px = (int) Math.round(baseX + dx * cellSize);
                 int py = (int) Math.round(baseY + dz * cellSize);
 
-                boolean hovered = mouseX >= px && mouseX < px + cellSize && mouseY >= py && mouseY < py + cellSize;
+                boolean hovered = mouseX >= px && mouseX < px + intCellSize && mouseY >= py && mouseY < py + intCellSize;
                 if (hovered) hoverChunk = pos;
 
-                ChunkMiniMap preview = chunkImageCache.computeIfAbsent(pos, p -> new ChunkMiniMap(level, p));
-                //RenderSystem.setShaderTexture(0, textureId);
+                // KEINE Erzeugung hier! Nur rendern, wenn im Cache vorhanden
+                ChunkPreview preview = chunkImageCache.get(pos);
+                if (preview != null) {
+                    // nearest neighbor sicherstellen (keine Filterung)
+                    RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
+                    RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
 
-                RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
-                RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
-                preview.draw(guiGraphics, px, py, (int) cellSize, (int) cellSize, hovered);
+                    preview.draw(guiGraphics, px, py, intCellSize, intCellSize, hovered);
+                } else {
+                    // Platzhalter zeichnen (z.B. komplett schwarz)
+                    guiGraphics.fill(px, py, px + intCellSize, py + intCellSize, 0xFF000000);
+                }
 
                 renderClaimOverlay(guiGraphics, pos, px, py, cellSize);
             }
         }
     }
+
 
     private void renderPlayerIconAt(GuiGraphics guiGraphics, double baseX, double baseY, double cellSize) {
         // pChunk: chunk wo der player gerade ist

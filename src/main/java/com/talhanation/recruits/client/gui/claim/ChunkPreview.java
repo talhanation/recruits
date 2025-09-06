@@ -3,7 +3,6 @@ package com.talhanation.recruits.client.gui.claim;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.texture.DynamicTexture;
@@ -17,22 +16,19 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.MapColor;
 import org.lwjgl.opengl.GL11;
 
-public class ChunkMiniMap {
-    private final ChunkPos chunkPos;
+public class ChunkPreview {
     private final NativeImage image;
     private final DynamicTexture texture;
     private final ResourceLocation textureId;
     private final Minecraft mc = Minecraft.getInstance();
 
-    public ChunkMiniMap(ClientLevel level, ChunkPos pos) {
-        this.chunkPos = pos;
+    public ChunkPreview(ClientLevel level, ChunkPos pos) {
         this.image = generateVanillaStyleImage(level, pos);
         this.texture = new DynamicTexture(image);
         this.textureId = mc.getTextureManager().register("chunk_map_" + pos.x + "_" + pos.z, texture);
     }
 
-    private ChunkMiniMap(ChunkPos pos, NativeImage img, DynamicTexture tex, ResourceLocation id) {
-        this.chunkPos = pos;
+    private ChunkPreview(NativeImage img, DynamicTexture tex, ResourceLocation id) {
         this.image = img;
         this.texture = tex;
         this.textureId = id;
@@ -159,11 +155,33 @@ public class ChunkMiniMap {
     }
 
     // optional: konstruktor von NativeImage (laden aus file) -> du kannst einen neuen ctor machen:
-    public static ChunkMiniMap fromNativeImage(ClientLevel level, ChunkPos pos, NativeImage img) {
+    public static ChunkPreview fromNativeImage(ClientLevel level, ChunkPos pos, NativeImage img) {
         Minecraft mc = Minecraft.getInstance();
         DynamicTexture tex = new DynamicTexture(img);
         ResourceLocation id = mc.getTextureManager().register("chunk_map_" + pos.x + "_" + pos.z, tex);
-        ChunkMiniMap cm = new ChunkMiniMap(pos, img, tex, id);
+        ChunkPreview cm = new ChunkPreview(img, tex, id);
         return cm;
+    }
+
+    public boolean imageIsMeaningful(double minNonBlackRatio) {
+        if (this.image == null) return false;
+        int w = this.image.getWidth();
+        int h = this.image.getHeight();
+        int total = w * h;
+        int nonBlack = 0;
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int px = this.image.getPixelRGBA(x, y);
+                // treat fully black (0xFF000000) as empty
+                if ((px & 0x00FFFFFF) != 0) nonBlack++;
+                else {
+                    // also treat fully transparent as empty (alpha == 0)
+                    int alpha = (px >>> 24) & 0xFF;
+                    if (alpha != 0 && (px & 0x00FFFFFF) != 0) nonBlack++;
+                }
+            }
+        }
+        double ratio = (double) nonBlack / (double) total;
+        return ratio >= minNonBlackRatio;
     }
 }
