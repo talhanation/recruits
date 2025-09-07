@@ -9,6 +9,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+
+import java.util.UUID;
+
 public class FactionClaimBannerOverlay {
     private static final long FULL_DISPLAY_DURATION = 5000;
     private static final long ANIMATION_TIME = 1000;
@@ -21,8 +24,10 @@ public class FactionClaimBannerOverlay {
     private static String claimName;
     private static String playerName;
     private static BannerRenderer bannerRenderer;
+    public static UUID claimUUID;
 
     public static void activate(RecruitsClaim claim) {
+        claimUUID = claim.getUUID();
         currentTeam = claim.getOwnerFaction();
         FactionClaimBannerOverlay.claimName = claim.getName();
         playerName = claim.getPlayerInfo().getName();
@@ -149,6 +154,7 @@ public class FactionClaimBannerOverlay {
     }
 
     public static void update(RecruitsClaim claim) {
+        claimUUID = claim.getUUID();
         claimName = claim.getName();
         playerName = claim.getPlayerInfo().getName();
         currentTeam = claim.getOwnerFaction();

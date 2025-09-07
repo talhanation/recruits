@@ -40,7 +40,9 @@ public class ClientPlayerEvents {
             }
 
             case IN_CLAIM -> {
-                if(claim != null){
+                if(claim != null && FactionClaimBannerOverlay.claimUUID.equals(claim.getUUID())){
+                    if(player.tickCount % 20 == 0) FactionClaimBannerOverlay.update(claim);
+
                     if(claim.isUnderSiege){
                         RecruitsFaction defender = claim.getOwnerFaction();
                         RecruitsFaction attacker = claim.attackingParties != null && !claim.attackingParties.isEmpty() ? claim.attackingParties.get(0) : null;
@@ -56,6 +58,7 @@ public class ClientPlayerEvents {
                         );
                         state = State.SIEGE;
                     }
+
                 }
                 else {
                     FactionClaimBannerOverlay.deactivate();
