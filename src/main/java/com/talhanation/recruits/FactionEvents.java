@@ -97,9 +97,7 @@ public class FactionEvents {
         if(event.getLevel().isClientSide()) return;
 
         if(event.getEntity() instanceof Player){
-            DelayedExecutor.runLater(
-                    () -> Minecraft.getInstance().execute(
-                            ()-> recruitsFactionManager.broadcastOnlinePlayersToAll(server.overworld())),1000L);
+            DelayedExecutor.runLater(()-> recruitsFactionManager.broadcastOnlinePlayersToAll(server.overworld()),1000L);
         }
     }
 
@@ -539,7 +537,7 @@ public class FactionEvents {
                         sourceStack.sendSuccess(() -> Component.translatable("commands.team.add.success", teamName), true);
 
                         event.setCanceled(true);
-                        serverSideUpdateTeam(level);
+                        delayedServerSideUpdate(level);
                     }
                     else if(command.contains("remove")){
                         String[] parts = command.split(" ");
@@ -547,10 +545,10 @@ public class FactionEvents {
                         leaveTeam(true,sender, teamName, level, false);
                         sourceStack.sendSuccess(() -> Component.translatable("commands.team.remove.success", teamName), true);
                         event.setCanceled(true);
-                        serverSideUpdateTeam(level);
+                        delayedServerSideUpdate(level);
                     }
                     else if(command.contains("join") || command.contains("leave")){
-                        serverSideUpdateTeam(level);
+                        delayedServerSideUpdate(level);
                     }
                 }
             }
@@ -588,7 +586,7 @@ public class FactionEvents {
                         if (player != null) {
                             addPlayerToTeam(player, this.server.overworld(), teamName, playerName);
                             sourceStack.sendSuccess(() -> Component.translatable("commands.team.join.success.single", playerName, teamName), true);
-                            serverSideUpdateTeam(level);
+                            delayedServerSideUpdate(level);
                         } else {
                             sourceStack.sendFailure(Component.translatable("argument.player.unknown"));
                         }
@@ -603,7 +601,7 @@ public class FactionEvents {
                             Team team = player.getTeam();
                             tryToRemoveFromTeam(team, player, player,this.server.overworld(), playerName, false);
                             sourceStack.sendSuccess(() -> Component.translatable("commands.team.leave.success.single", playerName), true);
-                            serverSideUpdateTeam(level);
+                            delayedServerSideUpdate(level);
                         } else {
                             sourceStack.sendFailure(Component.translatable("argument.player.unknown"));
                         }
@@ -612,6 +610,10 @@ public class FactionEvents {
                 }
             }
         }
+    }
+
+    public void delayedServerSideUpdate(ServerLevel serverLevel){
+        DelayedExecutor.runLater(()-> serverSideUpdateTeam(serverLevel), 500L);
     }
 
     private void createTeamConsole(CommandSourceStack sourceStack, ServerLevel  level, String teamName, String color, byte colorByte) {
