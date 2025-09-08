@@ -17,6 +17,10 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.ComparatorBlock;
+import net.minecraft.world.level.block.DaylightDetectorBlock;
+import net.minecraft.world.level.block.DiodeBlock;
+import net.minecraft.world.level.block.LeverBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -201,9 +205,18 @@ public class ClaimEvents {
         BlockState selectedBlock = player.getCommandSenderWorld().getBlockState(pos);
         BlockEntity blockEntity = player.getCommandSenderWorld().getBlockEntity(pos);
 
-        if (selectedBlock.is(BlockTags.BUTTONS) || selectedBlock.is(BlockTags.DOORS) || selectedBlock.is(BlockTags.WOODEN_TRAPDOORS) || selectedBlock.is(BlockTags.WOODEN_BUTTONS) ||
-                selectedBlock.is(BlockTags.WOODEN_DOORS) || selectedBlock.is(BlockTags.SHULKER_BOXES) || selectedBlock.is(BlockTags.FENCE_GATES) || selectedBlock.is(BlockTags.ANVIL) ||
-                (blockEntity instanceof Container))
+        if (selectedBlock.is(BlockTags.BUTTONS)
+                || selectedBlock.is(BlockTags.DOORS)
+                || selectedBlock.is(BlockTags.WOODEN_TRAPDOORS)
+                || selectedBlock.is(BlockTags.WOODEN_BUTTONS)
+                || selectedBlock.is(BlockTags.WOODEN_DOORS)
+                || selectedBlock.is(BlockTags.SHULKER_BOXES)
+                || selectedBlock.is(BlockTags.FENCE_GATES)
+                || selectedBlock.is(BlockTags.ANVIL)
+                || (selectedBlock.getBlock() instanceof LeverBlock)
+                || (selectedBlock.getBlock() instanceof DiodeBlock)
+                || (selectedBlock.getBlock() instanceof DaylightDetectorBlock)
+                || (blockEntity instanceof Container))
         {
             if(!claim.isBlockInteractionAllowed()){
                 boolean isInTeam = player.getTeam() != null && player.getTeam().getName().equals(claim.getOwnerFactionStringID());
