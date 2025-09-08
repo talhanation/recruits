@@ -116,7 +116,7 @@ public class ClaimMapScreen extends RecruitsScreenBase {
             return ClientManager.configValueClaimCost;
         }
 
-        int amount = 0;
+        int amount = 1;
         if(ownerTeam != null){
             for (RecruitsClaim claim : ClientManager.recruitsClaims) {
                 if (claim.getOwnerFaction().getStringID().equals(ownerTeam.getStringID())) {
@@ -124,7 +124,6 @@ public class ClaimMapScreen extends RecruitsScreenBase {
                 }
             }
         }
-        amount = Math.max(amount, 1);
 
         return amount * ClientManager.configValueClaimCost;
     }
