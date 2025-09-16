@@ -47,11 +47,11 @@ public abstract class RecruitsDoorInteractGoal extends Goal {
     protected void setOpen(boolean open) {
         if (this.hasDoor) {
             BlockState blockstate = this.recruit.getCommandSenderWorld().getBlockState(this.doorPos);
-
-            if (blockstate.getBlock() instanceof DoorBlock) {
-                ((DoorBlock) blockstate.getBlock()).setOpen(this.recruit, this.recruit.getCommandSenderWorld(), blockstate, this.doorPos, open);
-            } else if (blockstate.getBlock() instanceof FenceGateBlock) {
+            if (blockstate.getBlock() instanceof FenceGateBlock) {
                 useGate(blockstate, this.recruit.getCommandSenderWorld(), doorPos, this.recruit);
+            }
+            else if (blockstate.getBlock() instanceof DoorBlock) {
+                ((DoorBlock) blockstate.getBlock()).setOpen(this.recruit, this.recruit.getCommandSenderWorld(), blockstate, this.doorPos, open);
             }
 
             for(Direction direction: Direction.values()){
@@ -59,11 +59,11 @@ public abstract class RecruitsDoorInteractGoal extends Goal {
 
                 BlockPos blockPos = this.doorPos.relative(direction);
                 BlockState state = this.recruit.getCommandSenderWorld().getBlockState(blockPos);
-
-                if (state.getBlock() instanceof DoorBlock) {
-                    ((DoorBlock) blockstate.getBlock()).setOpen(this.recruit, this.recruit.getCommandSenderWorld(), blockstate, this.doorPos, open);
-                } else if (state.getBlock() instanceof FenceGateBlock) {
+                if (state.getBlock() instanceof FenceGateBlock) {
                     useGate(blockstate, this.recruit.getCommandSenderWorld(), blockPos, this.recruit);
+                }
+                else if (state.getBlock() instanceof DoorBlock) {
+                    ((DoorBlock) blockstate.getBlock()).setOpen(this.recruit, this.recruit.getCommandSenderWorld(), blockstate, this.doorPos, open);
                 }
             }
         }
