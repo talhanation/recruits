@@ -86,6 +86,12 @@ public class RecruitInventoryMenu extends ContainerBase {
             }
 
             @Override
+            public void setChanged() {
+                super.setChanged();
+                recruit.onInventoryChanged();
+            }
+
+            @Override
             public Pair<ResourceLocation, ResourceLocation> getNoItemIcon () {
                 return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD);
             }
@@ -101,6 +107,12 @@ public class RecruitInventoryMenu extends ContainerBase {
             public void set(ItemStack stack){
                 super.set(stack);
                 recruit.setItemSlot(EquipmentSlot.MAINHAND, stack);
+            }
+
+            @Override
+            public void setChanged() {
+                super.setChanged();
+                recruit.onInventoryChanged();
             }
         });
     }
@@ -123,6 +135,12 @@ public class RecruitInventoryMenu extends ContainerBase {
                     recruit.setItemSlot(equipmentslottype, stack);
                 }
 
+                @Override
+                public void setChanged() {
+                    super.setChanged();
+                    recruit.onInventoryChanged();
+                }
+
                 @OnlyIn(Dist.CLIENT)
                 public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
                     return Pair.of(InventoryMenu.BLOCK_ATLAS, TEXTURE_EMPTY_SLOTS[equipmentslottype.getIndex()]);
@@ -134,7 +152,14 @@ public class RecruitInventoryMenu extends ContainerBase {
     public void addRecruitInventorySlots() {
         for (int k = 0; k < 3; ++k) {
             for (int l = 0; l < 3; ++l) {
-                this.addSlot(new Slot(recruitInventory, 6 + l + k * recruit.getInventoryColumns(), 2 * 18 + 82 + l * 18,  18 + k * 18));
+                this.addSlot(new Slot(recruitInventory, 6 + l + k * recruit.getInventoryColumns(), 2 * 18 + 82 + l * 18,  18 + k * 18){
+                    @Override
+                    public void setChanged() {
+                        super.setChanged();
+                        recruit.onInventoryChanged();
+                    }
+                }
+                );
             }
         }
     }
@@ -216,5 +241,4 @@ public class RecruitInventoryMenu extends ContainerBase {
     // 41: Feet
     // Recruit Inventory: 42 - 50
     // Player Inventory: 0 - 35
-
 }

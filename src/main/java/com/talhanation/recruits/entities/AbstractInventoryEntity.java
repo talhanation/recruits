@@ -230,6 +230,7 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
 
     ////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////
 
+    public void onInventoryChanged(){}
     public void createInventory() {
         SimpleContainer inventory = this.inventory;
         this.inventory = new RecruitSimpleContainer(this.getInventorySize(), this){
