@@ -83,6 +83,7 @@ public class RecruitInventoryMenu extends ContainerBase {
             public void set(ItemStack stack){
                 super.set(stack);
                 recruit.setItemSlot(EquipmentSlot.OFFHAND, stack);
+                recruit.onItemStackAdded(stack);
             }
 
             @Override
@@ -107,6 +108,7 @@ public class RecruitInventoryMenu extends ContainerBase {
             public void set(ItemStack stack){
                 super.set(stack);
                 recruit.setItemSlot(EquipmentSlot.MAINHAND, stack);
+                recruit.onItemStackAdded(stack);
             }
 
             @Override
@@ -133,6 +135,7 @@ public class RecruitInventoryMenu extends ContainerBase {
                 public void set(ItemStack stack){
                     super.set(stack);
                     recruit.setItemSlot(equipmentslottype, stack);
+                    recruit.onItemStackAdded(stack);
                 }
 
                 @Override
@@ -153,6 +156,12 @@ public class RecruitInventoryMenu extends ContainerBase {
         for (int k = 0; k < 3; ++k) {
             for (int l = 0; l < 3; ++l) {
                 this.addSlot(new Slot(recruitInventory, 6 + l + k * recruit.getInventoryColumns(), 2 * 18 + 82 + l * 18,  18 + k * 18){
+                     @Override
+                     public void set(ItemStack stack){
+                         super.set(stack);
+                         recruit.onItemStackAdded(stack);
+                     }
+
                     @Override
                     public void setChanged() {
                         super.setChanged();
