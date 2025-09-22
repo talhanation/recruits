@@ -219,10 +219,9 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
         MinecraftForge.EVENT_BUS.register(new ClientPlayerEvents());
 
-        CommandCategoryManager.register(new MovementCategory());
-        CommandCategoryManager.register(new CombatCategory());
-        CommandCategoryManager.register(new OtherCategory());
-
+        CommandCategoryManager.register(new MovementCategory(), -2);
+        CommandCategoryManager.register(new CombatCategory(), -3);
+        CommandCategoryManager.register(new OtherCategory(), -1);
     }
 
     private void addCreativeTabs(BuildCreativeModeTabContentsEvent event) {
