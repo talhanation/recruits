@@ -1116,12 +1116,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if(isPlayerTarget) return InteractionResult.PASS;
 
         if (this.getCommandSenderWorld().isClientSide) {
-            boolean flag = this.isOwnedBy(player) || this.isOwned() || !this.isOwned();
+            boolean flag = this.isOwnedBy(player) || !this.canBeHired();
             return flag ? InteractionResult.CONSUME : InteractionResult.PASS;
         } else {
+            if(this instanceof VillagerNobleEntity noble){
+                noble.openTradeGUI(player);
+                return InteractionResult.SUCCESS;
+            }
             if (player.isCreative() && player.getItemInHand(hand).getItem().equals(ModItems.RECRUIT_SPAWN_EGG.get())){
                 openDebugScreen(player);
-                Main.LOGGER.warn("" + this.getName().getString() + " Target: " + getTarget());
+                //Main.LOGGER.warn("" + this.getName().getString() + " Target: " + getTarget());
 
                 return InteractionResult.SUCCESS;
             }
@@ -1157,10 +1161,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             }
             else if(this.isOwned() && this.getTeam() != null && !player.getUUID().equals(this.getOwnerUUID()) &&
                     FactionEvents.recruitsFactionManager.getTeamByStringID(this.getTeam().getName()).getTeamLeaderUUID().equals(player.getUUID())){
-                    //this will not work:
                     Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientOpenTakeOverScreen(this.getUUID()));
             }
-            else if (!this.isOwned() && !isPlayerTarget) {
+            else if (!this.isOwned() && !isPlayerTarget && this.canBeHired()) {
                 this.openHireGUI(player);
                 this.dialogue(name, player);
                 this.navigation.stop();
@@ -1770,7 +1773,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public static void openTakeOverGUI(Player player) {
 
     }
-
+    public boolean canBeHired(){
+        return true;
+    }
     @Override
     public boolean canAttack(@Nonnull LivingEntity target) {
         return RecruitEvents.canAttack(this, target);
