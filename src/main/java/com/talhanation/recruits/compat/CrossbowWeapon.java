@@ -43,7 +43,7 @@ public class CrossbowWeapon implements IWeapon {
     public int getWeaponLoadTime() {
         ItemStack weapon = this.getWeapon().getDefaultInstance();
         int quickChargeLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.QUICK_CHARGE, weapon);
-        return 20 - quickChargeLevel * 4;
+        return 40 - quickChargeLevel * 4;
     }
 
     @Override
