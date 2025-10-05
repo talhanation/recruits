@@ -16,13 +16,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.*;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.*;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -292,6 +291,45 @@ public class CommandEvents {
                         recruit.setState(3);
                     break;
             }
+        }
+    }
+    public static void onAttackCommand(Player player, UUID player_uuid, List<AbstractRecruitEntity> list, int group) {
+        HitResult hitResult = player.pick(100, 1F, false);
+        BlockPos blockpos = null;
+        AABB aabb = null;
+        List<LivingEntity> targets = new ArrayList<>();
+        if (hitResult.getType() == HitResult.Type.ENTITY){
+            EntityHitResult entityHitResult = (EntityHitResult) hitResult;
+
+            blockpos = entityHitResult.getEntity().getOnPos();
+            if(entityHitResult.getEntity() instanceof LivingEntity living) targets.add(living);
+        }
+        else if (hitResult.getType() == HitResult.Type.BLOCK){
+            BlockHitResult blockHitResult = (BlockHitResult) hitResult;
+            blockpos = blockHitResult.getBlockPos();
+        }
+        else return;
+
+        aabb = new AABB(blockpos).inflate(10);
+
+        list.removeIf(recruit -> !recruit.isEffectedByCommand(player_uuid, group));
+
+        List<LivingEntity> validTargets = player.getCommandSenderWorld()
+                .getEntitiesOfClass(LivingEntity.class, aabb);
+
+        if (list.isEmpty() || validTargets.isEmpty()) return;
+
+        AbstractRecruitEntity firstRecruit = list.get(0);
+        validTargets.removeIf(target -> !firstRecruit.canAttack(target));
+
+        if (validTargets.isEmpty()) return;
+
+        for (int i = 0; i < list.size(); i++) {
+            AbstractRecruitEntity recruit = list.get(i);
+            LivingEntity target = validTargets.get(i % validTargets.size());
+            recruit.setTarget(target);
+            recruit.setHoldPos(target.position());
+            recruit.setFollowState(3);
         }
     }
 

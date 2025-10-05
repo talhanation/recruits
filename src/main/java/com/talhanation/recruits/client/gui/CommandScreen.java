@@ -273,6 +273,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             case 12 -> this.player.sendSystemMessage(TEXT_RAID(group_string.toString()));
             case 13 -> this.player.sendSystemMessage(TEXT_PASSIVE(group_string.toString()));
 
+            case 69 -> this.player.sendSystemMessage(TEXT_ATTACK(group_string.toString()));
             case 70 -> this.player.sendSystemMessage(TEXT_FIRE_AT_WILL(group_string.toString()));
             case 71 -> this.player.sendSystemMessage(TEXT_HOLD_FIRE(group_string.toString()));
             case 72 -> this.player.sendSystemMessage(TEXT_STRATEGIC_FIRE(group_string.toString()));
@@ -289,6 +290,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             case 99 -> this.player.sendSystemMessage(TEXT_MOUNT(group_string.toString()));
         }
     }
+
+    private static MutableComponent TEXT_ATTACK(String group_string) {
+        return Component.translatable("chat.recruits.command.attack", group_string);
+    }
+
     private static MutableComponent TEXT_WANDER(String group_string) {
         return Component.translatable("chat.recruits.command.wander", group_string);
     }

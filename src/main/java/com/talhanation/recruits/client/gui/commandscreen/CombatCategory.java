@@ -39,6 +39,8 @@ public class CombatCategory implements ICommandCategory {
     private static final MutableComponent TEXT_CLEAR_TARGET = Component.translatable("gui.recruits.command.text.clearTargets");
     private static final MutableComponent TOOLTIP_COMBAT = Component.translatable("gui.recruits.command.tooltip.combat");
 
+    private static final MutableComponent TEXT_ATTACK = Component.translatable("gui.recruits.command.text.attack");
+    private static final MutableComponent TOOLTIP_ATTACK = Component.translatable("gui.recruits.command.tooltip.attack");
     @Override
     public Component getToolTipName() {
         return TOOLTIP_COMBAT;
@@ -54,7 +56,7 @@ public class CombatCategory implements ICommandCategory {
         boolean isOneGroupActive = groups.stream().anyMatch(g -> !g.isDisabled());
 
         //STRATEGIC FIRE
-        RecruitsCommandButton strategicFireButton = new RecruitsCommandButton(x, y - 50, TEXT_STRATEGIC_FIRE,
+        RecruitsCommandButton strategicFireButton = new RecruitsCommandButton(x, y - 60, TEXT_STRATEGIC_FIRE,
                 button -> {
                     if (!groups.isEmpty()) {
                         for (RecruitsGroup group : groups) {
@@ -71,7 +73,7 @@ public class CombatCategory implements ICommandCategory {
         screen.addRenderableWidget(strategicFireButton);
 
         //HOLD STRATEGIC FIRE
-        RecruitsCommandButton holdStrategicFireButton = new RecruitsCommandButton(x, y - 25, TEXT_HOLD_STRATEGIC_FIRE,
+        RecruitsCommandButton holdStrategicFireButton = new RecruitsCommandButton(x, y - 35, TEXT_HOLD_STRATEGIC_FIRE,
                 button -> {
                     if (!groups.isEmpty()) {
                         for (RecruitsGroup group : groups) {
@@ -86,6 +88,22 @@ public class CombatCategory implements ICommandCategory {
         holdStrategicFireButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_STRATEGIC_FIRE));
         holdStrategicFireButton.active = isOneGroupActive;
         screen.addRenderableWidget(holdStrategicFireButton);
+
+        //ATTACK
+        RecruitsCommandButton attackButton = new RecruitsCommandButton(x, y - 10, TEXT_ATTACK,
+                button -> {
+                    if (!groups.isEmpty()) {
+                        for (RecruitsGroup group : groups) {
+                            if (!group.isDisabled()) {
+                                Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(player.getUUID(), group.getId()));
+                            }
+                        }
+                        screen.sendCommandInChat(69);
+                    }
+                });
+        attackButton.setTooltip(Tooltip.create(TOOLTIP_ATTACK));
+        attackButton.active = isOneGroupActive && screen.rayBlockPos != null;
+        screen.addRenderableWidget(attackButton);
 
         //FIRE AT WILL
         RecruitsCommandButton fireAtWillButton = new RecruitsCommandButton(x + 100, y - 38, TEXT_FIRE_AT_WILL,

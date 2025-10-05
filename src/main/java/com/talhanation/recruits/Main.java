@@ -232,6 +232,7 @@ public class Main {
             event.accept(ModItems.NOMAD_SPAWN_EGG.get());
             event.accept(ModItems.HORSEMAN_SPAWN_EGG.get());
             event.accept(ModItems.CROSSBOWMAN_SPAWN_EGG.get());
+            event.accept(ModItems.VILLAGER_NOBLE_SPAWN_EGG.get());
         }
 
         if (event.getTabKey().equals(CreativeModeTabs.FUNCTIONAL_BLOCKS)){
