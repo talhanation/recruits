@@ -143,6 +143,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
 
     @Override
     public void performRangedAttack(@NotNull LivingEntity target, float v) {
+        if(this.level().isClientSide()) return;
         if (this.getMainHandItem().getItem() instanceof BowItem) {
 
             if(AttackUtil.canPerformHorseAttack(this, target)){
@@ -202,6 +203,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
     }
 
     public void performRangedAttackXYZ(double x, double y, double z, float v, float angle, float force) {
+        if(this.level().isClientSide()) return;
         if (this.getMainHandItem().getItem() instanceof BowItem) {
             ItemStack itemstack = this.getProjectile(this.getItemInHand(InteractionHand.MAIN_HAND));
 

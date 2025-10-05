@@ -8,6 +8,7 @@ import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.SwordItem;
@@ -73,7 +74,7 @@ public class RecruitMeleeAttackGoal extends Goal {
         this.recruit.setAggressive(true);
         this.pathingCooldown = 0;
 
-        this.recruit.switchMainHandItem(itemStack -> itemStack.getItem() instanceof SwordItem);
+        this.recruit.switchMainHandItem(itemStack -> itemStack.getItem() instanceof SwordItem || itemStack.getItem() instanceof AxeItem);
     }
 
     public void stop() {

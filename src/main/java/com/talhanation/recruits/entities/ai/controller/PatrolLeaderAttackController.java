@@ -253,9 +253,15 @@ public class PatrolLeaderAttackController implements IAttackController {
     }
 
     public void setRecruitsTargets() {
-        for(int i = 0; i < this.leader.army.getAllRecruitUnits().size(); i++){
-            AbstractRecruitEntity recruit = this.leader.army.getAllRecruitUnits().get(i);
-            if(this.leader.enemyArmy.size() > i) recruit.setTarget(this.leader.enemyArmy.getAllUnits().get(i));
+        List<AbstractRecruitEntity> recruits = this.leader.army.getAllRecruitUnits();
+        List<LivingEntity> enemies = this.leader.enemyArmy.getAllUnits();
+
+        if (recruits.isEmpty() || enemies.isEmpty()) return;
+
+        for (int i = 0; i < recruits.size(); i++) {
+            AbstractRecruitEntity recruit = recruits.get(i);
+            LivingEntity target = enemies.get(i % enemies.size());
+            recruit.setTarget(target);
         }
     }
 

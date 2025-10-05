@@ -720,7 +720,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public LivingEntity getProtectingMob(){
         List<LivingEntity> list = this.getCommandSenderWorld().getEntitiesOfClass(
                 LivingEntity.class,
-                this.getBoundingBox().inflate(32D),
+                this.getBoundingBox().inflate(64D),
                 (living) -> this.getProtectUUID() != null && living.getUUID().equals(this.getProtectUUID()) && living.isAlive()
         );
         return list.isEmpty() ? null : list.get(0);
@@ -1523,15 +1523,15 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     protected void hurtArmor(@NotNull DamageSource damageSource, float damage) {
+        if(this.level().isClientSide()) return;
+
         ItemStack headArmor = this.getItemBySlot(EquipmentSlot.HEAD);
         boolean hasHeadArmor = !headArmor.isEmpty();
-        //Main.LOGGER.debug("headArmor :" + headArmor);
-        //Main.LOGGER.debug("hasHeadArmor: " + hasHeadArmor);
 
         if (((!(damageSource.is(DamageTypes.IN_FIRE) && (damageSource.is(DamageTypes.ON_FIRE))) || !headArmor.getItem().isFireResistant()) && headArmor.getItem() instanceof ArmorItem)){
         //damage
-            headArmor.hurtAndBreak(1, this, (p_43296_) -> {
-                //p_43296_.broadcastBreakEvent(EquipmentSlot.HEAD);
+            headArmor.hurtAndBreak(1, this, (recruit) -> {
+                recruit.broadcastBreakEvent(EquipmentSlot.HEAD);
             });
         }
 
@@ -1546,8 +1546,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         boolean hasChestArmor = !chestArmor.isEmpty();
         if (((!(damageSource.is(DamageTypes.IN_FIRE) && (damageSource.is(DamageTypes.ON_FIRE))) || !chestArmor.getItem().isFireResistant()) && chestArmor.getItem() instanceof ArmorItem)){
             //damage
-            chestArmor.hurtAndBreak(1, this, (p_43296_) -> {
-
+            chestArmor.hurtAndBreak(1, this, (recruit) -> {
+                recruit.broadcastBreakEvent(EquipmentSlot.CHEST);
             });
         }
         if (this.getItemBySlot(EquipmentSlot.CHEST).isEmpty() && hasChestArmor) {
@@ -1562,8 +1562,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         if (((!(damageSource.is(DamageTypes.IN_FIRE) && (damageSource.is(DamageTypes.ON_FIRE))) || !legsArmor.getItem().isFireResistant()) && legsArmor.getItem() instanceof ArmorItem)){
             //damage
-            legsArmor.hurtAndBreak(1, this, (p_43296_) -> {
-
+            legsArmor.hurtAndBreak(1, this, (recruit) -> {
+                recruit.broadcastBreakEvent(EquipmentSlot.LEGS);
             });
         }
         if (this.getItemBySlot(EquipmentSlot.LEGS).isEmpty() && hasLegsArmor) {
@@ -1590,21 +1590,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.playSound(SoundEvents.ITEM_BREAK, 0.8F, 0.8F + this.getCommandSenderWorld().random.nextFloat() * 0.4F);
             this.tryToReequip(EquipmentSlot.FEET);
         }
-
     }
 
     public void damageMainHandItem() {
-        //dont know why the fuck i cant assign this mainhand slot to inventory slot 4
-        //therefor i need to make this twice
+        if(this.level().isClientSide()) return;
+
         ItemStack handItem = this.getItemBySlot(EquipmentSlot.MAINHAND);
         boolean hasHandItem = !handItem.isEmpty();
-        /*//Fixes damage duplication
-        this.getMainHandItem().hurtAndBreak(1, this, (p_43296_) -> {
-            p_43296_.broadcastBreakEvent(EquipmentSlot.MAINHAND);
-        });
-         */
-        this.inventory.getItem(5).hurtAndBreak(1, this, (p_43296_) -> {
-            p_43296_.broadcastBreakEvent(EquipmentSlot.MAINHAND);
+
+        this.getMainHandItem().hurtAndBreak(1, this, (recruit) -> {
+            recruit.broadcastBreakEvent(EquipmentSlot.MAINHAND);
         });
 
         if (this.getMainHandItem().isEmpty() && hasHandItem) {
@@ -1640,6 +1635,22 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
                 itemStack.shrink(1);
             }
+        }
+    }
+
+    @Override
+    protected void hurtCurrentlyUsedShield(float damage) {
+        if(this.level().isClientSide()) return;
+
+        this.getOffhandItem().hurtAndBreak(1, this, (recruit) -> {
+            recruit.broadcastBreakEvent(EquipmentSlot.OFFHAND);
+        });
+
+        if (this.getOffhandItem().isEmpty()) {
+            this.inventory.setItem(4, ItemStack.EMPTY);
+            this.getInventory().setChanged();
+            this.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + this.getCommandSenderWorld().random.nextFloat() * 0.4F);
+            this.tryToReequipShield();
         }
     }
 
@@ -1715,24 +1726,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     @Override
-    protected void hurtCurrentlyUsedShield(float damage) {
-        //dont know why the fuck i cant assign this offhand slot to inventory slot 4
-        //therefor i need to make this twice
-        this.getOffhandItem().hurtAndBreak(1, this, (p_43296_) -> {
-            p_43296_.broadcastBreakEvent(EquipmentSlot.OFFHAND);
-        });
-        this.inventory.getItem(4).hurtAndBreak(1, this, (p_43296_) -> {
-            p_43296_.broadcastBreakEvent(EquipmentSlot.OFFHAND);
-        });
-        if (this.getOffhandItem().isEmpty()) {
-            this.inventory.setItem(4, ItemStack.EMPTY);
-            this.getInventory().setChanged();
-            this.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + this.getCommandSenderWorld().random.nextFloat() * 0.4F);
-            this.tryToReequipShield();
-        }
-    }
-
-    @Override
     public void openGUI(Player player) {
         if (player instanceof ServerPlayer) {
             CommandEvents.updateRecruitInventoryScreen((ServerPlayer) player);
@@ -1778,6 +1771,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
     @Override
     public boolean canAttack(@Nonnull LivingEntity target) {
+        if(target instanceof MessengerEntity messenger && messenger.isAtMission()) return false;
+        if(RecruitsServerConfig.TargetBlackList.get().contains(target.getEncodeId())) return false;
         return RecruitEvents.canAttack(this, target);
     }
     // 0 = NEUTRAL
@@ -1785,8 +1780,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     // 2 = RAID
     // 3 = PASSIVE
     public boolean shouldAttack(LivingEntity target) {
-        if(RecruitsServerConfig.TargetBlackList.get().contains(target.getEncodeId())) return false;
-        if(target instanceof MessengerEntity messenger && messenger.isAtMission()) return false;
         return switch (this.getState()) {
             case 3 -> false; // Passive mode: never attack
             case 0 -> shouldAttackOnNeutral(target) && canAttack(target);

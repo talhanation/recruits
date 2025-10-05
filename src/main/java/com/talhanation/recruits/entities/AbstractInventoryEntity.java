@@ -596,4 +596,21 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
             }
         }
     }
+    public void switchOffHandItem(Predicate<ItemStack> predicate) {
+        if (!this.isAlive() || predicate == null) return;
+
+        SimpleContainer inventory = this.getInventory();
+        ItemStack offHand = this.getOffhandItem();
+        if (predicate.test(offHand)) return;
+
+        for (int i = 6; i < inventory.getContainerSize(); i++) {
+            ItemStack stack = inventory.getItem(i);
+            if (predicate.test(stack)) {
+
+                inventory.setItem(i, offHand);
+                this.setItemInHand(InteractionHand.OFF_HAND, stack);
+                return;
+            }
+        }
+    }
 }
