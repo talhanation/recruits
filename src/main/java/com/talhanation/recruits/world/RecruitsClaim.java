@@ -288,8 +288,9 @@ public class RecruitsClaim {
         for(Player player : FactionEvents.recruitsFactionManager.getPlayersInTeam(this.getOwnerFactionStringID(), level)){
             player.sendSystemMessage(SIEGE_SUCCESS_DEFENDER(this.getName()));
         }
-
-        this.setOwnerFaction(attackingParties.get(0));
+        RecruitsFaction faction = attackingParties.get(0);
+        this.setOwnerFaction(faction);
+        this.setPlayer(new RecruitsPlayerInfo(faction.getTeamLeaderUUID(), faction.getTeamLeaderName(), faction));
         this.isUnderSiege = false;
         this.resetHealth();
 
