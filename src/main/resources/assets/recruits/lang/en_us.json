@@ -516,7 +516,15 @@
    "gui.recruits.error.banner_empty" : "Banner cannot be blank!",
    "gui.recruits.error.banner_in_use" : "Banner already in use!",
    "gui.recruits.error.no_changes" : "No Changes.",
-   "gui.recruits.error.leader_missing": "No Leader assigned!"
+   "gui.recruits.error.leader_missing": "No Leader assigned!",
+
+   "gui.recruits.villager_noble": "Noble Villager",
+
+   "gui.recruits.villager_noble.hire": "Hire Villager",
+   "gui.recruits.villager_noble.error_no_villagers": "No Villagers nearby!",
+   "gui.recruits.villager_noble.error_not_enough_currency": "Not enough Currency!",
+   "gui.recruits.villager_noble.error_no_uses": "No Trades left for today!",
+
    "gui.recruits.command.text.attack": "Attack!",
    "gui.recruits.command.tooltip.attack" : "Order your troops to attack mobs at area you are looking at.",
    "chat.recruits.command.attack" : "%s Attack!"

@@ -83,6 +83,12 @@ public class ModEntityTypes {
                     .canSpawnFarFromPlayer()
                     .build(new ResourceLocation(Main.MOD_ID, "captain").toString()));
 
+    public static final RegistryObject<EntityType<VillagerNobleEntity>> VILLAGER_NOBLE = ENTITY_TYPES.register("villager_noble",
+            () -> EntityType.Builder.of(VillagerNobleEntity::new, MobCategory.CREATURE)
+                    .sized(0.6F, 1.95F)
+                    .clientTrackingRange(10)
+                    .canSpawnFarFromPlayer()
+                    .build(new ResourceLocation(Main.MOD_ID, "villager_noble").toString()));
 
     /*
     public static final RegistryObject<EntityType<AssassinEntity>> ASSASSIN = ENTITY_TYPES.register("assassin",

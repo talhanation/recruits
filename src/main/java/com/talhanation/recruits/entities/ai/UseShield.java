@@ -24,14 +24,13 @@ public class UseShield extends Goal {
     }
 
     public boolean canUse() {
-        boolean hasShield = this.entity.getOffhandItem().getItem().canPerformAction(entity.getOffhandItem(), ToolActions.SHIELD_BLOCK);
         if (entity instanceof AbstractRecruitEntity recruit){
             boolean forced = recruit.getShouldBlock();
             boolean normal = canRaiseShield() && !recruit.isFollowing() && recruit.canBlock() && !recruit.getShouldMovePos();
 
-            return (forced || normal) && hasShield && !this.entity.swinging;
+            return (forced || normal) && hasShieldInHand() && !this.entity.swinging;
         }
-        else return hasShield && canRaiseShield() && !this.entity.swinging;
+        else return canRaiseShield() && hasShieldInHand() && !this.entity.swinging;
     }
 
     public boolean canContinueToUse() {
@@ -44,7 +43,12 @@ public class UseShield extends Goal {
             this.entity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.12D);
         }
     }
-
+    public boolean hasShieldInHand(){
+        if(entity instanceof AbstractRecruitEntity recruit){
+            recruit.switchOffHandItem(itemStack -> itemStack.getItem().canPerformAction(entity.getOffhandItem(), ToolActions.SHIELD_BLOCK));
+        }
+        return this.entity.getOffhandItem().getItem().canPerformAction(entity.getOffhandItem(), ToolActions.SHIELD_BLOCK);
+    }
     public  void stop(){
         this.entity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.3D);
         entity.stopUsingItem();

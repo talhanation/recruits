@@ -16,12 +16,14 @@ import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerTrades;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -46,6 +48,10 @@ public class VillagerEvents {
                 case 2 -> spawnLargeGuardRecruits(upPos, level, random);
             }
         }
+    }
+    @SubscribeEvent
+    public void onServerStarting(ServerStartingEvent event) {
+        RecruitsHireTradesRegistry.registerBaseTrades();
     }
 
     @SubscribeEvent
@@ -98,6 +104,29 @@ public class VillagerEvents {
             abstractRecruit.copyPosition(villager);
 
             abstractRecruit.initSpawn();
+
+            for(ItemStack itemStack : villager.getInventory().items){
+                abstractRecruit.getInventory().addItem(itemStack);
+            }
+
+            Component name = villager.getCustomName();
+            if(name  != null) abstractRecruit.setCustomName(name);
+
+            villager.getCommandSenderWorld().addFreshEntity(abstractRecruit);
+            if(RecruitsServerConfig.RecruitTablesPOIReleasing.get()) villager.releasePoi(MemoryModuleType.JOB_SITE);
+            villager.releasePoi(MemoryModuleType.HOME);
+            villager.releasePoi(MemoryModuleType.MEETING_POINT);
+            villager.discard();
+        }
+    }
+
+    public static void createHiredRecruit(Villager villager, EntityType<? extends AbstractRecruitEntity> recruitType, Player player){
+        AbstractRecruitEntity abstractRecruit = recruitType.create(villager.getCommandSenderWorld());
+        if (abstractRecruit != null && abstractRecruit.hire(player)) {
+            abstractRecruit.copyPosition(villager);
+
+            abstractRecruit.initSpawn();
+            abstractRecruit.setFollowState(1);
 
             for(ItemStack itemStack : villager.getInventory().items){
                 abstractRecruit.getInventory().addItem(itemStack);

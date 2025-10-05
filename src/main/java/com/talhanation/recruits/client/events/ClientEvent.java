@@ -47,6 +47,9 @@ public class ClientEvent {
             EntityRenderers.register(ModEntityTypes.PATROL_LEADER.get(), RecruitVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.CAPTAIN.get(), RecruitVillagerRenderer::new );
 
+            //OTHER
+            EntityRenderers.register(ModEntityTypes.VILLAGER_NOBLE.get(), RecruitVillagerRenderer::new );
+
         }
         else{
             EntityRenderers.register(ModEntityTypes.RECRUIT.get(), RecruitHumanRenderer::new);
@@ -61,6 +64,9 @@ public class ClientEvent {
             EntityRenderers.register(ModEntityTypes.SCOUT.get(), RecruitHumanRenderer::new );
             EntityRenderers.register(ModEntityTypes.PATROL_LEADER.get(), RecruitHumanRenderer::new );
             EntityRenderers.register(ModEntityTypes.CAPTAIN.get(), RecruitHumanRenderer::new );
+
+            //OTHER
+            EntityRenderers.register(ModEntityTypes.VILLAGER_NOBLE.get(), RecruitHumanRenderer::new );
         }
     }
 
