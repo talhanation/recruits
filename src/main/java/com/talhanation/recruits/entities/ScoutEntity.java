@@ -35,7 +35,7 @@ import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
+public class ScoutEntity extends BowmanEntity implements ICompanion {
 
     private static final EntityDataAccessor<String> OWNER_NAME = SynchedEntityData.defineId(ScoutEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<Byte> TASK_STATE = SynchedEntityData.defineId(ScoutEntity.class, EntityDataSerializers.BYTE);
@@ -89,7 +89,6 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data, @Nullable CompoundTag nbt) {
         SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
         ((GroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
-        this.populateDefaultEquipmentEnchantments(random, difficultyInstance);
 
         this.initSpawn();
 
@@ -102,6 +101,18 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
         this.setPersistenceRequired();
         if(this.getOwner() != null)this.setOwnerName(this.getOwner().getName().getString());
         AbstractRecruitEntity.applySpawnValues(this);
+
+        if(this.getName().getString().isEmpty()) this.setCustomName(Component.literal("Scout"));
+    }
+
+    @Override
+    public boolean wantsToPickUp(ItemStack itemStack) {
+        if((itemStack.getItem() instanceof SwordItem && this.getMatchingItem(item -> item.getItem() instanceof SwordItem) == null) ||
+                (itemStack.getItem() instanceof BowItem && this.getMatchingItem(item -> item.getItem() instanceof BowItem) == null) ||
+                (itemStack.getItem() instanceof ShieldItem) && this.getMatchingItem(item -> item.getItem() instanceof ShieldItem) == null)
+            return true;
+
+        else return super.wantsToPickUp(itemStack);
     }
 
     public Predicate<ItemEntity> getAllowedItems(){
@@ -110,7 +121,7 @@ public class ScoutEntity extends AbstractRecruitEntity implements ICompanion {
 
     @Override
     public boolean canHoldItem(ItemStack itemStack){
-        return !(itemStack.getItem() instanceof CrossbowItem || itemStack.getItem() instanceof BowItem); //TODO: add ranged combat
+        return !(itemStack.getItem() instanceof CrossbowItem); //TODO: add ranged combat
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.entities.ai.controller.PatrolLeaderAttackController;
 import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -66,7 +67,6 @@ public class PatrolLeaderEntity extends AbstractLeaderEntity {
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data, @Nullable CompoundTag nbt) {
         SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
         ((AsyncGroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
-        this.populateDefaultEquipmentEnchantments(random, difficultyInstance);
 
         this.initSpawn();
 
@@ -78,7 +78,7 @@ public class PatrolLeaderEntity extends AbstractLeaderEntity {
         this.setDropEquipment();
         this.setPersistenceRequired();
 
-
+        if(this.getName().getString().isEmpty()) this.setCustomName(Component.literal("Commander"));
     }
 
     @Override

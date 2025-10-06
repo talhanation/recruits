@@ -312,7 +312,15 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
     public boolean hasSameTypeOfItem(ItemStack stack) {
         return this.getInventory().items.stream().anyMatch(itemStack -> itemStack.getDescriptionId().equals(stack.getDescriptionId()));
     }
-
+    @Nullable
+    public ItemStack getMatchingItem(Predicate<ItemStack> predicate) {
+        for (ItemStack stack : this.getInventory().items) {
+            if (!stack.isEmpty() && predicate.test(stack)) {
+                return stack;
+            }
+        }
+        return null;
+    }
     public boolean canEquipItemToSlot(@NotNull ItemStack itemStack, EquipmentSlot slot) {
         if(!itemStack.isEmpty()) {
             ItemStack currentArmor = this.getItemBySlot(slot);

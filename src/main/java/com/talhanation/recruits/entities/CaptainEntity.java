@@ -10,6 +10,7 @@ import com.talhanation.recruits.util.RecruitCommanderUtil;
 import com.talhanation.recruits.util.WaterObstacleScanner;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -150,7 +151,6 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data, @Nullable CompoundTag nbt) {
         SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
         ((AsyncGroundPathNavigation) this.getNavigation()).setCanOpenDoors(true);
-        this.populateDefaultEquipmentEnchantments(random, difficultyInstance);
 
         this.initSpawn();
 
@@ -161,6 +161,8 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
     public void initSpawn() {
         this.setDropEquipment();
         this.setPersistenceRequired();
+
+        if(this.getName().getString().isEmpty()) this.setCustomName(Component.literal("Captain"));
     }
 
     @Override
@@ -179,9 +181,10 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
     public boolean wantsToPickUp(ItemStack itemStack) {//TODO: add ranged combat
         if(itemStack.getDescriptionId().contains("smallships")) return true;
 
-        if((itemStack.getItem() instanceof SwordItem && this.getMainHandItem().isEmpty()) ||
-                (itemStack.getItem() instanceof ShieldItem) && this.getOffhandItem().isEmpty())
-            return !hasSameTypeOfItem(itemStack);
+        if((itemStack.getItem() instanceof SwordItem && this.getMatchingItem(item -> item.getItem() instanceof SwordItem) == null) ||
+                (itemStack.getItem() instanceof BowItem && this.getMatchingItem(item -> item.getItem() instanceof BowItem) == null) ||
+                (itemStack.getItem() instanceof ShieldItem) && this.getMatchingItem(item -> item.getItem() instanceof ShieldItem) == null)
+            return true;
 
         else return super.wantsToPickUp(itemStack);
     }

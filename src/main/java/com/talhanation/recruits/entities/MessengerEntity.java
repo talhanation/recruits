@@ -147,7 +147,6 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data, @Nullable CompoundTag nbt) {
         SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
         ((AsyncGroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
-        this.populateDefaultEquipmentEnchantments(random, difficultyInstance);
 
         this.initSpawn();
 
@@ -160,13 +159,16 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
         this.setPersistenceRequired();
         if(this.getOwner() != null)this.setOwnerName(this.getOwner().getName().getString());
         AbstractRecruitEntity.applySpawnValues(this);
+
+        if(this.getName().getString().isEmpty()) this.setCustomName(Component.literal("Messenger"));
     }
 
     @Override
-    public boolean wantsToPickUp(ItemStack itemStack) {//TODO: add ranged combat
-        if((itemStack.getItem() instanceof SwordItem && this.getMainHandItem().isEmpty()) ||
-          (itemStack.getItem() instanceof ShieldItem) && this.getOffhandItem().isEmpty())
-            return !hasSameTypeOfItem(itemStack);
+    public boolean wantsToPickUp(ItemStack itemStack) {
+        if((itemStack.getItem() instanceof SwordItem && this.getMatchingItem(item -> item.getItem() instanceof SwordItem) == null) ||
+           (itemStack.getItem() instanceof BowItem && this.getMatchingItem(item -> item.getItem() instanceof BowItem) == null) ||
+           (itemStack.getItem() instanceof ShieldItem) && this.getMatchingItem(item -> item.getItem() instanceof ShieldItem) == null)
+            return true;
 
         else return super.wantsToPickUp(itemStack);
     }
@@ -177,7 +179,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
 
     @Override
     public boolean canHoldItem(ItemStack itemStack){
-        return !(itemStack.getItem() instanceof CrossbowItem || itemStack.getItem() instanceof BowItem); //TODO: add ranged combat
+        return !(itemStack.getItem() instanceof CrossbowItem);
     }
 
     @Override
@@ -445,7 +447,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
     }
 
     public void playHornSound() {
-        this.playSound(SoundEvents.GOAT_HORN_SOUND_VARIANTS.get(1).get(), 20F, 0.8F + 0.4F * this.random.nextFloat());
+        this.playSound(SoundEvents.GOAT_HORN_SOUND_VARIANTS.get(1).get(), 20F, 0.8F + 0.4F * this.getCommandSenderWorld().random.nextFloat());
     }
 
     public void arriveAtTargetPlayer(ServerPlayer target){
