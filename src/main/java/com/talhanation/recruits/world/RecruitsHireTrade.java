@@ -3,6 +3,7 @@ package com.talhanation.recruits.world;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
@@ -16,13 +17,22 @@ public class RecruitsHireTrade {
     public int chance;
     public int uses;
     public ResourceLocation recruitType;
+    public Component title;
+    public Component description;
     public RecruitsHireTrade(ResourceLocation recruitType, int cost, int minLevel, int chance) {
+        this(recruitType, cost, minLevel, chance,  Component.empty(),  Component.empty());
+    }
+    public RecruitsHireTrade(ResourceLocation recruitType, int cost, int minLevel, int chance, Component title, Component description){
         this.recruitType = recruitType;
         this.cost = cost;
         this.minLevel = minLevel;
         this.chance = Mth.clamp(chance, 1, 100);
         this.uses = 1;
+        this.title = title;
+        this.description = description;
     }
+
+
     public CompoundTag toNbt() {
         CompoundTag tag = new CompoundTag();
         tag.putInt("cost", cost);

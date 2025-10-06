@@ -521,11 +521,41 @@
    "gui.recruits.villager_noble": "Noble Villager",
 
    "gui.recruits.villager_noble.hire": "Hire Villager",
-   "gui.recruits.villager_noble.error_no_villagers": "No Villagers nearby!",
+   "gui.recruits.villager_noble.error_no_villagers": "Not enough Villagers nearby!",
    "gui.recruits.villager_noble.error_not_enough_currency": "Not enough Currency!",
    "gui.recruits.villager_noble.error_no_uses": "No Trades left for today!",
 
    "gui.recruits.command.text.attack": "Attack!",
    "gui.recruits.command.tooltip.attack" : "Order your troops to attack mobs at area you are looking at.",
-   "chat.recruits.command.attack" : "%s Attack!"
+   "chat.recruits.command.attack" : "%s Attack!",
+
+   "description.recruits.title.recruit" : "Recruit",
+   "description.recruits.recruit" : "The Recruit is a versatile warrior who relies only on melee weapons.\nSwift on his feet and able to carry a shield, he can adapt to many situations.\nThough simple in training, he is reliable in almost every kind of fight.",
+
+   "description.recruits.title.shieldman" : "Shieldman",
+   "description.recruits.shieldman" : "The Shieldman is a steadfast defender.\nArmed only with melee weapons, he excels with the shield, blocking blows with shorter recovery time.\nThough his steps are slower, his endurance and health make him well-suited for long, grinding battles.",
+
+   "description.recruits.title.bowman" : "Bowman",
+   "description.recruits.bowman" : "The Bowman is a fast and accurate archer, striking foes from a distance with precision shots.\nWhen pressed, he can draw a sword to defend himself in close combat.\nHowever, he cannot carry a shield and has no skill with the crossbow.",
+
+   "description.recruits.title.crossbowman" : "Crossbowman",
+   "description.recruits.crossbowman" : "The Crossbowman is a disciplined ranged fighter, delivering powerful and precise bolts even at long range.\nHis shots are fast, and they hit hard and true.\nIf needed, he can wield a sword in close quarters, but he cannot carry shields or use bows.",
+
+   "description.recruits.title.horseman" : "Horseman",
+   "description.recruits.horseman" : "The Horseman is a mounted warrior who charges fearlessly into enemy lines.\nIn free wander mode, his horse charge scatters and knocks back foes, breaking their ranks.\nHe can fight with melee weapons and shields, making him both strong in defense and devastating in attack.",
+
+   "description.recruits.title.nomad" : "Nomad",
+   "description.recruits.nomad" : "The Nomad is a skilled rider and master of the bow.\nIn free wander mode, he circles his enemies on horseback, loosing arrows while avoiding their attacks.\nAgile and elusive, he fights only with the bow, striking swiftly before retreating again into motion.",
+
+   "description.recruits.title.scout" : "Scout",
+   "description.recruits.scout" : "The Scout is a fast and watchful companion.\nHe can spot enemies when they come into view and give clear information about their numbers and strength.\nIn battle, he can fight with a bow from range or with a sword in close combat.",
+
+   "description.recruits.title.messenger" : "Messenger",
+   "description.recruits.messenger" : "The Messenger is a companion of peace.\nHe can send messages to faraway players or factions and, if needed, carry a gift in his hand.\nThough skilled with sword and bow, he cannot be harmed while on a mission, for his duty to diplomacy is protected.",
+
+   "description.recruits.title.captain" : "Captain",
+   "description.recruits.captain" : "The Captain is master of the ship.\nHe can sail to chosen places and take command of the cannons on board.\nHis shots are precise against enemy ships and can also strike targets on land.\nIn close battle, he fights well with sword and shield.",
+
+   "description.recruits.title.commander" : "Commander",
+   "description.recruits.commander" : "The Commander is a strong leader.\nHe can patrol chosen positions and guide a group of recruits, leading them from point to point.\nWith him at the front, his men move with order and strength."
  }

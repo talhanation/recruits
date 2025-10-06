@@ -1119,14 +1119,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             boolean flag = this.isOwnedBy(player) || !this.canBeHired();
             return flag ? InteractionResult.CONSUME : InteractionResult.PASS;
         } else {
-            if(this instanceof VillagerNobleEntity noble){
-                noble.openTradeGUI(player);
-                return InteractionResult.SUCCESS;
-            }
             if (player.isCreative() && player.getItemInHand(hand).getItem().equals(ModItems.RECRUIT_SPAWN_EGG.get())){
                 openDebugScreen(player);
                 //Main.LOGGER.warn("" + this.getName().getString() + " Target: " + getTarget());
 
+                return InteractionResult.SUCCESS;
+            }
+            if(this instanceof VillagerNobleEntity noble){
+                noble.openTradeGUI(player);
                 return InteractionResult.SUCCESS;
             }
             if ((this.isOwned() && player.getUUID().equals(this.getOwnerUUID()))) {

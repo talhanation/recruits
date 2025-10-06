@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 
 public class VillagerNobleEntity extends AbstractRecruitEntity {
     private static final EntityDataAccessor<CompoundTag> TRADES = SynchedEntityData.defineId(VillagerNobleEntity.class, EntityDataSerializers.COMPOUND_TAG);
-
+    private static final EntityDataAccessor<Integer> XP_PROGRESS = SynchedEntityData.defineId(VillagerNobleEntity.class, EntityDataSerializers.INT);
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
 
@@ -51,6 +51,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(TRADES, new CompoundTag());
+        this.entityData.define(XP_PROGRESS, 0);
     }
 
     @Override
@@ -81,12 +82,14 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
     public void addAdditionalSaveData(CompoundTag nbt) {
         super.addAdditionalSaveData(nbt);
         nbt.put("Trades", RecruitsHireTrade.listToNbt(getTrades()));
+        nbt.putInt("XpProgress", this.getXpProgress());
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag nbt) {
         super.readAdditionalSaveData(nbt);
-        setTrades(RecruitsHireTrade.listFromNbt(nbt.getCompound("Trades")));
+        this.setTrades(RecruitsHireTrade.listFromNbt(nbt.getCompound("Trades")));
+        this.setXpProgress(nbt.getInt("XpProgress"));
     }
 
         //ATTRIBUTES
@@ -165,15 +168,15 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
     public void addXpLevel(int level){
         super.addXpLevel(level);
 
-        this.setupTrades();
+        this.addXpProgress(50);
     }
     public void setupTrades() {
-        List<RecruitsHireTrade> possibleTrades = RecruitsHireTradesRegistry.getAll(); // oder TradeRegistry.getAll()
+        List<RecruitsHireTrade> possibleTrades = RecruitsHireTradesRegistry.getAll();
 
         List<RecruitsHireTrade> current = this.getTrades();
         if (current == null) current = new ArrayList<>();
 
-        int xpLevel = this.getXpLevel();
+        int xpLevel = getTraderLevel();
 
         List<RecruitsHireTrade> finalCurrent = current;
         List<RecruitsHireTrade> candidates = possibleTrades.stream()
@@ -196,6 +199,43 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
                 candidate.uses = rnd.nextInt(1,4);
                 this.addTrade(candidate);
                 added++;
+            }
+        }
+    }
+    public int getTraderLevel(){
+        return Math.max(1, this.getXpProgress() / 100);
+    }
+    public int getXpProgress() {
+        return entityData.get(XP_PROGRESS);
+    }
+
+    public void setXpProgress(int x) {
+        this.entityData.set(XP_PROGRESS, x);
+    }
+
+    public void addXpProgress(int x){
+        int current =  this.getXpProgress();
+        int newXp = current + x;
+        if(newXp < 1000 && current % 100 == 0){
+            updateUsesOfTrades();
+        }
+
+        this.setXpProgress(Mth.clamp(newXp, 0, 1000));
+    }
+
+    public void updateUsesOfTrades() {
+        Random random = new Random();
+        List<RecruitsHireTrade> list = this.getTrades();
+        for (RecruitsHireTrade trade : list) {
+            int minLevel = trade.minLevel;
+
+            if (this.getTraderLevel() >= minLevel) {
+                float baseChance = Math.max(0.2F, 1.0F - (minLevel * 0.15F));
+
+                if (random.nextFloat() < baseChance) {
+                    int additionalUses = 1 + random.nextInt(3);
+                    trade.uses += additionalUses;
+                }
             }
         }
     }
@@ -222,8 +262,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
 
         trade.uses -= 1;
 
-        this.addXp(10);
-        this.checkLevel();
+        addXpProgress(trade.minLevel * 5);
 
         this.setTrades(list);
     }
