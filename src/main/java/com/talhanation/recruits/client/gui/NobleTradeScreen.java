@@ -93,7 +93,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         this.tradeList.clearEntries();
         List<RecruitsHireTrade> trades = villagerNoble.getTrades();
         for (RecruitsHireTrade serverSideTrade : trades) {
-            RecruitsHireTrade clientSideTrade = RecruitsHireTradesRegistry.getByResourceLocation(serverSideTrade.recruitType);
+            RecruitsHireTrade clientSideTrade = RecruitsHireTradesRegistry.getByResourceLocation(serverSideTrade.resourceLocation);
             if(clientSideTrade == null) continue;
 
             serverSideTrade.title = clientSideTrade.title;
@@ -118,7 +118,6 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         ));
         this.hireButton.active = false;
         updateHireButtonState();
-
         this.descriptionBox = new RecruitsMultiLineEditBox(font, guiLeft + 98, guiTop + 73, 150, 97, Component.empty(), Component.empty());
         this.descriptionBox.setValue(description.getString());
         this.descriptionBox.setEnableEditing(false);

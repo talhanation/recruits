@@ -1,10 +1,8 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.VillagerEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.VillagerNobleEntity;
-import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.world.RecruitsHireTrade;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -14,7 +12,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.Tags;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.Objects;
@@ -33,7 +30,7 @@ public class MessageHireFromNobleVillager implements Message<MessageHireFromNobl
         this.noble_uuid = noble_uuid;
         this.villager_uuid = villager_uuid;
         this.cost = trade.cost;
-        this.resource = trade.recruitType;
+        this.resource = trade.resourceLocation;
     }
 
     public Dist getExecutingSide() {

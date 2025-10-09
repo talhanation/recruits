@@ -8,6 +8,7 @@ import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.network.MessageToClientOpenNobleTradeScreen;
 import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.recruits.world.RecruitsHireTrade;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -40,8 +41,10 @@ import java.util.stream.Collectors;
 public class VillagerNobleEntity extends AbstractRecruitEntity {
     private static final EntityDataAccessor<CompoundTag> TRADES = SynchedEntityData.defineId(VillagerNobleEntity.class, EntityDataSerializers.COMPOUND_TAG);
     private static final EntityDataAccessor<Integer> XP_PROGRESS = SynchedEntityData.defineId(VillagerNobleEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> TYPE = SynchedEntityData.defineId(VillagerNobleEntity.class, EntityDataSerializers.INT);
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
+    private int restoreTimer;
 
     public VillagerNobleEntity(EntityType<? extends AbstractRecruitEntity> entityType, Level world) {
         super(entityType, world);
@@ -52,6 +55,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
         super.defineSynchedData();
         this.entityData.define(TRADES, new CompoundTag());
         this.entityData.define(XP_PROGRESS, 0);
+        this.entityData.define(TYPE, 0);
     }
 
     @Override
@@ -65,6 +69,8 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
                 this.switchOffHandItem(ItemStack::isEmpty);
             }
         }
+
+        if(restoreTimer > 0) restoreTimer--;
     }
 
     @Override
@@ -83,6 +89,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
         super.addAdditionalSaveData(nbt);
         nbt.put("Trades", RecruitsHireTrade.listToNbt(getTrades()));
         nbt.putInt("XpProgress", this.getXpProgress());
+        nbt.putInt("Type", this.getTraderType());
     }
 
     @Override
@@ -90,6 +97,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
         super.readAdditionalSaveData(nbt);
         this.setTrades(RecruitsHireTrade.listFromNbt(nbt.getCompound("Trades")));
         this.setXpProgress(nbt.getInt("XpProgress"));
+        this.setTraderType(nbt.getInt("Type"));
     }
 
         //ATTRIBUTES
@@ -168,7 +176,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
     public void addXpLevel(int level){
         super.addXpLevel(level);
 
-        this.addXpProgress(50);
+        this.addXpProgress(20);
     }
     public void setupTrades() {
         List<RecruitsHireTrade> possibleTrades = RecruitsHireTradesRegistry.getAll();
@@ -180,8 +188,8 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
 
         List<RecruitsHireTrade> finalCurrent = current;
         List<RecruitsHireTrade> candidates = possibleTrades.stream()
-                .filter(t -> t.minLevel <= xpLevel)
-                .filter(t -> finalCurrent.stream().noneMatch(c -> Objects.equals(c.recruitType, t.recruitType)))
+                .filter(t -> t.minLevel == xpLevel && t.tradeTagList.contains(RecruitsHireTrade.RecruitsTradeTag.getValues().get(getTraderType())))
+                .filter(t -> finalCurrent.stream().noneMatch(c -> Objects.equals(c.resourceLocation, t.resourceLocation)))
                 .collect(Collectors.toList());
 
         if (candidates.isEmpty()) return;
@@ -196,7 +204,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
             if (candidate.chance <= 0) continue;
             if (rnd.nextInt(100) < candidate.chance) {
 
-                candidate.uses = rnd.nextInt(1,4);
+                candidate.maxUses = rnd.nextInt(1,4);
                 this.addTrade(candidate);
                 added++;
             }
@@ -213,29 +221,61 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
         this.entityData.set(XP_PROGRESS, x);
     }
 
-    public void addXpProgress(int x){
-        int current =  this.getXpProgress();
-        int newXp = current + x;
-        if(newXp < 1000 && current % 100 == 0){
-            updateUsesOfTrades();
+    public int getTraderType() {
+        return entityData.get(TYPE);
+    }
+
+    public void setTraderType(int x) {
+        this.entityData.set(TYPE, x);
+    }
+    public void startSleeping(BlockPos pos) {
+        super.startSleeping(pos);
+
+        if(restoreTimer <= 0 ) this.restoreTrades();
+    }
+    private void restoreTrades() {
+        List<RecruitsHireTrade> list = this.getTrades();
+
+        for (RecruitsHireTrade trade : list) {
+            trade.uses += 1;
+            if(trade.uses > trade.maxUses) trade.uses = trade.maxUses;
         }
 
-        this.setXpProgress(Mth.clamp(newXp, 0, 1000));
+        this.setTrades(list);
+        this.restoreTimer = 1200;
+    }
+
+    public void addXpProgress(int x) {
+        int current = this.getXpProgress();
+        if (x == 0) return;
+
+        int rawNewXp = current + x;
+        int newXp = Mth.clamp(rawNewXp, 0, 400);
+
+        if (x > 0) {
+            int nextThreshold = ((current / 100) + 1) * 100;
+
+            while (nextThreshold <= newXp) {
+                this.setupTrades();
+                this.updateUsesOfTrades();
+
+                nextThreshold += 100;
+            }
+        }
+
+        this.setXpProgress(newXp);
     }
 
     public void updateUsesOfTrades() {
         Random random = new Random();
         List<RecruitsHireTrade> list = this.getTrades();
+
         for (RecruitsHireTrade trade : list) {
-            int minLevel = trade.minLevel;
-
-            if (this.getTraderLevel() >= minLevel) {
-                float baseChance = Math.max(0.2F, 1.0F - (minLevel * 0.15F));
-
-                if (random.nextFloat() < baseChance) {
-                    int additionalUses = 1 + random.nextInt(3);
-                    trade.uses += additionalUses;
-                }
+            if(trade.minLevel < getTraderLevel()){
+                trade.maxUses += Math.min(7 , 1 + random.nextInt(3));
+            }
+            else if(trade.minLevel == getTraderLevel()){
+                trade.maxUses += Math.min(7 , 1 + random.nextInt(1));
             }
         }
     }
@@ -252,7 +292,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
         RecruitsHireTrade trade = null;
         List<RecruitsHireTrade> list = this.getTrades();
         for(RecruitsHireTrade canditade : list){
-            if(canditade.recruitType.equals(resourceLocation)){
+            if(canditade.resourceLocation.equals(resourceLocation)){
                 trade = canditade;
                 break;
             }
@@ -260,7 +300,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
 
         if(trade == null) return;
 
-        trade.uses -= 1;
+        trade.maxUses -= 1;
 
         addXpProgress(trade.minLevel * 5);
 
@@ -270,7 +310,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
     public void addTrade(RecruitsHireTrade trade) {
         if (trade == null) return;
         List<RecruitsHireTrade> current = getTrades();
-        boolean exists = current.stream().anyMatch(t -> Objects.equals(t.recruitType, trade.recruitType));
+        boolean exists = current.stream().anyMatch(t -> Objects.equals(t.resourceLocation, trade.resourceLocation));
         if (exists) return;
         current.add(trade);
         setTrades(current);
@@ -279,7 +319,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
     public void removeTrade(RecruitsHireTrade trade) {
         if (trade == null) return;
         List<RecruitsHireTrade> current = getTrades();
-        boolean removed = current.removeIf(t -> Objects.equals(t.recruitType, trade.recruitType));
+        boolean removed = current.removeIf(t -> Objects.equals(t.resourceLocation, trade.resourceLocation));
         if (removed) setTrades(current);
     }
 }
