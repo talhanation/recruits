@@ -102,7 +102,7 @@ public class FactionEvents {
     }
 
 
-    public static void createTeam(boolean menu, ServerPlayer serverPlayer, @NotNull ServerLevel level, String teamName, String playerName, ItemStack banner, ChatFormatting color, byte colorByte) {
+    public static void createTeam(boolean menu, ServerPlayer serverPlayer, @NotNull ServerLevel level, String teamName, String displayName, String playerName, ItemStack banner, ChatFormatting color, byte colorByte) {
         MinecraftServer server = level.getServer();
         PlayerTeam team = server.getScoreboard().getPlayerTeam(teamName);
         int cost = RecruitsServerConfig.FactionCreationCost.get();
@@ -133,7 +133,7 @@ public class FactionEvents {
         else {
             Scoreboard scoreboard = server.getScoreboard();
             PlayerTeam newTeam = scoreboard.addPlayerTeam(teamName);
-            newTeam.setDisplayName(Component.literal(teamName));
+            newTeam.setDisplayName(Component.literal(displayName));
 
             newTeam.setColor(color);
             newTeam.setAllowFriendlyFire(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamFriendlyFireSetting.get());
@@ -143,7 +143,7 @@ public class FactionEvents {
             //TeamCommand
             if (menu) doPayment(serverPlayer, cost);
 
-            recruitsFactionManager.addTeam(teamName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT(), colorByte, newTeam.getColor());
+            recruitsFactionManager.addTeam(teamName, displayName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT(), colorByte, newTeam.getColor());
             addPlayerToData(level, teamName, 1, playerName);
 
             List<AbstractRecruitEntity> recruits = getRecruitsOfPlayer(serverPlayer.getUUID(), level);
@@ -533,7 +533,7 @@ public class FactionEvents {
                         String[] parts = command.split(" ");
                         String teamName = parts[2];
 
-                        createTeam(false, sender, level, teamName, sender.getName().getString(), mainhand.getItem() instanceof BannerItem ? mainhand : null, ChatFormatting.WHITE, (byte) 0);
+                        createTeam(false, sender, level, teamName, teamName, sender.getName().getString(), mainhand.getItem() instanceof BannerItem ? mainhand : null, ChatFormatting.WHITE, (byte) 0);
                         sourceStack.sendSuccess(() -> Component.translatable("commands.team.add.success", teamName), true);
 
                         event.setCanceled(true);
@@ -632,7 +632,7 @@ public class FactionEvents {
                         newTeam.setAllowFriendlyFire(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamFriendlyFireSetting.get());
                         newTeam.setSeeFriendlyInvisibles(RecruitsServerConfig.GlobalTeamSetting.get() && RecruitsServerConfig.GlobalTeamSeeFriendlyInvisibleSetting.get());
 
-                        recruitsFactionManager.addTeam(teamName,new UUID(0,0),"none", banner.serializeNBT(), colorByte, newTeam.getColor());
+                        recruitsFactionManager.addTeam(teamName, teamName, new UUID(0,0),"none", banner.serializeNBT(), colorByte, newTeam.getColor());
 
                         Main.LOGGER.info("The new Team " + teamName + " has been created by console.");
 

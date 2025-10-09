@@ -336,7 +336,8 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
         if(ownFaction == null){
             saveButton = new ExtendedButton(guiLeft + 30, guiTop + imageHeight - 102, 162, 20, CREATE,
                 btn -> {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(this.getCorrectFormat(textFieldTeamName.getValue().strip()), banner, teamColor, unitColors.indexOf(unitColor)));
+                    String text = textFieldTeamName.getValue().strip();
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(this.getCorrectFormatStringID(text), this.getCorrectFormatName(text), banner, teamColor, unitColors.indexOf(unitColor)));
                     leaderInfo = null;
                     minecraft.setScreen(new TeamInspectionScreen(new TeamMainScreen(player), player));
                 }
@@ -515,10 +516,17 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
         return teamColor.getId();
     }
 
-    private String getCorrectFormat(String input) {
+    private String getCorrectFormatStringID(String input) {
         input = input.replaceAll(" ", "");
-        input = input.replaceAll("[^a-zA-Z0-9\\s]+", "");
+        input = getCorrectFormatName(input);
 
+        return input;
+    }
+
+    private String getCorrectFormatName(String input) {
+        input = input.replaceAll("  ", " ");
+        input = input.replaceAll("   ", " ");
+        input = input.replaceAll("[a-zA-Z0-9ßçğıİöşüÇĞÖŞÜ]+", "");
         return input;
     }
 

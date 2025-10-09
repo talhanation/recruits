@@ -81,10 +81,10 @@ public class RecruitsFactionManager {
         return null;
     }
 
-    public void addTeam(String teamName, UUID leaderUUID, String leaderName, CompoundTag bannerNbt, byte color, ChatFormatting teamColor) {
+    public void addTeam(String teamName, String teamDisplayName, UUID leaderUUID, String leaderName, CompoundTag bannerNbt, byte color, ChatFormatting teamColor) {
         RecruitsFaction recruitsFaction = new RecruitsFaction();
         recruitsFaction.setStringID(teamName);
-        recruitsFaction.setTeamDisplayName(teamName);
+        recruitsFaction.setTeamDisplayName(teamDisplayName);
         recruitsFaction.setTeamLeaderID(leaderUUID);
         recruitsFaction.setTeamLeaderName(leaderName);
         recruitsFaction.setBanner(bannerNbt);
