@@ -291,7 +291,6 @@ public class ChunkMapWidget extends AbstractWidget {
                 boolean hovered = mouseX >= px && mouseX < px + intCellSize && mouseY >= py && mouseY < py + intCellSize;
                 if (hovered) hoverChunk = pos;
 
-                // KEINE Erzeugung hier! Nur rendern, wenn im Cache vorhanden
                 ChunkPreview preview = chunkImageCache.get(pos);
                 if (preview != null) {
                     // nearest neighbor sicherstellen (keine Filterung)
@@ -300,11 +299,23 @@ public class ChunkMapWidget extends AbstractWidget {
 
                     preview.draw(guiGraphics, px, py, intCellSize, intCellSize, hovered);
                 } else {
-                    // Platzhalter zeichnen (z.B. komplett schwarz)
                     guiGraphics.fill(px, py, px + intCellSize, py + intCellSize, 0xFF000000);
                 }
 
                 renderClaimOverlay(guiGraphics, pos, px, py, cellSize);
+            }
+        }
+
+        for (int dx = -viewRadius - renderMargin; dx <= viewRadius + renderMargin; dx++) {
+            for (int dz = -viewRadius - renderMargin; dz <= viewRadius + renderMargin; dz++) {
+                int chunkX = center.x + dx;
+                int chunkZ = center.z + dz;
+                ChunkPos pos = new ChunkPos(chunkX, chunkZ);
+
+                int px = (int) Math.round(baseX + dx * cellSize);
+                int py = (int) Math.round(baseY + dz * cellSize);
+
+                renderClaimNames(guiGraphics, pos, px, py, cellSize);
             }
         }
     }
@@ -392,16 +403,20 @@ public class ChunkMapWidget extends AbstractWidget {
                     renderSelectedClaimBorder(guiGraphics, pos, px, py, cellSize);
                 }
 
-                // Claim-Namen nur am Center zeichnen
-                if (claim.getCenter().equals(pos)) {
-                    renderClaimName(guiGraphics, claim, px, py, cellSize);
-                }
-
                 break;
             }
         }
     }
 
+    private void renderClaimNames(GuiGraphics guiGraphics, ChunkPos pos, int px, int py, double cellSize) {
+        for (RecruitsClaim claim : ClientManager.recruitsClaims) {
+            if (claim.containsChunk(pos)) {
+                if (claim.getCenter().equals(pos)) {
+                    renderClaimName(guiGraphics, claim, px, py, cellSize);
+                }
+            }
+        }
+    }
 
     private void renderClaimName(GuiGraphics guiGraphics, RecruitsClaim claim, int px, int py, double cellSize) {
         Font font = Minecraft.getInstance().font;
