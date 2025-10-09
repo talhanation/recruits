@@ -58,7 +58,7 @@ public class RecruitEvents {
     private static final Map<ServerLevel, PillagerPatrolSpawn> PILLAGER_PATROL = new HashMap<>();
     public static RecruitsPlayerUnitManager recruitsPlayerUnitManager;
     public static MinecraftServer server;
-    static HashMap<Integer, EntityType<? extends AbstractRecruitEntity>> entitiesByProfession = new HashMap<>() {
+    public static HashMap<Integer, EntityType<? extends AbstractRecruitEntity>> entitiesByProfession = new HashMap<>() {
         {
             put(0, ModEntityTypes.MESSENGER.get());
             put(1, ModEntityTypes.SCOUT.get());
@@ -505,7 +505,7 @@ public class RecruitEvents {
                     (entity) -> entity.getOwnerUUID() != null && entity.getOwnerUUID().equals(owner)
             ).forEach((entity) -> {
                 float currentMoral = entity.getMorale();
-                float newMorale = currentMoral - 0.2F;
+                float newMorale = currentMoral - 0.1F;
                 entity.setMoral(Math.max(newMorale, 0F));
             });
         }
@@ -544,31 +544,7 @@ public class RecruitEvents {
             entity.discard();
         }
     }
-
-    public byte getSavedWarning(Player player) {
-        CompoundTag playerNBT = player.getPersistentData();
-        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
-
-        return nbt.getByte("RecruitWarnings");
-    }
-
-    public void saveCurrentWarning(Player player, byte x) {
-        CompoundTag playerNBT = player.getPersistentData();
-        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
-
-        nbt.putByte("RecruitWarnings", x);
-        playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
-    }
-
-    private void warnPlayer(Player player, Component component) {
-        saveCurrentWarning(player, (byte) (getSavedWarning(player) + 1));
-
-        if (getSavedWarning(player) >= 0) {
-            player.sendSystemMessage(component);
-            saveCurrentWarning(player, (byte) -10);
-        }
-    }
-
+    
     public static MutableComponent TEXT_BLOCK_WARN(String name) {
         return Component.translatable("chat.recruits.text.block_placing_warn", name);
     }
