@@ -40,30 +40,36 @@ public class ClientPlayerEvents {
             }
 
             case IN_CLAIM -> {
-                if(claim != null && FactionClaimBannerOverlay.claimUUID.equals(claim.getUUID())){
-                    if(player.tickCount % 20 == 0) FactionClaimBannerOverlay.update(claim);
+                if (FactionClaimBannerOverlay.claimUUID != null) {
+                    if (claim != null && FactionClaimBannerOverlay.claimUUID.equals(claim.getUUID())) {
+                        if (player.tickCount % 20 == 0) FactionClaimBannerOverlay.update(claim);
 
-                    if(claim.isUnderSiege){
-                        RecruitsFaction defender = claim.getOwnerFaction();
-                        RecruitsFaction attacker = claim.attackingParties != null && !claim.attackingParties.isEmpty() ? claim.attackingParties.get(0) : null;
+                        if (claim.isUnderSiege) {
+                            RecruitsFaction defender = claim.getOwnerFaction();
+                            RecruitsFaction attacker = claim.attackingParties != null && !claim.attackingParties.isEmpty() ? claim.attackingParties.get(0) : null;
 
-                        FactionClaimBannerOverlay.deactivate();
+                            FactionClaimBannerOverlay.deactivate();
 
-                        FactionClaimSiegeOverlay.activate(
-                                claim.getName(),
-                                defender,
-                                attacker,
-                                claim.getHealth(),
-                                claim.getMaxHealth()
-                        );
-                        state = State.SIEGE;
+                            FactionClaimSiegeOverlay.activate(
+                                    claim.getName(),
+                                    defender,
+                                    attacker,
+                                    claim.getHealth(),
+                                    claim.getMaxHealth()
+                            );
+                            state = State.SIEGE;
+                        }
                     }
-
+                    else{
+                        FactionClaimBannerOverlay.deactivate();
+                        state = State.NO_CLAIM;
+                    }
                 }
-                else {
+                else{
                     FactionClaimBannerOverlay.deactivate();
                     state = State.NO_CLAIM;
                 }
+
             }
 
             case SIEGE -> {
