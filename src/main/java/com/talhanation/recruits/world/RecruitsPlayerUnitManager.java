@@ -1,8 +1,14 @@
 package com.talhanation.recruits.world;
 
 import com.talhanation.recruits.FactionEvents;
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.config.RecruitsServerConfig;
+import com.talhanation.recruits.network.MessageToClientUpdateFactions;
+import com.talhanation.recruits.network.MessageToClientUpdateUnitInfo;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.network.PacketDistributor;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -67,4 +73,43 @@ public class RecruitsPlayerUnitManager {
 
         return currentRecruitCount < maxRecruitCount;
     }
+    public int getRemainingRecruitSlots(String stringId, UUID playerUUID) {
+        RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getTeamByStringID(stringId);
+
+        int currentRecruitCount = getRecruitCount(playerUUID);
+        int maxRecruitCount;
+
+        if (recruitsFaction == null) {
+            maxRecruitCount = RecruitsServerConfig.MaxRecruitsForPlayer.get();
+        } else {
+            if (playerUUID.equals(recruitsFaction.getTeamLeaderUUID())) {
+                maxRecruitCount = recruitsFaction.maxNPCs;
+            } else {
+                maxRecruitCount = recruitsFaction.getMaxNPCsPerPlayer();
+            }
+
+            if (recruitsFaction.npcs >= recruitsFaction.maxNPCs) {
+                return 0;
+            }
+        }
+
+        int remaining = maxRecruitCount - currentRecruitCount;
+        return Math.max(remaining, 0);
+    }
+
+    public void broadCastUnitInfoToPlayer(Player player) {
+        if (player == null) return;
+
+        String factionID = null;
+        if(player.getTeam() != null){
+            factionID = player.getTeam().getName();
+        }
+
+        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player),
+                new MessageToClientUpdateUnitInfo(
+                        RecruitsServerConfig.NobleVillagerNeedsVillagers.get(),
+                        getRemainingRecruitSlots(factionID, player.getUUID())
+                ));
+    }
+
 }

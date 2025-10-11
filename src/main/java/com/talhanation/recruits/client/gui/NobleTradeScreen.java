@@ -3,6 +3,7 @@ package com.talhanation.recruits.client.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitsHireTradesRegistry;
+import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.component.RecruitsMultiLineEditBox;
 import com.talhanation.recruits.entities.VillagerNobleEntity;
 import com.talhanation.recruits.network.MessageHireFromNobleVillager;
@@ -28,9 +29,11 @@ import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.talhanation.recruits.client.ClientManager.currency;
+import static com.talhanation.recruits.client.ClientManager.factionCreationPrice;
 
 public class NobleTradeScreen extends RecruitsScreenBase {
     private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/noble_villager.png");
@@ -106,10 +109,18 @@ public class NobleTradeScreen extends RecruitsScreenBase {
 
         this.hireButton = this.addRenderableWidget(new ExtendedButton(guiLeft + 123, guiTop + ySize - 28, 100, 20, HIRE_BUTTON,
                 btn -> {
-                    if (selection != null && villagerList != null && !villagerList.isEmpty()) {
-                        Villager villager = villagerList.get(0);
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), villager.getUUID(), selection));
+                    if(ClientManager.configValueNobleNeedsVillagers){
+                        if (selection != null && villagerList != null && !villagerList.isEmpty()) {
+                            Villager villager = villagerList.get(0);
+                            Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), villager.getUUID(), selection, true));
 
+                            this.selection.uses -= 1;
+
+                            this.updateHireButtonState();
+                        }
+                    }
+                    else {
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), UUID.randomUUID(), selection, false));
                         this.selection.uses -= 1;
 
                         this.updateHireButtonState();
@@ -186,7 +197,10 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         }
 
         int playerMoney = getPlayerCurrencyAmount();
-        this.hireButton.active = (playerMoney >= this.selection.cost || player.isCreative()) && selection.uses > 0 && !villagerList.isEmpty();
+
+        this.hireButton.active = (playerMoney >= selection.cost || player.isCreative())
+                && selection.uses > 0
+                && (!ClientManager.configValueNobleNeedsVillagers || !villagerList.isEmpty());
     }
 
     private int getPlayerCurrencyAmount(){
@@ -328,12 +342,12 @@ public class NobleTradeScreen extends RecruitsScreenBase {
     private List<HireError> getErrors() {
         List<HireError> errorList = new ArrayList<>();
 
-        if(villagerList != null && villagerList.size() > 2){
+        if(villagerList != null && villagerList.size() > 2 && ClientManager.configValueNobleNeedsVillagers){
             errorList.add(HireError.NOT_ENOUGH_VILLAGERS_NEARBY);
         }
         else if(selection != null){
             int playerMoney = getPlayerCurrencyAmount();
-            if(selection.cost > playerMoney) errorList.add(HireError.NOT_ENOUGH_CURRENCY);
+            if(!(player.isCreative() || playerMoney >= selection.cost)) errorList.add(HireError.NOT_ENOUGH_CURRENCY);
             if(selection.uses <= 0) errorList.add(HireError.NO_USES);
         }
 

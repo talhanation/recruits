@@ -85,6 +85,7 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.IntValue ChunkCost;
     public static ForgeConfigSpec.IntValue SiegeClaimsRecruitsAmount;
     public static ForgeConfigSpec.IntValue SiegeClaimsConquerTime;
+    public static ForgeConfigSpec.BooleanValue NobleVillagerNeedsVillagers;
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin", "corpse:corpse", "minecraft:armorstand"));
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
@@ -328,6 +329,14 @@ public class RecruitsServerConfig {
                         \tdefault: true""")
                 .worldRestart()
                 .define("RecruitTablesPOIReleasing", true);
+
+        NobleVillagerNeedsVillagers = BUILDER.comment("""
+                        
+                        Does the Noble Villager need Villagers in the area to spawn a Recruit?
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("NobleVillagerNeedsVillagers", true);
 
         OverrideIronGolemSpawn = BUILDER.comment("""
                         

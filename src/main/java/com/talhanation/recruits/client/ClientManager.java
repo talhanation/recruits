@@ -26,7 +26,8 @@ public class ClientManager {
     public static ItemStack currency;
     public static int factionCreationPrice;
     public static int factionMaxRecruitsPerPlayerConfigSetting;
-
+    public static boolean configValueNobleNeedsVillagers;
+    public static int availableRecruitsToHire;
     public static RecruitsDiplomacyManager.DiplomacyStatus getRelation(String team, String otherTeam) {
         return diplomacyMap.getOrDefault(team, new HashMap<>()).getOrDefault(otherTeam, RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL);
     }

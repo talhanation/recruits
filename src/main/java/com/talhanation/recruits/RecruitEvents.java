@@ -121,6 +121,15 @@ public class RecruitEvents {
     }
 
     @SubscribeEvent
+    public void onPlayerJoin(EntityJoinLevelEvent event){
+        if(event.getLevel().isClientSide()) return;
+
+        if(event.getEntity() instanceof Player player){
+            recruitsPlayerUnitManager.broadCastUnitInfoToPlayer(player);
+        }
+    }
+
+    @SubscribeEvent
     public void onTeleportEvent(EntityTeleportEvent event) {
         if (event.getEntity() instanceof ServerPlayer player && !(event instanceof EntityTeleportEvent.EnderPearl) && !(event instanceof EntityTeleportEvent.ChorusFruit) && !(event instanceof EntityTeleportEvent.EnderEntity)) {
             double targetX = event.getTargetX();

@@ -7,6 +7,7 @@ import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.network.MessageToClientOpenNobleTradeScreen;
 import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
+import com.talhanation.recruits.world.RecruitsFaction;
 import com.talhanation.recruits.world.RecruitsHireTrade;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -204,12 +205,13 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
             if (candidate.chance <= 0) continue;
             if (rnd.nextInt(100) < candidate.chance) {
 
-                candidate.maxUses = rnd.nextInt(1,4);
+                candidate.maxUses = 2 + rnd.nextInt(5);
                 this.addTrade(candidate);
                 added++;
             }
         }
     }
+
     public int getTraderLevel(){
         return Math.max(1, this.getXpProgress() / 100);
     }
@@ -237,7 +239,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
         List<RecruitsHireTrade> list = this.getTrades();
 
         for (RecruitsHireTrade trade : list) {
-            trade.uses += 1;
+            trade.uses += random.nextInt(1,3);
             if(trade.uses > trade.maxUses) trade.uses = trade.maxUses;
         }
 
@@ -272,10 +274,10 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
 
         for (RecruitsHireTrade trade : list) {
             if(trade.minLevel < getTraderLevel()){
-                trade.maxUses += Math.min(7 , 1 + random.nextInt(3));
+                trade.maxUses += Math.min(7 , 2 + random.nextInt(3));
             }
             else if(trade.minLevel == getTraderLevel()){
-                trade.maxUses += Math.min(7 , 1 + random.nextInt(1));
+                trade.maxUses += Math.min(7 , 2 + random.nextInt(1));
             }
         }
     }
@@ -300,9 +302,9 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
 
         if(trade == null) return;
 
-        trade.maxUses -= 1;
+        trade.uses -= 1;
 
-        addXpProgress(trade.minLevel * 5);
+        addXpProgress(trade.minLevel * 10);
 
         this.setTrades(list);
     }
@@ -316,11 +318,24 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
         setTrades(current);
     }
 
-    public void removeTrade(RecruitsHireTrade trade) {
-        if (trade == null) return;
+    public void removeTrade(ResourceLocation recruitType) {
+        if (recruitType == null) return;
         List<RecruitsHireTrade> current = getTrades();
-        boolean removed = current.removeIf(t -> Objects.equals(t.resourceLocation, trade.resourceLocation));
+        boolean removed = current.removeIf(t -> Objects.equals(t.resourceLocation, recruitType));
         if (removed) setTrades(current);
+    }
+    public boolean hasTrade(ResourceLocation recruitType) {
+        if (recruitType == null) return false;
+
+        List<RecruitsHireTrade> trades = this.getTrades();
+        if (trades == null || trades.isEmpty()) return false;
+
+        for (RecruitsHireTrade trade : trades) {
+            if (trade != null && recruitType.equals(trade.resourceLocation)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 

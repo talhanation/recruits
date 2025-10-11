@@ -194,7 +194,8 @@ public class Main {
                 MessageDeleteClaim.class,
                 MessageToClientOpenNobleTradeScreen.class,
                 MessageHireFromNobleVillager.class,
-                MessageAttack.class
+                MessageAttack.class,
+                MessageToClientUpdateUnitInfo.class
         };
 
 
