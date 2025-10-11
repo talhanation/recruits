@@ -2,11 +2,13 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.*;
+import com.talhanation.recruits.entities.ai.villager.VillagerBecomeNobleGoal;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModProfessions;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -22,6 +24,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
@@ -53,7 +57,14 @@ public class VillagerEvents {
     public void onServerStarting(ServerStartingEvent event) {
         RecruitsHireTradesRegistry.registerBaseTrades();
     }
+    @SubscribeEvent
+    public void onVillagerJoinWorld(EntityJoinLevelEvent event) {
+        Entity entity = event.getEntity();
 
+        if (entity instanceof Villager villager) {
+            villager.goalSelector.addGoal(0, new VillagerBecomeNobleGoal(villager));
+        }
+    }
     @SubscribeEvent
     public void onVillagerLivingUpdate(LivingEvent.LivingTickEvent event) {
         HashMap<VillagerProfession, EntityType<? extends  AbstractRecruitEntity>> entitiesByProfession = new HashMap<>(){{
@@ -120,7 +131,49 @@ public class VillagerEvents {
         }
     }
 
-    public static void createHiredRecruit(Villager villager, EntityType<? extends AbstractRecruitEntity> recruitType, Player player){
+    public static void createNobleVillager(Villager villager){
+        Level level = villager.getCommandSenderWorld();
+        VillagerNobleEntity nobleEntity = ModEntityTypes.VILLAGER_NOBLE.get().create(level);
+
+        if (nobleEntity != null && !level.isClientSide()){
+            nobleEntity.copyPosition(villager);
+            nobleEntity.finalizeSpawn((ServerLevel) level, level.getCurrentDifficultyAt(villager.getOnPos().above(2)), MobSpawnType.PATROL, null, null);
+
+            nobleEntity.setTraderType(0);
+
+            nobleEntity.initSpawn();
+
+            nobleEntity.setFollowState(0);
+
+            for(ItemStack itemStack : villager.getInventory().items){
+                nobleEntity.getInventory().addItem(itemStack);
+            }
+
+            Component name = villager.getCustomName();
+            if(name  != null) nobleEntity.setCustomName(name);
+
+            Optional<GlobalPos> homeMemory = villager.getBrain().getMemory(MemoryModuleType.HOME);
+
+            if(homeMemory.isPresent()){
+                nobleEntity.setSleepingPos(homeMemory.get().pos());
+                nobleEntity.setShouldRest(true);
+            }
+
+            Optional<GlobalPos> meetingMemory = villager.getBrain().getMemory(MemoryModuleType.MEETING_POINT);
+            if(meetingMemory.isPresent()){
+                nobleEntity.setHoldPos(meetingMemory.get().pos().getCenter());
+
+            }
+
+            villager.getCommandSenderWorld().addFreshEntity(nobleEntity);
+            if(RecruitsServerConfig.RecruitTablesPOIReleasing.get()) villager.releasePoi(MemoryModuleType.JOB_SITE);
+            villager.releasePoi(MemoryModuleType.HOME);
+            villager.releasePoi(MemoryModuleType.MEETING_POINT);
+            villager.discard();
+        }
+    }
+
+    public static void createHiredRecruitFromVillager(Villager villager, EntityType<? extends AbstractRecruitEntity> recruitType, Player player){
         AbstractRecruitEntity abstractRecruit = recruitType.create(villager.getCommandSenderWorld());
         if (abstractRecruit != null && abstractRecruit.hire(player)) {
             abstractRecruit.copyPosition(villager);
@@ -140,6 +193,18 @@ public class VillagerEvents {
             villager.releasePoi(MemoryModuleType.HOME);
             villager.releasePoi(MemoryModuleType.MEETING_POINT);
             villager.discard();
+        }
+    }
+
+    public static void spawnHiredRecruit(EntityType<? extends AbstractRecruitEntity> recruitType, Player player){
+        AbstractRecruitEntity abstractRecruit = recruitType.create(player.getCommandSenderWorld());
+        if (abstractRecruit != null && abstractRecruit.hire(player)) {
+            abstractRecruit.copyPosition(player);
+
+            abstractRecruit.initSpawn();
+            abstractRecruit.setFollowState(1);
+
+            player.getCommandSenderWorld().addFreshEntity(abstractRecruit);
         }
     }
 

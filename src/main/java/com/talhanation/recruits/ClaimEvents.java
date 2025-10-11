@@ -2,6 +2,7 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.VillagerNobleEntity;
 import com.talhanation.recruits.util.ClaimUtil;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsClaimManager;
@@ -15,15 +16,16 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.ComparatorBlock;
 import net.minecraft.world.level.block.DaylightDetectorBlock;
 import net.minecraft.world.level.block.DiodeBlock;
 import net.minecraft.world.level.block.LeverBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.scores.PlayerTeam;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -77,6 +79,7 @@ public class ClaimEvents {
         counter = 0;
         for(RecruitsClaim claim : recruitsClaimManager.getAllClaims()){
             ServerLevel level = server.overworld();
+            takeOverVillager(level, claim);
             if (claim == null) return;
             if (claim.isAdmin) return;
 
@@ -130,6 +133,20 @@ public class ClaimEvents {
                 claim.setUnderSiege( true, level);
                 recruitsClaimManager.broadcastClaimsToAll(level);
             }
+        }
+    }
+
+    private void takeOverVillager(ServerLevel level, RecruitsClaim claim) {
+        List<LivingEntity> list = ClaimUtil.getLivingEntitiesInClaim(level, claim,
+                livingEntity -> (livingEntity instanceof Villager || livingEntity instanceof VillagerNobleEntity) && livingEntity.isAlive());
+        if(list.isEmpty()) return;
+
+        String teamName = claim.getOwnerFaction().getStringID();
+        PlayerTeam team = level.getScoreboard().getPlayerTeam(teamName);
+        if(team == null) return;
+
+        for(LivingEntity living : list){
+            if(living.getTeam() == null || !living.getTeam().getName().equals(team.getName())) level.getScoreboard().addPlayerToTeam(living.getStringUUID(), team);
         }
     }
 
