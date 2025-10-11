@@ -9,18 +9,16 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.talhanation.recruits.ClaimEvents;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.FactionEvents;
+import com.talhanation.recruits.RecruitsHireTradesRegistry;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.VillagerNobleEntity;
 import com.talhanation.recruits.items.RecruitsSpawnEgg;
-import com.talhanation.recruits.world.RecruitsClaim;
-import com.talhanation.recruits.world.RecruitsClaimManager;
-import com.talhanation.recruits.world.RecruitsDiplomacyManager;
-import com.talhanation.recruits.world.RecruitsFaction;
+import com.talhanation.recruits.world.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.ScoreHolderArgument;
-import net.minecraft.commands.arguments.TeamArgument;
+import net.minecraft.commands.arguments.*;
 import net.minecraft.commands.synchronization.SuggestionProviders;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -396,6 +394,88 @@ public class RecruitsAdminCommands {
                             }
                             return 1;
                         })
+                    )
+                )
+            )
+            .then(Commands.literal("nobleVillagerManager")
+                .then(Commands.literal("addNobleTrade")
+                    .then(Commands.argument("Resource", ResourceLocationArgument.id())
+                        .then(Commands.argument("MaxUses", IntegerArgumentType.integer())
+                            .then(Commands.argument("VillagerNoble", EntityArgument.entity())
+                                .executes((context) -> {
+                                    Entity entity = EntityArgument.getEntity(context, "VillagerNoble");
+                                    if(entity instanceof VillagerNobleEntity nobleVillager){
+                                        ResourceLocation resourceLocation = ResourceLocationArgument.getId(context, "Resource");
+
+                                        RecruitsHireTrade hireTrade = RecruitsHireTradesRegistry.getByResourceLocation(resourceLocation);
+
+                                        if(hireTrade == null) {
+                                            context.getSource().sendFailure(Component.literal("No Trade for " + resourceLocation + " found!"));
+                                            return 0;
+                                        }
+                                        if(nobleVillager.hasTrade(resourceLocation)){
+                                            nobleVillager.removeTrade(resourceLocation);
+                                        }
+
+                                        int maxUses = IntegerArgumentType.getInteger(context, "MaxUses");
+                                        hireTrade.maxUses = maxUses;
+                                        hireTrade.uses = maxUses;
+                                        nobleVillager.addTrade(hireTrade);
+                                    }
+                                    else{
+                                        context.getSource().sendFailure(Component.literal("Not a Noble Villager."));
+                                        return 0;
+                                    }
+                                    return 1;
+                                })
+                            )
+                        )
+                    )
+                )
+                .then(Commands.literal("refreshAllTrades")
+                        .then(Commands.argument("VillagerNoble", EntityArgument.entity())
+                                .executes((context) -> {
+                                    Entity entity = EntityArgument.getEntity(context, "VillagerNoble");
+                                    if(entity instanceof VillagerNobleEntity nobleVillager){
+                                        nobleVillager.getTrades().forEach(trade ->{
+                                            trade.uses = trade.maxUses;
+                                        }
+
+                                        );
+                                    }
+                                    else{
+                                        context.getSource().sendFailure(Component.literal("Not a Noble Villager."));
+                                        return 0;
+                                    }
+                                    return 1;
+                                })
+                        )
+                )
+                .then(Commands.literal("removeNobleTrade")
+                    .then(Commands.argument("Resource", ResourceLocationArgument.id())
+                        .then(Commands.argument("VillagerNoble", EntityArgument.entity())
+                            .executes((context) -> {
+                                Entity entity = EntityArgument.getEntity(context, "VillagerNoble");
+
+                                if(entity instanceof VillagerNobleEntity nobleVillager){
+                                    ResourceLocation resourceLocation = ResourceLocationArgument.getId(context, "Resource");
+
+                                    if(nobleVillager.hasTrade(resourceLocation)){
+                                        nobleVillager.removeTrade(resourceLocation);
+                                        context.getSource().sendSuccess(() -> Component.literal("Trade was removed!"), false);
+                                    }
+                                    else {
+                                        context.getSource().sendFailure(Component.literal("No Trade for " + resourceLocation + " found!"));
+                                        return 0;
+                                    }
+                                }
+                                else{
+                                    context.getSource().sendFailure(Component.literal("Not a Noble Villager."));
+                                    return 0;
+                                }
+                                return 1;
+                            })
+                        )
                     )
                 )
             )
