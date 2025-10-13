@@ -214,6 +214,7 @@ public class VillagerEvents {
 
     @SubscribeEvent
     public void villagerTrades(VillagerTradesEvent event) {
+        if(!RecruitsServerConfig.ShouldProfessionBlocksTrade.get()) return;
 
         if (event.getType() == VillagerProfession.ARMORER) {
             Trade block_trade = new Trade(Items.EMERALD, 15, ModBlocks.RECRUIT_SHIELD_BLOCK.get(), 1, 2, 20);

@@ -86,6 +86,7 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.IntValue SiegeClaimsRecruitsAmount;
     public static ForgeConfigSpec.IntValue SiegeClaimsConquerTime;
     public static ForgeConfigSpec.BooleanValue NobleVillagerNeedsVillagers;
+    public static ForgeConfigSpec.BooleanValue ShouldProfessionBlocksTrade;
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin", "corpse:corpse", "minecraft:armorstand"));
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
@@ -337,6 +338,14 @@ public class RecruitsServerConfig {
                         \tdefault: true""")
                 .worldRestart()
                 .define("NobleVillagerNeedsVillagers", true);
+
+        ShouldProfessionBlocksTrade = BUILDER.comment("""
+                        
+                        Should Recruits Profession Blocks be traded by Villagers?
+                        \t(takes effect after restart)
+                        \tdefault: false""")
+                .worldRestart()
+                .define("NobleVillagerNeedsVillagers", false);
 
         OverrideIronGolemSpawn = BUILDER.comment("""
                         
