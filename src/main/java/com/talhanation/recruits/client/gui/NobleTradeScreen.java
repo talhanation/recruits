@@ -7,6 +7,7 @@ import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.component.RecruitsMultiLineEditBox;
 import com.talhanation.recruits.entities.VillagerNobleEntity;
 import com.talhanation.recruits.network.MessageHireFromNobleVillager;
+import com.talhanation.recruits.util.DelayedExecutor;
 import com.talhanation.recruits.world.RecruitsHireTrade;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
@@ -93,17 +94,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         this.tradeList.setLeftPos(listLeft);
         this.tradeList.setRenderSelection(false);
 
-        this.tradeList.clearEntries();
-        List<RecruitsHireTrade> trades = villagerNoble.getTrades();
-        for (RecruitsHireTrade serverSideTrade : trades) {
-            RecruitsHireTrade clientSideTrade = RecruitsHireTradesRegistry.getByResourceLocation(serverSideTrade.resourceLocation);
-            if(clientSideTrade == null) continue;
-
-            serverSideTrade.title = clientSideTrade.title;
-            serverSideTrade.description = clientSideTrade.description;
-
-            this.tradeList.addEntry(this.tradeList.new TradeEntry(serverSideTrade));
-        }
+        this.loadTrades();
 
         this.addRenderableWidget(this.tradeList);
 
@@ -112,18 +103,18 @@ public class NobleTradeScreen extends RecruitsScreenBase {
                     if(ClientManager.configValueNobleNeedsVillagers){
                         if (selection != null && villagerList != null && !villagerList.isEmpty()) {
                             Villager villager = villagerList.get(0);
-                            Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), villager.getUUID(), selection, true));
+                            Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), villager.getUUID(), selection, true, false));
 
                             this.selection.uses -= 1;
-
                             this.updateHireButtonState();
+                            this.loadTrades();
                         }
                     }
                     else {
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), UUID.randomUUID(), selection, false));
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), UUID.randomUUID(), selection, false, false));
                         this.selection.uses -= 1;
-
                         this.updateHireButtonState();
+                        this.loadTrades();
                     }
                 }
         ));
@@ -141,10 +132,46 @@ public class NobleTradeScreen extends RecruitsScreenBase {
     @Override
     public void tick() {
         super.tick();
-        if(this.player.tickCount % 20 == 0) this.findVillagers();
+        if(this.player.tickCount % 20 == 0){
+            this.findVillagers();
+        }
         if(this.descriptionBox != null) descriptionBox.tick();
+        this.loadTrades();
     }
 
+    private void loadTrades(){
+        this.tradeList.clearEntries();
+        List<RecruitsHireTrade> trades = copyTrades(villagerNoble.getTrades());
+        for (RecruitsHireTrade serverSideTrade : trades) {
+            RecruitsHireTrade clientSideTrade = RecruitsHireTradesRegistry.getByResourceLocation(serverSideTrade.resourceLocation);
+            if(clientSideTrade == null) continue;
+
+            serverSideTrade.title = clientSideTrade.title;
+            serverSideTrade.description = clientSideTrade.description;
+
+            this.tradeList.addEntry(this.tradeList.new TradeEntry(serverSideTrade));
+        }
+    }
+
+    private List<RecruitsHireTrade> copyTrades(List<RecruitsHireTrade> original) {
+        if (original == null) return new ArrayList<>();
+        List<RecruitsHireTrade> copy = new ArrayList<>();
+        for (RecruitsHireTrade t : original) {
+            RecruitsHireTrade clone = new RecruitsHireTrade(
+                    t.resourceLocation,
+                    t.cost,
+                    t.minLevel,
+                    t.chance,
+                    t.title,
+                    t.description,
+                    t.tradeTagList == null ? null : new ArrayList<>(t.tradeTagList)
+            );
+            clone.uses = t.uses;
+            clone.maxUses = t.maxUses;
+            copy.add(clone);
+        }
+        return copy;
+    }
     private void findVillagers() {
         this.villagerList = this.player.getCommandSenderWorld()
                 .getEntitiesOfClass(Villager.class, this.player.getBoundingBox().inflate(32))
@@ -175,7 +202,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
             int y = guiTop + TRADE_TITLE_Y;
             guiGraphics.drawString(font, tradeTitle, x, y, FONT_COLOR, false);
         }
-        int progress = villagerNoble.getXpProgress() % 100;
+        int progress = (int) (villagerNoble.getTraderProgress() * 1.5);
         guiGraphics.fill(guiLeft + LEVEL_BAR_X, guiTop + LEVEL_BAR_Y, guiLeft + LEVEL_BAR_X + BAR_W,  guiTop + LEVEL_BAR_Y + BAR_H, 0xFF555555);
         guiGraphics.fill(guiLeft + LEVEL_BAR_X, guiTop + LEVEL_BAR_Y, guiLeft + LEVEL_BAR_X + progress,  guiTop + LEVEL_BAR_Y + BAR_H, 0xFF00FF00);
     }
@@ -184,6 +211,12 @@ public class NobleTradeScreen extends RecruitsScreenBase {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+    }
+
+    @Override
+    public void onClose() {
+        super.onClose();
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), UUID.randomUUID(), selection, false, true));
     }
 
     private void updateHireButtonState() {

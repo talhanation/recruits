@@ -113,9 +113,9 @@ public class RecruitsHireTrade {
         COMPANION,
         WORKER,
         FARMER,
-        ANIMAL_FARMER,
-        INFANTRY_ADDON,
-        RANGED_ADDON;
+        ANIMAL_FARMER;
+        //INFANTRY_ADDON,
+        //RANGED_ADDON;
 
         public static List<RecruitsTradeTag> getValues(){
             return List.of(values());

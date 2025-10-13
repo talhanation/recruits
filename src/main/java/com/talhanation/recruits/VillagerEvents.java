@@ -193,6 +193,8 @@ public class VillagerEvents {
             villager.releasePoi(MemoryModuleType.HOME);
             villager.releasePoi(MemoryModuleType.MEETING_POINT);
             villager.discard();
+
+            FactionEvents.doPayment(player, abstractRecruit.getCost());
         }
     }
 
@@ -205,6 +207,8 @@ public class VillagerEvents {
             abstractRecruit.setFollowState(1);
 
             player.getCommandSenderWorld().addFreshEntity(abstractRecruit);
+
+            FactionEvents.doPayment(player, abstractRecruit.getCost());
         }
     }
 

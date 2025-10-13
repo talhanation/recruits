@@ -1125,7 +1125,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
                 return InteractionResult.SUCCESS;
             }
-            if(this instanceof VillagerNobleEntity noble){
+            if(this instanceof VillagerNobleEntity noble && !noble.isTrading){
                 noble.openTradeGUI(player);
                 return InteractionResult.SUCCESS;
             }

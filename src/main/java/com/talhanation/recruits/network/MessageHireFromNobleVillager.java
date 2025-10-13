@@ -1,5 +1,6 @@
 package com.talhanation.recruits.network;
 
+import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.VillagerEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.VillagerNobleEntity;
@@ -23,16 +24,25 @@ public class MessageHireFromNobleVillager implements Message<MessageHireFromNobl
     private UUID villager_uuid;
     private int cost;
     private boolean needsVillager;
+    private boolean closing;
     private ResourceLocation resource;
     public MessageHireFromNobleVillager() {
     }
 
-    public MessageHireFromNobleVillager(UUID noble_uuid, UUID villager_uuid, RecruitsHireTrade trade, boolean needsVillager) {
+    public MessageHireFromNobleVillager(UUID noble_uuid, UUID villager_uuid, RecruitsHireTrade trade, boolean needsVillager, boolean closing) {
         this.noble_uuid = noble_uuid;
         this.villager_uuid = villager_uuid;
-        this.cost = trade.cost;
-        this.resource = trade.resourceLocation;
+        if(trade != null){
+            this.cost = trade.cost;
+            this.resource = trade.resourceLocation;
+        }
+        else{
+            this.cost = 0;
+            this.resource = new ResourceLocation("","");
+        }
+
         this.needsVillager = needsVillager;
+        this.closing = closing;
     }
 
     public Dist getExecutingSide() {
@@ -41,37 +51,41 @@ public class MessageHireFromNobleVillager implements Message<MessageHireFromNobl
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
+        VillagerNobleEntity villagerNoble = player.getCommandSenderWorld().getEntitiesOfClass(
+                VillagerNobleEntity.class,
+                player.getBoundingBox().inflate(32.0D),
+                noble -> noble.getUUID().equals(this.noble_uuid) && noble.isAlive()
+        ).stream().findAny().get();
+
+        if(closing){
+            villagerNoble.isTrading(false);
+            return;
+        }
+
         if(this.needsVillager){
             player.getCommandSenderWorld().getEntitiesOfClass(
                     Villager.class,
                     player.getBoundingBox().inflate(32.0D),
                     villager -> villager.getUUID().equals(this.villager_uuid) && villager.isAlive()
-            ).forEach(villager -> this.createRecruit(villager, player));
+            ).forEach(villager -> this.createRecruit(villager, villagerNoble, player));
         }
         else{
             String string = resource.toString();
             Optional<EntityType<?>> optionalType = EntityType.byString(string);
             optionalType.ifPresent(type -> VillagerEvents.spawnHiredRecruit((EntityType<? extends AbstractRecruitEntity>) type, player));
 
-            player.getCommandSenderWorld().getEntitiesOfClass(
-                    VillagerNobleEntity.class,
-                    player.getBoundingBox().inflate(32.0D),
-                    noble -> noble.getUUID().equals(this.noble_uuid) && noble.isAlive()
-            ).forEach(noble -> noble.doTrade(resource));
+            villagerNoble.doTrade(resource);
         }
-
     }
-    public void createRecruit(Villager villager, Player player){
+    public void createRecruit(Villager villager, VillagerNobleEntity villagerNoble, Player player){
         String string = resource.toString();
         Optional<EntityType<?>> optionalType = EntityType.byString(string);
 
-        optionalType.ifPresent(type -> VillagerEvents.createHiredRecruitFromVillager(villager, (EntityType<? extends AbstractRecruitEntity>) type, player));
+        optionalType.ifPresent(type -> {
+            VillagerEvents.createHiredRecruitFromVillager(villager, (EntityType<? extends AbstractRecruitEntity>) type, player);
+        });
 
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                VillagerNobleEntity.class,
-                player.getBoundingBox().inflate(32.0D),
-                noble -> noble.getUUID().equals(this.noble_uuid) && noble.isAlive()
-        ).forEach(noble -> noble.doTrade(resource));
+        villagerNoble.doTrade(resource);
     }
 
     public MessageHireFromNobleVillager fromBytes(FriendlyByteBuf buf) {
@@ -80,6 +94,7 @@ public class MessageHireFromNobleVillager implements Message<MessageHireFromNobl
         this.cost = buf.readInt();
         this.resource = buf.readResourceLocation();
         this.needsVillager = buf.readBoolean();
+        this.closing = buf.readBoolean();
         return this;
     }
 
@@ -89,5 +104,6 @@ public class MessageHireFromNobleVillager implements Message<MessageHireFromNobl
         buf.writeInt(this.cost);
         buf.writeResourceLocation(resource);
         buf.writeBoolean(needsVillager);
+        buf.writeBoolean(closing);
     }
 }
