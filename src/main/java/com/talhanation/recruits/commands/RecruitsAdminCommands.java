@@ -426,6 +426,7 @@ public class RecruitsAdminCommands {
                                         context.getSource().sendFailure(Component.literal("Not a Noble Villager."));
                                         return 0;
                                     }
+                                    context.getSource().sendSuccess(() -> Component.literal("Trade added!"), false);
                                     return 1;
                                 })
                             )
@@ -437,16 +438,35 @@ public class RecruitsAdminCommands {
                                 .executes((context) -> {
                                     Entity entity = EntityArgument.getEntity(context, "VillagerNoble");
                                     if(entity instanceof VillagerNobleEntity nobleVillager){
-                                        nobleVillager.getTrades().forEach(trade ->{
-                                            trade.uses = trade.maxUses;
+                                        List<RecruitsHireTrade> list = nobleVillager.getTrades();
+
+                                        for (RecruitsHireTrade trade : list) {
+                                             trade.uses = trade.maxUses;
                                         }
 
-                                        );
+                                        nobleVillager.setTrades(list);
                                     }
                                     else{
                                         context.getSource().sendFailure(Component.literal("Not a Noble Villager."));
                                         return 0;
                                     }
+                                    context.getSource().sendSuccess(() -> Component.literal("Trades refreshed!"), false);
+                                    return 1;
+                                })
+                        )
+                )
+                .then(Commands.literal("levelup")
+                        .then(Commands.argument("VillagerNoble", EntityArgument.entity())
+                                .executes((context) -> {
+                                    Entity entity = EntityArgument.getEntity(context, "VillagerNoble");
+                                    if(entity instanceof VillagerNobleEntity nobleVillager){
+                                        nobleVillager.addTraderProgress(100);
+                                    }
+                                    else{
+                                        context.getSource().sendFailure(Component.literal("Not a Noble Villager."));
+                                        return 0;
+                                    }
+                                    context.getSource().sendSuccess(() -> Component.literal("Leveled up!"), false);
                                     return 1;
                                 })
                         )
