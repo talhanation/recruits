@@ -41,7 +41,6 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
     private static final Component LEAVE_BUTTON = Component.translatable("gui.recruits.team.leave");
     private static final Component DELETE_BUTTON = Component.translatable("gui.recruits.team.delete_team");
     private static final Component DIPLOMACY_BUTTON = Component.translatable("gui.recruits.team.diplomacy");
-    private static final Component EDIT_BUTTON = Component.translatable("gui.recruits.team.edit");
     private static final Component MANAGE_BUTTON = Component.translatable("gui.recruits.team.manage");
     private static final Component BACK_BUTTON = Component.translatable("gui.recruits.button.back");
     private static final Component MEMBERS_TEXT = Component.translatable("gui.recruits.team.members");
@@ -118,22 +117,14 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         addRenderableWidget(this.selectedPlayerWidget);
 
         boolean isTeamLeader = ClientManager.ownFaction.getTeamLeaderUUID().equals(player.getUUID());
-        claimMapButton = new ExtendedButton(guiLeft + 109, guiTop + 99, 60, 20, CLAIM_BUTTON,
+        claimMapButton = new ExtendedButton(guiLeft + 160, guiTop + 99, 60, 20, CLAIM_BUTTON,
                 button -> {
                     minecraft.setScreen(new ClaimMapScreen(this, player));
                 });
-        //claimMapButton.visible = isTeamLeader;// && isClaimingAllowed;
+        claimMapButton.visible = isTeamLeader;// TODO: && isClaimingAllowed;
         addRenderableWidget(claimMapButton);
-        editButton = new ExtendedButton(guiLeft + 169, guiTop + 99, 60, 20, EDIT_BUTTON,
-                button -> {
-                    TeamEditScreen.leaderInfo = null;
-                    FactionEvents.openTeamEditScreen(player);
-            //minecraft.setScreen(new TeamEditScreen(this, player, recruitsTeam));
-                });
-        editButton.visible = isTeamLeader && ClientManager.isFactionEditingAllowed;
-        addRenderableWidget(editButton);
 
-        diplomacyButton = new ExtendedButton(guiLeft + 49, guiTop + 99, 60, 20, DIPLOMACY_BUTTON,
+        diplomacyButton = new ExtendedButton(guiLeft + 70, guiTop + 99, 60, 20, DIPLOMACY_BUTTON,
                 button -> {
                     minecraft.setScreen(new DiplomacyTeamListScreen(this, isTeamLeader));
                 });

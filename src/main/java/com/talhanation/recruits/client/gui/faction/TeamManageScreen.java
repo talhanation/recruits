@@ -1,7 +1,9 @@
 package com.talhanation.recruits.client.gui.faction;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import com.talhanation.recruits.client.gui.player.PlayersList;
 import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
@@ -30,7 +32,8 @@ public class TeamManageScreen extends RecruitsScreenBase {
     private static final MutableComponent TOOLTIP_ADD_PLAYER = Component.translatable("gui.recruits.team.tooltip.add");
     private static final MutableComponent TOOLTIP_REMOVE_PLAYER = Component.translatable("gui.recruits.team.tooltip.remove");
     private static final MutableComponent PLAYER_PROMOTION = Component.translatable("gui.recruits.team.playerPromotion");
-    private static final MutableComponent UNIT_MANAGEMENT = Component.translatable("gui.recruits.team.unitManagement");
+    //private static final MutableComponent UNIT_MANAGEMENT = Component.translatable("gui.recruits.team.unitManagement");
+    private static final Component EDIT_BUTTON = Component.translatable("gui.recruits.team.edit");
     private final Player player;
     private final RecruitsFaction recruitsFaction;
     private final Screen parent;
@@ -51,7 +54,6 @@ public class TeamManageScreen extends RecruitsScreenBase {
 
     private void setButtons(){
         clearWidgets();
-
         Button addPlayer = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 120 - 7, 130, 20, ADD_PLAYER,
             btn -> {
                 minecraft.setScreen(new SelectPlayerScreen(this, player, TOOLTIP_ADD_PLAYER,  ADD_PLAYER, Component.literal(""), false, PlayersList.FilterType.TEAM_JOIN_REQUEST,
@@ -73,6 +75,7 @@ public class TeamManageScreen extends RecruitsScreenBase {
             }
         ));
         removePlayer.setTooltip(Tooltip.create(TOOLTIP_REMOVE_PLAYER));
+        /*
         Button unitManagement = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 76 - 7, 130, 20, UNIT_MANAGEMENT,
             btn -> {
 
@@ -80,6 +83,14 @@ public class TeamManageScreen extends RecruitsScreenBase {
         ));
         unitManagement.active = false;
         unitManagement.setTooltip(Tooltip.create(TOOLTIP_WIP));
+        */
+        Button editButton = new ExtendedButton(guiLeft + 32, guiTop + ySize - 76 - 7, 130, 20, EDIT_BUTTON,
+                button -> {
+                    TeamEditScreen.leaderInfo = null;
+                    FactionEvents.openTeamEditScreen(player);
+                    //minecraft.setScreen(new TeamEditScreen(this, player, recruitsTeam));
+                });
+        addRenderableWidget(editButton);
 
         Button playerPromotion = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 54 - 7, 130, 20, PLAYER_PROMOTION,
             btn -> {
