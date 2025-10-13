@@ -485,5 +485,55 @@
   "chat.recruits.text.siegeSuccessAttacker": "%s wurde erfolgreich eingenommen!",
   "chat.recruits.text.siegeSuccessDefender": "%s wurde verloren!",
   "chat.recruits.text.siegeFailedAttacker": "Die Belagerung von %s ist gescheitert!",
-  "chat.recruits.text.siegeFailedDefender": "Die Belagerung von %s wurde abgewehrt!"
+  "chat.recruits.text.siegeFailedDefender": "Die Belagerung von %s wurde abgewehrt!",
+
+  "gui.recruits.error.name_too_short": "Name zu kurz!",
+  "gui.recruits.error.name_too_long": "Name zu lang!",
+  "gui.recruits.error.name_in_use": "Name bereits vergeben!",
+  "gui.recruits.error.not_enough_emeralds": "Nicht genug Smaragde!",
+  "gui.recruits.error.banner_empty": "Banner darf nicht leer sein!",
+  "gui.recruits.error.banner_in_use": "Banner wird bereits verwendet!",
+  "gui.recruits.error.no_changes": "Keine Änderungen.",
+  "gui.recruits.error.leader_missing": "Kein Anführer zugewiesen!",
+
+  "gui.recruits.villager_noble": "Nobler Dorfbewohner",
+
+  "gui.recruits.villager_noble.hire": "Einstellen",
+  "gui.recruits.villager_noble.error_no_villagers": "Nicht genug Dorfbewohner in der Nähe!",
+  "gui.recruits.villager_noble.error_not_enough_currency": "Nicht genug Währung!",
+  "gui.recruits.villager_noble.error_no_uses": "Heute keine Handelsmöglichkeiten mehr!",
+
+  "gui.recruits.command.text.attack": "Angriff!",
+  "gui.recruits.command.tooltip.attack": "Befiehl deinen Truppen, die Feinde im anvisierten Gebiet anzugreifen.",
+  "chat.recruits.command.attack": "%s Angriff!",
+
+  "description.recruits.title.recruit": "Rekrut",
+  "description.recruits.recruit": "Der Rekrut ist ein einfacher, aber treuer Krieger, der ausschließlich Nahkampfwaffen führt.\nSchnell auf den Beinen und fähig, ein Schild zu tragen, kann er sich jeder Situation anpassen.\nObwohl seine Ausbildung schlicht ist, bleibt er in fast jedem Kampf zuverlässig.",
+
+  "description.recruits.title.shieldman": "Schildträger",
+  "description.recruits.shieldman": "Der Schildträger ist ein standhafter Verteidiger.\nMit Nahkampfwaffen und Schild ausgerüstet, blockt er Angriffe mit kurzer Erholungszeit.\nEr ist langsamer, besitzt jedoch mehr Ausdauer und Leben – ideal für lange, zähe Schlachten.",
+
+  "description.recruits.title.bowman": "Bogenschütze",
+  "description.recruits.bowman": "Der Bogenschütze ist ein schneller und präziser Fernkämpfer.\nEr trifft Feinde aus der Ferne mit Genauigkeit und kann im Nahkampf zum Schwert greifen.\nSchilde oder eine Armbrust kann er jedoch nicht tragen.",
+
+  "description.recruits.title.crossbowman": "Armbrustschütze",
+  "description.recruits.crossbowman": "Der Armbrustschütze ist ein disziplinierter Fernkämpfer.\nSeine Bolzen treffen selbst aus großer Entfernung mit Wucht und Präzision.\nEr kann im Nahkampf ein Schwert führen, doch weder Schilde tragen noch Bögen verwenden.",
+
+  "description.recruits.title.horseman": "Reiter",
+  "description.recruits.horseman": "Der Reiter ist ein furchtloser Krieger zu Pferd.\nIm freien Kampfmodus stürmt er auf seine Feinde zu und schleudert sie mit seiner Attacke zurück.\nMit Nahkampfwaffen und Schild bewaffnet, ist er stark in Angriff wie Verteidigung.",
+
+  "description.recruits.title.nomad": "Nomade",
+  "description.recruits.nomad": "Der Nomade ist ein erfahrener Reiter und Meister des Bogens.\nIm freien Modus umkreist er seine Feinde und weicht Geschossen aus.\nEr kämpft flink und geschickt, schlägt aus der Bewegung heraus und entzieht sich dann dem Gegenschlag.",
+
+  "description.recruits.title.scout": "Kundschafter",
+  "description.recruits.scout": "Der Kundschafter ist ein wachsamer und schneller Gefährte.\nEr erkennt Feinde früh und berichtet über deren Zahl und Stärke.\nIm Kampf nutzt er Bogen und Schwert, ob aus der Ferne oder im Nahkampf.",
+
+  "description.recruits.title.messenger": "Bote",
+  "description.recruits.messenger": "Der Bote ist ein Gesandter des Friedens.\nEr überbringt Nachrichten an ferne Spieler oder Fraktionen und kann auf Wunsch ein Geschenk tragen.\nAuf Missionen ist er geschützt und kann nicht verletzt werden – sein Dienst gilt der Diplomatie.",
+
+  "description.recruits.title.captain": "Kapitän",
+  "description.recruits.captain": "Der Kapitän ist Herr seines Schiffes.\nEr kann das Schiff steuern und die Kanonen bedienen.\nSeine Schüsse treffen feindliche Schiffe oder auch Ziele an Land.\nIm Nahkampf kämpft er mit Schwert und Schild.",
+
+  "description.recruits.title.commander": "Kommandant",
+  "description.recruits.commander": "Der Kommandant ist ein starker Anführer.\nEr kann Positionen patrouillieren und eine Gruppe von Rekruten führen.\nUnter seiner Führung marschieren seine Männer mit Ordnung und Entschlossenheit."
 }

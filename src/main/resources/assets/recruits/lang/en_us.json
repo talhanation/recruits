@@ -11,6 +11,7 @@
   "item.recruits.horseman_spawn_egg": "Horseman Spawn Egg",
   "item.recruits.recruit_shieldman_spawn_egg": "Recruit Shieldman Spawn Egg",
   "item.recruits.crossbowman_spawn_egg": "Crossbowman Spawn Egg",
+  "item.recruits.villager_noble_spawn_egg": "Noble Villager Spawn Egg",
 
   "block.recruits.recruit_block": "Recruit's Table",
   "block.recruits.recruit_shield_block": "Recruit Shieldman's Table",
@@ -530,22 +531,22 @@
    "chat.recruits.command.attack" : "%s Attack!",
 
    "description.recruits.title.recruit" : "Recruit",
-   "description.recruits.recruit" : "The Recruit is a versatile warrior who relies only on melee weapons.\nSwift on his feet and able to carry a shield, he can adapt to many situations.\nThough simple in training, he is reliable in almost every kind of fight.",
+   "description.recruits.recruit" : "The Recruit is a important warrior who relies only on melee weapons.\nSwift on his feet and able to carry a shield, he can adapt to many situations.\nThough simple in training, he is reliable in almost every kind of fight.",
 
    "description.recruits.title.shieldman" : "Shieldman",
-   "description.recruits.shieldman" : "The Shieldman is a steadfast defender.\nArmed only with melee weapons, he excels with the shield, blocking blows with shorter recovery time.\nThough his steps are slower, his endurance and health make him well-suited for long, grinding battles.",
+   "description.recruits.shieldman" : "The Shieldman is a steadfast defender.\nArmed only with melee weapons, he excels with the shield, blocking attacks with shorter recovery time.\nThough his steps are slower, his endurance and health make him well-suited for long, grinding battles.",
 
    "description.recruits.title.bowman" : "Bowman",
-   "description.recruits.bowman" : "The Bowman is a fast and accurate archer, striking foes from a distance with precision shots.\nWhen pressed, he can draw a sword to defend himself in close combat.\nHowever, he cannot carry a shield and has no skill with the crossbow.",
+   "description.recruits.bowman" : "The Bowman is a fast and accurate archer, striking enemies from a distance with precision shots.\nWhen needed, he can draw a sword to defend himself in close combat.\nHowever, he cannot carry a shield and has no skill with the crossbow.",
 
    "description.recruits.title.crossbowman" : "Crossbowman",
    "description.recruits.crossbowman" : "The Crossbowman is a disciplined ranged fighter, delivering powerful and precise bolts even at long range.\nHis shots are fast, and they hit hard and true.\nIf needed, he can wield a sword in close quarters, but he cannot carry shields or use bows.",
 
    "description.recruits.title.horseman" : "Horseman",
-   "description.recruits.horseman" : "The Horseman is a mounted warrior who charges fearlessly into enemy lines.\nIn free wander mode, his horse charge scatters and knocks back foes, breaking their ranks.\nHe can fight with melee weapons and shields, making him both strong in defense and devastating in attack.",
+   "description.recruits.horseman" : "The Horseman is a mounted warrior who charges fearlessly into enemy lines.\nIn free wander mode, his horse charge scatters and knocks back enemies, breaking their ranks.\nHe can fight with melee weapons and shields, making him both strong in defense and devastating in attack.",
 
    "description.recruits.title.nomad" : "Nomad",
-   "description.recruits.nomad" : "The Nomad is a skilled rider and master of the bow.\nIn free wander mode, he circles his enemies on horseback, loosing arrows while avoiding their attacks.\nAgile and elusive, he fights only with the bow, striking swiftly before retreating again into motion.",
+   "description.recruits.nomad" : "The Nomad is a skilled rider and master of the bow.\nIn free wander mode, he circles his enemies on horseback, loosing arrows while avoiding their attacks.\nAgile and elusive, he fights with the bow and sword, striking swiftly before retreating again into motion.",
 
    "description.recruits.title.scout" : "Scout",
    "description.recruits.scout" : "The Scout is a fast and watchful companion.\nHe can spot enemies when they come into view and give clear information about their numbers and strength.\nIn battle, he can fight with a bow from range or with a sword in close combat.",

@@ -440,5 +440,56 @@
   "gui.recruits.team_color.white": "Белый",
 
   "gui.recruits.command.tip.de_select_groups" : "[Правая кнопка мыши] – Выбрать все группы",
-  "gui.recruits.command.tip.scrollCategories" : "[Колесо мыши] – Прокрутить категории"
+  "gui.recruits.command.tip.scrollCategories" : "[Колесо мыши] – Прокрутить категории",
+
+  "gui.recruits.error.name_too_short": "Имя слишком короткое!",
+  "gui.recruits.error.name_too_long": "Имя слишком длинное!",
+  "gui.recruits.error.name_in_use": "Имя уже используется!",
+  "gui.recruits.error.not_enough_emeralds": "Недостаточно изумрудов!",
+  "gui.recruits.error.banner_empty": "Знамя не может быть пустым!",
+  "gui.recruits.error.banner_in_use": "Знамя уже используется!",
+  "gui.recruits.error.no_changes": "Без изменений.",
+  "gui.recruits.error.leader_missing": "Лидер не назначен!",
+
+  "gui.recruits.villager_noble": "Благородный крестьянин",
+
+  "gui.recruits.villager_noble.hire": "Нанять крестьянина",
+  "gui.recruits.villager_noble.error_no_villagers": "Поблизости нет крестьян!",
+  "gui.recruits.villager_noble.error_not_enough_currency": "Недостаточно валюты!",
+  "gui.recruits.villager_noble.error_no_uses": "Сегодня торговля невозможна!",
+
+  "gui.recruits.command.text.attack": "Атаковать!",
+  "gui.recruits.command.tooltip.attack": "Прикажи своим войскам атаковать врагов в выбранной области.",
+  "chat.recruits.command.attack": "%s атакует!",
+
+  "description.recruits.title.recruit": "Рекрут",
+  "description.recruits.recruit": "Рекрут — важный воин, полагающийся лишь на ближний бой.\nОн быстр и ловок, умеет обращаться со щитом и готов к любой схватке.\nПрост в обучении, но надёжен в любом бою.",
+
+  "description.recruits.title.shieldman": "Щитоносец",
+  "description.recruits.shieldman": "Щитоносец — стойкий защитник.\nВооружён только оружием ближнего боя, он мастерски блокирует удары.\nДвижется медленнее, но обладает огромной выносливостью и здоровьем.",
+
+  "description.recruits.title.bowman": "Лучник",
+  "description.recruits.bowman": "Лучник — быстрый и меткий стрелок.\nОн поражает врагов с расстояния, а при необходимости защищается мечом.\nНе может носить щит и не умеет стрелять из арбалета.",
+
+  "description.recruits.title.crossbowman": "Арбалетчик",
+  "description.recruits.crossbowman": "Арбалетчик — дисциплинированный воин дальнего боя.\nЕго болты сильны и точны даже на дальних дистанциях.\nМожет сражаться мечом, но не использует ни щиты, ни луки.",
+
+  "description.recruits.title.horseman": "Всадник",
+  "description.recruits.horseman": "Всадник — бесстрашный воин на коне.\nВ свободном режиме он мчится на врагов, сбивая их с ног.\nМожет сражаться с мечом и щитом, силён как в атаке, так и в защите.",
+
+  "description.recruits.title.nomad": "Кочевник",
+  "description.recruits.nomad": "Кочевник — искусный всадник и мастер лука.\nОн кружит вокруг врагов, уклоняясь от стрел и атакуя на ходу.\nБыстр и неуловим, сражается луком и мечом.",
+
+  "description.recruits.title.scout": "Разведчик",
+  "description.recruits.scout": "Разведчик — быстрый и внимательный спутник.\nОн замечает врагов первым и сообщает о их числе и силе.\nСражается луком или мечом, вблизи и издали.",
+
+  "description.recruits.title.messenger": "Посланник",
+  "description.recruits.messenger": "Посланник — вестник мира.\nПередаёт послания другим игрокам или фракциям и может нести подарок.\nВо время миссий неприкосновенен, ведь его долг — служить дипломатии.",
+
+  "description.recruits.title.captain": "Капитан",
+  "description.recruits.captain": "Капитан — хозяин корабля.\nОн управляет судном и командует пушками.\nЕго выстрелы точны как по кораблям, так и по целям на суше.\nВ ближнем бою владеет мечом и щитом.",
+
+  "description.recruits.title.commander": "Командир",
+  "description.recruits.commander": "Командир — сильный лидер.\nОн патрулирует выбранные позиции и ведёт своих солдат от точки к точке.\nПод его началом воины действуют слаженно и решительно."
+
 }

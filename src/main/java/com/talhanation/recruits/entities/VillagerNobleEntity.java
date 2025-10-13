@@ -78,11 +78,11 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
     protected void registerGoals() {
         super.registerGoals();
         this.goalSelector.addGoal(2, new UseShield(this));
-        //Move to village center
-        //buy from villager / swords, food, armor
-        //breed with villager?
-        //Supply Bread to villagers
-        //gossip?
+        //TODO Move to village center
+        //TODO buy from villager / swords, food, armor
+        //TODO breed with villager?
+        //TODO Supply Bread to villagers
+        //TODO gossip?
     }
 
     @Override

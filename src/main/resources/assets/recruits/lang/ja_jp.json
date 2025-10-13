@@ -456,5 +456,56 @@
 "gui.recruits.team_color.magenta": "マゼンタ",
 "gui.recruits.team_color.purple": "紫",
 "gui.recruits.command.tip.de_select_groups" : "[右クリック] - すべてのグループを選択",
-"gui.recruits.command.tip.scrollCategories" : "[マウスホイール] - カテゴリをスクロール"
+"gui.recruits.command.tip.scrollCategories" : "[マウスホイール] - カテゴリをスクロール",
+
+   "gui.recruits.error.name_too_short": "名前が短すぎます！",
+   "gui.recruits.error.name_too_long": "名前が長すぎます！",
+   "gui.recruits.error.name_in_use": "その名前はすでに使用されています！",
+   "gui.recruits.error.not_enough_emeralds": "エメラルドが足りません！",
+   "gui.recruits.error.banner_empty": "旗を空白にすることはできません！",
+   "gui.recruits.error.banner_in_use": "その旗はすでに使用されています！",
+   "gui.recruits.error.no_changes": "変更はありません。",
+   "gui.recruits.error.leader_missing": "リーダーが設定されていません！",
+
+   "gui.recruits.villager_noble": "高貴な村人",
+
+   "gui.recruits.villager_noble.hire": "村人を雇う",
+   "gui.recruits.villager_noble.error_no_villagers": "周囲に十分な村人がいません！",
+   "gui.recruits.villager_noble.error_not_enough_currency": "通貨が足りません！",
+   "gui.recruits.villager_noble.error_no_uses": "今日はもう取引できません！",
+
+   "gui.recruits.command.text.attack": "攻撃！",
+   "gui.recruits.command.tooltip.attack": "見ている場所のモブにあなたの兵を攻撃させます。",
+   "chat.recruits.command.attack": "%s 攻撃せよ！",
+
+   "description.recruits.title.recruit": "新兵",
+   "description.recruits.recruit": "新兵は重要な戦士であり、近接武器のみを頼りに戦います。\n素早く動き、盾を持つこともでき、あらゆる状況に対応できます。\n訓練は簡単ですが、ほとんどの戦いで信頼できる存在です。",
+
+   "description.recruits.title.shieldman": "盾兵",
+   "description.recruits.shieldman": "盾兵は揺るぎない守護者です。\n近接武器のみを扱い、盾の扱いに優れ、攻撃後の回復時間が短いです。\n動きは遅いものの、高い体力と耐久力で長期戦に向いています。",
+
+   "description.recruits.title.bowman": "弓兵",
+   "description.recruits.bowman": "弓兵は素早く正確な射手であり、遠距離から精密な射撃を行います。\n必要に応じて剣を抜き、近接戦闘で身を守ることもできます。\nしかし、盾は持てず、クロスボウの扱いもできません。",
+
+   "description.recruits.title.crossbowman": "クロスボウ兵",
+   "description.recruits.crossbowman": "クロスボウ兵は規律ある射手であり、遠距離でも強力で正確な矢を放ちます。\nその矢は速く、確実に敵を貫きます。\n必要なら剣を使って近接戦闘もできますが、盾や弓は使えません。",
+
+   "description.recruits.title.horseman": "騎兵",
+   "description.recruits.horseman": "騎兵は勇敢な乗馬戦士であり、敵陣に恐れず突撃します。\n自由行動モードでは、突進攻撃で敵を吹き飛ばし、隊列を崩します。\n近接武器と盾を使いこなし、防御にも攻撃にも優れています。",
+
+   "description.recruits.title.nomad": "遊牧兵",
+   "description.recruits.nomad": "遊牧兵は熟練の騎射手です。\n自由行動モードでは、敵の周りを馬で旋回しながら矢を放ち、攻撃を避けます。\n俊敏で捕らえにくく、弓と剣を駆使して素早く攻撃し、すぐに退きます。",
+
+   "description.recruits.title.scout": "斥候",
+   "description.recruits.scout": "斥候は素早く観察力の高い仲間です。\n敵を視認するとその数と強さを報告します。\n戦闘では、弓で遠距離攻撃したり、剣で近接戦闘を行うこともできます。",
+
+   "description.recruits.title.messenger": "伝令",
+   "description.recruits.messenger": "伝令は平和をもたらす仲間です。\n遠くのプレイヤーや派閥にメッセージを送ることができ、必要であれば贈り物を手に運びます。\n剣と弓の扱いにも長けていますが、外交任務中は誰にも害されません。",
+
+   "description.recruits.title.captain": "船長",
+   "description.recruits.captain": "船長は船の指揮官です。\n目的地に向けて航海し、船上の大砲を操ることができます。\nその射撃は敵船や陸上の標的にも正確に命中します。\n接近戦では剣と盾を用いて戦います。",
+
+   "description.recruits.title.commander": "指揮官",
+   "description.recruits.commander": "指揮官は強力なリーダーです。\n指定した地点を巡回し、部下の新兵たちを率いて行動させます。\n彼が前線に立つと、部下たちは秩序と力をもって進軍します。"
+
  }

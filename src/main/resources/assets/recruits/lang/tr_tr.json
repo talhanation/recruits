@@ -480,5 +480,56 @@
   "chat.recruits.text.siegeSuccessAttacker": "%s başarıyla ele geçirildi!",
   "chat.recruits.text.siegeSuccessDefender": "%s kaybedildi!",
   "chat.recruits.text.siegeFailedAttacker": "%s kuşatması başarısız oldu!",
-  "chat.recruits.text.siegeFailedDefender": "%s kuşatması püskürtüldü!"
+  "chat.recruits.text.siegeFailedDefender": "%s kuşatması püskürtüldü!",
+
+  "gui.recruits.error.name_too_short": "İsim çok kısa!",
+  "gui.recruits.error.name_too_long": "İsim çok uzun!",
+  "gui.recruits.error.name_in_use": "Bu isim zaten kullanılıyor!",
+  "gui.recruits.error.not_enough_emeralds": "Yeterli zümrüt yok!",
+  "gui.recruits.error.banner_empty": "Bayrak boş olamaz!",
+  "gui.recruits.error.banner_in_use": "Bu bayrak zaten kullanılıyor!",
+  "gui.recruits.error.no_changes": "Değişiklik yok.",
+  "gui.recruits.error.leader_missing": "Bir lider atanmadı!",
+
+  "gui.recruits.villager_noble": "Asil Köylü",
+
+  "gui.recruits.villager_noble.hire": "Köylü Kirala",
+  "gui.recruits.villager_noble.error_no_villagers": "Yakında yeterli köylü yok!",
+  "gui.recruits.villager_noble.error_not_enough_currency": "Yeterli para yok!",
+  "gui.recruits.villager_noble.error_no_uses": "Bugünlük ticaret hakkı kalmadı!",
+
+  "gui.recruits.command.text.attack": "Saldır!",
+  "gui.recruits.command.tooltip.attack": "Askerlerine baktığın bölgedeki yaratıklara saldır emri ver.",
+  "chat.recruits.command.attack": "%s Saldırıyor!",
+
+  "description.recruits.title.recruit": "Piyade",
+  "description.recruits.recruit": "Piyade yalnızca yakın dövüş silahları kullanır.\nHızlı ve çeviktir, kalkan taşıyabilir ve pek çok duruma uyum sağlar.\nEğitimi basit olsa da, her savaşta güvenilirdir.",
+
+  "description.recruits.title.shieldman": "Kalkanlı Piyade",
+  "description.recruits.shieldman": "Kalkanlı Piyade, sağlam bir savunmacıdır.\nYalnızca yakın dövüş silahlarıyla savaşır, kalkan kullanmada ustadır.\nYavaş hareket eder ama dayanıklıdır, uzun savaşlar için idealdir.",
+
+  "description.recruits.title.bowman": "Okçu",
+  "description.recruits.bowman": "Okçu, hızlı ve isabetli bir menzilli savaşçıdır.\nUzak mesafeden düşmanlarına tam isabetle ok atar.\nGerekirse kılıç kullanabilir, fakat kalkan taşıyamaz ve arbalet kullanamaz.",
+
+  "description.recruits.title.crossbowman": "Arbaletçi",
+  "description.recruits.crossbowman": "Arbaletçi, disiplinli bir menzilli savaşçıdır.\nUzak mesafelerden bile güçlü ve isabetli atışlar yapar.\nGerekirse kılıçla savaşabilir, ama kalkan veya yay kullanamaz.",
+
+  "description.recruits.title.horseman": "Süvari",
+  "description.recruits.horseman": "Süvari, at üzerinde korkusuzca düşman hatlarına dalar.\nSerbest modda, şarj saldırısı ile düşmanları geri savurur.\nYakın dövüş silahları ve kalkan kullanabilir, hem savunmada hem saldırıda güçlüdür.",
+
+  "description.recruits.title.nomad": "Göçebe",
+  "description.recruits.nomad": "Göçebe, at üstünde ok atmada ustadır.\nSerbest modda düşmanlarını çevresinde dönerken vurur.\nYalnızca yay kullanır, çeviktir ve düşman saldırılarından kolayca kaçar.",
+
+  "description.recruits.title.scout": "Gözücü",
+  "description.recruits.scout": "Gözücü, hızlı ve dikkatli bir yoldaştır.\nDüşmanları görür görmez fark eder ve sayılarını bildirir.\nSavaşta yay veya kılıç kullanabilir.",
+
+  "description.recruits.title.messenger": "Habercı",
+  "description.recruits.messenger": "Haberci, barışın elçisidir.\nUzak oyunculara veya fraksiyonlara mesajlar gönderir, bazen hediye taşır.\nGörevdeyken zarar göremez, zira görevi diplomasiyle kutsanmıştır.",
+
+  "description.recruits.title.captain": "Kaptan",
+  "description.recruits.captain": "Kaptan, geminin efendisidir.\nGemiyi idare eder, topları komuta eder.\nAtışları düşman gemilerini ve kara hedeflerini vurur.\nYakın dövüşte kılıç ve kalkanla savaşır.",
+
+  "description.recruits.title.commander": "Komutan",
+  "description.recruits.commander": "Komutan güçlü bir liderdir.\nPozisyonları devriye gezebilir ve askerlerini yönlendirebilir.\nOnun önderliğinde askerleri düzenli ve kararlı bir şekilde hareket eder."
+
 }
