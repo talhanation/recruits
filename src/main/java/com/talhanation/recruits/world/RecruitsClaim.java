@@ -162,16 +162,21 @@ public class RecruitsClaim {
 
         // Defending Parties
         ListTag defendingList = new ListTag();
-        for (RecruitsFaction team : defendingParties) {
-            defendingList.add(team.toNBT());
+        if(defendingParties != null && !defendingParties.isEmpty()){
+            for (RecruitsFaction team : defendingParties) {
+                if(team != null) defendingList.add(team.toNBT());
+            }
         }
         nbt.put("defendingParties", defendingList);
 
         // Attacking Parties
         ListTag attackingList = new ListTag();
-        for (RecruitsFaction team : attackingParties) {
-            attackingList.add(team.toNBT());
+        if(attackingParties != null && !attackingParties.isEmpty()){
+            for (RecruitsFaction team : attackingParties) {
+                if(team != null) attackingList.add(team.toNBT());
+            }
         }
+
         nbt.put("attackingParties", attackingList);
 
         return nbt;

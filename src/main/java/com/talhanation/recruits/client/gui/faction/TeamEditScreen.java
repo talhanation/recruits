@@ -37,6 +37,7 @@ import org.lwjgl.glfw.GLFW;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static com.talhanation.recruits.client.gui.faction.TeamInspectionScreen.LEADER_CROWN;
 import static com.talhanation.recruits.client.ClientManager.*;
@@ -516,8 +517,9 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
         return teamColor.getId();
     }
 
+    private static final Pattern VALID_FACTION_NAME = Pattern.compile("[^\\p{L}\\p{N} ]+");
     private String getCorrectFormatStringID(String input) {
-        input = input.replaceAll(" ", "");
+        input = input.replaceAll(" ", "_");
         input = getCorrectFormatName(input);
 
         return input;
@@ -526,7 +528,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
     private String getCorrectFormatName(String input) {
         input = input.replaceAll("  ", " ");
         input = input.replaceAll("   ", " ");
-        input = input.replaceAll("[a-zA-Z0-9ßçğıİöşüÇĞÖŞÜ]+", "");
+        input = VALID_FACTION_NAME.matcher(input).replaceAll("");
         return input;
     }
 
