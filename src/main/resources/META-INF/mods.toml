@@ -8,7 +8,7 @@ loaderVersion="[47,)" #mandatory This is typically bumped every Minecraft versio
 
 modId="recruits"
 
-version='1.13.6T18'
+version='1.14.0'
 
 displayName="Villager Recruits Mod"
 updateJSONURL="https://raw.githubusercontent.com/talhanation/recruits/main/update.json"
@@ -21,6 +21,6 @@ authors="talhanation, kaiserroman"
 
 # The description text for the mod (multi line!) (#mandatory)
 description='''
-This Mod adds hire-able Villager Recruits with different Ranks like in M&B-Bannerlord into Minecraft.
+This Mod adds hire-able Villager Recruits with different Ranks like in M&B-Bannerlord into Minecraft. Adds Ability to claim und siege.
 '''
 
