@@ -34,7 +34,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.talhanation.recruits.client.ClientManager.currency;
-import static com.talhanation.recruits.client.ClientManager.factionCreationPrice;
 
 public class NobleTradeScreen extends RecruitsScreenBase {
     private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/noble_villager.png");

@@ -7,6 +7,7 @@ import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModProfessions;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
@@ -56,6 +57,14 @@ public class VillagerEvents {
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         RecruitsHireTradesRegistry.registerBaseTrades();
+    }
+    @SubscribeEvent
+    public void onPlayerJoiningServer(EntityJoinLevelEvent event){
+        if(event.getLevel().isClientSide() && event.getEntity() instanceof Player player){
+            if(Minecraft.getInstance().player.getUUID().equals(player.getUUID())){
+                RecruitsHireTradesRegistry.registerBaseTrades();
+            }
+        }
     }
     @SubscribeEvent
     public void onVillagerJoinWorld(EntityJoinLevelEvent event) {
