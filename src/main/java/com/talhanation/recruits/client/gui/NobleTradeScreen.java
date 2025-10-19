@@ -300,7 +300,6 @@ public class NobleTradeScreen extends RecruitsScreenBase {
                 int x = rowLeft + 4;
                 int y = top + 3;
 
-
                 boolean selected = (TradeList.this.getSelected() == this);
                 boolean out = trade.uses <= 0;
                 int textureY = getButtonTextureY(hovered, selected, out);

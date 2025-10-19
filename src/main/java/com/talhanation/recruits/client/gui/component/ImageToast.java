@@ -1,6 +1,8 @@
 package com.talhanation.recruits.client.gui.component;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.talhanation.recruits.entities.MessengerEntity;
+import com.talhanation.recruits.items.RecruitsSpawnEgg;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.toasts.Toast;
 import net.minecraft.client.gui.components.toasts.ToastComponent;
