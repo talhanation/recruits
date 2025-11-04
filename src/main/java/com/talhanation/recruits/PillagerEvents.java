@@ -41,50 +41,59 @@ public class PillagerEvents {
     public void attackRecruit(EntityJoinLevelEvent event) {
         Entity entity = event.getEntity();
 
-        if (entity instanceof Pillager pillager) {
+        // We only care about Monster entities
+        if (!(entity instanceof Monster monster)) return;
+
+        // We add the target selection for all interested monsters
+        if (!(monster instanceof Creeper) && !(monster instanceof EnderMan))
+            monster.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(monster, AbstractRecruitEntity.class, true));
+
+        if(monster instanceof Zombie || monster instanceof AbstractSkeleton || monster instanceof Spider) {
+            if (RecruitsServerConfig.MonstersAttackPillagers.get()) {
+                monster.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(monster, AbstractIllager.class, true));
+            }
+        }
+
+        // Whatever isn't an AbstractIllager doesn't bother with the following code
+        if (!(monster instanceof AbstractIllager illager)) return;
+
+        if (RecruitsServerConfig.PillagerAttackMonsters.get()){
+            illager.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(illager, Zombie.class, true));
+            illager.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(illager, AbstractSkeleton.class, true));
+            illager.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(illager, Spider.class, true));
+        }
+        if (RecruitsServerConfig.ShouldPillagersRaidNaturally.get()){
+            illager.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(illager, Animal.class, true));
+        }
+
+
+        if (illager instanceof Pillager pillager) {
             if(RecruitsServerConfig.PillagerIncreasedCombatRange.get()) {
                 pillager.goalSelector.addGoal(2, new FindTargetGoal(pillager, 24.0F));
                 pillager.goalSelector.addGoal(2, new RangedCrossbowAttackGoal<>(pillager, 1.0D, 24.0F));
             }
-        }
 
-        if (entity instanceof AbstractIllager illager) {
-            illager.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(illager, AbstractRecruitEntity.class, true));
-            if (RecruitsServerConfig.PillagerAttackMonsters.get()){
-                illager.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(illager, Zombie.class, true));
-                illager.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(illager, AbstractSkeleton.class, true));
-                illager.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(illager, Spider.class, true));
-            }
-            if (RecruitsServerConfig.ShouldPillagersRaidNaturally.get()){
-                illager.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(illager, Animal.class, true));
-            }
-        }
+            if(RecruitsServerConfig.PillagerSpawnItems.get()) {
+                pillager.goalSelector.addGoal(0, new PillagerMeleeAttackGoal(pillager, 1.15D, true));
+                pillager.goalSelector.addGoal(0, new PillagerUseShield(pillager));
+                pillager.setPersistenceRequired();
 
-        if (entity instanceof Monster monster) {
-            if (!(monster instanceof Creeper) && !(monster instanceof EnderMan))
-                monster.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(monster, AbstractRecruitEntity.class, true));
-        }
-
-        if (entity instanceof Zombie){
-            if (RecruitsServerConfig.MonstersAttackPillagers.get()) {
-                Zombie monster = (Zombie) entity;
-                monster.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(monster, AbstractIllager.class, true));
-            }
-        }
-        if (entity instanceof AbstractSkeleton){
-            if (RecruitsServerConfig.MonstersAttackPillagers.get()) {
-                AbstractSkeleton monster = (AbstractSkeleton) entity;
-                monster.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(monster, AbstractIllager.class, true));
-            }
-        }
-        if (entity instanceof Spider){
-            if (RecruitsServerConfig.MonstersAttackPillagers.get()) {
-                Spider monster = (Spider) entity;
-                monster.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(monster, AbstractIllager.class, true));
+                int i = this.random.nextInt(6);
+                switch (i) {
+                    case 1, 2, 3 -> pillager.setItemInHand(InteractionHand.MAIN_HAND, Items.CROSSBOW.getDefaultInstance());
+                    case 4 -> {
+                        pillager.setItemInHand(InteractionHand.MAIN_HAND, Items.IRON_AXE.getDefaultInstance());
+                        pillager.setItemInHand(InteractionHand.OFF_HAND, Items.SHIELD.getDefaultInstance());
+                    }
+                    case 5, 0 -> {
+                        pillager.setItemInHand(InteractionHand.MAIN_HAND, Items.IRON_SWORD.getDefaultInstance());
+                        pillager.setItemInHand(InteractionHand.OFF_HAND, Items.SHIELD.getDefaultInstance());
+                    }
+                }
             }
         }
 
-        if (entity instanceof Vindicator vindicator && RecruitsServerConfig.VindicatorSpawnItems.get()) {
+        if (illager instanceof Vindicator vindicator && RecruitsServerConfig.VindicatorSpawnItems.get()) {
             vindicator.goalSelector.addGoal(0, new PillagerUseShield(vindicator));
             vindicator.setPersistenceRequired();
 
@@ -96,24 +105,8 @@ public class PillagerEvents {
             }
         }
 
-        if (entity instanceof Pillager pillager && RecruitsServerConfig.PillagerSpawnItems.get()) {
-            pillager.goalSelector.addGoal(0, new PillagerMeleeAttackGoal(pillager, 1.15D, true));
-            pillager.goalSelector.addGoal(0, new PillagerUseShield(pillager));
-            pillager.setPersistenceRequired();
+        // ------------------------------------
 
-            int i = this.random.nextInt(6);
-            switch (i) {
-                case 1, 2, 3 -> pillager.setItemInHand(InteractionHand.MAIN_HAND, Items.CROSSBOW.getDefaultInstance());
-                case 4 -> {
-                    pillager.setItemInHand(InteractionHand.MAIN_HAND, Items.IRON_AXE.getDefaultInstance());
-                    pillager.setItemInHand(InteractionHand.OFF_HAND, Items.SHIELD.getDefaultInstance());
-                }
-                case 5, 0 -> {
-                    pillager.setItemInHand(InteractionHand.MAIN_HAND, Items.IRON_SWORD.getDefaultInstance());
-                    pillager.setItemInHand(InteractionHand.OFF_HAND, Items.SHIELD.getDefaultInstance());
-                }
-            }
-        }
         /*
         if (entity instanceof VindicatorEntity) {
             VindicatorEntity vindicator = (VindicatorEntity) entity;
