@@ -87,6 +87,7 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.IntValue SiegeClaimsConquerTime;
     public static ForgeConfigSpec.BooleanValue NobleVillagerNeedsVillagers;
     public static ForgeConfigSpec.BooleanValue ShouldProfessionBlocksTrade;
+    public static ForgeConfigSpec.BooleanValue NobleVillagerSpawn;
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin", "corpse:corpse", "minecraft:armorstand"));
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
@@ -330,6 +331,13 @@ public class RecruitsServerConfig {
                         \tdefault: true""")
                 .worldRestart()
                 .define("RecruitTablesPOIReleasing", true);
+        NobleVillagerSpawn = BUILDER.comment("""
+                        
+                        Does a Villager decide to become noble? Condition: 10 Villagers and no Noble Villager nearby
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("NobleVillagerSpawns", true);
 
         NobleVillagerNeedsVillagers = BUILDER.comment("""
                         
@@ -345,7 +353,7 @@ public class RecruitsServerConfig {
                         \t(takes effect after restart)
                         \tdefault: false""")
                 .worldRestart()
-                .define("NobleVillagerNeedsVillagers", false);
+                .define("ShouldProfessionBlocksTrade", false);
 
         OverrideIronGolemSpawn = BUILDER.comment("""
                         

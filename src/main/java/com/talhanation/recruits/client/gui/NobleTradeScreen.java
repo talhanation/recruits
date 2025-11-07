@@ -159,11 +159,8 @@ public class NobleTradeScreen extends RecruitsScreenBase {
             RecruitsHireTrade clone = new RecruitsHireTrade(
                     t.resourceLocation,
                     t.cost,
-                    t.minLevel,
-                    t.chance,
                     t.title,
-                    t.description,
-                    t.tradeTagList == null ? null : new ArrayList<>(t.tradeTagList)
+                    t.description
             );
             clone.uses = t.uses;
             clone.maxUses = t.maxUses;

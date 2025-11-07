@@ -69,6 +69,7 @@ public class VillagerEvents {
     @SubscribeEvent
     public void onVillagerJoinWorld(EntityJoinLevelEvent event) {
         Entity entity = event.getEntity();
+        if(!RecruitsServerConfig.NobleVillagerSpawn.get()) return;
 
         if (entity instanceof Villager villager) {
             villager.goalSelector.addGoal(0, new VillagerBecomeNobleGoal(villager));
@@ -147,8 +148,6 @@ public class VillagerEvents {
         if (nobleEntity != null && !level.isClientSide()){
             nobleEntity.copyPosition(villager);
             nobleEntity.finalizeSpawn((ServerLevel) level, level.getCurrentDifficultyAt(villager.getOnPos().above(2)), MobSpawnType.PATROL, null, null);
-
-            nobleEntity.setTraderType(0);
 
             nobleEntity.initSpawn();
 

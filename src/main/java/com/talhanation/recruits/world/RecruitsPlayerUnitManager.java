@@ -3,7 +3,6 @@ package com.talhanation.recruits.world;
 import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.config.RecruitsServerConfig;
-import com.talhanation.recruits.network.MessageToClientUpdateFactions;
 import com.talhanation.recruits.network.MessageToClientUpdateUnitInfo;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;

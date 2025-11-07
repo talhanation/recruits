@@ -23,7 +23,6 @@ public class RecruitDefendVillageFromPlayerGoal extends TargetGoal {
         this.recruit = p_26029_;
         this.setFlags(EnumSet.of(Flag.TARGET));
     }
-
     public boolean canUse() {
         AABB aabb = this.recruit.getBoundingBox().inflate(30.0D, 8.0D, 30.0D);
         List<Villager> list = this.recruit.getCommandSenderWorld().getEntitiesOfClass(Villager.class, aabb, (livingEntity) -> !this.attackTargeting.test(this.recruit, livingEntity));

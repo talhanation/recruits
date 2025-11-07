@@ -34,20 +34,7 @@ public final class RecruitsHireTradesRegistry {
     }
 
     public static void registerBaseTrades(){
-        register(new RecruitsHireTrade(ModEntityTypes.RECRUIT.getId(), RecruitsServerConfig.RecruitCost.get(),1, 70, TITLE_RECRUIT, DESCRIPTION_RECRUIT, RecruitsHireTrade.RecruitsTradeTag.getValues()));
 
-        register(new RecruitsHireTrade(ModEntityTypes.RECRUIT_SHIELDMAN.getId(), RecruitsServerConfig.ShieldmanCost.get(),1, 50, TITLE_SHIELDMAN, DESCRIPTION_SHIELDMAN,List.of(RecruitsHireTrade.RecruitsTradeTag.MELEE)));
-        register(new RecruitsHireTrade(ModEntityTypes.BOWMAN.getId(), RecruitsServerConfig.BowmanCost.get(),1, 50, TITLE_BOWMAN, DESCRIPTION_BOWMAN, List.of(RecruitsHireTrade.RecruitsTradeTag.RANGED)));
-        register(new RecruitsHireTrade(ModEntityTypes.CROSSBOWMAN.getId(), RecruitsServerConfig.CrossbowmanCost.get(),1, 50, TITLE_CROSSBOWMAN, DESCRIPTION_CROSSBOWMAN, List.of(RecruitsHireTrade.RecruitsTradeTag.RANGED)));
-
-        register(new RecruitsHireTrade(ModEntityTypes.NOMAD.getId(), RecruitsServerConfig.NomadCost.get(),2, 50, TITLE_NOMAD, DESCRIPTION_NOMAD, List.of(RecruitsHireTrade.RecruitsTradeTag.RANGED, RecruitsHireTrade.RecruitsTradeTag.CAVALRY)));
-        register(new RecruitsHireTrade(ModEntityTypes.HORSEMAN.getId(), RecruitsServerConfig.HorsemanCost.get(),2, 50, TITLE_HORSEMAN, DESCRIPTION_HORSEMAN, List.of(RecruitsHireTrade.RecruitsTradeTag.MELEE, RecruitsHireTrade.RecruitsTradeTag.CAVALRY)));
-
-        //register(new RecruitsHireTrade(ModEntityTypes.MESSENGER.getId(),32,4, 50, TITLE_MESSENGER, DESCRIPTION_MESSENGER, List.of(RecruitsHireTrade.RecruitsTradeTag.MELEE, RecruitsHireTrade.RecruitsTradeTag.RANGED)));
-        //register(new RecruitsHireTrade(ModEntityTypes.SCOUT.getId(), 32,4, 50, TITLE_SCOUT, DESCRIPTION_SCOUT, List.of(RecruitsHireTrade.RecruitsTradeTag.MELEE, RecruitsHireTrade.RecruitsTradeTag.RANGED)));
-
-        //register(new RecruitsHireTrade(ModEntityTypes.CAPTAIN.getId(), 64,4, 50, TITLE_CAPTAIN, DESCRIPTION_CAPTAIN, List.of(RecruitsHireTrade.RecruitsTradeTag.MELEE, RecruitsHireTrade.RecruitsTradeTag.RANGED)));
-        //register(new RecruitsHireTrade(ModEntityTypes.PATROL_LEADER.getId(), 64,4, 50, TITLE_PATROL_LEADER, DESCRIPTION_PATROL_LEADER, List.of(RecruitsHireTrade.RecruitsTradeTag.MELEE, RecruitsHireTrade.RecruitsTradeTag.RANGED)));
     }
 
     private static final Component TITLE_RECRUIT = Component.translatable("description.recruits.title.recruit");
