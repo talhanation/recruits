@@ -2,10 +2,14 @@ package com.talhanation.recruits.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.ClientManager;
+import com.talhanation.recruits.client.gui.widgets.ScrollDropDownMenu;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.CaptainEntity;
 import com.talhanation.recruits.inventory.PatrolLeaderContainer;
 import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.world.RecruitsFaction;
+import com.talhanation.recruits.world.RecruitsGroup;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -17,6 +21,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -83,6 +88,9 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private static final int fontColor = 4210752;
     private ForgeSlider waitSlider;
     private final int offset = 88;
+
+    private ScrollDropDownMenu<RecruitsGroup> groupSelectionDropDownMenu;
+    public RecruitsGroup group;
     public PatrolLeaderScreen(PatrolLeaderContainer container, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""));
         this.imageWidth = 384;
@@ -128,7 +136,15 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         this.setWaypointButtons();
         this.setCoordinatesBoxes();
 
-        this.setAssignButton();
+        groupSelectionDropDownMenu = new ScrollDropDownMenu<>(group, leftPos + 80 + 7 + 5,topPos + 100,  80, 20, ClientManager.groups,
+                RecruitsGroup::getName,
+                (selected) ->{
+                    this.group = selected;
+                    this.setGroup(recruit.getGroup());
+                }
+        );
+        groupSelectionDropDownMenu.setBgFillSelected(FastColor.ARGB32.color(255, 139, 139, 139));
+        addRenderableWidget(groupSelectionDropDownMenu);
 
         Component startString;
         Component startToolTip;
@@ -192,16 +208,21 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
             this.onClose();
         }));
     }
+    private void setGroup(RecruitsGroup group){
+        this.group = group;
 
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageRemoveAssignedGroupFromCompanion(player.getUUID(), this.recruit.getUUID()));
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToCompanion(player.getUUID(), this.recruit.getUUID()));
+    }
     private void setAssignButton() {
         Button assignButton = addRenderableWidget(new ExtendedButton(leftPos + 216, topPos + 140, 107, 20, BUTTON_ASSIGN_RECRUITS, button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToCompanion(player.getUUID(), this.recruit.getUUID()));
+
             }
         ));
         assignButton.setTooltip(Tooltip.create(TOOLTIP_ASSIGN_RECRUITS));
 
         Button removeButton = addRenderableWidget(new ExtendedButton(leftPos + 216, topPos + 165, 107, 20, BUTTON_REMOVE_ASSIGNED_RECRUITS, button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageRemoveAssignedGroupFromCompanion(player.getUUID(), this.recruit.getUUID()));
+
         }
         ));
 
@@ -239,6 +260,16 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         addRenderableWidget(textBoxY);
         addRenderableWidget(textBoxZ);
     }
+
+    @Override
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+
+        if (groupSelectionDropDownMenu != null) {
+            groupSelectionDropDownMenu.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
+        }
+    }
+
     private void setWaitTimeSlider() {
         int minValue = 0;
         int maxValue = 30;

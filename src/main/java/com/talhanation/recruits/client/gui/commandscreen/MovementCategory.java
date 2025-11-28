@@ -4,8 +4,8 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.CommandScreen;
 import com.talhanation.recruits.client.gui.group.RecruitsCommandButton;
 import com.talhanation.recruits.client.gui.group.RecruitsFormationButton;
-import com.talhanation.recruits.client.gui.group.RecruitsGroup;
 import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.world.RecruitsGroup;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -15,6 +15,7 @@ import net.minecraft.world.item.Items;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class MovementCategory implements ICommandCategory {
 
@@ -88,14 +89,7 @@ public class MovementCategory implements ICommandCategory {
                             if (!group.isDisabled()) activeGroups.add(group);
                         }
 
-                        int[] array = new int[activeGroups.size()];
-                        for (int i = 0; i < activeGroups.size(); i++) {
-                            RecruitsGroup group = activeGroups.get(i);
-                            if (!group.isDisabled()) {
-                                array[i] = group.getId();
-                            }
-                        }
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveFormationFollowMovement(player.getUUID(), array, CommandScreen.formation.getIndex()));
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveFormationFollowMovement(player.getUUID(), activeGroups, CommandScreen.formation.getIndex()));
                     } else {
                         screen.sendMovementCommandToServer(1);
                     }

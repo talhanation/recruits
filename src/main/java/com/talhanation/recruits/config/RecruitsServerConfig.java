@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.event.level.ExplosionEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.nio.file.Path;
@@ -80,6 +81,7 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.BooleanValue QuickStartPillagerRaid;
 
     public static ForgeConfigSpec.BooleanValue BlockPlacingBreakingOnlyWhenClaimed;
+    public static ForgeConfigSpec.BooleanValue ExplosionProtectionInClaims;
     public static ForgeConfigSpec.BooleanValue CascadeThePriceOfClaims;
     public static ForgeConfigSpec.IntValue ClaimingCost;
     public static ForgeConfigSpec.IntValue ChunkCost;
@@ -781,6 +783,13 @@ public class RecruitsServerConfig {
                         \tdefault: false""")
                 .worldRestart()
                 .define("BlockPlacingBreakingOnlyWhenClaimed", false);
+
+        ExplosionProtectionInClaims = BUILDER.comment("""
+                        Should claims be protected from explosions.
+                        \t(takes effect after restart)
+                        \tdefault: false""")
+                .worldRestart()
+                .define("ExplosionBreaksBlocksInClaims", false);
 
         SiegeClaimsRecruitsAmount = BUILDER.comment("""
                         The amount of man power that is required to start a siege on a Claim.

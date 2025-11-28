@@ -18,6 +18,7 @@ import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsFaction;
+import com.talhanation.recruits.world.RecruitsGroup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -93,7 +94,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Boolean> IS_FOLLOWING = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Optional<UUID>> MOUNT_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Optional<UUID>> PROTECT_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
-    private static final EntityDataAccessor<Integer> GROUP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<CompoundTag> GROUP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.COMPOUND_TAG);
     private static final EntityDataAccessor<Integer> XP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> LEVEL = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> KILLS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
@@ -136,6 +137,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.targetingConditions = TargetingConditions.forCombat().ignoreInvisibilityTesting().selector(this::shouldAttack);
         this.setMaxUpStep(1F);
         this.setMaxFallDistance(1);
+        this.updateGroup();
     }
 
     ///////////////////////////////////NAVIGATION/////////////////////////////////////////
@@ -335,7 +337,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(DATA_REMAINING_ANGER_TIME, 0);
-        this.entityData.define(GROUP, 0);
+        this.entityData.define(GROUP, new CompoundTag());
         this.entityData.define(SHOULD_FOLLOW, false);
         this.entityData.define(SHOULD_BLOCK, false);
         this.entityData.define(SHOULD_MOUNT, false);
@@ -392,7 +394,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putBoolean("ShouldMount", this.getShouldMount());
         nbt.putBoolean("ShouldProtect", this.getShouldProtect());
         nbt.putBoolean("ShouldBlock", this.getShouldBlock());
-        nbt.putInt("Group", this.getGroup());
+        if(this.getGroup() != null)nbt.put("Group", this.getGroup().toNBT());
         nbt.putInt("Variant", this.getVariant());
         nbt.putBoolean("Listen", this.getListen());
         nbt.putBoolean("Fleeing", this.getFleeing());
@@ -460,14 +462,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         else this.despawnTimer = -1;//fixes random recruits disappearing
 
         this.setXpLevel(nbt.getInt("Level"));
-        this.setState(nbt.getInt("AggroState"));
+        this.setAggroState(nbt.getInt("AggroState"));
         this.setFollowState(nbt.getInt("FollowState"));
         this.setShouldFollow(nbt.getBoolean("ShouldFollow"));
         this.setShouldMount(nbt.getBoolean("ShouldMount"));
         this.setShouldBlock(nbt.getBoolean("ShouldBlock"));
         this.setShouldProtect(nbt.getBoolean("ShouldProtect"));
         this.setFleeing(nbt.getBoolean("Fleeing"));
-        this.setGroup(nbt.getInt("Group"));
+        this.setGroup(RecruitsGroup.fromNBT(nbt.getCompound("Group")));
         this.setListen(nbt.getBoolean("Listen"));
         this.setIsFollowing(nbt.getBoolean("isFollowing"));
         this.setXp(nbt.getInt("Xp"));
@@ -537,7 +539,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
 
         if(nbt.contains("Biome"))this.setBiome(nbt.getByte("Biome"));
-        else applyBiomeAndVariant(this);;
+        else applyBiomeAndVariant(this);
     }
 
     ////////////////////////////////////GET////////////////////////////////////
@@ -561,7 +563,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     @Nullable
     public Player getOwner(){
-        if (this.isOwned() && this.getOwnerUUID() != null){
+        if (this.getOwnerUUID() != null){
             UUID ownerID = this.getOwnerUUID();
             return this.getCommandSenderWorld().getPlayerByUUID(ownerID);
         }
@@ -659,8 +661,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     // 2 = RAID
     // 3 = PASSIVE
 
-    public int getGroup() {
-        return entityData.get(GROUP);
+    public RecruitsGroup getGroup() {
+        return RecruitsGroup.fromNBT(entityData.get(GROUP));
     }
 
 
@@ -799,20 +801,32 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void disband(@Nullable Player player, boolean keepTeam, boolean increaseCost){
         String name = this.getName().getString();
-        RecruitEvents.recruitsPlayerUnitManager.removeRecruits(this.getOwnerUUID(), 1);
+
         if(player != null){
             player.sendSystemMessage(TEXT_DISBAND(name));
         }
 
         this.setTarget(null);
         this.setIsOwned(false);
-        this.setOwnerUUID(Optional.empty());
 
         if(increaseCost) this.recalculateCost();
-        if (this.getTeam() != null){
 
-            if(!this.getCommandSenderWorld().isClientSide() && !keepTeam)
+        if(this.getCommandSenderWorld().isClientSide()) return;
+        RecruitEvents.recruitsPlayerUnitManager.removeRecruits(this.getOwnerUUID(), 1);
+        this.setOwnerUUID(Optional.empty());
+
+        if (this.getTeam() != null && !keepTeam){
                 FactionEvents.removeRecruitFromTeam(this, this.getTeam(), (ServerLevel) this.getCommandSenderWorld());
+        }
+
+        if(this.getGroup() != null){
+            RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(this.getGroup().getUUID());
+            if(group == null) return;
+
+            group.decreaseSize();
+            if(player != null) RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(player);
+
+            this.setGroup(null);
         }
     }
 
@@ -877,8 +891,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         entityData.set(IS_FOLLOWING, bool);
     }
 
-    public void setGroup(int group){
-        entityData.set(GROUP, group);
+    public void setGroup(RecruitsGroup group){
+        CompoundTag tag = new CompoundTag();
+        if(group != null) tag = group.toNBT();
+
+        entityData.set(GROUP, tag);
     }
     public void setShouldRest(boolean bool){
         if(bool) setFollowState(0);
@@ -889,7 +906,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         entityData.set(SHOULD_RANGED, should);
     }
 
-    public void setState(int state) {
+    public void setAggroState(int state) {
         switch (state){
             case 0:
             case 3:
@@ -1095,8 +1112,20 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     ////////////////////////////////////is FUNCTIONS////////////////////////////////////
 
-    public boolean isEffectedByCommand(UUID player_uuid, int group){
-        return (this.isOwned() && this.isAlive() && (this.getListen()) && Objects.equals(this.getOwnerUUID(), player_uuid) && (this.getGroup() == group || group == 0));
+    public boolean isEffectedByCommand(UUID player_uuid) {
+        return isEffectedByCommand(player_uuid, null);
+    }
+
+    public boolean isEffectedByCommand(UUID player_uuid, UUID group) {
+        if (!this.isOwned() || !this.isAlive() || !this.getListen()) return false;
+
+        if (!this.getOwnerUUID().equals(player_uuid)) return false;
+
+        if (group == null) {
+            return true;
+        }
+
+        return this.getGroup() != null && this.getGroup().getUUID().equals(group);
     }
     public boolean isOwned(){
         return getIsOwned();
@@ -1173,7 +1202,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
-    public boolean hire(Player player) {
+    public boolean hire(Player player, RecruitsGroup group) {
         String name = this.getName().getString() + ": ";
         Team ownerTeam = player.getTeam();// player is the new owner
         String stringId = ownerTeam != null ? ownerTeam.getName() : "";
@@ -1191,10 +1220,23 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.navigation.stop();
             this.setTarget(null);
             this.setFollowState(2);
-            this.setState(0);
+            this.setAggroState(0);
+            this.setGroup(group);
             this.despawnTimer = -1;
 
-            if(!this.getCommandSenderWorld().isClientSide() && ownerTeam != null) FactionEvents.addRecruitToTeam(this, ownerTeam, (ServerLevel) this.getCommandSenderWorld());
+            if(!this.getCommandSenderWorld().isClientSide()){
+                RecruitEvents.recruitsPlayerUnitManager.addRecruits(player.getUUID(), 1);
+
+                if(group != null){
+                    RecruitEvents.recruitsGroupsManager.increaseSize(group.getUUID(),  (ServerLevel) this.getCommandSenderWorld());
+                    RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(player);
+                }
+
+                if(ownerTeam != null){
+                    FactionEvents.addRecruitToTeam(this, ownerTeam, (ServerLevel) this.getCommandSenderWorld());
+                }
+
+            }
 
             int i = this.random.nextInt(4);
             switch (i) {
@@ -1210,7 +1252,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             }
         }
 
-        RecruitEvents.recruitsPlayerUnitManager.addRecruits(player.getUUID(), 1);
         return true;
     }
 
@@ -1342,7 +1383,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void die(DamageSource dmg) {
-        net.minecraft.network.chat.Component deathMessage = this.getCombatTracker().getDeathMessage();
+        Component deathMessage = this.getCombatTracker().getDeathMessage();
         super.die(dmg);
         if (this.dead) {
             if (!this.getCommandSenderWorld().isClientSide()){
@@ -1355,6 +1396,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 }
                 if(this.getTeam() != null){
                     FactionEvents.recruitsFactionManager.getTeamByStringID(this.getTeam().getName()).addNPCs(-1);
+                }
+                if(this.getGroup() != null){
+                    RecruitEvents.recruitsGroupsManager.decreaseSize(this.getGroup().getUUID(), (ServerLevel) this.getCommandSenderWorld());
                 }
             }
         }
@@ -1728,7 +1772,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     @Override
     public void openGUI(Player player) {
         if (player instanceof ServerPlayer) {
-            CommandEvents.updateRecruitInventoryScreen((ServerPlayer) player);
             NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {
@@ -1868,6 +1911,32 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
+    public void updateGroup() {
+        if(this.getCommandSenderWorld().isClientSide()) return;
+        if(this.getGroup() == null) return;
+
+        RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(this.getGroup().getUUID());
+
+        if(group != null) {
+            if(group.disbandContext != null && group.disbandContext.disband){
+                this.disband(null, group.disbandContext.keepTeam, group.disbandContext.increaseCost);
+                this.needsTeamUpdate = true;
+                return;
+            }
+
+            if(!group.removed) this.setGroup(group);
+            //this.setUpkeepPos(this.getGroup().upkeep);
+            //this.setFollowState(this.getGroup().followState);
+            //this.setAggroState(this.getGroup().aggroState);
+
+            if(!this.getOwnerUUID().equals(this.getGroup().getPlayerUUID())){
+                this.assignToPlayer((ServerPlayer) this.getOwner(), this.getGroup().getPlayerUUID(), group);
+            }
+        }
+
+        this.needsTeamUpdate = true;
+    }
+
     public void openHireGUI(Player player) {
         if (player instanceof ServerPlayer) {
             this.navigation.stop();
@@ -1888,6 +1957,28 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             }, packetBuffer -> {packetBuffer.writeUUID(getUUID());});
         } else {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageHireGui(player, this.getUUID()));
+        }
+    }
+
+    public void assignToPlayer(ServerPlayer oldOwner, UUID newOwner, RecruitsGroup group){
+        if(this.getGroup() != null){
+            RecruitsGroup recruitsGroup = this.getGroup();
+            if(recruitsGroup != null) {
+                RecruitsGroup currentGroup = RecruitEvents.recruitsGroupsManager.getGroup(recruitsGroup.getUUID());
+                if(currentGroup == null) return;
+                currentGroup.decreaseSize();
+            }
+        }
+
+        this.setGroup(null);
+
+        this.disband(null, false, false);
+
+        this.setOwnerUUID(Optional.of(newOwner));
+
+        if(getOwner() != null){
+            this.hire(getOwner(), group);
+            this.setFollowState(1);
         }
     }
 
@@ -2065,6 +2156,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public boolean removeWhenFarAway(double p_21542_) {
         return false;
     }
+
 
     public boolean canEatItemStack(ItemStack stack){
         ResourceLocation location = ForgeRegistries.ITEMS.getKey(stack.getItem());

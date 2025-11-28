@@ -33,7 +33,7 @@ public class MessageClearTargetGui implements Message<MessageClearTargetGui> {
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(16.0D),
                 (recruit) -> recruit.getUUID().equals(this.recruit)
-        ).forEach((recruit) -> CommandEvents.onClearTargetButton(this.player, recruit, 0));
+        ).forEach((recruit) -> CommandEvents.onClearTargetButton(this.player, recruit, null));
     }
 
     public MessageClearTargetGui fromBytes(FriendlyByteBuf buf) {

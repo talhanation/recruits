@@ -1,26 +1,29 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
+import com.talhanation.recruits.world.RecruitsGroup;
 import de.maxhenkel.corelib.net.Message;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.List;
 import java.util.UUID;
 
 public class MessageSaveFormationFollowMovement implements Message<MessageSaveFormationFollowMovement> {
 
     private UUID player_uuid;
 
-    private int[] groups;
+    private CompoundTag groups;
     private int formation;
 
     public MessageSaveFormationFollowMovement(){
     }
 
-    public MessageSaveFormationFollowMovement(UUID player_uuid, int[] groups, int formation) {
+    public MessageSaveFormationFollowMovement(UUID player_uuid, List<RecruitsGroup> groups, int formation) {
         this.player_uuid = player_uuid;
-        this.groups = groups;
+        this.groups = RecruitsGroup.listToNbt(groups);
         this.formation = formation;
     }
 
@@ -30,19 +33,19 @@ public class MessageSaveFormationFollowMovement implements Message<MessageSaveFo
 
     public void executeServerSide(NetworkEvent.Context context){
         CommandEvents.saveFormation(context.getSender(), formation);
-        CommandEvents.saveActiveGroups(context.getSender(), groups);
+        //CommandEvents.saveActiveGroups(context.getSender(), groups);
     }
 
     public MessageSaveFormationFollowMovement fromBytes(FriendlyByteBuf buf) {
         this.player_uuid = buf.readUUID();
-        this.groups = buf.readVarIntArray();
+        this.groups = buf.readNbt();
         this.formation = buf.readInt();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(this.player_uuid);
-        buf.writeVarIntArray(this.groups);
+        buf.writeNbt(this.groups);
         buf.writeInt(this.formation);
     }
 

@@ -1,11 +1,14 @@
 package com.talhanation.recruits.client.gui.group;
 
-import com.talhanation.recruits.client.gui.group.RecruitsGroup;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.talhanation.recruits.world.RecruitsGroup;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
@@ -13,10 +16,12 @@ import net.minecraftforge.client.gui.widget.ExtendedButton;
 public class RecruitsGroupButton extends ExtendedButton {
 
     private RecruitsGroup group;
+    private ResourceLocation image;
 
     public RecruitsGroupButton(RecruitsGroup group, int xPos, int yPos, int width, int height, Component displayString, OnPress handler) {
         super(xPos, yPos, width, height, displayString, handler);
         this.group = group;
+        this.image = RecruitsGroup.IMAGES.get(group.getImage());
     }
 
     private static Component createDisplayString(RecruitsGroup group) {
@@ -55,12 +60,25 @@ public class RecruitsGroupButton extends ExtendedButton {
         int k = !this.active ? 0 : (this.isHoveredOrFocused() ? 2 : 1);
         guiGraphics.blitWithBorder(WIDGETS_LOCATION, this.getX(), this.getY(), 0, 46 + k * 20, this.width, this.height, 200, 20, 2, 3, 2, 2);
 
+        if(this.image != null){
+            RenderSystem.setShader(GameRenderer::getPositionTexShader);
+            RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
+            RenderSystem.setShaderTexture(0, this.image);
+            guiGraphics.blit(this.image, this.getX() + 10, this.getY() + 8, 0, 0, 21, 21, 21, 21);
+        }
+
         // Get the group name and count
         String groupName = group.getName();
-        String groupCount = "[" + group.getCount() + "]";
 
+        String groupCount = "";
+        if(group.getCount() == group.getSize()){
+            groupCount = "[" +group.getSize() + "]";
+        }
+        else{
+            groupCount = "[" + group.getCount() + "/" + group.getSize() + "]";
+        }
         // Set the scale for the text
-        float scale = 0.8f;
+        float scale = 0.65f;
 
         // Calculate positions for the texts
         int nameWidth = (int)(mc.font.width(groupName) * scale);
@@ -68,11 +86,11 @@ public class RecruitsGroupButton extends ExtendedButton {
 
         // Calculate x positions to center the text
         int nameX = this.getX() + (this.width - nameWidth) / 2;
-        int countX = this.getX() + (this.width - countWidth) / 2;
+        int countX = this.getX() + (this.width - countWidth) / 2 + 3;
 
         // Calculate y positions for the texts
-        int nameY = this.getY() + 2; // 2 pixels from the top
-        int countY = this.getY() + (int)(mc.font.lineHeight * scale) + 4; // Below the group name with some padding
+        int nameY = this.getY() + 3;
+        int countY = this.getY() + (int)(mc.font.lineHeight * scale) + 24; // Below the group name with some padding
 
         // Draw the texts with scaling
         guiGraphics.pose().pushPose();
@@ -83,10 +101,8 @@ public class RecruitsGroupButton extends ExtendedButton {
 
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(countX, countY, 0);
-        guiGraphics.pose().scale(1, 1, 1.0f);
+        guiGraphics.pose().scale(scale, scale, 1.0f);
         guiGraphics.drawString(mc.font, Language.getInstance().getVisualOrder(FormattedText.of(groupCount)), 0, 0, getFGColor(), false);
         guiGraphics.pose().popPose();
     }
-
-
 }

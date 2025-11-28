@@ -2,13 +2,14 @@ package com.talhanation.recruits.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.RecruitsHireTradesRegistry;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.component.RecruitsMultiLineEditBox;
+import com.talhanation.recruits.client.gui.widgets.ScrollDropDownMenu;
 import com.talhanation.recruits.entities.VillagerNobleEntity;
 import com.talhanation.recruits.network.MessageHireFromNobleVillager;
-import com.talhanation.recruits.util.DelayedExecutor;
+import com.talhanation.recruits.world.RecruitsGroup;
 import com.talhanation.recruits.world.RecruitsHireTrade;
+import com.talhanation.recruits.world.RecruitsHireTradesRegistry;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Button;
@@ -17,6 +18,7 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FastColor;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.player.Player;
@@ -39,12 +41,12 @@ public class NobleTradeScreen extends RecruitsScreenBase {
     private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/noble_villager.png");
     private static final Component TITLE = Component.translatable("gui.recruits.villager_noble");
     private static final Component HIRE_BUTTON = Component.translatable("gui.recruits.villager_noble.hire");
+    private static final Component INVENTORY_BUTTON = Component.translatable("gui.recruits.inv.openInventory");
     private static final Component ERROR_NOT_ENOUGH_VILLAGERS = Component.translatable("gui.recruits.villager_noble.error_no_villagers");
     private static final Component ERROR_NO_USES = Component.translatable("gui.recruits.villager_noble.error_no_uses");
     private static final Component ERROR_NOT_ENOUGH_CURRENCY = Component.translatable("gui.recruits.villager_noble.error_not_enough_currency");
     private final Player player;
     private final VillagerNobleEntity villagerNoble;
-
     private TradeList tradeList;
     private RecruitsHireTrade selection;
     private Button hireButton;
@@ -52,13 +54,14 @@ public class NobleTradeScreen extends RecruitsScreenBase {
     private RecruitsMultiLineEditBox descriptionBox;
     private Component description = Component.empty();
     private Component tradeTitle = Component.empty();
-
+    private ScrollDropDownMenu<RecruitsGroup> groupSelectionDropDownMenu;
+    public RecruitsGroup group;
     private static final int LIST_X = 5;
     private static final int LIST_Y = 18;
     private static final int LIST_W = 85;
     private static final int LIST_H = 170;
     private static final int TRADE_TITLE_X = 98;
-    private static final int TRADE_TITLE_Y = 58;
+    private static final int TRADE_TITLE_Y = 78;
     private static final int LEVEL_BAR_X = 98;
     private static final int LEVEL_BAR_Y = 18;
     private static final int BAR_W = 150;
@@ -97,36 +100,72 @@ public class NobleTradeScreen extends RecruitsScreenBase {
 
         this.addRenderableWidget(this.tradeList);
 
-        this.hireButton = this.addRenderableWidget(new ExtendedButton(guiLeft + 123, guiTop + ySize - 28, 100, 20, HIRE_BUTTON,
-                btn -> {
-                    if(ClientManager.configValueNobleNeedsVillagers){
-                        if (selection != null && villagerList != null && !villagerList.isEmpty()) {
-                            Villager villager = villagerList.get(0);
-                            Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), villager.getUUID(), selection, true, false));
+        this.hireButton = this.addRenderableWidget(new ExtendedButton(guiLeft + 97, guiTop + 53, 75, 20, HIRE_BUTTON,
+            btn -> {
+                if(ClientManager.configValueNobleNeedsVillagers){
+                    if (selection != null && villagerList != null && !villagerList.isEmpty()) {
+                        Villager villager = villagerList.get(0);
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), villager.getUUID(), selection, group, true, false));
 
-                            this.selection.uses -= 1;
-                            this.updateHireButtonState();
-                            this.loadTrades();
-                        }
-                    }
-                    else {
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), UUID.randomUUID(), selection, false, false));
                         this.selection.uses -= 1;
                         this.updateHireButtonState();
                         this.loadTrades();
                     }
                 }
+                else {
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), UUID.randomUUID(), selection, group, false, false));
+                    this.selection.uses -= 1;
+                    this.updateHireButtonState();
+                    this.loadTrades();
+                }
+            }
         ));
         this.hireButton.active = false;
         updateHireButtonState();
-        this.descriptionBox = new RecruitsMultiLineEditBox(font, guiLeft + 98, guiTop + 73, 150, 97, Component.empty(), Component.empty());
+        this.descriptionBox = new RecruitsMultiLineEditBox(font, guiLeft + 98, guiTop + 91, 150, 97, Component.empty(), Component.empty());
         this.descriptionBox.setValue(description.getString());
         this.descriptionBox.setEnableEditing(false);
         this.descriptionBox.setScrollAmount(0);
 
         this.addRenderableWidget(this.descriptionBox);
+        group = ClientManager.groups.get(ClientManager.groupSelection);
+        groupSelectionDropDownMenu = new ScrollDropDownMenu<>(group, guiLeft + 174,guiTop + 53,  75, 20, ClientManager.groups,
+                RecruitsGroup::getName,
+                (selected) ->{
+                    this.group = selected;
+                    ClientManager.groupSelection = ClientManager.groups.indexOf(group);
+                }
+        );
+        groupSelectionDropDownMenu.setBgFillSelected(FastColor.ARGB32.color(255, 139, 139, 139));
+        addRenderableWidget(groupSelectionDropDownMenu);
+
+        if(isPlayerFactionLeader() || isPlayerClaimLeader() || (player.hasPermissions(2) && player.isCreative())){
+            this.addRenderableWidget(new ExtendedButton(guiLeft + 256, guiTop + 172, 75, 20, INVENTORY_BUTTON,
+                btn -> {
+                    this.villagerNoble.openGUI(player);
+                    this.onClose();
+                }
+            ));
+        }
+
     }
 
+    public boolean isPlayerFactionLeader(){
+        if(this.villagerNoble.getTeam() != null){
+            String teamID = villagerNoble.getTeam().getName();
+            return ClientManager.ownFaction != null && ClientManager.ownFaction.getStringID().equals(teamID) && ClientManager.ownFaction.getTeamLeaderUUID().equals(player.getUUID());
+        }
+        return false;
+    }
+
+    public boolean isPlayerClaimLeader(){
+        if(this.villagerNoble.getTeam() != null){
+            return ClientManager.currentClaim != null
+                    && ClientManager.currentClaim.getOwnerFaction().getStringID().equals(this.villagerNoble.getTeam().getName())
+                    && ClientManager.currentClaim.getPlayerInfo().getUUID().equals(player.getUUID());
+        }
+        return false;
+    }
 
     @Override
     public void tick() {
@@ -179,6 +218,37 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         this.updateHireButtonState();
     }
 
+    @Override
+    public void mouseMoved(double x, double y) {
+        if(groupSelectionDropDownMenu != null){
+            groupSelectionDropDownMenu.onMouseMove(x,y);
+        }
+        super.mouseMoved(x, y);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (groupSelectionDropDownMenu != null && groupSelectionDropDownMenu.isMouseOver(mouseX, mouseY)) {
+            groupSelectionDropDownMenu.onMouseClick(mouseX, mouseY);
+            return true;
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+    @Override
+    public boolean mouseScrolled(double x, double y, double d) {
+        if(groupSelectionDropDownMenu != null) groupSelectionDropDownMenu.mouseScrolled(x,y,d);
+        return super.mouseScrolled(x, y, d);
+    }
+
+    @Override
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
+
+        if (groupSelectionDropDownMenu != null) {
+            groupSelectionDropDownMenu.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
+        }
+    }
 
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
@@ -204,15 +274,9 @@ public class NobleTradeScreen extends RecruitsScreenBase {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-    }
-
-    @Override
     public void onClose() {
         super.onClose();
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), UUID.randomUUID(), selection, false, true));
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), UUID.randomUUID(), selection, group, false, true));
     }
 
     private void updateHireButtonState() {

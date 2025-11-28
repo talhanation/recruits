@@ -2,8 +2,10 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
@@ -12,15 +14,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageAssignToTeamMate implements Message<MessageAssignToTeamMate> {
+public class MessageAssignRecruitToPlayer implements Message<MessageAssignRecruitToPlayer> {
 
     private UUID recruit;
     private UUID newOwner;
-
-    public MessageAssignToTeamMate() {
+    public MessageAssignRecruitToPlayer() {
     }
 
-    public MessageAssignToTeamMate(UUID recruit, UUID newOwner) {
+    public MessageAssignRecruitToPlayer(UUID recruit, UUID newOwner) {
         this.recruit = recruit;
         this.newOwner = newOwner;
     }
@@ -32,16 +33,18 @@ public class MessageAssignToTeamMate implements Message<MessageAssignToTeamMate>
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer serverPlayer = context.getSender();
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
+        ServerLevel serverLevel = (ServerLevel) serverPlayer.getCommandSenderWorld();
 
         for (AbstractRecruitEntity recruit : list) {
             if(recruit.getUUID().equals(this.recruit)){
-                FactionEvents.assignToTeamMate(serverPlayer, newOwner, recruit);
+                recruit.assignToPlayer(serverPlayer, newOwner, null);
+                FactionEvents.notifyPlayer(serverLevel, new RecruitsPlayerInfo(newOwner, ""), 0, serverPlayer.getName().getString());
                 break;
             }
         }
     }
 
-    public MessageAssignToTeamMate fromBytes(FriendlyByteBuf buf) {
+    public MessageAssignRecruitToPlayer fromBytes(FriendlyByteBuf buf) {
         this.recruit = buf.readUUID();
         this.newOwner = buf.readUUID();
         return this;

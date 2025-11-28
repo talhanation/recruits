@@ -2,8 +2,10 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.VillagerNobleEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -29,13 +31,12 @@ public class MessageFollowGui implements Message<MessageFollowGui> {
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16.0D));
-
-        for (AbstractRecruitEntity recruit : list) {
-            if (recruit.getUUID().equals(this.uuid) && recruit.isEffectedByCommand(context.getSender().getUUID(), 0)){
-                CommandEvents.onMovementCommandGUI(recruit, this.state);
-            }
-        }
+        ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
+        serverPlayer.getCommandSenderWorld().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                serverPlayer.getBoundingBox().inflate(16.0D),
+                (recruit) -> recruit.getUUID().equals(this.uuid)
+        ).forEach((recruit) -> CommandEvents.onMovementCommandGUI(recruit, state));
     }
 
     public MessageFollowGui fromBytes(FriendlyByteBuf buf) {

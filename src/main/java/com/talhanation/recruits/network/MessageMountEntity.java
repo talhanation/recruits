@@ -18,12 +18,12 @@ public class MessageMountEntity implements Message<MessageMountEntity> {
 
     private UUID uuid;
     private UUID target;
-    private int group;
+    private UUID group;
 
     public MessageMountEntity() {
     }
 
-    public MessageMountEntity(UUID uuid, UUID target, int group) {
+    public MessageMountEntity(UUID uuid, UUID target, UUID group) {
         this.uuid = uuid;
         this.target = target;
         this.group = group;
@@ -52,13 +52,13 @@ public class MessageMountEntity implements Message<MessageMountEntity> {
     public MessageMountEntity fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();
         this.target = buf.readUUID();
-        this.group = buf.readInt();
+        this.group = buf.readUUID();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(uuid);
         buf.writeUUID(target);
-        buf.writeInt(group);
+        buf.writeUUID(group);
     }
 }

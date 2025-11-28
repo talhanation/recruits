@@ -133,8 +133,6 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
 
-        this.setGroup(2);
-
         if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get()){
             if(isMusketModLoaded && IWeapon.isMusketModWeapon(this.getMainHandItem())){
                 int i = this.getRandom().nextInt(32);

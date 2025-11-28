@@ -25,11 +25,13 @@ import net.minecraft.world.level.block.LeverBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.event.level.ExplosionEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
@@ -204,7 +206,23 @@ public class ClaimEvents {
             if(!isInTeam) event.setCanceled(true);
         }
     }
+    @SubscribeEvent
+    public void onExplosion(ExplosionEvent event) {
+        if(event.getLevel().isClientSide()) return;
+        Vec3 vec = event.getExplosion().getPosition();
+        BlockPos pos = new BlockPos((int) vec.x, (int) vec.y, (int) vec.z);
+        ChunkAccess access = server.overworld().getChunk(pos);
+        RecruitsClaim claim = recruitsClaimManager.getClaim(access.getPos());
 
+        Entity entity = event.getExplosion().getDirectSourceEntity();
+        if(entity instanceof Player player && player.isCreative() && player.hasPermissions(2)){
+            return;
+        }
+
+        if(claim != null && RecruitsServerConfig.ExplosionProtectionInClaims.get()){
+            event.setCanceled(true);
+        }
+    }
     @SubscribeEvent
     public void onBlockInteract(PlayerInteractEvent.RightClickBlock event) {
         if(event.getLevel().isClientSide()) return;

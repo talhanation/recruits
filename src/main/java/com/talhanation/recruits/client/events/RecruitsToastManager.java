@@ -121,7 +121,11 @@ public class RecruitsToastManager {
     public static final Component TOAST_NEW_LEADER_TITLE = Component.translatable("gui.recruits.toast.newTeamLeaderTitle");
     public static final Component TOAST_NEW_FACTION_NAME_TITLE = Component.translatable("gui.recruits.toast.newFactionNameTitle");
     public static final Component TOAST_NEW_BANNER_TITLE = Component.translatable("gui.recruits.toast.newFactionBannerTitle");
+    public static final Component TOAST_GROUP_ASSIGNED_TITLE  = Component.translatable("gui.recruits.toast.groupAssignedTitle");
 
+    public static Component TOAST_GROUP_ASSIGNED_INFO(String s) {
+        return Component.translatable("gui.recruits.toast.groupAssigned", s);
+    }
     public static Component TOAST_PLAYER_JOINED_TEAM(String s){
         return Component.translatable("gui.recruits.toast.playerJoinedTeam", s);
     }

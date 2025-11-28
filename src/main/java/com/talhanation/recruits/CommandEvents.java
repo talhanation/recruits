@@ -1,15 +1,14 @@
 package com.talhanation.recruits;
 
-import com.talhanation.recruits.client.gui.group.RecruitsGroup;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.util.FormationUtils;
+import com.talhanation.recruits.world.RecruitsGroup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -26,15 +25,12 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class CommandEvents {
-    public static final MutableComponent TEXT_EVERYONE = Component.translatable("chat.recruits.text.everyone");
-    public static final MutableComponent TEXT_GROUP = Component.translatable("chat.recruits.text.group");
 
     //0 = wander
     //1 = follow
@@ -266,34 +262,34 @@ public class CommandEvents {
         }
     }
 
-    public static void onAggroCommand(UUID player_uuid, AbstractRecruitEntity recruit, int x_state, int group, boolean fromGui) {
+    public static void onAggroCommand(UUID player_uuid, AbstractRecruitEntity recruit, int x_state, UUID group, boolean fromGui) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             int state = recruit.getState();
             switch (x_state) {
 
                 case 0:
                     if (state != 0)
-                        recruit.setState(0);
+                        recruit.setAggroState(0);
                     break;
 
                 case 1:
                     if (state != 1)
-                        recruit.setState(1);
+                        recruit.setAggroState(1);
                     break;
 
                 case 2:
                     if (state != 2)
-                        recruit.setState(2);
+                        recruit.setAggroState(2);
                     break;
 
                 case 3:
                     if (state != 3)
-                        recruit.setState(3);
+                        recruit.setAggroState(3);
                     break;
             }
         }
     }
-    public static void onAttackCommand(Player player, UUID player_uuid, List<AbstractRecruitEntity> list, int group) {
+    public static void onAttackCommand(Player player, UUID player_uuid, List<AbstractRecruitEntity> list, UUID group) {
         HitResult hitResult = player.pick(100, 1F, false);
         BlockPos blockpos = null;
         AABB aabb = null;
@@ -333,7 +329,7 @@ public class CommandEvents {
         }
     }
 
-    public static void onStrategicFireCommand(Player player, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean should) {
+    public static void onStrategicFireCommand(Player player, UUID player_uuid, AbstractRecruitEntity recruit, UUID group, boolean should) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
 
             if (recruit instanceof IStrategicFire bowman){
@@ -352,7 +348,6 @@ public class CommandEvents {
 
     public static void openCommandScreen(Player player) {
         if (player instanceof ServerPlayer) {
-            updateCommandScreen((ServerPlayer)player);
             NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
 
                 @Override
@@ -391,9 +386,12 @@ public class CommandEvents {
                                     AbstractRecruitEntity.class,
                                     serverPlayer.getBoundingBox().inflate(200)
                             );
-                    int[] array = getActiveGroups(serverPlayer);
+                    List<RecruitsGroup> groups = RecruitEvents.recruitsGroupsManager.getPlayerGroups(serverPlayer);
+                    if(groups == null) return;
 
-                    list.removeIf(recruit -> Arrays.stream(array).noneMatch(x -> recruit.isEffectedByCommand(serverPlayer.getUUID(), x)));
+                    groups.removeIf(RecruitsGroup::isDisabled);
+
+                    list.removeIf(recruit -> recruit.getGroup() == null || !groups.contains(recruit.getGroup()));
 
                     applyFormation(formation, list, serverPlayer, targetPosition);
                     int[] position = new int[]{(int) targetPosition.x, (int) targetPosition.z};
@@ -444,22 +442,8 @@ public class CommandEvents {
         nbt.putIntArray( "FormationPos", pos);
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
-    public static int[] getActiveGroups(Player player) {
-        CompoundTag playerNBT = player.getPersistentData();
-        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
 
-        return nbt.getIntArray("ActiveGroups");
-    }
-
-    public static void saveActiveGroups(Player player, int[] count) {
-        CompoundTag playerNBT = player.getPersistentData();
-        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
-
-        nbt.putIntArray( "ActiveGroups", count);
-        playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
-    }
-
-    public static void handleRecruiting(Player player, AbstractRecruitEntity recruit){
+    public static void handleRecruiting(Player player, RecruitsGroup group, AbstractRecruitEntity recruit){
         String name = recruit.getName().getString() + ": ";
         int sollPrice = recruit.getCost();
         Inventory playerInv = player.getInventory();
@@ -484,7 +468,7 @@ public class CommandEvents {
         boolean playerCanPay = playerEmeralds >= sollPrice;
 
         if (playerCanPay || player.isCreative()){
-            if(recruit.hire(player)) {
+            if(recruit.hire(player, group)) {
                 //give player tradeGood
                 //remove playerEmeralds ->add left
                 //
@@ -522,7 +506,7 @@ public class CommandEvents {
             player.sendSystemMessage(TEXT_HIRE_COSTS(name, sollPrice, currency));
     }
 
-    public static void onMountButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID mount_uuid, int group) {
+    public static void onMountButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID mount_uuid, UUID group) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             if(mount_uuid != null) recruit.shouldMount(true, mount_uuid);
             else if(recruit.getMountUUID() != null) recruit.shouldMount(true, recruit.getMountUUID());
@@ -530,7 +514,7 @@ public class CommandEvents {
         }
     }
 
-    public static void onDismountButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
+    public static void onDismountButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID group) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             recruit.shouldMount(false, null);
             if(recruit.isPassenger()){
@@ -540,13 +524,13 @@ public class CommandEvents {
         }
     }
 
-    public static void onProtectButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID protect_uuid, int group) {
+    public static void onProtectButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID protect_uuid, UUID group) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             recruit.shouldProtect(true, protect_uuid);
         }
     }
 
-    public static void onClearTargetButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
+    public static void onClearTargetButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID group) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             //Main.LOGGER.debug("event: clear");
             recruit.setTarget(null);
@@ -556,14 +540,14 @@ public class CommandEvents {
         }
     }
 
-    public static void onClearUpkeepButton(UUID player_uuid, AbstractRecruitEntity recruit, int group) {
+    public static void onClearUpkeepButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID group) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             //Main.LOGGER.debug("event: clear");
             recruit.clearUpkeepEntity();
             recruit.clearUpkeepPos();
         }
     }
-    public static void onUpkeepCommand(UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean isEntity, UUID entity_uuid, BlockPos blockPos) {
+    public static void onUpkeepCommand(UUID player_uuid, AbstractRecruitEntity recruit, UUID group, boolean isEntity, UUID entity_uuid, BlockPos blockPos) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             if (isEntity) {
                 //Main.LOGGER.debug("server: entity_uuid: " + entity_uuid);
@@ -580,13 +564,13 @@ public class CommandEvents {
         }
     }
 
-    public static void onShieldsCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean shields) {
+    public static void onShieldsCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, UUID group, boolean shields) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             recruit.setShouldBlock(shields);
         }
     }
 
-    public static void onRangedFireCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean should) {
+    public static void onRangedFireCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, UUID group, boolean should) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             recruit.setShouldRanged(should);
 
@@ -600,7 +584,7 @@ public class CommandEvents {
         }
     }
 
-    public static void onRestCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, int group, boolean should) {
+    public static void onRestCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, UUID group, boolean should) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             onClearTargetButton(player_uuid, recruit, group);
             recruit.setShouldRest(should);
@@ -609,156 +593,5 @@ public class CommandEvents {
 
     private static MutableComponent TEXT_HIRE_COSTS(String name, int sollPrice, Item item) {
         return Component.translatable("chat.recruits.text.hire_costs", name, String.valueOf(sollPrice), item.getDescription().getString());
-    }
-
-    private static final List<RecruitsGroup> GROUP_DEFAULT_SETTING = new ArrayList<>(
-            Arrays.asList(
-                    new RecruitsGroup(0, "No Group", false),
-                    new RecruitsGroup(1, "Infantry", false),
-                    new RecruitsGroup(2, "Ranged", false),
-                    new RecruitsGroup(3, "Cavalry", false)
-            )
-    );
-    public static void updateCommandScreen(ServerPlayer player) {
-        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateCommandScreen(getCompoundTagFromRecruitsGroupList(getAvailableGroups(player))));
-    }
-
-    public static void updateRecruitInventoryScreen(ServerPlayer player) {
-        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateRecruitInventoryScreen(getCompoundTagFromRecruitsGroupList(loadPlayersGroupsFromNBT(player))));
-    }
-
-    public static List<RecruitsGroup> getAvailableGroups(ServerPlayer player) {
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(120)));
-        list.removeIf(recruit -> !recruit.isEffectedByCommand(player.getUUID(), 0));
-
-        List<RecruitsGroup> allGroups = loadPlayersGroupsFromNBT(player);
-
-        Map<Integer, Integer> groupCounts = new HashMap<>();
-
-        for (AbstractRecruitEntity recruit : list) {
-            int groupId = recruit.getGroup();
-            groupCounts.put(groupId, groupCounts.getOrDefault(groupId, 0) + 1);
-        }
-
-        // Liste der verfügbaren Gruppen erstellen und die Anzahl der Rekruten sowie den disabled-Status aktualisieren
-        List<RecruitsGroup> availableGroups = new ArrayList<>();
-        for (RecruitsGroup group : allGroups) {
-            if (groupCounts.containsKey(group.getId())) {
-                group.setCount(groupCounts.get(group.getId()));
-                availableGroups.add(group);
-            }
-        }
-
-        return availableGroups;
-    }
-
-    public static List<RecruitsGroup> loadPlayersGroupsFromNBT(Player player) {
-        CompoundTag playerNBT = player.getPersistentData();
-        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
-
-        List<RecruitsGroup> groups = getRecruitsGroupListFormNBT(nbt);
-
-        if(groups.isEmpty())
-            groups = GROUP_DEFAULT_SETTING;
-
-        return groups;
-    }
-
-    public static void savePlayersGroupsToNBT(ServerPlayer player, List<RecruitsGroup> groups, boolean update) {
-        CompoundTag playerNBT = player.getPersistentData();
-        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
-
-        if(update)
-            updateCompoundTag(groups, nbt, player);
-        else{
-            overrideCompoundTag(groups, nbt, player);
-        }
-
-
-        playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
-    }
-
-    public static List<RecruitsGroup> getRecruitsGroupListFormNBT(CompoundTag nbt){
-        List<RecruitsGroup> groups = new ArrayList<>();
-
-        if(nbt.contains("recruits-groups")){
-            ListTag groupList = nbt.getList("recruits-groups", 10);
-            for (int i = 0; i < groupList.size(); ++i) {
-                CompoundTag compoundnbt = groupList.getCompound(i);
-                int id = compoundnbt.getInt("id");
-                int count = compoundnbt.getInt("count");
-                String name = compoundnbt.getString("name");
-                boolean disabled = compoundnbt.getBoolean("disabled");
-
-                RecruitsGroup recruitsGroup = new RecruitsGroup(id, name, disabled);
-                recruitsGroup.setCount(count);
-
-                groups.add(recruitsGroup);
-            }
-        }
-        return groups;
-    }
-
-    public static CompoundTag updateCompoundTag(List<RecruitsGroup> groups, CompoundTag nbt, ServerPlayer player) {
-        List<RecruitsGroup> currentList = loadPlayersGroupsFromNBT(player);
-
-        Map<Integer, RecruitsGroup> groupMap = new HashMap<>();
-        for (RecruitsGroup group : currentList) {
-            groupMap.put(group.getId(), group);
-        }
-
-        for (RecruitsGroup group : groups) {
-            if (group != null) {
-                groupMap.put(group.getId(), group);
-            }
-        }
-
-        ListTag groupList = new ListTag();
-        for (RecruitsGroup group : groupMap.values()) {
-            CompoundTag compoundnbt = new CompoundTag();
-            compoundnbt.putInt("id", group.getId());
-            compoundnbt.putInt("count", group.getCount());
-            compoundnbt.putString("name", group.getName());
-            compoundnbt.putBoolean("disabled", group.isDisabled());
-
-            groupList.add(compoundnbt);
-        }
-        nbt.put("recruits-groups", groupList);
-
-        return nbt;
-    }
-
-    public static CompoundTag overrideCompoundTag(List<RecruitsGroup> groups, CompoundTag nbt, ServerPlayer player) {
-        ListTag groupList = new ListTag();
-        for (RecruitsGroup group : groups) {
-            CompoundTag compoundnbt = new CompoundTag();
-            compoundnbt.putInt("id", group.getId());
-            compoundnbt.putInt("count", group.getCount());
-            compoundnbt.putString("name", group.getName());
-            compoundnbt.putBoolean("disabled", group.isDisabled());
-
-            groupList.add(compoundnbt);
-        }
-
-        nbt.put("recruits-groups", groupList);
-
-        return nbt;
-    }
-
-    public static CompoundTag getCompoundTagFromRecruitsGroupList(List<RecruitsGroup> groups){
-        CompoundTag nbt = new CompoundTag();
-        ListTag groupList = new ListTag();
-        for (RecruitsGroup group : groups) {
-            CompoundTag compoundnbt = new CompoundTag();
-            compoundnbt.putInt("id", group.getId());
-            compoundnbt.putInt("count", group.getCount());
-            compoundnbt.putString("name", group.getName());
-            compoundnbt.putBoolean("disabled", group.isDisabled());
-
-            groupList.add(compoundnbt);
-        }
-        nbt.put("recruits-groups", groupList);
-
-        return nbt;
     }
 }

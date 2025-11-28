@@ -2,12 +2,12 @@ package com.talhanation.recruits.entities;
 
 
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.RecruitsHireTradesRegistry;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.network.MessageToClientOpenNobleTradeScreen;
 import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.recruits.world.RecruitsHireTrade;
+import com.talhanation.recruits.world.RecruitsHireTradesRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
@@ -37,13 +37,12 @@ import net.minecraftforge.network.PacketDistributor;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public class VillagerNobleEntity extends AbstractRecruitEntity {
     private static final EntityDataAccessor<CompoundTag> TRADES = SynchedEntityData.defineId(VillagerNobleEntity.class, EntityDataSerializers.COMPOUND_TAG);
     private static final EntityDataAccessor<Integer> TRADER_PROGRESS = SynchedEntityData.defineId(VillagerNobleEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> TRADER_LEVEL = SynchedEntityData.defineId(VillagerNobleEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> TYPE = SynchedEntityData.defineId(VillagerNobleEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<String> TYPE = SynchedEntityData.defineId(VillagerNobleEntity.class, EntityDataSerializers.STRING);
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
     private int restoreTimer;
@@ -59,7 +58,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
         this.entityData.define(TRADES, new CompoundTag());
         this.entityData.define(TRADER_PROGRESS, 0);
         this.entityData.define(TRADER_LEVEL, 1);
-        this.entityData.define(TYPE, 0);
+        this.entityData.define(TYPE, "");
     }
 
     @Override
@@ -105,7 +104,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
         nbt.put("Trades", RecruitsHireTrade.listToNbt(getTrades()));
         nbt.putInt("TraderProgress", this.getTraderProgress());
         nbt.putInt("TraderLevel", this.getTraderLevel());
-        nbt.putInt("Type", this.getTraderType());
+        nbt.putString("Type", this.getTraderType());
     }
 
     @Override
@@ -114,7 +113,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
         this.setTrades(RecruitsHireTrade.listFromNbt(nbt.getCompound("Trades")));
         this.setTraderProgress(nbt.getInt("TraderProgress"));
         this.setTraderLevel(nbt.getInt("TraderLevel"));
-        this.setTraderType(nbt.getInt("Type"));
+        this.setTraderType(nbt.getString("Type"));
     }
 
         //ATTRIBUTES
@@ -150,7 +149,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
     @Override
     public void initSpawn() {
         this.setCustomName(Component.literal("Noble Villager"));
-        this.setCost(RecruitsServerConfig.RecruitCost.get());
+        this.setCost(RecruitsServerConfig.ShieldmanCost.get());
 
         this.setEquipment();
 
@@ -158,11 +157,9 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
 
-        this.setGroup(1);
-
         AbstractRecruitEntity.applySpawnValues(this);
 
-        this.setTraderType(this.random.nextInt(2));
+        this.setupTraderType();
 
         this.setupTrades();
     }
@@ -199,31 +196,23 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
         this.addTraderProgress(20);
     }
     public void setupTrades() {
-        List<RecruitsHireTrade> possibleTrades = RecruitsHireTradesRegistry.getAll();
+        List<RecruitsHireTrade> possibleTrades = RecruitsHireTradesRegistry.getTrades(this.getTraderType(), this.getTraderLevel());
+        if (possibleTrades == null || possibleTrades.isEmpty()) return;
+
         List<RecruitsHireTrade> current = this.getTrades();
         if (current == null) current = new ArrayList<>();
-        int xpLevel = getTraderLevel();
 
-        List<RecruitsHireTrade> finalCurrent = current;
-        List<RecruitsHireTrade> candidates = possibleTrades.stream()
-                .filter(t -> finalCurrent.stream().noneMatch(c -> Objects.equals(c.resourceLocation, t.resourceLocation)))
-                .collect(Collectors.toList());
-
-        if (candidates.isEmpty()){
-            List<RecruitsHireTrade> possibleTrades2 = RecruitsHireTradesRegistry.getAll();
-            candidates = possibleTrades2.stream()
-                    .filter(t -> finalCurrent.stream().noneMatch(c -> Objects.equals(c.resourceLocation, t.resourceLocation)))
-                    .collect(Collectors.toList());
-        }
         Random rnd = new Random();
 
-        Collections.shuffle(candidates, rnd);
+        for (RecruitsHireTrade trade : possibleTrades) {
+            // Kopie erstellen, falls Trades als Templates dienen
+            RecruitsHireTrade copy = trade.copy();
+            copy.maxUses = 2 + rnd.nextInt(3);
+            copy.uses = copy.maxUses;
+            current.add(copy);
+        }
 
-        RecruitsHireTrade trade = candidates.get(0);
-        if(trade == null) return;
-        trade.maxUses = 2 + rnd.nextInt(3);
-        trade.uses = trade.maxUses;
-        this.addTrade(trade);
+        this.setTrades(current);
     }
 
     public int getTraderLevel(){
@@ -240,11 +229,17 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
         this.entityData.set(TRADER_LEVEL, x);
     }
 
-    public int getTraderType() {
+    public String getTraderType() {
         return entityData.get(TYPE);
     }
 
-    public void setTraderType(int x) {
+    public void setupTraderType(){
+        int i = this.random.nextInt(RecruitsHireTradesRegistry.getAllTraderTypes().size() - 1);
+        String type = RecruitsHireTradesRegistry.getAllTraderTypes().get(i);
+        this.setTraderType(type);
+    }
+
+    public void setTraderType(String x) {
         this.entityData.set(TYPE, x);
     }
     public void startSleeping(BlockPos pos) {

@@ -15,13 +15,13 @@ import java.util.UUID;
 public class MessageUpkeepPos implements Message<MessageUpkeepPos> {
 
     private UUID player;
-    private int group;
+    private UUID group;
     private BlockPos pos;
 
     public MessageUpkeepPos() {
     }
 
-    public MessageUpkeepPos(UUID player, int group, BlockPos pos) {
+    public MessageUpkeepPos(UUID player, UUID group, BlockPos pos) {
         this.player = player;
         this.group = group;
         this.pos = pos;
@@ -48,14 +48,14 @@ public class MessageUpkeepPos implements Message<MessageUpkeepPos> {
 
     public MessageUpkeepPos fromBytes(FriendlyByteBuf buf) {
         this.player = buf.readUUID();
-        this.group = buf.readInt();
+        this.group = buf.readUUID();
         this.pos = buf.readBlockPos();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(this.player);
-        buf.writeInt(this.group);
+        buf.writeUUID(this.group);
         buf.writeBlockPos(this.pos);
     }
 }

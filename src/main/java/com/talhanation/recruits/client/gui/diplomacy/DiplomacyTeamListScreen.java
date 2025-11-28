@@ -2,9 +2,11 @@ package com.talhanation.recruits.client.gui.diplomacy;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
+import com.talhanation.recruits.client.gui.group.EditOrAddGroupScreen;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsFaction;
+import com.talhanation.recruits.world.RecruitsGroup;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -220,16 +222,39 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
         }
     }
 
+    private long lastClickTime = 0;
+    private static final long DOUBLE_CLICK_THRESHOLD = 250;
     @Override
-    public boolean mouseClicked(double x, double y, int z) {
-        if (list != null) list.mouseClicked(x, y, z);
-        boolean flag = super.mouseClicked(x, y, z);
+    public boolean mouseClicked(double x, double y, int button) {
+        if (list != null) list.mouseClicked(x, y, button);
+
+        boolean flag = super.mouseClicked(x, y, button);
+
+        boolean isDoubleClick = false;
+        long now = System.currentTimeMillis();
+
+        if (button == 0) { // Linksklick
+            if (now - lastClickTime <= DOUBLE_CLICK_THRESHOLD) {
+                isDoubleClick = true;
+            }
+            lastClickTime = now;
+        }
+
         if (this.list.getFocused() != null) {
             this.selected = this.list.getFocused().team;
             this.setStanceButton.active = true;
         }
 
+        if (isDoubleClick && this.selected != null) {
+            onDoubleClick(this.selected);
+        }
+
         return flag;
+    }
+
+    private void onDoubleClick(RecruitsFaction faction) {
+        minecraft.setScreen(new DiplomacyEditScreen(this, faction));
+        this.selected = null;
     }
 
 

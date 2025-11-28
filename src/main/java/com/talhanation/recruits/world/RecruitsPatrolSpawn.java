@@ -7,7 +7,6 @@ import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -799,7 +798,7 @@ public class RecruitsPatrolSpawn {
         leader.setMoral(65);
         leader.setCost(50);
         leader.setXp(random.nextInt(120));
-        leader.setState(1);
+        leader.setAggroState(1);
         leader.setCustomName(Component.literal("Patrol Leader"));
 
         return leader;

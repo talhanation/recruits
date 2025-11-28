@@ -16,12 +16,12 @@ import java.util.UUID;
 public class MessageAttack implements Message<MessageAttack> {
 
     private UUID playerUuid;
-    private int group;
+    private UUID group;
 
     public MessageAttack() {
     }
 
-    public MessageAttack(UUID playerUuid, int group) {
+    public MessageAttack(UUID playerUuid, UUID group) {
         this.playerUuid = playerUuid;
         this.group = group;
     }
@@ -42,12 +42,12 @@ public class MessageAttack implements Message<MessageAttack> {
 
     public MessageAttack fromBytes(FriendlyByteBuf buf) {
         this.playerUuid = buf.readUUID();
-        this.group = buf.readInt();
+        this.group = buf.readUUID();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(this.playerUuid);
-        buf.writeInt(this.group);
+        buf.writeUUID(this.group);
     }
 }

@@ -1,7 +1,7 @@
 package com.talhanation.recruits.client.gui.commandscreen;
 
 import com.talhanation.recruits.client.gui.CommandScreen;
-import com.talhanation.recruits.client.gui.group.RecruitsGroup;
+import com.talhanation.recruits.world.RecruitsGroup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;

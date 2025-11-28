@@ -14,12 +14,12 @@ import java.util.*;
 public class MessageApplyNoGroup implements Message<MessageApplyNoGroup> {
 
     private UUID owner;
-    private int groupID;
+    private UUID groupID;
 
     public MessageApplyNoGroup(){
     }
 
-    public MessageApplyNoGroup(UUID owner, int groupID) {
+    public MessageApplyNoGroup(UUID owner, UUID groupID) {
         this.owner = owner;
         this.groupID = groupID;
     }
@@ -31,26 +31,27 @@ public class MessageApplyNoGroup implements Message<MessageApplyNoGroup> {
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         List<AbstractRecruitEntity> recruitList = new ArrayList<>();
-        if(player.getCommandSenderWorld() instanceof ServerLevel serverLevel){
-            for(Entity entity : serverLevel.getEntities().getAll()){
-                if(entity instanceof AbstractRecruitEntity recruit && recruit.isEffectedByCommand(owner, groupID))
-                    recruitList.add(recruit);
-            }
+
+        ServerLevel serverLevel = (ServerLevel) player.getCommandSenderWorld();
+
+        for(Entity entity : serverLevel.getEntities().getAll()){
+            if(entity instanceof AbstractRecruitEntity recruit && recruit.getGroup() != null && recruit.getGroup().getUUID().equals(groupID))
+                recruitList.add(recruit);
         }
 
         for(AbstractRecruitEntity recruit : recruitList){
-            recruit.setGroup(0);
+            recruit.setGroup(null);
         }
     }
     public MessageApplyNoGroup fromBytes(FriendlyByteBuf buf) {
         this.owner = buf.readUUID();
-        this.groupID = buf.readInt();
+        this.groupID = buf.readUUID();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(this.owner);
-        buf.writeInt(this.groupID);
+        buf.writeUUID(this.groupID);
     }
 
 }

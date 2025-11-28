@@ -9,7 +9,6 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.talhanation.recruits.ClaimEvents;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.FactionEvents;
-import com.talhanation.recruits.RecruitsHireTradesRegistry;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.VillagerNobleEntity;
@@ -538,7 +537,7 @@ public class RecruitsAdminCommands {
 
     private static int setUnitsCount(CommandContext<CommandSourceStack> context, ServerPlayer player, int x) {
         if(RecruitEvents.recruitsPlayerUnitManager != null){
-            RecruitEvents.recruitsPlayerUnitManager.setRecruitCount(player.getUUID(), x);
+            RecruitEvents.recruitsPlayerUnitManager.setRecruitCount(player, x);
 
 
             RecruitEvents.recruitsPlayerUnitManager.save(context.getSource().getLevel());

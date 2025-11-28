@@ -75,7 +75,7 @@
   "gui.recruits.inv.tooltip.neutral": "この兵士を敵対存在のみに攻撃させます。",
   "gui.recruits.inv.tooltip.aggressive": "この兵士を敵勢力を見つけ次第攻撃させます。",
   "gui.recruits.inv.tooltip.raid": "この兵士をあらゆる生物に攻撃させます。",
-  "gui.recruits.inv.tooltip.assignToTeamMate": "この兵士を近くの味方に所属させます。",
+  "gui.recruits.inv.tooltip.assignToPlayer": "この兵士を近くの味方に所属させます。",
 
   "gui.recruits.command.tooltip.follow": "兵士たちを追従させます。",
   "gui.recruits.command.tooltip.wander": "兵士たちを自由行動させます。",

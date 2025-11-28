@@ -24,7 +24,7 @@ public class ClaimUtil {
         int minZ = chunkPos.getMinBlockZ();
         int maxX = chunkPos.getMaxBlockX();
         int maxZ = chunkPos.getMaxBlockZ();
-        int minY = 0;
+        int minY = -64;
         int maxY = level.getMaxBuildHeight();
         AABB box = new AABB(minX, minY, minZ, maxX + 1, maxY, maxZ + 1);
         return level.getEntitiesOfClass(LivingEntity.class, box, filter);

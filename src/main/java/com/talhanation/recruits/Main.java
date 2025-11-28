@@ -15,19 +15,15 @@ import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModItems;
 import com.talhanation.recruits.init.ModScreens;
-import com.talhanation.recruits.network.MessageServerSavePlayerGroups;
 import com.talhanation.recruits.init.*;
 import com.talhanation.recruits.network.*;
-import com.talhanation.recruits.world.RecruitsHireTrade;
 import de.maxhenkel.corelib.CommonRegistry;
-import io.netty.util.Version;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.*;
@@ -35,7 +31,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.network.simple.SimpleChannel;
@@ -142,12 +137,11 @@ public class Main {
                 MessageSendJoinRequestTeam.class,
                 MessageRemoveFromTeam.class,
                 MessageOpenDisbandScreen.class,
-                MessageAssignToTeamMate.class,
-                MessageToClientUpdateCommandScreen.class,
+                MessageAssignRecruitToPlayer.class,
                 MessageWriteSpawnEgg.class,
                 MessageBackToMountEntity.class,
                 MessageDisbandGroup.class,
-                MessageAssignGroupToTeamMate.class,
+                MessageAssignGroupToPlayer.class,
                 MessagePromoteRecruit.class,
                 MessageOpenPromoteScreen.class,
                 MessageOpenSpecialScreen.class,
@@ -166,11 +160,8 @@ public class Main {
                 MessageAnswerMessenger.class,
                 MessageToClientOpenMessengerAnswerScreen.class,
                 MessageClearUpkeepGui.class,
-                MessageToServerRequestUpdateGroupList.class,
                 MessageApplyNoGroup.class,
-                MessageServerSavePlayerGroups.class,
-                MessageToClientUpdateGroupList.class,
-                MessageToClientUpdateRecruitInventoryScreen.class,
+                MessageToClientUpdateGroups.class,
                 MessageFormationFollowMovement.class,
                 MessageRest.class,
                 MessageRangedFire.class,
@@ -195,7 +186,9 @@ public class Main {
                 MessageToClientOpenNobleTradeScreen.class,
                 MessageHireFromNobleVillager.class,
                 MessageAttack.class,
-                MessageToClientUpdateUnitInfo.class
+                MessageToClientUpdateUnitInfo.class,
+                MessageToClientUpdateGroups.class,
+                MessageUpdateGroup.class
         };
 
 

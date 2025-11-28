@@ -284,7 +284,7 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
             }
 
             this.setListen(false);
-            this.setState(3);//PASSIVE
+            this.setAggroState(3);//PASSIVE
             this.teleportWaitTimer = 200;
             this.setMessengerState(MessengerState.TELEPORT);
         }

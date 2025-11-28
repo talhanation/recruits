@@ -5,7 +5,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.DisbandScreen;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.network.MessageAssignToTeamMate;
+import com.talhanation.recruits.network.MessageAssignRecruitToPlayer;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
@@ -46,7 +46,7 @@ public class TakeOverScreen extends RecruitsScreenBase {
 
         Button takeOwnerShip = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 120 - 7, 130, 20, TAKE_OWNERSHIP,
             btn -> {
-                 Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignToTeamMate(this.recruit.getUUID(), this.player.getUUID()));
+                 Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignRecruitToPlayer(this.recruit.getUUID(), this.player.getUUID()));
             }
         ));
         takeOwnerShip.setTooltip(Tooltip.create(TOOLTIP_TAKE_OWNERSHIP));

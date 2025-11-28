@@ -128,8 +128,6 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
 
-        this.setGroup(2);
-        
         if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get()){
             RecruitsPatrolSpawn.setRangedArrows(this);
         }

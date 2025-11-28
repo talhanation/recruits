@@ -5,10 +5,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.*;
 import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.util.DelayedExecutor;
-import com.talhanation.recruits.world.RecruitsClaim;
-import com.talhanation.recruits.world.RecruitsDiplomacyManager;
-import com.talhanation.recruits.world.RecruitsFaction;
-import com.talhanation.recruits.world.RecruitsFactionManager;
+import com.talhanation.recruits.world.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
@@ -273,6 +270,10 @@ public class FactionEvents {
         }
     }
 
+    public static void notifyPlayer(ServerLevel level, RecruitsPlayerInfo playerInfo, int id, String notification){
+        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) level.getPlayerByUUID(playerInfo.getUUID())), new MessageToClientSetToast(id, notification));
+    }
+
     public static void removeTeam(ServerLevel level, String teamName){
         MinecraftServer server = level.getServer();
         PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(teamName);
@@ -506,7 +507,7 @@ public class FactionEvents {
 
                     Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> newOwner), new MessageToClientSetToast(0, oldOwner.getName().getString()));
 
-                    recruit.hire(newOwner);
+                    recruit.hire(newOwner, null);
                 }
                 else
                     playerNotFound = true;

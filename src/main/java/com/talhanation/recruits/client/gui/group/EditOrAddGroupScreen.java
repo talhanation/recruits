@@ -2,16 +2,30 @@ package com.talhanation.recruits.client.gui.group;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.ClientManager;
+import com.talhanation.recruits.client.gui.ConfirmScreen;
+import com.talhanation.recruits.client.gui.player.PlayersList;
+import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
+import com.talhanation.recruits.client.gui.widgets.ImageSelectionDropdownMatrix;
+import com.talhanation.recruits.network.MessageAssignGroupToPlayer;
+import com.talhanation.recruits.network.MessageDisbandGroup;
+import com.talhanation.recruits.network.MessageUpdateGroup;
+import com.talhanation.recruits.world.RecruitsGroup;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
 
-import java.util.List;
+import static com.talhanation.recruits.client.gui.DisbandScreen.TOOLTIP_ASSIGN_GROUP_TO_PLAYER;
+import static com.talhanation.recruits.client.gui.DisbandScreen.TOOLTIP_KEEP_TEAM;
 
 public class EditOrAddGroupScreen extends Screen {
 
@@ -23,24 +37,30 @@ public class EditOrAddGroupScreen extends Screen {
     private int topPos;
     private int imageWidth;
     private int imageHeight;
-    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/gui_small.png");
+    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/gui_big.png");
     private static final MutableComponent TEXT_CANCEL = Component.translatable("gui.recruits.groups.cancel");
     private static final MutableComponent TEXT_SAVE = Component.translatable("gui.recruits.groups.save");
     private static final MutableComponent TEXT_ADD = Component.translatable("gui.recruits.groups.add");
     private static final MutableComponent TEXT_SPLIT = Component.translatable("gui.recruits.groups.split");
     private static final MutableComponent TEXT_EDIT_TITLE = Component.translatable("gui.recruits.groups.edit_title");
     private static final MutableComponent TEXT_ADD_TITLE = Component.translatable("gui.recruits.groups.add_title");
-
+    private static final MutableComponent DISBAND_GROUP = Component.translatable("gui.recruits.inv.text.disbandGroup");
+    private static final MutableComponent TOOLTIP_DISBAND_GROUP = Component.translatable("gui.recruits.inv.tooltip.disbandGroup");
+    private static final MutableComponent TEAM_MATE_GROUP = Component.translatable("gui.recruits.team.assignNewOwner");
+    private ImageSelectionDropdownMatrix imageDropdownMatrix;
+    private ResourceLocation image;
+    private final Player player;
     public EditOrAddGroupScreen(RecruitsGroupListScreen parent) {
         this(parent, null);
     }
 
     public EditOrAddGroupScreen(RecruitsGroupListScreen parent, RecruitsGroup groupToEdit) {
         super(Component.literal(""));
+        this.player = Minecraft.getInstance().player;
         this.parent = parent;
         this.groupToEdit = groupToEdit;
-        this.imageWidth = 250;
-        this.imageHeight = 83;
+        this.imageWidth = 195;
+        this.imageHeight = 160;
     }
 
     @Override
@@ -50,60 +70,93 @@ public class EditOrAddGroupScreen extends Screen {
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
 
-        groupNameField = new EditBox(this.font, leftPos + 10, topPos + 20, 220, 20, Component.literal(""));
+
+        setWidgets();
+    }
+
+    public void setWidgets(){
+        clearWidgets();
+
+        groupNameField = new EditBox(this.font, leftPos + 10, topPos + 20, 150, 20, Component.literal(""));
         if (groupToEdit != null) {
             groupNameField.setValue(groupToEdit.getName());
         }
         this.addRenderableWidget(groupNameField);
 
-        this.addRenderableWidget(new ExtendedButton(leftPos + 10, topPos + 55, 60, 20, groupToEdit == null ? TEXT_ADD : TEXT_SAVE, button -> {
+        this.addRenderableWidget(new ExtendedButton(leftPos + 10, topPos + 135, 90, 20, groupToEdit == null ? TEXT_ADD : TEXT_SAVE, button -> {
             if (groupToEdit == null) {
                 addGroup();
             } else {
                 editGroup();
             }
-
         }));
 
-        this.addRenderableWidget(new ExtendedButton(leftPos + 170, topPos + 55, 60, 20, TEXT_CANCEL, button -> {
+        this.addRenderableWidget(new ExtendedButton(leftPos + 100, topPos + 135, 90, 20, TEXT_CANCEL, button -> {
             this.minecraft.setScreen(this.parent);
         }));
+        int index = groupToEdit != null ? groupToEdit.getImage() : 0;
+        image = RecruitsGroup.IMAGES.get(index);
+        imageDropdownMatrix = new ImageSelectionDropdownMatrix(this, leftPos + 170, topPos + 20, 21, 21,
+                RecruitsGroup.IMAGES,
+                this::setGroupImage
+        );
+        addRenderableWidget(imageDropdownMatrix);
+
+        Button buttonDisbandGroup = new ExtendedButton(leftPos + 10, topPos + 55, 180, 20, DISBAND_GROUP,
+            btn -> {
+                minecraft.setScreen(new ConfirmScreen(DISBAND_GROUP, TOOLTIP_KEEP_TEAM,
+                        () ->  Main.SIMPLE_CHANNEL.sendToServer(new MessageDisbandGroup(this.player.getUUID(), this.groupToEdit.getUUID(), true)),
+                        () ->  Main.SIMPLE_CHANNEL.sendToServer(new MessageDisbandGroup(this.player.getUUID(), this.groupToEdit.getUUID(), false)),
+                        () ->  minecraft.setScreen(EditOrAddGroupScreen.this)
+                ));
+            }
+        );
+        buttonDisbandGroup.setTooltip(Tooltip.create(TOOLTIP_DISBAND_GROUP));
+        buttonDisbandGroup.active = groupToEdit != null;
+        addRenderableWidget(buttonDisbandGroup);
+
+
+        Button buttonAssignGroup = new ExtendedButton(leftPos + 10, topPos + 75, 180, 20, TEAM_MATE_GROUP,
+                btn -> {
+                    minecraft.setScreen(new SelectPlayerScreen(this, player, TEAM_MATE_GROUP, TEAM_MATE_GROUP, TOOLTIP_ASSIGN_GROUP_TO_PLAYER, false, PlayersList.FilterType.NONE,
+                            (playerInfo) -> {
+                                Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToPlayer(this.player.getUUID(), playerInfo, this.groupToEdit.getUUID()));
+                                onClose();
+                            } )
+                    );
+                }
+        );
+        buttonAssignGroup.active = groupToEdit != null;
+        addRenderableWidget(buttonAssignGroup);
+    }
+
+
+    private void setGroupImage(ResourceLocation resourceLocation){
+        this.image = resourceLocation;
+        if(groupToEdit != null){
+            int index = RecruitsGroup.IMAGES.indexOf(resourceLocation);
+            this.groupToEdit.setImage(index);
+        }
     }
 
     private void addGroup() {
         String groupName = groupNameField.getValue();
         if (!groupName.isEmpty()) {
-            int newId = getNewID(RecruitsGroupList.groups);
-            RecruitsGroup newGroup = new RecruitsGroup(newId, groupName, false);
-            RecruitsGroupList.groups.add(newGroup);
-
-            RecruitsGroupList.saveGroups(false);
+            int image = RecruitsGroup.IMAGES.indexOf(this.image);
+            RecruitsGroup newGroup = new RecruitsGroup(groupName, ClientManager.getPlayerInfo(), image);
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateGroup(newGroup));
+            ClientManager.groups.add(newGroup);
 
             this.minecraft.setScreen(this.parent);
         }
     }
 
-    private int getNewID(List<RecruitsGroup> groups) {
-        int newId = 0;
-
-        for (RecruitsGroup group: groups){
-            if(group.getId() > newId){
-                newId = group.getId();
-            }
-        }
-
-        return newId + 1;
-    }
-
     private void editGroup() {
         String newName = groupNameField.getValue();
         if (!newName.isEmpty() && groupToEdit != null) {
-            RecruitsGroup copy = groupToEdit;
-            RecruitsGroupList.groups.remove(groupToEdit);
-            copy.setName(newName);
-            RecruitsGroupList.groups.add(copy);
+            groupToEdit.setName(newName);
 
-            RecruitsGroupList.saveGroups(false);
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateGroup(groupToEdit));
 
             this.minecraft.setScreen(this.parent);
         }
@@ -113,6 +166,20 @@ public class EditOrAddGroupScreen extends Screen {
     public void tick() {
         super.tick();
         groupNameField.tick();
+    }
+
+    @Override
+    public void mouseMoved(double x, double y) {
+        if(imageDropdownMatrix != null) imageDropdownMatrix.onMouseMove(x,y);
+        super.mouseMoved(x, y);
+    }
+
+
+    @Override
+    public boolean mouseClicked(double x, double y, int p_94697_) {
+        if(imageDropdownMatrix != null) imageDropdownMatrix.onMouseClicked(x,y);
+
+        return super.mouseClicked(x, y, p_94697_);
     }
 
     private void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
@@ -135,6 +202,10 @@ public class EditOrAddGroupScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    public ResourceLocation getSelectedImage() {
+        return this.image;
     }
 }
 

@@ -76,7 +76,7 @@
   "gui.recruits.inv.tooltip.neutral" : "Приказать рекруту атаковать только враждебных существ.",
   "gui.recruits.inv.tooltip.aggressive" : "Приказать рекруту атаковать всех вражеских игроков и рекрутов в поле зрения.",
   "gui.recruits.inv.tooltip.raid" : "Приказать рекруту атаковать всех живых существ в поле зрения.",
-  "gui.recruits.inv.tooltip.assignToTeamMate": "Назначить этого рекрута ближайшему соратнику.",
+  "gui.recruits.inv.tooltip.assignToPlayer": "Назначить этого рекрута ближайшему соратнику.",
 
   "gui.recruits.command.tooltip.follow" : "Приказать рекрутам следовать за вами.",
   "gui.recruits.command.tooltip.wander" : "Разрешить рекрутам свободно передвигаться.",

@@ -32,6 +32,7 @@ public class MessageToClientSetToast implements Message<MessageToClientSetToast>
         switch (x){
             case 0 -> RecruitsToastManager.setToastForPlayer(Images.LETTER, TOAST_RECRUIT_ASSIGNED_TITLE, TOAST_RECRUIT_ASSIGNED_INFO(s));
             case 1 -> RecruitsToastManager.setToastForPlayer(Images.LETTER, TOAST_MESSENGER_ARRIVED_TITLE, TOAST_MESSENGER_ARRIVED_INFO(s));
+            case 2 -> RecruitsToastManager.setToastForPlayer(Images.LETTER, TOAST_GROUP_ASSIGNED_TITLE, TOAST_GROUP_ASSIGNED_INFO(s));
         }
     }
 

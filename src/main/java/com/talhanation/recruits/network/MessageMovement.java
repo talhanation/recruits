@@ -15,13 +15,13 @@ public class MessageMovement implements Message<MessageMovement> {
 
     private UUID player_uuid;
     private int state;
-    private int group;
+    private UUID group;
     private int formation;
 
     public MessageMovement(){
     }
 
-    public MessageMovement(UUID player_uuid, int state, int group, int formation) {
+    public MessageMovement(UUID player_uuid, int state, UUID group, int formation) {
         this.player_uuid = player_uuid;
         this.state  = state;
         this.group  = group;
@@ -44,7 +44,7 @@ public class MessageMovement implements Message<MessageMovement> {
     public MessageMovement fromBytes(FriendlyByteBuf buf) {
         this.player_uuid = buf.readUUID();
         this.state = buf.readInt();
-        this.group = buf.readInt();
+        this.group = buf.readUUID();
         this.formation = buf.readInt();
         return this;
     }
@@ -52,7 +52,7 @@ public class MessageMovement implements Message<MessageMovement> {
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(this.player_uuid);
         buf.writeInt(this.state);
-        buf.writeInt(this.group);
+        buf.writeUUID(this.group);
         buf.writeInt(this.formation);
     }
 

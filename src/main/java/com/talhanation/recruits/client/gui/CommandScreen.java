@@ -1,13 +1,16 @@
 package com.talhanation.recruits.client.gui;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.events.ClientEvent;
 import com.talhanation.recruits.client.events.CommandCategoryManager;
 import com.talhanation.recruits.client.gui.commandscreen.ICommandCategory;
 import com.talhanation.recruits.client.gui.group.*;
 import com.talhanation.recruits.config.RecruitsClientConfig;
+import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.world.RecruitsGroup;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
@@ -30,8 +33,7 @@ import net.minecraftforge.client.gui.widget.ExtendedButton;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 
 @OnlyIn(Dist.CLIENT)
@@ -44,7 +46,6 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     public BlockPos rayBlockPos;
     public Entity rayEntity;
     private ICommandCategory currentCategory;
-    public static List<RecruitsGroup> groups;
     public static Formation formation;
     public boolean mouseGroupsInverted;
     private List<RecruitsGroupButton> groupButtons;
@@ -68,8 +69,6 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     @Override
     public void onClose() {
         super.onClose();
-        this.saveGroups();
-        groups = new ArrayList<>();
         groupButtons = new ArrayList<>();
         this.saveCategoryOnClient();
     }
@@ -77,41 +76,54 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     @Override
     protected void init() {
         super.init();
+        this.updateGroups();
         this.rayBlockPos = getBlockPos();
         this.rayEntity = ClientEvent.getEntityByLooking();
         this.currentCategory = getSelectionFromClient();
-        formation = getSavedFormationFromClient();
-    }
+        formation = Formation.fromIndex((byte) ClientManager.formationSelection);
 
-    private boolean buttonsSet = false;
+        this.setButtons();
+    }
 
     @Override
     protected void containerTick() {
         super.containerTick();
-        if(!buttonsSet){
-            this.setButtons();
-            this.saveGroups();
-            this.buttonsSet = true;
+        this.updateGroups();
+    }
+
+    public void updateGroups(){
+        if(ClientManager.groups == null || ClientManager.groups.isEmpty()) return;
+
+        List<AbstractRecruitEntity> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(200)));
+        list.removeIf(recruit -> !recruit.isEffectedByCommand(player.getUUID()));
+
+        Map<UUID, Integer> groupCounts = new HashMap<>();
+
+        for (AbstractRecruitEntity recruit : list) {
+            if(recruit.getGroup() == null) continue;
+
+            UUID groupId = recruit.getGroup().getUUID();
+            groupCounts.put(groupId, groupCounts.getOrDefault(groupId, 0) + 1);
+        }
+
+        for (RecruitsGroup group : ClientManager.groups) {
+            if (groupCounts.containsKey(group.getUUID())) {
+                group.setCount(groupCounts.get(group.getUUID()));
+            }
         }
     }
 
-    private void saveGroups() {
-        if(groups != null && !groups.isEmpty()){
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageServerSavePlayerGroups(groups, true));
-        }
-    }
     boolean statusSet = false;
     private void setButtons(){
         int x = this.width / 2;
         int y = this.height / 2;
-        formation = this.getSavedFormationFromClient();
+        formation = Formation.fromIndex((byte) ClientManager.formationSelection);
         clearWidgets();
         groupButtons = new ArrayList<>();
         int index = 0;
-        if(groups != null && !groups.isEmpty()){
-
-            for (RecruitsGroup group : groups) {
-                if( index < 9){
+        if(ClientManager.groups != null && !ClientManager.groups.isEmpty()){
+            for (RecruitsGroup group : getGroups()) {
+                if(index < 9){
                     createRecruitsGroupButton(group, index, x, y);
                     index++;
                 }
@@ -121,13 +133,12 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
 
         createCategoryButtons(x,y);
 
-        currentCategory.createButtons(this, x, y, groups, player);
+        currentCategory.createButtons(this, x, y, getGroups(), player);
 
         if(!statusSet){
             this.mouseGroupsInverted = getInvertedStatus();
             statusSet = true;
         }
-
     }
 
     private void createRecruitsGroupButton(RecruitsGroup group, int index, int x, int y) {
@@ -167,7 +178,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
 
     public void setFormation(Formation f){
         formation = f;
-        this.saveFormationSelection();
+        ClientManager.formationSelection = f.getIndex();
         this.setButtons();
     }
 
@@ -211,47 +222,26 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         }
     }
 
-
-
     public void sendMovementCommandToServer(int state) {
         if(state != 1){
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveFormationFollowMovement(player.getUUID(), new int[]{}, -1));
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveFormationFollowMovement(player.getUUID(), new ArrayList<>(), -1));
         }
-        if(!groups.isEmpty()){
-            for(RecruitsGroup group : groups){
-                if(!group.isDisabled()) Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), state, group.getId(), formation.getIndex()));
+        if(!ClientManager.groups.isEmpty()){
+            for(RecruitsGroup group : getActiveGroups()){
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), state, group.getUUID(), formation.getIndex()));
             }
         }
     }
 
-    public Formation getSavedFormationFromClient() {
-        CompoundTag playerNBT = player.getPersistentData();
-        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
-
-        return Formation.fromIndex((byte) nbt.getInt("FormationSelection"));
-    }
-
-    public void saveFormationSelection() {
-        CompoundTag playerNBT = player.getPersistentData();
-        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
-
-        nbt.putByte("FormationSelection", formation.getIndex());
-        playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
-    }
-
     public void sendCommandInChat(int state){
         StringBuilder group_string = new StringBuilder();
-        int i = 0;
-
-        for(RecruitsGroup group : groups){
-            if(!group.isDisabled()) i++;
-        }
+        int i = this.getActiveGroups().size();
 
         if (i >= 9){
             group_string = new StringBuilder(TEXT_EVERYONE.getString() + ", ");
         }
         else {
-           for(RecruitsGroup group : groups){
+           for(RecruitsGroup group : this.getActiveGroups()){
                if(!group.isDisabled()) group_string.append(group.getName()).append(", ");
            }
         }
@@ -289,6 +279,14 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             case 98 -> this.player.sendSystemMessage(TEXT_DISMOUNT(group_string.toString()));
             case 99 -> this.player.sendSystemMessage(TEXT_MOUNT(group_string.toString()));
         }
+    }
+
+    private List<RecruitsGroup> getGroups() {
+        return new ArrayList<>(ClientManager.groups.stream().filter(group -> !group.removed && group.getCount() != 0).toList());
+    }
+
+    private List<RecruitsGroup> getActiveGroups() {
+        return new ArrayList<>(this.getGroups().stream().filter(group -> !group.isDisabled()).toList());
     }
 
     private static MutableComponent TEXT_ATTACK(String group_string) {

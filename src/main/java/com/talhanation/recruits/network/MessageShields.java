@@ -8,20 +8,19 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 public class MessageShields implements Message<MessageShields> {
 
     private UUID player;
-    private int group;
+    private UUID group;
     private boolean should;
 
     public MessageShields() {
     }
 
-    public MessageShields(UUID player, int group, boolean shields) {
+    public MessageShields(UUID player, UUID group, boolean shields) {
         this.player = player;
         this.group = group;
         this.should = shields;
@@ -49,14 +48,14 @@ public class MessageShields implements Message<MessageShields> {
 
     public MessageShields fromBytes(FriendlyByteBuf buf) {
         this.player = buf.readUUID();
-        this.group = buf.readInt();
+        this.group = buf.readUUID();
         this.should = buf.readBoolean();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(this.player);
-        buf.writeInt(this.group);
+        buf.writeUUID(this.group);
         buf.writeBoolean(this.should);
     }
 }

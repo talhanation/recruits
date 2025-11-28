@@ -24,9 +24,11 @@ public class ClientPlayerEvents {
 
         ChunkPos currentChunk = player.chunkPosition();
         RecruitsClaim claim = RecruitsClaimManager.getClaimAt(currentChunk, ClientManager.recruitsClaims);
+        ClientManager.currentClaim = claim;
 
         if(state == null) {
             state = State.NO_CLAIM;
+
             FactionClaimBannerOverlay.deactivate();
             FactionClaimSiegeOverlay.deactivate();
         }

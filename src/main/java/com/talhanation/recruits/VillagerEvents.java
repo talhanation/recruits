@@ -6,6 +6,8 @@ import com.talhanation.recruits.entities.ai.villager.VillagerBecomeNobleGoal;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModProfessions;
+import com.talhanation.recruits.world.RecruitsGroup;
+import com.talhanation.recruits.world.RecruitsHireTradesRegistry;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -56,13 +58,13 @@ public class VillagerEvents {
     }
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
-        RecruitsHireTradesRegistry.registerBaseTrades();
+        RecruitsHireTradesRegistry.registerTrades();
     }
     @SubscribeEvent
     public void onPlayerJoiningServer(EntityJoinLevelEvent event){
         if(event.getLevel().isClientSide() && event.getEntity() instanceof Player player){
             if(Minecraft.getInstance().player.getUUID().equals(player.getUUID())){
-                RecruitsHireTradesRegistry.registerBaseTrades();
+                RecruitsHireTradesRegistry.registerTrades();
             }
         }
     }
@@ -181,9 +183,9 @@ public class VillagerEvents {
         }
     }
 
-    public static void createHiredRecruitFromVillager(Villager villager, EntityType<? extends AbstractRecruitEntity> recruitType, Player player){
+    public static void createHiredRecruitFromVillager(Villager villager, EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group){
         AbstractRecruitEntity abstractRecruit = recruitType.create(villager.getCommandSenderWorld());
-        if (abstractRecruit != null && abstractRecruit.hire(player)) {
+        if (abstractRecruit != null && abstractRecruit.hire(player, group)) {
             abstractRecruit.copyPosition(villager);
 
             abstractRecruit.initSpawn();
@@ -206,9 +208,9 @@ public class VillagerEvents {
         }
     }
 
-    public static void spawnHiredRecruit(EntityType<? extends AbstractRecruitEntity> recruitType, Player player){
+    public static void spawnHiredRecruit(EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group){
         AbstractRecruitEntity abstractRecruit = recruitType.create(player.getCommandSenderWorld());
-        if (abstractRecruit != null && abstractRecruit.hire(player)) {
+        if (abstractRecruit != null && abstractRecruit.hire(player,null)) {
             abstractRecruit.copyPosition(player);
 
             abstractRecruit.initSpawn();

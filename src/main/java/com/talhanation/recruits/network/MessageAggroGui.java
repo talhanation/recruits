@@ -33,7 +33,7 @@ public class MessageAggroGui implements Message<MessageAggroGui> {
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(16.0D),
                 (recruit) -> recruit.getUUID().equals(this.uuid)
-        ).forEach((recruit) -> recruit.setState(this.state));
+        ).forEach((recruit) -> recruit.setAggroState(this.state));
     }
 
     public MessageAggroGui fromBytes(FriendlyByteBuf buf) {

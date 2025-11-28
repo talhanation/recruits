@@ -338,8 +338,8 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     }
 
     @Override
-    public void setState(int state) {
-        super.setState(state);
+    public void setAggroState(int state) {
+        super.setAggroState(state);
         if(army != null){
             RecruitCommanderUtil.setRecruitsAggroState(army.getAllRecruitUnits(),   state);
         }

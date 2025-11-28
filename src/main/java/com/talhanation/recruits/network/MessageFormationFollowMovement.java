@@ -15,13 +15,13 @@ public class MessageFormationFollowMovement implements Message<MessageFormationF
 
     private UUID player_uuid;
 
-    private int group;
+    private UUID group;
     private int formation;
 
     public MessageFormationFollowMovement(){
     }
 
-    public MessageFormationFollowMovement(UUID player_uuid, int group, int formation) {
+    public MessageFormationFollowMovement(UUID player_uuid, UUID group, int formation) {
         this.player_uuid = player_uuid;
         this.group  = group;
         this.formation = formation;
@@ -40,14 +40,14 @@ public class MessageFormationFollowMovement implements Message<MessageFormationF
 
     public MessageFormationFollowMovement fromBytes(FriendlyByteBuf buf) {
         this.player_uuid = buf.readUUID();
-        this.group = buf.readInt();
+        this.group = buf.readUUID();
         this.formation = buf.readInt();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(this.player_uuid);
-        buf.writeInt(this.group);
+        buf.writeUUID(this.group);
         buf.writeInt(this.formation);
     }
 

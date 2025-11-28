@@ -1,10 +1,9 @@
 package com.talhanation.recruits.client.gui.diplomacy;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.client.gui.group.RecruitsGroup;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
+import com.talhanation.recruits.world.RecruitsGroup;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;

@@ -31,6 +31,9 @@ public class RecruitsHireTrade {
         this.description = description;
     }
 
+    public RecruitsHireTrade copy(){
+        return new RecruitsHireTrade(this.resourceLocation, this.cost, this.title, this.description);
+    }
 
     public CompoundTag toNbt() {
         CompoundTag tag = new CompoundTag();

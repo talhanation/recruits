@@ -9,10 +9,7 @@ import com.talhanation.recruits.entities.ai.horse.HorseRiddenByRecruitGoal;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.inventory.PromoteContainer;
 import com.talhanation.recruits.network.MessageOpenPromoteScreen;
-import com.talhanation.recruits.world.PillagerPatrolSpawn;
-import com.talhanation.recruits.world.RecruitsDiplomacyManager;
-import com.talhanation.recruits.world.RecruitsPlayerUnitManager;
-import com.talhanation.recruits.world.RecruitsPatrolSpawn;
+import com.talhanation.recruits.world.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -57,6 +54,8 @@ public class RecruitEvents {
     private static final Map<ServerLevel, RecruitsPatrolSpawn> RECRUIT_PATROL = new HashMap<>();
     private static final Map<ServerLevel, PillagerPatrolSpawn> PILLAGER_PATROL = new HashMap<>();
     public static RecruitsPlayerUnitManager recruitsPlayerUnitManager;
+    public static RecruitsGroupsManager recruitsGroupsManager;
+
     public static MinecraftServer server;
     public static HashMap<Integer, EntityType<? extends AbstractRecruitEntity>> entitiesByProfession = new HashMap<>() {
         {
@@ -107,17 +106,23 @@ public class RecruitEvents {
 
         recruitsPlayerUnitManager = new RecruitsPlayerUnitManager();
         recruitsPlayerUnitManager.load(server.overworld());
+
+        recruitsGroupsManager = new RecruitsGroupsManager();
+        recruitsGroupsManager.load(server.overworld());
     }
 
 
     @SubscribeEvent
     public void onServerStopping(ServerStoppingEvent event) {
         recruitsPlayerUnitManager.save(server.overworld());
+
+        recruitsGroupsManager.save(server.overworld());
     }
 
     @SubscribeEvent
     public void onWorldSave(LevelEvent.Save event){
         recruitsPlayerUnitManager.save(server.overworld());
+        recruitsGroupsManager.save(server.overworld());
     }
 
     @SubscribeEvent
@@ -126,6 +131,8 @@ public class RecruitEvents {
 
         if(event.getEntity() instanceof Player player){
             recruitsPlayerUnitManager.broadCastUnitInfoToPlayer(player);
+
+            recruitsGroupsManager.broadCastGroupsToPlayer(player);
         }
     }
 

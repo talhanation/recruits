@@ -2,6 +2,7 @@ package com.talhanation.recruits.client.gui.faction;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.events.RecruitsToastManager;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
 import com.talhanation.recruits.network.MessageSendJoinRequestTeam;
@@ -125,7 +126,6 @@ public class RecruitsTeamListScreen extends ListScreenBase {
     @Override
     public void onClose() {
         super.onClose();
-
     }
 
     @Override
@@ -167,7 +167,7 @@ public class RecruitsTeamListScreen extends ListScreenBase {
         boolean flag = super.mouseClicked(x, y, z);
         if(this.teamList.getFocused() != null){
             this.selected = this.teamList.getFocused().getTeamInfo();
-            this.sendJoinRequestButton.active = minecraft.player.getTeam() == null;
+            this.sendJoinRequestButton.active = ClientManager.ownFaction == null;
         }
 
         return flag;

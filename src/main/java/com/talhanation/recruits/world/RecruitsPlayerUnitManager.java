@@ -9,13 +9,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.network.PacketDistributor;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class RecruitsPlayerUnitManager {
     private Map<UUID, Integer> recruitCountMap = new HashMap<>();
-
     public void load(ServerLevel level) {
         RecruitPlayerUnitSaveData data = RecruitPlayerUnitSaveData.get(level);
 
@@ -36,16 +33,20 @@ public class RecruitsPlayerUnitManager {
         return recruitCountMap.getOrDefault(playerUUID, 0);
     }
 
-    public void setRecruitCount(UUID playerUUID, int count) {
-        recruitCountMap.put(playerUUID, count);
+    public void setRecruitCount(Player player, int count) {
+        recruitCountMap.put(player.getUUID(), count);
+
+
     }
 
     public void addRecruits(UUID playerUUID, int count) {
         recruitCountMap.put(playerUUID, getRecruitCount(playerUUID) + count);
+
     }
 
     public void removeRecruits(UUID playerUUID, int count) {
         recruitCountMap.put(playerUUID, Math.max(getRecruitCount(playerUUID) - count, 0));
+
     }
 
     public boolean canPlayerRecruit(String stringId, UUID playerUUID) {

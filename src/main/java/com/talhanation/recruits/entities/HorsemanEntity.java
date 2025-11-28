@@ -110,8 +110,6 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
 
-        this.setGroup(3);
-
         AbstractRecruitEntity.applySpawnValues(this);
     }
 

@@ -90,6 +90,10 @@ public class DebugEvents {
             case 26 -> {
                 recruits.disband(recruits.getOwner(), true, false);
             }
+
+            case 99 ->{
+                //do nothing
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ package com.talhanation.recruits.items;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.world.RecruitsGroup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
@@ -17,7 +18,6 @@ import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraft.world.phys.Vec3;
 
 import net.minecraft.world.scores.PlayerTeam;
-import net.royawesome.jlibnoise.module.modifier.Abs;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -93,14 +93,14 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
         recruit.setCustomName(Component.literal(name));
 
         recruit.setXpLevel(nbt.getInt("Level"));
-        recruit.setState(nbt.getInt("AggroState"));
+        recruit.setAggroState(nbt.getInt("AggroState"));
         recruit.setFollowState(nbt.getInt("FollowState"));
         recruit.setShouldFollow(nbt.getBoolean("ShouldFollow"));
         recruit.setShouldMount(nbt.getBoolean("ShouldMount"));
         recruit.setShouldBlock(nbt.getBoolean("ShouldBlock"));
         recruit.setShouldProtect(nbt.getBoolean("ShouldProtect"));
         recruit.setFleeing(nbt.getBoolean("Fleeing"));
-        recruit.setGroup(nbt.getInt("Group"));
+        recruit.setGroup(RecruitsGroup.fromNBT(nbt.getCompound("Group")));
         recruit.setListen(nbt.getBoolean("Listen"));
         recruit.setIsFollowing(nbt.getBoolean("isFollowing"));
         recruit.setXp(nbt.getInt("Xp"));

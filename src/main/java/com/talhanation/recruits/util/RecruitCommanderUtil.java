@@ -231,7 +231,7 @@ public class RecruitCommanderUtil {
     public static void setRecruitsAggroState(List<AbstractRecruitEntity> recruits, int state) {
         for (AbstractRecruitEntity recruit : recruits) {
             if (recruit != null && recruit.isAlive()) {
-                recruit.setState(state);
+                recruit.setAggroState(state);
             }
         }
     }
