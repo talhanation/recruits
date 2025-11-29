@@ -291,7 +291,7 @@
   "gui.recruits.inv.text.infomode.hostiles": "Yaratıklar",
   "gui.recruits.inv.text.infomode.all": "Hepsi",
   "gui.recruits.inv.text.assign_recruits": "Asker Atayın",
-  "gui.recruits.inv.tooltip.assign_recruits": "Atanan tüm askerler komutadan kaldırılacak",
+  "gui.recruits.inv.tooltip.assign_recruits": "Olduğu Guruptan tüm askerler komutana ata",
   "chat.recruits.team_creation.canNotAddOtherLeader": "Beyliğinize başka bir lideri ekleyemezsiniz.",
   "chat.recruits.team_creation.playerLeftTeamLeader": "%s Beyliğinizden ayrıldı.",
   "gui.recruits.inv.tooltip.patrol_leader_fast": "Devriye hızını ayarla.",

@@ -291,7 +291,7 @@
   "gui.recruits.inv.text.infomode.hostiles": "Feindselige",
   "gui.recruits.inv.text.infomode.all": "Alle",
   "gui.recruits.inv.text.assign_recruits": "Rekruten zuweisen",
-  "gui.recruits.inv.tooltip.assign_recruits": "Alle zugewiesenen Rekruten werden aus dem Kommando entfernt",
+  "gui.recruits.inv.tooltip.assign_recruits": "Alle Rekruten aus der Gruppe werden dem Kommander zugewiesenen",
   "chat.recruits.team_creation.canNotAddOtherLeader": "Sie können keinen anderen Fraktionsleiter zu Ihrer Fraktion hinzufügen.",
   "chat.recruits.team_creation.playerLeftTeamLeader": "%s hat Ihre Fraktion verlassen.",
   "gui.recruits.inv.tooltip.patrol_leader_fast": "Stellen Sie die Patrouillengeschwindigkeit ein.",
