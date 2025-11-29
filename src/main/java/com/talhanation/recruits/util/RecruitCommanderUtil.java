@@ -20,6 +20,7 @@ public class RecruitCommanderUtil {
      * @param leaderUUID  The UUID of the leader to follow.
      */
     public static void setRecruitsFollow(List<AbstractRecruitEntity> recruits, @Nullable UUID leaderUUID) {
+        if(recruits == null || recruits.isEmpty()) return;
         for (AbstractRecruitEntity recruit : recruits) {
             if (recruit != null && recruit.isAlive()) {
                 if (leaderUUID == null){
@@ -39,6 +40,7 @@ public class RecruitCommanderUtil {
      * @param recruits The list of recruits to command.
      */
     public static void setRecruitsHoldPos(List<AbstractRecruitEntity> recruits) {
+        if(recruits == null || recruits.isEmpty()) return;
         for (AbstractRecruitEntity recruit : recruits) {
             if (recruit != null && recruit.isAlive()) {
                 recruit.setFollowState(2); // Hold Position
@@ -53,6 +55,7 @@ public class RecruitCommanderUtil {
      * @param pos      The target position to move to.
      */
     public static void setRecruitsMove(List<AbstractRecruitEntity> recruits, BlockPos pos) {
+        if(recruits == null || recruits.isEmpty()) return;
         for (AbstractRecruitEntity recruit : recruits) {
             if (recruit != null && recruit.isAlive()) {
                 recruit.setMovePos(pos);
@@ -69,6 +72,7 @@ public class RecruitCommanderUtil {
      * @param speed    The speed.
      */
     public static void setRecruitsMoveSpeed(List<AbstractRecruitEntity> recruits, float speed) {
+        if(recruits == null || recruits.isEmpty()) return;
         for (AbstractRecruitEntity recruit : recruits) {
             if (recruit != null && recruit.isAlive()) {
                 recruit.moveSpeed = speed;
@@ -83,6 +87,7 @@ public class RecruitCommanderUtil {
      * @param range    The max distance from hold position for the speed to apply.
      */
     public static void setRecruitsPatrolMoveSpeed(List<AbstractRecruitEntity> recruits, float speed, float range) {
+        if(recruits == null || recruits.isEmpty()) return;
         for (AbstractRecruitEntity recruit : recruits) {
             if (recruit != null && recruit.isAlive()) {
                 double distance = recruit.distanceToSqr(recruit.getHoldPos()); // Quadratische Distanzberechnung
@@ -100,6 +105,7 @@ public class RecruitCommanderUtil {
      * @param recruits The list of recruits to command.
      */
     public static void setRecruitsClearTargets(List<AbstractRecruitEntity> recruits) {
+        if(recruits == null || recruits.isEmpty()) return;
         for (AbstractRecruitEntity recruit : recruits) {
             if (recruit != null && recruit.isAlive()) {
                 recruit.setTarget(null);
@@ -113,6 +119,7 @@ public class RecruitCommanderUtil {
      * @param recruits The list of recruits to command.
      */
     public static void setRecruitsWanderFreely(List<AbstractRecruitEntity> recruits) {
+        if(recruits == null || recruits.isEmpty()) return;
         for (AbstractRecruitEntity recruit : recruits) {
             if (recruit != null && recruit.isAlive()) {
                 recruit.clearHoldPos();
@@ -128,6 +135,7 @@ public class RecruitCommanderUtil {
      * @param shields  Whether to use shields.
      */
     public static void setRecruitsShields(List<AbstractRecruitEntity> recruits, boolean shields) {
+        if(recruits == null || recruits.isEmpty()) return;
         for (AbstractRecruitEntity recruit : recruits) {
             if (recruit != null && recruit.isAlive()) {
                 recruit.clearHoldPos();
@@ -144,6 +152,7 @@ public class RecruitCommanderUtil {
      * @param linePos  The line position for the formation.
      */
     public static void setRecruitsMoveAndHold(List<AbstractRecruitEntity> recruits, Vec3 target, Vec3 linePos) {
+        if(recruits == null || recruits.isEmpty()) return;
         for (AbstractRecruitEntity recruit : recruits) {
             if (recruit != null && recruit.isAlive()) {
                 recruit.reachedMovePos = false;
@@ -162,6 +171,7 @@ public class RecruitCommanderUtil {
      * @param upkeepUUID The UUID of the upkeep entity.
      */
     public static void setRecruitsUpkeep(List<AbstractRecruitEntity> recruits, BlockPos upkeepPos, UUID upkeepUUID) {
+        if(recruits == null || recruits.isEmpty()) return;
         for (AbstractRecruitEntity recruit : recruits) {
             if (recruit != null && recruit.isAlive()) {
                 recruit.clearUpkeepEntity();
@@ -181,6 +191,7 @@ public class RecruitCommanderUtil {
      * @param recruits The list of recruits to command.
      */
     public static void clearRecruitsUpkeep(List<AbstractRecruitEntity> recruits) {
+        if(recruits == null || recruits.isEmpty()) return;
         for (AbstractRecruitEntity recruit : recruits) {
             if (recruit != null && recruit.isAlive()) {
                 recruit.clearUpkeepEntity();
@@ -197,6 +208,7 @@ public class RecruitCommanderUtil {
      * @param mountUUID The UUID of the entity to mount.
      */
     public static void setRecruitsMount(List<AbstractRecruitEntity> recruits, UUID mountUUID) {
+        if(recruits == null || recruits.isEmpty()) return;
         for (AbstractRecruitEntity recruit : recruits) {
             if (recruit != null && recruit.isAlive()) {
                 recruit.shouldMount(true, mountUUID);
@@ -211,6 +223,7 @@ public class RecruitCommanderUtil {
      * @param recruits The list of recruits to command.
      */
     public static void setRecruitsDismount(List<AbstractRecruitEntity> recruits) {
+        if(recruits == null || recruits.isEmpty()) return;
         for (AbstractRecruitEntity recruit : recruits) {
             if (recruit != null && recruit.isAlive()) {
                 recruit.shouldMount(false, null);
@@ -229,6 +242,7 @@ public class RecruitCommanderUtil {
      * @param state    The aggression state to set.
      */
     public static void setRecruitsAggroState(List<AbstractRecruitEntity> recruits, int state) {
+        if(recruits == null || recruits.isEmpty()) return;
         for (AbstractRecruitEntity recruit : recruits) {
             if (recruit != null && recruit.isAlive()) {
                 recruit.setAggroState(state);
@@ -243,6 +257,7 @@ public class RecruitCommanderUtil {
      * @param type     The entity type of the recruits to command.
      */
     public static void setTypedRecruitsFollow(List<AbstractRecruitEntity> recruits, EntityType<?> type) {
+        if(recruits == null || recruits.isEmpty()) return;
         for (AbstractRecruitEntity recruit : recruits) {
             if (recruit != null && recruit.isAlive() && recruit.getType().equals(type)) {
                 recruit.setFollowState(5); // Follow/Protect
@@ -257,6 +272,7 @@ public class RecruitCommanderUtil {
      * @param type     The entity type of the recruits to command.
      */
     public static void setTypedRecruitsHoldPos(List<AbstractRecruitEntity> recruits, EntityType<?> type) {
+        if(recruits == null || recruits.isEmpty()) return;
         for (AbstractRecruitEntity recruit : recruits) {
             if (recruit != null && recruit.isAlive() && recruit.getType().equals(type)) {
                 recruit.setFollowState(2); // Hold Position
@@ -272,6 +288,7 @@ public class RecruitCommanderUtil {
      * @param type     The entity type of the recruits to command.
      */
     public static void setTypedRecruitsMove(List<AbstractRecruitEntity> recruits, BlockPos pos, EntityType<?> type) {
+        if(recruits == null || recruits.isEmpty()) return;
         for (AbstractRecruitEntity recruit : recruits) {
             if (recruit != null && recruit.isAlive() && recruit.getType().equals(type)) {
                 recruit.setMovePos(pos);
@@ -290,6 +307,7 @@ public class RecruitCommanderUtil {
      * @param type     The entity type of the recruits to command.
      */
     public static void setTypedRecruitsMoveAndHold(List<AbstractRecruitEntity> recruits, Vec3 target, Vec3 linePos, EntityType<?> type) {
+        if(recruits == null || recruits.isEmpty()) return;
         List<AbstractRecruitEntity> typedRecruits = recruits.stream()
                 .filter(recruit -> recruit != null && recruit.isAlive() && recruit.getType().equals(type))
                 .toList();
@@ -308,6 +326,7 @@ public class RecruitCommanderUtil {
      * @param listen   The boolean value.
      */
     public static void setRecruitsListen(List<AbstractRecruitEntity> recruits, boolean listen) {
+        if(recruits == null || recruits.isEmpty()) return;
         for (AbstractRecruitEntity recruit : recruits) {
             if (recruit != null && recruit.isAlive()) {
                 recruit.setListen(listen); // Follow/Protect
@@ -323,6 +342,7 @@ public class RecruitCommanderUtil {
      * @param direction  The direction value.
      */
     public static void setRecruitsMoveToDirection(List<AbstractRecruitEntity> recruits, Vec3 direction){
+        if(recruits == null || recruits.isEmpty()) return;
         for (AbstractRecruitEntity recruit : recruits) {
             Vec3 pos = recruit.position().add(direction.scale(20));
             BlockPos blockPos = FormationUtils.getPositionOrSurface(

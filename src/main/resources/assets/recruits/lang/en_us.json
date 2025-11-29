@@ -291,7 +291,7 @@
   "gui.recruits.inv.text.infomode.hostiles": "Hostiles",
   "gui.recruits.inv.text.infomode.all": "All",
   "gui.recruits.inv.text.assign_recruits": "Assign Recruits",
-  "gui.recruits.inv.tooltip.assign_recruits": "All assigned recruits will be removed from command",
+  "gui.recruits.inv.tooltip.assign_recruits": "All recruits in the group will be assigned to this commander",
   "chat.recruits.team_creation.canNotAddOtherLeader": "You can not add a other leader to your Faction.",
   "chat.recruits.team_creation.playerLeftTeamLeader": "%s has left your Faction.",
   "gui.recruits.inv.tooltip.patrol_leader_fast": "Set the patrolling speed.",

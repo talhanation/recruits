@@ -1932,6 +1932,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if(!this.getOwnerUUID().equals(this.getGroup().getPlayerUUID())){
                 this.assignToPlayer((ServerPlayer) this.getOwner(), this.getGroup().getPlayerUUID(), group);
             }
+
+            if(this.getGroup().leaderUUID != null){
+                List<AbstractLeaderEntity> leader = this.getCommandSenderWorld().getEntitiesOfClass(AbstractLeaderEntity.class, this.getBoundingBox().inflate(100));
+
+            }
         }
 
         this.needsTeamUpdate = true;

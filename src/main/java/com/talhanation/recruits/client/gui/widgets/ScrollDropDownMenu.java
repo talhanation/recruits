@@ -35,7 +35,7 @@ public class ScrollDropDownMenu<T> extends AbstractWidget {
     private boolean isScrolling = false; // Whether the scrollbar is being dragged
     private int scrollbarWidth = 6; // Width of the scrollbar
     private int scrollbarHandleHeight; // Height of the scrollbar handle
-
+    public boolean canSelect = true;
     public ScrollDropDownMenu(T selectedOption, int x, int y, int width, int height, List<T> options, Function<T, String> optionTextGetter, Consumer<T> onSelect) {
         super(x, y, width, height, Component.literal(""));
         this.selectedOption = selectedOption;
@@ -110,7 +110,7 @@ public class ScrollDropDownMenu<T> extends AbstractWidget {
 
     public void onMouseClick(double mouseX, double mouseY) {
         if(!visible) return;
-
+        if(!canSelect) return;
         if (isOpen) {
             // Check if the click is on the scrollbar
             if (isMouseOverScrollbar((int) mouseX, (int) mouseY)) {

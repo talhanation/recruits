@@ -54,6 +54,7 @@ public class RecruitsGroup {
     public int aggroState;
     public int followState;
     public UUID protectUUID;
+    public UUID leaderUUID;
     public boolean allowRanged;
     public boolean allowRest;
     public int groupMorale;
@@ -164,6 +165,7 @@ public class RecruitsGroup {
         tag.putBoolean("disabled", this.disabled);
         tag.putBoolean("removed", this.removed);
         tag.putInt("image", this.image);
+        if(leaderUUID != null) tag.putUUID("leaderUUID", this.leaderUUID);
 
         return tag;
     }
@@ -184,9 +186,14 @@ public class RecruitsGroup {
         boolean removed = tag.getBoolean("removed");
         DisbandContext disbandContext = DisbandContext.fromNBT(tag);
 
+
         RecruitsGroup group = new RecruitsGroup(name, playerUUID, playerName, size, disabled, image, disbandContext);
         group.uuid = uuid;
         group.removed = removed;
+
+        if(tag.contains("leaderUUID")){
+            group.leaderUUID = tag.getUUID("leaderUUID");
+        }
         return group;
     }
 

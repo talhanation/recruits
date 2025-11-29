@@ -1,5 +1,6 @@
 package com.talhanation.recruits.client.gui;
 
+import ca.weblite.objc.Client;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
@@ -88,8 +89,6 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private static final int fontColor = 4210752;
     private ForgeSlider waitSlider;
     private final int offset = 88;
-
-    private ScrollDropDownMenu<RecruitsGroup> groupSelectionDropDownMenu;
     public RecruitsGroup group;
     public PatrolLeaderScreen(PatrolLeaderContainer container, Inventory playerInventory, Component title) {
         super(RESOURCE_LOCATION, container, playerInventory, Component.literal(""));
@@ -132,19 +131,14 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private void setButtons(){
         this.clearWidgets();
 
+        RecruitsGroup recruitsGroup = ClientManager.groups.stream().filter(predicate -> recruit.getGroup().getUUID().equals(predicate.getUUID())).findFirst().get();
+        if(recruitsGroup != null && recruit.getUUID().equals(recruitsGroup.leaderUUID)){
+            this.group = recruitsGroup;
+        }
+
         this.setPageButtons();
         this.setWaypointButtons();
         this.setCoordinatesBoxes();
-
-        groupSelectionDropDownMenu = new ScrollDropDownMenu<>(group, leftPos + 80 + 7 + 5,topPos + 100,  80, 20, ClientManager.groups,
-                RecruitsGroup::getName,
-                (selected) ->{
-                    this.group = selected;
-                    this.setGroup(recruit.getGroup());
-                }
-        );
-        groupSelectionDropDownMenu.setBgFillSelected(FastColor.ARGB32.color(255, 139, 139, 139));
-        addRenderableWidget(groupSelectionDropDownMenu);
 
         Component startString;
         Component startToolTip;
@@ -184,11 +178,9 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         }
         this.setNotificationButton(infoModeString);
 
-
-        Component fastPatrollingString = fastPatrolling ? BUTTON_FAST : BUTTON_NORMAL;
-        this.setFastPatrollingButton(fastPatrollingString);
-
         setInfoButton();
+
+        setAssignButton();
     }
 
 
@@ -208,25 +200,28 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
             this.onClose();
         }));
     }
-    private void setGroup(RecruitsGroup group){
-        this.group = group;
-
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageRemoveAssignedGroupFromCompanion(player.getUUID(), this.recruit.getUUID()));
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToCompanion(player.getUUID(), this.recruit.getUUID()));
-    }
     private void setAssignButton() {
         Button assignButton = addRenderableWidget(new ExtendedButton(leftPos + 216, topPos + 140, 107, 20, BUTTON_ASSIGN_RECRUITS, button -> {
+                this.group = recruit.getGroup();
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToCompanion(player.getUUID(), this.recruit.getUUID()));
 
+                setButtons();
             }
         ));
         assignButton.setTooltip(Tooltip.create(TOOLTIP_ASSIGN_RECRUITS));
+        assignButton.active = recruit.getGroup() != null && !recruit.getUUID().equals(recruit.getGroup().leaderUUID);
 
         Button removeButton = addRenderableWidget(new ExtendedButton(leftPos + 216, topPos + 165, 107, 20, BUTTON_REMOVE_ASSIGNED_RECRUITS, button -> {
-
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageRemoveAssignedGroupFromCompanion(player.getUUID(), this.recruit.getUUID()));
+            group.leaderUUID = null;
+            this.group = null;
+            setButtons();
         }
         ));
 
         removeButton.setTooltip(Tooltip.create(TOOLTIP_REMOVE));
+        removeButton.active = this.group != null;
+
     }
 
     private void setCoordinatesBoxes() {
@@ -261,15 +256,6 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         addRenderableWidget(textBoxZ);
     }
 
-    @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        super.render(guiGraphics, mouseX, mouseY, partialTicks);
-
-        if (groupSelectionDropDownMenu != null) {
-            groupSelectionDropDownMenu.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
-        }
-    }
-
     private void setWaitTimeSlider() {
         int minValue = 0;
         int maxValue = 30;
@@ -296,20 +282,6 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
         }
         else
             cycleButton.active = (state == AbstractLeaderEntity.State.STOPPED || state == AbstractLeaderEntity.State.IDLE);
-    }
-
-    public void setFastPatrollingButton(Component cycle) {
-        Button buttonFastPatrolling = addRenderableWidget(new ExtendedButton(leftPos + 216, topPos + 92, 50, 20, cycle,
-                button -> {
-                    this.fastPatrolling = !this.fastPatrolling;
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetPatrollingSpeed(this.recruit.getUUID(), this.fastPatrolling));
-
-                    this.setButtons();
-                }
-
-        ));
-        buttonFastPatrolling.active = false;
-        buttonFastPatrolling.setTooltip(Tooltip.create(TOOLTIP_FAST_PATROLLING));
     }
     public void setStartButtons(Component start, Component tooltip) {
         Button startButton = addRenderableWidget(new ExtendedButton(leftPos + 19, topPos + 11, 40, 20, start,
@@ -346,23 +318,28 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
     protected void containerTick() {
         super.containerTick();
-        textBoxX.tick();
-        textBoxY.tick();
-        textBoxZ.tick();
+        if(textBoxX != null)textBoxX.tick();
+        if(textBoxY != null)textBoxY.tick();
+        if(textBoxZ != null)textBoxZ.tick();
     }
 
-    public boolean mouseClicked(double p_100753_, double p_100754_, int p_100755_) {
-        if (this.textBoxX.isFocused()) {
-            this.textBoxX.mouseClicked(p_100753_, p_100754_, p_100755_);
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (textBoxX != null && this.textBoxX.isFocused()) {
+            this.textBoxX.mouseClicked(mouseX, mouseY, button);
+            return true;
         }
-        if (this.textBoxY.isFocused()) {
-            this.textBoxY.mouseClicked(p_100753_, p_100754_, p_100755_);
+        if (textBoxY != null && this.textBoxY.isFocused()) {
+            this.textBoxY.mouseClicked(mouseX, mouseY, button);
+            return true;
         }
-        if (this.textBoxZ.isFocused()) {
-            this.textBoxZ.mouseClicked(p_100753_, p_100754_, p_100755_);
+        if (textBoxZ != null && this.textBoxZ.isFocused()) {
+            this.textBoxZ.mouseClicked(mouseX, mouseY, button);
+            return true;
         }
-        return super.mouseClicked(p_100753_, p_100754_, p_100755_);
+        return super.mouseClicked(mouseX, mouseY, button);
     }
+
     @Override
     public boolean mouseReleased(double p_97812_, double p_97813_, int p_97814_) {
         //if(this.recruit != null)
@@ -444,6 +421,9 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         super.renderLabels(guiGraphics, mouseX, mouseY);
+
+        String name = this.group != null ? this.group.getName() : "Not Assigned";
+        guiGraphics.drawString(font, "Group: " + name, offset + 220, 106, fontColor, false);
         guiGraphics.drawString(font, "Recruit in Oder: " + recruitsSize, offset + 220, 122, fontColor, false);
         guiGraphics.drawString(font, "x: ",  offset + 20, 42, fontColor, false);
         guiGraphics.drawString(font, "y: ",  offset + 80, 42, fontColor, false);
