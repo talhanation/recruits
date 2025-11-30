@@ -75,8 +75,6 @@ public class NobleTradeScreen extends RecruitsScreenBase {
     @Override
     protected void init() {
         super.init();
-        this.findVillagers();
-
         if (this.tradeList != null) {
             this.removeWidget(this.tradeList);
         }
@@ -96,8 +94,6 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         this.tradeList.setLeftPos(listLeft);
         this.tradeList.setRenderSelection(false);
 
-        this.loadTrades();
-
         this.addRenderableWidget(this.tradeList);
 
         this.hireButton = this.addRenderableWidget(new ExtendedButton(guiLeft + 97, guiTop + 53, 75, 20, HIRE_BUTTON,
@@ -108,20 +104,16 @@ public class NobleTradeScreen extends RecruitsScreenBase {
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), villager.getUUID(), selection, group, true, false));
 
                         this.selection.uses -= 1;
-                        this.updateHireButtonState();
-                        this.loadTrades();
                     }
                 }
                 else {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), UUID.randomUUID(), selection, group, false, false));
                     this.selection.uses -= 1;
-                    this.updateHireButtonState();
-                    this.loadTrades();
                 }
             }
         ));
-        this.hireButton.active = false;
-        updateHireButtonState();
+
+
         this.descriptionBox = new RecruitsMultiLineEditBox(font, guiLeft + 98, guiTop + 91, 150, 97, Component.empty(), Component.empty());
         this.descriptionBox.setValue(description.getString());
         this.descriptionBox.setEnableEditing(false);
@@ -147,7 +139,6 @@ public class NobleTradeScreen extends RecruitsScreenBase {
                 }
             ));
         }
-
     }
 
     public boolean isPlayerFactionLeader(){
@@ -175,6 +166,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         }
         if(this.descriptionBox != null) descriptionBox.tick();
         this.loadTrades();
+        this.updateHireButtonState();
     }
 
     private void loadTrades(){
@@ -214,8 +206,6 @@ public class NobleTradeScreen extends RecruitsScreenBase {
                 .filter(v -> v.getVillagerData().getProfession().equals(VillagerProfession.NONE) && !v.isBaby())
                 .sorted(Comparator.comparing(v -> v.distanceTo(this.player)))
                 .collect(Collectors.toList());
-
-        this.updateHireButtonState();
     }
 
     @Override
@@ -290,10 +280,15 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         }
 
         int playerMoney = getPlayerCurrencyAmount();
+        boolean hasMoney = (playerMoney >= selection.cost || player.isCreative());
+        boolean hasVillager = true;
 
-        this.hireButton.active = (playerMoney >= selection.cost || player.isCreative())
-                && selection.uses > 0
-                && (!ClientManager.configValueNobleNeedsVillagers || !villagerList.isEmpty());
+        if(ClientManager.configValueNobleNeedsVillagers){
+            hasVillager = villagerList != null && villagerList.size() > 2;
+        }
+
+
+        this.hireButton.active = selection.uses > 0 && hasMoney && hasVillager;
     }
 
     private int getPlayerCurrencyAmount(){
@@ -434,7 +429,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
     private List<HireError> getErrors() {
         List<HireError> errorList = new ArrayList<>();
 
-        if(villagerList != null && villagerList.size() > 2 && ClientManager.configValueNobleNeedsVillagers){
+        if(ClientManager.configValueNobleNeedsVillagers && villagerList == null || villagerList.size() < 2){
             errorList.add(HireError.NOT_ENOUGH_VILLAGERS_NEARBY);
         }
         else if(selection != null){

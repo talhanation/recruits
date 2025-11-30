@@ -159,9 +159,9 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
 
         AbstractRecruitEntity.applySpawnValues(this);
 
-        this.setupTraderType();
+        this.needsNewTrades = true;
 
-        this.setupTrades();
+        this.setupTraderType();
     }
 
     @Override
@@ -196,6 +196,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
         this.addTraderProgress(20);
     }
     public void setupTrades() {
+        if(this.getCommandSenderWorld().isClientSide()) return;
         List<RecruitsHireTrade> possibleTrades = RecruitsHireTradesRegistry.getTrades(this.getTraderType(), this.getTraderLevel());
         if (possibleTrades == null || possibleTrades.isEmpty()) return;
 
@@ -312,7 +313,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
 
         trade.uses -= 1;
 
-        //addTraderProgress(trade.minLevel * 10);
+        addTraderProgress(15);
 
         this.setTrades(list);
     }
