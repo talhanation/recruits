@@ -94,7 +94,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     public void updateGroups(){
         if(ClientManager.groups == null || ClientManager.groups.isEmpty()) return;
 
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(200)));
+        List<AbstractRecruitEntity> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(100)));
         list.removeIf(recruit -> !recruit.isEffectedByCommand(player.getUUID()));
 
         Map<UUID, Integer> groupCounts = new HashMap<>();
@@ -107,6 +107,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         }
 
         for (RecruitsGroup group : ClientManager.groups) {
+            group.setCount(0);
             if (groupCounts.containsKey(group.getUUID())) {
                 group.setCount(groupCounts.get(group.getUUID()));
             }
