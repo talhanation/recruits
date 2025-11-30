@@ -277,6 +277,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
         int costs = recruit.getCost();
         double hunger = recruit.getHunger();
         RecruitsGroup group = recruit.getGroup();
+        String groupName = group != null ? group.getName() : "null";
         String team = recruit.getTeam() != null ? recruit.getTeam().getName() : "null";
 
         int k = 30;//rechst links
@@ -402,7 +403,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
         guiGraphics.drawString(font, ""+ costs, k + 90 + 80, l + 40, fontColor, false);
 
         guiGraphics.drawString(font, "Group:", k + 43 + 80, l + 50, fontColor, false);
-        guiGraphics.drawString(font, ""+ group.getName(), k + 90 + 80, l + 50, fontColor, false);
+        guiGraphics.drawString(font, groupName, k + 90 + 80, l + 50, fontColor, false);
 
         guiGraphics.drawString(font, "Follow:", k + 43 + 80, l + 60, fontColor, false);
         guiGraphics.drawString(font, ""+ follow, k + 90 + 80, l + 60, fontColor, false);
