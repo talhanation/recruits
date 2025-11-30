@@ -196,7 +196,15 @@ public class VillagerEvents {
             }
 
             Component name = villager.getCustomName();
-            if(name  != null) abstractRecruit.setCustomName(name);
+            if(name != null) abstractRecruit.setCustomName(name);
+
+            if(abstractRecruit instanceof ICompanion){
+                for(int i = 0; i < 4; i++){
+                    abstractRecruit.addXp(RecruitsServerConfig.RecruitsMaxXpForLevelUp.get()); abstractRecruit.checkLevel();
+                }
+            }
+
+            abstractRecruit.setCustomName(name);
 
             villager.getCommandSenderWorld().addFreshEntity(abstractRecruit);
             if(RecruitsServerConfig.RecruitTablesPOIReleasing.get()) villager.releasePoi(MemoryModuleType.JOB_SITE);
