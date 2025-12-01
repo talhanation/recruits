@@ -132,6 +132,12 @@ public class VillagerEvents {
                 abstractRecruit.getInventory().addItem(itemStack);
             }
 
+            if(abstractRecruit instanceof ICompanion){
+                for(int i = 0; i < 4; i++){
+                    abstractRecruit.addXp(RecruitsServerConfig.RecruitsMaxXpForLevelUp.get()); abstractRecruit.checkLevel();
+                }
+            }
+
             Component name = villager.getCustomName();
             if(name  != null) abstractRecruit.setCustomName(name);
 
@@ -190,13 +196,14 @@ public class VillagerEvents {
 
             abstractRecruit.initSpawn();
             abstractRecruit.setFollowState(1);
+            abstractRecruit.setGroup(group);
 
             for(ItemStack itemStack : villager.getInventory().items){
                 abstractRecruit.getInventory().addItem(itemStack);
             }
 
             Component name = villager.getCustomName();
-            if(name != null) abstractRecruit.setCustomName(name);
+            if(name != null && !name.getString().isEmpty()) abstractRecruit.setCustomName(name);
 
             if(abstractRecruit instanceof ICompanion){
                 for(int i = 0; i < 4; i++){
@@ -221,8 +228,15 @@ public class VillagerEvents {
         if (abstractRecruit != null && abstractRecruit.hire(player,null)) {
             abstractRecruit.copyPosition(player);
 
+            if(abstractRecruit instanceof ICompanion){
+                for(int i = 0; i < 4; i++){
+                    abstractRecruit.addXp(RecruitsServerConfig.RecruitsMaxXpForLevelUp.get()); abstractRecruit.checkLevel();
+                }
+            }
+
             abstractRecruit.initSpawn();
             abstractRecruit.setFollowState(1);
+            abstractRecruit.setGroup(group);
 
             player.getCommandSenderWorld().addFreshEntity(abstractRecruit);
 
