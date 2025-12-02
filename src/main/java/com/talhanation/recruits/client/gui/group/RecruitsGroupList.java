@@ -13,10 +13,10 @@ import java.util.Locale;
 
 public class RecruitsGroupList extends ListScreenListBase<RecruitsGroupEntry> {
 
-    protected RecruitsGroupListScreen screen;
+    protected IGroupSelection screen;
     protected final List<RecruitsGroupEntry> entries;
     protected String filter;
-    public RecruitsGroupList(int width, int height, int x, int y, int size, RecruitsGroupListScreen screen) {
+    public RecruitsGroupList(int width, int height, int x, int y, int size, IGroupSelection screen) {
         super(width, height, x, y, size);
         this.screen = screen;
         this.entries = Lists.newArrayList();

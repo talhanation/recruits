@@ -122,7 +122,9 @@ public class RecruitsGroup {
     public String getName() {
         return name;
     }
-
+    public void setSize(int x) {
+        this.size = x;
+    }
     public int getSize() {
         return size;
     }

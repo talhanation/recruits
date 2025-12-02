@@ -37,7 +37,7 @@ public class MessageAssignRecruitToPlayer implements Message<MessageAssignRecrui
 
         for (AbstractRecruitEntity recruit : list) {
             if(recruit.getUUID().equals(this.recruit)){
-                recruit.assignToPlayer(serverPlayer, newOwner, null);
+                recruit.assignToPlayer(newOwner, null);
                 FactionEvents.notifyPlayer(serverLevel, new RecruitsPlayerInfo(newOwner, ""), 0, serverPlayer.getName().getString());
                 break;
             }

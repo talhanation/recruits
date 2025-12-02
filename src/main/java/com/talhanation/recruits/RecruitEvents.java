@@ -173,6 +173,20 @@ public class RecruitEvents {
             }
         }
     }
+
+    public static void serverSideRecruitGroup(ServerLevel level){
+        List<AbstractRecruitEntity> recruitList = new ArrayList<>();
+        for(Entity entity : level.getEntities().getAll()){
+            if(entity instanceof AbstractRecruitEntity recruit)
+                recruitList.add(recruit);
+        }
+        for(AbstractRecruitEntity recruit : recruitList){
+            recruit.updateGroup();
+        }
+
+        recruitsGroupsManager.save(level);
+    }
+
     private static final Set<Projectile> canceledProjectiles = new HashSet<>();
 
     @SubscribeEvent

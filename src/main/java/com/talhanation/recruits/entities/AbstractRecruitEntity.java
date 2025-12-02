@@ -94,7 +94,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Boolean> IS_FOLLOWING = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Optional<UUID>> MOUNT_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Optional<UUID>> PROTECT_ID = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
-    private static final EntityDataAccessor<CompoundTag> GROUP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.COMPOUND_TAG);
+    private static final EntityDataAccessor<Optional<UUID>> GROUP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Integer> XP = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> LEVEL = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> KILLS = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.INT);
@@ -137,7 +137,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.targetingConditions = TargetingConditions.forCombat().ignoreInvisibilityTesting().selector(this::shouldAttack);
         this.setMaxUpStep(1F);
         this.setMaxFallDistance(1);
-        this.updateGroup();
     }
 
     ///////////////////////////////////NAVIGATION/////////////////////////////////////////
@@ -337,7 +336,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(DATA_REMAINING_ANGER_TIME, 0);
-        this.entityData.define(GROUP, new CompoundTag());
+        this.entityData.define(GROUP, Optional.empty());
         this.entityData.define(SHOULD_FOLLOW, false);
         this.entityData.define(SHOULD_BLOCK, false);
         this.entityData.define(SHOULD_MOUNT, false);
@@ -394,7 +393,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putBoolean("ShouldMount", this.getShouldMount());
         nbt.putBoolean("ShouldProtect", this.getShouldProtect());
         nbt.putBoolean("ShouldBlock", this.getShouldBlock());
-        if(this.getGroup() != null)nbt.put("Group", this.getGroup().toNBT());
+        if(this.getGroup() != null) nbt.putUUID("Group", this.getGroup());
         nbt.putInt("Variant", this.getVariant());
         nbt.putBoolean("Listen", this.getListen());
         nbt.putBoolean("Fleeing", this.getFleeing());
@@ -660,9 +659,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     // 1 = AGGRESSIVE
     // 2 = RAID
     // 3 = PASSIVE
-
-    public RecruitsGroup getGroup() {
-        return RecruitsGroup.fromNBT(entityData.get(GROUP));
+    public UUID getGroup(){
+        return getGroupUUID().isPresent() ? getGroupUUID().get() : null;
+    }
+    public Optional<UUID> getGroupUUID() {
+        return this.entityData.get(GROUP);
     }
 
 
@@ -820,7 +821,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
 
         if(this.getGroup() != null){
-            RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(this.getGroup().getUUID());
+            RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(this.getGroup());
             if(group == null) return;
 
             group.decreaseSize();
@@ -892,10 +893,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void setGroup(RecruitsGroup group){
-        CompoundTag tag = new CompoundTag();
-        if(group != null) tag = group.toNBT();
+        this.setGroupUUID(group.getUUID());
+    }
 
-        entityData.set(GROUP, tag);
+    public void setGroupUUID(UUID uuid){
+        entityData.set(GROUP, Optional.of(uuid));
     }
     public void setShouldRest(boolean bool){
         if(bool) setFollowState(0);
@@ -1125,7 +1127,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             return true;
         }
 
-        return this.getGroup() != null && this.getGroup().getUUID().equals(group);
+        return this.getGroup() != null && this.getGroup().equals(group);
     }
     public boolean isOwned(){
         return getIsOwned();
@@ -1398,7 +1400,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     FactionEvents.recruitsFactionManager.getTeamByStringID(this.getTeam().getName()).addNPCs(-1);
                 }
                 if(this.getGroup() != null){
-                    RecruitEvents.recruitsGroupsManager.decreaseSize(this.getGroup().getUUID(), (ServerLevel) this.getCommandSenderWorld());
+                    RecruitEvents.recruitsGroupsManager.decreaseSize(this.getGroup(), (ServerLevel) this.getCommandSenderWorld());
                 }
             }
         }
@@ -1912,31 +1914,30 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void updateGroup() {
-        if(this.getCommandSenderWorld().isClientSide()) return;
-        if(this.getGroup() == null) return;
+        if (this.getCommandSenderWorld().isClientSide()) return;
+        if (this.getGroup() == null) return;
 
-        RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(this.getGroup().getUUID());
+        UUID rawGroupUUID = this.getGroup();
 
-        if(group != null) {
-            if(group.disbandContext != null && group.disbandContext.disband){
-                this.disband(null, group.disbandContext.keepTeam, group.disbandContext.increaseCost);
-                this.needsTeamUpdate = true;
-                return;
-            }
+        UUID resolvedUUID = RecruitEvents.recruitsGroupsManager.resolve(rawGroupUUID);
 
-            if(!group.removed) this.setGroup(group);
-            //this.setUpkeepPos(this.getGroup().upkeep);
-            //this.setFollowState(this.getGroup().followState);
-            //this.setAggroState(this.getGroup().aggroState);
+        if (!resolvedUUID.equals(rawGroupUUID)) {
+            this.setGroupUUID(resolvedUUID);
+        }
 
-            if(!this.getOwnerUUID().equals(this.getGroup().getPlayerUUID())){
-                this.assignToPlayer((ServerPlayer) this.getOwner(), this.getGroup().getPlayerUUID(), group);
-            }
 
-            if(this.getGroup().leaderUUID != null){
-                List<AbstractLeaderEntity> leader = this.getCommandSenderWorld().getEntitiesOfClass(AbstractLeaderEntity.class, this.getBoundingBox().inflate(100));
+        RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(resolvedUUID);
 
-            }
+        this.setGroup(group);
+
+        if (group.disbandContext != null && group.disbandContext.disband) {
+            this.disband(null, group.disbandContext.keepTeam, group.disbandContext.increaseCost);
+            this.needsTeamUpdate = true;
+            return;
+        }
+
+        if (!this.getOwnerUUID().equals(group.getPlayerUUID())) {
+            this.assignToPlayer(group.getPlayerUUID(), group.getUUID());
         }
 
         this.needsTeamUpdate = true;
@@ -1965,24 +1966,22 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
-    public void assignToPlayer(ServerPlayer oldOwner, UUID newOwner, RecruitsGroup group){
-        if(this.getGroup() != null){
-            RecruitsGroup recruitsGroup = this.getGroup();
-            if(recruitsGroup != null) {
-                RecruitsGroup currentGroup = RecruitEvents.recruitsGroupsManager.getGroup(recruitsGroup.getUUID());
-                if(currentGroup == null) return;
-                currentGroup.decreaseSize();
-            }
+    public void assignToPlayer(UUID newOwner, UUID newGroupUUID){
+        RecruitsGroup currentGroup = RecruitEvents.recruitsGroupsManager.getGroup(this.getGroup());
+        if(currentGroup != null){
+            currentGroup.decreaseSize();
         }
 
-        this.setGroup(null);
+        this.setGroupUUID(newGroupUUID);
+        RecruitsGroup newGroup = RecruitEvents.recruitsGroupsManager.getGroup(newGroupUUID);
+        if(newGroup == null) return;
 
         this.disband(null, false, false);
 
         this.setOwnerUUID(Optional.of(newOwner));
 
         if(getOwner() != null){
-            this.hire(getOwner(), group);
+            this.hire(getOwner(), newGroup);
             this.setFollowState(1);
         }
     }

@@ -24,10 +24,10 @@ public class RecruitsGroupEntry extends ListScreenEntryBase<RecruitsGroupEntry> 
     protected static final int PLAYER_NAME_COLOR = FastColor.ARGB32.color(255, 255, 255, 255);
 
     protected final Minecraft minecraft;
-    protected final RecruitsGroupListScreen screen;
+    protected final IGroupSelection screen;
     protected final @NotNull RecruitsGroup group;
     protected ResourceLocation image;
-    public RecruitsGroupEntry(RecruitsGroupListScreen screen, @NotNull RecruitsGroup group) {
+    public RecruitsGroupEntry(IGroupSelection screen, @NotNull RecruitsGroup group) {
         this.minecraft = Minecraft.getInstance();
         this.screen = screen;
         this.group = group;
@@ -73,7 +73,7 @@ public class RecruitsGroupEntry extends ListScreenEntryBase<RecruitsGroupEntry> 
 
     @Override
     public ListScreenListBase<RecruitsGroupEntry> getList() {
-        return screen.groupList;
+        return screen.getGroupList();
     }
 }
 

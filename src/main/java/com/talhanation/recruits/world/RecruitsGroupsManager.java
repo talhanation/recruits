@@ -1,6 +1,7 @@
 package com.talhanation.recruits.world;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.network.MessageToClientUpdateGroups;
 import net.minecraft.server.level.ServerLevel;
@@ -13,15 +14,21 @@ import java.util.*;
 
 public class RecruitsGroupsManager {
     private final List<RecruitsGroup> groups = new ArrayList<>();
+    private final Map<UUID, UUID> redirects = new HashMap<>();
     public void load(ServerLevel level) {
         RecruitsGroupsSaveData data = RecruitsGroupsSaveData.get(level);
         groups.clear();
         groups.addAll(data.getAllGroups());
+
+        redirects.clear();
+        redirects.putAll(data.getRedirects());
     }
 
     public void save(ServerLevel level) {
         RecruitsGroupsSaveData data = RecruitsGroupsSaveData.get(level);
         data.setAllGroups(groups);
+        data.setRedirects(redirects);
+
         data.setDirty();
     }
     public void addOrUpdateGroup(ServerLevel level, ServerPlayer player, RecruitsGroup group) {
@@ -103,8 +110,11 @@ public class RecruitsGroupsManager {
         return groups;
     }
 
-    public void assignGroupToPlayer(ServerPlayer owner, UUID newOwner, UUID group){
+    public void assignRecruitToGroup(AbstractRecruitEntity recruit) {
+        recruit.getGroup();
 
+
+        recruit.updateGroup();
     }
 
     public void broadCastGroupsToPlayer(ServerLevel level, UUID playerUUID) {
@@ -132,6 +142,30 @@ public class RecruitsGroupsManager {
                 new RecruitsGroup("Cavalry", player, 5),
                 new RecruitsGroup("Ranged Cavalry", player, 6)
         );
+    }
+
+    public void addRedirect(UUID oldId, UUID newId) {
+        redirects.put(oldId, newId);
+    }
+
+    public UUID resolve(UUID uuid) {
+        while (redirects.containsKey(uuid)) {
+            uuid = redirects.get(uuid);
+        }
+        return uuid;
+    }
+
+    public void mergeGroups(RecruitsGroup groupToMerge, RecruitsGroup baseGroup) {
+        int newSize = baseGroup.getSize() + groupToMerge.getSize();
+        baseGroup.setSize(newSize);
+
+        addRedirect(groupToMerge.getUUID(), baseGroup.getUUID());
+
+        removeGroup(groupToMerge);
+    }
+
+    public void splitGroup(RecruitsGroup groupToSplit) {
+        RecruitsGroup newGroup = groupToSplit.copy();
     }
 }
 

@@ -188,7 +188,10 @@ public class Main {
                 MessageAttack.class,
                 MessageToClientUpdateUnitInfo.class,
                 MessageToClientUpdateGroups.class,
-                MessageUpdateGroup.class
+                MessageUpdateGroup.class,
+                MessageMergeGroup.class,
+                MessageSplittGroup.class,
+                MessagePutNearbyRecruitsInGroup.class
         };
 
 
