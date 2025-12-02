@@ -9,6 +9,7 @@ import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
 import com.talhanation.recruits.client.gui.widgets.ImageSelectionDropdownMatrix;
 import com.talhanation.recruits.network.MessageAssignGroupToPlayer;
 import com.talhanation.recruits.network.MessageDisbandGroup;
+import com.talhanation.recruits.network.MessageMergeGroup;
 import com.talhanation.recruits.network.MessageUpdateGroup;
 import com.talhanation.recruits.world.RecruitsGroup;
 import net.minecraft.client.Minecraft;
@@ -46,10 +47,15 @@ public class EditOrAddGroupScreen extends Screen {
     private static final MutableComponent TEXT_ADD_TITLE = Component.translatable("gui.recruits.groups.add_title");
     private static final MutableComponent DISBAND_GROUP = Component.translatable("gui.recruits.inv.text.disbandGroup");
     private static final MutableComponent TOOLTIP_DISBAND_GROUP = Component.translatable("gui.recruits.inv.tooltip.disbandGroup");
-    private static final MutableComponent TEAM_MATE_GROUP = Component.translatable("gui.recruits.team.assignNewOwner");
+    private static final MutableComponent ASSIGN_GROUP_TO_PLAYER = Component.translatable("gui.recruits.team.assignNewOwner");
+    private static final MutableComponent BUTTON_MERGE = Component.translatable("gui.recruits.groups.merge");
+    private static final MutableComponent BUTTON_SPLIT = Component.translatable("gui.recruits.groups.split");
+    private static final MutableComponent TITLE_MERGE_GROUP = Component.translatable("gui.recruits.groups.merge_title");
+    private static final MutableComponent TOOLTIP_MERGE_GROUP = Component.translatable("gui.recruits.groups.tooltip.merge");
     private ImageSelectionDropdownMatrix imageDropdownMatrix;
     private ResourceLocation image;
     private final Player player;
+
     public EditOrAddGroupScreen(RecruitsGroupListScreen parent) {
         this(parent, null);
     }
@@ -115,21 +121,48 @@ public class EditOrAddGroupScreen extends Screen {
         buttonDisbandGroup.active = groupToEdit != null;
         addRenderableWidget(buttonDisbandGroup);
 
-
-        Button buttonAssignGroup = new ExtendedButton(leftPos + 10, topPos + 75, 180, 20, TEAM_MATE_GROUP,
+        Button buttonAssignGroup = new ExtendedButton(leftPos + 10, topPos + 75, 180, 20, ASSIGN_GROUP_TO_PLAYER,
                 btn -> {
-                    minecraft.setScreen(new SelectPlayerScreen(this, player, TEAM_MATE_GROUP, TEAM_MATE_GROUP, TOOLTIP_ASSIGN_GROUP_TO_PLAYER, false, PlayersList.FilterType.NONE,
-                            (playerInfo) -> {
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToPlayer(this.player.getUUID(), playerInfo, this.groupToEdit.getUUID()));
-                                onClose();
-                            } )
+                    minecraft.setScreen(new SelectPlayerScreen(this, player, ASSIGN_GROUP_TO_PLAYER, ASSIGN_GROUP_TO_PLAYER, TOOLTIP_ASSIGN_GROUP_TO_PLAYER, false, PlayersList.FilterType.NONE,
+                        (playerInfo) -> {
+                            Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToPlayer(this.player.getUUID(), playerInfo, this.groupToEdit.getUUID()));
+                            onClose();
+                        } )
                     );
                 }
         );
         buttonAssignGroup.active = groupToEdit != null;
         addRenderableWidget(buttonAssignGroup);
-    }
 
+        Button mergeButton = new ExtendedButton(leftPos + 10, topPos + 95, 180, 20, BUTTON_MERGE,
+            btn -> {
+                minecraft.setScreen(new SelectGroupScreen(this, groupToEdit, TITLE_MERGE_GROUP, BUTTON_MERGE, TOOLTIP_MERGE_GROUP,
+                        (selectedGroup) -> {
+                            Main.SIMPLE_CHANNEL.sendToServer(new MessageMergeGroup(this.groupToEdit.getUUID(), selectedGroup.getUUID()));
+                        })
+                );
+            }
+        );
+        mergeButton.active = groupToEdit != null;
+        addRenderableWidget(mergeButton);
+
+        Button splitButton = new ExtendedButton(leftPos + 10, topPos + 115, 180, 20, BUTTON_SPLIT,
+            btn -> {
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageSplitGroup(this.groupToEdit.getUUID()));
+            }
+        );
+        splitButton.active = groupToEdit != null;
+        addRenderableWidget(splitButton);
+
+        Button putRecruits = new ExtendedButton(leftPos + 10, topPos + 75, 180, 20, ASSIGN_GROUP_TO_PLAYER,
+            btn -> {
+                Main.SIMPLE_CHANNEL.sendToServer(new MessagePutNearbyRecruitsInGroup(this.groupToEdit.getUUID()));
+            }
+        );
+
+        putRecruits.active = groupToEdit != null;
+        addRenderableWidget(putRecruits);
+    }
 
     private void setGroupImage(ResourceLocation resourceLocation){
         this.image = resourceLocation;
@@ -173,7 +206,6 @@ public class EditOrAddGroupScreen extends Screen {
         if(imageDropdownMatrix != null) imageDropdownMatrix.onMouseMove(x,y);
         super.mouseMoved(x, y);
     }
-
 
     @Override
     public boolean mouseClicked(double x, double y, int p_94697_) {
