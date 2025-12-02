@@ -54,7 +54,7 @@ public class MessageAssignGroupToPlayer implements Message<MessageAssignGroupToP
         );
 
         for(AbstractRecruitEntity recruit : list){
-            if(recruit.getGroup() != null && recruit.getGroup().getUUID().equals(groupUUID)){
+            if(recruit.getGroup() != null && recruit.getGroup().equals(groupUUID)){
                 recruit.setOwnerUUID(Optional.of(newOwner.getUUID()));
                 recruit.updateGroup();
             }

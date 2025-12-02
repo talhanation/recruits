@@ -131,7 +131,7 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     private void setButtons(){
         this.clearWidgets();
 
-        RecruitsGroup recruitsGroup = ClientManager.groups.stream().filter(predicate -> recruit.getGroup().getUUID().equals(predicate.getUUID())).findFirst().get();
+        RecruitsGroup recruitsGroup = ClientManager.groups.stream().filter(predicate -> recruit.getGroup().equals(predicate.getUUID())).findFirst().get();
         if(recruitsGroup != null && recruit.getUUID().equals(recruitsGroup.leaderUUID)){
             this.group = recruitsGroup;
         }
@@ -202,14 +202,14 @@ public class PatrolLeaderScreen extends ScreenBase<PatrolLeaderContainer> {
     }
     private void setAssignButton() {
         Button assignButton = addRenderableWidget(new ExtendedButton(leftPos + 216, topPos + 140, 107, 20, BUTTON_ASSIGN_RECRUITS, button -> {
-                this.group = recruit.getGroup();
+                this.group = ClientManager.getGroup(recruit.getGroup());
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToCompanion(player.getUUID(), this.recruit.getUUID()));
 
                 setButtons();
             }
         ));
         assignButton.setTooltip(Tooltip.create(TOOLTIP_ASSIGN_RECRUITS));
-        assignButton.active = recruit.getGroup() != null && !recruit.getUUID().equals(recruit.getGroup().leaderUUID);
+        assignButton.active = recruit.getGroup() != null && !recruit.getUUID().equals(ClientManager.getGroup(recruit.getGroup()).leaderUUID);
 
         Button removeButton = addRenderableWidget(new ExtendedButton(leftPos + 216, topPos + 165, 107, 20, BUTTON_REMOVE_ASSIGNED_RECRUITS, button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageRemoveAssignedGroupFromCompanion(player.getUUID(), this.recruit.getUUID()));

@@ -190,7 +190,7 @@ public class Main {
                 MessageToClientUpdateGroups.class,
                 MessageUpdateGroup.class,
                 MessageMergeGroup.class,
-                MessageSplittGroup.class,
+                MessageSplitGroup.class,
                 MessagePutNearbyRecruitsInGroup.class
         };
 

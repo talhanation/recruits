@@ -102,7 +102,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         for (AbstractRecruitEntity recruit : list) {
             if(recruit.getGroup() == null) continue;
 
-            UUID groupId = recruit.getGroup().getUUID();
+            UUID groupId = recruit.getGroup();
             groupCounts.put(groupId, groupCounts.getOrDefault(groupId, 0) + 1);
         }
 

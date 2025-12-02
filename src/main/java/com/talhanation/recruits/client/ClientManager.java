@@ -8,10 +8,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ClientManager {
     public static List<RecruitsClaim> recruitsClaims = new ArrayList<>();
@@ -47,5 +44,14 @@ public class ClientManager {
             return new RecruitsPlayerInfo(player.getUUID(), player.getName().getString(), ownFaction);
         }
        return null;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static RecruitsGroup getGroup(UUID groupUUID){
+        for(RecruitsGroup group : groups){
+            if(group.getUUID().equals(groupUUID)) return group;
+        }
+
+        return null;
     }
 }

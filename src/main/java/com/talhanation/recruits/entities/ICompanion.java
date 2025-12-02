@@ -54,7 +54,7 @@ public interface ICompanion {
         this.get().setIsOwned(true);
         if(recruit.getHoldPos() != null) get().setHoldPos(recruit.getHoldPos());
         if(recruit.getMovePos() != null) get().setMovePos(recruit.getMovePos());
-        this.get().setGroup(recruit.getGroup());
+        this.get().setGroupUUID(recruit.getGroup());
         this.get().setKills(recruit.getKills());
         this.get().setXp(recruit.getXp());
         this.get().setXpLevel(recruit.getXpLevel());

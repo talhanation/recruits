@@ -35,7 +35,7 @@ public class MessageApplyNoGroup implements Message<MessageApplyNoGroup> {
         ServerLevel serverLevel = (ServerLevel) player.getCommandSenderWorld();
 
         for(Entity entity : serverLevel.getEntities().getAll()){
-            if(entity instanceof AbstractRecruitEntity recruit && recruit.getGroup() != null && recruit.getGroup().getUUID().equals(groupID))
+            if(entity instanceof AbstractRecruitEntity recruit && recruit.getGroup() != null && recruit.getGroup().equals(groupID))
                 recruitList.add(recruit);
         }
 

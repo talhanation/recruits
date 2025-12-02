@@ -40,10 +40,7 @@ public class MessageGroup implements Message<MessageGroup> {
     }
 
     public void setGroup(AbstractRecruitEntity recruit, ServerPlayer player, RecruitsGroup group){
-        RecruitsGroup recruitsGroup = recruit.getGroup();
-        RecruitsGroup oldGroup = null;
-
-        if(recruitsGroup != null) oldGroup = RecruitEvents.recruitsGroupsManager.getGroup(recruitsGroup.getUUID());
+        RecruitsGroup oldGroup = RecruitEvents.recruitsGroupsManager.getGroup(recruit.getGroup());
         RecruitsGroup newGroup = RecruitEvents.recruitsGroupsManager.getGroup(group.getUUID());
         if(oldGroup != null && newGroup != null && oldGroup.getUUID().equals(newGroup.getUUID())) return;
 

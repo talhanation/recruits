@@ -351,7 +351,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     protected void containerTick() {
         super.containerTick();
         if(ClientManager.groups != null && !ClientManager.groups.isEmpty() && !buttonsSet){
-            this.currentGroup = recruit.getGroup();
+            this.currentGroup = ClientManager.getGroup(recruit.getGroup());
 
             groupSelectionDropDownMenu = new ScrollDropDownMenu<>(currentGroup, leftPos + 77,topPos + 114,  93, 12, ClientManager.groups,
                 RecruitsGroup::getName,
@@ -362,7 +362,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
             );
             groupSelectionDropDownMenu.setBgFillSelected(FastColor.ARGB32.color(255, 139, 139, 139));
             groupSelectionDropDownMenu.visible = Minecraft.getInstance().player.getUUID().equals(recruit.getOwnerUUID());
-            groupSelectionDropDownMenu.canSelect = recruit.getGroup() == null || !recruit.getUUID().equals(recruit.getGroup().leaderUUID);
+            groupSelectionDropDownMenu.canSelect = recruit.getGroup() == null || !recruit.getUUID().equals(ClientManager.getGroup(recruit.getGroup()).leaderUUID);
             addRenderableWidget(groupSelectionDropDownMenu);
             this.buttonsSet = true;
         }

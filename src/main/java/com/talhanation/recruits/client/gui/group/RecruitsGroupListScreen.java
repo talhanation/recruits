@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
+import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
 import com.talhanation.recruits.network.MessageApplyNoGroup;
 import com.talhanation.recruits.network.MessageUpdateGroup;
 import com.talhanation.recruits.world.RecruitsGroup;
@@ -22,7 +23,7 @@ import net.minecraftforge.client.gui.widget.ExtendedButton;
 import java.util.Locale;
 
 @OnlyIn(Dist.CLIENT)
-public class RecruitsGroupListScreen extends ListScreenBase {
+public class RecruitsGroupListScreen extends ListScreenBase implements IGroupSelection {
 
     protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_player.png");
     protected static final Component TITLE = Component.translatable("gui.recruits.groups.title");
@@ -218,6 +219,11 @@ public class RecruitsGroupListScreen extends ListScreenBase {
 
     public RecruitsGroup getSelected(){
         return this.selected;
+    }
+
+    @Override
+    public ListScreenListBase<RecruitsGroupEntry> getGroupList() {
+        return this.groupList;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.talhanation.recruits.client.gui;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.network.MessageDebugGui;
@@ -276,7 +277,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
         double armor = recruit.getArmorValue();
         int costs = recruit.getCost();
         double hunger = recruit.getHunger();
-        RecruitsGroup group = recruit.getGroup();
+        RecruitsGroup group = ClientManager.getGroup(recruit.getGroup());
         String groupName = group != null ? group.getName() : "null";
         String team = recruit.getTeam() != null ? recruit.getTeam().getName() : "null";
 
