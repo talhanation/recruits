@@ -87,6 +87,8 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         int itemHeight = 40;
         int itemWidth = LIST_W - 10;
 
+        this.group = ClientManager.groups.get(ClientManager.groupSelection);
+
         this.tradeList = new TradeList(Minecraft.getInstance(), listWidth, listHeight, listTop, listBottom, itemHeight, itemWidth);
         this.tradeList.setRenderBackground(false);
         this.tradeList.setRenderTopAndBottom(false);
