@@ -49,6 +49,8 @@ public class EditOrAddGroupScreen extends Screen {
     private static final MutableComponent BUTTON_SPLIT = Component.translatable("gui.recruits.groups.split");
     private static final MutableComponent TITLE_MERGE_GROUP = Component.translatable("gui.recruits.groups.merge_title");
     private static final MutableComponent TOOLTIP_MERGE_GROUP = Component.translatable("gui.recruits.groups.tooltip.merge");
+    private static final MutableComponent BUTTON_NEARBY = Component.translatable("gui.recruits.groups.nearby");
+    private static final MutableComponent TOOLTIP_PUT_NEARBY = Component.translatable("gui.recruits.groups.tooltip.nearby");
     private ImageSelectionDropdownMatrix imageDropdownMatrix;
     private ResourceLocation image;
     private final Player player;
@@ -80,13 +82,13 @@ public class EditOrAddGroupScreen extends Screen {
     public void setWidgets(){
         clearWidgets();
 
-        groupNameField = new EditBox(this.font, leftPos + 10, topPos + 20, 150, 20, Component.literal(""));
+        groupNameField = new EditBox(this.font, leftPos + 7, topPos + 20, 150, 20, Component.literal(""));
         if (groupToEdit != null) {
             groupNameField.setValue(groupToEdit.getName());
         }
         this.addRenderableWidget(groupNameField);
 
-        this.addRenderableWidget(new ExtendedButton(leftPos + 10, topPos + 135, 90, 20, groupToEdit == null ? TEXT_ADD : TEXT_SAVE, button -> {
+        this.addRenderableWidget(new ExtendedButton(leftPos + 7, topPos + 135, 90, 20, groupToEdit == null ? TEXT_ADD : TEXT_SAVE, button -> {
             if (groupToEdit == null) {
                 addGroup();
             } else {
@@ -94,7 +96,7 @@ public class EditOrAddGroupScreen extends Screen {
             }
         }));
 
-        this.addRenderableWidget(new ExtendedButton(leftPos + 100, topPos + 135, 90, 20, TEXT_CANCEL, button -> {
+        this.addRenderableWidget(new ExtendedButton(leftPos + 97, topPos + 135, 90, 20, TEXT_CANCEL, button -> {
             this.minecraft.setScreen(this.parent);
         }));
         int index = groupToEdit != null ? groupToEdit.getImage() : 0;
@@ -105,7 +107,7 @@ public class EditOrAddGroupScreen extends Screen {
         );
         addRenderableWidget(imageDropdownMatrix);
 
-        Button buttonDisbandGroup = new ExtendedButton(leftPos + 10, topPos + 55, 180, 20, DISBAND_GROUP,
+        Button buttonDisbandGroup = new ExtendedButton(leftPos + 7, topPos + 55, 180, 20, DISBAND_GROUP,
             btn -> {
                 minecraft.setScreen(new ConfirmScreen(DISBAND_GROUP, TOOLTIP_KEEP_TEAM,
                         () ->  Main.SIMPLE_CHANNEL.sendToServer(new MessageDisbandGroup(this.player.getUUID(), this.groupToEdit.getUUID(), true)),
@@ -118,7 +120,7 @@ public class EditOrAddGroupScreen extends Screen {
         buttonDisbandGroup.active = groupToEdit != null;
         addRenderableWidget(buttonDisbandGroup);
 
-        Button buttonAssignGroup = new ExtendedButton(leftPos + 10, topPos + 75, 180, 20, ASSIGN_GROUP_TO_PLAYER,
+        Button buttonAssignGroup = new ExtendedButton(leftPos + 7, topPos + 75, 180, 20, ASSIGN_GROUP_TO_PLAYER,
                 btn -> {
                     minecraft.setScreen(new SelectPlayerScreen(this, player, ASSIGN_GROUP_TO_PLAYER, ASSIGN_GROUP_TO_PLAYER, TOOLTIP_ASSIGN_GROUP_TO_PLAYER, false, PlayersList.FilterType.NONE,
                         (playerInfo) -> {
@@ -131,32 +133,36 @@ public class EditOrAddGroupScreen extends Screen {
         buttonAssignGroup.active = groupToEdit != null;
         addRenderableWidget(buttonAssignGroup);
 
-        Button mergeButton = new ExtendedButton(leftPos + 10, topPos + 95, 180, 20, BUTTON_MERGE,
+        Button mergeButton = new ExtendedButton(leftPos + 7, topPos + 95, 90, 20, BUTTON_MERGE,
             btn -> {
                 minecraft.setScreen(new SelectGroupScreen(this, groupToEdit, TITLE_MERGE_GROUP, BUTTON_MERGE, TOOLTIP_MERGE_GROUP,
                         (selectedGroup) -> {
                             Main.SIMPLE_CHANNEL.sendToServer(new MessageMergeGroup(this.groupToEdit.getUUID(), selectedGroup.getUUID()));
+                            minecraft.setScreen(this.parent);
                         })
                 );
             }
         );
+        mergeButton.setTooltip(Tooltip.create(TOOLTIP_MERGE_GROUP));
         mergeButton.active = groupToEdit != null;
         addRenderableWidget(mergeButton);
 
-        Button splitButton = new ExtendedButton(leftPos + 10, topPos + 115, 180, 20, BUTTON_SPLIT,
+        Button splitButton = new ExtendedButton(leftPos + 97, topPos + 95, 90, 20, BUTTON_SPLIT,
             btn -> {
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageSplitGroup(this.groupToEdit.getUUID()));
+                minecraft.setScreen(this.parent);
             }
         );
         splitButton.active = groupToEdit != null;
         addRenderableWidget(splitButton);
 
-        Button putRecruits = new ExtendedButton(leftPos + 10, topPos + 75, 180, 20, ASSIGN_GROUP_TO_PLAYER,
+        Button putRecruits = new ExtendedButton(leftPos + 7, topPos + 115, 180, 20, BUTTON_NEARBY,
             btn -> {
-                Main.SIMPLE_CHANNEL.sendToServer(new MessagePutNearbyRecruitsInGroup(this.groupToEdit.getUUID()));
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignNearbyRecruitsInGroup(this.groupToEdit.getUUID()));
+                minecraft.setScreen(this.parent);
             }
         );
-
+        putRecruits.setTooltip(Tooltip.create(TOOLTIP_PUT_NEARBY));
         putRecruits.active = groupToEdit != null;
         addRenderableWidget(putRecruits);
     }
@@ -212,7 +218,7 @@ public class EditOrAddGroupScreen extends Screen {
     }
 
     private void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        guiGraphics.drawString(font, groupToEdit == null? TEXT_ADD_TITLE : TEXT_EDIT_TITLE, leftPos + 10  , topPos + 5, fontColor, false);
+        guiGraphics.drawString(font, groupToEdit == null? TEXT_ADD_TITLE : TEXT_EDIT_TITLE, leftPos + 7, topPos + 5, fontColor, false);
     }
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);

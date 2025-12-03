@@ -138,10 +138,10 @@ public class VillagerEvents {
                 }
             }
 
+            villager.getCommandSenderWorld().addFreshEntity(abstractRecruit);
             Component name = villager.getCustomName();
             if(name  != null) abstractRecruit.setCustomName(name);
 
-            villager.getCommandSenderWorld().addFreshEntity(abstractRecruit);
             if(RecruitsServerConfig.RecruitTablesPOIReleasing.get()) villager.releasePoi(MemoryModuleType.JOB_SITE);
             villager.releasePoi(MemoryModuleType.HOME);
             villager.releasePoi(MemoryModuleType.MEETING_POINT);
@@ -189,21 +189,20 @@ public class VillagerEvents {
         }
     }
 
-    public static void createHiredRecruitFromVillager(Villager villager, EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group){
+    public static void createHiredRecruitFromVillager(ServerLevel serverLevel, Villager villager, EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group){
         AbstractRecruitEntity abstractRecruit = recruitType.create(villager.getCommandSenderWorld());
         if (abstractRecruit != null && abstractRecruit.hire(player, group)) {
             abstractRecruit.copyPosition(villager);
 
+
             abstractRecruit.initSpawn();
             abstractRecruit.setFollowState(1);
             abstractRecruit.setGroup(group);
+            abstractRecruit.finalizeSpawn(serverLevel, player.getCommandSenderWorld().getCurrentDifficultyAt(player.getOnPos()), MobSpawnType.CONVERSION, null, null);
 
             for(ItemStack itemStack : villager.getInventory().items){
                 abstractRecruit.getInventory().addItem(itemStack);
             }
-
-            Component name = villager.getCustomName();
-            if(name != null && !name.getString().isEmpty()) abstractRecruit.setCustomName(name);
 
             if(abstractRecruit instanceof ICompanion){
                 for(int i = 0; i < 4; i++){
@@ -211,9 +210,11 @@ public class VillagerEvents {
                 }
             }
 
-            abstractRecruit.setCustomName(name);
-
             villager.getCommandSenderWorld().addFreshEntity(abstractRecruit);
+
+            Component name = villager.getCustomName();
+            if(name != null && !name.getString().isEmpty()) abstractRecruit.setCustomName(name);
+
             if(RecruitsServerConfig.RecruitTablesPOIReleasing.get()) villager.releasePoi(MemoryModuleType.JOB_SITE);
             villager.releasePoi(MemoryModuleType.HOME);
             villager.releasePoi(MemoryModuleType.MEETING_POINT);
@@ -223,10 +224,11 @@ public class VillagerEvents {
         }
     }
 
-    public static void spawnHiredRecruit(EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group){
+    public static void spawnHiredRecruit(ServerLevel serverLevel, EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group){
         AbstractRecruitEntity abstractRecruit = recruitType.create(player.getCommandSenderWorld());
         if (abstractRecruit != null && abstractRecruit.hire(player,null)) {
             abstractRecruit.copyPosition(player);
+            abstractRecruit.finalizeSpawn(serverLevel, player.getCommandSenderWorld().getCurrentDifficultyAt(player.getOnPos()), MobSpawnType.CONVERSION, null, null);
 
             if(abstractRecruit instanceof ICompanion){
                 for(int i = 0; i < 4; i++){
