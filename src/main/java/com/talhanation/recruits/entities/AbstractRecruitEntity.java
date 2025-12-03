@@ -893,7 +893,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void setGroup(RecruitsGroup group){
-        this.setGroupUUID(group.getUUID());
+        if(group == null) entityData.set(GROUP, Optional.empty());
+        else this.setGroupUUID(group.getUUID());
     }
 
     public void setGroupUUID(UUID uuid){

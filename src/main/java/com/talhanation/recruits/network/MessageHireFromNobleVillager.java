@@ -9,6 +9,7 @@ import com.talhanation.recruits.world.RecruitsHireTrade;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.npc.Villager;
@@ -54,6 +55,7 @@ public class MessageHireFromNobleVillager implements Message<MessageHireFromNobl
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
+        ServerLevel serverLevel = player.serverLevel();
         VillagerNobleEntity villagerNoble = player.getCommandSenderWorld().getEntitiesOfClass(
                 VillagerNobleEntity.class,
                 player.getBoundingBox().inflate(32.0D),
@@ -72,22 +74,22 @@ public class MessageHireFromNobleVillager implements Message<MessageHireFromNobl
                     Villager.class,
                     player.getBoundingBox().inflate(32.0D),
                     villager -> villager.getUUID().equals(this.villagerUUID) && villager.isAlive()
-            ).forEach(villager -> this.createRecruit(villager, villagerNoble, player, group));
+            ).forEach(villager -> this.createRecruit(serverLevel, villager, villagerNoble, player, group));
         }
         else{
             String string = resource.toString();
             Optional<EntityType<?>> optionalType = EntityType.byString(string);
-            optionalType.ifPresent(type -> VillagerEvents.spawnHiredRecruit((EntityType<? extends AbstractRecruitEntity>) type, player, group));
+            optionalType.ifPresent(type -> VillagerEvents.spawnHiredRecruit(serverLevel, (EntityType<? extends AbstractRecruitEntity>) type, player, group));
 
             villagerNoble.doTrade(resource);
         }
     }
-    public void createRecruit(Villager villager, VillagerNobleEntity villagerNoble, Player player, RecruitsGroup group){
+    public void createRecruit(ServerLevel serverLevel, Villager villager, VillagerNobleEntity villagerNoble, Player player, RecruitsGroup group){
         String string = resource.toString();
         Optional<EntityType<?>> optionalType = EntityType.byString(string);
 
         optionalType.ifPresent(type -> {
-            VillagerEvents.createHiredRecruitFromVillager(villager, (EntityType<? extends AbstractRecruitEntity>) type, player, group);
+            VillagerEvents.createHiredRecruitFromVillager(serverLevel, villager, (EntityType<? extends AbstractRecruitEntity>) type, player, group);
         });
 
         villagerNoble.doTrade(resource);

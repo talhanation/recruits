@@ -191,7 +191,7 @@ public class Main {
                 MessageUpdateGroup.class,
                 MessageMergeGroup.class,
                 MessageSplitGroup.class,
-                MessagePutNearbyRecruitsInGroup.class
+                MessageAssignNearbyRecruitsInGroup.class
         };
 
 

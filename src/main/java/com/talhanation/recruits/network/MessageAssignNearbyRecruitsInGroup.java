@@ -12,14 +12,14 @@ import net.minecraftforge.network.NetworkEvent;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessagePutNearbyRecruitsInGroup implements Message<MessagePutNearbyRecruitsInGroup> {
+public class MessageAssignNearbyRecruitsInGroup implements Message<MessageAssignNearbyRecruitsInGroup> {
 
     private UUID groupUUID;
 
-    public MessagePutNearbyRecruitsInGroup() {
+    public MessageAssignNearbyRecruitsInGroup() {
     }
 
-    public MessagePutNearbyRecruitsInGroup(UUID group) {
+    public MessageAssignNearbyRecruitsInGroup(UUID group) {
         this.groupUUID = group;
     }
 
@@ -49,7 +49,7 @@ public class MessagePutNearbyRecruitsInGroup implements Message<MessagePutNearby
         recruit.setGroup(group);
     }
 
-    public MessagePutNearbyRecruitsInGroup fromBytes(FriendlyByteBuf buf) {
+    public MessageAssignNearbyRecruitsInGroup fromBytes(FriendlyByteBuf buf) {
         this.groupUUID = buf.readUUID();
         return this;
     }
