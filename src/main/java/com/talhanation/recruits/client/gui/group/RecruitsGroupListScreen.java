@@ -96,6 +96,7 @@ public class RecruitsGroupListScreen extends ListScreenBase implements IGroupSel
     @Override
     public void tick() {
         super.tick();
+        ClientManager.updateGroups();
         if(searchBox != null){
             searchBox.tick();
         }

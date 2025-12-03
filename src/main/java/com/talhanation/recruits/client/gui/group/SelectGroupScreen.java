@@ -112,6 +112,7 @@ public class SelectGroupScreen extends ListScreenBase implements IGroupSelection
     @Override
     public void tick() {
         super.tick();
+        ClientManager.updateGroups();
         if(searchBox != null){
             searchBox.tick();
         }
@@ -119,6 +120,7 @@ public class SelectGroupScreen extends ListScreenBase implements IGroupSelection
         if(groupList != null){
             groupList.tick();
         }
+
     }
 
     @Override

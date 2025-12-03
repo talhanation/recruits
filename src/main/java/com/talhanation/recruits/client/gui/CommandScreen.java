@@ -76,7 +76,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     @Override
     protected void init() {
         super.init();
-        this.updateGroups();
+        ClientManager.updateGroups();
         this.rayBlockPos = getBlockPos();
         this.rayEntity = ClientEvent.getEntityByLooking();
         this.currentCategory = getSelectionFromClient();
@@ -88,30 +88,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     @Override
     protected void containerTick() {
         super.containerTick();
-        this.updateGroups();
-    }
-
-    public void updateGroups(){
-        if(ClientManager.groups == null || ClientManager.groups.isEmpty()) return;
-
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(100)));
-        list.removeIf(recruit -> !recruit.isEffectedByCommand(player.getUUID()));
-
-        Map<UUID, Integer> groupCounts = new HashMap<>();
-
-        for (AbstractRecruitEntity recruit : list) {
-            if(recruit.getGroup() == null) continue;
-
-            UUID groupId = recruit.getGroup();
-            groupCounts.put(groupId, groupCounts.getOrDefault(groupId, 0) + 1);
-        }
-
-        for (RecruitsGroup group : ClientManager.groups) {
-            group.setCount(0);
-            if (groupCounts.containsKey(group.getUUID())) {
-                group.setCount(groupCounts.get(group.getUUID()));
-            }
-        }
+        ClientManager.updateGroups();
     }
 
     boolean statusSet = false;

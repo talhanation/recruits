@@ -1,5 +1,6 @@
 package com.talhanation.recruits.client;
 
+import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.world.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
@@ -53,5 +54,29 @@ public class ClientManager {
         }
 
         return null;
+    }
+
+    public static void updateGroups(){
+        Player player = Minecraft.getInstance().player;
+        if(player == null || groups == null || groups.isEmpty()) return;
+
+        List<AbstractRecruitEntity> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(100)));
+        list.removeIf(recruit -> !recruit.isEffectedByCommand(player.getUUID()));
+
+        Map<UUID, Integer> groupCounts = new HashMap<>();
+
+        for (AbstractRecruitEntity recruit : list) {
+            if(recruit.getGroup() == null) continue;
+
+            UUID groupId = recruit.getGroup();
+            groupCounts.put(groupId, groupCounts.getOrDefault(groupId, 0) + 1);
+        }
+
+        for (RecruitsGroup group : ClientManager.groups) {
+            group.setCount(0);
+            if (groupCounts.containsKey(group.getUUID())) {
+                group.setCount(groupCounts.get(group.getUUID()));
+            }
+        }
     }
 }
