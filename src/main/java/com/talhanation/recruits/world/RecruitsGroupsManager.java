@@ -26,6 +26,7 @@ public class RecruitsGroupsManager {
         }
 
         redirects.putAll(data.getRedirects());
+        recruitRedirects.putAll(data.getRecruitRedirects());
     }
 
     public void save(ServerLevel level) {
@@ -33,7 +34,7 @@ public class RecruitsGroupsManager {
 
         data.setAllGroups(groups);
         data.setRedirects(redirects);
-
+        data.setRecruitRedirects(recruitRedirects);
         data.setDirty();
     }
     public void addOrUpdateGroup(ServerLevel level, ServerPlayer player, RecruitsGroup incoming) {

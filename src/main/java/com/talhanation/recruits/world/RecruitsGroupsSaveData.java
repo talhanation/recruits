@@ -12,6 +12,7 @@ public class RecruitsGroupsSaveData extends SavedData {
     private static final String FILE_ID = "recruitsGroups";
     private List<RecruitsGroup> groups = new ArrayList<>();
     private Map<UUID, UUID> redirects = new HashMap<>();
+    private Map<UUID, UUID> recruitRedirects = new HashMap<>();
     public static RecruitsGroupsSaveData get(ServerLevel level) {
         return level.getDataStorage().computeIfAbsent(RecruitsGroupsSaveData::load, RecruitsGroupsSaveData::new, FILE_ID);
     }
@@ -35,6 +36,16 @@ public class RecruitsGroupsSaveData extends SavedData {
             }
         }
 
+        if (nbt.contains("recruitRedirects", Tag.TAG_LIST)) {
+            ListTag recruitRedirectList = nbt.getList("recruitRedirects", Tag.TAG_COMPOUND);
+            for (Tag t : recruitRedirectList) {
+                CompoundTag tag = (CompoundTag) t;
+                UUID oldId = tag.getUUID("recruit");
+                UUID newId = tag.getUUID("group");
+                data.recruitRedirects.put(oldId, newId);
+            }
+        }
+
         return data;
     }
 
@@ -55,6 +66,15 @@ public class RecruitsGroupsSaveData extends SavedData {
         }
         nbt.put("redirects", redirectList);
 
+        ListTag recruitRedirectList = new ListTag();
+        for (Map.Entry<UUID, UUID> e : recruitRedirects.entrySet()) {
+            CompoundTag tag = new CompoundTag();
+            tag.putUUID("recruit", e.getKey());
+            tag.putUUID("group", e.getValue());
+            recruitRedirectList.add(tag);
+        }
+        nbt.put("recruitRedirects", recruitRedirectList);
+
         return nbt;
     }
 
@@ -70,8 +90,16 @@ public class RecruitsGroupsSaveData extends SavedData {
         return redirects;
     }
 
+    public Map<UUID, UUID> getRecruitRedirects() {
+        return recruitRedirects;
+    }
+
     public void setRedirects(Map<UUID, UUID> map){
         this.redirects = map;
+    }
+
+    public void setRecruitRedirects(Map<UUID, UUID> map){
+        this.recruitRedirects = map;
     }
 }
 
