@@ -20,7 +20,6 @@ public class RestGoal extends Goal {
     private Stack<BlockPos> stackOfBeds;
     private BlockPos sleepPos;
     private long lastCanUseCheck;
-
     public RestGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
     }
@@ -36,7 +35,10 @@ public class RestGoal extends Goal {
         if(recruit instanceof ICompanion companion && companion.isAtMission()){
             return false;
         }
-        return (recruit.getShouldRest() || this.recruit.getCommandSenderWorld().isNight()) && recruit.getFollowState() == 0 && recruit.getTarget() == null && (isMorale() || isHealth() || recruit instanceof VillagerNobleEntity);
+        else if(recruit instanceof VillagerNobleEntity){
+            return this.recruit.getCommandSenderWorld().isNight();
+        }
+        return (recruit.getShouldRest() || this.recruit.getCommandSenderWorld().isNight()) && recruit.getFollowState() == 0 && recruit.getTarget() == null && (isMorale() || isHealth());
     }
 
     @Override
@@ -56,6 +58,7 @@ public class RestGoal extends Goal {
     @Override
     public void start() {
         super.start();
+        this.recruit.setFollowState(0);
         this.stackOfBeds = this.getListOfBeds();
     }
 
@@ -70,7 +73,6 @@ public class RestGoal extends Goal {
 
     @Override
     public void tick() {
-
         if (recruit.isSleeping()) {
             this.recruit.getNavigation().stop();
             this.recruit.heal(0.0025F);
