@@ -109,7 +109,7 @@ public class RecruitEvents {
             if(group == null){
                 group = new RecruitsGroup(name, serverPlayer, 0);
             }
-            recruit.setGroup(group);
+            recruit.setGroupUUID(group.getUUID());
             group.addMember(recruit.getUUID());
             recruitsGroupsManager.addOrUpdateGroup(server.overworld(), serverPlayer, group);
 

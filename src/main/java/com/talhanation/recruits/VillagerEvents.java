@@ -197,7 +197,7 @@ public class VillagerEvents {
 
             abstractRecruit.initSpawn();
             abstractRecruit.setFollowState(1);
-            abstractRecruit.setGroup(group);
+            abstractRecruit.setGroupUUID(group.getUUID());
             abstractRecruit.finalizeSpawn(serverLevel, player.getCommandSenderWorld().getCurrentDifficultyAt(player.getOnPos()), MobSpawnType.CONVERSION, null, null);
 
             for(ItemStack itemStack : villager.getInventory().items){
@@ -238,7 +238,7 @@ public class VillagerEvents {
 
             abstractRecruit.initSpawn();
             abstractRecruit.setFollowState(1);
-            abstractRecruit.setGroup(group);
+            abstractRecruit.setGroupUUID(group.getUUID());
 
             player.getCommandSenderWorld().addFreshEntity(abstractRecruit);
 

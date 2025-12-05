@@ -844,7 +844,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         if(this.getGroup() != null){
             RecruitEvents.recruitsGroupsManager.removeMember(this.getGroup(), this.getUUID(), (ServerLevel) this.getCommandSenderWorld());
-            this.setGroup(null);
+            this.setGroupUUID(null);
         }
     }
 
@@ -909,13 +909,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         entityData.set(IS_FOLLOWING, bool);
     }
 
-    public void setGroup(RecruitsGroup group){
-        if(group == null) entityData.set(GROUP, Optional.empty());
-        else this.setGroupUUID(group.getUUID());
-    }
-
     public void setGroupUUID(UUID uuid){
-        entityData.set(GROUP, Optional.of(uuid));
+        entityData.set(GROUP, uuid == null ? Optional.empty() : Optional.of(uuid));
     }
     public void setShouldRest(boolean bool){
         if(bool) setFollowState(0);
@@ -1241,7 +1236,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setTarget(null);
             this.setFollowState(2);
             this.setAggroState(0);
-            this.setGroup(group);
+            this.setGroupUUID(group.getUUID());
             this.despawnTimer = -1;
 
             if(!this.getCommandSenderWorld().isClientSide()){
@@ -1948,12 +1943,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(finalGroup);
 
         if (group == null) {
-            this.setGroup(null);
+            this.setGroupUUID(null);
             return;
         }
 
         if (!group.members.contains(this.getUUID())) {
-            this.setGroup(null);
+            this.setGroupUUID(null);
             return;
         }
 

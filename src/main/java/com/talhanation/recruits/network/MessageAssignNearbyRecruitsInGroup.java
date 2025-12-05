@@ -52,7 +52,7 @@ public class MessageAssignNearbyRecruitsInGroup implements Message<MessageAssign
         RecruitsGroup oldGroup = RecruitEvents.recruitsGroupsManager.getGroup(recruit.getGroup());
         if(oldGroup != null) oldGroup.removeMember(recruit.getUUID());
 
-        recruit.setGroup(group);
+        recruit.setGroupUUID(groupUUID);
     }
 
     public MessageAssignNearbyRecruitsInGroup fromBytes(FriendlyByteBuf buf) {

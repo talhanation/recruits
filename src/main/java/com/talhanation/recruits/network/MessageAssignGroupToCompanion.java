@@ -65,7 +65,7 @@ public class MessageAssignGroupToCompanion implements Message<MessageAssignGroup
         }
         companionEntity.army = new NPCArmy(serverLevel, list, null);
         group.leaderUUID = companionUUID;
-        companionEntity.setGroup(group);
+        companionEntity.setGroupUUID(group.getUUID());
 
         RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(serverPlayer);
     }

@@ -44,7 +44,7 @@ public class MessageRemoveAssignedGroupFromCompanion implements Message<MessageR
             RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(companionEntity.getGroup());
             if(group == null) return;
             group.leaderUUID = null;
-            companionEntity.setGroup(group);
+            companionEntity.setGroupUUID(group.getUUID());
 
 
             if(companionEntity.getArmySize() > 0){

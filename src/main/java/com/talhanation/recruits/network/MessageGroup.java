@@ -47,7 +47,7 @@ public class MessageGroup implements Message<MessageGroup> {
         if(oldGroup != null) RecruitEvents.recruitsGroupsManager.removeMember(oldGroup.getUUID(), recruit.getUUID(), player.serverLevel());
         if(newGroup != null) RecruitEvents.recruitsGroupsManager.addMember(newGroup.getUUID(), recruit.getUUID(), player.serverLevel());
 
-        recruit.setGroup(newGroup);
+        recruit.setGroupUUID(newGroup.getUUID());
     }
 
     public MessageGroup fromBytes(FriendlyByteBuf buf) {

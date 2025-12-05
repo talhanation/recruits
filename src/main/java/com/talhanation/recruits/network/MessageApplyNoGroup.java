@@ -40,7 +40,7 @@ public class MessageApplyNoGroup implements Message<MessageApplyNoGroup> {
         }
 
         for(AbstractRecruitEntity recruit : recruitList){
-            recruit.setGroup(null);
+            recruit.setGroupUUID(null);
         }
     }
     public MessageApplyNoGroup fromBytes(FriendlyByteBuf buf) {
