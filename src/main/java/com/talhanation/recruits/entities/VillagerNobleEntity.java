@@ -48,6 +48,8 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
     private int restoreTimer;
     public boolean isTrading;
     public boolean needsNewTrades;
+    public int restoreTimeLongTime;
+
     public VillagerNobleEntity(EntityType<? extends AbstractRecruitEntity> entityType, Level world) {
         super(entityType, world);
     }
@@ -79,6 +81,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
         }
 
         if(restoreTimer > 0) restoreTimer--;
+        if(++restoreTimeLongTime > 12000) this.restoreTradesLongTime();
 
         if(needsNewTrades && !isTrading){
             this.updateUsesOfTrades();
@@ -149,7 +152,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
     @Override
     public void initSpawn() {
         this.setCustomName(Component.literal("Noble Villager"));
-        this.setCost(RecruitsServerConfig.ShieldmanCost.get());
+        this.setCost(64);
 
         this.setEquipment();
 
@@ -246,9 +249,10 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
     public void startSleeping(BlockPos pos) {
         super.startSleeping(pos);
 
-        if(restoreTimer <= 0 ) this.restoreTrades();
+        if(restoreTimer <= 0 ) this.restoreTradesSleeping();
     }
-    private void restoreTrades() {
+    private void restoreTradesSleeping() {
+        this.restoreTimer = 1200;
         List<RecruitsHireTrade> list = this.getTrades();
 
         for (RecruitsHireTrade trade : list) {
@@ -257,7 +261,19 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
         }
 
         this.setTrades(list);
+    }
+
+    private void restoreTradesLongTime() {
         this.restoreTimer = 1200;
+        this.restoreTimeLongTime = 0;
+        List<RecruitsHireTrade> list = this.getTrades();
+
+        for (RecruitsHireTrade trade : list) {
+            trade.uses += 1;
+            if(trade.uses > trade.maxUses) trade.uses = trade.maxUses;
+        }
+
+        this.setTrades(list);
     }
 
     public void addTraderProgress(int x) {
