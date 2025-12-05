@@ -45,7 +45,7 @@ public class VillagerBecomeNobleGoal extends Goal {
     public void stop() {
         super.stop();
         if(this.villager.getCommandSenderWorld().isClientSide()) return;
-        List<LivingEntity> list = this.villager.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, this.villager.getBoundingBox().inflate(32))
+        List<LivingEntity> list = this.villager.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, this.villager.getBoundingBox().inflate(64))
                 .stream()
                 .toList();
 
@@ -55,7 +55,7 @@ public class VillagerBecomeNobleGoal extends Goal {
         }
 
         int villagers = (int) list.stream().filter(e -> e instanceof Villager).count();
-        if(villagers >= 10){
+        if(villagers >= 7){
             VillagerEvents.createNobleVillager(villager);
         }
     }
