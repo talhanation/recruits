@@ -438,7 +438,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
     private List<HireError> getErrors() {
         List<HireError> errorList = new ArrayList<>();
 
-        if(ClientManager.configValueNobleNeedsVillagers && villagerList == null || villagerList.size() < 2){
+        if(ClientManager.configValueNobleNeedsVillagers && (villagerList == null || villagerList.size() < 2)){
             errorList.add(HireError.NOT_ENOUGH_VILLAGERS_NEARBY);
         }
         else if(selection != null){
@@ -450,7 +450,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         return errorList;
     }
 
-    public enum HireError{
+    public enum HireError {
         NOT_ENOUGH_CURRENCY(ERROR_NOT_ENOUGH_CURRENCY),
         NOT_ENOUGH_VILLAGERS_NEARBY(ERROR_NOT_ENOUGH_VILLAGERS),
         NO_USES(ERROR_NO_USES);
