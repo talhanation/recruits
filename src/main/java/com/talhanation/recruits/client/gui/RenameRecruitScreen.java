@@ -1,4 +1,4 @@
-package com.talhanation.recruits.client.gui.group;
+package com.talhanation.recruits.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;

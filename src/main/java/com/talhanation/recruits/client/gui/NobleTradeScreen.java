@@ -41,6 +41,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
     private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/noble_villager.png");
     private static final Component TITLE = Component.translatable("gui.recruits.villager_noble");
     private static final Component HIRE_BUTTON = Component.translatable("gui.recruits.villager_noble.hire");
+    private static final Component TEXT_VILLAGERS = Component.translatable("gui.recruits.villager_noble.villagers");
     private static final Component INVENTORY_BUTTON = Component.translatable("gui.recruits.inv.openInventory");
     private static final Component ERROR_NOT_ENOUGH_VILLAGERS = Component.translatable("gui.recruits.villager_noble.error_no_villagers");
     private static final Component ERROR_NO_USES = Component.translatable("gui.recruits.villager_noble.error_no_uses");
@@ -87,7 +88,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         int itemHeight = 40;
         int itemWidth = LIST_W - 10;
 
-        this.group = ClientManager.groups.get(ClientManager.groupSelection);
+        this.group = ClientManager.getSelectedGroup();
 
         this.tradeList = new TradeList(Minecraft.getInstance(), listWidth, listHeight, listTop, listBottom, itemHeight, itemWidth);
         this.tradeList.setRenderBackground(false);
@@ -122,7 +123,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         this.descriptionBox.setScrollAmount(0);
 
         this.addRenderableWidget(this.descriptionBox);
-        group = ClientManager.groups.get(ClientManager.groupSelection);
+        group = ClientManager.getSelectedGroup();
         groupSelectionDropDownMenu = new ScrollDropDownMenu<>(group, guiLeft + 174,guiTop + 53,  75, 20, ClientManager.groups,
                 RecruitsGroup::getName,
                 (selected) ->{
@@ -172,6 +173,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
     }
 
     private void loadTrades(){
+        if(tradeList == null) return;
         this.tradeList.clearEntries();
         List<RecruitsHireTrade> trades = copyTrades(villagerNoble.getTrades());
         for (RecruitsHireTrade serverSideTrade : trades) {
@@ -249,11 +251,16 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         RenderSystem.setShaderTexture(0, TEXTURE);
         guiGraphics.blit(TEXTURE, guiLeft, guiTop, 0, 0, xSize, ySize);
     }
-
+    int v = 0;
     @Override
     public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         guiGraphics.drawString(font, TITLE, guiLeft + 10, guiTop + 7, FONT_COLOR, false);
         guiGraphics.drawString(font, Component.literal("Lvl: " + villagerNoble.getTraderLevel()), guiLeft + TRADE_TITLE_X, guiTop + 7, FONT_COLOR, false);
+
+        if(villagerList != null) v = villagerList.size();
+        else v = 0;
+
+        guiGraphics.drawString(font, Component.literal(TEXT_VILLAGERS.getString() + ": " + v), guiLeft + TRADE_TITLE_X, guiTop + 30, FONT_COLOR, false);
 
         if (selection != null) {
             int x = guiLeft + TRADE_TITLE_X ;

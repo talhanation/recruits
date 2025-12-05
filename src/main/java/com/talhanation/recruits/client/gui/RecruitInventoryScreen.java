@@ -357,12 +357,13 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                 RecruitsGroup::getName,
                 (selected) ->{
                     this.currentGroup = selected;
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(currentGroup, recruit.getUUID()));
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(currentGroup.getUUID(), recruit.getUUID()));
                 }
             );
             groupSelectionDropDownMenu.setBgFillSelected(FastColor.ARGB32.color(255, 139, 139, 139));
             groupSelectionDropDownMenu.visible = Minecraft.getInstance().player.getUUID().equals(recruit.getOwnerUUID());
-            groupSelectionDropDownMenu.canSelect = recruit.getGroup() == null || !recruit.getUUID().equals(ClientManager.getGroup(recruit.getGroup()).leaderUUID);
+            RecruitsGroup group = ClientManager.getGroup(recruit.getGroup());
+            groupSelectionDropDownMenu.canSelect = group == null || recruit.getGroup() == null || !recruit.getUUID().equals(group.leaderUUID);
             addRenderableWidget(groupSelectionDropDownMenu);
             this.buttonsSet = true;
         }

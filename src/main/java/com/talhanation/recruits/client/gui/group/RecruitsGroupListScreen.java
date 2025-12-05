@@ -45,6 +45,7 @@ public class RecruitsGroupListScreen extends ListScreenBase implements IGroupSel
     private RecruitsGroup selected;
     private Button editButton;
     private Button removeButton;
+    private Button addButton;
     private final Player player;
     private int gapTop;
     private int gapBottom;
@@ -57,6 +58,8 @@ public class RecruitsGroupListScreen extends ListScreenBase implements IGroupSel
     @Override
     protected void init() {
         super.init();
+        clearWidgets();
+
         gapTop = (int) (this.height * 0.1);
         gapBottom = (int) (this.height * 0.1);
 
@@ -69,7 +72,7 @@ public class RecruitsGroupListScreen extends ListScreenBase implements IGroupSel
         if (groupList != null) {
             groupList.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
         } else {
-            groupList = new RecruitsGroupList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this);
+            groupList = new RecruitsGroupList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, null);
         }
         String string = searchBox != null ? searchBox.getValue() : "";
         searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, Component.literal(""));
@@ -82,15 +85,16 @@ public class RecruitsGroupListScreen extends ListScreenBase implements IGroupSel
 
         int buttonY = guiTop + HEADER_SIZE + 5 + units * UNIT_SIZE;
 
-        addRenderableWidget(createAddGroupButton(guiLeft + 7, buttonY));
+        this.addButton = createAddGroupButton(guiLeft + 7, buttonY);
+        addRenderableWidget(this.addButton);
 
         this.editButton =  createEditGroupButton(guiLeft + 87, buttonY);
-        this.editButton.active = this.selected != null;
         addRenderableWidget(this.editButton);
 
         this.removeButton = createRemoveGroupButton(guiLeft + 167, buttonY);
-        this.removeButton.active = this.selected != null;
         addRenderableWidget(this.removeButton);
+
+        checkButtons();
     }
 
     @Override
@@ -114,13 +118,17 @@ public class RecruitsGroupListScreen extends ListScreenBase implements IGroupSel
                 selected.removed = true;
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageApplyNoGroup(player.getUUID(), selected.getUUID()));
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateGroup(selected));
-        
-                this.editButton.active = false;
-                this.removeButton.active = false;
                 this.selected = null;
+
                 this.init();
             }
         });
+    }
+
+    public void checkButtons(){
+        this.editButton.active = selected != null;
+        this.removeButton.active = selected != null;
+        this.addButton.active = selected == null;
     }
 
     private Button createAddGroupButton(int x, int y) {
@@ -140,8 +148,7 @@ public class RecruitsGroupListScreen extends ListScreenBase implements IGroupSel
         boolean flag = super.keyPressed(p_96552_, p_96553_, p_96554_);
         this.selected = null;
         this.groupList.setFocused(null);
-        this.editButton.active = false;
-        this.removeButton.active = false;
+        this.checkButtons();
 
         return flag;
     }
@@ -184,34 +191,35 @@ public class RecruitsGroupListScreen extends ListScreenBase implements IGroupSel
         }
     }
     private long lastClickTime = 0;
-    private static final long DOUBLE_CLICK_THRESHOLD = 250;
+    private static final long DOUBLE_CLICK_THRESHOLD = 200;
     @Override
     public boolean mouseClicked(double x, double y, int button) {
-        if (groupList != null) groupList.mouseClicked(x, y, button);
+        if (groupList != null && groupList.isMouseOver(x,y)) {
+            groupList.mouseClicked(x, y, button);
 
-        boolean flag = super.mouseClicked(x, y, button);
-
-        boolean isDoubleClick = false;
-        long now = System.currentTimeMillis();
-
-        if (button == 0) { // Linksklick
-            if (now - lastClickTime <= DOUBLE_CLICK_THRESHOLD) {
-                isDoubleClick = true;
+            RecruitsGroupEntry entry = groupList.getGroupEntryAtPosition(x,y);
+            if(entry != null){
+                selected = entry.getGroup();
             }
-            lastClickTime = now;
-        }
+            else selected = null;
 
-        if (this.groupList.getFocused() != null) {
-            this.selected = this.groupList.getFocused().getGroup();
-            removeButton.active = this.selected != null;
-            editButton.active = this.selected != null;
-        }
+            boolean isDoubleClick = false;
+            long now = System.currentTimeMillis();
 
-        if (isDoubleClick && this.selected != null) {
-            onDoubleClick(this.selected);
-        }
+            if (button == 0) {
+                if (now - lastClickTime <= DOUBLE_CLICK_THRESHOLD) {
+                    isDoubleClick = true;
+                }
+                lastClickTime = now;
+            }
 
-        return flag;
+            if (isDoubleClick && this.selected != null) {
+                onDoubleClick(this.selected);
+            }
+        }
+        this.checkButtons();
+
+        return super.mouseClicked(x, y, button);
     }
 
     private void onDoubleClick(RecruitsGroup group) {

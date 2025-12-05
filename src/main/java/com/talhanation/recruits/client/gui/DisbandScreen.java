@@ -3,7 +3,6 @@ package com.talhanation.recruits.client.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.group.RecruitsGroupListScreen;
-import com.talhanation.recruits.client.gui.group.RenameRecruitScreen;
 import com.talhanation.recruits.client.gui.player.PlayersList;
 import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;

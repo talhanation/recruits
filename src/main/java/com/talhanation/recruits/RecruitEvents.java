@@ -100,6 +100,23 @@ public class RecruitEvents {
         }
     }
 
+    public static void handleGroupBackwardCompatibility(AbstractRecruitEntity recruit, int oldGroupNumber) {
+        if(recruit.getCommandSenderWorld().isClientSide()) return;
+        if(recruit.getOwner() != null){
+            ServerPlayer serverPlayer = (ServerPlayer) recruit.getOwner();
+            String name = "Group " + oldGroupNumber;
+            RecruitsGroup group = recruitsGroupsManager.getPlayersGroupByName(serverPlayer, name);
+            if(group == null){
+                group = new RecruitsGroup(name, serverPlayer, 0);
+            }
+            recruit.setGroup(group);
+            group.addMember(recruit.getUUID());
+            recruitsGroupsManager.addOrUpdateGroup(server.overworld(), serverPlayer, group);
+
+            recruitsGroupsManager.broadCastGroupsToPlayer(serverPlayer);
+        }
+    }
+
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         server = event.getServer();
@@ -181,7 +198,7 @@ public class RecruitEvents {
                 recruitList.add(recruit);
         }
         for(AbstractRecruitEntity recruit : recruitList){
-            recruit.updateGroup();
+            recruit.needsGroupUpdate = true;
         }
 
         recruitsGroupsManager.save(level);

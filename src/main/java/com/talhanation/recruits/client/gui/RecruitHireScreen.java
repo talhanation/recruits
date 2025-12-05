@@ -62,7 +62,7 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
     @Override
     protected void init() {
         super.init();
-        group = ClientManager.groups.get(ClientManager.groupSelection);
+        group = ClientManager.getSelectedGroup();
         groupSelectionDropDownMenu = new ScrollDropDownMenu<>(group, leftPos + 80 + 7 + 5,topPos + 100,  80, 20, ClientManager.groups,
                 RecruitsGroup::getName,
                 (selected) ->{

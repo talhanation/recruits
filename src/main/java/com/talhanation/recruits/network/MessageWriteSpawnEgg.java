@@ -66,7 +66,7 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
         entityTag.putBoolean("ShouldMount", recruitEntity.getShouldMount());
         entityTag.putBoolean("ShouldProtect", recruitEntity.getShouldProtect());
         entityTag.putBoolean("ShouldBlock", recruitEntity.getShouldBlock());
-        entityTag.putUUID("Group", recruitEntity.getGroup());
+        if(recruitEntity.getGroup() != null) entityTag.putUUID("Group", recruitEntity.getGroup());
         entityTag.putInt("Variant", recruitEntity.getVariant());
         entityTag.putBoolean("Listen", recruitEntity.getListen());
         entityTag.putBoolean("Fleeing", recruitEntity.getFleeing());

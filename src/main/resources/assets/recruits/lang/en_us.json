@@ -478,6 +478,7 @@
   "gui.recruits.error.leader_missing": "No Leader assigned!",
   "gui.recruits.villager_noble": "Noble Villager",
   "gui.recruits.villager_noble.hire": "Hire Villager",
+  "gui.recruits.villager_noble.villagers": "Villagers",
   "gui.recruits.villager_noble.error_no_villagers": "Not enough Villagers nearby!",
   "gui.recruits.villager_noble.error_not_enough_currency": "Not enough Currency!",
   "gui.recruits.villager_noble.error_no_uses": "No Trades left for today!",

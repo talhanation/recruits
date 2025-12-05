@@ -56,27 +56,44 @@ public class ClientManager {
         return null;
     }
 
-    public static void updateGroups(){
-        Player player = Minecraft.getInstance().player;
-        if(player == null || groups == null || groups.isEmpty()) return;
+    @OnlyIn(Dist.CLIENT)
+    public static RecruitsGroup getSelectedGroup(){
+        if(groups != null && !groups.isEmpty()){
+            try{
+                return groups.get(groupSelection);
+            }
+            catch (Exception exception){
+                groupSelection = 0;
+                return groups.get(0);
+            }
+        }
+        return null;
+    }
 
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(100)));
-        list.removeIf(recruit -> !recruit.isEffectedByCommand(player.getUUID()));
+    public static void updateGroups() {
+        Player player = Minecraft.getInstance().player;
+        if (player == null || groups == null || groups.isEmpty()) return;
+
+        List<AbstractRecruitEntity> recruits = player.level()
+                .getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(100));
+
+        recruits.removeIf(r -> !r.isEffectedByCommand(player.getUUID()));
 
         Map<UUID, Integer> groupCounts = new HashMap<>();
 
-        for (AbstractRecruitEntity recruit : list) {
-            if(recruit.getGroup() == null) continue;
-
+        for (AbstractRecruitEntity recruit : recruits) {
             UUID groupId = recruit.getGroup();
+            if (groupId == null) continue;
+
             groupCounts.put(groupId, groupCounts.getOrDefault(groupId, 0) + 1);
         }
 
         for (RecruitsGroup group : ClientManager.groups) {
-            group.setCount(0);
-            if (groupCounts.containsKey(group.getUUID())) {
-                group.setCount(groupCounts.get(group.getUUID()));
-            }
+            int count = groupCounts.getOrDefault(group.getUUID(), 0);
+            group.setCount(count);
         }
+
+        ClientManager.groups.sort((a, b) -> Integer.compare(b.getCount(), a.getCount()));
     }
+
 }

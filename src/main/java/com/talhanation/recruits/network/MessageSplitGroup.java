@@ -32,11 +32,7 @@ public class MessageSplitGroup implements Message<MessageSplitGroup> {
 
         if(groupToSplit == null) return;
 
-        RecruitEvents.recruitsGroupsManager.splitGroup(groupToSplit);
-
-        RecruitEvents.serverSideRecruitGroup(player.serverLevel());
-
-        RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(player);
+        RecruitEvents.recruitsGroupsManager.splitGroup(groupToSplit, player.serverLevel());
     }
 
     public MessageSplitGroup fromBytes(FriendlyByteBuf buf) {

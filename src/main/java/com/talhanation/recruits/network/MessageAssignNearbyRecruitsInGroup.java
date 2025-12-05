@@ -38,13 +38,19 @@ public class MessageAssignNearbyRecruitsInGroup implements Message<MessageAssign
                 (recruit) -> recruit.isEffectedByCommand(player.getUUID())
         ).forEach((recruit) -> this.setGroup(recruit, newGroup));
 
+        RecruitEvents.recruitsGroupsManager.addOrUpdateGroup(player.serverLevel(), player, newGroup);
+
         RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(player);
     }
 
     public void setGroup(AbstractRecruitEntity recruit, RecruitsGroup group){
-        group.increaseSize();
+        if(recruit.getGroupUUID().isPresent() && recruit.getGroupUUID().get().equals(group)){
+            return;
+        }
+
+        group.addMember(recruit.getUUID());
         RecruitsGroup oldGroup = RecruitEvents.recruitsGroupsManager.getGroup(recruit.getGroup());
-        if(oldGroup != null) oldGroup.decreaseSize();
+        if(oldGroup != null) oldGroup.removeMember(recruit.getUUID());
 
         recruit.setGroup(group);
     }

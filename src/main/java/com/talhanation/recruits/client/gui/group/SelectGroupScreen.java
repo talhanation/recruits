@@ -3,11 +3,9 @@ package com.talhanation.recruits.client.gui.group;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
-import com.talhanation.recruits.client.gui.player.RecruitsPlayerEntry;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
 import com.talhanation.recruits.world.RecruitsGroup;
-import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -17,6 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
 
@@ -45,7 +44,6 @@ public class SelectGroupScreen extends ListScreenBase implements IGroupSelection
     private final Consumer<RecruitsGroup> buttonAction;
     private int gapTop;
     private int gapBottom;
-
     public SelectGroupScreen(Screen parent, RecruitsGroup groupIn, Component title, Component buttonText, Component buttonTooltip, Consumer<RecruitsGroup> buttonAction){
         super(title,236,0);
         this.parent = parent;
@@ -55,7 +53,6 @@ public class SelectGroupScreen extends ListScreenBase implements IGroupSelection
         BUTTON_TEXT = buttonText;
         TOOLTIP_BUTTON = buttonTooltip;
     }
-
 
     @Override
     protected void init() {
@@ -74,7 +71,7 @@ public class SelectGroupScreen extends ListScreenBase implements IGroupSelection
         if (groupList != null) {
             groupList.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
         } else {
-            groupList = new RecruitsGroupList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this);
+            groupList = new RecruitsGroupList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, groupIn == null ? null : List.of(groupIn.getUUID()));
         }
         String string = searchBox != null ? searchBox.getValue() : "";
         searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, Component.literal("SEARCH_HINT"));

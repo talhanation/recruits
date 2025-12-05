@@ -40,6 +40,7 @@ public class RecruitsGroup {
         )
     );
     private UUID uuid;
+    public List<UUID> members = new ArrayList<>();
     private int size;
     private int count;
     private UUID playerUUID;
@@ -75,7 +76,7 @@ public class RecruitsGroup {
         this.image = image;
     }
 
-    private RecruitsGroup(String name, UUID playerUUID, String playerName,  int size, boolean disabled, int image, DisbandContext disbandContext){
+    private RecruitsGroup(String name, UUID playerUUID, String playerName, int size, boolean disabled, int image, DisbandContext disbandContext){
         this.name = name;
         this.playerUUID = playerUUID;
         this.playerName = playerName;
@@ -99,13 +100,16 @@ public class RecruitsGroup {
         this.playerName = player.getName().getString();
     }
 
-    public void increaseSize() {
-        this.size++;
+    public void addMember(UUID member) {
+        this.members.add(member);
+
+        this.size = members.size();
     }
 
-    public void decreaseSize(){
-        this.size--;
-        if(size < 0) size = 0;
+    public void removeMember(UUID member){
+        this.members.remove(member);
+
+        this.size = members.size();
     }
     public UUID getPlayerUUID() {
         return playerUUID;
@@ -118,7 +122,9 @@ public class RecruitsGroup {
     public UUID getUUID() {
         return uuid;
     }
-
+    public void setUUID(UUID uuid) {
+        this.uuid = uuid;
+    }
     public String getName() {
         return name;
     }
@@ -169,6 +175,14 @@ public class RecruitsGroup {
         tag.putInt("image", this.image);
         if(leaderUUID != null) tag.putUUID("leaderUUID", this.leaderUUID);
 
+        ListTag uuidList = new ListTag();
+        for (UUID id : members) {
+            CompoundTag entry = new CompoundTag();
+            entry.putUUID("id", id);
+            uuidList.add(entry);
+        }
+        tag.put("members", uuidList);
+
         return tag;
     }
 
@@ -180,7 +194,7 @@ public class RecruitsGroup {
         String playerName = tag.getString("playerName");
 
         UUID playerUUID = tag.getUUID("playerUUID");
-        
+
         int size = tag.getInt("size");
         int image = tag.getInt("image");
 
@@ -188,13 +202,22 @@ public class RecruitsGroup {
         boolean removed = tag.getBoolean("removed");
         DisbandContext disbandContext = DisbandContext.fromNBT(tag);
 
-
         RecruitsGroup group = new RecruitsGroup(name, playerUUID, playerName, size, disabled, image, disbandContext);
-        group.uuid = uuid;
+        group.setUUID(uuid);
         group.removed = removed;
 
         if(tag.contains("leaderUUID")){
             group.leaderUUID = tag.getUUID("leaderUUID");
+        }
+
+        if (tag.contains("members", Tag.TAG_LIST)) {
+            ListTag uuidList = tag.getList("members", Tag.TAG_COMPOUND);
+
+            for (Tag entry : uuidList) {
+                CompoundTag uuidTag = (CompoundTag) entry;
+                UUID recruitID = uuidTag.getUUID("id");
+                group.members.add(recruitID);
+            }
         }
         return group;
     }
@@ -225,7 +248,7 @@ public class RecruitsGroup {
         return out;
     }
 
-    public static class DisbandContext{
+    public static class DisbandContext {
 
         public boolean disband;
         public boolean keepTeam;

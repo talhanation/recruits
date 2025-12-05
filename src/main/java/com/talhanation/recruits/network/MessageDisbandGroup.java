@@ -47,7 +47,7 @@ public class MessageDisbandGroup implements Message<MessageDisbandGroup> {
         );
 
         for(AbstractRecruitEntity recruit : list){
-            recruit.updateGroup();
+            recruit.needsGroupUpdate = true;
         }
     }
 

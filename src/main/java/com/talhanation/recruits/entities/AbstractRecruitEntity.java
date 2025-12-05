@@ -22,6 +22,7 @@ import com.talhanation.recruits.world.RecruitsGroup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -112,6 +113,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Boolean> SHOULD_RANGED = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     public int blockCoolDown;
     public boolean needsTeamUpdate = true;
+    public boolean needsGroupUpdate = true;
     public boolean forcedUpkeep;
     public int dismount = 0;
     public int upkeepTimer = 0;
@@ -171,9 +173,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         super.aiStep();
         updateSwingTime();
         updateShield();
+
+        if (this.getCommandSenderWorld().isClientSide()) return;
+
+        if(needsColorUpdate && this.getTeam() != null) updateColor(this.getTeam().getName());
         if(this instanceof IRangedRecruit  && this.tickCount % 20 == 0) pickUpArrows();
         if(needsTeamUpdate) updateTeam();
-        if(needsColorUpdate && this.getTeam() != null) updateColor(this.getTeam().getName());
+        if(needsGroupUpdate) updateGroup();
+
     }
     public void tick() {
         super.tick();
@@ -468,7 +475,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setShouldBlock(nbt.getBoolean("ShouldBlock"));
         this.setShouldProtect(nbt.getBoolean("ShouldProtect"));
         this.setFleeing(nbt.getBoolean("Fleeing"));
-        this.setGroup(RecruitsGroup.fromNBT(nbt.getCompound("Group")));
+
         this.setListen(nbt.getBoolean("Listen"));
         this.setIsFollowing(nbt.getBoolean("isFollowing"));
         this.setXp(nbt.getInt("Xp"));
@@ -539,6 +546,21 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         if(nbt.contains("Biome"))this.setBiome(nbt.getByte("Biome"));
         else applyBiomeAndVariant(this);
+
+        if(this.getCommandSenderWorld().isClientSide()) return;
+
+        if(nbt.contains("Group")){
+            Tag tag = nbt.get("Group");
+
+            int type = tag.getId();
+            if (type == Tag.TAG_INT) {
+                int oldGroupIndex = nbt.getInt("Group");
+                RecruitEvents.handleGroupBackwardCompatibility(this, oldGroupIndex);
+            }
+            else{
+                this.setGroupUUID(nbt.getUUID("Group"));
+            }
+        }
     }
 
     ////////////////////////////////////GET////////////////////////////////////
@@ -821,12 +843,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
 
         if(this.getGroup() != null){
-            RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(this.getGroup());
-            if(group == null) return;
-
-            group.decreaseSize();
-            if(player != null) RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(player);
-
+            RecruitEvents.recruitsGroupsManager.removeMember(this.getGroup(), this.getUUID(), (ServerLevel) this.getCommandSenderWorld());
             this.setGroup(null);
         }
     }
@@ -1231,7 +1248,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 RecruitEvents.recruitsPlayerUnitManager.addRecruits(player.getUUID(), 1);
 
                 if(group != null){
-                    RecruitEvents.recruitsGroupsManager.increaseSize(group.getUUID(),  (ServerLevel) this.getCommandSenderWorld());
+                    RecruitEvents.recruitsGroupsManager.addMember(group.getUUID(), this.getUUID(),  (ServerLevel) this.getCommandSenderWorld());
                     RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(player);
                 }
 
@@ -1401,7 +1418,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     FactionEvents.recruitsFactionManager.getTeamByStringID(this.getTeam().getName()).addNPCs(-1);
                 }
                 if(this.getGroup() != null){
-                    RecruitEvents.recruitsGroupsManager.decreaseSize(this.getGroup(), (ServerLevel) this.getCommandSenderWorld());
+                    RecruitEvents.recruitsGroupsManager.removeMember(this.getGroup(), this.getUUID(), (ServerLevel) this.getCommandSenderWorld());
                 }
             }
         }
@@ -1916,20 +1933,29 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void updateGroup() {
         if (this.getCommandSenderWorld().isClientSide()) return;
+
+        this.needsGroupUpdate = false;
         if (this.getGroup() == null) return;
 
-        UUID rawGroupUUID = this.getGroup();
+        UUID raw = this.getGroup();
+        UUID resolved = RecruitEvents.recruitsGroupsManager.resolveGroup(raw);
+        UUID finalGroup = RecruitEvents.recruitsGroupsManager.resolveRecruit(this.getUUID(), resolved);
 
-        UUID resolvedUUID = RecruitEvents.recruitsGroupsManager.resolve(rawGroupUUID);
-
-        if (!resolvedUUID.equals(rawGroupUUID)) {
-            this.setGroupUUID(resolvedUUID);
+        if (!finalGroup.equals(raw)) {
+            this.setGroupUUID(finalGroup);
         }
 
+        RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(finalGroup);
 
-        RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(resolvedUUID);
+        if (group == null) {
+            this.setGroup(null);
+            return;
+        }
 
-        this.setGroup(group);
+        if (!group.members.contains(this.getUUID())) {
+            this.setGroup(null);
+            return;
+        }
 
         if (group.disbandContext != null && group.disbandContext.disband) {
             this.disband(null, group.disbandContext.keepTeam, group.disbandContext.increaseCost);
@@ -1943,6 +1969,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         this.needsTeamUpdate = true;
     }
+
 
     public void openHireGUI(Player player) {
         if (player instanceof ServerPlayer) {
@@ -1970,7 +1997,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void assignToPlayer(UUID newOwner, UUID newGroupUUID){
         RecruitsGroup currentGroup = RecruitEvents.recruitsGroupsManager.getGroup(this.getGroup());
         if(currentGroup != null){
-            currentGroup.decreaseSize();
+            currentGroup.removeMember(this.getUUID());
         }
 
         this.setGroupUUID(newGroupUUID);

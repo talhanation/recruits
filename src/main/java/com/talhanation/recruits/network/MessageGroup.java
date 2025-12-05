@@ -15,14 +15,14 @@ import java.util.UUID;
 
 public class MessageGroup implements Message<MessageGroup> {
 
-    private CompoundTag nbt;
+    private UUID groupUUID;
     private UUID recruitUUID;
 
     public MessageGroup() {
     }
 
-    public MessageGroup(RecruitsGroup group, UUID recruitUUID) {
-        this.nbt = group.toNBT();
+    public MessageGroup(UUID groupUUID, UUID recruitUUID) {
+        this.groupUUID = groupUUID;
         this.recruitUUID = recruitUUID;
     }
 
@@ -36,30 +36,28 @@ public class MessageGroup implements Message<MessageGroup> {
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(100),
                 (recruit) -> recruit.getUUID().equals(this.recruitUUID)
-        ).forEach((recruit) -> this.setGroup(recruit, player, RecruitsGroup.fromNBT(this.nbt)));
+        ).forEach((recruit) -> this.setGroup(recruit, player, groupUUID));
     }
 
-    public void setGroup(AbstractRecruitEntity recruit, ServerPlayer player, RecruitsGroup group){
+    public void setGroup(AbstractRecruitEntity recruit, ServerPlayer player , UUID groupUUID){
         RecruitsGroup oldGroup = RecruitEvents.recruitsGroupsManager.getGroup(recruit.getGroup());
-        RecruitsGroup newGroup = RecruitEvents.recruitsGroupsManager.getGroup(group.getUUID());
+        RecruitsGroup newGroup = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
         if(oldGroup != null && newGroup != null && oldGroup.getUUID().equals(newGroup.getUUID())) return;
 
-        if(oldGroup != null)oldGroup.decreaseSize();
-        if(newGroup != null)newGroup.increaseSize();
-
-        RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(player);
+        if(oldGroup != null) RecruitEvents.recruitsGroupsManager.removeMember(oldGroup.getUUID(), recruit.getUUID(), player.serverLevel());
+        if(newGroup != null) RecruitEvents.recruitsGroupsManager.addMember(newGroup.getUUID(), recruit.getUUID(), player.serverLevel());
 
         recruit.setGroup(newGroup);
     }
 
     public MessageGroup fromBytes(FriendlyByteBuf buf) {
-        this.nbt = buf.readNbt();
+        this.groupUUID = buf.readUUID();
         this.recruitUUID = buf.readUUID();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
-        buf.writeNbt(nbt);
+        buf.writeUUID(groupUUID);
         buf.writeUUID(recruitUUID);
     }
 }

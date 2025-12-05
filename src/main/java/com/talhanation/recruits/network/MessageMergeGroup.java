@@ -37,11 +37,7 @@ public class MessageMergeGroup implements Message<MessageMergeGroup> {
 
         if(groupToMerge == null || baseGroup == null) return;
 
-        RecruitEvents.recruitsGroupsManager.mergeGroups(groupToMerge, baseGroup);
-
-        RecruitEvents.serverSideRecruitGroup(player.serverLevel());
-
-        RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(player);
+        RecruitEvents.recruitsGroupsManager.mergeGroups(groupToMerge, baseGroup, player.serverLevel());
     }
 
     public MessageMergeGroup fromBytes(FriendlyByteBuf buf) {

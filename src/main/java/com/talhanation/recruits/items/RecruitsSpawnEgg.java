@@ -1,11 +1,12 @@
 package com.talhanation.recruits.items;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.world.RecruitsGroup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -76,8 +77,9 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
     }
 
     public static void fillRecruit(AbstractRecruitEntity recruit, CompoundTag entityTag, BlockPos pos){
-        CompoundTag nbt = entityTag.getCompound("EntityTag");
+        if(recruit.getCommandSenderWorld().isClientSide()) return;
 
+        CompoundTag nbt = entityTag.getCompound("EntityTag");
 
         if (nbt.contains("Team")) {
             String s = nbt.getString("Team");
@@ -100,7 +102,7 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
         recruit.setShouldBlock(nbt.getBoolean("ShouldBlock"));
         recruit.setShouldProtect(nbt.getBoolean("ShouldProtect"));
         recruit.setFleeing(nbt.getBoolean("Fleeing"));
-        recruit.setGroup(RecruitsGroup.fromNBT(nbt.getCompound("Group")));
+        if(nbt.contains("Group")) recruit.setGroupUUID(nbt.getUUID("Group"));
         recruit.setListen(nbt.getBoolean("Listen"));
         recruit.setIsFollowing(nbt.getBoolean("isFollowing"));
         recruit.setXp(nbt.getInt("Xp"));
@@ -187,7 +189,9 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
         }
 
         recruit.setPos(pos.getX() + 0.5, pos.getY() + 1 , pos.getZ() + 0.5);
-        //if(recruit instanceof BowmanEntity bowman) bowman.reassessWeaponGoal();
 
+        if(recruit.getGroup() != null){
+            RecruitEvents.recruitsGroupsManager.addMember(recruit.getGroup(), recruit.getUUID(), (ServerLevel) recruit.getCommandSenderWorld());
+        }
     }
 }

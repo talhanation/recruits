@@ -88,17 +88,6 @@ public class EditOrAddGroupScreen extends Screen {
         }
         this.addRenderableWidget(groupNameField);
 
-        this.addRenderableWidget(new ExtendedButton(leftPos + 7, topPos + 135, 90, 20, groupToEdit == null ? TEXT_ADD : TEXT_SAVE, button -> {
-            if (groupToEdit == null) {
-                addGroup();
-            } else {
-                editGroup();
-            }
-        }));
-
-        this.addRenderableWidget(new ExtendedButton(leftPos + 97, topPos + 135, 90, 20, TEXT_CANCEL, button -> {
-            this.minecraft.setScreen(this.parent);
-        }));
         int index = groupToEdit != null ? groupToEdit.getImage() : 0;
         image = RecruitsGroup.IMAGES.get(index);
         imageDropdownMatrix = new ImageSelectionDropdownMatrix(this, leftPos + 170, topPos + 20, 21, 21,
@@ -107,7 +96,7 @@ public class EditOrAddGroupScreen extends Screen {
         );
         addRenderableWidget(imageDropdownMatrix);
 
-        Button buttonDisbandGroup = new ExtendedButton(leftPos + 7, topPos + 55, 180, 20, DISBAND_GROUP,
+        Button buttonDisbandGroup = new ExtendedButton(leftPos + 7, topPos + 50, 180, 20, DISBAND_GROUP,
             btn -> {
                 minecraft.setScreen(new ConfirmScreen(DISBAND_GROUP, TOOLTIP_KEEP_TEAM,
                         () ->  Main.SIMPLE_CHANNEL.sendToServer(new MessageDisbandGroup(this.player.getUUID(), this.groupToEdit.getUUID(), true)),
@@ -120,7 +109,7 @@ public class EditOrAddGroupScreen extends Screen {
         buttonDisbandGroup.active = groupToEdit != null;
         addRenderableWidget(buttonDisbandGroup);
 
-        Button buttonAssignGroup = new ExtendedButton(leftPos + 7, topPos + 75, 180, 20, ASSIGN_GROUP_TO_PLAYER,
+        Button buttonAssignGroup = new ExtendedButton(leftPos + 7, topPos + 70, 180, 20, ASSIGN_GROUP_TO_PLAYER,
                 btn -> {
                     minecraft.setScreen(new SelectPlayerScreen(this, player, ASSIGN_GROUP_TO_PLAYER, ASSIGN_GROUP_TO_PLAYER, TOOLTIP_ASSIGN_GROUP_TO_PLAYER, false, PlayersList.FilterType.NONE,
                         (playerInfo) -> {
@@ -133,21 +122,20 @@ public class EditOrAddGroupScreen extends Screen {
         buttonAssignGroup.active = groupToEdit != null;
         addRenderableWidget(buttonAssignGroup);
 
-        Button mergeButton = new ExtendedButton(leftPos + 7, topPos + 95, 90, 20, BUTTON_MERGE,
+        Button mergeButton = new ExtendedButton(leftPos + 7, topPos + 90, 90, 20, BUTTON_MERGE,
             btn -> {
                 minecraft.setScreen(new SelectGroupScreen(this, groupToEdit, TITLE_MERGE_GROUP, BUTTON_MERGE, TOOLTIP_MERGE_GROUP,
                         (selectedGroup) -> {
                             Main.SIMPLE_CHANNEL.sendToServer(new MessageMergeGroup(this.groupToEdit.getUUID(), selectedGroup.getUUID()));
                             minecraft.setScreen(this.parent);
-                        })
-                );
+                        }));
             }
         );
         mergeButton.setTooltip(Tooltip.create(TOOLTIP_MERGE_GROUP));
         mergeButton.active = groupToEdit != null;
         addRenderableWidget(mergeButton);
 
-        Button splitButton = new ExtendedButton(leftPos + 97, topPos + 95, 90, 20, BUTTON_SPLIT,
+        Button splitButton = new ExtendedButton(leftPos + 97, topPos + 90, 90, 20, BUTTON_SPLIT,
             btn -> {
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageSplitGroup(this.groupToEdit.getUUID()));
                 minecraft.setScreen(this.parent);
@@ -156,7 +144,7 @@ public class EditOrAddGroupScreen extends Screen {
         splitButton.active = groupToEdit != null;
         addRenderableWidget(splitButton);
 
-        Button putRecruits = new ExtendedButton(leftPos + 7, topPos + 115, 180, 20, BUTTON_NEARBY,
+        Button putRecruits = new ExtendedButton(leftPos + 7, topPos + 110, 180, 20, BUTTON_NEARBY,
             btn -> {
                 Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignNearbyRecruitsInGroup(this.groupToEdit.getUUID()));
                 minecraft.setScreen(this.parent);
@@ -165,6 +153,18 @@ public class EditOrAddGroupScreen extends Screen {
         putRecruits.setTooltip(Tooltip.create(TOOLTIP_PUT_NEARBY));
         putRecruits.active = groupToEdit != null;
         addRenderableWidget(putRecruits);
+
+        this.addRenderableWidget(new ExtendedButton(leftPos + 7, topPos + 135, 90, 20, groupToEdit == null ? TEXT_ADD : TEXT_SAVE, button -> {
+            if (groupToEdit == null) {
+                addGroup();
+            } else {
+                editGroup();
+            }
+        }));
+
+        this.addRenderableWidget(new ExtendedButton(leftPos + 97, topPos + 135, 90, 20, TEXT_CANCEL, button -> {
+            this.minecraft.setScreen(this.parent);
+        }));
     }
 
     private void setGroupImage(ResourceLocation resourceLocation){
