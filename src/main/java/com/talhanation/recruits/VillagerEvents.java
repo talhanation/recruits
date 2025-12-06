@@ -77,17 +77,20 @@ public class VillagerEvents {
             villager.goalSelector.addGoal(0, new VillagerBecomeNobleGoal(villager));
         }
     }
+
+    public HashMap<VillagerProfession, EntityType<? extends  AbstractRecruitEntity>> entitiesByProfession = new HashMap<>(){{
+        put(ModProfessions.RECRUIT.get(), ModEntityTypes.RECRUIT.get());
+        put(ModProfessions.BOWMAN.get(), ModEntityTypes.BOWMAN.get());
+        put(ModProfessions.SHIELDMAN.get(), ModEntityTypes.RECRUIT_SHIELDMAN.get());
+        put(ModProfessions.HORSEMAN.get(), ModEntityTypes.HORSEMAN.get());
+        put(ModProfessions.NOMAD.get(), ModEntityTypes.NOMAD.get());
+        put(ModProfessions.CROSSBOWMAN.get(), ModEntityTypes.CROSSBOWMAN.get());
+    }
+    };
+
     @SubscribeEvent
     public void onVillagerLivingUpdate(LivingEvent.LivingTickEvent event) {
-        HashMap<VillagerProfession, EntityType<? extends  AbstractRecruitEntity>> entitiesByProfession = new HashMap<>(){{
-            put(ModProfessions.RECRUIT.get(), ModEntityTypes.RECRUIT.get());
-            put(ModProfessions.BOWMAN.get(), ModEntityTypes.BOWMAN.get());
-            put(ModProfessions.SHIELDMAN.get(), ModEntityTypes.RECRUIT_SHIELDMAN.get());
-            put(ModProfessions.HORSEMAN.get(), ModEntityTypes.HORSEMAN.get());
-            put(ModProfessions.NOMAD.get(), ModEntityTypes.NOMAD.get());
-            put(ModProfessions.CROSSBOWMAN.get(), ModEntityTypes.CROSSBOWMAN.get());
-            }
-        };
+
 
         Entity entity = event.getEntity();
         if (entity instanceof Villager villager) {
@@ -99,7 +102,6 @@ public class VillagerEvents {
             }
         }
 
-
         if (entity instanceof IronGolem ironGolemEntity) {
 
             if (!ironGolemEntity.isPlayerCreated() && RecruitsServerConfig.OverrideIronGolemSpawn.get()){
@@ -107,16 +109,17 @@ public class VillagerEvents {
                         AbstractRecruitEntity.class,
                         ironGolemEntity.getBoundingBox().inflate(32)
                 );
+                list1.removeIf(recruit -> recruit instanceof VillagerNobleEntity);
+
                 if (list1.size() > 1) {
                     ironGolemEntity.remove(Entity.RemovalReason.KILLED);
-                    //System.out.println(olem was removed");
                 }
                 else {
-                    int i = this.random.nextInt(5);
+                    int i = this.random.nextInt(6);
                     if (i == 1) createBowmanIronGolem(ironGolemEntity);
+                    if (i == 2) createCrossbowmanIronGolem(ironGolemEntity);
                     else if (i == 0) createRecruitShieldmanIronGolem(ironGolemEntity);
                     else createRecruitIronGolem(ironGolemEntity);
-                    //System.out.println("Spawned new Recruit");
                 }
             }
         }
@@ -327,6 +330,18 @@ public class VillagerEvents {
         bowman.getInventory().setItem(8, Items.BREAD.getDefaultInstance());
         villager.remove(Entity.RemovalReason.DISCARDED);
         villager.getCommandSenderWorld().addFreshEntity(bowman);
+    }
+
+    private static void createCrossbowmanIronGolem(LivingEntity entity){
+        CrossBowmanEntity crossBowmanEntity = ModEntityTypes.CROSSBOWMAN.get().create(entity.getCommandSenderWorld());
+        IronGolem villager = (IronGolem) entity;
+        crossBowmanEntity.copyPosition(villager);
+
+        crossBowmanEntity.initSpawn();
+
+        crossBowmanEntity.getInventory().setItem(8, Items.BREAD.getDefaultInstance());
+        villager.remove(Entity.RemovalReason.DISCARDED);
+        villager.getCommandSenderWorld().addFreshEntity(crossBowmanEntity);
     }
 
     private static void spawnSmallGuardRecruits(BlockPos upPos, ServerLevel world, Random random) {
