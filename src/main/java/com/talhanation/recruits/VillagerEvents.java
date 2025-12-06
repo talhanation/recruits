@@ -90,8 +90,6 @@ public class VillagerEvents {
 
     @SubscribeEvent
     public void onVillagerLivingUpdate(LivingEvent.LivingTickEvent event) {
-
-
         Entity entity = event.getEntity();
         if (entity instanceof Villager villager) {
             VillagerProfession profession = villager.getVillagerData().getProfession();
@@ -158,10 +156,8 @@ public class VillagerEvents {
 
         if (nobleEntity != null && !level.isClientSide()){
             nobleEntity.copyPosition(villager);
-            nobleEntity.finalizeSpawn((ServerLevel) level, level.getCurrentDifficultyAt(villager.getOnPos().above(2)), MobSpawnType.PATROL, null, null);
 
             nobleEntity.initSpawn();
-
             nobleEntity.setFollowState(0);
 
             for(ItemStack itemStack : villager.getInventory().items){
@@ -197,15 +193,14 @@ public class VillagerEvents {
         if (abstractRecruit != null && abstractRecruit.hire(player, group)) {
             abstractRecruit.copyPosition(villager);
 
-
             abstractRecruit.initSpawn();
             abstractRecruit.setFollowState(1);
-            abstractRecruit.setGroupUUID(group.getUUID());
-            abstractRecruit.finalizeSpawn(serverLevel, player.getCommandSenderWorld().getCurrentDifficultyAt(player.getOnPos()), MobSpawnType.CONVERSION, null, null);
 
             for(ItemStack itemStack : villager.getInventory().items){
                 abstractRecruit.getInventory().addItem(itemStack);
             }
+
+            abstractRecruit.setGroupUUID(group.getUUID());
 
             if(abstractRecruit instanceof ICompanion){
                 for(int i = 0; i < 4; i++){
@@ -231,7 +226,6 @@ public class VillagerEvents {
         AbstractRecruitEntity abstractRecruit = recruitType.create(player.getCommandSenderWorld());
         if (abstractRecruit != null && abstractRecruit.hire(player,null)) {
             abstractRecruit.copyPosition(player);
-            abstractRecruit.finalizeSpawn(serverLevel, player.getCommandSenderWorld().getCurrentDifficultyAt(player.getOnPos()), MobSpawnType.CONVERSION, null, null);
 
             if(abstractRecruit instanceof ICompanion){
                 for(int i = 0; i < 4; i++){

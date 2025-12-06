@@ -112,7 +112,7 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
                      minecraft.setScreen(new DiplomacyEditScreen(this, selected));
                      this.selected = null;
                 });
-        setStanceButton.active = ownFaction != null && ownFaction.getTeamLeaderUUID().equals(this.minecraft.player.getUUID());
+        setStanceButton.active = this.selected != null && ownFaction != null && ownFaction.getTeamLeaderUUID().equals(this.minecraft.player.getUUID());
 
         addRenderableWidget(setStanceButton);
 
