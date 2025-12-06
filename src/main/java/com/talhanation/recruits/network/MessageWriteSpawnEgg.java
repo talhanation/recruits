@@ -1,6 +1,7 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.events.RecruitsOnWriteSpawnEggEvent;
 import com.talhanation.recruits.init.ModItems;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
@@ -12,6 +13,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.Objects;
@@ -42,6 +44,8 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
 
             CompoundTag entityTag = new CompoundTag();
             entityTag = this.fillRecruitsInfo(entityTag, recruitEntity);
+
+
 
             CompoundTag itemTag = new CompoundTag();
             itemTag.put("EntityTag", entityTag);
@@ -154,6 +158,8 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
         }
 
         entityTag.put("HandItems", listtag1);
+
+        MinecraftForge.EVENT_BUS.post(new RecruitsOnWriteSpawnEggEvent(recruitEntity, entityTag));
 
         return entityTag;
     }
