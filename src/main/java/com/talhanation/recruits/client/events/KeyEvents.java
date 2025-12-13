@@ -2,7 +2,7 @@ package com.talhanation.recruits.client.events;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.client.gui.claim.ClaimMapScreen;
+import com.talhanation.recruits.client.gui.worldmap.WorldMapScreen;
 import com.talhanation.recruits.client.gui.faction.TeamMainScreen;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.init.ModShortcuts;
@@ -34,8 +34,7 @@ public class KeyEvents {
         }
 
         if (ModShortcuts.MAP_SCREEN_KEY.isDown()) {
-
-            minecraft.setScreen(new ClaimMapScreen(null, clientPlayerEntity));
+            minecraft.setScreen(new WorldMapScreen());
         }
     }
 

@@ -4,12 +4,11 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
-import com.talhanation.recruits.client.gui.claim.ClaimMapScreen;
+import com.talhanation.recruits.client.gui.worldmap.WorldMapScreen;
 import com.talhanation.recruits.network.MessageLeaveTeam;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
-import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.diplomacy.DiplomacyTeamListScreen;
 import com.talhanation.recruits.client.gui.player.IPlayerSelection;
@@ -119,7 +118,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
         boolean isTeamLeader = ClientManager.ownFaction.getTeamLeaderUUID().equals(player.getUUID());
         claimMapButton = new ExtendedButton(guiLeft + 160, guiTop + 99, 60, 20, CLAIM_BUTTON,
                 button -> {
-                    minecraft.setScreen(new ClaimMapScreen(this, player));
+                    minecraft.setScreen(new WorldMapScreen());
                 });
         claimMapButton.visible = isTeamLeader;// TODO: && isClaimingAllowed;
         addRenderableWidget(claimMapButton);

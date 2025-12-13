@@ -3,14 +3,17 @@ package com.talhanation.recruits.client.events;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.overlay.FactionClaimBannerOverlay;
 import com.talhanation.recruits.client.gui.overlay.FactionClaimSiegeOverlay;
+import com.talhanation.recruits.client.gui.worldmap.ChunkTileManager;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsClaimManager;
 import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 
@@ -89,6 +92,12 @@ public class ClientPlayerEvents {
                 }
             }
         }
+
+
+        if (Minecraft.getInstance().level != null && Minecraft.getInstance().player != null) {
+            ChunkTileManager tileManager = ChunkTileManager.getInstance();
+            tileManager.updateCurrentTile();
+        }
     }
 
 
@@ -96,6 +105,20 @@ public class ClientPlayerEvents {
     public void onRenderGui(RenderGuiOverlayEvent event) {
         FactionClaimBannerOverlay.renderOverlay(event.getGuiGraphics(), event.getWindow().getGuiScaledWidth());
         FactionClaimSiegeOverlay.renderOverlay(event.getGuiGraphics(), event.getWindow().getGuiScaledWidth());
+    }
+
+    @SubscribeEvent
+    public void onWorldLoad(LevelEvent.Load event) {
+        if (event.getLevel().isClientSide()) {
+            ChunkTileManager.getInstance().initialize((Level) event.getLevel());
+        }
+    }
+
+    @SubscribeEvent
+    public void onWorldUnload(LevelEvent.Unload event) {
+        if (event.getLevel().isClientSide()) {
+            ChunkTileManager.getInstance().close();
+        }
     }
 
     enum State{
