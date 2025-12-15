@@ -6,12 +6,10 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
-import com.talhanation.recruits.client.gui.faction.TeamEditScreen;
 import com.talhanation.recruits.network.MessageUpdateClaim;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderType;
@@ -23,10 +21,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 import static com.talhanation.recruits.client.ClientManager.ownFaction;
 
@@ -130,7 +129,10 @@ public class WorldMapScreen extends Screen {
 
         contextMenu.render(guiGraphics, this);
 
-        if (selectedClaim != null) {
+        if (selectedClaim != null && claimInfoMenu.isVisible()) {
+            Point p = getClaimInfoMenuPosition(selectedClaim, claimInfoMenu.width, claimInfoMenu.height
+            );
+            claimInfoMenu.setPosition(p.x, p.y);
             claimInfoMenu.render(guiGraphics);
         }
     }
@@ -205,7 +207,7 @@ public class WorldMapScreen extends Screen {
 
         pose.mulPose(Axis.ZP.rotationDegrees(player.getYRot()));
 
-        pose.scale(1.0f, 1.0f, 1.0f);
+        pose.scale(5.0f, 5.0f, 5.0f);
 
         int iconIndex = 0;
         float u0 = (iconIndex % 16) / 16f;
@@ -325,9 +327,22 @@ public class WorldMapScreen extends Screen {
             }
         }
 
+        RecruitsClaim clickedClaim = ClaimRenderer.getClaimAtPosition(mouseX, mouseY, offsetX, offsetZ, scale);
+        if (clickedClaim != null) {
+            if (clickedClaim.equals(selectedClaim)) {
+                centerOnClaim(selectedClaim);
+            } else {
+                selectedClaim = clickedClaim;
+                claimInfoMenu.openForClaim(selectedClaim, (int) mouseX, (int) mouseY);
+            }
+            selectedChunk = null;
+            return true;
+        }
+        else {
+            if(hoveredChunk != null)  selectedChunk = hoveredChunk;
 
-        if (hoveredChunk != null) {
-            selectedChunk = hoveredChunk;
+            selectedClaim = null;
+            claimInfoMenu.close();
         }
 
         if (button == 1) { // Rechtsklick
@@ -344,28 +359,7 @@ public class WorldMapScreen extends Screen {
             lastMouseX = mouseX;
             lastMouseY = mouseY;
             isDragging = true;
-
-
-            RecruitsClaim clickedClaim = ClaimRenderer.getClaimAtPosition(mouseX, mouseY, offsetX, offsetZ, scale);
-
-            if (clickedClaim != null) {
-                if (clickedClaim.equals(selectedClaim)) {
-                    // Doppelt klicken auf denselben Claim -> zentriere
-                    centerOnClaim(selectedClaim);
-                } else {
-                    // Neuen Claim auswählen
-                    selectedClaim = clickedClaim;
-                    claimInfoMenu.openForClaim(selectedClaim, (int) mouseX, (int) mouseY);
-                }
-                return true;
-            }
-            else {
-                selectedClaim = null;
-                claimInfoMenu.close();
-            }
         }
-
-
 
         return super.mouseClicked(mouseX, mouseY, button);
     }
@@ -605,5 +599,47 @@ public class WorldMapScreen extends Screen {
         int centerZ = (minZ + maxZ) / 2;
 
         claim.setCenter(new ChunkPos(centerX, centerZ));
+    }
+
+    public Rectangle getClaimScreenBounds(RecruitsClaim claim) {
+        int minChunkX = Integer.MAX_VALUE;
+        int maxChunkX = Integer.MIN_VALUE;
+        int minChunkZ = Integer.MAX_VALUE;
+        int maxChunkZ = Integer.MIN_VALUE;
+
+        for (ChunkPos pos : claim.getClaimedChunks()) {
+            minChunkX = Math.min(minChunkX, pos.x);
+            maxChunkX = Math.max(maxChunkX, pos.x);
+            minChunkZ = Math.min(minChunkZ, pos.z);
+            maxChunkZ = Math.max(maxChunkZ, pos.z);
+        }
+
+        // World → Screen
+        int x1 = (int) (offsetX + minChunkX * 16 * scale);
+        int y1 = (int) (offsetZ + minChunkZ * 16 * scale);
+        int x2 = (int) (offsetX + (maxChunkX + 1) * 16 * scale);
+        int y2 = (int) (offsetZ + (maxChunkZ + 1) * 16 * scale);
+
+        return new Rectangle(x1, y1, x2 - x1, y2 - y1);
+    }
+
+    public Point getClaimInfoMenuPosition(RecruitsClaim claim, int menuWidth, int menuHeight) {
+        Rectangle bounds = getClaimScreenBounds(claim);
+
+        int margin = 10;
+
+        int x = bounds.x + bounds.width + margin;
+        int y = bounds.y + bounds.height / 2 - menuHeight / 2;
+
+        // Bildschirm-Clamping
+        if (x + menuWidth > width) {
+            x = bounds.x - menuWidth - margin; // links anzeigen
+        }
+        if (y < 10) y = 10;
+        if (y + menuHeight > height - 10) {
+            y = height - menuHeight - 10;
+        }
+
+        return new Point(x, y);
     }
 }

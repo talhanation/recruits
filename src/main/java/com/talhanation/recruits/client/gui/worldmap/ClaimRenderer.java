@@ -156,9 +156,7 @@ public class ClaimRenderer {
         ChunkPos center = claim.getCenter();
         double pixelX = offsetX + center.x * 16 * scale;
         double pixelZ = offsetZ + center.z * 16 * scale;
-        double size = 16 * scale;
-
-        if (size < 30) return;
+        double size = 64;
 
         String name = claim.getName();
         Font font = Minecraft.getInstance().font;
@@ -170,11 +168,11 @@ public class ClaimRenderer {
         int y = (int)(pixelZ + (size - 9 * textScale) / 2);
 
         int padding = 2;
-        guiGraphics.fill(
+        /*guiGraphics.fill(
                 x - padding, y - padding,
                 x + textWidth + padding, y + (int)(9 * textScale) + padding,
                 0x80000000
-        );
+        );*/
 
         // Text
         PoseStack pose = guiGraphics.pose();

@@ -4,13 +4,15 @@ import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.world.RecruitsClaim;
 import net.minecraft.client.gui.GuiGraphics;
 
+import java.awt.*;
+
 public class ClaimInfoMenu {
     private final WorldMapScreen parent;
     private boolean visible = false;
     private RecruitsClaim currentClaim;
     private BannerRenderer bannerRenderer;
-    private int x, y;
-    private int width = 120, height = 220;
+    public int x, y;
+    public int width = 120, height = 200;
 
     public ClaimInfoMenu(WorldMapScreen parent) {
         this.parent = parent;
@@ -52,9 +54,7 @@ public class ClaimInfoMenu {
         guiGraphics.fill(x, y, x + width, y + height, 0xCC000000);
         guiGraphics.renderOutline(x, y, width, height, 0xFFFFFFFF);
 
-
-        guiGraphics.drawCenteredString(parent.getMinecraft().font,
-                currentClaim.getName(), x + width / 2, y + 5, 0xFFFFFF);
+        guiGraphics.drawCenteredString(parent.getMinecraft().font, currentClaim.getName(), x + width / 2, y + 5, 0xFFFFFF);
 
         bannerRenderer.renderBanner(guiGraphics, x - 7 + width / 2, y + 70,  this.width, this.height, 50);
 
@@ -68,11 +68,6 @@ public class ClaimInfoMenu {
         guiGraphics.drawString(parent.getMinecraft().font,
                 "Owner: " + (currentClaim.getPlayerInfo() != null ?
                         currentClaim.getPlayerInfo().getName() : "Unknown"),
-                x + 5, textY, 0xFFFFFF);
-
-        textY += 15;
-        guiGraphics.drawString(parent.getMinecraft().font,
-                "Chunks: " + currentClaim.getClaimedChunks().size(),
                 x + 5, textY, 0xFFFFFF);
 
         textY += 15;
@@ -123,6 +118,11 @@ public class ClaimInfoMenu {
 
     public boolean isVisible() {
         return visible;
+    }
+
+    public void setPosition(int x, int y) {
+        this.x = x;
+        this.y = y;
     }
 }
 
