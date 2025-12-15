@@ -43,6 +43,10 @@ public class RecruitsClaim {
         this.isAdmin = false;
     }
 
+    public RecruitsClaim(RecruitsFaction faction) {
+        this(faction.getTeamDisplayName(), faction);
+    }
+
     public UUID getUUID() {
         return uuid;
     }

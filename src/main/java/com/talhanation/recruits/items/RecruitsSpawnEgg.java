@@ -5,6 +5,7 @@ import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
@@ -102,7 +103,7 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
         recruit.setShouldBlock(nbt.getBoolean("ShouldBlock"));
         recruit.setShouldProtect(nbt.getBoolean("ShouldProtect"));
         recruit.setFleeing(nbt.getBoolean("Fleeing"));
-        if(nbt.contains("Group")) recruit.setGroupUUID(nbt.getUUID("Group"));
+
         recruit.setListen(nbt.getBoolean("Listen"));
         recruit.setIsFollowing(nbt.getBoolean("isFollowing"));
         recruit.setXp(nbt.getInt("Xp"));
@@ -128,6 +129,22 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
                             nbt.getInt("HoldPosZ")));
                 }
                 */
+
+        if(nbt.contains("Group")){
+            Tag tag = nbt.get("Group");
+
+            int type = tag.getId();
+            if (type == Tag.TAG_INT) {
+                if(recruit.getOwner() != null){
+                    int oldGroupIndex = nbt.getInt("Group");
+                    RecruitEvents.handleGroupBackwardCompatibility(recruit, oldGroupIndex);
+                }
+                else recruit.setGroupUUID(null);
+            }
+            else{
+                recruit.setGroupUUID(nbt.getUUID("Group"));
+            }
+        }
 
         if (nbt.contains("MovePosX") && nbt.contains("MovePosY") && nbt.contains("MovePosZ")) {
             recruit.setShouldMovePos(nbt.getBoolean("ShouldMovePos"));

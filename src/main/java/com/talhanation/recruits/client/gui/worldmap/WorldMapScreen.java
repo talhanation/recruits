@@ -1,19 +1,34 @@
 package com.talhanation.recruits.client.gui.worldmap;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.ClientManager;
+import com.talhanation.recruits.client.gui.faction.TeamEditScreen;
+import com.talhanation.recruits.network.MessageUpdateClaim;
+import com.talhanation.recruits.world.RecruitsClaim;
+import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.GL11;
+
+import javax.annotation.Nullable;
+import java.util.*;
+
+import static com.talhanation.recruits.client.ClientManager.ownFaction;
 
 
 public class WorldMapScreen extends Screen {
@@ -21,7 +36,7 @@ public class WorldMapScreen extends Screen {
     private final ChunkTileManager tileManager;
     private final Player player;
     private static final double MIN_SCALE = 0.5;
-    private static final double MAX_SCALE = 6.0;
+    private static final double MAX_SCALE = 10.0;
     private static final double DEFAULT_SCALE = 2.0;
     private static final double SCALE_STEP = 0.1;
     private static final int CHUNK_HIGHLIGHT_COLOR = 0x40FFFFFF;
@@ -32,20 +47,28 @@ public class WorldMapScreen extends Screen {
     public double lastMouseX, lastMouseY;
     private boolean isDragging = false;
     private ChunkPos hoveredChunk = null;
-    private ChunkPos selectedChunk = null;
-    private int hoveredBlockX = 0, hoveredBlockZ = 0;
-
+    ChunkPos selectedChunk = null;
+    private int clickedBlockX = 0, clickedBlockZ = 0;
+    private int hoverBlockX = 0, hoverBlockZ = 0;
     private final WorldMapContextMenu contextMenu;
+    RecruitsClaim selectedClaim = null;
+    private ClaimInfoMenu claimInfoMenu;
+    private static final int CLAIM_OVERLAY_ALPHA = 90;
+    private static final int CLAIM_BORDER_COLOR = 0xFFFFFFFF;
+    private static final int CLAIM_BORDER_THICKNESS = 2;
+
     public WorldMapScreen() {
         super(Component.literal(""));
-        this.contextMenu =  new WorldMapContextMenu(this);
+        this.contextMenu = new WorldMapContextMenu(this);
+        this.claimInfoMenu = new ClaimInfoMenu(this);
         this.tileManager = ChunkTileManager.getInstance();
         this.player = Minecraft.getInstance().player;
     }
 
-    public ChunkPos getHoveredChunk() { return hoveredChunk; }
-    public ChunkPos getSelectedChunk() { return selectedChunk; }
+    public BlockPos getHoveredBlockPos() { return new BlockPos(hoverBlockX, 0, hoverBlockZ); }
+    public BlockPos getClickedBlockPos() { return new BlockPos(clickedBlockX, 0, clickedBlockZ); }
     public Player getPlayer() { return player; }
+    public boolean isPlayerAdmin() { return player.hasPermissions(2); }
     public double getScale() { return scale; }
     public void setSelectedChunk(ChunkPos chunk) { this.selectedChunk = chunk; }
 
@@ -57,6 +80,8 @@ public class WorldMapScreen extends Screen {
             tileManager.initialize(minecraft.level);
             centerOnPlayer();
         }
+
+        claimInfoMenu.init();
     }
 
     public void centerOnPlayer() {
@@ -83,6 +108,8 @@ public class WorldMapScreen extends Screen {
 
         renderMapTiles(guiGraphics);
 
+        ClaimRenderer.renderClaimsOverlay(guiGraphics, this.selectedClaim, this.offsetX, this.offsetZ, scale);
+
         if (player != null) {
             renderPlayerIcon(guiGraphics);
         }
@@ -102,6 +129,10 @@ public class WorldMapScreen extends Screen {
         renderFPS(guiGraphics);
 
         contextMenu.render(guiGraphics, this);
+
+        if (selectedClaim != null) {
+            claimInfoMenu.render(guiGraphics);
+        }
     }
 
     @Override
@@ -110,27 +141,54 @@ public class WorldMapScreen extends Screen {
     }
 
     private void renderMapTiles(GuiGraphics guiGraphics) {
-        double minTileX = (-offsetX) / (ChunkTile.TILE_PIXEL_SIZE * scale);
-        double maxTileX = (width - offsetX) / (ChunkTile.TILE_PIXEL_SIZE * scale);
-        double minTileZ = (-offsetZ) / (ChunkTile.TILE_PIXEL_SIZE * scale);
-        double maxTileZ = (height - offsetZ) / (ChunkTile.TILE_PIXEL_SIZE * scale);
+        double tileSize = ChunkTile.TILE_PIXEL_SIZE;
+        double scaledTileSize = tileSize * scale;
 
-        int startTileX = (int)Math.floor(minTileX) - 1;
-        int endTileX = (int)Math.ceil(maxTileX) + 1;
-        int startTileZ = (int)Math.floor(minTileZ) - 1;
-        int endTileZ = (int)Math.ceil(maxTileZ) + 1;
+        double leftEdge = -offsetX;
+        double rightEdge = width - offsetX;
+        double topEdge = -offsetZ;
+        double bottomEdge = height - offsetZ;
+
+        int startTileX = (int)Math.floor(leftEdge / scaledTileSize - 0.5);
+        int endTileX = (int)Math.ceil(rightEdge / scaledTileSize + 0.5);
+        int startTileZ = (int)Math.floor(topEdge / scaledTileSize - 0.5);
+        int endTileZ = (int)Math.ceil(bottomEdge / scaledTileSize + 0.5);
+
 
         for (int tileZ = startTileZ; tileZ <= endTileZ; tileZ++) {
             for (int tileX = startTileX; tileX <= endTileX; tileX++) {
                 ChunkTile tile = tileManager.getOrCreateTile(tileX, tileZ);
-                int x = (int)(offsetX + tileX * ChunkTile.TILE_PIXEL_SIZE * scale);
-                int z = (int)(offsetZ + tileZ * ChunkTile.TILE_PIXEL_SIZE * scale);
-                int size = (int)(ChunkTile.TILE_PIXEL_SIZE * scale);
-                tile.render(guiGraphics, x, z, size);
+                ResourceLocation textureId = tile.getTextureId();
+
+                if (textureId == null) continue;
+
+
+                double tileWorldX = tileX * scaledTileSize + offsetX;
+                double tileWorldZ = tileZ * scaledTileSize + offsetZ;
+
+                double drawX = tileWorldX - 0.5;
+                double drawZ = tileWorldZ - 0.5;
+                double drawSize = scaledTileSize + 1.0;
+
+
+                int x = (int)Math.floor(drawX);
+                int z = (int)Math.floor(drawZ);
+                int size = (int)Math.ceil(drawSize);
+
+                if (Math.abs(scale - 1.0) < 0.01) {
+                    x = (int)Math.round(tileWorldX);
+                    z = (int)Math.round(tileWorldZ);
+                    size = (int)Math.round(scaledTileSize);
+                }
+
+                RenderSystem.setShaderTexture(0, textureId);
+                RenderSystem.enableBlend();
+                RenderSystem.defaultBlendFunc();
+
+                guiGraphics.blit(textureId, x, z, 0, 0, size, size, size, size);
             }
         }
     }
-
     private void renderPlayerIcon(GuiGraphics guiGraphics) {
         if (player == null) return;
 
@@ -147,9 +205,7 @@ public class WorldMapScreen extends Screen {
 
         pose.mulPose(Axis.ZP.rotationDegrees(player.getYRot()));
 
-        float iconScale = (float)Math.max(2.0, 5.0 * scale / 2.0);
-        pose.scale(iconScale, iconScale, 1.0f);
-
+        pose.scale(1.0f, 1.0f, 1.0f);
 
         int iconIndex = 0;
         float u0 = (iconIndex % 16) / 16f;
@@ -229,7 +285,7 @@ public class WorldMapScreen extends Screen {
     }
 
     private void renderCoordinatesAndZoom(GuiGraphics guiGraphics) {
-        String coords = String.format("X: %d, Z: %d", hoveredBlockX, hoveredBlockZ);
+        String coords = String.format("X: %d, Z: %d", hoverBlockX, hoverBlockZ);
         String zoom = String.format("Zoom: %.1fx", scale);
         String combined = coords + " | " + zoom;
 
@@ -245,29 +301,72 @@ public class WorldMapScreen extends Screen {
         guiGraphics.drawCenteredString(font, combined, width / 2, height - 25, 0xFFFFFF);
     }
 
+    public void centerOnClaim(RecruitsClaim claim) {
+        if (claim == null || claim.getCenter() == null) return;
+
+        ChunkPos center = claim.getCenter();
+        double pixelX = center.x * 16 * scale;
+        double pixelZ = center.z * 16 * scale;
+
+        offsetX = -pixelX + width / 2.0;
+        offsetZ = -pixelZ + height / 2.0;
+    }
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        // Check Claim Info Menu first
+        if (claimInfoMenu.isVisible() && claimInfoMenu.mouseClicked(mouseX, mouseY, button)) {
+            return true;
+        }
+
         if (contextMenu.isVisible()) {
             if (contextMenu.mouseClicked(mouseX, mouseY, button, this)) {
                 return true;
             }
         }
 
-        if (button == 1) {
-            contextMenu.openAt((int)mouseX, (int)mouseY, this);
+
+        if (hoveredChunk != null) {
+            selectedChunk = hoveredChunk;
+        }
+
+        if (button == 1) { // Rechtsklick
+            double worldX = (mouseX - offsetX) / scale;
+            double worldZ = (mouseY - offsetZ) / scale;
+            clickedBlockX = (int) Math.floor(worldX);
+            clickedBlockZ = (int) Math.floor(worldZ);
+
+            contextMenu.openAt((int) mouseX, (int) mouseY);
             return true;
         }
 
-        if (button == 0 && !contextMenu.isVisible()) {
+        if (button == 0) { // Linksklick
             lastMouseX = mouseX;
             lastMouseY = mouseY;
             isDragging = true;
 
-            if (hoveredChunk != null) {
-                selectedChunk = hoveredChunk;
+
+            RecruitsClaim clickedClaim = ClaimRenderer.getClaimAtPosition(mouseX, mouseY, offsetX, offsetZ, scale);
+
+            if (clickedClaim != null) {
+                if (clickedClaim.equals(selectedClaim)) {
+                    // Doppelt klicken auf denselben Claim -> zentriere
+                    centerOnClaim(selectedClaim);
+                } else {
+                    // Neuen Claim auswählen
+                    selectedClaim = clickedClaim;
+                    claimInfoMenu.openForClaim(selectedClaim, (int) mouseX, (int) mouseY);
+                }
                 return true;
             }
+            else {
+                selectedClaim = null;
+                claimInfoMenu.close();
+            }
         }
+
+
+
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
@@ -280,6 +379,11 @@ public class WorldMapScreen extends Screen {
         if (button == 0) {
             isDragging = false;
         }
+
+        if (claimInfoMenu.isVisible()) {
+            claimInfoMenu.mouseReleased(mouseX, mouseY, button);
+        }
+
         return true;
     }
 
@@ -290,12 +394,22 @@ public class WorldMapScreen extends Screen {
             offsetZ += mouseY - lastMouseY;
             lastMouseX = mouseX;
             lastMouseY = mouseY;
+
+            // Claim Info Menu schließen beim Ziehen
+            if (claimInfoMenu.isVisible()) {
+                claimInfoMenu.close();
+            }
             return true;
         }
 
         if (contextMenu.isVisible()) {
             contextMenu.close();
         }
+
+        if (claimInfoMenu.isVisible()) {
+            claimInfoMenu.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        }
+
         return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
@@ -303,6 +417,10 @@ public class WorldMapScreen extends Screen {
     public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
         if (contextMenu.isVisible()) {
             contextMenu.close();
+        }
+
+        if (claimInfoMenu.isVisible()) {
+            claimInfoMenu.close();
         }
 
         double zoomFactor = 1.0 + (delta > 0 ? SCALE_STEP : -SCALE_STEP);
@@ -321,25 +439,32 @@ public class WorldMapScreen extends Screen {
     public void mouseMoved(double mouseX, double mouseY) {
         this.mouseX = mouseX;
         this.mouseY = mouseY;
-        double worldX = (mouseX - offsetX) / scale;
-        double worldZ = (mouseY - offsetZ) / scale;
-        hoveredBlockX = (int)Math.floor(worldX);
-        hoveredBlockZ = (int)Math.floor(worldZ);
-        hoveredChunk = new ChunkPos(hoveredBlockX >> 4, hoveredBlockZ >> 4);
+        int worldX = (int) ((mouseX - offsetX) / scale);
+        int worldZ = (int) ((mouseY - offsetZ) / scale);
+        hoverBlockX = (int)Math.floor(worldX);
+        hoverBlockZ = (int)Math.floor(worldZ);
+        hoveredChunk = new ChunkPos(hoverBlockX >> 4, hoverBlockZ >> 4);
     }
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+            if (claimInfoMenu.isVisible()) {
+                claimInfoMenu.close();
+                return true;
+            }
+
             if (contextMenu.isVisible()) {
                 contextMenu.close();
                 return true;
             }
+
             onClose();
             return true;
         }
 
-        if (!contextMenu.isVisible()) {
+        // Navigationstasten
+        if (!contextMenu.isVisible() && !claimInfoMenu.isVisible()) {
             double moveSpeed = 40.0 / scale;
             switch (keyCode) {
                 case GLFW.GLFW_KEY_UP, GLFW.GLFW_KEY_W -> offsetZ += moveSpeed;
@@ -381,5 +506,104 @@ public class WorldMapScreen extends Screen {
 
         String fpsText = String.format("FPS: %d", currentFps);
         guiGraphics.drawString(font, fpsText, width - font.width(fpsText) - 15, 5, 0x00FF00);
+    }
+
+    public boolean isPlayerFactionLeader() {
+        if(player == null || ownFaction ==  null) return false;
+
+        return ownFaction.getTeamLeaderUUID().equals(player.getUUID());
+    }
+
+    public boolean isPlayerClaimLeader() {
+        if(player == null || selectedClaim ==  null) return false;
+
+        return selectedClaim.getPlayerInfo().getUUID().equals(player.getUUID());
+    }
+
+    public void claimArea() {
+        List<ChunkPos> area = new ArrayList<>();
+
+        int range = 2;
+        for (int dx = -range; dx <= range; dx++) {
+            for (int dz = -range; dz <= range; dz++) {
+                area.add(new ChunkPos(selectedChunk.x + dx, selectedChunk.z + dz));
+            }
+        }
+
+        //if (!canClaimChunks(area, team, allClaims)) return;
+
+        RecruitsClaim newClaim = new RecruitsClaim(ownFaction);
+        for (ChunkPos pos : area) {
+            newClaim.addChunk(pos);
+        }
+
+        newClaim.setCenter(selectedChunk);
+        newClaim.setPlayer(new RecruitsPlayerInfo(player.getUUID(), player.getName().getString(), ownFaction));
+
+        ClientManager.recruitsClaims.add(newClaim);
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(newClaim));
+        //Main.SIMPLE_CHANNEL.sendToServer(new MessageDoPayment(player.getUUID(), screen.getClaimCost(ClientManager.ownFaction)));
+    }
+
+    public void claimChunk() {
+        RecruitsClaim neighborClaim = getNeighborClaim(selectedChunk);
+        if(neighborClaim == null) return;
+
+        String ownerID = ownFaction.getStringID();
+        String neighborID = neighborClaim.getOwnerFaction().getStringID();
+        if(!Objects.equals(ownerID, neighborID)) return;
+
+        for(RecruitsClaim claim : ClientManager.recruitsClaims){
+            if(claim.equals(neighborClaim)){
+                neighborClaim.addChunk(selectedChunk);
+                this.recalculateCenter(neighborClaim);
+                break;
+            }
+        }
+
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(neighborClaim));
+        //Main.SIMPLE_CHANNEL.sendToServer(new MessageDoPayment(player.getUUID(), ClientManager.configValueChunkCost));
+    }
+
+    @Nullable
+    public RecruitsClaim getNeighborClaim(ChunkPos chunk) {
+        ChunkPos[] neighbors = new ChunkPos[] {
+                new ChunkPos(chunk.x + 1, chunk.z),
+                new ChunkPos(chunk.x - 1, chunk.z),
+                new ChunkPos(chunk.x, chunk.z + 1),
+                new ChunkPos(chunk.x, chunk.z - 1)
+        };
+
+        for (ChunkPos neighbor : neighbors) {
+            for (RecruitsClaim claim : ClientManager.recruitsClaims) {
+                if (claim.containsChunk(neighbor)) {
+                    return claim;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public void recalculateCenter(RecruitsClaim claim) {
+        List<ChunkPos> claimedChunks = claim.getClaimedChunks();
+        if (claimedChunks.isEmpty()) return;
+
+        int minX = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int minZ = Integer.MAX_VALUE;
+        int maxZ = Integer.MIN_VALUE;
+
+        for (ChunkPos pos : claimedChunks) {
+            if (pos.x < minX) minX = pos.x;
+            if (pos.x > maxX) maxX = pos.x;
+            if (pos.z < minZ) minZ = pos.z;
+            if (pos.z > maxZ) maxZ = pos.z;
+        }
+
+        int centerX = (minX + maxX) / 2;
+        int centerZ = (minZ + maxZ) / 2;
+
+        claim.setCenter(new ChunkPos(centerX, centerZ));
     }
 }

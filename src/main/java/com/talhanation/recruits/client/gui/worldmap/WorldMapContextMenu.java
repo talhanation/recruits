@@ -1,5 +1,11 @@
 package com.talhanation.recruits.client.gui.worldmap;
 
+import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.ClientManager;
+import com.talhanation.recruits.client.gui.diplomacy.DiplomacyEditScreen;
+import com.talhanation.recruits.network.MessageTeleportPlayer;
+import com.talhanation.recruits.world.RecruitsClaim;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import java.util.ArrayList;
@@ -11,39 +17,58 @@ public class WorldMapContextMenu {
     private final List<ContextMenuEntry> entries = new ArrayList<>();
     private int x, y;
     private boolean visible = false;
-    private final int width = 120;
+    private final int width = 150;
     private final int entryHeight = 20;
-    private final WorldMapScreen mapScreen;
-    public WorldMapContextMenu(WorldMapScreen mapScreen) {
-        this.mapScreen = mapScreen;
-        addEntry("Chunk auswählen",
-                () -> true,
+    private final WorldMapScreen worldMapScreen;
+
+    public WorldMapContextMenu(WorldMapScreen worldMapScreen) {
+        this.worldMapScreen = worldMapScreen;
+
+        addEntry("Diplomacy",
+                () -> ClientManager.ownFaction != null && !this.worldMapScreen.isPlayerFactionLeader() && !this.worldMapScreen.isPlayerClaimLeader(),
+                (screen) -> Minecraft.getInstance().setScreen(new DiplomacyEditScreen(screen, screen.selectedClaim.getOwnerFaction()))
+        );
+
+        addEntry("Claim Chunk",
+                () -> (this.worldMapScreen.isPlayerFactionLeader() || this.worldMapScreen.isPlayerClaimLeader()),
+
+                WorldMapScreen::claimChunk
+        );
+
+        addEntry("Claim Area",
+                worldMapScreen::isPlayerFactionLeader,
+                WorldMapScreen::claimArea
+        );
+
+        addEntry("Edit Claim",
+                () -> (this.worldMapScreen.isPlayerFactionLeader() || this.worldMapScreen.isPlayerClaimLeader()),
+
+                (screen) -> Minecraft.getInstance().setScreen(new ClaimEditScreen(screen, screen.selectedClaim, screen.getPlayer()))
+        );
+
+        addEntry("Center Map", WorldMapScreen::centerOnPlayer);
+
+
+        //ADMIN STUFF
+
+
+        addEntry("Teleport (Admin)",
+                worldMapScreen::isPlayerAdmin,
                 screen -> {
-                    if (screen.getHoveredChunk() != null) {
-                        screen.setSelectedChunk(screen.getHoveredChunk());
-                    }
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageTeleportPlayer(screen.getClickedBlockPos()));
                 });
-
-        addEntry("Auswahl löschen",
-                () -> true,
-                screen -> screen.setSelectedChunk(null));
-
-        addEntry("Zum Spieler zentrieren",
-                () -> true,
-                screen -> screen.centerOnPlayer());
-
-        addEntry("Zoom zurücksetzen",
-                () -> true,
-                screen -> screen.resetZoom());
     }
-
     public void addEntry(String text, BooleanSupplier condition, Consumer<WorldMapScreen> action) {
         entries.add(new ContextMenuEntry(Component.literal(text), condition, action));
     }
 
-    public void openAt(int x, int y, WorldMapScreen screen) {
-        this.x = Math.max(0, Math.min(x, screen.width - width));
-        this.y = Math.max(0, Math.min(y, screen.height - entries.size() * entryHeight));
+    public void addEntry(String text, Consumer<WorldMapScreen> action) {
+        addEntry(text, () -> true, action);
+    }
+
+    public void openAt(int x, int y) {
+        this.x = Math.max(10, Math.min(x, worldMapScreen.width - width - 10));
+        this.y = Math.max(10, Math.min(y, worldMapScreen.height - entries.size() * entryHeight - 10));
         this.visible = true;
     }
 
@@ -58,14 +83,29 @@ public class WorldMapContextMenu {
     public void render(GuiGraphics guiGraphics, WorldMapScreen screen) {
         if (!visible) return;
 
-        guiGraphics.fill(x, y, x + width, y + entries.size() * entryHeight, 0xFF2C2C2C);
-        guiGraphics.renderOutline(x, y, width, entries.size() * entryHeight, 0xFF555555);
+        int visibleEntries = (int) entries.stream()
+                .filter(entry -> entry.shouldShow(screen))
+                .count();
+        int height = visibleEntries * entryHeight;
+
+        guiGraphics.fill(x, y, x + width, y + height, 0xFF1A1A1A);
+        guiGraphics.renderOutline(x, y, width, height, 0xFF555555);
 
         int entryY = y;
         for (ContextMenuEntry entry : entries) {
             if (entry.shouldShow(screen)) {
-                int color = isMouseOverEntry((int) this.mapScreen.mouseX, (int) this.mapScreen.mouseY, x, entryY) ? 0xFFDDDDDD : 0xFFAAAAAA;
-                guiGraphics.drawString(screen.getMinecraft().font, entry.text(), x + 5, entryY + 6, color);
+                boolean hovered = isMouseOverEntry(x, entryY);
+                int bgColor = hovered ? 0xFF333333 : 0xFF1A1A1A;
+                guiGraphics.fill(x, entryY, x + width, entryY + entryHeight, bgColor);
+
+                int textColor;
+                if (entry.text().getString().contains("(Admin)")) {
+                    textColor = hovered ? 0xFFFF5555 : 0xFFAA4444;
+                } else {
+                    textColor = hovered ? 0xFFFFFF : 0xCCCCCC;
+                }
+
+                guiGraphics.drawString(screen.getMinecraft().font, entry.text(), x + 8, entryY + 6, textColor);
                 entryY += entryHeight;
             }
         }
@@ -91,7 +131,9 @@ public class WorldMapContextMenu {
         return false;
     }
 
-    private boolean isMouseOverEntry(int mouseX, int mouseY, int entryX, int entryY) {
+    private boolean isMouseOverEntry(int entryX, int entryY) {
+        double mouseX = this.worldMapScreen.mouseX;
+        double mouseY = this.worldMapScreen.mouseY;
         return mouseX >= entryX && mouseX <= entryX + width &&
                 mouseY >= entryY && mouseY <= entryY + entryHeight;
     }
