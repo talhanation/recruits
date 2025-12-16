@@ -18,9 +18,9 @@ public class RecruitsClaim {
     private final List<ChunkPos> claimedChunks = new ArrayList<>();
     private String name;
     private RecruitsFaction ownerFaction;
-    private boolean allowBlockInteraction = true;
-    private boolean allowBlockPlacement   = true;
-    private boolean allowBlockBreaking    = true;
+    private boolean allowBlockInteraction = false;
+    private boolean allowBlockPlacement   = false;
+    private boolean allowBlockBreaking    = false;
     public List<RecruitsFaction> defendingParties = new ArrayList<>();
     public List<RecruitsFaction> attackingParties = new ArrayList<>();
     public ChunkPos center;
@@ -28,6 +28,7 @@ public class RecruitsClaim {
     public int health;
     public RecruitsPlayerInfo playerInfo;
     public boolean isAdmin;
+    public boolean isRemoved;
     public RecruitsClaim(String name, RecruitsFaction ownerFaction) {
         this.uuid = UUID.randomUUID();
         this.name = name;
@@ -149,7 +150,7 @@ public class RecruitsClaim {
         nbt.putBoolean("allowBreaking", allowBlockBreaking);
         nbt.putBoolean("isAdmin", isAdmin);
         nbt.putBoolean("isUnderSiege", isUnderSiege);
-
+        nbt.putBoolean("isRemoved", isRemoved);
         // Claimed Chunks
         ListTag chunkList = new ListTag();
         for (ChunkPos pos : claimedChunks) {
@@ -200,6 +201,7 @@ public class RecruitsClaim {
         claim.setBlockBreakingAllowed(nbt.getBoolean("allowBreaking"));
         claim.setAdminClaim(nbt.getBoolean("isAdmin"));
         claim.isUnderSiege = nbt.getBoolean("isUnderSiege");
+        claim.isRemoved = nbt.getBoolean("isRemoved");
 
         if (nbt.contains("chunks", Tag.TAG_LIST)) {
             ListTag chunkList = nbt.getList("chunks", Tag.TAG_COMPOUND);

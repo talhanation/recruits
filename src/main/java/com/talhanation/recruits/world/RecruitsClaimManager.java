@@ -36,8 +36,10 @@ public class RecruitsClaimManager {
 
         claims.entrySet().removeIf(entry -> entry.getValue().getUUID().equals(claim.getUUID()));
 
-        for (ChunkPos pos : claim.getClaimedChunks()) {
-            this.claims.put(pos, claim);
+        if(!claim.isRemoved){
+            for (ChunkPos pos : claim.getClaimedChunks()) {
+                this.claims.put(pos, claim);
+            }
         }
 
         this.broadcastClaimsToAll(level);
