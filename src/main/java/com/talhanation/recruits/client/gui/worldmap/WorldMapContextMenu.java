@@ -4,7 +4,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.diplomacy.DiplomacyEditScreen;
 import com.talhanation.recruits.network.MessageTeleportPlayer;
-import com.talhanation.recruits.world.RecruitsClaim;
+import com.talhanation.recruits.network.MessageUpdateClaim;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -30,27 +30,34 @@ public class WorldMapContextMenu {
         );
 
         addEntry("Claim Chunk",
-                () -> (this.worldMapScreen.isPlayerFactionLeader() || this.worldMapScreen.isPlayerClaimLeader()),
-
+                () -> (this.worldMapScreen.canClaimChunk(worldMapScreen.selectedChunk, true) && (this.worldMapScreen.isPlayerFactionLeader() || this.worldMapScreen.isPlayerClaimLeader())),
                 WorldMapScreen::claimChunk
         );
 
         addEntry("Claim Area",
-                worldMapScreen::isPlayerFactionLeader,
+                () -> (this.worldMapScreen.canClaimChunks(worldMapScreen.getClaimArea(worldMapScreen.selectedChunk)) && (this.worldMapScreen.isPlayerFactionLeader())),
                 WorldMapScreen::claimArea
         );
 
         addEntry("Edit Claim",
-                () -> (this.worldMapScreen.isPlayerFactionLeader() || this.worldMapScreen.isPlayerClaimLeader()),
+                () -> this.worldMapScreen.selectedClaim != null && this.worldMapScreen.isPlayerFactionLeader() || this.worldMapScreen.isPlayerClaimLeader(),
 
-                (screen) -> Minecraft.getInstance().setScreen(new ClaimEditScreen(screen, screen.selectedClaim, screen.getPlayer()))
+                (screen) ->{
+                    screen.openClaimEditScreenWithScreenshot();
+                    screen.selectedClaim = null;
+                }
         );
 
         addEntry("Center Map", WorldMapScreen::centerOnPlayer);
 
-
         //ADMIN STUFF
-
+        addEntry("Delete Claim (Admin)",
+                () -> (this.worldMapScreen.isPlayerAdmin() && this.worldMapScreen.selectedClaim != null),
+                screen -> {
+                    screen.selectedClaim.isRemoved = true;
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(screen.selectedClaim));
+                    screen.selectedClaim = null;
+                });
 
         addEntry("Teleport (Admin)",
                 worldMapScreen::isPlayerAdmin,

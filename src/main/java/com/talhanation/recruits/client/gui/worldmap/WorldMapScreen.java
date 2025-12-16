@@ -6,6 +6,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
+import com.talhanation.recruits.network.MessageDoPayment;
 import com.talhanation.recruits.network.MessageUpdateClaim;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
@@ -113,7 +114,7 @@ public class WorldMapScreen extends Screen {
             renderPlayerIcon(guiGraphics);
         }
 
-        if (selectedChunk != null) {
+         if (selectedChunk != null && (selectedClaim == null || contextMenu.isVisible())) {
             renderChunkOutline(guiGraphics, selectedChunk.x, selectedChunk.z, CHUNK_SELECTION_COLOR);
         }
 
@@ -326,21 +327,14 @@ public class WorldMapScreen extends Screen {
                 return true;
             }
         }
+        if(hoveredChunk != null)  selectedChunk = hoveredChunk;
 
         RecruitsClaim clickedClaim = ClaimRenderer.getClaimAtPosition(mouseX, mouseY, offsetX, offsetZ, scale);
         if (clickedClaim != null) {
-            if (clickedClaim.equals(selectedClaim)) {
-                centerOnClaim(selectedClaim);
-            } else {
-                selectedClaim = clickedClaim;
-                claimInfoMenu.openForClaim(selectedClaim, (int) mouseX, (int) mouseY);
-            }
-            selectedChunk = null;
-            return true;
+            selectedClaim = clickedClaim;
+            claimInfoMenu.openForClaim(selectedClaim, (int) mouseX, (int) mouseY);
         }
         else {
-            if(hoveredChunk != null)  selectedChunk = hoveredChunk;
-
             selectedClaim = null;
             claimInfoMenu.close();
         }
@@ -352,7 +346,7 @@ public class WorldMapScreen extends Screen {
             clickedBlockZ = (int) Math.floor(worldZ);
 
             contextMenu.openAt((int) mouseX, (int) mouseY);
-            return true;
+            claimInfoMenu.close();
         }
 
         if (button == 0) { // Linksklick
@@ -389,15 +383,10 @@ public class WorldMapScreen extends Screen {
             lastMouseX = mouseX;
             lastMouseY = mouseY;
 
-            // Claim Info Menu schließen beim Ziehen
             if (claimInfoMenu.isVisible()) {
                 claimInfoMenu.close();
             }
             return true;
-        }
-
-        if (contextMenu.isVisible()) {
-            contextMenu.close();
         }
 
         if (claimInfoMenu.isVisible()) {
@@ -409,10 +398,6 @@ public class WorldMapScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-        if (contextMenu.isVisible()) {
-            contextMenu.close();
-        }
-
         if (claimInfoMenu.isVisible()) {
             claimInfoMenu.close();
         }
@@ -513,18 +498,25 @@ public class WorldMapScreen extends Screen {
 
         return selectedClaim.getPlayerInfo().getUUID().equals(player.getUUID());
     }
-
-    public void claimArea() {
+    public List<ChunkPos> getClaimArea(ChunkPos pos){
         List<ChunkPos> area = new ArrayList<>();
+        if(pos == null) return area;
 
         int range = 2;
         for (int dx = -range; dx <= range; dx++) {
             for (int dz = -range; dz <= range; dz++) {
-                area.add(new ChunkPos(selectedChunk.x + dx, selectedChunk.z + dz));
+                area.add(new ChunkPos(pos.x + dx, pos.z + dz));
             }
         }
 
-        //if (!canClaimChunks(area, team, allClaims)) return;
+        return area;
+    }
+    public void claimArea() {
+        List<ChunkPos> area = getClaimArea(this.selectedChunk);
+
+
+
+        if (!canClaimChunks(area)) return;
 
         RecruitsClaim newClaim = new RecruitsClaim(ownFaction);
         for (ChunkPos pos : area) {
@@ -556,7 +548,7 @@ public class WorldMapScreen extends Screen {
         }
 
         Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(neighborClaim));
-        //Main.SIMPLE_CHANNEL.sendToServer(new MessageDoPayment(player.getUUID(), ClientManager.configValueChunkCost));
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageDoPayment(player.getUUID(), ClientManager.configValueChunkCost));
     }
 
     @Nullable
@@ -642,4 +634,38 @@ public class WorldMapScreen extends Screen {
 
         return new Point(x, y);
     }
+
+    public boolean canClaimChunk(ChunkPos pos, boolean neighborSameFactionRequired) {
+        if(pos == null || ownFaction == null) return false;
+
+        for (RecruitsClaim claim : ClientManager.recruitsClaims) {
+            for (ChunkPos chunkPos : claim.getClaimedChunks()) {
+                if (chunkPos.equals(pos)) {
+                    return false;
+                }
+
+                int dx = Math.abs(chunkPos.x - pos.x);
+                int dz = Math.abs(chunkPos.z - pos.z);
+
+                if (dx <= 5 && dz <= 5 && !claim.getOwnerFaction().getStringID().equals(ownFaction.getStringID())) {
+                    return false;
+                }
+            }
+        }
+
+        if (neighborSameFactionRequired) {
+            RecruitsClaim neighborClaim = getNeighborClaim(pos);
+            return neighborClaim != null && neighborClaim.getOwnerFaction().getStringID().equals(ownFaction.getStringID());
+        }
+
+        return true;
+    }
+
+    public boolean canClaimChunks(List<ChunkPos> chunksToClaim) {
+        for (ChunkPos pos : chunksToClaim) {
+            if (!canClaimChunk(pos,false)) return false;
+        }
+        return true;
+    }
+
 }

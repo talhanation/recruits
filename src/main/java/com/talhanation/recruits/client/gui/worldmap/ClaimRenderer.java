@@ -167,14 +167,6 @@ public class ClaimRenderer {
         int x = (int)(pixelX + (size - textWidth) / 2);
         int y = (int)(pixelZ + (size - 9 * textScale) / 2);
 
-        int padding = 2;
-        /*guiGraphics.fill(
-                x - padding, y - padding,
-                x + textWidth + padding, y + (int)(9 * textScale) + padding,
-                0x80000000
-        );*/
-
-        // Text
         PoseStack pose = guiGraphics.pose();
         pose.pushPose();
         pose.translate(x, y, 0);
