@@ -39,8 +39,8 @@ public class ClientPlayerEvents {
         switch (state) {
             case NO_CLAIM -> {
                 if(claim != null){
-                    state = State.IN_CLAIM;
                     if(!claim.isUnderSiege){
+                        state = State.IN_CLAIM;
                         FactionClaimBannerOverlay.activate(claim);
                     }
                     else {
@@ -53,7 +53,7 @@ public class ClientPlayerEvents {
                                 claim.getHealth(),
                                 claim.getMaxHealth()
                         );
-                        setState(State.SIEGE);
+                        state = State.SIEGE;
                     }
                 }
             }
