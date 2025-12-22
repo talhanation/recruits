@@ -76,12 +76,11 @@ public class RecruitsGroup {
         this.image = image;
     }
 
-    private RecruitsGroup(String name, UUID playerUUID, String playerName, int size, boolean disabled, int image, DisbandContext disbandContext){
+    private RecruitsGroup(String name, UUID playerUUID, String playerName, int size, int image, DisbandContext disbandContext){
         this.name = name;
         this.playerUUID = playerUUID;
         this.playerName = playerName;
         this.size = size;
-        this.disabled = disabled;
         this.image = image;
         this.disbandContext = disbandContext;
     }
@@ -160,7 +159,7 @@ public class RecruitsGroup {
     }
 
     public RecruitsGroup copy(){
-        return new RecruitsGroup(this.name, this.playerUUID, this.playerName, this.size, this.disabled, this.image, this.disbandContext);
+        return new RecruitsGroup(this.name, this.playerUUID, this.playerName, this.size, this.image, this.disbandContext);
     }
 
     public CompoundTag toNBT() {
@@ -198,11 +197,10 @@ public class RecruitsGroup {
         int size = tag.getInt("size");
         int image = tag.getInt("image");
 
-        boolean disabled = tag.getBoolean("disabled");
         boolean removed = tag.getBoolean("removed");
         DisbandContext disbandContext = DisbandContext.fromNBT(tag);
 
-        RecruitsGroup group = new RecruitsGroup(name, playerUUID, playerName, size, disabled, image, disbandContext);
+        RecruitsGroup group = new RecruitsGroup(name, playerUUID, playerName, size, image, disbandContext);
         group.setUUID(uuid);
         group.removed = removed;
 

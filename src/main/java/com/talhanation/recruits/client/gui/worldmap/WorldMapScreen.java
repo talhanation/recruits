@@ -1,14 +1,17 @@
 package com.talhanation.recruits.client.gui.worldmap;
 
+import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
+import com.talhanation.recruits.compat.SmallShips;
 import com.talhanation.recruits.network.MessageDoPayment;
 import com.talhanation.recruits.network.MessageUpdateClaim;
 import com.talhanation.recruits.world.RecruitsClaim;
+import com.talhanation.recruits.world.RecruitsFaction;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -19,6 +22,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ChunkPos;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
@@ -68,7 +74,7 @@ public class WorldMapScreen extends Screen {
     public BlockPos getHoveredBlockPos() { return new BlockPos(hoverBlockX, 0, hoverBlockZ); }
     public BlockPos getClickedBlockPos() { return new BlockPos(clickedBlockX, 0, clickedBlockZ); }
     public Player getPlayer() { return player; }
-    public boolean isPlayerAdmin() { return player.hasPermissions(2); }
+    public boolean isPlayerAdminAndCreative() { return player.hasPermissions(2) && player.isCreative(); }
     public double getScale() { return scale; }
     public void setSelectedChunk(ChunkPos chunk) { this.selectedChunk = chunk; }
 
@@ -111,7 +117,7 @@ public class WorldMapScreen extends Screen {
         ClaimRenderer.renderClaimsOverlay(guiGraphics, this.selectedClaim, this.offsetX, this.offsetZ, scale);
 
         if (player != null) {
-            renderPlayerIcon(guiGraphics);
+            renderPlayerPosition(guiGraphics);
         }
 
          if (selectedChunk != null && (selectedClaim == null || contextMenu.isVisible())) {
@@ -192,7 +198,9 @@ public class WorldMapScreen extends Screen {
             }
         }
     }
-    private void renderPlayerIcon(GuiGraphics guiGraphics) {
+
+    private static final ItemStack BOAT_STACK = new ItemStack(Items.OAK_BOAT);
+    private void renderPlayerPosition(GuiGraphics guiGraphics) {
         if (player == null) return;
 
         double playerWorldX = player.getX();
@@ -206,10 +214,53 @@ public class WorldMapScreen extends Screen {
 
         pose.translate(pixelX, pixelZ, 0);
 
+        if(player.getVehicle() instanceof Boat){
+            renderPlayerBoat(pose, guiGraphics);
+        }
+        else{
+            renderPlayerIcon(pose, guiGraphics);
+        }
+
+        pose.popPose();
+
+        renderPlayerNameTag(guiGraphics, pixelX, pixelZ);
+    }
+
+    private void renderPlayerBoat(PoseStack pose, GuiGraphics guiGraphics){
+        float yaw = player.getYRot() % 360f;
+        if (yaw < -180f) yaw += 360f;
+        if (yaw >= 180f) yaw -= 360f;
+
+        boolean flipX = yaw > 0;
+
+        pose.pushPose();
+
+        if (flipX) {
+            pose.scale(-1f, 1f, 1f);
+        }
+
+        pose.scale(1.5f, 1.5f, 1.5f);
+
+        Lighting.setupForFlatItems();
+
+        ItemStack boat = BOAT_STACK;
+        if(Main.isSmallShipsLoaded ){
+            if(player.getVehicle() != null && SmallShips.isSmallShip(player.getVehicle())){
+                 boat = SmallShips.getSmallShipsItem();
+            }
+        }
+
+        RenderSystem.disableCull();
+        guiGraphics.renderItem(boat, -8, -8);
+        RenderSystem.enableCull();
+
+        pose.popPose();
+    }
+
+    private void renderPlayerIcon(PoseStack pose, GuiGraphics guiGraphics) {
         pose.mulPose(Axis.ZP.rotationDegrees(player.getYRot()));
 
         pose.scale(5.0f, 5.0f, 5.0f);
-
         int iconIndex = 0;
         float u0 = (iconIndex % 16) / 16f;
         float v0 = (iconIndex / 16) / 16f;
@@ -254,18 +305,19 @@ public class WorldMapScreen extends Screen {
                 .normal(0, 0, 1)
                 .endVertex();
 
-        pose.popPose();
-
-        renderPlayerNameTag(guiGraphics, pixelX, pixelZ);
     }
+
     private void renderPlayerNameTag(GuiGraphics guiGraphics, int pixelX, int pixelZ) {
         if (player != null && scale > 1.5) {
             String playerName = player.getName().getString();
-            int nameWidth = font.width(playerName);
-
-            guiGraphics.fill(pixelX - nameWidth/2 - 2, pixelZ - 15, pixelX + nameWidth/2 + 2, pixelZ - 5, 0x80000000);
-
-            guiGraphics.drawCenteredString(font, playerName, pixelX, pixelZ - 15, 0xFFFFFF);
+            float textScale = (float)Math.min(1.0, scale / 1.25);
+            int textWidth = font.width(playerName);
+            int textHeight = font.lineHeight;
+            guiGraphics.pose().pushPose();
+            guiGraphics.pose().translate(pixelX - (textWidth * textScale) / 2.0, pixelZ - (textHeight * textScale) / 2.0 - 10, 0);
+            guiGraphics.pose().scale(textScale, textScale, 1.0f);
+            guiGraphics.drawString(font, playerName, 0, 0, 0xFFFFFF, false);
+            guiGraphics.pose().popPose();
         }
     }
 
@@ -402,6 +454,10 @@ public class WorldMapScreen extends Screen {
             claimInfoMenu.close();
         }
 
+        if (contextMenu.isVisible()) {
+            contextMenu.close();
+        }
+
         double zoomFactor = 1.0 + (delta > 0 ? SCALE_STEP : -SCALE_STEP);
         double newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale * zoomFactor));
 
@@ -486,11 +542,13 @@ public class WorldMapScreen extends Screen {
         String fpsText = String.format("FPS: %d", currentFps);
         guiGraphics.drawString(font, fpsText, width - font.width(fpsText) - 15, 5, 0x00FF00);
     }
-
     public boolean isPlayerFactionLeader() {
-        if(player == null || ownFaction ==  null) return false;
+        return this.isPlayerFactionLeader(ownFaction);
+    }
+    public boolean isPlayerFactionLeader(RecruitsFaction faction) {
+        if(player == null || faction ==  null) return false;
 
-        return ownFaction.getTeamLeaderUUID().equals(player.getUUID());
+        return faction.getTeamLeaderUUID().equals(player.getUUID());
     }
 
     public boolean isPlayerClaimLeader() {
@@ -637,9 +695,11 @@ public class WorldMapScreen extends Screen {
 
     public boolean canClaimChunk(ChunkPos pos, boolean neighborSameFactionRequired) {
         if(pos == null || ownFaction == null) return false;
+        if(isPlayerTooFar()) return false;
 
         for (RecruitsClaim claim : ClientManager.recruitsClaims) {
             for (ChunkPos chunkPos : claim.getClaimedChunks()) {
+                if(claim.getClaimedChunks().size() >= RecruitsClaim.MAX_SIZE) return false;
                 if (chunkPos.equals(pos)) {
                     return false;
                 }
@@ -659,6 +719,41 @@ public class WorldMapScreen extends Screen {
         }
 
         return true;
+    }
+
+    public boolean canRemoveChunk(ChunkPos pos, RecruitsClaim claim) {
+        if (pos == null || ownFaction == null) return false;
+        if (isPlayerTooFar()) return false;
+
+        List<ChunkPos> claimedChunks = claim.getClaimedChunks();
+        if (!claimedChunks.contains(pos)) return false;
+
+        int unclaimedNeighborCount = 0;
+        ChunkPos[] neighbors = new ChunkPos[] {
+                new ChunkPos(pos.x + 1, pos.z),
+                new ChunkPos(pos.x - 1, pos.z),
+                new ChunkPos(pos.x, pos.z + 1),
+                new ChunkPos(pos.x, pos.z - 1)
+        };
+
+        for (ChunkPos neighbor : neighbors) {
+            if (!claimedChunks.contains(neighbor)) {
+                unclaimedNeighborCount++;
+            }
+        }
+
+        return unclaimedNeighborCount >= 2;
+    }
+
+    private boolean isPlayerTooFar() {
+        if(selectedChunk == null) return true;
+        int playerPosX = player.chunkPosition().x;
+        int playerPosZ = player.chunkPosition().z;
+
+        int diffX = Math.abs(playerPosX) - Math.abs(selectedChunk.x);
+        int diffZ = Math.abs(playerPosZ) - Math.abs(selectedChunk.z);
+
+        return Math.abs(diffZ) > 4 || Math.abs(diffX) > 4;
     }
 
     public boolean canClaimChunks(List<ChunkPos> chunksToClaim) {

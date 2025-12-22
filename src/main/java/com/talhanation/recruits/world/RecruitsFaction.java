@@ -159,6 +159,11 @@ public class RecruitsFaction {
         return this.getStringID();
     }
 
+    public boolean equalsFaction(RecruitsFaction faction){
+        if(faction == null) return false;
+        return this.getStringID().equals(faction.getStringID());
+    }
+
     public CompoundTag toNBT() {
         CompoundTag nbt = new CompoundTag();
         nbt.putString("teamName", this.stringID);

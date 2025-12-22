@@ -30,7 +30,9 @@ public class MessageTeleportPlayer implements Message<MessageTeleportPlayer> {
         if(player == null)return;
 
         BlockPos corrected = player.level().getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, pos);
-
+        if(corrected.getY() < -65){
+            corrected.offset(0, 164, 0);
+        }
         player.teleportTo(corrected.getX(), corrected.getY() + 2, corrected.getZ());
     }
 

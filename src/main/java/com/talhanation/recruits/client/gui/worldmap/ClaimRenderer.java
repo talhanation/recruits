@@ -151,27 +151,43 @@ public class ClaimRenderer {
     }
 
     public static void renderClaimName(GuiGraphics guiGraphics, RecruitsClaim claim, double offsetX, double offsetZ, double scale) {
-        if (claim.getCenter() == null || scale < 1.0) return;
+        if (claim.getClaimedChunks().isEmpty() || scale < 1.0) return;
 
-        ChunkPos center = claim.getCenter();
-        double pixelX = offsetX + center.x * 16 * scale;
-        double pixelZ = offsetZ + center.z * 16 * scale;
-        double size = 64;
-
-        String name = claim.getName();
         Font font = Minecraft.getInstance().font;
+        String name = claim.getName();
 
-        float textScale = Math.min(1.0f, (float)(size / 100.0));
-        int textWidth = (int)(font.width(name) * textScale);
+        int minX = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int minZ = Integer.MAX_VALUE;
+        int maxZ = Integer.MIN_VALUE;
 
-        int x = (int)(pixelX + (size - textWidth) / 2);
-        int y = (int)(pixelZ + (size - 9 * textScale) / 2);
+        for (ChunkPos pos : claim.getClaimedChunks()) {
+            minX = Math.min(minX, pos.x);
+            maxX = Math.max(maxX, pos.x);
+            minZ = Math.min(minZ, pos.z);
+            maxZ = Math.max(maxZ, pos.z);
+        }
+
+        double centerWorldX = (minX + maxX + 1) * 16.0 / 2.0;
+        double centerWorldZ = (minZ + maxZ + 1) * 16.0 / 2.0;
+
+        double pixelX = offsetX + centerWorldX * scale;
+        double pixelZ = offsetZ + centerWorldZ * scale;
+
+        float textScale = (float)Math.min(1.0, scale / 1.25);
+
+        int textWidth = font.width(name);
+        int textHeight = font.lineHeight;
 
         PoseStack pose = guiGraphics.pose();
         pose.pushPose();
-        pose.translate(x, y, 0);
+
+        pose.translate(pixelX - (textWidth * textScale) / 2.0, pixelZ - (textHeight * textScale) / 2.0, 0);
+
         pose.scale(textScale, textScale, 1.0f);
-        guiGraphics.drawString(font, name, 0, 0, 0xFFFFFF);
+
+        guiGraphics.drawString(font, name, 0, 0, 0xFFFFFF, false);
+
         pose.popPose();
     }
 

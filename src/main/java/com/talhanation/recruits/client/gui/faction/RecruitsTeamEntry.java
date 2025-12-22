@@ -49,7 +49,7 @@ public class RecruitsTeamEntry extends ListScreenEntryBase<RecruitsTeamEntry> {
     }
 
     public void renderElement(GuiGraphics guiGraphics, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean hovered, float delta, int skinX, int skinY, int textX, int textY) {
-        boolean selected = team.equals(screen.getSelected());
+        boolean selected = team.equalsFaction(screen.getSelected());
         if (selected) {
             guiGraphics.fill(left, top, left + width, top + height, BG_FILL_SELECTED);
         } else if (hovered) {

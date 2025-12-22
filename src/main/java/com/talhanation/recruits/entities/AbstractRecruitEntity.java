@@ -1848,10 +1848,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     private boolean shouldAttackOnNeutral(LivingEntity target){
-        return isMonster(target) || isAttackingOwnerOrSelf(this, target) || RecruitEvents.isEnemy(this.getTeam(), target.getTeam());
+        if(isMonster(target) || isAttackingOwnerOrSelf(this, target)) return true;
+
+        if(target instanceof Villager) return false;
+
+        return RecruitEvents.isEnemy(this.getTeam(), target.getTeam());
     }
 
     private boolean shouldAttackOnAggressive(LivingEntity target){
+        if(target instanceof Villager) return false;
+
         return (target instanceof AbstractRecruitEntity || target instanceof Player) && (RecruitEvents.isNeutral(this.getTeam(), target.getTeam()) || RecruitEvents.isEnemy(this.getTeam(), target.getTeam()));
     }
 

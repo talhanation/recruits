@@ -1,16 +1,19 @@
 package com.talhanation.recruits.client.gui.worldmap;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.world.RecruitsClaim;
 import net.minecraft.client.gui.GuiGraphics;
-
-import java.awt.*;
+import net.minecraft.resources.ResourceLocation;
 
 public class ClaimInfoMenu {
+    private static final ResourceLocation SIEGE_ICON = new ResourceLocation("recruits:textures/gui/image/enemy.png");
     private final WorldMapScreen parent;
     private boolean visible = false;
+    private boolean underSiege;
     private RecruitsClaim currentClaim;
     private BannerRenderer bannerRenderer;
+    private BannerRenderer bannerRendererAttacker;
     public int x, y;
     public int width = 120, height = 200;
 
@@ -20,12 +23,18 @@ public class ClaimInfoMenu {
 
     public void init() {
         this.bannerRenderer = new BannerRenderer(null);
+        this.bannerRendererAttacker = new BannerRenderer(null);
     }
 
     public void openForClaim(RecruitsClaim claim, int x, int y) {
         this.currentClaim = claim;
         this.visible = true;
         bannerRenderer.setRecruitsTeam(claim.getOwnerFaction());
+        this.underSiege = claim.isUnderSiege;
+
+        if(!claim.attackingParties.isEmpty() && claim.attackingParties.get(0) != null){
+            bannerRendererAttacker.setRecruitsTeam(claim.attackingParties.get(0));
+        }
 
         this.x = x;
         this.y = y;
@@ -56,7 +65,16 @@ public class ClaimInfoMenu {
 
         guiGraphics.drawCenteredString(parent.getMinecraft().font, currentClaim.getName(), x + width / 2, y + 5, 0xFFFFFF);
 
-        bannerRenderer.renderBanner(guiGraphics, x - 7 + width / 2, y + 70,  this.width, this.height, 50);
+        if(this.underSiege){
+            bannerRenderer.renderBanner(guiGraphics, x - 7 - 35 + width / 2, y + 65,  this.width, this.height, 40);
+            bannerRendererAttacker.renderBanner(guiGraphics, x - 7 + 30 + width / 2, y + 65,  this.width, this.height, 40);
+            RenderSystem.setShaderTexture(0, SIEGE_ICON);
+            int iconSize = 18;
+            guiGraphics.blit(SIEGE_ICON, x + width / 2 - iconSize / 2, y + 50, 0, 0, iconSize, iconSize, iconSize, iconSize);
+        }
+        else{
+            bannerRenderer.renderBanner(guiGraphics, x - 7 + width / 2, y + 70,  this.width, this.height, 50);
+        }
 
         int textY = y + 120;
         guiGraphics.drawString(parent.getMinecraft().font,

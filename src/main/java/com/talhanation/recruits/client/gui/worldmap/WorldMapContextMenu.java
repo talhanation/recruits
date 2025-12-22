@@ -25,34 +25,73 @@ public class WorldMapContextMenu {
         this.worldMapScreen = worldMapScreen;
 
         addEntry("Diplomacy",
-                () -> ClientManager.ownFaction != null && !this.worldMapScreen.isPlayerFactionLeader() && !this.worldMapScreen.isPlayerClaimLeader(),
+                () -> (ClientManager.ownFaction != null
+                        && this.worldMapScreen.selectedClaim != null && this.worldMapScreen.selectedClaim.getOwnerFaction() != null
+                        && !ClientManager.ownFaction.getStringID().equals(this.worldMapScreen.selectedClaim.getOwnerFactionStringID())
+                ),
                 (screen) -> Minecraft.getInstance().setScreen(new DiplomacyEditScreen(screen, screen.selectedClaim.getOwnerFaction()))
         );
 
         addEntry("Claim Chunk",
-                () -> (this.worldMapScreen.canClaimChunk(worldMapScreen.selectedChunk, true) && (this.worldMapScreen.isPlayerFactionLeader() || this.worldMapScreen.isPlayerClaimLeader())),
+                () -> (this.worldMapScreen.canClaimChunk(worldMapScreen.selectedChunk, true)
+                        && (this.worldMapScreen.isPlayerFactionLeader() || this.worldMapScreen.isPlayerClaimLeader())
+                ),
                 WorldMapScreen::claimChunk
         );
 
         addEntry("Claim Area",
-                () -> (this.worldMapScreen.canClaimChunks(worldMapScreen.getClaimArea(worldMapScreen.selectedChunk)) && (this.worldMapScreen.isPlayerFactionLeader())),
+                () -> (this.worldMapScreen.canClaimChunks(worldMapScreen.getClaimArea(worldMapScreen.selectedChunk))
+                        && (this.worldMapScreen.isPlayerFactionLeader())
+                ),
                 WorldMapScreen::claimArea
         );
 
         addEntry("Edit Claim",
-                () -> this.worldMapScreen.selectedClaim != null && this.worldMapScreen.isPlayerFactionLeader() || this.worldMapScreen.isPlayerClaimLeader(),
-
+                () -> (this.worldMapScreen.selectedClaim != null
+                        && this.worldMapScreen.isPlayerFactionLeader(this.worldMapScreen.selectedClaim.getOwnerFaction())
+                        || this.worldMapScreen.isPlayerClaimLeader()
+                ),
                 (screen) ->{
-                    screen.openClaimEditScreenWithScreenshot();
+                    screen.getMinecraft().setScreen(new ClaimEditScreen(screen, screen.selectedClaim, screen.getPlayer()));
                     screen.selectedClaim = null;
                 }
         );
 
-        addEntry("Center Map", WorldMapScreen::centerOnPlayer);
+        addEntry("Remove Chunk",
+                () -> (this.worldMapScreen.selectedChunk != null && this.worldMapScreen.selectedClaim != null
+                        && worldMapScreen.canRemoveChunk(worldMapScreen.selectedChunk, worldMapScreen.selectedClaim)
+                        && (this.worldMapScreen.isPlayerFactionLeader() || this.worldMapScreen.isPlayerClaimLeader())
+                ),
+
+                (screen) ->{
+                    if(screen.selectedClaim.containsChunk(screen.selectedChunk)){
+                        screen.selectedClaim.removeChunk(screen.selectedChunk);
+                        screen.selectedChunk = null;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(screen.selectedClaim));
+                    }
+                }
+        );
+
+        addEntry("Center on Player", WorldMapScreen::centerOnPlayer);
 
         //ADMIN STUFF
+        addEntry("Remove Chunk (Admin)",
+                () -> (this.worldMapScreen.selectedChunk != null && this.worldMapScreen.selectedClaim != null
+                        && this.worldMapScreen.isPlayerAdminAndCreative()
+                        && worldMapScreen.canRemoveChunk(worldMapScreen.selectedChunk, worldMapScreen.selectedClaim)
+                        && !(this.worldMapScreen.isPlayerFactionLeader() || this.worldMapScreen.isPlayerClaimLeader())
+                ),
+                (screen) ->{
+                    if(screen.selectedClaim.containsChunk(screen.selectedChunk)){
+                        screen.selectedClaim.removeChunk(screen.selectedChunk);
+                        screen.selectedChunk = null;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(screen.selectedClaim));
+                    }
+                }
+        );
+
         addEntry("Delete Claim (Admin)",
-                () -> (this.worldMapScreen.isPlayerAdmin() && this.worldMapScreen.selectedClaim != null),
+                () -> (this.worldMapScreen.isPlayerAdminAndCreative() && this.worldMapScreen.selectedClaim != null),
                 screen -> {
                     screen.selectedClaim.isRemoved = true;
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(screen.selectedClaim));
@@ -60,7 +99,7 @@ public class WorldMapContextMenu {
                 });
 
         addEntry("Teleport (Admin)",
-                worldMapScreen::isPlayerAdmin,
+                worldMapScreen::isPlayerAdminAndCreative,
                 screen -> {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageTeleportPlayer(screen.getClickedBlockPos()));
                 });
@@ -145,7 +184,7 @@ public class WorldMapContextMenu {
                 mouseY >= entryY && mouseY <= entryY + entryHeight;
     }
 
-    private record ContextMenuEntry(
+    private record ContextMenuEntry (
             Component text,
             BooleanSupplier condition,
             Consumer<WorldMapScreen> action

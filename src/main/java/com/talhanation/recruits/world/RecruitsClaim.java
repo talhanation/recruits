@@ -1,4 +1,5 @@
 package com.talhanation.recruits.world;
+import com.talhanation.recruits.ClaimEvents;
 import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import net.minecraft.ChatFormatting;
@@ -7,6 +8,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 
@@ -29,6 +31,7 @@ public class RecruitsClaim {
     public RecruitsPlayerInfo playerInfo;
     public boolean isAdmin;
     public boolean isRemoved;
+    public static int MAX_SIZE = 50;
     public RecruitsClaim(String name, RecruitsFaction ownerFaction) {
         this.uuid = UUID.randomUUID();
         this.name = name;
@@ -60,6 +63,8 @@ public class RecruitsClaim {
         return this.center;
     }
     public void addChunk(ChunkPos chunkPos) {
+        if(claimedChunks.size() >= MAX_SIZE) return;
+
         if (!claimedChunks.contains(chunkPos)) {
             claimedChunks.add(chunkPos);
         }
@@ -264,37 +269,6 @@ public class RecruitsClaim {
         return list;
     }
 
-    public void setUnderSiege(boolean underSiege, ServerLevel level) {
-        RecruitsFaction ownerFaction = FactionEvents.recruitsFactionManager.getTeamByStringID(this.getOwnerFactionStringID());
-        if(ownerFaction == null) return;
-
-        if(!this.isUnderSiege && underSiege){
-            this.isUnderSiege = true;
-
-            for(Player player : FactionEvents.recruitsFactionManager.getPlayersInTeam(this.getOwnerFactionStringID(), level)){
-                player.sendSystemMessage(SIEGE_START_DEFENDER(this.getName(), attackingParties.toString()));
-            }
-            for(RecruitsFaction attacker: attackingParties){
-                for(Player player : FactionEvents.recruitsFactionManager.getPlayersInTeam(attacker.getStringID(), level)){
-                    player.sendSystemMessage(SIEGE_START_ATTACKER(this.getName()));
-                }
-            }
-
-        }
-        else if(this.isUnderSiege && !underSiege){
-            this.isUnderSiege = false;
-
-            for(Player player : FactionEvents.recruitsFactionManager.getPlayersInTeam(this.getOwnerFactionStringID(), level)){
-                player.sendSystemMessage(SIEGE_FAILED_DEFENDER(this.getName()));
-            }
-            for(RecruitsFaction attacker: attackingParties){
-                for(Player player : FactionEvents.recruitsFactionManager.getPlayersInTeam(attacker.getStringID(), level)){
-                    player.sendSystemMessage(SIEGE_FAILED_ATTACKER(this.getName()));
-                }
-            }
-        }
-    }
-
     public void setSiegeSuccess(ServerLevel level){
         for(Player player : FactionEvents.recruitsFactionManager.getPlayersInTeam(this.getOwnerFactionStringID(), level)){
             player.sendSystemMessage(SIEGE_SUCCESS_DEFENDER(this.getName()));
@@ -319,6 +293,84 @@ public class RecruitsClaim {
 
     public int getMaxHealth(){
         return 60 * RecruitsServerConfig.SiegeClaimsConquerTime.get();
+    }
+    public void setUnderSiege(boolean newState, ServerLevel level) {
+        if (this.isUnderSiege == newState) return;
+
+        RecruitsFaction owner = getOwnerFaction();
+
+        if (owner == null) return;
+
+        if (newState) {
+            startSiege(owner, level);
+        } else {
+            endSiege(owner, level);
+        }
+
+        this.isUnderSiege = newState;
+    }
+    private void startSiege(RecruitsFaction owner, ServerLevel level) {
+        notifyDefendersSiegeStart(owner, level);
+        notifyAttackersSiegeStart(level);
+
+        ClaimEvents.sendVillagersHome(level, this);
+    }
+
+    private void endSiege(RecruitsFaction owner, ServerLevel level) {
+        notifyDefendersSiegeFailed(owner, level);
+        notifyAttackersSiegeFailed(level);
+    }
+
+    private void notifyDefendersSiegeStart(RecruitsFaction owner, ServerLevel level) {
+        Component msg = SIEGE_START_DEFENDER(getName(), getAttackingParties().toString());
+
+        for (Player player : getPlayersOfFaction(owner, level)) {
+            player.sendSystemMessage(msg);
+        }
+    }
+
+    private void notifyAttackersSiegeStart(ServerLevel level) {
+        Component msg = SIEGE_START_ATTACKER(getName());
+
+        for (RecruitsFaction attacker : getAttackingParties()) {
+            for (Player player : getPlayersOfFaction(attacker, level)) {
+                player.sendSystemMessage(msg);
+            }
+        }
+    }
+    private void notifyDefendersSiegeFailed(RecruitsFaction owner, ServerLevel level) {
+        Component msg = SIEGE_FAILED_DEFENDER(getName());
+
+        for (Player player : getPlayersOfFaction(owner, level)) {
+            player.sendSystemMessage(msg);
+        }
+    }
+
+    private void notifyAttackersSiegeFailed(ServerLevel level) {
+        Component msg = SIEGE_FAILED_ATTACKER(getName());
+
+        for (RecruitsFaction attacker : getAttackingParties()) {
+            for (Player player : getPlayersOfFaction(attacker, level)) {
+                player.sendSystemMessage(msg);
+            }
+        }
+    }
+
+    public void addParty(List<RecruitsFaction> list, RecruitsFaction recruitsFaction) {
+        for(RecruitsFaction attacker : list){
+            if(attacker.getStringID().equals(recruitsFaction.getStringID())) return;
+        }
+
+        list.add(recruitsFaction);
+    }
+
+
+    private List<RecruitsFaction> getAttackingParties() {
+        return attackingParties == null ? Collections.emptyList() : attackingParties;
+    }
+    private List<ServerPlayer> getPlayersOfFaction(RecruitsFaction faction, ServerLevel level) {
+        return FactionEvents.recruitsFactionManager
+                .getPlayersInTeam(faction.getStringID(), level);
     }
 
     public Component SIEGE_START_ATTACKER(String claim){

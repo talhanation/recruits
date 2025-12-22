@@ -4,10 +4,7 @@ import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.VillagerNobleEntity;
 import com.talhanation.recruits.util.ClaimUtil;
-import com.talhanation.recruits.world.RecruitsClaim;
-import com.talhanation.recruits.world.RecruitsClaimManager;
-import com.talhanation.recruits.world.RecruitsDiplomacyManager;
-import com.talhanation.recruits.world.RecruitsFaction;
+import com.talhanation.recruits.world.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -16,8 +13,11 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.Brain;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.DaylightDetectorBlock;
 import net.minecraft.world.level.block.DiodeBlock;
@@ -37,6 +37,7 @@ import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ClaimEvents {
@@ -81,16 +82,32 @@ public class ClaimEvents {
         counter = 0;
         for(RecruitsClaim claim : recruitsClaimManager.getAllClaims()){
             ServerLevel level = server.overworld();
-            takeOverVillager(level, claim);
-            if (claim == null) return;
-            if (claim.isAdmin) return;
+            if (claim == null) continue;
+            if (claim.getOwnerFaction() == null) continue;
+            if (claim.isAdmin) continue;
 
-            List<LivingEntity> attackers = ClaimUtil.getLivingEntitiesInClaim(level, claim,
-                    livingEntity -> livingEntity.isAlive() && livingEntity.getTeam() != null
-                            && FactionEvents.recruitsDiplomacyManager.getRelation(livingEntity.getTeam().getName(), claim.getOwnerFactionStringID()) == RecruitsDiplomacyManager.DiplomacyStatus.ENEMY);
-            List<LivingEntity> defenders = ClaimUtil.getLivingEntitiesInClaim(level, claim,
-                    livingEntity -> livingEntity.isAlive() && livingEntity.getTeam() != null
-                            && (livingEntity.getTeam().getName().equals(claim.getOwnerFactionStringID()) || FactionEvents.recruitsDiplomacyManager.getRelation(livingEntity.getTeam().getName(), claim.getOwnerFactionStringID()) == RecruitsDiplomacyManager.DiplomacyStatus.ALLY));
+            List<LivingEntity> entities = ClaimUtil.getLivingEntitiesInClaim(level, claim, LivingEntity::isAlive);
+            List<LivingEntity> attackers = new ArrayList<>();
+            List<LivingEntity> defenders = new ArrayList<>();
+
+            for(LivingEntity livingEntity : entities){
+                takeOverVillager(level, claim, livingEntity);
+
+                if(livingEntity.isAlive() && livingEntity.getTeam() != null){
+                    String teamName = livingEntity.getTeam().getName();
+                    RecruitsDiplomacyManager.DiplomacyStatus relation = FactionEvents.recruitsDiplomacyManager.getRelation(teamName, claim.getOwnerFactionStringID());
+
+                    if (livingEntity.getTeam().getName().equals(claim.getOwnerFactionStringID()) || relation == RecruitsDiplomacyManager.DiplomacyStatus.ALLY) {
+                        defenders.add(livingEntity);
+                    }
+
+                    else if (!livingEntity.getTeam().getName().equals(claim.getOwnerFactionStringID()) && relation == RecruitsDiplomacyManager.DiplomacyStatus.ENEMY){
+                        attackers.add(livingEntity);
+                    }
+
+                    else if(relation == RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL) continue;
+                }
+            }
 
             int attackerSize = attackers.size();
             int defendersSize = defenders.size();
@@ -98,23 +115,23 @@ public class ClaimEvents {
             for(LivingEntity livingEntity : defenders){
                 if(livingEntity.getTeam() == null) continue;
                 RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getTeamByStringID(livingEntity.getTeam().getName());
-                if(!claim.defendingParties.contains(recruitsFaction) && claim.getOwnerFaction() != recruitsFaction) claim.defendingParties.add(recruitsFaction);
+                if(!claim.getOwnerFaction().equalsFaction(recruitsFaction)) claim.addParty(claim.defendingParties, recruitsFaction);
             }
 
             for(LivingEntity livingEntity : attackers){
                 if(livingEntity.getTeam() == null) continue;
                 RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getTeamByStringID(livingEntity.getTeam().getName());
-                if(!claim.attackingParties.contains(recruitsFaction)) claim.attackingParties.add(recruitsFaction);
+                claim.addParty(claim.attackingParties, recruitsFaction);
             }
 
             if(claim.isUnderSiege){
-                if(attackerSize < RecruitsServerConfig.SiegeClaimsRecruitsAmount.get()){//Siege FAIL
+                if(attackerSize < RecruitsServerConfig.SiegeClaimsRecruitsAmount.get()){
                     claim.setUnderSiege(false, level);
                     claim.resetHealth();
                     claim.attackingParties.clear();
                     claim.defendingParties.clear();
                     recruitsClaimManager.broadcastClaimsToAll(level);
-                    return;
+                    siegeOverVillagers(level, claim);
                 }
                 else{
                     claim.setHealth(claim.getHealth() - 3);
@@ -122,7 +139,8 @@ public class ClaimEvents {
                     if(claim.getHealth() <= 0){//Siege SUCCESS
                         claim.setSiegeSuccess(level);
                         recruitsClaimManager.broadcastClaimsToAll(level);
-                        return;
+                        siegeOverVillagers(level, claim);
+                        continue;
                     }
                     List<ServerPlayer> players = attackers.stream().filter(livingEntity -> livingEntity instanceof ServerPlayer).map(e -> (ServerPlayer) e).toList();
                     recruitsClaimManager.broadcastClaimUpdateTo(claim, players);
@@ -134,21 +152,23 @@ public class ClaimEvents {
             else if(attackerSize >= RecruitsServerConfig.SiegeClaimsRecruitsAmount.get()){
                 claim.setUnderSiege( true, level);
                 recruitsClaimManager.broadcastClaimsToAll(level);
+                sendVillagersHome(level, claim);
             }
         }
     }
 
-    private void takeOverVillager(ServerLevel level, RecruitsClaim claim) {
-        List<LivingEntity> list = ClaimUtil.getLivingEntitiesInClaim(level, claim,
-                livingEntity -> (livingEntity instanceof Villager || livingEntity instanceof VillagerNobleEntity) && livingEntity.isAlive());
-        if(list.isEmpty()) return;
+    private void takeOverVillager(ServerLevel level, RecruitsClaim claim, LivingEntity livingEntity) {
+        if(!(livingEntity instanceof Villager || livingEntity instanceof VillagerNobleEntity)) return;
+        if(!livingEntity.isAlive()) return;
 
         String teamName = claim.getOwnerFaction().getStringID();
         PlayerTeam team = level.getScoreboard().getPlayerTeam(teamName);
         if(team == null) return;
 
-        for(LivingEntity living : list){
-            if(living.getTeam() == null || !living.getTeam().getName().equals(team.getName())) level.getScoreboard().addPlayerToTeam(living.getStringUUID(), team);
+        if(livingEntity.getTeam() == null || !livingEntity.getTeam().getName().equals(team.getName())) level.getScoreboard().addPlayerToTeam(livingEntity.getStringUUID(), team);
+
+        if(livingEntity instanceof VillagerNobleEntity noble){
+            noble.updateTeam();
         }
     }
 
@@ -256,6 +276,32 @@ public class ClaimEvents {
             if(!claim.isBlockInteractionAllowed()){
                 boolean isInTeam = player.getTeam() != null && player.getTeam().getName().equals(claim.getOwnerFactionStringID());
                 if(!isInTeam) event.setCanceled(true);
+            }
+        }
+    }
+
+    public static void sendVillagersHome(ServerLevel level, RecruitsClaim claim) {
+        List<LivingEntity> list = ClaimUtil.getLivingEntitiesInClaim(level, claim, livingEntity -> livingEntity instanceof Villager);
+
+        for (LivingEntity living : list) {
+            if(living instanceof Villager villager){
+                Brain<?> brain = villager.getBrain();
+                brain.setActiveActivityIfPossible(Activity.HIDE);
+                brain.setMemory(MemoryModuleType.IS_PANICKING, true);
+                brain.setMemory(MemoryModuleType.HEARD_BELL_TIME, level.getGameTime());
+            }
+        }
+    }
+
+    public static void siegeOverVillagers(ServerLevel level, RecruitsClaim claim) {
+        List<LivingEntity> list = ClaimUtil.getLivingEntitiesInClaim(level, claim, livingEntity -> livingEntity instanceof Villager);
+
+        for (LivingEntity living : list) {
+            if(living instanceof Villager villager){
+                Brain<?> brain = villager.getBrain();
+                brain.setActiveActivityIfPossible(Activity.MEET);
+                brain.eraseMemory(MemoryModuleType.IS_PANICKING);
+                brain.eraseMemory(MemoryModuleType.HEARD_BELL_TIME);
             }
         }
     }

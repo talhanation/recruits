@@ -11,6 +11,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.MapColor;
 
 public class ChunkImage {
@@ -40,35 +41,72 @@ public class ChunkImage {
     }
 
     private int getVanillaReliefColor(ClientLevel level, BlockPos pos) {
+
         BlockState state = level.getBlockState(pos);
+        if (state.isAir()) return 0xFF000000;
+
+        boolean isWaterLike = state.getFluidState().is(Fluids.WATER);
+
+        if (isWaterLike) {
+
+            BlockState topState = getTopWaterBlock(level, pos);
+            MapColor mapColor = topState.getMapColor(level, pos);
+            if (mapColor == null) mapColor = MapColor.WATER;
+
+            int depth = getWaterDepth(level, pos);
+
+            MapColor.Brightness brightness =
+                    depth > 6 ? MapColor.Brightness.LOWEST :
+                            depth > 3 ? MapColor.Brightness.LOW :
+                                    MapColor.Brightness.NORMAL;
+
+            return 0xFF000000 | mapColor.calculateRGBColor(brightness);
+        }
+        
         MapColor mapColor = state.getMapColor(level, pos);
         if (mapColor == null) return 0xFF000000;
 
-        boolean isWater = state.getBlock() == Blocks.WATER;
-        if (isWater) {
-            int waterDepth = 0;
-            BlockPos.MutableBlockPos mutable = pos.mutable();
-            while (level.getBlockState(mutable).getBlock() == Blocks.WATER && mutable.getY() > level.getMinBuildHeight()) {
-                waterDepth++;
-                mutable.move(Direction.DOWN);
-            }
-
-            MapColor.Brightness brightness = waterDepth > 6 ? MapColor.Brightness.LOWEST :
-                    waterDepth > 3 ? MapColor.Brightness.LOW :
-                            MapColor.Brightness.NORMAL;
-            return 0xFF000000 | mapColor.calculateRGBColor(brightness);
-        }
-
         int heightHere = level.getHeight(Heightmap.Types.WORLD_SURFACE, pos.getX(), pos.getZ());
         int heightSouth = level.getHeight(Heightmap.Types.WORLD_SURFACE, pos.getX(), pos.getZ() + 1);
-        int heightWest = level.getHeight(Heightmap.Types.WORLD_SURFACE, pos.getX() - 1, pos.getZ());
+        int heightWest  = level.getHeight(Heightmap.Types.WORLD_SURFACE, pos.getX() - 1, pos.getZ());
+
         int relHeight = heightHere - Math.max(heightSouth, heightWest);
 
-        MapColor.Brightness brightness = relHeight > 2 ? MapColor.Brightness.HIGH :
-                relHeight > 0 ? MapColor.Brightness.NORMAL :
-                        relHeight > -2 ? MapColor.Brightness.LOW :
-                                MapColor.Brightness.LOWEST;
+        MapColor.Brightness brightness =
+                relHeight > 2  ? MapColor.Brightness.HIGH :
+                        relHeight > 0  ? MapColor.Brightness.NORMAL :
+                                relHeight > -2 ? MapColor.Brightness.LOW :
+                                        MapColor.Brightness.LOWEST;
+
         return 0xFF000000 | mapColor.calculateRGBColor(brightness);
+    }
+
+    private BlockState getTopWaterBlock(ClientLevel level, BlockPos pos) {
+        BlockPos.MutableBlockPos mutable = pos.mutable();
+
+        while (isWaterLike(level.getBlockState(mutable))
+                && mutable.getY() < level.getMaxBuildHeight()) {
+            mutable.move(Direction.UP);
+        }
+
+        return level.getBlockState(mutable.below());
+    }
+
+    private int getWaterDepth(ClientLevel level, BlockPos pos) {
+        int depth = 0;
+        BlockPos.MutableBlockPos mutable = pos.mutable();
+
+        while (isWaterLike(level.getBlockState(mutable))
+                && mutable.getY() > level.getMinBuildHeight()) {
+            depth++;
+            mutable.move(Direction.DOWN);
+        }
+
+        return depth;
+    }
+
+    private boolean isWaterLike(BlockState state) {
+        return state.getFluidState().is(Fluids.WATER);
     }
 
     public NativeImage getNativeImage() {

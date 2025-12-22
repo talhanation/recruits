@@ -39,8 +39,22 @@ public class ClientPlayerEvents {
         switch (state) {
             case NO_CLAIM -> {
                 if(claim != null){
-                    if(!claim.isUnderSiege) FactionClaimBannerOverlay.activate(claim);
                     state = State.IN_CLAIM;
+                    if(!claim.isUnderSiege){
+                        FactionClaimBannerOverlay.activate(claim);
+                    }
+                    else {
+                        RecruitsFaction defender = claim.getOwnerFaction();
+                        RecruitsFaction attacker = claim.attackingParties != null && !claim.attackingParties.isEmpty() ? claim.attackingParties.get(0) : null;
+                        FactionClaimSiegeOverlay.activate(
+                                claim.getName(),
+                                defender,
+                                attacker,
+                                claim.getHealth(),
+                                claim.getMaxHealth()
+                        );
+                        setState(State.SIEGE);
+                    }
                 }
             }
 
