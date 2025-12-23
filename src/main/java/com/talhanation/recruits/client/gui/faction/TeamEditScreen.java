@@ -619,7 +619,9 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
             this.onClose();
             return true;
         }
-        if(this.textFieldTeamName == null) super.keyPressed(key, a, b);
+        if(this.textFieldTeamName == null){
+            return super.keyPressed(key, a, b);
+        }
 
         setFocused(textFieldTeamName);
 
