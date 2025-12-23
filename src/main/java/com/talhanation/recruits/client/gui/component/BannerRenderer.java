@@ -81,10 +81,10 @@ public class BannerRenderer {
         }
     }
 
-    public void setRecruitsTeam(RecruitsFaction team){
-        if(team == null) return;
-        this.recruitsFaction = team;
-        this.bannerItem = ItemStack.of(team.getBanner());
+    public void setRecruitsFaction(RecruitsFaction faction){
+        if(faction == null) return;
+        this.recruitsFaction = faction;
+        this.bannerItem = ItemStack.of(faction.getBanner());
         this.resultBannerPatterns = BannerBlockEntity.createPatterns(((BannerItem) this.bannerItem.getItem()).getColor(), BannerBlockEntity.getItemPatterns(this.bannerItem));
     }
 }

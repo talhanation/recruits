@@ -29,11 +29,11 @@ public class ClaimInfoMenu {
     public void openForClaim(RecruitsClaim claim, int x, int y) {
         this.currentClaim = claim;
         this.visible = true;
-        bannerRenderer.setRecruitsTeam(claim.getOwnerFaction());
+        bannerRenderer.setRecruitsFaction(claim.getOwnerFaction());
         this.underSiege = claim.isUnderSiege;
 
         if(!claim.attackingParties.isEmpty() && claim.attackingParties.get(0) != null){
-            bannerRendererAttacker.setRecruitsTeam(claim.attackingParties.get(0));
+            bannerRendererAttacker.setRecruitsFaction(claim.attackingParties.get(0));
         }
 
         this.x = x;
@@ -131,7 +131,7 @@ public class ClaimInfoMenu {
     public void close() {
         this.visible = false;
         this.currentClaim = null;
-        this.bannerRenderer.setRecruitsTeam(null);
+        this.bannerRenderer.setRecruitsFaction(null);
     }
 
     public boolean isVisible() {
