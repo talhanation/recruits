@@ -1,6 +1,7 @@
 package com.talhanation.recruits.client.gui.overlay;
 
 import com.talhanation.recruits.client.ClientManager;
+import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.world.RecruitsClaim;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -36,7 +37,7 @@ public class ClaimOverlayManager {
     }
 
     public ClaimOverlayManager() {
-        // Initialisierung
+
     }
 
     @SubscribeEvent
@@ -46,20 +47,16 @@ public class ClaimOverlayManager {
 
         tickCounter++;
 
-        // Claim-Update alle 0.5s prüfen
         if (tickCounter % CHUNK_CHECK_INTERVAL == 0) {
             updateCurrentClaim(mc.player.blockPosition());
         }
 
-        // Regelmäßige Datenaktualisierung (alle 1 Sekunde)
         boolean needsUpdate = tickCounter % DATA_UPDATE_INTERVAL == 0;
 
-        // Prüfe auf Datenänderungen im aktuellen Claim
         if (needsUpdate && ClientManager.currentClaim != null) {
             checkForDataChanges();
         }
 
-        // Update Overlay State basierend auf Zeit
         updateOverlayState();
     }
 
@@ -74,14 +71,13 @@ public class ClaimOverlayManager {
             return;
         }
 
-        // Berechne Alpha für Fade-Effekt
+        if(RecruitsClientConfig.DisableClaimGUIOverlay.get()) return;
+
         float alpha = calculateAlpha();
         if (alpha <= 0.01f) return;
 
-        // Rendern wenn Claim existiert
         if (ClientManager.currentClaim != null) {
-            renderer.render(event.getGuiGraphics(), mc, ClientManager.currentClaim,
-                    currentState, alpha, getPanelWidth());
+            renderer.render(event.getGuiGraphics(), mc, ClientManager.currentClaim, currentState, alpha, getPanelWidth());
         }
     }
 
@@ -98,7 +94,6 @@ public class ClaimOverlayManager {
     private void updateCurrentClaim(BlockPos playerPos) {
         ChunkPos currentChunk = new ChunkPos(playerPos);
 
-        // Nur prüfen wenn Chunk gewechselt
         if (currentChunk.equals(lastPlayerChunk)) {
             ClientManager.currentClaim = null;
             for (RecruitsClaim claim : ClientManager.recruitsClaims) {
@@ -113,7 +108,6 @@ public class ClaimOverlayManager {
         lastPlayerChunk = currentChunk;
         RecruitsClaim previousClaim = ClientManager.currentClaim;
 
-        // Finde neuen Claim
         ClientManager.currentClaim = null;
         for (RecruitsClaim claim : ClientManager.recruitsClaims) {
             if (claim.containsChunk(currentChunk)) {

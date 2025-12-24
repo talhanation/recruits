@@ -508,5 +508,15 @@
   "gui.recruits.command.text.shields": "",
   "gui.recruits.command.tooltip.shields": "",
   "gui.recruits.inv.tooltip.assignGroupToTeamMate": "",
-  "gui.recruits.team.assignGroupNewOwner": ""
+  "gui.recruits.team.assignGroupNewOwner": "",
+
+  "gui.recruits.map.diplomacy" : "Diplomacy",
+  "gui.recruits.map.claim_chunk" : "Claim Chunk",
+  "gui.recruits.map.claim_area" : "Claim Area",
+  "gui.recruits.map.edit_claim" : "Edit Claim",
+  "gui.recruits.map.remove_chunk" : "Remove Chunk",
+  "gui.recruits.map.center_map" : "Center Map",
+  "gui.recruits.map.remove_chunk_admin" : "Remove Chunk (Admin)",
+  "gui.recruits.map.delete_claim_admin" : "Delete Claim (Admin)",
+  "gui.recruits.map.teleport_admin" : "Teleport (Admin)"
 }

@@ -10,6 +10,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.level.ChunkPos;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class ClaimRenderer {
@@ -214,4 +215,59 @@ public class ClaimRenderer {
 
         return null;
     }
+
+    public static void renderBufferZone(GuiGraphics guiGraphics, double offsetX, double offsetZ, double scale) {
+        if (ClientManager.ownFaction == null) return;
+        Set<String> renderedBufferChunks = new HashSet<>();
+        int bufferColor = 0x44FF4444;
+
+        Set<String> ownClaimedChunks = new HashSet<>();
+        for (RecruitsClaim claim : ClientManager.recruitsClaims) {
+            if (claim.getOwnerFaction() != null && claim.getOwnerFaction().getStringID().equals(ClientManager.ownFaction.getStringID())) {
+                for (ChunkPos chunk : claim.getClaimedChunks()) {
+                    ownClaimedChunks.add(chunk.x + "," + chunk.z);
+                }
+            }
+        }
+
+        for (RecruitsClaim foreignClaim : ClientManager.recruitsClaims) {
+            if (foreignClaim.getOwnerFaction() == null || foreignClaim.getOwnerFaction().getStringID().equals(ClientManager.ownFaction.getStringID())) {
+                continue;
+            }
+
+            for (ChunkPos claimChunk : foreignClaim.getClaimedChunks()) {
+                for (int dx = -3; dx <= 3; dx++) {
+                    for (int dz = -3; dz <= 3; dz++) {
+
+                        if (dx == 0 && dz == 0) continue;
+
+                        int bufferX = claimChunk.x + dx;
+                        int bufferZ = claimChunk.z + dz;
+                        String chunkKey = bufferX + "," + bufferZ;
+
+                        if (renderedBufferChunks.contains(chunkKey)) continue;
+
+                        if (ownClaimedChunks.contains(chunkKey)) continue;
+
+                        renderedBufferChunks.add(chunkKey);
+
+                        ChunkPos bufferChunk = new ChunkPos(bufferX, bufferZ);
+                        renderChunk(guiGraphics, bufferChunk, bufferColor, offsetX, offsetZ, scale);
+                    }
+                }
+            }
+        }
+    }
+
+    public static void renderAreaPreview(GuiGraphics guiGraphics, List<ChunkPos> areaChunks, double offsetX, double offsetZ, double scale) {
+        if (areaChunks == null || areaChunks.isEmpty()) return;
+
+        int previewColor = 0x33FFFFFF;
+
+        for (ChunkPos chunk : areaChunks) {
+            renderChunk(guiGraphics, chunk, previewColor, offsetX, offsetZ, scale);
+        }
+    }
+
+
 }

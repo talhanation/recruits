@@ -17,7 +17,7 @@ public class ClaimOverlayRenderer {
     private final Map<RecruitsFaction, BannerRenderer> bannerCache = new HashMap<>();
     private final Map<RecruitsFaction, Integer> factionColorCache = new HashMap<>();
 
-    private static final int PANEL_HEIGHT_FULL = 40;
+    private static final int PANEL_HEIGHT_FULL = 45;
     private static final int PANEL_HEIGHT_COMPACT = 15;
     private static final int BACKGROUND_ALPHA = 0x0F;
     private static final ResourceLocation SIEGE_ICON = new ResourceLocation("recruits:textures/gui/image/enemy.png");
@@ -60,15 +60,15 @@ public class ClaimOverlayRenderer {
         int textAlpha = (int)(0xFF * alpha);
         int textColor = (textAlpha << 24) | 0xFFFFFF;
 
-        int bannerX = 10;
-        int bannerY = 25;
+        int bannerX = 5;
+        int bannerY = 13;
         BannerRenderer banner = getBannerRenderer(faction);
         if (banner != null) {
-            banner.renderBanner(guiGraphics, x + bannerX, y + bannerY, 48, 48, 30);
+            banner.renderBanner(guiGraphics, x + bannerX, y + bannerY, 48, 48, 20);
         }
 
         String claimName = truncateText(font, claim.getName(), width - 80);
-        guiGraphics.drawString(font, claimName, x + 60, y + 20, textColor, false);
+        guiGraphics.drawString(font, claimName, x + 60, y + 10, textColor, false);
 
 
         if (claim.getPlayerInfo() != null) {
@@ -79,14 +79,13 @@ public class ClaimOverlayRenderer {
 
             float scale = 0.5f;
 
-
-            int originalX = x + 70;
-            int originalY = y + 30;
+            int originalX = x + 60;
+            int originalY = y + 20;
 
             poseStack.translate(originalX, originalY, 0);
             poseStack.scale(scale, scale, 1.0f);
-
-            guiGraphics.drawString(font, claimOwner, 0, 0, textColor, false);
+            guiGraphics.drawString(font, faction.getTeamDisplayName(), 0, 0, 0xAAAAAA, false);
+            guiGraphics.drawString(font, claimOwner, 0, 10, 0xAAAAAA, false);
 
             poseStack.popPose();
         }
@@ -107,47 +106,48 @@ public class ClaimOverlayRenderer {
 
     private void renderSiegeContent(GuiGraphics guiGraphics, RecruitsClaim claim, int x, int y, int width, int height, Font font, float alpha) {
         int textAlpha = (int)(0xFF * alpha);
-        int siegeTextColor = (textAlpha << 24) | 0xFF6666;
         int normalTextColor = (textAlpha << 24) | 0xFFFFFF;
 
         String name = truncateText(font, claim.getName(), width - 40);
         int nameWidth = font.width(name);
         int nameX = x + (width - nameWidth) / 2;
-        guiGraphics.drawString(font, name, nameX, y + 5, siegeTextColor, false);
+        guiGraphics.drawString(font, name, nameX, y + 2, normalTextColor, false);
 
-        int bannerSize = 32;
-        int bannerY = y + 20;
+        int bannerSize = 48;
+        int bannerY = y + 15;
 
         BannerRenderer ownerBanner = getBannerRenderer(claim.getOwnerFaction());
         if (ownerBanner != null) {
-            ownerBanner.renderBanner(guiGraphics, x + 20, bannerY, bannerSize, bannerSize, 10);
-
-            String ownerName = truncateText(font, claim.getOwnerFaction().getTeamDisplayName(), 60);
-            guiGraphics.drawString(font, ownerName, x + 20, bannerY + bannerSize + 2, normalTextColor, false);
+            ownerBanner.renderBanner(guiGraphics, x + 5, bannerY, bannerSize, bannerSize, 15);
         }
+
+        String ownerFactionName = truncateText(font, claim.getOwnerFaction().getTeamDisplayName(), 60);
+        int ownerFactionNameWidth = font.width(ownerFactionName);
+        guiGraphics.drawString(font, ownerFactionName, x + 15 - ownerFactionNameWidth/2, y + 2, 0xAAAAAA, false);
 
         if (!claim.attackingParties.isEmpty()) {
             BannerRenderer attackerBanner = getBannerRenderer(claim.attackingParties.get(0));
             if (attackerBanner != null) {
-                attackerBanner.renderBanner(guiGraphics, x + width - 20 - bannerSize, bannerY, bannerSize, bannerSize, 10);
-
-                String attackerName = truncateText(font, claim.attackingParties.get(0).getTeamDisplayName(), 60);
-                guiGraphics.drawString(font, attackerName, x + width - 20 - bannerSize, bannerY + bannerSize + 2, siegeTextColor, false);
+                attackerBanner.renderBanner(guiGraphics, x - 25 + width, bannerY, bannerSize, bannerSize, 15);
             }
+            String attackerName = truncateText(font, claim.attackingParties.get(0).getTeamDisplayName(), 60);
+            int attackerNameWidth = font.width(name);
+            int attackerNameX = x - 15 + width - attackerNameWidth/2;
+
+            guiGraphics.drawString(font, attackerName, attackerNameX, y + 2, 0xAAAAAA, false);
         }
 
-        int healthBarX = x + 50;
-        int healthBarWidth = width - 160;
-        int healthBarHeight = 10;
-        int healthBarY = bannerY + (bannerSize / 2) - (healthBarHeight / 2);
+        int barWidth = 100;
+        int barHeight = 4;
+        int barX = x + width / 2 - barWidth / 2;
+        int barY = y + 35;
+        guiGraphics.fill(barX, barY, barX + barWidth, barY + barHeight, 0xFF000000);
 
-        guiGraphics.fill(healthBarX, healthBarY, healthBarX + healthBarWidth, healthBarY + healthBarHeight, 0x80000000 | (normalTextColor & 0x00FFFFFF));
+        if (claim.getMaxHealth() > 0) {
+            float ratio = (float) claim.getHealth() / claim.getMaxHealth();
+            guiGraphics.fill(barX, barY, barX + (int) (barWidth * ratio), barY + barHeight, 0xFF00FF00);
+        }
 
-        int maxHealth = claim.getMaxHealth();
-        float healthPercent = Math.min((float) claim.getHealth() / maxHealth, 1.0f);
-        int healthFill = (int)(healthBarWidth * healthPercent);
-        int healthColor = getHealthColor(healthPercent);
-        guiGraphics.fill(healthBarX, healthBarY, healthBarX + healthFill, healthBarY + healthBarHeight, healthColor);
 
         int iconSize = 18;
         guiGraphics.blit(SIEGE_ICON, x + width / 2 - iconSize / 2, y + 14, 0, 0, iconSize, iconSize, iconSize, iconSize);

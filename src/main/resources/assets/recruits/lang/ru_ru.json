@@ -490,6 +490,15 @@
   "description.recruits.captain": "Капитан — хозяин корабля.\nОн управляет судном и командует пушками.\nЕго выстрелы точны как по кораблям, так и по целям на суше.\nВ ближнем бою владеет мечом и щитом.",
 
   "description.recruits.title.commander": "Командир",
-  "description.recruits.commander": "Командир — сильный лидер.\nОн патрулирует выбранные позиции и ведёт своих солдат от точки к точке.\nПод его началом воины действуют слаженно и решительно."
+  "description.recruits.commander": "Командир — сильный лидер.\nОн патрулирует выбранные позиции и ведёт своих солдат от точки к точке.\nПод его началом воины действуют слаженно и решительно.",
 
+  "gui.recruits.map.diplomacy" : "Дипломатия",
+  "gui.recruits.map.claim_chunk" : "Захватить чанк",
+  "gui.recruits.map.claim_area" : "Захватить территорию",
+  "gui.recruits.map.edit_claim" : "Настроить территорию",
+  "gui.recruits.map.remove_chunk" : "Удалить чанк",
+  "gui.recruits.map.center_map" : "Центрировать карту",
+  "gui.recruits.map.remove_chunk_admin" : "Удалить чанк (Админ)",
+  "gui.recruits.map.delete_claim_admin" : "Удалить территорию (Админ)",
+  "gui.recruits.map.teleport_admin" : "Телепортация (Админ)"
 }

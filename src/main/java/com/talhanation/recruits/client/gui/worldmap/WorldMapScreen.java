@@ -59,9 +59,6 @@ public class WorldMapScreen extends Screen {
     private final WorldMapContextMenu contextMenu;
     RecruitsClaim selectedClaim = null;
     private ClaimInfoMenu claimInfoMenu;
-    private static final int CLAIM_OVERLAY_ALPHA = 90;
-    private static final int CLAIM_BORDER_COLOR = 0xFFFFFFFF;
-    private static final int CLAIM_BORDER_THICKNESS = 2;
 
     public WorldMapScreen() {
         super(Component.literal(""));
@@ -115,6 +112,21 @@ public class WorldMapScreen extends Screen {
         renderMapTiles(guiGraphics);
 
         ClaimRenderer.renderClaimsOverlay(guiGraphics, this.selectedClaim, this.offsetX, this.offsetZ, scale);
+
+        if (contextMenu.isVisible()) {
+            String entryTag = contextMenu.getHoveredEntryTag();
+            if (entryTag != null){
+                if(entryTag.contains("bufferzone")) {
+                    ClaimRenderer.renderBufferZone(guiGraphics, offsetX, offsetZ, scale);
+                }
+                if(entryTag.contains("area")){
+                    ClaimRenderer.renderAreaPreview(guiGraphics, getClaimArea(selectedChunk) , offsetX, offsetZ, scale);
+                }
+                if(entryTag.contains("chunk")){
+                    ClaimRenderer.renderAreaPreview(guiGraphics, getClaimableChunks(selectedChunk, 16) , offsetX, offsetZ, scale);
+                }
+            }
+        }
 
         if (player != null) {
             renderPlayerPosition(guiGraphics);
@@ -551,10 +563,13 @@ public class WorldMapScreen extends Screen {
         return faction.getTeamLeaderUUID().equals(player.getUUID());
     }
 
-    public boolean isPlayerClaimLeader() {
-        if(player == null || selectedClaim ==  null) return false;
+    public boolean isPlayerClaimLeader(){
+        return this.isPlayerClaimLeader(selectedClaim);
+    }
+    public boolean isPlayerClaimLeader(RecruitsClaim claim) {
+        if(player == null || claim ==  null) return false;
 
-        return selectedClaim.getPlayerInfo().getUUID().equals(player.getUUID());
+        return claim.getPlayerInfo().getUUID().equals(player.getUUID());
     }
     public List<ChunkPos> getClaimArea(ChunkPos pos){
         List<ChunkPos> area = new ArrayList<>();
@@ -570,11 +585,9 @@ public class WorldMapScreen extends Screen {
         return area;
     }
     public void claimArea() {
+        if(!canPlayerPay(getClaimCost(ownFaction), player)) return;
+
         List<ChunkPos> area = getClaimArea(this.selectedChunk);
-
-
-
-        if (!canClaimChunks(area)) return;
 
         RecruitsClaim newClaim = new RecruitsClaim(ownFaction);
         for (ChunkPos pos : area) {
@@ -586,10 +599,12 @@ public class WorldMapScreen extends Screen {
 
         ClientManager.recruitsClaims.add(newClaim);
         Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(newClaim));
-        //Main.SIMPLE_CHANNEL.sendToServer(new MessageDoPayment(player.getUUID(), screen.getClaimCost(ClientManager.ownFaction)));
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageDoPayment(player.getUUID(), getClaimCost(ownFaction)));
     }
 
     public void claimChunk() {
+        if(!canPlayerPay(ClientManager.configValueChunkCost, player)) return;
+
         RecruitsClaim neighborClaim = getNeighborClaim(selectedChunk);
         if(neighborClaim == null) return;
 
@@ -693,37 +708,9 @@ public class WorldMapScreen extends Screen {
         return new Point(x, y);
     }
 
-    public boolean canClaimChunk(ChunkPos pos, boolean neighborSameFactionRequired) {
-        if(pos == null || ownFaction == null) return false;
-        if(isPlayerTooFar()) return false;
-
-        for (RecruitsClaim claim : ClientManager.recruitsClaims) {
-            for (ChunkPos chunkPos : claim.getClaimedChunks()) {
-                if(claim.getClaimedChunks().size() >= RecruitsClaim.MAX_SIZE) return false;
-                if (chunkPos.equals(pos)) {
-                    return false;
-                }
-
-                int dx = Math.abs(chunkPos.x - pos.x);
-                int dz = Math.abs(chunkPos.z - pos.z);
-
-                if (dx <= 5 && dz <= 5 && !claim.getOwnerFaction().getStringID().equals(ownFaction.getStringID())) {
-                    return false;
-                }
-            }
-        }
-
-        if (neighborSameFactionRequired) {
-            RecruitsClaim neighborClaim = getNeighborClaim(pos);
-            return neighborClaim != null && neighborClaim.getOwnerFaction().getStringID().equals(ownFaction.getStringID());
-        }
-
-        return true;
-    }
-
     public boolean canRemoveChunk(ChunkPos pos, RecruitsClaim claim) {
         if (pos == null || ownFaction == null) return false;
-        if (isPlayerTooFar()) return false;
+        if (isPlayerTooFar(pos)) return false;
 
         List<ChunkPos> claimedChunks = claim.getClaimedChunks();
         if (!claimedChunks.contains(pos)) return false;
@@ -745,22 +732,134 @@ public class WorldMapScreen extends Screen {
         return unclaimedNeighborCount >= 2;
     }
 
-    private boolean isPlayerTooFar() {
-        if(selectedChunk == null) return true;
+    private boolean isPlayerTooFar(ChunkPos pos) {
+        if(pos == null) return true;
         int playerPosX = player.chunkPosition().x;
         int playerPosZ = player.chunkPosition().z;
 
-        int diffX = Math.abs(playerPosX) - Math.abs(selectedChunk.x);
-        int diffZ = Math.abs(playerPosZ) - Math.abs(selectedChunk.z);
+        int diffX = Math.abs(playerPosX) - Math.abs(pos.x);
+        int diffZ = Math.abs(playerPosZ) - Math.abs(pos.z);
 
         return Math.abs(diffZ) > 4 || Math.abs(diffX) > 4;
     }
 
-    public boolean canClaimChunks(List<ChunkPos> chunksToClaim) {
-        for (ChunkPos pos : chunksToClaim) {
-            if (!canClaimChunk(pos,false)) return false;
+    public int getClaimCost(RecruitsFaction ownerTeam) {
+        if (!ClientManager.configValueCascadeClaimCost) {
+            return ClientManager.configValueClaimCost;
         }
+
+        int amount = 1;
+        if(ownerTeam != null){
+            for (RecruitsClaim claim : ClientManager.recruitsClaims) {
+                if (claim.getOwnerFaction().getStringID().equals(ownerTeam.getStringID())) {
+                    amount += 1;
+                }
+            }
+        }
+
+        return amount * ClientManager.configValueClaimCost;
+    }
+
+    public boolean canPlayerPay(int cost, Player player){
+        return player.isCreative() || cost <= player.getInventory().countItem(ClientManager.currencyItemStack.getItem());
+    }
+
+    public static boolean isInBufferZone(ChunkPos chunk, RecruitsFaction ownFaction) {
+        if (ownFaction == null) return false;
+
+        for (RecruitsClaim claim : ClientManager.recruitsClaims) {
+            if (claim.getOwnerFaction() == null || claim.getOwnerFaction().getStringID().equals(ownFaction.getStringID())) {
+                continue;
+            }
+
+            for (ChunkPos claimChunk : claim.getClaimedChunks()) {
+
+
+                int dx = Math.abs(chunk.x - claimChunk.x);
+                int dz = Math.abs(chunk.z - claimChunk.z);
+
+                if (dx <= 3 && dz <= 3) {
+                    if (!(dx == 0 && dz == 0)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+    public boolean canClaimChunk(ChunkPos pos) {
+        if (pos == null || ClientManager.ownFaction == null) return false;
+        if (isPlayerTooFar(pos)) return false;
+
+        for (RecruitsClaim existingClaim : ClientManager.recruitsClaims) {
+            if (existingClaim.containsChunk(pos)) {
+                return false;
+            }
+        }
+
+        RecruitsClaim neighborClaim = getNeighborClaim(pos);
+        if (neighborClaim == null) return false;
+
+        if(neighborClaim.getClaimedChunks().size() >= RecruitsClaim.MAX_SIZE) return false;
+
+        return !isInBufferZone(pos, ClientManager.ownFaction);
+    }
+    public boolean canClaimArea(List<ChunkPos> areaChunks) {
+        if (selectedChunk == null || areaChunks == null || areaChunks.isEmpty() || ClientManager.ownFaction == null) return false;
+        if (isPlayerTooFar(selectedChunk)) return false;
+
+        //if(ownFaction.claimAmount >= ownFaction.getMaxClaims()) return false;
+
+        for (ChunkPos chunk : areaChunks) {
+            for (RecruitsClaim existingClaim : ClientManager.recruitsClaims) {
+                if (existingClaim.containsChunk(chunk)) {
+                    return false;
+                }
+            }
+
+            if (isInBufferZone(chunk, ClientManager.ownFaction)) {
+                return false;
+            }
+        }
+
         return true;
+    }
+
+    public List<ChunkPos> getClaimableChunks(ChunkPos center, int radius) {
+        List<ChunkPos> claimableChunks = new ArrayList<>();
+
+        if (center == null || ClientManager.ownFaction == null) return claimableChunks;
+
+        int minX = center.x - radius;
+        int maxX = center.x + radius;
+        int minZ = center.z - radius;
+        int maxZ = center.z + radius;
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
+                ChunkPos chunk = new ChunkPos(x, z);
+
+                if (canClaimChunkRaw(chunk)) {
+                    claimableChunks.add(chunk);
+                }
+            }
+        }
+
+        return claimableChunks;
+    }
+
+    public boolean canClaimChunkRaw(ChunkPos pos) {
+        for (RecruitsClaim existingClaim : ClientManager.recruitsClaims) {
+            if (existingClaim.containsChunk(pos)) {
+                return false;
+            }
+        }
+
+        RecruitsClaim neighborClaim = getNeighborClaim(pos);
+        if (neighborClaim == null) return false;
+
+        return !isInBufferZone(pos, ClientManager.ownFaction);
     }
 
 }

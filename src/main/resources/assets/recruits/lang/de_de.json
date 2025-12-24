@@ -497,5 +497,15 @@
   "gui.recruits.command.text.shields": "Schilde!",
   "gui.recruits.command.tooltip.shields": "Lassen Sie die Rekruten ihre Schilde heben/senken.",
   "gui.recruits.inv.tooltip.assignGroupToTeamMate": "Weisen Sie diesen Rekruten und nahegelegene Rekruten derselben Gruppe einem nahegelegenen Fraktionsmitglied zu.",
-  "gui.recruits.team.assignGroupNewOwner": "Gruppe zuweisen"
+  "gui.recruits.team.assignGroupNewOwner": "Gruppe zuweisen",
+
+  "gui.recruits.map.diplomacy" : "Diplomatie",
+  "gui.recruits.map.claim_chunk" : "Beanspruche Chunk",
+  "gui.recruits.map.claim_area" : "Beanspruche Gebiet",
+  "gui.recruits.map.edit_claim" : "Bearbeite Gebiet",
+  "gui.recruits.map.remove_chunk" : "Entferne Chunk",
+  "gui.recruits.map.center_map" : "Zentriere die Karte",
+  "gui.recruits.map.remove_chunk_admin" : "Entferne Chunk (Admin)",
+  "gui.recruits.map.delete_claim_admin" : "Lösche Claim (Admin)",
+  "gui.recruits.map.teleport_admin" : "Teleport (Admin)"
 }

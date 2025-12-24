@@ -15,7 +15,7 @@ public class RecruitsClientConfig {
     public static ForgeConfigSpec.BooleanValue CommandScreenToggle;
     public static ForgeConfigSpec.BooleanValue RecruitsLookLikeVillagers;
     public static ForgeConfigSpec.BooleanValue UpdateCheckerClientside;
-
+    public static ForgeConfigSpec.BooleanValue DisableClaimGUIOverlay;
 
     static{
         BUILDER.comment("Recruits Config Client Side:").push("RecruitsClientSide");
@@ -56,6 +56,16 @@ public class RecruitsClientConfig {
 
                 .worldRestart()
                 .define("UpdateCheckerClientside", true);
+
+        DisableClaimGUIOverlay = BUILDER.comment("""
+                        ----DisableClaimGUIOverlay----
+                        \t(takes effect after restart)
+                        \t
+                        Should the GUI overlay with claim informations be disabled?""
+                        default: false""")
+
+                .worldRestart()
+                .define("DisableClaimGUIOverlay", false);
 
         BUILDER.pop();
         CLIENT = BUILDER.build();

@@ -506,6 +506,16 @@
    "description.recruits.captain": "船長は船の指揮官です。\n目的地に向けて航海し、船上の大砲を操ることができます。\nその射撃は敵船や陸上の標的にも正確に命中します。\n接近戦では剣と盾を用いて戦います。",
 
    "description.recruits.title.commander": "指揮官",
-   "description.recruits.commander": "指揮官は強力なリーダーです。\n指定した地点を巡回し、部下の新兵たちを率いて行動させます。\n彼が前線に立つと、部下たちは秩序と力をもって進軍します。"
+   "description.recruits.commander": "指揮官は強力なリーダーです。\n指定した地点を巡回し、部下の新兵たちを率いて行動させます。\n彼が前線に立つと、部下たちは秩序と力をもって進軍します。",
+
+   "gui.recruits.map.diplomacy" : "外交",
+   "gui.recruits.map.claim_chunk" : "チャンクを占有",
+   "gui.recruits.map.claim_area" : "領域を占有",
+   "gui.recruits.map.edit_claim" : "領域を設定",
+   "gui.recruits.map.remove_chunk" : "チャンクを削除",
+   "gui.recruits.map.center_map" : "マップを中央に",
+   "gui.recruits.map.remove_chunk_admin" : "チャンクを削除（管理者）",
+   "gui.recruits.map.delete_claim_admin" : "領域を削除（管理者）",
+   "gui.recruits.map.teleport_admin" : "テレポート（管理者）"
 
  }
