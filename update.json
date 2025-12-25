@@ -1,9 +1,10 @@
 {
   "homepage": "https://www.curseforge.com/minecraft/mc-mods/recruits/files",
   "promos": {
-    "1.20.1-recommended": "1.14.0"
+    "1.20.1-recommended": "1.14.1"
   },
   "1.20.1": {
+    "1.14.0": "Claim and Siege Update: Improved Performance of Worldmap and GUI, fixed crashes",
     "1.14.0": "Claim and Siege Update",
     "1.13.5": "Diplomacy and Performance Update: fixed arrows do not pass through allies, added API stuff",
     "1.13.4": "Diplomacy and Performance Update: improved mutlithreading and target findig, improved command gui",
