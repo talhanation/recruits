@@ -78,8 +78,8 @@ public class RecruitsDiplomacyManager {
     }
 
     public void notifyPlayersInTeam(String teamName, String otherTeamName, DiplomacyStatus relation, ServerLevel level) {
-        RecruitsFaction team = FactionEvents.recruitsFactionManager.getTeamByStringID(teamName);
-        RecruitsFaction otherTeam = FactionEvents.recruitsFactionManager.getTeamByStringID(otherTeamName);
+        RecruitsFaction team = FactionEvents.recruitsFactionManager.getFactionByStringID(teamName);
+        RecruitsFaction otherTeam = FactionEvents.recruitsFactionManager.getFactionByStringID(otherTeamName);
 
         if(team != null && otherTeam != null){
             List<ServerPlayer> playersInTeam = FactionEvents.recruitsFactionManager.getPlayersInTeam(team.getStringID(), level);

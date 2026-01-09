@@ -236,7 +236,7 @@ public class ScoutEntity extends BowmanEntity implements ICompanion {
             if(!potentialPlayerTargets.isEmpty()){
                 for(ServerPlayer player : potentialPlayerTargets){
                     String teamName = player.getTeam() != null ? player.getTeam().getName() : "";
-                    RecruitsPlayerInfo playerInfo = new RecruitsPlayerInfo(player.getUUID(), player.getName().getString(), FactionEvents.recruitsFactionManager.getTeamByStringID(teamName));
+                    RecruitsPlayerInfo playerInfo = new RecruitsPlayerInfo(player.getUUID(), player.getName().getString(), FactionEvents.recruitsFactionManager.getFactionByStringID(teamName));
                     int recruitsCount = countRecruits(player.getUUID());
                     int distance = (int) Math.sqrt(this.blockPosition().distSqr(player.blockPosition()));
                     String direction = getHorizontalDirection(this.blockPosition(), player.blockPosition());

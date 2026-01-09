@@ -1204,7 +1204,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 }
             }
             else if(this.isOwned() && this.getTeam() != null && !player.getUUID().equals(this.getOwnerUUID()) &&
-                    FactionEvents.recruitsFactionManager.getTeamByStringID(this.getTeam().getName()).getTeamLeaderUUID().equals(player.getUUID())){
+                    FactionEvents.recruitsFactionManager.getFactionByStringID(this.getTeam().getName()).getTeamLeaderUUID().equals(player.getUUID())){
                     Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientOpenTakeOverScreen(this.getUUID()));
             }
             else if (!this.isOwned() && !isPlayerTarget && this.canBeHired()) {
@@ -1401,21 +1401,26 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         Component deathMessage = this.getCombatTracker().getDeathMessage();
         super.die(dmg);
         if (this.dead) {
-            if (!this.getCommandSenderWorld().isClientSide()){
-                if (this.getCommandSenderWorld().getGameRules().getBoolean(GameRules.RULE_SHOWDEATHMESSAGES) && this.getOwner() instanceof ServerPlayer) {
-                    this.getOwner().sendSystemMessage(deathMessage);
-                }
-                if(this.isOwned()){
-                    RecruitEvents.recruitsPlayerUnitManager.removeRecruits(this.getOwnerUUID(), 1);
-                    FactionEvents.removeRecruitFromTeam(this, this.getTeam(), (ServerLevel) this.getCommandSenderWorld());
-                }
-                if(this.getTeam() != null){
-                    FactionEvents.recruitsFactionManager.getTeamByStringID(this.getTeam().getName()).addNPCs(-1);
-                }
-                if(this.getGroup() != null){
-                    RecruitEvents.recruitsGroupsManager.removeMember(this.getGroup(), this.getUUID(), (ServerLevel) this.getCommandSenderWorld());
-                }
+            if (this.getCommandSenderWorld().isClientSide()) return;
+
+            if (this.getCommandSenderWorld().getGameRules().getBoolean(GameRules.RULE_SHOWDEATHMESSAGES) && this.getOwner() instanceof ServerPlayer) {
+                this.getOwner().sendSystemMessage(deathMessage);
             }
+
+            if(this.getTeam() != null){
+                RecruitsFaction faction = FactionEvents.recruitsFactionManager.getFactionByStringID(this.getTeam().getName());
+                if(faction != null) faction.addNPCs(-1);
+                FactionEvents.recruitsFactionManager.broadcastToFactionPlayers(this.getTeam().getName(), (ServerLevel) this.getCommandSenderWorld());
+            }
+
+            if(this.getGroup() != null){
+                RecruitEvents.recruitsGroupsManager.removeMember(this.getGroup(), this.getUUID(), (ServerLevel) this.getCommandSenderWorld());
+            }
+
+            if(this.isOwned()){
+                RecruitEvents.recruitsPlayerUnitManager.removeRecruits(this.getOwnerUUID(), 1);
+            }
+            FactionEvents.removeRecruitFromTeam(this, this.getTeam(), (ServerLevel) this.getCommandSenderWorld());
         }
     }
 
@@ -1924,7 +1929,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     private void updateColor(String name) {
         if(!this.getCommandSenderWorld().isClientSide()){
-            RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getTeamByStringID(name);
+            RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getFactionByStringID(name);
             if(recruitsFaction != null && recruitsFaction.getUnitColor() != this.getColor()){
                 this.setColor(recruitsFaction.getUnitColor());
                 this.needsColorUpdate = false;

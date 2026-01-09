@@ -7,7 +7,6 @@ import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.util.DelayedExecutor;
 import com.talhanation.recruits.world.*;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -165,7 +164,7 @@ public class FactionEvents {
 
             PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(teamName);
 
-            RecruitsFaction recruitsFaction = recruitsFactionManager.getTeamByStringID(teamName);
+            RecruitsFaction recruitsFaction = recruitsFactionManager.getFactionByStringID(teamName);
 
             boolean isLeader;
             if(recruitsFaction != null) {
@@ -212,7 +211,7 @@ public class FactionEvents {
 
     public static void modifyTeam(ServerLevel level, String stringID, RecruitsFaction editedTeam, @Nullable ServerPlayer serverPlayer, int cost) {
         MinecraftServer server = level.getServer();
-        RecruitsFaction recruitsFaction = recruitsFactionManager.getTeamByStringID(stringID);
+        RecruitsFaction recruitsFaction = recruitsFactionManager.getFactionByStringID(stringID);
         PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(stringID);
 
         if(serverPlayer != null){
@@ -323,7 +322,7 @@ public class FactionEvents {
 
             serverSideUpdateTeam(level);
 
-            RecruitsFaction recruitsFaction = recruitsFactionManager.getTeamByStringID(teamName);
+            RecruitsFaction recruitsFaction = recruitsFactionManager.getFactionByStringID(teamName);
             Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> playerToAdd), new MessageToClientSetDiplomaticToast(8, recruitsFaction));
 
             notifyFactionMembers(level, recruitsFaction, 9, playerToAdd.getName().getString());
@@ -368,7 +367,7 @@ public class FactionEvents {
     }
 
     public static void addPlayerToData(ServerLevel level, String teamName, int x, String namePlayerToAdd){
-        RecruitsFaction recruitsFaction = recruitsFactionManager.getTeamByStringID(teamName);;
+        RecruitsFaction recruitsFaction = recruitsFactionManager.getFactionByStringID(teamName);;
 
         recruitsFaction.addPlayer(x);
 
@@ -379,7 +378,7 @@ public class FactionEvents {
         recruitsFactionManager.save(level);
     }
     public static void addNPCToData(ServerLevel level, String teamName, int x){
-        RecruitsFaction recruitsFaction = recruitsFactionManager.getTeamByStringID(teamName);;
+        RecruitsFaction recruitsFaction = recruitsFactionManager.getFactionByStringID(teamName);;
 
         if(recruitsFaction != null){
             recruitsFaction.addNPCs(x);
@@ -388,7 +387,7 @@ public class FactionEvents {
     }
 
     public static void sendJoinRequest(ServerLevel level, ServerPlayer player, String stringID) {
-        RecruitsFaction recruitsFaction = recruitsFactionManager.getTeamByStringID(stringID);
+        RecruitsFaction recruitsFaction = recruitsFactionManager.getFactionByStringID(stringID);
 
         if(recruitsFaction != null){
             if(recruitsFaction.addPlayerAsJoinRequest(player.getName().getString())){
@@ -687,7 +686,7 @@ public class FactionEvents {
     public static void addRecruitToTeam(AbstractRecruitEntity recruit, Team team, ServerLevel level){
         String teamName = team.getName();
         PlayerTeam playerteam = level.getScoreboard().getPlayerTeam(teamName);
-        RecruitsFaction recruitsFaction = recruitsFactionManager.getTeamByStringID(teamName);
+        RecruitsFaction recruitsFaction = recruitsFactionManager.getFactionByStringID(teamName);
 
         boolean flag = playerteam != null && level.getScoreboard().addPlayerToTeam(recruit.getStringUUID(), playerteam);
         if (!flag) {
@@ -711,6 +710,8 @@ public class FactionEvents {
         }
     }
     public static void removeRecruitFromTeam(AbstractRecruitEntity recruit, Team team, ServerLevel level){
+        if(recruit == null || team == null) return;
+
         Team recruitsFaction = recruit.getTeam();
 
         if(recruitsFaction != null && recruitsFaction.equals(team)){

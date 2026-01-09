@@ -114,13 +114,13 @@ public class ClaimEvents {
 
             for(LivingEntity livingEntity : defenders){
                 if(livingEntity.getTeam() == null) continue;
-                RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getTeamByStringID(livingEntity.getTeam().getName());
+                RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getFactionByStringID(livingEntity.getTeam().getName());
                 if(!claim.getOwnerFaction().equalsFaction(recruitsFaction)) claim.addParty(claim.defendingParties, recruitsFaction);
             }
 
             for(LivingEntity livingEntity : attackers){
                 if(livingEntity.getTeam() == null) continue;
-                RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getTeamByStringID(livingEntity.getTeam().getName());
+                RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getFactionByStringID(livingEntity.getTeam().getName());
                 claim.addParty(claim.attackingParties, recruitsFaction);
             }
 

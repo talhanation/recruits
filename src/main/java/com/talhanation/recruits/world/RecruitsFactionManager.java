@@ -15,6 +15,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
+import net.minecraft.world.scores.Team;
 import net.minecraftforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
@@ -51,7 +52,7 @@ public class RecruitsFactionManager {
     }
 
     @Nullable
-    public RecruitsFaction getTeamByStringID(String stringID) {
+    public RecruitsFaction getFactionByStringID(String stringID) {
         return teams.get(stringID);
     }
 
@@ -164,7 +165,7 @@ public class RecruitsFactionManager {
 
         for(ServerPlayer onlinePlayer : serverLevel.players()){
             if(onlinePlayer.getTeam() != null){
-                RecruitsFaction faction = this.getTeamByStringID(onlinePlayer.getTeam().getName());
+                RecruitsFaction faction = this.getFactionByStringID(onlinePlayer.getTeam().getName());
                 playerInfoList.add(new RecruitsPlayerInfo(onlinePlayer.getUUID(), onlinePlayer.getScoreboardName(), faction));
             }
             else
@@ -182,13 +183,34 @@ public class RecruitsFactionManager {
             broadcastFactionsToPlayer(serverPlayer);
         }
     }
+
+    public void broadcastToFactionPlayers(String factionID, ServerLevel serverLevel) {
+        if (serverLevel == null) return;
+
+        RecruitsFaction faction = this.getFactionByStringID(factionID);
+        if (faction == null) return;
+
+        PlayerTeam team = serverLevel.getScoreboard().getPlayerTeam(factionID);
+        if (team == null) return;
+
+        for (String playerName : team.getPlayers()) {
+            ServerPlayer player = serverLevel.getServer()
+                    .getPlayerList()
+                    .getPlayerByName(playerName);
+
+            if (player != null) {
+                this.broadcastOwnFactionToPlayer(player);
+            }
+        }
+    }
+
     private void broadcastOwnFactionToPlayer(Player player) {
         String teamName = "";
         if(player.getTeam() != null){
             teamName = player.getTeam().getName();
         }
 
-        RecruitsFaction faction = this.getTeamByStringID(teamName);
+        RecruitsFaction faction = this.getFactionByStringID(teamName);
 
         Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player),
                 new MessageToClientUpdateOwnFaction(faction));
@@ -221,7 +243,7 @@ public class RecruitsFactionManager {
 
         for(ServerPlayer onlinePlayer : serverLevel.getServer().getPlayerList().getPlayers()){
             if(onlinePlayer.getTeam() != null){
-                RecruitsFaction faction = this.getTeamByStringID(onlinePlayer.getTeam().getName());
+                RecruitsFaction faction = this.getFactionByStringID(onlinePlayer.getTeam().getName());
                 playerInfoList.add(new RecruitsPlayerInfo(onlinePlayer.getUUID(), onlinePlayer.getScoreboardName(), faction));
             }
             else

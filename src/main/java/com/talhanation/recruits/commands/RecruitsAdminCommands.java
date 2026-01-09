@@ -102,7 +102,7 @@ public class RecruitsAdminCommands {
                         .then(Commands.argument("Faction", TeamArgument.team())
                                 .executes((context) -> {
                                     PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
-                                    RecruitsFaction faction = FactionEvents.recruitsFactionManager.getTeamByStringID(playerTeam.getName());
+                                    RecruitsFaction faction = FactionEvents.recruitsFactionManager.getFactionByStringID(playerTeam.getName());
                                     if(faction == null) {
                                         context.getSource().sendFailure(Component.literal("No Faction found!").withStyle(ChatFormatting.RED));
                                         return 0;
@@ -117,7 +117,7 @@ public class RecruitsAdminCommands {
                                 .then(Commands.argument("Amount", IntegerArgumentType.integer(0))
                                         .executes((context) -> {
                                             PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
-                                            RecruitsFaction faction = FactionEvents.recruitsFactionManager.getTeamByStringID(playerTeam.getName());
+                                            RecruitsFaction faction = FactionEvents.recruitsFactionManager.getFactionByStringID(playerTeam.getName());
                                             if(faction == null) {
                                                 context.getSource().sendFailure(Component.literal("No Faction found!").withStyle(ChatFormatting.RED));
                                                 return 0;
@@ -133,7 +133,7 @@ public class RecruitsAdminCommands {
                         .then(Commands.argument("Faction", TeamArgument.team())
                                 .executes((context) -> {
                                     PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
-                                    RecruitsFaction faction = FactionEvents.recruitsFactionManager.getTeamByStringID(playerTeam.getName());
+                                    RecruitsFaction faction = FactionEvents.recruitsFactionManager.getFactionByStringID(playerTeam.getName());
                                     if(faction == null) {
                                         context.getSource().sendFailure(Component.literal("No Faction found!").withStyle(ChatFormatting.RED));
                                         return 0;
@@ -148,7 +148,7 @@ public class RecruitsAdminCommands {
                         .then(Commands.argument("Player", ScoreHolderArgument.scoreHolders()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS)
                             .executes((context) -> {
                                 PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
-                                RecruitsFaction faction = FactionEvents.recruitsFactionManager.getTeamByStringID(playerTeam.getName());
+                                RecruitsFaction faction = FactionEvents.recruitsFactionManager.getFactionByStringID(playerTeam.getName());
 
                                 String playerName = ScoreHolderArgument.getName(context, "Player");
                                 ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayerByName(playerName);

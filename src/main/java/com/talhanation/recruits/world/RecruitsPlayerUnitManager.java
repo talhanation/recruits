@@ -50,7 +50,7 @@ public class RecruitsPlayerUnitManager {
     }
 
     public boolean canPlayerRecruit(String stringId, UUID playerUUID) {
-        RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getTeamByStringID(stringId);
+        RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getFactionByStringID(stringId);
 
         int currentRecruitCount = getRecruitCount(playerUUID);
         int maxRecruitCount = 0;
@@ -74,7 +74,7 @@ public class RecruitsPlayerUnitManager {
         return currentRecruitCount < maxRecruitCount;
     }
     public int getRemainingRecruitSlots(String stringId, UUID playerUUID) {
-        RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getTeamByStringID(stringId);
+        RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getFactionByStringID(stringId);
 
         int currentRecruitCount = getRecruitCount(playerUUID);
         int maxRecruitCount;
