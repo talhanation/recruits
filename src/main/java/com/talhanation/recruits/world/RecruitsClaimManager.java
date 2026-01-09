@@ -91,6 +91,7 @@ public class RecruitsClaimManager {
                             RecruitsServerConfig.ClaimingCost.get(),
                             RecruitsServerConfig.ChunkCost.get(),
                             RecruitsServerConfig.CascadeThePriceOfClaims.get(),
+                            RecruitsServerConfig.AllowClaiming.get(),
                             FactionEvents.getCurrency()
                     ));
         }

@@ -39,7 +39,7 @@ public class WorldMapContextMenu {
         ItemStack claimChunk = new ItemStack(ClientManager.currencyItemStack.getItem());
         claimChunk.setCount(ClientManager.configValueChunkCost);
         ItemStack claimArea = new ItemStack(ClientManager.currencyItemStack.getItem());
-        claimArea.setCount(ClientManager.configValueClaimCost);
+        claimArea.setCount(worldMapScreen.getClaimCost(ClientManager.ownFaction));
 
         addEntry(TEXT_DIPLOMACY.getString(),
                 () -> (ClientManager.ownFaction != null

@@ -90,6 +90,7 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.BooleanValue NobleVillagerNeedsVillagers;
     public static ForgeConfigSpec.BooleanValue ShouldProfessionBlocksTrade;
     public static ForgeConfigSpec.BooleanValue NobleVillagerSpawn;
+    public static ForgeConfigSpec.BooleanValue AllowClaiming;
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin", "corpse:corpse", "minecraft:armorstand"));
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
@@ -754,6 +755,13 @@ public class RecruitsServerConfig {
         BUILDER.pop();
         BUILDER.pop();
         BUILDER.comment("Claiming Config:").push("Claiming");
+
+        AllowClaiming = BUILDER.comment("""
+                        Should the claiming feature be allowed?
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("AllowClaiming", true);
 
         ClaimingCost = BUILDER.comment("""
                         The amount of currency that claiming a 5x5 area of chunk should cost.

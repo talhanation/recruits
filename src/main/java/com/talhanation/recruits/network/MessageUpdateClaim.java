@@ -1,6 +1,8 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.ClaimEvents;
+import com.talhanation.recruits.client.ClientManager;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.world.RecruitsClaim;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
@@ -28,6 +30,7 @@ public class MessageUpdateClaim implements Message<MessageUpdateClaim> {
 
     public void executeServerSide(NetworkEvent.Context context){
         RecruitsClaim updatedClaim = RecruitsClaim.fromNBT(this.claimNBT);
+        if(!RecruitsServerConfig.AllowClaiming.get()) return;
 
         ClaimEvents.recruitsClaimManager.addOrUpdateClaim((ServerLevel) context.getSender().getCommandSenderWorld(), updatedClaim);
     }

@@ -17,16 +17,18 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
     private int claimCost;
     private int chunkCost;
     private boolean cascadeOfCost;
+    private boolean allowClaiming;
     private ItemStack currencyItemStack;
     public MessageToClientUpdateClaims() {
     }
 
-    public MessageToClientUpdateClaims(List<RecruitsClaim> list, int claimCost, int chunkCost, boolean cascadeOfCost, ItemStack currencyItemStack) {
+    public MessageToClientUpdateClaims(List<RecruitsClaim> list, int claimCost, int chunkCost, boolean cascadeOfCost, boolean allowClaiming, ItemStack currencyItemStack) {
         this.claimsListNBT = RecruitsClaim.toNBT(list);
         this.claimCost = claimCost;
         this.chunkCost = chunkCost;
         this.cascadeOfCost = cascadeOfCost;
         this.currencyItemStack = currencyItemStack;
+        this.allowClaiming = allowClaiming;
     }
 
     @Override
@@ -42,6 +44,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
         ClientManager.configValueChunkCost = this.chunkCost;
         ClientManager.configValueCascadeClaimCost = this.cascadeOfCost;
         ClientManager.currencyItemStack = this.currencyItemStack;
+        ClientManager.configValueIsClaimingAllowed = this.allowClaiming;
     }
 
     @Override
@@ -51,6 +54,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
         this.chunkCost = buf.readInt();
         this.cascadeOfCost = buf.readBoolean();
         this.currencyItemStack = buf.readItem();
+        this.allowClaiming = buf.readBoolean();
         return this;
     }
 
@@ -61,6 +65,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
         buf.writeInt(this.chunkCost);
         buf.writeBoolean(this.cascadeOfCost);
         buf.writeItemStack(this.currencyItemStack, false);
+        buf.writeBoolean(this.allowClaiming);
     }
 
 }

@@ -33,6 +33,7 @@ public class ClientManager {
     public static int groupSelection;
     @Nullable
     public static RecruitsClaim currentClaim;
+    public static boolean configValueIsClaimingAllowed;
 
     @OnlyIn(Dist.CLIENT)
     public static RecruitsDiplomacyManager.DiplomacyStatus getRelation(String team, String otherTeam) {

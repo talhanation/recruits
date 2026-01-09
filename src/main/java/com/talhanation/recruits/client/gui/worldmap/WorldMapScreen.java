@@ -56,7 +56,7 @@ public class WorldMapScreen extends Screen {
     ChunkPos selectedChunk = null;
     private int clickedBlockX = 0, clickedBlockZ = 0;
     private int hoverBlockX = 0, hoverBlockZ = 0;
-    private final WorldMapContextMenu contextMenu;
+    private WorldMapContextMenu contextMenu;
     RecruitsClaim selectedClaim = null;
     private ClaimInfoMenu claimInfoMenu;
 
@@ -144,7 +144,7 @@ public class WorldMapScreen extends Screen {
 
         renderCoordinatesAndZoom(guiGraphics);
 
-        renderFPS(guiGraphics);
+        //renderFPS(guiGraphics);
 
         contextMenu.render(guiGraphics, this);
 
@@ -409,6 +409,7 @@ public class WorldMapScreen extends Screen {
             clickedBlockX = (int) Math.floor(worldX);
             clickedBlockZ = (int) Math.floor(worldZ);
 
+            this.contextMenu = new WorldMapContextMenu(this);
             contextMenu.openAt((int) mouseX, (int) mouseY);
             claimInfoMenu.close();
         }
@@ -586,6 +587,7 @@ public class WorldMapScreen extends Screen {
     }
     public void claimArea() {
         if(!canPlayerPay(getClaimCost(ownFaction), player)) return;
+        if(!ClientManager.configValueIsClaimingAllowed) return;
 
         List<ChunkPos> area = getClaimArea(this.selectedChunk);
 
@@ -597,13 +599,15 @@ public class WorldMapScreen extends Screen {
         newClaim.setCenter(selectedChunk);
         newClaim.setPlayer(new RecruitsPlayerInfo(player.getUUID(), player.getName().getString(), ownFaction));
 
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageDoPayment(player.getUUID(), getClaimCost(ownFaction)));
+
         ClientManager.recruitsClaims.add(newClaim);
         Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(newClaim));
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageDoPayment(player.getUUID(), getClaimCost(ownFaction)));
     }
 
     public void claimChunk() {
         if(!canPlayerPay(ClientManager.configValueChunkCost, player)) return;
+        if(!ClientManager.configValueIsClaimingAllowed) return;
 
         RecruitsClaim neighborClaim = getNeighborClaim(selectedChunk);
         if(neighborClaim == null) return;
@@ -619,9 +623,8 @@ public class WorldMapScreen extends Screen {
                 break;
             }
         }
-
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(neighborClaim));
         Main.SIMPLE_CHANNEL.sendToServer(new MessageDoPayment(player.getUUID(), ClientManager.configValueChunkCost));
+        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(neighborClaim));
     }
 
     @Nullable
@@ -789,6 +792,7 @@ public class WorldMapScreen extends Screen {
         return false;
     }
     public boolean canClaimChunk(ChunkPos pos) {
+        if (!ClientManager.configValueIsClaimingAllowed) return false;
         if (pos == null || ClientManager.ownFaction == null) return false;
         if (isPlayerTooFar(pos)) return false;
 
