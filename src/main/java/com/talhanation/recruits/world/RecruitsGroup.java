@@ -246,6 +246,34 @@ public class RecruitsGroup {
         return out;
     }
 
+    public static CompoundTag uuidListToNbt(List<UUID> uuids) {
+        CompoundTag compound = new CompoundTag();
+        if (uuids == null) return compound;
+
+        ListTag list = new ListTag();
+        for (UUID uuid : uuids) {
+            CompoundTag tag = new CompoundTag();
+            tag.putUUID("UUID", uuid);
+            list.add(tag);
+        }
+        compound.put("UUIDs", list);
+        return compound;
+    }
+
+    public static List<UUID> uuidListFromNbt(CompoundTag compound){
+        List<UUID> out = new ArrayList<>();
+        if (compound == null || !compound.contains("UUIDs", Tag.TAG_LIST)) {
+            return out;
+        }
+        ListTag list = compound.getList("UUIDs", Tag.TAG_COMPOUND);
+        for (int i = 0; i < list.size(); i++) {
+            CompoundTag entry = list.getCompound(i);
+
+            out.add(entry.getUUID("UUID"));
+        }
+        return out;
+    }
+
     public static class DisbandContext {
 
         public boolean disband;
@@ -274,6 +302,5 @@ public class RecruitsGroup {
 
             return new DisbandContext(disband, keepTeam, increaseCost);
         }
-
     }
 }

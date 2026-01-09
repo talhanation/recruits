@@ -9,6 +9,8 @@ import com.talhanation.recruits.world.RecruitsGroup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -382,24 +384,27 @@ public class CommandEvents {
 
                 if(targetPosition.distanceToSqr(oldPos) > 50){
 
-                    List<AbstractRecruitEntity> list = Objects.requireNonNull(serverPlayer).getCommandSenderWorld().getEntitiesOfClass(
+                    List<AbstractRecruitEntity> recruits = Objects.requireNonNull(serverPlayer).getCommandSenderWorld().getEntitiesOfClass(
                                     AbstractRecruitEntity.class,
                                     serverPlayer.getBoundingBox().inflate(200)
                             );
+
                     List<RecruitsGroup> groups = RecruitEvents.recruitsGroupsManager.getPlayerGroups(serverPlayer);
                     if(groups == null) return;
 
-                    groups.removeIf(RecruitsGroup::isDisabled);
+                    List<UUID> uuid = getSavedUUIDList(serverPlayer, "ActiveGroups");
 
-                    list.removeIf(recruit -> recruit.getGroup() == null || !groups.contains(recruit.getGroup()));
+                    recruits.removeIf(recruit -> !uuid.contains(recruit.getGroup()));
+                    groups.removeIf(group -> !uuid.contains( group.getUUID()));
 
-                    applyFormation(formation, list, serverPlayer, targetPosition);
+                    applyFormation(formation, recruits, serverPlayer, targetPosition);
                     int[] position = new int[]{(int) targetPosition.x, (int) targetPosition.z};
                     saveFormationPos(serverPlayer, position);
                 }
             }
         }
     }
+
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         CompoundTag playerData = event.getEntity().getPersistentData();
@@ -407,7 +412,7 @@ public class CommandEvents {
             if (!data.contains("MaxRecruits")) data.putInt("MaxRecruits", RecruitsServerConfig.MaxRecruitsForPlayer.get());
             if (!data.contains("CommandingGroup")) data.putInt("CommandingGroup", 0);
             if (!data.contains("TotalRecruits")) data.putInt("TotalRecruits", 0);
-            if (!data.contains("ActiveGroups")) data.putIntArray("ActiveGroups", new int[0]);
+            if (!data.contains("ActiveGroups")) data.put("ActiveGroups", new ListTag());
             if (!data.contains("Formation")) data.putInt("Formation", 0);
             if (!data.contains("FormationPos")) data.putIntArray("FormationPos", new int[]{(int) event.getEntity().getX(), (int) event.getEntity().getZ()});
 
@@ -428,6 +433,41 @@ public class CommandEvents {
         nbt.putInt( "Formation", formation);
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
+
+
+    public static void saveUUIDList(Player player, String key, Collection<UUID> uuids) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag persisted = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
+
+        ListTag list = new ListTag();
+        for (UUID uuid : uuids) {
+            CompoundTag tag = new CompoundTag();
+            tag.putUUID("UUID", uuid);
+            list.add(tag);
+        }
+
+        persisted.put(key, list);
+        playerNBT.put(Player.PERSISTED_NBT_TAG, persisted);
+    }
+
+    public static List<UUID> getSavedUUIDList(Player player, String key) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag persisted = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
+
+        List<UUID> result = new ArrayList<>();
+        if (!persisted.contains(key, Tag.TAG_LIST)) return result;
+
+        ListTag list = persisted.getList(key, Tag.TAG_COMPOUND);
+        for (Tag t : list) {
+            CompoundTag tag = (CompoundTag) t;
+            if (tag.hasUUID("UUID")) {
+                result.add(tag.getUUID("UUID"));
+            }
+        }
+
+        return result;
+    }
+
     public static int[] getSavedFormationPos(Player player) {
         CompoundTag playerNBT = player.getPersistentData();
         CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);

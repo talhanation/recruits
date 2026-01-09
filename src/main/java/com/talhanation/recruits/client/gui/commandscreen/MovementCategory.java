@@ -84,9 +84,9 @@ public class MovementCategory implements ICommandCategory {
         RecruitsCommandButton followButton = new RecruitsCommandButton(x + 60, y - 25, TEXT_FOLLOW,
                 button -> {
                     if (CommandScreen.formation.getIndex() != 0) {
-                        List<RecruitsGroup> activeGroups = new ArrayList<>();
+                        List<UUID> activeGroups = new ArrayList<>();
                         for (RecruitsGroup group : groups) {
-                            if (!group.isDisabled()) activeGroups.add(group);
+                            if (!group.isDisabled()) activeGroups.add(group.getUUID());
                         }
 
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveFormationFollowMovement(player.getUUID(), activeGroups, CommandScreen.formation.getIndex()));

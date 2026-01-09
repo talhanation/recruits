@@ -21,9 +21,9 @@ public class MessageSaveFormationFollowMovement implements Message<MessageSaveFo
     public MessageSaveFormationFollowMovement(){
     }
 
-    public MessageSaveFormationFollowMovement(UUID player_uuid, List<RecruitsGroup> groups, int formation) {
+    public MessageSaveFormationFollowMovement(UUID player_uuid, List<UUID> groups, int formation) {
         this.player_uuid = player_uuid;
-        this.groups = RecruitsGroup.listToNbt(groups);
+        this.groups = RecruitsGroup.uuidListToNbt(groups);
         this.formation = formation;
     }
 
@@ -33,7 +33,7 @@ public class MessageSaveFormationFollowMovement implements Message<MessageSaveFo
 
     public void executeServerSide(NetworkEvent.Context context){
         CommandEvents.saveFormation(context.getSender(), formation);
-        //CommandEvents.saveActiveGroups(context.getSender(), groups);
+        CommandEvents.saveUUIDList(context.getSender(), "ActiveGroups", RecruitsGroup.uuidListFromNbt(groups));
     }
 
     public MessageSaveFormationFollowMovement fromBytes(FriendlyByteBuf buf) {
