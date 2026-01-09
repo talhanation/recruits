@@ -357,8 +357,9 @@ public class RecruitsClaim {
     }
 
     public void addParty(List<RecruitsFaction> list, RecruitsFaction recruitsFaction) {
+        if(list.isEmpty()) return;
         for(RecruitsFaction attacker : list){
-            if(attacker.getStringID().equals(recruitsFaction.getStringID())) return;
+            if(attacker != null && attacker.getStringID().equals(recruitsFaction.getStringID())) return;
         }
 
         list.add(recruitsFaction);
