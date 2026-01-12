@@ -336,7 +336,7 @@ public class RecruitsServerConfig {
                 .define("RecruitTablesPOIReleasing", true);
         NobleVillagerSpawn = BUILDER.comment("""
                         
-                        Does a Villager decide to become noble? Condition: 10 Villagers and no Noble Villager nearby
+                        Does a Villager decide to become noble? Condition: 7 Villagers and no Noble Villager nearby
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
