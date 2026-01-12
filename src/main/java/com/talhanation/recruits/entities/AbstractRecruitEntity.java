@@ -301,10 +301,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(new AttributeModifier("speed_bonus", this.random.nextDouble() * 0.1D, AttributeModifier.Operation.MULTIPLY_BASE));
     }
 
-    public void setDropEquipment(){
-        this.dropEquipment();
-    }
-
     ////////////////////////////////////REGISTER////////////////////////////////////
 
     protected void registerGoals() {
