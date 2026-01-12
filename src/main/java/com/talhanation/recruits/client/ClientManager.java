@@ -35,6 +35,8 @@ public class ClientManager {
     public static RecruitsClaim currentClaim;
     public static boolean configValueIsClaimingAllowed;
 
+    public static Map<String, RecruitsRoute> routesMap = new HashMap<>();
+
     @OnlyIn(Dist.CLIENT)
     public static RecruitsDiplomacyManager.DiplomacyStatus getRelation(String team, String otherTeam) {
         return diplomacyMap.getOrDefault(team, new HashMap<>()).getOrDefault(otherTeam, RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL);

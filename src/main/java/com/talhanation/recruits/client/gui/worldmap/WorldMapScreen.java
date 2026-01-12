@@ -13,6 +13,7 @@ import com.talhanation.recruits.network.MessageUpdateClaim;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsFaction;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
+import com.talhanation.recruits.world.RecruitsRoute;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -59,6 +60,7 @@ public class WorldMapScreen extends Screen {
     private WorldMapContextMenu contextMenu;
     RecruitsClaim selectedClaim = null;
     private ClaimInfoMenu claimInfoMenu;
+    public RecruitsRoute selectedRoute;
 
     public WorldMapScreen() {
         super(Component.literal(""));
@@ -132,12 +134,16 @@ public class WorldMapScreen extends Screen {
             renderPlayerPosition(guiGraphics);
         }
 
-         if (selectedChunk != null && (selectedClaim == null || contextMenu.isVisible())) {
+        if (selectedChunk != null && (selectedClaim == null || contextMenu.isVisible())) {
             renderChunkOutline(guiGraphics, selectedChunk.x, selectedChunk.z, CHUNK_SELECTION_COLOR);
         }
 
         if (hoveredChunk != null) {
             renderChunkHighlight(guiGraphics, hoveredChunk.x, hoveredChunk.z);
+        }
+
+        if(selectedRoute != null){
+            renderRoute(guiGraphics);
         }
 
         guiGraphics.disableScissor();
@@ -209,6 +215,78 @@ public class WorldMapScreen extends Screen {
                 guiGraphics.blit(textureId, x, z, 0, 0, size, size, size, size);
             }
         }
+    }
+
+    public void renderRoute(GuiGraphics guiGraphics){
+        if(selectedRoute.getWaypoints().isEmpty()) return;
+
+        List<RecruitsRoute.Waypoint> waypoints = selectedRoute.getWaypoints();
+        for(RecruitsRoute.Waypoint waypoint : waypoints){
+            if (waypoint == null) return;
+
+            double playerWorldX = waypoint.getPosition().getX();
+            double playerWorldZ = waypoint.getPosition().getZ();
+
+            int pixelX = (int)(offsetX + playerWorldX * scale);
+            int pixelZ = (int)(offsetZ + playerWorldZ * scale);
+
+            PoseStack pose = guiGraphics.pose();
+
+            pose.pushPose();
+            pose.translate(pixelX, pixelZ, 0);
+            pose.popPose();
+
+            pose.scale(3.0f, 3.0f, 3.0f);
+            int iconIndex = 6;
+            float u0 = (iconIndex % 16) / 16f;
+            float v0 = (iconIndex / 16) / 16f;
+            float u1 = u0 + 1f / 16f;
+            float v1 = v0 + 1f / 16f;
+
+            guiGraphics.flush();
+            VertexConsumer consumer = guiGraphics.bufferSource().getBuffer(RenderType.text(MAP_ICONS));
+            Matrix4f matrix = pose.last().pose();
+            int light = 0xF000F0;
+            int color = 0xFFFFFFFF;
+
+            consumer.vertex(matrix, -1f, 1f, 0f)
+                    .color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF)
+                    .uv(u0, v0)
+                    .overlayCoords(OverlayTexture.NO_OVERLAY)
+                    .uv2(light)
+                    .normal(0, 0, 1)
+                    .endVertex();
+
+            consumer.vertex(matrix, 1f, 1f, 0f)
+                    .color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF)
+                    .uv(u1, v0)
+                    .overlayCoords(OverlayTexture.NO_OVERLAY)
+                    .uv2(light)
+                    .normal(0, 0, 1)
+                    .endVertex();
+
+            consumer.vertex(matrix, 1f, -1f, 0f)
+                    .color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF)
+                    .uv(u1, v1)
+                    .overlayCoords(OverlayTexture.NO_OVERLAY)
+                    .uv2(light)
+                    .normal(0, 0, 1)
+                    .endVertex();
+
+            consumer.vertex(matrix, -1f, -1f, 0f)
+                    .color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF)
+                    .uv(u0, v1)
+                    .overlayCoords(OverlayTexture.NO_OVERLAY)
+                    .uv2(light)
+                    .normal(0, 0, 1)
+                    .endVertex();
+
+            pose.popPose();
+        }
+    }
+
+    public void renderWaypoint(GuiGraphics guiGraphics){
+
     }
 
     private static final ItemStack BOAT_STACK = new ItemStack(Items.OAK_BOAT);
@@ -865,5 +943,16 @@ public class WorldMapScreen extends Screen {
 
         return !isInBufferZone(pos, ClientManager.ownFaction);
     }
+
+    public boolean canAddRoute() {
+        return this.selectedRoute != null;
+    }
+
+    public void addRoute() {
+        RecruitsRoute newRoute = new RecruitsRoute("New Route");
+
+
+    }
+
 
 }

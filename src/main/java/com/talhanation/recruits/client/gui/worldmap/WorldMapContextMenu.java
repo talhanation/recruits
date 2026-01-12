@@ -36,10 +36,10 @@ public class WorldMapContextMenu {
 
     public WorldMapContextMenu(WorldMapScreen worldMapScreen) {
         this.worldMapScreen = worldMapScreen;
-        ItemStack claimChunk = new ItemStack(ClientManager.currencyItemStack.getItem());
-        claimChunk.setCount(ClientManager.configValueChunkCost);
-        ItemStack claimArea = new ItemStack(ClientManager.currencyItemStack.getItem());
-        claimArea.setCount(worldMapScreen.getClaimCost(ClientManager.ownFaction));
+        ItemStack itemStackClaimChunk = new ItemStack(ClientManager.currencyItemStack.getItem());
+        itemStackClaimChunk.setCount(ClientManager.configValueChunkCost);
+        ItemStack itemStackClaimArea = new ItemStack(ClientManager.currencyItemStack.getItem());
+        itemStackClaimArea.setCount(worldMapScreen.getClaimCost(ClientManager.ownFaction));
 
         addEntry(TEXT_DIPLOMACY.getString(),
                 () -> (ClientManager.ownFaction != null
@@ -54,7 +54,7 @@ public class WorldMapContextMenu {
                         && (this.worldMapScreen.isPlayerFactionLeader() || this.worldMapScreen.isPlayerClaimLeader(worldMapScreen.getNeighborClaim(worldMapScreen.selectedChunk)))
                 ),
                 WorldMapScreen::claimChunk,
-                claimChunk,
+                itemStackClaimChunk,
                 "bufferzone, chunk"
         );
 
@@ -63,10 +63,28 @@ public class WorldMapContextMenu {
                         && (this.worldMapScreen.isPlayerFactionLeader())
                 ),
                 WorldMapScreen::claimArea,
-                claimArea,
+                itemStackClaimArea,
                 "bufferzone, area"
         );
 
+        /*
+        addEntry("Add Route",
+                () -> (this.worldMapScreen.canAddRoute()
+                        && (this.worldMapScreen.isPlayerFactionLeader())
+                ),
+                WorldMapScreen::addRoute
+        );
+
+        addEntry("Edit Route",
+                () -> (this.worldMapScreen.selectedRoute != null
+                ),
+                (screen) ->{
+                    //screen.getMinecraft().setScreen(new RouteEditScreen(screen, screen.selectedClaim, screen.getPlayer()));
+                    screen.selectedRoute = null;
+                }
+        );
+
+         */
         addEntry(TEXT_EDIT_CLAIM.getString(),
                 () -> (this.worldMapScreen.selectedClaim != null
                         && this.worldMapScreen.isPlayerFactionLeader(this.worldMapScreen.selectedClaim.getOwnerFaction())
