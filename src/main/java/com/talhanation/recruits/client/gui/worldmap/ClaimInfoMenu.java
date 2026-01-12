@@ -15,7 +15,7 @@ public class ClaimInfoMenu {
     private BannerRenderer bannerRenderer;
     private BannerRenderer bannerRendererAttacker;
     public int x, y;
-    public int width = 120, height = 200;
+    public int width = 120, height = 215;
 
     public ClaimInfoMenu(WorldMapScreen parent) {
         this.parent = parent;
@@ -101,6 +101,11 @@ public class ClaimInfoMenu {
         textY += 15;
         guiGraphics.drawString(parent.getMinecraft().font,
                 "Block-Use: " + currentClaim.isBlockInteractionAllowed(),
+                x + 5, textY, 0xFFFFFF);
+
+        textY += 15;
+        guiGraphics.drawString(parent.getMinecraft().font,
+                "Chunks: " + currentClaim.getClaimedChunks().size() + "/50",
                 x + 5, textY, 0xFFFFFF);
 
     }
