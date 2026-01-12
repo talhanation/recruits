@@ -29,9 +29,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
 
-import java.util.Comparator;
-import java.util.List;
-
 @OnlyIn(Dist.CLIENT)
 public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/recruit_gui.png" );
@@ -501,7 +498,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
             profItem1 = Items.FEATHER.getDefaultInstance();
             profItem2 = Items.PAPER.getDefaultInstance();
         }
-        else if(this.recruit instanceof PatrolLeaderEntity){
+        else if(this.recruit instanceof CommanderEntity){
             profItem1 = Items.IRON_SWORD.getDefaultInstance();
             profItem2 = Items.GOAT_HORN.getDefaultInstance();
         }

@@ -21,11 +21,11 @@ import net.minecraftforge.common.ForgeMod;
 import javax.annotation.Nullable;
 import java.util.function.Predicate;
 
-public class PatrolLeaderEntity extends AbstractLeaderEntity {
+public class CommanderEntity extends AbstractLeaderEntity {
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
 
-    public PatrolLeaderEntity(EntityType<? extends AbstractLeaderEntity> entityType, Level world) {
+    public CommanderEntity(EntityType<? extends AbstractLeaderEntity> entityType, Level world) {
         super(entityType, world);
         attackController = new PatrolLeaderAttackController(this);
     }
@@ -75,7 +75,6 @@ public class PatrolLeaderEntity extends AbstractLeaderEntity {
 
     @Override
     public void initSpawn() {
-        this.setDropEquipment();
         this.setPersistenceRequired();
 
         if(this.getName().getString().isEmpty()) this.setCustomName(Component.literal("Commander"));

@@ -23,7 +23,7 @@ public class AttributeEvent {
         event.put(ModEntityTypes.RECRUIT_SHIELDMAN.get(), RecruitShieldmanEntity.setAttributes().build());
         event.put(ModEntityTypes.HORSEMAN.get(), HorsemanEntity.setAttributes().build());
         event.put(ModEntityTypes.MESSENGER.get(), MessengerEntity.setAttributes().build());
-        event.put(ModEntityTypes.PATROL_LEADER.get(), PatrolLeaderEntity.setAttributes().build());
+        event.put(ModEntityTypes.PATROL_LEADER.get(), CommanderEntity.setAttributes().build());
         event.put(ModEntityTypes.CAPTAIN.get(), CaptainEntity.setAttributes().build());
         event.put(ModEntityTypes.SCOUT.get(), ScoutEntity.setAttributes().build());
         event.put(ModEntityTypes.VILLAGER_NOBLE.get(), VillagerNobleEntity.setAttributes().build());

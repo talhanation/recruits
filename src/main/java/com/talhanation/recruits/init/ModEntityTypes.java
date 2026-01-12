@@ -69,8 +69,8 @@ public class ModEntityTypes {
                     .canSpawnFarFromPlayer()
                     .build(new ResourceLocation(Main.MOD_ID, "scout").toString()));
 
-    public static final RegistryObject<EntityType<PatrolLeaderEntity>> PATROL_LEADER = ENTITY_TYPES.register("patrol_leader",
-            () -> EntityType.Builder.of(PatrolLeaderEntity::new, MobCategory.CREATURE)
+    public static final RegistryObject<EntityType<CommanderEntity>> PATROL_LEADER = ENTITY_TYPES.register("patrol_leader",
+            () -> EntityType.Builder.of(CommanderEntity::new, MobCategory.CREATURE)
                     .sized(0.6F, 1.95F)
                     .clientTrackingRange(10)
                     .canSpawnFarFromPlayer()

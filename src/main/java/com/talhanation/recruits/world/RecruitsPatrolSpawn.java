@@ -780,8 +780,8 @@ public class RecruitsPatrolSpawn {
         world.addFreshEntity(recruitEntity);
     }
 
-    public static PatrolLeaderEntity createCompanionPatrolLeader(BlockPos upPos, ServerLevel world){
-        PatrolLeaderEntity leader = ModEntityTypes.PATROL_LEADER.get().create(world);
+    public static CommanderEntity createCompanionPatrolLeader(BlockPos upPos, ServerLevel world){
+        CommanderEntity leader = ModEntityTypes.PATROL_LEADER.get().create(world);
         leader.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
         leader.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
         AbstractRecruitEntity.applySpawnValues(leader);
@@ -805,7 +805,7 @@ public class RecruitsPatrolSpawn {
     }
 
     public static void spawnPatrol(BlockPos upPos, ServerLevel world) {
-        PatrolLeaderEntity leader = createCompanionPatrolLeader(upPos, world);
+        CommanderEntity leader = createCompanionPatrolLeader(upPos, world);
 
         createRecruit(world, upPos, leader);
         createRecruit(world, upPos, leader);
@@ -816,7 +816,7 @@ public class RecruitsPatrolSpawn {
         world.addFreshEntity(leader);
     }
 
-    public static void setPatrolLeaderEquipment(PatrolLeaderEntity recruit) {
+    public static void setPatrolLeaderEquipment(CommanderEntity recruit) {
         Random random = new Random();
         recruit.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
         recruit.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
