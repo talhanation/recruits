@@ -33,7 +33,12 @@ public class RecruitRangedMusketAttackGoal extends Goal {
     public boolean canUse() {
         LivingEntity livingentity = this.crossBowman.getTarget();
         boolean shouldRanged = crossBowman.getShouldRanged();
-        if(livingentity != null && livingentity.isAlive() && this.isWeaponInHand() && shouldRanged){
+        if(livingentity != null && livingentity.isAlive() && shouldRanged){
+            if(!this.isWeaponInHand()){
+                crossBowman.switchMainHandItem(RecruitRangedMusketAttackGoal::isMusket);
+                return false;
+            }
+
             return livingentity.distanceTo(this.crossBowman) >= stopRange && this.canAttackMovePos() && !this.crossBowman.needsToGetFood() && !this.crossBowman.getShouldMount();
         }
         else
@@ -64,7 +69,7 @@ public class RecruitRangedMusketAttackGoal extends Goal {
     }
 
     protected boolean isWeaponInHand() {
-        ItemStack itemStack = crossBowman.getItemBySlot(crossBowman.getEquipmentSlotIndex(5));
+        ItemStack itemStack = crossBowman.getMainHandItem();
 
         if(itemStack.getDescriptionId().equals("item.musketmod.musket")) {
             this.weapon = new MusketWeapon();
@@ -88,6 +93,16 @@ public class RecruitRangedMusketAttackGoal extends Goal {
         }
         else
             return false;
+    }
+
+    public static boolean isMusket(ItemStack itemStack){
+       String disc = itemStack.getDescriptionId();
+
+       return disc.equals("item.musketmod.musket")
+               || disc.equals("item.musketmod.musket_with_bayonet")
+               || disc.equals("item.musketmod.musket_with_scope")
+               || disc.equals("item.musketmod.blunderbuss")
+               || disc.equals("item.musketmod.pistol");
     }
 
     public void tick() {

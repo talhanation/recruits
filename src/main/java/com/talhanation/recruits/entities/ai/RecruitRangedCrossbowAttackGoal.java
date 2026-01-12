@@ -12,6 +12,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,8 +40,11 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
     public boolean canUse() {
         this.target = this.crossBowman.getTarget();
         boolean shouldRanged = crossBowman.getShouldRanged();
-        if (target != null && target.isAlive() && this.isWeaponInMainHand() && shouldRanged) {
-            // if (mob.getOwner() != null && mob.getShouldFollow() && mob.getOwner().distanceTo(this.mob) <= 25.00D && !(target.distanceTo(this.mob) <= 7.00D)) return false;
+        if (target != null && target.isAlive() && shouldRanged) {
+            if(!this.isWeaponInMainHand()){
+                this.crossBowman.switchMainHandItem(RecruitRangedCrossbowAttackGoal::isCrossbow);
+                return false;
+            }
             return target.distanceTo(this.crossBowman) >= stopRange && this.canAttackMovePos() && !this.crossBowman.needsToGetFood() && !this.crossBowman.getShouldMount();
         } else {
             return crossBowman.getShouldStrategicFire();
@@ -48,7 +52,7 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
     }
 
     public boolean canContinueToUse() {
-        return this.canUse() && this.isWeaponInMainHand();
+        return this.canUse();
     }
 
     @Override
@@ -67,13 +71,16 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
     }
 
     protected boolean isWeaponInMainHand() {
-        ItemStack itemStack = crossBowman.getItemBySlot(crossBowman.getEquipmentSlotIndex(5));
-        if(itemStack.getItem() instanceof CrossbowItem) {
+        if(isCrossbow(crossBowman.getMainHandItem())) {
             this.weapon = new CrossbowWeapon();
             return true;
         }
         else
             return false;
+    }
+
+    protected static boolean isCrossbow(ItemStack itemStack){
+        return itemStack.is(Items.CROSSBOW) || itemStack.getItem() instanceof CrossbowItem;
     }
 
     public void tick() {

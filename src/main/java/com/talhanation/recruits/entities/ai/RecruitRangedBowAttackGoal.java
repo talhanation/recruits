@@ -9,6 +9,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ProjectileWeaponItem;
 import net.minecraft.world.phys.Vec3;
@@ -42,12 +43,17 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity> extends Goal {
 
     public boolean canUse() {
         LivingEntity livingentity = this.recruit.getTarget();
-        if (livingentity != null && livingentity.isAlive() && isHoldingBow(this.recruit)) {
+        if (livingentity != null && livingentity.isAlive()) {
+            if(!isHoldingBow(this.recruit)){
+                recruit.switchMainHandItem(RecruitRangedBowAttackGoal::isBow);
+                
+                return false;
+            }
+
             this.target = livingentity;
             float distance = this.target.distanceTo(this.recruit);
-            // if (mob.getOwner() != null && mob.getShouldFollow() && mob.getOwner().distanceTo(this.recruit) <= 25.00D && !(target.distanceTo(this.recruit) <= 7.00D)) return false;
+
             boolean canTackMovePos = canAttackMovePos();
-            //boolean notMounting = !mob.getShouldMount();
             boolean shouldRanged = this.recruit.getShouldRanged();
             boolean canAttack = this.recruit.canAttack(target);
             boolean notPassive = this.recruit.getState() != 3;
@@ -64,18 +70,12 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity> extends Goal {
     }
 
     public static boolean isHoldingBow(LivingEntity mob) {
-        String name = mob.getMainHandItem().getDescriptionId();
-        if(mob.isHolding(bow -> bow.is(Items.BOW))){
-            return true;
-        }
-        else if (mob.isHolding(bow -> bow.getItem() instanceof BowItem))
-            return true;
+         return mob.isHolding(RecruitRangedBowAttackGoal::isBow);
+    }
 
-        else if (mob.isHolding(bow -> bow.getItem() instanceof ProjectileWeaponItem))
-            return true;
-
-        else
-            return name.contains("bow");
+    public static boolean isBow(ItemStack stack){
+        String name = stack.getDescriptionId();
+        return stack.is(Items.BOW) || stack.getItem() instanceof BowItem || stack.getItem() instanceof ProjectileWeaponItem || name.contains("bow");
     }
 
     private boolean hasArrows(){
