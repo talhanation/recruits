@@ -124,7 +124,6 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
         this.setCustomName(Component.literal("Bowman"));
         this.setCost(RecruitsServerConfig.BowmanCost.get());
         this.setEquipment();
-        this.setDropEquipment();
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
 

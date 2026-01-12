@@ -71,7 +71,6 @@ public class RecruitEntity extends AbstractRecruitEntity {
         this.setCost(RecruitsServerConfig.RecruitCost.get());
 
         this.setEquipment();
-        this.setDropEquipment();
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
 

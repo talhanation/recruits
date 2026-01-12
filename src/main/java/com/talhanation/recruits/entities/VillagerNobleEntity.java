@@ -156,7 +156,6 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
 
         this.setEquipment();
 
-        this.setDropEquipment();
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
 

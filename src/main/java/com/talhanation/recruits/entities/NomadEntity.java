@@ -101,7 +101,6 @@ public class NomadEntity extends BowmanEntity {
         this.setCustomName(Component.literal("Nomad"));
         this.setCost(RecruitsServerConfig.NomadCost.get());
         this.setEquipment();
-        this.setDropEquipment();
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
 

@@ -129,7 +129,6 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
         this.setCustomName(Component.literal("Crossbowman"));
         this.setCost(RecruitsServerConfig.CrossbowmanCost.get());
         this.setEquipment();
-        this.setDropEquipment();
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
 

@@ -97,7 +97,6 @@ public class ScoutEntity extends BowmanEntity implements ICompanion {
 
     @Override
     public void initSpawn() {
-        this.setDropEquipment();
         this.setPersistenceRequired();
         if(this.getOwner() != null)this.setOwnerName(this.getOwner().getName().getString());
         AbstractRecruitEntity.applySpawnValues(this);

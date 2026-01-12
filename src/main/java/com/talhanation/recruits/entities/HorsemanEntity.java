@@ -106,7 +106,6 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
         this.setCost(RecruitsServerConfig.HorsemanCost.get());
 
         this.setEquipment();
-        this.setDropEquipment();
         this.setRandomSpawnBonus();
         this.setPersistenceRequired();
 
