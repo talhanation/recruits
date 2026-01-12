@@ -299,14 +299,17 @@ public class FactionEvents {
         recruitsFactionManager.removeTeam(teamName);
     }
 
-    public static boolean addPlayerToTeam(@Nullable ServerPlayer player, ServerLevel level, String teamName, String namePlayerToAdd) {
+    public static void addPlayerToTeam(@Nullable ServerPlayer player, ServerLevel level, String teamName, String namePlayerToAdd) {
         MinecraftServer server = level.getServer();
         ServerPlayer playerToAdd = server.getPlayerList().getPlayerByName(namePlayerToAdd);
         PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(teamName);
+        RecruitsFaction recruitsFaction = recruitsFactionManager.getFactionByStringID(teamName);
+
+        if(recruitsFaction == null || playerToAdd == null || !recruitsFaction.canAddPlayer()) return;
 
         if(isPlayerAlreadyAFactionLeader(playerToAdd)){
             if(player != null) player.sendSystemMessage(CAN_NOT_ADD_OTHER_LEADER());
-            return false;
+            return;
         }
 
         if(playerTeam != null){
@@ -322,17 +325,15 @@ public class FactionEvents {
 
             serverSideUpdateTeam(level);
 
-            RecruitsFaction recruitsFaction = recruitsFactionManager.getFactionByStringID(teamName);
             Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> playerToAdd), new MessageToClientSetDiplomaticToast(8, recruitsFaction));
 
             notifyFactionMembers(level, recruitsFaction, 9, playerToAdd.getName().getString());
 
             recruitsFactionManager.save(server.overworld());
-            return true;
         }
         else
             Main.LOGGER.error("Can not add " + playerToAdd + " to Team, because " + teamName + " does not exist!");
-        return false;
+
     }
 
     public static boolean isPlayerAlreadyAFactionLeader(ServerPlayer playerToCheck){

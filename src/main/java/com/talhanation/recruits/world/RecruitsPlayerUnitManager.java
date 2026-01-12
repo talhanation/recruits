@@ -54,6 +54,9 @@ public class RecruitsPlayerUnitManager {
 
         int currentRecruitCount = getRecruitCount(playerUUID);
         int maxRecruitCount = 0;
+        int maxRecruitsInFaction = recruitsFaction.maxNPCs;
+        if(maxRecruitsInFaction == 0) maxRecruitsInFaction = 1000000000;
+
 
         if (recruitsFaction == null) {
             maxRecruitCount = RecruitsServerConfig.MaxRecruitsForPlayer.get();
@@ -61,12 +64,12 @@ public class RecruitsPlayerUnitManager {
 
             if (playerUUID.equals(recruitsFaction.getTeamLeaderUUID())) {
 
-                maxRecruitCount = recruitsFaction.maxNPCs;
+                maxRecruitCount = maxRecruitsInFaction;
             } else {
                 maxRecruitCount = recruitsFaction.getMaxNPCsPerPlayer();
             }
 
-            if (recruitsFaction.npcs >= recruitsFaction.maxNPCs) {
+            if (recruitsFaction.npcs >= maxRecruitsInFaction) {
                 return false;
             }
         }

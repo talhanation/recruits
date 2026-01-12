@@ -140,24 +140,6 @@ public class RecruitsFactionManager {
         return isBannerInUse(bannerNbt, getFactions().stream().toList());
     }
 
-    public boolean canPlayerJoin(RecruitsFaction recruitsFaction){
-        int config = RecruitsServerConfig.MaxPlayersInFaction.get();
-        if(config == 0) {
-            return true;
-        }
-        else
-            return config <= recruitsFaction.getPlayers();
-    }
-
-    public boolean canRecruitJoin(RecruitsFaction recruitsFaction){
-        int config = RecruitsServerConfig.MaxPlayersInFaction.get();
-        if(config == 0){
-            return true;
-        }
-        else
-            return RecruitsServerConfig.MaxNPCsInFaction.get() < recruitsFaction.getNPCs();
-    }
-
     public void broadcastOnlinePlayersToPlayer(ServerPlayer serverPlayer , ServerLevel serverLevel) {
         if (serverPlayer == null) return;
 

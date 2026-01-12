@@ -167,10 +167,20 @@ public class RecruitsTeamListScreen extends ListScreenBase {
         boolean flag = super.mouseClicked(x, y, z);
         if(this.teamList.getFocused() != null){
             this.selected = this.teamList.getFocused().getTeamInfo();
-            this.sendJoinRequestButton.active = ClientManager.ownFaction == null;
+            this.sendJoinRequestButton.active = getJoinRequestButtonState();
         }
 
         return flag;
+    }
+
+    private boolean getJoinRequestButtonState() {
+        if(ClientManager.ownFaction != null) return false;
+        int max = selected.getMaxPlayers();
+        if(max == 0) return true;
+
+        int current = selected.getPlayers();
+
+        return max > current;
     }
 
 

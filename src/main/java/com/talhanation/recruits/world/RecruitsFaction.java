@@ -248,6 +248,16 @@ public class RecruitsFaction {
         return list;
     }
 
+    public boolean canAddNPC() {
+        if(getMaxNPCs() == 0) return true;
+        else return getMaxNPCs() > getNPCs();
+    }
+
+    public boolean canAddPlayer() {
+        if(getMaxPlayers() == 0) return true;
+        else return getMaxPlayers() > getPlayers();
+    }
+
     public enum PlayerRank {
         NONE,
         LEADER,

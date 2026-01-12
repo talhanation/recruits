@@ -57,10 +57,12 @@ public class TeamManageScreen extends RecruitsScreenBase {
         Button addPlayer = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 120 - 7, 130, 20, ADD_PLAYER,
             btn -> {
                 minecraft.setScreen(new SelectPlayerScreen(this, player, TOOLTIP_ADD_PLAYER,  ADD_PLAYER, Component.literal(""), false, PlayersList.FilterType.TEAM_JOIN_REQUEST,
-                        (playerInfo) -> {
+                    (playerInfo) -> {
+                        if(recruitsFaction.canAddPlayer()){
                             recruitsFaction.removeJoinRequest(playerInfo.getName());
                             Main.SIMPLE_CHANNEL.sendToServer(new MessageAddPlayerToTeam(recruitsFaction.getStringID(), playerInfo.getName()));
                         }
+                    }
                 ));
             }
         ));
@@ -68,9 +70,9 @@ public class TeamManageScreen extends RecruitsScreenBase {
         Button removePlayer = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 98 - 7, 130, 20, REMOVE_PLAYER,
             btn -> {
                 minecraft.setScreen(new SelectPlayerScreen(this, player, TOOLTIP_REMOVE_PLAYER,  REMOVE_PLAYER, Component.literal(""), false, PlayersList.FilterType.SAME_TEAM,
-                        (playerInfo) -> {
-                            Main.SIMPLE_CHANNEL.sendToServer(new MessageRemoveFromTeam(playerInfo.getName()));
-                        }
+                    (playerInfo) -> {
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageRemoveFromTeam(playerInfo.getName()));
+                    }
                 ));
             }
         ));
