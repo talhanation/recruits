@@ -1,9 +1,10 @@
 {
   "homepage": "https://www.curseforge.com/minecraft/mc-mods/recruits/files",
   "promos": {
-    "1.20.1-recommended": "1.14.2"
+    "1.20.1-recommended": "1.14.2.1"
   },
   "1.20.1": {
+    "1.14.2.1": "Claim and Siege Update: fix cannot recruit when no faction",
     "1.14.2": "Claim and Siege Update: Bug fixes and new configs",
     "1.14.1": "Claim and Siege Update: Improved Performance of Worldmap and GUI, fixed crashes",
     "1.14.0": "Claim and Siege Update",
