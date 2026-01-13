@@ -358,13 +358,13 @@ public class RecruitsClaim {
 
     public void addParty(List<RecruitsFaction> list, RecruitsFaction recruitsFaction) {
         if(list.isEmpty()) return;
+        if(recruitsFaction == null) return;
         for(RecruitsFaction attacker : list){
             if(attacker != null && attacker.getStringID().equals(recruitsFaction.getStringID())) return;
         }
 
         list.add(recruitsFaction);
     }
-
 
     private List<RecruitsFaction> getAttackingParties() {
         return attackingParties == null ? Collections.emptyList() : attackingParties;
