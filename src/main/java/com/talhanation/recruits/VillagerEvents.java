@@ -224,7 +224,7 @@ public class VillagerEvents {
 
     public static void spawnHiredRecruit(ServerLevel serverLevel, EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group){
         AbstractRecruitEntity abstractRecruit = recruitType.create(player.getCommandSenderWorld());
-        if (abstractRecruit != null && abstractRecruit.hire(player,null)) {
+        if (abstractRecruit != null && abstractRecruit.hire(player, group)) {
             abstractRecruit.copyPosition(player);
 
             if(abstractRecruit instanceof ICompanion){

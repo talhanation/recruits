@@ -1232,7 +1232,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             this.setTarget(null);
             this.setFollowState(2);
             this.setAggroState(0);
-            this.setGroupUUID(group.getUUID());
+            if(group != null) this.setGroupUUID(group.getUUID());
             this.despawnTimer = -1;
 
             if(!this.getCommandSenderWorld().isClientSide()){
