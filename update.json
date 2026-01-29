@@ -4,6 +4,7 @@
     "1.20.1-recommended": "1.14.2.1"
   },
   "1.20.1": {
+    "1.14.2.3": "Claim and Siege Update: fix crash when siege success, fix hud not shooing attacker faction",
     "1.14.2.2": "Claim and Siege Update: fix cannot recruit from noble villager when needs villager setting is disabled",
     "1.14.2.1": "Claim and Siege Update: fix cannot recruit when no faction",
     "1.14.2": "Claim and Siege Update: Bug fixes and new configs",
