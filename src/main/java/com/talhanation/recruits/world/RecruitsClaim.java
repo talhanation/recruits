@@ -273,9 +273,14 @@ public class RecruitsClaim {
         for(Player player : FactionEvents.recruitsFactionManager.getPlayersInTeam(this.getOwnerFactionStringID(), level)){
             player.sendSystemMessage(SIEGE_SUCCESS_DEFENDER(this.getName()));
         }
-        RecruitsFaction faction = attackingParties.get(0);
-        this.setOwnerFaction(faction);
-        this.setPlayer(new RecruitsPlayerInfo(faction.getTeamLeaderUUID(), faction.getTeamLeaderName(), faction));
+        if(attackingParties == null || attackingParties.isEmpty()) return;
+
+        RecruitsFaction recruitsFaction = attackingParties.get(0);
+
+        if(recruitsFaction == null) return;
+
+        this.setOwnerFaction(recruitsFaction);
+        this.setPlayer(new RecruitsPlayerInfo(recruitsFaction.getTeamLeaderUUID(), recruitsFaction.getTeamLeaderName(), recruitsFaction));
         this.isUnderSiege = false;
         this.resetHealth();
 
@@ -357,9 +362,12 @@ public class RecruitsClaim {
     }
 
     public void addParty(List<RecruitsFaction> list, RecruitsFaction recruitsFaction) {
-        if(list.isEmpty()) return;
-        for(RecruitsFaction attacker : list){
-            if(attacker != null && attacker.getStringID().equals(recruitsFaction.getStringID())) return;
+        if(recruitsFaction == null) return;
+
+        if(!list.isEmpty()){
+            for(RecruitsFaction attacker : list){
+                if(attacker != null && attacker.getStringID().equals(recruitsFaction.getStringID())) return;
+            }
         }
 
         list.add(recruitsFaction);

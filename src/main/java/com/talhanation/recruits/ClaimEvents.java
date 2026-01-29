@@ -95,32 +95,36 @@ public class ClaimEvents {
 
                 if(livingEntity.isAlive() && livingEntity.getTeam() != null){
                     String teamName = livingEntity.getTeam().getName();
+                    RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getFactionByStringID(teamName);
+
+                    if(recruitsFaction == null) continue;
+
                     RecruitsDiplomacyManager.DiplomacyStatus relation = FactionEvents.recruitsDiplomacyManager.getRelation(teamName, claim.getOwnerFactionStringID());
 
-                    if (livingEntity.getTeam().getName().equals(claim.getOwnerFactionStringID()) || relation == RecruitsDiplomacyManager.DiplomacyStatus.ALLY) {
+                    if (recruitsFaction.getStringID().equals(claim.getOwnerFactionStringID()) || relation == RecruitsDiplomacyManager.DiplomacyStatus.ALLY) {
                         defenders.add(livingEntity);
                     }
 
-                    else if (!livingEntity.getTeam().getName().equals(claim.getOwnerFactionStringID()) && relation == RecruitsDiplomacyManager.DiplomacyStatus.ENEMY){
+                    else if (!recruitsFaction.getStringID().equals(claim.getOwnerFactionStringID()) && relation == RecruitsDiplomacyManager.DiplomacyStatus.ENEMY){
                         attackers.add(livingEntity);
                     }
-
-                    else if(relation == RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL) continue;
                 }
             }
 
             int attackerSize = attackers.size();
-            int defendersSize = defenders.size();
+            //int defendersSize = defenders.size();
 
             for(LivingEntity livingEntity : defenders){
                 if(livingEntity.getTeam() == null) continue;
                 RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getFactionByStringID(livingEntity.getTeam().getName());
+                if(recruitsFaction == null) continue;
                 if(!claim.getOwnerFaction().equalsFaction(recruitsFaction)) claim.addParty(claim.defendingParties, recruitsFaction);
             }
 
             for(LivingEntity livingEntity : attackers){
                 if(livingEntity.getTeam() == null) continue;
                 RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getFactionByStringID(livingEntity.getTeam().getName());
+                if(recruitsFaction == null) continue;
                 claim.addParty(claim.attackingParties, recruitsFaction);
             }
 
