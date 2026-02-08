@@ -3,6 +3,7 @@ package com.talhanation.recruits.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
@@ -30,6 +31,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.Team;
 import net.minecraftforge.server.command.EnumArgument;
 
 import java.util.*;
@@ -183,6 +185,32 @@ public class RecruitsAdminCommands {
                                         Component.literal("The Leader of " + faction.getTeamDisplayName() + " is now " + faction.getTeamLeaderName()), false);
                                 return 1;
                             })))
+                )
+                .then(Commands.literal("delete")
+                        .then(Commands.argument("Faction", StringArgumentType.greedyString())
+                                .executes((context) -> {
+                                    String userInput = StringArgumentType.getString(context, "Faction");
+                                    RecruitsFaction faction = FactionEvents.recruitsFactionManager.getFactionByStringID(userInput);
+
+                                    if(faction == null) {
+                                        context.getSource().sendFailure(Component.literal("No Faction found!").withStyle(ChatFormatting.RED));
+                                        return 0;
+                                    }
+                                    FactionEvents.recruitsFactionManager.removeTeam(faction.getStringID());
+                                    FactionEvents.recruitsFactionManager.save(context.getSource().getLevel());
+
+                                    try{
+                                        PlayerTeam team = context.getSource().getLevel().getScoreboard().getPlayerTeam(userInput);
+                                        if(team != null) context.getSource().getLevel().getScoreboard().removePlayerTeam(team);
+                                    }
+                                    catch (Exception ignored){
+
+                                    }
+
+                                    context.getSource().sendSuccess(() ->
+                                            Component.literal("Faction (" + userInput + ") was deleted"), false);
+                                    return 1;
+                                }))
                 )
             )
             .then(Commands.literal("diplomacyManager")
