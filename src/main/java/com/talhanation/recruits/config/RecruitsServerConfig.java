@@ -79,7 +79,6 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.IntValue RecruitsPaymentAmount;
     public static ForgeConfigSpec.EnumValue<AbstractRecruitEntity.NoPaymentAction> RecruitsNoPaymentAction;
     public static ForgeConfigSpec.BooleanValue QuickStartPillagerRaid;
-
     public static ForgeConfigSpec.BooleanValue BlockPlacingBreakingOnlyWhenClaimed;
     public static ForgeConfigSpec.BooleanValue ExplosionProtectionInClaims;
     public static ForgeConfigSpec.BooleanValue CascadeThePriceOfClaims;
@@ -91,6 +90,7 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.BooleanValue ShouldProfessionBlocksTrade;
     public static ForgeConfigSpec.BooleanValue NobleVillagerSpawn;
     public static ForgeConfigSpec.BooleanValue AllowClaiming;
+    public static ForgeConfigSpec.BooleanValue RecruitsStarving;
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin", "corpse:corpse", "minecraft:armorstand"));
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
@@ -319,6 +319,15 @@ public class RecruitsServerConfig {
                 .worldRestart()
                 .define("RecruitsChunkLoading", true);
 
+        RecruitsStarving = BUILDER.comment("""
+                        RecruitsChunkLoading
+                        \t(takes effect after restart)
+                        \t
+                        Should recruit-starve to death if their hunger drops to 0 ?
+                        default: false""")
+
+                .worldRestart()
+                .define("RecruitsStarving", false);
         /*
         Village Config
          */

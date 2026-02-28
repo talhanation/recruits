@@ -36,6 +36,8 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.*;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageSources;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -1477,15 +1479,21 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         float hunger = getHunger();
 
         if (this.getFollowState() == 2) {
-            hunger -= 2/60F;
+            hunger -= 1/60F;
         }
         else{
-            hunger -= 3/60F;
+            hunger -= 2/60F;
         }
 
         if (hunger < 0) hunger = 0;
 
         this.setHunger(hunger);
+
+        if(RecruitsServerConfig.RecruitsStarving.get()){
+            if(hunger == 0){
+                this.hurt(this.damageSources().starve(), 0.25F);
+            }
+        }
     }
 
     public boolean needsToGetFood(){
