@@ -45,7 +45,7 @@ public class VillagerBecomeNobleGoal extends Goal {
     public void stop() {
         super.stop();
         if(this.villager.getCommandSenderWorld().isClientSide()) return;
-        List<LivingEntity> list = this.villager.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, this.villager.getBoundingBox().inflate(64))
+        List<LivingEntity> list = this.villager.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, this.villager.getBoundingBox().inflate(100))
                 .stream()
                 .toList();
 
