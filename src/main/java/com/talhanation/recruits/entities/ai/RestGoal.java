@@ -69,6 +69,10 @@ public class RestGoal extends Goal {
         this.recruit.stopSleeping();
         this.recruit.clearSleepingPos();
         this.recruit.setShouldRest(false);
+
+        if(recruit instanceof VillagerNobleEntity){
+            this.recruit.setFollowState(2);
+        }
     }
 
     @Override

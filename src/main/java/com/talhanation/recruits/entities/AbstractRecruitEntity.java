@@ -1425,6 +1425,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     ////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////
 
     public void updateMorale(){
+        if(this instanceof VillagerNobleEntity){
+            return;
+        }
         //fast recovery
         float currentMorale = getMorale();
         float newMorale = currentMorale;
@@ -1476,6 +1479,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void updateHunger(){
+        if(this instanceof VillagerNobleEntity){
+            return;
+        }
+
         float hunger = getHunger();
 
         if (this.getFollowState() == 2) {
