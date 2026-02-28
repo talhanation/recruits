@@ -50,7 +50,7 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
             CompoundTag itemTag = new CompoundTag();
             itemTag.put("EntityTag", entityTag);
 
-            if (itemStack != null && player.getMainHandItem().isEmpty()) {
+            if (itemStack != null && !itemStack.isEmpty() && player.getMainHandItem().isEmpty()) {
                 itemStack.setTag(itemTag);
                 player.setItemInHand(InteractionHand.MAIN_HAND, itemStack);
             }

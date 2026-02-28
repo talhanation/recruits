@@ -60,7 +60,7 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
 
 
             CompoundTag entityTag = stack.getTag();
-            if(entity instanceof AbstractRecruitEntity recruit && entityTag != null) {
+            if(entity instanceof AbstractRecruitEntity recruit && entityTag != null && !entityTag.isEmpty()) {
 
                 fillRecruit(recruit, entityTag, pos);
 
@@ -78,9 +78,9 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
     }
 
     public static void fillRecruit(AbstractRecruitEntity recruit, CompoundTag entityTag, BlockPos pos){
-        if(recruit.getCommandSenderWorld().isClientSide()) return;
-
         CompoundTag nbt = entityTag.getCompound("EntityTag");
+
+        if(nbt.isEmpty()) return;
 
         if (nbt.contains("Team")) {
             String s = nbt.getString("Team");
