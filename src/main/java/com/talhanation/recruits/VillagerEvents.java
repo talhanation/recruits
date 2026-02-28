@@ -190,7 +190,7 @@ public class VillagerEvents {
 
     public static void createHiredRecruitFromVillager(ServerLevel serverLevel, Villager villager, EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group){
         AbstractRecruitEntity abstractRecruit = recruitType.create(villager.getCommandSenderWorld());
-        if (abstractRecruit != null && abstractRecruit.hire(player, group)) {
+        if (abstractRecruit != null && CommandEvents.handleRecruiting(player, group, abstractRecruit)) {
             abstractRecruit.copyPosition(villager);
 
             abstractRecruit.initSpawn();
@@ -218,13 +218,13 @@ public class VillagerEvents {
             villager.releasePoi(MemoryModuleType.MEETING_POINT);
             villager.discard();
 
-            FactionEvents.doPayment(player, abstractRecruit.getCost());
+
         }
     }
 
     public static void spawnHiredRecruit(ServerLevel serverLevel, EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group){
         AbstractRecruitEntity abstractRecruit = recruitType.create(player.getCommandSenderWorld());
-        if (abstractRecruit != null && abstractRecruit.hire(player, group)) {
+        if (abstractRecruit != null && CommandEvents.handleRecruiting(player, group, abstractRecruit)) {
             abstractRecruit.copyPosition(player);
 
             if(abstractRecruit instanceof ICompanion){
@@ -239,7 +239,7 @@ public class VillagerEvents {
 
             player.getCommandSenderWorld().addFreshEntity(abstractRecruit);
 
-            FactionEvents.doPayment(player, abstractRecruit.getCost());
+            CommandEvents.handleRecruiting(player, group, abstractRecruit);
         }
     }
 

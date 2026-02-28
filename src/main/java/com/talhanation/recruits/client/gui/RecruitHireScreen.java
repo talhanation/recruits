@@ -38,8 +38,6 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
     private final AbstractRecruitEntity recruit;
     private final Player player;
     private ExtendedButton hireButton;
-    public static ItemStack currency;
-    public static boolean canHire;
 
     private ScrollDropDownMenu<RecruitsGroup> groupSelectionDropDownMenu;
     public RecruitsGroup group;
@@ -55,7 +53,7 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
     protected void containerTick() {
         super.containerTick();
         if(hireButton != null){
-            hireButton.active = canHire;
+            hireButton.active = ClientManager.canPlayerHire;
         }
     }
 
@@ -73,7 +71,7 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
         groupSelectionDropDownMenu.setBgFillSelected(FastColor.ARGB32.color(255, 139, 139, 139));
         addRenderableWidget(groupSelectionDropDownMenu);
 
-        if(currency != null) currency.setCount(recruit.getCost());
+        if(ClientManager.currency != null) ClientManager.currency.setCount(recruit.getCost());
         hireButton = createHireButton();
         if(group == null || ClientManager.groups.isEmpty()) hireButton.active = false;
     }
@@ -153,9 +151,9 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
         guiGraphics.drawString(font, "Armor:", k + 55, l + 30, fontColor, false);
         guiGraphics.drawString(font, ""+ armor, k + 90, l + 30, fontColor, false);
 
-        if(currency != null){
-            guiGraphics.renderFakeItem(currency, 70, this.imageHeight - 122);
-            guiGraphics.renderItemDecorations(font, currency, 70, this.imageHeight - 122);
+        if(ClientManager.currency != null){
+            guiGraphics.renderFakeItem(ClientManager.currency, 70, this.imageHeight - 122);
+            guiGraphics.renderItemDecorations(font, ClientManager.currency, 70, this.imageHeight - 122);
         }
     }
 

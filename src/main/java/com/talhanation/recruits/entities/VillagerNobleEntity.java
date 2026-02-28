@@ -1,10 +1,13 @@
 package com.talhanation.recruits.entities;
 
 
+import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.network.MessageToClientOpenNobleTradeScreen;
+import com.talhanation.recruits.network.MessageToClientUpdateHireState;
 import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.recruits.world.RecruitsHireTrade;
 import com.talhanation.recruits.world.RecruitsHireTradesRegistry;
@@ -190,6 +193,10 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
 
     public void openTradeGUI(Player player){
         this.isTrading(true);
+        String stringID = player.getTeam() != null ? player.getTeam().getName() : "";
+
+        boolean canHire = RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(stringID, player.getUUID());
+        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateHireState(canHire));
         Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientOpenNobleTradeScreen(this.getUUID()));
     }
     public void addXpLevel(int level){
@@ -237,7 +244,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
     }
 
     public void setupTraderType(){
-        int i = this.random.nextInt(RecruitsHireTradesRegistry.getAllTraderTypes().size() - 1);
+        int i = this.random.nextInt(RecruitsHireTradesRegistry.getAllTraderTypes().size());
         String type = RecruitsHireTradesRegistry.getAllTraderTypes().get(i);
         this.setTraderType(type);
     }

@@ -1,5 +1,6 @@
 package com.talhanation.recruits;
 
+import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.inventory.CommandMenu;
@@ -483,7 +484,7 @@ public class CommandEvents {
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
 
-    public static void handleRecruiting(Player player, RecruitsGroup group, AbstractRecruitEntity recruit){
+    public static boolean handleRecruiting(Player player, RecruitsGroup group, AbstractRecruitEntity recruit){
         String name = recruit.getName().getString() + ": ";
         int sollPrice = recruit.getCost();
         Inventory playerInv = player.getInventory();
@@ -540,10 +541,14 @@ public class CommandEvents {
                         FactionEvents.addNPCToData(serverPlayer.serverLevel(), player.getTeam().getName(), 1);
                     }
                 }
+
+                return true;
             }
         }
         else
             player.sendSystemMessage(TEXT_HIRE_COSTS(name, sollPrice, currency));
+
+        return false;
     }
 
     public static void onMountButton(UUID player_uuid, AbstractRecruitEntity recruit, UUID mount_uuid, UUID group) {

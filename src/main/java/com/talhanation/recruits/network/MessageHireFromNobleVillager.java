@@ -1,5 +1,6 @@
 package com.talhanation.recruits.network;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.VillagerEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
@@ -16,6 +17,7 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -83,6 +85,10 @@ public class MessageHireFromNobleVillager implements Message<MessageHireFromNobl
 
             villagerNoble.doTrade(resource);
         }
+
+        String stringID = player.getTeam() != null ? player.getTeam().getName() : "";
+        boolean canHire = RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(stringID, player.getUUID());
+        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateHireState(canHire));
     }
     public void createRecruit(ServerLevel serverLevel, Villager villager, VillagerNobleEntity villagerNoble, Player player, RecruitsGroup group){
         String string = resource.toString();

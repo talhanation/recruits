@@ -385,6 +385,8 @@ public class FactionEvents {
             recruitsFaction.addNPCs(x);
         }
         else Main.LOGGER.error("Could not modify recruits team: "+ teamName + ".Team does not exist.");
+
+        recruitsFactionManager.broadcastToFactionPlayers(teamName, level);
     }
 
     public static void sendJoinRequest(ServerLevel level, ServerPlayer player, String stringID) {

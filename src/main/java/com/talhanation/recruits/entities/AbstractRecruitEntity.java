@@ -1979,7 +1979,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             Team ownerTeam = player.getTeam();
             String stringId = ownerTeam != null ? ownerTeam.getName() : "";
             boolean canHire = RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(stringId, player.getUUID());
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateHireScreen(FactionEvents.getCurrency(), canHire));
+            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateHireState(canHire));
             NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {

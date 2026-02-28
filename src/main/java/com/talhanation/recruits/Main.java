@@ -156,7 +156,7 @@ public class Main {
                 MessagePatrolLeaderSetInfoMode.class,
                 MessageAssignGroupToCompanion.class,
                 MessagePatrolLeaderSetPatrollingSpeed.class,
-                MessageToClientUpdateHireScreen.class,
+                MessageToClientUpdateHireState.class,
                 MessageRemoveAssignedGroupFromCompanion.class,
                 MessageAnswerMessenger.class,
                 MessageToClientOpenMessengerAnswerScreen.class,

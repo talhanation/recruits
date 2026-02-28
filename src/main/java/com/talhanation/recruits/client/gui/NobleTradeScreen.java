@@ -46,6 +46,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
     private static final Component ERROR_NOT_ENOUGH_VILLAGERS = Component.translatable("gui.recruits.villager_noble.error_no_villagers");
     private static final Component ERROR_NO_USES = Component.translatable("gui.recruits.villager_noble.error_no_uses");
     private static final Component ERROR_NOT_ENOUGH_CURRENCY = Component.translatable("gui.recruits.villager_noble.error_not_enough_currency");
+    private static final Component ERROR_HIRE_LIMIT_REACHED = Component.translatable("gui.recruits.villager_noble.error_hire_limit_reached");
     private final Player player;
     private final VillagerNobleEntity villagerNoble;
     private TradeList tradeList;
@@ -296,8 +297,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
             hasVillager = villagerList != null && villagerList.size() > 2;
         }
 
-
-        this.hireButton.active = selection.uses > 0 && hasMoney && hasVillager;
+        this.hireButton.active = selection.uses > 0 && hasMoney && hasVillager && ClientManager.canPlayerHire;
     }
 
     private int getPlayerCurrencyAmount(){
@@ -437,7 +437,8 @@ public class NobleTradeScreen extends RecruitsScreenBase {
 
     private List<HireError> getErrors() {
         List<HireError> errorList = new ArrayList<>();
-
+        if(!ClientManager.canPlayerHire) errorList.add(HireError.HIRE_LIMIT_REACHED);
+        
         if(ClientManager.configValueNobleNeedsVillagers && (villagerList == null || villagerList.size() < 2)){
             errorList.add(HireError.NOT_ENOUGH_VILLAGERS_NEARBY);
         }
@@ -445,6 +446,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
             int playerMoney = getPlayerCurrencyAmount();
             if(!(player.isCreative() || playerMoney >= selection.cost)) errorList.add(HireError.NOT_ENOUGH_CURRENCY);
             if(selection.uses <= 0) errorList.add(HireError.NO_USES);
+
         }
 
         return errorList;
@@ -453,7 +455,8 @@ public class NobleTradeScreen extends RecruitsScreenBase {
     public enum HireError {
         NOT_ENOUGH_CURRENCY(ERROR_NOT_ENOUGH_CURRENCY),
         NOT_ENOUGH_VILLAGERS_NEARBY(ERROR_NOT_ENOUGH_VILLAGERS),
-        NO_USES(ERROR_NO_USES);
+        NO_USES(ERROR_NO_USES),
+        HIRE_LIMIT_REACHED(ERROR_HIRE_LIMIT_REACHED);
         private final Component message;
 
         HireError(Component message) {

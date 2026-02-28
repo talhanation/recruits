@@ -36,6 +36,7 @@ public class ClientManager {
     public static boolean configValueIsClaimingAllowed;
 
     public static Map<String, RecruitsRoute> routesMap = new HashMap<>();
+    public static boolean canPlayerHire;
 
     @OnlyIn(Dist.CLIENT)
     public static RecruitsDiplomacyManager.DiplomacyStatus getRelation(String team, String otherTeam) {
