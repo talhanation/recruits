@@ -1,9 +1,9 @@
 package com.talhanation.recruits.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.component.ActivateableButton;
+import com.talhanation.recruits.client.gui.widgets.RecruitsCheckBox;
 import com.talhanation.recruits.entities.ScoutEntity;
 import com.talhanation.recruits.network.MessageScoutTask;
 import net.minecraft.client.gui.GuiGraphics;
@@ -23,8 +23,8 @@ public class ScoutScreen extends RecruitsScreenBase {
     private ScoutEntity.State task;
     private static final MutableComponent SCOUTING = Component.translatable("gui.recruits.inv.text.scoutScoutTask");
     private static final MutableComponent TOOLTIP_SCOUTING = Component.translatable("gui.recruits.inv.tooltip.scoutScoutTask");
-    private ActivateableButton buttonScouting;
-
+    private RecruitsCheckBox checkBoxScouting;
+    public boolean scouting;
     public ScoutScreen(ScoutEntity scout, Player player) {
         super(TITLE, 195,160);
         this.player = player;
@@ -35,32 +35,21 @@ public class ScoutScreen extends RecruitsScreenBase {
     protected void init() {
         super.init();
         this.task = ScoutEntity.State.fromIndex(scout.getTaskState());
-
+        this.scouting = task == ScoutEntity.State.SCOUTING;
         setButtons();
     }
 
     private void setButtons(){
         clearWidgets();
 
-        buttonScouting = new ActivateableButton(guiLeft + 32, guiTop + ySize - 120 - 7, 130, 20, SCOUTING,
-            btn -> {
-                if(this.scout != null) {
-                    if(task != ScoutEntity.State.SCOUTING){
-                        task = ScoutEntity.State.SCOUTING;
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageScoutTask(scout.getUUID(), 1));
-                    }
-                    else{
-                        task = ScoutEntity.State.IDLE;
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageScoutTask(scout.getUUID(), 0));
-                    }
-
-                    setButtons();
-                }
+        checkBoxScouting = new RecruitsCheckBox(guiLeft + 32, guiTop + ySize - 120 - 7, 130, 20, SCOUTING, this.scouting,
+        (bool) -> {
+                this.scouting = bool;
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageScoutTask(scout.getUUID(), scouting ? 1 : 0));
             }
         );
-        buttonScouting.active = task == ScoutEntity.State.SCOUTING;
-        buttonScouting.setTooltip(Tooltip.create(TOOLTIP_SCOUTING));
-        addRenderableWidget(buttonScouting);
+        checkBoxScouting.setTooltip(Tooltip.create(TOOLTIP_SCOUTING));
+        addRenderableWidget(checkBoxScouting);
     }
 
     @Override
@@ -73,11 +62,5 @@ public class ScoutScreen extends RecruitsScreenBase {
 
     @Override
     public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        if(task != null){
-            String text = "";
-            if(task == ScoutEntity.State.IDLE) text = "No Active Task";
-            else text = "Active Task: " + task.name();
-            guiGraphics.drawString(font, text, guiLeft + xSize / 2 - font.width(text) / 2, guiTop + 17, FONT_COLOR, false);
-        }
     }
 }
