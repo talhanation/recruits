@@ -190,10 +190,17 @@ public class VillagerEvents {
 
     public static void createHiredRecruitFromVillager(ServerLevel serverLevel, Villager villager, EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group){
         AbstractRecruitEntity abstractRecruit = recruitType.create(villager.getCommandSenderWorld());
-        if (abstractRecruit != null && CommandEvents.handleRecruiting(player, group, abstractRecruit)) {
+        if(abstractRecruit == null) return;
+
+        abstractRecruit.initSpawn();
+
+        Component name = villager.getCustomName();
+
+        if(name != null && !name.getString().isEmpty()) abstractRecruit.setCustomName(name);
+
+        if (CommandEvents.handleRecruiting(player, group, abstractRecruit, false)) {
             abstractRecruit.copyPosition(villager);
 
-            abstractRecruit.initSpawn();
             abstractRecruit.setFollowState(1);
 
             for(ItemStack itemStack : villager.getInventory().items){
@@ -202,44 +209,41 @@ public class VillagerEvents {
 
             abstractRecruit.setGroupUUID(group.getUUID());
 
+            villager.getCommandSenderWorld().addFreshEntity(abstractRecruit);
+
             if(abstractRecruit instanceof ICompanion){
                 for(int i = 0; i < 4; i++){
                     abstractRecruit.addXp(RecruitsServerConfig.RecruitsMaxXpForLevelUp.get()); abstractRecruit.checkLevel();
                 }
             }
-
-            villager.getCommandSenderWorld().addFreshEntity(abstractRecruit);
-
-            Component name = villager.getCustomName();
-            if(name != null && !name.getString().isEmpty()) abstractRecruit.setCustomName(name);
 
             if(RecruitsServerConfig.RecruitTablesPOIReleasing.get()) villager.releasePoi(MemoryModuleType.JOB_SITE);
             villager.releasePoi(MemoryModuleType.HOME);
             villager.releasePoi(MemoryModuleType.MEETING_POINT);
             villager.discard();
-
-
         }
     }
 
     public static void spawnHiredRecruit(ServerLevel serverLevel, EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group){
         AbstractRecruitEntity abstractRecruit = recruitType.create(player.getCommandSenderWorld());
-        if (abstractRecruit != null && CommandEvents.handleRecruiting(player, group, abstractRecruit)) {
+        if(abstractRecruit == null) return;
+
+        abstractRecruit.initSpawn();
+
+        if (CommandEvents.handleRecruiting(player, group, abstractRecruit, false)) {
             abstractRecruit.copyPosition(player);
 
-            if(abstractRecruit instanceof ICompanion){
-                for(int i = 0; i < 4; i++){
-                    abstractRecruit.addXp(RecruitsServerConfig.RecruitsMaxXpForLevelUp.get()); abstractRecruit.checkLevel();
-                }
-            }
-
-            abstractRecruit.initSpawn();
             abstractRecruit.setFollowState(1);
             abstractRecruit.setGroupUUID(group.getUUID());
 
             player.getCommandSenderWorld().addFreshEntity(abstractRecruit);
 
-            CommandEvents.handleRecruiting(player, group, abstractRecruit);
+            if(abstractRecruit instanceof ICompanion companion){
+                for(int i = 0; i < 4; i++){
+                    abstractRecruit.addXp(RecruitsServerConfig.RecruitsMaxXpForLevelUp.get()); abstractRecruit.checkLevel();
+                }
+                companion.applyRecruitValues(abstractRecruit);
+            }
         }
     }
 

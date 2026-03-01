@@ -39,7 +39,7 @@ public class MessageHire implements Message<MessageHire> {
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(16.0D),
                 v -> v.getUUID().equals(this.recruit) && v.isAlive()
-        ).forEach(recruit -> CommandEvents.handleRecruiting(player, group, recruit));
+        ).forEach(recruit -> CommandEvents.handleRecruiting(player, group, recruit, true));
     }
 
     public MessageHire fromBytes(FriendlyByteBuf buf) {

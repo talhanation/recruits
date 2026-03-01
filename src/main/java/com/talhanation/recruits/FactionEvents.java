@@ -516,7 +516,7 @@ public class FactionEvents {
 
                     Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> newOwner), new MessageToClientSetToast(0, oldOwner.getName().getString()));
 
-                    recruit.hire(newOwner, null);
+                    recruit.hire(newOwner, null, true);
                 }
                 else
                     playerNotFound = true;
