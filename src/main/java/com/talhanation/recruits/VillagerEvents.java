@@ -211,10 +211,11 @@ public class VillagerEvents {
 
             villager.getCommandSenderWorld().addFreshEntity(abstractRecruit);
 
-            if(abstractRecruit instanceof ICompanion){
+            if(abstractRecruit instanceof ICompanion companion){
                 for(int i = 0; i < 4; i++){
                     abstractRecruit.addXp(RecruitsServerConfig.RecruitsMaxXpForLevelUp.get()); abstractRecruit.checkLevel();
                 }
+                companion.applyRecruitValues(abstractRecruit);
             }
 
             if(RecruitsServerConfig.RecruitTablesPOIReleasing.get()) villager.releasePoi(MemoryModuleType.JOB_SITE);
