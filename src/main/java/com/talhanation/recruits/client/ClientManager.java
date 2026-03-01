@@ -17,6 +17,7 @@ public class ClientManager {
     public static List<RecruitsGroup> groups = new ArrayList<>();
     public static RecruitsFaction ownFaction;
     public static Map<String, Map<String, RecruitsDiplomacyManager.DiplomacyStatus>> diplomacyMap = new HashMap<>();
+    public static Map<String, Long> treaties = new HashMap<>();
     public static int configValueClaimCost;
     public static int configValueChunkCost;
     public static boolean configValueCascadeClaimCost;
@@ -41,6 +42,25 @@ public class ClientManager {
     @OnlyIn(Dist.CLIENT)
     public static RecruitsDiplomacyManager.DiplomacyStatus getRelation(String team, String otherTeam) {
         return diplomacyMap.getOrDefault(team, new HashMap<>()).getOrDefault(otherTeam, RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static boolean hasTreaty(String factionA, String factionB) {
+        String[] sorted = new String[]{factionA, factionB};
+        java.util.Arrays.sort(sorted);
+        String key = sorted[0] + "|" + sorted[1];
+        Long expiry = treaties.get(key);
+        if (expiry == null) return false;
+        return System.currentTimeMillis() < expiry;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static long getTreatyRemainingMillis(String factionA, String factionB) {
+        String[] sorted = new String[]{factionA, factionB};
+        java.util.Arrays.sort(sorted);
+        String key = sorted[0] + "|" + sorted[1];
+        long expiry = treaties.getOrDefault(key, 0L);
+        return Math.max(0L, expiry - System.currentTimeMillis());
     }
     @OnlyIn(Dist.CLIENT)
     public static RecruitsPlayerInfo getPlayerInfo(){

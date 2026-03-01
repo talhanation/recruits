@@ -50,7 +50,7 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
                         entries.add(new RecruitsPlayerEntry(screen, player));
                     }
                     case SAME_TEAM -> {
-                        RecruitsFaction recruitsFaction = player.getRecruitsTeam();
+                        RecruitsFaction recruitsFaction = player.getFaction();
 
                         if(recruitsFaction != null && ClientManager.ownFaction != null && recruitsFaction.getStringID().equals(ClientManager.ownFaction.getStringID())){
                             entries.add(new RecruitsPlayerEntry(screen, player));
@@ -64,7 +64,7 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
                     }
 
                     case ANY_TEAM -> {
-                        RecruitsFaction recruitsFaction = player.getRecruitsTeam();
+                        RecruitsFaction recruitsFaction = player.getFaction();
 
                         if(recruitsFaction != null){
                             entries.add(new RecruitsPlayerEntry(screen, player));

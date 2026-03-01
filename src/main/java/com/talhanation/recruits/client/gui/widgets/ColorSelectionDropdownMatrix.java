@@ -1,6 +1,6 @@
 package com.talhanation.recruits.client.gui.widgets;
 
-import com.talhanation.recruits.client.gui.faction.TeamEditScreen;
+import com.talhanation.recruits.client.gui.faction.FactionEditScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -18,7 +18,7 @@ public class ColorSelectionDropdownMatrix extends AbstractWidget {
     protected static final int BG_FILL_SELECTED = FastColor.ARGB32.color(255, 10, 10, 10);
     private final List<Color> options;
     private final Consumer<Color> onSelect;
-    private final TeamEditScreen parent;
+    private final FactionEditScreen parent;
     private Color selectedOption;
     private boolean isOpen;
     private final int cellSize = 20;
@@ -27,11 +27,11 @@ public class ColorSelectionDropdownMatrix extends AbstractWidget {
     private final int rows;
     private final String name;
 
-    public ColorSelectionDropdownMatrix(TeamEditScreen parent, int x, int y, int width, int height, List<Color> options, Consumer<Color> onSelect) {
+    public ColorSelectionDropdownMatrix(FactionEditScreen parent, int x, int y, int width, int height, List<Color> options, Consumer<Color> onSelect) {
         super(x, y, width, height, Component.literal(""));
         this.parent = parent;
         this.selectedOption = parent.getSelectedUnitColor();
-        this.name = TeamEditScreen.unitColorsNames.get(parent.getSelectedUnitColorNameIndex()).getString();
+        this.name = FactionEditScreen.unitColorsNames.get(parent.getSelectedUnitColorNameIndex()).getString();
         this.options = options;
         this.onSelect = onSelect;
         this.columns = 5;

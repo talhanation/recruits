@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.client.ClientManager;
+import com.talhanation.recruits.client.gui.MessengerMainScreen;
 import com.talhanation.recruits.client.gui.widgets.ScrollDropDownMenu;
 import com.talhanation.recruits.compat.SmallShips;
 import com.talhanation.recruits.compat.workers.IVillagerWorker;
@@ -315,7 +316,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                             return;
                         }
                         else if(recruit instanceof MessengerEntity messenger){
-                            this.minecraft.setScreen(new MessengerScreen(messenger, getMinecraft().player));
+                            this.minecraft.setScreen(new MessengerMainScreen(messenger, getMinecraft().player));
                             return;
                         }
                         else if(recruit instanceof IVillagerWorker worker && worker.hasOnlyScreen()){

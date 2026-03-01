@@ -44,6 +44,7 @@ public class FactionEvents {
     public MinecraftServer server;
     public static RecruitsFactionManager recruitsFactionManager;
     public static RecruitsDiplomacyManager recruitsDiplomacyManager;
+    public static RecruitsTreatyManager recruitsTreatyManager;
 
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
@@ -62,18 +63,23 @@ public class FactionEvents {
 
         recruitsDiplomacyManager = new RecruitsDiplomacyManager();
         recruitsDiplomacyManager.load(server.overworld());
+
+        recruitsTreatyManager = new RecruitsTreatyManager();
+        recruitsTreatyManager.load(server.overworld());
     }
 
     @SubscribeEvent
     public void onServerStopping(ServerStoppingEvent event) {
         recruitsFactionManager.save(server.overworld());
         recruitsDiplomacyManager.save(server.overworld());
+        recruitsTreatyManager.save(server.overworld());
     }
 
     @SubscribeEvent
     public void onWorldSave(LevelEvent.Save event){
         recruitsFactionManager.save(server.overworld());
         recruitsDiplomacyManager.save(server.overworld());
+        recruitsTreatyManager.save(server.overworld());
     }
 
     @SubscribeEvent
@@ -85,6 +91,7 @@ public class FactionEvents {
             recruitsFactionManager.broadcastFactionsToPlayer(player);
 
             recruitsDiplomacyManager.broadcastDiplomacyMapToPlayer(player);
+            recruitsTreatyManager.broadcastTreatiesToPlayer((ServerPlayer) player);
         }
     }
 

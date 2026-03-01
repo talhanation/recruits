@@ -10,17 +10,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class RecruitsTeamList extends ListScreenListBase<RecruitsTeamEntry> {
+public class RecruitsFactionList extends ListScreenListBase<RecruitsFactionEntry> {
 
-    protected RecruitsTeamListScreen screen;
-    protected final List<RecruitsTeamEntry> entries;
+    protected IFactionSelection screen;
+    protected final List<RecruitsFactionEntry> entries;
     protected String filter;
+    protected boolean showPlayerCount;
 
-    public RecruitsTeamList(int width, int height, int x, int y, int size, RecruitsTeamListScreen screen) {
+    public RecruitsFactionList(int width, int height, int x, int y, int size, IFactionSelection screen, boolean showPlayerCount) {
         super(width, height, x, y, size);
         this.screen = screen;
         this.entries = Lists.newArrayList();
         this.filter = "";
+        this.showPlayerCount = showPlayerCount;
         setRenderBackground(false);
         setRenderTopAndBottom(false);
         setRenderSelection(true);
@@ -34,7 +36,8 @@ public class RecruitsTeamList extends ListScreenListBase<RecruitsTeamEntry> {
         entries.clear();
 
         for (RecruitsFaction team : ClientManager.factions) {
-            entries.add(new RecruitsTeamEntry(screen, team));
+            if(ClientManager.ownFaction != null && !ClientManager.ownFaction.getStringID().equals(team.getStringID()))
+                entries.add(new RecruitsFactionEntry(screen, team, showPlayerCount));
         }
 
         updateFilter();
@@ -42,7 +45,7 @@ public class RecruitsTeamList extends ListScreenListBase<RecruitsTeamEntry> {
 
     public void updateFilter() {
         clearEntries();
-        List<RecruitsTeamEntry> filteredEntries = new ArrayList<>(entries);
+        List<RecruitsFactionEntry> filteredEntries = new ArrayList<>(entries);
         if (!filter.isEmpty()) {
             filteredEntries.removeIf(teamEntry -> {
                 return teamEntry.getTeamInfo() == null || !teamEntry.getTeamInfo().getTeamDisplayName().toLowerCase(Locale.ROOT).contains(filter);
@@ -51,7 +54,7 @@ public class RecruitsTeamList extends ListScreenListBase<RecruitsTeamEntry> {
 
         filteredEntries.sort((e1, e2) -> {
             if (!e1.getClass().equals(e2.getClass())) {
-                if (e1 instanceof RecruitsTeamEntry) {
+                if (e1 instanceof RecruitsFactionEntry) {
                     return 1;
                 } else {
                     return -1;
@@ -63,7 +66,7 @@ public class RecruitsTeamList extends ListScreenListBase<RecruitsTeamEntry> {
         replaceEntries(filteredEntries);
     }
 
-    private String volumeEntryToString(RecruitsTeamEntry entry) {
+    private String volumeEntryToString(RecruitsFactionEntry entry) {
         return entry.getTeamInfo() == null ? "" : entry.getTeamInfo().getStringID();
     }
 

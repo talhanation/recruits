@@ -1,7 +1,6 @@
 package com.talhanation.recruits.client.gui.player;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.widgets.ListScreenEntryBase;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
@@ -29,7 +28,7 @@ public class RecruitsPlayerEntry extends ListScreenEntryBase<RecruitsPlayerEntry
         this.minecraft = Minecraft.getInstance();
         this.screen = screen;
         this.player = player;
-        this.bannerRenderer = new BannerRenderer(player.getRecruitsTeam());
+        this.bannerRenderer = new BannerRenderer(player.getFaction());
     }
 
     @Override

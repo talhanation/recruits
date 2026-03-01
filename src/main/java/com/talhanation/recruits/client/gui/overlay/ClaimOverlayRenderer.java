@@ -2,7 +2,7 @@ package com.talhanation.recruits.client.gui.overlay;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
-import com.talhanation.recruits.client.gui.faction.TeamEditScreen;
+import com.talhanation.recruits.client.gui.faction.FactionEditScreen;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.client.Minecraft;
@@ -177,7 +177,7 @@ public class ClaimOverlayRenderer {
 
         return factionColorCache.computeIfAbsent(faction, f -> {
             int alpha = 7;
-            int rgb = TeamEditScreen.unitColors.get(faction.getUnitColor()).getRGB();
+            int rgb = FactionEditScreen.unitColors.get(faction.getUnitColor()).getRGB();
             int r = (rgb >> 16) & 0xFF;
             int g = (rgb >> 8) & 0xFF;
             int b = rgb & 0xFF;

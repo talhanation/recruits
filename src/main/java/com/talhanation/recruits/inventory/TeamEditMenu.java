@@ -1,6 +1,6 @@
 package com.talhanation.recruits.inventory;
 
-import com.talhanation.recruits.client.gui.faction.TeamEditScreen;
+import com.talhanation.recruits.client.gui.faction.FactionEditScreen;
 import com.talhanation.recruits.init.ModScreens;
 import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.world.Container;
@@ -19,7 +19,7 @@ public class TeamEditMenu extends ContainerBase {
     private final Container container;
     private final Player player;
     @Nullable
-    private TeamEditScreen screen;
+    private FactionEditScreen screen;
 
     public TeamEditMenu(int id, Inventory playerInventory) {
         this(id, new SimpleContainer(1), playerInventory);
@@ -34,7 +34,7 @@ public class TeamEditMenu extends ContainerBase {
         addPlayerInventorySlots();
     }
 
-    public void setScreen(TeamEditScreen screen) {
+    public void setScreen(FactionEditScreen screen) {
         this.screen = screen;
     }
 

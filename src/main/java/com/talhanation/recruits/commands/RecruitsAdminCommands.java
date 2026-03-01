@@ -255,6 +255,48 @@ public class RecruitsAdminCommands {
                                     )
                             )
                     )
+                    .then(Commands.literal("getTreatyTime")
+                            .then(Commands.argument("Faction1", TeamArgument.team())
+                                    .then(Commands.argument("Faction2", TeamArgument.team())
+                                            .executes((context) -> {
+                                                PlayerTeam playerTeam1 = TeamArgument.getTeam(context, "Faction1");
+                                                PlayerTeam playerTeam2 = TeamArgument.getTeam(context, "Faction2");
+
+                                                if (FactionEvents.recruitsTreatyManager == null) {
+                                                    context.getSource().sendFailure(Component.literal("recruitsTreatyManager == null!").withStyle(ChatFormatting.RED));
+                                                    return 0;
+                                                }
+
+                                                return getTreatyTime(context, playerTeam1.getName(), playerTeam2.getName());
+                                            })
+                                    )
+                            )
+                    )
+                    .then(Commands.literal("setTreatyTime")
+                            .then(Commands.argument("Faction1", TeamArgument.team())
+                                    .then(Commands.argument("Faction2", TeamArgument.team())
+                                            .then(Commands.argument("Minutes", IntegerArgumentType.integer(0))
+                                                    .executes((context) -> {
+                                                        PlayerTeam playerTeam1 = TeamArgument.getTeam(context, "Faction1");
+                                                        PlayerTeam playerTeam2 = TeamArgument.getTeam(context, "Faction2");
+                                                        int minutes = IntegerArgumentType.getInteger(context, "Minutes");
+
+                                                        if (playerTeam1.equals(playerTeam2)) {
+                                                            context.getSource().sendFailure(Component.literal("Cannot set treaty between the same Faction!").withStyle(ChatFormatting.RED));
+                                                            return 0;
+                                                        }
+
+                                                        if (FactionEvents.recruitsTreatyManager == null) {
+                                                            context.getSource().sendFailure(Component.literal("recruitsTreatyManager == null!").withStyle(ChatFormatting.RED));
+                                                            return 0;
+                                                        }
+
+                                                        return setTreatyTime(context, playerTeam1.getName(), playerTeam2.getName(), minutes);
+                                                    })
+                                            )
+                                    )
+                            )
+                    )
             )
             .then(Commands.literal("claimManager")
                 .then(Commands.literal("getClaimAtPosition")
@@ -575,6 +617,48 @@ public class RecruitsAdminCommands {
             return 1;
         }
         return 0;
+    }
+
+    private static int getTreatyTime(CommandContext<CommandSourceStack> context, String faction1, String faction2) {
+        long remainingMs = FactionEvents.recruitsTreatyManager.getTreatyRemainingMillis(faction1, faction2);
+
+        if (remainingMs <= 0) {
+            context.getSource().sendSuccess(() ->
+                    Component.literal("No active treaty between " + faction1 + " and " + faction2 + "."), false);
+            return 1;
+        }
+
+        long totalMinutes = remainingMs / 60_000;
+        long hours = totalMinutes / 60;
+
+        context.getSource().sendSuccess(() ->
+                Component.literal("Treaty between " + faction1 + " and " + faction2
+                        + ": " + totalMinutes + " min (" + hours + "h) remaining."), false);
+        return 1;
+    }
+
+    private static int setTreatyTime(CommandContext<CommandSourceStack> context, String faction1, String faction2, int minutes) {
+        ServerLevel level = context.getSource().getLevel();
+
+        if (minutes == 0) {
+            FactionEvents.recruitsTreatyManager.removeTreaty(faction1, faction2, level);
+            context.getSource().sendSuccess(() ->
+                    Component.literal("Treaty between " + faction1 + " and " + faction2 + " has been removed."), false);
+            return 1;
+        }
+
+        // Convert minutes to hours (rounded down) for the internal addTreaty API,
+        // but directly set the expiry via a raw millisecond offset for minute precision.
+        long expiryMs = System.currentTimeMillis() + (long) minutes * 60_000;
+        FactionEvents.recruitsTreatyManager.getTreaties(); // ensure manager is loaded
+        // Use the internal map directly via addTreatyRaw so we get minute precision:
+        FactionEvents.recruitsTreatyManager.addTreatyRaw(faction1, faction2, expiryMs, level);
+
+        long hours = minutes / 60;
+        context.getSource().sendSuccess(() ->
+                Component.literal("Treaty between " + faction1 + " and " + faction2
+                        + " set to " + minutes + " min (" + hours + "h)."), false);
+        return 1;
     }
 
     private static int setFactionNPCsCount(CommandContext<CommandSourceStack> context, RecruitsFaction faction, int x) {

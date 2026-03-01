@@ -188,6 +188,11 @@ public class RecruitEvents {
                 PillagerPatrolSpawn pillagerSpawner = PILLAGER_PATROL.get(serverWorld);
                 pillagerSpawner.tick();
             }
+
+            // Treaty expiry check (every 20 ticks = 1 second)
+            if (serverWorld.getGameTime() % 20 == 0 && FactionEvents.recruitsTreatyManager != null) {
+                FactionEvents.recruitsTreatyManager.tick(serverWorld);
+            }
         }
     }
 
@@ -510,11 +515,15 @@ public class RecruitEvents {
 
         if (attackerTeam == null || targetTeam == null) return true;
 
-
         if (attackerTeam.equals(targetTeam) && !attackerTeam.isAllowFriendlyFire()) return false;
 
+        if (isAlly(attackerTeam, targetTeam)) return false;
 
-        return !isAlly(attackerTeam, targetTeam);
+        if (FactionEvents.recruitsTreatyManager != null && FactionEvents.recruitsTreatyManager.hasTreaty(attackerTeam.getName(), targetTeam.getName())) {
+            return false;
+        }
+
+        return true;
     }
 
     public static boolean canHarmTeamNoFriendlyFire(LivingEntity attacker, LivingEntity target) {
@@ -523,17 +532,19 @@ public class RecruitEvents {
 
         if (team == null) {
             return true;
-
         } else if (team1 == null) {
             return true;
-        }
-        else if(team == team1){
+        } else if (team == team1) {
             return false;
-        }
-        else {
+        } else {
             RecruitsDiplomacyManager.DiplomacyStatus relation = FactionEvents.recruitsDiplomacyManager.getRelation(team.getName(), team1.getName());
+            if (relation == RecruitsDiplomacyManager.DiplomacyStatus.ALLY) return false;
 
-            return relation != RecruitsDiplomacyManager.DiplomacyStatus.ALLY;
+            if (FactionEvents.recruitsTreatyManager != null && FactionEvents.recruitsTreatyManager.hasTreaty(team.getName(), team1.getName())) {
+                return false;
+            }
+
+            return true;
         }
     }
 
@@ -585,18 +596,5 @@ public class RecruitEvents {
                 iterator.remove();
             }
         }
-    }
-    private void removeArrow(Entity entity){
-        if(entity instanceof AbstractArrow arrow && arrow.pickup == AbstractArrow.Pickup.DISALLOWED && arrow.inGroundTime > 300){
-            entity.discard();
-        }
-    }
-    
-    public static MutableComponent TEXT_BLOCK_WARN(String name) {
-        return Component.translatable("chat.recruits.text.block_placing_warn", name);
-    }
-
-    public static MutableComponent TEXT_INTERACT_WARN(String name) {
-        return Component.translatable("chat.recruits.text.block_interact_warn", name);
     }
 }

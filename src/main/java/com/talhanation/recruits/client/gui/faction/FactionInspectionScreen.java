@@ -32,7 +32,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 @OnlyIn(Dist.CLIENT)
-public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelection {
+public class FactionInspectionScreen extends ListScreenBase implements IPlayerSelection {
 
     protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/team/team_inspect.png");
     protected static final ResourceLocation LEADER_CROWN = new ResourceLocation(Main.MOD_ID, "textures/gui/image/leader_crown.png");
@@ -70,7 +70,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
     private int gapBottom;
     private int gapTop;
 
-    public TeamInspectionScreen(Screen parent, Player player){
+    public FactionInspectionScreen(Screen parent, Player player){
         super(Component.literal("TeamInspection"),236,0);
         this.parent = parent;
         this.player = player;
@@ -131,7 +131,7 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
 
         manageButton = new ExtendedButton(guiLeft + 87, buttonY, 60, 20, MANAGE_BUTTON,
                 button -> {
-                    minecraft.setScreen(new TeamManageScreen(this, player, ClientManager.ownFaction));
+                    minecraft.setScreen(new FactionManageScreen(this, player, ClientManager.ownFaction));
                 });
         manageButton.visible = isTeamLeader && ClientManager.isFactionManagingAllowed;
         addRenderableWidget(manageButton);
@@ -144,13 +144,13 @@ public class TeamInspectionScreen extends ListScreenBase implements IPlayerSelec
                     if(deleteActive){
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
                         ClientManager.ownFaction = null;
-                        minecraft.setScreen(new TeamMainScreen(player));
+                        minecraft.setScreen(new FactionMainScreen(player));
                         return;
                     }
 
                     Screen selectPlayerScreen = new SelectPlayerScreen(this, player, SELECT_LEADER, SelectPlayerScreen.BUTTON_SELECT, SELECT_LEADER_TOOLTIP, false, PlayersList.FilterType.SAME_TEAM,
                             (playerInfo) -> {
-                                RecruitsFaction team = playerInfo.getRecruitsTeam();
+                                RecruitsFaction team = playerInfo.getFaction();
                                 team.setTeamLeaderID(playerInfo.getUUID());
                                 team.setTeamLeaderName(playerInfo.getName());
 

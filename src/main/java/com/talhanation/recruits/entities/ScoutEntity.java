@@ -323,9 +323,9 @@ public class ScoutEntity extends BowmanEntity implements ICompanion {
                 Component playerName = Component.literal(playerInfo.getName());
 
                 //Scout: I'm Seeing talhanation (YellowTeam) and 12 units, 125 blocks South from me.
-                if (playerInfo.getRecruitsTeam() != null) {
-                    playerName = Component.literal(playerInfo.getName()).withStyle(ChatFormatting.getById(playerInfo.getRecruitsTeam().getTeamColor()));
-                    Component teamName = Component.literal(playerInfo.getRecruitsTeam().getTeamDisplayName()).withStyle(ChatFormatting.getById(playerInfo.getRecruitsTeam().getTeamColor()));
+                if (playerInfo.getFaction() != null) {
+                    playerName = Component.literal(playerInfo.getName()).withStyle(ChatFormatting.getById(playerInfo.getFaction().getTeamColor()));
+                    Component teamName = Component.literal(playerInfo.getFaction().getTeamDisplayName()).withStyle(ChatFormatting.getById(playerInfo.getFaction().getTeamColor()));
                     scout.sendMessageToOwner(Component.literal("")
                             .append(playerName).append(" (")
                             .append(teamName).append("), with ")

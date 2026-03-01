@@ -3,7 +3,6 @@ package com.talhanation.recruits.client.gui.faction;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import com.talhanation.recruits.client.gui.player.PlayersList;
 import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
@@ -21,7 +20,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
 
-public class TeamManageScreen extends RecruitsScreenBase {
+public class FactionManageScreen extends RecruitsScreenBase {
 
     private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_big.png");
     private static final Component TITLE = Component.translatable("gui.recruits.team.manage");
@@ -38,7 +37,7 @@ public class TeamManageScreen extends RecruitsScreenBase {
     private final RecruitsFaction recruitsFaction;
     private final Screen parent;
 
-    public TeamManageScreen(Screen parent, Player player, RecruitsFaction recruitsFaction) {
+    public FactionManageScreen(Screen parent, Player player, RecruitsFaction recruitsFaction) {
         super(TITLE, 195,160);
         this.parent = parent;
         this.player = player;
@@ -88,7 +87,7 @@ public class TeamManageScreen extends RecruitsScreenBase {
         */
         Button editButton = new ExtendedButton(guiLeft + 32, guiTop + ySize - 76 - 7, 130, 20, EDIT_BUTTON,
                 button -> {
-                    TeamEditScreen.leaderInfo = null;
+                    FactionEditScreen.leaderInfo = null;
                     FactionEvents.openTeamEditScreen(player);
                     //minecraft.setScreen(new TeamEditScreen(this, player, recruitsTeam));
                 });

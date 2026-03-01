@@ -41,7 +41,7 @@ public class RecruitsPlayerInfo {
     }
 
     @Nullable
-    public RecruitsFaction getRecruitsTeam(){
+    public RecruitsFaction getFaction(){
         return recruitsFaction;
     }
     @Override

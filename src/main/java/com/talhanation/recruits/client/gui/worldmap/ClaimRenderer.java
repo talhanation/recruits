@@ -2,7 +2,7 @@ package com.talhanation.recruits.client.gui.worldmap;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.client.ClientManager;
-import com.talhanation.recruits.client.gui.faction.TeamEditScreen;
+import com.talhanation.recruits.client.gui.faction.FactionEditScreen;
 import com.talhanation.recruits.world.RecruitsClaim;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -196,7 +196,7 @@ public class ClaimRenderer {
         if (claim.getOwnerFaction() == null) return 0xFF888888;
 
         byte colorKey = claim.getOwnerFaction().getUnitColor();
-        return TeamEditScreen.unitColors.get(colorKey).getRGB();
+        return FactionEditScreen.unitColors.get(colorKey).getRGB();
     }
 
     public static RecruitsClaim getClaimAtPosition(double mouseX, double mouseY, double offsetX, double offsetZ, double scale) {

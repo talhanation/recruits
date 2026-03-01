@@ -9,38 +9,37 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageSendMessenger implements Message<MessageSendMessenger> {
+public class MessageSendTreaty implements Message<MessageSendTreaty> {
 
     private UUID recruit;
     private boolean start;
-    private CompoundTag nbt;
-    private String message;
+    private CompoundTag targetPlayerNbt;
+    private int durationHours;
 
-    public MessageSendMessenger() {
+    public MessageSendTreaty() {
     }
 
-    public MessageSendMessenger(UUID recruit, RecruitsPlayerInfo targetPlayer, String message, boolean start) {
+    public MessageSendTreaty(UUID recruit, RecruitsPlayerInfo targetPlayer, int durationHours, boolean start) {
         this.recruit = recruit;
-        this.message = message;
+        this.durationHours = durationHours;
         this.start = start;
 
-        if(targetPlayer != null){
-            this.nbt = targetPlayer.toNBT();
+        if (targetPlayer != null) {
+            this.targetPlayerNbt = targetPlayer.toNBT();
+        } else {
+            this.targetPlayerNbt = new CompoundTag();
         }
-        else {
-            this.nbt = new CompoundTag();
-        }
-
     }
 
+    @Override
     public Dist getExecutingSide() {
         return Dist.DEDICATED_SERVER;
     }
 
+    @Override
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         player.getCommandSenderWorld().getEntitiesOfClass(
@@ -48,35 +47,35 @@ public class MessageSendMessenger implements Message<MessageSendMessenger> {
                 player.getBoundingBox().inflate(16D),
                 (messenger) -> messenger.getUUID().equals(this.recruit)
         ).forEach((messenger) -> {
-            if (messenger.getUUID().equals(this.recruit)){
+            if (messenger.getUUID().equals(this.recruit)) {
 
-                messenger.setMessage(this.message);
-
-                if(!this.nbt.isEmpty()){
-                    messenger.setTargetPlayerInfo(RecruitsPlayerInfo.getFromNBT(this.nbt));
+                if (!this.targetPlayerNbt.isEmpty()) {
+                    messenger.setTargetPlayerInfo(RecruitsPlayerInfo.getFromNBT(this.targetPlayerNbt));
                 }
 
-                if(start){
-                    messenger.setIsTreatyMessenger(false);
+                if (start) {
+                    messenger.setTreatyDurationHours(this.durationHours);
+                    messenger.setIsTreatyMessenger(true);
                     messenger.start();
                 }
             }
         });
     }
 
-    public MessageSendMessenger fromBytes(FriendlyByteBuf buf) {
+    @Override
+    public MessageSendTreaty fromBytes(FriendlyByteBuf buf) {
         this.recruit = buf.readUUID();
         this.start = buf.readBoolean();
-        this.message = buf.readUtf();
-        this.nbt = buf.readNbt();
-
+        this.durationHours = buf.readInt();
+        this.targetPlayerNbt = buf.readNbt();
         return this;
     }
 
+    @Override
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(recruit);
         buf.writeBoolean(start);
-        buf.writeUtf(message);
-        buf.writeNbt(nbt);
+        buf.writeInt(durationHours);
+        buf.writeNbt(targetPlayerNbt);
     }
 }

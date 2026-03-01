@@ -5,7 +5,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import com.talhanation.recruits.client.gui.player.PlayersList;
 import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
-import com.talhanation.recruits.client.gui.faction.TeamEditScreen;
+import com.talhanation.recruits.client.gui.faction.FactionEditScreen;
 import com.talhanation.recruits.client.gui.widgets.RecruitsCheckBox;
 import com.talhanation.recruits.client.gui.widgets.SelectedPlayerWidget;
 import com.talhanation.recruits.network.MessageUpdateClaim;
@@ -147,7 +147,7 @@ public class ClaimEditScreen extends RecruitsScreenBase {
                 button -> {
                     this.claim.setName(editNameBox.getValue());
                     this.claim.setPlayer(playerInfo);
-                    this.claim.setOwnerFaction(playerInfo.getRecruitsTeam());
+                    this.claim.setOwnerFaction(playerInfo.getFaction());
                     this.claim.attackingParties.clear();
                     this.claim.setBlockInteractionAllowed(this.allowBlockInteracting);
                     this.claim.setBlockPlacementAllowed(this.allowBlockPlacing);
@@ -237,7 +237,7 @@ public class ClaimEditScreen extends RecruitsScreenBase {
 
         // Farbwerte vorbereiten
         int alpha = 190;
-        int rgb = TeamEditScreen.unitColors.get(claim.getOwnerFaction().getUnitColor()).getRGB();
+        int rgb = FactionEditScreen.unitColors.get(claim.getOwnerFaction().getUnitColor()).getRGB();
         int r = (rgb >> 16) & 0xFF;
         int g = (rgb >> 8) & 0xFF;
         int b = rgb & 0xFF;

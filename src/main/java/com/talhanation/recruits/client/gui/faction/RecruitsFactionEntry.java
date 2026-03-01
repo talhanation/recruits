@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 
 @OnlyIn(Dist.CLIENT)
-public class RecruitsTeamEntry extends ListScreenEntryBase<RecruitsTeamEntry> {
+public class RecruitsFactionEntry extends ListScreenEntryBase<RecruitsFactionEntry> {
     protected static final int SKIN_SIZE = 24;
     protected static final int PADDING = 4;
     protected static final int BG_FILL = FastColor.ARGB32.color(255, 60, 60, 60);
@@ -25,15 +25,17 @@ public class RecruitsTeamEntry extends ListScreenEntryBase<RecruitsTeamEntry> {
     protected static final int PLAYER_NAME_COLOR = FastColor.ARGB32.color(255, 255, 255, 255);
 
     protected final Minecraft minecraft;
-    protected final RecruitsTeamListScreen screen;
+    protected final IFactionSelection screen;
     protected final @NotNull RecruitsFaction team;
     protected final BannerRenderer bannerRenderer;
+    protected final boolean showPlayerCount;
 
-    public RecruitsTeamEntry(RecruitsTeamListScreen screen, @NotNull RecruitsFaction team) {
+    public RecruitsFactionEntry(IFactionSelection screen, @NotNull RecruitsFaction team, boolean showPlayerCount) {
         this.minecraft = Minecraft.getInstance();
         this.screen = screen;
         this.team = team;
         this.bannerRenderer = new BannerRenderer(team);
+        this.showPlayerCount = showPlayerCount;
     }
 
     @Override
@@ -68,7 +70,7 @@ public class RecruitsTeamEntry extends ListScreenEntryBase<RecruitsTeamEntry> {
         GuiComponent.fill(guiGraphics, left + 10, top + 20, left + 200,top + 10, 0x8000FF00);
          */
         guiGraphics.drawString(minecraft.font, team.getTeamDisplayName(), (float) textX + 10, (float) textY,  PLAYER_NAME_COLOR, false);
-        guiGraphics.drawString(minecraft.font, getPlayersText(team.getPlayers()).getString(), (float) textX + 120, (float) textY, PLAYER_NAME_COLOR, false);
+        if(showPlayerCount) guiGraphics.drawString(minecraft.font, getPlayersText(team.getPlayers()).getString(), (float) textX + 120, (float) textY, PLAYER_NAME_COLOR, false);
     }
 
     @Nullable
@@ -77,8 +79,8 @@ public class RecruitsTeamEntry extends ListScreenEntryBase<RecruitsTeamEntry> {
     }
 
     @Override
-    public ListScreenListBase<RecruitsTeamEntry> getList() {
-        return screen.teamList;
+    public ListScreenListBase<RecruitsFactionEntry> getList() {
+        return screen.getFactionList();
     }
 
     private Component getPlayersText(int players){

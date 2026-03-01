@@ -5,6 +5,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.events.RecruitsToastManager;
 import com.talhanation.recruits.client.gui.widgets.ListScreenBase;
+import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
 import com.talhanation.recruits.network.MessageSendJoinRequestTeam;
 import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.client.gui.GuiGraphics;
@@ -23,7 +24,7 @@ import static com.talhanation.recruits.client.events.RecruitsToastManager.*;
 
 
 @OnlyIn(Dist.CLIENT)
-public class RecruitsTeamListScreen extends ListScreenBase {
+public class RecruitsFactionListScreen extends ListScreenBase implements IFactionSelection{
 
     protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_player.png");
     protected static final Component TITLE = Component.translatable("gui.recruits.team_creation.teams_list");
@@ -35,7 +36,7 @@ public class RecruitsTeamListScreen extends ListScreenBase {
     protected static final int UNIT_SIZE = 18;
     protected static final int CELL_HEIGHT = 36;
 
-    protected RecruitsTeamList teamList;
+    protected RecruitsFactionList teamList;
     protected EditBox searchBox;
     protected String lastSearch;
     protected int units;
@@ -48,7 +49,7 @@ public class RecruitsTeamListScreen extends ListScreenBase {
     private int gapTop;
     private int gapBottom;
 
-    public RecruitsTeamListScreen(Screen parent){
+    public RecruitsFactionListScreen(Screen parent){
         super(TITLE,236,0);
         this.parent = parent;
     }
@@ -69,7 +70,7 @@ public class RecruitsTeamListScreen extends ListScreenBase {
         if (teamList != null) {
             teamList.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
         } else {
-            teamList = new RecruitsTeamList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this);
+            teamList = new RecruitsFactionList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, true);
         }
         String string = searchBox != null ? searchBox.getValue() : "";
         searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, Component.literal(""));
@@ -184,14 +185,18 @@ public class RecruitsTeamListScreen extends ListScreenBase {
     }
 
 
-    public RecruitsFaction getSelected(){
-        return this.selected;
-    }
-
     @Override
     public Component getTitle() {
         return TITLE;
     }
 
+    @Override
+    public RecruitsFaction getSelected() {
+        return selected;
+    }
+    @Override
+    public ListScreenListBase<RecruitsFactionEntry> getFactionList() {
+        return teamList;
+    }
 }
 

@@ -191,7 +191,11 @@ public class Main {
                 MessageMergeGroup.class,
                 MessageSplitGroup.class,
                 MessageAssignNearbyRecruitsInGroup.class,
-                MessageTeleportPlayer.class
+                MessageTeleportPlayer.class,
+                MessageSendTreaty.class,
+                MessageAnswerTreaty.class,
+                MessageToClientOpenTreatyAnswerScreen.class,
+                MessageToClientUpdateTreaties.class
         };
 
 

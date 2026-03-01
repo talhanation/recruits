@@ -69,6 +69,9 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
 
     private void setButtons(){
         clearWidgets();
+        boolean hasTreaty = ClientManager.ownFaction != null &&
+                ClientManager.hasTreaty(ClientManager.ownFaction.getStringID(), otherTeam.getStringID());
+
         allyButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.ALLY,60 + guiLeft + 6, guiTop + ySize - 6 - 125, 21, 21,  Component.literal(""),
                 button -> {
                     this.newStance = RecruitsDiplomacyManager.DiplomacyStatus.ALLY;
@@ -76,6 +79,7 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
                     setButtons();
                 }
         );
+        allyButton.visible = !hasTreaty;
         addRenderableWidget(allyButton);
 
         neutralButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL,60 + guiLeft + 27, guiTop + ySize - 6 - 125, 21, 21, Component.literal(""),
@@ -85,6 +89,7 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
                     setButtons();
                 }
         );
+        neutralButton.visible = !hasTreaty;
         addRenderableWidget(neutralButton);
 
         enemyButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.ENEMY,60 + guiLeft + 48, guiTop + ySize - 6 - 125, 21, 21, Component.literal(""),
@@ -94,6 +99,7 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
                     setButtons();
                 }
         );
+
         addRenderableWidget(enemyButton);
 
         this.allyButton.active = newStance == RecruitsDiplomacyManager.DiplomacyStatus.ALLY;
@@ -104,6 +110,15 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
         this.neutralButton.visible = isLeader;
         this.enemyButton.visible = isLeader;
 
+        if (hasTreaty) {
+            this.allyButton.visible = false;
+            this.neutralButton.visible = false;
+            this.enemyButton.visible = false;
+            this.allyButton.active = false;
+            this.neutralButton.active = false;
+            this.enemyButton.active = false;
+        }
+
         confirmButton = new ExtendedButton(guiLeft + 6, guiTop + ySize - 18 - 7, 90, 20, BUTTON_CONFIRM,
                 button -> {
                     this.changeDiplomacyStatus(newStance, otherTeam);
@@ -112,10 +127,9 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
                     setButtons();
                 });
 
-        confirmButton.active = stanceChanged;
+        confirmButton.active = stanceChanged && !hasTreaty;
         confirmButton.visible = isLeader;
         addRenderableWidget(confirmButton);
-
 
         backButton = new ExtendedButton(guiLeft + 98, guiTop + ySize - 18 - 7, 90, 20, BUTTON_BACK,
                 button -> {
@@ -161,17 +175,22 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
         RenderSystem.setShaderTexture(0, getDiplomacyStatusIcon(othersStance));
         guiGraphics.blit(getDiplomacyStatusIcon(othersStance), this.guiLeft + x3, guiTop + ySize - y3, 0, 0, 21, 21, 21, 21);
         guiGraphics.drawString(font, othersStance.name(), x7 + guiLeft + xSize / 2 - font.width(othersStance.name()) / 2, guiTop + 7 - y7, FONT_COLOR,false);
-        /*
-        if (mouseX >= groupTypeButton.x && mouseY >= groupTypeButton.y && mouseX < groupTypeButton.x + groupTypeButton.getWidth() && mouseY < groupTypeButton.y + groupTypeButton.getHeight()) {
-            renderTooltip(guiGraphics, groupTypeButton.getTooltip(), mouseX, mouseY);
-        }
-        */
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
         RenderSystem.setShaderTexture(0, getDiplomacyStatusIcon(newStance));
         guiGraphics.blit(getDiplomacyStatusIcon(newStance), this.guiLeft + x4, guiTop + ySize - y4, 0, 0, 21, 21, 21, 21);
         guiGraphics.drawString(font, newStance.name(), x8 + guiLeft + xSize / 2 - font.width(newStance.name()) / 2,  guiTop + 7 - y8, FONT_COLOR, false);
+
+        boolean hasTreaty = ClientManager.hasTreaty(ClientManager.ownFaction.getStringID(), otherTeam.getStringID());
+        if (hasTreaty) {
+            long remainingMs = ClientManager.getTreatyRemainingMillis(ClientManager.ownFaction.getStringID(), otherTeam.getStringID());
+            long totalMinutes = remainingMs / 60000;
+            long hours = totalMinutes / 60;
+            long minutes = totalMinutes % 60;
+            String treatyText = "Treaty: " + hours + "h " + minutes + 1 + "min remaining";
+            guiGraphics.drawCenteredString(font, treatyText, guiLeft + xSize / 2, guiTop + 30, 0xFF55FF55);
+        }
     }
     int x1 = 15;
     int y1 = 75;

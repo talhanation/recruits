@@ -16,14 +16,14 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
 
 @OnlyIn(Dist.CLIENT)
-public class TeamMainScreen extends RecruitsScreenBase {
+public class FactionMainScreen extends RecruitsScreenBase {
 
     private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID,"textures/gui/gui_small.png");
     private static final MutableComponent CREATE_TEAM = Component.translatable("gui.recruits.team_creation.create_team");
     private static final MutableComponent INSPECT_TEAM = Component.translatable("gui.recruits.team_creation.inspect_team");
     private static final MutableComponent TEAMS_LIST = Component.translatable("gui.recruits.team_creation.teams_list");
     private final Player player;
-    public TeamMainScreen(Player player){
+    public FactionMainScreen(Player player){
         super(Component.literal("TeamMainScreen"),246,84);
         this.player = player;
     }
@@ -35,7 +35,7 @@ public class TeamMainScreen extends RecruitsScreenBase {
         MutableComponent mutableComponent = ClientManager.ownFaction != null ? INSPECT_TEAM : CREATE_TEAM;
         addRenderableWidget(new ExtendedButton(guiLeft + 20, guiTop + 29, 100, 20, mutableComponent, btn -> {
             if (ClientManager.ownFaction != null) {
-                minecraft.setScreen(new TeamInspectionScreen(this, player));
+                minecraft.setScreen(new FactionInspectionScreen(this, player));
             }
             else {
                 FactionEvents.openTeamEditScreen(player);
@@ -43,7 +43,7 @@ public class TeamMainScreen extends RecruitsScreenBase {
         }));
 
         addRenderableWidget(new ExtendedButton(guiLeft + 130, guiTop + 29, 100, 20, TEAMS_LIST, btn -> {
-            minecraft.setScreen(new RecruitsTeamListScreen(this));
+            minecraft.setScreen(new RecruitsFactionListScreen(this));
         }));
     }
 

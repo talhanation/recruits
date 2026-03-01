@@ -54,6 +54,9 @@ public class MessageToClientSetDiplomaticToast implements Message<MessageToClien
             case 10 -> RecruitsToastManager.setTeamToastForPlayer(Images.CROWN, TOAST_NEW_LEADER_TITLE, TOAST_NEW_LEADER(s), team);
             case 11 -> RecruitsToastManager.setTeamToastForPlayer(Images.CROWN, TOAST_NEW_FACTION_NAME_TITLE, TOAST_NEW_FACTION_NAME(s), team);
             case 12 -> RecruitsToastManager.setTeamToastForPlayer(Images.CROWN, TOAST_NEW_BANNER_TITLE, TOAST_NEW_BANNER(), team);
+
+            case 20 -> RecruitsToastManager.setTeamToastForPlayer(Images.NEUTRAL, TOAST_TREATY_ESTABLISHED_TITLE, TOAST_TREATY_ESTABLISHED(s), team);
+            case 21 -> RecruitsToastManager.setTeamToastForPlayer(Images.NEUTRAL, TOAST_TREATY_EXPIRED_TITLE, TOAST_TREATY_EXPIRED(s), team);
         }
     }
 

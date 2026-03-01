@@ -39,9 +39,9 @@ import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static com.talhanation.recruits.client.gui.faction.TeamInspectionScreen.LEADER_CROWN;
+import static com.talhanation.recruits.client.gui.faction.FactionInspectionScreen.LEADER_CROWN;
 import static com.talhanation.recruits.client.ClientManager.*;
-public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
+public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
 
     private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/team/team_create_gui.png");
     private static final Component EDIT = Component.translatable("gui.recruits.team.edit");
@@ -175,7 +175,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
             )
     );
 
-    public TeamEditScreen(TeamEditMenu container, Inventory playerInventory, Component title) {
+    public FactionEditScreen(TeamEditMenu container, Inventory playerInventory, Component title) {
         super(TEXTURE, container, playerInventory, Component.literal(""));
         this.imageHeight = 240;
         this.imageWidth = 222;
@@ -203,7 +203,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
             maxRecruitsPerPlayer = ownFaction.getMaxNPCsPerPlayer();
             if(maxRecruitsPerPlayer == -1) maxRecruitsPerPlayer = factionMaxRecruitsPerPlayerConfigSetting;
 
-            this.parent = new TeamInspectionScreen(new TeamMainScreen(player), player);
+            this.parent = new FactionInspectionScreen(new FactionMainScreen(player), player);
             this.bannerRenderer = new BannerRenderer(ownFaction);
         }
         else {
@@ -213,7 +213,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
                 leaderInfo = new RecruitsPlayerInfo(player.getUUID(), player.getName().getString());
             }
             maxRecruitsPerPlayer = factionMaxRecruitsPerPlayerConfigSetting;
-            this.parent = new TeamMainScreen(player);
+            this.parent = new FactionMainScreen(player);
             this.bannerRenderer = new BannerRenderer(null);
         }
 
@@ -281,7 +281,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
         } else {
             Button selectPlayerButton = addRenderableWidget(new ExtendedButton(guiLeft + widgetsX, guiTop + imageHeight - widgetsY + (20 + gap ) * 1, 110, 20, SelectPlayerScreen.TITLE,
                 button -> {
-                    Screen parent = ownFaction == null ? new TeamMainScreen(player) : new TeamInspectionScreen(new TeamMainScreen(player), player);
+                    Screen parent = ownFaction == null ? new FactionMainScreen(player) : new FactionInspectionScreen(new FactionMainScreen(player), player);
                     minecraft.setScreen(new SelectPlayerScreen(parent, player, SelectPlayerScreen.TITLE, SelectPlayerScreen.BUTTON_SELECT, SelectPlayerScreen.BUTTON_SELECT_TOOLTIP, false, PlayersList.FilterType.SAME_TEAM,
                         (playerInfo) -> {
                             leaderInfo = playerInfo;
@@ -340,7 +340,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
                     String text = textFieldTeamName.getValue().strip();
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(this.getCorrectFormatStringID(text), this.getCorrectFormatName(text), banner, teamColor, unitColors.indexOf(unitColor)));
                     leaderInfo = null;
-                    minecraft.setScreen(new TeamInspectionScreen(new TeamMainScreen(player), player));
+                    minecraft.setScreen(new FactionInspectionScreen(new FactionMainScreen(player), player));
                 }
             );
 
@@ -369,7 +369,7 @@ public class TeamEditScreen extends ScreenBase<TeamEditMenu> {
 
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveTeamSettings(ownFaction, totalCost));
 
-                    minecraft.setScreen(new TeamInspectionScreen(new TeamMainScreen(player), player));
+                    minecraft.setScreen(new FactionInspectionScreen(new FactionMainScreen(player), player));
                 }
             );
 
