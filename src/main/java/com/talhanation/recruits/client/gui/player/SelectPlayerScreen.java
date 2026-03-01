@@ -155,7 +155,7 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
 
     @Override
     public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        guiGraphics.drawString(font, this.getTitle(), width / 2 - font.width(TITLE) / 2, guiTop + 5, 4210752, false);
+        guiGraphics.drawString(font, this.getTitle(), width / 2 - font.width(this.getTitle()) / 2, guiTop + 5, 4210752, false);
 
         if (!playerList.isEmpty()) {
             playerList.render(guiGraphics, mouseX, mouseY, delta);
