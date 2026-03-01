@@ -2020,7 +2020,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         this.setGroupUUID(newGroupUUID);
         RecruitsGroup newGroup = RecruitEvents.recruitsGroupsManager.getGroup(newGroupUUID);
-        if(newGroup == null) return;
 
         this.disband(null, false, false);
 

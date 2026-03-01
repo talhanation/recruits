@@ -19,7 +19,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
 
-public class DisbandScreen extends RecruitsScreenBase {
+public class RecruitMoreScreen extends RecruitsScreenBase {
 
     private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_big.png");
     private static final Component TITLE = Component.translatable("gui.recruits.more_screen.title");
@@ -32,7 +32,7 @@ public class DisbandScreen extends RecruitsScreenBase {
     private static final MutableComponent ASSIGN_TO_PLAYER = Component.translatable("gui.recruits.team.assignNewOwner");
     private static final MutableComponent GROUP_SETTINGS = Component.translatable("gui.recruits.groups.settings");
     private static final MutableComponent RENAME = Component.translatable("gui.recruits.inv.rename");
-    public DisbandScreen(Screen parent, AbstractRecruitEntity recruit, Player player) {
+    public RecruitMoreScreen(Screen parent, AbstractRecruitEntity recruit, Player player) {
         super(TITLE, 195,160);
         this.player = player;
         this.recruit = recruit;
@@ -64,7 +64,7 @@ public class DisbandScreen extends RecruitsScreenBase {
                             minecraft.setScreen(new ConfirmScreen(DISBAND, TOOLTIP_KEEP_TEAM,
                                     () -> Main.SIMPLE_CHANNEL.sendToServer(new MessageDisband(this.recruit.getUUID(), true)),
                                     () -> Main.SIMPLE_CHANNEL.sendToServer(new MessageDisband(this.recruit.getUUID(), false)),
-                                    () -> minecraft.setScreen(DisbandScreen.this)
+                                    () -> minecraft.setScreen(RecruitMoreScreen.this)
                             ));
                         }
                         else

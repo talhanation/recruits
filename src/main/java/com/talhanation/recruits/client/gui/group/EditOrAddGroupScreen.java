@@ -22,8 +22,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
 
-import static com.talhanation.recruits.client.gui.DisbandScreen.TOOLTIP_ASSIGN_GROUP_TO_PLAYER;
-import static com.talhanation.recruits.client.gui.DisbandScreen.TOOLTIP_KEEP_TEAM;
+import static com.talhanation.recruits.client.gui.RecruitMoreScreen.TOOLTIP_ASSIGN_GROUP_TO_PLAYER;
+import static com.talhanation.recruits.client.gui.RecruitMoreScreen.TOOLTIP_KEEP_TEAM;
 
 public class EditOrAddGroupScreen extends Screen {
 

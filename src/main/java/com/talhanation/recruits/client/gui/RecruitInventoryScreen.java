@@ -4,7 +4,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.client.ClientManager;
-import com.talhanation.recruits.client.gui.MessengerMainScreen;
 import com.talhanation.recruits.client.gui.widgets.ScrollDropDownMenu;
 import com.talhanation.recruits.compat.SmallShips;
 import com.talhanation.recruits.compat.workers.IVillagerWorker;
@@ -298,7 +297,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         //more
         moreButton = new ExtendedButton(leftPos + 77 + 55, topPos + 4, 40, 12, Component.literal("..."),
                 button -> {
-                    minecraft.setScreen(new DisbandScreen(this, this.recruit, this.playerInventory.player));
+                    minecraft.setScreen(new RecruitMoreScreen(this, this.recruit, this.playerInventory.player));
                 }
         );
         moreButton.active = !(recruit instanceof VillagerNobleEntity);

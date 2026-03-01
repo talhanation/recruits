@@ -2,7 +2,7 @@ package com.talhanation.recruits.client.gui.faction;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.client.gui.DisbandScreen;
+import com.talhanation.recruits.client.gui.RecruitMoreScreen;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.network.MessageAssignRecruitToPlayer;
@@ -47,6 +47,7 @@ public class TakeOverScreen extends RecruitsScreenBase {
         Button takeOwnerShip = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 120 - 7, 130, 20, TAKE_OWNERSHIP,
             btn -> {
                  Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignRecruitToPlayer(this.recruit.getUUID(), this.player.getUUID()));
+                 this.recruit.openGUI(player);
             }
         ));
         takeOwnerShip.setTooltip(Tooltip.create(TOOLTIP_TAKE_OWNERSHIP));
@@ -60,7 +61,7 @@ public class TakeOverScreen extends RecruitsScreenBase {
 
         Button more = addRenderableWidget(new ExtendedButton(guiLeft + 32, guiTop + ySize - 76 - 7, 130, 20, MORE,
             btn -> {
-                minecraft.setScreen(new DisbandScreen(this, this.recruit, this.player));
+                minecraft.setScreen(new RecruitMoreScreen(this, this.recruit, this.player));
             }
         ));
         more.setTooltip(Tooltip.create(TOOLTIP_MORE));
