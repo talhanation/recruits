@@ -16,13 +16,14 @@ public class RecruitsFactionList extends ListScreenListBase<RecruitsFactionEntry
     protected final List<RecruitsFactionEntry> entries;
     protected String filter;
     protected boolean showPlayerCount;
-
-    public RecruitsFactionList(int width, int height, int x, int y, int size, IFactionSelection screen, boolean showPlayerCount) {
+    protected boolean includeOwn;
+    public RecruitsFactionList(int width, int height, int x, int y, int size, IFactionSelection screen, boolean showPlayerCount, boolean includeOwn) {
         super(width, height, x, y, size);
         this.screen = screen;
         this.entries = Lists.newArrayList();
         this.filter = "";
         this.showPlayerCount = showPlayerCount;
+        this.includeOwn = includeOwn;
         setRenderBackground(false);
         setRenderTopAndBottom(false);
         setRenderSelection(true);
@@ -36,7 +37,7 @@ public class RecruitsFactionList extends ListScreenListBase<RecruitsFactionEntry
         entries.clear();
 
         for (RecruitsFaction team : ClientManager.factions) {
-            if(ClientManager.ownFaction != null && !ClientManager.ownFaction.getStringID().equals(team.getStringID()))
+            if(ClientManager.ownFaction == null || includeOwn || !ClientManager.ownFaction.getStringID().equals(team.getStringID()))
                 entries.add(new RecruitsFactionEntry(screen, team, showPlayerCount));
         }
 

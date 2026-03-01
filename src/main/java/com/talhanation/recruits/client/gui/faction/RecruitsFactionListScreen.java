@@ -70,7 +70,7 @@ public class RecruitsFactionListScreen extends ListScreenBase implements IFactio
         if (teamList != null) {
             teamList.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
         } else {
-            teamList = new RecruitsFactionList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, true);
+            teamList = new RecruitsFactionList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, true, true);
         }
         String string = searchBox != null ? searchBox.getValue() : "";
         searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, Component.literal(""));
