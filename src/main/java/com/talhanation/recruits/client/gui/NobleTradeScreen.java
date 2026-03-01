@@ -127,7 +127,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         group = ClientManager.getSelectedGroup();
         groupSelectionDropDownMenu = new ScrollDropDownMenu<>(group, guiLeft + 174,guiTop + 53,  75, 20, ClientManager.groups,
                 RecruitsGroup::getName,
-                (selected) ->{
+                (selected) -> {
                     this.group = selected;
                     ClientManager.groupSelection = ClientManager.groups.indexOf(group);
                 }
@@ -261,7 +261,8 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         if(villagerList != null) v = villagerList.size();
         else v = 0;
 
-        guiGraphics.drawString(font, Component.literal(TEXT_VILLAGERS.getString() + ": " + v), guiLeft + TRADE_TITLE_X, guiTop + 30, FONT_COLOR, false);
+        if(ClientManager.configValueNobleNeedsVillagers)
+            guiGraphics.drawString(font, Component.literal(TEXT_VILLAGERS.getString() + ": " + v), guiLeft + TRADE_TITLE_X, guiTop + 30, FONT_COLOR, false);
 
         if (selection != null) {
             int x = guiLeft + TRADE_TITLE_X ;
