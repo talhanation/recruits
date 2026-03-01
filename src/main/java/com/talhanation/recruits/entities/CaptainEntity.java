@@ -161,7 +161,7 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
     public void initSpawn() {
         this.setPersistenceRequired();
 
-        if(this.getName().getString().isEmpty()) this.setCustomName(Component.literal("Captain"));
+        if(this.getCustomName() == null || this.getCustomName().getString().isEmpty()) this.setCustomName(Component.literal("Captain"));
     }
 
     @Override

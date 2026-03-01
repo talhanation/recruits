@@ -97,11 +97,12 @@ public class ScoutEntity extends BowmanEntity implements ICompanion {
 
     @Override
     public void initSpawn() {
+        if(this.getCustomName() == null || this.getCustomName().getString().isEmpty()) this.setCustomName(Component.literal("Scout"));
         this.setPersistenceRequired();
-        if(this.getOwner() != null)this.setOwnerName(this.getOwner().getName().getString());
+        if(this.getOwner() != null) this.setOwnerName(this.getOwner().getName().getString());
         AbstractRecruitEntity.applySpawnValues(this);
 
-        if(this.getName().getString().isEmpty()) this.setCustomName(Component.literal("Scout"));
+
     }
 
     @Override

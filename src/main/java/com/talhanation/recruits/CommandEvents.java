@@ -484,7 +484,7 @@ public class CommandEvents {
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
 
-    public static boolean handleRecruiting(Player player, RecruitsGroup group, AbstractRecruitEntity recruit){
+    public static boolean handleRecruiting(Player player, RecruitsGroup group, AbstractRecruitEntity recruit, boolean message){
         String name = recruit.getName().getString() + ": ";
         int sollPrice = recruit.getCost();
         Inventory playerInv = player.getInventory();
@@ -509,7 +509,7 @@ public class CommandEvents {
         boolean playerCanPay = playerEmeralds >= sollPrice;
 
         if (playerCanPay || player.isCreative()){
-            if(recruit.hire(player, group)) {
+            if(recruit.hire(player, group, message)) {
                 //give player tradeGood
                 //remove playerEmeralds ->add left
                 //

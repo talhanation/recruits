@@ -77,7 +77,7 @@ public class CommanderEntity extends AbstractLeaderEntity {
     public void initSpawn() {
         this.setPersistenceRequired();
 
-        if(this.getName().getString().isEmpty()) this.setCustomName(Component.literal("Commander"));
+        if(this.getCustomName() == null || this.getCustomName().getString().isEmpty()) this.setCustomName(Component.literal("Commander"));
     }
 
     @Override

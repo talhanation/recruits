@@ -1215,7 +1215,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         }
     }
 
-    public boolean hire(Player player, RecruitsGroup group) {
+    public boolean hire(Player player, RecruitsGroup group, boolean message) {
         String name = this.getName().getString() + ": ";
         Team ownerTeam = player.getTeam();// player is the new owner
         String stringId = ownerTeam != null ? ownerTeam.getName() : "";
@@ -1248,19 +1248,20 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 if(ownerTeam != null){
                     FactionEvents.addRecruitToTeam(this, ownerTeam, (ServerLevel) this.getCommandSenderWorld());
                 }
-
             }
 
-            int i = this.random.nextInt(4);
-            switch (i) {
-                default -> {
-                    player.sendSystemMessage(TEXT_RECRUITED1(name));
-                }
-                case 2 -> {
-                    player.sendSystemMessage(TEXT_RECRUITED2(name));
-                }
-                case 3 -> {
-                    player.sendSystemMessage(TEXT_RECRUITED3(name));
+            if(message){
+                int i = this.random.nextInt(4);
+                switch (i) {
+                    default -> {
+                        player.sendSystemMessage(TEXT_RECRUITED1(name));
+                    }
+                    case 2 -> {
+                        player.sendSystemMessage(TEXT_RECRUITED2(name));
+                    }
+                    case 3 -> {
+                        player.sendSystemMessage(TEXT_RECRUITED3(name));
+                    }
                 }
             }
         }
@@ -2026,7 +2027,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setOwnerUUID(Optional.of(newOwner));
 
         if(getOwner() != null){
-            this.hire(getOwner(), newGroup);
+            this.hire(getOwner(), newGroup, true);
             this.setFollowState(1);
         }
     }

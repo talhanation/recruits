@@ -172,11 +172,12 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
 
     @Override
     public void initSpawn() {
+        if(this.getCustomName() == null || this.getCustomName().getString().isEmpty())  this.setCustomName(Component.literal("Messenger"));
         this.setPersistenceRequired();
         if(this.getOwner() != null)this.setOwnerName(this.getOwner().getName().getString());
         AbstractRecruitEntity.applySpawnValues(this);
 
-        if(this.getName().getString().isEmpty()) this.setCustomName(Component.literal("Messenger"));
+
     }
 
     @Override
