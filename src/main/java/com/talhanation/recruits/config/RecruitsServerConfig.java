@@ -730,7 +730,7 @@ public class RecruitsServerConfig {
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
-                .define("UsePathfindingAsync", true);
+                .define("UseAsyncPathfinding", true);
 
         AsyncPathfindingThreadsCount = BUILDER.comment("""
                         How much threads to use for pathfinding.
@@ -739,7 +739,7 @@ public class RecruitsServerConfig {
                         \t(takes effect after restart)
                         \tdefault: 1""")
                 .worldRestart()
-                .defineInRange("AsyncPathfindingThreads", 1, 1, Runtime.getRuntime().availableProcessors());
+                .defineInRange("AsyncPathfindingThreadsCount", 1, 1, Runtime.getRuntime().availableProcessors());
 
         UseAsyncTargetFinding = BUILDER.comment("""
                         Use asynchronous target finding run on multithread executor.
@@ -750,7 +750,7 @@ public class RecruitsServerConfig {
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
-                .define("UseTargetFindingAsync", true);
+                .define("UseAsyncTargetFinding", true);
 
         AsyncTargetFindingThreadsCount = BUILDER.comment("""
                         How much threads to use for target finding.
@@ -759,7 +759,7 @@ public class RecruitsServerConfig {
                         \t(takes effect after restart)
                         \tdefault: 1""")
                 .worldRestart()
-                .defineInRange("AsyncTargetFindingThreads", 1, 1, Runtime.getRuntime().availableProcessors());
+                .defineInRange("AsyncTargetFindingThreadsCount", 1, 1, Runtime.getRuntime().availableProcessors());
 
         BUILDER.pop();
         BUILDER.pop();
