@@ -188,8 +188,11 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
             long totalMinutes = remainingMs / 60000;
             long hours = totalMinutes / 60;
             long minutes = totalMinutes % 60;
-            String treatyText = "Treaty: " + hours + "h " + minutes + 1 + "min remaining";
-            guiGraphics.drawCenteredString(font, treatyText, guiLeft + xSize / 2, guiTop + 30, 0xFF55FF55);
+
+            if(minutes == 0) minutes = 1;
+
+            String treatyText = "Treaty: " + hours + "h " + minutes + "min remaining";
+            guiGraphics.drawCenteredString(font, treatyText, guiLeft + xSize / 2, guiTop + 25, 0xFF55FF55);
         }
     }
     int x1 = 15;
