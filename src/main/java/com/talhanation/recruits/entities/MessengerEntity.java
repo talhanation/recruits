@@ -8,7 +8,6 @@ import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.network.MessageToClientOpenTreatyAnswerScreen;
 import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.recruits.world.RecruitsFaction;
-import com.talhanation.recruits.world.RecruitsFactionManager;
 import com.talhanation.recruits.world.RecruitsPatrolSpawn;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.client.Minecraft;
@@ -42,7 +41,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
-import net.minecraft.world.scores.Team;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.ForgeMod;
@@ -448,15 +446,21 @@ public class MessengerEntity extends AbstractChunkLoaderEntity implements ICompa
         }
     }
 
-    public void dropDeliverItem(){
+    public void giveDeliverItem(ServerPlayer player){
         ItemStack deliverItem = this.getMainHandItem();
         if(!deliverItem.isEmpty()){
+
+            if(player.getInventory().hasAnyMatching(ItemStack::isEmpty)){
+                player.getInventory().add(deliverItem.copy());
+            }
+            else{
+                ItemEntity itementity = new ItemEntity(this.getCommandSenderWorld(), this.getX() + this.getLookAngle().x, this.getY() + 2.0D, this.getZ() + this.getLookAngle().z, deliverItem);
+                this.getInventory().setChanged();
+                this.getCommandSenderWorld().addFreshEntity(itementity);
+            }
+
             this.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
             this.getInventory().setChanged();
-
-            ItemEntity itementity = new ItemEntity(this.getCommandSenderWorld(), this.getX() + this.getLookAngle().x, this.getY() + 2.0D, this.getZ() + this.getLookAngle().z, deliverItem);
-            this.getInventory().setChanged();
-            this.getCommandSenderWorld().addFreshEntity(itementity);
         }
     }
     private void teleportNearOwner() {

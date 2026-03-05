@@ -3,6 +3,7 @@ package com.talhanation.recruits.network;
 import com.talhanation.recruits.entities.MessengerEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -24,6 +25,7 @@ public class MessageAnswerMessenger implements Message<MessageAnswerMessenger> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
+        ServerPlayer player = context.getSender();
         List<MessengerEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(
                 MessengerEntity.class,
                 context.getSender().getBoundingBox().inflate(16D)
@@ -34,7 +36,8 @@ public class MessageAnswerMessenger implements Message<MessageAnswerMessenger> {
 
                 messenger.teleportWaitTimer = 100;
                 context.getSender().sendSystemMessage(messenger.MESSENGER_INFO_ON_MY_WAY());
-                messenger.dropDeliverItem();
+                messenger.giveDeliverItem(player);
+
                 messenger.setMessengerState(MessengerEntity.MessengerState.TELEPORT_BACK);
             }
         }

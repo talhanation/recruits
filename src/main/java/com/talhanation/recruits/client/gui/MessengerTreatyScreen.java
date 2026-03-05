@@ -160,6 +160,11 @@ public class MessengerTreatyScreen extends RecruitsScreenBase {
 
         guiGraphics.drawString(font, LABEL_FACTION, guiLeft + 5, guiTop + 18, FONT_COLOR, false);
         guiGraphics.drawString(font, LABEL_DURATION, guiLeft + 5, guiTop + 77, FONT_COLOR, false);
+
+        if(!messenger.getMainHandItem().isEmpty()){
+            guiGraphics.renderFakeItem(messenger.getMainHandItem(), guiLeft + 145, guiTop + ySize - 28);
+            guiGraphics.renderItemDecorations(font, messenger.getMainHandItem(),guiLeft + 145, guiTop + ySize - 28);
+        }
     }
 }
 

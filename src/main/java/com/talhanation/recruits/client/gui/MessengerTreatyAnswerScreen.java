@@ -123,5 +123,10 @@ public class MessengerTreatyAnswerScreen extends RecruitsScreenBase {
     public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         // Title – centred
         guiGraphics.drawString(font, TITLE, guiLeft + xSize / 2 - font.width(TITLE) / 2, guiTop + 8, FONT_COLOR, false);
+
+        if(!messenger.getMainHandItem().isEmpty()){
+            guiGraphics.renderFakeItem(messenger.getMainHandItem(), guiLeft + 70, guiTop + ySize - 63);
+            guiGraphics.renderItemDecorations(font, messenger.getMainHandItem(),guiLeft + 70, guiTop + ySize - 63);
+        }
     }
 }

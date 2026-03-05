@@ -76,6 +76,8 @@ public class MessageAnswerTreaty implements Message<MessageAnswerTreaty> {
         FactionEvents.recruitsDiplomacyManager.setRelation(targetTeam.getName(), ownerTeam.getName(), RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL, level, false);
 
         FactionEvents.recruitsTreatyManager.addTreaty(ownerTeam.getName(), targetTeam.getName(), durationHours, level);
+
+        messenger.giveDeliverItem(player);
     }
 
     @Override
