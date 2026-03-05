@@ -116,10 +116,10 @@ repositories {
 
 dependencies {
 
-    minecraft 'net.minecraftforge:forge:1.20.1-47.3.0'
-    shadow fg.deobf("de.maxhenkel.corelib:corelib:1.20.1-1.0.0:api")
-    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.20.1-1.0.0")
-    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.20.1-1.0.0:javadoc")
+    minecraft 'net.minecraftforge:forge:1.20.1-47.4.10'
+    shadow fg.deobf("de.maxhenkel.corelib:corelib:1.20.1-1.1.1:api")
+    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.20.1-1.1.1")
+    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.20.1-1.1.1:javadoc")
     //Implementation
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
