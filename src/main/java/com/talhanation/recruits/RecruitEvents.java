@@ -2,6 +2,7 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.compat.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
+import com.talhanation.recruits.util.DelayedExecutor;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
 import com.talhanation.recruits.entities.MessengerEntity;
@@ -10,6 +11,8 @@ import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.inventory.PromoteContainer;
 import com.talhanation.recruits.network.MessageOpenPromoteScreen;
 import com.talhanation.recruits.world.*;
+import com.talhanation.recruits.RecruitEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -67,6 +70,11 @@ public class RecruitEvents {
     };
 
     public static void promoteRecruit(AbstractRecruitEntity recruit, int profession, String name, ServerPlayer player) {
+        // RecruitEvent.Promoted feuern – cancelable
+        RecruitEvent.Promoted promoteEvent = new RecruitEvent.Promoted(recruit, profession, name, player);
+        MinecraftForge.EVENT_BUS.post(promoteEvent);
+        if (promoteEvent.isCanceled()) return;
+
         EntityType<? extends AbstractRecruitEntity> companionType = entitiesByProfession.get(profession);
         AbstractRecruitEntity abstractRecruit = companionType.create(recruit.getCommandSenderWorld());
         if (abstractRecruit instanceof ICompanion companion) {

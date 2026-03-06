@@ -158,6 +158,14 @@ public class FactionEvents {
             Main.LOGGER.info("The new Team " + teamName + " has been created by " + playerName + ".");
 
             recruitsFactionManager.save(server.overworld());
+            RecruitsFaction createdFaction = recruitsFactionManager.getFactionByStringID(teamName);
+            if (createdFaction != null) {
+                FactionEvent.Created createdEvent = new FactionEvent.Created(createdFaction, level, serverPlayer);
+                if (MinecraftForge.EVENT_BUS.post(createdEvent)) {
+                    // Addon hat gecanceled – Fraktion wieder entfernen
+                    removeTeam(level, teamName);
+                }
+            }
         }
     }
 
@@ -180,6 +188,9 @@ public class FactionEvents {
             else
                 isLeader = command;
 
+            if (recruitsFaction != null) {
+                MinecraftForge.EVENT_BUS.post(new FactionEvent.PlayerLeft(recruitsFaction, level, player, isLeader));
+            }
             int recruits = getRecruitsOfPlayer(player.getUUID(), level).size();
             addNPCToData(level, teamName, -recruits);
 
@@ -284,6 +295,10 @@ public class FactionEvents {
         MinecraftServer server = level.getServer();
         PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(teamName);
 
+        RecruitsFaction disbandingFaction = recruitsFactionManager.getFactionByStringID(teamName);
+        if (disbandingFaction != null) {
+            MinecraftForge.EVENT_BUS.post(new FactionEvent.Disbanded(disbandingFaction, level));
+        }
         if(playerTeam != null){
             server.getScoreboard().removePlayerTeam(playerTeam);
 
@@ -320,6 +335,12 @@ public class FactionEvents {
         }
 
         if(playerTeam != null){
+            RecruitsFaction joiningFaction = recruitsFactionManager.getFactionByStringID(teamName);
+            if (joiningFaction != null) {
+                FactionEvent.PlayerJoined joinEvent = new FactionEvent.PlayerJoined(joiningFaction, level, playerToAdd);
+                if (MinecraftForge.EVENT_BUS.post(joinEvent)) return;
+            }
+
             server.getScoreboard().addPlayerToTeam(namePlayerToAdd, playerTeam);
 
             playerToAdd.sendSystemMessage(ADDED_PLAYER(teamName));

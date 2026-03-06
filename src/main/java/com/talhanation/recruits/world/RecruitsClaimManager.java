@@ -1,5 +1,8 @@
 package com.talhanation.recruits.world;
 
+import com.talhanation.recruits.ClaimEvent;
+import net.minecraftforge.common.MinecraftForge;
+
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.config.RecruitsServerConfig;
@@ -34,6 +37,11 @@ public class RecruitsClaimManager {
     public void addOrUpdateClaim(ServerLevel level, RecruitsClaim claim) {
         if (claim == null) return;
 
+        // ClaimEvent.Updated feuern – cancelable
+        boolean isNew = claims.values().stream().noneMatch(c -> c.getUUID().equals(claim.getUUID()));
+        ClaimEvent.Updated updateEvent = new ClaimEvent.Updated(claim, level, isNew);
+        if (MinecraftForge.EVENT_BUS.post(updateEvent)) return;
+
         claims.entrySet().removeIf(entry -> entry.getValue().getUUID().equals(claim.getUUID()));
 
         if(!claim.isRemoved){
@@ -47,6 +55,10 @@ public class RecruitsClaimManager {
 
     public void removeClaim(RecruitsClaim claim) {
         if (claim != null) {
+            // ClaimEvent.Removed feuern
+            ServerLevel level = net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer().overworld();
+            MinecraftForge.EVENT_BUS.post(new ClaimEvent.Removed(claim, level));
+
             claims.entrySet().removeIf(entry -> entry.getValue().equals(claim));
         }
     }

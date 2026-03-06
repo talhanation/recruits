@@ -1,5 +1,8 @@
 package com.talhanation.recruits.world;
 
+import com.talhanation.recruits.DiplomacyEvent;
+import net.minecraftforge.common.MinecraftForge;
+
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.network.MessageToClientSetDiplomaticToast;
@@ -46,7 +49,12 @@ public class RecruitsDiplomacyManager {
         if (currentRelation == relation) {
             return;
         }
-        
+
+        // DiplomacyEvent.RelationChanged feuern – cancelable
+        DiplomacyEvent.RelationChanged relEvent =
+                new DiplomacyEvent.RelationChanged(team, otherTeam, level, currentRelation, relation);
+        if (MinecraftForge.EVENT_BUS.post(relEvent)) return;
+
         diplomacyMap.computeIfAbsent(team, k -> new HashMap<>()).put(otherTeam, relation);
         if(notifyPlayers) this.notifyPlayersInTeam(team, otherTeam, relation, level);
 

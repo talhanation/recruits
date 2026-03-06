@@ -808,6 +808,14 @@ public class RecruitsServerConfig {
                 .worldRestart()
                 .define("ExplosionBreaksBlocksInClaims", false);
 
+        SiegeRequiresOwnerOnline = BUILDER.comment("""
+                        Should a siege only be allowed to start when the claim owner (player) is currently online?
+                        If enabled and the owner is offline, attackers cannot initiate a siege.
+                        \\t(takes effect after restart)
+                        \\tdefault: false""")
+                .worldRestart()
+                .define("SiegeRequiresOwnerOnline", false);
+
         SiegeClaimsRecruitsAmount = BUILDER.comment("""
                         The amount of man power that is required to start a siege on a Claim.
                         \t(takes effect after restart)

@@ -821,6 +821,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void disband(@Nullable Player player, boolean keepTeam, boolean increaseCost){
+        if (!this.getCommandSenderWorld().isClientSide()) {
+            RecruitEvent.Dismissed dismissEvent = new RecruitEvent.Dismissed(this, player, keepTeam);
+            MinecraftForge.EVENT_BUS.post(dismissEvent);
+            if (dismissEvent.isCanceled()) return;
+        }
         String name = this.getName().getString();
 
         if(player != null){
@@ -1216,6 +1221,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public boolean hire(Player player, RecruitsGroup group, boolean message) {
+        if (!this.getCommandSenderWorld().isClientSide()) {
+            RecruitEvent.Hired hireEvent = new RecruitEvent.Hired(this, player);
+            MinecraftForge.EVENT_BUS.post(hireEvent);
+            if (hireEvent.isCanceled()) return false;
+        }
         String name = this.getName().getString() + ": ";
         Team ownerTeam = player.getTeam();// player is the new owner
         String stringId = ownerTeam != null ? ownerTeam.getName() : "";
@@ -1556,6 +1566,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
             if(this.getMorale() < 100)
                 this.setMoral(getMorale() + 5F);
+            if (!this.getCommandSenderWorld().isClientSide()) {
+                MinecraftForge.EVENT_BUS.post(new RecruitEvent.LevelUp(this, this.getXpLevel()));
+            }
         }
     }
 

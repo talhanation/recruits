@@ -154,6 +154,24 @@ public class ClaimEvents {
             }
             //initial
             else if(attackerSize >= RecruitsServerConfig.SiegeClaimsRecruitsAmount.get()){
+                if (RecruitsServerConfig.SiegeRequiresOwnerOnline.get()) {
+                    RecruitsPlayerInfo ownerInfo = claim.getPlayerInfo();
+                    if (ownerInfo != null) {
+                        ServerPlayer onlineOwner = server.getPlayerList().getPlayer(ownerInfo.getUUID());
+                        if (onlineOwner == null) {
+
+                            Component msg = Component.translatable(
+                                    "chat.recruits.text.siegeBlockedOwnerOffline",
+                                    claim.getName(),
+                                    ownerInfo.getName()
+                            ).withStyle(net.minecraft.ChatFormatting.RED);
+                            for (LivingEntity attacker : attackers) {
+                                if (attacker instanceof ServerPlayer sp) sp.sendSystemMessage(msg);
+                            }
+                            continue;
+                        }
+                    }
+                }
                 claim.setUnderSiege( true, level);
                 recruitsClaimManager.broadcastClaimsToAll(level);
                 sendVillagersHome(level, claim);
