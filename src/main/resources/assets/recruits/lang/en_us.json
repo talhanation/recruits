@@ -539,5 +539,6 @@
 
   "description.recruits.peaceTreaty": "When accepting this treaty both factions cannot attack each other for the duration.",
   "chat.recruits.text.messenger_target_player_not_accepted": "%s: I arrived, but %s did not accept our treaty proposal.",
-  "chat.recruits.text.messenger_info_to_target_treaty": "%s: I have a important proposal from %s"
+  "chat.recruits.text.messenger_info_to_target_treaty": "%s: I have a important proposal from %s",
+  "chat.recruits.text.siegeBlockedOwnerOffline": "Siege on '%s' blocked: owner '%s' is not online."
 }
