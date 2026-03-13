@@ -142,6 +142,8 @@ public class RecruitEvents {
         recruitsPlayerUnitManager.save(server.overworld());
 
         recruitsGroupsManager.save(server.overworld());
+
+        com.talhanation.recruits.pathfinding.AsyncPathProcessor.shutdown();
     }
 
     @SubscribeEvent

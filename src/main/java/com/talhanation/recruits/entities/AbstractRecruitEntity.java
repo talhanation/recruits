@@ -130,6 +130,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public float ownerRot;
     public int formationPos = -1;
     private int maxFallDistance;
+    private final int tickOffset = (int)(System.nanoTime() % 20);
     public Vec3 holdPosVec;
     public boolean isInFormation;
     public boolean needsColorUpdate = true;
@@ -181,7 +182,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (this.getCommandSenderWorld().isClientSide()) return;
 
         if(needsColorUpdate && this.getTeam() != null) updateColor(this.getTeam().getName());
-        if(this instanceof IRangedRecruit  && this.tickCount % 20 == 0) pickUpArrows();
+        if(this instanceof IRangedRecruit  && (this.tickCount + this.tickOffset) % 20 == 0) pickUpArrows();
         if(needsTeamUpdate) updateTeam();
         if(needsGroupUpdate) updateGroup();
 
@@ -215,7 +216,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if(this.attackCooldown > 0) this.attackCooldown--;
 
 
-        if(this.isAlive() && this.tickCount % 20 == 0 && this.getState() != 3){
+        if(this.isAlive() && (this.tickCount + this.tickOffset) % 20 == 0 && this.getState() != 3){
             this.searchForTargets();
         }
 
