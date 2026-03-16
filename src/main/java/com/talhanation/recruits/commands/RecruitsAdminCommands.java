@@ -423,6 +423,75 @@ public class RecruitsAdminCommands {
                         })
 
                 )
+                .then(Commands.literal("setBlockBreaking")
+                    .then(Commands.argument("true/false", BoolArgumentType.bool())
+                        .executes(ctx -> {
+                            ServerPlayer player = ctx.getSource().getPlayerOrException();
+                            boolean should = BoolArgumentType.getBool(ctx, "true/false");
+
+                            ChunkPos chunkPos = player.chunkPosition();
+                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
+
+                            if (claim == null) {
+                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
+                                return 0;
+                            }
+
+                            claim.setBlockBreakingAllowed(should);
+
+                            ctx.getSource().sendSuccess(() ->
+                                    Component.literal("Claim [" + claim + "] has now block breaking = " + should), false);
+                            ClaimEvents.recruitsClaimManager.broadcastClaimsToAll(ctx.getSource().getLevel());
+                            return 1;
+                        })
+                    )
+                )
+                .then(Commands.literal("setBlockPlacing")
+                    .then(Commands.argument("true/false", BoolArgumentType.bool())
+                        .executes(ctx -> {
+                            ServerPlayer player = ctx.getSource().getPlayerOrException();
+                            boolean should = BoolArgumentType.getBool(ctx, "true/false");
+
+                            ChunkPos chunkPos = player.chunkPosition();
+                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
+
+                            if (claim == null) {
+                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
+                                return 0;
+                            }
+
+                            claim.setBlockPlacementAllowed(should);
+
+                            ctx.getSource().sendSuccess(() ->
+                                    Component.literal("Claim [" + claim + "] has now block placing = " + should), false);
+                            ClaimEvents.recruitsClaimManager.broadcastClaimsToAll(ctx.getSource().getLevel());
+                            return 1;
+                        })
+                    )
+                )
+                .then(Commands.literal("setBlockInteraction")
+                    .then(Commands.argument("true/false", BoolArgumentType.bool())
+                        .executes(ctx -> {
+                            ServerPlayer player = ctx.getSource().getPlayerOrException();
+                            boolean should = BoolArgumentType.getBool(ctx, "true/false");
+
+                            ChunkPos chunkPos = player.chunkPosition();
+                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
+
+                            if (claim == null) {
+                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
+                                return 0;
+                            }
+
+                            claim.setBlockInteractionAllowed(should);
+
+                            ctx.getSource().sendSuccess(() ->
+                                    Component.literal("Claim [" + claim + "] has now block interaction = " + should), false);
+                            ClaimEvents.recruitsClaimManager.broadcastClaimsToAll(ctx.getSource().getLevel());
+                            return 1;
+                        })
+                    )
+                )
             )
             .then(Commands.literal("debugManager")
                 .then(Commands.literal("spawnFromEgg")

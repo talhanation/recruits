@@ -36,13 +36,25 @@ public class MessageToClientUpdateClaim implements Message<MessageToClientUpdate
         for (int i = 0; i < ClientManager.recruitsClaims.size(); i++) {
             RecruitsClaim existing = ClientManager.recruitsClaims.get(i);
             if (existing.getUUID().equals(newClaim.getUUID())) {
-
                 ClientManager.recruitsClaims.set(i, newClaim);
+
+                boolean isCurrentClaim = ClientManager.currentClaim != null
+                        && ClientManager.currentClaim.getUUID().equals(newClaim.getUUID());
+
+                // Aktuellen Claim-Zeiger ebenfalls aktualisieren
+                if (isCurrentClaim) {
+                    ClientManager.currentClaim = newClaim;
+                }
+
+                net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
+                        new com.talhanation.recruits.client.events.api.ClientClaimEvent.DataUpdated(newClaim, isCurrentClaim));
                 return;
             }
         }
 
         ClientManager.recruitsClaims.add(newClaim);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
+                new com.talhanation.recruits.client.events.api.ClientClaimEvent.DataUpdated(newClaim, false));
     }
     @Override
     public MessageToClientUpdateClaim fromBytes(FriendlyByteBuf buf) {
