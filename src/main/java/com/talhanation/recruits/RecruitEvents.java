@@ -45,6 +45,7 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.LevelEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -136,6 +137,16 @@ public class RecruitEvents {
         recruitsGroupsManager.load(server.overworld());
     }
 
+    @SubscribeEvent
+    public void onServerStarted(ServerStartedEvent event) {
+        // start() hier und nicht in ServerStartingEvent:
+        // ServerStartingEvent feuert bevor die Levels initialisiert sind — server.overworld()
+        // kann dort eine NPE werfen und würde start() nie erreichen lassen.
+        // ServerStartedEvent garantiert dass alle Levels geladen sind und der Executor
+        // vor dem ersten Entity-Tick bereit ist.
+        com.talhanation.recruits.pathfinding.AsyncPathProcessor.start();
+    }
+
 
     @SubscribeEvent
     public void onServerStopping(ServerStoppingEvent event) {
@@ -143,6 +154,7 @@ public class RecruitEvents {
 
         recruitsGroupsManager.save(server.overworld());
 
+        // Fix: Async-Executor sauber herunterfahren damit der Server nicht hängt
         com.talhanation.recruits.pathfinding.AsyncPathProcessor.shutdown();
     }
 

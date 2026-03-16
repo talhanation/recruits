@@ -1,6 +1,7 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.client.ClientManager;
+import com.talhanation.recruits.client.api.ClientClaimEvent;
 import com.talhanation.recruits.world.RecruitsClaim;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
@@ -47,14 +48,14 @@ public class MessageToClientUpdateClaim implements Message<MessageToClientUpdate
                 }
 
                 net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
-                        new com.talhanation.recruits.client.events.api.ClientClaimEvent.DataUpdated(newClaim, isCurrentClaim));
+                        new ClientClaimEvent.DataUpdated(newClaim, isCurrentClaim));
                 return;
             }
         }
 
         ClientManager.recruitsClaims.add(newClaim);
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
-                new com.talhanation.recruits.client.events.api.ClientClaimEvent.DataUpdated(newClaim, false));
+                new ClientClaimEvent.DataUpdated(newClaim, false));
     }
     @Override
     public MessageToClientUpdateClaim fromBytes(FriendlyByteBuf buf) {

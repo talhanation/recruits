@@ -15,45 +15,66 @@ import java.util.function.Consumer;
  * used to handle the scheduling of async path processing
  */
 public class AsyncPathProcessor {
-    private static final int workersCount = Math.max(1, RecruitsServerConfig.AsyncPathfindingThreadsCount.get());
 
-    private static final int QUEUE_CAPACITY = workersCount * 8;
+    private static volatile ThreadPoolExecutor pathFindingExecutor = null;
 
-    private static final ThreadPoolExecutor pathFindingExecutor = new ThreadPoolExecutor(
-            1,
-            workersCount,
-            60,
-            TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(QUEUE_CAPACITY),
-            new ThreadFactoryBuilder()
-                    .setNameFormat("recruits-path-processor-%d")
-                    .setDaemon(true) // Fix: Daemon-Threads damit der Server sauber beendet werden kann
-                    .setPriority(Thread.NORM_PRIORITY - 2)
-                    .build(),
-            (task, executor) -> {
-                if (!executor.isShutdown()) {
-                    Main.LOGGER.debug("AsyncPathProcessor queue full (capacity {}), applying backpressure", QUEUE_CAPACITY);
-                    task.run();
+    public static void start() {
+        ThreadPoolExecutor existing = pathFindingExecutor;
+        if (existing != null && !existing.isShutdown()) {
+            return;
+        }
+
+        if (existing != null) {
+            existing.shutdownNow();
+        }
+
+        int workersCount = Math.max(1, RecruitsServerConfig.AsyncPathfindingThreadsCount.get());
+        int queueCapacity = workersCount * 8;
+
+        pathFindingExecutor = new ThreadPoolExecutor(
+                1,
+                workersCount,
+                60,
+                TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(queueCapacity),
+                new ThreadFactoryBuilder()
+                        .setNameFormat("recruits-path-processor-%d")
+                        .setDaemon(true)
+                        .setPriority(Thread.NORM_PRIORITY - 2)
+                        .build(),
+                (task, executor) -> {
+                    if (!executor.isShutdown()) {
+                        Main.LOGGER.debug("AsyncPathProcessor queue full (capacity {}), applying backpressure", queueCapacity);
+                        task.run();
+                    }
                 }
-            }
-    );
+        );
+        Main.LOGGER.debug("AsyncPathProcessor started ({} worker(s), queue capacity {})", workersCount, queueCapacity);
+    }
 
     public static void shutdown() {
-        pathFindingExecutor.shutdown();
+        ThreadPoolExecutor executor = pathFindingExecutor;
+        if (executor == null || executor.isShutdown()) return;
+
+        executor.shutdown();
         try {
-            if (!pathFindingExecutor.awaitTermination(3, TimeUnit.SECONDS)) {
-                pathFindingExecutor.shutdownNow();
+            if (!executor.awaitTermination(3, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
             }
         } catch (InterruptedException e) {
-            pathFindingExecutor.shutdownNow();
+            executor.shutdownNow();
             Thread.currentThread().interrupt();
             Main.LOGGER.warn("AsyncPathProcessor shutdown interrupted");
         }
     }
 
     protected static void queue(@NotNull AsyncPath path) {
-        if (pathFindingExecutor.isShutdown()) return;
-        CompletableFuture.runAsync(path::process, pathFindingExecutor);
+        ThreadPoolExecutor executor = pathFindingExecutor;
+        if (executor == null || executor.isShutdown()) {
+            path.process();
+            return;
+        }
+        CompletableFuture.runAsync(path::process, executor);
     }
 
     /**
