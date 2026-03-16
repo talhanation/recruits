@@ -1,6 +1,8 @@
 package com.talhanation.recruits.client.gui.overlay;
 
 import com.talhanation.recruits.client.ClientManager;
+import com.talhanation.recruits.client.api.ClientClaimEvent;
+import com.talhanation.recruits.client.api.ClientOverlayEvent;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.world.RecruitsClaim;
 import net.minecraft.client.Minecraft;
@@ -8,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -77,7 +80,12 @@ public class ClaimOverlayManager {
         if (alpha <= 0.01f) return;
 
         if (ClientManager.currentClaim != null) {
-            renderer.render(event.getGuiGraphics(), mc, ClientManager.currentClaim, currentState, alpha, getPanelWidth());
+            boolean cancelled = MinecraftForge.EVENT_BUS.post(new ClientOverlayEvent.RenderPre(event.getGuiGraphics(), ClientManager.currentClaim, currentState, alpha));
+            if (!cancelled) {
+                renderer.render(event.getGuiGraphics(), mc, ClientManager.currentClaim, currentState, alpha, getPanelWidth());
+
+                MinecraftForge.EVENT_BUS.post(new ClientOverlayEvent.RenderPost(event.getGuiGraphics(), ClientManager.currentClaim, currentState, alpha));
+            }
         }
     }
 
@@ -116,18 +124,23 @@ public class ClaimOverlayManager {
             }
         }
 
-        // Handle State Transition
         handleClaimTransition(previousClaim, ClientManager.currentClaim);
     }
 
     private void handleClaimTransition(RecruitsClaim previousClaim, RecruitsClaim newClaim) {
         if (previousClaim == null && newClaim != null) {
+            MinecraftForge.EVENT_BUS.post(new ClientClaimEvent.Enter(newClaim, null));
             claimEntryTime = System.currentTimeMillis();
             transitionToState(OverlayState.FULL, true);
             updateCachedData(newClaim);
-        } else if (previousClaim != null && newClaim == null) {
+        }
+        else if (previousClaim != null && newClaim == null) {
+            MinecraftForge.EVENT_BUS.post(new ClientClaimEvent.Leave(previousClaim, null));
             transitionToState(OverlayState.HIDDEN, true);
-        } else if (previousClaim != null && newClaim != null && !previousClaim.equals(newClaim)) {
+        }
+        else if (previousClaim != null && newClaim != null && !previousClaim.equals(newClaim)) {
+            MinecraftForge.EVENT_BUS.post(new ClientClaimEvent.Leave(previousClaim, newClaim));
+            MinecraftForge.EVENT_BUS.post(new ClientClaimEvent.Enter(newClaim, previousClaim));
             claimEntryTime = System.currentTimeMillis();
             transitionToState(OverlayState.FULL, true);
             updateCachedData(newClaim);
@@ -151,8 +164,14 @@ public class ClaimOverlayManager {
         }
 
         if (claim.getHealth() != lastKnownHealth) {
+            int previousHealth = lastKnownHealth;
             lastKnownHealth = claim.getHealth();
             hasChanges = true;
+
+            if (previousHealth != -1) {
+                MinecraftForge.EVENT_BUS.post(
+                        new ClientClaimEvent.HealthChanged(claim, previousHealth, claim.getHealth()));
+            }
         }
 
         if (claim.isUnderSiege != lastKnownSiegeState) {
@@ -160,8 +179,15 @@ public class ClaimOverlayManager {
             hasChanges = true;
 
             if (claim.isUnderSiege) {
-                claimEntryTime = System.currentTimeMillis();
-                transitionToState(OverlayState.FULL, false);
+                boolean cancelled = MinecraftForge.EVENT_BUS.post(new ClientClaimEvent.SiegeStarted(claim));
+                if (!cancelled) {
+                    claimEntryTime = System.currentTimeMillis();
+                    transitionToState(OverlayState.FULL, false);
+                }
+            }
+            else {
+                boolean wasConquered = !claim.getOwnerFactionStringID().equals(lastKnownFactionName);
+                MinecraftForge.EVENT_BUS.post(new ClientClaimEvent.SiegeEnded(claim, wasConquered));
             }
         }
 
@@ -201,6 +227,9 @@ public class ClaimOverlayManager {
 
     private void transitionToState(OverlayState newState, boolean fade) {
         if (currentState == newState) return;
+
+        boolean cancelled = MinecraftForge.EVENT_BUS.post(new ClientOverlayEvent.StateChanged(ClientManager.currentClaim, currentState, newState, calculateAlpha()));
+        if (cancelled) return;
 
         if (fade) {
             stateChangeTime = System.currentTimeMillis();
