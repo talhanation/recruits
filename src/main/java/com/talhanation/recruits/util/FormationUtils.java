@@ -509,6 +509,8 @@ public class FormationUtils {
     }
 
     public static Vec3 getCenterOfPositions(List<LivingEntity> recruits, ServerLevel level) {
+        if (recruits.isEmpty()) return Vec3.ZERO;
+
         double sumX = 0;
         double sumY = 0;
         double sumZ = 0;
