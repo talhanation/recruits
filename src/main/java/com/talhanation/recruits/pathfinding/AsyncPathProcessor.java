@@ -11,9 +11,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
-/**
- * used to handle the scheduling of async path processing
- */
 public class AsyncPathProcessor {
 
     private static volatile ThreadPoolExecutor pathFindingExecutor = null;
@@ -44,12 +41,10 @@ public class AsyncPathProcessor {
                         .build(),
                 (task, executor) -> {
                     if (!executor.isShutdown()) {
-                        Main.LOGGER.debug("AsyncPathProcessor queue full (capacity {}), applying backpressure", queueCapacity);
                         task.run();
                     }
                 }
         );
-        Main.LOGGER.debug("AsyncPathProcessor started ({} worker(s), queue capacity {})", workersCount, queueCapacity);
     }
 
     public static void shutdown() {
@@ -76,15 +71,7 @@ public class AsyncPathProcessor {
         }
         CompletableFuture.runAsync(path::process, executor);
     }
-
-    /**
-     * takes a possibly unprocessed path, and waits until it is completed
-     * the consumer will be immediately invoked if the path is already processed
-     * the consumer will always be called on the main thread
-     *
-     * @param path            a path to wait on
-     * @param afterProcessing a consumer to be called
-     */
+    
     public static void awaitProcessing(@Nullable Path path, MinecraftServer server, Consumer<@Nullable Path> afterProcessing) {
         if (path instanceof AsyncPath asyncPath && !asyncPath.isProcessed()) {
             asyncPath.postProcessing(() -> server.execute(() -> afterProcessing.accept(path)));
