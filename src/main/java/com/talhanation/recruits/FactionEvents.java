@@ -89,6 +89,15 @@ public class FactionEvents {
         if(event.getLevel().isClientSide()) return;
 
         if(event.getEntity() instanceof Player player){
+
+            //Migration of old world factions
+            if(player.getTeam() != null){
+                RecruitsFaction faction = recruitsFactionManager.getFactionByStringID(player.getTeam().getName());
+                if(faction != null && faction.getMembers().stream().noneMatch(m -> m.getUUID().equals(player.getUUID()))){
+                    faction.addMember(player.getUUID(), player.getName().getString());
+                }
+            }
+
             recruitsFactionManager.broadcastOnlinePlayersToAll(server.overworld());
             recruitsFactionManager.broadcastFactionsToPlayer(player);
 
@@ -150,6 +159,8 @@ public class FactionEvents {
 
             recruitsFactionManager.addTeam(teamName, displayName, serverPlayer.getUUID(), serverPlayer.getScoreboardName(), banner.serializeNBT(), colorByte, newTeam.getColor());
             addPlayerToData(level, teamName, 1, playerName);
+            RecruitsFaction createdFactionForMember = recruitsFactionManager.getFactionByStringID(teamName);
+            if (createdFactionForMember != null) createdFactionForMember.addMember(serverPlayer.getUUID(), playerName);
 
             List<AbstractRecruitEntity> recruits = getRecruitsOfPlayer(serverPlayer.getUUID(), level);
             int recruitCount = recruits.size();
@@ -206,6 +217,7 @@ public class FactionEvents {
                     if(!fromLeader && leaderOfTeam != null) leaderOfTeam.sendSystemMessage(PLAYER_LEFT_TEAM_LEADER(playerName));
 
                     server.getScoreboard().removePlayerFromTeam(playerName, playerTeam);
+                    recruitsFaction.removeMember(playerName);
                     addPlayerToData(level,teamName,-1, playerName);
 
                 }
@@ -348,6 +360,7 @@ public class FactionEvents {
             playerToAdd.sendSystemMessage(ADDED_PLAYER(teamName));
             if(player != null) player.sendSystemMessage(ADDED_PLAYER_LEADER(namePlayerToAdd));
 
+            recruitsFaction.addMember(playerToAdd.getUUID(), namePlayerToAdd);
             addPlayerToData(level,teamName,1, namePlayerToAdd);
 
             int recruits = getRecruitsOfPlayer(playerToAdd.getUUID(), level).size();
@@ -429,6 +442,29 @@ public class FactionEvents {
             }
         }
         else Main.LOGGER.error("Could not add join request for "+ stringID + ".Team does not exist.");
+    }
+
+    public static void removeOfflinePlayerFromTeam(ServerPlayer player, String nameToRemove, ServerLevel level) {
+        MinecraftServer server = level.getServer();
+        Team team = player.getTeam();
+        if (team == null) return;
+
+        String teamName = team.getName();
+        RecruitsFaction recruitsFaction = recruitsFactionManager.getFactionByStringID(teamName);
+        if (recruitsFaction == null) return;
+
+        boolean isLeader = recruitsFaction.getTeamLeaderUUID().equals(player.getUUID());
+        if (!isLeader) return;
+
+        PlayerTeam playerTeam = server.getScoreboard().getPlayerTeam(teamName);
+        if (playerTeam == null || !playerTeam.getPlayers().contains(nameToRemove)) return;
+
+        server.getScoreboard().removePlayerFromTeam(nameToRemove, playerTeam);
+        recruitsFaction.removeMember(nameToRemove);
+        addPlayerToData(level, teamName, -1, nameToRemove);
+
+        recruitsFactionManager.save(server.overworld());
+        Main.LOGGER.info("Offline player " + nameToRemove + " removed from team " + teamName + " by " + player.getName().getString());
     }
 
     public static void tryToRemoveFromTeam(Team team, ServerPlayer serverPlayer, ServerPlayer potentialRemovePlayer, ServerLevel level, String nameToRemove, boolean menu) {

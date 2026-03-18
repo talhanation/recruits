@@ -41,33 +41,39 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
     public void updateEntryList() {
         entries.clear();
 
-        for (RecruitsPlayerInfo player : ClientManager.onlinePlayers) {
-
-            if(includeSelf || !player.getUUID().equals(this.player.getUUID())){
-
-                switch (filterType){
-                    default -> {
-                        entries.add(new RecruitsPlayerEntry(screen, player));
+        switch (filterType) {
+            case SAME_TEAM -> {
+                if (ClientManager.ownFaction != null) {
+                    Set<UUID> onlineUUIDs = new HashSet<>();
+                    for (RecruitsPlayerInfo online : ClientManager.onlinePlayers) {
+                        onlineUUIDs.add(online.getUUID());
                     }
-                    case SAME_TEAM -> {
-                        RecruitsFaction recruitsFaction = player.getFaction();
 
-                        if(recruitsFaction != null && ClientManager.ownFaction != null && recruitsFaction.getStringID().equals(ClientManager.ownFaction.getStringID())){
-                            entries.add(new RecruitsPlayerEntry(screen, player));
+                    for (RecruitsPlayerInfo member : ClientManager.ownFaction.getMembers()) {
+                        if (includeSelf || !member.getUUID().equals(this.player.getUUID())) {
+                            member.setOnline(onlineUUIDs.contains(member.getUUID()));
+                            entries.add(new RecruitsPlayerEntry(screen, member));
                         }
                     }
+                }
+            }
+            default -> {
+                for (RecruitsPlayerInfo playerInfo : ClientManager.onlinePlayers) {
+                    if (includeSelf || !playerInfo.getUUID().equals(this.player.getUUID())) {
+                        switch (filterType) {
+                            default -> entries.add(new RecruitsPlayerEntry(screen, playerInfo));
 
-                    case TEAM_JOIN_REQUEST -> {
-                        if(ClientManager.ownFaction != null && ClientManager.ownFaction.getJoinRequests().contains(player.getName())){
-                            entries.add(new RecruitsPlayerEntry(screen, player));
-                        }
-                    }
+                            case TEAM_JOIN_REQUEST -> {
+                                if (ClientManager.ownFaction != null && ClientManager.ownFaction.getJoinRequests().contains(playerInfo.getName())) {
+                                    entries.add(new RecruitsPlayerEntry(screen, playerInfo));
+                                }
+                            }
 
-                    case ANY_TEAM -> {
-                        RecruitsFaction recruitsFaction = player.getFaction();
-
-                        if(recruitsFaction != null){
-                            entries.add(new RecruitsPlayerEntry(screen, player));
+                            case ANY_TEAM -> {
+                                if (playerInfo.getFaction() != null) {
+                                    entries.add(new RecruitsPlayerEntry(screen, playerInfo));
+                                }
+                            }
                         }
                     }
                 }
@@ -81,9 +87,8 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
         clearEntries();
         List<RecruitsPlayerEntry> filteredEntries = new ArrayList<>(entries);
         if (!filter.isEmpty()) {
-            filteredEntries.removeIf(playerEntry -> {
-                return playerEntry.getPlayerInfo() == null || !playerEntry.getPlayerInfo().getName().toLowerCase(Locale.ROOT).contains(filter);
-            });
+            filteredEntries.removeIf(playerEntry ->
+                    playerEntry.getPlayerInfo() == null || !playerEntry.getPlayerInfo().getName().toLowerCase(Locale.ROOT).contains(filter));
         }
 
         filteredEntries.sort((e1, e2) -> {
@@ -94,6 +99,9 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
                     return -1;
                 }
             }
+            boolean o1online = e1.getPlayerInfo() != null && e1.getPlayerInfo().isOnline();
+            boolean o2online = e2.getPlayerInfo() != null && e2.getPlayerInfo().isOnline();
+            if (o1online != o2online) return o1online ? -1 : 1;
             return volumeEntryToString(e1).compareToIgnoreCase(volumeEntryToString(e2));
         });
 

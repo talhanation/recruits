@@ -29,16 +29,25 @@ public class MessageRemoveFromTeam implements Message<MessageRemoveFromTeam> {
         ServerPlayer sender = Objects.requireNonNull(context.getSender());
         ServerLevel level = sender.serverLevel();
 
-        level.players().forEach(
-                serverPlayer -> FactionEvents.tryToRemoveFromTeam(
+        boolean foundOnline = false;
+        for (ServerPlayer serverPlayer : level.players()) {
+            if (serverPlayer.getName().getString().equals(player)) {
+                FactionEvents.tryToRemoveFromTeam(
                         serverPlayer.getTeam(),
                         sender,
                         serverPlayer,
                         level,
                         player,
                         true
-                )
-        );
+                );
+                foundOnline = true;
+                break;
+            }
+        }
+
+        if (!foundOnline) {
+            FactionEvents.removeOfflinePlayerFromTeam(sender, player, level);
+        }
     }
 
     public MessageRemoveFromTeam fromBytes(FriendlyByteBuf buf) {

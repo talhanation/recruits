@@ -16,6 +16,7 @@ public class RecruitsFaction {
     public String teamLeaderName;
     public CompoundTag banner;
     public List<String> joinRequests = new ArrayList<>();
+    public List<RecruitsPlayerInfo> members = new ArrayList<>();
     public int players;
     public int npcs;
     public byte unitColor;
@@ -24,6 +25,7 @@ public class RecruitsFaction {
     public int maxNPCs;
     public int maxNPCsPerPlayer = -1;
     private int biome = -1;
+
     public RecruitsFaction(String stringID, String teamLeaderName, CompoundTag banner) {
         this.stringID = stringID;
         this.teamDisplayName = stringID;
@@ -46,6 +48,7 @@ public class RecruitsFaction {
     public String getStringID() {
         return stringID;
     }
+
     public String getTeamDisplayName() {
         return teamDisplayName;
     }
@@ -106,6 +109,20 @@ public class RecruitsFaction {
         return joinRequests;
     }
 
+    public void addMember(UUID uuid, String name) {
+        if (members.stream().noneMatch(m -> m.getUUID().equals(uuid))) {
+            members.add(new RecruitsPlayerInfo(uuid, name));
+        }
+    }
+
+    public void removeMember(String name) {
+        members.removeIf(m -> m.getName().equalsIgnoreCase(name));
+    }
+
+    public List<RecruitsPlayerInfo> getMembers() {
+        return members;
+    }
+
     public int getNPCs() {
         return npcs;
     }
@@ -121,6 +138,7 @@ public class RecruitsFaction {
     public int  getMaxNPCsPerPlayer() {
         return maxNPCsPerPlayer;
     }
+
     public int getTeamColor() {
         return teamColor;
     }
@@ -146,6 +164,7 @@ public class RecruitsFaction {
     public void setUnitColor(byte unitColor) {
         this.unitColor = unitColor;
     }
+
     public void setTeamColor(int color) {
         this.teamColor = color;
     }
@@ -178,13 +197,18 @@ public class RecruitsFaction {
         }
         nbt.put("joinRequests", joinRequestsTag);
 
+        ListTag membersTag = new ListTag();
+        for (RecruitsPlayerInfo member : members) {
+            membersTag.add(member.toNBT());
+        }
+        nbt.put("members", membersTag);
+
         nbt.putInt("players", this.players);
         nbt.putInt("npcs", this.npcs);
         nbt.putInt("maxPlayers", this.maxPlayers);
         nbt.putInt("maxNpcs", this.maxNPCs);
         nbt.putByte("unitColor", this.unitColor);
         nbt.putInt("teamColor", this.teamColor);
-        nbt.putInt("maxPlayers", this.maxPlayers);
         nbt.putInt("biome", this.biome);
         nbt.putInt("maxNPCsPerPlayer", this.maxNPCsPerPlayer);
 
@@ -207,9 +231,17 @@ public class RecruitsFaction {
         team.setTeamLeaderName(nbt.getString("teamLeaderName"));
         team.setBanner(nbt.getCompound("banner"));
 
-        ListTag joinRequestsTag = nbt.getList("joinRequests", 8); // 8 is the ID for StringTag
+        ListTag joinRequestsTag = nbt.getList("joinRequests", 8);
         for (int i = 0; i < joinRequestsTag.size(); i++) {
             team.addPlayerAsJoinRequest(joinRequestsTag.getString(i));
+        }
+
+        ListTag membersTag = nbt.getList("members", 10);
+        for (int i = 0; i < membersTag.size(); i++) {
+            RecruitsPlayerInfo member = RecruitsPlayerInfo.getFromNBT(membersTag.getCompound(i));
+            if (member != null) {
+                team.members.add(member);
+            }
         }
 
         team.setPlayers(nbt.getInt("players"));
@@ -218,7 +250,6 @@ public class RecruitsFaction {
         team.setMaxNPCs(nbt.getInt("maxNpcs"));
         team.setUnitColor(nbt.getByte("unitColor"));
         team.setTeamColor(nbt.getInt("teamColor"));
-        team.maxPlayers = nbt.getInt("maxPlayers");
         team.biome = nbt.getInt("biome");
         team.setMaxNPCsPerPlayer(nbt.getInt("maxNPCsPerPlayer"));
         return team;
@@ -238,7 +269,7 @@ public class RecruitsFaction {
 
     public static List<RecruitsFaction> getListFromNBT(CompoundTag nbt) {
         List<RecruitsFaction> list = new ArrayList<>();
-        ListTag teamList = nbt.getList("Teams", 10); // 10 corresponds to CompoundTag type
+        ListTag teamList = nbt.getList("Teams", 10);
 
         for (int i = 0; i < teamList.size(); i++) {
             CompoundTag teamTag = teamList.getCompound(i);
@@ -265,4 +296,3 @@ public class RecruitsFaction {
         COMMANDER,
     }
 }
-

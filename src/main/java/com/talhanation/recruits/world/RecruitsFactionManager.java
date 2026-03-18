@@ -20,6 +20,7 @@ import net.minecraftforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class RecruitsFactionManager {
     private final Map<String, RecruitsFaction> teams = new HashMap<>();
@@ -96,6 +97,7 @@ public class RecruitsFactionManager {
         recruitsFaction.setMaxNPCs(RecruitsServerConfig.MaxNPCsInFaction.get());
         teams.put(teamName, recruitsFaction);
     }
+
     public void removeTeam(String teamName) {
         teams.remove(teamName);
     }
@@ -125,13 +127,16 @@ public class RecruitsFactionManager {
         }
         return inUse;
     }
+
     public static boolean isBannerBlank(ItemStack itemStack){
         CompoundTag compoundtag = BlockItem.getBlockEntityData(itemStack);
         return compoundtag == null || !compoundtag.contains("Patterns");
     }
+
     public boolean isDisplayNameInUse(String displayName){
         return isDisplayNameInUse(displayName, getFactions().stream().toList());
     }
+
     public boolean isNameInUse(String factionName){
         return isNameInUse(factionName, getFactions().stream().toList());
     }
@@ -140,7 +145,7 @@ public class RecruitsFactionManager {
         return isBannerInUse(bannerNbt, getFactions().stream().toList());
     }
 
-    public void broadcastOnlinePlayersToPlayer(ServerPlayer serverPlayer , ServerLevel serverLevel) {
+    public void broadcastOnlinePlayersToPlayer(ServerPlayer serverPlayer, ServerLevel serverLevel) {
         if (serverPlayer == null) return;
 
         List<RecruitsPlayerInfo> playerInfoList = new ArrayList<>();
@@ -148,10 +153,15 @@ public class RecruitsFactionManager {
         for(ServerPlayer onlinePlayer : serverLevel.players()){
             if(onlinePlayer.getTeam() != null){
                 RecruitsFaction faction = this.getFactionByStringID(onlinePlayer.getTeam().getName());
-                playerInfoList.add(new RecruitsPlayerInfo(onlinePlayer.getUUID(), onlinePlayer.getScoreboardName(), faction));
+                RecruitsPlayerInfo info = new RecruitsPlayerInfo(onlinePlayer.getUUID(), onlinePlayer.getScoreboardName(), faction);
+                info.setOnline(true);
+                playerInfoList.add(info);
             }
-            else
-                playerInfoList.add(new RecruitsPlayerInfo(onlinePlayer.getUUID(), onlinePlayer.getScoreboardName()));
+            else {
+                RecruitsPlayerInfo info = new RecruitsPlayerInfo(onlinePlayer.getUUID(), onlinePlayer.getScoreboardName());
+                info.setOnline(true);
+                playerInfoList.add(info);
+            }
         }
 
         Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> serverPlayer),
@@ -187,6 +197,8 @@ public class RecruitsFactionManager {
     }
 
     private void broadcastOwnFactionToPlayer(Player player) {
+        if (!(player instanceof ServerPlayer serverPlayer)) return;
+
         String teamName = "";
         if(player.getTeam() != null){
             teamName = player.getTeam().getName();
@@ -194,9 +206,17 @@ public class RecruitsFactionManager {
 
         RecruitsFaction faction = this.getFactionByStringID(teamName);
 
-        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player),
+        if (faction != null) {
+            // Update online status for all members
+            Set<String> onlineNames = serverPlayer.getServer().getPlayerList().getPlayers()
+                    .stream().map(p -> p.getName().getString()).collect(Collectors.toSet());
+            faction.getMembers().forEach(member -> member.setOnline(onlineNames.contains(member.getName())));
+        }
+
+        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> serverPlayer),
                 new MessageToClientUpdateOwnFaction(faction));
     }
+
     public void broadcastFactionsToPlayer(Player player) {
         if (player == null) return;
 
@@ -226,10 +246,15 @@ public class RecruitsFactionManager {
         for(ServerPlayer onlinePlayer : serverLevel.getServer().getPlayerList().getPlayers()){
             if(onlinePlayer.getTeam() != null){
                 RecruitsFaction faction = this.getFactionByStringID(onlinePlayer.getTeam().getName());
-                playerInfoList.add(new RecruitsPlayerInfo(onlinePlayer.getUUID(), onlinePlayer.getScoreboardName(), faction));
+                RecruitsPlayerInfo info = new RecruitsPlayerInfo(onlinePlayer.getUUID(), onlinePlayer.getScoreboardName(), faction);
+                info.setOnline(true);
+                playerInfoList.add(info);
             }
-            else
-                playerInfoList.add(new RecruitsPlayerInfo(onlinePlayer.getUUID(), onlinePlayer.getScoreboardName()));
+            else {
+                RecruitsPlayerInfo info = new RecruitsPlayerInfo(onlinePlayer.getUUID(), onlinePlayer.getScoreboardName());
+                info.setOnline(true);
+                playerInfoList.add(info);
+            }
         }
 
         for(ServerPlayer serverPlayer : serverLevel.getServer().getPlayerList().getPlayers()){
@@ -246,4 +271,3 @@ public class RecruitsFactionManager {
         }
     }
 }
-
