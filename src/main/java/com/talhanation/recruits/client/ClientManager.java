@@ -35,6 +35,7 @@ public class ClientManager {
     @Nullable
     public static RecruitsClaim currentClaim;
     public static boolean configValueIsClaimingAllowed;
+    public static boolean configFogOfWarEnabled;
 
     public static Map<String, RecruitsRoute> routesMap = new HashMap<>();
     public static boolean canPlayerHire;

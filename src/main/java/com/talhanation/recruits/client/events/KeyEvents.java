@@ -10,6 +10,7 @@ import com.talhanation.recruits.network.MessageWriteSpawnEgg;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.InputEvent;
@@ -34,7 +35,9 @@ public class KeyEvents {
         }
 
         if (ModShortcuts.MAP_SCREEN_KEY.isDown()) {
-            minecraft.setScreen(new WorldMapScreen());
+            if (minecraft.level != null && minecraft.level.dimension() == Level.OVERWORLD) {
+                minecraft.setScreen(new WorldMapScreen());
+            }
         }
     }
 

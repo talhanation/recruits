@@ -42,7 +42,7 @@ public class WorldMapScreen extends Screen {
     private static final ResourceLocation MAP_ICONS = new ResourceLocation("textures/map/map_icons.png");
     private final ChunkTileManager tileManager;
     private final Player player;
-    private static final double MIN_SCALE = 0.5;
+    private static final double MIN_SCALE = 0.2;
     private static final double MAX_SCALE = 10.0;
     private static final double DEFAULT_SCALE = 2.0;
     private static final double SCALE_STEP = 0.1;
@@ -150,7 +150,7 @@ public class WorldMapScreen extends Screen {
 
         renderCoordinatesAndZoom(guiGraphics);
 
-        //renderFPS(guiGraphics);
+        renderFPS(guiGraphics);
 
         contextMenu.render(guiGraphics, this);
 
@@ -473,8 +473,16 @@ public class WorldMapScreen extends Screen {
 
         RecruitsClaim clickedClaim = ClaimRenderer.getClaimAtPosition(mouseX, mouseY, offsetX, offsetZ, scale);
         if (clickedClaim != null) {
-            selectedClaim = clickedClaim;
-            claimInfoMenu.openForClaim(selectedClaim, (int) mouseX, (int) mouseY);
+            boolean canInspect = !ClientManager.configFogOfWarEnabled
+                    || isPlayerAdminAndCreative()
+                    || ClaimRenderer.isClaimExplored(clickedClaim);
+            if (canInspect) {
+                selectedClaim = clickedClaim;
+                claimInfoMenu.openForClaim(selectedClaim, (int) mouseX, (int) mouseY);
+            } else {
+                selectedClaim = null;
+                claimInfoMenu.close();
+            }
         }
         else {
             selectedClaim = null;
@@ -666,6 +674,7 @@ public class WorldMapScreen extends Screen {
     public void claimArea() {
         if(!canPlayerPay(getClaimCost(ownFaction), player)) return;
         if(!ClientManager.configValueIsClaimingAllowed) return;
+        if(!isPlayerInOverworld()) return;
 
         List<ChunkPos> area = getClaimArea(this.selectedChunk);
 
@@ -686,6 +695,7 @@ public class WorldMapScreen extends Screen {
     public void claimChunk() {
         if(!canPlayerPay(ClientManager.configValueChunkCost, player)) return;
         if(!ClientManager.configValueIsClaimingAllowed) return;
+        if(!isPlayerInOverworld()) return;
 
         RecruitsClaim neighborClaim = getNeighborClaim(selectedChunk);
         if(neighborClaim == null) return;
@@ -869,6 +879,10 @@ public class WorldMapScreen extends Screen {
 
         return false;
     }
+    private boolean isPlayerInOverworld() {
+        return minecraft.level != null && minecraft.level.dimension() == net.minecraft.world.level.Level.OVERWORLD;
+    }
+
     public boolean canClaimChunk(ChunkPos pos) {
         if (!ClientManager.configValueIsClaimingAllowed) return false;
         if (pos == null || ClientManager.ownFaction == null) return false;

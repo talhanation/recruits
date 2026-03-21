@@ -1,5 +1,6 @@
 package com.talhanation.recruits.client.gui.worldmap;
 
+import com.talhanation.recruits.client.gui.worldmap.ChunkTileManager;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.faction.FactionEditScreen;
@@ -35,14 +36,32 @@ public class ClaimRenderer {
         }
     }
 
+    private static final int FOG_FILL_COLOR    = 0x30303030;
+    private static final int FOG_OUTLINE_COLOR  = 0x80555555;
+
+    private static boolean isAdminCreative() {
+        net.minecraft.client.player.LocalPlayer player = Minecraft.getInstance().player;
+        return player != null && player.hasPermissions(2) && player.isCreative();
+    }
+
+    public static boolean isClaimExplored(RecruitsClaim claim) {
+        ChunkTileManager tileManager = ChunkTileManager.getInstance();
+        for (ChunkPos chunk : claim.getClaimedChunks()) {
+            if (tileManager.isChunkExplored(chunk)) return true;
+        }
+        return false;
+    }
+
     private static void renderClaimFill(GuiGraphics guiGraphics, RecruitsClaim claim, double offsetX, double offsetZ, double scale) {
         if (claim.getClaimedChunks().isEmpty()) return;
 
-        int color = getClaimColor(claim);
-        int fillColor = (190 << 24) | (color & 0x00FFFFFF);
+        int factionFillColor = (190 << 24) | (getClaimColor(claim) & 0x00FFFFFF);
+        boolean adminCreative = isAdminCreative();
+        ChunkTileManager tileManager = ChunkTileManager.getInstance();
 
         for (ChunkPos chunk : claim.getClaimedChunks()) {
-            renderChunk(guiGraphics, chunk, fillColor, offsetX, offsetZ, scale);
+            boolean explored = adminCreative || tileManager.isChunkExplored(chunk);
+            renderChunk(guiGraphics, chunk, explored ? factionFillColor : FOG_FILL_COLOR, offsetX, offsetZ, scale);
         }
     }
 
@@ -67,12 +86,14 @@ public class ClaimRenderer {
 
         Set<ChunkPos> chunkSet = new HashSet<>(claim.getClaimedChunks());
 
-        int baseColor = getClaimColor(claim);
-        int outlineColor = (200 << 24) | (baseColor & 0x00FFFFFF);
-
+        int factionOutlineColor = (200 << 24) | (getClaimColor(claim) & 0x00FFFFFF);
         int thickness = Math.max(1, (int)Math.round(scale * 0.5));
+        boolean adminCreative = isAdminCreative();
+        ChunkTileManager tileManager = ChunkTileManager.getInstance();
 
         for (ChunkPos chunk : claim.getClaimedChunks()) {
+            boolean explored = adminCreative || !ClientManager.configFogOfWarEnabled || tileManager.isChunkExplored(chunk);
+            int outlineColor = explored ? factionOutlineColor : FOG_OUTLINE_COLOR;
 
             boolean hasTop    = chunkSet.contains(new ChunkPos(chunk.x, chunk.z - 1));
             boolean hasBottom = chunkSet.contains(new ChunkPos(chunk.x, chunk.z + 1));
@@ -154,8 +175,11 @@ public class ClaimRenderer {
     public static void renderClaimName(GuiGraphics guiGraphics, RecruitsClaim claim, double offsetX, double offsetZ, double scale) {
         if (claim.getClaimedChunks().isEmpty() || scale < 1.0) return;
 
+        boolean explored = !ClientManager.configFogOfWarEnabled || isAdminCreative() || isClaimExplored(claim);
+
         Font font = Minecraft.getInstance().font;
-        String name = claim.getName();
+        String name = explored ? claim.getName() : "???";
+        int nameColor = explored ? 0xFFFFFF : 0x888888;
 
         int minX = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE;
@@ -187,7 +211,7 @@ public class ClaimRenderer {
 
         pose.scale(textScale, textScale, 1.0f);
 
-        guiGraphics.drawString(font, name, 0, 0, 0xFFFFFF, false);
+        guiGraphics.drawString(font, name, 0, 0, nameColor, false);
 
         pose.popPose();
     }

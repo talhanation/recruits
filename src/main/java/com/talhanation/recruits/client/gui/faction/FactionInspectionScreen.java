@@ -118,7 +118,9 @@ public class FactionInspectionScreen extends ListScreenBase implements IPlayerSe
         boolean isTeamLeader = ClientManager.ownFaction.getTeamLeaderUUID().equals(player.getUUID());
         claimMapButton = new ExtendedButton(guiLeft + 160, guiTop + 99, 60, 20, CLAIM_BUTTON,
                 button -> {
-                    minecraft.setScreen(new WorldMapScreen());
+                    if (minecraft.level != null && minecraft.level.dimension() == net.minecraft.world.level.Level.OVERWORLD) {
+                        minecraft.setScreen(new WorldMapScreen());
+                    }
                 });
         claimMapButton.visible = isTeamLeader;// TODO: && isClaimingAllowed;
         addRenderableWidget(claimMapButton);

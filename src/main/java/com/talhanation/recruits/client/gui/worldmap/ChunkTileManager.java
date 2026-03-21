@@ -153,4 +153,16 @@ public class ChunkTileManager {
     public Map<String, ChunkTile> getLoadedTiles() {
         return loadedTiles;
     }
+
+    public boolean isChunkExplored(ChunkPos chunk) {
+        int tileX = ChunkTile.chunkToTileCoord(chunk.x);
+        int tileZ = ChunkTile.chunkToTileCoord(chunk.z);
+        ChunkTile tile = loadedTiles.get(tileX + "_" + tileZ);
+        if (tile == null || tile.getImage() == null) return false;
+
+        int localX = Math.floorMod(chunk.x, ChunkTile.TILE_SIZE) * ChunkTile.PIXELS_PER_CHUNK + ChunkTile.PIXELS_PER_CHUNK / 2;
+        int localZ = Math.floorMod(chunk.z, ChunkTile.TILE_SIZE) * ChunkTile.PIXELS_PER_CHUNK + ChunkTile.PIXELS_PER_CHUNK / 2;
+
+        return (tile.getImage().getPixelRGBA(localX, localZ) >> 24 & 0xFF) > 0;
+    }
 }

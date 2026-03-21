@@ -8,6 +8,7 @@ import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -31,6 +32,7 @@ public class MessageUpdateClaim implements Message<MessageUpdateClaim> {
     public void executeServerSide(NetworkEvent.Context context){
         RecruitsClaim updatedClaim = RecruitsClaim.fromNBT(this.claimNBT);
         if(!RecruitsServerConfig.AllowClaiming.get()) return;
+        if(context.getSender().level().dimension() != Level.OVERWORLD) return;
 
         ClaimEvents.recruitsClaimManager.addOrUpdateClaim((ServerLevel) context.getSender().getCommandSenderWorld(), updatedClaim);
     }

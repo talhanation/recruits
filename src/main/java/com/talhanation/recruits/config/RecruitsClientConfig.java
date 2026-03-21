@@ -16,6 +16,7 @@ public class RecruitsClientConfig {
     public static ForgeConfigSpec.BooleanValue RecruitsLookLikeVillagers;
     public static ForgeConfigSpec.BooleanValue UpdateCheckerClientside;
     public static ForgeConfigSpec.BooleanValue DisableClaimGUIOverlay;
+    public static ForgeConfigSpec.BooleanValue UpdateMapTiles;
 
     static{
         BUILDER.comment("Recruits Config Client Side:").push("RecruitsClientSide");
@@ -66,6 +67,16 @@ public class RecruitsClientConfig {
 
                 .worldRestart()
                 .define("DisableClaimGUIOverlay", false);
+
+        UpdateMapTiles = BUILDER.comment("""
+                        ----UpdateMapTiles----
+                        \t(takes effect after restart)
+                        \t
+                        Should the world map tiles be updated while the map is open?
+                        Disable this if you experience performance issues with the map.""
+                        default: true""")
+                .worldRestart()
+                .define("UpdateMapTiles", true);
 
         BUILDER.pop();
         CLIENT = BUILDER.build();

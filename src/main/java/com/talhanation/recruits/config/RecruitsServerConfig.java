@@ -90,6 +90,7 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.BooleanValue ShouldProfessionBlocksTrade;
     public static ForgeConfigSpec.BooleanValue NobleVillagerSpawn;
     public static ForgeConfigSpec.BooleanValue AllowClaiming;
+    public static ForgeConfigSpec.BooleanValue FogOfWarEnabled;
     public static ForgeConfigSpec.BooleanValue RecruitsStarving;
     public static ForgeConfigSpec.BooleanValue SiegeRequiresOwnerOnline;
 
@@ -831,6 +832,13 @@ public class RecruitsServerConfig {
                         \tdefault: 10""")
                 .worldRestart()
                 .defineInRange("SiegeClaimsConquerTime", 10, 0, 1453);
+
+        FogOfWarEnabled = BUILDER.comment("""
+                        Should claims inside unexplored (fog-of-war) chunks be hidden on the world map?
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("FogOfWarEnabled", true);
 
         SERVER = BUILDER.build();
     }
