@@ -8,6 +8,7 @@ import com.talhanation.recruits.world.RecruitsClaim;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -73,6 +74,8 @@ public class ClaimOverlayManager {
         if (!mc.gui.getBossOverlay().events.isEmpty()) {
             return;
         }
+
+        if (mc.level != null && mc.level.dimension() != Level.OVERWORLD)return;
 
         if(RecruitsClientConfig.DisableClaimGUIOverlay.get()) return;
 
