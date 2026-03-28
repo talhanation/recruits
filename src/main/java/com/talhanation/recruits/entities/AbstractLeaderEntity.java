@@ -40,15 +40,21 @@ import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nullable;
+import java.util.*;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 
 public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity implements ICompanion {
     private static final EntityDataAccessor<Integer> WAYPOINT_INDEX = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> WAIT_TIME_IN_MIN = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> CYCLE = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.BOOLEAN);
-    private static final EntityDataAccessor<Boolean> FAST_PATROLLING = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Byte> PATROL_SPEED = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.BYTE);
+    private static final EntityDataAccessor<Byte> ENEMY_ACTION = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.BYTE);
     private static final EntityDataAccessor<Byte> PATROLLING_STATE = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.BYTE);
     private static final EntityDataAccessor<Byte> INFO_MODE = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.BYTE);
+    private static final EntityDataAccessor<Optional<UUID>> ROUTE_ID = SynchedEntityData.defineId(AbstractLeaderEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     public boolean returning;
     public boolean retreating;
     public int commandCooldown = 0;
@@ -70,17 +76,21 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         }
     }
 
-    public Stack<BlockPos> WAYPOINTS = new Stack<>();
-    public Stack<ItemStack> WAYPOINT_ITEMS = new Stack<>();
+    public Stack<BlockPos>  WAYPOINTS            = new Stack<>();
+    public Stack<ItemStack> WAYPOINT_ITEMS       = new Stack<>();
+    /** Per-waypoint wait time in seconds (parallel to WAYPOINTS). 0 = no wait. */
+    public java.util.ArrayList<Integer> WAYPOINT_WAIT_SECONDS = new java.util.ArrayList<>();
 
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(WAYPOINT_INDEX, 0);
         this.entityData.define(WAIT_TIME_IN_MIN, 0);
         this.entityData.define(CYCLE, false);
-        this.entityData.define(FAST_PATROLLING, false);
+        this.entityData.define(PATROL_SPEED, (byte) 1); // 0=SLOW 1=NORMAL 2=FAST
+        this.entityData.define(ENEMY_ACTION, (byte) 0); // 0=CHARGE 1=HOLD 2=KEEP_PATROLLING
         this.entityData.define(PATROLLING_STATE, (byte) 3);
         this.entityData.define(INFO_MODE, (byte) 0);
+        this.entityData.define(ROUTE_ID, Optional.empty());
     }
 
     public void addAdditionalSaveData(CompoundTag nbt) {
@@ -95,7 +105,9 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         nbt.putBoolean("retreating", this.retreating);
         nbt.putByte("infoMode", this.getInfoMode());
         nbt.putString("OwnerName", this.ownerName);
-        nbt.putBoolean("fastPatrolling", this.getFastPatrolling());
+        nbt.putByte("patrolSpeed", this.getPatrolSpeed());
+        nbt.putByte("enemyAction", this.getEnemyAction());
+        if (this.getRouteID() != null) nbt.putUUID("routeId", this.getRouteID());
         nbt.putInt("waitForRecruitsUpkeepTime", this.waitForRecruitsUpkeepTime);
 
         ListTag waypointItems = new ListTag();
@@ -123,6 +135,14 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         }
         nbt.put("Waypoints", waypoints);
 
+        ListTag waypointWaits = new ListTag();
+        for (int i = 0; i < WAYPOINT_WAIT_SECONDS.size(); i++) {
+            CompoundTag wt = new CompoundTag();
+            wt.putInt("WaitSec", WAYPOINT_WAIT_SECONDS.get(i));
+            waypointWaits.add(wt);
+        }
+        nbt.put("WaypointWaits", waypointWaits);
+
         CompoundTag armyTag = new CompoundTag();
         if(army != null) army.save(armyTag);
         nbt.put("ArmyData", armyTag);
@@ -142,7 +162,9 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         this.waitForRecruitsUpkeepTime = nbt.getInt("waitForRecruitsUpkeepTime");
         this.setInfoMode(nbt.getByte("infoMode"));
         this.ownerName = nbt.getString("ownerName");
-        this.setFastPatrolling(nbt.getBoolean("fastPatrolling"));
+        this.setPatrolSpeed(nbt.getByte("patrolSpeed"));
+        this.setEnemyAction(nbt.getByte("enemyAction"));
+        if (nbt.hasUUID("routeId")) this.setRouteID(nbt.getUUID("routeId"));
 
         ListTag waypointItems = nbt.getList("WaypointItems", 10);
         for (int i = 0; i < waypointItems.size(); ++i) {
@@ -161,6 +183,13 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                     (int)compoundnbt.getDouble("PosZ"));
             this.WAYPOINTS.push(pos);
         }
+
+        WAYPOINT_WAIT_SECONDS.clear();
+        ListTag waypointWaits = nbt.getList("WaypointWaits", 10);
+        for (int i = 0; i < waypointWaits.size(); i++) {
+            WAYPOINT_WAIT_SECONDS.add(waypointWaits.getCompound(i).getInt("WaitSec"));
+        }
+        while (WAYPOINT_WAIT_SECONDS.size() < WAYPOINTS.size()) WAYPOINT_WAIT_SECONDS.add(0);
 
         if (nbt.contains("ArmyData") && !this.getCommandSenderWorld().isClientSide()) {
             army = NPCArmy.load((ServerLevel) this.getCommandSenderWorld(), nbt.getCompound("ArmyData"));
@@ -217,9 +246,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                         }
                         else
                         {
-                            this.updateWaypointIndex();
-
-                            this.waitingTime = 120;
+                            this.waitingTime = 0;
 
                             this.setPatrolState(State.WAITING);
                         }
@@ -249,8 +276,10 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
 
             case WAITING -> {
                 if(timerElapsed() && hasIndex()){
-                    this.currentWaypoint = WAYPOINTS.get(getWaypointIndex());
-                    //this.currentRecruitsInCommand = getRecruitsInCommand();
+                    this.updateWaypointIndex();
+                    if(hasIndex()){
+                        this.currentWaypoint = WAYPOINTS.get(getWaypointIndex());
+                    }
                     this.setPatrolState(State.PATROLLING);
                 }
 
@@ -328,13 +357,22 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             if(targets.isEmpty()) return;
 
             this.enemyArmy = new NPCArmy((ServerLevel) level(), targets, null);
-            if(state != State.ATTACKING && canAttackWhilePatrolling()) this.setPatrolState(State.ATTACKING);
+            EnemyAction action = EnemyAction.fromIndex(getEnemyAction());
+            if (action == EnemyAction.KEEP_PATROLLING) return; // ignore enemies, keep walking
+            if(state != State.ATTACKING && canAttackWhilePatrolling()) {
+                if (action == EnemyAction.HOLD) {
+                    // Stop moving, let recruits fight in place
+                    this.getNavigation().stop();
+                }
+                this.setPatrolState(State.ATTACKING);
+            }
         }
 
     }
 
     public boolean canAttackWhilePatrolling() {
-        return true;
+        EnemyAction action = EnemyAction.fromIndex(getEnemyAction());
+        return action == EnemyAction.CHARGE || action == EnemyAction.HOLD;
     }
 
     @Override
@@ -400,7 +438,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
 
     protected void moveToCurrentWaypoint() {
         if(this.tickCount % 20 == 0){
-            this.getNavigation().moveTo(currentWaypoint.getX(), currentWaypoint.getY(), currentWaypoint.getZ(), this.getFastPatrolling() ? 1F : 0.6F);
+            this.getNavigation().moveTo(currentWaypoint.getX(), currentWaypoint.getY(), currentWaypoint.getZ(), PatrolSpeed.fromIndex(getPatrolSpeed()).toSpeed());
             Vec3 forward = this.position().vectorTo(this.currentWaypoint.getCenter());
 
             if(army != null){
@@ -444,7 +482,14 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     }
 
     private boolean timerElapsed() {
-        return ++waitingTime > getWaitTimeInMin() * 60 * 20;
+        int currentIdx = getWaypointIndex();
+        int waitSec;
+        if (!WAYPOINT_WAIT_SECONDS.isEmpty() && currentIdx < WAYPOINT_WAIT_SECONDS.size()) {
+            waitSec = WAYPOINT_WAIT_SECONDS.get(currentIdx);
+        } else {
+            waitSec = getWaitTimeInMin() * 60;
+        }
+        return ++waitingTime > waitSec * 20;
     }
 
     public void decreaseIndex() {
@@ -535,15 +580,132 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     public int getWaypointIndex() {
         return this.entityData.get(WAYPOINT_INDEX);
     }
+    @Nullable
+    public UUID getRouteID() {
+        return this.entityData.get(ROUTE_ID).orElse(null);
+    }
 
+    public void setRouteID(UUID uuid) {
+        this.entityData.set(ROUTE_ID, Optional.of(uuid));
+    }
+
+    public void clearRouteID() {
+        this.entityData.set(ROUTE_ID, Optional.empty());
+    }
+
+    /** @deprecated Use {@link #setPatrolSpeed(byte)} instead. Kept for backwards-compat. */
+    @Deprecated
     public void setFastPatrolling(boolean fastPatrolling) {
-        this.entityData.set(FAST_PATROLLING, fastPatrolling);
+        setPatrolSpeed(fastPatrolling ? PatrolSpeed.FAST.getIndex() : PatrolSpeed.NORMAL.getIndex());
     }
 
     public boolean getFastPatrolling() {
-        return false;
+        return getPatrolSpeed() == PatrolSpeed.FAST.getIndex();
     }
 
+    // ---- PatrolSpeed --------------------------------------------------------
+
+    public enum PatrolSpeed {
+        SLOW((byte) 0), NORMAL((byte) 1), FAST((byte) 2);
+        private final byte index;
+        PatrolSpeed(byte index) { this.index = index; }
+        public byte getIndex() { return index; }
+        public static PatrolSpeed fromIndex(byte index) {
+            for (PatrolSpeed s : values()) if (s.index == index) return s;
+            return NORMAL;
+        }
+        public float toSpeed() {
+            return switch (this) { case SLOW -> 0.4f; case NORMAL -> 0.6f; case FAST -> 1.0f; };
+        }
+    }
+
+    public byte getPatrolSpeed() { return this.entityData.get(PATROL_SPEED); }
+    public void setPatrolSpeed(byte speed) { this.entityData.set(PATROL_SPEED, speed); }
+
+    // ---- EnemyAction --------------------------------------------------------
+
+    public enum EnemyAction {
+        CHARGE((byte) 0), HOLD((byte) 1), KEEP_PATROLLING((byte) 2);
+        private final byte index;
+        EnemyAction(byte index) { this.index = index; }
+        public byte getIndex() { return index; }
+        public EnemyAction getNext() {
+            EnemyAction[] values = values();
+            return values[(ordinal() + 1) % values.length];
+        }
+        public static EnemyAction fromIndex(byte index) {
+            for (EnemyAction a : values()) if (a.index == index) return a;
+            return CHARGE;
+        }
+    }
+
+    public byte getEnemyAction() { return this.entityData.get(ENEMY_ACTION); }
+    public void setEnemyAction(byte action) { this.entityData.set(ENEMY_ACTION, action); }
+
+    // ---- Route --------------------------------------------------------------
+
+    /**
+     * Loads the waypoints from the assigned RecruitsRoute into WAYPOINTS.
+     * Called server-side when patrol is started. Picks the nearest waypoint as
+     * the start index.
+     */
+    /**
+     * Resolves the correct surface Y for a waypoint position using the server's
+     * heightmap. Keeps the client-supplied XZ but replaces Y with the real
+     * surface block so ship navigation receives an accurate water level.
+     */
+    private BlockPos resolveServerY(BlockPos pos) {
+        net.minecraft.world.level.Level level = getCommandSenderWorld();
+        int surfaceY = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE,
+                pos.getX(), pos.getZ()) - 1;
+        int y = Math.max(surfaceY, level.getMinBuildHeight());
+        return new BlockPos(pos.getX(), y, pos.getZ());
+    }
+
+        public void loadRouteWaypointsFromData(java.util.List<BlockPos> positions,
+                                            java.util.List<Integer> waitSecs) {
+        WAYPOINTS.clear();
+        WAYPOINT_ITEMS.clear();
+        WAYPOINT_WAIT_SECONDS.clear();
+
+        if (positions == null || positions.isEmpty()) return;
+
+        for (int i = 0; i < positions.size(); i++) {
+            BlockPos clientPos = positions.get(i);
+            // Resolve the correct surface Y server-side so ship navigation gets
+            // the real terrain height, not the client-side fallback value.
+            BlockPos pos = resolveServerY(clientPos);
+            WAYPOINTS.push(pos);
+            WAYPOINT_ITEMS.push(getItemStackToRender(pos));
+            WAYPOINT_WAIT_SECONDS.add(waitSecs != null && i < waitSecs.size() ? waitSecs.get(i) : 0);
+        }
+
+        // Pick the nearest waypoint as start
+        int nearestIndex = 0;
+        double nearestDist = Double.MAX_VALUE;
+        for (int i = 0; i < WAYPOINTS.size(); i++) {
+            double d = this.distanceToSqr(WAYPOINTS.get(i).getX(), 0, WAYPOINTS.get(i).getZ());
+            if (d < nearestDist) { nearestDist = d; nearestIndex = i; }
+        }
+        this.setWaypointIndex(nearestIndex);
+        this.returning    = false;
+        this.waitingTime  = 0;
+        this.currentWaypoint = WAYPOINTS.get(nearestIndex);
+    }
+
+    @Deprecated
+    public void loadRouteWaypoints(com.talhanation.recruits.world.RecruitsRoute route) {
+        if (route == null) return;
+        java.util.List<BlockPos> positions = new java.util.ArrayList<>();
+        java.util.List<Integer>  waits     = new java.util.ArrayList<>();
+        for (com.talhanation.recruits.world.RecruitsRoute.Waypoint wp : route.getWaypoints()) {
+            positions.add(wp.getPosition());
+            waits.add(wp.getAction() != null
+                    && wp.getAction().getType() == com.talhanation.recruits.world.RecruitsRoute.WaypointAction.Type.WAIT
+                    ? wp.getAction().getWaitSeconds() : 0);
+        }
+        loadRouteWaypointsFromData(positions, waits);
+    }
     public MutableComponent ENEMY_CONTACT(String name, BlockPos pos){
         return Component.translatable("chat.recruits.text.patrol_leader_enemy_contact", this.getName().getString(), name, pos.getX(), pos.getY(), pos.getZ());
     }

@@ -44,8 +44,9 @@ public class PatrolLeaderAttackController implements IAttackController {
             }
 
             RecruitCommanderUtil.setRecruitsAggroState(this.leader.army.getAllRecruitUnits(), leader.getState());
-            RecruitCommanderUtil.setRecruitsMoveSpeed( this.leader.army.getAllRecruitUnits(),1.0F);
 
+
+            RecruitCommanderUtil.setRecruitsMoveSpeed(this.leader.army.getAllRecruitUnits(), 1.0F);
             this.setRecruitsTargets();
 
             if(distanceToTarget < 2500) {
@@ -54,6 +55,14 @@ public class PatrolLeaderAttackController implements IAttackController {
                     return;
                 }
                 leader.commandCooldown = 400;
+
+
+                if(leader.getEnemyAction() == AbstractLeaderEntity.EnemyAction.HOLD.getIndex()){
+                    this.leader.getNavigation().stop();
+                    this.setRecruitsTargets();
+                    return;
+                }
+
                 commandArmy(this.leader.army, this.leader.enemyArmy);
             }
             else{

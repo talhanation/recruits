@@ -9,6 +9,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.*;
 
 public class ClientManager {
@@ -63,34 +64,27 @@ public class ClientManager {
         long expiry = treaties.getOrDefault(key, 0L);
         return Math.max(0L, expiry - System.currentTimeMillis());
     }
+
     @OnlyIn(Dist.CLIENT)
-    public static RecruitsPlayerInfo getPlayerInfo(){
+    public static RecruitsPlayerInfo getPlayerInfo() {
         Player player = Minecraft.getInstance().player;
-        if(player != null){
-            return new RecruitsPlayerInfo(player.getUUID(), player.getName().getString(), ownFaction);
-        }
-       return null;
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static RecruitsGroup getGroup(UUID groupUUID){
-        for(RecruitsGroup group : groups){
-            if(group.getUUID().equals(groupUUID)) return group;
-        }
-
+        if (player != null) return new RecruitsPlayerInfo(player.getUUID(), player.getName().getString(), ownFaction);
         return null;
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static RecruitsGroup getSelectedGroup(){
-        if(groups != null && !groups.isEmpty()){
-            try{
-                return groups.get(groupSelection);
-            }
-            catch (Exception exception){
-                groupSelection = 0;
-                return groups.get(0);
-            }
+    public static RecruitsGroup getGroup(UUID groupUUID) {
+        for (RecruitsGroup group : groups) {
+            if (group.getUUID().equals(groupUUID)) return group;
+        }
+        return null;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static RecruitsGroup getSelectedGroup() {
+        if (groups != null && !groups.isEmpty()) {
+            try { return groups.get(groupSelection); }
+            catch (Exception e) { groupSelection = 0; return groups.get(0); }
         }
         return null;
     }
@@ -101,23 +95,62 @@ public class ClientManager {
 
         List<AbstractRecruitEntity> recruits = player.level()
                 .getEntitiesOfClass(AbstractRecruitEntity.class, player.getBoundingBox().inflate(100));
-
         recruits.removeIf(r -> !r.isEffectedByCommand(player.getUUID()));
 
         Map<UUID, Integer> groupCounts = new HashMap<>();
-
         for (AbstractRecruitEntity recruit : recruits) {
             UUID groupId = recruit.getGroup();
             if (groupId == null) continue;
-
             groupCounts.put(groupId, groupCounts.getOrDefault(groupId, 0) + 1);
         }
 
-        for (RecruitsGroup group : ClientManager.groups) {
-            int count = groupCounts.getOrDefault(group.getUUID(), 0);
-            group.setCount(count);
-        }
-
+        for (RecruitsGroup group : ClientManager.groups) group.setCount(groupCounts.getOrDefault(group.getUUID(), 0));
         ClientManager.groups.sort((a, b) -> Integer.compare(b.getCount(), a.getCount()));
+    }
+
+    // -------------------------------------------------------------------------
+    // Route helpers
+    // -------------------------------------------------------------------------
+
+    @OnlyIn(Dist.CLIENT)
+    public static void loadRoutes() {
+        routesMap.clear();
+        try {
+            List<RecruitsRoute> loaded = RecruitsRoute.loadAllRoutes(RecruitsRoute.getRoutesDirectory());
+            for (RecruitsRoute route : loaded) routesMap.put(route.getId().toString(), route);
+        } catch (IOException e) {
+            // start with empty map
+        }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static void saveRoute(RecruitsRoute route) {
+        try {
+            route.saveToFile(RecruitsRoute.getRoutesDirectory());
+            routesMap.put(route.getId().toString(), route);
+        } catch (IOException e) {
+            // could not save
+        }
+    }
+
+    /**
+     * Renames a route: deletes the old name-based file, then saves under the new name.
+     */
+    @OnlyIn(Dist.CLIENT)
+    public static void renameRoute(RecruitsRoute route, String newName) {
+        route.deleteFile(RecruitsRoute.getRoutesDirectory());
+        route.setName(newName);
+        saveRoute(route);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static void deleteRoute(RecruitsRoute route) {
+        routesMap.remove(route.getId().toString());
+        route.deleteFile(RecruitsRoute.getRoutesDirectory());
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static List<RecruitsRoute> getRoutesList() {
+        return new ArrayList<>(routesMap.values());
     }
 }

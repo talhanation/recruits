@@ -10,16 +10,16 @@ import net.minecraftforge.network.NetworkEvent;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessagePatrolLeaderSetPatrollingSpeed implements Message<MessagePatrolLeaderSetPatrollingSpeed> {
+public class MessagePatrolLeaderSetEnemyAction implements Message<MessagePatrolLeaderSetEnemyAction> {
 
     private UUID recruit;
-    private byte speed; // 0 = SLOW, 1 = NORMAL, 2 = FAST
+    private byte action; // 0 = CHARGE, 1 = HOLD, 2 = KEEP_PATROLLING
 
-    public MessagePatrolLeaderSetPatrollingSpeed() {}
+    public MessagePatrolLeaderSetEnemyAction() {}
 
-    public MessagePatrolLeaderSetPatrollingSpeed(UUID recruit, byte speed) {
+    public MessagePatrolLeaderSetEnemyAction(UUID recruit, byte action) {
         this.recruit = recruit;
-        this.speed = speed;
+        this.action = action;
     }
 
     public Dist getExecutingSide() {
@@ -30,19 +30,19 @@ public class MessagePatrolLeaderSetPatrollingSpeed implements Message<MessagePat
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractLeaderEntity.class,
-                context.getSender().getBoundingBox().inflate(100.0D),
-                recruit -> recruit.getUUID().equals(this.recruit)
-        ).forEach(leader -> leader.setPatrolSpeed(this.speed));
+                player.getBoundingBox().inflate(100.0D),
+                leader -> leader.getUUID().equals(this.recruit) && leader.isAlive()
+        ).forEach(leader -> leader.setEnemyAction(this.action));
     }
 
-    public MessagePatrolLeaderSetPatrollingSpeed fromBytes(FriendlyByteBuf buf) {
+    public MessagePatrolLeaderSetEnemyAction fromBytes(FriendlyByteBuf buf) {
         this.recruit = buf.readUUID();
-        this.speed = buf.readByte();
+        this.action = buf.readByte();
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(this.recruit);
-        buf.writeByte(this.speed);
+        buf.writeByte(this.action);
     }
 }

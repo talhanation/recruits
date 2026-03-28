@@ -32,9 +32,7 @@ public class MessageToClientUpdateLeaderScreen implements Message<MessageToClien
 
     @Override
     public void executeClientSide(NetworkEvent.Context context) {
-        PatrolLeaderScreen.waypoints = this.waypoints;
-        PatrolLeaderScreen.waypointItems = this.waypointItems;
-        PatrolLeaderScreen.recruitsSize = this.size;
+
     }
 
     @Override

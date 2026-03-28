@@ -36,6 +36,23 @@ public class ClaimRenderer {
         }
     }
 
+    /**
+     * Renders claims with transparent fill so route waypoints underneath are visible.
+     * Outlines and selected outline are kept intact; only the fill becomes invisible.
+     */
+    public static void renderClaimsOverlayTransparent(GuiGraphics guiGraphics, RecruitsClaim selectedClaim, double offsetX, double offsetZ, double scale) {
+        if (ClientManager.recruitsClaims.isEmpty()) return;
+
+        // Skip fill — only draw outlines and selection so the claim boundaries stay visible
+        for (RecruitsClaim claim : ClientManager.recruitsClaims) {
+            renderClaimPassiveOutline(guiGraphics, claim, offsetX, offsetZ, scale);
+        }
+
+        if (selectedClaim != null) {
+            renderClaimSelectedOutline(guiGraphics, selectedClaim, offsetX, offsetZ, scale);
+        }
+    }
+
     private static final int FOG_FILL_COLOR    = 0x30303030;
     private static final int FOG_OUTLINE_COLOR  = 0x80555555;
 

@@ -30,7 +30,7 @@ public class MessagePatrolLeaderSetPatrolState implements Message<MessagePatrolL
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractLeaderEntity.class,
-                player.getBoundingBox().inflate(16.0D),
+                player.getBoundingBox().inflate(64.0D),
                 v -> v.getUUID().equals(this.recruit) && v.isAlive()
         ).forEach(this::setState);
     }

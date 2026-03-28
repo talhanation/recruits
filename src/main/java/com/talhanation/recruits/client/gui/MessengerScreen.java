@@ -35,7 +35,7 @@ public class MessengerScreen extends RecruitsScreenBase {
     private static final MutableComponent BUTTON_SEND_MESSENGER = Component.translatable("gui.recruits.inv.text.send_messenger");
     private static final int fontColor = 4210752;
     public MessengerScreen(MessengerEntity messenger, Player player) {
-        super( Component.literal(""), 197,250);
+        super(Component.literal(""), 197,250);
         this.player = player;
         this.messenger = messenger;
     }

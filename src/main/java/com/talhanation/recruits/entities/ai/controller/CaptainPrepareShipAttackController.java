@@ -18,30 +18,37 @@ public class CaptainPrepareShipAttackController extends PatrolLeaderAttackContro
     }
 
     public void start() {
-        if(!this.captain.getCommandSenderWorld().isClientSide() && captain.enemyArmy != null && captain.army != null && captain.smallShipsController.ship != null && !captain.retreating) {
+        if(this.captain.getCommandSenderWorld().isClientSide()) return;
+
+        // When not on a ship, fall back to standard land attack behaviour
+        if(captain.smallShipsController.ship == null) {
+            super.start();
+            return;
+        }
+
+        boolean captainBalls = this.captain.getCannonBallCount(this.captain.getInventory()) > 0;
+        boolean shipContainer = captain.getVehicle() instanceof Container container && this.captain.getCannonBallCount(container) < 128;
+
+        if(captainBalls && shipContainer){
+            this.captain.refillCannonBalls();
+        }
+
+        if(this.captain.canRepair() && this.captain.smallShipsController.ship.getDamage() > 10){
+            for(int i = 0; i < this.captain.getRandom().nextInt(3 ); i++){
+                this.captain.smallShipsController.ship.repairShip(this.captain);
+            }
+        }
+
+        if(captain.enemyArmy != null && captain.army != null && !captain.retreating) {
             this.captain.army.updateArmy();
             this.captain.enemyArmy.updateArmy();
             this.captain.enemyArmy.getAllUnits().removeIf(Entity::isUnderWater);
-
-            boolean captainBalls = this.captain.getCannonBallCount(this.captain.getInventory()) > 0;
-            boolean shipContainer = captain.getVehicle() instanceof Container container && this.captain.getCannonBallCount(container) < 128;
-
-            if(captainBalls && shipContainer){
-                this.captain.refillCannonBalls();
-            }
-
-            if(this.captain.canRepair() && this.captain.smallShipsController.ship.getDamage() > 10){
-                for(int i = 0; i < this.captain.getRandom().nextInt(3 ); i++){
-                    this.captain.smallShipsController.ship.repairShip(this.captain);
-                }
-            }
 
             if(captain.enemyArmy.getPosition().distanceToSqr(captain.position()) < 500){
                 this.setRecruitsTargets();
             }
 
             if(!captain.smallShipsController.checkForNextTarget()) return;
-
 
             if(!hasEnoughSpaceInWater()){
                 this.captain.smallShipsController.ship.setSailState(0);
@@ -77,44 +84,3 @@ public class CaptainPrepareShipAttackController extends PatrolLeaderAttackContro
 
     }
 }
-
-/*
-private void setMovementBehavior(double distanceToTarget) {
-        int followState = captain.getFollowState();
-        switch(followState){
-            default -> this.captain.setSailPos(target.getOnPos());
-
-            case 1,5 -> {
-                if(captain.getShouldHoldPos() && captain.getHoldPos() != null ){
-                    if(captain.distanceToSqr(captain.getHoldPos()) < distanceToTarget){
-                        this.captain.setSailPos(new BlockPos((int) captain.getHoldPos().x, (int) captain.getHoldPos().y, (int) captain.getHoldPos().z));
-                    }
-                }
-
-                LivingEntity followEntity = null;
-                if(captain.getOwner() != null && followState == 1){
-                    followEntity = captain.getOwner();
-                }
-                else if(captain.getProtectingMob() != null && followState == 5) {
-                    followEntity = captain.getProtectingMob();
-                }
-                if(followEntity == null){
-                    this.captain.setSailPos(target.getOnPos());
-                    return;
-                }
-
-                if(captain.distanceToSqr(followEntity.position()) > 500){
-                    this.captain.setSailPos(followEntity.getOnPos());
-                }
-            }
-
-            case 2,3,4 -> {
-                Vec3 pos = captain.getHoldPos();
-                this.captain.setSailPos(new BlockPos((int) pos.x, (int) pos.y, (int) pos.z));
-            }
-        }
-
-    }
- */
-
-

@@ -9,6 +9,7 @@ import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.recruits.util.RecruitCommanderUtil;
 import com.talhanation.recruits.util.WaterObstacleScanner;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -241,7 +242,12 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
     @Override
     protected void moveToCurrentWaypoint() {
         if(this.getVehicle() != null && this.getVehicle() instanceof Boat){
-            this.setSailPos(this.currentWaypoint);
+            // Correct Y to actual water surface so SailorPathNavigation finds a valid target.
+            int surfaceY = getCommandSenderWorld().getHeight(
+                    net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE,
+                    this.currentWaypoint.getX(), this.currentWaypoint.getZ()) - 1;
+            int y = Math.max(surfaceY, getCommandSenderWorld().getMinBuildHeight());
+            this.setSailPos(new BlockPos(this.currentWaypoint.getX(), y, this.currentWaypoint.getZ()));
         }
         else super.moveToCurrentWaypoint();
     }

@@ -138,6 +138,8 @@ public class DropDownMenu<T> extends AbstractWidget {
 
     }
 
+    public boolean isOpen() { return isOpen; }
+
     public void setBgFill(int bgFill) {
         this.bgFill = bgFill;
     }

@@ -1,7 +1,205 @@
-1.20.x Changelog
+1.20.1 Changelog
+47.4
+====
+ - 47.4.10 Work around mixins targeting IForgePlayer#canReach (#10680)
+ - 47.4.9  Bump ASM to 9.8 for Java 25 runtime support  (#10664)
+ - 47.4.8  Optimize fix for MC-176559 (#10649)
+ - 47.4.7  Ignore item equality when checking shouldCauseBlockBreakReset, fixes #10645 (#10646)
+ - 47.4.6  Allow command suggestions/autocomplete to search all modded paths at once without namespace provided (#10595)
+ - 47.4.5  Fix ServerChatEvent thread not using correct class loader. (#10591)
+ - 47.4.4  Fix ignitedByLava making blocks permanently flammable (#10570)
+ - 47.4.3  Add back magic number to make mixin happy.
+ - 47.4.2  Fix container screens closing when opened with an extended REACH attribute. Fixes #10560
+           Also fixes cases where creative mode effected reach incorrectly.
+ - 47.4.1  Deprecate EntityRenderersEvent.AddLayers functions that hard case to LivingEntityRenderers as the backing maps do not guarantee that type. (#10513)
+           Co-authored-by: LexManos <LexManos@gmail.com>
+ - 47.4.0  1.20.1 RB 4
+           https://forums.minecraftforge.net/topic/154387-forge-474-minecraft-1201/
+
+47.3
+====
+ - 47.3.39 Fix ForgeDev's test runs not working due to dead test mod (#10483)
+ - 47.3.38 Cache this.useItem before running item break logic, Fixes #10344 (#10376)
+ - 47.3.37 Speed up mod annotation scanning by ~30% (#10470)
+           Co-authored-by: LexManos <LexManos@gmail.com>
+ - 47.3.36 Add missed license headers (#10479)
+ - 47.3.35 Add '#forge:chorus_additionally_grows_on' tag for similar mechanics to '#minecraft:azalea_grows_on' but for chorus (#10456)
+ - 47.3.34 Fix cancelling ProjectileImpactEvent still firing onBlockHit (#10481)
+ - 47.3.33 Honor attacker shield disabling status (#10321)
+ - 47.3.32 Add fast graphics render type to block model jsons (#10393)
+           Make modded leaves behave like vanilla leaves by default (Fixes #10389)
+ - 47.3.31 Fix invalidly symlinked worlds crashing on level select (#10439)
+ - 47.3.30 Backport even more future ResourceLocation methods (#10428)
+ - 47.3.29 Ensure NetworkConstants is loaded before mod construction (#10407)
+ - 47.3.28 Account for problematic mixins in VillagerTrades.EmeraldsForVillagerTypeItem (#10402)
+ - 47.3.27 Fix incorrect method reference in TntBlock.explode()
+ - 47.3.26 Fix issues in VillagerTrades.EmeraldsForVillagerTypeItem related to custom Villager Types (#10315)
+           Add VillagerType#registerBiomeType
+ - 47.3.25 Add `clientSideOnly` feature to mods.toml (#10085) (backport of #9804 to 1.20.1)
+           Co-authored-by: Jonathing <me@jonathing.me>
+ - 47.3.24 Fix non-passengers being tickable without checking canUpdate() (#10304)
+ - 47.3.23 Fix finalizeSpawn's return value not being used correctly (#10301)
+ - 47.3.22 Bump CoreMods to 5.2.4 (#10263)
+ - 47.3.21 Allow mipmap lowering to be disabled (#10252)
+ - 47.3.20 Add optional fix of use item duration, disabled by default (#10246)
+ - 47.3.19 Backport some Vanilla 1.21 `ResourceLocation` methods (#10241)
+           Co-authored-by: Paint_Ninja <PaintNinja@users.noreply.github.com>
+ - 47.3.18 Simplify memory usage display on loading screen (#10233)
+           Co-authored-by: Paint_Ninja <PaintNinja@users.noreply.github.com>
+ - 47.3.17 Deprecate `@ObjectHolder`, add a couple of fast-paths (#10228)
+           Co-authored-by: Paint_Ninja <PaintNinja@users.noreply.github.com>
+ - 47.3.16 Skip Vanilla classes for the `CapabilityTokenSubclass` transformer (#10221)
+           Co-authored-by: Paint_Ninja <PaintNinja@users.noreply.github.com>
+ - 47.3.15 Skip Forge classes in the RuntimeEnumExtender transformer (#10216)
+           Mod classes are still transformed as usual
+           Co-authored-by: Paint_Ninja <PaintNinja@users.noreply.github.com>
+ - 47.3.14 Skip processing Forge classes in `RuntimeDistCleaner` (#10208)
+           Co-authored-by: Paint_Ninja <PaintNinja@users.noreply.github.com>
+ - 47.3.13 Disable clean on TeamCity (#10258)
+ - 47.3.12 Bump CoreMods to 5.2 (#10130)
+           Full Changelog:
+           https://gist.github.com/Jonathing/c3ad28b2a048ac839a7baba5417ee870
+           The key features are:
+           - ES6 language support
+           - Thoroughly updated ASMAPI, with full documentation
+           - Bug fixes (some optional for backwards-compatibility)
+           - Partial internal code cleanup
+           - Request CoreMods to not apply fix for ASMAPI.findFirstInstructionBefore by default
+           - Updated ASM to 9.7.1
+           - Updated Nashorn to 15.4
+ - 47.3.11 Remove unneeded boat patch (backport of #10061 to 1.20.1) (#10096)
+           Co-authored-by: andan42 <49289986+andan42@users.noreply.github.com>
+ - 47.3.10 Optionally supply FMLJavaModLoadingContext as a param to mod constructors (backport of #10074 to 1.20.1) (#10100)
+           Co-authored-by: RealMangoRage <andrew333awesome@outlook.com>
+ - 47.3.9  Minor cleanup to ModListScreen and VersionChecker (backport of #9988 to 1.20.1) (#10095)
+ - 47.3.8  Cleanup FML Bindings (backport of #10004 to 1.20.1) (#10094)
+ - 47.3.7  Early display fixes/workarounds for buggy drivers. Backport of #9921 to 1.20.1 (#10073)
+ - 47.3.6  Add a way to render tooltips from Formatted text and TooltipComponents elements (#10055)
+           Backport of #10056 for 1.20.1
+ - 47.3.5  Make HangingSignBlockEntity useable with custom BlockEntityTypes. #10038
+ - 47.3.4  Unlock wrapped registries when firing register events. (#10035)
+           Co-authored-by: LexManos <LexManos@gmail.com>
+ - 47.3.3  Choose default JarJar mod file type based on parent JAR (#10023)
+           Co-authored-by: thedarkcolour <30441001+thedarkcolour@users.noreply.github.com>
+ - 47.3.2  Fixed falling block entities not rendering as moving blocks (#10006) (#10018)
+           Co-authored-by: Ven <tudurap.com@gmail.com>
+ - 47.3.1  Fix boat travel distance being incorrect. Closes #9997 #9999
+ - 47.3.0  1.20.1 RB 3
+           https://forums.minecraftforge.net/topic/139825-forge-473-minecraft-1201/
+
+47.2
+====
+ - 47.2.36 Bump gradle to 8.8
+ - 47.2.35 Bump gradle and java runtime version on team city
+ - 47.2.34 Fix LevelSettings ignoring data configuration. Close #9938
+ - 47.2.33 Fix erroneous patch in FireBlock. Closes #9996
+ - 47.2.32 Fix early window crash when parsing options.txt (#9934)
+           Backport of #9933
+ - 47.2.31 Prevent mixins from crashing the game when there are missing mods (#9916)
+           1.20.1 backport of 49.0.14
+ - 47.2.30 Fix NPE when acceptableValues in defineInList() does not allow nulls, backport of #9903 (#9907)
+           Co-authored-by: J-RAP <SrRapero720@hotmail.com>
+ - 47.2.29 Fix Crowdin (#9929)
+ - 47.2.28 Optimise capabilities a tad, backport of #9886 (#9911)
+ - 47.2.27 Add helper method to `OnDatapackSyncEvent`, backport of #9901 (#9919)
+ - 47.2.26 Add CPU usage config option to early window, hide by default, backport of #9866 (#9915)
+ - 47.2.25 Fix slightly offset mods screen link positioning, backport of #9860 (#9861)
+           Co-authored-by: Dennis C <11262040+XFactHD@users.noreply.github.com>
+ - 47.2.24 Make common config screen registration tasks easier, backport of #9884 (#9912)
+ - 47.2.23 Add Leaves method to ModelProvider.java (#9889)
+ - 47.2.22 [1.20.1] Bump CoreMods and ASM (#9897)
+           - CoreMods 5.1.2 -> 5.1.6
+           - ASM 9.6 -> 9.7
+ - 47.2.21 Bump some deps (#9880)
+           - CoreMods 5.0.1 -> 5.1.2
+           - ASM 9.5 -> 9.6
+           - Installer 2.1 -> 2.2
+           - Installer tools 1.3.0 -> 1.4.1
+ - 47.2.20 Fix missing patch for Item.onInventoryTick. Closes #9812
+ - 47.2.19 Make common DisplayTest registration tasks easier (#9823)
+ - 47.2.18 Optimise ForgeConfigSpec and make Range public (#9824)
+           Backport of #9810 to 1.20.1
+ - 47.2.17 Datagen addOptionalTag/s methods that allow passing the TagKey itself instead of passing the location (#9807) (#9808)
+ - 47.2.16 Update VersionSupportMatrix.java (#9805)
+ - 47.2.15 Backport of Registries optimization, now uses fastutils collections to minimize boxing
+ - 47.2.14 Fix patch offset
+ - 47.2.13 Fix fire related mobs not taking enough freezing damage. Closes #9686
+ - 47.2.12 Fix TagLoader error not printing tag name correctly. Closes #9693
+ - 47.2.11 Fix LoadingErrorScreen inner headers are not centered. Closes #9687
+ - 47.2.10 Rework KeyModifiers system to properly allow keybinds to be triggered when multiple modifiers are pressed.
+           Fix setting keybinds whel using keyboard inputs to select the menu. Closes #9793
+ - 47.2.9  Fix KeyModifiers not being properly taken into account. Closes #9806
+ - 47.2.8  Don't turn off VSync when rendering from Minecraft context (#9801)
+           Co-authored-by: embeddedt <42941056+embeddedt@users.noreply.github.com>
+ - 47.2.7  Fix rare crash with early display window, fixes MinecraftForge#9673 (#9799)
+ - 47.2.6  Fix tag loading being unordered. Closes #9774
+ - 47.2.5  Fix misaligned patch in RegistryDataLoader
+ - 47.2.4  Backport CrashReportAnalyser to 1.20.1 (#9757)
+ - 47.2.3  Minor MDK changes (#9752)
+ - 47.2.2  Improve mod description formatting in mods screen (#9769)
+           Co-authored-by: Su5eD <su5ed@outlook.com>
+ - 47.2.1  [1.20.1] Improve mod loading error message for errors inside mod constructors (#9707)
+ - 47.2.0  1.20.1 RB
+
 47.1
 ====
- - 47.1.0 1.20.1 Recommended Build
+ - 47.1.47 Keep order of sources in PackRepository (#9702)
+           Co-authored-by: dhyces <10985914+dhyces@users.noreply.github.com>
+ - 47.1.46 Fix DelegatingPackResources searching resource path twice (#9697)
+ - 47.1.45 Fix `Level` leak in debug HUD (#9699)
+           Co-authored-by: malte0811 <malte0811@web.de>
+ - 47.1.44 Fix PlayerSpawnPhantomsEvent not being fired (#9689)
+ - 47.1.43 Enhance LivingBreathEvent and LivingDrownEvent. Closes #9680
+           Also remove 3.5MB of useless data from the installer.
+ - 47.1.42 Partially revert LazyOptional changes, now no longer internally uses weak references.
+ - 47.1.41 Make LazyOptional's internal references to invalidation listeners use WeakReference, and allow modders to unregister themselves. Closes #8805
+ - 47.1.40 Revert EntityEvent.Size changes to before #9018 was called. (#9679)
+           Kept newly added methods for binary compatibility but deprecated them all for removal.
+           The entire pose/eye/size system needs to be reevaluated and address some of Mojang's changes.
+           However this should fix any bugs that pulling that PR may of caused.
+ - 47.1.39 Add a config option to restore the calculate all normals behavior in case some setups require old broken behavior. (#9670)
+ - 47.1.38 Fix rounding errors on models with 45 degree normals by favoring one Direction (#9669)
+           Should fix flickering issues when breaking custom models and having our vanilla solution disabled.
+ - 47.1.37 Moved ForgeHooksClient.onCreativeModeTabBuildContents to ForgeHooks to fix #9662
+ - 47.1.36 Fix tag removal functionality that broke during the 1.19 update. Closes #9053 and #8949
+ - 47.1.35 Replace string with forge tag in vanilla recipes. Closes #9062
+ - 47.1.34 Fix new brain hooks not persisting active activities.
+ - 47.1.33 Fix breaking overlay flickering on campfires by using vanilla method to calculate block normals. (#9664)
+ - 47.1.32 Cleanup usages of static imports and build script so that our build doesn't spam useless error like messages.
+           So that it is easier to see real errors.
+           Add compatibility checking to standard testing tasks.
+ - 47.1.31 Added Action value to PlayerInteractEvent.LeftClickEvent to expose what action fired the event. #9175
+ - 47.1.30 Fix parameter names in IForgeDimensionSpecialEffects.adjustLightmapColors to better describe what they are. (#9656)
+ - 47.1.29 Re-add EntityEvent.Size methods to maintain bincompat
+ - 47.1.28 Added LivingMakeBrainEvent, to allow a consistent way for modders to manipulate entity Brains. #9292
+ - 47.1.27 Add LivingSwapHandItemsEvent
+ - 47.1.26 Fixed FluidUtil#tryFillContainer returning invalid result when simulating #9358
+ - 47.1.25 Re-add in-game mod menu (#9652)
+ - 47.1.24 Fix Entity eye height for multipart entities.
+ - 47.1.23 Fix conflicting keybindings not having the correct click count set. #9360
+ - 47.1.22 Fix the Emissive Rendering for Experimental Light Pipeline (#9651)
+ - 47.1.21 Fixed AdvancementsScreen.java.patch buttons not rendering (#9649)
+ - 47.1.20 Properly Handle Fluid Updates while in a Boat #9428
+ - 47.1.19 New hook in IClientBlockExtensions to handle enabling tinting on breaking particles. #9446
+ - 47.1.18 Fix invalid index when ticking itemstacks in a player nventory by adding a new onInventoryTick event. Closes #9453
+ - 47.1.17 Make the FireworkShapes enum extensible (Closes #9486)
+ - 47.1.16 Add `EmptyEnergyStorage` (#9487)
+ - 47.1.15 Support IPv6 address compression for logged IPs
+ - 47.1.14 Make item name rendering and status bar rendering respect additional gui overlays being rendered by mods (#9648)
+ - 47.1.13 Fix EyeHeight event being fired twice (#9647)
+ - 47.1.12 Add PlayerSpawnPhantomsEvent, utilized to block or forcefully allow PhantomSpawner to spawn phantoms (#9644)
+ - 47.1.11 Fix creative mode screen not correctly using CreativeModeTab::getTabsImage (#9627)
+ - 47.1.10 Add option to advertise dedicated servers to LAN.
+ - 47.1.9  Fix entity eye height loop.
+ - 47.1.8  Particle Description Data Provider.
+ - 47.1.7  Add LivingBreatheEvent and LivingDrownEvent (#9525)
+ - 47.1.6  Fix entity size event not being fired, changed it to split eye height and size calculations. (#9535)
+ - 47.1.5  AlterGroundEvent for modifying block placement performed by AlterGroundDecorator (#9637)
+ - 47.1.4  Change ProjectileHitEvent to return a result instead of being cancelable. Closes #9642
+ - 47.1.3  Replace static import with regular one to fix S2S and non-official mappings. (#9633)
+ - 47.1.2  Add missing null check for TagsProvider#existingFileHelper (#9638)
+ - 47.1.1  Add GuiGraphics helpers for blitNineSliced and blitRepeating that support specifying a custom texture size (#9641)
+ - 47.1.0  1.20.1 Recommended Build
 
 47.0
 ====

@@ -38,7 +38,6 @@ public class ModScreens {
         registerMenu(HIRE_CONTAINER_TYPE.get(), RecruitHireScreen::new);
         registerMenu(TEAM_EDIT_TYPE.get(), FactionEditScreen::new);
         registerMenu(PROMOTE.get(), PromoteScreen::new);
-        registerMenu(PATROL_LEADER.get(), PatrolLeaderScreen::new);
 
         logger.info("MenuScreens registered");
     }
