@@ -1,17 +1,19 @@
 package com.talhanation.recruits.world;
 
+import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.entities.ai.villager.FollowCaravanOwner;
 import com.talhanation.recruits.init.ModEntityTypes;
-import net.minecraft.network.chat.Component;
+import com.talhanation.recruits.util.NPCArmy;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.SpawnPlacements.Type;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnPlacements.Type;
 import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.entity.animal.horse.Mule;
@@ -21,19 +23,18 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameRules;
-import net.minecraft.world.level.levelgen.Heightmap.Types;
 import net.minecraft.world.level.NaturalSpawner;
+import net.minecraft.world.level.levelgen.Heightmap.Types;
 
 import javax.annotation.Nullable;
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 
 public class RecruitsPatrolSpawn {
     public static final Random random = new Random();
     public static int timer;
     public static double chance;
     public final ServerLevel world;
+
     public RecruitsPatrolSpawn(ServerLevel level) {
         world = level;
         timer = getSpawnInterval();
@@ -41,116 +42,357 @@ public class RecruitsPatrolSpawn {
     }
 
     public void tick() {
-        if(timer > 0) --timer;
+        if (timer > 0) --timer;
 
-        if(timer <= 0){
+        if (timer <= 0) {
             if (world.getGameRules().getBoolean(GameRules.RULE_DO_PATROL_SPAWNING)) {
                 double rnd = random.nextInt(100);
-
-                if (rnd <= chance && attemptSpawnPatrol(world)){}//To avoid multiple method call
+                if (rnd <= chance && attemptSpawnPatrol(world)) {}
             }
             timer = getSpawnInterval();
         }
     }
 
     public static boolean attemptSpawnPatrol(ServerLevel world) {
+        // FIX: check the level's own dimension — not the player's dimension.
+        // This prevents patrols from spawning in the Nether and The End.
+        if (!world.dimensionType().hasRaids()) return false;
+
         Player player = world.getRandomPlayer();
-        if (player == null) {
-            return true;
-        } else {
-            if(!player.getCommandSenderWorld().dimensionType().hasRaids()){
-                player = world.getRandomPlayer();
-            }
-            BlockPos blockpos = new BlockPos(player.getOnPos());
-            BlockPos blockpos2 = func_221244_a(blockpos, 90, random, world);
+        if (player == null) return true;
 
-            if (blockpos2 != null && func_226559_a_(blockpos2, world) && blockpos2.distSqr(blockpos) > 200) {
-                BlockPos upPos = new BlockPos(blockpos2.getX(), blockpos2.getY() + 2, blockpos2.getZ());
+        BlockPos playerPos = player.getOnPos();
+        BlockPos spawnPos  = func_221244_a(playerPos, 90, random, world);
 
+        if (spawnPos == null) return false;
+        if (!func_226559_a_(spawnPos, world)) return false;
+        if (spawnPos.distSqr(playerPos) <= 200) return false;
 
+        BlockPos upPos = new BlockPos(spawnPos.getX(), spawnPos.getY() + 2, spawnPos.getZ());
 
-
-                int i = random.nextInt(13);
-                switch(i) {
-                    default -> spawnCaravan(upPos, world);
-
-                    case 9,0 -> spawnSmallPatrol(upPos, world);
-                    case 1,2 -> spawnLargePatrol(upPos, world);
-                    case 3,4 -> spawnHugePatrol(upPos, world);
-                    case 5,6 -> spawnTinyPatrol(upPos, world);
-                    case 7,8 -> spawnRoadPatrol(upPos, world);
-                    case 10,11 -> spawnMediumPatrol(upPos, world);
-
-
-                }
-
-                return true;
-            }
-            return false;
+        int i = random.nextInt(13);
+        switch (i) {
+            case 9, 0  -> spawnSmallPatrol(upPos, world);
+            case 1, 2  -> spawnLargePatrol(upPos, world);
+            case 3, 4  -> spawnHugePatrol(upPos, world);
+            case 5, 6  -> spawnTinyPatrol(upPos, world);
+            case 7, 8  -> spawnRoadPatrol(upPos, world);
+            case 10,11 -> spawnMediumPatrol(upPos, world);
+            default    -> spawnCaravan(upPos, world);
         }
+
+        return true;
     }
 
-    public static int getSpawnInterval(){
-        //1200 == 1 min
-        int minutes = RecruitsServerConfig.RecruitPatrolSpawnInterval.get(); //minutes
+    public static int getSpawnInterval() {
+        int minutes = RecruitsServerConfig.RecruitPatrolSpawnInterval.get();
         return 1200 * minutes;
     }
-    public static void spawnCaravan(BlockPos upPos, ServerLevel world) {
-        RecruitEntity patrolLeader = createPatrolLeader(world, upPos, "Caravan Leader");
-        createVillager(world, upPos, patrolLeader);
-        Villager villagerGuide = createVillager(world, upPos, patrolLeader);
-        createLlama(world, upPos, villagerGuide);
-        createLlama(world, upPos, villagerGuide);
 
-        Villager villagerGuide2 = createVillager(world, upPos, patrolLeader);
-        createMule(world, upPos, villagerGuide2);
-        createMule(world, upPos, villagerGuide2);
+    // -------------------------------------------------------------------------
+    // Route generation
+    // -------------------------------------------------------------------------
 
-        Villager villagerGuide3 = createVillager(world, upPos, patrolLeader);
-        createHorse(world, upPos, villagerGuide3);
-        createHorse(world, upPos, villagerGuide3);
+    /**
+     * Generates a simple patrol route around the spawn position.
+     * Prefers open flat areas by sampling up to 5 candidate positions per
+     * waypoint and choosing the one with the most air blocks around it.
+     */
+    @Nullable
+    public static RecruitsRoute generatePatrolRoute(BlockPos center, ServerLevel world, int waypointCount, int spread) {
+        List<BlockPos> waypoints = new ArrayList<>();
 
-        Villager villagerGuide4 = createVillager(world, upPos, patrolLeader);
-        createMule(world, upPos, villagerGuide4);
-        createMule(world, upPos, villagerGuide4);
+        for (int i = 0; i < waypointCount; i++) {
+            BlockPos best = null;
+            int bestOpenness = -1;
 
-        createPatrolRecruit(world, upPos, patrolLeader, "Caravan Guard");
-        createPatrolRecruit(world, upPos, patrolLeader, "Caravan Guard");
-        createPatrolRecruit(world, upPos, patrolLeader, "Caravan Guard");
+            // Sample several candidates and pick the most open one
+            for (int attempt = 0; attempt < 5; attempt++) {
+                int ox = random.nextInt(spread * 2) - spread;
+                int oz = random.nextInt(spread * 2) - spread;
+                int x  = center.getX() + ox;
+                int z  = center.getZ() + oz;
+                int y  = world.getHeight(Types.WORLD_SURFACE, x, z);
+                BlockPos candidate = new BlockPos(x, y, z);
 
-        createPatrolShieldman(world, upPos, patrolLeader, "Caravan Guard", false);
-        createPatrolShieldman(world, upPos, patrolLeader, "Caravan Guard", true);
+                // Skip positions that are underwater or inside blocks
+                if (!world.getBlockState(candidate).isAir()) continue;
+                if (world.getFluidState(candidate.below()).isEmpty() == false) continue;
 
-        createPatrolHorseman(world,upPos, patrolLeader, "Caravan Guard", true);
-        createPatrolHorseman(world,upPos, patrolLeader, "Caravan Guard", false);
-        createPatrolHorseman(world,upPos, patrolLeader, "Caravan Guard", false);
+                int openness = countOpenBlocks(world, candidate, 3);
+                if (openness > bestOpenness) {
+                    bestOpenness = openness;
+                    best = candidate;
+                }
+            }
 
-        createPatrolNomad(world, upPos, patrolLeader, "Caravan Guard");
-        createPatrolNomad(world, upPos, patrolLeader, "Caravan Guard");
-        createPatrolNomad(world, upPos, patrolLeader, "Caravan Guard");
+            if (best != null) {
+                waypoints.add(best);
+            }
+        }
 
-        createVillager(world, upPos, patrolLeader);
-        createVillager(world, upPos, patrolLeader);
+        if (waypoints.isEmpty()) return null;
 
-        createWanderingTrader(world, upPos, patrolLeader);
-        createWanderingTrader(world, upPos, patrolLeader);
+        RecruitsRoute route = new RecruitsRoute("Patrol_" + Long.toHexString(center.asLong()));
+        for (int i = 0; i < waypoints.size(); i++) {
+            route.addWaypoint(new RecruitsRoute.Waypoint("WP " + (i + 1), waypoints.get(i), null));
+        }
+        return route;
     }
 
-    public static void createWanderingTrader(ServerLevel world, BlockPos upPos, RecruitEntity patrolLeader) {
-        WanderingTrader villager = EntityType.WANDERING_TRADER.create(world);
+    /** Counts how many blocks in a radius×radius×2 box around pos are air. */
+    private static int countOpenBlocks(ServerLevel world, BlockPos pos, int radius) {
+        int open = 0;
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                BlockPos check = pos.offset(dx, 0, dz);
+                if (world.getBlockState(check).isAir()) open++;
+                if (world.getBlockState(check.above()).isAir()) open++;
+            }
+        }
+        return open;
+    }
 
-        villager.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
+    // -------------------------------------------------------------------------
+    // Commander + group creation
+    // -------------------------------------------------------------------------
+
+    /**
+     * Creates a CommanderEntity patrol leader, registers an NPC-only group for it,
+     * assigns all provided recruits to it, and gives it a random route.
+     */
+    public static CommanderEntity createCommanderWithGroup(BlockPos upPos, ServerLevel world, String name, List<AbstractRecruitEntity> recruits) {
+        CommanderEntity leader = createCompanionPatrolLeader(upPos, world);
+        leader.setCustomName(Component.literal(name));
+
+        // Create a standalone group (no owner player — use a fixed sentinel UUID
+        // so it persists in the group manager without being tied to a player).
+        UUID groupId = UUID.randomUUID();
+        RecruitsGroup group = new RecruitsGroup(name, groupId, name, 0);
+        group.leaderUUID = leader.getUUID();
+
+        // Register group in manager so it persists and can be queried
+        RecruitEvents.recruitsGroupsManager.addPatrolGroup(group, world);
+
+        leader.setGroupUUID(group.getUUID());
+
+        // Assign recruits to the leader
+        List<LivingEntity> armyUnits = new ArrayList<>();
+        for (AbstractRecruitEntity recruit : recruits) {
+            recruit.setGroupUUID(group.getUUID());
+            group.addMember(recruit.getUUID());
+            ICompanion.assignToLeaderCompanion(leader, recruit);
+            armyUnits.add(recruit);
+        }
+        group.addMember(leader.getUUID());
+
+        // Build the army so the leader can issue commands immediately
+        leader.army = new NPCArmy(world, armyUnits, null);
+
+        // Generate and assign a patrol route
+        RecruitsRoute route = generatePatrolRoute(upPos, world, 4 + random.nextInt(3), 50);
+        if (route != null) {
+            List<BlockPos> positions = new ArrayList<>();
+            List<Integer> waits     = new ArrayList<>();
+            for (RecruitsRoute.Waypoint wp : route.getWaypoints()) {
+                positions.add(wp.getPosition());
+                waits.add(0);
+            }
+            leader.loadRouteWaypointsFromData(positions, waits);
+            leader.setPatrolState(AbstractLeaderEntity.State.PATROLLING);
+        }
+
+        world.addFreshEntity(leader);
+        return leader;
+    }
+
+    // -------------------------------------------------------------------------
+    // Spawn methods — now using CommanderEntity
+    // -------------------------------------------------------------------------
+
+    public static void spawnCaravan(BlockPos upPos, ServerLevel world) {
+        List<AbstractRecruitEntity> recruits = new ArrayList<>();
+        recruits.add(buildPatrolRecruit(world, upPos, "Caravan Guard"));
+        recruits.add(buildPatrolRecruit(world, upPos, "Caravan Guard"));
+        recruits.add(buildPatrolRecruit(world, upPos, "Caravan Guard"));
+        recruits.add(buildPatrolShieldman(world, upPos, "Caravan Guard", false));
+        recruits.add(buildPatrolShieldman(world, upPos, "Caravan Guard", true));
+        recruits.add(buildPatrolHorseman(world, upPos, "Caravan Guard", true));
+        recruits.add(buildPatrolHorseman(world, upPos, "Caravan Guard", false));
+        recruits.add(buildPatrolHorseman(world, upPos, "Caravan Guard", false));
+        recruits.add(buildPatrolNomad(world, upPos, "Caravan Guard"));
+        recruits.add(buildPatrolNomad(world, upPos, "Caravan Guard"));
+        recruits.add(buildPatrolNomad(world, upPos, "Caravan Guard"));
+        for (AbstractRecruitEntity r : recruits) world.addFreshEntity(r);
+
+        CommanderEntity leader = createCommanderWithGroup(upPos, world, "Caravan Leader", recruits);
+
+        // Spawn the civilian caravan entities following the leader
+        createVillager(world, upPos, leader);
+        Villager g1 = createVillager(world, upPos, leader); createLlama(world, upPos, g1); createLlama(world, upPos, g1);
+        Villager g2 = createVillager(world, upPos, leader); createMule(world, upPos, g2);  createMule(world, upPos, g2);
+        Villager g3 = createVillager(world, upPos, leader); createHorse(world, upPos, g3); createHorse(world, upPos, g3);
+        Villager g4 = createVillager(world, upPos, leader); createMule(world, upPos, g4);  createMule(world, upPos, g4);
+        createVillager(world, upPos, leader);
+        createVillager(world, upPos, leader);
+        createWanderingTrader(world, upPos, leader);
+        createWanderingTrader(world, upPos, leader);
+    }
+
+    public static void spawnHugePatrol(BlockPos upPos, ServerLevel world) {
+        List<AbstractRecruitEntity> recruits = new ArrayList<>();
+        recruits.add(buildPatrolRecruit(world, upPos, "Patrol")); recruits.add(buildPatrolRecruit(world, upPos, "Patrol")); recruits.add(buildPatrolRecruit(world, upPos, "Patrol"));
+        recruits.add(buildPatrolShieldman(world, upPos, "Patrol", true)); recruits.add(buildPatrolShieldman(world, upPos, "Patrol", true)); recruits.add(buildPatrolShieldman(world, upPos, "Patrol", true));
+        recruits.add(buildPatrolBowman(world, upPos)); recruits.add(buildPatrolBowman(world, upPos)); recruits.add(buildPatrolBowman(world, upPos));
+        recruits.add(buildPatrolCrossbowman(world, upPos)); recruits.add(buildPatrolCrossbowman(world, upPos)); recruits.add(buildPatrolCrossbowman(world, upPos));
+        recruits.add(buildPatrolHorseman(world, upPos, "Patrol", true)); recruits.add(buildPatrolHorseman(world, upPos, "Patrol", false)); recruits.add(buildPatrolHorseman(world, upPos, "Patrol", false));
+        recruits.add(buildPatrolNomad(world, upPos, "Patrol")); recruits.add(buildPatrolNomad(world, upPos, "Patrol")); recruits.add(buildPatrolNomad(world, upPos, "Patrol"));
+        for (AbstractRecruitEntity r : recruits) world.addFreshEntity(r);
+        createCommanderWithGroup(upPos, world, "Patrol Leader", recruits);
+    }
+
+    public static void spawnLargePatrol(BlockPos upPos, ServerLevel world) {
+        List<AbstractRecruitEntity> recruits = new ArrayList<>();
+        recruits.add(buildPatrolRecruit(world, upPos, "Patrol")); recruits.add(buildPatrolRecruit(world, upPos, "Patrol")); recruits.add(buildPatrolRecruit(world, upPos, "Patrol"));
+        recruits.add(buildPatrolShieldman(world, upPos, "Patrol", true)); recruits.add(buildPatrolShieldman(world, upPos, "Patrol", true));
+        recruits.add(buildPatrolBowman(world, upPos)); recruits.add(buildPatrolBowman(world, upPos));
+        recruits.add(buildPatrolCrossbowman(world, upPos)); recruits.add(buildPatrolCrossbowman(world, upPos));
+        recruits.add(buildPatrolHorseman(world, upPos, "Patrol", true)); recruits.add(buildPatrolHorseman(world, upPos, "Patrol", true));
+        recruits.add(buildPatrolNomad(world, upPos, "Patrol")); recruits.add(buildPatrolNomad(world, upPos, "Patrol"));
+        for (AbstractRecruitEntity r : recruits) world.addFreshEntity(r);
+        createCommanderWithGroup(upPos, world, "Patrol Leader", recruits);
+    }
+
+    public static void spawnMediumPatrol(BlockPos upPos, ServerLevel world) {
+        List<AbstractRecruitEntity> recruits = new ArrayList<>();
+        recruits.add(buildPatrolRecruit(world, upPos, "Patrol"));
+        recruits.add(buildPatrolShieldman(world, upPos, "Patrol", true)); recruits.add(buildPatrolShieldman(world, upPos, "Patrol", true));
+        recruits.add(buildPatrolBowman(world, upPos));
+        recruits.add(buildPatrolCrossbowman(world, upPos));
+        recruits.add(buildPatrolHorseman(world, upPos, "Patrol", true));
+        recruits.add(buildPatrolNomad(world, upPos, "Patrol"));
+        for (AbstractRecruitEntity r : recruits) world.addFreshEntity(r);
+        createCommanderWithGroup(upPos, world, "Patrol Leader", recruits);
+    }
+
+    public static void spawnSmallPatrol(BlockPos upPos, ServerLevel world) {
+        List<AbstractRecruitEntity> recruits = new ArrayList<>();
+        recruits.add(buildPatrolRecruit(world, upPos, "Patrol")); recruits.add(buildPatrolRecruit(world, upPos, "Patrol"));
+        recruits.add(buildPatrolShieldman(world, upPos, "Patrol", true));
+        recruits.add(buildPatrolBowman(world, upPos)); recruits.add(buildPatrolBowman(world, upPos));
+        for (AbstractRecruitEntity r : recruits) world.addFreshEntity(r);
+        createCommanderWithGroup(upPos, world, "Patrol Leader", recruits);
+    }
+
+    public static void spawnTinyPatrol(BlockPos upPos, ServerLevel world) {
+        List<AbstractRecruitEntity> recruits = new ArrayList<>();
+        recruits.add(buildPatrolRecruit(world, upPos, "Patrol"));
+        recruits.add(buildPatrolShieldman(world, upPos, "Patrol", true));
+        recruits.add(buildPatrolBowman(world, upPos));
+        for (AbstractRecruitEntity r : recruits) world.addFreshEntity(r);
+        createCommanderWithGroup(upPos, world, "Patrol Leader", recruits);
+    }
+
+    public static void spawnRoadPatrol(BlockPos upPos, ServerLevel world) {
+        List<AbstractRecruitEntity> recruits = new ArrayList<>();
+        recruits.add(buildPatrolRecruit(world, upPos, "Patrol"));
+        recruits.add(buildPatrolHorseman(world, upPos, "Patrol", true)); recruits.add(buildPatrolNomad(world, upPos, "Patrol"));
+        recruits.add(buildPatrolHorseman(world, upPos, "Patrol", true)); recruits.add(buildPatrolNomad(world, upPos, "Patrol"));
+        for (AbstractRecruitEntity r : recruits) world.addFreshEntity(r);
+        createCommanderWithGroup(upPos, world, "Patrol Leader", recruits);
+    }
+
+    // -------------------------------------------------------------------------
+    // Builder helpers — return the entity without adding to world
+    // -------------------------------------------------------------------------
+
+    private static AbstractRecruitEntity buildPatrolRecruit(ServerLevel world, BlockPos pos, String name) {
+        RecruitEntity e = ModEntityTypes.RECRUIT.get().create(world);
+        e.moveTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
+        e.finalizeSpawn(world, world.getCurrentDifficultyAt(pos), MobSpawnType.PATROL, null, null);
+        if (random.nextInt(2) == 0) setPatrolRecruitEquipment(e);
+        applyCommonValues(e, 9, 80, 65, name);
+        return e;
+    }
+
+    private static AbstractRecruitEntity buildPatrolShieldman(ServerLevel world, BlockPos pos, String name, boolean banner) {
+        RecruitShieldmanEntity e = ModEntityTypes.RECRUIT_SHIELDMAN.get().create(world);
+        e.moveTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
+        e.finalizeSpawn(world, world.getCurrentDifficultyAt(pos), MobSpawnType.PATROL, null, null);
+        if (random.nextInt(2) == 0) setPatrolShieldmanEquipment(e);
+        applyCommonValues(e, 12, 80, 65, name);
+        if (banner) e.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.GREEN_BANNER));
+        return e;
+    }
+
+    private static AbstractRecruitEntity buildPatrolBowman(ServerLevel world, BlockPos pos) {
+        BowmanEntity e = ModEntityTypes.BOWMAN.get().create(world);
+        e.moveTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
+        e.finalizeSpawn(world, world.getCurrentDifficultyAt(pos), MobSpawnType.PATROL, null, null);
+        if (random.nextInt(2) == 0) setPatrolBowmanEquipment(e);
+        applyCommonValues(e, 16, 80, 65, "Patrol");
+        return e;
+    }
+
+    private static AbstractRecruitEntity buildPatrolCrossbowman(ServerLevel world, BlockPos pos) {
+        CrossBowmanEntity e = ModEntityTypes.CROSSBOWMAN.get().create(world);
+        e.moveTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
+        e.finalizeSpawn(world, world.getCurrentDifficultyAt(pos), MobSpawnType.PATROL, null, null);
+        setPatrolCrossbowmanEquipment(e);
+        applyCommonValues(e, 16, 80, 65, "Patrol");
+        return e;
+    }
+
+    private static AbstractRecruitEntity buildPatrolHorseman(ServerLevel world, BlockPos pos, String name, boolean banner) {
+        HorsemanEntity e = ModEntityTypes.HORSEMAN.get().create(world);
+        e.moveTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
+        e.finalizeSpawn(world, world.getCurrentDifficultyAt(pos), MobSpawnType.PATROL, null, null);
+        if (random.nextInt(2) == 0) setPatrolShieldmanEquipment(e);
+        e.isPatrol = true;
+        applyCommonValues(e, 30, 80, 75, name);
+        if (banner) e.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.GREEN_BANNER));
+        return e;
+    }
+
+    private static AbstractRecruitEntity buildPatrolNomad(ServerLevel world, BlockPos pos, String name) {
+        NomadEntity e = ModEntityTypes.NOMAD.get().create(world);
+        e.moveTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
+        e.finalizeSpawn(world, world.getCurrentDifficultyAt(pos), MobSpawnType.PATROL, null, null);
+        if (random.nextInt(2) == 0) setPatrolBowmanEquipment(e);
+        e.isPatrol = true;
+        applyCommonValues(e, 30, 80, 75, name);
+        return e;
+    }
+
+    private static void applyCommonValues(AbstractRecruitEntity e, int cost, int hunger, int morale, String name) {
+        e.setPersistenceRequired();
+        e.despawnTimer = RecruitsServerConfig.RecruitPatrolDespawnTime.get() * 20 * 60;
+        e.setXpLevel(Math.max(1, random.nextInt(3)));
+        e.addLevelBuffsForLevel(e.getXpLevel());
+        e.setHunger(hunger);
+        e.setMoral(morale);
+        e.setCost(cost);
+        e.setXp(random.nextInt(120));
+        e.setCustomName(Component.literal(name));
+        setRecruitFood(e);
+    }
+
+    // -------------------------------------------------------------------------
+    // Civilian entity creators (unchanged from original)
+    // -------------------------------------------------------------------------
+
+    public static void createWanderingTrader(ServerLevel world, BlockPos upPos, AbstractLeaderEntity leader) {
+        WanderingTrader villager = EntityType.WANDERING_TRADER.create(world);
+        villager.moveTo(upPos.getX() + 0.5, upPos.getY() + 0.5, upPos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
         villager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
         villager.setPersistenceRequired();
-
-        villager.goalSelector.addGoal(0, new FollowCaravanOwner(villager, patrolLeader.getUUID()));
+        villager.goalSelector.addGoal(0, new FollowCaravanOwner(villager, leader.getUUID()));
         world.addFreshEntity(villager);
     }
 
     public static void createHorse(ServerLevel world, BlockPos upPos, Villager villager) {
         Horse horse = EntityType.HORSE.create(world);
-
-        horse.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
+        horse.moveTo(upPos.getX() + 0.5, upPos.getY() + 0.5, upPos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
         horse.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
         horse.setPersistenceRequired();
         horse.setTamed(true);
@@ -159,10 +401,19 @@ public class RecruitsPatrolSpawn {
         world.addFreshEntity(horse);
     }
 
+    public static Villager createVillager(ServerLevel world, BlockPos upPos, AbstractLeaderEntity leader) {
+        Villager villager = EntityType.VILLAGER.create(world);
+        villager.moveTo(upPos.getX() + 0.5, upPos.getY() + 0.5, upPos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
+        villager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        villager.setPersistenceRequired();
+        villager.goalSelector.addGoal(0, new FollowCaravanOwner(villager, leader.getUUID()));
+        world.addFreshEntity(villager);
+        return villager;
+    }
+
     public static void createLlama(ServerLevel world, BlockPos upPos, Villager villager) {
         Llama llama = EntityType.LLAMA.create(world);
-
-        llama.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
+        llama.moveTo(upPos.getX() + 0.5, upPos.getY() + 0.5, upPos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
         llama.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
         llama.setPersistenceRequired();
         llama.setTamed(true);
@@ -171,618 +422,62 @@ public class RecruitsPatrolSpawn {
         llama.createInventory();
         llama.setLeashedTo(villager, true);
         llama.getPersistentData().putBoolean("Caravan", true);
+        fillLlamaInventory(llama);
         world.addFreshEntity(llama);
+    }
 
-        for(int x = 0; x < 4; x++){
-            int k = random.nextInt(4);
-            int count = random.nextInt(64);
-            ItemStack food;
-            switch (k) {
-                default -> food = new ItemStack(Items.WHEAT);
-                case 1 -> food = new ItemStack(Items.WHEAT_SEEDS);
-                case 2 -> food = new ItemStack(Items.MELON_SEEDS);
-                case 3 -> food = new ItemStack(Items.POTATO);
-
-            }
-            food.setCount(count);
-            llama.inventory.addItem(food);
-        }
-
-        for(int x = 0; x < 4; x++) {
-            int j = random.nextInt(4);
-            int count = random.nextInt(64);
-            ItemStack resources;
-            switch (j) {
-                default -> resources = new ItemStack(Items.STRING);
-                case 1 -> resources = new ItemStack(Items.LEATHER);
-                case 2 -> resources = new ItemStack(Items.ARROW);
-                case 3 -> resources = new ItemStack(Items.CHAIN);
-            }
-            resources.setCount(count);
-            llama.inventory.addItem(resources);
-        }
-
-        for(int x = 0; x < 4; x++) {
-            int j = random.nextInt(4);
-            int count = random.nextInt(64);
-            ItemStack resources;
-            switch (j) {
-                default -> resources = new ItemStack(Items.COBBLESTONE);
-                case 1 -> resources = new ItemStack(Items.WHITE_WOOL);
-                case 2 -> resources = new ItemStack(Items.OAK_WOOD);
-                case 3 -> resources = new ItemStack(Items.BRICK);
-            }
-            resources.setCount(count);
-            llama.inventory.addItem(resources);
+    private static void fillLlamaInventory(Llama llama) {
+        ItemStack[] foods = {
+            new ItemStack(Items.WHEAT), new ItemStack(Items.WHEAT_SEEDS),
+            new ItemStack(Items.MELON_SEEDS), new ItemStack(Items.POTATO)
+        };
+        ItemStack[] goods = {
+            new ItemStack(Items.STRING), new ItemStack(Items.LEATHER),
+            new ItemStack(Items.ARROW), new ItemStack(Items.CHAIN)
+        };
+        ItemStack[] building = {
+            new ItemStack(Items.COBBLESTONE), new ItemStack(Items.WHITE_WOOL),
+            new ItemStack(Items.OAK_WOOD), new ItemStack(Items.BRICK)
+        };
+        for (int i = 0; i < 4; i++) {
+            ItemStack s = foods[random.nextInt(foods.length)].copy();   s.setCount(random.nextInt(64)); llama.inventory.addItem(s);
+            ItemStack g = goods[random.nextInt(goods.length)].copy();   g.setCount(random.nextInt(64)); llama.inventory.addItem(g);
+            ItemStack b = building[random.nextInt(building.length)].copy(); b.setCount(random.nextInt(64)); llama.inventory.addItem(b);
         }
     }
 
-    public static Villager createVillager(ServerLevel world, BlockPos upPos, RecruitEntity patrolLeader) {
-        Villager villager = EntityType.VILLAGER.create(world);
-
-        villager.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
-        villager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
-        villager.setPersistenceRequired();
-
-        villager.goalSelector.addGoal(0, new FollowCaravanOwner(villager, patrolLeader.getUUID()));
-        world.addFreshEntity(villager);
-
-        return villager;
-    }
-
-    public static void createMule(ServerLevel world, BlockPos upPos, LivingEntity villager) {
+    public static void createMule(ServerLevel world, BlockPos upPos, LivingEntity owner) {
         Mule mule = EntityType.MULE.create(world);
-
-        mule.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
+        mule.moveTo(upPos.getX() + 0.5, upPos.getY() + 0.5, upPos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
         mule.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
         mule.setPersistenceRequired();
         mule.setTamed(true);
         mule.setChest(true);
         mule.createInventory();
-        mule.setLeashedTo(villager, true);
+        mule.setLeashedTo(owner, true);
         mule.getPersistentData().putBoolean("Caravan", true);
-
-        for(int x = 0; x < 4; x++){
-            int k = random.nextInt(4);
-            int count = random.nextInt(64);
-            ItemStack food;
-            switch (k) {
-                default -> food = new ItemStack(Items.BREAD);
-                case 1 -> food = new ItemStack(Items.COOKED_BEEF);
-                case 2 -> food = new ItemStack(Items.COOKED_CHICKEN);
-                case 3 -> food = new ItemStack(Items.COOKED_MUTTON);
-            }
-            food.setCount(count);
-            mule.inventory.setItem(16 - x, food);
-        }
-
-
-        for(int x = 0; x < 4; x++) {
-            int j = random.nextInt(5);
-            int count = random.nextInt(64);
-            ItemStack resources;
-            switch (j) {
-                default -> resources = new ItemStack(Items.COAL);
-                case 1 -> resources = new ItemStack(Items.IRON_INGOT);
-                case 2 -> resources = new ItemStack(Items.COPPER_INGOT);
-                case 3 -> resources = new ItemStack(Items.CHAIN);
-                case 4 -> resources = new ItemStack(Items.CLAY);
-            }
-            resources.setCount(count);
-            mule.inventory.setItem(12 - x, resources);
-        }
-
-        for(int x = 0; x < 4; x++) {
-            int j = random.nextInt(4);
-            ItemStack resources;
-            int count = random.nextInt(64);
-            switch (j) {
-                default -> resources = new ItemStack(Items.STONE);
-                case 1 -> resources = new ItemStack(Items.WHITE_WOOL);
-                case 2 -> resources = new ItemStack(Items.OAK_WOOD);
-                case 3 -> resources = new ItemStack(Items.BRICK);
-            }
-            resources.setCount(count);
-            mule.inventory.setItem(8 - x, resources);
-        }
-
-        for(int x = 0; x < 3; x++) {
-            int j = random.nextInt(4);
-            ItemStack resources;
-            int count = random.nextInt(64);
-            switch (j) {
-                default -> resources = new ItemStack(Items.SAND);
-                case 1 -> resources = new ItemStack(Items.SANDSTONE);
-                case 2 -> resources = new ItemStack(Items.GLASS);
-                case 3 -> resources = new ItemStack(Items.BARREL);
-            }
-            resources.setCount(count);
-            mule.inventory.setItem(4 -x, resources);
-        }
-
-        //mule.goalSelector.addGoal(0, new FollowCaravanOwner(mule, villager.getUUID()));
+        fillMuleInventory(mule);
         world.addFreshEntity(mule);
     }
 
-    public static void spawnHugePatrol(BlockPos upPos, ServerLevel world) {
-        RecruitEntity patrolLeader = createPatrolLeader(world, upPos, "Patrol Leader");
-
-        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
-        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
-        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
-
-        createPatrolShieldman(world, upPos, patrolLeader, "Patrol", true);
-        createPatrolShieldman(world, upPos, patrolLeader, "Patrol", true);
-        createPatrolShieldman(world, upPos, patrolLeader, "Patrol", true);
-
-        createPatrolBowman(world, upPos, patrolLeader);
-        createPatrolBowman(world, upPos, patrolLeader);
-        createPatrolBowman(world, upPos, patrolLeader);
-
-        createPatrolCrossbowman(world, upPos, patrolLeader);
-        createPatrolCrossbowman(world, upPos, patrolLeader);
-        createPatrolCrossbowman(world, upPos, patrolLeader);
-
-        createPatrolHorseman(world,upPos, patrolLeader, "Patrol", true);
-        createPatrolHorseman(world,upPos, patrolLeader, "Patrol", false);
-        createPatrolHorseman(world,upPos, patrolLeader, "Patrol", false);
-        createPatrolNomad(world, upPos, patrolLeader, "Patrol");
-        createPatrolNomad(world, upPos, patrolLeader, "Patrol");
-        createPatrolNomad(world, upPos, patrolLeader, "Patrol");
-
-    }
-    public static void spawnLargePatrol(BlockPos upPos, ServerLevel world) {
-        RecruitEntity patrolLeader = createPatrolLeader(world, upPos, "Patrol Leader");
-
-        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
-        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
-        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
-
-        createPatrolShieldman(world, upPos, patrolLeader, "Patrol", true);
-        createPatrolShieldman(world, upPos, patrolLeader, "Patrol", true);
-
-        createPatrolBowman(world, upPos, patrolLeader);
-        createPatrolBowman(world, upPos, patrolLeader);
-
-        createPatrolCrossbowman(world, upPos, patrolLeader);
-        createPatrolCrossbowman(world, upPos, patrolLeader);
-
-        createPatrolHorseman(world,upPos, patrolLeader, "Patrol", true);
-        createPatrolHorseman(world,upPos, patrolLeader, "Patrol", true);
-        createPatrolNomad(world, upPos, patrolLeader, "Patrol");
-        createPatrolNomad(world, upPos, patrolLeader, "Patrol");
+    private static void fillMuleInventory(Mule mule) {
+        ItemStack[] foods    = { new ItemStack(Items.BREAD), new ItemStack(Items.COOKED_BEEF), new ItemStack(Items.COOKED_CHICKEN), new ItemStack(Items.COOKED_MUTTON) };
+        ItemStack[] metal    = { new ItemStack(Items.COAL), new ItemStack(Items.IRON_INGOT), new ItemStack(Items.COPPER_INGOT), new ItemStack(Items.CHAIN), new ItemStack(Items.CLAY) };
+        ItemStack[] building = { new ItemStack(Items.STONE), new ItemStack(Items.WHITE_WOOL), new ItemStack(Items.OAK_WOOD), new ItemStack(Items.BRICK) };
+        ItemStack[] misc     = { new ItemStack(Items.SAND), new ItemStack(Items.SANDSTONE), new ItemStack(Items.GLASS), new ItemStack(Items.BARREL) };
+        for (int i = 0; i < 4; i++) { ItemStack s = foods[random.nextInt(foods.length)].copy();    s.setCount(random.nextInt(64)); mule.inventory.setItem(16 - i, s); }
+        for (int i = 0; i < 4; i++) { ItemStack s = metal[random.nextInt(metal.length)].copy();    s.setCount(random.nextInt(64)); mule.inventory.setItem(12 - i, s); }
+        for (int i = 0; i < 4; i++) { ItemStack s = building[random.nextInt(building.length)].copy(); s.setCount(random.nextInt(64)); mule.inventory.setItem(8 - i, s); }
+        for (int i = 0; i < 3; i++) { ItemStack s = misc[random.nextInt(misc.length)].copy();      s.setCount(random.nextInt(64)); mule.inventory.setItem(4 - i, s); }
     }
 
-    public static void spawnMediumPatrol(BlockPos upPos, ServerLevel world) {
-        RecruitEntity patrolLeader = createPatrolLeader(world, upPos, "Patrol Leader");
-
-        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
-
-        createPatrolShieldman(world, upPos, patrolLeader, "Patrol", true);
-        createPatrolShieldman(world, upPos, patrolLeader, "Patrol", true);
-
-        createPatrolBowman(world, upPos, patrolLeader);
-
-        createPatrolCrossbowman(world, upPos, patrolLeader);
-
-        createPatrolHorseman(world,upPos, patrolLeader, "Patrol", true);
-        createPatrolNomad(world, upPos, patrolLeader, "Patrol");
-
-    }
-
-    public static void spawnSmallPatrol(BlockPos upPos, ServerLevel world) {
-        RecruitEntity patrolLeader = createPatrolLeader(world, upPos, "Patrol Leader");
-
-        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
-        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
-        createPatrolShieldman(world, upPos, patrolLeader, "Patrol", true);
-        createPatrolBowman(world, upPos, patrolLeader);
-        createPatrolBowman(world, upPos, patrolLeader);
-    }
-    public static void spawnTinyPatrol(BlockPos upPos, ServerLevel world) {
-        RecruitEntity patrolLeader = createPatrolLeader(world, upPos, "Patrol Leader");
-
-        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
-        createPatrolShieldman(world, upPos, patrolLeader, "Patrol", true);
-        createPatrolBowman(world, upPos, patrolLeader);
-    }
-
-    public static void spawnRoadPatrol(BlockPos upPos, ServerLevel world) {
-        RecruitEntity patrolLeader = createPatrolLeader(world, upPos, "Patrol Leader");
-
-        createPatrolRecruit(world, upPos, patrolLeader, "Patrol");
-
-        createPatrolHorseman(world,upPos, patrolLeader, "Patrol", true);
-        createPatrolNomad(world, upPos, patrolLeader, "Patrol");
-        createPatrolHorseman(world,upPos, patrolLeader, "Patrol", true);
-        createPatrolNomad(world, upPos, patrolLeader, "Patrol");
-    }
-
-    @Nullable
-    public static BlockPos func_221244_a(BlockPos p_221244_1_, int spread, Random random, ServerLevel world) {
-        BlockPos blockpos = null;
-
-        for(int i = 0; i < 10; ++i) {
-            int j = p_221244_1_.getX() + random.nextInt(spread * 2) - spread;
-            int k = p_221244_1_.getZ() + random.nextInt(spread * 2) - spread;
-            int l = world.getHeight(Types.WORLD_SURFACE, j, k);
-            BlockPos blockpos1 = new BlockPos(j, l, k);
-            if (NaturalSpawner.isSpawnPositionOk(Type.ON_GROUND, world, blockpos1, EntityType.WANDERING_TRADER)) {
-                blockpos = blockpos1;
-                break;
-            }
-        }
-
-        return blockpos;
-    }
-
-    public static boolean func_226559_a_(BlockPos p_226559_1_, ServerLevel world) {
-        Iterator var2 = BlockPos.betweenClosed(p_226559_1_, p_226559_1_.offset(1, 2, 1)).iterator();
-
-        BlockPos blockpos;
-        do {
-            if (!var2.hasNext()) {
-                return true;
-            }
-
-            blockpos = (BlockPos)var2.next();
-        } while(world.getBlockState(blockpos).getBlockSupportShape(world, blockpos).isEmpty() && world.getFluidState(blockpos).isEmpty());
-
-        return false;
-    }
-
-    public static void setPatrolLeaderEquipment(RecruitEntity recruit) {
-        Random random = new Random();
-        recruit.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
-        recruit.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
-        recruit.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.IRON_LEGGINGS));
-        recruit.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.IRON_BOOTS));
-
-        int j = random.nextInt(16);
-        ItemStack item = new ItemStack(Items.EMERALD);
-        item.setCount(8 + j);
-        recruit.inventory.setItem(8, item);
-
-        int i = random.nextInt(8);
-        if (i == 1) {
-            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE));
-        }
-        else if (i == 2 || i == 3) {
-            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_AXE));
-        }
-        else if(i == 4 || i == 5) {
-            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_SWORD));
-        }
-
-        else {
-            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
-        }
-    }
-
-    public static void setPatrolRecruitEquipment(RecruitEntity recruit) {
-        Random random = new Random();
-
-        recruit.setItemSlot(EquipmentSlot.HEAD, ItemStack.EMPTY);
-        recruit.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
-        recruit.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.CHAINMAIL_LEGGINGS));
-        recruit.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.CHAINMAIL_BOOTS));
-
-        int i = random.nextInt(8);
-        if (i == 1) {
-            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_AXE));
-        }
-        else if (i == 2 || i == 3) {
-            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
-        }
-        else {
-            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
-        }
-
-        int j = random.nextInt(8);
-
-        if (j >= 4){
-            recruit.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
-        }
-
-    }
-
-    public static void setPatrolShieldmanEquipment(RecruitShieldmanEntity recruit) {
-        Random random = new Random();
-
-        recruit.setItemSlot(EquipmentSlot.HEAD, ItemStack.EMPTY);
-        recruit.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
-        recruit.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.CHAINMAIL_LEGGINGS));
-        recruit.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.CHAINMAIL_BOOTS));
-
-        int i = random.nextInt(8);
-        if (i == 1) {
-            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_AXE));
-        }
-        else if (i == 2 || i == 3) {
-            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
-        }
-        else {
-            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
-        }
-    }
-
-    public static void setPatrolBowmanEquipment(AbstractRecruitEntity recruit) {
-        recruit.setItemSlot(EquipmentSlot.HEAD, ItemStack.EMPTY);
-        recruit.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.CHAINMAIL_CHESTPLATE));
-        recruit.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.CHAINMAIL_LEGGINGS));
-        recruit.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.CHAINMAIL_BOOTS));
-
-        recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
-
-        setRangedArrows(recruit);
-    }
-
-    public static void setRangedArrows(AbstractRecruitEntity recruit) {
-        int i = random.nextInt(32);
-        ItemStack arrows = new ItemStack(Items.ARROW);
-        arrows.setCount(24 + i);
-        recruit.inventory.setItem(6, arrows);
-    }
-
-    public static void setRangedCartriges(AbstractRecruitEntity recruit) {
-        int i = random.nextInt(32);
-        ItemStack arrows = new ItemStack(Items.ARROW);
-        arrows.setCount(24 + i);
-        recruit.inventory.setItem(6, arrows);
-    }
-
-    public static void setRecruitFood(AbstractRecruitEntity recruit){
-        setRecruitFood(recruit, 0);
-    }
-    public static void setRecruitFood(AbstractRecruitEntity recruit, int bonus){
-        int k = random.nextInt(8);
-        ItemStack food;
-        switch(k) {
-            default -> food = new ItemStack(Items.BREAD);
-            case 1 -> food = new ItemStack(Items.COOKED_COD);
-            case 2 -> food = new ItemStack(Items.MELON_SLICE);
-            case 3 -> food = new ItemStack(Items.COOKED_RABBIT);
-            case 4 -> food = new ItemStack(Items.COOKED_BEEF);
-            case 5 -> food = new ItemStack(Items.COOKED_CHICKEN);
-            case 6 -> food = new ItemStack(Items.COOKED_MUTTON);
-            case 7 -> food = new ItemStack(Items.BAKED_POTATO);
-        }
-        int i = random.nextInt(14);
-        food.setCount(6 + i + bonus);
-        recruit.inventory.setItem(7, food);
-    }
-    public static void setPatrolCrossbowmanEquipment(AbstractRecruitEntity recruit) {
-        Random random = new Random();
-
-        recruit.setItemSlot(EquipmentSlot.HEAD, ItemStack.EMPTY);
-        recruit.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
-        recruit.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.CHAINMAIL_LEGGINGS));
-        recruit.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.CHAINMAIL_BOOTS));
-
-        recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.CROSSBOW));
-
-        setRangedArrows(recruit);
-    }
-
-    //CREATE//
-
-    public static RecruitEntity createPatrolLeader(ServerLevel world, BlockPos upPos, String name){
-        RecruitEntity patrolLeader = ModEntityTypes.RECRUIT.get().create(world);
-        patrolLeader.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
-        patrolLeader.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
-        setPatrolLeaderEquipment(patrolLeader);
-        patrolLeader.setPersistenceRequired();
-
-        patrolLeader.setXpLevel(1 + random.nextInt(2));
-        patrolLeader.addLevelBuffsForLevel(patrolLeader.getXpLevel());
-        patrolLeader.setHunger(100);
-        patrolLeader.setMoral(100);
-        patrolLeader.setCost(55);
-        patrolLeader.setXp(random.nextInt(200));
-        patrolLeader.setCustomName(Component.literal(name));
-        patrolLeader.despawnTimer = RecruitsServerConfig.RecruitPatrolDespawnTime.get() * 20 * 60;
-
-        patrolLeader.setProtectUUID(Optional.of(patrolLeader.getUUID()));
-
-
-        setRecruitFood(patrolLeader);
-
-        world.addFreshEntity(patrolLeader);
-
-        return patrolLeader;
-    }
-
-    public static void createPatrolRecruit(ServerLevel world, BlockPos upPos, RecruitEntity patrolLeader, String name) {
-        RecruitEntity recruitEntity = ModEntityTypes.RECRUIT.get().create(world);
-        recruitEntity.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
-        recruitEntity.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
-        if(random.nextInt(2) == 0) setPatrolRecruitEquipment(recruitEntity);
-        recruitEntity.despawnTimer = RecruitsServerConfig.RecruitPatrolDespawnTime.get() * 20 * 60;
-
-        recruitEntity.setPersistenceRequired();
-
-        recruitEntity.setXpLevel(Math.max(1, random.nextInt(3)));
-        recruitEntity.addLevelBuffsForLevel(recruitEntity.getXpLevel());
-        recruitEntity.setHunger(80);
-        recruitEntity.setMoral(65);
-        recruitEntity.setCost(9);
-        recruitEntity.setProtectUUID(Optional.of(patrolLeader.getUUID()));
-        recruitEntity.setShouldProtect(true);
-        recruitEntity.setXp(random.nextInt(80));
-
-        recruitEntity.setCustomName(Component.literal(name));
-
-        setRecruitFood(recruitEntity);
-
-        world.addFreshEntity(recruitEntity);
-    }
-
-    public static void createPatrolBowman(ServerLevel world, BlockPos upPos, RecruitEntity patrolLeader) {
-        BowmanEntity bowman = ModEntityTypes.BOWMAN.get().create(world);
-        bowman.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
-        bowman.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
-        if(random.nextInt(2) == 0) setPatrolBowmanEquipment(bowman);
-        bowman.setPersistenceRequired();
-        bowman.despawnTimer = RecruitsServerConfig.RecruitPatrolDespawnTime.get() * 20 * 60;
-
-        bowman.setXpLevel(Math.max(1, random.nextInt(3)));
-        bowman.addLevelBuffsForLevel(bowman.getXpLevel());
-        bowman.setHunger(80);
-        bowman.setMoral(65);
-        bowman.setCost(16);
-        bowman.setProtectUUID(Optional.of(patrolLeader.getUUID()));
-        bowman.setShouldProtect(true);
-        bowman.setXp(random.nextInt(120));
-
-        bowman.setCustomName(Component.literal("Patrol"));
-
-        setRecruitFood(bowman);
-
-        world.addFreshEntity(bowman);
-    }
-
-    public static void createPatrolShieldman(ServerLevel world, BlockPos upPos, RecruitEntity patrolLeader, String name, boolean banner) {
-        RecruitShieldmanEntity shieldmanEntity = ModEntityTypes.RECRUIT_SHIELDMAN.get().create(world);
-        shieldmanEntity.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
-        shieldmanEntity.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
-        if(random.nextInt(2) == 0) setPatrolShieldmanEquipment(shieldmanEntity);
-        shieldmanEntity.setPersistenceRequired();
-        shieldmanEntity.despawnTimer = RecruitsServerConfig.RecruitPatrolDespawnTime.get() * 20 * 60;
-
-        shieldmanEntity.setXpLevel(Math.max(1, random.nextInt(3)));
-        shieldmanEntity.addLevelBuffsForLevel(shieldmanEntity.getXpLevel());
-        shieldmanEntity.setHunger(80);
-        shieldmanEntity.setMoral(65);
-        shieldmanEntity.setCost(12);
-        shieldmanEntity.setProtectUUID(Optional.of(patrolLeader.getUUID()));
-        shieldmanEntity.setShouldProtect(true);
-        shieldmanEntity.setXp(random.nextInt(120));
-
-        shieldmanEntity.setCustomName(Component.literal(name));
-
-
-
-        if(banner) {
-            ItemStack stack = new ItemStack(Items.GREEN_BANNER);
-            stack.setCount(1);
-
-            shieldmanEntity.setItemSlot(EquipmentSlot.HEAD, stack);
-
-        }
-
-        setRecruitFood(shieldmanEntity);
-
-        world.addFreshEntity(shieldmanEntity);
-    }
-
-    public static void createPatrolHorseman(ServerLevel world, BlockPos upPos, RecruitEntity patrolLeader, String name, boolean banner) {
-        HorsemanEntity horseman = ModEntityTypes.HORSEMAN.get().create(world);
-
-        horseman.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
-        horseman.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
-        if(random.nextInt(2) == 0) setPatrolShieldmanEquipment(horseman);
-        horseman.setPersistenceRequired();
-        horseman.despawnTimer = RecruitsServerConfig.RecruitPatrolDespawnTime.get() * 20 * 60;
-        horseman.isPatrol = true;
-        horseman.setXpLevel(Math.max(1, random.nextInt(3)));
-        horseman.addLevelBuffsForLevel(horseman.getXpLevel());
-        horseman.setHunger(80);
-        horseman.setMoral(75);
-        horseman.setCost(30);
-        horseman.setProtectUUID(Optional.of(patrolLeader.getUUID()));
-        horseman.setShouldProtect(true);
-        horseman.setXp(random.nextInt(120));
-        horseman.setCustomName(Component.literal(name));
-
-        if(banner) {
-            ItemStack stack = new ItemStack(Items.GREEN_BANNER);
-            stack.setCount(1);
-
-            horseman.setItemSlot(EquipmentSlot.HEAD, stack);
-
-        }
-
-        setRecruitFood(horseman);
-
-        world.addFreshEntity(horseman);
-    }
-
-    public static void createPatrolNomad(ServerLevel world, BlockPos upPos, RecruitEntity patrolLeader, String name) {
-        NomadEntity nomad = ModEntityTypes.NOMAD.get().create(world);
-        nomad.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
-        nomad.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
-        if(random.nextInt(2) == 0) setPatrolBowmanEquipment(nomad);
-        nomad.setPersistenceRequired();
-        nomad.despawnTimer = RecruitsServerConfig.RecruitPatrolDespawnTime.get() * 20 * 60;
-        nomad.isPatrol = true;
-        nomad.setXpLevel(1 + random.nextInt(3));
-        nomad.addLevelBuffsForLevel(nomad.getXpLevel());
-        nomad.setHunger(80);
-        nomad.setMoral(75);
-        nomad.setCost(30);
-        nomad.setProtectUUID(Optional.of(patrolLeader.getUUID()));
-        nomad.setShouldProtect(true);
-        nomad.setXp(random.nextInt(120));
-
-        nomad.setCustomName(Component.literal(name));
-
-        setRecruitFood(nomad);
-
-        world.addFreshEntity(nomad);
-    }
-
-    public static void createPatrolCrossbowman(ServerLevel world, BlockPos upPos, RecruitEntity patrolLeader) {
-        CrossBowmanEntity crossBowman = ModEntityTypes.CROSSBOWMAN.get().create(world);
-        crossBowman.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
-        crossBowman.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
-        setPatrolCrossbowmanEquipment(crossBowman);
-        crossBowman.setPersistenceRequired();
-        crossBowman.despawnTimer = RecruitsServerConfig.RecruitPatrolDespawnTime.get() * 20 * 60;
-
-        crossBowman.setXpLevel(Math.max(1, random.nextInt(3)));
-        crossBowman.addLevelBuffsForLevel(crossBowman.getXpLevel());
-        crossBowman.setHunger(80);
-        crossBowman.setMoral(65);
-        crossBowman.setCost(16);
-        crossBowman.setProtectUUID(Optional.of(patrolLeader.getUUID()));
-        crossBowman.setShouldProtect(true);
-        crossBowman.setXp(random.nextInt(120));
-
-        crossBowman.setCustomName(Component.literal("Patrol"));
-
-        setRecruitFood(crossBowman);
-
-        world.addFreshEntity(crossBowman);
-    }
-
-    public static void createRecruit(ServerLevel world, BlockPos upPos, AbstractLeaderEntity leader){
-        RecruitEntity recruitEntity = ModEntityTypes.RECRUIT.get().create(world);
-        recruitEntity.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
-        recruitEntity.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
-        if(random.nextInt(2) == 0) setPatrolRecruitEquipment(recruitEntity);
-        recruitEntity.despawnTimer = RecruitsServerConfig.RecruitPatrolDespawnTime.get() * 20 * 60;
-
-        recruitEntity.setPersistenceRequired();
-
-        recruitEntity.setXpLevel(Math.max(1, random.nextInt(3)));
-        recruitEntity.addLevelBuffsForLevel(recruitEntity.getXpLevel());
-        recruitEntity.setHunger(80);
-        recruitEntity.setMoral(65);
-        recruitEntity.setCost(9);
-        recruitEntity.setXp(random.nextInt(80));
-
-        recruitEntity.setCustomName(Component.literal("Recruit"));
-
-        setRecruitFood(recruitEntity);
-
-        //ICompanion.assignToLeaderCompanion(leader, recruitEntity);
-
-        world.addFreshEntity(recruitEntity);
-    }
-
-    public static CommanderEntity createCompanionPatrolLeader(BlockPos upPos, ServerLevel world){
+    // -------------------------------------------------------------------------
+    // Commander creation (unchanged from original)
+    // -------------------------------------------------------------------------
+
+    public static CommanderEntity createCompanionPatrolLeader(BlockPos upPos, ServerLevel world) {
         CommanderEntity leader = ModEntityTypes.PATROL_LEADER.get().create(world);
-        leader.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
+        leader.moveTo(upPos.getX() + 0.5, upPos.getY() + 0.5, upPos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
         leader.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
         AbstractRecruitEntity.applySpawnValues(leader);
 
@@ -790,57 +485,131 @@ public class RecruitsPatrolSpawn {
 
         leader.setXpLevel(Math.max(1, random.nextInt(4)));
         leader.despawnTimer = RecruitsServerConfig.RecruitPatrolDespawnTime.get() * 20 * 60;
+        leader.setPersistenceRequired();
 
         setRecruitFood(leader);
-
         leader.addLevelBuffsForLevel(leader.getXpLevel());
         leader.setHunger(80);
         leader.setMoral(65);
         leader.setCost(50);
         leader.setXp(random.nextInt(120));
         leader.setAggroState(1);
-        leader.setCustomName(Component.literal("Patrol Leader"));
 
         return leader;
     }
 
-    public static void spawnPatrol(BlockPos upPos, ServerLevel world) {
-        CommanderEntity leader = createCompanionPatrolLeader(upPos, world);
+    // -------------------------------------------------------------------------
+    // Equipment helpers (unchanged)
+    // -------------------------------------------------------------------------
 
-        createRecruit(world, upPos, leader);
-        createRecruit(world, upPos, leader);
-        createRecruit(world, upPos, leader);
-        createRecruit(world, upPos, leader);
-        createRecruit(world, upPos, leader);
-
-        world.addFreshEntity(leader);
-    }
-
-    public static void setPatrolLeaderEquipment(CommanderEntity recruit) {
-        Random random = new Random();
-        recruit.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
+    public static void setPatrolLeaderEquipment(AbstractRecruitEntity recruit) {
+        recruit.setItemSlot(EquipmentSlot.HEAD,  new ItemStack(Items.IRON_HELMET));
         recruit.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
-        recruit.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.IRON_LEGGINGS));
-        recruit.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.IRON_BOOTS));
+        recruit.setItemSlot(EquipmentSlot.LEGS,  new ItemStack(Items.IRON_LEGGINGS));
+        recruit.setItemSlot(EquipmentSlot.FEET,  new ItemStack(Items.IRON_BOOTS));
 
-        int j = random.nextInt(16);
         ItemStack item = new ItemStack(Items.EMERALD);
-        item.setCount(8 + j);
+        item.setCount(8 + random.nextInt(16));
         recruit.inventory.setItem(8, item);
 
         int i = random.nextInt(8);
-        if (i == 1) {
-            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE));
-        }
-        else if (i == 2 || i == 3) {
-            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_AXE));
-        }
-        else if(i == 4 || i == 5) {
-            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_SWORD));
-        }
+        if      (i == 1)          recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE));
+        else if (i == 2 || i == 3) recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_AXE));
+        else if (i == 4 || i == 5) recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_SWORD));
+        else                       recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
+    }
 
-        else {
-            recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
+    public static void setPatrolRecruitEquipment(RecruitEntity recruit) {
+        recruit.setItemSlot(EquipmentSlot.HEAD,  ItemStack.EMPTY);
+        recruit.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
+        recruit.setItemSlot(EquipmentSlot.LEGS,  new ItemStack(Items.CHAINMAIL_LEGGINGS));
+        recruit.setItemSlot(EquipmentSlot.FEET,  new ItemStack(Items.CHAINMAIL_BOOTS));
+
+        int i = random.nextInt(8);
+        if      (i == 1)          recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_AXE));
+        else if (i == 2 || i == 3) recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
+        else                       recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
+
+        if (random.nextInt(8) >= 4) recruit.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
+    }
+
+    public static void setPatrolShieldmanEquipment(AbstractRecruitEntity recruit) {
+        recruit.setItemSlot(EquipmentSlot.HEAD,  ItemStack.EMPTY);
+        recruit.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
+        recruit.setItemSlot(EquipmentSlot.LEGS,  new ItemStack(Items.CHAINMAIL_LEGGINGS));
+        recruit.setItemSlot(EquipmentSlot.FEET,  new ItemStack(Items.CHAINMAIL_BOOTS));
+
+        int i = random.nextInt(8);
+        if      (i == 1)          recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_AXE));
+        else if (i == 2 || i == 3) recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
+        else                       recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
+    }
+
+    public static void setPatrolBowmanEquipment(AbstractRecruitEntity recruit) {
+        recruit.setItemSlot(EquipmentSlot.HEAD,  ItemStack.EMPTY);
+        recruit.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.CHAINMAIL_CHESTPLATE));
+        recruit.setItemSlot(EquipmentSlot.LEGS,  new ItemStack(Items.CHAINMAIL_LEGGINGS));
+        recruit.setItemSlot(EquipmentSlot.FEET,  new ItemStack(Items.CHAINMAIL_BOOTS));
+        recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
+        setRangedArrows(recruit);
+    }
+
+    public static void setPatrolCrossbowmanEquipment(AbstractRecruitEntity recruit) {
+        recruit.setItemSlot(EquipmentSlot.HEAD,  ItemStack.EMPTY);
+        recruit.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
+        recruit.setItemSlot(EquipmentSlot.LEGS,  new ItemStack(Items.CHAINMAIL_LEGGINGS));
+        recruit.setItemSlot(EquipmentSlot.FEET,  new ItemStack(Items.CHAINMAIL_BOOTS));
+        recruit.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.CROSSBOW));
+        setRangedArrows(recruit);
+    }
+
+    public static void setRangedArrows(AbstractRecruitEntity recruit) {
+        ItemStack arrows = new ItemStack(Items.ARROW);
+        arrows.setCount(24 + random.nextInt(32));
+        recruit.inventory.setItem(6, arrows);
+    }
+
+    public static void setRecruitFood(AbstractRecruitEntity recruit) {
+        setRecruitFood(recruit, 0);
+    }
+
+    public static void setRecruitFood(AbstractRecruitEntity recruit, int bonus) {
+        ItemStack[] foods = {
+            new ItemStack(Items.BREAD), new ItemStack(Items.COOKED_COD),
+            new ItemStack(Items.MELON_SLICE), new ItemStack(Items.COOKED_RABBIT),
+            new ItemStack(Items.COOKED_BEEF), new ItemStack(Items.COOKED_CHICKEN),
+            new ItemStack(Items.COOKED_MUTTON), new ItemStack(Items.BAKED_POTATO)
+        };
+        ItemStack food = foods[random.nextInt(foods.length)].copy();
+        food.setCount(6 + random.nextInt(14) + bonus);
+        recruit.inventory.setItem(7, food);
+    }
+
+    // -------------------------------------------------------------------------
+    // Position helpers (unchanged)
+    // -------------------------------------------------------------------------
+
+    @Nullable
+    public static BlockPos func_221244_a(BlockPos center, int spread, Random random, ServerLevel world) {
+        for (int i = 0; i < 10; i++) {
+            int x = center.getX() + random.nextInt(spread * 2) - spread;
+            int z = center.getZ() + random.nextInt(spread * 2) - spread;
+            int y = world.getHeight(Types.WORLD_SURFACE, x, z);
+            BlockPos pos = new BlockPos(x, y, z);
+            if (NaturalSpawner.isSpawnPositionOk(Type.ON_GROUND, world, pos, EntityType.WANDERING_TRADER)) {
+                return pos;
+            }
         }
+        return null;
+    }
+
+    public static boolean func_226559_a_(BlockPos pos, ServerLevel world) {
+        for (BlockPos p : BlockPos.betweenClosed(pos, pos.offset(1, 2, 1))) {
+            if (!world.getBlockState(p).getBlockSupportShape(world, p).isEmpty()
+                    || !world.getFluidState(p).isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 }

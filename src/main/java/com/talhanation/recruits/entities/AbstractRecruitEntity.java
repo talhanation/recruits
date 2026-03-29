@@ -1997,7 +1997,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             return;
         }
 
-        if (!this.getOwnerUUID().equals(group.getPlayerUUID())) {
+        if (this.isOwned() && !this.getOwnerUUID().equals(group.getPlayerUUID())) {
             this.assignToPlayer(group.getPlayerUUID(), group.getUUID());
         }
 

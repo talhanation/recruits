@@ -54,12 +54,11 @@ public class BannerRenderer {
     }
 
     public void renderBanner(GuiGraphics guiGraphics, int left, int top, int width, int height, int scale0) {
-        if (!bannerItem.isEmpty()) {
-            //guiGraphics.blit(left, top, left + width, top + height, 0, 0, 256, 256, null);
-            Lighting.setupForFlatItems();
+        if (bannerItem.isEmpty() || this.flag == null || this.resultBannerPatterns == null) return;
 
-            MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-            guiGraphics.pose().pushPose();
+        Lighting.setupForFlatItems();
+        guiGraphics.pose().pushPose();
+        try {
             guiGraphics.pose().translate(left + 10, top + 20, 0.0D);
             guiGraphics.pose().scale(scale0, -scale0, 1.0F);
 
@@ -68,9 +67,14 @@ public class BannerRenderer {
             this.flag.xRot = 0.0F;
             this.flag.y = -32.0F;
 
-            net.minecraft.client.renderer.blockentity.BannerRenderer.renderPatterns(guiGraphics.pose(), bufferSource, 15728880, OverlayTexture.NO_OVERLAY, this.flag, ModelBakery.BANNER_BASE, true, this.resultBannerPatterns);
-            guiGraphics.pose().popPose();
+            MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
+            net.minecraft.client.renderer.blockentity.BannerRenderer.renderPatterns(
+                    guiGraphics.pose(), bufferSource, 15728880, OverlayTexture.NO_OVERLAY,
+                    this.flag, ModelBakery.BANNER_BASE, true, this.resultBannerPatterns);
             bufferSource.endBatch();
+        } finally {
+            guiGraphics.pose().popPose();
+            Lighting.setupFor3DItems();
         }
     }
 

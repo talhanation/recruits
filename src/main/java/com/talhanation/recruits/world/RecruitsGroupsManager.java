@@ -63,6 +63,12 @@ public class RecruitsGroupsManager {
         groupMap.put(group.getUUID(), group);
     }
 
+    public void addPatrolGroup(RecruitsGroup group, ServerLevel level) {
+        if (group == null) return;
+        addGroup(group);
+        save(level);
+    }
+
     public void removeGroup(UUID group) {
         if (group == null) return;
         groupMap.remove(group);

@@ -485,19 +485,28 @@ public class RecruitEvents {
         if (attacker.equals(targetRecruit)) return false;
 
         if (attacker instanceof AbstractRecruitEntity attackerRecruit) {
+            // Same player owner → never attack
             if (attackerRecruit.isOwned() && targetRecruit.isOwned() &&
                     attackerRecruit.getOwnerUUID().equals(targetRecruit.getOwnerUUID())) {
                 return false;
             }
 
+            // Same scoreboards team with friendly fire off → never attack
             if (attackerRecruit.getTeam() != null && targetRecruit.getTeam() != null &&
                     attackerRecruit.getTeam().equals(targetRecruit.getTeam()) &&
                     !attackerRecruit.getTeam().isAllowFriendlyFire()) {
                 return false;
             }
 
+            // Same patrol group (protectUUID points to same leader) → never attack
             if (attackerRecruit.getProtectUUID() != null &&
                     attackerRecruit.getProtectUUID().equals(targetRecruit.getProtectUUID())) {
+                return false;
+            }
+
+            // Same RecruitsGroup UUID → never attack (covers NPC patrol units with no owner/team)
+            if (attackerRecruit.getGroup() != null &&
+                    attackerRecruit.getGroup().equals(targetRecruit.getGroup())) {
                 return false;
             }
 

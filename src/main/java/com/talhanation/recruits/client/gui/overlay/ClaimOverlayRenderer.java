@@ -76,18 +76,19 @@ public class ClaimOverlayRenderer {
 
             PoseStack poseStack = guiGraphics.pose();
             poseStack.pushPose();
-
-            float scale = 0.5f;
-
-            int originalX = x + 60;
-            int originalY = y + 20;
-
-            poseStack.translate(originalX, originalY, 0);
-            poseStack.scale(scale, scale, 1.0f);
-            guiGraphics.drawString(font, faction.getTeamDisplayName(), 0, 0, 0xAAAAAA, false);
-            guiGraphics.drawString(font, claimOwner, 0, 10, 0xAAAAAA, false);
-
-            poseStack.popPose();
+            try {
+                float scale = 0.5f;
+                int originalX = x + 60;
+                int originalY = y + 20;
+                poseStack.translate(originalX, originalY, 0);
+                poseStack.scale(scale, scale, 1.0f);
+                if (faction != null) {
+                    guiGraphics.drawString(font, faction.getTeamDisplayName(), 0, 0, 0xAAAAAA, false);
+                }
+                guiGraphics.drawString(font, claimOwner, 0, 10, 0xAAAAAA, false);
+            } finally {
+                poseStack.popPose();
+            }
         }
     }
 
