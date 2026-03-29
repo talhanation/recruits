@@ -271,6 +271,7 @@ public class ClaimOverlayManager {
 
     private void reset() {
         ClientManager.recruitsClaims.clear();
+        ClientManager.activeSiegeClaims.clear();
         ClientManager.currentClaim = null;
         currentState = OverlayState.HIDDEN;
         lastPlayerChunk = null;

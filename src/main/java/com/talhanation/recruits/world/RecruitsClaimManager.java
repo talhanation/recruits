@@ -17,13 +17,18 @@ import javax.annotation.Nullable;
 import java.util.*;
 public class RecruitsClaimManager {
     private final Map<ChunkPos, RecruitsClaim> claims = new HashMap<>();
+    private final Map<UUID, RecruitsClaim> activeSieges = new HashMap<>();
 
     public void load(ServerLevel level) {
         RecruitsClaimSaveData data = RecruitsClaimSaveData.get(level);
         this.claims.clear();
+        this.activeSieges.clear();
         for (RecruitsClaim claim : data.getAllClaims()) {
             for (ChunkPos pos : claim.getClaimedChunks()) {
                 this.claims.put(pos, claim);
+            }
+            if (claim.isUnderSiege) {
+                this.activeSieges.put(claim.getUUID(), claim);
             }
         }
     }
@@ -60,8 +65,31 @@ public class RecruitsClaimManager {
             MinecraftForge.EVENT_BUS.post(new ClaimEvent.Removed(claim, level));
 
             claims.entrySet().removeIf(entry -> entry.getValue().equals(claim));
+            activeSieges.remove(claim.getUUID());
         }
     }
+
+    public void addActiveSiege(RecruitsClaim claim) {
+        if (claim != null) {
+            activeSieges.put(claim.getUUID(), claim);
+        }
+    }
+
+    public void removeActiveSiege(RecruitsClaim claim) {
+        if (claim != null) {
+            activeSieges.remove(claim.getUUID());
+        }
+    }
+
+    public Collection<RecruitsClaim> getActiveSieges() {
+        return activeSieges.values();
+    }
+
+    public boolean isActiveSiege(RecruitsClaim claim) {
+        return claim != null && activeSieges.containsKey(claim.getUUID());
+    }
+
+    // -------------------------------------------------------------------------
 
     @Nullable
     public RecruitsClaim getClaim(ChunkPos chunkPos) {
@@ -119,5 +147,3 @@ public class RecruitsClaimManager {
         }
     }
 }
-
-

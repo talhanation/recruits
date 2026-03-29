@@ -8,6 +8,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.network.NetworkEvent;
 
 public class MessageToClientUpdateClaim implements Message<MessageToClientUpdateClaim> {
@@ -30,7 +31,7 @@ public class MessageToClientUpdateClaim implements Message<MessageToClientUpdate
     public void executeClientSide(NetworkEvent.Context context) {
         this.updateOrAddClaimFromNBT(claimNBT);
     }
-
+    @OnlyIn(Dist.CLIENT)
     public void updateOrAddClaimFromNBT(CompoundTag claimNBT) {
         RecruitsClaim newClaim = RecruitsClaim.fromNBT(claimNBT);
 
@@ -47,14 +48,16 @@ public class MessageToClientUpdateClaim implements Message<MessageToClientUpdate
                     ClientManager.currentClaim = newClaim;
                 }
 
-                net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
-                        new ClientClaimEvent.DataUpdated(newClaim, isCurrentClaim));
+                ClientManager.updateActiveSiege(newClaim);
+
+                MinecraftForge.EVENT_BUS.post(new ClientClaimEvent.DataUpdated(newClaim, isCurrentClaim));
                 return;
             }
         }
 
         ClientManager.recruitsClaims.add(newClaim);
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
+        ClientManager.updateActiveSiege(newClaim);
+        MinecraftForge.EVENT_BUS.post(
                 new ClientClaimEvent.DataUpdated(newClaim, false));
     }
     @Override

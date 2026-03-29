@@ -14,6 +14,7 @@ import java.util.*;
 
 public class ClientManager {
     public static List<RecruitsClaim> recruitsClaims = new ArrayList<>();
+    public static Map<UUID, RecruitsClaim> activeSiegeClaims = new HashMap<>();
     public static List<RecruitsFaction> factions = new ArrayList<>();
     public static List<RecruitsGroup> groups = new ArrayList<>();
     public static RecruitsFaction ownFaction;
@@ -40,6 +41,24 @@ public class ClientManager {
 
     public static Map<String, RecruitsRoute> routesMap = new HashMap<>();
     public static boolean canPlayerHire;
+
+    public static void rebuildActiveSieges() {
+        activeSiegeClaims.clear();
+        for (RecruitsClaim claim : recruitsClaims) {
+            if (claim.isUnderSiege) {
+                activeSiegeClaims.put(claim.getUUID(), claim);
+            }
+        }
+    }
+
+    public static void updateActiveSiege(RecruitsClaim claim) {
+        if (claim == null) return;
+        if (claim.isUnderSiege) {
+            activeSiegeClaims.put(claim.getUUID(), claim);
+        } else {
+            activeSiegeClaims.remove(claim.getUUID());
+        }
+    }
 
     @OnlyIn(Dist.CLIENT)
     public static RecruitsDiplomacyManager.DiplomacyStatus getRelation(String team, String otherTeam) {
