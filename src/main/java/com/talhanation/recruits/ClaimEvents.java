@@ -29,6 +29,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
@@ -113,7 +114,7 @@ public class ClaimEvents {
             }
 
             int attackerSize = attackers.size();
-            //int defendersSize = defenders.size();
+            int defenderSize = defenders.size();
 
             for(LivingEntity livingEntity : defenders){
                 if(livingEntity.getTeam() == null) continue;
@@ -133,15 +134,29 @@ public class ClaimEvents {
                 if(attackerSize < RecruitsServerConfig.SiegeClaimsRecruitsAmount.get()){
                     claim.setUnderSiege(false, level);
                     claim.resetHealth();
+                    claim.setSiegeSpeedPercent(0f);
                     claim.attackingParties.clear();
                     claim.defendingParties.clear();
                     recruitsClaimManager.broadcastClaimsToAll(level);
                     siegeOverVillagers(level, claim);
                 }
                 else{
-                    claim.setHealth(claim.getHealth() - 3);
+                    // Siege-Speed prozentual berechnen basierend auf Ratio
+                    float speedPercent = calculateSiegeSpeedPercent(attackerSize, defenderSize);
+                    claim.setSiegeSpeedPercent(speedPercent);
+
+                    int baseDamage = 3;
+
+                    // SiegeEvent.Tick feuern – cancelable, Addons können Damage überschreiben
+                    SiegeEvent.Tick tickEvent = new SiegeEvent.Tick(claim, level, attackerSize, defenderSize, baseDamage);
+                    MinecraftForge.EVENT_BUS.post(tickEvent);
+
+                    if(!tickEvent.isCanceled()){
+                        claim.setHealth(claim.getHealth() - tickEvent.getDamage());
+                    }
 
                     if(claim.getHealth() <= 0){//Siege SUCCESS
+                        claim.setSiegeSpeedPercent(0f);
                         claim.setSiegeSuccess(level);
                         recruitsClaimManager.broadcastClaimsToAll(level);
                         siegeOverVillagers(level, claim);
@@ -301,6 +316,26 @@ public class ClaimEvents {
                 if(!isInTeam) event.setCanceled(true);
             }
         }
+    }
+
+    /**
+     * Berechnet die prozentuale Siege-Geschwindigkeit basierend auf der
+     * Angreifer/Verteidiger-Ratio.
+     * <ul>
+     *   <li>Ratio 2.0 (20 Angreifer / 10 Verteidiger) → 2.0 (+100%)</li>
+     *   <li>Ratio 1.5 (15 / 10) → 1.5 (+50%)</li>
+     *   <li>Ratio 1.0 (gleich) → 1.0 (normal)</li>
+     *   <li>Ratio 0.5 (unterlegen) → 0.5 (-50%)</li>
+     * </ul>
+     *
+     * @param attackerCount Anzahl der Angreifer
+     * @param defenderCount Anzahl der Verteidiger
+     * @return Speed-Multiplikator als Float (1.0 = normal)
+     */
+    public static float calculateSiegeSpeedPercent(int attackerCount, int defenderCount) {
+        if (attackerCount <= 0) return 0f;
+        if (defenderCount <= 0) return 2.0f; // Keine Verteidiger = maximaler Speed
+        return (float) attackerCount / (float) defenderCount;
     }
 
     public static void sendVillagersHome(ServerLevel level, RecruitsClaim claim) {

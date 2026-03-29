@@ -69,4 +69,65 @@ public abstract class SiegeEvent extends Event {
             super(claim, level);
         }
     }
+
+    // ---- NEU ----------------------------------------------------------------
+
+    /**
+     * Wird jeden Siege-Tick gefeuert (alle 100 Game-Ticks), bevor der
+     * Base-Mod den Health-Schaden auf den Claim anwendet.
+     *
+     * <p>Addons können:
+     * <ul>
+     *   <li>{@code setDamage(int)} aufrufen, um den Schaden zu ändern
+     *       (z.B. basierend auf Angreifer/Verteidiger-Ratio).</li>
+     *   <li>{@code setCanceled(true)} aufrufen, um die Health-Reduktion
+     *       komplett zu überspringen (Addon übernimmt eigene Logik).</li>
+     * </ul>
+     *
+     * <pre>
+     *   {@code @SubscribeEvent}
+     *   public void onSiegeTick(SiegeEvent.Tick event) {
+     *       int atk = event.getAttackerCount();
+     *       int def = event.getDefenderCount();
+     *       // Ratio-basierte Geschwindigkeit berechnen
+     *       event.setDamage(customDamage);
+     *   }
+     * </pre>
+     */
+    @Cancelable
+    public static class Tick extends SiegeEvent {
+        private final int attackerCount;
+        private final int defenderCount;
+        private int damage;
+
+        public Tick(RecruitsClaim claim, ServerLevel level, int attackerCount, int defenderCount, int proposedDamage) {
+            super(claim, level);
+            this.attackerCount = attackerCount;
+            this.defenderCount = defenderCount;
+            this.damage = proposedDamage;
+        }
+
+        /** Anzahl der lebenden Angreifer-Einheiten im Claim. */
+        public int getAttackerCount() {
+            return attackerCount;
+        }
+
+        /** Anzahl der lebenden Verteidiger-Einheiten im Claim. */
+        public int getDefenderCount() {
+            return defenderCount;
+        }
+
+        /** Der Schaden, der auf den Claim angewendet wird. */
+        public int getDamage() {
+            return damage;
+        }
+
+        /**
+         * Überschreibt den Schaden, der auf den Claim angewendet wird.
+         * @param damage Neuer Schadenswert (0 = kein Schaden, negativ = Heilung)
+         */
+        public void setDamage(int damage) {
+            this.damage = damage;
+        }
+    }
 }

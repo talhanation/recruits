@@ -30,6 +30,8 @@ public class RecruitsClaim {
     public ChunkPos center;
     public boolean isUnderSiege;
     public int health;
+    /** Prozentuale Siege-Geschwindigkeit (0.0 = pausiert, 1.0 = normal, 2.0 = +100%). Serverseitig berechnet, zum Client synchronisiert. */
+    public float siegeSpeedPercent;
     public RecruitsPlayerInfo playerInfo;
     public boolean isAdmin;
     public boolean isRemoved;
@@ -141,6 +143,14 @@ public class RecruitsClaim {
         this.health = health;
     }
 
+    public float getSiegeSpeedPercent() {
+        return siegeSpeedPercent;
+    }
+
+    public void setSiegeSpeedPercent(float siegeSpeedPercent) {
+        this.siegeSpeedPercent = siegeSpeedPercent;
+    }
+
     @Override
     public String toString() {
         return this.getName();
@@ -171,6 +181,7 @@ public class RecruitsClaim {
         nbt.putInt("centerX", this.getCenter().x);
         nbt.putInt("centerZ", this.getCenter().z);
         nbt.putInt("health", this.getHealth());
+        nbt.putFloat("siegeSpeedPercent", this.getSiegeSpeedPercent());
 
         // Defending Parties
         ListTag defendingList = new ListTag();
@@ -225,6 +236,7 @@ public class RecruitsClaim {
         claim.setCenter(new ChunkPos(x, z));
 
         claim.setHealth(nbt.getInt("health"));
+        claim.setSiegeSpeedPercent(nbt.getFloat("siegeSpeedPercent"));
 
         // Defending Parties
         if (nbt.contains("defendingParties", Tag.TAG_LIST)) {
