@@ -8,7 +8,7 @@ import com.mojang.math.Axis;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.widgets.DropDownMenu;
-import com.talhanation.recruits.compat.SmallShips;
+import com.talhanation.recruits.compat.smallships.SmallShips;
 import com.talhanation.recruits.network.MessageDoPayment;
 import com.talhanation.recruits.network.MessageUpdateClaim;
 import com.talhanation.recruits.world.RecruitsClaim;
