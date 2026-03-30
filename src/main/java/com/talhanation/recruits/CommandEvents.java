@@ -250,6 +250,11 @@ public class CommandEvents {
             if(recruit instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()) {
                 captain.smallShipsController.startFaceRotation(player.getYRot());
             }
+
+            // SiegeEngineer with catapult: rotate the siege weapon
+            if(recruit instanceof SiegeEngineerEntity siegeEngineer && siegeEngineer.siegeController.getSiegeEntity() != null) {
+                siegeEngineer.siegeController.startFaceRotation(player.getYRot());
+            }
         }
     }
 

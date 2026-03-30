@@ -1424,8 +1424,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         Important for mod compat: See smallships or siege weapons mod
     **/
     public boolean isAlliedTo(@NotNull Team team) {
-        if(!this.getCommandSenderWorld().isClientSide() && this.getTeam() != null){
-            RecruitsDiplomacyManager.DiplomacyStatus status = FactionEvents.recruitsDiplomacyManager.getRelation(this.getTeam().getName(), team.getName());
+        Team recTeam = this.getTeam();
+        if(!this.getCommandSenderWorld().isClientSide() && recTeam != null){
+            RecruitsDiplomacyManager.DiplomacyStatus status = FactionEvents.recruitsDiplomacyManager.getRelation(recTeam.getName(), team.getName());
             return status == RecruitsDiplomacyManager.DiplomacyStatus.ALLY;
         }
         return super.isAlliedTo(team);

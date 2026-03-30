@@ -201,7 +201,8 @@ public class Main {
                 MessageAnswerTreaty.class,
                 MessageToClientOpenTreatyAnswerScreen.class,
                 MessageToClientUpdateTreaties.class,
-                MessageFaceCommand.class
+                MessageFaceCommand.class,
+                MessageSetTargetPrio.class
         };
 
 

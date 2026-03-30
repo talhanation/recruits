@@ -545,5 +545,19 @@
   "description.recruits.peaceTreaty": "When accepting this treaty both factions cannot attack each other for the duration.",
   "chat.recruits.text.messenger_target_player_not_accepted": "%s: I arrived, but %s did not accept our treaty proposal.",
   "chat.recruits.text.messenger_info_to_target_treaty": "%s: I have a important proposal from %s",
-  "chat.recruits.text.siegeBlockedOwnerOffline": "Siege on '%s' blocked: owner '%s' is not online."
+  "chat.recruits.text.siegeBlockedOwnerOffline": "Siege on '%s' blocked: owner '%s' is not online.",
+
+  "gui.recruits.inv.text.selectTargetPrio": "Select Target Priority:",
+
+  "gui.recruits.inv.text.prioClosestEnemy": "Closest Enemy",
+  "gui.recruits.inv.text.prioInfantry": "Enemy Infantry",
+  "gui.recruits.inv.text.prioCavalry": "Enemy Cavalry",
+  "gui.recruits.inv.text.prioSiegeWeapons": "Enemy Siege Weapons",
+  "gui.recruits.inv.text.prioShips": "Enemy Ships",
+
+  "gui.recruits.inv.tooltip.prioClosestEnemy": "Set Priority to closest targets",
+  "gui.recruits.inv.tooltip.prioInfantry": "Set Priority to target Infantry",
+  "gui.recruits.inv.tooltip.prioCavalry": "Set Priority to target Cavalry",
+  "gui.recruits.inv.tooltip.prioSiegeWeapons": "Set Priority to target Siege Weapons",
+  "gui.recruits.inv.tooltip.prioShips": "Set Priority to target Ships"
 }

@@ -1,23 +1,22 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.compat.siegeweapons.SiegeWeapon;
+import com.talhanation.recruits.compat.smallships.SmallShips;
 import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.entities.ai.controller.siegeengineer.ISiegeController;
 import com.talhanation.recruits.entities.ai.controller.siegeengineer.SiegeWeaponCatapultController;
-import com.talhanation.recruits.util.NPCArmy;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BowItem;
@@ -28,17 +27,20 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraftforge.common.ForgeMod;
 
 import javax.annotation.Nullable;
+import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompanion, IStrategicFire {
+public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompanion, IStrategicFire, IHasTargetPriority {
     public final ISiegeController siegeController;
     private static final EntityDataAccessor<String> OWNER_NAME = SynchedEntityData.defineId(SiegeEngineerEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<Optional<BlockPos>> STRATEGIC_FIRE_POS = SynchedEntityData.defineId(SiegeEngineerEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Boolean> SHOULD_STRATEGIC_FIRE = SynchedEntityData.defineId(SiegeEngineerEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> TARGET_PRIORITY = SynchedEntityData.defineId(SiegeEngineerEntity.class, EntityDataSerializers.INT);
+
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
     public SiegeEngineerEntity(EntityType<? extends AbstractRecruitEntity> entityType, Level world) {
@@ -51,6 +53,7 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
         this.entityData.define(OWNER_NAME, "");
         this.entityData.define(STRATEGIC_FIRE_POS, Optional.empty());
         this.entityData.define(SHOULD_STRATEGIC_FIRE, false);
+        this.entityData.define(TARGET_PRIORITY, TargetPriority.CLOSEST.getIndex());
     }
     @Override
     protected void registerGoals() {
@@ -68,6 +71,7 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
             nbt.putInt("StrategicFirePosZ", this.getStrategicFirePos().getZ());
         }
         nbt.putBoolean("ShouldStrategicFire", this.getShouldStrategicFire());
+        nbt.putInt("TargetPriority", this.getTargetPriority());
     }
 
     public void readAdditionalSaveData(CompoundTag nbt) {
@@ -82,6 +86,7 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
 
         }
         this.setShouldStrategicFire(nbt.getBoolean("ShouldStrategicFire"));
+        if(nbt.contains("TargetPriority")) this.setTargetPriority(TargetPriority.fromIndex(nbt.getInt("TargetPriority")));
     }
 
     //ATTRIBUTES
@@ -145,6 +150,16 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
         return false;
     }
 
+    // ========================= TARGET PRIORITY =========================
+
+    public int getTargetPriority() {
+        return this.entityData.get(TARGET_PRIORITY);
+    }
+
+    public void setTargetPriority(TargetPriority priority) {
+        this.entityData.set(TARGET_PRIORITY, priority.getIndex());
+    }
+
     @Override
     public void tick() {
         super.tick();
@@ -194,41 +209,112 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
         return this.entityData.get(STRATEGIC_FIRE_POS).orElse(null);
     }
 
+    // ========================= TARGET FINDING =========================
+
     public void checkForPotentialEnemies() {
-        if(!level().isClientSide()){
-            List<Entity> targets = new ArrayList<>(this.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(200D)).stream()
-                    .filter((target) -> shouldAttack(target) && this.hasLineOfSight(target) && !target.isUnderWater())
-                    .toList());
+        if(level().isClientSide()) return;
 
-            if(targets.isEmpty()) return;
+        List<Entity> targets = new ArrayList<>(this.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(200D)).stream()
+                .filter((target) -> shouldAttack(target) && this.hasLineOfSight(target) && !target.isUnderWater())
+                .toList());
 
+        if(targets.isEmpty()) return;
 
-            //TODO: prio setting for targets e.g.: siege weapons first, infantry first, ships first, strategic first
+        TargetPriority targetPriority = TargetPriority.fromIndex(this.getTargetPriority());
+        Entity target = null;
 
+        switch (targetPriority) {
+            case INFANTRY -> {
+                target = findInfantryTarget(targets);
+            }
+            case CAVALRY -> {
+                target = findCavalryTarget(targets);
+            }
+            case SIEGE_WEAPONS -> {
+                target = findMannedSiegeWeaponTarget(targets);
+            }
+            case SHIPS -> {
+                target = findMannedShipTarget(targets);
+            }
+            default -> {
+                // CLOSEST
+            }
+        }
+
+        if(target == null){
             targets.sort(Comparator.comparing(this::enemyDistanceToThis));
-            Entity target = targets.get(0);
+            target = targets.get(0);
 
+            // Still check for manned siege weapons as high-value targets
             for (Entity e : targets){
                 if (e.getVehicle() != null && SiegeWeapon.isSiegeWeapon(e.getVehicle())){
                     target = e.getVehicle();
                     break;
                 }
             }
-
-            siegeController.setTargetPos(target.position());
         }
+
+        siegeController.setTargetPos(target.position());
+    }
+
+    private Entity findInfantryTarget(List<Entity> targets) {
+        List<Entity> infantry = targets.stream()
+                .filter(e -> e instanceof LivingEntity living
+                        && !(living.getVehicle() instanceof AbstractHorse)
+                        && !SiegeWeapon.isSiegeWeapon(living.getVehicle())
+                        && !SmallShips.isSmallShip(living.getVehicle()))
+                .sorted(Comparator.comparing(this::enemyDistanceToThis))
+                .toList();
+
+        return infantry.isEmpty() ? null : infantry.get(0);
+    }
+
+    private Entity findCavalryTarget(List<Entity> targets) {
+        List<Entity> cavalry = targets.stream()
+                .filter(e -> e instanceof LivingEntity living
+                        && living.getVehicle() instanceof AbstractHorse)
+                .sorted(Comparator.comparing(this::enemyDistanceToThis))
+                .toList();
+
+        return cavalry.isEmpty() ? null : cavalry.get(0);
+    }
+
+    private Entity findMannedSiegeWeaponTarget(List<Entity> targets) {
+        // Find enemies that are riding siege weapons (manned only)
+        for(Entity e : targets){
+            if(e.getVehicle() != null && SiegeWeapon.isSiegeWeapon(e.getVehicle())){
+                return e.getVehicle(); // Target the siege weapon itself
+            }
+        }
+
+        // Also check nearby siege weapons that have passengers
+        List<Entity> allEntities = this.getCommandSenderWorld().getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(200D)).stream()
+                .filter(e -> SiegeWeapon.isSiegeWeapon(e) && !e.getPassengers().isEmpty())
+                .sorted(Comparator.comparing(this::enemyDistanceToThis))
+                .toList();
+
+        return allEntities.isEmpty() ? null : allEntities.get(0);
+    }
+
+    private Entity findMannedShipTarget(List<Entity> targets) {
+        // Find enemies on ships (manned only)
+        for(Entity e : targets){
+            if(e.getVehicle() != null && SmallShips.isSmallShip(e.getVehicle())){
+                return e.getVehicle(); // Target the ship itself
+            }
+        }
+
+        // Also check nearby ships that have passengers
+        List<Entity> ships = this.getCommandSenderWorld().getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(200D)).stream()
+                .filter(e -> SmallShips.isSmallShip(e) && !e.getPassengers().isEmpty())
+                .sorted(Comparator.comparing(this::enemyDistanceToThis))
+                .toList();
+
+        return ships.isEmpty() ? null : ships.get(0);
     }
 
     public double enemyDistanceToThis(Entity entity){
         return entity.distanceToSqr(this.position());
     }
+
 }
-
-
-
-
-
-
-
-
-

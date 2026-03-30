@@ -314,6 +314,10 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                             this.minecraft.setScreen(new ScoutScreen(scout, getMinecraft().player));
                             return;
                         }
+                        else if(recruit instanceof SiegeEngineerEntity siegeEngineer){
+                            this.minecraft.setScreen(new SiegeEngineerScreen(siegeEngineer, getMinecraft().player));
+                            return;
+                        }
                         else if(recruit instanceof MessengerEntity messenger){
                             this.minecraft.setScreen(new MessengerMainScreen(messenger, getMinecraft().player));
                             return;

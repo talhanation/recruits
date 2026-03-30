@@ -16,4 +16,9 @@ public interface ISiegeController {
 
     Vec3 getTargetPos();
     void setTargetPos(Vec3 vec3);
+
+    void startFaceRotation(float yaw);
+    boolean needsRepair();
+    boolean canRepair();
+    void tryRepair();
 }
