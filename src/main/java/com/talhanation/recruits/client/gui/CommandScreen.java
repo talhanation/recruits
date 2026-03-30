@@ -47,6 +47,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     public Entity rayEntity;
     private ICommandCategory currentCategory;
     public static Formation formation;
+    public static boolean tightFormation;
     public boolean mouseGroupsInverted;
     private List<RecruitsGroupButton> groupButtons;
 
@@ -160,6 +161,19 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         this.setButtons();
     }
 
+    public void setTightFormation(boolean tight){
+        tightFormation = tight;
+        this.setButtons();
+    }
+
+    public void sendFaceCommandToServer() {
+        if(!ClientManager.groups.isEmpty()){
+            for(RecruitsGroup group : getActiveGroups()){
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageFaceCommand(player.getUUID(), group.getUUID(), formation.getIndex(), tightFormation));
+            }
+        }
+    }
+
     private ICommandCategory getSelectionFromClient() {
         CompoundTag playerNBT = player.getPersistentData();
         CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
@@ -183,7 +197,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         int totalWidth = (count - 1) * spacing;
         int startX = centerX - totalWidth / 2;
 
-        int buttonY = centerY + 85;
+        int buttonY = centerY + 105;
 
         for (int i = 0; i < count; i++) {
             ICommandCategory category = allCategories.get(i);
@@ -206,7 +220,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         }
         if(!ClientManager.groups.isEmpty()){
             for(RecruitsGroup group : getActiveGroups()){
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), state, group.getUUID(), formation.getIndex()));
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), state, group.getUUID(), formation.getIndex(), tightFormation));
             }
         }
     }
@@ -256,6 +270,8 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
 
             case 98 -> this.player.sendSystemMessage(TEXT_DISMOUNT(group_string.toString()));
             case 99 -> this.player.sendSystemMessage(TEXT_MOUNT(group_string.toString()));
+
+            case 100 -> this.player.sendSystemMessage(TEXT_FACE(group_string.toString()));
         }
     }
 
@@ -378,6 +394,10 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         return Component.translatable("chat.recruits.command.hold_fire", group_string);
     }
 
+    private static MutableComponent TEXT_FACE(String group_string) {
+        return Component.translatable("chat.recruits.command.face", group_string);
+    }
+
     private static MutableComponent TEXT_SELECT_ALL_GROUPS() {
         return Component.translatable("gui.recruits.command.tip.de_select_groups");
     }
@@ -386,7 +406,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     }
 
     int xTipPos = 140;
-    int yTipPos = 157;
+    int yTipPos = 177;
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         super.renderLabels(guiGraphics, mouseX, mouseY);

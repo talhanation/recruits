@@ -30,6 +30,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -45,6 +46,10 @@ public class CommandEvents {
     //7 = forward
     //8 = backward
     public static void onMovementCommand(ServerPlayer player, List<AbstractRecruitEntity> recruits, int movementState, int formation) {
+        onMovementCommand(player, recruits, movementState, formation, false);
+    }
+
+    public static void onMovementCommand(ServerPlayer player, List<AbstractRecruitEntity> recruits, int movementState, int formation, boolean tight) {
         if(formation != 0 && (movementState == 2|| movementState == 4 || movementState == 6 || movementState == 7 || movementState == 8)) {
             Vec3 targetPos = null;
 
@@ -63,7 +68,8 @@ public class CommandEvents {
                }
 
                case 7 -> {//forward
-                   Vec3 center = FormationUtils.getGeometricMedian(recruits, (ServerLevel) player.getCommandSenderWorld());
+                   Vec3 center = getSavedFormationCenter(player);
+                   if(center == null) center = FormationUtils.getGeometricMedian(recruits, (ServerLevel) player.getCommandSenderWorld());
                    Vec3 forward = player.getForward();
                    Vec3 pos = center.add(forward.scale(getForwardScale(recruits)));
                    BlockPos blockPos = FormationUtils.getPositionOrSurface(
@@ -75,7 +81,8 @@ public class CommandEvents {
                }
 
                case 8 -> {//backward
-                   Vec3 center = FormationUtils.getGeometricMedian(recruits, (ServerLevel) player.getCommandSenderWorld());
+                   Vec3 center = getSavedFormationCenter(player);
+                   if(center == null) center = FormationUtils.getGeometricMedian(recruits, (ServerLevel) player.getCommandSenderWorld());
                    Vec3 forward = player.getForward();
                    Vec3 pos = center.add(forward.scale(-getForwardScale(recruits)));
                    BlockPos blockPos = FormationUtils.getPositionOrSurface(
@@ -86,7 +93,7 @@ public class CommandEvents {
                    targetPos = new Vec3(pos.x, blockPos.getY(), pos.z);
                }
             }
-            applyFormation(formation, recruits, player, targetPos);
+            applyFormation(formation, recruits, player, targetPos, tight);
         }
         else{
             for(AbstractRecruitEntity recruit : recruits){
@@ -187,30 +194,62 @@ public class CommandEvents {
         return (recruit instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()) ? 25 : 10;
     }
     public static void applyFormation(int formation, List<AbstractRecruitEntity> recruits, ServerPlayer player, Vec3 targetPos) {
+        applyFormation(formation, recruits, player, targetPos, false);
+    }
+
+    public static void applyFormation(int formation, List<AbstractRecruitEntity> recruits, ServerPlayer player, Vec3 targetPos, boolean tight) {
+        saveFormationCenter(player, targetPos);
+        double spacingMultiplier = tight ? 0.5 : 1.0;
         switch (formation){
             case 1 ->{//LINE UP
-                FormationUtils.lineUpFormation(player, recruits, targetPos);
+                FormationUtils.lineUpFormation(player, recruits, targetPos, spacingMultiplier);
             }
             case 2 ->{//SQUARE
-                FormationUtils.squareFormation(player, recruits, targetPos);
+                FormationUtils.squareFormation(player, recruits, targetPos, spacingMultiplier);
             }
             case 3 ->{//TRIANGLE
-                FormationUtils.triangleFormation(player, recruits, targetPos);
+                FormationUtils.triangleFormation(player, recruits, targetPos, spacingMultiplier);
             }
             case 4 ->{//HOLLOW CIRCLE
-                FormationUtils.hollowCircleFormation(player, recruits, targetPos);
+                FormationUtils.hollowCircleFormation(player, recruits, targetPos, spacingMultiplier);
             }
             case 5 ->{//HOLLOW SQUARE
-                FormationUtils.hollowSquareFormation(player, recruits, targetPos);
+                FormationUtils.hollowSquareFormation(player, recruits, targetPos, spacingMultiplier);
             }
             case 6 ->{//V Formation
-                FormationUtils.vFormation(player, recruits, targetPos);
+                FormationUtils.vFormation(player, recruits, targetPos, spacingMultiplier);
             }
             case 7 ->{//CIRCLE
-                FormationUtils.circleFormation(player, recruits, targetPos);
+                FormationUtils.circleFormation(player, recruits, targetPos, spacingMultiplier);
             }
             case 8 ->{//MOVEMENT
-                FormationUtils.movementFormation(player, recruits, targetPos);
+                FormationUtils.movementFormation(player, recruits, targetPos, spacingMultiplier);
+            }
+        }
+    }
+
+    public static void onFaceCommand(ServerPlayer player, List<AbstractRecruitEntity> recruits, int formation, boolean tight) {
+        if(recruits.isEmpty()) return;
+
+        if(formation != 0) {
+            Vec3 targetPos = getSavedFormationCenter(player);
+            if(targetPos == null) targetPos = FormationUtils.getGeometricMedian(recruits, (ServerLevel) player.getCommandSenderWorld());
+            applyFormation(formation, recruits, player, targetPos, tight);
+        } else {
+            // Without formation: hold current position
+            for(AbstractRecruitEntity recruit : recruits) {
+                recruit.setHoldPos(recruit.position());
+                recruit.setFollowState(3);
+            }
+        }
+
+        for(AbstractRecruitEntity recruit : recruits) {
+            recruit.ownerRot = player.getYRot();
+            recruit.rotateTicks = 40;
+
+            // Captain with ship: rotate the ship
+            if(recruit instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()) {
+                captain.smallShipsController.startFaceRotation(player.getYRot());
             }
         }
     }
@@ -482,6 +521,30 @@ public class CommandEvents {
 
         nbt.putIntArray( "FormationPos", pos);
         playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
+    }
+
+    public static void saveFormationCenter(Player player, Vec3 center) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
+
+        nbt.putDouble("FormationCenterX", center.x);
+        nbt.putDouble("FormationCenterY", center.y);
+        nbt.putDouble("FormationCenterZ", center.z);
+        playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
+    }
+
+    @Nullable
+    public static Vec3 getSavedFormationCenter(Player player) {
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
+
+        if(!nbt.contains("FormationCenterX")) return null;
+
+        return new Vec3(
+                nbt.getDouble("FormationCenterX"),
+                nbt.getDouble("FormationCenterY"),
+                nbt.getDouble("FormationCenterZ")
+        );
     }
 
     public static boolean handleRecruiting(Player player, RecruitsGroup group, AbstractRecruitEntity recruit, boolean message){

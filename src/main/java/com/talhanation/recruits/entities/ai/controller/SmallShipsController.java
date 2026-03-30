@@ -31,6 +31,8 @@ public class SmallShipsController {
     private Node currentNode;
     public double distanceToSailPos;
     public WaterObstacleScanner waterObstacleScanner;
+    public int faceTicks;
+    public float faceYaw;
 
     public SmallShipsController(CaptainEntity captain, Level world) {
         pathNavigation = new SailorPathNavigation(captain, world);
@@ -54,6 +56,32 @@ public class SmallShipsController {
     public void calculatePath() {
         this.recalcPath = 0;
     }
+
+    public void startFaceRotation(float yaw) {
+        this.faceYaw = yaw;
+        this.faceTicks = 200;
+        ship.setSailState(0);
+    }
+
+    private void updateFaceRotation() {
+        Vec3 targetDir = new Vec3(-Math.sin(Math.toRadians(faceYaw)), 0, Math.cos(Math.toRadians(faceYaw)));
+        Vec3 boatForward = ship.getBoat().getForward().normalize();
+
+        double angle = Kalkuel.horizontalAngleBetweenVectors(boatForward, targetDir);
+
+        if(Math.abs(angle) < 5) {
+            faceTicks = 0;
+            ship.rotateShip(false, false);
+            return;
+        }
+
+        Vec3 cross = boatForward.cross(targetDir);
+        boolean steerLeft = cross.y > 0;
+        boolean steerRight = cross.y < 0;
+
+        ship.rotateShip(steerLeft, steerRight);
+        faceTicks--;
+    }
     private int sailState;
     public boolean right;
     public boolean left;
@@ -63,6 +91,12 @@ public class SmallShipsController {
         if(this.world.isClientSide() || this.captain.level().isClientSide()) return;
         if(captain.getVehicle() == null || captain.getSailPos() == null || ship == null) return;
         if(!ship.isCaptainDriver()) return;
+
+        // Handle face rotation command
+        if(faceTicks > 0) {
+            updateFaceRotation();
+            return;
+        }
 
         if(updateAttacking()) return;
 

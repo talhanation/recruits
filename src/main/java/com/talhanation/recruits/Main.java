@@ -200,7 +200,8 @@ public class Main {
                 MessageSendTreaty.class,
                 MessageAnswerTreaty.class,
                 MessageToClientOpenTreatyAnswerScreen.class,
-                MessageToClientUpdateTreaties.class
+                MessageToClientUpdateTreaties.class,
+                MessageFaceCommand.class
         };
 
 

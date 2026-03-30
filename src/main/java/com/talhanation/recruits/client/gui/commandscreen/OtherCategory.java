@@ -64,7 +64,7 @@ public class OtherCategory implements ICommandCategory {
                         for(RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
                                 Main.SIMPLE_CHANNEL.sendToServer(new MessageProtectEntity(player.getUUID(), screen.rayEntity.getUUID(), group.getUUID()));
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 5, group.getUUID(), CommandScreen.formation.getIndex()));
+                                Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 5, group.getUUID(), CommandScreen.formation.getIndex(), CommandScreen.tightFormation));
                             }
                         }
                         screen.sendCommandInChat(5);

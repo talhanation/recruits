@@ -89,22 +89,6 @@ public class CombatCategory implements ICommandCategory {
         holdStrategicFireButton.active = isOneGroupActive;
         screen.addRenderableWidget(holdStrategicFireButton);
 
-        //ATTACK
-        RecruitsCommandButton attackButton = new RecruitsCommandButton(x, y - 10, TEXT_ATTACK,
-                button -> {
-                    if (!groups.isEmpty()) {
-                        for (RecruitsGroup group : groups) {
-                            if (!group.isDisabled()) {
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(player.getUUID(), group.getUUID()));
-                            }
-                        }
-                        screen.sendCommandInChat(69);
-                    }
-                });
-        attackButton.setTooltip(Tooltip.create(TOOLTIP_ATTACK));
-        attackButton.active = isOneGroupActive && screen.rayBlockPos != null;
-        screen.addRenderableWidget(attackButton);
-
         //FIRE AT WILL
         RecruitsCommandButton fireAtWillButton = new RecruitsCommandButton(x + 100, y - 38, TEXT_FIRE_AT_WILL,
                 button -> {
@@ -170,8 +154,24 @@ public class CombatCategory implements ICommandCategory {
         shieldsDownButton.active = isOneGroupActive;
         screen.addRenderableWidget(shieldsDownButton);
 
+        //ATTACK
+        RecruitsCommandButton attackButton = new RecruitsCommandButton(x, y + 50, TEXT_ATTACK,
+                button -> {
+                    if (!groups.isEmpty()) {
+                        for (RecruitsGroup group : groups) {
+                            if (!group.isDisabled()) {
+                                Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(player.getUUID(), group.getUUID()));
+                            }
+                        }
+                        screen.sendCommandInChat(69);
+                    }
+                });
+        attackButton.setTooltip(Tooltip.create(TOOLTIP_ATTACK));
+        attackButton.active = isOneGroupActive && screen.rayBlockPos != null;
+        screen.addRenderableWidget(attackButton);
+
         //FORGET TARGETS
-        RecruitsCommandButton clearTargetsButton = new RecruitsCommandButton(x, y + 50, TEXT_CLEAR_TARGET,
+        RecruitsCommandButton clearTargetsButton = new RecruitsCommandButton(x, y + 70, TEXT_CLEAR_TARGET,
                 button -> {
                     if (!groups.isEmpty()) {
                         for (RecruitsGroup group : groups) {

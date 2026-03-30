@@ -11,21 +11,19 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageMovement implements Message<MessageMovement> {
+public class MessageFaceCommand implements Message<MessageFaceCommand> {
 
     private UUID player_uuid;
-    private int state;
     private UUID group;
     private int formation;
     private boolean tight;
 
-    public MessageMovement(){
+    public MessageFaceCommand(){
     }
 
-    public MessageMovement(UUID player_uuid, int state, UUID group, int formation, boolean tight) {
+    public MessageFaceCommand(UUID player_uuid, UUID group, int formation, boolean tight) {
         this.player_uuid = player_uuid;
-        this.state  = state;
-        this.group  = group;
+        this.group = group;
         this.formation = formation;
         this.tight = tight;
     }
@@ -38,14 +36,11 @@ public class MessageMovement implements Message<MessageMovement> {
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
         list.removeIf(recruit -> !recruit.isEffectedByCommand(this.player_uuid, this.group));
 
-
-
-        CommandEvents.onMovementCommand(context.getSender(), list, this.state, this.formation, this.tight);
+        CommandEvents.onFaceCommand(context.getSender(), list, this.formation, this.tight);
     }
 
-    public MessageMovement fromBytes(FriendlyByteBuf buf) {
+    public MessageFaceCommand fromBytes(FriendlyByteBuf buf) {
         this.player_uuid = buf.readUUID();
-        this.state = buf.readInt();
         this.group = buf.readUUID();
         this.formation = buf.readInt();
         this.tight = buf.readBoolean();
@@ -54,7 +49,6 @@ public class MessageMovement implements Message<MessageMovement> {
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeUUID(this.player_uuid);
-        buf.writeInt(this.state);
         buf.writeUUID(this.group);
         buf.writeInt(this.formation);
         buf.writeBoolean(this.tight);

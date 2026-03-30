@@ -128,6 +128,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public int paymentTimer;
     public boolean rotate;
     public float ownerRot;
+    public int rotateTicks;
     public int formationPos = -1;
     private int maxFallDistance;
     private final int tickOffset = (int)(System.nanoTime() % 20);
@@ -173,6 +174,17 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     ///////////////////////////////////TICK/////////////////////////////////////////
+
+    @Override
+    protected float tickHeadTurn(float yRot, float animStep) {
+        if(this.rotateTicks > 0 && this.getNavigation().isDone()) {
+            this.yBodyRot = this.ownerRot;
+            this.yHeadRot = this.ownerRot;
+            return 0;
+        }
+        return super.tickHeadTurn(yRot, animStep);
+    }
+
     // @Override
     public void aiStep(){
         super.aiStep();
@@ -222,6 +234,15 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         LivingEntity currentTarget = this.getTarget();
         if(currentTarget != null && (currentTarget.isDeadOrDying() || currentTarget.isRemoved())) this.setTarget(null);
+
+        // Handle face rotation command
+        if(this.rotateTicks > 0) {
+            if(this.getNavigation().isDone()) {
+                this.setYRot(this.ownerRot);
+                this.yRotO = this.ownerRot;
+                this.rotateTicks--;
+            }
+        }
 
     }
 

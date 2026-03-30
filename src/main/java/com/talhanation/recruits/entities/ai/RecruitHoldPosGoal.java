@@ -49,13 +49,6 @@ public class RecruitHoldPosGoal extends Goal {
                     this.recruit.getJumpControl().jump();
                 }
             } else{
-                if(recruit.rotate){
-                    this.recruit.setYRot(recruit.ownerRot);
-                    this.recruit.yRotO = this.recruit.ownerRot;
-                    this.recruit.yBodyRot = this.recruit.ownerRot;
-                    this.recruit.yHeadRot = this.recruit.ownerRot;
-                    recruit.rotate = false;
-                }
             }
         }
     }
