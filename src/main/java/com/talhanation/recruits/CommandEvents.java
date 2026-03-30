@@ -1,6 +1,5 @@
 package com.talhanation.recruits;
 
-import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.inventory.CommandMenu;

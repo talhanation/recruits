@@ -6,15 +6,13 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 
-import java.util.List;
-
-public class RecruitMountEntity extends Goal {
+public class RecruitMountEntityGoal extends Goal {
 
     private final AbstractRecruitEntity recruit;
     private Entity mount;
     private int timeToRecalcPath;
 
-    public RecruitMountEntity(AbstractRecruitEntity recruit) {
+    public RecruitMountEntityGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
     }
 
@@ -65,8 +63,7 @@ public class RecruitMountEntity extends Goal {
                 recruit.getBoundingBox().inflate(32D),
                 (mount) ->
                         recruit.getMountUUID() != null &&
-                        mount.getUUID().equals(recruit.getMountUUID()) &&
-                        (RecruitsServerConfig.MountWhiteList.get().contains(mount.getEncodeId()) || mount instanceof AbstractHorse)
+                        mount.getUUID().equals(recruit.getMountUUID()) && recruit.canMountEntity(mount)
         ).forEach((mount) -> {
             this.mount = mount;
         });

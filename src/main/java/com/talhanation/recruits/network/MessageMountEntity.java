@@ -1,6 +1,8 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
+import com.talhanation.recruits.compat.siegeweapons.SiegeWeapon;
+import com.talhanation.recruits.compat.smallships.SmallShips;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
@@ -39,6 +41,8 @@ public class MessageMountEntity implements Message<MessageMountEntity> {
                 Entity.class,
                 player.getBoundingBox().inflate(100),
                 (mount) -> mount.getUUID().equals(target) && RecruitsServerConfig.MountWhiteList.get().contains(mount.getEncodeId())
+                        || SmallShips.isSmallShip(mount)
+                        || SiegeWeapon.isSiegeWeapon(mount)
         );
         if (entityList.isEmpty()) return;
 

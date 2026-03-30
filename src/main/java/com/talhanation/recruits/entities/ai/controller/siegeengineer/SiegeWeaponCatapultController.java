@@ -5,6 +5,7 @@ import com.talhanation.recruits.compat.siegeweapons.SiegeWeapon;
 import com.talhanation.recruits.entities.IRangedRecruit;
 import com.talhanation.recruits.entities.SiegeEngineerEntity;
 import com.talhanation.recruits.entities.ai.navigation.RecruitPathNavigation;
+import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.recruits.util.Kalkuel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
@@ -22,7 +23,7 @@ public class SiegeWeaponCatapultController implements ISiegeController {
     public final SiegeEngineerEntity siegeEngineer;
     public Catapult catapult;
     private final Level world;
-    private final PathNavigation pathNavigation;
+    private final AsyncGroundPathNavigation pathNavigation;
     private Node currentNode;
     public double distanceToMovementPos;
     public Vec3 movementPos;

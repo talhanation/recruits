@@ -4,6 +4,8 @@ package com.talhanation.recruits.entities;
 import com.talhanation.recruits.*;
 import com.talhanation.recruits.RecruitEvent;
 import com.talhanation.recruits.compat.musketmod.IWeapon;
+import com.talhanation.recruits.compat.siegeweapons.SiegeWeapon;
+import com.talhanation.recruits.compat.smallships.SmallShips;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.*;
@@ -37,8 +39,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.*;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageSources;
-import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -50,6 +50,7 @@ import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.animal.IronGolem;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.monster.Enemy;
@@ -340,7 +341,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(0, new RecruitEatGoal(this));
         this.goalSelector.addGoal(5, new RecruitUpkeepPosGoal(this));
         this.goalSelector.addGoal(6, new RecruitUpkeepEntityGoal(this));
-        this.goalSelector.addGoal(3, new RecruitMountEntity(this));
+        this.goalSelector.addGoal(3, new RecruitMountEntityGoal(this));
         this.goalSelector.addGoal(3, new RecruitDismountEntity(this));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.05D));
         this.goalSelector.addGoal(2, new RecruitFollowOwnerGoal(this, 1.05D, 300, 100));
@@ -2150,6 +2151,13 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 }
             }
         }
+    }
+
+    public boolean canMountEntity(Entity mount) {
+       return mount instanceof AbstractHorse ||
+               RecruitsServerConfig.MountWhiteList.get().contains(mount.getEncodeId()) ||
+               this instanceof SiegeEngineerEntity && SiegeWeapon.isSiegeWeapon(mount)||
+               this instanceof CaptainEntity && SmallShips.isSmallShip(mount);
     }
 
     public static enum ArmPose {
