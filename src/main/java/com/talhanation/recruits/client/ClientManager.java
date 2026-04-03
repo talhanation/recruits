@@ -20,6 +20,8 @@ public class ClientManager {
     public static RecruitsFaction ownFaction;
     public static Map<String, Map<String, RecruitsDiplomacyManager.DiplomacyStatus>> diplomacyMap = new HashMap<>();
     public static Map<String, Long> treaties = new HashMap<>();
+    // Key: embargoed player UUID, Value: comma-separated declaring team stringIDs
+    public static Map<UUID, String> embargoMap = new HashMap<>();
     public static int configValueClaimCost;
     public static int configValueChunkCost;
     public static boolean configValueCascadeClaimCost;
@@ -127,10 +129,6 @@ public class ClientManager {
         ClientManager.groups.sort((a, b) -> Integer.compare(b.getCount(), a.getCount()));
     }
 
-    // -------------------------------------------------------------------------
-    // Route helpers
-    // -------------------------------------------------------------------------
-
     @OnlyIn(Dist.CLIENT)
     public static void loadRoutes() {
         routesMap.clear();
@@ -152,9 +150,6 @@ public class ClientManager {
         }
     }
 
-    /**
-     * Renames a route: deletes the old name-based file, then saves under the new name.
-     */
     @OnlyIn(Dist.CLIENT)
     public static void renameRoute(RecruitsRoute route, String newName) {
         route.deleteFile(RecruitsRoute.getRoutesDirectory());

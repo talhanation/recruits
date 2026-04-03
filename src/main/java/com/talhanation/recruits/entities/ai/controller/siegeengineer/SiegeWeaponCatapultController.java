@@ -11,12 +11,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.List;
 
 public class SiegeWeaponCatapultController implements ISiegeController {
     public final boolean DEBUG = true;
@@ -24,6 +25,8 @@ public class SiegeWeaponCatapultController implements ISiegeController {
     public static final int RECALCULATION_TIME = 300;
     public static final float REPAIR_THRESHOLD = 90F;
     public static final int REPAIR_COOLDOWN = 40;
+    public static final float MIN_ENGAGE_DISTANCE = 900;
+    public static final float MAX_ENGAGE_DISTANCE = 19000;
     public final SiegeEngineerEntity siegeEngineer;
     public Catapult catapult;
     private final Level world;
@@ -44,14 +47,17 @@ public class SiegeWeaponCatapultController implements ISiegeController {
     private float faceYaw;
     private int faceTicks;
 
-    // Projectile feedback
+    // Projectile feedback - range and lateral
     private float rangeAdjustment = 0;
+    private float lateralAdjustment = 0; // positive = adjust right, negative = adjust left (in degrees)
     private Vec3 lastShotTargetPos;
     private float lastShotRange;
     private int lastShotTick = -1;
     private static final int PROJECTILE_FLIGHT_TIME = 80;
     private static final float MAX_RANGE_ADJUSTMENT = 8F;
     private static final float RANGE_ADJUSTMENT_STEP = 1.5F;
+    private static final float MAX_LATERAL_ADJUSTMENT = 3F;
+    private static final float LATERAL_ADJUSTMENT_STEP = 0.5F;
 
     // Repair
     private int repairCooldown;
@@ -67,9 +73,6 @@ public class SiegeWeaponCatapultController implements ISiegeController {
         if(Catapult.isCatapult(entity)){
             catapult = new Catapult(entity, this.siegeEngineer);
         }
-        //else if(Ballista.isBallista(entity)){
-        //  siegeWeapon = new Ballista(entity, this.siegeEngineer);
-        //}
     }
     public void tryDismount() {
         this.reset();
@@ -135,14 +138,12 @@ public class SiegeWeaponCatapultController implements ISiegeController {
             boolean targetBehind = dotForward < -0.3;
 
             if(targetBehind){
-                // Target is behind - move backward with minimal rotation
                 Vec3 toTargetReversed = toTarget.scale(-1);
                 double phiBackward = Kalkuel.horizontalAngleBetweenVectors(catapultFacing, toTargetReversed);
 
                 double ref = 90;
                 double tolerance = 2.0;
 
-                // Inverted steering for backward movement
                 left = phiBackward > (ref + tolerance);
                 right = phiBackward < (ref - tolerance);
 
@@ -159,7 +160,6 @@ public class SiegeWeaponCatapultController implements ISiegeController {
                 }
             }
             else {
-                // Target is in front or to the side - normal forward movement
                 double phi = Kalkuel.horizontalAngleBetweenVectors(catapultFacing, toTarget);
                 if(DEBUG && siegeEngineer.getOwner() != null) this.siegeEngineer.getOwner().sendSystemMessage(Component.literal("phi: " + phi));
                 double ref = 90;
@@ -189,18 +189,12 @@ public class SiegeWeaponCatapultController implements ISiegeController {
 
             this.path = pathNavigation.createPath(this.movementPos.x,this.movementPos.y, this.movementPos.z, 0);
             if(DEBUG && siegeEngineer.getOwner() != null) this.siegeEngineer.getOwner().sendSystemMessage(Component.literal(siegeEngineer.getName().getString() + ": CREATING PATH"));
-            if(path != null && (!(path instanceof com.talhanation.recruits.pathfinding.AsyncPath ap) || ap.isProcessed())){
+            if(path != null){
                 try {
                     this.currentNode = path.getNextNode();
                 } catch (IndexOutOfBoundsException e) {
-                    this.currentNode = path.nodes.isEmpty() ? null : path.nodes.get(path.nodes.size() - 1);
+                    this.currentNode = path.nodes.get(path.nodes.size() - 1);
                 }
-            }
-        }
-
-        if(path != null && DEBUG){
-            for(Node node : this.path.nodes) {
-                //siegeEngineer.getCommandSenderWorld().setBlock(new BlockPos(node.x, (int) (siegeEngineer.getY() + 4), node.z), Blocks.ICE.defaultBlockState(), 3);
             }
         }
 
@@ -209,13 +203,10 @@ public class SiegeWeaponCatapultController implements ISiegeController {
 
             if (distanceToNode < REACH) {
                 path.advance();
-
-                if (!(path instanceof com.talhanation.recruits.pathfinding.AsyncPath ap2) || ap2.isProcessed()) {
-                    try {
-                        this.currentNode = path.getNextNode();
-                    } catch (IndexOutOfBoundsException e) {
-                        this.currentNode = path.nodes.isEmpty() ? null : path.nodes.get(path.nodes.size() - 1);
-                    }
+                try {
+                    this.currentNode = path.getNextNode();
+                } catch (IndexOutOfBoundsException e) {
+                    this.currentNode = path.nodes.get(path.nodes.size() - 1);
                 }
             }
 
@@ -223,7 +214,7 @@ public class SiegeWeaponCatapultController implements ISiegeController {
         }
     }
 
-    // ========================= FACE ROTATION =========================
+    // ========================= FACE ROTATION (like SmallShipsController) =========================
 
     public void startFaceRotation(float yaw) {
         this.faceYaw = yaw;
@@ -234,18 +225,21 @@ public class SiegeWeaponCatapultController implements ISiegeController {
     }
 
     private void updateFaceRotation() {
+        // Same approach as SmallShipsController.updateFaceRotation()
         Vec3 targetDir = new Vec3(-Math.sin(Math.toRadians(faceYaw)), 0, Math.cos(Math.toRadians(faceYaw)));
-        Vec3 catapultFacing = catapult.getEntity().getForward().yRot((float) (Math.PI/2)).normalize();
+        Vec3 weaponForward = catapult.getEntity().getForward().normalize();
 
-        double angle = Kalkuel.horizontalAngleBetweenVectors(catapultFacing, targetDir);
+        double angle = Kalkuel.horizontalAngleBetweenVectors(weaponForward, targetDir);
 
         if(Math.abs(angle) < 5) {
             faceTicks = 0;
             resetSteering();
+            this.forward = false;
+            this.backward = false;
             return;
         }
 
-        Vec3 cross = catapultFacing.cross(targetDir);
+        Vec3 cross = weaponForward.cross(targetDir);
         left = cross.y > 0;
         right = cross.y < 0;
 
@@ -254,7 +248,7 @@ public class SiegeWeaponCatapultController implements ISiegeController {
         faceTicks--;
     }
 
-    // ========================= PROJECTILE FEEDBACK =========================
+    // ========================= PROJECTILE FEEDBACK (range + lateral) =========================
 
     private void updateProjectileFeedback() {
         if(lastShotTick < 0) return;
@@ -263,42 +257,60 @@ public class SiegeWeaponCatapultController implements ISiegeController {
         if(ticksSinceShot < PROJECTILE_FLIGHT_TIME) return;
 
         if(lastShotTargetPos != null){
-            // Check if enemies are still alive near the target position
-            boolean enemiesStillAlive = !siegeEngineer.getCommandSenderWorld()
+            // Find enemies still alive near the target position
+            List<LivingEntity> nearbyEnemies = siegeEngineer.getCommandSenderWorld()
                     .getEntitiesOfClass(LivingEntity.class, siegeEngineer.getBoundingBox().inflate(200D)).stream()
                     .filter(target -> siegeEngineer.shouldAttack(target) && target.distanceToSqr(lastShotTargetPos) < 100)
-                    .toList().isEmpty();
+                    .toList();
 
-            if(enemiesStillAlive){
-                // Shot missed - adjust range
+            if(!nearbyEnemies.isEmpty()){
+                // Shot missed
+                LivingEntity closestEnemy = nearbyEnemies.get(0);
+                Vec3 catapultPos = catapult.entity.position();
+
+                // Range adjustment
                 float currentRange = lastShotRange + rangeAdjustment;
-                float idealRange = IRangedRecruit.calcBaseRangeForCatapult((float) catapult.entity.distanceToSqr(lastShotTargetPos.x, catapult.entity.position().y, lastShotTargetPos.z));
+                float idealRange = IRangedRecruit.calcBaseRangeForCatapult((float) catapult.entity.distanceToSqr(lastShotTargetPos.x, catapultPos.y, lastShotTargetPos.z));
 
                 if(currentRange < idealRange){
-                    // Undershooting - increase range
                     rangeAdjustment += RANGE_ADJUSTMENT_STEP;
                 }
                 else {
-                    // Overshooting - decrease range
                     rangeAdjustment -= RANGE_ADJUSTMENT_STEP;
                 }
-
-                // Clamp adjustment
                 rangeAdjustment = Math.max(-MAX_RANGE_ADJUSTMENT, Math.min(MAX_RANGE_ADJUSTMENT, rangeAdjustment));
+
+                // Lateral adjustment: check if enemy is left or right of our aim direction
+                Vec3 aimDir = new Vec3(lastShotTargetPos.x - catapultPos.x, 0, lastShotTargetPos.z - catapultPos.z).normalize();
+                Vec3 toEnemy = new Vec3(closestEnemy.getX() - catapultPos.x, 0, closestEnemy.getZ() - catapultPos.z).normalize();
+                Vec3 cross = aimDir.cross(toEnemy);
+
+                if(cross.y > 0.01){
+                    // Enemy is to the left of our aim - adjust left (negative)
+                    lateralAdjustment -= LATERAL_ADJUSTMENT_STEP;
+                }
+                else if(cross.y < -0.01){
+                    // Enemy is to the right of our aim - adjust right (positive)
+                    lateralAdjustment += LATERAL_ADJUSTMENT_STEP;
+                }
+                lateralAdjustment = Math.max(-MAX_LATERAL_ADJUSTMENT, Math.min(MAX_LATERAL_ADJUSTMENT, lateralAdjustment));
 
                 if(DEBUG && siegeEngineer.getOwner() != null){
                     siegeEngineer.getOwner().sendSystemMessage(Component.literal(
-                            siegeEngineer.getName().getString() + ": MISSED! Adjusting range by " + String.format("%.1f", rangeAdjustment)));
+                            siegeEngineer.getName().getString() + ": MISSED! Range adj: " + String.format("%.1f", rangeAdjustment)
+                                    + " Lateral adj: " + String.format("%.1f", lateralAdjustment) + "°"));
                 }
             }
             else {
-                // Hit! Slowly reduce adjustment back toward 0
+                // Hit
                 rangeAdjustment *= 0.5F;
+                lateralAdjustment *= 0.5F;
                 if(Math.abs(rangeAdjustment) < 0.5F) rangeAdjustment = 0;
+                if(Math.abs(lateralAdjustment) < 0.2F) lateralAdjustment = 0;
 
                 if(DEBUG && siegeEngineer.getOwner() != null){
                     siegeEngineer.getOwner().sendSystemMessage(Component.literal(
-                            siegeEngineer.getName().getString() + ": HIT! Range adjustment: " + String.format("%.1f", rangeAdjustment)));
+                            siegeEngineer.getName().getString() + ": HIT!"));
                 }
             }
         }
@@ -317,7 +329,6 @@ public class SiegeWeaponCatapultController implements ISiegeController {
 
     private static final int LOAD_DELAY_TICKS = 50;
     private int loadDelay = 0;
-    private boolean wasJustLoaded = false;
     public Vec3 targetPos;
     public float distanceToTarget;
     public boolean noAmmoMessage = false;
@@ -331,42 +342,36 @@ public class SiegeWeaponCatapultController implements ISiegeController {
         boolean isLoading = catapult.isLoading();
         boolean isShooting = catapult.isShooting();
 
-        // Block Steuerung während Schussanimation
         if (isShooting) {
             resetSteering();
             return true;
         }
 
-        // Automatisches Nachladen nach dem Schuss
         if (isShot || isLoading) {
             catapult.trigger(true);
             resetSteering();
             return true;
         }
 
-
         if (targetPos == null) {
             catapult.trigger(false);
             return false;
         }
 
-        // Falls geladen, erstmal Trigger aus
         if (isLoaded) {
             catapult.trigger(false);
         }
 
-        // Rotation und Zielausrichtung
+        // Rotation with lateral adjustment applied
         if (!rotateAndCheckAngle()) {
-            return true; // Noch in Bewegung, weiter warten
+            return true;
         }
 
-        // Range setzen mit Feedback-Adjustment
         range = this.calcRange(distanceToTarget);
         catapult.setRange(range);
 
-        // Noch kein Projektil geladen
         if (!isProjectileLoaded) {
-            int index = catapult.getProjectile(siegeEngineer);
+            int index = catapult.getProjectileIndex(siegeEngineer);
 
             if (index == 0) {
                 if (!noAmmoMessage) {
@@ -381,7 +386,7 @@ public class SiegeWeaponCatapultController implements ISiegeController {
             }
 
             if (isLoaded) {
-                catapult.loadProjectile(index);
+                catapult.loadProjectileWithIndex(index);
                 loadDelay = LOAD_DELAY_TICKS;
                 noAmmoMessage = false;
             }
@@ -393,7 +398,6 @@ public class SiegeWeaponCatapultController implements ISiegeController {
             return true;
         }
 
-        // Fire and record shot for feedback
         recordShot(range);
         catapult.trigger(true);
         return true;
@@ -438,7 +442,7 @@ public class SiegeWeaponCatapultController implements ISiegeController {
 
         if(DEBUG && siegeEngineer.getOwner() != null){
             siegeEngineer.getOwner().sendSystemMessage(Component.literal(
-                    siegeEngineer.getName().getString() + ": Repairing siege weapon. Health: " + String.format("%.0f", catapult.getHealth())));
+                    siegeEngineer.getName().getString() + ": Repairing catapult. Health: " + String.format("%.0f", catapult.getHealth())));
         }
     }
 
@@ -466,7 +470,7 @@ public class SiegeWeaponCatapultController implements ISiegeController {
         if(targetPos != null){
             this.distanceToTarget = (float) this.catapult.entity.distanceToSqr(targetPos.x, this.catapult.entity.position().y, targetPos.z);
 
-            if(distanceToTarget < 900 || distanceToTarget > 19000){
+            if(distanceToTarget < MIN_ENGAGE_DISTANCE || distanceToTarget > MAX_ENGAGE_DISTANCE){
                 targetPos = null;
             }
         }
@@ -477,7 +481,7 @@ public class SiegeWeaponCatapultController implements ISiegeController {
         int movementState = siegeEngineer.getFollowState();
 
         switch (movementState) {
-            case 0 -> { // Wander
+            case 0 -> { // Wander / Move to pos
                 if(siegeEngineer.getShouldMovePos() && siegeEngineer.getMovePos() != null){
                     movementPos = siegeEngineer.getMovePos().getCenter();
                 }
@@ -486,7 +490,11 @@ public class SiegeWeaponCatapultController implements ISiegeController {
                 LivingEntity owner = siegeEngineer.getOwner();
                 if(owner != null) movementPos = owner.position();
             }
-            case 2 -> { // Hold Position
+            case 2, 4 -> { // Hold Position / Hold my position
+                Vec3 holdPos = siegeEngineer.getHoldPos();
+                if(holdPos != null) movementPos = holdPos;
+            }
+            case 3 -> { // Back to position (forward/backward commands)
                 Vec3 holdPos = siegeEngineer.getHoldPos();
                 if(holdPos != null) movementPos = holdPos;
             }
@@ -495,15 +503,28 @@ public class SiegeWeaponCatapultController implements ISiegeController {
                 if(protect != null) movementPos = protect.position();
             }
         }
-
     }
 
     private boolean rotateAndCheckAngle() {
-        Vec3 forward = catapult.getEntity().getForward().yRot((float) (Math.PI/2)).normalize();
-        Vec3 target = new Vec3(targetPos.x, 0, targetPos.z);
-        Vec3 toTarget = target.subtract(catapult.getEntity().position()).normalize();
+        Vec3 catapultFacing = catapult.getEntity().getForward().yRot((float) (Math.PI/2)).normalize();
 
-        double phi = Kalkuel.horizontalAngleBetweenVectors(forward, toTarget);
+        // Apply lateral adjustment: rotate the target position slightly
+        Vec3 adjustedTarget;
+        if(Math.abs(lateralAdjustment) > 0.1){
+            double adjRad = Math.toRadians(lateralAdjustment);
+            double tx = targetPos.x - catapult.getEntity().getX();
+            double tz = targetPos.z - catapult.getEntity().getZ();
+            double rotX = tx * Math.cos(adjRad) - tz * Math.sin(adjRad);
+            double rotZ = tx * Math.sin(adjRad) + tz * Math.cos(adjRad);
+            adjustedTarget = new Vec3(catapult.getEntity().getX() + rotX, 0, catapult.getEntity().getZ() + rotZ);
+        }
+        else {
+            adjustedTarget = new Vec3(targetPos.x, 0, targetPos.z);
+        }
+
+        Vec3 toTarget = adjustedTarget.subtract(catapult.getEntity().position()).normalize();
+
+        double phi = Kalkuel.horizontalAngleBetweenVectors(catapultFacing, toTarget);
 
         double ref = 90;
         double tolerance = 1.0;

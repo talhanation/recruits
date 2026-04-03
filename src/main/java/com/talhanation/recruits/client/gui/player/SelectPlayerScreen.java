@@ -41,9 +41,9 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
     protected Screen parent;
     public RecruitsPlayerInfo selected;
     private Button backButton;
-    private Button actionButton;
+    protected Button actionButton; // protected so subclasses (e.g. EmbargoScreen) can replace it
     private final Consumer<RecruitsPlayerInfo> buttonAction;
-    private final Player player;
+    protected final Player player;
     private final boolean includeSelf;
     private final PlayersList.FilterType filterType;
 
@@ -60,7 +60,6 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
         BUTTON_TEXT = buttonText;
         TOOLTIP_BUTTON = buttonTooltip;
     }
-
 
     @Override
     protected void init() {
@@ -81,6 +80,7 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
         } else {
             playerList = new PlayersList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, filterType, player, includeSelf);
         }
+
         String string = searchBox != null ? searchBox.getValue() : "";
         searchBox = new EditBox(font, guiLeft + 8, guiTop + HEADER_SIZE, 220, SEARCH_HEIGHT, Component.literal("SEARCH_HINT"));
         searchBox.setMaxLength(16);
@@ -118,13 +118,8 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
     @Override
     public void tick() {
         super.tick();
-        if(searchBox != null){
-            searchBox.tick();
-        }
-
-        if(playerList != null){
-            playerList.tick();
-        }
+        if (searchBox != null)  searchBox.tick();
+        if (playerList != null) playerList.tick();
     }
 
     @Override
@@ -133,7 +128,6 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
         this.selected = null;
         this.playerList.setFocused(null);
         this.actionButton.active = false;
-
         return flag;
     }
 
@@ -181,10 +175,8 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
         boolean flag = super.mouseClicked(x, y, z);
         if(this.playerList.getFocused() != null){
             this.selected = this.playerList.getFocused().getPlayerInfo();
-
             this.actionButton.active = true;
         }
-
         return flag;
     }
 
@@ -192,10 +184,12 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
     public Component getTitle() {
         return title;
     }
+
     @Override
     public RecruitsPlayerInfo getSelected() {
         return selected;
     }
+
     @Override
     public ListScreenListBase<RecruitsPlayerEntry> getPlayerList() {
         return playerList;

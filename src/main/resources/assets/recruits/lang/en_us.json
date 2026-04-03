@@ -559,5 +559,20 @@
   "gui.recruits.inv.tooltip.prioInfantry": "Set Priority to target Infantry",
   "gui.recruits.inv.tooltip.prioCavalry": "Set Priority to target Cavalry",
   "gui.recruits.inv.tooltip.prioSiegeWeapons": "Set Priority to target Siege Weapons",
-  "gui.recruits.inv.tooltip.prioShips": "Set Priority to target Ships"
+  "gui.recruits.inv.tooltip.prioShips": "Set Priority to target Ships",
+
+  "gui.recruits.embargo.screen_title": "Embargoes",
+  "gui.recruits.embargo.add_title": "Add Embargo",
+  "gui.recruits.embargo.button_add": "Add",
+  "gui.recruits.embargo.button_remove": "Remove",
+  "gui.recruits.embargo.button_player": "Player",
+  "gui.recruits.embargo.button_faction": "Faction",
+  "gui.recruits.select_faction_screen.title": "Select Faction",
+  "gui.recruits.embargo.button_add_tooltip": "Add to embargo list",
+  "gui.recruits.embargo.tooltip_leader_only": "Only leaders can manage embargoes",
+  "chat.recruits.text.embargoBlocked": "%s: You cannot trade with me due to an active embargo from our faction!",
+  "gui.recruits.toast.embargoDeclaredTitle": "Embargo Declared",
+  "gui.recruits.toast.embargoDeclaed": "%s has declared an embargo against you.",
+  "gui.recruits.toast.embargoLiftedTitle": "Embargo Lifted",
+  "gui.recruits.toast.embargoLifted": "%s has lifted the embargo against you."
 }

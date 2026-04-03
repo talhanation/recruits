@@ -41,7 +41,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
 
-public class VillagerNobleEntity extends AbstractRecruitEntity {
+public class VillagerNobleEntity extends AbstractRecruitEntity implements ICanTradeEmbargo {
     private static final EntityDataAccessor<CompoundTag> TRADES = SynchedEntityData.defineId(VillagerNobleEntity.class, EntityDataSerializers.COMPOUND_TAG);
     private static final EntityDataAccessor<Integer> TRADER_PROGRESS = SynchedEntityData.defineId(VillagerNobleEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> TRADER_LEVEL = SynchedEntityData.defineId(VillagerNobleEntity.class, EntityDataSerializers.INT);
@@ -382,7 +382,10 @@ public class VillagerNobleEntity extends AbstractRecruitEntity {
         }
 
     }
-
+    @Override
+    public String getEmbargoTeamID() {
+        return this.getTeam() != null ? this.getTeam().getName() : "";
+    }
 }
 
 

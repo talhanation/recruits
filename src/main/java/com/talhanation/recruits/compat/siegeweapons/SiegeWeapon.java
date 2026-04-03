@@ -5,7 +5,6 @@ import com.talhanation.recruits.entities.SiegeEngineerEntity;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -19,9 +18,17 @@ public abstract class SiegeWeapon {
     public Entity entity;
     public SiegeEngineerEntity siegeEngineer;
     public abstract boolean canShoot();
-    public abstract void loadProjectile(int projectileIndex);
+    public abstract void loadProjectileWithIndex(int projectileIndex);
     public abstract void trigger(boolean trigger);
-
+    public abstract void loadProjectile(ItemStack projectile);
+    public abstract boolean isLoaded();
+    public abstract boolean isProjectileLoaded();
+    public abstract boolean isShot();
+    public abstract boolean isLoading();
+    public abstract boolean isShooting();
+    public abstract void setRange(float range);
+    public abstract int getProjectileIndex(SiegeEngineerEntity siegeEngineer);
+    public abstract ItemStack getProjectile(SiegeEngineerEntity siegeEngineer);
     public Entity getEntity(){
         return entity;
     }

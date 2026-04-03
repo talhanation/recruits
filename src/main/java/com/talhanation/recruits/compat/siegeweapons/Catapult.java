@@ -129,6 +129,11 @@ public class Catapult extends SiegeWeapon {
         }
     }
 
+    @Override
+    public void loadProjectile(ItemStack projectile) {
+
+    }
+
     public void setRange(float range) {
         try {
             Class<?> siegeweaponClass = Class.forName("com.talhanation.siegeweapons.entities.CatapultEntity");
@@ -151,7 +156,7 @@ public class Catapult extends SiegeWeapon {
     }
 
     @Override
-    public void loadProjectile(int projectileIndex) {
+    public void loadProjectileWithIndex(int projectileIndex) {
         try {
             Class<?> catapultClass = Class.forName("com.talhanation.siegeweapons.entities.CatapultEntity");
             Class<?> projectileEnumClass = Class.forName("com.talhanation.siegeweapons.entities.CatapultEntity$CatapultProjectiles");
@@ -178,7 +183,7 @@ public class Catapult extends SiegeWeapon {
         }
     }
 
-    public int getProjectile(SiegeEngineerEntity siegeEngineer) {
+    public int getProjectileIndex(SiegeEngineerEntity siegeEngineer) {
         SimpleContainer inventory = siegeEngineer.getInventory();
 
         for(int i = 0; i < inventory.getContainerSize(); i++){
@@ -205,5 +210,10 @@ public class Catapult extends SiegeWeapon {
         }
 
         return 0;
+    }
+
+    @Override
+    public ItemStack getProjectile(SiegeEngineerEntity siegeEngineer) {
+        return null;
     }
 }

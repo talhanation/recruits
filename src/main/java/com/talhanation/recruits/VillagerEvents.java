@@ -1,5 +1,6 @@
 package com.talhanation.recruits;
 
+import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.entities.ai.villager.VillagerBecomeNobleGoal;
@@ -30,6 +31,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -122,6 +124,42 @@ public class VillagerEvents {
             }
         }
     }
+
+    @SubscribeEvent
+    public void onPlayerInteractEntity(PlayerInteractEvent.EntityInteract event) {
+        Player player = event.getEntity();
+        Entity target = event.getTarget();
+
+        String teamID = null;
+
+        if (target instanceof ICanTradeEmbargo ihe) {
+            teamID = ihe.getEmbargoTeamID();
+        }
+        else if (target instanceof Villager && target.getTeam() != null) {
+            teamID = target.getTeam().getName();
+        }
+
+        if (teamID == null || teamID.isEmpty()) return;
+
+        if (event.getLevel().isClientSide()) {
+
+            String embargoed = ClientManager.embargoMap.getOrDefault(player.getUUID(), "");
+
+            if (embargoed.contains(teamID)) {
+                event.setCanceled(true);
+            }
+        }
+        else {
+            // Server-side: gegen die authoritative Map prüfen
+            if (FactionEvents.recruitsDiplomacyManager.hasEmbargo(player.getUUID(), teamID)) {
+                event.setCanceled(true);
+                player.sendSystemMessage(
+                        Component.translatable("chat.recruits.text.embargoBlocked", target.getName().getString())
+                );
+            }
+        }
+    }
+
     private static void createRecruit(Villager villager, EntityType<? extends AbstractRecruitEntity> recruitType){
         AbstractRecruitEntity abstractRecruit = recruitType.create(villager.getCommandSenderWorld());
         if (abstractRecruit != null) {

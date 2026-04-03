@@ -186,11 +186,14 @@ public class CommandEvents {
     private static double getForwardScale(List<AbstractRecruitEntity> recruits) {
         for (AbstractRecruitEntity recruit : recruits){
             if(recruit instanceof CaptainEntity) return getForwardScale(recruit);
+            if(recruit instanceof SiegeEngineerEntity) return getForwardScale(recruit);
         }
         return 10;
     }
     private static double getForwardScale(AbstractRecruitEntity recruit) {
-        return (recruit instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()) ? 25 : 10;
+        if(recruit instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()) return 25;
+        if(recruit instanceof SiegeEngineerEntity siegeEngineer && siegeEngineer.siegeController.getSiegeEntity() != null) return 20;
+        return 10;
     }
     public static void applyFormation(int formation, List<AbstractRecruitEntity> recruits, ServerPlayer player, Vec3 targetPos) {
         applyFormation(formation, recruits, player, targetPos, false);
@@ -251,7 +254,7 @@ public class CommandEvents {
                 captain.smallShipsController.startFaceRotation(player.getYRot());
             }
 
-            // SiegeEngineer with catapult: rotate the siege weapon
+            // SiegeEngineer with siege weapon: rotate the siege weapon
             if(recruit instanceof SiegeEngineerEntity siegeEngineer && siegeEngineer.siegeController.getSiegeEntity() != null) {
                 siegeEngineer.siegeController.startFaceRotation(player.getYRot());
             }

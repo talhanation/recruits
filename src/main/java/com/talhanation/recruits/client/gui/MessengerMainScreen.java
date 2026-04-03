@@ -3,6 +3,7 @@ package com.talhanation.recruits.client.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
+import com.talhanation.recruits.client.gui.diplomacy.EmbargoScreen;
 import com.talhanation.recruits.entities.MessengerEntity;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -18,6 +19,7 @@ public class MessengerMainScreen extends RecruitsScreenBase {
 
     private static final Component BUTTON_MESSAGES = Component.translatable("gui.recruits.messenger.tab.messages");
     private static final Component BUTTON_TREATIES = Component.translatable("gui.recruits.messenger.tab.treaties");
+    private static final Component BUTTON_EMBARGOES = Component.translatable("gui.recruits.embargo.screen_title");
     private static final Component TITLE = Component.translatable("gui.recruits.messenger.main_title");
 
     private final Player player;
@@ -26,7 +28,7 @@ public class MessengerMainScreen extends RecruitsScreenBase {
     public MessengerMainScreen(MessengerEntity messenger, Player player) {
         super(TITLE, 195,160);
         this.messenger = messenger;
-        this.player = player;
+        this.player    = player;
     }
 
     @Override
@@ -46,12 +48,19 @@ public class MessengerMainScreen extends RecruitsScreenBase {
         );
         addRenderableWidget(messagesButton);
 
-
         Button treatyButton = new ExtendedButton(btnX, guiTop + 55, btnWidth, 20, BUTTON_TREATIES,
                 button -> minecraft.setScreen(new MessengerTreatyScreen(messenger, player))
         );
-        treatyButton.active = ClientManager.ownFaction != null && ClientManager.ownFaction.getTeamLeaderUUID().equals(player.getUUID());
+        treatyButton.active = ClientManager.ownFaction != null
+                && ClientManager.ownFaction.getTeamLeaderUUID().equals(player.getUUID());
         addRenderableWidget(treatyButton);
+
+        Button embargoButton = new ExtendedButton(btnX, guiTop + 80, btnWidth, 20, BUTTON_EMBARGOES,
+                button -> minecraft.setScreen(new EmbargoScreen(this, player))
+        );
+        embargoButton.active = ClientManager.ownFaction != null
+                && ClientManager.ownFaction.getTeamLeaderUUID().equals(player.getUUID());
+        addRenderableWidget(embargoButton);
     }
 
     @Override

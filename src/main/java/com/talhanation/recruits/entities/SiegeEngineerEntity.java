@@ -1,15 +1,21 @@
 package com.talhanation.recruits.entities;
 
+import com.talhanation.recruits.compat.siegeweapons.Ballista;
+import com.talhanation.recruits.compat.siegeweapons.Catapult;
 import com.talhanation.recruits.compat.siegeweapons.SiegeWeapon;
 import com.talhanation.recruits.compat.smallships.SmallShips;
 import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.entities.ai.controller.siegeengineer.ISiegeController;
+import com.talhanation.recruits.entities.ai.controller.siegeengineer.SiegeWeaponBallistaController;
 import com.talhanation.recruits.entities.ai.controller.siegeengineer.SiegeWeaponCatapultController;
+import com.talhanation.recruits.util.NPCArmy;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
@@ -27,7 +33,6 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraftforge.common.ForgeMod;
 
 import javax.annotation.Nullable;
-import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -35,7 +40,9 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompanion, IStrategicFire, IHasTargetPriority {
-    public final ISiegeController siegeController;
+    public ISiegeController siegeController;
+    private final SiegeWeaponCatapultController catapultController;
+    private final SiegeWeaponBallistaController ballistaController;
     private static final EntityDataAccessor<String> OWNER_NAME = SynchedEntityData.defineId(SiegeEngineerEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<Optional<BlockPos>> STRATEGIC_FIRE_POS = SynchedEntityData.defineId(SiegeEngineerEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Boolean> SHOULD_STRATEGIC_FIRE = SynchedEntityData.defineId(SiegeEngineerEntity.class, EntityDataSerializers.BOOLEAN);
@@ -45,9 +52,10 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
     public SiegeEngineerEntity(EntityType<? extends AbstractRecruitEntity> entityType, Level world) {
         super(entityType, world);
-        this.siegeController = new SiegeWeaponCatapultController(this, world);
-        this.siegeController.tryMount(getVehicle());
+        this.catapultController = new SiegeWeaponCatapultController(this, world);
+        this.ballistaController = new SiegeWeaponBallistaController(this, world);
     }
+
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(OWNER_NAME, "");
@@ -126,7 +134,7 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
 
     @Override
     public boolean canHoldItem(ItemStack itemStack){
-        return !(itemStack.getItem() instanceof CrossbowItem || itemStack.getItem() instanceof BowItem); //TODO: add ranged combat
+        return !(itemStack.getItem() instanceof CrossbowItem || itemStack.getItem() instanceof BowItem);
     }
 
     @Override
@@ -149,9 +157,6 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
     public boolean isAtMission() {
         return false;
     }
-
-    // ========================= TARGET PRIORITY =========================
-
     public int getTargetPriority() {
         return this.entityData.get(TARGET_PRIORITY);
     }
@@ -163,6 +168,9 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
     @Override
     public void tick() {
         super.tick();
+
+        if(this.siegeController == null) return;
+
         if(this.getVehicle() != null && siegeController.getSiegeEntity() == null){
             siegeController.tryMount(this.getVehicle());
         }
@@ -172,30 +180,43 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
 
     @Override
     public void die(DamageSource dmg) {
-        siegeController.reset();
+        if(this.siegeController != null) siegeController.reset();
         super.die(dmg);
     }
 
     @Override
     public boolean startRiding(Entity entity) {
-        siegeController.tryMount(entity);
+        this.selectController(entity);
+
+        if(this.siegeController != null)  siegeController.tryMount(entity);
         return super.startRiding(entity);
     }
 
     @Override
     public void stopRiding() {
-        siegeController.tryDismount();
+        if(this.siegeController != null) siegeController.tryDismount();
         super.stopRiding();
+    }
+
+    private void selectController(Entity vehicle) {
+        if(Catapult.isCatapult(vehicle)){
+            this.siegeController = catapultController;
+            catapultController.tryMount(vehicle);
+        }
+        else if(Ballista.isBallista(vehicle)){
+            this.siegeController = ballistaController;
+            ballistaController.tryMount(vehicle);
+        }
     }
 
     @Override
     public void setFollowState(int state) {
         super.setFollowState(state);
-        this.siegeController.calculatePath();
+        if(this.siegeController != null)  this.siegeController.calculatePath();
     }
 
     public void setShouldStrategicFire(boolean bool) {
-        if(!bool) this.siegeController.setTargetPos(null);
+        if(!bool) if(this.siegeController != null) this.siegeController.setTargetPos(null);
         this.entityData.set(SHOULD_STRATEGIC_FIRE, bool);
     }
     public boolean getShouldStrategicFire(){
@@ -254,7 +275,7 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
             }
         }
 
-        siegeController.setTargetPos(target.position());
+        if(this.siegeController != null) siegeController.setTargetPos(target.position());
     }
 
     private Entity findInfantryTarget(List<Entity> targets) {

@@ -112,7 +112,7 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
         setEditBox();
         createProfessionButtons(BUTTON_MESSENGER, TOOLTIP_MESSENGER, 0, recruit.getXpLevel() >= 2);
         createProfessionButtons(BUTTON_SCOUT, TOOLTIP_SCOUT, 1, recruit.getXpLevel() >= 2);
-        createProfessionButtons(BUTTON_SIEGE_ENGINEER, TOOLTIP_SIEGE_ENGINEER, 2, recruit.getXpLevel() >= 3 && Main.isSiegeWeaponsLoaded);
+        createProfessionButtons(BUTTON_SIEGE_ENGINEER, TOOLTIP_SIEGE_ENGINEER, 2,  false && recruit.getXpLevel() >= 3 && Main.isSiegeWeaponsLoaded);
         createProfessionButtons(BUTTON_CAPTAIN, Main.isSmallShipsCompatible ? TOOLTIP_CAPTAIN : TOOLTIP_CAPTAIN_DISABLED, 3, recruit.getXpLevel() >= 5 && Main.isSmallShipsLoaded && Main.isSmallShipsCompatible);
         createProfessionButtons(BUTTON_PATROL_LEADER, TOOLTIP_PATROL_LEADER, 4,recruit.getXpLevel() >= 5);
         createProfessionButtons(BUTTON_ASSASSIN, TOOLTIP_ASSASSIN, 5, false && recruit.getXpLevel() >= 5);

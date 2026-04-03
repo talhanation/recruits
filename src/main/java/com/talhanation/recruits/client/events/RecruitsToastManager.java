@@ -19,6 +19,7 @@ public class RecruitsToastManager {
     private static final ResourceLocation ENEMY_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/enemy.png");
     private static final ResourceLocation NEUTRAL_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/neutral.png");
     private static final ResourceLocation CROWN_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/leader_crown.png");
+    private static final ResourceLocation EMBARGO_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/embargo.png");
     public static Images savedTeamForPlayer;//dirty fix calling twice bug
     public static Images savedForPlayer;//dirty fix for calling twice bug
     public static void setTeamToastForPlayer(Images id, @Nullable Component title, @Nullable Component text, RecruitsFaction team){
@@ -46,6 +47,9 @@ public class RecruitsToastManager {
             }
             case CROWN -> {
                 toast = new RecruitsTeamImageToast(CROWN_IMAGE, title, text, team);
+            }
+            case EMBARGO -> {
+                toast = new RecruitsTeamImageToast(EMBARGO_IMAGE, title, text, team);
             }
             default -> {
                 toast = new RecruitsTeamImageToast(LETTER_IMAGE, title, text, team);
@@ -95,7 +99,8 @@ public class RecruitsToastManager {
         NEUTRAL,
         ENEMY,
         CROWN,
-        TEAM_JOIN
+        TEAM_JOIN,
+        EMBARGO
     }
 
     public static Component TOAST_TO(String team){
@@ -121,8 +126,10 @@ public class RecruitsToastManager {
     public static final Component TOAST_NEW_LEADER_TITLE = Component.translatable("gui.recruits.toast.newTeamLeaderTitle");
     public static final Component TOAST_NEW_FACTION_NAME_TITLE = Component.translatable("gui.recruits.toast.newFactionNameTitle");
     public static final Component TOAST_NEW_BANNER_TITLE = Component.translatable("gui.recruits.toast.newFactionBannerTitle");
-    public static final Component TOAST_TREATY_ESTABLISHED_TITLE = Component.translatable("gui.recruits.toast.treatyEstablishedTitle");
+    public static final Component TOAST_TREATY_ESTABLISHED_TITLE = Component.translatable("gui.recruits.toast.treatyEstablishedTitle").withStyle(ChatFormatting.GREEN);;
     public static final Component TOAST_TREATY_EXPIRED_TITLE = Component.translatable("gui.recruits.toast.treatyExpiredTitle");
+    public static final Component TOAST_EMBARGO_DECLARED_TITLE = Component.translatable("gui.recruits.toast.embargoDeclaredTitle").withStyle(ChatFormatting.RED);
+    public static final Component TOAST_EMBARGO_LIFTED_TITLE = Component.translatable("gui.recruits.toast.embargoLiftedTitle").withStyle(ChatFormatting.GREEN);
 
     public static Component TOAST_TREATY_ESTABLISHED(String s) {
         return Component.translatable("gui.recruits.toast.treatyEstablished", s);
@@ -131,6 +138,15 @@ public class RecruitsToastManager {
     public static Component TOAST_TREATY_EXPIRED(String s) {
         return Component.translatable("gui.recruits.toast.treatyExpired", s);
     }
+
+    public static Component TOAST_EMBARGO_DECLARED(String s) {
+        return Component.translatable("gui.recruits.toast.embargoDeclaed", s).withStyle(ChatFormatting.RED);
+    }
+
+    public static Component TOAST_EMBARGO_LIFTED(String s) {
+        return Component.translatable("gui.recruits.toast.embargoLifted", s).withStyle(ChatFormatting.GREEN);
+    }
+
     public static final Component TOAST_GROUP_ASSIGNED_TITLE  = Component.translatable("gui.recruits.toast.groupAssignedTitle");
 
     public static Component TOAST_GROUP_ASSIGNED_INFO(String s) {

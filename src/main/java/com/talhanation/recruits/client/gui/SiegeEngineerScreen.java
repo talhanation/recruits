@@ -55,7 +55,7 @@ public class SiegeEngineerScreen extends RecruitsScreenBase {
 
     private void setButtons(){
         clearWidgets();
-        int y = guiTop  - 27;
+        int y = guiTop  + 13;
         int x = guiLeft + 32;
 
         titleTextField = new BlackShowingTextField(x, y, 130, 20, TEXT_SELECT_TARGET_PRIO);

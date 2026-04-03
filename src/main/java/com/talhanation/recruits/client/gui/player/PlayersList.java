@@ -3,8 +3,8 @@ package com.talhanation.recruits.client.gui.player;
 import com.google.common.collect.Lists;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.widgets.ListScreenListBase;
-import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import com.talhanation.recruits.world.RecruitsFaction;
+import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.*;
@@ -48,11 +48,46 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
                     for (RecruitsPlayerInfo online : ClientManager.onlinePlayers) {
                         onlineUUIDs.add(online.getUUID());
                     }
-
                     for (RecruitsPlayerInfo member : ClientManager.ownFaction.getMembers()) {
                         if (includeSelf || !member.getUUID().equals(this.player.getUUID())) {
                             member.setOnline(onlineUUIDs.contains(member.getUUID()));
                             entries.add(new RecruitsPlayerEntry(screen, member));
+                        }
+                    }
+                }
+            }
+            case EMBARGO -> {
+                if (ClientManager.ownFaction != null) {
+                    String ownTeamID = ClientManager.ownFaction.getStringID();
+
+                    // collect embargoed UUIDs declared by our faction
+                    Set<UUID> embargoedUUIDs = new HashSet<>();
+                    for (Map.Entry<UUID, String> entry : ClientManager.embargoMap.entrySet()) {
+                        if (Arrays.asList(entry.getValue().split(",")).contains(ownTeamID)) {
+                            embargoedUUIDs.add(entry.getKey());
+                        }
+                    }
+
+                    // build UUID -> RecruitsPlayerInfo from all known faction members (online + offline)
+                    // create a new RecruitsPlayerInfo with the faction reference so the banner renders
+                    Map<UUID, RecruitsPlayerInfo> knownPlayers = new HashMap<>();
+                    for (RecruitsFaction faction : ClientManager.factions) {
+                        for (RecruitsPlayerInfo member : faction.getMembers()) {
+                            knownPlayers.put(member.getUUID(), new RecruitsPlayerInfo(member.getUUID(), member.getName(), faction));
+                        }
+                    }
+
+                    // mark online status
+                    Set<UUID> onlineUUIDs = new HashSet<>();
+                    for (RecruitsPlayerInfo online : ClientManager.onlinePlayers) {
+                        onlineUUIDs.add(online.getUUID());
+                    }
+
+                    for (UUID embargoedUUID : embargoedUUIDs) {
+                        RecruitsPlayerInfo info = knownPlayers.get(embargoedUUID);
+                        if (info != null) {
+                            info.setOnline(onlineUUIDs.contains(embargoedUUID));
+                            entries.add(new RecruitsPlayerEntry(screen, info));
                         }
                     }
                 }
@@ -93,11 +128,7 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
 
         filteredEntries.sort((e1, e2) -> {
             if (!e1.getClass().equals(e2.getClass())) {
-                if (e1 instanceof RecruitsPlayerEntry) {
-                    return 1;
-                } else {
-                    return -1;
-                }
+                return e1 instanceof RecruitsPlayerEntry ? 1 : -1;
             }
             boolean o1online = e1.getPlayerInfo() != null && e1.getPlayerInfo().isOnline();
             boolean o2online = e2.getPlayerInfo() != null && e2.getPlayerInfo().isOnline();
@@ -129,6 +160,7 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
         NONE,
         SAME_TEAM,
         TEAM_JOIN_REQUEST,
-        ANY_TEAM
+        ANY_TEAM,
+        EMBARGO
     }
 }

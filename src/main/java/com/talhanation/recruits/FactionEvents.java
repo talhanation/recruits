@@ -103,6 +103,7 @@ public class FactionEvents {
 
             recruitsDiplomacyManager.broadcastDiplomacyMapToPlayer(player);
             recruitsTreatyManager.broadcastTreatiesToPlayer((ServerPlayer) player);
+            recruitsDiplomacyManager.broadcastEmbargoesToPlayer(player);
         }
     }
 

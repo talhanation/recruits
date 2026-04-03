@@ -2,6 +2,7 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.compat.musketmod.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
+import com.talhanation.recruits.pathfinding.AsyncPathProcessor;
 import com.talhanation.recruits.util.DelayedExecutor;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
@@ -145,7 +146,7 @@ public class RecruitEvents {
         // kann dort eine NPE werfen und würde start() nie erreichen lassen.
         // ServerStartedEvent garantiert dass alle Levels geladen sind und der Executor
         // vor dem ersten Entity-Tick bereit ist.
-        com.talhanation.recruits.pathfinding.AsyncPathProcessor.start();
+        AsyncPathProcessor.start();
     }
 
 
@@ -156,7 +157,7 @@ public class RecruitEvents {
         recruitsGroupsManager.save(server.overworld());
 
         // Fix: Async-Executor sauber herunterfahren damit der Server nicht hängt
-        com.talhanation.recruits.pathfinding.AsyncPathProcessor.shutdown();
+        AsyncPathProcessor.shutdown();
     }
 
     @SubscribeEvent
@@ -284,7 +285,8 @@ public class RecruitEvents {
                         event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
                         return;
                     }
-                } else if (passenger instanceof Player player) {
+                }
+                else if (passenger instanceof Player player) {
                     if (!canAttack(recruit, player)) {
 
                         event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
@@ -296,7 +298,8 @@ public class RecruitEvents {
             if (!canAttack(recruit, impactLiving)) {
                 event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
                 return;
-            } else {
+            }
+            else {
                 recruit.addXp(2);
                 recruit.checkLevel();
             }

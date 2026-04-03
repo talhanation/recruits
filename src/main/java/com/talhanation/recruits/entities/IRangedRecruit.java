@@ -232,4 +232,82 @@ public interface IRangedRecruit extends RangedAttackMob {
 
         return heightDiff;
     }
+
+    // ========================= BALLISTA RANGE =========================
+
+    /*
+     * Ballista: Direct fire weapon, shorter range, flatter trajectory
+     *   0 Range == 200 Distance
+     *  25 Range == 800 Distance
+     *  50 Range == 2000 Distance
+     *  75 Range == 4000 Distance
+     * 100 Range == 8000 Distance
+     */
+    static float calcBaseRangeForBallista(float distance) {
+        float[] distances = {200, 800, 2000, 4000, 8000};
+        float[] ranges =    {0,   25,  50,   75,   100};
+
+        if (distance <= distances[0]) return ranges[0];
+        if (distance >= distances[distances.length - 1]) return ranges[ranges.length - 1];
+
+        for (int i = 0; i < distances.length - 1; i++) {
+            float d0 = distances[i];
+            float d1 = distances[i + 1];
+            float r0 = ranges[i];
+            float r1 = ranges[i + 1];
+
+            if (distance >= d0 && distance <= d1) {
+                float factor = (distance - d0) / (d1 - d0);
+                return r0 + factor * (r1 - r0);
+            }
+        }
+
+        return 0;
+    }
+
+    static float applyBallistaPositiveHeightCorrection(float distance, float heightDiff) {
+        float[] distances = {200f, 2000f, 4000f, 8000f};
+        float[] factors = {0.50f, 0.40f, 0.30f, 0.15f};
+
+        if (distance <= distances[0]) return heightDiff * factors[0];
+        if (distance >= distances[distances.length - 1]) return heightDiff * factors[factors.length - 1];
+
+        for (int i = 0; i < distances.length - 1; i++) {
+            float d0 = distances[i];
+            float d1 = distances[i + 1];
+            float f0 = factors[i];
+            float f1 = factors[i + 1];
+
+            if (distance >= d0 && distance <= d1) {
+                float t = (distance - d0) / (d1 - d0);
+                float interpolatedFactor = f0 + t * (f1 - f0);
+                return heightDiff * interpolatedFactor;
+            }
+        }
+
+        return heightDiff;
+    }
+
+    static float applyBallistaNegativeHeightCorrection(float distance, float heightDiff) {
+        float[] distances = {200f, 2000f, 4000f, 8000f};
+        float[] factors = {0.45f, 0.50f, 0.35f, 0.25f};
+
+        if (distance <= distances[0]) return heightDiff * factors[0];
+        if (distance >= distances[distances.length - 1]) return heightDiff * factors[factors.length - 1];
+
+        for (int i = 0; i < distances.length - 1; i++) {
+            float d0 = distances[i];
+            float d1 = distances[i + 1];
+            float f0 = factors[i];
+            float f1 = factors[i + 1];
+
+            if (distance >= d0 && distance <= d1) {
+                float t = (distance - d0) / (d1 - d0);
+                float interpolatedFactor = f0 + t * (f1 - f0);
+                return heightDiff * interpolatedFactor;
+            }
+        }
+
+        return heightDiff;
+    }
 }

@@ -202,7 +202,11 @@ public class Main {
                 MessageToClientOpenTreatyAnswerScreen.class,
                 MessageToClientUpdateTreaties.class,
                 MessageFaceCommand.class,
-                MessageSetTargetPrio.class
+                MessageSetTargetPrio.class,
+                MessageAddEmbargo.class,
+                MessageRemoveEmbargo.class,
+                MessageToClientUpdateEmbargoes.class,
+                MessageAddEmbargoFaction.class
         };
 
 
