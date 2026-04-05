@@ -436,7 +436,7 @@ public class SmallShips {
 
         Vec3 shootVec = boat.getForward().yRot(rotation).normalize();
         double heightDiff = target.getY() - driver.getY();
-        double angle = IRangedRecruit.getCannonAngleDistanceModifier(distanceToTarget, 2) + IRangedRecruit.getCannonAngleHeightModifier(distanceToTarget, heightDiff)/ 100;
+        double angle = IRangedRecruit.calcCannonAngle(distanceToTarget, heightDiff, 2);
         double yShootVec = shootVec.y() + angle;
         try{
             Class<?> cannonAbleClass = Class.forName("com.talhanation.smallships.world.entity.ship.abilities.Cannonable");

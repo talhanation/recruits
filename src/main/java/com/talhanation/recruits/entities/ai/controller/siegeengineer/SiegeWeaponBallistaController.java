@@ -7,6 +7,7 @@ import com.talhanation.recruits.entities.SiegeEngineerEntity;
 import com.talhanation.recruits.entities.ai.navigation.RecruitPathNavigation;
 import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.recruits.pathfinding.AsyncPath;
+import com.talhanation.recruits.util.Kalkuel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.Entity;
@@ -18,14 +19,8 @@ import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.List;
+import java.util.Random;
 
-/**
- * Controller for the Ballista siege weapon.
- * Unlike the Catapult, the Ballista aims where the driver looks.
- * Movement uses forward only - steering is done by changing the driver's look direction via LookControl.
- * The ballista rotates to match the driver's head rotation.
- */
 public class SiegeWeaponBallistaController implements ISiegeController {
     public final boolean DEBUG = true;
     public static final int REACH = 80;
@@ -34,15 +29,19 @@ public class SiegeWeaponBallistaController implements ISiegeController {
     public static final int REPAIR_COOLDOWN = 40;
     public static final float MIN_ENGAGE_DISTANCE = 200;
     public static final float MAX_ENGAGE_DISTANCE = 8000;
+
     public final SiegeEngineerEntity siegeEngineer;
     public Ballista ballista;
     private final Level world;
     private final AsyncGroundPathNavigation pathNavigation;
+    private final Random random = new Random();
     private Node currentNode;
     public double distanceToMovementPos;
     public Vec3 movementPos;
     public Path path;
 
+    public boolean left;
+    public boolean right;
     public boolean forward;
     public double reach;
     private int recalcPath;
@@ -51,14 +50,6 @@ public class SiegeWeaponBallistaController implements ISiegeController {
     private float faceYaw;
     private int faceTicks;
 
-    // Projectile feedback
-    private float rangeAdjustment = 0;
-    private Vec3 lastShotTargetPos;
-    private float lastShotRange;
-    private int lastShotTick = -1;
-    private static final int PROJECTILE_FLIGHT_TIME = 40;
-    private static final float MAX_RANGE_ADJUSTMENT = 6F;
-    private static final float RANGE_ADJUSTMENT_STEP = 1.0F;
 
     // Repair
     private int repairCooldown;
@@ -75,6 +66,7 @@ public class SiegeWeaponBallistaController implements ISiegeController {
             ballista = new Ballista(entity, this.siegeEngineer);
         }
     }
+
     public void tryDismount() {
         this.reset();
         Entity entity = this.siegeEngineer.getVehicle();
@@ -88,7 +80,10 @@ public class SiegeWeaponBallistaController implements ISiegeController {
         if(siegeEngineer.getVehicle() == null || ballista == null) return;
         if(!ballista.isSiegeEngineerDriver()) return;
 
+        // Apply controls
         ballista.forward(forward);
+        ballista.setTurnLeft(left);
+        ballista.setTurnRight(right);
 
         // Face rotation command
         if(faceTicks > 0){
@@ -102,12 +97,9 @@ public class SiegeWeaponBallistaController implements ISiegeController {
                 tryRepair();
                 repairCooldown = REPAIR_COOLDOWN;
             }
-            forward = false;
+            resetControls();
             return;
         }
-
-        // Projectile feedback check
-        updateProjectileFeedback();
 
         if(updateAttacking()) return;
 
@@ -117,21 +109,22 @@ public class SiegeWeaponBallistaController implements ISiegeController {
 
         distanceToMovementPos = siegeEngineer.distanceToSqr(movementPos.x(), siegeEngineer.getY(), movementPos.z());
         reach = siegeEngineer.getFollowState() == 1 || siegeEngineer.getFollowState() == 5 ? REACH * 2 : REACH;
-        if(distanceToMovementPos < reach ){
+        if(distanceToMovementPos < reach){
             currentNode = null;
             path = null;
             this.forward = false;
+            this.left = false;
+            this.right = false;
             if(DEBUG && siegeEngineer.getOwner() != null) this.siegeEngineer.getOwner().sendSystemMessage(Component.literal(siegeEngineer.getName().getString() + ": REACHED POS"));
             return;
         }
 
-        //DEFAULT PATHFINDING
+        // Pathfinding
         if (--recalcPath <= 0) {
             recalcPath = RECALCULATION_TIME;
-
             if(movementPos == null) return;
 
-            this.path = pathNavigation.createPath(this.movementPos.x,this.movementPos.y, this.movementPos.z, 0);
+            this.path = pathNavigation.createPath(this.movementPos.x, this.movementPos.y, this.movementPos.z, 0);
             if(DEBUG && siegeEngineer.getOwner() != null) this.siegeEngineer.getOwner().sendSystemMessage(Component.literal(siegeEngineer.getName().getString() + ": CREATING PATH"));
 
             if(path != null && (!(path instanceof AsyncPath ap) || ap.isProcessed())){
@@ -148,7 +141,6 @@ public class SiegeWeaponBallistaController implements ISiegeController {
 
             if (distanceToNode < REACH) {
                 path.advance();
-                // Selber Guard nach advance() — Pfad könnte immer noch unverarbeitet sein
                 if (!(path instanceof AsyncPath ap2) || ap2.isProcessed()) {
                     try {
                         this.currentNode = path.getNextNode();
@@ -158,81 +150,127 @@ public class SiegeWeaponBallistaController implements ISiegeController {
                 }
             }
 
-            // Look at the current node - the ballista will rotate to match
-            siegeEngineer.getLookControl().setLookAt(currentNode.x, siegeEngineer.getY(), currentNode.z, 30.0F, 30.0F);
-            this.forward = true;
+            steerTowardYaw(currentNode.x, currentNode.z, 20);
 
             if(DEBUG && siegeEngineer.getOwner() != null) this.siegeEngineer.getOwner().sendSystemMessage(Component.literal(siegeEngineer.getName().getString() + ": FOLLOWING PATH"));
         }
+    }
+
+    private void steerTowardYaw(double targetX, double targetZ, double forwardTolerance) {
+        Vec3 ballistaForward = ballista.getEntity().getForward().normalize();
+        Vec3 toTarget = new Vec3(targetX - ballista.getEntity().getX(), 0, targetZ - ballista.getEntity().getZ()).normalize();
+
+        double angle = Kalkuel.horizontalAngleBetweenVectors(
+                new Vec3(ballistaForward.x, 0, ballistaForward.z),
+                new Vec3(toTarget.x, 0, toTarget.z)
+        );
+
+        double tolerance = 0.1;
+
+        if(angle > tolerance){
+            Vec3 cross = ballistaForward.cross(new Vec3(toTarget.x, 0, toTarget.z));
+            left = cross.y > 0;
+            right = cross.y < 0;
+        }
+        else {
+            left = false;
+            right = false;
+        }
+    }
+
+    private void steerPitchToward(double targetX, double targetY, double targetZ) {
+        double dx = targetX - ballista.getEntity().getX();
+        double dz = targetZ - ballista.getEntity().getZ();
+        double horizontalDist = Math.sqrt(dx * dx + dz * dz);
+        double heightDiff = targetY - ballista.getEntity().getY();
+        double pitch = IRangedRecruit.calcBallistaPitchAngle(horizontalDist, heightDiff);
+
+        float currentPitch = ballista.getEntity().getXRot();
+        float pitchDiff = (float) (pitch - currentPitch);
+
+        float pitchTolerance = 0.10F;
+
+        if(pitchDiff > pitchTolerance){
+            ballista.setPitchUp(false);
+            ballista.setPitchDown(true);
+        }
+        else if(pitchDiff < -pitchTolerance){
+            ballista.setPitchUp(true);
+            ballista.setPitchDown(false);
+        }
+        else {
+            ballista.setPitchUp(false);
+            ballista.setPitchDown(false);
+        }
+    }
+
+    private void resetControls() {
+        forward = false;
+        left = false;
+        right = false;
+        ballista.setPitchUp(false);
+        ballista.setPitchDown(false);
     }
 
     // ========================= FACE ROTATION =========================
 
     public void startFaceRotation(float yaw) {
         this.faceYaw = yaw;
-        this.faceTicks = 100;
-        this.forward = false;
+        this.faceTicks = 200;
+        resetControls();
     }
 
     private void updateFaceRotation() {
-        // Look in the target direction - the ballista will follow
-        double targetX = siegeEngineer.getX() + (-Math.sin(Math.toRadians(faceYaw))) * 10;
-        double targetZ = siegeEngineer.getZ() + (Math.cos(Math.toRadians(faceYaw))) * 10;
-        siegeEngineer.getLookControl().setLookAt(targetX, siegeEngineer.getY(), targetZ, 30.0F, 30.0F);
+        Vec3 targetDir = new Vec3(-Math.sin(Math.toRadians(faceYaw)), 0, Math.cos(Math.toRadians(faceYaw)));
+        Vec3 ballistaForward = ballista.getEntity().getForward().normalize();
+
+        double angle = Kalkuel.horizontalAngleBetweenVectors(
+                new Vec3(ballistaForward.x, 0, ballistaForward.z),
+                new Vec3(targetDir.x, 0, targetDir.z)
+        );
+
+        if(angle < 3.0) {
+            faceTicks = 0;
+            left = false;
+            right = false;
+            this.forward = false;
+            return;
+        }
+
+        Vec3 cross = ballistaForward.cross(targetDir);
+        left = cross.y > 0;
+        right = cross.y < 0;
 
         this.forward = false;
         faceTicks--;
-
-        if(faceTicks <= 0){
-            faceTicks = 0;
-        }
     }
 
-    // ========================= PROJECTILE FEEDBACK =========================
+    // ========================= RANDOMNESS =========================
 
-    private void updateProjectileFeedback() {
-        if(lastShotTick < 0) return;
+    /**
+     * Adds spread to the target position for more realistic shots.
+     * Strategic fire gets more spread than enemy targeting.
+     */
+    private Vec3 applyAimSpread(Vec3 target) {
+        double dx = target.x - ballista.getEntity().getX();
+        double dz = target.z - ballista.getEntity().getZ();
+        double dist = Math.sqrt(dx * dx + dz * dz);
 
-        int ticksSinceShot = siegeEngineer.tickCount - lastShotTick;
-        if(ticksSinceShot < PROJECTILE_FLIGHT_TIME) return;
-
-        if(lastShotTargetPos != null){
-            List<LivingEntity> nearbyEnemies = siegeEngineer.getCommandSenderWorld()
-                    .getEntitiesOfClass(LivingEntity.class, siegeEngineer.getBoundingBox().inflate(200D)).stream()
-                    .filter(target -> siegeEngineer.shouldAttack(target) && target.distanceToSqr(lastShotTargetPos) < 64)
-                    .toList();
-
-            if(!nearbyEnemies.isEmpty()){
-                float currentRange = lastShotRange + rangeAdjustment;
-                float idealRange = IRangedRecruit.calcBaseRangeForBallista((float) ballista.entity.distanceToSqr(lastShotTargetPos.x, ballista.entity.position().y, lastShotTargetPos.z));
-
-                if(currentRange < idealRange){
-                    rangeAdjustment += RANGE_ADJUSTMENT_STEP;
-                }
-                else {
-                    rangeAdjustment -= RANGE_ADJUSTMENT_STEP;
-                }
-                rangeAdjustment = Math.max(-MAX_RANGE_ADJUSTMENT, Math.min(MAX_RANGE_ADJUSTMENT, rangeAdjustment));
-
-                if(DEBUG && siegeEngineer.getOwner() != null){
-                    siegeEngineer.getOwner().sendSystemMessage(Component.literal(
-                            siegeEngineer.getName().getString() + ": MISSED! Range adj: " + String.format("%.1f", rangeAdjustment)));
-                }
-            }
-            else {
-                rangeAdjustment *= 0.5F;
-                if(Math.abs(rangeAdjustment) < 0.5F) rangeAdjustment = 0;
-            }
+        double spread;
+        if(siegeEngineer.getShouldStrategicFire()){
+            // Strategic fire: larger spread, more realistic area bombardment
+            spread = 4.0 + dist * 0.03;
+        }
+        else {
+            // Enemy targeting: smaller spread
+            spread = 1.5 + dist * 0.01;
         }
 
-        lastShotTick = -1;
-        lastShotTargetPos = null;
-    }
+        double offsetX = (random.nextDouble() - 0.5) * 2.0 * spread;
+        double offsetZ = (random.nextDouble() - 0.5) * 2.0 * spread;
+        double offsetY = (random.nextDouble() - 0.5) * spread * 0.5;
 
-    private void recordShot(float range) {
-        this.lastShotTick = siegeEngineer.tickCount;
-        this.lastShotRange = range;
-        this.lastShotTargetPos = targetPos != null ? new Vec3(targetPos.x, targetPos.y, targetPos.z) : null;
+        return new Vec3(target.x + offsetX, target.y + offsetY, target.z + offsetZ);
     }
 
     // ========================= ATTACKING =========================
@@ -242,43 +280,37 @@ public class SiegeWeaponBallistaController implements ISiegeController {
     public Vec3 targetPos;
     public float distanceToTarget;
     public boolean noAmmoMessage = false;
-    public int range;
+
     public boolean updateAttacking() {
         calculateTargetPos();
+
+        if(targetPos != null){
+            steerTowardYaw(targetPos.x, targetPos.z, 1);
+            steerPitchToward(targetPos.x, targetPos.y, targetPos.z);
+        }
 
         boolean isProjectileLoaded = ballista.isProjectileLoaded();
         boolean isLoaded = ballista.isLoaded();
         boolean isShot = ballista.isShot();
-        boolean isLoading = ballista.isLoading();
 
-        if (isShot || isLoading) {
+        // UNLOADED -> trigger(true) to start winding
+        if (isShot) {
             ballista.trigger(true);
-            forward = false;
+            resetControls();
             return true;
         }
 
         if (targetPos == null) {
             ballista.trigger(false);
+            ballista.setPitchUp(false);
+            ballista.setPitchDown(false);
             return false;
         }
 
+        // LOADED -> load projectile
         if (isLoaded) {
             ballista.trigger(false);
-        }
 
-        // Aim at target using LookControl - the ballista follows the driver's look
-        siegeEngineer.getLookControl().setLookAt(targetPos.x, targetPos.y, targetPos.z, 30.0F, 30.0F);
-        forward = false; // Stop moving while aiming
-
-        // Check if we're looking close enough to the target
-        if(!isLookingAtTarget()){
-            return true; // Still rotating
-        }
-
-        range = this.calcRange(distanceToTarget);
-        ballista.setRange(range);
-
-        if (!isProjectileLoaded) {
             ItemStack projectile = ballista.getProjectile(siegeEngineer);
 
             if (projectile == null) {
@@ -290,50 +322,58 @@ public class SiegeWeaponBallistaController implements ISiegeController {
                         );
                     }
                 }
+                ballista.setPitchUp(false);
+                ballista.setPitchDown(false);
                 return false;
             }
 
-            if (isLoaded) {
-                ballista.loadProjectile(projectile);
-                loadDelay = LOAD_DELAY_TICKS;
-                noAmmoMessage = false;
+            ballista.loadProjectile(projectile);
+            loadDelay = LOAD_DELAY_TICKS;
+            noAmmoMessage = false;
+            return true;
+        }
+
+        if (isProjectileLoaded) {
+            if (--loadDelay > 0) {
+                return true;
+            }
+            forward = false;
+            left = false;
+            right = false;
+            ballista.setPitchUp(false);
+            ballista.setPitchDown(false);
+            ballista.trigger(true);
+
+            if(DEBUG && siegeEngineer.getOwner() != null){
+                siegeEngineer.getOwner().sendSystemMessage(Component.literal(
+                        siegeEngineer.getName().getString() + ": FIRING ballista!"));
             }
 
             return true;
         }
 
-        if (--loadDelay > 0) {
-            return true;
-        }
-
-        recordShot(range);
-        ballista.trigger(true);
-        return true;
+        return false;
     }
 
-    private boolean isLookingAtTarget() {
-        if(targetPos == null) return false;
+    // ========================= TARGET TRACKING =========================
 
-        Vec3 lookDir = siegeEngineer.getViewVector(1.0F).normalize();
-        Vec3 toTarget = new Vec3(targetPos.x - siegeEngineer.getX(), 0, targetPos.z - siegeEngineer.getZ()).normalize();
-        Vec3 lookFlat = new Vec3(lookDir.x, 0, lookDir.z).normalize();
+    private void calculateTargetPos() {
+        if(siegeEngineer.tickCount % 20 != 0) return;
 
-        double dot = lookFlat.x * toTarget.x + lookFlat.z * toTarget.z;
-        // dot > 0.99 means within ~8 degrees
-        return dot > 0.99;
-    }
-
-    private int calcRange(float distanceToTarget) {
-        int heightDiff = (int) (targetPos.y - ballista.entity.getY());
-        float baseRange = IRangedRecruit.calcBaseRangeForBallista(distanceToTarget);
-
-        float heightCorrection = 0;
-        if(heightDiff > 0){
-            heightCorrection = IRangedRecruit.applyBallistaPositiveHeightCorrection(distanceToTarget, heightDiff);
+        if(siegeEngineer.getShouldStrategicFire()){
+            this.setTargetPos(siegeEngineer.getStrategicFirePos().getCenter());
         }
-        else heightCorrection = IRangedRecruit.applyBallistaNegativeHeightCorrection(distanceToTarget, heightDiff);
+        else {
+            this.siegeEngineer.checkForPotentialEnemies();
+        }
 
-        return (int) (baseRange + heightCorrection + rangeAdjustment);
+        if(targetPos != null){
+            this.distanceToTarget = (float) this.ballista.entity.distanceToSqr(targetPos.x, this.ballista.entity.position().y, targetPos.z);
+
+            if(distanceToTarget < MIN_ENGAGE_DISTANCE || distanceToTarget > MAX_ENGAGE_DISTANCE){
+                targetPos = null;
+            }
+        }
     }
 
     // ========================= REPAIR =========================
@@ -361,7 +401,7 @@ public class SiegeWeaponBallistaController implements ISiegeController {
         }
     }
 
-    // ========================= TARGET & MOVEMENT =========================
+    // ========================= MOVEMENT =========================
 
     public Vec3 getTargetPos(){
         return targetPos;
@@ -372,48 +412,25 @@ public class SiegeWeaponBallistaController implements ISiegeController {
         this.targetPos = vec3;
     }
 
-    private void calculateTargetPos() {
-        if(siegeEngineer.tickCount % 20 != 0) return;
-
-        if(siegeEngineer.getShouldStrategicFire()){
-            this.setTargetPos(siegeEngineer.getStrategicFirePos().getCenter());
-        }
-        else {
-            this.siegeEngineer.checkForPotentialEnemies();
-        }
-
-        if(targetPos != null){
-            this.distanceToTarget = (float) this.ballista.entity.distanceToSqr(targetPos.x, this.ballista.entity.position().y, targetPos.z);
-
-            if(distanceToTarget < MIN_ENGAGE_DISTANCE || distanceToTarget > MAX_ENGAGE_DISTANCE){
-                targetPos = null;
-            }
-        }
-    }
-
     private void calculateMovementPos() {
         movementPos = null;
         int movementState = siegeEngineer.getFollowState();
 
         switch (movementState) {
-            case 0 -> { // Wander / Move to pos
+            case 0 -> {
                 if(siegeEngineer.getShouldMovePos() && siegeEngineer.getMovePos() != null){
                     movementPos = siegeEngineer.getMovePos().getCenter();
                 }
             }
-            case 1 -> { // Follow
+            case 1 -> {
                 LivingEntity owner = siegeEngineer.getOwner();
                 if(owner != null) movementPos = owner.position();
             }
-            case 2, 4 -> { // Hold Position / Hold my position
+            case 2, 4, 3 -> {
                 Vec3 holdPos = siegeEngineer.getHoldPos();
                 if(holdPos != null) movementPos = holdPos;
             }
-            case 3 -> { // Back to position (forward/backward commands)
-                Vec3 holdPos = siegeEngineer.getHoldPos();
-                if(holdPos != null) movementPos = holdPos;
-            }
-            case 5 -> { // Protect
+            case 5 -> {
                 LivingEntity protect = siegeEngineer.getProtectingMob();
                 if(protect != null) movementPos = protect.position();
             }
@@ -428,9 +445,10 @@ public class SiegeWeaponBallistaController implements ISiegeController {
         if(ballista != null){
             ballista.trigger(false);
             ballista.forward(false);
-            ballista.steerLeft(false);
-            ballista.steerRight(false);
-            ballista.backward(false);
+            ballista.setTurnLeft(false);
+            ballista.setTurnRight(false);
+            ballista.setPitchUp(false);
+            ballista.setPitchDown(false);
         }
     }
 

@@ -6,6 +6,7 @@ import com.talhanation.recruits.entities.IRangedRecruit;
 import com.talhanation.recruits.entities.SiegeEngineerEntity;
 import com.talhanation.recruits.entities.ai.navigation.RecruitPathNavigation;
 import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
+import com.talhanation.recruits.pathfinding.AsyncPath;
 import com.talhanation.recruits.util.Kalkuel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.ItemTags;
@@ -58,6 +59,10 @@ public class SiegeWeaponCatapultController implements ISiegeController {
     private static final float RANGE_ADJUSTMENT_STEP = 1.5F;
     private static final float MAX_LATERAL_ADJUSTMENT = 3F;
     private static final float LATERAL_ADJUSTMENT_STEP = 0.5F;
+
+    // Kill check / target tracking
+    private Vec3 lastKnownTargetPos;
+    private static final double TARGET_MOVED_DISTANCE_SQ = 36; // 6 blocks squared
 
     // Repair
     private int repairCooldown;
@@ -189,11 +194,11 @@ public class SiegeWeaponCatapultController implements ISiegeController {
 
             this.path = pathNavigation.createPath(this.movementPos.x,this.movementPos.y, this.movementPos.z, 0);
             if(DEBUG && siegeEngineer.getOwner() != null) this.siegeEngineer.getOwner().sendSystemMessage(Component.literal(siegeEngineer.getName().getString() + ": CREATING PATH"));
-            if(path != null){
+            if(path != null && (!(path instanceof AsyncPath ap) || ap.isProcessed())){
                 try {
                     this.currentNode = path.getNextNode();
                 } catch (IndexOutOfBoundsException e) {
-                    this.currentNode = path.nodes.get(path.nodes.size() - 1);
+                    this.currentNode = path.nodes.isEmpty() ? null : path.nodes.get(path.nodes.size() - 1);
                 }
             }
         }
@@ -203,10 +208,12 @@ public class SiegeWeaponCatapultController implements ISiegeController {
 
             if (distanceToNode < REACH) {
                 path.advance();
-                try {
-                    this.currentNode = path.getNextNode();
-                } catch (IndexOutOfBoundsException e) {
-                    this.currentNode = path.nodes.get(path.nodes.size() - 1);
+                if (!(path instanceof AsyncPath ap2) || ap2.isProcessed()) {
+                    try {
+                        this.currentNode = path.getNextNode();
+                    } catch (IndexOutOfBoundsException e) {
+                        this.currentNode = path.nodes.isEmpty() ? null : path.nodes.get(path.nodes.size() - 1);
+                    }
                 }
             }
 
@@ -404,16 +411,8 @@ public class SiegeWeaponCatapultController implements ISiegeController {
     }
 
     private int calcRange(float distanceToTarget) {
-        int heightDiff = (int) (targetPos.y - catapult.entity.getY());
-        float baseRange = IRangedRecruit.calcBaseRangeForCatapult(distanceToTarget);
-
-        float heightCorrection = 0;
-        if(heightDiff > 0){
-            heightCorrection = IRangedRecruit.applyPositiveHeightCorrection(distanceToTarget, heightDiff);
-        }
-        else heightCorrection = IRangedRecruit.applyNegativeHeightCorrection(distanceToTarget, heightDiff);
-
-        return (int) (baseRange + heightCorrection + rangeAdjustment);
+        float heightDiff = (float) (targetPos.y - catapult.entity.getY());
+        return (int) (IRangedRecruit.calcCatapultRange(distanceToTarget, heightDiff) + rangeAdjustment);
     }
 
     private void resetSteering() {
@@ -473,6 +472,26 @@ public class SiegeWeaponCatapultController implements ISiegeController {
             if(distanceToTarget < MIN_ENGAGE_DISTANCE || distanceToTarget > MAX_ENGAGE_DISTANCE){
                 targetPos = null;
             }
+        }
+
+        // Kill check: if target position changed significantly (target killed or moved), reset adjustments
+        if(targetPos != null){
+            if(lastKnownTargetPos != null){
+                double movedDist = targetPos.distanceToSqr(lastKnownTargetPos);
+                if(movedDist > TARGET_MOVED_DISTANCE_SQ){
+                    rangeAdjustment = 0;
+                    lateralAdjustment = 0;
+
+                    if(DEBUG && siegeEngineer.getOwner() != null){
+                        siegeEngineer.getOwner().sendSystemMessage(Component.literal(
+                                siegeEngineer.getName().getString() + ": Target changed, resetting aim adjustments."));
+                    }
+                }
+            }
+            lastKnownTargetPos = new Vec3(targetPos.x, targetPos.y, targetPos.z);
+        }
+        else {
+            lastKnownTargetPos = null;
         }
     }
 

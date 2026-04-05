@@ -92,63 +92,46 @@ public interface IRangedRecruit extends RangedAttackMob {
         return (float) modifier;
     }
 
-    static double getCannonAngleDistanceModifier(double distance, int random) {
-        double modifier = 0;
-        //smaller modifier = bigger angle
-        //higher modifier = smaller angle
-        if(distance > 4500){
-            modifier = 260;
-        }
-        else if(distance > 4000){
-            modifier = 230;
-        }
-        else if(distance > 3500){
-            modifier = 220;
-        }
-        else if(distance > 3000){
-            modifier = 190;
-        }
-        else if(distance > 2600){
-            modifier = 170;
-        }
-        else if(distance > 2400){
-            modifier = 160;
-        }
-        else if(distance > 2250){
-            modifier = 150;
-        }
-        else if(distance > 2000){
-            modifier = 150;
-        }
-        else if(distance > 1750){
-            modifier = 130;
-        }
-        else if(distance > 1500){
-            modifier = 130;
-        }
-        else if(distance > 1350){
-            modifier = 115;
-        }
-        else if(distance > 1250){
-            modifier = 110;
-        }
-        else if(distance > 1100){
-            modifier = 110;
-        }
-        else if(distance > 1000) {
-            modifier = 110;
-        }
-        else if(distance > 600) {
-            modifier = 120;
-        }
-        else
-            modifier = 135;
-
-        return (distance/modifier - IRangedRecruit.random.nextInt(-random, random)) /100;
+    static double getCannonAngleDistanceModifier(double distanceSqr, int randomSpread) {
+        return calcCannonAngle(distanceSqr, 0, randomSpread);
     }
 
-    static double getCannonAngleHeightModifier(double distance, double heightDiff) {
-        return heightDiff * (2.55);
+    static double getCannonAngleHeightModifier(double distanceSqr, double heightDiff) {
+        // Old method returned raw value that was divided by 100 at call site
+        // New: return 0 since height is handled in calcCannonAngle directly
+        return 0;
+    }
+
+    // ========================= CANNON ANGLE (PHYSICS) =========================
+    // Cannon: speed=3.2, gravity=0.06, drag=0.99 (standard arrow physics)
+    // Returns yShootVec offset (not degrees, not range)
+
+    /**
+     * Calculates the yShootVec offset for a cannon to hit a target.
+     * Uses flight-time physics to account for gravity drop over distance.
+     *
+     * @param distanceSqr squared distance to target (from distanceToSqr)
+     * @param heightDiff target Y minus cannon Y
+     * @param randomSpread random spread amount (0 = perfect, 2 = normal)
+     * @return yShootVec offset value
+     */
+    static double calcCannonAngle(double distanceSqr, double heightDiff, int randomSpread) {
+        double horizontalDist = Math.sqrt(distanceSqr);
+        double speed = 3.2;
+        double gravity = 0.065;
+        double drag = 0.99;
+
+        double flightTime = calcFlightTime(horizontalDist, speed, drag);
+        double drop = calcGravityDrop(flightTime, gravity, drag);
+
+        double aimHeight = heightDiff + drop;
+        double angle = aimHeight / horizontalDist;
+
+        if(randomSpread > 0){
+            angle += (IRangedRecruit.random.nextInt(-randomSpread, randomSpread + 1)) / 100.0;
+        }
+
+        return angle;
     }
 
 
@@ -187,127 +170,88 @@ public interface IRangedRecruit extends RangedAttackMob {
         return 0;
     }
 
-    static float applyPositiveHeightCorrection(float distance, float heightDiff) {
-        float[] distances = {1123f, 6322f, 10922f, 18095f};
-        float[] factors = {1.25f, 1.0f, 0.75f, 0.40f};
-
-        if (distance <= distances[0]) return heightDiff * factors[0];
-        if (distance >= distances[distances.length - 1]) return heightDiff * factors[factors.length - 1];
-
-        for (int i = 0; i < distances.length - 1; i++) {
-            float d0 = distances[i];
-            float d1 = distances[i + 1];
-            float f0 = factors[i];
-            float f1 = factors[i + 1];
-
-            if (distance >= d0 && distance <= d1) {
-                float t = (distance - d0) / (d1 - d0);
-                float interpolatedFactor = f0 + t * (f1 - f0);
-                return heightDiff * interpolatedFactor;
-            }
-        }
-
-        return heightDiff;
-    }
-
-    static float applyNegativeHeightCorrection(float distance, float heightDiff) {//TEST
-        float[] distances = {1123f, 5620,  6322f, 10922f, 18095f};
-        float[] factors = {1.15f,  1.35f ,1.25f, 0.85f, 0.60f};
-
-        if (distance <= distances[0]) return heightDiff * factors[0];
-        if (distance >= distances[distances.length - 1]) return heightDiff * factors[factors.length - 1];
-
-        for (int i = 0; i < distances.length - 1; i++) {
-            float d0 = distances[i];
-            float d1 = distances[i + 1];
-            float f0 = factors[i];
-            float f1 = factors[i + 1];
-
-            if (distance >= d0 && distance <= d1) {
-                float t = (distance - d0) / (d1 - d0);
-                float interpolatedFactor = f0 + t * (f1 - f0);
-                return heightDiff * interpolatedFactor;
-            }
-        }
-
-        return heightDiff;
-    }
-
-    // ========================= BALLISTA RANGE =========================
+    // ========================= UNIVERSAL PROJECTILE PHYSICS =========================
 
     /*
-     * Ballista: Direct fire weapon, shorter range, flatter trajectory
-     *   0 Range == 200 Distance
-     *  25 Range == 800 Distance
-     *  50 Range == 2000 Distance
-     *  75 Range == 4000 Distance
-     * 100 Range == 8000 Distance
+     * Flight-time based approach:
+     *   distance = speed * (1 - drag^t) / (1 - drag)
+     *   solved:  t = ln(1 - dist * (1 - drag) / speed) / ln(drag)
+     *   drop = (gravity / (1 - drag)) * (t - (1 - drag^t) / (1 - drag))
      */
-    static float calcBaseRangeForBallista(float distance) {
-        float[] distances = {200, 800, 2000, 4000, 8000};
-        float[] ranges =    {0,   25,  50,   75,   100};
 
-        if (distance <= distances[0]) return ranges[0];
-        if (distance >= distances[distances.length - 1]) return ranges[ranges.length - 1];
-
-        for (int i = 0; i < distances.length - 1; i++) {
-            float d0 = distances[i];
-            float d1 = distances[i + 1];
-            float r0 = ranges[i];
-            float r1 = ranges[i + 1];
-
-            if (distance >= d0 && distance <= d1) {
-                float factor = (distance - d0) / (d1 - d0);
-                return r0 + factor * (r1 - r0);
-            }
-        }
-
-        return 0;
+    static double calcFlightTime(double horizontalDist, double speed, double drag) {
+        double a = 1.0 - drag;
+        double factor = 1.0 - horizontalDist * a / speed;
+        if(factor <= 0.01) factor = 0.01;
+        return Math.log(factor) / Math.log(drag);
     }
 
-    static float applyBallistaPositiveHeightCorrection(float distance, float heightDiff) {
-        float[] distances = {200f, 2000f, 4000f, 8000f};
-        float[] factors = {0.50f, 0.40f, 0.30f, 0.15f};
-
-        if (distance <= distances[0]) return heightDiff * factors[0];
-        if (distance >= distances[distances.length - 1]) return heightDiff * factors[factors.length - 1];
-
-        for (int i = 0; i < distances.length - 1; i++) {
-            float d0 = distances[i];
-            float d1 = distances[i + 1];
-            float f0 = factors[i];
-            float f1 = factors[i + 1];
-
-            if (distance >= d0 && distance <= d1) {
-                float t = (distance - d0) / (d1 - d0);
-                float interpolatedFactor = f0 + t * (f1 - f0);
-                return heightDiff * interpolatedFactor;
-            }
-        }
-
-        return heightDiff;
+    static double calcGravityDrop(double flightTime, double gravity, double drag) {
+        double a = 1.0 - drag;
+        double dragPowT = Math.pow(drag, flightTime);
+        return (gravity / a) * (flightTime - (1.0 - dragPowT) / a);
     }
 
-    static float applyBallistaNegativeHeightCorrection(float distance, float heightDiff) {
-        float[] distances = {200f, 2000f, 4000f, 8000f};
-        float[] factors = {0.45f, 0.50f, 0.35f, 0.25f};
+    // ========================= BALLISTA PITCH =========================
+    // speed=3.5, gravity=0.05, drag=0.99, shootHeight=+1.3
 
-        if (distance <= distances[0]) return heightDiff * factors[0];
-        if (distance >= distances[distances.length - 1]) return heightDiff * factors[factors.length - 1];
+    static float calcBallistaPitchAngle(double horizontalDist, double heightDiff) {
+        double speed = 3.5;
+        double gravity = 0.05;
+        double drag = 0.99;
 
-        for (int i = 0; i < distances.length - 1; i++) {
-            float d0 = distances[i];
-            float d1 = distances[i + 1];
-            float f0 = factors[i];
-            float f1 = factors[i + 1];
+        double flightTime = calcFlightTime(horizontalDist, speed, drag);
+        double drop = calcGravityDrop(flightTime, gravity, drag);
 
-            if (distance >= d0 && distance <= d1) {
-                float t = (distance - d0) / (d1 - d0);
-                float interpolatedFactor = f0 + t * (f1 - f0);
-                return heightDiff * interpolatedFactor;
+        double aimHeight = heightDiff - 1.3 + drop;
+
+        float pitch = (float) -Math.toDegrees(Math.atan2(aimHeight, horizontalDist));
+        return Math.max(-40F, Math.min(40F, pitch));
+    }
+
+    // ========================= CATAPULT RANGE =========================
+    // gravity=0.06, drag=0.99, shootHeight=+3.75, yShootVec = forward.y + 0.875
+    // horizontal_factor ≈ 0.753, vertical_factor ≈ 0.659
+    // speed = 1.5 + 2.0 * range * 0.01
+
+    static final double CATAPULT_GRAVITY = 0.06;
+    static final double CATAPULT_DRAG = 0.99;
+    static final double CATAPULT_HORIZONTAL_FACTOR = 0.753;
+    static final double CATAPULT_VERTICAL_FACTOR = 0.659;
+
+    static float calcCatapultRange(float distanceSqr, float heightDiff) {
+        double horizontalDist = Math.sqrt(distanceSqr);
+        double adjustedHeightDiff = heightDiff - 3.75;
+
+        double lowSpeed = 1.5;
+        double highSpeed = 3.5;
+        double bestSpeed = 2.0;
+        double bestError = Double.MAX_VALUE;
+
+        for(int iter = 0; iter < 15; iter++){
+            double midSpeed = (lowSpeed + highSpeed) / 2.0;
+
+            double hSpeed = midSpeed * CATAPULT_HORIZONTAL_FACTOR;
+            double vSpeed = midSpeed * CATAPULT_VERTICAL_FACTOR;
+
+            double flightTime = calcFlightTime(horizontalDist, hSpeed, CATAPULT_DRAG);
+            double drop = calcGravityDrop(flightTime, CATAPULT_GRAVITY, CATAPULT_DRAG);
+            double rise = vSpeed * (1.0 - Math.pow(CATAPULT_DRAG, flightTime)) / (1.0 - CATAPULT_DRAG);
+            double landingHeight = rise - drop;
+
+            double error = landingHeight - adjustedHeightDiff;
+
+            if(Math.abs(error) < bestError){
+                bestError = Math.abs(error);
+                bestSpeed = midSpeed;
             }
+
+            if(error > 0) highSpeed = midSpeed;
+            else lowSpeed = midSpeed;
         }
 
-        return heightDiff;
+        float range = (float) ((bestSpeed - 1.5) / 0.02);
+        return Math.max(0F, Math.min(100F, range));
     }
+
 }
