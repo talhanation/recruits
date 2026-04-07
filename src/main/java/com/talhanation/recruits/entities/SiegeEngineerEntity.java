@@ -30,10 +30,7 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraftforge.common.ForgeMod;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 
 public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompanion, IStrategicFire, IHasTargetPriority {
@@ -191,12 +188,14 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
         this.selectController(entity);
 
         if(this.siegeController != null)  siegeController.tryMount(entity);
+
         return super.startRiding(entity);
     }
 
     @Override
     public void stopRiding() {
         if(this.siegeController != null) siegeController.tryDismount();
+
         super.stopRiding();
     }
 
@@ -225,7 +224,6 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
                 case 0, 3 -> siegeController.setTargetPos(null);
             }
         }
-
     }
 
     public void setShouldStrategicFire(boolean bool) {
@@ -256,9 +254,10 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
             LivingEntity target = this.getTarget();
 
             if(target != null && target.isAlive() && target.hasLineOfSight(this)){
-                siegeController.setTargetPos(target.position());
+                siegeController.setTargetPos(target.getEyePosition());
                 return;
             }
+            else siegeController.setTargetPos(null);
         }
 
         List<Entity> targets = new ArrayList<>(this.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(200D)).stream()
@@ -272,16 +271,16 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
 
         switch (targetPriority) {
             case INFANTRY -> {
-                target = findInfantryTarget(targets);
+                target = findInfantryTarget(new ArrayList<>(targets));
             }
             case CAVALRY -> {
-                target = findCavalryTarget(targets);
+                target = findCavalryTarget(new ArrayList<>(targets));
             }
             case SIEGE_WEAPONS -> {
-                target = findMannedSiegeWeaponTarget(targets);
+                target = findMannedSiegeWeaponTarget(new ArrayList<>(targets));
             }
             case SHIPS -> {
-                target = findMannedShipTarget(targets);
+                target = findMannedShipTarget(new ArrayList<>(targets));
             }
             default -> {
                 // CLOSEST
@@ -303,7 +302,7 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
 
         if(this.siegeController != null){
             if(target instanceof LivingEntity living) this.setTarget(living);
-            siegeController.setTargetPos(target.position());
+            siegeController.setTargetPos(target.getOnPos().above(2).getCenter());
         }
     }
 

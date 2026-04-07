@@ -29,6 +29,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.scores.Team;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -130,13 +131,16 @@ public class VillagerEvents {
         Player player = event.getEntity();
         Entity target = event.getTarget();
 
+        if(player == null || target == null) return;
+
+        Team targetTeam = target.getTeam();
         String teamID = null;
 
         if (target instanceof ICanTradeEmbargo ihe) {
             teamID = ihe.getEmbargoTeamID();
         }
-        else if (target instanceof Villager && target.getTeam() != null) {
-            teamID = target.getTeam().getName();
+        else if (target instanceof Villager && targetTeam != null) {
+            teamID = targetTeam.getName();
         }
 
         if (teamID == null || teamID.isEmpty()) return;

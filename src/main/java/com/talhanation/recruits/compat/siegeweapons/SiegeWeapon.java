@@ -117,7 +117,7 @@ public abstract class SiegeWeapon {
     public void repairSiegeWeapon(SiegeEngineerEntity siegeEngineer) {
         int amount = (10 + siegeEngineer.getCommandSenderWorld().random.nextInt(5));
         try{
-            if (Main.isSmallShipsLoaded && Main.isSmallShipsCompatible && entity.getEncodeId().contains("siegeweapons")) {
+            if (Main.isSiegeWeaponsLoaded && entity.getEncodeId().contains("siegeweapons")) {
                 Class<?> siegeweaponClass = Class.forName("com.talhanation.siegeweapons.entities.AbstractVehicleEntity");
                 if(siegeweaponClass.isInstance(entity)) {
                     Object siegeweapon = siegeweaponClass.cast(entity);
@@ -125,7 +125,10 @@ public abstract class SiegeWeapon {
                     Method getHealthMethod = siegeweaponClass.getMethod("getHealth");
                     float health = (float) getHealthMethod.invoke(siegeweapon);
 
-                    if(health < 90) {
+                    Method getHealthMaxMethod = siegeweaponClass.getMethod("getMaxHealth");
+                    double maxHealth = (double) getHealthMaxMethod.invoke(siegeweapon);
+
+                    if((health/maxHealth * 100) < 90) {
                         Method siegeweaponRepairMethod = siegeweaponClass.getMethod("repairVehicle", int.class);
                         siegeweaponRepairMethod.invoke(siegeweapon, amount);
 
@@ -153,21 +156,25 @@ public abstract class SiegeWeapon {
     }
 
     public float getHealth() {
-        float damage = 0;
+        float health = 0;
+        double maxHealth = 0;
         try{
             Class<?> siegeweaponClass = Class.forName("com.talhanation.siegeweapons.entities.AbstractVehicleEntity");
             if(siegeweaponClass.isInstance(entity)) {
                 Object siegeweapon = siegeweaponClass.cast(entity);
 
                 Method getHealthMethod = siegeweaponClass.getMethod("getHealth");
-                damage = (float) getHealthMethod.invoke(siegeweapon);
+                health = (float) getHealthMethod.invoke(siegeweapon);
 
+                Method getHealthMaxMethod = siegeweaponClass.getMethod("getMaxHealth");
+                maxHealth = (double) getHealthMaxMethod.invoke(siegeweapon);
             }
-        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+        }
+        catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             Main.LOGGER.info("siegeweaponClass was not found");
         }
 
-        return damage;
+        return (float) (health/maxHealth * 100);
     }
 
 

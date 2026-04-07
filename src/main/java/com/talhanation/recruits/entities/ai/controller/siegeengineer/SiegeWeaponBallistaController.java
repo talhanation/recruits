@@ -22,19 +22,17 @@ import net.minecraft.world.phys.Vec3;
 import java.util.Random;
 
 public class SiegeWeaponBallistaController implements ISiegeController {
-    public final boolean DEBUG = true;
-    public static final int REACH = 80;
+    public final boolean DEBUG = false;
+    public static final int REACH = 50;
     public static final int RECALCULATION_TIME = 200;
     public static final float REPAIR_THRESHOLD = 90F;
     public static final int REPAIR_COOLDOWN = 40;
     public static final float MIN_ENGAGE_DISTANCE = 200;
     public static final float MAX_ENGAGE_DISTANCE = 8000;
-
     public final SiegeEngineerEntity siegeEngineer;
     public Ballista ballista;
     private final Level world;
     private final AsyncGroundPathNavigation pathNavigation;
-    private final Random random = new Random();
     private Node currentNode;
     public double distanceToMovementPos;
     public Vec3 movementPos;
@@ -85,6 +83,8 @@ public class SiegeWeaponBallistaController implements ISiegeController {
         ballista.setTurnLeft(left);
         ballista.setTurnRight(right);
 
+        this.siegeEngineer.getLookControl().setLookAt(this.ballista.getEntity());
+
         // Face rotation command
         if(faceTicks > 0){
             updateFaceRotation();
@@ -119,18 +119,46 @@ public class SiegeWeaponBallistaController implements ISiegeController {
             return;
         }
 
+        if (movementPos != null) {
+            Vec3 forward = ballista.getEntity().getForward().yRot((float) (Math.PI / 2)).normalize();
+            Vec3 target = new Vec3(movementPos.x, 0, movementPos.z);
+            Vec3 toTarget = target.subtract(ballista.getEntity().position()).normalize();
+
+            double phi = Kalkuel.horizontalAngleBetweenVectors(forward, toTarget);
+            if (DEBUG && siegeEngineer.getOwner() != null) this.siegeEngineer.getOwner().sendSystemMessage(Component.literal("phi: " + phi));
+
+            double ref = 90;
+            double tolerance = 2.0;
+
+            left = phi < (ref - tolerance);
+            right = phi > (ref + tolerance);
+
+            if (DEBUG && siegeEngineer.getOwner() != null)
+                this.siegeEngineer.getOwner().sendSystemMessage(Component.literal(siegeEngineer.getName().getString() + ": ROTATING"));
+
+            if(phi > (ref + 20) || phi < (ref - 20)){
+                this.forward = false;
+                return;
+            }
+            else {
+                this.forward = true;
+            }
+        }
+
         // Pathfinding
         if (--recalcPath <= 0) {
             recalcPath = RECALCULATION_TIME;
             if(movementPos == null) return;
 
             this.path = pathNavigation.createPath(this.movementPos.x, this.movementPos.y, this.movementPos.z, 0);
-            if(DEBUG && siegeEngineer.getOwner() != null) this.siegeEngineer.getOwner().sendSystemMessage(Component.literal(siegeEngineer.getName().getString() + ": CREATING PATH"));
+            if(DEBUG && siegeEngineer.getOwner() != null)
+                this.siegeEngineer.getOwner().sendSystemMessage(Component.literal(siegeEngineer.getName().getString() + ": CREATING PATH"));
 
             if(path != null && (!(path instanceof AsyncPath ap) || ap.isProcessed())){
                 try {
                     this.currentNode = path.getNextNode();
-                } catch (IndexOutOfBoundsException e) {
+                }
+                catch (IndexOutOfBoundsException e) {
                     this.currentNode = path.nodes.isEmpty() ? null : path.nodes.get(path.nodes.size() - 1);
                 }
             }
@@ -144,13 +172,12 @@ public class SiegeWeaponBallistaController implements ISiegeController {
                 if (!(path instanceof AsyncPath ap2) || ap2.isProcessed()) {
                     try {
                         this.currentNode = path.getNextNode();
-                    } catch (IndexOutOfBoundsException e) {
+                    }
+                    catch (IndexOutOfBoundsException e) {
                         this.currentNode = path.nodes.isEmpty() ? null : path.nodes.get(path.nodes.size() - 1);
                     }
                 }
             }
-
-            steerTowardYaw(currentNode.x, currentNode.z, 20);
 
             if(DEBUG && siegeEngineer.getOwner() != null) this.siegeEngineer.getOwner().sendSystemMessage(Component.literal(siegeEngineer.getName().getString() + ": FOLLOWING PATH"));
         }
@@ -204,6 +231,27 @@ public class SiegeWeaponBallistaController implements ISiegeController {
         }
     }
 
+    private boolean isAlignedToTarget() {
+        Vec3 aim = targetPos;
+        if(aim == null) return false;
+
+        Vec3 ballistaForward = ballista.getEntity().getForward().normalize();
+        Vec3 toTarget = new Vec3(aim.x - ballista.getEntity().getX(), 0, aim.z - ballista.getEntity().getZ()).normalize();
+        double yawAngle = Kalkuel.horizontalAngleBetweenVectors(
+                new Vec3(ballistaForward.x, 0, ballistaForward.z),
+                new Vec3(toTarget.x, 0, toTarget.z)
+        );
+
+        double dx = aim.x - ballista.getEntity().getX();
+        double dz = aim.z - ballista.getEntity().getZ();
+        double horizontalDist = Math.sqrt(dx * dx + dz * dz);
+        double heightDiff = aim.y - ballista.getEntity().getY();
+        float desiredPitch = IRangedRecruit.calcBallistaPitchAngle(horizontalDist, heightDiff);
+        float pitchDiff = Math.abs(desiredPitch - ballista.getEntity().getXRot());
+
+        return yawAngle < 0.2 && pitchDiff < 2.0;
+    }
+
     private void resetControls() {
         forward = false;
         left = false;
@@ -243,34 +291,6 @@ public class SiegeWeaponBallistaController implements ISiegeController {
 
         this.forward = false;
         faceTicks--;
-    }
-
-    // ========================= RANDOMNESS =========================
-
-    /**
-     * Adds spread to the target position for more realistic shots.
-     * Strategic fire gets more spread than enemy targeting.
-     */
-    private Vec3 applyAimSpread(Vec3 target) {
-        double dx = target.x - ballista.getEntity().getX();
-        double dz = target.z - ballista.getEntity().getZ();
-        double dist = Math.sqrt(dx * dx + dz * dz);
-
-        double spread;
-        if(siegeEngineer.getShouldStrategicFire()){
-            // Strategic fire: larger spread, more realistic area bombardment
-            spread = 4.0 + dist * 0.03;
-        }
-        else {
-            // Enemy targeting: smaller spread
-            spread = 1.5 + dist * 0.01;
-        }
-
-        double offsetX = (random.nextDouble() - 0.5) * 2.0 * spread;
-        double offsetZ = (random.nextDouble() - 0.5) * 2.0 * spread;
-        double offsetY = (random.nextDouble() - 0.5) * spread * 0.5;
-
-        return new Vec3(target.x + offsetX, target.y + offsetY, target.z + offsetZ);
     }
 
     // ========================= ATTACKING =========================
@@ -338,12 +358,18 @@ public class SiegeWeaponBallistaController implements ISiegeController {
                 return true;
             }
             forward = false;
+
+            if(!isAlignedToTarget()){
+                return true;
+            }
+
+            // Aligned - fire
             left = false;
             right = false;
             ballista.setPitchUp(false);
             ballista.setPitchDown(false);
             ballista.trigger(true);
-
+            this.setTargetPos(null);
             if(DEBUG && siegeEngineer.getOwner() != null){
                 siegeEngineer.getOwner().sendSystemMessage(Component.literal(
                         siegeEngineer.getName().getString() + ": FIRING ballista!"));
@@ -366,6 +392,7 @@ public class SiegeWeaponBallistaController implements ISiegeController {
         else {
             this.siegeEngineer.checkForPotentialEnemies();
         }
+
 
         if(targetPos != null){
             this.distanceToTarget = (float) this.ballista.entity.distanceToSqr(targetPos.x, this.ballista.entity.position().y, targetPos.z);
