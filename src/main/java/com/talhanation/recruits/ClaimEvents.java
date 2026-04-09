@@ -19,6 +19,8 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
+import net.minecraft.world.item.BucketItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.DaylightDetectorBlock;
 import net.minecraft.world.level.block.DiodeBlock;
@@ -31,6 +33,7 @@ import net.minecraft.world.scores.PlayerTeam;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.player.FillBucketEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.level.ExplosionEvent;
@@ -348,6 +351,28 @@ public class ClaimEvents {
         }
     }
     @SubscribeEvent
+    public void onBucketInteract(FillBucketEvent event) {
+        if(event.getLevel().isClientSide()) return;
+        if(event.getTarget() == null) return;
+
+        Vec3 vec = event.getTarget().getLocation();
+        BlockPos pos = new BlockPos((int) vec.x, (int) vec.y, (int) vec.z);
+
+        ChunkAccess access = server.overworld().getChunk(pos);
+        RecruitsClaim claim = recruitsClaimManager.getClaim(access.getPos());
+        if(claim == null) return;
+
+        Player player = event.getEntity();
+
+        if(player.isCreative() && player.hasPermissions(2)){
+            return;
+        }
+
+        boolean isInTeam = player.getTeam() != null && player.getTeam().getName().equals(claim.getOwnerFactionStringID());
+        if(!isInTeam) event.setCanceled(true);
+    }
+
+    @SubscribeEvent
     public void onBlockInteract(PlayerInteractEvent.RightClickBlock event) {
         if(event.getLevel().isClientSide()) return;
         ChunkAccess access = server.overworld().getChunk(event.getPos());
@@ -360,6 +385,8 @@ public class ClaimEvents {
         if(player.isCreative() && player.hasPermissions(2)){
             return;
         }
+
+        if(claim.isBlockInteractionAllowed()) return;
 
         BlockState selectedBlock = player.getCommandSenderWorld().getBlockState(pos);
         BlockEntity blockEntity = player.getCommandSenderWorld().getBlockEntity(pos);
@@ -375,9 +402,10 @@ public class ClaimEvents {
                 || (selectedBlock.getBlock() instanceof LeverBlock)
                 || (selectedBlock.getBlock() instanceof DiodeBlock)
                 || (selectedBlock.getBlock() instanceof DaylightDetectorBlock)
-                || (blockEntity instanceof Container))
+                || (blockEntity instanceof Container)
+        )
         {
-            if(!claim.isBlockInteractionAllowed()){
+            {
                 boolean isInTeam = player.getTeam() != null && player.getTeam().getName().equals(claim.getOwnerFactionStringID());
                 if(!isInTeam) event.setCanceled(true);
             }
