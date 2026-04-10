@@ -133,7 +133,7 @@ dependencies {
     implementation fg.deobf("curse.maven:ewewukeks-musket-mod-354562:5779561")
     implementation fg.deobf("curse.maven:worldedit-225608:4586218")
     implementation fg.deobf("curse.maven:small-ships-450659:5566900")
-    implementation fg.deobf("curse.maven:siegeweapons-1259343:7871760")
+    implementation fg.deobf("curse.maven:siegeweapons-1259343:7906096")
     //implementation fg.deobf("curse.maven:in-game-account-switcher-232676:5457030")
     //implementation fg.deobf("curse.maven:geckolib-388172:6027567")
     //implementation fg.deobf("curse.maven:born-in-chaos-686437:6193155")
