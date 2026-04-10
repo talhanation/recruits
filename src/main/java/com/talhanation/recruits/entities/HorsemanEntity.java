@@ -21,6 +21,7 @@ import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.entity.animal.horse.Markings;
 import net.minecraft.world.entity.animal.horse.Variant;
+import net.minecraft.world.entity.animal.camel.Camel;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -119,19 +120,33 @@ public class HorsemanEntity extends RecruitShieldmanEntity {
         if (!getHadHorse() && (RecruitsServerConfig.RecruitHorseUnitsHorse.get() || isPatrol)){
             boolean hasHorse = this.getVehicle() != null && this.getVehicle() instanceof AbstractHorse;
             if (!hasHorse){
-                Horse horse = new Horse(EntityType.HORSE, this.getCommandSenderWorld());
-                horse.setPos(this.getX(), this.getY(), this.getZ());
-                horse.setTamed(true);
-                horse.equipSaddle(null);
+                boolean isDesert = this.getBiome() == 0;
+                boolean spawnCamel = isDesert && this.random.nextInt(2) == 0;
 
-                Variant variant = Util.getRandom(Variant.values(), this.random);
-                Markings markings = Util.getRandom(Markings.values(), this.random);
-                horse.setVariantAndMarkings(variant, markings);
+                if (spawnCamel) {
+                    Camel camel = new Camel(EntityType.CAMEL, this.getCommandSenderWorld());
+                    camel.setPos(this.getX(), this.getY(), this.getZ());
+                    camel.setTamed(true);
+                    camel.equipSaddle(null);
+                    this.startRiding(camel);
+                    this.getCommandSenderWorld().addFreshEntity(camel);
+                    this.setHadHorse(true);
+                    this.setMountUUID(Optional.of(camel.getUUID()));
+                } else {
+                    Horse horse = new Horse(EntityType.HORSE, this.getCommandSenderWorld());
+                    horse.setPos(this.getX(), this.getY(), this.getZ());
+                    horse.setTamed(true);
+                    horse.equipSaddle(null);
 
-                this.startRiding(horse);
-                this.getCommandSenderWorld().addFreshEntity(horse);
-                this.setHadHorse(true);
-                this.setMountUUID(Optional.of(horse.getUUID()));
+                    Variant variant = Util.getRandom(Variant.values(), this.random);
+                    Markings markings = Util.getRandom(Markings.values(), this.random);
+                    horse.setVariantAndMarkings(variant, markings);
+
+                    this.startRiding(horse);
+                    this.getCommandSenderWorld().addFreshEntity(horse);
+                    this.setHadHorse(true);
+                    this.setMountUUID(Optional.of(horse.getUUID()));
+                }
             }
         }
     }

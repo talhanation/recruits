@@ -60,9 +60,6 @@ public class RecruitsPatrolSpawn {
     }
 
     public static boolean attemptSpawnPatrol(ServerLevel world) {
-        ResourceKey<Level> dim = world.dimension();
-        if (dim != Level.OVERWORLD) return false;
-
         Player player = world.getRandomPlayer();
         if (player == null) return true;
 
