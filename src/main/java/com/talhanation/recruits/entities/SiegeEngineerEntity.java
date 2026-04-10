@@ -35,8 +35,8 @@ import java.util.function.Predicate;
 
 public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompanion, IStrategicFire, IHasTargetPriority {
     public ISiegeController siegeController;
-    private final SiegeWeaponCatapultController catapultController;
-    private final SiegeWeaponBallistaController ballistaController;
+    public final SiegeWeaponCatapultController catapultController;
+    public final SiegeWeaponBallistaController ballistaController;
     private static final EntityDataAccessor<String> OWNER_NAME = SynchedEntityData.defineId(SiegeEngineerEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<Optional<BlockPos>> STRATEGIC_FIRE_POS = SynchedEntityData.defineId(SiegeEngineerEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Boolean> SHOULD_STRATEGIC_FIRE = SynchedEntityData.defineId(SiegeEngineerEntity.class, EntityDataSerializers.BOOLEAN);
@@ -250,15 +250,15 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
     public void checkForPotentialEnemies() {
         if(level().isClientSide()) return;
 
-        if(shouldAttackMovingTarget()){
-            LivingEntity target = this.getTarget();
 
-            if(target != null && target.isAlive() && target.hasLineOfSight(this)){
-                siegeController.setTargetPos(target.getEyePosition());
-                return;
-            }
-            else siegeController.setTargetPos(null);
+        LivingEntity currentTarget = this.getTarget();
+
+        if(currentTarget != null && currentTarget.isAlive() && currentTarget.hasLineOfSight(this)){
+            siegeController.setTargetPos(currentTarget.getEyePosition());
+            return;
         }
+        else siegeController.setTargetPos(null);
+
 
         List<Entity> targets = new ArrayList<>(this.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(200D)).stream()
                 .filter((target) -> shouldAttack(target) && this.hasLineOfSight(target) && !target.isUnderWater())

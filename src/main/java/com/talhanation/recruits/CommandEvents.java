@@ -1,6 +1,9 @@
 package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
+import com.talhanation.recruits.entities.ai.controller.SmallShipsController;
+import com.talhanation.recruits.entities.ai.controller.siegeengineer.SiegeWeaponCatapultController;
+import com.talhanation.recruits.entities.ai.controller.siegeengineer.SiegeWeaponBallistaController;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.*;
@@ -374,9 +377,43 @@ public class CommandEvents {
             AbstractRecruitEntity recruit = list.get(i);
             LivingEntity target = validTargets.get(i % validTargets.size());
             recruit.setTarget(target);
-            recruit.setHoldPos(target.position());
+            recruit.setHoldPos(getEngageHoldPos(recruit, target));
             recruit.setFollowState(3);
         }
+    }
+
+    private static Vec3 getEngageHoldPos(AbstractRecruitEntity recruit, LivingEntity target) {
+        double maxRange = -1;
+
+        if (recruit instanceof SiegeEngineerEntity siegeEngineer) {
+            if (siegeEngineer.siegeController == siegeEngineer.catapultController) {
+                maxRange = Math.sqrt(SiegeWeaponCatapultController.MAX_ENGAGE_DISTANCE); // ~137
+            } else if (siegeEngineer.siegeController == siegeEngineer.ballistaController) {
+                maxRange = Math.sqrt(SiegeWeaponBallistaController.MAX_ENGAGE_DISTANCE); // ~89
+            }
+        }
+        else if (recruit instanceof CaptainEntity captain) {
+            if (captain.smallShipsController != null && captain.smallShipsController.ship != null) {
+                maxRange = Math.sqrt(captain.smallShipsController.attackRange); // ~67
+            }
+        } else if (recruit instanceof BowmanEntity) {
+            maxRange = 44.0;
+        } else if (recruit instanceof CrossBowmanEntity) {
+            maxRange = Math.sqrt(3500);
+        }
+
+        if (maxRange <= 0) return target.position();
+
+        double holdRange = maxRange * 0.75;
+        Vec3 toTarget = target.position().subtract(recruit.position());
+        double dist = toTarget.horizontalDistance();
+
+        if (dist <= holdRange) {
+            return recruit.position();
+        }
+
+        Vec3 dir = toTarget.multiply(1 / dist, 0, 1 / dist);
+        return recruit.position().add(dir.scale(holdRange));
     }
 
     public static void onStrategicFireCommand(Player player, UUID player_uuid, AbstractRecruitEntity recruit, UUID group, boolean should) {

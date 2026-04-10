@@ -228,7 +228,7 @@ public class SmallShipsController {
         }
     }
     public Entity target;
-    private final int attackRange = 4500;
+    public final int attackRange = 4500;
     private final int followRange = 600;
     public double distanceToTarget;
     private boolean updateAttacking() {
