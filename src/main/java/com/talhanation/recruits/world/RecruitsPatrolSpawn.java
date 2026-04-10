@@ -47,15 +47,16 @@ public class RecruitsPatrolSpawn {
         if (timer <= 0) {
             if (world.getGameRules().getBoolean(GameRules.RULE_DO_PATROL_SPAWNING)) {
                 double rnd = random.nextInt(100);
-                if (rnd <= chance && attemptSpawnPatrol(world)) {}
+                if (rnd <= chance && attemptSpawnPatrol(world)) {
+
+
+                }
             }
             timer = getSpawnInterval();
         }
     }
 
     public static boolean attemptSpawnPatrol(ServerLevel world) {
-        // FIX: check the level's own dimension — not the player's dimension.
-        // This prevents patrols from spawning in the Nether and The End.
         if (!world.dimensionType().hasRaids()) return false;
 
         Player player = world.getRandomPlayer();
@@ -493,7 +494,7 @@ public class RecruitsPatrolSpawn {
         leader.setMoral(65);
         leader.setCost(50);
         leader.setXp(random.nextInt(120));
-        leader.setAggroState(1);
+        leader.setAggroState(0);
 
         return leader;
     }
