@@ -97,7 +97,7 @@
   "gui.recruits.command.tooltip.formation": "Order the recruits to do a formation.",
   "gui.recruits.command.tooltip.face": "Make the formation face the direction you are looking at.",
   "gui.recruits.command.tooltip.tight": "Toggle tight formation spacing (50% closer together).",
-  "gui.recruits.command.tooltip.hold_formation": "Toggle holding formation.",
+  "gui.recruits.command.tooltip.hold_formation": "Toggle hold formation. (Recruits will not move from position)",
   "gui.recruits.command.tooltip.hold_fire": "Disable the use of Ranged weapons.",
   "gui.recruits.command.tooltip.fire_at_will": "Enable the use of Ranged weapons.",
   "gui.recruits.command.tooltip.movement": "Movement Commands",
