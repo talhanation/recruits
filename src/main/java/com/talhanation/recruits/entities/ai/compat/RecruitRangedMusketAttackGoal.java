@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities.ai.compat;
 
 import com.talhanation.recruits.compat.musketmod.*;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.CrossBowmanEntity;
 import com.talhanation.recruits.util.AttackUtil;
 import net.minecraft.core.BlockPos;
@@ -284,7 +285,10 @@ public class RecruitRangedMusketAttackGoal extends Goal {
     }
 
     private boolean canLoad(){
-        return this.crossBowman.getInventory().items.stream().anyMatch(itemStack -> itemStack.getDescriptionId().equals("item.musketmod.cartridge"));
+        if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get())
+            return this.crossBowman.getInventory().items.stream().anyMatch(itemStack -> itemStack.getDescriptionId().equals("item.musketmod.cartridge"));
+        else
+            return true;
     }
 
     public void checkHands(){
