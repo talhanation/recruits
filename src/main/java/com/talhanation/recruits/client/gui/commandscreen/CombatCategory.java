@@ -155,7 +155,7 @@ public class CombatCategory implements ICommandCategory {
         screen.addRenderableWidget(shieldsDownButton);
 
         //ATTACK
-        RecruitsCommandButton attackButton = new RecruitsCommandButton(x, y + 50, TEXT_ATTACK,
+        RecruitsCommandButton attackButton = new RecruitsCommandButton(x, y + 45, TEXT_ATTACK,
                 button -> {
                     if (!groups.isEmpty()) {
                         for (RecruitsGroup group : groups) {
