@@ -7,7 +7,9 @@ import com.talhanation.recruits.entities.ai.villager.FollowCaravanOwner;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.util.NPCArmy;
 import net.minecraft.core.BlockPos;
+import net.minecraft.data.worldgen.DimensionTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -23,8 +25,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.NaturalSpawner;
+import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
+import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.Heightmap.Types;
+import net.minecraft.world.level.levelgen.WorldDimensions;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -57,7 +63,8 @@ public class RecruitsPatrolSpawn {
     }
 
     public static boolean attemptSpawnPatrol(ServerLevel world) {
-        if (!world.dimensionType().hasRaids()) return false;
+        ResourceKey<Level> dim = world.dimension();
+        if (dim != Level.OVERWORLD) return false;
 
         Player player = world.getRandomPlayer();
         if (player == null) return true;
