@@ -73,7 +73,6 @@ public class RecruitEvents {
     };
 
     public static void promoteRecruit(AbstractRecruitEntity recruit, int profession, String name, ServerPlayer player) {
-        // RecruitEvent.Promoted feuern – cancelable
         RecruitEvent.Promoted promoteEvent = new RecruitEvent.Promoted(recruit, profession, name, player);
         MinecraftForge.EVENT_BUS.post(promoteEvent);
         if (promoteEvent.isCanceled()) return;
@@ -86,8 +85,19 @@ public class RecruitEvents {
             companion.applyRecruitValues(recruit);
             companion.setOwnerName(player.getName().getString());
 
+            UUID groupUUID = recruit.getGroup();
+
             recruit.discard();
             abstractRecruit.getCommandSenderWorld().addFreshEntity(abstractRecruit);
+
+            if (groupUUID != null && !recruit.getCommandSenderWorld().isClientSide()) {
+                ServerLevel serverLevel = (ServerLevel) abstractRecruit.getCommandSenderWorld();
+                recruitsGroupsManager.addMember(groupUUID, abstractRecruit.getUUID(), serverLevel);
+                recruitsGroupsManager.removeMember(groupUUID, recruit.getUUID(), serverLevel);
+
+                recruitsGroupsManager.broadCastGroupsToPlayer(player);
+            }
+
         }
     }
 
