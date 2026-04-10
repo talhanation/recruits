@@ -75,7 +75,8 @@ public abstract class RecruitsDoorInteractGoal extends Goal {
         } else if (!this.recruit.horizontalCollision) {
             return false;
         } else {
-            RecruitPathNavigation groundpathnavigation = (RecruitPathNavigation)this.recruit.getNavigation();
+            RecruitPathNavigation groundpathnavigation = this.recruit.getNavigation() instanceof RecruitPathNavigation rNav ? rNav : null;
+            if (groundpathnavigation == null) return false;
             Path path = groundpathnavigation.getPath();
             if (path != null && !path.isDone() && groundpathnavigation.canOpenDoors()) {
                 for(int i = 0; i < Math.min(path.getNextNodeIndex() + 2, path.getNodeCount()); ++i) {
