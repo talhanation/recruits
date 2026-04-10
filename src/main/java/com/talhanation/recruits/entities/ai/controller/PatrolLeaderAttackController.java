@@ -209,11 +209,11 @@ public class PatrolLeaderAttackController implements IAttackController {
         Vec3 movePosRanged = getPosTowardsTarget(target, -0.1);
         Vec3 movePosCav = getPosTowardsTarget(target, 0.0);
 
-        FormationUtils.lineFormation(toTarget, leader.army.getRecruitInfantry(), movePosInfantry, 20, 1.75);
-        FormationUtils.lineFormation(toTarget, leader.army.getRecruitShieldmen(), movePosInfantry, 10, 2.25);
+        FormationUtils.lineFormation(toTarget, leader.army.getRecruitInfantry(), movePosInfantry, 20, 1.75, false);
+        FormationUtils.lineFormation(toTarget, leader.army.getRecruitShieldmen(), movePosInfantry, 10, 2.25, false);
 
-        FormationUtils.lineFormation(toTarget, leader.army.getRecruitRanged(), movePosRanged, 20, 3.0);
-        FormationUtils.squareFormation(toTarget, leader.army.getRecruitCavalry(), movePosCav, 2.0);
+        FormationUtils.lineFormation(toTarget, leader.army.getRecruitRanged(), movePosRanged, 20, 3.0, false);
+        FormationUtils.squareFormation(toTarget, leader.army.getRecruitCavalry(), movePosCav, 2.0, false);
 
     }
 

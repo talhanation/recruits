@@ -32,6 +32,9 @@ public class RecruitMoveTowardsTargetGoal extends Goal {
         else if (this.target == null) {
             return false;
         }
+        else if(this.recruit.holdFormation){
+            return false;
+        }
         else if(this.recruit.isInFormation && this.target.distanceToSqr(this.recruit) > AttackUtil.getAttackReachSqr(recruit) * 1.5){
             return false;
         }

@@ -34,28 +34,31 @@ public class FormationUtils {
 
     }
 
-    public static void movementFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
-        movementFormation(player, recruits, targetPos, 1.0);
+    public static void movementFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, boolean hold) {
+        movementFormation(player, recruits, targetPos, 1.0, hold);
     }
 
-    public static void movementFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacingMultiplier) {
+    public static void movementFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacingMultiplier, boolean hold) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
-        lineFormation(forward, recruits, targetPos, 3, 2.0D * spacingMultiplier);
+        lineFormation(forward, recruits, targetPos, 3, 2.0D * spacingMultiplier, hold);
     }
 
     public static void lineUpFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
-        lineUpFormation(player, recruits, targetPos, 1.0);
+        lineUpFormation(player, recruits, targetPos, 1.0, false);
     }
 
-    public static void lineUpFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacingMultiplier) {
+    public static void lineUpFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacingMultiplier, boolean hold) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
         int maxInRow = recruits.size() <= 20 ? recruits.size() : (recruits.size() + 1) / 2;
-        lineFormation(forward, recruits, targetPos, maxInRow, 1.75D * spacingMultiplier);
+        lineFormation(forward, recruits, targetPos, maxInRow, 1.75D * spacingMultiplier, hold);
     }
 
     public static void lineFormation(Vec3 forward, List<AbstractRecruitEntity> recruits, Vec3 targetPos, int maxInRow, double spacing) {
+        lineFormation(forward, recruits, targetPos, maxInRow, spacing, false);
+    }
+    public static void lineFormation(Vec3 forward, List<AbstractRecruitEntity> recruits, Vec3 targetPos, int maxInRow, double spacing, boolean hold) {
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
 
         List<FormationPosition> possiblePositions = new ArrayList<>();
@@ -112,21 +115,26 @@ public class FormationUtils {
                 //recruit.ownerRot = player.getYRot();
                 recruit.setFollowState(3);
                 recruit.isInFormation = true;
+                recruit.holdFormation = hold;
             }
         }
     }
-
     public static void squareFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
-        squareFormation(player, recruits, targetPos, 1.0);
+        squareFormation(player, recruits, targetPos, 1.0, false);
+    }
+    public static void squareFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, boolean hold) {
+        squareFormation(player, recruits, targetPos, 1.0, hold);
     }
 
-    public static void squareFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacingMultiplier) {
+    public static void squareFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacingMultiplier, boolean hold) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
-        squareFormation(forward, recruits, targetPos, 2.5 * spacingMultiplier);
+        squareFormation(forward, recruits, targetPos, 2.5 * spacingMultiplier, hold);
     }
-
     public static void squareFormation(Vec3 forward, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacing) {
+        squareFormation(forward, recruits, targetPos, spacing, false);
+    }
+    public static void squareFormation(Vec3 forward, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacing, boolean hold) {
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
 
         for(AbstractRecruitEntity rec : recruits){
@@ -182,6 +190,7 @@ public class FormationUtils {
                 //recruit.ownerRot = forwar;
                 recruit.setFollowState(3);
                 recruit.isInFormation = true;
+                recruit.holdFormation = hold;
             }
         }
     }
@@ -189,10 +198,10 @@ public class FormationUtils {
 
 
     public static void triangleFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
-        triangleFormation(player, recruits, targetPos, 1.0);
+        triangleFormation(player, recruits, targetPos, 1.0, false);
     }
 
-    public static void triangleFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacingMultiplier) {
+    public static void triangleFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacingMultiplier, boolean hold) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
@@ -253,15 +262,16 @@ public class FormationUtils {
                 recruit.ownerRot = player.getYRot();
                 recruit.setFollowState(3);
                 recruit.isInFormation = true;
+                recruit.holdFormation = hold;
             }
         }
     }
 
     public static void hollowCircleFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
-        hollowCircleFormation(player, recruits, targetPos, 1.0);
+        hollowCircleFormation(player, recruits, targetPos, 1.0, false);
     }
 
-    public static void hollowCircleFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacingMultiplier) {
+    public static void hollowCircleFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacingMultiplier, boolean hold) {
         double spacing = 2.5 * spacingMultiplier;
         int numRecruits = recruits.size();
 
@@ -315,15 +325,16 @@ public class FormationUtils {
                 recruit.ownerRot = player.getYRot();
                 recruit.setFollowState(3);
                 recruit.isInFormation = true;
+                recruit.holdFormation = hold;
             }
         }
     }
 
     public static void circleFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
-        circleFormation(player, recruits, targetPos, 1.0);
+        circleFormation(player, recruits, targetPos, 1.0, false);
     }
 
-    public static void circleFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacingMultiplier) {
+    public static void circleFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacingMultiplier, boolean hold) {
         double spacing = 2.5 * spacingMultiplier; // Abstand zwischen den Rekruten in jedem Ring
         int numRecruits = recruits.size();
 
@@ -402,15 +413,16 @@ public class FormationUtils {
                 recruit.ownerRot = player.getYRot();
                 recruit.setFollowState(3);
                 recruit.isInFormation = true;
+                recruit.holdFormation = hold;
             }
         }
     }
 
     public static void hollowSquareFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
-        hollowSquareFormation(player, recruits, targetPos, 1.0);
+        hollowSquareFormation(player, recruits, targetPos, 1.0, false);
     }
 
-    public static void hollowSquareFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacingMultiplier) {
+    public static void hollowSquareFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacingMultiplier, boolean hold) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
@@ -479,16 +491,17 @@ public class FormationUtils {
                 recruit.ownerRot = player.getYRot();
                 recruit.setFollowState(3);
                 recruit.isInFormation = true;
+                recruit.holdFormation = hold;
             }
         }
     }
 
 
     public static void vFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos) {
-        vFormation(player, recruits, targetPos, 1.0);
+        vFormation(player, recruits, targetPos, 1.0, false);
     }
 
-    public static void vFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacingMultiplier) {
+    public static void vFormation(ServerPlayer player, List<AbstractRecruitEntity> recruits, Vec3 targetPos, double spacingMultiplier, boolean hold) {
         float yaw = player.getYRot();
         Vec3 forward = new Vec3(-Math.sin(Math.toRadians(yaw)), 0, Math.cos(Math.toRadians(yaw)));
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
@@ -536,6 +549,7 @@ public class FormationUtils {
             recruit.ownerRot = player.getYRot();
             recruit.setFollowState(3);
             recruit.isInFormation = true;
+            recruit.holdFormation = hold;
         }
     }
 

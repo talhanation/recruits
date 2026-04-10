@@ -272,9 +272,6 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
             if (inRange) this.crossBowman.getNavigation().stop();
             if (isFar) this.crossBowman.getNavigation().moveTo(target, this.speedModifier);
         }
-        //if (!ownerClose) {
-        //    this.mob.getNavigation().moveTo(owner, this.speedModifier);
-        //}
     }
 
     private void handleHoldPos(@NotNull Vec3 pos, boolean inRange){
@@ -283,12 +280,6 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
         if (posClose) {
             if (inRange) this.crossBowman.getNavigation().stop();
         }
-        else {
-            //this.mob.getNavigation().moveTo(pos.getX(), pos.getY(), pos.getZ(), 1);
-        }
-        //if (!ownerClose) {
-        //    this.mob.getNavigation().moveTo(owner, this.speedModifier);
-        //}
     }
 
     private void handleWander(boolean inRange, boolean isFar, boolean isClose){

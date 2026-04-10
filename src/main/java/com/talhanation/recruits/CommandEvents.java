@@ -45,10 +45,10 @@ public class CommandEvents {
     //7 = forward
     //8 = backward
     public static void onMovementCommand(ServerPlayer player, List<AbstractRecruitEntity> recruits, int movementState, int formation) {
-        onMovementCommand(player, recruits, movementState, formation, false);
+        onMovementCommand(player, recruits, movementState, formation, false, false);
     }
 
-    public static void onMovementCommand(ServerPlayer player, List<AbstractRecruitEntity> recruits, int movementState, int formation, boolean tight) {
+    public static void onMovementCommand(ServerPlayer player, List<AbstractRecruitEntity> recruits, int movementState, int formation, boolean tight, boolean holdFormation) {
         if(formation != 0 && (movementState == 2|| movementState == 4 || movementState == 6 || movementState == 7 || movementState == 8)) {
             Vec3 targetPos = null;
 
@@ -92,7 +92,7 @@ public class CommandEvents {
                    targetPos = new Vec3(pos.x, blockPos.getY(), pos.z);
                }
             }
-            applyFormation(formation, recruits, player, targetPos, tight);
+            applyFormation(formation, recruits, player, targetPos, tight, holdFormation);
         }
         else{
             for(AbstractRecruitEntity recruit : recruits){
@@ -171,6 +171,7 @@ public class CommandEvents {
                     }
                 }
                 recruit.isInFormation = false;
+                recruit.holdFormation = false;
             }
 
         }
@@ -196,47 +197,47 @@ public class CommandEvents {
         return 10;
     }
     public static void applyFormation(int formation, List<AbstractRecruitEntity> recruits, ServerPlayer player, Vec3 targetPos) {
-        applyFormation(formation, recruits, player, targetPos, false);
+        applyFormation(formation, recruits, player, targetPos, false, false);
     }
 
-    public static void applyFormation(int formation, List<AbstractRecruitEntity> recruits, ServerPlayer player, Vec3 targetPos, boolean tight) {
+    public static void applyFormation(int formation, List<AbstractRecruitEntity> recruits, ServerPlayer player, Vec3 targetPos, boolean tight, boolean holdFormation) {
         saveFormationCenter(player, targetPos);
         double spacingMultiplier = tight ? 0.5 : 1.0;
         switch (formation){
             case 1 ->{//LINE UP
-                FormationUtils.lineUpFormation(player, recruits, targetPos, spacingMultiplier);
+                FormationUtils.lineUpFormation(player, recruits, targetPos, spacingMultiplier, holdFormation);
             }
             case 2 ->{//SQUARE
-                FormationUtils.squareFormation(player, recruits, targetPos, spacingMultiplier);
+                FormationUtils.squareFormation(player, recruits, targetPos, spacingMultiplier, holdFormation);
             }
             case 3 ->{//TRIANGLE
-                FormationUtils.triangleFormation(player, recruits, targetPos, spacingMultiplier);
+                FormationUtils.triangleFormation(player, recruits, targetPos, spacingMultiplier, holdFormation);
             }
             case 4 ->{//HOLLOW CIRCLE
-                FormationUtils.hollowCircleFormation(player, recruits, targetPos, spacingMultiplier);
+                FormationUtils.hollowCircleFormation(player, recruits, targetPos, spacingMultiplier, holdFormation);
             }
             case 5 ->{//HOLLOW SQUARE
-                FormationUtils.hollowSquareFormation(player, recruits, targetPos, spacingMultiplier);
+                FormationUtils.hollowSquareFormation(player, recruits, targetPos, spacingMultiplier, holdFormation);
             }
             case 6 ->{//V Formation
-                FormationUtils.vFormation(player, recruits, targetPos, spacingMultiplier);
+                FormationUtils.vFormation(player, recruits, targetPos, spacingMultiplier, holdFormation);
             }
             case 7 ->{//CIRCLE
-                FormationUtils.circleFormation(player, recruits, targetPos, spacingMultiplier);
+                FormationUtils.circleFormation(player, recruits, targetPos, spacingMultiplier, holdFormation);
             }
             case 8 ->{//MOVEMENT
-                FormationUtils.movementFormation(player, recruits, targetPos, spacingMultiplier);
+                FormationUtils.movementFormation(player, recruits, targetPos, spacingMultiplier, holdFormation);
             }
         }
     }
 
-    public static void onFaceCommand(ServerPlayer player, List<AbstractRecruitEntity> recruits, int formation, boolean tight) {
+    public static void onFaceCommand(ServerPlayer player, List<AbstractRecruitEntity> recruits, int formation, boolean tight, boolean hold) {
         if(recruits.isEmpty()) return;
 
         if(formation != 0) {
             Vec3 targetPos = getSavedFormationCenter(player);
             if(targetPos == null) targetPos = FormationUtils.getGeometricMedian(recruits, (ServerLevel) player.getCommandSenderWorld());
-            applyFormation(formation, recruits, player, targetPos, tight);
+            applyFormation(formation, recruits, player, targetPos, tight, hold);
         } else {
             // Without formation: hold current position
             for(AbstractRecruitEntity recruit : recruits) {

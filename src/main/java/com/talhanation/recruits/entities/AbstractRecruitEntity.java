@@ -135,6 +135,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private final int tickOffset = (int)(System.nanoTime() % 20);
     public Vec3 holdPosVec;
     public boolean isInFormation;
+    public boolean holdFormation;
     public boolean needsColorUpdate = true;
     public float moveSpeed = 1;
     public TargetingConditions targetingConditions;
@@ -444,6 +445,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putBoolean("ShouldRest", this.getShouldRest());
         nbt.putBoolean("ShouldRanged", this.getShouldRanged());
         nbt.putBoolean("isInFormation", this.isInFormation);
+        nbt.putBoolean("holdFormation", this.holdFormation);
         nbt.putInt("paymentTimer", this.paymentTimer);
 
         if(this.getHoldPos() != null){
@@ -516,6 +518,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.formationPos = (nbt.getInt("formationPos"));
         this.setShouldRest(nbt.getBoolean("ShouldRest"));
         this.isInFormation = nbt.getBoolean("isInFormation");
+        this.holdFormation = nbt.getBoolean("holdFormation");
 
         if(nbt.contains("paymentTimer")){
             this.paymentTimer = (nbt.getInt("paymentTimer"));

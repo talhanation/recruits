@@ -112,7 +112,8 @@ public class RecruitMeleeAttackGoal extends Goal {
             if (distanceToTarget <= reach && canSee) {
                 if (isNotFollowing) this.recruit.getNavigation().stop();
                 AttackUtil.performAttack(this.recruit, target);
-            } else if (canSee && isNotFollowing && coolDownElapsed) {
+            }
+            else if (canSee && isNotFollowing && coolDownElapsed && !recruit.holdFormation) {
                 this.pathingCooldown = 4 + this.recruit.getRandom().nextInt(4);
 
                 if (distanceToTarget > 2024.0D) {
@@ -130,7 +131,7 @@ public class RecruitMeleeAttackGoal extends Goal {
         LivingEntity target = this.recruit.getTarget();
         if (target != null && pos != null && recruit.getShouldHoldPos()) {
             double distanceToPos = target.distanceToSqr(pos);
-            double ref = recruit.isInFormation ? 169 : 400;
+            double ref = 400;
 
             return distanceToPos < ref;
         }

@@ -18,16 +18,18 @@ public class MessageMovement implements Message<MessageMovement> {
     private UUID group;
     private int formation;
     private boolean tight;
+    private boolean hold;
 
     public MessageMovement(){
     }
 
-    public MessageMovement(UUID player_uuid, int state, UUID group, int formation, boolean tight) {
+    public MessageMovement(UUID player_uuid, int state, UUID group, int formation, boolean tight, boolean hold) {
         this.player_uuid = player_uuid;
         this.state  = state;
         this.group  = group;
         this.formation = formation;
         this.tight = tight;
+        this.hold = hold;
     }
 
     public Dist getExecutingSide() {
@@ -40,7 +42,7 @@ public class MessageMovement implements Message<MessageMovement> {
 
 
 
-        CommandEvents.onMovementCommand(context.getSender(), list, this.state, this.formation, this.tight);
+        CommandEvents.onMovementCommand(context.getSender(), list, this.state, this.formation, this.tight, this.hold);
     }
 
     public MessageMovement fromBytes(FriendlyByteBuf buf) {
@@ -49,6 +51,7 @@ public class MessageMovement implements Message<MessageMovement> {
         this.group = buf.readUUID();
         this.formation = buf.readInt();
         this.tight = buf.readBoolean();
+        this.hold = buf.readBoolean();
         return this;
     }
 
@@ -58,6 +61,7 @@ public class MessageMovement implements Message<MessageMovement> {
         buf.writeUUID(this.group);
         buf.writeInt(this.formation);
         buf.writeBoolean(this.tight);
+        buf.writeBoolean(this.hold);
     }
 
 }

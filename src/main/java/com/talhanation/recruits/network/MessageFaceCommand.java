@@ -17,15 +17,17 @@ public class MessageFaceCommand implements Message<MessageFaceCommand> {
     private UUID group;
     private int formation;
     private boolean tight;
+    private boolean hold;
 
     public MessageFaceCommand(){
     }
 
-    public MessageFaceCommand(UUID player_uuid, UUID group, int formation, boolean tight) {
+    public MessageFaceCommand(UUID player_uuid, UUID group, int formation, boolean tight, boolean hold) {
         this.player_uuid = player_uuid;
         this.group = group;
         this.formation = formation;
         this.tight = tight;
+        this.hold = hold;
     }
 
     public Dist getExecutingSide() {
@@ -36,7 +38,7 @@ public class MessageFaceCommand implements Message<MessageFaceCommand> {
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
         list.removeIf(recruit -> !recruit.isEffectedByCommand(this.player_uuid, this.group));
 
-        CommandEvents.onFaceCommand(context.getSender(), list, this.formation, this.tight);
+        CommandEvents.onFaceCommand(context.getSender(), list, this.formation, this.tight, this.hold);
     }
 
     public MessageFaceCommand fromBytes(FriendlyByteBuf buf) {
@@ -44,6 +46,7 @@ public class MessageFaceCommand implements Message<MessageFaceCommand> {
         this.group = buf.readUUID();
         this.formation = buf.readInt();
         this.tight = buf.readBoolean();
+        this.hold = buf.readBoolean();
         return this;
     }
 
@@ -52,6 +55,7 @@ public class MessageFaceCommand implements Message<MessageFaceCommand> {
         buf.writeUUID(this.group);
         buf.writeInt(this.formation);
         buf.writeBoolean(this.tight);
+        buf.writeBoolean(this.hold);
     }
 
 }

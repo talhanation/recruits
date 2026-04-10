@@ -7,7 +7,6 @@ import com.talhanation.recruits.client.events.CommandCategoryManager;
 import com.talhanation.recruits.client.gui.commandscreen.ICommandCategory;
 import com.talhanation.recruits.client.gui.group.*;
 import com.talhanation.recruits.config.RecruitsClientConfig;
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.world.RecruitsGroup;
@@ -48,6 +47,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private ICommandCategory currentCategory;
     public static Formation formation;
     public static boolean tightFormation;
+    public static boolean holdFormation;
     public boolean mouseGroupsInverted;
     private List<RecruitsGroupButton> groupButtons;
     public CommandScreen(CommandMenu commandContainer, Inventory playerInventory, Component title) {
@@ -165,10 +165,15 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         this.setButtons();
     }
 
+    public void setHoldFormation(boolean hold){
+        holdFormation = hold;
+        this.setButtons();
+    }
+
     public void sendFaceCommandToServer() {
         if(!ClientManager.groups.isEmpty()){
             for(RecruitsGroup group : getActiveGroups()){
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageFaceCommand(player.getUUID(), group.getUUID(), formation.getIndex(), tightFormation));
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageFaceCommand(player.getUUID(), group.getUUID(), formation.getIndex(), tightFormation, holdFormation));
             }
         }
     }
@@ -219,7 +224,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         }
         if(!ClientManager.groups.isEmpty()){
             for(RecruitsGroup group : getActiveGroups()){
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), state, group.getUUID(), formation.getIndex(), tightFormation));
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), state, group.getUUID(), formation.getIndex(), tightFormation, holdFormation));
             }
         }
     }

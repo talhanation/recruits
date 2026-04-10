@@ -30,6 +30,7 @@ public class MovementCategory implements ICommandCategory {
     private static final MutableComponent TEXT_BACK_TO_POS = Component.translatable("gui.recruits.command.text.backToPos");
     private static final MutableComponent TEXT_FACE = Component.translatable("gui.recruits.command.text.face");
     private static final MutableComponent TEXT_TIGHT = Component.translatable("gui.recruits.command.text.tight");
+    private static final MutableComponent TEXT_HOLD_FORMATION = Component.translatable("gui.recruits.command.text.hold_formation");
     private static final MutableComponent TEXT_FORMATION_LINEUP = Component.translatable("gui.recruits.command.text.formation_lineup");
     private static final MutableComponent TEXT_FORMATION_SQUARE = Component.translatable("gui.recruits.command.text.formation_square");
     private static final MutableComponent TEXT_FORMATION_TRIANGLE = Component.translatable("gui.recruits.command.text.formation_triangle");
@@ -52,6 +53,7 @@ public class MovementCategory implements ICommandCategory {
     private static final MutableComponent TOOLTIP_MOVEMENT = Component.translatable("gui.recruits.command.tooltip.movement");
     private static final MutableComponent TOOLTIP_FACE = Component.translatable("gui.recruits.command.tooltip.face");
     private static final MutableComponent TOOLTIP_TIGHT = Component.translatable("gui.recruits.command.tooltip.tight");
+    private static final MutableComponent TOOLTIP_HOLD_FORMATION = Component.translatable("gui.recruits.command.tooltip.hold_formation");
 
     @Override
     public Component getToolTipName() {
@@ -66,6 +68,7 @@ public class MovementCategory implements ICommandCategory {
     @Override
     public void createButtons(CommandScreen screen, int x, int y, List<RecruitsGroup> groups, Player player) {
         boolean isOneGroupActive = groups.stream().anyMatch(g -> !g.isDisabled());
+
         RecruitsCommandButton moveButton = new RecruitsCommandButton(x, y - 50, TEXT_MOVE,
                 button -> {
                     screen.sendMovementCommandToServer(6);
@@ -240,6 +243,17 @@ public class MovementCategory implements ICommandCategory {
                 });
         tightCheckbox.setTooltip(Tooltip.create(TOOLTIP_TIGHT));
         screen.addRenderableWidget(tightCheckbox);
+
+        //HOLD TOGGLE BUTTON
+        Component holdText = CommandScreen.holdFormation ?
+                Component.literal("").append(TEXT_HOLD_FORMATION).append(" [X]") :
+                Component.literal("").append(TEXT_HOLD_FORMATION).append(" [ ]");
+        ExtendedButton holdCheckbox = new ExtendedButton(x - 95 - 60, formationY - 10, 60, 20, holdText,
+                button -> {
+                    screen.setHoldFormation(!CommandScreen.holdFormation);
+                });
+        holdCheckbox.setTooltip(Tooltip.create(TOOLTIP_HOLD_FORMATION));
+        screen.addRenderableWidget(holdCheckbox);
 
         noneFormationButton.active = CommandScreen.formation == CommandScreen.Formation.NONE;
         lineUpFormationButton.active = CommandScreen.formation == CommandScreen.Formation.LINE;

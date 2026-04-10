@@ -126,7 +126,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity> extends Goal {
                 handleFollow(this.recruit.getOwner(), inRange, isFar, isClose);
             }
             else if(this.recruit.getShouldHoldPos() && this.recruit.getHoldPos() != null){
-                handleHoldPos(this.recruit.getHoldPos(), inRange, isFar, isClose);
+                handleHoldPos(this.recruit.getHoldPos(), inRange);
             }
             else {
                 handleWander(inRange, isFar, isClose);
@@ -181,23 +181,14 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity> extends Goal {
             if (isFar) this.recruit.getNavigation().moveTo(target, this.speedModifier);
             if (isClose) this.recruit.fleeEntity(target);
         }
-        //if (!ownerClose) {
-        //    this.recruit.getNavigation().moveTo(owner, this.speedModifier);
-        //}
     }
 
-    private void handleHoldPos(@NotNull Vec3 pos, boolean inRange, boolean isFar, boolean isClose){
+    private void handleHoldPos(@NotNull Vec3 pos, boolean inRange){
         boolean posClose = pos.distanceToSqr(this.recruit.position()) <= 50;
 
         if (posClose) {
             if (inRange) this.recruit.getNavigation().stop();
         }
-        else {
-            //this.recruit.getNavigation().moveTo(pos.getX(), pos.getY(), pos.getZ(), 1);
-        }
-        //if (!ownerClose) {
-        //    this.recruit.getNavigation().moveTo(owner, this.speedModifier);
-        //}
     }
 
     private void handleWander(boolean inRange, boolean isFar, boolean isClose){
