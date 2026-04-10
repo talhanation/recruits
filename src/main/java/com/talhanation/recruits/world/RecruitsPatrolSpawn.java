@@ -53,10 +53,7 @@ public class RecruitsPatrolSpawn {
         if (timer <= 0) {
             if (world.getGameRules().getBoolean(GameRules.RULE_DO_PATROL_SPAWNING)) {
                 double rnd = random.nextInt(100);
-                if (rnd <= chance && attemptSpawnPatrol(world)) {
-
-
-                }
+                if (rnd <= chance && attemptSpawnPatrol(world)) {}
             }
             timer = getSpawnInterval();
         }
@@ -382,6 +379,7 @@ public class RecruitsPatrolSpawn {
         e.setCost(cost);
         e.setXp(random.nextInt(120));
         e.setCustomName(Component.literal(name));
+        AbstractRecruitEntity.applyBiomeAndVariant(e);
         setRecruitFood(e);
     }
 
