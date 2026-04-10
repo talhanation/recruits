@@ -47,6 +47,7 @@ public class Main {
     public static boolean isSmallShipsLoaded;
     public static boolean isSmallShipsCompatible;
     public static boolean isSiegeWeaponsLoaded;
+    public static boolean isSiegeWeaponsCompatible;
     public static boolean isEpicKnightsLoaded;
     public static boolean isCorpseLoaded;
     public static boolean isRPGZLoaded;
@@ -224,8 +225,14 @@ public class Main {
 
         isSmallShipsCompatible = false;
         if(isSmallShipsLoaded){
-            String smallshipsversion = ModList.get().getModFileById("smallships").versionString();//2.0.0-a2.3.1 above shall be supported e.g.: "2.0.0-b1.1"
-            isSmallShipsCompatible = smallshipsversion.contains("2.0.0-b1.3")||smallshipsversion.contains("2.0.0-b1.4");//TODO: Better Version check for compatible smallships versions
+            String smallshipsversion = ModList.get().getModFileById("smallships").versionString();
+            isSmallShipsCompatible = isVersionAtLeast(smallshipsversion, "2.0.0-b1.4");
+        }
+
+        isSiegeWeaponsCompatible = false;
+        if(isSiegeWeaponsLoaded){
+            String siegeweaponsVersion = ModList.get().getModFileById("siegeweapons").versionString();
+            isSiegeWeaponsCompatible = isVersionAtLeast(siegeweaponsVersion, "0.2.5");
         }
     }
 
@@ -261,5 +268,26 @@ public class Main {
             event.accept(ModBlocks.HORSEMAN_BLOCK.get());
             event.accept(ModBlocks.NOMAD_BLOCK.get());
         }
+    }
+
+    public static boolean isVersionAtLeast(String installedVersion, String minVersion) {
+        String[] installed = installedVersion.split("[.\\-]", -1);
+        String[] minimum  = minVersion.split("[.\\-]", -1);
+
+        int len = Math.max(installed.length, minimum.length);
+        for (int i = 0; i < len; i++) {
+            String a = i < installed.length ? installed[i] : "0";
+            String b = i < minimum.length  ? minimum[i]   : "0";
+
+            int cmp;
+            try {
+                cmp = Integer.compare(Integer.parseInt(a), Integer.parseInt(b));
+            } catch (NumberFormatException e) {
+                cmp = a.compareTo(b);
+            }
+
+            if (cmp != 0) return cmp > 0;
+        }
+        return true;
     }
 }

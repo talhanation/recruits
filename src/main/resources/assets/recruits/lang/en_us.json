@@ -576,5 +576,7 @@
   "gui.recruits.toast.embargoDeclaredTitle": "Embargo Declared",
   "gui.recruits.toast.embargoDeclaed": "%s has declared an embargo against you.",
   "gui.recruits.toast.embargoLiftedTitle": "Embargo Lifted",
-  "gui.recruits.toast.embargoLifted": "%s has lifted the embargo against you."
+  "gui.recruits.toast.embargoLifted": "%s has lifted the embargo against you.",
+
+  "gui.recruits.inv.tooltip.siege_engineer_disabled": "Siege Weapons Mod 0.2.5 or newer needed!"
 }
