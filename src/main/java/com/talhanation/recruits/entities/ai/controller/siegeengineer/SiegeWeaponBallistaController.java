@@ -302,6 +302,8 @@ public class SiegeWeaponBallistaController implements ISiegeController {
     public boolean noAmmoMessage = false;
 
     public boolean updateAttacking() {
+        if(!this.siegeEngineer.getShouldRanged()) return false;
+
         calculateTargetPos();
 
         if(targetPos != null){

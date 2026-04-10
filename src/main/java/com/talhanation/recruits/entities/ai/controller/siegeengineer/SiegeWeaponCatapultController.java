@@ -245,6 +245,8 @@ public class SiegeWeaponCatapultController implements ISiegeController {
     public boolean noAmmoMessage = false;
     public int range;
     public boolean updateAttacking() {
+        if(!this.siegeEngineer.getShouldRanged()) return false;
+
         calculateTargetPos();
 
         boolean isProjectileLoaded = catapult.isProjectileLoaded();
