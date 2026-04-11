@@ -110,7 +110,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         int zeroLeftPos = leftPos + 180;
         int zeroTopPos = topPos + 10;
         int topPosGab = 5;
-        this.canPromote = this.recruit.getXpLevel() >= 3;
+        this.canPromote = (this.recruit.getXpLevel() >= 3) || this.recruit instanceof IVillagerWorker;
 
         this.clearWidgets();
         //PASSIVE
@@ -481,6 +481,10 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
 
         ItemStack profItem1 = null;
         ItemStack profItem2 = null;
+
+        if (this instanceof IVillagerWorker worker){
+            profItem1 = worker.getCustomProfessionItem();
+        }
         if(this.recruit instanceof HorsemanEntity){
             profItem1 = Items.IRON_SWORD.getDefaultInstance();
             profItem2 = Items.SADDLE.getDefaultInstance();
@@ -512,9 +516,6 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         }
         else if(this.recruit instanceof CaptainEntity){
             profItem1 = SmallShips.getSmallShipsItem();
-        }
-        else if (this instanceof IVillagerWorker worker){
-            profItem1 = worker.getCustomProfessionItem();
         }
         guiGraphics.pose().pushPose();
         guiGraphics.pose().scale(0.8F, 0.8F, 1F);
