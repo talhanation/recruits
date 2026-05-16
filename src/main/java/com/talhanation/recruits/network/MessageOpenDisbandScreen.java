@@ -32,10 +32,14 @@ public class MessageOpenDisbandScreen implements Message<MessageOpenDisbandScree
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = context.getSender();
+        if (player == null) {
+            return;
+        }
         if (!player.getUUID().equals(this.player)) {
             return;
         }
-        FactionEvents.openDisbandingScreen(player, recruit);
+        RecruitCommandTargetResolver.resolveOwnedRecruit(player, this.recruit, 16.0D, false)
+                .ifPresent((recruit) -> FactionEvents.openDisbandingScreen(player, recruit.getUUID()));
     }
 
     @Override

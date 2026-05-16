@@ -50,6 +50,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity implements ICanTr
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
     private int restoreTimer;
     public boolean isTrading;
+    private UUID tradingPlayer;
     public boolean needsNewTrades;
     public int restoreTimeLongTime;
 
@@ -192,6 +193,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity implements ICanTr
     }
 
     public void openTradeGUI(Player player){
+        this.tradingPlayer = player.getUUID();
         this.isTrading(true);
         String stringID = player.getTeam() != null ? player.getTeam().getName() : "";
 
@@ -371,6 +373,13 @@ public class VillagerNobleEntity extends AbstractRecruitEntity implements ICanTr
 
     public void isTrading(boolean trading) {
         this.isTrading = trading;
+        if (!trading) {
+            this.tradingPlayer = null;
+        }
+    }
+
+    public boolean isTradingWith(Player player) {
+        return player != null && player.getUUID().equals(this.tradingPlayer);
     }
 
     protected void addParticlesAroundSelf(ParticleOptions p_35288_) {
@@ -387,13 +396,3 @@ public class VillagerNobleEntity extends AbstractRecruitEntity implements ICanTr
         return this.getTeam() != null ? this.getTeam().getName() : "";
     }
 }
-
-
-
-
-
-
-
-
-
-

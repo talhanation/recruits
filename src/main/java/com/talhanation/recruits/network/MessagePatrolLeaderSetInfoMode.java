@@ -28,11 +28,11 @@ public class MessagePatrolLeaderSetInfoMode implements Message<MessagePatrolLead
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractLeaderEntity.class,
-                player.getBoundingBox().inflate(16.0D),
-                v -> v.getUUID().equals(this.recruit) && v.isAlive()
-        ).forEach((leader) -> leader.setInfoMode(state));
+        if (state < AbstractLeaderEntity.InfoMode.ALL.getIndex() || state > AbstractLeaderEntity.InfoMode.HOSTILE.getIndex()) {
+            return;
+        }
+        RecruitCommandTargetResolver.resolveOwnedLeader(player, this.recruit, 16.0D)
+                .ifPresent((leader) -> leader.setInfoMode(state));
     }
 
     public MessagePatrolLeaderSetInfoMode fromBytes(FriendlyByteBuf buf) {

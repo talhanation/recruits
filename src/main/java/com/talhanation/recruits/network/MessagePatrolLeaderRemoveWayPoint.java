@@ -30,11 +30,8 @@ public class MessagePatrolLeaderRemoveWayPoint implements Message<MessagePatrolL
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractLeaderEntity.class,
-                player.getBoundingBox().inflate(100.0D),
-                v -> v.getUUID().equals(this.worker) && v.isAlive()
-        ).forEach((merchant) -> this.removeLastWayPoint(player, merchant));
+        RecruitCommandTargetResolver.resolveOwnedLeader(player, this.worker, 100.0D)
+                .ifPresent((merchant) -> this.removeLastWayPoint(player, merchant));
     }
 
     private void removeLastWayPoint(ServerPlayer player, AbstractLeaderEntity leaderEntity) {

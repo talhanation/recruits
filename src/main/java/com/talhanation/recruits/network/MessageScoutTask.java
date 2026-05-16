@@ -3,10 +3,10 @@ package com.talhanation.recruits.network;
 import com.talhanation.recruits.entities.ScoutEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -27,15 +27,14 @@ public class MessageScoutTask implements Message<MessageScoutTask> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        List<ScoutEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(ScoutEntity.class, context.getSender().getBoundingBox().inflate(16D));
-        for (ScoutEntity scoutEntity : list){
-
-            if (scoutEntity.getUUID().equals(this.recruit)){
-
-                scoutEntity.startTask(ScoutEntity.State.fromIndex(state));
-                break;
-            }
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        if (this.state < ScoutEntity.State.IDLE.getIndex() || this.state > ScoutEntity.State.SEARCHING_LOST_RECRUITS.getIndex()) {
+            return;
         }
+        RecruitCommandTargetResolver.resolveOwnedRecruit(player, this.recruit, 16D, false)
+                .filter(ScoutEntity.class::isInstance)
+                .map(ScoutEntity.class::cast)
+                .ifPresent((scout) -> scout.startTask(ScoutEntity.State.fromIndex(state)));
     }
     public MessageScoutTask fromBytes(FriendlyByteBuf buf) {
         this.recruit = buf.readUUID();

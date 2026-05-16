@@ -28,11 +28,11 @@ public class MessagePatrolLeaderSetEnemyAction implements Message<MessagePatrolL
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractLeaderEntity.class,
-                player.getBoundingBox().inflate(100.0D),
-                leader -> leader.getUUID().equals(this.recruit) && leader.isAlive()
-        ).forEach(leader -> leader.setEnemyAction(this.action));
+        if (this.action < AbstractLeaderEntity.EnemyAction.CHARGE.getIndex() || this.action > AbstractLeaderEntity.EnemyAction.KEEP_PATROLLING.getIndex()) {
+            return;
+        }
+        RecruitCommandTargetResolver.resolveOwnedLeader(player, this.recruit, 100.0D)
+                .ifPresent(leader -> leader.setEnemyAction(AbstractLeaderEntity.EnemyAction.fromIndex(this.action).getIndex()));
     }
 
     public MessagePatrolLeaderSetEnemyAction fromBytes(FriendlyByteBuf buf) {

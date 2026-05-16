@@ -28,11 +28,11 @@ public class MessagePatrolLeaderSetPatrollingSpeed implements Message<MessagePat
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractLeaderEntity.class,
-                context.getSender().getBoundingBox().inflate(100.0D),
-                recruit -> recruit.getUUID().equals(this.recruit)
-        ).forEach(leader -> leader.setPatrolSpeed(this.speed));
+        if (this.speed < AbstractLeaderEntity.PatrolSpeed.SLOW.getIndex() || this.speed > AbstractLeaderEntity.PatrolSpeed.FAST.getIndex()) {
+            return;
+        }
+        RecruitCommandTargetResolver.resolveOwnedLeader(player, this.recruit, 100.0D)
+                .ifPresent(leader -> leader.setPatrolSpeed(AbstractLeaderEntity.PatrolSpeed.fromIndex(this.speed).getIndex()));
     }
 
     public MessagePatrolLeaderSetPatrollingSpeed fromBytes(FriendlyByteBuf buf) {
