@@ -32,10 +32,10 @@ public class MessageRest implements Message<MessageRest> {
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer serverPlayer = context.getSender();
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
+        ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
+        List<AbstractRecruitEntity> list = RecruitCommandTargetResolver.resolveGroupTargets(serverPlayer, this.player, this.group, 100D);
         for (AbstractRecruitEntity recruits : list) {
-                CommandEvents.onRestCommand(serverPlayer, this.player, recruits, group, should);
+            CommandEvents.onRestCommand(serverPlayer, serverPlayer.getUUID(), recruits, group, should);
         }
     }
     public MessageRest fromBytes(FriendlyByteBuf buf) {

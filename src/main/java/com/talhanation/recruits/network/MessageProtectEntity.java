@@ -1,7 +1,6 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -34,10 +33,8 @@ public class MessageProtectEntity implements Message<MessageProtectEntity> {
 
     public void executeServerSide(NetworkEvent.Context context){
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                player.getBoundingBox().inflate(100)
-        ).forEach((recruit) -> CommandEvents.onProtectButton(uuid, recruit, target, group));
+        RecruitCommandTargetResolver.resolveGroupTargets(player, this.uuid, this.group, 100D)
+                .forEach((recruit) -> CommandEvents.onProtectButton(player.getUUID(), recruit, target, group));
     }
     public MessageProtectEntity fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();
