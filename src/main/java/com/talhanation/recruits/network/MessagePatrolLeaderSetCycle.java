@@ -1,6 +1,5 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -30,11 +29,8 @@ public class MessagePatrolLeaderSetCycle implements Message<MessagePatrolLeaderS
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractLeaderEntity.class,
-                player.getBoundingBox().inflate(100.0D),
-                (leader) -> leader.getUUID().equals(this.recruit)
-        ).forEach(leader -> leader.setCycle(this.cycle));
+        RecruitCommandTargetResolver.resolveOwnedLeader(player, this.recruit, 100.0D)
+                .ifPresent(leader -> leader.setCycle(this.cycle));
     }
 
     public MessagePatrolLeaderSetCycle fromBytes(FriendlyByteBuf buf) {

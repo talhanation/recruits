@@ -3,6 +3,8 @@ package com.talhanation.recruits.network;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.VillagerEvents;
+import com.talhanation.recruits.command.RecruitCommandAuthority;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.VillagerNobleEntity;
 import com.talhanation.recruits.world.RecruitsGroup;
@@ -14,6 +16,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
@@ -62,27 +65,57 @@ public class MessageHireFromNobleVillager implements Message<MessageHireFromNobl
                 VillagerNobleEntity.class,
                 player.getBoundingBox().inflate(32.0D),
                 noble -> noble.getUUID().equals(this.nobleUUID) && noble.isAlive()
-        ).stream().findAny().get();
+        ).stream().findFirst().orElse(null);
 
-        if(closing){
-            villagerNoble.isTrading(false);
+        if (villagerNoble == null) {
             return;
         }
 
-        RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
+        if(closing){
+            if (villagerNoble.isTradingWith(player)) {
+                villagerNoble.isTrading(false);
+            }
+            return;
+        }
 
-        if(this.needsVillager){
-            player.getCommandSenderWorld().getEntitiesOfClass(
+        if (!villagerNoble.isTradingWith(player)) {
+            return;
+        }
+
+        RecruitsGroup group = RecruitCommandAuthority.ownedGroup(player, groupUUID);
+        if (group == null) {
+            return;
+        }
+
+        RecruitsHireTrade trade = getAvailableTrade(villagerNoble);
+        if (trade == null) {
+            return;
+        }
+
+        boolean requiresVillager = RecruitsServerConfig.NobleVillagerNeedsVillagers.get();
+        boolean hired;
+        if (requiresVillager) {
+            var eligibleVillagers = player.getCommandSenderWorld().getEntitiesOfClass(
                     Villager.class,
                     player.getBoundingBox().inflate(32.0D),
-                    villager -> villager.getUUID().equals(this.villagerUUID) && villager.isAlive()
-            ).forEach(villager -> this.createRecruit(serverLevel, villager, villagerNoble, player, group));
+                    MessageHireFromNobleVillager::isEligibleHireVillager
+            );
+            if (eligibleVillagers.size() <= 2) {
+                return;
+            }
+            hired = eligibleVillagers.stream()
+                    .filter(villager -> villager.getUUID().equals(this.villagerUUID))
+                    .findFirst()
+                    .map(villager -> this.createRecruit(serverLevel, villager, player, group, trade.cost))
+                    .orElse(false);
         }
-        else{
-            String string = resource.toString();
-            Optional<EntityType<?>> optionalType = EntityType.byString(string);
-            optionalType.ifPresent(type -> VillagerEvents.spawnHiredRecruit(serverLevel, (EntityType<? extends AbstractRecruitEntity>) type, player, group));
+        else {
+            hired = getRecruitType()
+                    .map(type -> VillagerEvents.spawnHiredRecruit(serverLevel, type, player, group, trade.cost))
+                    .orElse(false);
+        }
 
+        if (hired) {
             villagerNoble.doTrade(resource);
         }
 
@@ -90,15 +123,31 @@ public class MessageHireFromNobleVillager implements Message<MessageHireFromNobl
         boolean canHire = RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(stringID, player.getUUID());
         Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateHireState(canHire));
     }
-    public void createRecruit(ServerLevel serverLevel, Villager villager, VillagerNobleEntity villagerNoble, Player player, RecruitsGroup group){
-        String string = resource.toString();
-        Optional<EntityType<?>> optionalType = EntityType.byString(string);
 
-        optionalType.ifPresent(type -> {
-            VillagerEvents.createHiredRecruitFromVillager(serverLevel, villager, (EntityType<? extends AbstractRecruitEntity>) type, player, group);
-        });
+    private RecruitsHireTrade getAvailableTrade(VillagerNobleEntity villagerNoble) {
+        for (RecruitsHireTrade trade : villagerNoble.getTrades()) {
+            if (trade != null && trade.uses > 0 && trade.resourceLocation.equals(this.resource)) {
+                return trade;
+            }
+        }
+        return null;
+    }
 
-        villagerNoble.doTrade(resource);
+    private static boolean isEligibleHireVillager(Villager villager) {
+        return villager.isAlive()
+                && !villager.isBaby()
+                && villager.getVillagerData().getProfession().equals(VillagerProfession.NONE);
+    }
+
+    private Optional<EntityType<? extends AbstractRecruitEntity>> getRecruitType() {
+        return EntityType.byString(resource.toString())
+                .map(type -> (EntityType<? extends AbstractRecruitEntity>) type);
+    }
+
+    private boolean createRecruit(ServerLevel serverLevel, Villager villager, Player player, RecruitsGroup group, int price) {
+        return getRecruitType()
+                .map(type -> VillagerEvents.createHiredRecruitFromVillager(serverLevel, villager, type, player, group, price))
+                .orElse(false);
     }
 
     public MessageHireFromNobleVillager fromBytes(FriendlyByteBuf buf) {

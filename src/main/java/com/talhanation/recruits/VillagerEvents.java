@@ -230,9 +230,9 @@ public class VillagerEvents {
         }
     }
 
-    public static void createHiredRecruitFromVillager(ServerLevel serverLevel, Villager villager, EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group){
+    public static boolean createHiredRecruitFromVillager(ServerLevel serverLevel, Villager villager, EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group, int price){
         AbstractRecruitEntity abstractRecruit = recruitType.create(villager.getCommandSenderWorld());
-        if(abstractRecruit == null) return;
+        if(abstractRecruit == null) return false;
 
         abstractRecruit.initSpawn();
 
@@ -240,7 +240,7 @@ public class VillagerEvents {
 
         if(name != null && !name.getString().isEmpty()) abstractRecruit.setCustomName(name);
 
-        if (CommandEvents.handleRecruiting(player, group, abstractRecruit, false)) {
+        if (CommandEvents.handleRecruiting(player, group, abstractRecruit, false, price)) {
             abstractRecruit.copyPosition(villager);
 
             abstractRecruit.setFollowState(1);
@@ -264,16 +264,18 @@ public class VillagerEvents {
             villager.releasePoi(MemoryModuleType.HOME);
             villager.releasePoi(MemoryModuleType.MEETING_POINT);
             villager.discard();
+            return true;
         }
+        return false;
     }
 
-    public static void spawnHiredRecruit(ServerLevel serverLevel, EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group){
+    public static boolean spawnHiredRecruit(ServerLevel serverLevel, EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group, int price){
         AbstractRecruitEntity abstractRecruit = recruitType.create(player.getCommandSenderWorld());
-        if(abstractRecruit == null) return;
+        if(abstractRecruit == null) return false;
 
         abstractRecruit.initSpawn();
 
-        if (CommandEvents.handleRecruiting(player, group, abstractRecruit, false)) {
+        if (CommandEvents.handleRecruiting(player, group, abstractRecruit, false, price)) {
             abstractRecruit.copyPosition(player);
 
             abstractRecruit.setFollowState(1);
@@ -287,7 +289,9 @@ public class VillagerEvents {
                 }
                 companion.applyRecruitValues(abstractRecruit);
             }
+            return true;
         }
+        return false;
     }
 
     @SubscribeEvent

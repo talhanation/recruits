@@ -28,14 +28,20 @@ public class MessagePatrolLeaderSetPatrolState implements Message<MessagePatrolL
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractLeaderEntity.class,
-                player.getBoundingBox().inflate(64.0D),
-                v -> v.getUUID().equals(this.recruit) && v.isAlive()
-        ).forEach(this::setState);
+        if (!isValidPatrolState(this.state)) {
+            return;
+        }
+        RecruitCommandTargetResolver.resolveOwnedLeader(player, this.recruit, 64.0D)
+                .ifPresent(this::setState);
     }
 
-    public void setState(AbstractLeaderEntity leader) {
+    private static boolean isValidPatrolState(byte state) {
+        return state == AbstractLeaderEntity.State.PATROLLING.getIndex()
+                || state == AbstractLeaderEntity.State.PAUSED.getIndex()
+                || state == AbstractLeaderEntity.State.STOPPED.getIndex();
+    }
+
+    private void setState(AbstractLeaderEntity leader) {
         AbstractLeaderEntity.State leaderState = AbstractLeaderEntity.State.fromIndex(state);
         switch (leaderState) {
             case PATROLLING -> leader.setFollowState(0);

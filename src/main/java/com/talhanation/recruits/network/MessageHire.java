@@ -1,7 +1,7 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
-import com.talhanation.recruits.RecruitEvents;
+import com.talhanation.recruits.command.RecruitCommandAuthority;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.world.RecruitsGroup;
 import de.maxhenkel.corelib.net.Message;
@@ -34,11 +34,17 @@ public class MessageHire implements Message<MessageHire> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
+        if (!player.getUUID().equals(this.player)) {
+            return;
+        }
+        RecruitsGroup group = RecruitCommandAuthority.ownedGroup(player, groupUUID);
+        if (group == null) {
+            return;
+        }
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(16.0D),
-                v -> v.getUUID().equals(this.recruit) && v.isAlive()
+                v -> v.getUUID().equals(this.recruit) && v.isAlive() && !v.isOwned() && v.canBeHired()
         ).forEach(recruit -> CommandEvents.handleRecruiting(player, group, recruit, true));
     }
 

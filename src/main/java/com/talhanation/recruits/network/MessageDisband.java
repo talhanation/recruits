@@ -1,6 +1,5 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,11 +28,8 @@ public class MessageDisband implements Message<MessageDisband> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                player.getBoundingBox().inflate(16D),
-                (recruit) -> recruit.getUUID().equals(this.recruit)
-        ).forEach((recruit) -> recruit.disband(context.getSender(), keepTeam, true));
+        RecruitCommandTargetResolver.resolveOwnedRecruit(player, this.recruit, 16D, false)
+                .ifPresent((recruit) -> recruit.disband(player, keepTeam, true));
     }
 
     public MessageDisband fromBytes(FriendlyByteBuf buf) {

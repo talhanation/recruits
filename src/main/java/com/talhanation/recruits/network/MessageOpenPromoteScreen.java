@@ -1,11 +1,9 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.RecruitEvents;
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
@@ -39,11 +37,9 @@ public class MessageOpenPromoteScreen implements Message<MessageOpenPromoteScree
             return;
         }
 
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                player.getBoundingBox().inflate(16.0D),
-                v -> v.getUUID().equals(this.recruit) && v.isAlive()
-        ).forEach((recruit) -> RecruitEvents.openPromoteScreen(player, recruit));
+        RecruitCommandTargetResolver.resolveOwnedRecruit(player, this.recruit, 16.0D, false)
+                .filter(MessagePromoteRecruit::canPromote)
+                .ifPresent((recruit) -> RecruitEvents.openPromoteScreen(player, recruit));
     }
 
     @Override

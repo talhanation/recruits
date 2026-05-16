@@ -593,8 +593,11 @@ public class CommandEvents {
     }
 
     public static boolean handleRecruiting(Player player, RecruitsGroup group, AbstractRecruitEntity recruit, boolean message){
+        return handleRecruiting(player, group, recruit, message, recruit.getCost());
+    }
+
+    public static boolean handleRecruiting(Player player, RecruitsGroup group, AbstractRecruitEntity recruit, boolean message, int price){
         String name = recruit.getName().getString() + ": ";
-        int sollPrice = recruit.getCost();
         Inventory playerInv = player.getInventory();
         int playerEmeralds = 0;
 
@@ -614,16 +617,16 @@ public class CommandEvents {
             }
         }
 
-        boolean playerCanPay = playerEmeralds >= sollPrice;
+        boolean playerCanPay = playerEmeralds >= price;
 
         if (playerCanPay || player.isCreative()){
             if(recruit.hire(player, group, message)) {
                 //give player tradeGood
                 //remove playerEmeralds ->add left
                 //
-                playerEmeralds = playerEmeralds - sollPrice;
+                playerEmeralds = playerEmeralds - price;
 
-                //merchantEmeralds = merchantEmeralds + sollPrice;
+                //merchantEmeralds = merchantEmeralds + price;
 
                 //remove playerEmeralds
                 for (int i = 0; i < playerInv.getContainerSize(); i++) {
@@ -654,7 +657,7 @@ public class CommandEvents {
             }
         }
         else
-            player.sendSystemMessage(TEXT_HIRE_COSTS(name, sollPrice, currency));
+            player.sendSystemMessage(TEXT_HIRE_COSTS(name, price, currency));
 
         return false;
     }

@@ -1,6 +1,5 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -52,11 +51,7 @@ public class MessagePatrolLeaderSetRoute implements Message<MessagePatrolLeaderS
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractLeaderEntity.class,
-                player.getBoundingBox().inflate(64.0D),
-                leader -> leader.getUUID().equals(this.recruit) && leader.isAlive()
-        ).forEach(leader -> {
+        RecruitCommandTargetResolver.resolveOwnedLeader(player, this.recruit, 64.0D).ifPresent(leader -> {
             if (routeId != null) {
                 leader.setRouteID(routeId);
             } else {
