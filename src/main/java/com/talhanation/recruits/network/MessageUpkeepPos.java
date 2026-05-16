@@ -1,7 +1,6 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -33,11 +32,9 @@ public class MessageUpkeepPos implements Message<MessageUpkeepPos> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                player.getBoundingBox().inflate(100)
-        ).forEach((recruit) -> CommandEvents.onUpkeepCommand(
-                this.player,
+        RecruitCommandTargetResolver.resolveGroupTargets(player, this.player, this.group, 100D)
+                .forEach((recruit) -> CommandEvents.onUpkeepCommand(
+                player.getUUID(),
                 recruit,
                 group,
                 false,

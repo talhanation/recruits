@@ -1,9 +1,9 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -28,12 +28,9 @@ public class MessageClearUpkeep implements Message<MessageClearUpkeep> {
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                context.getSender().getBoundingBox().inflate(100)
-        ).forEach(
-                (recruit) -> CommandEvents.onClearUpkeepButton(uuid, recruit, group)
-        );
+        ServerPlayer player = Objects.requireNonNull(context.getSender());
+        RecruitCommandTargetResolver.resolveGroupTargets(player, this.uuid, this.group, 100D)
+                .forEach((recruit) -> CommandEvents.onClearUpkeepButton(player.getUUID(), recruit, group));
     }
 
     public MessageClearUpkeep fromBytes(FriendlyByteBuf buf) {
@@ -47,4 +44,3 @@ public class MessageClearUpkeep implements Message<MessageClearUpkeep> {
         buf.writeUUID(group);
     }
 }
-

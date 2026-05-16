@@ -36,9 +36,10 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D),
-                (recruit) -> recruit.getUUID().equals(this.recruit)
-        ).forEach((recruitEntity) -> {
+        if (!player.isCreative() && !player.hasPermissions(2)) {
+            return;
+        }
+        RecruitCommandTargetResolver.resolveOwnedRecruit(player, this.recruit, 64.0D).ifPresent((recruitEntity) -> {
             EntityType<?> type = recruitEntity.getType();
             ItemStack itemStack = this.getItemStack(type);
 

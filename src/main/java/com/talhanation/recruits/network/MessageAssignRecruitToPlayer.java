@@ -1,7 +1,9 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.FactionEvents;
+import com.talhanation.recruits.command.RecruitCommandAuthority;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.world.RecruitsFaction;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -10,7 +12,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -31,17 +32,29 @@ public class MessageAssignRecruitToPlayer implements Message<MessageAssignRecrui
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer serverPlayer = context.getSender();
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D));
+        ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
         ServerLevel serverLevel = (ServerLevel) serverPlayer.getCommandSenderWorld();
 
-        for (AbstractRecruitEntity recruit : list) {
-            if(recruit.getUUID().equals(this.recruit)){
-                recruit.assignToPlayer(newOwner, null);
-                FactionEvents.notifyPlayer(serverLevel, new RecruitsPlayerInfo(newOwner, ""), 0, serverPlayer.getName().getString());
-                break;
-            }
+        serverPlayer.getCommandSenderWorld().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                serverPlayer.getBoundingBox().inflate(64.0D),
+                recruit -> recruit.getUUID().equals(this.recruit) && canAssign(serverPlayer, recruit)
+        ).stream().findFirst()
+                .ifPresent(recruit -> {
+                    recruit.assignToPlayer(newOwner, null);
+                    FactionEvents.notifyPlayer(serverLevel, new RecruitsPlayerInfo(newOwner, ""), 0, serverPlayer.getName().getString());
+                });
+    }
+
+    private boolean canAssign(ServerPlayer player, AbstractRecruitEntity recruit) {
+        if (RecruitCommandAuthority.ownsRecruit(player, recruit)) {
+            return true;
         }
+        if (!player.getUUID().equals(this.newOwner) || !recruit.isOwned() || recruit.getTeam() == null) {
+            return false;
+        }
+        RecruitsFaction faction = FactionEvents.recruitsFactionManager.getFactionByStringID(recruit.getTeam().getName());
+        return faction != null && player.getUUID().equals(faction.getTeamLeaderUUID());
     }
 
     public MessageAssignRecruitToPlayer fromBytes(FriendlyByteBuf buf) {

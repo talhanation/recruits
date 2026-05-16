@@ -31,11 +31,9 @@ public class MessageClearTarget implements Message<MessageClearTarget> {
 
     public void executeServerSide(NetworkEvent.Context context){
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        List<AbstractRecruitEntity> list = player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                context.getSender().getBoundingBox().inflate(100));
+        List<AbstractRecruitEntity> list = RecruitCommandTargetResolver.resolveGroupTargets(player, this.uuid, this.group, 100D);
         for (AbstractRecruitEntity recruits : list) {
-            CommandEvents.onClearTargetButton(uuid, recruits, group);
+            CommandEvents.onClearTargetButton(player.getUUID(), recruits, group);
         }
     }
     public MessageClearTarget fromBytes(FriendlyByteBuf buf) {
@@ -50,4 +48,3 @@ public class MessageClearTarget implements Message<MessageClearTarget> {
     }
 
 }
-
