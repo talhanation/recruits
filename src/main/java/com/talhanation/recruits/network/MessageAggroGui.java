@@ -1,6 +1,5 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,11 +28,8 @@ public class MessageAggroGui implements Message<MessageAggroGui> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                player.getBoundingBox().inflate(16.0D),
-                (recruit) -> recruit.getUUID().equals(this.uuid)
-        ).forEach((recruit) -> recruit.setAggroState(this.state));
+        RecruitCommandTargetResolver.resolveOwnedRecruit(player, this.uuid, 16.0D)
+                .ifPresent((recruit) -> recruit.setAggroState(this.state));
     }
 
     public MessageAggroGui fromBytes(FriendlyByteBuf buf) {

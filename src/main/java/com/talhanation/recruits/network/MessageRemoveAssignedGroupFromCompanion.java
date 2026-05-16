@@ -2,7 +2,7 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
-import com.talhanation.recruits.entities.AbstractLeaderEntity;
+import com.talhanation.recruits.command.RecruitCommandAuthority;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
 import com.talhanation.recruits.util.RecruitCommanderUtil;
@@ -35,13 +35,11 @@ public class MessageRemoveAssignedGroupFromCompanion implements Message<MessageR
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer serverPlayer = context.getSender();
-        serverPlayer.serverLevel().getEntitiesOfClass(AbstractLeaderEntity.class,
-                context.getSender().getBoundingBox().inflate(100D),
-                (leader) -> leader.getUUID().equals(this.companion)
-        ).forEach((companionEntity) -> {
+        if (serverPlayer == null || !serverPlayer.getUUID().equals(this.owner)) return;
+        RecruitCommandTargetResolver.resolveOwnedLeader(serverPlayer, this.companion, 100D).ifPresent((companionEntity) -> {
             if(companionEntity == null) return;
 
-            RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(companionEntity.getGroup());
+            RecruitsGroup group = RecruitCommandAuthority.ownedGroup(serverPlayer, companionEntity.getGroup());
             if(group == null) return;
             group.leaderUUID = null;
             companionEntity.setGroupUUID(group.getUUID());

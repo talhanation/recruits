@@ -1,9 +1,10 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.CommandEvents;
+import com.talhanation.recruits.command.CommandIntent;
+import com.talhanation.recruits.command.CommandIntentDispatcher;
+import com.talhanation.recruits.command.CommandIntentPriority;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
@@ -32,12 +33,14 @@ public class MessageAttack implements Message<MessageAttack> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
-        List<AbstractRecruitEntity> list = serverPlayer.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                serverPlayer.getBoundingBox().inflate(100)
+        List<AbstractRecruitEntity> list = RecruitCommandTargetResolver.resolveGroupTargets(serverPlayer, playerUuid, group, 100D);
+        CommandIntent intent = new CommandIntent.Attack(
+                serverPlayer.getCommandSenderWorld().getGameTime(),
+                CommandIntentPriority.NORMAL,
+                false,
+                group
         );
-
-        CommandEvents.onAttackCommand(serverPlayer, playerUuid, list, group);
+        CommandIntentDispatcher.dispatch(serverPlayer, intent, list);
     }
 
     public MessageAttack fromBytes(FriendlyByteBuf buf) {

@@ -1,6 +1,8 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.CommandEvents;
+import com.talhanation.recruits.command.CommandIntent;
+import com.talhanation.recruits.command.CommandIntentDispatcher;
+import com.talhanation.recruits.command.CommandIntentPriority;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -35,10 +37,17 @@ public class MessageFaceCommand implements Message<MessageFaceCommand> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
-        list.removeIf(recruit -> !recruit.isEffectedByCommand(this.player_uuid, this.group));
-
-        CommandEvents.onFaceCommand(context.getSender(), list, this.formation, this.tight, this.hold);
+        var sender = Objects.requireNonNull(context.getSender());
+        List<AbstractRecruitEntity> list = RecruitCommandTargetResolver.resolveGroupTargets(sender, this.player_uuid, this.group, 100D);
+        CommandIntent intent = new CommandIntent.Face(
+                sender.getCommandSenderWorld().getGameTime(),
+                CommandIntentPriority.NORMAL,
+                false,
+                this.formation,
+                this.tight,
+                this.hold
+        );
+        CommandIntentDispatcher.dispatch(sender, intent, list);
     }
 
     public MessageFaceCommand fromBytes(FriendlyByteBuf buf) {

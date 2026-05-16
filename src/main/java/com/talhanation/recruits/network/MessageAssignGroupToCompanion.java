@@ -1,6 +1,7 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.RecruitEvents;
+import com.talhanation.recruits.command.RecruitCommandAuthority;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
@@ -35,6 +36,7 @@ public class MessageAssignGroupToCompanion implements Message<MessageAssignGroup
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer serverPlayer =  context.getSender();
+        if (serverPlayer == null || !serverPlayer.getUUID().equals(this.ownerUUID)) return;
         ServerLevel serverLevel =  serverPlayer.serverLevel();
 
         AbstractLeaderEntity companionEntity = null;
@@ -45,15 +47,15 @@ public class MessageAssignGroupToCompanion implements Message<MessageAssignGroup
         );
 
         for (LivingEntity companion : list){
-            if(companion.getUUID().equals(this.companionUUID)){
-                companionEntity = (AbstractLeaderEntity) companion;
+            if(companion.getUUID().equals(this.companionUUID) && companion instanceof AbstractLeaderEntity leader && RecruitCommandAuthority.canCommand(serverPlayer, leader)){
+                companionEntity = leader;
                 break;
             }
         }
         if(companionEntity == null) return;
 
 
-        RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(companionEntity.getGroup());
+        RecruitsGroup group = RecruitCommandAuthority.ownedGroup(serverPlayer, companionEntity.getGroup());
         if(group == null) return;
 
         list.removeIf(living -> !(living instanceof AbstractRecruitEntity recruit)

@@ -1,7 +1,7 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.RecruitEvents;
-import com.talhanation.recruits.entities.AbstractLeaderEntity;
+import com.talhanation.recruits.command.RecruitCommandAuthority;
 import com.talhanation.recruits.world.RecruitsGroup;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -11,7 +11,6 @@ import net.minecraftforge.network.NetworkEvent;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -39,16 +38,12 @@ public class MessageSetLeaderGroup implements Message<MessageSetLeaderGroup> {
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.serverLevel().getEntitiesOfClass(
-                AbstractLeaderEntity.class,
-                player.getBoundingBox().inflate(100D),
-                leader -> leader.getUUID().equals(this.leaderUUID) && leader.isAlive()
-        ).forEach(leader -> {
+        RecruitCommandTargetResolver.resolveOwnedLeader(player, this.leaderUUID, 100D).ifPresent(leader -> {
             if (groupUUID == null) {
                 leader.setGroupUUID(null);
                 return;
             }
-            RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
+            RecruitsGroup group = RecruitCommandAuthority.ownedGroup(player, groupUUID);
             if (group == null) return;
             leader.setGroupUUID(group.getUUID());
             RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(player);

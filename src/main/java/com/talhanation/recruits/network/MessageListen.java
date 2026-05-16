@@ -1,6 +1,5 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,11 +28,8 @@ public class MessageListen implements Message<MessageListen> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                player.getBoundingBox().inflate(100),
-                (recruit) -> recruit.getUUID().equals(this.uuid)
-        ).forEach((recruit) -> recruit.setListen(bool));
+        RecruitCommandTargetResolver.resolveOwnedRecruit(player, this.uuid, 100D, false)
+                .ifPresent((recruit) -> recruit.setListen(bool));
     }
 
     public MessageListen fromBytes(FriendlyByteBuf buf) {

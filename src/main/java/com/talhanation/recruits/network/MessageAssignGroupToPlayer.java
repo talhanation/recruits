@@ -2,6 +2,7 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.RecruitEvents;
+import com.talhanation.recruits.command.RecruitCommandAuthority;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.world.RecruitsFaction;
 import com.talhanation.recruits.world.RecruitsGroup;
@@ -41,7 +42,8 @@ public class MessageAssignGroupToPlayer implements Message<MessageAssignGroupToP
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
+        if (!player.getUUID().equals(this.owner)) return;
+        RecruitsGroup group = RecruitCommandAuthority.ownedGroup(player, groupUUID);
         ServerLevel serverLevel = (ServerLevel) player.getCommandSenderWorld();
         if(group == null) return;
 
