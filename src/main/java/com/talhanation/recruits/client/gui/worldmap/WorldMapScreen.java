@@ -9,7 +9,6 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.widgets.DropDownMenu;
 import com.talhanation.recruits.compat.smallships.SmallShips;
-import com.talhanation.recruits.network.MessageDoPayment;
 import com.talhanation.recruits.network.MessageUpdateClaim;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsFaction;
@@ -859,8 +858,6 @@ public class WorldMapScreen extends Screen {
             for (ChunkPos pos : area) newClaim.addChunk(pos);
             newClaim.setCenter(selectedChunk);
             newClaim.setPlayer(new RecruitsPlayerInfo(player.getUUID(), player.getName().getString(), ownFaction));
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDoPayment(player.getUUID(), getClaimCost(ownFaction)));
-            ClientManager.recruitsClaims.add(newClaim);
             Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(newClaim));
         }
 
@@ -871,15 +868,10 @@ public class WorldMapScreen extends Screen {
             RecruitsClaim neighborClaim = getNeighborClaim(selectedChunk);
             if (neighborClaim == null) return;
             if (!Objects.equals(ownFaction.getStringID(), neighborClaim.getOwnerFaction().getStringID())) return;
-            for (RecruitsClaim claim : ClientManager.recruitsClaims) {
-                if (claim.equals(neighborClaim)) {
-                    neighborClaim.addChunk(selectedChunk);
-                    recalculateCenter(neighborClaim);
-                    break;
-                }
-            }
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDoPayment(player.getUUID(), ClientManager.configValueChunkCost));
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(neighborClaim));
+            RecruitsClaim updatedClaim = RecruitsClaim.fromNBT(neighborClaim.toNBT());
+            updatedClaim.addChunk(selectedChunk);
+            recalculateCenter(updatedClaim);
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(updatedClaim));
         }
 
         @Nullable
@@ -1033,4 +1025,3 @@ public class WorldMapScreen extends Screen {
             return !isInBufferZone(pos, ClientManager.ownFaction);
         }
     }
-
