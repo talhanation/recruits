@@ -1,6 +1,7 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.FactionEvents;
+import com.talhanation.recruits.world.RecruitsFaction;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
@@ -28,12 +29,18 @@ public class MessageRemoveFromTeam implements Message<MessageRemoveFromTeam> {
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer sender = Objects.requireNonNull(context.getSender());
         ServerLevel level = sender.serverLevel();
+        RecruitsFaction senderFaction = FactionNetworkAuthority.leaderFaction(sender);
+        if (senderFaction == null) {
+            return;
+        }
 
         boolean foundOnline = false;
         for (ServerPlayer serverPlayer : level.players()) {
-            if (serverPlayer.getName().getString().equals(player)) {
+            if (serverPlayer.getName().getString().equals(player)
+                    && serverPlayer.getTeam() != null
+                    && serverPlayer.getTeam().getName().equals(senderFaction.getStringID())) {
                 FactionEvents.tryToRemoveFromTeam(
-                        serverPlayer.getTeam(),
+                        sender.getTeam(),
                         sender,
                         serverPlayer,
                         level,

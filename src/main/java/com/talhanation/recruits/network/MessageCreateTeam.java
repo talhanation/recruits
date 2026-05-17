@@ -35,8 +35,11 @@ public class MessageCreateTeam implements Message<MessageCreateTeam> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = context.getSender();
+        if (player == null || player.getTeam() != null || this.color == null || this.index < 0 || this.index > FactionNetworkAuthority.MAX_UNIT_COLOR_INDEX) {
+            return;
+        }
         ServerLevel world = player.serverLevel();
-        FactionEvents.createTeam(true, context.getSender(), world, this.teamName, this.displayName, player.getName().getString(), this.banner, this.color, (byte) index);
+        FactionEvents.createTeam(true, player, world, this.teamName, this.displayName, player.getName().getString(), this.banner, this.color, (byte) index);
     }
 
     public MessageCreateTeam fromBytes(FriendlyByteBuf buf) {
