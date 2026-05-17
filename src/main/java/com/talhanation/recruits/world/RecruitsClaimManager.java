@@ -15,6 +15,7 @@ import net.minecraftforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.BooleanSupplier;
 public class RecruitsClaimManager {
     private final Map<ChunkPos, RecruitsClaim> claims = new HashMap<>();
     private final Map<UUID, RecruitsClaim> activeSieges = new HashMap<>();
@@ -40,12 +41,17 @@ public class RecruitsClaimManager {
     }
 
     public void addOrUpdateClaim(ServerLevel level, RecruitsClaim claim) {
-        if (claim == null) return;
+        tryAddOrUpdateClaim(level, claim, () -> true);
+    }
+
+    public boolean tryAddOrUpdateClaim(ServerLevel level, RecruitsClaim claim, BooleanSupplier beforeCommit) {
+        if (claim == null) return false;
 
         // ClaimEvent.Updated feuern – cancelable
         boolean isNew = claims.values().stream().noneMatch(c -> c.getUUID().equals(claim.getUUID()));
         ClaimEvent.Updated updateEvent = new ClaimEvent.Updated(claim, level, isNew);
-        if (MinecraftForge.EVENT_BUS.post(updateEvent)) return;
+        if (MinecraftForge.EVENT_BUS.post(updateEvent)) return false;
+        if (!beforeCommit.getAsBoolean()) return false;
 
         claims.entrySet().removeIf(entry -> entry.getValue().getUUID().equals(claim.getUUID()));
 
@@ -56,6 +62,7 @@ public class RecruitsClaimManager {
         }
 
         this.broadcastClaimsToAll(level);
+        return true;
     }
 
     public void removeClaim(RecruitsClaim claim) {

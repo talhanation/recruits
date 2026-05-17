@@ -6,6 +6,7 @@ import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -27,11 +28,18 @@ public class MessageDeleteClaim implements Message<MessageDeleteClaim> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        RecruitsClaim claim = RecruitsClaim.fromNBT(this.claimNBT);
+        ServerPlayer player = context.getSender();
+        if (player == null || this.claimNBT == null || this.claimNBT.isEmpty()) return;
+        RecruitsClaim requestedClaim = ClaimNetworkAuthority.readClaim(this.claimNBT);
+        if (requestedClaim == null) return;
+        RecruitsClaim claim = ClaimNetworkAuthority.claimByUuid(requestedClaim.getUUID());
+        if (claim == null) return;
+        if (!ClaimNetworkAuthority.isCreativeAdmin(player)) return;
 
         ClaimEvents.recruitsClaimManager.removeClaim(claim);
-        ClaimEvents.recruitsClaimManager.broadcastClaimsToAll((ServerLevel) context.getSender().getCommandSenderWorld());
+        ClaimEvents.recruitsClaimManager.broadcastClaimsToAll((ServerLevel) player.getCommandSenderWorld());
     }
+
     public MessageDeleteClaim fromBytes(FriendlyByteBuf buf) {
         this.claimNBT = buf.readNbt();
         return this;

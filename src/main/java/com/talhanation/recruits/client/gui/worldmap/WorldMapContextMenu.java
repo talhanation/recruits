@@ -5,6 +5,7 @@ import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.diplomacy.DiplomacyEditScreen;
 import com.talhanation.recruits.network.MessageTeleportPlayer;
 import com.talhanation.recruits.network.MessageUpdateClaim;
+import com.talhanation.recruits.world.RecruitsClaim;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -107,9 +108,10 @@ public class WorldMapContextMenu {
                         || this.worldMapScreen.isPlayerClaimLeader(worldMapScreen.selectedClaim)),
                 (screen) -> {
                     if (screen.selectedClaim.containsChunk(screen.selectedChunk)) {
-                        screen.selectedClaim.removeChunk(screen.selectedChunk);
+                        RecruitsClaim updatedClaim = RecruitsClaim.fromNBT(screen.selectedClaim.toNBT());
+                        updatedClaim.removeChunk(screen.selectedChunk);
                         screen.selectedChunk = null;
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(screen.selectedClaim));
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(updatedClaim));
                     }
                 }
         );
@@ -124,9 +126,10 @@ public class WorldMapContextMenu {
                         || this.worldMapScreen.isPlayerClaimLeader(worldMapScreen.selectedClaim)),
                 (screen) -> {
                     if (screen.selectedClaim.containsChunk(screen.selectedChunk)) {
-                        screen.selectedClaim.removeChunk(screen.selectedChunk);
+                        RecruitsClaim updatedClaim = RecruitsClaim.fromNBT(screen.selectedClaim.toNBT());
+                        updatedClaim.removeChunk(screen.selectedChunk);
                         screen.selectedChunk = null;
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(screen.selectedClaim));
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(updatedClaim));
                     }
                 },
                 "admin"
@@ -135,8 +138,9 @@ public class WorldMapContextMenu {
         addEntry(TEXT_DELETE_CLAIM_ADMIN.getString(),
                 () -> this.worldMapScreen.isPlayerAdminAndCreative() && this.worldMapScreen.selectedClaim != null,
                 (screen) -> {
-                    screen.selectedClaim.isRemoved = true;
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(screen.selectedClaim));
+                    RecruitsClaim updatedClaim = RecruitsClaim.fromNBT(screen.selectedClaim.toNBT());
+                    updatedClaim.isRemoved = true;
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(updatedClaim));
                     screen.selectedClaim = null;
                 },
                 "admin"
