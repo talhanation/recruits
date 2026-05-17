@@ -13,7 +13,6 @@ import net.minecraft.world.scores.Team;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -40,23 +39,31 @@ public class MessageAnswerTreaty implements Message<MessageAnswerTreaty> {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         ServerLevel level = (ServerLevel) player.getCommandSenderWorld();
 
-        List<MessengerEntity> list = level.getEntitiesOfClass(
+        for (MessengerEntity messenger : level.getEntitiesOfClass(
                 MessengerEntity.class,
-                player.getBoundingBox().inflate(16D)
-        );
+                player.getBoundingBox().inflate(16D),
+                messenger -> messenger.getUUID().equals(this.recruit) && canAnswer(player, messenger)
+        )) {
 
-        for (MessengerEntity messenger : list) {
-            if (messenger.getUUID().equals(this.recruit)) {
-                if (accepted) {
-                    handleTreatyAccepted(messenger, player, level);
-                }
-                messenger.treatyNotAccepted = !accepted;
-                messenger.teleportWaitTimer = 100;
-                player.sendSystemMessage(messenger.MESSENGER_INFO_ON_MY_WAY());
-                messenger.setMessengerState(MessengerEntity.MessengerState.TELEPORT_BACK);
-                break;
+            if (accepted) {
+                handleTreatyAccepted(messenger, player, level);
             }
+            messenger.treatyNotAccepted = !accepted;
+            messenger.teleportWaitTimer = 100;
+            player.sendSystemMessage(messenger.MESSENGER_INFO_ON_MY_WAY());
+            messenger.setMessengerState(MessengerEntity.MessengerState.TELEPORT_BACK);
+            break;
         }
+    }
+
+    private static boolean canAnswer(ServerPlayer player, MessengerEntity messenger) {
+        RecruitsFaction leaderFaction = FactionNetworkAuthority.leaderFaction(player);
+        return messenger.isTreatyMessenger()
+                && messenger.getTargetPlayerInfo() != null
+                && player.getUUID().equals(messenger.getTargetPlayerInfo().getUUID())
+                && leaderFaction != null
+                && messenger.getTargetPlayerInfo().getFaction() != null
+                && leaderFaction.getStringID().equals(messenger.getTargetPlayerInfo().getFaction().getStringID());
     }
 
     private void handleTreatyAccepted(MessengerEntity messenger, ServerPlayer player, ServerLevel level) {

@@ -9,7 +9,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -43,25 +42,21 @@ public class MessageSendMessenger implements Message<MessageSendMessenger> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                MessengerEntity.class,
-                player.getBoundingBox().inflate(16D),
-                (messenger) -> messenger.getUUID().equals(this.recruit)
-        ).forEach((messenger) -> {
-            if (messenger.getUUID().equals(this.recruit)){
+        RecruitCommandTargetResolver.resolveOwnedRecruit(player, this.recruit, 16D, false)
+                .filter(messenger -> messenger instanceof MessengerEntity)
+                .map(messenger -> (MessengerEntity) messenger)
+                .ifPresent((messenger) -> {
+                    messenger.setMessage(this.message);
 
-                messenger.setMessage(this.message);
+                    if(!this.nbt.isEmpty()){
+                        messenger.setTargetPlayerInfo(RecruitsPlayerInfo.getFromNBT(this.nbt));
+                    }
 
-                if(!this.nbt.isEmpty()){
-                    messenger.setTargetPlayerInfo(RecruitsPlayerInfo.getFromNBT(this.nbt));
-                }
-
-                if(start){
-                    messenger.setIsTreatyMessenger(false);
-                    messenger.start();
-                }
-            }
-        });
+                    if(start){
+                        messenger.setIsTreatyMessenger(false);
+                        messenger.start();
+                    }
+                });
     }
 
     public MessageSendMessenger fromBytes(FriendlyByteBuf buf) {
