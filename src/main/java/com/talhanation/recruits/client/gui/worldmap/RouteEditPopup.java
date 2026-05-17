@@ -15,10 +15,8 @@ import org.lwjgl.glfw.GLFW;
 
 public class RouteEditPopup {
 
-    private static final int WIDTH = 200;
-    private static final int HEIGHT = 134;
-    private static final int BG_COLOR = 0x80000000;
-    private static final int OUTLINE_COLOR = 0x40FFFFFF;
+    private static final int WIDTH = 240;
+    private static final int HEIGHT = 190;
     private static final int BTN_COLOR = 0x80222222;
     private static final int BTN_HOVERED_COLOR = 0x80444444;
     private static final int BTN_DELETE_COLOR = 0x80330000;
@@ -26,6 +24,21 @@ public class RouteEditPopup {
     private static final int TEXT_COLOR = 0xFFFFFF;
     private static final int BTN_H = 16;
     private static final int BTN_W_FULL = WIDTH - 16;
+    private static final Component TEXT_TITLE = Component.translatable("gui.recruits.map.route.edit.title");
+    private static final Component TEXT_HINT = Component.translatable("gui.recruits.map.route.edit.hint");
+    private static final Component TEXT_TRANSFER_TITLE = Component.translatable("gui.recruits.map.route.edit.transfer.title");
+    private static final Component TEXT_TRANSFER_ACTION = Component.translatable("gui.recruits.map.route.edit.transfer.action");
+    private static final Component TEXT_TRANSFER_HINT = Component.translatable("gui.recruits.map.route.edit.transfer.hint");
+    private static final Component TEXT_NAME = Component.translatable("gui.recruits.map.route.name");
+    private static final Component TEXT_SAVE = Component.translatable("gui.recruits.map.route.edit.save");
+    private static final Component TEXT_TRANSFER = Component.translatable("gui.recruits.map.route.edit.transfer");
+    private static final Component TEXT_DELETE = Component.translatable("gui.recruits.map.route.edit.delete");
+    private static final Component TEXT_BACK = Component.translatable("gui.recruits.map.route.edit.back");
+    private static final Component TEXT_DISABLED_BLANK = Component.translatable("gui.recruits.map.route.disabled.blank_name");
+    private static final Component TEXT_DISABLED_SAME = Component.translatable("gui.recruits.map.route.disabled.same_name");
+    private static final Component TEXT_FEEDBACK_SAVED = Component.translatable("gui.recruits.map.route.feedback.saved");
+    private static final Component TEXT_FEEDBACK_TRANSFER = Component.translatable("gui.recruits.map.route.feedback.transfer");
+    private static final Component TEXT_FEEDBACK_DELETED = Component.translatable("gui.recruits.map.route.feedback.deleted");
 
     private final WorldMapScreen parent;
     private final Player player;
@@ -49,7 +62,7 @@ public class RouteEditPopup {
         int px = (parent.width - WIDTH) / 2;
         int py = (parent.height - HEIGHT) / 2;
         int fieldX = px + 8;
-        int fieldY = py + 18;
+        int fieldY = py + 58;
         int fieldW = WIDTH - 16;
 
         nameField = new EditBox(Minecraft.getInstance().font,
@@ -69,27 +82,29 @@ public class RouteEditPopup {
     }
 
     private void save() {
-        if (nameField == null || nameField.getValue().isBlank()) return;
+        if (!canSave()) return;
 
         String trimmed = nameField.getValue().trim();
-        if (!trimmed.equals(route.getName())) {
-            ClientManager.renameRoute(route, trimmed);
-        }
+        ClientManager.renameRoute(route, trimmed);
 
         parent.refreshRouteUI();
+        parent.showMapNotice(TEXT_FEEDBACK_SAVED, 0xFF9FDB6B);
         close();
     }
 
     private void openTransfer() {
+        RecruitsRoute transferRoute = route;
+        close();
         Minecraft.getInstance().setScreen(new SelectPlayerScreen(
                 parent, player,
-                Component.literal("Transfer Route"),
-                Component.literal("Transfer"),
-                Component.literal("Transfer this route to the selected player"),
+                TEXT_TRANSFER_TITLE,
+                TEXT_TRANSFER_ACTION,
+                TEXT_TRANSFER_HINT,
                 false,
                 PlayersList.FilterType.NONE,
                 (playerInfo) -> {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageTransferRoute(playerInfo.getUUID(), route));
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageTransferRoute(playerInfo.getUUID(), transferRoute));
+                    parent.showMapNotice(TEXT_FEEDBACK_TRANSFER, 0xFFFFD36A);
                     Minecraft.getInstance().setScreen(parent);
                 }
         ));
@@ -97,9 +112,28 @@ public class RouteEditPopup {
 
     private void deleteRoute() {
         ClientManager.deleteRoute(route);
-        parent.selectedRoute = null;
+        parent.setSelectedRoute(null);
         parent.refreshRouteUI();
+        parent.showMapNotice(TEXT_FEEDBACK_DELETED, 0xFFFF8A7A);
         close();
+    }
+
+    private boolean canSave() {
+        return nameField != null && route != null && !nameField.getValue().trim().isBlank() && !nameField.getValue().trim().equals(route.getName());
+    }
+
+    private Component getSaveHint() {
+        if (nameField == null || route == null) {
+            return TEXT_HINT;
+        }
+        String trimmed = nameField.getValue().trim();
+        if (trimmed.isBlank()) {
+            return TEXT_DISABLED_BLANK;
+        }
+        if (trimmed.equals(route.getName())) {
+            return TEXT_DISABLED_SAME;
+        }
+        return TEXT_HINT;
     }
 
     public void tick() {
@@ -114,34 +148,41 @@ public class RouteEditPopup {
         int x = px + 8;
 
         guiGraphics.fill(0, 0, parent.width, parent.height, 0x88000000);
-        guiGraphics.fill(px, py, px + WIDTH, py + HEIGHT, BG_COLOR);
-        guiGraphics.renderOutline(px, py, WIDTH, HEIGHT, OUTLINE_COLOR);
+        WorldMapRenderPrimitives.panel(guiGraphics, px, py, WIDTH, HEIGHT);
 
-        guiGraphics.drawCenteredString(Minecraft.getInstance().font, "Edit Route",
+        guiGraphics.drawCenteredString(Minecraft.getInstance().font, TEXT_TITLE,
                 px + WIDTH / 2, py + 6, TEXT_COLOR);
+        guiGraphics.drawWordWrap(Minecraft.getInstance().font, TEXT_HINT, x, py + 18, BTN_W_FULL, 0xFFE6D6A8);
+        guiGraphics.drawString(Minecraft.getInstance().font, TEXT_NAME, x, py + 46, 0xFFE0B86A, false);
 
         // Name field
-        int fieldY = py + 18;
+        int fieldY = py + 58;
         guiGraphics.fill(x - 1, fieldY - 1, x + BTN_W_FULL + 1, fieldY + 15, 0x80303030);
-        guiGraphics.renderOutline(x - 1, fieldY - 1, BTN_W_FULL + 2, 16, OUTLINE_COLOR);
+        guiGraphics.renderOutline(x - 1, fieldY - 1, BTN_W_FULL + 2, 16, 0xAA8A6A3A);
         if (nameField != null) nameField.render(guiGraphics, mouseX, mouseY, 0);
 
-        int y = fieldY + 18;
-        renderButton(guiGraphics, mouseX, mouseY, "Save",               x, y, BTN_W_FULL, BTN_H, false); y += BTN_H + 4;
-        renderButton(guiGraphics, mouseX, mouseY, "Transfer to Player", x, y, BTN_W_FULL, BTN_H, false); y += BTN_H + 4;
-        renderButton(guiGraphics, mouseX, mouseY, "Delete Route",       x, y, BTN_W_FULL, BTN_H, true);  y += BTN_H + 4;
-        renderButton(guiGraphics, mouseX, mouseY, "Back",               x, y, BTN_W_FULL, BTN_H, false);
+        guiGraphics.drawWordWrap(Minecraft.getInstance().font, getSaveHint(), x, fieldY + 18, BTN_W_FULL, canSave() ? 0xFFB8A17A : 0xFFFFD36A);
+
+        int y = fieldY + 46;
+        renderButton(guiGraphics, mouseX, mouseY, TEXT_SAVE,     x, y, BTN_W_FULL, BTN_H, false, canSave()); y += BTN_H + 4;
+        renderButton(guiGraphics, mouseX, mouseY, TEXT_TRANSFER, x, y, BTN_W_FULL, BTN_H, false, true); y += BTN_H + 4;
+        renderButton(guiGraphics, mouseX, mouseY, TEXT_DELETE,   x, y, BTN_W_FULL, BTN_H, true, true);  y += BTN_H + 4;
+        renderButton(guiGraphics, mouseX, mouseY, TEXT_BACK,     x, y, BTN_W_FULL, BTN_H, false, true);
     }
 
     private void renderButton(GuiGraphics guiGraphics, int mouseX, int mouseY,
-                               String label, int x, int y, int w, int h, boolean red) {
-        boolean hovered = mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
-        int bg = red ? (hovered ? BTN_DELETE_HOVERED : BTN_DELETE_COLOR)
-                     : (hovered ? BTN_HOVERED_COLOR  : BTN_COLOR);
-        guiGraphics.fill(x, y, x + w, y + h, bg);
-        guiGraphics.renderOutline(x, y, w, h, OUTLINE_COLOR);
-        guiGraphics.drawCenteredString(Minecraft.getInstance().font, label,
-                x + w / 2, y + (h - 8) / 2, TEXT_COLOR);
+                               Component label, int x, int y, int w, int h, boolean red, boolean enabled) {
+        if (red) {
+            boolean hovered = enabled && mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
+            int bg = !enabled ? 0x66251212 : (hovered ? BTN_DELETE_HOVERED : BTN_DELETE_COLOR);
+            guiGraphics.fill(x, y, x + w, y + h, bg);
+            guiGraphics.renderOutline(x, y, w, h, !enabled ? 0x665E4A2A : 0xFFB85A52);
+            guiGraphics.drawCenteredString(Minecraft.getInstance().font, label,
+                    x + w / 2, y + (h - 8) / 2, enabled ? TEXT_COLOR : 0xFF9A8661);
+            return;
+        }
+        WorldMapRenderPrimitives.button(guiGraphics, Minecraft.getInstance().font, mouseX, mouseY,
+                x, y, w, h, label, TEXT_COLOR, false, enabled);
     }
 
     public boolean mouseClicked(double mouseX, double mouseY) {
@@ -160,7 +201,7 @@ public class RouteEditPopup {
         if (nameField != null) nameField.mouseClicked(mouseX, mouseY, 0);
 
         int x = px + 8;
-        int y = py + 18 + 18; // after name field
+        int y = py + 58 + 46; // after hint, name field, and save hint
 
         if (isOver(mouseX, mouseY, x, y, BTN_W_FULL, BTN_H)) { save();         return true; } y += BTN_H + 4;
         if (isOver(mouseX, mouseY, x, y, BTN_W_FULL, BTN_H)) { openTransfer(); return true; } y += BTN_H + 4;

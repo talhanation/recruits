@@ -76,12 +76,31 @@ public class WorldMapScreen extends Screen {
     private static final int ROUTE_DROPDOWN_W = 140;
     private static final int ROUTE_BTN_SIZE = 20;
     private static final int ROUTE_BTN_GAP = 3;
+    private static final int ROUTE_HELP_W = 236;
+    private static final int ROUTE_HELP_H = 50;
+    private static final Component TEXT_ROUTE_PLACEHOLDER = Component.translatable("gui.recruits.map.route.dropdown");
+    private static final Component TEXT_ROUTE_HELP = Component.translatable("gui.recruits.map.route.help");
+    private static final Component TEXT_ROUTE_HELP_SELECTED = Component.translatable("gui.recruits.map.route.help_selected");
+    private static final Component TEXT_ADD_TOOLTIP = Component.translatable("gui.recruits.map.route.tooltip.add_route");
+    private static final Component TEXT_EDIT_TOOLTIP = Component.translatable("gui.recruits.map.route.tooltip.edit_route");
+    private static final Component TEXT_EDIT_TOOLTIP_DISABLED = Component.translatable("gui.recruits.map.route.tooltip.edit_disabled");
+    private static final Component TEXT_TRANSPARENCY_TOOLTIP = Component.translatable("gui.recruits.map.route.tooltip.claims");
+    private static final Component TEXT_TRANSPARENCY_TOOLTIP_DISABLED = Component.translatable("gui.recruits.map.route.tooltip.claims_disabled");
+    private static final Component TEXT_WAYPOINT_ADDED = Component.translatable("gui.recruits.map.waypoint.feedback.added");
+    private static final Component TEXT_WAYPOINT_REMOVED = Component.translatable("gui.recruits.map.waypoint.feedback.removed");
+    private static final Component TEXT_WAYPOINT_MOVED = Component.translatable("gui.recruits.map.waypoint.feedback.moved");
+    private static final Component TEXT_WAYPOINT_MOVE_DENIED = Component.translatable("gui.recruits.map.waypoint.feedback.move_denied");
+    private static final Component TEXT_ROUTE_DISABLED_NO_ROUTE = Component.translatable("gui.recruits.map.route.disabled.no_route");
+    private static final Component TEXT_ROUTE_DISABLED_UNEXPLORED = Component.translatable("gui.recruits.map.route.disabled.unexplored");
 
     private DropDownMenu<RecruitsRoute> routeDropDown;
 
     private RouteNamePopup routeNamePopup;
     private RouteEditPopup routeEditPopup;
     private WaypointEditPopup waypointEditPopup;
+    private Component mapNotice;
+    private int mapNoticeColor;
+    private long mapNoticeUntilMs;
 
     public WorldMapScreen() {
         super(Component.literal(""));
@@ -152,7 +171,7 @@ public class WorldMapScreen extends Screen {
                 ROUTE_DROPDOWN_W,
                 ROUTE_BTN_SIZE,
                 options,
-                r -> r == null ? "-- Route --" : r.getName(),
+                r -> r == null ? TEXT_ROUTE_PLACEHOLDER.getString() : r.getName(),
                 r -> {
                     selectedRoute = r;
                     if (r == null) claimTransparency = false;
@@ -189,32 +208,32 @@ public class WorldMapScreen extends Screen {
     private void renderRouteUI(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         renderRouteDropdown(guiGraphics, mouseX, mouseY, partialTicks);
 
-        int addX = getAddBtnX();
-        boolean addHovered = mouseX >= addX && mouseX <= addX + ROUTE_BTN_SIZE
-                && mouseY >= ROUTE_UI_Y && mouseY <= ROUTE_UI_Y + ROUTE_BTN_SIZE;
-        guiGraphics.fill(addX, ROUTE_UI_Y, addX + ROUTE_BTN_SIZE, ROUTE_UI_Y + ROUTE_BTN_SIZE,
-                addHovered ? 0x80444444 : 0x80222222);
-        guiGraphics.renderOutline(addX, ROUTE_UI_Y, ROUTE_BTN_SIZE, ROUTE_BTN_SIZE, 0x40FFFFFF);
-        guiGraphics.drawCenteredString(font, "+", addX + ROUTE_BTN_SIZE / 2, ROUTE_UI_Y + 6, 0xFFFFFF);
+        WorldMapRenderPrimitives.button(guiGraphics, font, mouseX, mouseY, getAddBtnX(), ROUTE_UI_Y,
+                ROUTE_BTN_SIZE, ROUTE_BTN_SIZE, "+", 0xFFFFFF, false, true);
+        WorldMapRenderPrimitives.button(guiGraphics, font, mouseX, mouseY, getEditBtnX(), ROUTE_UI_Y,
+                ROUTE_BTN_SIZE, ROUTE_BTN_SIZE, "\u2699", 0xFFFFFF, false, selectedRoute != null);
+        WorldMapRenderPrimitives.button(guiGraphics, font, mouseX, mouseY, getTransBtnX(), ROUTE_UI_Y,
+                ROUTE_BTN_SIZE, ROUTE_BTN_SIZE, "\u25A1", claimTransparency ? 0xFFFFAA00 : 0xFFFFFF,
+                claimTransparency, selectedRoute != null);
 
-        // ⚙ button (only active when route selected)
-        if (selectedRoute != null) {
-            int editX = getEditBtnX();
-            boolean editHovered = mouseX >= editX && mouseX <= editX + ROUTE_BTN_SIZE
-                    && mouseY >= ROUTE_UI_Y && mouseY <= ROUTE_UI_Y + ROUTE_BTN_SIZE;
-            guiGraphics.fill(editX, ROUTE_UI_Y, editX + ROUTE_BTN_SIZE, ROUTE_UI_Y + ROUTE_BTN_SIZE,
-                    editHovered ? 0x80444444 : 0x80222222);
-            guiGraphics.renderOutline(editX, ROUTE_UI_Y, ROUTE_BTN_SIZE, ROUTE_BTN_SIZE, 0x40FFFFFF);
-            guiGraphics.drawCenteredString(font, "\u2699", editX + ROUTE_BTN_SIZE / 2, ROUTE_UI_Y + 6, 0xFFFFFF);
+        if (routeDropDown == null || !routeDropDown.isOpen()) {
+            renderRouteHelp(guiGraphics, selectedRoute == null ? TEXT_ROUTE_HELP : TEXT_ROUTE_HELP_SELECTED);
+        }
 
-            int transX = getTransBtnX();
-            boolean transHovered = mouseX >= transX && mouseX <= transX + ROUTE_BTN_SIZE
-                    && mouseY >= ROUTE_UI_Y && mouseY <= ROUTE_UI_Y + ROUTE_BTN_SIZE;
-            int transBg = claimTransparency ? 0x80555555 : (transHovered ? 0x80444444 : 0x80222222);
-            int transColor = claimTransparency ? 0xFFFFAA00 : 0xFFFFFF;
-            guiGraphics.fill(transX, ROUTE_UI_Y, transX + ROUTE_BTN_SIZE, ROUTE_UI_Y + ROUTE_BTN_SIZE, transBg);
-            guiGraphics.renderOutline(transX, ROUTE_UI_Y, ROUTE_BTN_SIZE, ROUTE_BTN_SIZE, 0x40FFFFFF);
-            guiGraphics.drawCenteredString(font, "\u25A1", transX + ROUTE_BTN_SIZE / 2, ROUTE_UI_Y + 6, transColor);
+        renderRouteButtonTooltip(guiGraphics, mouseX, mouseY, getAddBtnX(), TEXT_ADD_TOOLTIP);
+        renderRouteButtonTooltip(guiGraphics, mouseX, mouseY, getEditBtnX(), selectedRoute == null ? TEXT_EDIT_TOOLTIP_DISABLED : TEXT_EDIT_TOOLTIP);
+        renderRouteButtonTooltip(guiGraphics, mouseX, mouseY, getTransBtnX(), selectedRoute == null ? TEXT_TRANSPARENCY_TOOLTIP_DISABLED : TEXT_TRANSPARENCY_TOOLTIP);
+    }
+
+    private void renderRouteHelp(GuiGraphics guiGraphics, Component text) {
+        int helpY = ROUTE_UI_Y + ROUTE_BTN_SIZE + ROUTE_BTN_GAP;
+        WorldMapRenderPrimitives.panel(guiGraphics, ROUTE_UI_X, helpY, ROUTE_HELP_W, ROUTE_HELP_H);
+        guiGraphics.drawWordWrap(font, text, ROUTE_UI_X + 6, helpY + 6, ROUTE_HELP_W - 12, 0xFFE6D6A8);
+    }
+
+    private void renderRouteButtonTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY, int buttonX, Component text) {
+        if (WorldMapRenderPrimitives.contains(mouseX, mouseY, buttonX, ROUTE_UI_Y, ROUTE_BTN_SIZE, ROUTE_BTN_SIZE)) {
+            guiGraphics.renderTooltip(font, text, mouseX, mouseY);
         }
     }
 
@@ -301,6 +320,8 @@ public class WorldMapScreen extends Screen {
             claimInfoMenu.render(guiGraphics);
         }
 
+        renderMapNotice(guiGraphics);
+
         if (routeNamePopup.isVisible()) routeNamePopup.render(guiGraphics, mouseX, mouseY);
         if (routeEditPopup.isVisible()) routeEditPopup.render(guiGraphics, mouseX, mouseY);
         if (waypointEditPopup.isVisible()) waypointEditPopup.render(guiGraphics, mouseX, mouseY);
@@ -314,15 +335,26 @@ public class WorldMapScreen extends Screen {
         int ddW = ROUTE_DROPDOWN_W;
         int ddH = ROUTE_BTN_SIZE;
 
-        guiGraphics.fill(ddX, ddY, ddX + ddW, ddY + ddH, 0x80222222);
-        guiGraphics.renderOutline(ddX, ddY, ddW, ddH, 0x40FFFFFF);
+        WorldMapRenderPrimitives.panel(guiGraphics, ddX, ddY, ddW, ddH);
 
         if (routeDropDown.isOpen()) {
             routeDropDown.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
         } else {
-            String label = selectedRoute != null ? selectedRoute.getName() : "--- Routes ---";
+            String label = selectedRoute != null ? selectedRoute.getName() : TEXT_ROUTE_PLACEHOLDER.getString();
             guiGraphics.drawCenteredString(font, label, ddX + ddW / 2, ddY + (ddH - 8) / 2, 0xFFFFFF);
         }
+    }
+
+    private void renderMapNotice(GuiGraphics guiGraphics) {
+        if (mapNotice == null || mapNotice.getString().isBlank() || System.currentTimeMillis() > mapNoticeUntilMs) {
+            return;
+        }
+
+        int panelWidth = Math.min(Math.max(this.font.width(mapNotice) + 12, 180), this.width - 20);
+        int panelX = 10;
+        int panelY = this.height - 54;
+        WorldMapRenderPrimitives.panel(guiGraphics, panelX, panelY, panelWidth, 20);
+        guiGraphics.drawString(this.font, this.font.plainSubstrByWidth(mapNotice.getString(), panelWidth - 10), panelX + 5, panelY + 6, mapNoticeColor, false);
     }
 
     @Override
@@ -379,7 +411,10 @@ public class WorldMapScreen extends Screen {
     // -------------------------------------------------------------------------
 
     public void addWaypointAtClicked() {
-        if (selectedRoute == null) return;
+        if (selectedRoute == null) {
+            showMapNotice(TEXT_ROUTE_DISABLED_NO_ROUTE, 0xFFFFD36A);
+            return;
+        }
 
         BlockPos pos = getClickedBlockPos();
         ChunkPos chunk = new ChunkPos(pos.getX() >> 4, pos.getZ() >> 4);
@@ -388,11 +423,15 @@ public class WorldMapScreen extends Screen {
         // the real surface Y. If not loaded, resolveSurfaceY would return the
         // fallback value (64) which could place the waypoint underground.
         if (minecraft.level == null
-                || minecraft.level.getChunkSource().getChunk(chunk.x, chunk.z, false) == null) return;
+                || minecraft.level.getChunkSource().getChunk(chunk.x, chunk.z, false) == null) {
+            showMapNotice(TEXT_ROUTE_DISABLED_UNEXPLORED, 0xFFFFD36A);
+            return;
+        }
 
         String name = "WP " + (selectedRoute.getWaypoints().size() + 1);
         selectedRoute.addWaypoint(new RecruitsRoute.Waypoint(name, pos, null));
         ClientManager.saveRoute(selectedRoute);
+        showMapNotice(TEXT_WAYPOINT_ADDED, 0xFF9FDB6B);
     }
 
     public boolean canPlaceWaypointAt(int worldX, int worldZ) {
@@ -415,6 +454,7 @@ public class WorldMapScreen extends Screen {
         if (wp != null) {
             selectedRoute.removeWaypoint(wp);
             ClientManager.saveRoute(selectedRoute);
+            showMapNotice(TEXT_WAYPOINT_REMOVED, 0xFFFF8A7A);
         }
     }
 
@@ -574,6 +614,12 @@ public class WorldMapScreen extends Screen {
             return true;
         }
 
+        if (isRouteUiHovered(mouseX, mouseY)) {
+            hoveredChunk = null;
+            selectedChunk = null;
+            return true;
+        }
+
         if (claimInfoMenu.isVisible() && claimInfoMenu.mouseClicked(mouseX, mouseY, button)) return true;
 
         if (contextMenu.isVisible()) {
@@ -641,8 +687,10 @@ public class WorldMapScreen extends Screen {
                 BlockPos finalPos = draggingWaypoint.getPosition();
                 if (canPlaceWaypointAt(finalPos.getX(), finalPos.getZ())) {
                     ClientManager.saveRoute(selectedRoute);
+                    showMapNotice(TEXT_WAYPOINT_MOVED, 0xFF9FDB6B);
                 } else if (dragOriginalPos != null) {
                     draggingWaypoint.setPosition(dragOriginalPos);
+                    showMapNotice(TEXT_WAYPOINT_MOVE_DENIED, 0xFFFFD36A);
                 }
                 draggingWaypoint = null;
                 dragOriginalPos = null;
@@ -708,7 +756,7 @@ public class WorldMapScreen extends Screen {
         boolean uiHovered = routeNamePopup.isVisible()
                 || routeEditPopup.isVisible()
                 || waypointEditPopup.isVisible()
-                || (routeDropDown != null && routeDropDown.isMouseOver(mouseX, mouseY));
+                || isRouteUiHovered(mouseX, mouseY);
 
         if (uiHovered) {
             hoveredChunk = null;
@@ -792,7 +840,38 @@ public class WorldMapScreen extends Screen {
         public void addRoute() {
             routeNamePopup.open();
             contextMenu.close();
-            ;
+        }
+
+        public void setSelectedRoute(@Nullable RecruitsRoute route) {
+            this.selectedRoute = route;
+        }
+
+        void clearHoveredAndSelectedChunk() {
+            hoveredChunk = null;
+            selectedChunk = null;
+        }
+
+        void closeContextMenu() {
+            contextMenu.close();
+        }
+
+        void showMapNotice(Component notice, int color) {
+            showMapNotice(notice, color, 2600L);
+        }
+
+        void showMapNotice(Component notice, int color, long durationMs) {
+            this.mapNotice = notice;
+            this.mapNoticeColor = color;
+            this.mapNoticeUntilMs = System.currentTimeMillis() + durationMs;
+        }
+
+        private boolean isRouteUiHovered(double mouseX, double mouseY) {
+            return (routeDropDown != null && routeDropDown.isMouseOver(mouseX, mouseY))
+                    || WorldMapRenderPrimitives.contains(mouseX, mouseY, ROUTE_UI_X, ROUTE_UI_Y,
+                    ROUTE_HELP_W, ROUTE_BTN_SIZE + ROUTE_BTN_GAP + ROUTE_HELP_H)
+                    || WorldMapRenderPrimitives.contains(mouseX, mouseY, getAddBtnX(), ROUTE_UI_Y, ROUTE_BTN_SIZE, ROUTE_BTN_SIZE)
+                    || WorldMapRenderPrimitives.contains(mouseX, mouseY, getEditBtnX(), ROUTE_UI_Y, ROUTE_BTN_SIZE, ROUTE_BTN_SIZE)
+                    || WorldMapRenderPrimitives.contains(mouseX, mouseY, getTransBtnX(), ROUTE_UI_Y, ROUTE_BTN_SIZE, ROUTE_BTN_SIZE);
         }
 
         // -------------------------------------------------------------------------
