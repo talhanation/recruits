@@ -15,20 +15,20 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import javax.annotation.Nullable;
 
-@Mod.EventBusSubscriber(modid = Main.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD , value = Dist.CLIENT)
+@EventBusSubscriber(modid = Main.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientEvent {
 
-    public static ModelLayerLocation RECRUIT = new ModelLayerLocation(new ResourceLocation(Main.MOD_ID + "recruit"), "recruit");
-    public static ModelLayerLocation RECRUIT_OUTER_ARMOR = new ModelLayerLocation(new ResourceLocation(Main.MOD_ID + "recruit_outer_layer"), "recruit_outer_layer");
-    public static ModelLayerLocation RECRUIT_INNER_ARMOR = new ModelLayerLocation(new ResourceLocation(Main.MOD_ID + "recruit_inner_layer"), "recruit_inner_layer");
+    public static ModelLayerLocation RECRUIT = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "recruit"), "recruit");
+    public static ModelLayerLocation RECRUIT_OUTER_ARMOR = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "recruit_outer_layer"), "recruit_outer_layer");
+    public static ModelLayerLocation RECRUIT_INNER_ARMOR = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "recruit_inner_layer"), "recruit_inner_layer");
 
     @SubscribeEvent
     @OnlyIn(Dist.CLIENT)

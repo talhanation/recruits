@@ -2,17 +2,18 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.world.RecruitsFaction;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.List;
 
 
-public class MessageToClientUpdateFactions implements Message<MessageToClientUpdateFactions> {
+public class MessageToClientUpdateFactions implements RecruitsMessage<MessageToClientUpdateFactions> {
     private CompoundTag nbt;
     private boolean editing;
     private boolean managing;
@@ -33,12 +34,12 @@ public class MessageToClientUpdateFactions implements Message<MessageToClientUpd
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.CLIENT;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.CLIENTBOUND;
     }
 
     @Override
-    public void executeClientSide(NetworkEvent.Context context) {
+    public void executeClientSide(RecruitsNetworkContext context) {
         ClientManager.factions = RecruitsFaction.getListFromNBT(nbt);
         ClientManager.isFactionEditingAllowed = editing;
         ClientManager.isFactionManagingAllowed = managing;
@@ -52,7 +53,7 @@ public class MessageToClientUpdateFactions implements Message<MessageToClientUpd
         this.nbt = buf.readNbt();
         this.editing = buf.readBoolean();
         this.managing = buf.readBoolean();
-        this.currency = buf.readItem();
+        this.currency = ItemStack.OPTIONAL_STREAM_CODEC.decode((RegistryFriendlyByteBuf) buf);
         this.factionCreationPrice = buf.readInt();
         this.factionMaxRecruitsPerPlayerConfigSetting = buf.readInt();
         return this;
@@ -63,7 +64,7 @@ public class MessageToClientUpdateFactions implements Message<MessageToClientUpd
         buf.writeNbt(this.nbt);
         buf.writeBoolean(this.editing);
         buf.writeBoolean(this.managing);
-        buf.writeItem(this.currency);
+        ItemStack.OPTIONAL_STREAM_CODEC.encode((RegistryFriendlyByteBuf) buf, this.currency == null ? ItemStack.EMPTY : this.currency);
         buf.writeInt(this.factionCreationPrice);
         buf.writeInt(this.factionMaxRecruitsPerPlayerConfigSetting);
     }

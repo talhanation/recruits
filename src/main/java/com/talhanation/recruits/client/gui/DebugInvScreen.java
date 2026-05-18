@@ -8,7 +8,6 @@ import com.talhanation.recruits.network.MessageDebugGui;
 import com.talhanation.recruits.world.RecruitsGroup;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -18,11 +17,10 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
-import net.minecraftforge.client.gui.widget.ExtendedButton;
-import net.minecraftforge.common.ForgeMod;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 import org.lwjgl.glfw.GLFW;
 
 
@@ -32,7 +30,7 @@ import java.text.DecimalFormat;
 @OnlyIn(Dist.CLIENT)
 public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
 
-    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/debug_gui.png" );
+    private static final ResourceLocation RESOURCE_LOCATION = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/debug_gui.png" );
 
     private static final int fontColor = 4210752;
     private EditBox textField;
@@ -91,7 +89,6 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
 
     protected void containerTick() {
         super.containerTick();
-        if(textField != null) textField.tick();
     }
 
 
@@ -270,7 +267,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
         int maxHealth = Mth.ceil(recruit.getMaxHealth());
         int moral = Mth.ceil(recruit.getMorale());
 
-        double attackReach = recruit.getAttributeValue(ForgeMod.ENTITY_REACH.get());
+        double attackReach = recruit.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE);
         double attackSpeed = recruit.getAttributeValue(Attributes.ATTACK_SPEED);
         double attackDamage = recruit.getAttackDamage();
         DecimalFormat decimalformat = new DecimalFormat("##.#");

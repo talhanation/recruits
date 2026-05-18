@@ -18,13 +18,13 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 import org.lwjgl.glfw.GLFW;
 
 
 public class MessengerScreen extends RecruitsScreenBase {
 
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/professions/blank_gui.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/professions/blank_gui.png");
     protected static final int PLAYER_NAME_COLOR = FastColor.ARGB32.color(255, 255, 255, 255);
     private final Player player;
     public static RecruitsPlayerInfo playerInfo;
@@ -57,8 +57,6 @@ public class MessengerScreen extends RecruitsScreenBase {
         setButtons();
     }
     public void tick() {
-        super.tick();
-        if(textFieldMessage != null) textFieldMessage.tick();
     }
 
     public boolean mouseClicked(double p_100753_, double p_100754_, int p_100755_) {

@@ -7,15 +7,13 @@ import com.talhanation.recruits.entities.ai.villager.FollowCaravanOwner;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.util.NPCArmy;
 import net.minecraft.core.BlockPos;
-import net.minecraft.data.worldgen.DimensionTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.SpawnPlacements.Type;
+import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.entity.animal.horse.Mule;
@@ -25,13 +23,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameRules;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.NaturalSpawner;
-import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
-import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.levelgen.Heightmap.Types;
-import net.minecraft.world.level.levelgen.WorldDimensions;
-
 import javax.annotation.Nullable;
 import java.util.*;
 
@@ -387,7 +380,7 @@ public class RecruitsPatrolSpawn {
     public static void createWanderingTrader(ServerLevel world, BlockPos upPos, AbstractLeaderEntity leader) {
         WanderingTrader villager = EntityType.WANDERING_TRADER.create(world);
         villager.moveTo(upPos.getX() + 0.5, upPos.getY() + 0.5, upPos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
-        villager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        villager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null);
         villager.setPersistenceRequired();
         villager.goalSelector.addGoal(0, new FollowCaravanOwner(villager, leader.getUUID()));
         world.addFreshEntity(villager);
@@ -396,10 +389,10 @@ public class RecruitsPatrolSpawn {
     public static void createHorse(ServerLevel world, BlockPos upPos, Villager villager) {
         Horse horse = EntityType.HORSE.create(world);
         horse.moveTo(upPos.getX() + 0.5, upPos.getY() + 0.5, upPos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
-        horse.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        horse.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null);
         horse.setPersistenceRequired();
         horse.setTamed(true);
-        horse.equipSaddle(null);
+        horse.equipSaddle(new ItemStack(Items.SADDLE), SoundSource.NEUTRAL);
         horse.setLeashedTo(villager, true);
         world.addFreshEntity(horse);
     }
@@ -407,7 +400,7 @@ public class RecruitsPatrolSpawn {
     public static Villager createVillager(ServerLevel world, BlockPos upPos, AbstractLeaderEntity leader) {
         Villager villager = EntityType.VILLAGER.create(world);
         villager.moveTo(upPos.getX() + 0.5, upPos.getY() + 0.5, upPos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
-        villager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        villager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null);
         villager.setPersistenceRequired();
         villager.goalSelector.addGoal(0, new FollowCaravanOwner(villager, leader.getUUID()));
         world.addFreshEntity(villager);
@@ -417,12 +410,11 @@ public class RecruitsPatrolSpawn {
     public static void createLlama(ServerLevel world, BlockPos upPos, Villager villager) {
         Llama llama = EntityType.LLAMA.create(world);
         llama.moveTo(upPos.getX() + 0.5, upPos.getY() + 0.5, upPos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
-        llama.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        llama.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null);
         llama.setPersistenceRequired();
         llama.setTamed(true);
         llama.setChest(true);
         llama.getPersistentData().putInt("Strength", 5);
-        llama.createInventory();
         llama.setLeashedTo(villager, true);
         llama.getPersistentData().putBoolean("Caravan", true);
         fillLlamaInventory(llama);
@@ -430,33 +422,15 @@ public class RecruitsPatrolSpawn {
     }
 
     private static void fillLlamaInventory(Llama llama) {
-        ItemStack[] foods = {
-            new ItemStack(Items.WHEAT), new ItemStack(Items.WHEAT_SEEDS),
-            new ItemStack(Items.MELON_SEEDS), new ItemStack(Items.POTATO)
-        };
-        ItemStack[] goods = {
-            new ItemStack(Items.STRING), new ItemStack(Items.LEATHER),
-            new ItemStack(Items.ARROW), new ItemStack(Items.CHAIN)
-        };
-        ItemStack[] building = {
-            new ItemStack(Items.COBBLESTONE), new ItemStack(Items.WHITE_WOOL),
-            new ItemStack(Items.OAK_WOOD), new ItemStack(Items.BRICK)
-        };
-        for (int i = 0; i < 4; i++) {
-            ItemStack s = foods[random.nextInt(foods.length)].copy();   s.setCount(random.nextInt(64)); llama.inventory.addItem(s);
-            ItemStack g = goods[random.nextInt(goods.length)].copy();   g.setCount(random.nextInt(64)); llama.inventory.addItem(g);
-            ItemStack b = building[random.nextInt(building.length)].copy(); b.setCount(random.nextInt(64)); llama.inventory.addItem(b);
-        }
     }
 
     public static void createMule(ServerLevel world, BlockPos upPos, LivingEntity owner) {
         Mule mule = EntityType.MULE.create(world);
         mule.moveTo(upPos.getX() + 0.5, upPos.getY() + 0.5, upPos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
-        mule.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        mule.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null);
         mule.setPersistenceRequired();
         mule.setTamed(true);
         mule.setChest(true);
-        mule.createInventory();
         mule.setLeashedTo(owner, true);
         mule.getPersistentData().putBoolean("Caravan", true);
         fillMuleInventory(mule);
@@ -464,14 +438,6 @@ public class RecruitsPatrolSpawn {
     }
 
     private static void fillMuleInventory(Mule mule) {
-        ItemStack[] foods    = { new ItemStack(Items.BREAD), new ItemStack(Items.COOKED_BEEF), new ItemStack(Items.COOKED_CHICKEN), new ItemStack(Items.COOKED_MUTTON) };
-        ItemStack[] metal    = { new ItemStack(Items.COAL), new ItemStack(Items.IRON_INGOT), new ItemStack(Items.COPPER_INGOT), new ItemStack(Items.CHAIN), new ItemStack(Items.CLAY) };
-        ItemStack[] building = { new ItemStack(Items.STONE), new ItemStack(Items.WHITE_WOOL), new ItemStack(Items.OAK_WOOD), new ItemStack(Items.BRICK) };
-        ItemStack[] misc     = { new ItemStack(Items.SAND), new ItemStack(Items.SANDSTONE), new ItemStack(Items.GLASS), new ItemStack(Items.BARREL) };
-        for (int i = 0; i < 4; i++) { ItemStack s = foods[random.nextInt(foods.length)].copy();    s.setCount(random.nextInt(64)); mule.inventory.setItem(16 - i, s); }
-        for (int i = 0; i < 4; i++) { ItemStack s = metal[random.nextInt(metal.length)].copy();    s.setCount(random.nextInt(64)); mule.inventory.setItem(12 - i, s); }
-        for (int i = 0; i < 4; i++) { ItemStack s = building[random.nextInt(building.length)].copy(); s.setCount(random.nextInt(64)); mule.inventory.setItem(8 - i, s); }
-        for (int i = 0; i < 3; i++) { ItemStack s = misc[random.nextInt(misc.length)].copy();      s.setCount(random.nextInt(64)); mule.inventory.setItem(4 - i, s); }
     }
 
     // -------------------------------------------------------------------------
@@ -599,7 +565,7 @@ public class RecruitsPatrolSpawn {
             int z = center.getZ() + random.nextInt(spread * 2) - spread;
             int y = world.getHeight(Types.WORLD_SURFACE, x, z);
             BlockPos pos = new BlockPos(x, y, z);
-            if (NaturalSpawner.isSpawnPositionOk(Type.ON_GROUND, world, pos, EntityType.WANDERING_TRADER)) {
+            if (SpawnPlacementTypes.ON_GROUND.isSpawnPositionOk(world, pos, EntityType.WANDERING_TRADER)) {
                 return pos;
             }
         }

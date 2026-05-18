@@ -2,17 +2,18 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.client.events.RecruitsToastManager;
 import com.talhanation.recruits.world.RecruitsFaction;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import static com.talhanation.recruits.client.events.RecruitsToastManager.*;
 
 
-public class MessageToClientSetDiplomaticToast implements Message<MessageToClientSetDiplomaticToast> {
+public class MessageToClientSetDiplomaticToast implements RecruitsMessage<MessageToClientSetDiplomaticToast> {
 
     private int x;
     private String s;
@@ -30,13 +31,13 @@ public class MessageToClientSetDiplomaticToast implements Message<MessageToClien
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.CLIENT;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.CLIENTBOUND;
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void executeClientSide(NetworkEvent.Context context) {
+    public void executeClientSide(RecruitsNetworkContext context) {
         RecruitsFaction team = RecruitsFaction.fromNBT(nbt);
         switch (x){
             case 0 -> RecruitsToastManager.setTeamToastForPlayer(Images.NEUTRAL, TOAST_NEUTRAL_TITLE, TOAST_NEUTRAL_SET(s), team);

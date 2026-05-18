@@ -1,18 +1,18 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.FactionEvents;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.UUID;
 
-public class MessageSendJoinRequestTeam implements Message<MessageSendJoinRequestTeam> {
+public class MessageSendJoinRequestTeam implements RecruitsMessage<MessageSendJoinRequestTeam> {
     private UUID player_uuid;
     private String stringID;
 
@@ -24,11 +24,11 @@ public class MessageSendJoinRequestTeam implements Message<MessageSendJoinReques
         this.stringID = stringID;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(RecruitsNetworkContext context) {
         ServerPlayer player = context.getSender();
         ServerLevel level = (ServerLevel) player.getCommandSenderWorld();
         if(player.getTeam() == null) FactionEvents.sendJoinRequest(level, player, stringID);

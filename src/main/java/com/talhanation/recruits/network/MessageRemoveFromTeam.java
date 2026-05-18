@@ -2,16 +2,16 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.world.RecruitsFaction;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.Objects;
 
-public class MessageRemoveFromTeam implements Message<MessageRemoveFromTeam> {
+public class MessageRemoveFromTeam implements RecruitsMessage<MessageRemoveFromTeam> {
 
     private String player;
 
@@ -22,11 +22,11 @@ public class MessageRemoveFromTeam implements Message<MessageRemoveFromTeam> {
         this.player = player;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(RecruitsNetworkContext context) {
         ServerPlayer sender = Objects.requireNonNull(context.getSender());
         ServerLevel level = sender.serverLevel();
         RecruitsFaction senderFaction = FactionNetworkAuthority.leaderFaction(sender);

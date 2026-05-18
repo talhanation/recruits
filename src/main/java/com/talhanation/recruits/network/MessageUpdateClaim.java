@@ -5,21 +5,21 @@ import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsFaction;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class MessageUpdateClaim implements Message<MessageUpdateClaim> {
+public class MessageUpdateClaim implements RecruitsMessage<MessageUpdateClaim> {
 
     private CompoundTag claimNBT;
 
@@ -31,11 +31,11 @@ public class MessageUpdateClaim implements Message<MessageUpdateClaim> {
         this.claimNBT = claim.toNBT();
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
+    public void executeServerSide(RecruitsNetworkContext context){
         ServerPlayer player = context.getSender();
         if (player == null || this.claimNBT == null || this.claimNBT.isEmpty()) return;
         if(!RecruitsServerConfig.AllowClaiming.get()) return;

@@ -27,15 +27,16 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.trading.MerchantOffer;
+import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.scores.Team;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.server.ServerStartingEvent;
-import net.minecraftforge.event.village.VillagerTradesEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.village.VillagerTradesEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 
 
 import java.util.*;
@@ -92,7 +93,7 @@ public class VillagerEvents {
     };
 
     @SubscribeEvent
-    public void onVillagerLivingUpdate(LivingEvent.LivingTickEvent event) {
+    public void onVillagerLivingUpdate(EntityTickEvent.Post event) {
         Entity entity = event.getEntity();
         if (entity instanceof Villager villager) {
             VillagerProfession profession = villager.getVillagerData().getProfession();
@@ -171,8 +172,8 @@ public class VillagerEvents {
 
             abstractRecruit.initSpawn();
 
-            for(ItemStack itemStack : villager.getInventory().items){
-                abstractRecruit.getInventory().addItem(itemStack);
+            for(int i = 0; i < villager.getInventory().getContainerSize(); i++){
+                abstractRecruit.getInventory().addItem(villager.getInventory().getItem(i));
             }
 
             if(abstractRecruit instanceof ICompanion){
@@ -202,8 +203,8 @@ public class VillagerEvents {
             nobleEntity.initSpawn();
             nobleEntity.setFollowState(0);
 
-            for(ItemStack itemStack : villager.getInventory().items){
-                nobleEntity.getInventory().addItem(itemStack);
+            for(int i = 0; i < villager.getInventory().getContainerSize(); i++){
+                nobleEntity.getInventory().addItem(villager.getInventory().getItem(i));
             }
 
             Component name = villager.getCustomName();
@@ -245,8 +246,8 @@ public class VillagerEvents {
 
             abstractRecruit.setFollowState(1);
 
-            for(ItemStack itemStack : villager.getInventory().items){
-                abstractRecruit.getInventory().addItem(itemStack);
+            for(int i = 0; i < villager.getInventory().getContainerSize(); i++){
+                abstractRecruit.getInventory().addItem(villager.getInventory().getItem(i));
             }
 
             abstractRecruit.setGroupUUID(group.getUUID());
@@ -631,7 +632,7 @@ public class VillagerEvents {
 
         @Override
         public MerchantOffer getOffer(Entity entity, RandomSource random) {
-            return new MerchantOffer(new ItemStack(this.buyingItem, this.buyingAmount), new ItemStack(sellingItem, sellingAmount), maxUses, givenExp, priceMultiplier);
+            return new MerchantOffer(new ItemCost(this.buyingItem, this.buyingAmount), new ItemStack(sellingItem, sellingAmount), maxUses, givenExp, priceMultiplier);
         }
     }
 }

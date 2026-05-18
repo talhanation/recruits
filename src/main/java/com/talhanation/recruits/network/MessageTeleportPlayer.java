@@ -1,14 +1,14 @@
 package com.talhanation.recruits.network;
 
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
-public class MessageTeleportPlayer implements Message<MessageTeleportPlayer> {
+public class MessageTeleportPlayer implements RecruitsMessage<MessageTeleportPlayer> {
 
     public BlockPos pos;
     public MessageTeleportPlayer() {
@@ -19,12 +19,12 @@ public class MessageTeleportPlayer implements Message<MessageTeleportPlayer> {
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
     @Override
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(RecruitsNetworkContext context) {
         Player player = context.getSender();
 
         if(player == null)return;

@@ -26,9 +26,9 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +38,7 @@ import java.util.*;
 @OnlyIn(Dist.CLIENT)
 public class CommandScreen extends ScreenBase<CommandMenu> {
 
-    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/command_gui.png");
+    private static final ResourceLocation RESOURCE_LOCATION = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/command_gui.png");
     private static final MutableComponent TEXT_EVERYONE = Component.translatable("gui.recruits.command.text.everyone");
     private static final int fontColor = 16250871;
     public final Player player;
@@ -449,15 +449,15 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     }
 
     @Override
-    public boolean mouseScrolled(double p_94686_, double p_94687_, double p_94688_) {
-        if(p_94688_ > 0){
+    public boolean mouseScrolled(double p_94686_, double p_94687_, double scrollX, double scrollY) {
+        if(scrollY > 0){
             this.setCurrentCategory(CommandCategoryManager.getPrevious(currentCategory));
         }
         else{
             this.setCurrentCategory(CommandCategoryManager.getNext(currentCategory));
         }
 
-        return super.mouseScrolled(p_94686_, p_94687_, p_94688_);
+        return super.mouseScrolled(p_94686_, p_94687_, scrollX, scrollY);
     }
 
     private void invertGroups() {

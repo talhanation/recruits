@@ -1,16 +1,16 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessagePatrolLeaderSetPatrollingSpeed implements Message<MessagePatrolLeaderSetPatrollingSpeed> {
+public class MessagePatrolLeaderSetPatrollingSpeed implements RecruitsMessage<MessagePatrolLeaderSetPatrollingSpeed> {
 
     private UUID recruit;
     private byte speed; // 0 = SLOW, 1 = NORMAL, 2 = FAST
@@ -22,11 +22,11 @@ public class MessagePatrolLeaderSetPatrollingSpeed implements Message<MessagePat
         this.speed = speed;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(RecruitsNetworkContext context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         if (this.speed < AbstractLeaderEntity.PatrolSpeed.SLOW.getIndex() || this.speed > AbstractLeaderEntity.PatrolSpeed.FAST.getIndex()) {
             return;

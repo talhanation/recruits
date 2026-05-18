@@ -17,7 +17,7 @@ import java.util.List;
 
 public class RouteRenderer {
 
-    private static final ResourceLocation MAP_ICONS = new ResourceLocation("textures/map/map_icons.png");
+    private static final ResourceLocation MAP_ICONS = ResourceLocation.withDefaultNamespace("textures/map/map_icons.png");
 
     private static final int COLOR_NORMAL      = 0xFFFFFFFF; // white
     private static final int COLOR_NOT_LOADED  = 0xFFFF4444; // red
@@ -172,10 +172,10 @@ public class RouteRenderer {
         VertexConsumer consumer = guiGraphics.bufferSource().getBuffer(RenderType.text(MAP_ICONS));
         Matrix4f matrix = pose.last().pose();
         int light = 0xF000F0;
-        consumer.vertex(matrix, -1f,  1f, 0f).color(r, g, b, a).uv(u0, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix,  1f,  1f, 0f).color(r, g, b, a).uv(u1, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix,  1f, -1f, 0f).color(r, g, b, a).uv(u1, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix, -1f, -1f, 0f).color(r, g, b, a).uv(u0, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, 1).endVertex();
+        consumer.addVertex(matrix, -1f,  1f, 0f).setColor(r, g, b, a).setUv(u0, v0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 0, 1);
+        consumer.addVertex(matrix,  1f,  1f, 0f).setColor(r, g, b, a).setUv(u1, v0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 0, 1);
+        consumer.addVertex(matrix,  1f, -1f, 0f).setColor(r, g, b, a).setUv(u1, v1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 0, 1);
+        consumer.addVertex(matrix, -1f, -1f, 0f).setColor(r, g, b, a).setUv(u0, v1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 0, 1);
         guiGraphics.flush();
 
         pose.popPose();

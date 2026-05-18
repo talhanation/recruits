@@ -1,16 +1,16 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.FactionEvents;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.UUID;
 
 
-public class MessageDoPayment implements Message<MessageDoPayment> {
+public class MessageDoPayment implements RecruitsMessage<MessageDoPayment> {
 
     private int amount;
     private UUID uuid;
@@ -23,11 +23,11 @@ public class MessageDoPayment implements Message<MessageDoPayment> {
         this.uuid = uuid;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
+    public void executeServerSide(RecruitsNetworkContext context){
         ServerPlayer serverPlayer = context.getSender();
         if(serverPlayer == null) return;
 

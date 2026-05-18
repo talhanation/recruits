@@ -13,8 +13,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 public class RecruitRangedMusketAttackGoal extends Goal {
     private final CrossBowmanEntity crossBowman;
     private final double speedModifier;
@@ -274,9 +272,7 @@ public class RecruitRangedMusketAttackGoal extends Goal {
         }
     }
     private void consumeAmmo() {
-        List<ItemStack> items = this.crossBowman.getInventory().items;
-
-        for (ItemStack stack : items) {
+        for (ItemStack stack : this.crossBowman.getInventory().items()) {
             if (stack.getDescriptionId().equals("item.musketmod.cartridge")) {
                 stack.shrink(1);
                 break;
@@ -286,7 +282,7 @@ public class RecruitRangedMusketAttackGoal extends Goal {
 
     private boolean canLoad(){
         if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get())
-            return this.crossBowman.getInventory().items.stream().anyMatch(itemStack -> itemStack.getDescriptionId().equals("item.musketmod.cartridge"));
+            return this.crossBowman.getInventory().items().stream().anyMatch(itemStack -> itemStack.getDescriptionId().equals("item.musketmod.cartridge"));
         else
             return true;
     }

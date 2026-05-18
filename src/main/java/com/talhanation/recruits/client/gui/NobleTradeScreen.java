@@ -11,9 +11,9 @@ import com.talhanation.recruits.world.RecruitsGroup;
 import com.talhanation.recruits.world.RecruitsHireTrade;
 import com.talhanation.recruits.world.RecruitsHireTradesRegistry;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -23,7 +23,7 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ObjectSelectionList;
@@ -38,7 +38,12 @@ import java.util.stream.Collectors;
 import static com.talhanation.recruits.client.ClientManager.currency;
 
 public class NobleTradeScreen extends RecruitsScreenBase {
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/noble_villager.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/noble_villager.png");
+    private static final WidgetSprites BUTTON_SPRITES = new WidgetSprites(
+        ResourceLocation.withDefaultNamespace("widget/button"),
+        ResourceLocation.withDefaultNamespace("widget/button_disabled"),
+        ResourceLocation.withDefaultNamespace("widget/button_highlighted")
+    );
     private static final Component TITLE = Component.translatable("gui.recruits.villager_noble");
     private static final Component HIRE_BUTTON = Component.translatable("gui.recruits.villager_noble.hire");
     private static final Component TEXT_VILLAGERS = Component.translatable("gui.recruits.villager_noble.villagers");
@@ -92,11 +97,6 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         this.group = ClientManager.getSelectedGroup();
 
         this.tradeList = new TradeList(Minecraft.getInstance(), listWidth, listHeight, listTop, listBottom, itemHeight, itemWidth);
-        this.tradeList.setRenderBackground(false);
-        this.tradeList.setRenderTopAndBottom(false);
-
-        this.tradeList.setLeftPos(listLeft);
-        this.tradeList.setRenderSelection(false);
 
         this.addRenderableWidget(this.tradeList);
 
@@ -164,11 +164,9 @@ public class NobleTradeScreen extends RecruitsScreenBase {
 
     @Override
     public void tick() {
-        super.tick();
         if(this.player.tickCount % 20 == 0){
             this.findVillagers();
         }
-        if(this.descriptionBox != null) descriptionBox.tick();
         this.loadTrades();
         this.updateHireButtonState();
     }
@@ -230,9 +228,9 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         return super.mouseClicked(mouseX, mouseY, button);
     }
     @Override
-    public boolean mouseScrolled(double x, double y, double d) {
-        if(groupSelectionDropDownMenu != null) groupSelectionDropDownMenu.mouseScrolled(x,y,d);
-        return super.mouseScrolled(x, y, d);
+    public boolean mouseScrolled(double x, double y, double scrollX, double scrollY) {
+        if(groupSelectionDropDownMenu != null) groupSelectionDropDownMenu.mouseScrolled(x, y, scrollX, scrollY);
+        return super.mouseScrolled(x, y, scrollX, scrollY);
     }
 
     @Override
@@ -318,7 +316,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
     private class TradeList extends ObjectSelectionList<TradeList.TradeEntry> {
         public int itemWidth;
         public TradeList(Minecraft mc, int width, int height, int top, int bottom, int itemHeight, int itemWidth) {
-            super(mc, width, height, top, bottom, itemHeight);
+            super(mc, width, height, top, itemHeight);
             this.itemWidth = itemWidth;
         }
 
@@ -373,7 +371,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
                 guiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
                 RenderSystem.enableBlend();
                 RenderSystem.enableDepthTest();
-                guiGraphics.blitNineSliced(AbstractButton.WIDGETS_LOCATION, rowLeft, top, rowWidth, entryHeight, 20, 4, 200, 20, 0, textureY);
+                guiGraphics.blitSprite(BUTTON_SPRITES.get(!out, hovered || selected), rowLeft, top, rowWidth, entryHeight);
                 guiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
 
                 guiGraphics.drawString(font, trade.title, x, y, -2039584, false);
@@ -469,4 +467,3 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         }
     }
 }
-

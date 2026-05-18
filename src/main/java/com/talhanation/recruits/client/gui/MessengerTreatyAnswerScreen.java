@@ -13,12 +13,12 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 import org.lwjgl.glfw.GLFW;
 
 public class MessengerTreatyAnswerScreen extends RecruitsScreenBase {
 
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_big.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/gui_big.png");
 
     private static final Component TITLE        = Component.translatable("gui.recruits.messenger.treaty_title");
     private static final Component BUTTON_ACCEPT  = Component.translatable("gui.recruits.messenger.accept_treaty");
@@ -107,8 +107,6 @@ public class MessengerTreatyAnswerScreen extends RecruitsScreenBase {
 
     @Override
     public void tick() {
-        super.tick();
-        if (descriptionBox != null) descriptionBox.tick();
     }
 
     @Override

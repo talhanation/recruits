@@ -31,8 +31,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.scores.PlayerTeam;
-import net.minecraft.world.scores.Team;
-import net.minecraftforge.server.command.EnumArgument;
+import net.minecraft.world.scores.ScoreHolder;
+import net.neoforged.neoforge.server.command.EnumArgument;
 
 import java.util.*;
 import java.util.function.Function;
@@ -42,7 +42,7 @@ public class RecruitsAdminCommands {
     private static final List<String> RELATIONS = List.of("Ally", "Neutral", "Enemy");
 
     private static final SuggestionProvider<CommandSourceStack> RELATION_SUGGESTIONS =
-            SuggestionProviders.register(new ResourceLocation("recruits:relations"),
+            SuggestionProviders.register(ResourceLocation.parse("recruits:relations"),
                     (context, builder) -> {
                         for (String relation : RELATIONS) {
                             builder.suggest(relation);
@@ -65,7 +65,7 @@ public class RecruitsAdminCommands {
                 .then(Commands.literal("getUnitsCount")
                         .then(Commands.argument("Player", ScoreHolderArgument.scoreHolders()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS)
                             .executes((context) -> {
-                                String playerName = ScoreHolderArgument.getName(context, "Player");
+                                String playerName = ScoreHolderArgument.getName(context, "Player").getScoreboardName();
                                 ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayerByName(playerName);
 
                                 if(player == null) {
@@ -83,7 +83,7 @@ public class RecruitsAdminCommands {
                         .then(Commands.argument("Player", ScoreHolderArgument.scoreHolders()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS)
                                 .then(Commands.argument("Amount", IntegerArgumentType.integer(0))
                                         .executes((context) -> {
-                                            String playerName = ScoreHolderArgument.getName(context, "Player");
+                                            String playerName = ScoreHolderArgument.getName(context, "Player").getScoreboardName();
                                             ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayerByName(playerName);
 
                                             if(player == null) {
@@ -152,7 +152,7 @@ public class RecruitsAdminCommands {
                                 PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
                                 RecruitsFaction faction = FactionEvents.recruitsFactionManager.getFactionByStringID(playerTeam.getName());
 
-                                String playerName = ScoreHolderArgument.getName(context, "Player");
+                                String playerName = ScoreHolderArgument.getName(context, "Player").getScoreboardName();
                                 ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayerByName(playerName);
 
                                 if(faction == null) {
@@ -506,12 +506,12 @@ public class RecruitsAdminCommands {
 
                             if(handItem.getItem() instanceof RecruitsSpawnEgg recruitsSpawnEgg){
                                 BlockPos pos = player.getOnPos();
-                                EntityType<?> entitytype = recruitsSpawnEgg.getType(handItem.getTag());
+                                EntityType<?> entitytype = recruitsSpawnEgg.getType(handItem);
                                 List<AbstractRecruitEntity> recruitEntities = new ArrayList<>();
 
                                 for(int i = 0; i < amount; i++){
                                     Entity entity = entitytype.create(serverLevel);
-                                    CompoundTag entityTag = handItem.getTag();
+                                    CompoundTag entityTag = RecruitsSpawnEgg.readEntityData(handItem);
 
                                     if(entity instanceof AbstractRecruitEntity recruit && entityTag != null) {
                                         RecruitsSpawnEgg.fillRecruit(recruit, entityTag, pos);
@@ -641,8 +641,8 @@ public class RecruitsAdminCommands {
         dispatcher.register(literalBuilder);
     }
 
-    private static int tpToOwner(ServerLevel level, Collection<String> names) {
-        List<ServerPlayer> players = level.getPlayers(player -> names.contains(player.getScoreboardName()));
+    private static int tpToOwner(ServerLevel level, Collection<ScoreHolder> names) {
+        List<ServerPlayer> players = level.getPlayers(player -> names.stream().anyMatch(name -> name.getScoreboardName().equals(player.getScoreboardName())));
         List<Entity> allEntities = new ArrayList<>();
         level.getEntities().getAll().iterator().forEachRemaining(allEntities::add);
 

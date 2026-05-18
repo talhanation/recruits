@@ -15,13 +15,13 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 import org.jetbrains.annotations.NotNull;
 
 
 public class DiplomacyEditScreen extends RecruitsScreenBase {
 
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_big.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/gui_big.png");
     private static final Component TITLE = Component.translatable("gui.recruits.diplomacy_edit.title");
     protected static final Component BUTTON_CONFIRM = Component.translatable("gui.recruits.button.confirm");
     protected static final Component BUTTON_BACK = Component.translatable("gui.recruits.button.back");
@@ -62,7 +62,6 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
 
     @Override
     public void tick() {
-        super.tick();
         othersStance = ClientManager.getRelation(otherTeam.getStringID(), ClientManager.ownFaction.getStringID());
         ownStance = ClientManager.getRelation(ClientManager.ownFaction.getStringID(), otherTeam.getStringID());
     }
@@ -210,9 +209,9 @@ public class DiplomacyEditScreen extends RecruitsScreenBase {
         ResourceLocation location;
 
          switch (status){
-            default -> location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/neutral.png");
-            case ALLY ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/ally.png");
-            case ENEMY ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/enemy.png");
+            default -> location = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/neutral.png");
+            case ALLY ->  location = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/ally.png");
+            case ENEMY ->  location = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/enemy.png");
         }
         return location;
     }

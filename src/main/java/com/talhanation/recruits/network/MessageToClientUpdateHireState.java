@@ -1,15 +1,14 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.client.ClientManager;
-import com.talhanation.recruits.client.gui.RecruitHireScreen;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 
-public class MessageToClientUpdateHireState implements Message<MessageToClientUpdateHireState> {
+public class MessageToClientUpdateHireState implements RecruitsMessage<MessageToClientUpdateHireState> {
     public ItemStack currency;
     public boolean canHire;
     public MessageToClientUpdateHireState() {
@@ -20,12 +19,12 @@ public class MessageToClientUpdateHireState implements Message<MessageToClientUp
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.CLIENT;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.CLIENTBOUND;
     }
 
     @Override
-    public void executeClientSide(NetworkEvent.Context context) {
+    public void executeClientSide(RecruitsNetworkContext context) {
         ClientManager.canPlayerHire = this.canHire;
     }
 

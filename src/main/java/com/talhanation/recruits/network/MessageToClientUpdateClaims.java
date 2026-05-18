@@ -2,17 +2,19 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.world.RecruitsClaim;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.List;
 
-public class MessageToClientUpdateClaims implements Message<MessageToClientUpdateClaims> {
+public class MessageToClientUpdateClaims implements RecruitsMessage<MessageToClientUpdateClaims> {
     private CompoundTag claimsListNBT;
     private int claimCost;
     private int chunkCost;
@@ -34,13 +36,13 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.CLIENT;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.CLIENTBOUND;
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void executeClientSide(NetworkEvent.Context context) {
+    public void executeClientSide(RecruitsNetworkContext context) {
         ClientManager.recruitsClaims = RecruitsClaim.getListFromNBT(claimsListNBT);
         ClientManager.configValueClaimCost = this.claimCost;
         ClientManager.configValueChunkCost = this.chunkCost;
@@ -58,7 +60,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
         this.claimCost = buf.readInt();
         this.chunkCost = buf.readInt();
         this.cascadeOfCost = buf.readBoolean();
-        this.currencyItemStack = buf.readItem();
+        this.currencyItemStack = ItemStack.OPTIONAL_STREAM_CODEC.decode((RegistryFriendlyByteBuf) buf);
         this.allowClaiming = buf.readBoolean();
         this.fogOfWarEnabled = buf.readBoolean();
         return this;
@@ -70,7 +72,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
         buf.writeInt(this.claimCost);
         buf.writeInt(this.chunkCost);
         buf.writeBoolean(this.cascadeOfCost);
-        buf.writeItemStack(this.currencyItemStack, false);
+        ItemStack.OPTIONAL_STREAM_CODEC.encode((RegistryFriendlyByteBuf) buf, this.currencyItemStack == null ? ItemStack.EMPTY : this.currencyItemStack);
         buf.writeBoolean(this.allowClaiming);
         buf.writeBoolean(this.fogOfWarEnabled);
     }

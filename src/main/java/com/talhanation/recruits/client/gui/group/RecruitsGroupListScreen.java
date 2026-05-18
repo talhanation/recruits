@@ -16,16 +16,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 import java.util.Locale;
 
 @OnlyIn(Dist.CLIENT)
 public class RecruitsGroupListScreen extends ListScreenBase implements IGroupSelection {
 
-    protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_player.png");
+    protected static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/select_player.png");
     protected static final Component TITLE = Component.translatable("gui.recruits.groups.title");
     protected static final Component ADD_BUTTON = Component.translatable("gui.recruits.groups.add");
     protected static final Component EDIT_BUTTON = Component.translatable("gui.recruits.groups.edit");
@@ -70,7 +70,7 @@ public class RecruitsGroupListScreen extends ListScreenBase implements IGroupSel
         units = Math.max(minUnits, (height - HEADER_SIZE - FOOTER_SIZE - gapTop - gapBottom - SEARCH_HEIGHT) / UNIT_SIZE);
 
         if (groupList != null) {
-            groupList.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
+            groupList.updateSizeAndPosition(width, units * UNIT_SIZE - SEARCH_HEIGHT, guiTop + HEADER_SIZE + SEARCH_HEIGHT);
         } else {
             groupList = new RecruitsGroupList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, null);
         }
@@ -99,13 +99,8 @@ public class RecruitsGroupListScreen extends ListScreenBase implements IGroupSel
 
     @Override
     public void tick() {
-        super.tick();
         ClientManager.updateGroups();
-        if(searchBox != null){
-            searchBox.tick();
-        }
         if(groupList != null){
-            groupList.tick();
         }
     }
 

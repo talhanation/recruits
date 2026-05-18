@@ -2,16 +2,16 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.ClaimEvents;
 import com.talhanation.recruits.world.RecruitsClaim;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 
-public class MessageDeleteClaim implements Message<MessageDeleteClaim> {
+public class MessageDeleteClaim implements RecruitsMessage<MessageDeleteClaim> {
 
     private CompoundTag claimNBT;
 
@@ -23,11 +23,11 @@ public class MessageDeleteClaim implements Message<MessageDeleteClaim> {
         this.claimNBT = claim.toNBT();
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
+    public void executeServerSide(RecruitsNetworkContext context){
         ServerPlayer player = context.getSender();
         if (player == null || this.claimNBT == null || this.claimNBT.isEmpty()) return;
         RecruitsClaim requestedClaim = ClaimNetworkAuthority.readClaim(this.claimNBT);

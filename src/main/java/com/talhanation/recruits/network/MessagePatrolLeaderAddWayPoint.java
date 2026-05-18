@@ -3,25 +3,23 @@ package com.talhanation.recruits.network;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.CaptainEntity;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.FluidTags;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.PacketDistributor;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
+import com.talhanation.recruits.network.compat.RecruitsPacketDistributor;
 
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessagePatrolLeaderAddWayPoint implements Message<MessagePatrolLeaderAddWayPoint> {
+public class MessagePatrolLeaderAddWayPoint implements RecruitsMessage<MessagePatrolLeaderAddWayPoint> {
     private UUID worker;
     private int x;
     private int y;
@@ -37,11 +35,11 @@ public class MessagePatrolLeaderAddWayPoint implements Message<MessagePatrolLead
         this.z = z;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(RecruitsNetworkContext context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         RecruitCommandTargetResolver.resolveOwnedLeader(player, this.worker, 100.0D)
                 .ifPresent((merchant) -> this.addWayPoint(new BlockPos(x, y, z), player, merchant));
@@ -58,7 +56,7 @@ public class MessagePatrolLeaderAddWayPoint implements Message<MessagePatrolLead
             player.sendSystemMessage(TEXT_NOT_WATER_WAYPOINT(captain.getName().getString()));
         } else {
             leaderEntity.addWaypoint(pos);
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateLeaderScreen(leaderEntity.WAYPOINTS, leaderEntity.WAYPOINT_ITEMS, leaderEntity.getArmySize()));
+            Main.SIMPLE_CHANNEL.send(RecruitsPacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateLeaderScreen(leaderEntity.WAYPOINTS, leaderEntity.WAYPOINT_ITEMS, leaderEntity.getArmySize()));
         }
     }
 

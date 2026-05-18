@@ -9,11 +9,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.RenderGuiEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+
+import java.lang.reflect.Field;
+import java.util.Map;
 
 public class ClaimOverlayManager {
     private OverlayState currentState = OverlayState.HIDDEN;
@@ -45,7 +48,7 @@ public class ClaimOverlayManager {
     }
 
     @SubscribeEvent
-    public void onClientTick(TickEvent.ClientTickEvent event) {
+    public void onClientTick(ClientTickEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
 
@@ -65,13 +68,13 @@ public class ClaimOverlayManager {
     }
 
     @SubscribeEvent
-    public void onRenderGameOverlay(RenderGuiOverlayEvent.Post event) {
+    public void onRenderGameOverlay(RenderGuiEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
 
-        if (mc.gui.getTabList().visible) return;
+        if (isPlayerTabVisible(mc)) return;
 
-        if (!mc.gui.getBossOverlay().events.isEmpty()) {
+        if (hasBossOverlayEvents(mc)) {
             return;
         }
 
@@ -83,11 +86,11 @@ public class ClaimOverlayManager {
         if (alpha <= 0.01f) return;
 
         if (ClientManager.currentClaim != null) {
-            boolean cancelled = MinecraftForge.EVENT_BUS.post(new ClientOverlayEvent.RenderPre(event.getGuiGraphics(), ClientManager.currentClaim, currentState, alpha));
+            boolean cancelled = NeoForge.EVENT_BUS.post(new ClientOverlayEvent.RenderPre(event.getGuiGraphics(), ClientManager.currentClaim, currentState, alpha)).isCanceled();
             if (!cancelled) {
                 renderer.render(event.getGuiGraphics(), mc, ClientManager.currentClaim, currentState, alpha, getPanelWidth());
 
-                MinecraftForge.EVENT_BUS.post(new ClientOverlayEvent.RenderPost(event.getGuiGraphics(), ClientManager.currentClaim, currentState, alpha));
+                NeoForge.EVENT_BUS.post(new ClientOverlayEvent.RenderPost(event.getGuiGraphics(), ClientManager.currentClaim, currentState, alpha));
             }
         }
     }
@@ -132,18 +135,18 @@ public class ClaimOverlayManager {
 
     private void handleClaimTransition(RecruitsClaim previousClaim, RecruitsClaim newClaim) {
         if (previousClaim == null && newClaim != null) {
-            MinecraftForge.EVENT_BUS.post(new ClientClaimEvent.Enter(newClaim, null));
+            NeoForge.EVENT_BUS.post(new ClientClaimEvent.Enter(newClaim, null));
             claimEntryTime = System.currentTimeMillis();
             transitionToState(OverlayState.FULL, true);
             updateCachedData(newClaim);
         }
         else if (previousClaim != null && newClaim == null) {
-            MinecraftForge.EVENT_BUS.post(new ClientClaimEvent.Leave(previousClaim, null));
+            NeoForge.EVENT_BUS.post(new ClientClaimEvent.Leave(previousClaim, null));
             transitionToState(OverlayState.HIDDEN, true);
         }
         else if (previousClaim != null && newClaim != null && !previousClaim.equals(newClaim)) {
-            MinecraftForge.EVENT_BUS.post(new ClientClaimEvent.Leave(previousClaim, newClaim));
-            MinecraftForge.EVENT_BUS.post(new ClientClaimEvent.Enter(newClaim, previousClaim));
+            NeoForge.EVENT_BUS.post(new ClientClaimEvent.Leave(previousClaim, newClaim));
+            NeoForge.EVENT_BUS.post(new ClientClaimEvent.Enter(newClaim, previousClaim));
             claimEntryTime = System.currentTimeMillis();
             transitionToState(OverlayState.FULL, true);
             updateCachedData(newClaim);
@@ -172,7 +175,7 @@ public class ClaimOverlayManager {
             hasChanges = true;
 
             if (previousHealth != -1) {
-                MinecraftForge.EVENT_BUS.post(
+                NeoForge.EVENT_BUS.post(
                         new ClientClaimEvent.HealthChanged(claim, previousHealth, claim.getHealth()));
             }
         }
@@ -182,7 +185,7 @@ public class ClaimOverlayManager {
             hasChanges = true;
 
             if (claim.isUnderSiege) {
-                boolean cancelled = MinecraftForge.EVENT_BUS.post(new ClientClaimEvent.SiegeStarted(claim));
+                boolean cancelled = NeoForge.EVENT_BUS.post(new ClientClaimEvent.SiegeStarted(claim)).isCanceled();
                 if (!cancelled) {
                     claimEntryTime = System.currentTimeMillis();
                     transitionToState(OverlayState.FULL, false);
@@ -190,7 +193,7 @@ public class ClaimOverlayManager {
             }
             else {
                 boolean wasConquered = !claim.getOwnerFactionStringID().equals(lastKnownFactionName);
-                MinecraftForge.EVENT_BUS.post(new ClientClaimEvent.SiegeEnded(claim, wasConquered));
+                NeoForge.EVENT_BUS.post(new ClientClaimEvent.SiegeEnded(claim, wasConquered));
             }
         }
 
@@ -231,7 +234,7 @@ public class ClaimOverlayManager {
     private void transitionToState(OverlayState newState, boolean fade) {
         if (currentState == newState) return;
 
-        boolean cancelled = MinecraftForge.EVENT_BUS.post(new ClientOverlayEvent.StateChanged(ClientManager.currentClaim, currentState, newState, calculateAlpha()));
+        boolean cancelled = NeoForge.EVENT_BUS.post(new ClientOverlayEvent.StateChanged(ClientManager.currentClaim, currentState, newState, calculateAlpha())).isCanceled();
         if (cancelled) return;
 
         if (fade) {
@@ -263,6 +266,26 @@ public class ClaimOverlayManager {
 
     public int getPanelWidth() {
         return PANEL_WIDTH;
+    }
+
+    private boolean isPlayerTabVisible(Minecraft mc) {
+        try {
+            Field visibleField = mc.gui.getTabList().getClass().getDeclaredField("visible");
+            visibleField.setAccessible(true);
+            return visibleField.getBoolean(mc.gui.getTabList());
+        } catch (ReflectiveOperationException e) {
+            return mc.options.keyPlayerList.isDown();
+        }
+    }
+
+    private boolean hasBossOverlayEvents(Minecraft mc) {
+        try {
+            Field eventsField = mc.gui.getBossOverlay().getClass().getDeclaredField("events");
+            eventsField.setAccessible(true);
+            return !((Map<?, ?>) eventsField.get(mc.gui.getBossOverlay())).isEmpty();
+        } catch (ReflectiveOperationException | ClassCastException e) {
+            return false;
+        }
     }
 
     public OverlayState getCurrentState() {

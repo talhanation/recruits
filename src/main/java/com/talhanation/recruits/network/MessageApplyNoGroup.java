@@ -2,16 +2,16 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.command.RecruitCommandAuthority;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.*;
 
-public class MessageApplyNoGroup implements Message<MessageApplyNoGroup> {
+public class MessageApplyNoGroup implements RecruitsMessage<MessageApplyNoGroup> {
 
     private UUID owner;
     private UUID groupID;
@@ -24,11 +24,11 @@ public class MessageApplyNoGroup implements Message<MessageApplyNoGroup> {
         this.groupID = groupID;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(RecruitsNetworkContext context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         if (!player.getUUID().equals(this.owner) || !RecruitCommandAuthority.ownsGroup(player, this.groupID)) return;
         List<AbstractRecruitEntity> recruitList = new ArrayList<>();

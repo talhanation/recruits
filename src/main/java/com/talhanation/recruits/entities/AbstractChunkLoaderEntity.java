@@ -3,17 +3,19 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.world.ForgeChunkManager;
+import net.neoforged.neoforge.common.world.chunk.TicketController;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public abstract class AbstractChunkLoaderEntity extends BowmanEntity {
+    static final TicketController CHUNK_TICKETS = new TicketController(ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "recruits_chunk_loader"));
     private Optional<RecruitsChunk> loadedChunk = Optional.empty();
 
     public AbstractChunkLoaderEntity(EntityType<? extends AbstractChunkLoaderEntity> entityType, Level world) {
@@ -91,7 +93,7 @@ public abstract class AbstractChunkLoaderEntity extends BowmanEntity {
     ////////////////////////////////////SET////////////////////////////////////
 
     private void setForceChunk(RecruitsChunk chunk, boolean add) {
-        ForgeChunkManager.forceChunk((ServerLevel) this.getCommandSenderWorld(), Main.MOD_ID, this, chunk.x, chunk.z, add, false);
+        CHUNK_TICKETS.forceChunk((ServerLevel) this.getCommandSenderWorld(), this, chunk.x, chunk.z, add, false);
     }
 
     public void die(DamageSource dmg) {

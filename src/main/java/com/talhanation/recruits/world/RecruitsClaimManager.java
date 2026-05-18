@@ -1,7 +1,7 @@
 package com.talhanation.recruits.world;
 
 import com.talhanation.recruits.ClaimEvent;
-import net.minecraftforge.common.MinecraftForge;
+import net.neoforged.neoforge.common.NeoForge;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.FactionEvents;
@@ -11,7 +11,7 @@ import com.talhanation.recruits.network.MessageToClientUpdateClaims;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraftforge.network.PacketDistributor;
+import com.talhanation.recruits.network.compat.RecruitsPacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -50,7 +50,8 @@ public class RecruitsClaimManager {
         // ClaimEvent.Updated feuern – cancelable
         boolean isNew = claims.values().stream().noneMatch(c -> c.getUUID().equals(claim.getUUID()));
         ClaimEvent.Updated updateEvent = new ClaimEvent.Updated(claim, level, isNew);
-        if (MinecraftForge.EVENT_BUS.post(updateEvent)) return false;
+        NeoForge.EVENT_BUS.post(updateEvent);
+        if (updateEvent.isCanceled()) return false;
         if (!beforeCommit.getAsBoolean()) return false;
 
         claims.entrySet().removeIf(entry -> entry.getValue().getUUID().equals(claim.getUUID()));
@@ -68,8 +69,8 @@ public class RecruitsClaimManager {
     public void removeClaim(RecruitsClaim claim) {
         if (claim != null) {
             // ClaimEvent.Removed feuern
-            ServerLevel level = net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer().overworld();
-            MinecraftForge.EVENT_BUS.post(new ClaimEvent.Removed(claim, level));
+            ServerLevel level = net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer().overworld();
+            NeoForge.EVENT_BUS.post(new ClaimEvent.Removed(claim, level));
 
             claims.entrySet().removeIf(entry -> entry.getValue().equals(claim));
             activeSieges.remove(claim.getUUID());
@@ -132,7 +133,7 @@ public class RecruitsClaimManager {
 
     public void broadcastClaimsToAll(ServerLevel level) {
         for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
+            Main.SIMPLE_CHANNEL.send(RecruitsPacketDistributor.PLAYER.with(() -> player),
                     new MessageToClientUpdateClaims(
                             this.getAllClaims(),
                             RecruitsServerConfig.ClaimingCost.get(),
@@ -149,7 +150,7 @@ public class RecruitsClaimManager {
         if (claim == null || players == null || players.isEmpty()) return;
 
         for (ServerPlayer player : players) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
+            Main.SIMPLE_CHANNEL.send(RecruitsPacketDistributor.PLAYER.with(() -> player),
                     new MessageToClientUpdateClaim(claim));
         }
     }

@@ -27,9 +27,6 @@ public class PlayersList extends ListScreenListBase<RecruitsPlayerEntry> {
         this.filterType = filterType;
         this.player = player;
         this.includeSelf = includeSelf;
-        setRenderBackground(false);
-        setRenderTopAndBottom(false);
-        setRenderSelection(true);
     }
 
     public void tick() {

@@ -2,16 +2,16 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.Map;
 import java.util.UUID;
 
-public class MessageToClientUpdateEmbargoes implements Message<MessageToClientUpdateEmbargoes> {
+public class MessageToClientUpdateEmbargoes implements RecruitsMessage<MessageToClientUpdateEmbargoes> {
 
     private CompoundTag embargoNbt;
 
@@ -23,12 +23,12 @@ public class MessageToClientUpdateEmbargoes implements Message<MessageToClientUp
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.CLIENT;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.CLIENTBOUND;
     }
 
     @Override
-    public void executeClientSide(NetworkEvent.Context context) {
+    public void executeClientSide(RecruitsNetworkContext context) {
         ClientManager.embargoMap = RecruitsDiplomacyManager.embargoMapFromNbt(embargoNbt);
     }
 

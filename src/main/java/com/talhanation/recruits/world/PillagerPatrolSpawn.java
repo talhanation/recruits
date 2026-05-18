@@ -10,7 +10,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.SpawnPlacements.Type;
+import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.monster.Pillager;
@@ -19,8 +19,6 @@ import net.minecraft.world.entity.monster.Witch;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.levelgen.Heightmap.Types;
-import net.minecraft.world.level.NaturalSpawner;
-
 import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.Random;
@@ -72,7 +70,7 @@ public class PillagerPatrolSpawn {
                     case 1, 2 -> spawnMediumPillagerPatrol(upPos, blockpos, world);
                     case 3, 4 -> spawnLargePillagerPatrol(upPos, blockpos, world);
                 }
-                this.world.playSound(null, upPos.above(2), SoundEvents.RAID_HORN.get(), SoundSource.BLOCKS, 15F, 2F);
+                this.world.playSound(null, upPos.above(2), SoundEvents.RAID_HORN.value(), SoundSource.BLOCKS, 15F, 2F);
 
                 Main.LOGGER.info("New Pillager Patrol Spawned at "+ upPos);
                 player.sendSystemMessage(Component.literal("A Pillager Patrol Spawned next to you!").withStyle(ChatFormatting.GRAY));
@@ -116,7 +114,7 @@ public class PillagerPatrolSpawn {
     public static Pillager createPillager(BlockPos upPos, BlockPos targetPos, ServerLevel world){
         Pillager pillager = EntityType.PILLAGER.create(world);
         pillager.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
-        pillager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        pillager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null);
         pillager.setPersistenceRequired();
         pillager.setPatrolTarget(targetPos);
 
@@ -127,7 +125,7 @@ public class PillagerPatrolSpawn {
     public static Witch createWitch(BlockPos upPos, BlockPos targetPos, ServerLevel world) {
         Witch pillager = EntityType.WITCH.create(world);
         pillager.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
-        pillager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        pillager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null);
         pillager.setPersistenceRequired();
         pillager.setPatrolTarget(targetPos);
         world.addFreshEntity(pillager);
@@ -137,7 +135,7 @@ public class PillagerPatrolSpawn {
     public static Vindicator createVindicator(BlockPos upPos, BlockPos targetPos, ServerLevel world){
         Vindicator pillager = EntityType.VINDICATOR.create(world);
         pillager.moveTo(upPos.getX() + 0.5D, upPos.getY() + 0.5D, upPos.getZ() + 0.5D, random.nextFloat() * 360 - 180F, 0);
-        pillager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        pillager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null);
         pillager.setPersistenceRequired();
         pillager.setPatrolTarget(targetPos);
         world.addFreshEntity(pillager);
@@ -225,7 +223,7 @@ public class PillagerPatrolSpawn {
             int k = p_221244_1_.getZ() + random.nextInt(p_221244_2_ * 2) - p_221244_2_;
             int l = this.world.getHeight(Types.WORLD_SURFACE, j, k);
             BlockPos blockpos1 = new BlockPos(j, l, k);
-            if (!this.world.getLevel().isCloseToVillage(blockpos1, 2) && NaturalSpawner.isSpawnPositionOk(Type.ON_GROUND, this.world, blockpos1, EntityType.WANDERING_TRADER)) {
+            if (!this.world.getLevel().isCloseToVillage(blockpos1, 2) && SpawnPlacementTypes.ON_GROUND.isSpawnPositionOk(this.world, blockpos1, EntityType.WANDERING_TRADER)) {
                 blockpos = blockpos1;
                 break;
             }

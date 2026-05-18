@@ -2,11 +2,11 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.world.RecruitsGroup;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.HashMap;
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 
 
-public class MessageToClientUpdateGroups implements Message<MessageToClientUpdateGroups> {
+public class MessageToClientUpdateGroups implements RecruitsMessage<MessageToClientUpdateGroups> {
     private CompoundTag nbt;
     public MessageToClientUpdateGroups() {
 
@@ -25,12 +25,12 @@ public class MessageToClientUpdateGroups implements Message<MessageToClientUpdat
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.CLIENT;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.CLIENTBOUND;
     }
 
     @Override
-    public void executeClientSide(NetworkEvent.Context context) {
+    public void executeClientSide(RecruitsNetworkContext context) {
         List<RecruitsGroup> updated = RecruitsGroup.listFromNbt(this.nbt);
 
         Map<UUID, RecruitsGroup> updatedMap = new HashMap<>();

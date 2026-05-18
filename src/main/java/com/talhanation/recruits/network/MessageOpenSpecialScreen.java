@@ -3,17 +3,17 @@ package com.talhanation.recruits.network;
 import com.talhanation.recruits.compat.workers.IVillagerWorker;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageOpenSpecialScreen implements Message<MessageOpenSpecialScreen> {
+public class MessageOpenSpecialScreen implements RecruitsMessage<MessageOpenSpecialScreen> {
 
     private UUID player;
     private UUID recruit;
@@ -28,12 +28,12 @@ public class MessageOpenSpecialScreen implements Message<MessageOpenSpecialScree
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
     @Override
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(RecruitsNetworkContext context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         if (!player.getUUID().equals(this.player)) {
             return;

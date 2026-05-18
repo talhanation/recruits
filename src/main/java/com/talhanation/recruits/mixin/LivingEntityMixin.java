@@ -12,9 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(LivingEntity.class)
 public class LivingEntityMixin {
     /*
-    @SuppressWarnings("DataFlowIssue")
-    @Inject(method = "travelRidden", at = @At(value = "HEAD", target = "Lnet/minecraft/world/entity/LivingEntity;travelRidden(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/phys/Vec3;)V"), cancellable = true)
-    private void TravelWhenRecruitsRides(LivingEntity entity, Vec3 vec3, CallbackInfo ci) {
+    @SuppressWarnings("DataFlowIssue")    @Inject(method = "travelRidden", at = @At(value = "HEAD", target = "Lnet/minecraft/world/entity/LivingEntity;travelRidden(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/phys/Vec3;)V"), cancellable = true, remap = false)    private void TravelWhenRecruitsRides(LivingEntity entity, Vec3 vec3, CallbackInfo ci) {
         if (((LivingEntity)(Object)this) instanceof Saddleable && ((LivingEntity)(Object)this).isVehicle() && entity instanceof AbstractRecruitEntity) {
             ((LivingEntity)(Object)this).travel(vec3);
             ci.cancel();

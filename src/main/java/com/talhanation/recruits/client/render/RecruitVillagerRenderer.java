@@ -12,7 +12,6 @@ import com.talhanation.recruits.compat.musketmod.IWeapon;
 import com.talhanation.recruits.entities.AbstractInventoryEntity;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.CrossBowmanEntity;
-import com.talhanation.recruits.entities.VillagerNobleEntity;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -30,7 +29,7 @@ import net.minecraft.world.item.UseAnim;
 public class RecruitVillagerRenderer extends MobRenderer<AbstractRecruitEntity, HumanoidModel<AbstractRecruitEntity>> {
 
     private static final ResourceLocation[] TEXTURE = {
-            new ResourceLocation(Main.MOD_ID,"textures/entity/villager/villager_1.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/entity/villager/villager_1.png"),
     };
     public ResourceLocation getTextureLocation(AbstractRecruitEntity recruit) {
         return TEXTURE[0];

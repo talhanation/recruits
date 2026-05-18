@@ -1,11 +1,11 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.item.ItemEntity;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 
 import static com.talhanation.recruits.entities.ai.RecruitPickupWantedItemGoal.State.*;
@@ -49,11 +49,11 @@ public class RecruitPickupWantedItemGoal extends Goal {
                         ItemEntity.class,
                         recruit.getBoundingBox().inflate(16.0D, 3.0D, 16.0D),
                         (item) -> recruit.getAllowedItems().test(item) &&
-                                recruit.distanceTo(itemEntity) < 25 &&
-                                ((itemEntity.getItem().isEdible() && recruit.getHunger() < 30) ||
-                                        (recruit.wantsToPickUp(itemEntity.getItem())))
+                                recruit.distanceTo(item) < 25 &&
+                                ((item.getItem().has(DataComponents.FOOD) && recruit.getHunger() < 30) ||
+                                        (recruit.wantsToPickUp(item.getItem())))
                 ).forEach((item) -> {
-                    this.itemEntityList.add(itemEntity);
+                    this.itemEntityList.add(item);
                 });
 
                 if (itemEntityList.isEmpty()) {
@@ -84,10 +84,8 @@ public class RecruitPickupWantedItemGoal extends Goal {
             case MOVE -> {
                 if (itemEntity != null) {
                     recruit.getNavigation().moveTo(itemEntity, 1F);
-                    recruit.setMaxUpStep(1.25F);
                     if (recruit.distanceTo(itemEntity) < 3F) {
                         this.state = PICKUP;
-                        recruit.setMaxUpStep(1F);
 
                     }
                 } else state = SELECT;

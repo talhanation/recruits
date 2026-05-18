@@ -1,11 +1,11 @@
 package com.talhanation.recruits.network;
 
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.UUID;
  * so the positions must be included in the packet — the server cannot read the
  * client's filesystem.
  */
-public class MessagePatrolLeaderSetRoute implements Message<MessagePatrolLeaderSetRoute> {
+public class MessagePatrolLeaderSetRoute implements RecruitsMessage<MessagePatrolLeaderSetRoute> {
 
     private UUID recruit;
     @Nullable private UUID routeId;       // null = clear route
@@ -44,12 +44,12 @@ public class MessagePatrolLeaderSetRoute implements Message<MessagePatrolLeaderS
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
     @Override
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(RecruitsNetworkContext context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         RecruitCommandTargetResolver.resolveOwnedLeader(player, this.recruit, 64.0D).ifPresent(leader -> {
             if (routeId != null) {
@@ -66,8 +66,8 @@ public class MessagePatrolLeaderSetRoute implements Message<MessagePatrolLeaderS
         this.recruit     = buf.readUUID();
         boolean hasRoute = buf.readBoolean();
         this.routeId     = hasRoute ? buf.readUUID() : null;
-        this.waypoints   = buf.readList(FriendlyByteBuf::readBlockPos);
-        this.waitSeconds = buf.readList(FriendlyByteBuf::readVarInt);
+        this.waypoints   = buf.readList(byteBuf -> byteBuf.readBlockPos());
+        this.waitSeconds = buf.readList(byteBuf -> byteBuf.readVarInt());
         return this;
     }
 
@@ -76,7 +76,7 @@ public class MessagePatrolLeaderSetRoute implements Message<MessagePatrolLeaderS
         buf.writeUUID(this.recruit);
         buf.writeBoolean(this.routeId != null);
         if (this.routeId != null) buf.writeUUID(this.routeId);
-        buf.writeCollection(this.waypoints, FriendlyByteBuf::writeBlockPos);
-        buf.writeCollection(this.waitSeconds, FriendlyByteBuf::writeVarInt);
+        buf.writeCollection(this.waypoints, (byteBuf, pos) -> byteBuf.writeBlockPos(pos));
+        buf.writeCollection(this.waitSeconds, (byteBuf, wait) -> byteBuf.writeVarInt(wait));
     }
 }

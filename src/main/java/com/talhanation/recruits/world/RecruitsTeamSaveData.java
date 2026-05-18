@@ -1,5 +1,6 @@
 package com.talhanation.recruits.world;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -13,14 +14,15 @@ import java.util.Map;
 public class RecruitsTeamSaveData extends SavedData {
 
     public static final String FILE_ID = "recruitsTeamSaveData";
+    private static final SavedData.Factory<RecruitsTeamSaveData> FACTORY = new SavedData.Factory<>(RecruitsTeamSaveData::new, RecruitsTeamSaveData::load);
     private Map<String, RecruitsFaction> teams = new HashMap<>();
 
     public static RecruitsTeamSaveData get(ServerLevel level) {
         DimensionDataStorage storage = level.getDataStorage();
-        return storage.computeIfAbsent(RecruitsTeamSaveData::load, RecruitsTeamSaveData::new, FILE_ID);
+        return storage.computeIfAbsent(FACTORY, FILE_ID);
     }
 
-    public static RecruitsTeamSaveData load(CompoundTag nbt) {
+    public static RecruitsTeamSaveData load(CompoundTag nbt, HolderLookup.Provider registries) {
         RecruitsTeamSaveData data = new RecruitsTeamSaveData();
         if (nbt.contains("Teams", 9)) {
             data.teams = loadTeams(nbt.getList("Teams", 10));
@@ -60,7 +62,7 @@ public class RecruitsTeamSaveData extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag nbt) {
+    public CompoundTag save(CompoundTag nbt, HolderLookup.Provider registries) {
         nbt.put("Teams", saveTeams());
         return nbt;
     }
@@ -102,4 +104,3 @@ public class RecruitsTeamSaveData extends SavedData {
         this.teams = teams;
     }
 }
-
