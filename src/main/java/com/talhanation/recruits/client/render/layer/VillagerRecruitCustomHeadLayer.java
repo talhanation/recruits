@@ -1,6 +1,5 @@
 package com.talhanation.recruits.client.render.layer;
 
-import com.mojang.authlib.GameProfile;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.model.EntityModel;
@@ -10,21 +9,20 @@ import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.block.AbstractSkullBlock;
 import net.minecraft.world.level.block.SkullBlock;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.Map;
 
@@ -55,7 +53,6 @@ public class VillagerRecruitCustomHeadLayer<T extends LivingEntity, M extends En
             Item item = itemstack.getItem();
             poseStack.pushPose();
             poseStack.scale(this.scaleX, this.scaleY, this.scaleZ);
-            boolean flag = true;
             if (entity.isBaby() && !(entity instanceof Villager)) {
                 float f = 2.0F;
                 float f1 = 1.4F;
@@ -70,21 +67,14 @@ public class VillagerRecruitCustomHeadLayer<T extends LivingEntity, M extends En
                 poseStack.scale(f2, -f2, -f2);
                 poseStack.translate(0.0D, 0.0625D, 0.0D);
 
-                GameProfile gameprofile = null;
-                if (itemstack.hasTag()) {
-                    CompoundTag compoundtag = itemstack.getTag();
-                    if (compoundtag.contains("SkullOwner", 10)) {
-                        gameprofile = NbtUtils.readGameProfile(compoundtag.getCompound("SkullOwner"));
-                    }
-                }
-
+                ResolvableProfile profile = itemstack.get(DataComponents.PROFILE);
                 poseStack.translate(-0.5D, 0.0D, -0.5D);
                 SkullBlock.Type skullblock$type = ((AbstractSkullBlock) ((BlockItem) item).getBlock()).getType();
                 SkullModelBase skullmodelbase = this.skullModels.get(skullblock$type);
-                RenderType rendertype = SkullBlockRenderer.getRenderType(skullblock$type, gameprofile);
+                RenderType rendertype = SkullBlockRenderer.getRenderType(skullblock$type, profile);
                 SkullBlockRenderer.renderSkull((Direction) null, 180.0F, p_116735_, poseStack, bufferSource, p_116733_, skullmodelbase, rendertype);
             } else if (!(item instanceof ArmorItem) || ((ArmorItem) item).getEquipmentSlot() != EquipmentSlot.HEAD) {
-                translateToHead(poseStack, flag);
+                translateToHead(poseStack);
                 this.itemInHandRenderer.renderItem(entity, itemstack, ItemDisplayContext.HEAD, false, poseStack, bufferSource, p_116733_);
             }
             poseStack.popPose();
@@ -92,7 +82,7 @@ public class VillagerRecruitCustomHeadLayer<T extends LivingEntity, M extends En
         }
     }
 
-    public static void translateToHead(PoseStack p_174484_, boolean p_174485_) {
+    public static void translateToHead(PoseStack p_174484_) {
         float f = 0.625F;
         p_174484_.translate(0.0D, -0.25D, 0.0D);
         p_174484_.mulPose(Axis.YP.rotationDegrees(180.0F));

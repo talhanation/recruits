@@ -7,7 +7,7 @@ import com.talhanation.recruits.network.MessageToClientUpdateUnitInfo;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.network.PacketDistributor;
+import com.talhanation.recruits.network.compat.RecruitsPacketDistributor;
 
 import java.util.*;
 
@@ -106,7 +106,7 @@ public class RecruitsPlayerUnitManager {
             factionID = player.getTeam().getName();
         }
 
-        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player),
+        Main.SIMPLE_CHANNEL.send(RecruitsPacketDistributor.PLAYER.with(()-> (ServerPlayer) player),
                 new MessageToClientUpdateUnitInfo(
                         RecruitsServerConfig.NobleVillagerNeedsVillagers.get(),
                         getRemainingRecruitSlots(factionID, player.getUUID())

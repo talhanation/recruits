@@ -2,12 +2,9 @@ package com.talhanation.recruits.world;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +44,7 @@ public class RecruitsHireTrade {
 
     public static RecruitsHireTrade fromNbt(CompoundTag tag) {
         int cost = tag.getInt("cost");
-        ResourceLocation recruitType = new ResourceLocation(tag.getString("recruitType"));
+        ResourceLocation recruitType = ResourceLocation.parse(tag.getString("recruitType"));
         int maxUses = tag.getInt("maxUses");
         int uses = tag.getInt("uses");
 
@@ -83,5 +80,4 @@ public class RecruitsHireTrade {
         return out;
     }
 }
-
 

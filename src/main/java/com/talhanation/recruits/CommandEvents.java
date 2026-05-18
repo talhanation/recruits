@@ -1,7 +1,6 @@
 package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
-import com.talhanation.recruits.entities.ai.controller.SmallShipsController;
 import com.talhanation.recruits.entities.ai.controller.siegeengineer.SiegeWeaponCatapultController;
 import com.talhanation.recruits.entities.ai.controller.siegeengineer.SiegeWeaponBallistaController;
 import com.talhanation.recruits.entities.*;
@@ -26,11 +25,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.*;
 import net.minecraft.world.phys.*;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import com.talhanation.recruits.network.compat.RecruitsNetworkHooks;
+import com.talhanation.recruits.util.RegistryLookup;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -435,7 +434,7 @@ public class CommandEvents {
 
     public static void openCommandScreen(Player player) {
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
+            RecruitsNetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
 
                 @Override
                 public @NotNull Component getDisplayName() {
@@ -452,8 +451,8 @@ public class CommandEvents {
         }
     }
     @SubscribeEvent
-    public void onServerPlayerTick(TickEvent.PlayerTickEvent event){
-        if(event.player instanceof ServerPlayer serverPlayer && serverPlayer.tickCount % 20 == 0){
+    public void onServerPlayerTick(PlayerTickEvent.Post event){
+        if(event.getEntity() instanceof ServerPlayer serverPlayer && serverPlayer.tickCount % 20 == 0){
             int formation = getSavedFormation(serverPlayer);
 
             if(formation > 0){
@@ -602,7 +601,7 @@ public class CommandEvents {
         int playerEmeralds = 0;
 
         String str = RecruitsServerConfig.RecruitCurrency.get();
-        Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
+        Optional<Holder<Item>> holder = RegistryLookup.itemHolder(ResourceLocation.tryParse(str));
 
         ItemStack currencyItemStack = holder.map(itemHolder -> itemHolder.value().getDefaultInstance()).orElseGet(Items.EMERALD::getDefaultInstance);
 

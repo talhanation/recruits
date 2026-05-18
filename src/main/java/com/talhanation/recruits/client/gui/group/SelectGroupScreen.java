@@ -13,7 +13,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 import java.util.List;
 import java.util.Locale;
@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 
 public class SelectGroupScreen extends ListScreenBase implements IGroupSelection {
 
-    protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_player.png");
+    protected static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/select_player.png");
     protected static final Component BUTTON_BACK = Component.translatable("gui.recruits.button.back");
     protected static Component BUTTON_TEXT;
     protected static Component TOOLTIP_BUTTON;
@@ -69,7 +69,7 @@ public class SelectGroupScreen extends ListScreenBase implements IGroupSelection
         ySize = HEADER_SIZE + units * UNIT_SIZE + FOOTER_SIZE;
 
         if (groupList != null) {
-            groupList.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
+            groupList.updateSizeAndPosition(width, units * UNIT_SIZE - SEARCH_HEIGHT, guiTop + HEADER_SIZE + SEARCH_HEIGHT);
         } else {
             groupList = new RecruitsGroupList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, groupIn == null ? null : List.of(groupIn.getUUID()));
         }
@@ -108,14 +108,9 @@ public class SelectGroupScreen extends ListScreenBase implements IGroupSelection
 
     @Override
     public void tick() {
-        super.tick();
         ClientManager.updateGroups();
-        if(searchBox != null){
-            searchBox.tick();
-        }
 
         if(groupList != null){
-            groupList.tick();
         }
 
     }

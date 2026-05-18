@@ -20,7 +20,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 import static com.talhanation.recruits.client.gui.RecruitMoreScreen.TOOLTIP_ASSIGN_GROUP_TO_PLAYER;
 import static com.talhanation.recruits.client.gui.RecruitMoreScreen.TOOLTIP_KEEP_TEAM;
@@ -35,7 +35,7 @@ public class EditOrAddGroupScreen extends Screen {
     private int topPos;
     private int imageWidth;
     private int imageHeight;
-    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/gui_big.png");
+    private static final ResourceLocation RESOURCE_LOCATION = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/gui_big.png");
     private static final MutableComponent TEXT_CANCEL = Component.translatable("gui.recruits.groups.cancel");
     private static final MutableComponent TEXT_SAVE = Component.translatable("gui.recruits.groups.save");
     private static final MutableComponent TEXT_ADD = Component.translatable("gui.recruits.groups.add");
@@ -200,8 +200,6 @@ public class EditOrAddGroupScreen extends Screen {
 
     @Override
     public void tick() {
-        super.tick();
-        groupNameField.tick();
     }
 
     @Override
@@ -228,7 +226,6 @@ public class EditOrAddGroupScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        this.renderBackground(guiGraphics);
         this.renderBackground(guiGraphics, mouseX, mouseY, delta);
         super.render(guiGraphics, mouseX, mouseY, delta);
         this.renderForeground(guiGraphics, mouseX, mouseY, delta);
@@ -243,4 +240,3 @@ public class EditOrAddGroupScreen extends Screen {
         return this.image;
     }
 }
-

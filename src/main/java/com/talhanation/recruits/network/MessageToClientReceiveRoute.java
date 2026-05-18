@@ -2,17 +2,17 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.world.RecruitsRoute;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 /**
  * Server → Client: delivers a transferred route to the receiving player.
  * The client saves it to their local routes directory.
  */
-public class MessageToClientReceiveRoute implements Message<MessageToClientReceiveRoute> {
+public class MessageToClientReceiveRoute implements RecruitsMessage<MessageToClientReceiveRoute> {
 
     private CompoundTag routeNBT;
 
@@ -23,12 +23,12 @@ public class MessageToClientReceiveRoute implements Message<MessageToClientRecei
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.CLIENT;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.CLIENTBOUND;
     }
 
     @Override
-    public void executeClientSide(NetworkEvent.Context context) {
+    public void executeClientSide(RecruitsNetworkContext context) {
         RecruitsRoute route = RecruitsRoute.fromNBT(routeNBT);
         if (route == null) return;
         ClientManager.saveRoute(route);

@@ -1,8 +1,6 @@
 package com.talhanation.recruits.client.gui.widgets;
 
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
@@ -10,15 +8,15 @@ import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 public abstract class ListScreenListBase<T extends ListScreenEntryBase<T>> extends ContainerObjectSelectionList<T> {
 
     public ListScreenListBase(int width, int height, int x, int y, int size) {
-        super(Minecraft.getInstance(), width, height, x, y, size);
+        super(Minecraft.getInstance(), width, y - x, x, size);
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int x, int y, float partialTicks) {
-        double scale = minecraft.getWindow().getGuiScale();
-        RenderSystem.enableScissor((int) ((double) getRowLeft() * scale), (int) ((double) (height - y1) * scale), (int) ((double) (getScrollbarPosition() + 6) * scale), (int) ((double) (height - (height - y1) - y0 - 4) * scale));
-        super.render(guiGraphics, x, y, partialTicks);
-        RenderSystem.disableScissor();
+    protected void renderListBackground(GuiGraphics guiGraphics) {
+    }
+
+    @Override
+    protected void renderListSeparators(GuiGraphics guiGraphics) {
     }
 
 }

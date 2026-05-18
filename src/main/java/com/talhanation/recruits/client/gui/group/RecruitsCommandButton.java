@@ -1,9 +1,9 @@
 package com.talhanation.recruits.client.gui.group;
 
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 @OnlyIn(Dist.CLIENT)
 public class RecruitsCommandButton extends ExtendedButton {

@@ -17,26 +17,26 @@ public class RecruitsGroup {
 
     public static List<ResourceLocation> IMAGES = new ArrayList<>(
         Arrays.asList(
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/sword.png"),
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/shield.png"),
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/bow.png"),
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/crossbow.png"),
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/arrow.png"),
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/horse.png"),
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/horse_arrow.png"),
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/house.png"),
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/tower.png"),
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/fort.png"),
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/tent.png"),
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/ship.png"),
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/ship2.png"),
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/catapult.png"),
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/axe.png"),
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/hoe.png"),
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/pickaxe.png"),
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/sword2.png"),
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/arrow2.png"),
-            new ResourceLocation(Main.MOD_ID, "textures/gui/image/group/3arrow.png")
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/sword.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/shield.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/bow.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/crossbow.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/arrow.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/horse.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/horse_arrow.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/house.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/tower.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/fort.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/tent.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/ship.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/ship2.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/catapult.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/axe.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/hoe.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/pickaxe.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/sword2.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/arrow2.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/group/3arrow.png")
         )
     );
     private UUID uuid;

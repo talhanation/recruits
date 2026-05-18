@@ -1,12 +1,15 @@
 package com.talhanation.recruits.entities;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.ai.FleeFire;
 import com.talhanation.recruits.entities.ai.FleeTNT;
 import com.talhanation.recruits.entities.ai.FleeTarget;
 import com.talhanation.recruits.entities.ai.UseShield;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -28,6 +31,7 @@ import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.monster.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -36,6 +40,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Optional;
 
 public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
@@ -122,15 +127,15 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Monster.class, false));
     }
 
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_REMAINING_ANGER_TIME, 0);
-        this.entityData.define(FLEEING, false);
-        this.entityData.define(XP, 0);
-        this.entityData.define(KILLS, 0);
-        this.entityData.define(LEVEL, 1);
-        this.entityData.define(isEating, true);
-        this.entityData.define(isInOrder,false);
+    protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_REMAINING_ANGER_TIME, 0);
+        builder.define(FLEEING, false);
+        builder.define(XP, 0);
+        builder.define(KILLS, 0);
+        builder.define(LEVEL, 1);
+        builder.define(isEating, true);
+        builder.define(isInOrder,false);
         //IS IN ORDER
         //IS LEADER
         //UUID OPFER optional
@@ -206,7 +211,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     }
 
     protected float getStandingEyeHeight(Pose pos, EntityDimensions size) {
-        return size.height * 0.9F;
+        return size.height() * 0.9F;
     }
 
     public int getMaxHeadXRot() {
@@ -284,9 +289,12 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     }
 
     public boolean doHurtTarget(Entity entity) {
-        boolean flag = entity.hurt(this.damageSources().mobAttack(this), (float)((int)this.getAttributeValue(Attributes.ATTACK_DAMAGE)));
+        DamageSource source = this.damageSources().mobAttack(this);
+        boolean flag = entity.hurt(source, (float)((int)this.getAttributeValue(Attributes.ATTACK_DAMAGE)));
         if (flag) {
-            this.doEnchantDamageEffects(this, entity);
+            if (this.level() instanceof ServerLevel serverLevel) {
+                EnchantmentHelper.doPostAttackEffects(serverLevel, entity, source);
+            }
         }
         this.addXp(2);
         this.checkLevel();
@@ -297,13 +305,13 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     public void addLevelBuffs(){
         int level = getXpLevel();
         if(level <= 10){
-            getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("heath_bonus_level", 3D, AttributeModifier.Operation.ADDITION));
-            getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(new AttributeModifier("attack_bonus_level", 0.15D, AttributeModifier.Operation.ADDITION));
-            getAttribute(Attributes.KNOCKBACK_RESISTANCE).addPermanentModifier(new AttributeModifier("knockback_bonus_level", 0.01D, AttributeModifier.Operation.ADDITION));
-            getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(new AttributeModifier("speed_bonus_level", 0.01D, AttributeModifier.Operation.ADDITION));
+            getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier(ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "heath_bonus_level"), 3D, AttributeModifier.Operation.ADD_VALUE));
+            getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(new AttributeModifier(ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "attack_bonus_level"), 0.15D, AttributeModifier.Operation.ADD_VALUE));
+            getAttribute(Attributes.KNOCKBACK_RESISTANCE).addPermanentModifier(new AttributeModifier(ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "knockback_bonus_level"), 0.01D, AttributeModifier.Operation.ADD_VALUE));
+            getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(new AttributeModifier(ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "speed_bonus_level"), 0.01D, AttributeModifier.Operation.ADD_VALUE));
         }
         if(level > 10){
-            getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("heath_bonus_level", 2D, AttributeModifier.Operation.ADDITION));
+            getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier(ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "heath_bonus_level"), 2D, AttributeModifier.Operation.ADD_VALUE));
         }
     }
 
@@ -349,7 +357,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     }
 
     @Override
-    public boolean canBeLeashed(Player player) {
+    public boolean canBeLeashed() {
         return false;
     }
 
@@ -361,19 +369,19 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
             if (damage < 1.0F) {
                 damage = 1.0F;
             }
-            for (int i = 11; i < 15; ++i) {//11,12,13,14 = armor
-                ItemStack itemstack = this.inventory.getItem(i);
-                if ((!(damageSource.is(DamageTypes.IN_FIRE) && (damageSource.is(DamageTypes.ON_FIRE))) || !itemstack.getItem().isFireResistant()) && itemstack.getItem() instanceof ArmorItem) {
-                    itemstack.setDamageValue((int) damage);
+            for (EquipmentSlot slot : List.of(EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET)) {
+                ItemStack itemstack = this.getItemBySlot(slot);
+                if ((!(damageSource.is(DamageTypes.IN_FIRE) && (damageSource.is(DamageTypes.ON_FIRE))) || !itemstack.has(DataComponents.FIRE_RESISTANT)) && itemstack.getItem() instanceof ArmorItem) {
+                    itemstack.hurtAndBreak((int) damage, this, slot);
                 }
             }
         }
     }
 
     protected void damageMainHandItem() {
-        ItemStack itemstack = this.inventory.getItem(9);// 10 = hoffhand slot
-        if (itemstack.getItem().isDamageable(itemstack)) {
-            itemstack.setDamageValue(1);
+        ItemStack itemstack = this.getMainHandItem();
+        if (itemstack.isDamageableItem()) {
+            itemstack.hurtAndBreak(1, this, EquipmentSlot.MAINHAND);
         }
     }
 
@@ -389,7 +397,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
         if (this.useItem.getItem() instanceof ShieldItem) {
             int i = 1 + Mth.floor(damage);
             InteractionHand hand = this.getUsedItemHand();
-            this.useItem.hurtAndBreak(i, this, (entity) -> entity.broadcastBreakEvent(hand));
+            this.useItem.hurtAndBreak(i, this, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
             if (this.useItem.isEmpty()) {
                 if (hand == InteractionHand.MAIN_HAND) {
                     this.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);

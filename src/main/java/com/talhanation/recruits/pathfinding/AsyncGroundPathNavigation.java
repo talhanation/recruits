@@ -12,9 +12,6 @@ import net.minecraft.world.level.pathfinder.*;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Function;
-import java.util.function.Supplier;
-
 public class AsyncGroundPathNavigation extends AsyncPathNavigation {
     // petal start — Generator ist statisch/final: er enthält keinen Zustand und kann geteilt werden
     private static final NodeEvaluatorGenerator nodeEvaluatorGenerator = () -> {
@@ -42,7 +39,7 @@ public class AsyncGroundPathNavigation extends AsyncPathNavigation {
     }
 
     protected boolean canUpdatePath() {
-        return this.mob.onGround() || this.isInLiquid() || this.mob.isPassenger();
+        return this.mob.onGround() || this.mob.isInLiquid() || this.mob.isPassenger();
     }
 
     protected @NotNull Vec3 getTempMobPos() {
@@ -119,13 +116,13 @@ public class AsyncGroundPathNavigation extends AsyncPathNavigation {
 
     }
 
-    protected boolean hasValidPathType(BlockPathTypes p_26467_) {
-        if (p_26467_ == BlockPathTypes.WATER) {
+    protected boolean hasValidPathType(PathType p_26467_) {
+        if (p_26467_ == PathType.WATER) {
             return false;
-        } else if (p_26467_ == BlockPathTypes.LAVA) {
+        } else if (p_26467_ == PathType.LAVA) {
             return false;
         } else {
-            return p_26467_ != BlockPathTypes.OPEN;
+            return p_26467_ != PathType.OPEN;
         }
     }
 

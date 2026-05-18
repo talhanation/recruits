@@ -4,17 +4,17 @@ import com.talhanation.recruits.command.CommandIntent;
 import com.talhanation.recruits.command.CommandIntentDispatcher;
 import com.talhanation.recruits.command.CommandIntentPriority;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageAggro implements Message<MessageAggro> {
+public class MessageAggro implements RecruitsMessage<MessageAggro> {
 
     private UUID player;
     private UUID recruit;
@@ -34,11 +34,11 @@ public class MessageAggro implements Message<MessageAggro> {
         this.recruit = null;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(RecruitsNetworkContext context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
 
         double boundBoxInflateModifier = 16.0D;

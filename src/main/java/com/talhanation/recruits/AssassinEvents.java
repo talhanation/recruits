@@ -71,7 +71,7 @@ public class AssassinEvents {
         int playerEmeralds = 0;
         String str = RecruitsModConfig.RecruitCurrency.get();
         ItemStack currencyItemStack;
-        Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
+        Optional<Holder<Item>> holder = RegistryLookup.itemHolder(ResourceLocation.tryParse(str));
 
         if (holder.isPresent()){
             currencyItemStack = holder.get().value().getDefaultInstance();

@@ -4,23 +4,22 @@ import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.command.RecruitCommandAuthority;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.world.RecruitsFaction;
 import com.talhanation.recruits.world.RecruitsGroup;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-public class MessageAssignGroupToPlayer implements Message<MessageAssignGroupToPlayer> {
+public class MessageAssignGroupToPlayer implements RecruitsMessage<MessageAssignGroupToPlayer> {
 
     private UUID owner;
     private CompoundTag tag;
@@ -36,11 +35,11 @@ public class MessageAssignGroupToPlayer implements Message<MessageAssignGroupToP
         this.groupUUID = groupUUID;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(RecruitsNetworkContext context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         if (!player.getUUID().equals(this.owner)) return;
         RecruitsGroup group = RecruitCommandAuthority.ownedGroup(player, groupUUID);

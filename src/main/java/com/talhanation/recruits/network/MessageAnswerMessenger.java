@@ -1,16 +1,16 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.entities.MessengerEntity;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageAnswerMessenger implements Message<MessageAnswerMessenger> {
+public class MessageAnswerMessenger implements RecruitsMessage<MessageAnswerMessenger> {
 
     private UUID recruit;
     public MessageAnswerMessenger() {
@@ -19,11 +19,11 @@ public class MessageAnswerMessenger implements Message<MessageAnswerMessenger> {
         this.recruit = recruit;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
+    public void executeServerSide(RecruitsNetworkContext context){
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         for (MessengerEntity messenger : player.getCommandSenderWorld().getEntitiesOfClass(
                 MessengerEntity.class,

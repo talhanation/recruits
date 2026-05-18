@@ -4,16 +4,16 @@ import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.world.RecruitsFaction;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 
-public class MessageSaveTeamSettings implements Message<MessageSaveTeamSettings> {
+public class MessageSaveTeamSettings implements RecruitsMessage<MessageSaveTeamSettings> {
     private CompoundTag nbt;
     private String stringID;
     private int cost;
@@ -28,12 +28,12 @@ public class MessageSaveTeamSettings implements Message<MessageSaveTeamSettings>
     }
 
     @Override
-    public Dist getExecutingSide()  {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide()  {
+        return PacketFlow.SERVERBOUND;
     }
 
     @Override
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(RecruitsNetworkContext context) {
         ServerPlayer player = context.getSender();
         if (player == null || !FactionNetworkAuthority.isLeaderOf(player, stringID)) {
             return;

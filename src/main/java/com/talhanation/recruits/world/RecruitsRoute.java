@@ -86,7 +86,7 @@ public class RecruitsRoute {
     public void saveToFile(File directory) throws IOException {
         if (!directory.exists()) directory.mkdirs();
         File routeFile = new File(directory, sanitiseName(name) + ".nbt");
-        NbtIo.write(this.toNBT(), routeFile);
+        NbtIo.write(this.toNBT(), routeFile.toPath());
     }
 
     public void deleteFile(File directory) {
@@ -97,7 +97,7 @@ public class RecruitsRoute {
     @Nullable
     public static RecruitsRoute loadFromFile(File file) throws IOException {
         if (!file.exists()) return null;
-        CompoundTag nbt = NbtIo.read(file);
+        CompoundTag nbt = NbtIo.read(file.toPath());
         if (nbt == null) return null;
         return fromNBT(nbt);
     }

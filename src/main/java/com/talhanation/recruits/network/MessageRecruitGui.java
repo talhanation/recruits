@@ -1,16 +1,16 @@
 package com.talhanation.recruits.network;
 
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageRecruitGui implements Message<MessageRecruitGui> {
+public class MessageRecruitGui implements RecruitsMessage<MessageRecruitGui> {
 
     private UUID uuid;
     private UUID recruit;
@@ -26,12 +26,12 @@ public class MessageRecruitGui implements Message<MessageRecruitGui> {
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
     @Override
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(RecruitsNetworkContext context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         if (!player.getUUID().equals(uuid)) {
             return;

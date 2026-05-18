@@ -1,27 +1,24 @@
 package com.talhanation.recruits.client.gui.component;
 
 import com.mojang.blaze3d.platform.Lighting;
-import com.mojang.datafixers.util.Pair;
 import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.ModelBakery;
-import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BannerBlockEntity;
-import net.minecraft.world.level.block.entity.BannerPattern;
+import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 public class BannerRenderer {
-    private List<Pair<Holder<BannerPattern>, DyeColor>> resultBannerPatterns;
+    private BannerPatternLayers resultBannerPatterns;
+    private DyeColor baseColor = DyeColor.WHITE;
     private final ModelPart flag;
     private ItemStack bannerItem;
     private RecruitsFaction recruitsFaction;
@@ -30,13 +27,11 @@ public class BannerRenderer {
         this.recruitsFaction = team;
         boolean fail = true;
         if (team != null && team.getBanner() != null){
-            ItemStack itemStack = ItemStack.of(team.getBanner());
+            ItemStack itemStack = Minecraft.getInstance().level == null ? ItemStack.EMPTY : ItemStack.parseOptional(Minecraft.getInstance().level.registryAccess(), team.getBanner());
             if(itemStack.getItem() instanceof BannerItem bannerItem1){
                 this.bannerItem = itemStack;
-                this.resultBannerPatterns = BannerBlockEntity.createPatterns(
-                        bannerItem1.getColor(),
-                        BannerBlockEntity.getItemPatterns(this.bannerItem)
-                );
+                this.baseColor = bannerItem1.getColor();
+                this.resultBannerPatterns = this.bannerItem.getOrDefault(DataComponents.BANNER_PATTERNS, BannerPatternLayers.EMPTY);
                 fail = false;
             }
 
@@ -44,7 +39,7 @@ public class BannerRenderer {
 
         if(fail){
             this.bannerItem = ItemStack.EMPTY;
-            this.resultBannerPatterns = List.of();
+            this.resultBannerPatterns = BannerPatternLayers.EMPTY;
         }
 
         this.flag = Minecraft.getInstance().getEntityModels()
@@ -70,7 +65,7 @@ public class BannerRenderer {
             MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
             net.minecraft.client.renderer.blockentity.BannerRenderer.renderPatterns(
                     guiGraphics.pose(), bufferSource, 15728880, OverlayTexture.NO_OVERLAY,
-                    this.flag, ModelBakery.BANNER_BASE, true, this.resultBannerPatterns);
+                    this.flag, Sheets.BANNER_BASE, true, this.baseColor, this.resultBannerPatterns);
             bufferSource.endBatch();
         } finally {
             guiGraphics.pose().popPose();
@@ -79,16 +74,20 @@ public class BannerRenderer {
     }
 
     public void setBannerItem(ItemStack bannerItem) {
-        if(bannerItem.getItem() instanceof BannerItem){
+        if(bannerItem.getItem() instanceof BannerItem item){
             this.bannerItem = bannerItem;
-            this.resultBannerPatterns = BannerBlockEntity.createPatterns(((BannerItem) this.bannerItem.getItem()).getColor(), BannerBlockEntity.getItemPatterns(this.bannerItem));
+            this.baseColor = item.getColor();
+            this.resultBannerPatterns = this.bannerItem.getOrDefault(DataComponents.BANNER_PATTERNS, BannerPatternLayers.EMPTY);
         }
     }
 
     public void setRecruitsFaction(RecruitsFaction faction){
         if(faction == null) return;
         this.recruitsFaction = faction;
-        this.bannerItem = ItemStack.of(faction.getBanner());
-        this.resultBannerPatterns = BannerBlockEntity.createPatterns(((BannerItem) this.bannerItem.getItem()).getColor(), BannerBlockEntity.getItemPatterns(this.bannerItem));
+        this.bannerItem = Minecraft.getInstance().level == null ? ItemStack.EMPTY : ItemStack.parseOptional(Minecraft.getInstance().level.registryAccess(), faction.getBanner());
+        if (this.bannerItem.getItem() instanceof BannerItem item) {
+            this.baseColor = item.getColor();
+            this.resultBannerPatterns = this.bannerItem.getOrDefault(DataComponents.BANNER_PATTERNS, BannerPatternLayers.EMPTY);
+        }
     }
 }

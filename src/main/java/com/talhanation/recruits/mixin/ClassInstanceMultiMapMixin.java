@@ -18,12 +18,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @Mixin(value = ClassInstanceMultiMap.class, priority = Integer.MAX_VALUE)
 public class ClassInstanceMultiMapMixin {
     @Mutable
-    @Shadow
+    @Shadow(remap = false)
     @Final
     private Map<Class<?>, List<?>> byClass;
 
-    @Inject(method = "<init>", at = @At("RETURN"))
-    private void init(Class<?> elementType, CallbackInfo ci) {
+    @Inject(method = "<init>", at = @At("RETURN"), remap = false)    private void init(Class<?> elementType, CallbackInfo ci) {
         this.byClass = new ConcurrentHashMap<>(this.byClass);
     }
 }

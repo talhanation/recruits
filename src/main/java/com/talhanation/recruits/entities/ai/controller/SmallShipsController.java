@@ -199,7 +199,7 @@ public class SmallShipsController {
                         this.currentNode = path.getEndNode();// FIX for "IndexOutOfBoundsException: Index 23 out of bounds for length 23" or "Index 1 out of bounds for length 1"
 
                     } catch (IndexOutOfBoundsException e) {
-                        this.currentNode = path.nodes.get(path.nodes.size() - 1);
+                        this.currentNode = path.getNode(path.getNodeCount() - 1);
                     }
                     sailState = 4;
                     reach = REACH;
@@ -207,7 +207,8 @@ public class SmallShipsController {
             }
 
             if(path != null && DEBUG){
-                for(Node node : this.path.nodes) {
+                for(int i = 0; i < this.path.getNodeCount(); i++) {
+                    Node node = this.path.getNode(i);
                     captain.getCommandSenderWorld().setBlock(new BlockPos(node.x, (int) (captain.getY() + 4), node.z), Blocks.ICE.defaultBlockState(), 3);
                 }
             }

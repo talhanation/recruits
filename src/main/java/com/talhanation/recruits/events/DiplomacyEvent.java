@@ -2,12 +2,11 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.eventbus.api.Cancelable;
-import net.minecraftforge.eventbus.api.Event;
+import net.neoforged.bus.api.Event;
 
 /**
  * Events für Diplomatie-Änderungen zwischen Fraktionen. Werden auf dem
- * {@code MinecraftForge.EVENT_BUS} gepostet und sind server-side only.
+ * {@code NeoForge.EVENT_BUS} gepostet und sind server-side only.
  *
  * <pre>
  *   {@code @SubscribeEvent}
@@ -54,7 +53,6 @@ public abstract class DiplomacyEvent extends Event {
      *
      * @see RecruitsDiplomacyManager#setRelation(String, String, RecruitsDiplomacyManager.DiplomacyStatus, ServerLevel)
      */
-    @Cancelable
     public static class RelationChanged extends DiplomacyEvent {
 
         private final RecruitsDiplomacyManager.DiplomacyStatus oldStatus;

@@ -1,17 +1,16 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageUpkeepEntity implements Message<MessageUpkeepEntity> {
+public class MessageUpkeepEntity implements RecruitsMessage<MessageUpkeepEntity> {
 
     private UUID player_uuid;
     private UUID target;
@@ -26,11 +25,11 @@ public class MessageUpkeepEntity implements Message<MessageUpkeepEntity> {
         this.group = group;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(RecruitsNetworkContext context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         RecruitCommandTargetResolver.resolveGroupTargets(player, this.player_uuid, this.group, 100D)
                 .forEach(recruit -> CommandEvents.onUpkeepCommand(player.getUUID(), recruit, group, true, target, null));

@@ -4,17 +4,16 @@ import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.command.RecruitCommandAuthority;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.world.RecruitsGroup;
-import de.maxhenkel.corelib.net.Message;
-import net.minecraft.nbt.CompoundTag;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageGroup implements Message<MessageGroup> {
+public class MessageGroup implements RecruitsMessage<MessageGroup> {
 
     private UUID groupUUID;
     private UUID recruitUUID;
@@ -27,11 +26,11 @@ public class MessageGroup implements Message<MessageGroup> {
         this.recruitUUID = recruitUUID;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(RecruitsNetworkContext context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         RecruitCommandTargetResolver.resolveOwnedRecruit(player, this.recruitUUID, 100D)
                 .ifPresent((recruit) -> this.setGroup(recruit, player, groupUUID));

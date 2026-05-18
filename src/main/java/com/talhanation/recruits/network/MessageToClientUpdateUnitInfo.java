@@ -1,13 +1,13 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.client.ClientManager;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 
-public class MessageToClientUpdateUnitInfo implements Message<MessageToClientUpdateUnitInfo> {
+public class MessageToClientUpdateUnitInfo implements RecruitsMessage<MessageToClientUpdateUnitInfo> {
     private boolean configValueNobleNeedsVillagers;
     private int availableRecruitsToHire;
     public MessageToClientUpdateUnitInfo() {
@@ -20,12 +20,12 @@ public class MessageToClientUpdateUnitInfo implements Message<MessageToClientUpd
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.CLIENT;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.CLIENTBOUND;
     }
 
     @Override
-    public void executeClientSide(NetworkEvent.Context context) {
+    public void executeClientSide(RecruitsNetworkContext context) {
         ClientManager.configValueNobleNeedsVillagers = configValueNobleNeedsVillagers;
         ClientManager.availableRecruitsToHire = availableRecruitsToHire;
     }

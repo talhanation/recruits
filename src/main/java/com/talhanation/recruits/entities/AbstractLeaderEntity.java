@@ -36,8 +36,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PacketDistributor;
+import com.talhanation.recruits.network.compat.RecruitsNetworkHooks;
+import com.talhanation.recruits.network.compat.RecruitsPacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -81,16 +81,16 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     /** Per-waypoint wait time in seconds (parallel to WAYPOINTS). 0 = no wait. */
     public java.util.ArrayList<Integer> WAYPOINT_WAIT_SECONDS = new java.util.ArrayList<>();
 
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(WAYPOINT_INDEX, 0);
-        this.entityData.define(WAIT_TIME_IN_MIN, 0);
-        this.entityData.define(CYCLE, false);
-        this.entityData.define(PATROL_SPEED, (byte) 1); // 0=SLOW 1=NORMAL 2=FAST
-        this.entityData.define(ENEMY_ACTION, (byte) 0); // 0=CHARGE 1=HOLD 2=KEEP_PATROLLING
-        this.entityData.define(PATROLLING_STATE, (byte) 3);
-        this.entityData.define(INFO_MODE, (byte) 0);
-        this.entityData.define(ROUTE_ID, Optional.empty());
+    protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(WAYPOINT_INDEX, 0);
+        builder.define(WAIT_TIME_IN_MIN, 0);
+        builder.define(CYCLE, false);
+        builder.define(PATROL_SPEED, (byte) 1); // 0=SLOW 1=NORMAL 2=FAST
+        builder.define(ENEMY_ACTION, (byte) 0); // 0=CHARGE 1=HOLD 2=KEEP_PATROLLING
+        builder.define(PATROLLING_STATE, (byte) 3);
+        builder.define(INFO_MODE, (byte) 0);
+        builder.define(ROUTE_ID, Optional.empty());
     }
 
     public void addAdditionalSaveData(CompoundTag nbt) {
@@ -116,7 +116,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             if (!itemstack.isEmpty()) {
                 CompoundTag compoundnbt = new CompoundTag();
                 compoundnbt.putByte("WaypointItem", (byte) i);
-                itemstack.save(compoundnbt);
+                itemstack.save(this.registryAccess(), compoundnbt);
                 waypointItems.add(compoundnbt);
             }
         }
@@ -170,7 +170,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         for (int i = 0; i < waypointItems.size(); ++i) {
             CompoundTag compoundnbt = waypointItems.getCompound(i);
 
-            ItemStack itemStack = ItemStack.of(compoundnbt);
+            ItemStack itemStack = ItemStack.parseOptional(this.registryAccess(), compoundnbt);
             this.WAYPOINT_ITEMS.push(itemStack);
         }
 
@@ -842,7 +842,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
 
     public void openSpecialGUI(Player player) {
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
+            RecruitsNetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName() {
                     return AbstractLeaderEntity.this.getName();
@@ -858,11 +858,10 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         }
 
         if (player instanceof ServerPlayer) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateLeaderScreen(this.WAYPOINTS, this.WAYPOINT_ITEMS, this.army.getTotalUnits()));
+            Main.SIMPLE_CHANNEL.send(RecruitsPacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientUpdateLeaderScreen(this.WAYPOINTS, this.WAYPOINT_ITEMS, this.army.getTotalUnits()));
         }
     }
 }
-
 
 
 

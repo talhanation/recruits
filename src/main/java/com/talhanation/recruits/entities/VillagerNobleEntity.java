@@ -1,7 +1,6 @@
 package com.talhanation.recruits.entities;
 
 
-import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.config.RecruitsServerConfig;
@@ -34,8 +33,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.common.NeoForgeMod;
+import com.talhanation.recruits.network.compat.RecruitsPacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -59,12 +58,12 @@ public class VillagerNobleEntity extends AbstractRecruitEntity implements ICanTr
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(TRADES, new CompoundTag());
-        this.entityData.define(TRADER_PROGRESS, 0);
-        this.entityData.define(TRADER_LEVEL, 1);
-        this.entityData.define(TYPE, "");
+    protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(TRADES, new CompoundTag());
+        builder.define(TRADER_PROGRESS, 0);
+        builder.define(TRADER_LEVEL, 1);
+        builder.define(TYPE, "");
     }
 
     @Override
@@ -128,11 +127,11 @@ public class VillagerNobleEntity extends AbstractRecruitEntity implements ICanTr
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 50.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
-                .add(ForgeMod.SWIM_SPEED.get(), 0.3D)
+                .add(NeoForgeMod.SWIM_SPEED, 0.3D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.1D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D)
-                .add(ForgeMod.ENTITY_REACH.get(), 0D)
+                .add(Attributes.ENTITY_INTERACTION_RANGE, 0D)
                 .add(Attributes.ATTACK_SPEED);
 
     }
@@ -141,7 +140,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity implements ICanTr
         RandomSource randomsource = world.getRandom();
         SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
         ((AsyncGroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
-        this.populateDefaultEquipmentEnchantments(randomsource, difficultyInstance);
+        this.populateDefaultEquipmentEnchantments(world, randomsource, difficultyInstance);
 
         this.initSpawn();
 
@@ -198,8 +197,8 @@ public class VillagerNobleEntity extends AbstractRecruitEntity implements ICanTr
         String stringID = player.getTeam() != null ? player.getTeam().getName() : "";
 
         boolean canHire = RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(stringID, player.getUUID());
-        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateHireState(canHire));
-        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientOpenNobleTradeScreen(this.getUUID()));
+        Main.SIMPLE_CHANNEL.send(RecruitsPacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new MessageToClientUpdateHireState(canHire));
+        Main.SIMPLE_CHANNEL.send(RecruitsPacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientOpenNobleTradeScreen(this.getUUID()));
     }
     public void addXpLevel(int level){
         super.addXpLevel(level);

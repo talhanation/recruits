@@ -4,16 +4,16 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.compat.workers.IVillagerWorker;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessagePromoteRecruit implements Message<MessagePromoteRecruit> {
+public class MessagePromoteRecruit implements RecruitsMessage<MessagePromoteRecruit> {
 
     private UUID recruit;
     private int profession;
@@ -27,11 +27,11 @@ public class MessagePromoteRecruit implements Message<MessagePromoteRecruit> {
         this.name = name;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
+    public void executeServerSide(RecruitsNetworkContext context){
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         if (!RecruitEvents.entitiesByProfession.containsKey(this.profession)) {
             return;

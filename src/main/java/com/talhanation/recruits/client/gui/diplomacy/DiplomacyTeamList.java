@@ -21,10 +21,6 @@ public class DiplomacyTeamList extends ListScreenListBase<DiplomacyTeamEntry> {
         this.entries = Lists.newArrayList();
         this.filter = "";
         this.diplomacyFilter = DiplomacyFilter.ALL;
-
-        setRenderBackground(false);
-        setRenderTopAndBottom(false);
-        setRenderSelection(true);
     }
 
     public void tick() {

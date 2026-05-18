@@ -24,13 +24,14 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 import org.lwjgl.glfw.GLFW;
 
 
@@ -43,7 +44,7 @@ import static com.talhanation.recruits.client.gui.faction.FactionInspectionScree
 import static com.talhanation.recruits.client.ClientManager.*;
 public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
 
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/team/team_create_gui.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/team/team_create_gui.png");
     private static final Component EDIT = Component.translatable("gui.recruits.team.edit");
     private static final Component BACK = Component.translatable("gui.recruits.button.back");
     private static final Component SAVE = Component.translatable("gui.recruits.button.save");
@@ -229,8 +230,6 @@ public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
     public void containerTick() {
         super.containerTick();
 
-        if(textFieldTeamName != null) textFieldTeamName.tick();
-
         if(postInit) {
             this.postInit();
             postInit = false;
@@ -362,7 +361,7 @@ public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
                     ownFaction.setTeamDisplayName(textFieldTeamName.getValue());
                     ownFaction.setTeamColor(teamColor.getId());
                     if(banner != null && !banner.isEmpty()){
-                        ownFaction.setBanner(banner.serializeNBT());
+                        ownFaction.setBanner(saveBanner(banner));
                     }
                     ownFaction.setUnitColor((byte) unitColors.indexOf(unitColor));
                     ownFaction.setMaxNPCsPerPlayer(maxRecruitsPerPlayer);
@@ -417,7 +416,7 @@ public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
                 hasChanges = true;
             }
 
-            if(banner != null && !banner.isEmpty() && !ownFaction.getBanner().equals(banner.serializeNBT())){
+            if(banner != null && !banner.isEmpty() && !ownFaction.getBanner().equals(saveBanner(banner))){
                 totalCost += factionCreationPrice;
                 hasChanges = true;
             }
@@ -536,7 +535,7 @@ public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
         boolean nameLength = this.textFieldTeamName != null && this.textFieldTeamName.getValue().length() >= 3 && this.textFieldTeamName.getValue().length() <= 32;
         boolean sufficientEmeralds = player.isCreative() || getPlayerCurrencyAmount() >= factionCreationPrice;
         boolean bannerNotEmpty = this.banner != null && !this.banner.isEmpty() && !RecruitsFactionManager.isBannerBlank(this.banner);
-        boolean bannerNotInUse = this.banner != null && !RecruitsFactionManager.isBannerInUse(this.banner.serializeNBT(), factions);
+        boolean bannerNotInUse = this.banner != null && !RecruitsFactionManager.isBannerInUse(saveBanner(this.banner), factions);
         boolean factionNameOK = !RecruitsFactionManager.isNameInUse(this.textFieldTeamName.getValue(), factions);
 
         return bannerNotInUse && bannerNotEmpty && factionNameOK && nameLength && leaderInfo != null && sufficientEmeralds;
@@ -553,12 +552,12 @@ public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
             if(RecruitsFactionManager.isBannerBlank(banner)) {
                 bannerNotEmpty = false;
             }
-            else if (!ItemStack.isSameItemSameTags(banner, ItemStack.of(ownFaction.getBanner())) && RecruitsFactionManager.isBannerInUse(banner.serializeNBT(), factions)) {
+            else if (!ItemStack.isSameItemSameComponents(banner, loadBanner(ownFaction.getBanner())) && RecruitsFactionManager.isBannerInUse(saveBanner(banner), factions)) {
                 bannerNotEmpty = false;
             }
         }
 
-        boolean bannerNotInUse = this.banner != null && !RecruitsFactionManager.isBannerInUse(this.banner.serializeNBT(), factions);
+        boolean bannerNotInUse = this.banner != null && !RecruitsFactionManager.isBannerInUse(saveBanner(this.banner), factions);
 
         return bannerNotInUse && bannerNotEmpty && nameLength && leaderInfo != null && sufficientEmeralds && hasChanges && displayNameOK;
     }
@@ -581,7 +580,7 @@ public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
     public void onBannerPlaced(){
         if(menu.getBanner() != null && bannerRenderer != null){
             if(menu.getBanner().isEmpty()){
-                if(ownFaction != null) bannerRenderer.setBannerItem(ItemStack.of(ownFaction.getBanner()));
+                if(ownFaction != null) bannerRenderer.setBannerItem(loadBanner(ownFaction.getBanner()));
                 this.banner = null;
             }
             else{
@@ -611,6 +610,14 @@ public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
 
     public void onPlayerInventoryChanged(){
         if(saveButton != null) saveButton.active = ownFaction != null ? checkEditCondition(): checkCreationCondition();
+    }
+
+    private ItemStack loadBanner(CompoundTag tag) {
+        return player.level() == null ? ItemStack.EMPTY : ItemStack.parseOptional(player.level().registryAccess(), tag);
+    }
+
+    private CompoundTag saveBanner(ItemStack stack) {
+        return player.level() == null ? new CompoundTag() : (CompoundTag) stack.save(player.level().registryAccess());
     }
 
     @Override
@@ -652,7 +659,7 @@ public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
         if (banner == null || banner.isEmpty() || RecruitsFactionManager.isBannerBlank(banner)) {
             errors.add(FactionCreationError.BANNER_EMPTY);
         }
-        else if (RecruitsFactionManager.isBannerInUse(banner.serializeNBT(), factions)) {
+        else if (RecruitsFactionManager.isBannerInUse(saveBanner(banner), factions)) {
             errors.add(FactionCreationError.BANNER_IN_USE);
         }
 
@@ -687,7 +694,7 @@ public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
             if(RecruitsFactionManager.isBannerBlank(banner)) {
                 errors.add(FactionCreationError.BANNER_EMPTY);
             }
-            else if (!ItemStack.isSameItemSameTags(banner, ItemStack.of(ownFaction.getBanner())) && RecruitsFactionManager.isBannerInUse(banner.serializeNBT(), factions)) {
+            else if (!ItemStack.isSameItemSameComponents(banner, loadBanner(ownFaction.getBanner())) && RecruitsFactionManager.isBannerInUse(saveBanner(banner), factions)) {
                 errors.add(FactionCreationError.BANNER_IN_USE);
             }
         }

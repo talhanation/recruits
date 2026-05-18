@@ -3,15 +3,16 @@ package com.talhanation.recruits.network;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.api.ClientClaimEvent;
 import com.talhanation.recruits.world.RecruitsClaim;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.common.NeoForge;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
-public class MessageToClientUpdateClaim implements Message<MessageToClientUpdateClaim> {
+public class MessageToClientUpdateClaim implements RecruitsMessage<MessageToClientUpdateClaim> {
     private CompoundTag claimNBT;
 
     public MessageToClientUpdateClaim() {
@@ -22,13 +23,13 @@ public class MessageToClientUpdateClaim implements Message<MessageToClientUpdate
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.CLIENT;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.CLIENTBOUND;
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void executeClientSide(NetworkEvent.Context context) {
+    public void executeClientSide(RecruitsNetworkContext context) {
         this.updateOrAddClaimFromNBT(claimNBT);
     }
     @OnlyIn(Dist.CLIENT)
@@ -50,14 +51,14 @@ public class MessageToClientUpdateClaim implements Message<MessageToClientUpdate
 
                 ClientManager.updateActiveSiege(newClaim);
 
-                MinecraftForge.EVENT_BUS.post(new ClientClaimEvent.DataUpdated(newClaim, isCurrentClaim));
+                NeoForge.EVENT_BUS.post(new ClientClaimEvent.DataUpdated(newClaim, isCurrentClaim));
                 return;
             }
         }
 
         ClientManager.recruitsClaims.add(newClaim);
         ClientManager.updateActiveSiege(newClaim);
-        MinecraftForge.EVENT_BUS.post(
+        NeoForge.EVENT_BUS.post(
                 new ClientClaimEvent.DataUpdated(newClaim, false));
     }
     @Override

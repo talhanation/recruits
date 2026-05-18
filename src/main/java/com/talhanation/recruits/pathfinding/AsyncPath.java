@@ -121,7 +121,9 @@ public class AsyncPath extends Path {
         final Path bestPath = this.pathSupplier.get();
 
         if (bestPath != null) {
-            this.nodes.addAll(bestPath.nodes);
+            for (int i = 0; i < bestPath.getNodeCount(); i++) {
+                this.nodes.add(bestPath.getNode(i));
+            }
             this.target = bestPath.getTarget();
             this.distToTarget = bestPath.getDistToTarget();
             this.canReach = bestPath.canReach();

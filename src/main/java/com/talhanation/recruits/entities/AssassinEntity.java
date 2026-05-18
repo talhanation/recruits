@@ -59,7 +59,7 @@ public class AssassinEntity extends AbstractOrderAbleEntity {
         RandomSource randomsource = world.getRandom();
         SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
         ((AsyncGroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
-        this.populateDefaultEquipmentEnchantments(randomsource, difficultyInstance);
+        this.populateDefaultEquipmentEnchantments(world, randomsource, difficultyInstance);
         this.setEquipment();
         this.setDropEquipment();
         this.setPersistenceRequired();

@@ -13,15 +13,16 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 
 public class RecruitHumanBiomeLayer extends RenderLayer<AbstractRecruitEntity, HumanoidModel<AbstractRecruitEntity>> {
+    private static final int FULL_WHITE = 0xFFFFFFFF;
 
     private static final ResourceLocation[] TEXTURE = {
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/biome/human_desert.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/biome/human_jungle.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/biome/human_plains.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/biome/human_savanna.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/biome/human_snowy_tundra.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/biome/human_swamp.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/biome/human_taiga.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/entity/human/biome/human_desert.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/entity/human/biome/human_jungle.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/entity/human/biome/human_plains.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/entity/human/biome/human_savanna.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/entity/human/biome/human_snowy_tundra.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/entity/human/biome/human_swamp.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/entity/human/biome/human_taiga.png"),
     };
 
     public RecruitHumanBiomeLayer(LivingEntityRenderer<AbstractRecruitEntity, HumanoidModel<AbstractRecruitEntity>> renderer) {
@@ -30,7 +31,7 @@ public class RecruitHumanBiomeLayer extends RenderLayer<AbstractRecruitEntity, H
 
     public void render(PoseStack poseStack, MultiBufferSource bufferSource, int p_117722_, AbstractRecruitEntity recruit, float p_117724_, float p_117725_, float p_117726_, float p_117727_, float p_117728_, float p_117729_) {
         if(!recruit.isInvisible()){
-            this.getParentModel().renderToBuffer(poseStack, bufferSource.getBuffer(RenderType.entityCutout(TEXTURE[recruit.getBiome()])), p_117722_, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+            this.getParentModel().renderToBuffer(poseStack, bufferSource.getBuffer(RenderType.entityCutout(TEXTURE[recruit.getBiome()])), p_117722_, OverlayTexture.NO_OVERLAY, FULL_WHITE);
         }
     }
 }

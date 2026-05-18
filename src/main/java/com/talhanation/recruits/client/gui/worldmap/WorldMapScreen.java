@@ -38,7 +38,7 @@ import java.util.List;
 import static com.talhanation.recruits.client.ClientManager.ownFaction;
 
 public class WorldMapScreen extends Screen {
-    private static final ResourceLocation MAP_ICONS = new ResourceLocation("textures/map/map_icons.png");
+    private static final ResourceLocation MAP_ICONS = ResourceLocation.withDefaultNamespace("textures/map/map_icons.png");
     private final ChunkTileManager tileManager;
     private final Player player;
     private static final double MIN_SCALE = 0.2;
@@ -263,7 +263,7 @@ public class WorldMapScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        renderBackground(guiGraphics);
+        renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
 
         guiGraphics.enableScissor(0, 0, width, height);
 
@@ -358,7 +358,7 @@ public class WorldMapScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(GuiGraphics guiGraphics) {
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         guiGraphics.fill(0, 0, width, height, DARK_GRAY_BG);
     }
 
@@ -516,10 +516,10 @@ public class WorldMapScreen extends Screen {
         Matrix4f matrix = pose.last().pose();
         int light = 0xF000F0;
         int color = 0xFFFFFFFF;
-        consumer.vertex(matrix, -1f, 1f, 0f).color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF).uv(u0, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix, 1f, 1f, 0f).color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF).uv(u1, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix, 1f, -1f, 0f).color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF).uv(u1, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix, -1f, -1f, 0f).color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF).uv(u0, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, 1).endVertex();
+        consumer.addVertex(matrix, -1f, 1f, 0f).setColor((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF).setUv(u0, v0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 0, 1);
+        consumer.addVertex(matrix, 1f, 1f, 0f).setColor((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF).setUv(u1, v0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 0, 1);
+        consumer.addVertex(matrix, 1f, -1f, 0f).setColor((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF).setUv(u1, v1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 0, 1);
+        consumer.addVertex(matrix, -1f, -1f, 0f).setColor((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF).setUv(u0, v1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 0, 1);
     }
 
     private void renderPlayerNameTag(GuiGraphics guiGraphics, int pixelX, int pixelZ) {
@@ -728,12 +728,12 @@ public class WorldMapScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (routeNamePopup.isVisible() || routeEditPopup.isVisible() || waypointEditPopup.isVisible()) return true;
         if (claimInfoMenu.isVisible()) claimInfoMenu.close();
         if (contextMenu.isVisible()) contextMenu.close();
 
-        double zoomFactor = 1.0 + (delta > 0 ? SCALE_STEP : -SCALE_STEP);
+        double zoomFactor = 1.0 + (scrollY > 0 ? SCALE_STEP : -SCALE_STEP);
         double newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale * zoomFactor));
 
         double mouseWorldX = (mouseX - offsetX) / scale;
@@ -794,8 +794,8 @@ public class WorldMapScreen extends Screen {
                 case GLFW.GLFW_KEY_DOWN, GLFW.GLFW_KEY_S -> offsetZ -= moveSpeed;
                 case GLFW.GLFW_KEY_LEFT, GLFW.GLFW_KEY_A -> offsetX += moveSpeed;
                 case GLFW.GLFW_KEY_RIGHT, GLFW.GLFW_KEY_D -> offsetX -= moveSpeed;
-                case GLFW.GLFW_KEY_EQUAL -> mouseScrolled(width / 2.0, height / 2.0, 1);
-                case GLFW.GLFW_KEY_MINUS -> mouseScrolled(width / 2.0, height / 2.0, -1);
+                case GLFW.GLFW_KEY_EQUAL -> mouseScrolled(width / 2.0, height / 2.0, 0, 1);
+                case GLFW.GLFW_KEY_MINUS -> mouseScrolled(width / 2.0, height / 2.0, 0, -1);
                 case GLFW.GLFW_KEY_C -> centerOnPlayer();
                 case GLFW.GLFW_KEY_R -> resetZoom();
             }
@@ -813,10 +813,6 @@ public class WorldMapScreen extends Screen {
 
         @Override
         public void tick() {
-            super.tick();
-            if (routeNamePopup    != null) routeNamePopup.tick();
-            if (routeEditPopup    != null) routeEditPopup.tick();
-            if (waypointEditPopup != null) waypointEditPopup.tick();
         }
 
         public void onClose() {

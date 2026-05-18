@@ -2,17 +2,17 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.world.RecruitsFaction;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageRemoveEmbargo implements Message<MessageRemoveEmbargo> {
+public class MessageRemoveEmbargo implements RecruitsMessage<MessageRemoveEmbargo> {
 
     private UUID embargoedPlayerUUID;
 
@@ -24,12 +24,12 @@ public class MessageRemoveEmbargo implements Message<MessageRemoveEmbargo> {
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
     @Override
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(RecruitsNetworkContext context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         ServerLevel level = (ServerLevel) player.level();
 

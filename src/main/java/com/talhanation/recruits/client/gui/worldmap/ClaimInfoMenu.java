@@ -7,7 +7,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
 public class ClaimInfoMenu {
-    private static final ResourceLocation SIEGE_ICON = new ResourceLocation("recruits:textures/gui/image/enemy.png");
+    private static final ResourceLocation SIEGE_ICON = ResourceLocation.parse("recruits:textures/gui/image/enemy.png");
     private final WorldMapScreen parent;
     private boolean visible = false;
     private boolean underSiege;

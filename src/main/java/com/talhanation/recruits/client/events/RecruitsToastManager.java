@@ -9,17 +9,17 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.toasts.Toast;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 @OnlyIn(Dist.CLIENT)
 public class RecruitsToastManager {
-    private static final ResourceLocation LETTER_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/letter.png");
-    private static final ResourceLocation ALLY_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/ally.png");
-    private static final ResourceLocation ENEMY_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/enemy.png");
-    private static final ResourceLocation NEUTRAL_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/neutral.png");
-    private static final ResourceLocation CROWN_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/leader_crown.png");
-    private static final ResourceLocation EMBARGO_IMAGE = new ResourceLocation(Main.MOD_ID, "textures/gui/image/embargo.png");
+    private static final ResourceLocation LETTER_IMAGE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/letter.png");
+    private static final ResourceLocation ALLY_IMAGE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/ally.png");
+    private static final ResourceLocation ENEMY_IMAGE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/enemy.png");
+    private static final ResourceLocation NEUTRAL_IMAGE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/neutral.png");
+    private static final ResourceLocation CROWN_IMAGE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/leader_crown.png");
+    private static final ResourceLocation EMBARGO_IMAGE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/embargo.png");
     public static Images savedTeamForPlayer;//dirty fix calling twice bug
     public static Images savedForPlayer;//dirty fix for calling twice bug
     public static void setTeamToastForPlayer(Images id, @Nullable Component title, @Nullable Component text, RecruitsFaction team){

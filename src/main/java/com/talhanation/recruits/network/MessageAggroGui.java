@@ -1,15 +1,15 @@
 package com.talhanation.recruits.network;
 
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageAggroGui implements Message<MessageAggroGui> {
+public class MessageAggroGui implements RecruitsMessage<MessageAggroGui> {
 
     private int state;
     private UUID uuid;
@@ -22,11 +22,11 @@ public class MessageAggroGui implements Message<MessageAggroGui> {
         this.uuid = uuid;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(RecruitsNetworkContext context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         RecruitCommandTargetResolver.resolveOwnedRecruit(player, this.uuid, 16.0D)
                 .ifPresent((recruit) -> recruit.setAggroState(this.state));

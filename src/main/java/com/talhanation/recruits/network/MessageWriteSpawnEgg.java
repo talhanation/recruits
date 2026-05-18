@@ -3,7 +3,8 @@ package com.talhanation.recruits.network;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.events.RecruitsOnWriteSpawnEggEvent;
 import com.talhanation.recruits.init.ModItems;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -11,15 +12,16 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.scores.Team;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import net.neoforged.neoforge.common.NeoForge;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
+public class MessageWriteSpawnEgg implements RecruitsMessage<MessageWriteSpawnEgg> {
 
     public UUID recruit;
 
@@ -30,11 +32,11 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
         this.recruit = recruit;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(RecruitsNetworkContext context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         if (!player.isCreative() && !player.hasPermissions(2)) {
             return;
@@ -48,11 +50,8 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
 
 
 
-            CompoundTag itemTag = new CompoundTag();
-            itemTag.put("EntityTag", entityTag);
-
             if (itemStack != null && !itemStack.isEmpty() && player.getMainHandItem().isEmpty()) {
-                itemStack.setTag(itemTag);
+                itemStack.set(DataComponents.ENTITY_DATA, CustomData.of(entityTag));
                 player.setItemInHand(InteractionHand.MAIN_HAND, itemStack);
             }
         });
@@ -130,17 +129,17 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
             if (!itemstack.isEmpty()) {
                 CompoundTag compoundnbt = new CompoundTag();
                 compoundnbt.putByte("Slot", (byte) i);
-                itemstack.save(compoundnbt);
+                itemstack.save(recruitEntity.registryAccess(), compoundnbt);
                 listnbt.add(compoundnbt);
             }
         }
         entityTag.put("Items", listnbt);
 
         ListTag listtag = new ListTag();
-        for (ItemStack itemstack : recruitEntity.armorItems) {
+        for (ItemStack itemstack : recruitEntity.getArmorSlots()) {
             CompoundTag compoundtag = new CompoundTag();
             if (!itemstack.isEmpty()) {
-                itemstack.save(compoundtag);
+                itemstack.save(recruitEntity.registryAccess(), compoundtag);
             }
 
             listtag.add(compoundtag);
@@ -149,10 +148,10 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
         entityTag.put("ArmorItems", listtag);
         ListTag listtag1 = new ListTag();
 
-        for (ItemStack itemstack1 : recruitEntity.handItems) {
+        for (ItemStack itemstack1 : recruitEntity.getHandSlots()) {
             CompoundTag compoundtag1 = new CompoundTag();
             if (!itemstack1.isEmpty()) {
-                itemstack1.save(compoundtag1);
+                itemstack1.save(recruitEntity.registryAccess(), compoundtag1);
             }
 
             listtag1.add(compoundtag1);
@@ -160,7 +159,7 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
 
         entityTag.put("HandItems", listtag1);
 
-        MinecraftForge.EVENT_BUS.post(new RecruitsOnWriteSpawnEggEvent(recruitEntity, entityTag));
+        NeoForge.EVENT_BUS.post(new RecruitsOnWriteSpawnEggEvent(recruitEntity, entityTag));
 
         return entityTag;
     }

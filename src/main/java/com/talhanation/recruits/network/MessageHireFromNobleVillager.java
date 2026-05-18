@@ -9,7 +9,7 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.VillagerNobleEntity;
 import com.talhanation.recruits.world.RecruitsGroup;
 import com.talhanation.recruits.world.RecruitsHireTrade;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -18,15 +18,15 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.PacketDistributor;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
+import com.talhanation.recruits.network.compat.RecruitsPacketDistributor;
 
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-public class MessageHireFromNobleVillager implements Message<MessageHireFromNobleVillager> {
+public class MessageHireFromNobleVillager implements RecruitsMessage<MessageHireFromNobleVillager> {
     private UUID nobleUUID;
     private UUID villagerUUID;
     private int cost;
@@ -47,18 +47,18 @@ public class MessageHireFromNobleVillager implements Message<MessageHireFromNobl
         }
         else{
             this.cost = 0;
-            this.resource = new ResourceLocation("","");
+            this.resource = ResourceLocation.withDefaultNamespace("empty");
         }
 
         this.needsVillager = needsVillager;
         this.closing = closing;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(RecruitsNetworkContext context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         ServerLevel serverLevel = player.serverLevel();
         VillagerNobleEntity villagerNoble = player.getCommandSenderWorld().getEntitiesOfClass(
@@ -121,7 +121,7 @@ public class MessageHireFromNobleVillager implements Message<MessageHireFromNobl
 
         String stringID = player.getTeam() != null ? player.getTeam().getName() : "";
         boolean canHire = RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(stringID, player.getUUID());
-        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateHireState(canHire));
+        Main.SIMPLE_CHANNEL.send(RecruitsPacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateHireState(canHire));
     }
 
     private RecruitsHireTrade getAvailableTrade(VillagerNobleEntity villagerNoble) {

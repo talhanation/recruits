@@ -29,7 +29,6 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -50,11 +49,11 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
         this.smallShipsController = new SmallShipsController(this, world);
         this.smallShipsController.tryMountShip(getVehicle());
     }
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(SAIL_POS, Optional.empty());
-        this.entityData.define(STRATEGIC_FIRE_POS, Optional.empty());
-        this.entityData.define(SHOULD_STRATEGIC_FIRE, false);
+    protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(SAIL_POS, Optional.empty());
+        builder.define(STRATEGIC_FIRE_POS, Optional.empty());
+        builder.define(SHOULD_STRATEGIC_FIRE, false);
     }
     @Override
     protected void registerGoals() {
@@ -143,7 +142,7 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.1D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
                 .add(Attributes.FOLLOW_RANGE, 128.0D)
-                .add(ForgeMod.ENTITY_REACH.get(), 0D)
+                .add(Attributes.ENTITY_INTERACTION_RANGE, 0D)
                 .add(Attributes.ATTACK_SPEED);
     }
 

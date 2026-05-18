@@ -4,17 +4,17 @@ import com.talhanation.recruits.command.CommandIntent;
 import com.talhanation.recruits.command.CommandIntentDispatcher;
 import com.talhanation.recruits.command.CommandIntentPriority;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageStrategicFire implements Message<MessageStrategicFire> {
+public class MessageStrategicFire implements RecruitsMessage<MessageStrategicFire> {
 
     private UUID player;
     private UUID group;
@@ -29,11 +29,11 @@ public class MessageStrategicFire implements Message<MessageStrategicFire> {
         this.should = should;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
+    public void executeServerSide(RecruitsNetworkContext context) {
         ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
         List<AbstractRecruitEntity> recruits = RecruitCommandTargetResolver.resolveGroupTargets(serverPlayer, this.player, this.group, 200D);
         CommandIntent intent = new CommandIntent.StrategicFire(

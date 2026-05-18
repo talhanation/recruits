@@ -43,7 +43,7 @@ public class Corpse {
         for (int i = 0; i < list.size(); ++i) {
             CompoundTag slot = new CompoundTag();
             slot.putInt("Slot", i);
-            (list.get(i)).save(slot);
+            (list.get(i)).save(recruit.registryAccess(), slot);
             tagList.add(slot);
         }
         nbt.put("Equipment", tagList);
@@ -65,7 +65,7 @@ public class Corpse {
         for (int k = 0; k < list1.size(); ++k) {
             CompoundTag slot = new CompoundTag();
             slot.putInt("Slot", k);
-            (list1.get(k)).save(slot);
+            (list1.get(k)).save(recruit.registryAccess(), slot);
             tagList1.add(slot);
         }
         nbt.put("MainInventory", tagList1);
@@ -83,7 +83,7 @@ public class Corpse {
         for (int k = 0; k < list2.size(); ++k) {
             CompoundTag slot = new CompoundTag();
             slot.putInt("Slot", k);
-            (list2.get(k)).save(slot);
+            (list2.get(k)).save(recruit.registryAccess(), slot);
             tagList2.add(slot);
         }
         nbt.put("ArmorInventory", tagList2);
@@ -96,7 +96,7 @@ public class Corpse {
         for (int k = 0; k < list3.size(); ++k) {
             CompoundTag slot = new CompoundTag();
             slot.putInt("Slot", k);
-            (list3.get(k)).save(slot);
+            (list3.get(k)).save(recruit.registryAccess(), slot);
             tagList3.add(slot);
         }
         nbt.put("OffHandInventory", tagList3);
@@ -110,7 +110,7 @@ public class Corpse {
         nbt.putString("Dimension", recruit.getCommandSenderWorld().dimension().location().toString());
         nbt.putByte("Model", (byte) 0);
 
-        Death death = Death.fromNBT(nbt);
+        Death death = Death.fromNBT(recruit.registryAccess(), nbt);
         try {
             createCorpseFromDeath(recruit, death, nbt, (ServerLevel) recruit.getCommandSenderWorld());
 

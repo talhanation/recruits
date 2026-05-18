@@ -1,6 +1,7 @@
 package com.talhanation.recruits.world;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
@@ -10,14 +11,15 @@ import java.util.*;
 
 public class RecruitsGroupsSaveData extends SavedData {
     private static final String FILE_ID = "recruitsGroups";
+    private static final SavedData.Factory<RecruitsGroupsSaveData> FACTORY = new SavedData.Factory<>(RecruitsGroupsSaveData::new, RecruitsGroupsSaveData::load);
     private List<RecruitsGroup> groups = new ArrayList<>();
     private Map<UUID, UUID> redirects = new HashMap<>();
     private Map<UUID, UUID> recruitRedirects = new HashMap<>();
     public static RecruitsGroupsSaveData get(ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(RecruitsGroupsSaveData::load, RecruitsGroupsSaveData::new, FILE_ID);
+        return level.getDataStorage().computeIfAbsent(FACTORY, FILE_ID);
     }
 
-    public static RecruitsGroupsSaveData load(CompoundTag nbt) {
+    public static RecruitsGroupsSaveData load(CompoundTag nbt, HolderLookup.Provider registries) {
         RecruitsGroupsSaveData data = new RecruitsGroupsSaveData();
         if (nbt.contains("groups", Tag.TAG_LIST)) {
             ListTag list = nbt.getList("groups", Tag.TAG_COMPOUND);
@@ -50,7 +52,7 @@ public class RecruitsGroupsSaveData extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag nbt) {
+    public CompoundTag save(CompoundTag nbt, HolderLookup.Provider registries) {
         ListTag list = new ListTag();
         for (RecruitsGroup group : this.groups) {
             list.add(group.toNBT());
@@ -102,5 +104,4 @@ public class RecruitsGroupsSaveData extends SavedData {
         this.recruitRedirects = map;
     }
 }
-
 

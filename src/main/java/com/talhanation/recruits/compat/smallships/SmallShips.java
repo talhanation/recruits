@@ -18,7 +18,7 @@ import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import javax.annotation.Nullable;
 
@@ -167,8 +167,7 @@ public class SmallShips {
                         rotationSpeed = Math.max(rotationSpeed - rotAcceleration / 8, -maxRotSp);
                     }
                 }
-                boat.deltaRotation = rotationSpeed;
-                boat.setYRot(boat.getYRot() + boat.deltaRotation);
+                boat.setYRot(boat.getYRot() + rotationSpeed);
                 setRotSpeed.invoke(ship, rotationSpeed);
             }
         } catch (Exception e) {
@@ -308,8 +307,7 @@ public class SmallShips {
 
                 //ship.setRotSpeed(rotationSpeed);
 
-                boat.deltaRotation = rotationSpeed;
-                boat.setYRot(boat.getYRot() + boat.deltaRotation);
+                boat.setYRot(boat.getYRot() + rotationSpeed);
 
                 shipClassSetRotSpeed.invoke(ship, rotationSpeed);
 
@@ -455,7 +453,7 @@ public class SmallShips {
 
     @Nullable
     public static ItemStack getSmallShipsItem() {
-        return ForgeRegistries.ITEMS.getDelegateOrThrow(ResourceLocation.tryParse("smallships:oak_cog")).get().getDefaultInstance();
+        return BuiltInRegistries.ITEM.get(ResourceLocation.tryParse("smallships:oak_cog")).getDefaultInstance();
     }
 
     public void repairShip(CaptainEntity captain) {
@@ -519,4 +517,3 @@ public class SmallShips {
         return boat.getEncodeId().contains("galley");
     }
 }
-

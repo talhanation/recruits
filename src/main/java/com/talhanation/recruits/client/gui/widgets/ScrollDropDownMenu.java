@@ -158,11 +158,11 @@ public class ScrollDropDownMenu<T> extends AbstractWidget {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if(!visible) return false;
 
         if (isOpen) {
-            scrollOffset -= (int) delta;
+            scrollOffset -= (int) scrollY;
             scrollOffset = Math.max(0, Math.min(scrollOffset, options.size() - maxVisibleOptions));
             return true;
         }

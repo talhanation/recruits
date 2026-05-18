@@ -1,25 +1,10 @@
-buildscript {
-    repositories {
-        maven { url = 'https://maven.minecraftforge.net' }
-        maven { url = 'https://repo.spongepowered.org/maven' }
-        jcenter()
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '6.+', changing: true
-        classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7-SNAPSHOT'
-    }
-}
-// Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
-
 plugins {
-    id "com.matthewprenger.cursegradle" version "1.4.0"
-    id "com.github.johnrengelman.shadow" version "7.1.0"
+    id 'net.neoforged.moddev' version '2.0.107'
+    id 'com.matthewprenger.cursegradle' version '1.4.0'
+    id 'com.gradleup.shadow' version '8.3.10'
 }
-apply plugin: 'net.minecraftforge.gradle'
+
 apply plugin: 'idea'
-apply plugin: 'com.github.johnrengelman.shadow'
-apply plugin: 'org.spongepowered.mixin'
 
 idea {
     module {
@@ -28,124 +13,83 @@ idea {
     }
 }
 
-mixin{
-    add sourceSets.main, 'mixins.recruits.refmap.json'
-    config 'mixins.recruits.json'
-
-    disableTargetValidator = true
-    overwriteErrorLevel = 'error'
-}
-
 version = '1.15.0'
-
 group = 'com.talhanation.recruits'
-archivesBaseName = 'recruits-1.20.1'
+archivesBaseName = 'recruits-1.21.1'
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
-
-minecraft {
-    mappings channel: 'official', version: '1.20.1'
-    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
-
-    runs {
-        client {
-            workingDirectory project.file('run')
-
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
-
-            property 'forge.enabledGameTestNamespaces', 'recruits'
-
-            Random rnd = new Random()
-
-            args = ['--username', 'talhanation']
-            //args = ['--username', 'ezgination']
-
-            mods {
-                'recruits' {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        server {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
-			property 'forge.enabledGameTestNamespaces', 'recruits'
-
-
-            mods {
-                'recruits' {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        data {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
-
-            // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-            args '--mod', 'recruits', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-
-            mods {
-                'recruits' {
-                    source sourceSets.main
-                }
-            }
-        }
-    }
-}
-
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+neoForge {
+    version = project.neo_version
+    accessTransformers = files('src/main/resources/META-INF/accesstransformer.cfg')
+
+    runs {
+        configureEach {
+            logLevel = org.slf4j.event.Level.DEBUG
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'recruits'
+        }
+
+        client {
+            client()
+            gameDirectory = project.file('run')
+            programArgument '--username'
+            programArgument 'talhanation'
+        }
+
+        server {
+            server()
+            gameDirectory = project.file('run')
+        }
+
+        data {
+            data()
+            gameDirectory = project.file('run')
+            programArguments.addAll '--mod', 'recruits', '--all', '--output', file('src/generated/resources/').absolutePath, '--existing', file('src/main/resources/').absolutePath
+        }
+    }
+
+    mods {
+        recruits {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
 repositories {
     maven {
-        name = "henkelmax.public"
+        name = 'henkelmax.public'
         url = 'https://maven.maxhenkel.de/repository/public'
     }
-    mavenLocal()
+    if (project.hasProperty('allowLocalMaven')) {
+        mavenLocal()
+    }
     maven {
-
-        url "https://www.cursemaven.com"
+        url 'https://www.cursemaven.com'
+    }
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
     }
 }
 
 dependencies {
-
-    minecraft 'net.minecraftforge:forge:1.20.1-47.4.10'
-    shadow fg.deobf("de.maxhenkel.corelib:corelib:1.20.1-1.1.3:api")
-    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.20.1-1.1.3")
-    runtimeOnly fg.deobf("de.maxhenkel.corelib:corelib:1.20.1-1.1.3:javadoc")
-    //Implementation
+    shadow 'de.maxhenkel.corelib:corelib:1.21.1-2.1.11:api'
+    runtimeOnly 'de.maxhenkel.corelib:corelib:1.21.1-2.1.11'
+    runtimeOnly 'de.maxhenkel.corelib:corelib:1.21.1-2.1.11:javadoc'
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    implementation fg.deobf("curse.maven:corpse-316582:5157034")
-    
-    implementation fg.deobf("curse.maven:epic-knights-armor-and-weapons-509041:5254836")
-    implementation fg.deobf("curse.maven:architectury-api-419699:5137938")
-    implementation fg.deobf("curse.maven:cloth-config-348521:4973441")
-
-    implementation fg.deobf("curse.maven:ewewukeks-musket-mod-354562:5779561")
-    implementation fg.deobf("curse.maven:worldedit-225608:4586218")
-    implementation fg.deobf("curse.maven:small-ships-450659:5566900")
-    implementation fg.deobf("curse.maven:siegeweapons-1259343:7906096")
-    //implementation fg.deobf("curse.maven:in-game-account-switcher-232676:5457030")
-    //implementation fg.deobf("curse.maven:geckolib-388172:6027567")
-    //implementation fg.deobf("curse.maven:born-in-chaos-686437:6193155")
-    //implementation fg.deobf("curse.maven:rpgz-404828:5549878")
+    compileOnly 'curse.maven:corpse-316582:5157034'
+    compileOnly 'curse.maven:epic-knights-armor-and-weapons-509041:5254836'
+    compileOnly 'curse.maven:architectury-api-419699:5137938'
+    compileOnly 'curse.maven:cloth-config-348521:4973441'
+    compileOnly 'curse.maven:ewewukeks-musket-mod-354562:5779561'
+    compileOnly 'curse.maven:worldedit-225608:4586218'
+    compileOnly 'curse.maven:small-ships-450659:5566900'
+    compileOnly 'curse.maven:siegeweapons-1259343:7906096'
 }
-
-// Example for how to get properties into the manifest for reading at runtime.
-jar {
-
-}
-
-jar.finalizedBy('reobfJar')
 
 artifacts {
     archives shadowJar
@@ -154,10 +98,24 @@ artifacts {
 shadowJar {
     project.configurations.shadow.setTransitive(true)
     configurations = [project.configurations.shadow]
-    //classifier = ""
-    relocate 'de.maxhenkel.corelib', "de.maxhenkel.recruits.corelib"
+    relocate 'de.maxhenkel.corelib', 'de.maxhenkel.recruits.corelib'
 }
 
-reobf {
-    shadowJar {}
+tasks.named('processResources') {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    def replaceProperties = [
+            minecraft_version_range: minecraft_version_range,
+            neo_version_range      : neo_version_range,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description
+    ]
+    inputs.properties replaceProperties
+    filesMatching('META-INF/neoforge.mods.toml') {
+        expand replaceProperties
+    }
 }

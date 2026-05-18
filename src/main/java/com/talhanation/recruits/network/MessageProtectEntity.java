@@ -1,16 +1,16 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
-import de.maxhenkel.corelib.net.Message;
+import com.talhanation.recruits.network.compat.RecruitsMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.PacketFlow;
+import com.talhanation.recruits.network.compat.RecruitsNetworkContext;
 
 import java.util.Objects;
 import java.util.UUID;
 
-public class MessageProtectEntity implements Message<MessageProtectEntity> {
+public class MessageProtectEntity implements RecruitsMessage<MessageProtectEntity> {
 
     private UUID uuid;
     private UUID target;
@@ -27,11 +27,11 @@ public class MessageProtectEntity implements Message<MessageProtectEntity> {
 
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
+    public void executeServerSide(RecruitsNetworkContext context){
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         RecruitCommandTargetResolver.resolveGroupTargets(player, this.uuid, this.group, 100D)
                 .forEach((recruit) -> CommandEvents.onProtectButton(player.getUUID(), recruit, target, group));
