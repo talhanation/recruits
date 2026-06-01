@@ -163,8 +163,9 @@ public class WorldMapContextMenu {
     }
 
     public void openAt(int x, int y) {
+        int visibleEntries = Math.max(1, (int) entries.stream().filter(entry -> entry.shouldShow(worldMapScreen)).count());
         this.x = Math.max(10, Math.min(x, worldMapScreen.width - width - 10));
-        this.y = Math.max(10, Math.min(y, worldMapScreen.height - entries.size() * entryHeight - 10));
+        this.y = Math.max(10, Math.min(y, worldMapScreen.height - visibleEntries * entryHeight - 10));
         this.visible = true;
         // Snapshot mouse position at open time
         this.snapshotMouseX = worldMapScreen.mouseX;
