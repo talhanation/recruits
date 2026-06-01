@@ -3,7 +3,8 @@ package com.talhanation.recruits.network;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
@@ -25,15 +26,21 @@ public class MessageTeleportPlayer implements Message<MessageTeleportPlayer> {
 
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
-        Player player = context.getSender();
+        ServerPlayer player = context.getSender();
 
-        if(player == null)return;
+        if (player == null || this.pos == null) return;
+        if (!player.isCreative() || !player.hasPermissions(2)) return;
 
-        BlockPos corrected = player.level().getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, pos);
-        if(corrected.getY() < -65){
-            corrected.offset(0, 164, 0);
-        }
-        player.teleportTo(corrected.getX(), corrected.getY() + 2, corrected.getZ());
+        ServerLevel level = player.serverLevel();
+        BlockPos corrected = resolveTeleportPos(level, this.pos);
+        player.teleportTo(corrected.getX() + 0.5D, corrected.getY(), corrected.getZ() + 0.5D);
+    }
+
+    private static BlockPos resolveTeleportPos(ServerLevel level, BlockPos pos) {
+        level.getChunk(pos.getX() >> 4, pos.getZ() >> 4);
+        int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, pos.getX(), pos.getZ());
+        y = Math.max(y, level.getMinBuildHeight());
+        return new BlockPos(pos.getX(), y, pos.getZ());
     }
 
     @Override
