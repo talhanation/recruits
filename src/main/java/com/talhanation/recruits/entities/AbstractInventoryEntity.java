@@ -2,7 +2,7 @@ package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.FactionEvents;
-import com.talhanation.recruits.compat.corpse.Corpse;
+import com.talhanation.recruits.compat.corpse.RecruitCorpseSpawner;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.inventory.RecruitSimpleContainer;
 import com.talhanation.recruits.pathfinding.AsyncPathfinderMob;
@@ -253,14 +253,15 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
     public void die(DamageSource dmg) {
         super.die(dmg);
 
-        if(Main.isCorpseLoaded && !Main.isRPGZLoaded && !this.getCommandSenderWorld().isClientSide() && RecruitsServerConfig.CompatCorpseMod.get()){
-            Corpse.spawnCorpse(this);
+        boolean shouldUseCorpse = Main.isCorpseLoaded && !Main.isRPGZLoaded && !this.getCommandSenderWorld().isClientSide() && RecruitsServerConfig.CompatCorpseMod.get();
+        if (shouldUseCorpse && RecruitCorpseSpawner.spawnCorpse(this)) {
+            return;
         }
-        else{
-            if(this.getCommandSenderWorld().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS))
-                for (int i = 0; i < this.inventory.getContainerSize(); i++)
-                    this.spawnAtLocation(this.inventory.getItem(i));// Containers.dropItemStack(this.getCommandSenderWorld(), getX(), getY(), getZ(), );
 
+        if (this.getCommandSenderWorld().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
+            for (int i = 0; i < this.inventory.getContainerSize(); i++) {
+                this.spawnAtLocation(this.inventory.getItem(i));// Containers.dropItemStack(this.getCommandSenderWorld(), getX(), getY(), getZ(), );
+            }
         }
     }
 
