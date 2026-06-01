@@ -41,11 +41,9 @@ import static com.talhanation.recruits.client.ClientManager.ownFaction;
 public class WorldMapScreen extends Screen {
     private static final ResourceLocation MAP_ICONS = new ResourceLocation("textures/map/map_icons.png");
     private final ChunkTileManager tileManager;
+    private final WorldMapCamera camera;
     private final Player player;
-    private static final double MIN_SCALE = 0.2;
-    private static final double MAX_SCALE = 10.0;
     private static final double DEFAULT_SCALE = 2.0;
-    private static final double SCALE_STEP = 0.1;
     private static final int CHUNK_HIGHLIGHT_COLOR = 0x40FFFFFF;
     private static final int CHUNK_SELECTION_COLOR = 0xFFFFFFFF;
     private static final int DARK_GRAY_BG = 0xFF101010;
@@ -54,6 +52,7 @@ public class WorldMapScreen extends Screen {
     public static double scale = DEFAULT_SCALE;
     public double lastMouseX, lastMouseY;
     private boolean isDragging = false;
+    private boolean initializedOnce = false;
     private ChunkPos hoveredChunk = null;
     ChunkPos selectedChunk = null;
     private int clickedBlockX = 0, clickedBlockZ = 0;
@@ -89,6 +88,7 @@ public class WorldMapScreen extends Screen {
         this.contextMenu = new WorldMapContextMenu(this);
         this.claimInfoMenu = new ClaimInfoMenu(this);
         this.tileManager = ChunkTileManager.getInstance();
+        this.camera = new WorldMapCamera(this);
         this.player = Minecraft.getInstance().player;
     }
 
@@ -117,6 +117,10 @@ public class WorldMapScreen extends Screen {
         return player.hasPermissions(2) && player.isCreative();
     }
 
+    boolean isPanningMap() {
+        return isDragging;
+    }
+
     public double getScale() {
         return scale;
     }
@@ -130,8 +134,9 @@ public class WorldMapScreen extends Screen {
         super.init();
         if (minecraft.level != null && player != null) {
             tileManager.initialize(minecraft.level);
-            centerOnPlayer();
+            camera.init(player, initializedOnce);
         }
+        initializedOnce = true;
         claimInfoMenu.init();
         ClientManager.loadRoutes();
         initRouteUI();
@@ -223,17 +228,11 @@ public class WorldMapScreen extends Screen {
     // -------------------------------------------------------------------------
 
     public void centerOnPlayer() {
-        if (player != null) {
-            int chunkX = player.chunkPosition().x;
-            int chunkZ = player.chunkPosition().z;
-            offsetX = -(chunkX * 16 * scale) + width / 2.0;
-            offsetZ = -(chunkZ * 16 * scale) + height / 2.0;
-        }
+        camera.centerOnPlayer(player);
     }
 
     public void resetZoom() {
-        scale = DEFAULT_SCALE;
-        centerOnPlayer();
+        camera.resetZoom(player);
     }
 
     // -------------------------------------------------------------------------
@@ -242,6 +241,7 @@ public class WorldMapScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        camera.animate();
         renderBackground(guiGraphics);
 
         guiGraphics.enableScissor(0, 0, width, height);
@@ -621,6 +621,7 @@ public class WorldMapScreen extends Screen {
             lastMouseX = mouseX;
             lastMouseY = mouseY;
             isDragging = true;
+            camera.beginPanDrag(mouseX, mouseY);
         }
 
         return super.mouseClicked(mouseX, mouseY, button);
@@ -643,6 +644,7 @@ public class WorldMapScreen extends Screen {
                 return true;
             }
             isDragging = false;
+            camera.finishPanDrag(mouseX, mouseY);
         }
         if (claimInfoMenu.isVisible()) claimInfoMenu.mouseReleased(mouseX, mouseY, button);
         return true;
@@ -661,8 +663,7 @@ public class WorldMapScreen extends Screen {
             return true;
         }
         if (isDragging) {
-            offsetX += mouseX - lastMouseX;
-            offsetZ += mouseY - lastMouseY;
+            camera.dragByScreenDelta(mouseX, mouseY, mouseX - lastMouseX, mouseY - lastMouseY);
             lastMouseX = mouseX;
             lastMouseY = mouseY;
             if (claimInfoMenu.isVisible()) claimInfoMenu.close();
@@ -678,14 +679,7 @@ public class WorldMapScreen extends Screen {
         if (claimInfoMenu.isVisible()) claimInfoMenu.close();
         if (contextMenu.isVisible()) contextMenu.close();
 
-        double zoomFactor = 1.0 + (delta > 0 ? SCALE_STEP : -SCALE_STEP);
-        double newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale * zoomFactor));
-
-        double mouseWorldX = (mouseX - offsetX) / scale;
-        double mouseWorldZ = (mouseY - offsetZ) / scale;
-        scale = newScale;
-        offsetX = mouseX - mouseWorldX * scale;
-        offsetZ = mouseY - mouseWorldZ * scale;
+        camera.zoomAt(mouseX, mouseY, delta);
         return true;
     }
 
@@ -735,10 +729,10 @@ public class WorldMapScreen extends Screen {
         if (!contextMenu.isVisible() && !claimInfoMenu.isVisible()) {
             double moveSpeed = 40.0 / scale;
             switch (keyCode) {
-                case GLFW.GLFW_KEY_UP, GLFW.GLFW_KEY_W -> offsetZ += moveSpeed;
-                case GLFW.GLFW_KEY_DOWN, GLFW.GLFW_KEY_S -> offsetZ -= moveSpeed;
-                case GLFW.GLFW_KEY_LEFT, GLFW.GLFW_KEY_A -> offsetX += moveSpeed;
-                case GLFW.GLFW_KEY_RIGHT, GLFW.GLFW_KEY_D -> offsetX -= moveSpeed;
+                case GLFW.GLFW_KEY_UP, GLFW.GLFW_KEY_W -> camera.panByScreenDelta(0.0, moveSpeed);
+                case GLFW.GLFW_KEY_DOWN, GLFW.GLFW_KEY_S -> camera.panByScreenDelta(0.0, -moveSpeed);
+                case GLFW.GLFW_KEY_LEFT, GLFW.GLFW_KEY_A -> camera.panByScreenDelta(moveSpeed, 0.0);
+                case GLFW.GLFW_KEY_RIGHT, GLFW.GLFW_KEY_D -> camera.panByScreenDelta(-moveSpeed, 0.0);
                 case GLFW.GLFW_KEY_EQUAL -> mouseScrolled(width / 2.0, height / 2.0, 1);
                 case GLFW.GLFW_KEY_MINUS -> mouseScrolled(width / 2.0, height / 2.0, -1);
                 case GLFW.GLFW_KEY_C -> centerOnPlayer();
@@ -765,6 +759,7 @@ public class WorldMapScreen extends Screen {
         }
 
         public void onClose() {
+            camera.rememberCurrentView();
             tileManager.close();
             super.onClose();
         }
@@ -882,9 +877,7 @@ public class WorldMapScreen extends Screen {
 
         public void centerOnClaim(RecruitsClaim claim){
             if (claim == null || claim.getCenter() == null) return;
-            ChunkPos center = claim.getCenter();
-            offsetX = -(center.x * 16 * scale) + width / 2.0;
-            offsetZ = -(center.z * 16 * scale) + height / 2.0;
+            camera.centerOnClaim(claim.getCenter());
         }
 
         public Rectangle getClaimScreenBounds(RecruitsClaim claim){
