@@ -156,7 +156,6 @@ public class WorldMapScreen extends Screen {
                 r -> r == null ? "-- Route --" : r.getName(),
                 r -> {
                     selectedRoute = r;
-                    if (r == null) claimTransparency = false;
                 }
         );
 
@@ -177,12 +176,12 @@ public class WorldMapScreen extends Screen {
         return ROUTE_UI_X + ROUTE_DROPDOWN_W + ROUTE_BTN_GAP;
     }
 
-    private int getEditBtnX() {
+    private int getOutlineBtnX() {
         return getAddBtnX() + ROUTE_BTN_SIZE + ROUTE_BTN_GAP;
     }
 
-    private int getTransBtnX() {
-        return getEditBtnX() + ROUTE_BTN_SIZE + ROUTE_BTN_GAP;
+    private int getEditBtnX() {
+        return getOutlineBtnX() + ROUTE_BTN_SIZE + ROUTE_BTN_GAP;
     }
 
     public boolean claimTransparency = false;
@@ -191,32 +190,30 @@ public class WorldMapScreen extends Screen {
         renderRouteDropdown(guiGraphics, mouseX, mouseY, partialTicks);
 
         int addX = getAddBtnX();
-        boolean addHovered = mouseX >= addX && mouseX <= addX + ROUTE_BTN_SIZE
-                && mouseY >= ROUTE_UI_Y && mouseY <= ROUTE_UI_Y + ROUTE_BTN_SIZE;
-        guiGraphics.fill(addX, ROUTE_UI_Y, addX + ROUTE_BTN_SIZE, ROUTE_UI_Y + ROUTE_BTN_SIZE,
-                addHovered ? 0x80444444 : 0x80222222);
-        guiGraphics.renderOutline(addX, ROUTE_UI_Y, ROUTE_BTN_SIZE, ROUTE_BTN_SIZE, 0x40FFFFFF);
-        guiGraphics.drawCenteredString(font, "+", addX + ROUTE_BTN_SIZE / 2, ROUTE_UI_Y + 6, 0xFFFFFF);
+        renderRouteButton(guiGraphics, mouseX, mouseY, addX, "+", false);
+
+        int outlineX = getOutlineBtnX();
+        renderRouteButton(guiGraphics, mouseX, mouseY, outlineX, "\u25A1", claimTransparency);
 
         // ⚙ button (only active when route selected)
         if (selectedRoute != null) {
             int editX = getEditBtnX();
-            boolean editHovered = mouseX >= editX && mouseX <= editX + ROUTE_BTN_SIZE
-                    && mouseY >= ROUTE_UI_Y && mouseY <= ROUTE_UI_Y + ROUTE_BTN_SIZE;
-            guiGraphics.fill(editX, ROUTE_UI_Y, editX + ROUTE_BTN_SIZE, ROUTE_UI_Y + ROUTE_BTN_SIZE,
-                    editHovered ? 0x80444444 : 0x80222222);
-            guiGraphics.renderOutline(editX, ROUTE_UI_Y, ROUTE_BTN_SIZE, ROUTE_BTN_SIZE, 0x40FFFFFF);
-            guiGraphics.drawCenteredString(font, "\u2699", editX + ROUTE_BTN_SIZE / 2, ROUTE_UI_Y + 6, 0xFFFFFF);
-
-            int transX = getTransBtnX();
-            boolean transHovered = mouseX >= transX && mouseX <= transX + ROUTE_BTN_SIZE
-                    && mouseY >= ROUTE_UI_Y && mouseY <= ROUTE_UI_Y + ROUTE_BTN_SIZE;
-            int transBg = claimTransparency ? 0x80555555 : (transHovered ? 0x80444444 : 0x80222222);
-            int transColor = claimTransparency ? 0xFFFFAA00 : 0xFFFFFF;
-            guiGraphics.fill(transX, ROUTE_UI_Y, transX + ROUTE_BTN_SIZE, ROUTE_UI_Y + ROUTE_BTN_SIZE, transBg);
-            guiGraphics.renderOutline(transX, ROUTE_UI_Y, ROUTE_BTN_SIZE, ROUTE_BTN_SIZE, 0x40FFFFFF);
-            guiGraphics.drawCenteredString(font, "\u25A1", transX + ROUTE_BTN_SIZE / 2, ROUTE_UI_Y + 6, transColor);
+            renderRouteButton(guiGraphics, mouseX, mouseY, editX, "\u2699", false);
         }
+    }
+
+    private void renderRouteButton(GuiGraphics guiGraphics, int mouseX, int mouseY, int x, String label, boolean selected) {
+        boolean hovered = isRouteButtonHovered(mouseX, mouseY, x);
+        int bg = selected ? 0x80555555 : (hovered ? 0x80444444 : 0x80222222);
+        int color = selected ? 0xFFFFAA00 : 0xFFFFFF;
+        guiGraphics.fill(x, ROUTE_UI_Y, x + ROUTE_BTN_SIZE, ROUTE_UI_Y + ROUTE_BTN_SIZE, bg);
+        guiGraphics.renderOutline(x, ROUTE_UI_Y, ROUTE_BTN_SIZE, ROUTE_BTN_SIZE, 0x40FFFFFF);
+        guiGraphics.drawCenteredString(font, label, x + ROUTE_BTN_SIZE / 2, ROUTE_UI_Y + 6, color);
+    }
+
+    private boolean isRouteButtonHovered(double mouseX, double mouseY, int x) {
+        return mouseX >= x && mouseX <= x + ROUTE_BTN_SIZE
+                && mouseY >= ROUTE_UI_Y && mouseY <= ROUTE_UI_Y + ROUTE_BTN_SIZE;
     }
 
     // -------------------------------------------------------------------------
@@ -250,7 +247,7 @@ public class WorldMapScreen extends Screen {
         guiGraphics.enableScissor(0, 0, width, height);
 
         renderMapTiles(guiGraphics);
-        if (claimTransparency && selectedRoute != null) {
+        if (claimTransparency) {
             ClaimRenderer.renderClaimsOverlayTransparent(guiGraphics, this.selectedClaim, this.offsetX, this.offsetZ, scale);
         } else {
             ClaimRenderer.renderClaimsOverlay(guiGraphics, this.selectedClaim, this.offsetX, this.offsetZ, scale);
@@ -287,8 +284,6 @@ public class WorldMapScreen extends Screen {
         guiGraphics.disableScissor();
 
         renderCoordinatesAndZoom(guiGraphics);
-        renderFPS(guiGraphics);
-
         // Buttons (+ and ⚙)
         renderRouteUI(guiGraphics, mouseX, mouseY, partialTicks);
 
@@ -542,28 +537,25 @@ public class WorldMapScreen extends Screen {
         // Route UI buttons
         int addBtnX = getAddBtnX();
         int editBtnX = getEditBtnX();
-        if (mouseX >= addBtnX && mouseX <= addBtnX + ROUTE_BTN_SIZE
-                && mouseY >= ROUTE_UI_Y && mouseY <= ROUTE_UI_Y + ROUTE_BTN_SIZE) {
+        if (isRouteButtonHovered(mouseX, mouseY, addBtnX)) {
             hoveredChunk = null;
             selectedChunk = null;
             routeNamePopup.open();
             contextMenu.close();
             return true;
         }
-        if (selectedRoute != null && mouseX >= editBtnX && mouseX <= editBtnX + ROUTE_BTN_SIZE && mouseY >= ROUTE_UI_Y && mouseY <= ROUTE_UI_Y + ROUTE_BTN_SIZE) {
+
+        int outlineBtnX = getOutlineBtnX();
+        if (isRouteButtonHovered(mouseX, mouseY, outlineBtnX)) {
+            claimTransparency = !claimTransparency;
+            return true;
+        }
+
+        if (selectedRoute != null && isRouteButtonHovered(mouseX, mouseY, editBtnX)) {
             hoveredChunk = null;
             selectedChunk = null;
             routeEditPopup.open(selectedRoute);
             return true;
-        }
-
-        if (selectedRoute != null) {
-            int transBtnX = getTransBtnX();
-            if (mouseX >= transBtnX && mouseX <= transBtnX + ROUTE_BTN_SIZE
-                    && mouseY >= ROUTE_UI_Y && mouseY <= ROUTE_UI_Y + ROUTE_BTN_SIZE) {
-                claimTransparency = !claimTransparency;
-                return true;
-            }
         }
 
         // Route dropdown
@@ -794,26 +786,6 @@ public class WorldMapScreen extends Screen {
             routeNamePopup.open();
             contextMenu.close();
             ;
-        }
-
-        // -------------------------------------------------------------------------
-        // FPS
-        // -------------------------------------------------------------------------
-
-        private long lastFpsTime = 0;
-        private int fpsCounter = 0;
-        private int currentFps = 0;
-
-        private void renderFPS(GuiGraphics guiGraphics){
-            long currentTime = System.currentTimeMillis();
-            fpsCounter++;
-            if (currentTime - lastFpsTime >= 1000) {
-                currentFps = fpsCounter;
-                fpsCounter = 0;
-                lastFpsTime = currentTime;
-            }
-            String fpsText = String.format("FPS: %d", currentFps);
-            guiGraphics.drawString(font, fpsText, width - font.width(fpsText) - 15, 5, 0x00FF00);
         }
 
         // -------------------------------------------------------------------------
