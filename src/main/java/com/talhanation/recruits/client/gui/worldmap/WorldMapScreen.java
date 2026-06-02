@@ -720,7 +720,7 @@ public class WorldMapScreen extends Screen {
         public void onClose() {
             camera.rememberCurrentView();
             mapRenderer.close();
-            tileManager.close();
+            tileManager.flush();
             super.onClose();
         }
 

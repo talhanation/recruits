@@ -40,8 +40,9 @@ final class MapFramebufferPass implements AutoCloseable {
         minecraft.getMainRenderTarget().bindWrite(true);
 
         framebuffer.bindRead();
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+        int filter = frame.needsSecondaryFiltering() ? GL11.GL_LINEAR : GL11.GL_NEAREST;
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, filter);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, filter);
 
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
@@ -116,6 +117,10 @@ final class MapFramebufferPass implements AutoCloseable {
             int screenWidth,
             int screenHeight
     ) {
+        private boolean needsSecondaryFiltering() {
+            return Math.abs(secondaryScale - 1.0) > 0.0001;
+        }
+
         private static Frame fromView(double offsetX, double offsetZ, double scale, int screenWidth, int screenHeight) {
             double effectiveScale = Math.max(0.01, scale);
             double fboScale = effectiveScale >= 1.0 ? Math.max(1.0, Math.floor(effectiveScale)) : effectiveScale;

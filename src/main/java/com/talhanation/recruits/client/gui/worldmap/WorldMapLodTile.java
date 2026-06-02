@@ -1,9 +1,12 @@
 package com.talhanation.recruits.client.gui.worldmap;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -17,6 +20,7 @@ final class WorldMapLodTile {
     private DynamicTexture texture;
     private ResourceLocation textureId;
     private boolean failed;
+    private boolean dirty;
     private long lastAccessNanos = System.nanoTime();
 
     WorldMapLodTile(int tileX, int tileZ, int sampleStep) {
@@ -26,12 +30,26 @@ final class WorldMapLodTile {
     }
 
     void schedule(Supplier<NativeImage> imageSupplier) {
-        if (this.imageFuture != null || this.image != null || this.failed) return;
+        if (this.imageFuture != null || this.failed) return;
+        this.dirty = false;
         this.imageFuture = WorldMapAsync.buildLod(imageSupplier);
     }
 
     boolean isScheduled() {
         return this.imageFuture != null;
+    }
+
+    boolean isBuildPending() {
+        return this.imageFuture != null && !this.imageFuture.isDone();
+    }
+
+    boolean needsBuild() {
+        return this.textureId == null || this.dirty;
+    }
+
+    void markDirty() {
+        this.dirty = true;
+        this.failed = false;
     }
 
     ResourceLocation getTextureId() {
@@ -110,27 +128,54 @@ final class WorldMapLodTile {
     }
 
     private void uploadIfReady() {
-        if (this.textureId != null || this.failed || this.imageFuture == null || !this.imageFuture.isDone()) return;
+        if (this.failed || this.imageFuture == null || !this.imageFuture.isDone()) return;
 
         NativeImage loadedImage;
         try {
             loadedImage = this.imageFuture.join();
         } catch (Exception ignored) {
-            this.failed = true;
             this.imageFuture = null;
+            this.failed = this.textureId == null;
             return;
         }
 
         if (loadedImage == null) {
-            this.failed = true;
             this.imageFuture = null;
+            this.failed = this.textureId == null;
             return;
+        }
+
+        replaceTexture(loadedImage);
+        this.failed = false;
+        this.imageFuture = null;
+    }
+
+    private void replaceTexture(NativeImage loadedImage) {
+        if (this.textureId != null) {
+            Minecraft.getInstance().getTextureManager().release(this.textureId);
+        }
+        try {
+            if (this.texture != null) this.texture.close();
+        } catch (Exception ignored) {
+        }
+        try {
+            if (this.image != null) this.image.close();
+        } catch (Exception ignored) {
         }
 
         this.image = loadedImage;
         this.texture = new DynamicTexture(this.image);
+        this.texture.setFilter(false, false);
+        applyMapTextureSampling(this.texture.getId());
         this.textureId = Minecraft.getInstance().getTextureManager()
                 .register("recruits_worldmap_lod_" + sampleStep + "_" + tileX + "_" + tileZ, this.texture);
-        this.imageFuture = null;
+    }
+
+    private static void applyMapTextureSampling(int textureId) {
+        RenderSystem.bindTexture(textureId);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
     }
 }

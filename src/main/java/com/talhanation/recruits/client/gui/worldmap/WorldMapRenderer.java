@@ -16,9 +16,14 @@ import java.util.Comparator;
 import java.util.List;
 
 final class WorldMapRenderer {
-    private static final double BASE_REGION_SCALE_THRESHOLD = 0.55;
-    private static final int MAX_SAMPLE_STEP = 16;
-    private static final int FALLBACK_REGION_DRAWS_PER_FRAME = 128;
+    private static final int MAX_LOD_LEVEL = 3;
+    private static final int MAX_SAMPLE_STEP = 1 << MAX_LOD_LEVEL;
+    private static final int MAX_TILE_DRAWS_PER_FRAME = 384;
+    private static final int MAX_TILE_VISITS_PER_FRAME = 4096;
+    private static final double CHILD_SUBSTITUTION_MIN_PIXELS = 256.0;
+    private static final double MISSING_TILE_FALLBACK_MIN_PIXELS = 24.0;
+    private static final int MAX_MISSING_TILE_FALLBACK_DEPTH = 4;
+    private static final double TILE_SEAM_GUARD_PIXELS = 0.25;
 
     private final WorldMapTileManager tileManager;
     private final MapFramebufferPass framebufferPass = new MapFramebufferPass();
@@ -31,12 +36,7 @@ final class WorldMapRenderer {
         tileManager.beginRenderFrame();
 
         MapFramebufferPass.Frame frame = framebufferPass.begin(guiGraphics, offsetX, offsetZ, scale, screenWidth, screenHeight);
-        int sampleStep = chooseSampleStep(frame.fboScale());
-        if (sampleStep <= 1) {
-            renderRegionTiles(guiGraphics, frame);
-        } else {
-            renderLodTiles(guiGraphics, frame, sampleStep);
-        }
+        renderTileTree(guiGraphics, frame);
         framebufferPass.endAndBlit(guiGraphics, frame);
     }
 
@@ -44,98 +44,169 @@ final class WorldMapRenderer {
         framebufferPass.close();
     }
 
-    private void renderRegionTiles(GuiGraphics guiGraphics, MapFramebufferPass.Frame frame) {
+    private void renderTileTree(GuiGraphics guiGraphics, MapFramebufferPass.Frame frame) {
+        int rootLevel = chooseRootLevel(frame.fboScale());
+        int rootWorldSize = worldSizeForLevel(rootLevel);
         List<TileCoord> visibleTiles = collectVisibleTiles(
                 frame.leftWorld(),
                 frame.rightWorld(),
                 frame.topWorld(),
                 frame.bottomWorld(),
-                WorldMapRegionTile.REGION_PIXEL_SIZE
+                rootWorldSize
         );
-
-        for (TileCoord tileCoord : visibleTiles) {
-            WorldMapRegionTile region = tileManager.getLoadedRegion(tileCoord.x(), tileCoord.z());
-            if (region == null) region = tileManager.getOrScheduleCachedRegion(tileCoord.x(), tileCoord.z());
-            if (region == null) continue;
-
-            ResourceLocation textureId = region.getTextureId();
-            if (textureId == null) continue;
-            renderWorldTile(guiGraphics, textureId,
-                    tileCoord.x() * WorldMapRegionTile.REGION_PIXEL_SIZE,
-                    tileCoord.z() * WorldMapRegionTile.REGION_PIXEL_SIZE,
-                    WorldMapRegionTile.REGION_PIXEL_SIZE,
-                    frame.renderOffsetX(), frame.renderOffsetZ(), frame.fboScale());
-        }
-    }
-
-    private void renderLodTiles(GuiGraphics guiGraphics, MapFramebufferPass.Frame frame, int sampleStep) {
-        int tileWorldSize = WorldMapRegionTile.REGION_PIXEL_SIZE * sampleStep;
-        List<TileCoord> visibleTiles = collectVisibleTiles(frame.leftWorld(), frame.rightWorld(),
-                frame.topWorld(), frame.bottomWorld(), tileWorldSize);
 
         WorldMapLodCache lodCache = tileManager.getLodCache();
         lodCache.beginFrame();
+        RenderBudget budget = new RenderBudget(MAX_TILE_DRAWS_PER_FRAME, MAX_TILE_VISITS_PER_FRAME);
 
-        int fallbackDrawsLeft = FALLBACK_REGION_DRAWS_PER_FRAME;
         for (TileCoord tileCoord : visibleTiles) {
-            WorldMapLodTile lodTile = lodCache.getOrSchedule(tileCoord.x(), tileCoord.z(), sampleStep);
-            ResourceLocation textureId = lodTile.getTextureId();
-            if (textureId != null) {
-                renderWorldTile(guiGraphics, textureId, lodTile.getWorldMinX(), lodTile.getWorldMinZ(), tileWorldSize,
-                        frame.renderOffsetX(), frame.renderOffsetZ(), frame.fboScale());
-                continue;
-            }
-
-            if (fallbackDrawsLeft > 0) {
-                fallbackDrawsLeft -= renderLoadedRegionsInArea(guiGraphics, lodTile.getWorldMinX(), lodTile.getWorldMinZ(),
-                        lodTile.getWorldMaxX(), lodTile.getWorldMaxZ(), frame.renderOffsetX(), frame.renderOffsetZ(),
-                        frame.fboScale(), fallbackDrawsLeft);
-            }
+            renderTileTree(guiGraphics, lodCache, budget, rootLevel, tileCoord.x(), tileCoord.z(),
+                    frame.renderOffsetX(), frame.renderOffsetZ(), frame.fboScale(), 0, true);
         }
 
         lodCache.trim();
     }
 
-    private int renderLoadedRegionsInArea(GuiGraphics guiGraphics, int minWorldX, int minWorldZ,
-                                          int maxWorldX, int maxWorldZ, double offsetX, double offsetZ,
-                                          double scale, int maxDraws) {
-        int startRegionX = Math.floorDiv(minWorldX, WorldMapRegionTile.REGION_PIXEL_SIZE);
-        int endRegionX = Math.floorDiv(maxWorldX - 1, WorldMapRegionTile.REGION_PIXEL_SIZE);
-        int startRegionZ = Math.floorDiv(minWorldZ, WorldMapRegionTile.REGION_PIXEL_SIZE);
-        int endRegionZ = Math.floorDiv(maxWorldZ - 1, WorldMapRegionTile.REGION_PIXEL_SIZE);
+    private boolean renderTileTree(GuiGraphics guiGraphics, WorldMapLodCache lodCache, RenderBudget budget,
+                                   int level, int tileX, int tileZ,
+                                   double offsetX, double offsetZ, double scale,
+                                   int missingFallbackDepth, boolean allowScheduling) {
+        if (!budget.tryVisit()) return false;
 
-        int draws = 0;
-        for (int regionZ = startRegionZ; regionZ <= endRegionZ; regionZ++) {
-            for (int regionX = startRegionX; regionX <= endRegionX; regionX++) {
-                if (draws >= maxDraws) return draws;
-                WorldMapRegionTile region = tileManager.getLoadedRegion(regionX, regionZ);
-                if (region == null) continue;
+        int worldSize = worldSizeForLevel(level);
+        double screenSize = worldSize * scale;
+        if (screenSize < 0.75) return false;
 
-                ResourceLocation textureId = region.getTextureId();
-                if (textureId == null) continue;
-                renderWorldTile(guiGraphics, textureId,
-                        regionX * WorldMapRegionTile.REGION_PIXEL_SIZE,
-                        regionZ * WorldMapRegionTile.REGION_PIXEL_SIZE,
-                        WorldMapRegionTile.REGION_PIXEL_SIZE,
-                        offsetX, offsetZ, scale);
-                draws++;
+        TileTexture texture = acquireTileTexture(lodCache, level, tileX, tileZ, allowScheduling);
+        if (texture != null) {
+            if (shouldSubstituteWithChildren(level, screenSize) && canRenderImmediateChildren(lodCache, level, tileX, tileZ)) {
+                return renderImmediateChildren(guiGraphics, lodCache, budget, level, tileX, tileZ, offsetX, offsetZ, scale);
             }
+            if (shouldSubstituteWithChildren(level, screenSize) && allowScheduling) {
+                scheduleImmediateChildren(lodCache, level, tileX, tileZ);
+            }
+            if (!budget.tryDraw()) return false;
+            renderWorldTile(guiGraphics, texture.textureId(), texture.worldMinX(), texture.worldMinZ(),
+                    texture.worldSize(), offsetX, offsetZ, scale);
+            return true;
         }
-        return draws;
+
+        boolean shouldFallbackToChildren = level > 0
+                && missingFallbackDepth < MAX_MISSING_TILE_FALLBACK_DEPTH
+                && screenSize >= MISSING_TILE_FALLBACK_MIN_PIXELS;
+        if (!shouldFallbackToChildren) return false;
+
+        return renderChildren(guiGraphics, lodCache, budget, level, tileX, tileZ, offsetX, offsetZ, scale,
+                missingFallbackDepth + 1, false);
     }
 
-    private static int chooseSampleStep(double scale) {
-        if (scale >= BASE_REGION_SCALE_THRESHOLD) return 1;
+    private boolean renderImmediateChildren(GuiGraphics guiGraphics, WorldMapLodCache lodCache, RenderBudget budget,
+                                            int level, int tileX, int tileZ,
+                                            double offsetX, double offsetZ, double scale) {
+        if (!budget.hasDrawsLeft(4)) return false;
 
-        double target = 1.0 / Math.max(scale, 0.05);
-        int lower = 1;
-        while (lower * 2 <= target && lower * 2 <= MAX_SAMPLE_STEP) {
-            lower *= 2;
+        int childLevel = level - 1;
+        int childBaseX = tileX * 2;
+        int childBaseZ = tileZ * 2;
+        for (int childZ = 0; childZ < 2; childZ++) {
+            for (int childX = 0; childX < 2; childX++) {
+                TileTexture childTexture = acquireTileTexture(lodCache, childLevel, childBaseX + childX, childBaseZ + childZ, false);
+                if (childTexture == null || !budget.tryDraw()) return false;
+                renderWorldTile(guiGraphics, childTexture.textureId(), childTexture.worldMinX(), childTexture.worldMinZ(),
+                        childTexture.worldSize(), offsetX, offsetZ, scale);
+            }
+        }
+        return true;
+    }
+
+    private boolean renderChildren(GuiGraphics guiGraphics, WorldMapLodCache lodCache, RenderBudget budget,
+                                   int level, int tileX, int tileZ,
+                                   double offsetX, double offsetZ, double scale,
+                                   int missingFallbackDepth, boolean allowScheduling) {
+        int childLevel = level - 1;
+        int childBaseX = tileX * 2;
+        int childBaseZ = tileZ * 2;
+        boolean renderedChild = false;
+        for (int childZ = 0; childZ < 2; childZ++) {
+            for (int childX = 0; childX < 2; childX++) {
+                renderedChild |= renderTileTree(guiGraphics, lodCache, budget, childLevel,
+                        childBaseX + childX, childBaseZ + childZ,
+                        offsetX, offsetZ, scale, missingFallbackDepth, allowScheduling);
+            }
+        }
+        return renderedChild;
+    }
+
+    private boolean canRenderImmediateChildren(WorldMapLodCache lodCache, int level, int tileX, int tileZ) {
+        int childLevel = level - 1;
+        int childBaseX = tileX * 2;
+        int childBaseZ = tileZ * 2;
+        for (int childZ = 0; childZ < 2; childZ++) {
+            for (int childX = 0; childX < 2; childX++) {
+                if (acquireTileTexture(lodCache, childLevel, childBaseX + childX, childBaseZ + childZ, false) == null) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private void scheduleImmediateChildren(WorldMapLodCache lodCache, int level, int tileX, int tileZ) {
+        int childLevel = level - 1;
+        int childBaseX = tileX * 2;
+        int childBaseZ = tileZ * 2;
+        for (int childZ = 0; childZ < 2; childZ++) {
+            for (int childX = 0; childX < 2; childX++) {
+                acquireTileTexture(lodCache, childLevel, childBaseX + childX, childBaseZ + childZ, true);
+            }
+        }
+    }
+
+    private TileTexture acquireTileTexture(WorldMapLodCache lodCache, int level, int tileX, int tileZ,
+                                           boolean allowScheduling) {
+        ResourceLocation textureId;
+        int worldSize = worldSizeForLevel(level);
+        int worldMinX = tileX * worldSize;
+        int worldMinZ = tileZ * worldSize;
+
+        if (level == 0) {
+            WorldMapRegionTile region = tileManager.getLoadedRegion(tileX, tileZ);
+            if (region == null && allowScheduling) {
+                region = tileManager.getOrScheduleCachedRegion(tileX, tileZ);
+            }
+            if (region == null) return null;
+            textureId = region.getTextureId();
+        } else {
+            WorldMapLodTile lodTile = allowScheduling
+                    ? lodCache.getOrSchedule(tileX, tileZ, sampleStepForLevel(level))
+                    : lodCache.getIfPresent(tileX, tileZ, sampleStepForLevel(level));
+            if (lodTile == null) return null;
+            textureId = lodTile.getTextureId();
         }
 
-        int upper = Math.min(MAX_SAMPLE_STEP, lower * 2);
-        int sampleStep = (target / lower <= upper / target) ? lower : upper;
-        return Math.max(2, sampleStep);
+        if (textureId == null) return null;
+        return new TileTexture(textureId, worldMinX, worldMinZ, worldSize);
+    }
+
+    private static int chooseRootLevel(double scale) {
+        if (scale >= 1.0) return 0;
+
+        double reversedScale = 1.0 / Math.max(scale, 0.01);
+        int level = (int) Math.floor(Math.log(reversedScale) / Math.log(2.0));
+        return Math.max(0, Math.min(level, MAX_LOD_LEVEL));
+    }
+
+    private static boolean shouldSubstituteWithChildren(int level, double screenSize) {
+        return level > 0 && screenSize >= CHILD_SUBSTITUTION_MIN_PIXELS;
+    }
+
+    private static int worldSizeForLevel(int level) {
+        return WorldMapRegionTile.REGION_PIXEL_SIZE * sampleStepForLevel(level);
+    }
+
+    private static int sampleStepForLevel(int level) {
+        int clampedLevel = Math.max(0, Math.min(level, MAX_LOD_LEVEL));
+        return Math.min(MAX_SAMPLE_STEP, 1 << clampedLevel);
     }
 
     private static List<TileCoord> collectVisibleTiles(double leftWorld, double rightWorld,
@@ -181,6 +252,11 @@ final class WorldMapRenderer {
         double z1 = screenZ;
         double x2 = screenX + screenSize;
         double z2 = screenZ + screenSize;
+        double seamGuard = Math.min(TILE_SEAM_GUARD_PIXELS, screenSize * 0.01);
+        x1 -= seamGuard;
+        z1 -= seamGuard;
+        x2 += seamGuard;
+        z2 += seamGuard;
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, textureId);
@@ -199,5 +275,34 @@ final class WorldMapRenderer {
     }
 
     private record TileCoord(int x, int z, double centerDistance) {
+    }
+
+    private record TileTexture(ResourceLocation textureId, int worldMinX, int worldMinZ, int worldSize) {
+    }
+
+    private static final class RenderBudget {
+        private int drawsLeft;
+        private int visitsLeft;
+
+        private RenderBudget(int drawsLeft, int visitsLeft) {
+            this.drawsLeft = drawsLeft;
+            this.visitsLeft = visitsLeft;
+        }
+
+        private boolean tryVisit() {
+            if (visitsLeft <= 0) return false;
+            visitsLeft--;
+            return true;
+        }
+
+        private boolean tryDraw() {
+            if (drawsLeft <= 0) return false;
+            drawsLeft--;
+            return true;
+        }
+
+        private boolean hasDrawsLeft(int requiredDraws) {
+            return drawsLeft >= requiredDraws;
+        }
     }
 }
