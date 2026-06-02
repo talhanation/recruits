@@ -3,16 +3,17 @@ package com.talhanation.recruits.client.gui.worldmap;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 final class WorldMapLodCache {
-    private static final int MAX_SCHEDULES_PER_FRAME = 2;
+    private static final int MAX_SCHEDULES_PER_FRAME = 4;
+    private static final int MAX_PENDING_LOD_TILES = 12;
     private static final int MAX_LOD_TILES = 192;
 
     private final WorldMapTileManager tileManager;
     private final Map<String, WorldMapLodTile> tiles = new HashMap<>();
     private int schedulesLeft;
+    private int pendingTiles;
 
     WorldMapLodCache(WorldMapTileManager tileManager) {
         this.tileManager = tileManager;
@@ -20,6 +21,7 @@ final class WorldMapLodCache {
 
     void beginFrame() {
         this.schedulesLeft = MAX_SCHEDULES_PER_FRAME;
+        this.pendingTiles = countPendingTiles();
     }
 
     WorldMapLodTile getOrSchedule(int tileX, int tileZ, int sampleStep) {
@@ -31,11 +33,18 @@ final class WorldMapLodCache {
         }
 
         tile.markAccessed();
-        if (!tile.isScheduled() && tile.getTextureId() == null && schedulesLeft > 0) {
+        if (!tile.isScheduled() && tile.needsBuild() && schedulesLeft > 0 && pendingTiles < MAX_PENDING_LOD_TILES) {
             schedulesLeft--;
+            pendingTiles++;
             WorldMapLodTile scheduledTile = tile;
             tile.schedule(() -> tileManager.buildLodImage(tileX, tileZ, scheduledTile.getSampleStep()));
         }
+        return tile;
+    }
+
+    WorldMapLodTile getIfPresent(int tileX, int tileZ, int sampleStep) {
+        WorldMapLodTile tile = tiles.get(key(tileX, tileZ, sampleStep));
+        if (tile != null) tile.markAccessed();
         return tile;
     }
 
@@ -45,12 +54,9 @@ final class WorldMapLodCache {
         int regionMaxX = regionMinX + WorldMapRegionTile.REGION_PIXEL_SIZE;
         int regionMaxZ = regionMinZ + WorldMapRegionTile.REGION_PIXEL_SIZE;
 
-        Iterator<WorldMapLodTile> iterator = tiles.values().iterator();
-        while (iterator.hasNext()) {
-            WorldMapLodTile tile = iterator.next();
+        for (WorldMapLodTile tile : tiles.values()) {
             if (intersects(tile, regionMinX, regionMinZ, regionMaxX, regionMaxZ)) {
-                tile.close();
-                iterator.remove();
+                tile.markDirty();
             }
         }
     }
@@ -80,6 +86,14 @@ final class WorldMapLodCache {
                 && tile.getWorldMaxX() > minX
                 && tile.getWorldMinZ() < maxZ
                 && tile.getWorldMaxZ() > minZ;
+    }
+
+    private int countPendingTiles() {
+        int count = 0;
+        for (WorldMapLodTile tile : tiles.values()) {
+            if (tile.isBuildPending()) count++;
+        }
+        return count;
     }
 
     private static String key(int tileX, int tileZ, int sampleStep) {

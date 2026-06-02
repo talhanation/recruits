@@ -72,7 +72,7 @@ public class RecruitsClientConfig {
                         ----UpdateMapTiles----
                         \t(takes effect after restart)
                         \t
-                        Should the world map tiles be updated while the map is open?
+                        Should the world map tiles be updated while playing?
                         Disable this if you experience performance issues with the map.""
                         default: true""")
                 .worldRestart()

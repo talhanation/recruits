@@ -1,7 +1,6 @@
 package com.talhanation.recruits.client.events;
 
 import com.talhanation.recruits.client.gui.worldmap.WorldMapTileManager;
-import com.talhanation.recruits.client.gui.worldmap.WorldMapScreen;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.Level;
@@ -13,7 +12,6 @@ public class ClientPlayerEvents {
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
-        if (!(Minecraft.getInstance().screen instanceof WorldMapScreen)) return;
         if (!RecruitsClientConfig.UpdateMapTiles.get()) return;
 
         updateMapTiles();

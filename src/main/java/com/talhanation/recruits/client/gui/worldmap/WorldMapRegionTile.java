@@ -1,9 +1,12 @@
 package com.talhanation.recruits.client.gui.worldmap;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,38 +30,15 @@ final class WorldMapRegionTile {
         this.regionZ = regionZ;
     }
 
-    void loadOrCreate(File regionFile) {
-        if (!loadFromFile(regionFile)) {
-            closeImageAndTexture();
-            this.image = new NativeImage(NativeImage.Format.RGBA, REGION_PIXEL_SIZE, REGION_PIXEL_SIZE, false);
-            clearImage(this.image);
-            this.dirty = false;
-            this.textureDirty = true;
-        }
+    synchronized void createBlank() {
+        closeImageAndTexture();
+        this.image = new NativeImage(NativeImage.Format.RGBA, REGION_PIXEL_SIZE, REGION_PIXEL_SIZE, false);
+        clearImage(this.image);
+        this.dirty = false;
+        this.textureDirty = true;
     }
 
-    boolean loadFromFile(File regionFile) {
-        if (regionFile == null || !regionFile.exists() || regionFile.length() <= 0) return false;
-
-        try {
-            byte[] fileData = java.nio.file.Files.readAllBytes(regionFile.toPath());
-            NativeImage loadedImage = NativeImage.read(fileData);
-            if (loadedImage.getWidth() != REGION_PIXEL_SIZE || loadedImage.getHeight() != REGION_PIXEL_SIZE) {
-                loadedImage.close();
-                return false;
-            }
-
-            closeImageAndTexture();
-            this.image = loadedImage;
-            this.dirty = false;
-            this.textureDirty = true;
-            return true;
-        } catch (IOException ignored) {
-            return false;
-        }
-    }
-
-    void loadFromImage(NativeImage loadedImage) {
+    synchronized void loadFromImage(NativeImage loadedImage) {
         if (loadedImage == null) return;
 
         closeImageAndTexture();
@@ -67,7 +47,7 @@ final class WorldMapRegionTile {
         this.textureDirty = true;
     }
 
-    void updateFromChunkImage(ChunkImage chunkImage, int chunkXInRegion, int chunkZInRegion) {
+    synchronized void updateFromChunkImage(ChunkImage chunkImage, int chunkXInRegion, int chunkZInRegion) {
         if (this.image == null || chunkImage == null || !chunkImage.isMeaningful()) return;
 
         NativeImage chunkImg = chunkImage.getNativeImage();
@@ -84,14 +64,16 @@ final class WorldMapRegionTile {
         this.textureDirty = true;
     }
 
-    void saveToFile(File regionFile) {
-        if (this.image == null || !this.dirty) return;
+    synchronized boolean saveToFile(File regionFile) {
+        if (this.image == null || !this.dirty) return false;
 
         try {
             regionFile.getParentFile().mkdirs();
             this.image.writeToFile(regionFile);
             this.dirty = false;
+            return true;
         } catch (IOException ignored) {
+            return false;
         }
     }
 
@@ -102,6 +84,18 @@ final class WorldMapRegionTile {
 
     NativeImage getImage() {
         return this.image;
+    }
+
+    synchronized NativeImage copyImage() {
+        if (this.image == null) return null;
+
+        NativeImage copy = new NativeImage(NativeImage.Format.RGBA, REGION_PIXEL_SIZE, REGION_PIXEL_SIZE, false);
+        for (int y = 0; y < REGION_PIXEL_SIZE; y++) {
+            for (int x = 0; x < REGION_PIXEL_SIZE; x++) {
+                copy.setPixelRGBA(x, y, this.image.getPixelRGBA(x, y));
+            }
+        }
+        return copy;
     }
 
     int getRegionX() {
@@ -124,7 +118,7 @@ final class WorldMapRegionTile {
         return dirty;
     }
 
-    void close() {
+    synchronized void close() {
         closeImageAndTexture();
     }
 
@@ -141,6 +135,8 @@ final class WorldMapRegionTile {
 
         if (this.texture == null) {
             this.texture = new DynamicTexture(this.image);
+            this.texture.setFilter(false, false);
+            applyMapTextureSampling(this.texture.getId());
             this.textureId = Minecraft.getInstance().getTextureManager()
                     .register("recruits_worldmap_region_" + regionX + "_" + regionZ, this.texture);
             this.textureDirty = false;
@@ -168,6 +164,14 @@ final class WorldMapRegionTile {
         this.image = null;
         this.texture = null;
         this.textureId = null;
+    }
+
+    private static void applyMapTextureSampling(int textureId) {
+        RenderSystem.bindTexture(textureId);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
     }
 
     private static void clearImage(NativeImage image) {
