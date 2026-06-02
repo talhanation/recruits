@@ -67,11 +67,11 @@ public class RouteRenderer {
             Waypoint a = waypoints.get(i);
             Waypoint b = waypoints.get(i + 1);
             if (a == draggingWaypoint || b == draggingWaypoint) continue;
-            int x1 = (int)(offsetX + a.getPosition().getX() * scale);
-            int z1 = (int)(offsetZ + a.getPosition().getZ() * scale);
-            int x2 = (int)(offsetX + b.getPosition().getX() * scale);
-            int z2 = (int)(offsetZ + b.getPosition().getZ() * scale);
-            drawLine(guiGraphics, x1, z1, x2, z2, 0xAAFFFFFF);
+            double x1 = offsetX + a.getPosition().getX() * scale;
+            double z1 = offsetZ + a.getPosition().getZ() * scale;
+            double x2 = offsetX + b.getPosition().getX() * scale;
+            double z2 = offsetZ + b.getPosition().getZ() * scale;
+            MapRenderUtil.line(guiGraphics, x1, z1, x2, z2, 1.0, 0xAAFFFFFF);
         }
     }
 
@@ -88,28 +88,28 @@ public class RouteRenderer {
         Waypoint next = clampedIdx < without.size() ? without.get(clampedIdx)     : null;
 
         if (prev != null) {
-            drawLine(guiGraphics,
-                    (int)(offsetX + prev.getPosition().getX() * scale),
-                    (int)(offsetZ + prev.getPosition().getZ() * scale),
-                    (int)(offsetX + draggingWaypoint.getPosition().getX() * scale),
-                    (int)(offsetZ + draggingWaypoint.getPosition().getZ() * scale),
-                    0xFF00FFFF);
+            MapRenderUtil.line(guiGraphics,
+                    offsetX + prev.getPosition().getX() * scale,
+                    offsetZ + prev.getPosition().getZ() * scale,
+                    offsetX + draggingWaypoint.getPosition().getX() * scale,
+                    offsetZ + draggingWaypoint.getPosition().getZ() * scale,
+                    1.0, 0xFF00FFFF);
         }
         if (next != null) {
-            drawLine(guiGraphics,
-                    (int)(offsetX + draggingWaypoint.getPosition().getX() * scale),
-                    (int)(offsetZ + draggingWaypoint.getPosition().getZ() * scale),
-                    (int)(offsetX + next.getPosition().getX() * scale),
-                    (int)(offsetZ + next.getPosition().getZ() * scale),
-                    0xFF00FFFF);
+            MapRenderUtil.line(guiGraphics,
+                    offsetX + draggingWaypoint.getPosition().getX() * scale,
+                    offsetZ + draggingWaypoint.getPosition().getZ() * scale,
+                    offsetX + next.getPosition().getX() * scale,
+                    offsetZ + next.getPosition().getZ() * scale,
+                    1.0, 0xFF00FFFF);
         }
     }
 
     private static void renderWaypointIcon(GuiGraphics guiGraphics, Waypoint waypoint, int number,
                                            double offsetX, double offsetZ, double scale, int alpha,
                                            boolean isDragging) {
-        int pixelX = (int)(offsetX + waypoint.getPosition().getX() * scale);
-        int pixelZ = (int)(offsetZ + waypoint.getPosition().getZ() * scale);
+        double pixelX = offsetX + waypoint.getPosition().getX() * scale;
+        double pixelZ = offsetZ + waypoint.getPosition().getZ() * scale;
 
         boolean loaded = isChunkLoaded(waypoint);
         int color = loaded ? COLOR_NORMAL : COLOR_NOT_LOADED;
@@ -121,7 +121,7 @@ public class RouteRenderer {
         String numStr = String.valueOf(number);
         int textWidth = Minecraft.getInstance().font.width(numStr);
         guiGraphics.drawString(Minecraft.getInstance().font, numStr,
-                pixelX - textWidth / 2, pixelZ - 10, argb, false);
+                (int) Math.round(pixelX - textWidth / 2.0), (int) Math.round(pixelZ - 10.0), argb, false);
 
         // Status / action label below icon, only when zoomed in and not being dragged
         if (scale > 2.0 && !isDragging) {
@@ -134,7 +134,7 @@ public class RouteRenderer {
             if (label != null) {
                 int labelW = Minecraft.getInstance().font.width(label);
                 guiGraphics.drawString(Minecraft.getInstance().font, label,
-                        pixelX - labelW / 2, pixelZ + 5, argb, false);
+                        (int) Math.round(pixelX - labelW / 2.0), (int) Math.round(pixelZ + 5.0), argb, false);
             }
         }
     }
@@ -147,11 +147,11 @@ public class RouteRenderer {
                 waypoint.getPosition().getZ() >> 4);
         // Must be both explored on the map AND currently loaded in the level
         // so that surface Y can be resolved accurately when patrolling starts.
-        if (!ChunkTileManager.getInstance().isChunkExplored(chunk)) return false;
+        if (!WorldMapTileManager.getInstance().isChunkExplored(chunk)) return false;
         return level.getChunkSource().getChunk(chunk.x, chunk.z, false) != null;
     }
 
-    private static void renderIconAt(GuiGraphics guiGraphics, int pixelX, int pixelZ,
+    private static void renderIconAt(GuiGraphics guiGraphics, double pixelX, double pixelZ,
                                      int iconIndex, int color, int alpha) {
         PoseStack pose = guiGraphics.pose();
         pose.pushPose();
@@ -179,21 +179,6 @@ public class RouteRenderer {
         guiGraphics.flush();
 
         pose.popPose();
-    }
-
-    private static void drawLine(GuiGraphics g, int x1, int y1, int x2, int y2, int color) {
-        int dx = Math.abs(x2 - x1);
-        int dy = Math.abs(y2 - y1);
-        int sx = x1 < x2 ? 1 : -1;
-        int sy = y1 < y2 ? 1 : -1;
-        int err = dx - dy;
-        while (true) {
-            g.fill(x1, y1, x1 + 1, y1 + 1, color);
-            if (x1 == x2 && y1 == y2) break;
-            int e2 = 2 * err;
-            if (e2 > -dy) { err -= dy; x1 += sx; }
-            if (e2 <  dx) { err += dx; y1 += sy; }
-        }
     }
 
     // -------------------------------------------------------------------------

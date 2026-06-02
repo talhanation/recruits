@@ -1,6 +1,5 @@
 package com.talhanation.recruits.client.gui.worldmap;
 
-import com.talhanation.recruits.client.gui.worldmap.ChunkTileManager;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.faction.FactionEditScreen;
@@ -43,7 +42,7 @@ public class ClaimRenderer {
     public static void renderClaimsOverlayTransparent(GuiGraphics guiGraphics, RecruitsClaim selectedClaim, double offsetX, double offsetZ, double scale) {
         if (ClientManager.recruitsClaims.isEmpty()) return;
 
-        // Skip fill — only draw outlines and selection so the claim boundaries stay visible
+        // Skip fill; only draw outlines and selection so the claim boundaries stay visible.
         for (RecruitsClaim claim : ClientManager.recruitsClaims) {
             renderClaimPassiveOutline(guiGraphics, claim, offsetX, offsetZ, scale);
         }
@@ -62,7 +61,7 @@ public class ClaimRenderer {
     }
 
     public static boolean isClaimExplored(RecruitsClaim claim) {
-        ChunkTileManager tileManager = ChunkTileManager.getInstance();
+        WorldMapTileManager tileManager = WorldMapTileManager.getInstance();
         for (ChunkPos chunk : claim.getClaimedChunks()) {
             if (tileManager.isChunkExplored(chunk)) return true;
         }
@@ -74,7 +73,7 @@ public class ClaimRenderer {
 
         int factionFillColor = (190 << 24) | (getClaimColor(claim) & 0x00FFFFFF);
         boolean adminCreative = isAdminCreative();
-        ChunkTileManager tileManager = ChunkTileManager.getInstance();
+        WorldMapTileManager tileManager = WorldMapTileManager.getInstance();
 
         for (ChunkPos chunk : claim.getClaimedChunks()) {
             boolean explored = adminCreative || tileManager.isChunkExplored(chunk);
@@ -86,16 +85,12 @@ public class ClaimRenderer {
         double worldX = chunk.x * 16.0;
         double worldZ = chunk.z * 16.0;
 
-        int x1 = (int) Math.floor(offsetX + worldX * scale);
-        int z1 = (int) Math.floor(offsetZ + worldZ * scale);
+        double x1 = offsetX + worldX * scale;
+        double z1 = offsetZ + worldZ * scale;
+        double x2 = offsetX + (worldX + 16.0) * scale;
+        double z2 = offsetZ + (worldZ + 16.0) * scale;
 
-        int x2 = (int) Math.floor(offsetX + (worldX + 16.0) * scale);
-        int z2 = (int) Math.floor(offsetZ + (worldZ + 16.0) * scale);
-
-        if (x2 <= x1) x2 = x1 + 1;
-        if (z2 <= z1) z2 = z1 + 1;
-
-        guiGraphics.fill(x1, z1, x2, z2, color);
+        MapRenderUtil.fill(guiGraphics, x1, z1, x2, z2, color);
     }
 
     private static void renderClaimPassiveOutline(GuiGraphics guiGraphics, RecruitsClaim claim, double offsetX, double offsetZ, double scale) {
@@ -106,7 +101,7 @@ public class ClaimRenderer {
         int factionOutlineColor = (200 << 24) | (getClaimColor(claim) & 0x00FFFFFF);
         int thickness = Math.max(1, (int)Math.round(scale * 0.5));
         boolean adminCreative = isAdminCreative();
-        ChunkTileManager tileManager = ChunkTileManager.getInstance();
+        WorldMapTileManager tileManager = WorldMapTileManager.getInstance();
 
         for (ChunkPos chunk : claim.getClaimedChunks()) {
             boolean explored = adminCreative || !ClientManager.configFogOfWarEnabled || tileManager.isChunkExplored(chunk);
@@ -120,25 +115,22 @@ public class ClaimRenderer {
             double worldX1 = chunk.x * 16.0;
             double worldZ1 = chunk.z * 16.0;
 
-            int x1 = (int)Math.floor(offsetX + worldX1 * scale);
-            int z1 = (int)Math.floor(offsetZ + worldZ1 * scale);
-            int x2 = (int)Math.floor(offsetX + (worldX1 + 16.0) * scale);
-            int z2 = (int)Math.floor(offsetZ + (worldZ1 + 16.0) * scale);
-
-            if (x2 <= x1) x2 = x1 + 1;
-            if (z2 <= z1) z2 = z1 + 1;
+            double x1 = offsetX + worldX1 * scale;
+            double z1 = offsetZ + worldZ1 * scale;
+            double x2 = offsetX + (worldX1 + 16.0) * scale;
+            double z2 = offsetZ + (worldZ1 + 16.0) * scale;
 
             if (!hasTop) {
-                guiGraphics.fill(x1, z1, x2, z1 + thickness, outlineColor);
+                MapRenderUtil.fill(guiGraphics, x1, z1, x2, z1 + thickness, outlineColor);
             }
             if (!hasBottom) {
-                guiGraphics.fill(x1, z2 - thickness, x2, z2, outlineColor);
+                MapRenderUtil.fill(guiGraphics, x1, z2 - thickness, x2, z2, outlineColor);
             }
             if (!hasLeft) {
-                guiGraphics.fill(x1, z1, x1 + thickness, z2, outlineColor);
+                MapRenderUtil.fill(guiGraphics, x1, z1, x1 + thickness, z2, outlineColor);
             }
             if (!hasRight) {
-                guiGraphics.fill(x2 - thickness, z1, x2, z2, outlineColor);
+                MapRenderUtil.fill(guiGraphics, x2 - thickness, z1, x2, z2, outlineColor);
             }
         }
     }
@@ -169,22 +161,22 @@ public class ClaimRenderer {
             double worldX2 = worldX1 + 16.0;
             double worldZ2 = worldZ1 + 16.0;
 
-            int x1 = (int) Math.floor(offsetX + worldX1 * scale);
-            int z1 = (int) Math.floor(offsetZ + worldZ1 * scale);
-            int x2 = (int) Math.floor(offsetX + worldX2 * scale);
-            int z2 = (int) Math.floor(offsetZ + worldZ2 * scale);
+            double x1 = offsetX + worldX1 * scale;
+            double z1 = offsetZ + worldZ1 * scale;
+            double x2 = offsetX + worldX2 * scale;
+            double z2 = offsetZ + worldZ2 * scale;
 
             if (!hasTop) {
-                guiGraphics.fill(x1, z1, x2, z1 + borderThickness, borderColor);
+                MapRenderUtil.fill(guiGraphics, x1, z1, x2, z1 + borderThickness, borderColor);
             }
             if (!hasBottom) {
-                guiGraphics.fill(x1, z2 - borderThickness, x2, z2, borderColor);
+                MapRenderUtil.fill(guiGraphics, x1, z2 - borderThickness, x2, z2, borderColor);
             }
             if (!hasLeft) {
-                guiGraphics.fill(x1, z1, x1 + borderThickness, z2, borderColor);
+                MapRenderUtil.fill(guiGraphics, x1, z1, x1 + borderThickness, z2, borderColor);
             }
             if (!hasRight) {
-                guiGraphics.fill(x2 - borderThickness, z1, x2, z2, borderColor);
+                MapRenderUtil.fill(guiGraphics, x2 - borderThickness, z1, x2, z2, borderColor);
             }
         }
     }

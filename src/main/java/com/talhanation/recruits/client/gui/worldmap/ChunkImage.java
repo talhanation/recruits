@@ -1,14 +1,10 @@
 package com.talhanation.recruits.client.gui.worldmap;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.Fluids;
@@ -16,14 +12,9 @@ import net.minecraft.world.level.material.MapColor;
 
 public class ChunkImage {
     private final NativeImage image;
-    private final DynamicTexture texture;
-    private final ResourceLocation textureId;
 
     public ChunkImage(ClientLevel level, ChunkPos pos) {
         this.image = generateVanillaStyleImage(level, pos);
-        this.texture = new DynamicTexture(image);
-        this.textureId = Minecraft.getInstance().getTextureManager()
-                .register("chunk_" + pos.x + "_" + pos.z, texture);
     }
 
     private NativeImage generateVanillaStyleImage(ClientLevel level, ChunkPos pos) {
@@ -127,7 +118,5 @@ public class ChunkImage {
 
     public void close() {
         try { if (image != null) image.close(); } catch (Exception ignored) {}
-        try { if (texture != null) texture.close(); } catch (Exception ignored) {}
-        if (textureId != null) Minecraft.getInstance().getTextureManager().release(textureId);
     }
 }

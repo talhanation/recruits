@@ -1,6 +1,6 @@
 package com.talhanation.recruits.client.events;
 
-import com.talhanation.recruits.client.gui.worldmap.ChunkTileManager;
+import com.talhanation.recruits.client.gui.worldmap.WorldMapTileManager;
 import com.talhanation.recruits.client.gui.worldmap.WorldMapScreen;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import net.minecraft.client.Minecraft;
@@ -24,20 +24,20 @@ public class ClientPlayerEvents {
         if (mc.level == null || mc.player == null) return;
         if (mc.level.dimension() != Level.OVERWORLD) return;
 
-        ChunkTileManager.getInstance().updateCurrentTile();
+        WorldMapTileManager.getInstance().updateCurrentTile();
     }
 
     @SubscribeEvent
     public void onWorldLoad(LevelEvent.Load event) {
         if (event.getLevel().isClientSide()) {
-            ChunkTileManager.getInstance().initialize((Level) event.getLevel());
+            WorldMapTileManager.getInstance().initialize((Level) event.getLevel());
         }
     }
 
     @SubscribeEvent
     public void onWorldUnload(LevelEvent.Unload event) {
         if (event.getLevel().isClientSide()) {
-            ChunkTileManager.getInstance().close();
+            WorldMapTileManager.getInstance().close();
         }
     }
 }
