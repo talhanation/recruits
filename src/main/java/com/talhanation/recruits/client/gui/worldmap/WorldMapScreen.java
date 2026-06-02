@@ -40,7 +40,8 @@ import static com.talhanation.recruits.client.ClientManager.ownFaction;
 
 public class WorldMapScreen extends Screen {
     private static final ResourceLocation MAP_ICONS = new ResourceLocation("textures/map/map_icons.png");
-    private final ChunkTileManager tileManager;
+    private final WorldMapTileManager tileManager;
+    private final WorldMapRenderer mapRenderer;
     private final WorldMapCamera camera;
     private final Player player;
     private static final double DEFAULT_SCALE = 2.0;
@@ -87,7 +88,8 @@ public class WorldMapScreen extends Screen {
         super(Component.literal(""));
         this.contextMenu = new WorldMapContextMenu(this);
         this.claimInfoMenu = new ClaimInfoMenu(this);
-        this.tileManager = ChunkTileManager.getInstance();
+        this.tileManager = WorldMapTileManager.getInstance();
+        this.mapRenderer = new WorldMapRenderer(tileManager);
         this.camera = new WorldMapCamera(this);
         this.player = Minecraft.getInstance().player;
     }
@@ -246,7 +248,7 @@ public class WorldMapScreen extends Screen {
 
         guiGraphics.enableScissor(0, 0, width, height);
 
-        renderMapTiles(guiGraphics);
+        mapRenderer.render(guiGraphics, width, height, offsetX, offsetZ, scale);
         if (claimTransparency) {
             ClaimRenderer.renderClaimsOverlayTransparent(guiGraphics, this.selectedClaim, this.offsetX, this.offsetZ, scale);
         } else {
@@ -326,50 +328,6 @@ public class WorldMapScreen extends Screen {
         guiGraphics.fill(0, 0, width, height, DARK_GRAY_BG);
     }
 
-    private void renderMapTiles(GuiGraphics guiGraphics) {
-        double tileSize = ChunkTile.TILE_PIXEL_SIZE;
-        double scaledTileSize = tileSize * scale;
-
-        double leftEdge = -offsetX;
-        double rightEdge = width - offsetX;
-        double topEdge = -offsetZ;
-        double bottomEdge = height - offsetZ;
-
-        int startTileX = (int) Math.floor(leftEdge / scaledTileSize - 0.5);
-        int endTileX = (int) Math.ceil(rightEdge / scaledTileSize + 0.5);
-        int startTileZ = (int) Math.floor(topEdge / scaledTileSize - 0.5);
-        int endTileZ = (int) Math.ceil(bottomEdge / scaledTileSize + 0.5);
-
-        for (int tileZ = startTileZ; tileZ <= endTileZ; tileZ++) {
-            for (int tileX = startTileX; tileX <= endTileX; tileX++) {
-                ChunkTile tile = tileManager.getOrCreateTile(tileX, tileZ);
-                ResourceLocation textureId = tile.getTextureId();
-                if (textureId == null) continue;
-
-                double tileWorldX = tileX * scaledTileSize + offsetX;
-                double tileWorldZ = tileZ * scaledTileSize + offsetZ;
-                double drawX = tileWorldX - 0.5;
-                double drawZ = tileWorldZ - 0.5;
-                double drawSize = scaledTileSize + 1.0;
-
-                int x = (int) Math.floor(drawX);
-                int z = (int) Math.floor(drawZ);
-                int size = (int) Math.ceil(drawSize);
-
-                if (Math.abs(scale - 1.0) < 0.01) {
-                    x = (int) Math.round(tileWorldX);
-                    z = (int) Math.round(tileWorldZ);
-                    size = (int) Math.round(scaledTileSize);
-                }
-
-                RenderSystem.setShaderTexture(0, textureId);
-                RenderSystem.enableBlend();
-                RenderSystem.defaultBlendFunc();
-                guiGraphics.blit(textureId, x, z, 0, 0, size, size, size, size);
-            }
-        }
-    }
-
     // -------------------------------------------------------------------------
     // Waypoint creation
     // -------------------------------------------------------------------------
@@ -428,8 +386,8 @@ public class WorldMapScreen extends Screen {
     private void renderPlayerPosition(GuiGraphics guiGraphics) {
         double playerWorldX = player.getX();
         double playerWorldZ = player.getZ();
-        int pixelX = (int) (offsetX + playerWorldX * scale);
-        int pixelZ = (int) (offsetZ + playerWorldZ * scale);
+        double pixelX = offsetX + playerWorldX * scale;
+        double pixelZ = offsetZ + playerWorldZ * scale;
 
         PoseStack pose = guiGraphics.pose();
         pose.pushPose();
@@ -478,7 +436,7 @@ public class WorldMapScreen extends Screen {
         consumer.vertex(matrix, -1f, -1f, 0f).color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF).uv(u0, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, 1).endVertex();
     }
 
-    private void renderPlayerNameTag(GuiGraphics guiGraphics, int pixelX, int pixelZ) {
+    private void renderPlayerNameTag(GuiGraphics guiGraphics, double pixelX, double pixelZ) {
         if (player != null && scale > 1.5) {
             String playerName = player.getName().getString();
             float textScale = (float) Math.min(1.0, scale / 1.25);
@@ -493,20 +451,21 @@ public class WorldMapScreen extends Screen {
     }
 
     private void renderChunkHighlight(GuiGraphics guiGraphics, int chunkX, int chunkZ) {
-        int pixelX = (int) (offsetX + chunkX * 16 * scale);
-        int pixelZ = (int) (offsetZ + chunkZ * 16 * scale);
-        int size = (int) (16 * scale);
-        guiGraphics.fill(pixelX, pixelZ, pixelX + size, pixelZ + size, CHUNK_HIGHLIGHT_COLOR);
+        double pixelX = offsetX + chunkX * 16.0 * scale;
+        double pixelZ = offsetZ + chunkZ * 16.0 * scale;
+        double size = 16.0 * scale;
+        MapRenderUtil.fill(guiGraphics, pixelX, pixelZ, pixelX + size, pixelZ + size, CHUNK_HIGHLIGHT_COLOR);
     }
 
     private void renderChunkOutline(GuiGraphics guiGraphics, int chunkX, int chunkZ, int color) {
-        int pixelX = (int) (offsetX + chunkX * 16 * scale);
-        int pixelZ = (int) (offsetZ + chunkZ * 16 * scale);
-        int size = (int) (16 * scale);
-        guiGraphics.hLine(pixelX, pixelX + size, pixelZ, color);
-        guiGraphics.hLine(pixelX, pixelX + size, pixelZ + size, color);
-        guiGraphics.vLine(pixelX, pixelZ, pixelZ + size, color);
-        guiGraphics.vLine(pixelX + size, pixelZ, pixelZ + size, color);
+        double pixelX = offsetX + chunkX * 16.0 * scale;
+        double pixelZ = offsetZ + chunkZ * 16.0 * scale;
+        double size = 16.0 * scale;
+        double thickness = Math.max(1.0, Math.min(2.0, scale));
+        MapRenderUtil.fill(guiGraphics, pixelX, pixelZ, pixelX + size, pixelZ + thickness, color);
+        MapRenderUtil.fill(guiGraphics, pixelX, pixelZ + size - thickness, pixelX + size, pixelZ + size, color);
+        MapRenderUtil.fill(guiGraphics, pixelX, pixelZ, pixelX + thickness, pixelZ + size, color);
+        MapRenderUtil.fill(guiGraphics, pixelX + size - thickness, pixelZ, pixelX + size, pixelZ + size, color);
     }
 
     private void renderCoordinatesAndZoom(GuiGraphics guiGraphics) {
@@ -760,6 +719,7 @@ public class WorldMapScreen extends Screen {
 
         public void onClose() {
             camera.rememberCurrentView();
+            mapRenderer.close();
             tileManager.close();
             super.onClose();
         }
