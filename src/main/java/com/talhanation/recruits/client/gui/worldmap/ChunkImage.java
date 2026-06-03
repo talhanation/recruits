@@ -13,6 +13,10 @@ public class ChunkImage {
         this.image = generateChunkImage(level, pos);
     }
 
+    ChunkImage(NativeImage image) {
+        this.image = image;
+    }
+
     public static int sampleMapColor(ClientLevel level, int worldX, int worldZ) {
         MapSample sample = MapStateSampler.findTopMapSample(level, worldX, worldZ);
         if (sample == null) return 0x00000000;
@@ -62,11 +66,11 @@ public class ChunkImage {
         return cachedHeight(sample, fallback);
     }
 
-    private static int cachedHeight(MapSample sample, int fallback) {
+    static int cachedHeight(MapSample sample, int fallback) {
         return sample != null ? sample.height() : fallback;
     }
 
-    private static int resolveTerrainColor(ClientLevel level, MapSample sample, int northHeight, int northWestHeight) {
+    static int resolveTerrainColor(ClientLevel level, MapSample sample, int northHeight, int northWestHeight) {
         BlockPos pos = sample.pos();
         BlockState state = sample.state();
         if (MapStateSampler.isTransparentOverlay(level, pos, state)) {

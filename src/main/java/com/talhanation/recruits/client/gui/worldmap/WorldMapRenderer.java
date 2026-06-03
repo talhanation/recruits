@@ -6,9 +6,12 @@ import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 
 import java.util.ArrayList;
@@ -16,10 +19,11 @@ import java.util.Comparator;
 import java.util.List;
 
 final class WorldMapRenderer {
-    private static final int MAX_LOD_LEVEL = 3;
+    private static final int MAX_LOD_LEVEL = 2;
     private static final int MAX_SAMPLE_STEP = 1 << MAX_LOD_LEVEL;
     private static final int MAX_TILE_DRAWS_PER_FRAME = 384;
     private static final int MAX_TILE_VISITS_PER_FRAME = 4096;
+    private static final int MAX_TEXTURE_UPLOADS_PER_FRAME = 2;
     private static final double CHILD_SUBSTITUTION_MIN_PIXELS = 256.0;
     private static final double MISSING_TILE_FALLBACK_MIN_PIXELS = 24.0;
     private static final int MAX_MISSING_TILE_FALLBACK_DEPTH = 4;
@@ -33,18 +37,29 @@ final class WorldMapRenderer {
     }
 
     void render(GuiGraphics guiGraphics, int screenWidth, int screenHeight, double offsetX, double offsetZ, double scale) {
-        tileManager.beginRenderFrame();
+        WorldMapDebugProfiler.beginMapRender(screenWidth, screenHeight, scale);
 
+        long framebufferBeginStart = System.nanoTime();
+        tileManager.beginRenderFrame();
         MapFramebufferPass.Frame frame = framebufferPass.begin(guiGraphics, offsetX, offsetZ, scale, screenWidth, screenHeight);
-        renderTileTree(guiGraphics, frame);
+        WorldMapDebugProfiler.recordFramebufferBegin(System.nanoTime() - framebufferBeginStart);
+        WorldMapDebugProfiler.recordFramebuffer(frame);
+
+        long tileRenderStart = System.nanoTime();
+        renderTileTree(guiGraphics, frame, getMapBrightness());
+        WorldMapDebugProfiler.recordTileRender(System.nanoTime() - tileRenderStart);
+
+        long framebufferBlitStart = System.nanoTime();
         framebufferPass.endAndBlit(guiGraphics, frame);
+        WorldMapDebugProfiler.recordFramebufferBlit(System.nanoTime() - framebufferBlitStart);
+        WorldMapDebugProfiler.finishMapRender();
     }
 
     void close() {
         framebufferPass.close();
     }
 
-    private void renderTileTree(GuiGraphics guiGraphics, MapFramebufferPass.Frame frame) {
+    private void renderTileTree(GuiGraphics guiGraphics, MapFramebufferPass.Frame frame, float brightness) {
         int rootLevel = chooseRootLevel(frame.fboScale());
         int rootWorldSize = worldSizeForLevel(rootLevel);
         List<TileCoord> visibleTiles = collectVisibleTiles(
@@ -57,11 +72,19 @@ final class WorldMapRenderer {
 
         WorldMapLodCache lodCache = tileManager.getLodCache();
         lodCache.beginFrame();
-        RenderBudget budget = new RenderBudget(MAX_TILE_DRAWS_PER_FRAME, MAX_TILE_VISITS_PER_FRAME);
+        if (rootLevel <= 1) {
+            tileManager.scheduleVisibleRegionLoads(frame.leftWorld(), frame.rightWorld(), frame.topWorld(), frame.bottomWorld());
+        }
+        WorldMapDebugProfiler.recordRootLevel(rootLevel, visibleTiles.size());
+        RenderBudget budget = new RenderBudget(
+                MAX_TILE_DRAWS_PER_FRAME,
+                MAX_TILE_VISITS_PER_FRAME,
+                MAX_TEXTURE_UPLOADS_PER_FRAME
+        );
 
         for (TileCoord tileCoord : visibleTiles) {
             renderTileTree(guiGraphics, lodCache, budget, rootLevel, tileCoord.x(), tileCoord.z(),
-                    frame.renderOffsetX(), frame.renderOffsetZ(), frame.fboScale(), 0, true);
+                    frame.renderOffsetX(), frame.renderOffsetZ(), frame.fboScale(), brightness, 0, true);
         }
 
         lodCache.trim();
@@ -70,6 +93,7 @@ final class WorldMapRenderer {
     private boolean renderTileTree(GuiGraphics guiGraphics, WorldMapLodCache lodCache, RenderBudget budget,
                                    int level, int tileX, int tileZ,
                                    double offsetX, double offsetZ, double scale,
+                                   float brightness,
                                    int missingFallbackDepth, boolean allowScheduling) {
         if (!budget.tryVisit()) return false;
 
@@ -77,32 +101,37 @@ final class WorldMapRenderer {
         double screenSize = worldSize * scale;
         if (screenSize < 0.75) return false;
 
-        TileTexture texture = acquireTileTexture(lodCache, level, tileX, tileZ, allowScheduling);
+        TileTexture texture = acquireTileTexture(lodCache, level, tileX, tileZ, allowScheduling, budget);
         if (texture != null) {
             if (shouldSubstituteWithChildren(level, screenSize) && canRenderImmediateChildren(lodCache, level, tileX, tileZ)) {
-                return renderImmediateChildren(guiGraphics, lodCache, budget, level, tileX, tileZ, offsetX, offsetZ, scale);
+                WorldMapDebugProfiler.recordChildSubstitution();
+                return renderImmediateChildren(guiGraphics, lodCache, budget, level, tileX, tileZ, offsetX, offsetZ, scale, brightness);
             }
             if (shouldSubstituteWithChildren(level, screenSize) && allowScheduling) {
                 scheduleImmediateChildren(lodCache, level, tileX, tileZ);
             }
             if (!budget.tryDraw()) return false;
             renderWorldTile(guiGraphics, texture.textureId(), texture.worldMinX(), texture.worldMinZ(),
-                    texture.worldSize(), offsetX, offsetZ, scale);
+                    texture.worldSize(), offsetX, offsetZ, scale, brightness);
             return true;
         }
 
+        WorldMapDebugProfiler.recordMissingTile();
+
         boolean shouldFallbackToChildren = level > 0
+                && allowScheduling
                 && missingFallbackDepth < MAX_MISSING_TILE_FALLBACK_DEPTH
                 && screenSize >= MISSING_TILE_FALLBACK_MIN_PIXELS;
         if (!shouldFallbackToChildren) return false;
 
+        WorldMapDebugProfiler.recordMissingFallback();
         return renderChildren(guiGraphics, lodCache, budget, level, tileX, tileZ, offsetX, offsetZ, scale,
-                missingFallbackDepth + 1, false);
+                brightness, missingFallbackDepth + 1, false);
     }
 
     private boolean renderImmediateChildren(GuiGraphics guiGraphics, WorldMapLodCache lodCache, RenderBudget budget,
                                             int level, int tileX, int tileZ,
-                                            double offsetX, double offsetZ, double scale) {
+                                            double offsetX, double offsetZ, double scale, float brightness) {
         if (!budget.hasDrawsLeft(4)) return false;
 
         int childLevel = level - 1;
@@ -110,10 +139,10 @@ final class WorldMapRenderer {
         int childBaseZ = tileZ * 2;
         for (int childZ = 0; childZ < 2; childZ++) {
             for (int childX = 0; childX < 2; childX++) {
-                TileTexture childTexture = acquireTileTexture(lodCache, childLevel, childBaseX + childX, childBaseZ + childZ, false);
+                TileTexture childTexture = acquireTileTexture(lodCache, childLevel, childBaseX + childX, childBaseZ + childZ, false, budget);
                 if (childTexture == null || !budget.tryDraw()) return false;
                 renderWorldTile(guiGraphics, childTexture.textureId(), childTexture.worldMinX(), childTexture.worldMinZ(),
-                        childTexture.worldSize(), offsetX, offsetZ, scale);
+                        childTexture.worldSize(), offsetX, offsetZ, scale, brightness);
             }
         }
         return true;
@@ -122,6 +151,7 @@ final class WorldMapRenderer {
     private boolean renderChildren(GuiGraphics guiGraphics, WorldMapLodCache lodCache, RenderBudget budget,
                                    int level, int tileX, int tileZ,
                                    double offsetX, double offsetZ, double scale,
+                                   float brightness,
                                    int missingFallbackDepth, boolean allowScheduling) {
         int childLevel = level - 1;
         int childBaseX = tileX * 2;
@@ -131,7 +161,7 @@ final class WorldMapRenderer {
             for (int childX = 0; childX < 2; childX++) {
                 renderedChild |= renderTileTree(guiGraphics, lodCache, budget, childLevel,
                         childBaseX + childX, childBaseZ + childZ,
-                        offsetX, offsetZ, scale, missingFallbackDepth, allowScheduling);
+                        offsetX, offsetZ, scale, brightness, missingFallbackDepth, allowScheduling);
             }
         }
         return renderedChild;
@@ -143,7 +173,7 @@ final class WorldMapRenderer {
         int childBaseZ = tileZ * 2;
         for (int childZ = 0; childZ < 2; childZ++) {
             for (int childX = 0; childX < 2; childX++) {
-                if (acquireTileTexture(lodCache, childLevel, childBaseX + childX, childBaseZ + childZ, false) == null) {
+                if (acquireTileTexture(lodCache, childLevel, childBaseX + childX, childBaseZ + childZ, false, null) == null) {
                     return false;
                 }
             }
@@ -157,13 +187,13 @@ final class WorldMapRenderer {
         int childBaseZ = tileZ * 2;
         for (int childZ = 0; childZ < 2; childZ++) {
             for (int childX = 0; childX < 2; childX++) {
-                acquireTileTexture(lodCache, childLevel, childBaseX + childX, childBaseZ + childZ, true);
+                acquireTileTexture(lodCache, childLevel, childBaseX + childX, childBaseZ + childZ, true, null);
             }
         }
     }
 
     private TileTexture acquireTileTexture(WorldMapLodCache lodCache, int level, int tileX, int tileZ,
-                                           boolean allowScheduling) {
+                                           boolean allowScheduling, RenderBudget budget) {
         ResourceLocation textureId;
         int worldSize = worldSizeForLevel(level);
         int worldMinX = tileX * worldSize;
@@ -175,17 +205,21 @@ final class WorldMapRenderer {
                 region = tileManager.getOrScheduleCachedRegion(tileX, tileZ);
             }
             if (region == null) return null;
-            textureId = region.getTextureId();
+            textureId = region.getTextureId(region.needsTextureUpload() && tryTextureUpload(budget));
         } else {
             WorldMapLodTile lodTile = allowScheduling
                     ? lodCache.getOrSchedule(tileX, tileZ, sampleStepForLevel(level))
                     : lodCache.getIfPresent(tileX, tileZ, sampleStepForLevel(level));
             if (lodTile == null) return null;
-            textureId = lodTile.getTextureId();
+            textureId = lodTile.getTextureId(lodTile.hasUploadReady() && tryTextureUpload(budget));
         }
 
         if (textureId == null) return null;
         return new TileTexture(textureId, worldMinX, worldMinZ, worldSize);
+    }
+
+    private static boolean tryTextureUpload(RenderBudget budget) {
+        return budget != null && budget.tryUpload();
     }
 
     private static int chooseRootLevel(double scale) {
@@ -242,7 +276,7 @@ final class WorldMapRenderer {
 
     private static void renderWorldTile(GuiGraphics guiGraphics, ResourceLocation textureId,
                                         int worldMinX, int worldMinZ, int worldSize,
-                                        double offsetX, double offsetZ, double scale) {
+                                        double offsetX, double offsetZ, double scale, float brightness) {
         double screenX = offsetX + worldMinX * scale;
         double screenZ = offsetZ + worldMinZ * scale;
         double screenSize = worldSize * scale;
@@ -260,7 +294,7 @@ final class WorldMapRenderer {
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, textureId);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderColor(brightness, brightness, brightness, 1.0F);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
 
@@ -272,6 +306,18 @@ final class WorldMapRenderer {
         buffer.vertex(matrix, (float) x2, (float) z1, 0.0F).uv(1.0F, 0.0F).endVertex();
         buffer.vertex(matrix, (float) x1, (float) z1, 0.0F).uv(0.0F, 0.0F).endVertex();
         BufferUploader.drawWithShader(buffer.end());
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    private static float getMapBrightness() {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null || level.dimensionType() == null || !level.dimensionType().hasSkyLight()) {
+            return 1.0F;
+        }
+
+        float ambient = Math.min(1.0F, 0.375F + level.dimensionType().ambientLight());
+        float sunBrightness = (level.getSkyDarken(1.0F) - 0.2F) / 0.8F;
+        return ambient + (1.0F - ambient) * Mth.clamp(sunBrightness, 0.0F, 1.0F);
     }
 
     private record TileCoord(int x, int z, double centerDistance) {
@@ -283,26 +329,45 @@ final class WorldMapRenderer {
     private static final class RenderBudget {
         private int drawsLeft;
         private int visitsLeft;
+        private int uploadsLeft;
 
-        private RenderBudget(int drawsLeft, int visitsLeft) {
+        private RenderBudget(int drawsLeft, int visitsLeft, int uploadsLeft) {
             this.drawsLeft = drawsLeft;
             this.visitsLeft = visitsLeft;
+            this.uploadsLeft = uploadsLeft;
         }
 
         private boolean tryVisit() {
-            if (visitsLeft <= 0) return false;
+            if (visitsLeft <= 0) {
+                WorldMapDebugProfiler.recordVisitBudgetExhausted();
+                return false;
+            }
             visitsLeft--;
+            WorldMapDebugProfiler.recordTileVisit();
             return true;
         }
 
         private boolean tryDraw() {
-            if (drawsLeft <= 0) return false;
+            if (drawsLeft <= 0) {
+                WorldMapDebugProfiler.recordDrawBudgetExhausted();
+                return false;
+            }
             drawsLeft--;
+            WorldMapDebugProfiler.recordTileDraw();
             return true;
         }
 
         private boolean hasDrawsLeft(int requiredDraws) {
             return drawsLeft >= requiredDraws;
+        }
+
+        private boolean tryUpload() {
+            if (uploadsLeft <= 0) {
+                WorldMapDebugProfiler.recordUploadBudgetExhausted();
+                return false;
+            }
+            uploadsLeft--;
+            return true;
         }
     }
 }

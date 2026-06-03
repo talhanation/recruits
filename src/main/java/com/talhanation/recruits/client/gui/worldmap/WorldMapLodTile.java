@@ -12,6 +12,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 final class WorldMapLodTile {
+    private static final long FAILED_RETRY_DELAY_NANOS = 1_000_000_000L;
+
     private final int tileX;
     private final int tileZ;
     private final int sampleStep;
@@ -21,6 +23,7 @@ final class WorldMapLodTile {
     private ResourceLocation textureId;
     private boolean failed;
     private boolean dirty;
+    private long lastFailureNanos;
     private long lastAccessNanos = System.nanoTime();
 
     WorldMapLodTile(int tileX, int tileZ, int sampleStep) {
@@ -29,10 +32,13 @@ final class WorldMapLodTile {
         this.sampleStep = sampleStep;
     }
 
-    void schedule(Supplier<NativeImage> imageSupplier) {
-        if (this.imageFuture != null || this.failed) return;
+    boolean schedule(Supplier<NativeImage> imageSupplier) {
+        if (this.imageFuture != null) return false;
+        if (this.failed && System.nanoTime() - this.lastFailureNanos < FAILED_RETRY_DELAY_NANOS) return false;
+
         this.dirty = false;
         this.imageFuture = WorldMapAsync.buildLod(imageSupplier);
+        return true;
     }
 
     boolean isScheduled() {
@@ -50,11 +56,22 @@ final class WorldMapLodTile {
     void markDirty() {
         this.dirty = true;
         this.failed = false;
+        this.lastFailureNanos = 0L;
     }
 
-    ResourceLocation getTextureId() {
-        uploadIfReady();
+    ResourceLocation getTextureId(boolean allowUpload) {
+        if (allowUpload) {
+            uploadIfReady();
+        }
         return this.textureId;
+    }
+
+    boolean hasUploadReady() {
+        return !this.failed && this.imageFuture != null && this.imageFuture.isDone();
+    }
+
+    boolean hasTexture() {
+        return this.textureId != null;
     }
 
     int getSampleStep() {
@@ -135,13 +152,13 @@ final class WorldMapLodTile {
             loadedImage = this.imageFuture.join();
         } catch (Exception ignored) {
             this.imageFuture = null;
-            this.failed = this.textureId == null;
+            markFailedIfEmpty();
             return;
         }
 
         if (loadedImage == null) {
             this.imageFuture = null;
-            this.failed = this.textureId == null;
+            markFailedIfEmpty();
             return;
         }
 
@@ -171,9 +188,19 @@ final class WorldMapLodTile {
                 .register("recruits_worldmap_lod_" + sampleStep + "_" + tileX + "_" + tileZ, this.texture);
     }
 
+    private void markFailedIfEmpty() {
+        if (this.textureId != null) {
+            this.failed = false;
+            return;
+        }
+
+        this.failed = true;
+        this.lastFailureNanos = System.nanoTime();
+    }
+
     private static void applyMapTextureSampling(int textureId) {
         RenderSystem.bindTexture(textureId);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);

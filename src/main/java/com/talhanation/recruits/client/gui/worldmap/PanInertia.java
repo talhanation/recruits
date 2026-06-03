@@ -2,14 +2,14 @@ package com.talhanation.recruits.client.gui.worldmap;
 
 final class PanInertia {
     private static final double DECAY = 0.9;
-    private static final double STOP_THRESHOLD = 0.01;
+    private static final double STOP_THRESHOLD = 0.002;
     private static final double MIN_DRAG_DISTANCE = 3.0;
     private static final double MAX_SPEED_PIXELS = 500.0;
     private static final long DRAG_SAMPLE_INTERVAL_NANOS = 30_000_000L;
     private static final double NANOS_PER_60FPS_FRAME = 16_666_666.666666668;
 
     private boolean active;
-    private long animationStartMillis;
+    private long animationStartNanos;
     private double fromOffsetX;
     private double fromOffsetZ;
     private double targetOffsetX;
@@ -84,7 +84,7 @@ final class PanInertia {
         fromOffsetZ = currentOffsetZ;
         targetOffsetX = currentOffsetX - moveWorldX * scale;
         targetOffsetZ = currentOffsetZ - moveWorldZ * scale;
-        animationStartMillis = System.currentTimeMillis();
+        animationStartNanos = System.nanoTime();
         active = true;
         lastDragSampleNanos = 0L;
         draggedDistance = 0.0;
@@ -93,8 +93,8 @@ final class PanInertia {
 
     Offset currentOffset() {
         return new Offset(
-                currentAnimatedValue(fromOffsetX, targetOffsetX, animationStartMillis),
-                currentAnimatedValue(fromOffsetZ, targetOffsetZ, animationStartMillis)
+                currentAnimatedValue(fromOffsetX, targetOffsetX, animationStartNanos),
+                currentAnimatedValue(fromOffsetZ, targetOffsetZ, animationStartNanos)
         );
     }
 
@@ -116,15 +116,15 @@ final class PanInertia {
 
     void reset() {
         active = false;
-        animationStartMillis = 0L;
+        animationStartNanos = 0L;
         previousDragSampleNanos = 0L;
         lastDragSampleNanos = 0L;
         draggedDistance = 0.0;
     }
 
-    private static double currentAnimatedValue(double from, double target, long startMillis) {
+    private static double currentAnimatedValue(double from, double target, long startNanos) {
         double offset = target - from;
-        double times = (System.currentTimeMillis() - startMillis) / 16.666666666666668;
+        double times = (System.nanoTime() - startNanos) / NANOS_PER_60FPS_FRAME;
         double currentOffset = offset * Math.pow(DECAY, times);
         return Math.abs(currentOffset) <= STOP_THRESHOLD ? target : target - currentOffset;
     }

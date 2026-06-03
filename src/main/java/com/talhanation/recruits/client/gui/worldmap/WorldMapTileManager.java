@@ -1,6 +1,7 @@
 package com.talhanation.recruits.client.gui.worldmap;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import com.talhanation.recruits.Main;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.world.level.ChunkPos;
@@ -8,6 +9,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
@@ -17,7 +19,6 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -27,16 +28,18 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WorldMapTileManager {
     private static final int CHUNK_UPDATES_PER_TICK = 6;
     private static final int MAX_LOADED_REGIONS = 192;
-    private static final int MAX_LOD_SOURCE_IMAGES = 16;
-    private static final int MAX_REGION_LOAD_SCHEDULES_PER_FRAME = 2;
-    private static final int MAX_REGION_LOAD_COMPLETIONS_PER_FRAME = 2;
-    private static final int MAX_PENDING_REGION_LOADS = 48;
+    private static final int MAX_REGION_LOAD_SCHEDULES_PER_FRAME = 8;
+    private static final int MAX_REGION_LOAD_COMPLETIONS_PER_FRAME = 8;
+    private static final int MAX_PENDING_REGION_LOADS = 96;
+    private static final int MAX_VISIBLE_REGION_PREFETCH_RADIUS = 12;
     private static final int MIN_UPDATE_RADIUS_CHUNKS = 5;
     private static final int MAX_UPDATE_RADIUS_CHUNKS = 12;
+    private static final int MAX_REGION_SAVES_PER_PASS = 1;
     private static final long CHUNK_UPDATE_BUDGET_NANOS = 2_500_000L;
+    private static final long REGION_LOAD_RETRY_DELAY_MS = 1000L;
     private static final long QUEUE_REFRESH_INTERVAL_MS = 350L;
     private static final long CHUNK_REFRESH_INTERVAL_MS = 3000L;
-    private static final long SAVE_INTERVAL_MS = 2500L;
+    private static final long SAVE_INTERVAL_MS = 750L;
 
     private static WorldMapTileManager instance;
 
@@ -44,10 +47,12 @@ public class WorldMapTileManager {
     private final Map<String, WorldMapRegionTile> loadedRegions = new ConcurrentHashMap<>();
     private final WorldMapLodCache lodCache = new WorldMapLodCache(this);
     private final Map<String, CachedRegionLoad> pendingRegionLoads = new HashMap<>();
-    private final Set<String> failedRegionLoads = new HashSet<>();
+    private final Map<String, Long> failedRegionLoads = new HashMap<>();
+    private final Set<String> persistedRegionSources = ConcurrentHashMap.newKeySet();
     private final Deque<Long> chunkUpdateQueue = new ArrayDeque<>();
     private final Set<Long> queuedChunks = new HashSet<>();
     private final Map<Long, Long> lastChunkUpdateTimes = new HashMap<>();
+    private ChunkImageBuilder activeChunkBuilder;
 
     private File worldMapDir;
     private File regionDir;
@@ -71,12 +76,14 @@ public class WorldMapTileManager {
         this.worldMapDir = newWorldMapDir;
         this.regionDir = new File(newWorldMapDir, "regions");
         this.regionDir.mkdirs();
+        rebuildRegionSourceIndex();
     }
 
     public void updateCurrentTile() {
         if (mc.level == null || mc.player == null) return;
-        if (this.worldMapDir == null) initialize(mc.level);
+        if (this.worldMapDir == null || isUsingUnknownStorageId()) initialize(mc.level);
 
+        long debugStartNanos = System.nanoTime();
         consumeReadyRegionLoads(MAX_REGION_LOAD_COMPLETIONS_PER_FRAME);
 
         long now = System.currentTimeMillis();
@@ -85,15 +92,20 @@ public class WorldMapTileManager {
             lastQueueRefreshTime = now;
         }
 
-        processQueuedChunks(now);
+        int chunkUpdates = processQueuedChunks(now);
 
         if (now - lastSaveTime >= SAVE_INTERVAL_MS) {
-            saveDirtyRegions();
+            if (chunkUpdates == 0) {
+                saveDirtyRegions(MAX_REGION_SAVES_PER_PASS);
+            }
             lastSaveTime = now;
         }
 
         trimLoadedRegions(MAX_LOADED_REGIONS);
         lodCache.trim();
+        recordDebugState();
+        WorldMapDebugProfiler.recordTileUpdate(System.nanoTime() - debugStartNanos, chunkUpdates,
+                chunkUpdateQueue.size(), queuedChunks.size());
     }
 
     WorldMapRegionTile getLoadedRegion(int regionX, int regionZ) {
@@ -105,6 +117,7 @@ public class WorldMapTileManager {
     void beginRenderFrame() {
         this.regionLoadSchedulesLeft = MAX_REGION_LOAD_SCHEDULES_PER_FRAME;
         consumeReadyRegionLoads(MAX_REGION_LOAD_COMPLETIONS_PER_FRAME);
+        recordDebugState();
     }
 
     WorldMapRegionTile getOrScheduleCachedRegion(int regionX, int regionZ) {
@@ -125,6 +138,47 @@ public class WorldMapTileManager {
         File regionFile = getReadableRegionFile(regionX, regionZ);
         scheduleRegionLoad(regionKey, regionX, regionZ, regionFile, true);
         return null;
+    }
+
+    void scheduleVisibleRegionLoads(double leftWorld, double rightWorld, double topWorld, double bottomWorld) {
+        if (regionDir == null) return;
+
+        int startRegionX = (int) Math.floor(leftWorld / WorldMapRegionTile.REGION_PIXEL_SIZE) - 1;
+        int endRegionX = (int) Math.ceil(rightWorld / WorldMapRegionTile.REGION_PIXEL_SIZE) + 1;
+        int startRegionZ = (int) Math.floor(topWorld / WorldMapRegionTile.REGION_PIXEL_SIZE) - 1;
+        int endRegionZ = (int) Math.ceil(bottomWorld / WorldMapRegionTile.REGION_PIXEL_SIZE) + 1;
+
+        int centerRegionX = (int) Math.floor(((leftWorld + rightWorld) * 0.5) / WorldMapRegionTile.REGION_PIXEL_SIZE);
+        int centerRegionZ = (int) Math.floor(((topWorld + bottomWorld) * 0.5) / WorldMapRegionTile.REGION_PIXEL_SIZE);
+
+        startRegionX = Math.max(startRegionX, centerRegionX - MAX_VISIBLE_REGION_PREFETCH_RADIUS);
+        endRegionX = Math.min(endRegionX, centerRegionX + MAX_VISIBLE_REGION_PREFETCH_RADIUS);
+        startRegionZ = Math.max(startRegionZ, centerRegionZ - MAX_VISIBLE_REGION_PREFETCH_RADIUS);
+        endRegionZ = Math.min(endRegionZ, centerRegionZ + MAX_VISIBLE_REGION_PREFETCH_RADIUS);
+
+        ArrayList<RegionLoadCandidate> candidates = new ArrayList<>();
+        for (int regionZ = startRegionZ; regionZ <= endRegionZ; regionZ++) {
+            for (int regionX = startRegionX; regionX <= endRegionX; regionX++) {
+                String regionKey = key(regionX, regionZ);
+                if (loadedRegions.containsKey(regionKey) || pendingRegionLoads.containsKey(regionKey)) continue;
+                if (isRegionLoadRetryBlocked(regionKey)) continue;
+                if (!persistedRegionSources.contains(regionKey)) continue;
+
+                File regionFile = getReadableRegionFile(regionX, regionZ);
+                if (!isUsableImageFile(regionFile)) continue;
+
+                double dx = regionX + 0.5 - centerRegionX;
+                double dz = regionZ + 0.5 - centerRegionZ;
+                candidates.add(new RegionLoadCandidate(regionX, regionZ, dx * dx + dz * dz, regionFile));
+            }
+        }
+
+        candidates.sort(Comparator.comparingDouble(RegionLoadCandidate::centerDistance));
+        for (RegionLoadCandidate candidate : candidates) {
+            if (regionLoadSchedulesLeft <= 0) return;
+            scheduleRegionLoad(key(candidate.regionX(), candidate.regionZ()), candidate.regionX(), candidate.regionZ(),
+                    candidate.regionFile(), true);
+        }
     }
 
     private void consumeReadyRegionLoads(int maxCompletions) {
@@ -148,16 +202,19 @@ public class WorldMapTileManager {
         try {
             image = pendingLoad.future().join();
         } catch (Exception ignored) {
-            failedRegionLoads.add(regionKey);
+            recordFailedRegionLoad(regionKey);
+            WorldMapDebugProfiler.recordRegionLoadCompleted(false);
             return null;
         }
         if (image == null) {
-            failedRegionLoads.add(regionKey);
+            recordFailedRegionLoad(regionKey);
+            WorldMapDebugProfiler.recordRegionLoadCompleted(false);
             return null;
         }
 
         if (loadedRegions.containsKey(regionKey)) {
             image.close();
+            WorldMapDebugProfiler.recordRegionLoadCompleted(true);
             return loadedRegions.get(regionKey);
         }
 
@@ -165,7 +222,10 @@ public class WorldMapTileManager {
         region.loadFromImage(image);
         region.markAccessed();
         loadedRegions.put(regionKey, region);
+        persistedRegionSources.add(regionKey);
         failedRegionLoads.remove(regionKey);
+        lodCache.invalidateRegion(pendingLoad.regionX(), pendingLoad.regionZ());
+        WorldMapDebugProfiler.recordRegionLoadCompleted(true);
         return region;
     }
 
@@ -187,37 +247,128 @@ public class WorldMapTileManager {
             return lodImage;
         }
 
-        LinkedHashMap<String, NativeImage> sourceImages = new LinkedHashMap<>(16, 0.75F, true) {
-            @Override
-            protected boolean removeEldestEntry(Map.Entry<String, NativeImage> eldest) {
-                if (size() <= MAX_LOD_SOURCE_IMAGES) return false;
-                eldest.getValue().close();
-                return true;
-            }
-        };
-        Set<String> missingSourceImages = new HashSet<>();
+        clearImage(lodImage);
+        Set<String> unreadableSourceImages = new HashSet<>();
 
         int tileWorldSize = WorldMapRegionTile.REGION_PIXEL_SIZE * sampleStep;
         int startWorldX = lodTileX * tileWorldSize;
         int startWorldZ = lodTileZ * tileWorldSize;
+        int endWorldX = startWorldX + tileWorldSize - 1;
+        int endWorldZ = startWorldZ + tileWorldSize - 1;
+        int startRegionX = Math.floorDiv(startWorldX, WorldMapRegionTile.REGION_PIXEL_SIZE);
+        int endRegionX = Math.floorDiv(endWorldX, WorldMapRegionTile.REGION_PIXEL_SIZE);
+        int startRegionZ = Math.floorDiv(startWorldZ, WorldMapRegionTile.REGION_PIXEL_SIZE);
+        int endRegionZ = Math.floorDiv(endWorldZ, WorldMapRegionTile.REGION_PIXEL_SIZE);
 
-        try {
-            for (int z = 0; z < WorldMapRegionTile.REGION_PIXEL_SIZE; z++) {
-                for (int x = 0; x < WorldMapRegionTile.REGION_PIXEL_SIZE; x++) {
-                    int worldX = startWorldX + x * sampleStep;
-                    int worldZ = startWorldZ + z * sampleStep;
-                    int color = sampleLodColor(sourceDir, sourceImages, missingSourceImages, worldX, worldZ, sampleStep);
-                    lodImage.setPixelRGBA(x, z, color);
+        boolean foundSource = false;
+        int visiblePixels = 0;
+        for (int regionZ = startRegionZ; regionZ <= endRegionZ; regionZ++) {
+            for (int regionX = startRegionX; regionX <= endRegionX; regionX++) {
+                String regionKey = key(regionX, regionZ);
+                NativeImage sourceImage = copyLoadedRegionImage(regionX, regionZ);
+                if (sourceImage == null) {
+                    sourceImage = readSourceRegionImage(sourceDir, regionX, regionZ, regionKey, unreadableSourceImages);
                 }
-            }
-            sharpenLodImage(lodImage, sampleStep);
-        } finally {
-            for (NativeImage sourceImage : sourceImages.values()) {
-                sourceImage.close();
+                if (sourceImage == null) continue;
+
+                foundSource = true;
+                try {
+                    visiblePixels += writeSourceRegionToLod(lodImage, sourceImage, regionX, regionZ,
+                            startWorldX, startWorldZ, sampleStep);
+                } finally {
+                    sourceImage.close();
+                }
             }
         }
 
+        if (visiblePixels == 0 && !foundSource) {
+            lodImage.close();
+            return null;
+        }
+
         return lodImage;
+    }
+
+    private int writeSourceRegionToLod(NativeImage lodImage, NativeImage sourceImage,
+                                       int regionX, int regionZ,
+                                       int lodStartWorldX, int lodStartWorldZ,
+                                       int sampleStep) {
+        int sourceWorldX = regionX * WorldMapRegionTile.REGION_PIXEL_SIZE;
+        int sourceWorldZ = regionZ * WorldMapRegionTile.REGION_PIXEL_SIZE;
+        int outputStartX = Math.max(0, (sourceWorldX - lodStartWorldX) / sampleStep);
+        int outputStartZ = Math.max(0, (sourceWorldZ - lodStartWorldZ) / sampleStep);
+        int outputEndX = Math.min(WorldMapRegionTile.REGION_PIXEL_SIZE,
+                (sourceWorldX + WorldMapRegionTile.REGION_PIXEL_SIZE - lodStartWorldX) / sampleStep);
+        int outputEndZ = Math.min(WorldMapRegionTile.REGION_PIXEL_SIZE,
+                (sourceWorldZ + WorldMapRegionTile.REGION_PIXEL_SIZE - lodStartWorldZ) / sampleStep);
+
+        int visiblePixels = 0;
+        for (int z = outputStartZ; z < outputEndZ; z++) {
+            int sourceZ = lodStartWorldZ + z * sampleStep - sourceWorldZ;
+            for (int x = outputStartX; x < outputEndX; x++) {
+                int sourceX = lodStartWorldX + x * sampleStep - sourceWorldX;
+                int color = sampleSourceRegionColor(sourceImage, sourceX, sourceZ, sampleStep);
+                if (isVisible(color)) visiblePixels++;
+                lodImage.setPixelRGBA(x, z, color);
+            }
+        }
+        return visiblePixels;
+    }
+
+    private int sampleSourceRegionColor(NativeImage sourceImage, int sourceX, int sourceZ, int sampleStep) {
+        if (sampleStep <= 1) {
+            return getLocalSourcePixel(sourceImage, sourceX, sourceZ);
+        }
+        return sampleSharpSourceRegionColor(sourceImage, sourceX, sourceZ, sampleStep);
+    }
+
+    private int sampleSharpSourceRegionColor(NativeImage sourceImage, int sourceX, int sourceZ, int sampleStep) {
+        int end = sampleStep - 1;
+        int mid = sampleStep / 2;
+        int center = getLocalSourcePixel(sourceImage, sourceX + mid, sourceZ + mid);
+        if (isVisible(center)) return center;
+
+        int top = getLocalSourcePixel(sourceImage, sourceX + mid, sourceZ);
+        if (isVisible(top)) return top;
+        int bottom = getLocalSourcePixel(sourceImage, sourceX + mid, sourceZ + end);
+        if (isVisible(bottom)) return bottom;
+        int left = getLocalSourcePixel(sourceImage, sourceX, sourceZ + mid);
+        if (isVisible(left)) return left;
+        int right = getLocalSourcePixel(sourceImage, sourceX + end, sourceZ + mid);
+        if (isVisible(right)) return right;
+        return 0x00000000;
+    }
+
+    private static int getLocalSourcePixel(NativeImage image, int x, int z) {
+        if (x < 0 || z < 0 || x >= image.getWidth() || z >= image.getHeight()) {
+            return 0x00000000;
+        }
+        return image.getPixelRGBA(x, z);
+    }
+
+    boolean mayHaveLodSourceData(int lodTileX, int lodTileZ, int sampleStep) {
+        int tileWorldSize = WorldMapRegionTile.REGION_PIXEL_SIZE * sampleStep;
+        int startWorldX = lodTileX * tileWorldSize;
+        int startWorldZ = lodTileZ * tileWorldSize;
+        int endWorldX = startWorldX + tileWorldSize - 1;
+        int endWorldZ = startWorldZ + tileWorldSize - 1;
+
+        int startRegionX = Math.floorDiv(startWorldX, WorldMapRegionTile.REGION_PIXEL_SIZE);
+        int endRegionX = Math.floorDiv(endWorldX, WorldMapRegionTile.REGION_PIXEL_SIZE);
+        int startRegionZ = Math.floorDiv(startWorldZ, WorldMapRegionTile.REGION_PIXEL_SIZE);
+        int endRegionZ = Math.floorDiv(endWorldZ, WorldMapRegionTile.REGION_PIXEL_SIZE);
+
+        for (int regionZ = startRegionZ; regionZ <= endRegionZ; regionZ++) {
+            for (int regionX = startRegionX; regionX <= endRegionX; regionX++) {
+                if (hasRegionSourceInMemory(regionX, regionZ)) return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasRegionSourceInMemory(int regionX, int regionZ) {
+        String regionKey = key(regionX, regionZ);
+        return loadedRegions.containsKey(regionKey) || persistedRegionSources.contains(regionKey);
     }
 
     void trimLoadedRegions(int maxRegions) {
@@ -267,10 +418,12 @@ public class WorldMapTileManager {
             region.close();
         }
         loadedRegions.clear();
+        persistedRegionSources.clear();
         failedRegionLoads.clear();
         chunkUpdateQueue.clear();
         queuedChunks.clear();
         lastChunkUpdateTimes.clear();
+        closeActiveChunkBuilder();
         worldMapDir = null;
         regionDir = null;
         lastQueueRefreshTime = 0L;
@@ -292,8 +445,10 @@ public class WorldMapTileManager {
             }
 
             File regionFile = getReadableRegionFile(regionX, regionZ);
-            if (!failedRegionLoads.contains(regionKey) && isUsableImageFile(regionFile)) {
-                scheduleRegionLoad(regionKey, regionX, regionZ, regionFile, false);
+            if (isUsableImageFile(regionFile)) {
+                if (!isRegionLoadRetryBlocked(regionKey)) {
+                    scheduleRegionLoad(regionKey, regionX, regionZ, regionFile, false);
+                }
                 return null;
             }
 
@@ -328,6 +483,7 @@ public class WorldMapTileManager {
     private void enqueueChunkIfNeeded(int chunkX, int chunkZ, long now) {
         long chunkKey = chunkKey(chunkX, chunkZ);
         if (queuedChunks.contains(chunkKey)) return;
+        if (activeChunkBuilder != null && activeChunkBuilder.chunkKey() == chunkKey) return;
 
         Long lastUpdate = lastChunkUpdateTimes.get(chunkKey);
         if (lastUpdate != null && now - lastUpdate < CHUNK_REFRESH_INTERVAL_MS) return;
@@ -337,53 +493,105 @@ public class WorldMapTileManager {
         queuedChunks.add(chunkKey);
     }
 
-    private void processQueuedChunks(long now) {
-        int updatesLeft = CHUNK_UPDATES_PER_TICK;
-        long startNanos = System.nanoTime();
-        while (updatesLeft > 0 && !chunkUpdateQueue.isEmpty()) {
+    private int processQueuedChunks(long now) {
+        int updatesDone = 0;
+        long deadlineNanos = System.nanoTime() + CHUNK_UPDATE_BUDGET_NANOS;
+
+        while (updatesDone < CHUNK_UPDATES_PER_TICK && System.nanoTime() < deadlineNanos) {
+            if (activeChunkBuilder == null && !startNextChunkBuilder()) {
+                break;
+            }
+
+            if (activeChunkBuilder == null) {
+                continue;
+            }
+
+            if (!activeChunkBuilder.workUntil(deadlineNanos)) {
+                break;
+            }
+
+            finishActiveChunkBuilder(now);
+            updatesDone++;
+        }
+
+        return updatesDone;
+    }
+
+    private boolean startNextChunkBuilder() {
+        if (mc.level == null) return false;
+
+        while (!chunkUpdateQueue.isEmpty()) {
             long chunkKey = chunkUpdateQueue.removeFirst();
             queuedChunks.remove(chunkKey);
 
             int chunkX = chunkX(chunkKey);
             int chunkZ = chunkZ(chunkKey);
-            if (isChunkLoaded(chunkX, chunkZ)) {
-                updateChunk(chunkX, chunkZ, now);
-                updatesLeft--;
-            }
+            if (!isChunkLoaded(chunkX, chunkZ)) continue;
 
-            if (updatesLeft < CHUNK_UPDATES_PER_TICK && System.nanoTime() - startNanos >= CHUNK_UPDATE_BUDGET_NANOS) {
-                return;
-            }
+            int regionX = WorldMapRegionTile.chunkToRegionCoord(chunkX);
+            int regionZ = WorldMapRegionTile.chunkToRegionCoord(chunkZ);
+            if (getOrCreateRegion(regionX, regionZ) == null) continue;
+
+            activeChunkBuilder = new ChunkImageBuilder(mc.level, chunkX, chunkZ, chunkKey);
+            return true;
         }
+
+        return false;
     }
 
-    private void updateChunk(int chunkX, int chunkZ, long now) {
-        if (mc.level == null) return;
+    private void finishActiveChunkBuilder(long now) {
+        ChunkImageBuilder builder = activeChunkBuilder;
+        activeChunkBuilder = null;
+        if (builder == null) return;
 
-        int regionX = WorldMapRegionTile.chunkToRegionCoord(chunkX);
-        int regionZ = WorldMapRegionTile.chunkToRegionCoord(chunkZ);
-        WorldMapRegionTile region = getOrCreateRegion(regionX, regionZ);
-        if (region == null) return;
-
-        ChunkImage chunkImage = new ChunkImage(mc.level, new ChunkPos(chunkX, chunkZ));
         try {
-            if (chunkImage.isMeaningful()) {
+            int chunkX = builder.chunkX();
+            int chunkZ = builder.chunkZ();
+            long chunkKey = builder.chunkKey();
+            if (!isChunkLoaded(chunkX, chunkZ)) {
+                lastChunkUpdateTimes.put(chunkKey, now);
+                return;
+            }
+
+            int regionX = WorldMapRegionTile.chunkToRegionCoord(chunkX);
+            int regionZ = WorldMapRegionTile.chunkToRegionCoord(chunkZ);
+            WorldMapRegionTile region = getOrCreateRegion(regionX, regionZ);
+            if (region == null) return;
+
+            if (!builder.isMeaningful()) {
+                lastChunkUpdateTimes.put(chunkKey, now);
+                return;
+            }
+
+            ChunkImage chunkImage = builder.takeImage();
+            if (chunkImage == null) return;
+
+            try {
                 region.updateFromChunkImage(
                         chunkImage,
                         WorldMapRegionTile.chunkLocalCoord(chunkX),
                         WorldMapRegionTile.chunkLocalCoord(chunkZ)
                 );
                 lodCache.invalidateRegion(regionX, regionZ);
+            } finally {
+                chunkImage.close();
             }
-        } finally {
-            chunkImage.close();
-        }
 
-        lastChunkUpdateTimes.put(chunkKey(chunkX, chunkZ), now);
+            lastChunkUpdateTimes.put(chunkKey, now);
+        } finally {
+            builder.close();
+        }
+    }
+
+    private void closeActiveChunkBuilder() {
+        if (activeChunkBuilder == null) return;
+
+        activeChunkBuilder.close();
+        activeChunkBuilder = null;
     }
 
     private boolean scheduleRegionLoad(String regionKey, int regionX, int regionZ, File regionFile, boolean useFrameBudget) {
-        if (failedRegionLoads.contains(regionKey)) return false;
+        if (isRegionLoadRetryBlocked(regionKey)) return false;
         if (!isUsableImageFile(regionFile)) return false;
         if (pendingRegionLoads.containsKey(regionKey)) return false;
         if (pendingRegionLoads.size() >= MAX_PENDING_REGION_LOADS) return false;
@@ -394,7 +602,34 @@ public class WorldMapTileManager {
 
         CompletableFuture<NativeImage> future = WorldMapAsync.loadRegion(() -> readRegionImageFileIfPresent(regionFile));
         pendingRegionLoads.put(regionKey, new CachedRegionLoad(regionX, regionZ, future));
+        persistedRegionSources.add(regionKey);
+        WorldMapDebugProfiler.recordRegionLoadScheduled(useFrameBudget);
         return true;
+    }
+
+    private boolean isRegionLoadRetryBlocked(String regionKey) {
+        Long failedAt = failedRegionLoads.get(regionKey);
+        if (failedAt == null) return false;
+        if (System.currentTimeMillis() - failedAt < REGION_LOAD_RETRY_DELAY_MS) return true;
+
+        failedRegionLoads.remove(regionKey);
+        return false;
+    }
+
+    private void recordFailedRegionLoad(String regionKey) {
+        failedRegionLoads.put(regionKey, System.currentTimeMillis());
+    }
+
+    private void recordDebugState() {
+        WorldMapDebugProfiler.recordTileManagerState(
+                loadedRegions.size(),
+                pendingRegionLoads.size(),
+                failedRegionLoads.size(),
+                chunkUpdateQueue.size(),
+                queuedChunks.size(),
+                lodCache.size(),
+                lodCache.pendingCount()
+        );
     }
 
     private boolean isChunkLoaded(int chunkX, int chunkZ) {
@@ -416,108 +651,49 @@ public class WorldMapTileManager {
     }
 
     private void saveDirtyRegions() {
+        saveDirtyRegions(Integer.MAX_VALUE);
+    }
+
+    private void saveDirtyRegions(int maxRegions) {
         if (regionDir == null) return;
+        int saved = 0;
         for (WorldMapRegionTile region : loadedRegions.values()) {
             if (region.isDirty()) {
                 saveRegion(region);
+                saved++;
+                if (saved >= maxRegions) return;
             }
         }
     }
 
     private void saveRegion(WorldMapRegionTile region) {
         if (region.saveToFile(getRegionFile(region.getRegionX(), region.getRegionZ()))) {
-            failedRegionLoads.remove(key(region.getRegionX(), region.getRegionZ()));
+            String regionKey = key(region.getRegionX(), region.getRegionZ());
+            persistedRegionSources.add(regionKey);
+            failedRegionLoads.remove(regionKey);
         }
     }
 
-    private int sampleLodColor(File sourceDir, Map<String, NativeImage> sourceImages, Set<String> missingSourceImages,
-                               int worldX, int worldZ, int sampleStep) {
-        if (sampleStep <= 1) {
-            return getSourcePixel(sourceDir, sourceImages, missingSourceImages, worldX, worldZ);
-        }
-        if (sampleStep >= 4) {
-            return sampleAreaLodColor(sourceDir, sourceImages, missingSourceImages, worldX, worldZ, sampleStep);
-        }
+    private NativeImage readSourceRegionImage(File sourceDir, int regionX, int regionZ, String regionKey,
+                                              Set<String> unreadableSourceImages) {
+        File regionFile = getRegionFile(sourceDir, regionX, regionZ);
+        boolean expectedSource = isUsableImageFile(regionFile);
+        NativeImage image = readRegionImageFileIfPresent(regionFile);
+        if (image != null) return image;
 
-        int end = sampleStep - 1;
-        int mid = sampleStep / 2;
-        int center = getSourcePixel(sourceDir, sourceImages, missingSourceImages, worldX + mid, worldZ + mid);
-        int top = getSourcePixel(sourceDir, sourceImages, missingSourceImages, worldX + mid, worldZ);
-        int bottom = getSourcePixel(sourceDir, sourceImages, missingSourceImages, worldX + mid, worldZ + end);
-        int left = getSourcePixel(sourceDir, sourceImages, missingSourceImages, worldX, worldZ + mid);
-        int right = getSourcePixel(sourceDir, sourceImages, missingSourceImages, worldX + end, worldZ + mid);
-        int topLeft = getSourcePixel(sourceDir, sourceImages, missingSourceImages, worldX, worldZ);
-        int topRight = getSourcePixel(sourceDir, sourceImages, missingSourceImages, worldX + end, worldZ);
-        int bottomLeft = getSourcePixel(sourceDir, sourceImages, missingSourceImages, worldX, worldZ + end);
-        int bottomRight = getSourcePixel(sourceDir, sourceImages, missingSourceImages, worldX + end, worldZ + end);
-        return chooseLodColor(center, top, bottom, left, right, topLeft, topRight, bottomLeft, bottomRight);
-    }
-
-    private int sampleAreaLodColor(File sourceDir, Map<String, NativeImage> sourceImages, Set<String> missingSourceImages,
-                                   int worldX, int worldZ, int sampleStep) {
-        int samplesPerAxis = 4;
-        int stride = Math.max(1, sampleStep / samplesPerAxis);
-        int inset = Math.max(0, stride / 2);
-        int count = 0;
-        int red = 0;
-        int green = 0;
-        int blue = 0;
-
-        for (int z = inset; z < sampleStep; z += stride) {
-            for (int x = inset; x < sampleStep; x += stride) {
-                int color = getSourcePixel(sourceDir, sourceImages, missingSourceImages, worldX + x, worldZ + z);
-                if (!isVisible(color)) continue;
-
-                count++;
-                red += color & 0xFF;
-                green += (color >> 8) & 0xFF;
-                blue += (color >> 16) & 0xFF;
+        if (sourceDir != null && regionDir != null && sourceDir.equals(regionDir) && worldMapDir != null) {
+            File legacyRegionFile = getRegionFile(worldMapDir, regionX, regionZ);
+            if (!legacyRegionFile.equals(regionFile)) {
+                expectedSource |= isUsableImageFile(legacyRegionFile);
+                image = readRegionImageFileIfPresent(legacyRegionFile);
+                if (image != null) return image;
             }
         }
 
-        if (count == 0) return 0x00000000;
-
-        int averageRed = red / count;
-        int averageGreen = green / count;
-        int averageBlue = blue / count;
-        int center = getSourcePixel(sourceDir, sourceImages, missingSourceImages,
-                worldX + sampleStep / 2, worldZ + sampleStep / 2);
-        if (isVisible(center)) {
-            averageRed = preserveAreaDetail(center & 0xFF, averageRed, sampleStep);
-            averageGreen = preserveAreaDetail((center >> 8) & 0xFF, averageGreen, sampleStep);
-            averageBlue = preserveAreaDetail((center >> 16) & 0xFF, averageBlue, sampleStep);
+        if (expectedSource) {
+            unreadableSourceImages.add(regionKey);
         }
-
-        return 0xFF000000
-                | (averageBlue << 16)
-                | (averageGreen << 8)
-                | averageRed;
-    }
-
-    private int getSourcePixel(File sourceDir, Map<String, NativeImage> sourceImages, Set<String> missingSourceImages,
-                               int worldX, int worldZ) {
-        int regionX = Math.floorDiv(worldX, WorldMapRegionTile.REGION_PIXEL_SIZE);
-        int regionZ = Math.floorDiv(worldZ, WorldMapRegionTile.REGION_PIXEL_SIZE);
-        String regionKey = key(regionX, regionZ);
-        if (missingSourceImages.contains(regionKey)) return 0x00000000;
-
-        NativeImage image = sourceImages.get(regionKey);
-        if (image == null) {
-            image = copyLoadedRegionImage(regionX, regionZ);
-            if (image == null) {
-                image = readRegionImageFileIfPresent(sourceDir, regionX, regionZ);
-            }
-            if (image == null) {
-                missingSourceImages.add(regionKey);
-                return 0x00000000;
-            }
-            sourceImages.put(regionKey, image);
-        }
-        if (image == null) return 0x00000000;
-
-        int localX = Math.floorMod(worldX, WorldMapRegionTile.REGION_PIXEL_SIZE);
-        int localZ = Math.floorMod(worldZ, WorldMapRegionTile.REGION_PIXEL_SIZE);
-        return image.getPixelRGBA(localX, localZ);
+        return null;
     }
 
     private NativeImage copyLoadedRegionImage(int regionX, int regionZ) {
@@ -544,21 +720,66 @@ public class WorldMapTileManager {
         if (!isUsableImageFile(regionFile)) return null;
 
         try {
-            byte[] fileData = java.nio.file.Files.readAllBytes(regionFile.toPath());
-            NativeImage image = NativeImage.read(fileData);
-            if (image.getWidth() != WorldMapRegionTile.REGION_PIXEL_SIZE
-                    || image.getHeight() != WorldMapRegionTile.REGION_PIXEL_SIZE) {
-                image.close();
-                return null;
+            try (FileInputStream stream = new FileInputStream(regionFile)) {
+                NativeImage image = NativeImage.read(stream);
+                if (image.getWidth() != WorldMapRegionTile.REGION_PIXEL_SIZE
+                        || image.getHeight() != WorldMapRegionTile.REGION_PIXEL_SIZE) {
+                    image.close();
+                    Main.LOGGER.warn("Ignoring world map region {} with unexpected size {}x{}",
+                            regionFile, image.getWidth(), image.getHeight());
+                    return null;
+                }
+                return image;
             }
-            return image;
-        } catch (IOException | RuntimeException ignored) {
+        } catch (IOException | RuntimeException exception) {
+            Main.LOGGER.warn("Failed to load world map region {}", regionFile, exception);
             return null;
         }
     }
 
     private File getRegionFile(int regionX, int regionZ) {
         return getRegionFile(regionDir, regionX, regionZ);
+    }
+
+    private void rebuildRegionSourceIndex() {
+        persistedRegionSources.clear();
+        indexRegionSourceDir(regionDir);
+        if (worldMapDir != null && !worldMapDir.equals(regionDir)) {
+            indexRegionSourceDir(worldMapDir);
+        }
+    }
+
+    private void indexRegionSourceDir(File sourceDir) {
+        if (sourceDir == null || !sourceDir.isDirectory()) return;
+
+        File[] files = sourceDir.listFiles();
+        if (files == null) return;
+
+        for (File file : files) {
+            String regionKey = regionKeyFromFileName(file);
+            if (regionKey != null) {
+                persistedRegionSources.add(regionKey);
+            }
+        }
+    }
+
+    private static String regionKeyFromFileName(File file) {
+        if (!isUsableImageFile(file)) return null;
+
+        String name = file.getName();
+        if (!name.endsWith(".png")) return null;
+
+        String coords = name.substring(0, name.length() - 4);
+        int separator = coords.indexOf('_');
+        if (separator <= 0 || separator >= coords.length() - 1) return null;
+
+        try {
+            int regionX = Integer.parseInt(coords.substring(0, separator));
+            int regionZ = Integer.parseInt(coords.substring(separator + 1));
+            return key(regionX, regionZ);
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
     }
 
     private File getReadableRegionFile(int regionX, int regionZ) {
@@ -580,190 +801,8 @@ public class WorldMapTileManager {
         return imageFile != null && imageFile.exists() && imageFile.length() > 0;
     }
 
-    private static int chooseLodColor(int center, int top, int bottom, int left, int right,
-                                      int topLeft, int topRight, int bottomLeft, int bottomRight) {
-        int count = 0;
-        int red = 0;
-        int green = 0;
-        int blue = 0;
-
-        if (isVisible(center)) {
-            count += 2;
-            red += (center & 0xFF) * 2;
-            green += ((center >> 8) & 0xFF) * 2;
-            blue += ((center >> 16) & 0xFF) * 2;
-        }
-        if (isVisible(top)) {
-            count++;
-            red += top & 0xFF;
-            green += (top >> 8) & 0xFF;
-            blue += (top >> 16) & 0xFF;
-        }
-        if (isVisible(bottom)) {
-            count++;
-            red += bottom & 0xFF;
-            green += (bottom >> 8) & 0xFF;
-            blue += (bottom >> 16) & 0xFF;
-        }
-        if (isVisible(left)) {
-            count++;
-            red += left & 0xFF;
-            green += (left >> 8) & 0xFF;
-            blue += (left >> 16) & 0xFF;
-        }
-        if (isVisible(right)) {
-            count++;
-            red += right & 0xFF;
-            green += (right >> 8) & 0xFF;
-            blue += (right >> 16) & 0xFF;
-        }
-        if (isVisible(topLeft)) {
-            count++;
-            red += topLeft & 0xFF;
-            green += (topLeft >> 8) & 0xFF;
-            blue += (topLeft >> 16) & 0xFF;
-        }
-        if (isVisible(topRight)) {
-            count++;
-            red += topRight & 0xFF;
-            green += (topRight >> 8) & 0xFF;
-            blue += (topRight >> 16) & 0xFF;
-        }
-        if (isVisible(bottomLeft)) {
-            count++;
-            red += bottomLeft & 0xFF;
-            green += (bottomLeft >> 8) & 0xFF;
-            blue += (bottomLeft >> 16) & 0xFF;
-        }
-        if (isVisible(bottomRight)) {
-            count++;
-            red += bottomRight & 0xFF;
-            green += (bottomRight >> 8) & 0xFF;
-            blue += (bottomRight >> 16) & 0xFF;
-        }
-
-        if (count == 0) return 0x00000000;
-
-        int averageRed = red / count;
-        int averageGreen = green / count;
-        int averageBlue = blue / count;
-        if (!isVisible(center)) {
-            if (count < 5) return 0x00000000;
-            return opaqueNative(averageRed, averageGreen, averageBlue);
-        }
-
-        int centerRed = center & 0xFF;
-        int centerGreen = (center >> 8) & 0xFF;
-        int centerBlue = (center >> 16) & 0xFF;
-        int finalRed = preserveDetail(centerRed, averageRed);
-        int finalGreen = preserveDetail(centerGreen, averageGreen);
-        int finalBlue = preserveDetail(centerBlue, averageBlue);
-        return opaqueNative(finalRed, finalGreen, finalBlue);
-    }
-
-    private static int preserveDetail(int center, int average) {
-        return clampColor((center * 6 + average * 2 + (center - average)) / 8);
-    }
-
-    private static int preserveAreaDetail(int center, int average, int sampleStep) {
-        int centerWeight = sampleStep <= 4 ? 3 : sampleStep <= 8 ? 2 : 1;
-        int averageWeight = 8 - centerWeight;
-        int detailDivisor = sampleStep <= 4 ? 10 : sampleStep <= 8 ? 14 : 18;
-        int blended = (center * centerWeight + average * averageWeight) / 8;
-        return clampColor(blended + (center - average) / detailDivisor);
-    }
-
-    private static void sharpenLodImage(NativeImage image, int sampleStep) {
-        if (sampleStep > 4) return;
-
-        int width = image.getWidth();
-        int height = image.getHeight();
-        int[] source = new int[width * height];
-        for (int z = 0; z < height; z++) {
-            for (int x = 0; x < width; x++) {
-                source[z * width + x] = image.getPixelRGBA(x, z);
-            }
-        }
-
-        int amount = 1;
-        for (int z = 1; z < height - 1; z++) {
-            for (int x = 1; x < width - 1; x++) {
-                int center = source[z * width + x];
-                if (!isVisible(center)) continue;
-
-                int average = averageVisibleNative(
-                        source[(z - 1) * width + x],
-                        source[(z + 1) * width + x],
-                        source[z * width + x - 1],
-                        source[z * width + x + 1]
-                );
-                if (!isVisible(average)) continue;
-
-                image.setPixelRGBA(x, z, sharpenNative(center, average, amount));
-            }
-        }
-    }
-
-    private static int averageVisibleNative(int first, int second, int third, int fourth) {
-        int count = 0;
-        int red = 0;
-        int green = 0;
-        int blue = 0;
-
-        if (isVisible(first)) {
-            count++;
-            red += first & 0xFF;
-            green += (first >> 8) & 0xFF;
-            blue += (first >> 16) & 0xFF;
-        }
-        if (isVisible(second)) {
-            count++;
-            red += second & 0xFF;
-            green += (second >> 8) & 0xFF;
-            blue += (second >> 16) & 0xFF;
-        }
-        if (isVisible(third)) {
-            count++;
-            red += third & 0xFF;
-            green += (third >> 8) & 0xFF;
-            blue += (third >> 16) & 0xFF;
-        }
-        if (isVisible(fourth)) {
-            count++;
-            red += fourth & 0xFF;
-            green += (fourth >> 8) & 0xFF;
-            blue += (fourth >> 16) & 0xFF;
-        }
-
-        if (count == 0) return 0x00000000;
-        return 0xFF000000
-                | ((blue / count) << 16)
-                | ((green / count) << 8)
-                | (red / count);
-    }
-
-    private static int sharpenNative(int center, int average, int amount) {
-        int red = sharpenChannel(center & 0xFF, average & 0xFF, amount);
-        int green = sharpenChannel((center >> 8) & 0xFF, (average >> 8) & 0xFF, amount);
-        int blue = sharpenChannel((center >> 16) & 0xFF, (average >> 16) & 0xFF, amount);
-        return 0xFF000000 | (blue << 16) | (green << 8) | red;
-    }
-
-    private static int sharpenChannel(int center, int average, int amount) {
-        return clampColor(center + ((center - average) * amount) / 8);
-    }
-
     private static boolean isVisible(int color) {
         return ((color >> 24) & 0xFF) > 0;
-    }
-
-    private static int opaqueNative(int red, int green, int blue) {
-        return 0xFF000000 | (blue << 16) | (green << 8) | red;
-    }
-
-    private static int clampColor(int value) {
-        if (value < 0) return 0;
-        return Math.min(value, 255);
     }
 
     private static void clearImage(NativeImage image) {
@@ -833,10 +872,17 @@ public class WorldMapTileManager {
         return "unknown";
     }
 
+    private boolean isUsingUnknownStorageId() {
+        return worldMapDir != null && "unknown".equals(worldMapDir.getName());
+    }
+
     private static String stableId(String prefix, String rawId) {
         return prefix + "_" + UUID.nameUUIDFromBytes(rawId.getBytes(StandardCharsets.UTF_8));
     }
 
     private record CachedRegionLoad(int regionX, int regionZ, CompletableFuture<NativeImage> future) {
+    }
+
+    private record RegionLoadCandidate(int regionX, int regionZ, double centerDistance, File regionFile) {
     }
 }

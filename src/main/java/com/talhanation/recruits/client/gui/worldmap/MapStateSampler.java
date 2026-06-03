@@ -104,10 +104,10 @@ final class MapStateSampler {
 
     static int countWaterNeighbors(ClientLevel level, BlockPos pos) {
         int count = 0;
-        if (isWaterLike(level.getBlockState(pos.north()))) count++;
-        if (isWaterLike(level.getBlockState(pos.south()))) count++;
-        if (isWaterLike(level.getBlockState(pos.east()))) count++;
-        if (isWaterLike(level.getBlockState(pos.west()))) count++;
+        if (isWaterNeighbor(level, pos.north())) count++;
+        if (isWaterNeighbor(level, pos.south())) count++;
+        if (isWaterNeighbor(level, pos.east())) count++;
+        if (isWaterNeighbor(level, pos.west())) count++;
         return count;
     }
 
@@ -157,11 +157,16 @@ final class MapStateSampler {
         }
     }
 
-    private static boolean isColumnLoaded(ClientLevel level, int worldX, int worldZ) {
+    static boolean isColumnLoaded(ClientLevel level, int worldX, int worldZ) {
         try {
             return level.getChunkSource().getChunk(worldX >> 4, worldZ >> 4, false) != null;
         } catch (RuntimeException ignored) {
             return false;
         }
+    }
+
+    private static boolean isWaterNeighbor(ClientLevel level, BlockPos pos) {
+        if (!isColumnLoaded(level, pos.getX(), pos.getZ())) return true;
+        return isWaterLike(level.getBlockState(pos));
     }
 }
