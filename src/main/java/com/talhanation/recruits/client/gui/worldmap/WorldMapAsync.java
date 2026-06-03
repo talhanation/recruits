@@ -12,8 +12,7 @@ import java.util.function.Supplier;
 final class WorldMapAsync {
     private static final ExecutorService REGION_IO_EXECUTOR = Executors.newSingleThreadExecutor(
             namedDaemonFactory("recruits-worldmap-io"));
-    private static final ExecutorService LOD_EXECUTOR = Executors.newFixedThreadPool(
-            Math.max(1, Math.min(2, Runtime.getRuntime().availableProcessors() / 4)),
+    private static final ExecutorService LOD_EXECUTOR = Executors.newSingleThreadExecutor(
             namedDaemonFactory("recruits-worldmap-lod"));
 
     private WorldMapAsync() {
@@ -32,6 +31,7 @@ final class WorldMapAsync {
         return runnable -> {
             Thread thread = new Thread(runnable, namePrefix + "-" + index.incrementAndGet());
             thread.setDaemon(true);
+            thread.setPriority(Math.max(Thread.MIN_PRIORITY, Thread.NORM_PRIORITY - 2));
             return thread;
         };
     }

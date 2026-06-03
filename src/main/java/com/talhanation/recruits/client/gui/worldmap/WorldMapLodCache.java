@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 final class WorldMapLodCache {
-    private static final int MAX_SCHEDULES_PER_FRAME = 4;
-    private static final int MAX_PENDING_LOD_TILES = 12;
+    private static final int MAX_SCHEDULES_PER_FRAME = 1;
+    private static final int MAX_PENDING_LOD_TILES = 3;
     private static final int MAX_LOD_TILES = 192;
 
     private final WorldMapTileManager tileManager;
@@ -27,24 +27,39 @@ final class WorldMapLodCache {
     WorldMapLodTile getOrSchedule(int tileX, int tileZ, int sampleStep) {
         String key = key(tileX, tileZ, sampleStep);
         WorldMapLodTile tile = tiles.get(key);
+        boolean hasSourceData = tileManager.mayHaveLodSourceData(tileX, tileZ, sampleStep);
+        if (tile == null && !hasSourceData) {
+            WorldMapDebugProfiler.recordLodState(tiles.size(), pendingTiles);
+            return null;
+        }
+        if (tile != null && !hasSourceData && !tile.hasTexture() && !tile.isScheduled()) {
+            tiles.remove(key);
+            tile.close();
+            WorldMapDebugProfiler.recordLodState(tiles.size(), pendingTiles);
+            return null;
+        }
         if (tile == null) {
             tile = new WorldMapLodTile(tileX, tileZ, sampleStep);
             tiles.put(key, tile);
         }
 
         tile.markAccessed();
-        if (!tile.isScheduled() && tile.needsBuild() && schedulesLeft > 0 && pendingTiles < MAX_PENDING_LOD_TILES) {
-            schedulesLeft--;
-            pendingTiles++;
+        if (hasSourceData && !tile.isScheduled() && tile.needsBuild() && schedulesLeft > 0 && pendingTiles < MAX_PENDING_LOD_TILES) {
             WorldMapLodTile scheduledTile = tile;
-            tile.schedule(() -> tileManager.buildLodImage(tileX, tileZ, scheduledTile.getSampleStep()));
+            if (tile.schedule(() -> tileManager.buildLodImage(tileX, tileZ, scheduledTile.getSampleStep()))) {
+                schedulesLeft--;
+                pendingTiles++;
+                WorldMapDebugProfiler.recordLodSchedule();
+            }
         }
+        WorldMapDebugProfiler.recordLodState(tiles.size(), pendingTiles);
         return tile;
     }
 
     WorldMapLodTile getIfPresent(int tileX, int tileZ, int sampleStep) {
         WorldMapLodTile tile = tiles.get(key(tileX, tileZ, sampleStep));
         if (tile != null) tile.markAccessed();
+        WorldMapDebugProfiler.recordLodState(tiles.size(), pendingTiles);
         return tile;
     }
 
@@ -79,6 +94,14 @@ final class WorldMapLodCache {
             tile.close();
         }
         tiles.clear();
+    }
+
+    int size() {
+        return tiles.size();
+    }
+
+    int pendingCount() {
+        return countPendingTiles();
     }
 
     private static boolean intersects(WorldMapLodTile tile, int minX, int minZ, int maxX, int maxZ) {

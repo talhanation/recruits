@@ -17,15 +17,16 @@ final class MapReliefShading {
         int shoreNeighbors = MapStateSampler.countWaterNeighbors(level, pos);
         int x = pos.getX();
         int z = pos.getZ();
-        int heightNorth = MapStateSampler.getSurfaceHeight(level, x, z - 1);
-        int heightSouth = MapStateSampler.getSurfaceHeight(level, x, z + 1);
-        int heightWest = MapStateSampler.getSurfaceHeight(level, x - 1, z);
-        int heightEast = MapStateSampler.getSurfaceHeight(level, x + 1, z);
+        int centerHeight = MapStateSampler.getSurfaceHeight(level, x, z);
+        int heightNorth = getSurfaceHeightOr(level, x, z - 1, centerHeight);
+        int heightSouth = getSurfaceHeightOr(level, x, z + 1, centerHeight);
+        int heightWest = getSurfaceHeightOr(level, x - 1, z, centerHeight);
+        int heightEast = getSurfaceHeightOr(level, x + 1, z, centerHeight);
         int relief = Math.abs(heightWest - heightEast) + Math.abs(heightNorth - heightSouth);
 
         float brightness = 0.95f - Math.min(depth, 12) * 0.016f;
         if (shoreNeighbors < 4) brightness += 0.05f;
-        brightness += Math.min(0.025f, relief * 0.0025f);
+        brightness += Math.min(0.018f, relief * 0.0018f);
         return clamp(brightness, 0.76f, 1.0f);
     }
 
@@ -87,6 +88,12 @@ final class MapReliefShading {
         if (level.dimension() == Level.OVERWORLD) return 1.0f;
         if (level.dimension() == Level.NETHER) return 0.0f;
         return 1.0f;
+    }
+
+    private static int getSurfaceHeightOr(ClientLevel level, int x, int z, int fallback) {
+        return MapStateSampler.isColumnLoaded(level, x, z)
+                ? MapStateSampler.getSurfaceHeight(level, x, z)
+                : fallback;
     }
 
     private static float clamp(float value, float min, float max) {
