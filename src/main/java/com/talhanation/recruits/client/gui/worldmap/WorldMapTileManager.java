@@ -1,17 +1,19 @@
 package com.talhanation.recruits.client.gui.worldmap;
 
-import com.mojang.blaze3d.platform.NativeImage;
 import com.talhanation.recruits.Main;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -19,45 +21,86 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CancellationException;
 
 public class WorldMapTileManager {
-    private static final int CHUNK_UPDATES_PER_TICK = 6;
+    private static final int MAX_CHUNK_BUILD_SCHEDULES_PER_TICK = 4;
+    private static final int MAX_CHUNK_BUILD_SCHEDULE_ATTEMPTS_PER_TICK = 32;
+    private static final int MAX_CHUNK_BUILD_COMPLETIONS_PER_TICK = 16;
+    private static final int MAX_PENDING_CHUNK_BUILDS = 8;
+    private static final int MAX_TRACKED_CHUNKS = 8192;
     private static final int MAX_LOADED_REGIONS = 192;
-    private static final int MAX_REGION_LOAD_SCHEDULES_PER_FRAME = 8;
+    private static final int MAX_REGION_LOAD_SCHEDULES_PER_FRAME = 4;
     private static final int MAX_REGION_LOAD_COMPLETIONS_PER_FRAME = 8;
-    private static final int MAX_PENDING_REGION_LOADS = 96;
-    private static final int MAX_VISIBLE_REGION_PREFETCH_RADIUS = 12;
+    private static final int MAX_PENDING_REGION_LOADS = 24;
+    private static final int MAX_REGION_WAKE_CHUNKS_PER_TICK = 32;
+    private static final int MAX_REGION_SAVE_COMPLETIONS_PER_FRAME = 8;
+    private static final int MAX_PENDING_REGION_SAVES = 8;
     private static final int MIN_UPDATE_RADIUS_CHUNKS = 5;
     private static final int MAX_UPDATE_RADIUS_CHUNKS = 12;
     private static final int MAX_REGION_SAVES_PER_PASS = 1;
-    private static final long CHUNK_UPDATE_BUDGET_NANOS = 2_500_000L;
+    private static final int MAX_QUEUED_CHUNK_UPDATES = 512;
+    private static final int MAX_CHUNK_ENQUEUE_CHECKS_PER_REFRESH = 160;
+    private static final long CHUNK_ENQUEUE_BUDGET_NANOS = 1_000_000L;
+    private static final long CHUNK_BUILD_SCHEDULE_BUDGET_NANOS = 500_000L;
+    private static final long REGION_WAKE_BUDGET_NANOS = 500_000L;
+    private static final long TARGET_FRAME_INTERVAL_NANOS = 16_666_667L;
+    private static final long MIN_CHUNK_BUILD_FRAME_BUDGET_NANOS = 250_000L;
+    private static final long MAX_CHUNK_BUILD_FRAME_BUDGET_NANOS = 1_500_000L;
+    private static final int CHUNK_BUILD_IDLE_BUDGET_DIVISOR = 6;
+    private static final long CHUNK_LOAD_SETTLE_NANOS = 150_000_000L;
+    private static final long BLOCK_UPDATE_SETTLE_NANOS = 75_000_000L;
     private static final long REGION_LOAD_RETRY_DELAY_MS = 1000L;
-    private static final long QUEUE_REFRESH_INTERVAL_MS = 350L;
-    private static final long CHUNK_REFRESH_INTERVAL_MS = 3000L;
-    private static final long SAVE_INTERVAL_MS = 750L;
+    private static final long DISCOVERY_INTERVAL_MS = 1000L;
+    private static final long SAVE_INTERVAL_MS = 60000L;
+    private static final long REGION_SAVE_QUIET_PERIOD_NANOS = 3_000_000_000L;
+    private static final ChunkScanOffset[] CHUNK_SCAN_OFFSETS = buildChunkScanOffsets();
 
     private static WorldMapTileManager instance;
 
     private final Minecraft mc = Minecraft.getInstance();
-    private final Map<String, WorldMapRegionTile> loadedRegions = new ConcurrentHashMap<>();
-    private final WorldMapLodCache lodCache = new WorldMapLodCache(this);
+    private final WorldMapRenderTileCache renderTileCache = new WorldMapRenderTileCache(this);
+    private final Map<String, WorldMapRegionTile> loadedRegions = new HashMap<>();
     private final Map<String, CachedRegionLoad> pendingRegionLoads = new HashMap<>();
+    private final Map<String, PendingRegionSave> pendingRegionSaves = new HashMap<>();
     private final Map<String, Long> failedRegionLoads = new HashMap<>();
-    private final Set<String> persistedRegionSources = ConcurrentHashMap.newKeySet();
+    private final Set<String> persistedRegionSources = new HashSet<>();
+    private final Set<String> dirtyRegionKeys = new LinkedHashSet<>();
     private final Deque<Long> chunkUpdateQueue = new ArrayDeque<>();
     private final Set<Long> queuedChunks = new HashSet<>();
-    private final Map<Long, Long> lastChunkUpdateTimes = new HashMap<>();
-    private ChunkImageBuilder activeChunkBuilder;
+    private final Set<Long> urgentChunks = new HashSet<>();
+    private final Map<Long, Long> chunkRevisions = new HashMap<>();
+    private final Map<Long, Long> chunkReadyNanos = new HashMap<>();
+    private final Set<Long> chunksWaitingForNeighbors = new HashSet<>();
+    private final Map<Long, String> chunkWaitingRegions = new HashMap<>();
+    private final Map<String, Set<Long>> chunksWaitingByRegion = new HashMap<>();
+    private final Deque<String> regionWakeQueue = new ArrayDeque<>();
+    private final Set<String> queuedRegionWakes = new HashSet<>();
+    private final Map<Long, PendingChunkBuild> pendingChunkBuilds = new LinkedHashMap<>();
+    private final Map<Long, Boolean> discoveredChunks = new LinkedHashMap<>(1024, 0.75F, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<Long, Boolean> eldest) {
+            return size() > MAX_TRACKED_CHUNKS;
+        }
+    };
 
     private File worldMapDir;
     private File regionDir;
-    private long lastQueueRefreshTime;
+    private File legacyLevelZeroDir;
+    private long lastDiscoveryTime;
     private long lastSaveTime;
+    private boolean savePassPending;
+    private long lastEnqueueCenterChunkKey = Long.MIN_VALUE;
+    private long lastChunkBuildFrameNanos;
+    private long nextChunkRevision;
+    private long regionAccessSequence;
+    private int enqueueOffsetCursor;
     private int regionLoadSchedulesLeft;
 
     public static WorldMapTileManager getInstance() {
@@ -75,52 +118,165 @@ public class WorldMapTileManager {
         close();
         this.worldMapDir = newWorldMapDir;
         this.regionDir = new File(newWorldMapDir, "regions");
+        this.legacyLevelZeroDir = new File(this.regionDir, "l0");
         this.regionDir.mkdirs();
         rebuildRegionSourceIndex();
+        WorldMapRenderer.prepareSharedResources();
+        Main.LOGGER.info("[WorldMap] Initialized direct region cache at {} with {} indexed regions",
+                this.regionDir, this.persistedRegionSources.size());
+    }
+
+    public void onClientModelsReloaded() {
+        WorldMapAsync.prepareWorkers();
+        ChunkBuildScratch.preparePool();
+        WorldMapRegionTile.prepareRenderPixelPool();
+        MapBlockColorResolver.clearCaches();
+        MapStateSampler.clearCaches();
+        if (mc.level == null) return;
+
+        closePendingChunkBuilds();
+        chunkUpdateQueue.clear();
+        queuedChunks.clear();
+        urgentChunks.clear();
+        chunkRevisions.clear();
+        chunkReadyNanos.clear();
+        chunksWaitingForNeighbors.clear();
+        chunkWaitingRegions.clear();
+        chunksWaitingByRegion.clear();
+        regionWakeQueue.clear();
+        queuedRegionWakes.clear();
+        discoveredChunks.clear();
+        lastEnqueueCenterChunkKey = Long.MIN_VALUE;
+        enqueueOffsetCursor = 0;
     }
 
     public void updateCurrentTile() {
         if (mc.level == null || mc.player == null) return;
         if (this.worldMapDir == null || isUsingUnknownStorageId()) initialize(mc.level);
 
+        WorldMapDebugProfiler.beginTileUpdate();
         long debugStartNanos = System.nanoTime();
+        long phaseStartNanos = debugStartNanos;
         consumeReadyRegionLoads(MAX_REGION_LOAD_COMPLETIONS_PER_FRAME);
+        consumeReadyRegionSaves(MAX_REGION_SAVE_COMPLETIONS_PER_FRAME);
+        processRegionWakeQueue(MAX_REGION_WAKE_CHUNKS_PER_TICK, REGION_WAKE_BUDGET_NANOS);
+        long consumeLoadsNanos = System.nanoTime() - phaseStartNanos;
 
         long now = System.currentTimeMillis();
-        if (now - lastQueueRefreshTime >= QUEUE_REFRESH_INTERVAL_MS) {
-            enqueueLoadedChunksAroundPlayer(now);
-            lastQueueRefreshTime = now;
+        long enqueueNanos = 0L;
+        if (now - lastDiscoveryTime >= DISCOVERY_INTERVAL_MS) {
+            phaseStartNanos = System.nanoTime();
+            discoverLoadedChunksAroundPlayer();
+            enqueueNanos = System.nanoTime() - phaseStartNanos;
+            lastDiscoveryTime = now;
         }
 
-        int chunkUpdates = processQueuedChunks(now);
+        phaseStartNanos = System.nanoTime();
+        int chunkUpdates = consumeReadyChunkBuilds(MAX_CHUNK_BUILD_COMPLETIONS_PER_TICK);
+        scheduleChunkBuilds(MAX_CHUNK_BUILD_SCHEDULES_PER_TICK);
+        long processChunksNanos = System.nanoTime() - phaseStartNanos;
 
+        long saveNanos = 0L;
         if (now - lastSaveTime >= SAVE_INTERVAL_MS) {
-            if (chunkUpdates == 0) {
-                saveDirtyRegions(MAX_REGION_SAVES_PER_PASS);
+            savePassPending = true;
+        }
+        if (savePassPending && chunkUpdates == 0 && pendingRegionSaves.size() < MAX_PENDING_REGION_SAVES) {
+            phaseStartNanos = System.nanoTime();
+            int scheduledSaves = saveDirtyRegions(MAX_REGION_SAVES_PER_PASS, false);
+            saveNanos = System.nanoTime() - phaseStartNanos;
+            if (scheduledSaves == 0 && pendingRegionSaves.isEmpty() && !hasDirtyRegions()) {
+                savePassPending = false;
+                lastSaveTime = now;
             }
-            lastSaveTime = now;
         }
 
+        phaseStartNanos = System.nanoTime();
         trimLoadedRegions(MAX_LOADED_REGIONS);
-        lodCache.trim();
+        long trimNanos = System.nanoTime() - phaseStartNanos;
+
         recordDebugState();
+        int chunkPipelineSize = queuedChunks.size() + pendingChunkBuilds.size()
+                + chunksWaitingForNeighbors.size() + chunkWaitingRegions.size();
         WorldMapDebugProfiler.recordTileUpdate(System.nanoTime() - debugStartNanos, chunkUpdates,
-                chunkUpdateQueue.size(), queuedChunks.size());
+                chunkUpdateQueue.size(), chunkPipelineSize, consumeLoadsNanos, enqueueNanos,
+                processChunksNanos, saveNanos, trimNanos);
+    }
+
+    public void processChunkBuildFrame() {
+        if (mc.level == null || mc.player == null || pendingChunkBuilds.isEmpty()) {
+            lastChunkBuildFrameNanos = 0L;
+            return;
+        }
+
+        long workStartNanos = System.nanoTime();
+        long elapsedFrameNanos = lastChunkBuildFrameNanos == 0L
+                ? TARGET_FRAME_INTERVAL_NANOS
+                : Math.min(50_000_000L, workStartNanos - lastChunkBuildFrameNanos);
+        lastChunkBuildFrameNanos = workStartNanos;
+        long idleNanos = Math.max(0L, TARGET_FRAME_INTERVAL_NANOS - elapsedFrameNanos);
+        long frameBudgetNanos = Math.max(
+                MIN_CHUNK_BUILD_FRAME_BUDGET_NANOS,
+                Math.min(
+                        MAX_CHUNK_BUILD_FRAME_BUDGET_NANOS,
+                        MIN_CHUNK_BUILD_FRAME_BUDGET_NANOS + idleNanos / CHUNK_BUILD_IDLE_BUDGET_DIVISOR
+                )
+        );
+        long deadlineNanos = workStartNanos + frameBudgetNanos;
+        Iterator<Map.Entry<Long, PendingChunkBuild>> iterator = pendingChunkBuilds.entrySet().iterator();
+        while (iterator.hasNext() && System.nanoTime() < deadlineNanos) {
+            Map.Entry<Long, PendingChunkBuild> entry = iterator.next();
+            long chunkKey = entry.getKey();
+            PendingChunkBuild pendingBuild = entry.getValue();
+            if (pendingBuild.builder().isDone()) continue;
+
+            Long currentRevision = chunkRevisions.get(chunkKey);
+            boolean stillCurrent = currentRevision != null
+                    && currentRevision == pendingBuild.revision()
+                    && pendingBuild.context().belongsTo(mc.level)
+                    && isChunkLoaded(chunkX(chunkKey), chunkZ(chunkKey));
+            if (!stillCurrent) {
+                iterator.remove();
+                pendingBuild.builder().cancel();
+                boolean urgentRetry = urgentChunks.remove(chunkKey);
+                if (currentRevision != null && isChunkLoaded(chunkX(chunkKey), chunkZ(chunkKey))) {
+                    enqueueDeferredChunk(chunkKey, urgentRetry);
+                } else {
+                    forgetChunk(chunkKey);
+                }
+                continue;
+            }
+
+            pendingBuild.builder().advance(deadlineNanos);
+        }
+        WorldMapBuildProfiler.recordFrameWork(
+                System.nanoTime() - workStartNanos,
+                frameBudgetNanos,
+                pendingChunkBuilds.size()
+        );
     }
 
     WorldMapRegionTile getLoadedRegion(int regionX, int regionZ) {
         WorldMapRegionTile region = loadedRegions.get(key(regionX, regionZ));
-        if (region != null) region.markAccessed();
-        return region;
+        return region == null ? null : touchRegion(region);
+    }
+
+    WorldMapRenderTileCache getRenderTileCache() {
+        return renderTileCache;
     }
 
     void beginRenderFrame() {
         this.regionLoadSchedulesLeft = MAX_REGION_LOAD_SCHEDULES_PER_FRAME;
         consumeReadyRegionLoads(MAX_REGION_LOAD_COMPLETIONS_PER_FRAME);
+        consumeReadyRegionSaves(MAX_REGION_SAVE_COMPLETIONS_PER_FRAME);
         recordDebugState();
     }
 
-    WorldMapRegionTile getOrScheduleCachedRegion(int regionX, int regionZ) {
+    WorldMapRegionTile getOrScheduleCachedRegion(int regionX, int regionZ, long generation, int distanceSquared) {
+        return getOrScheduleCachedRegion(regionX, regionZ, true, generation, distanceSquared);
+    }
+
+    private WorldMapRegionTile getOrScheduleCachedRegion(int regionX, int regionZ, boolean useFrameBudget,
+                                                         long generation, int distanceSquared) {
         if (regionDir == null) return null;
 
         WorldMapRegionTile loaded = getLoadedRegion(regionX, regionZ);
@@ -129,56 +285,12 @@ public class WorldMapTileManager {
         String regionKey = key(regionX, regionZ);
         CachedRegionLoad pendingLoad = pendingRegionLoads.get(regionKey);
         if (pendingLoad != null) {
-            if (pendingLoad.future().isDone()) {
-                return consumeReadyRegionLoad(regionKey, pendingLoad);
-            }
             return null;
         }
 
-        File regionFile = getReadableRegionFile(regionX, regionZ);
-        scheduleRegionLoad(regionKey, regionX, regionZ, regionFile, true);
+        if (!persistedRegionSources.contains(regionKey)) return null;
+        scheduleRegionLoad(regionKey, regionX, regionZ, useFrameBudget, true, generation, distanceSquared);
         return null;
-    }
-
-    void scheduleVisibleRegionLoads(double leftWorld, double rightWorld, double topWorld, double bottomWorld) {
-        if (regionDir == null) return;
-
-        int startRegionX = (int) Math.floor(leftWorld / WorldMapRegionTile.REGION_PIXEL_SIZE) - 1;
-        int endRegionX = (int) Math.ceil(rightWorld / WorldMapRegionTile.REGION_PIXEL_SIZE) + 1;
-        int startRegionZ = (int) Math.floor(topWorld / WorldMapRegionTile.REGION_PIXEL_SIZE) - 1;
-        int endRegionZ = (int) Math.ceil(bottomWorld / WorldMapRegionTile.REGION_PIXEL_SIZE) + 1;
-
-        int centerRegionX = (int) Math.floor(((leftWorld + rightWorld) * 0.5) / WorldMapRegionTile.REGION_PIXEL_SIZE);
-        int centerRegionZ = (int) Math.floor(((topWorld + bottomWorld) * 0.5) / WorldMapRegionTile.REGION_PIXEL_SIZE);
-
-        startRegionX = Math.max(startRegionX, centerRegionX - MAX_VISIBLE_REGION_PREFETCH_RADIUS);
-        endRegionX = Math.min(endRegionX, centerRegionX + MAX_VISIBLE_REGION_PREFETCH_RADIUS);
-        startRegionZ = Math.max(startRegionZ, centerRegionZ - MAX_VISIBLE_REGION_PREFETCH_RADIUS);
-        endRegionZ = Math.min(endRegionZ, centerRegionZ + MAX_VISIBLE_REGION_PREFETCH_RADIUS);
-
-        ArrayList<RegionLoadCandidate> candidates = new ArrayList<>();
-        for (int regionZ = startRegionZ; regionZ <= endRegionZ; regionZ++) {
-            for (int regionX = startRegionX; regionX <= endRegionX; regionX++) {
-                String regionKey = key(regionX, regionZ);
-                if (loadedRegions.containsKey(regionKey) || pendingRegionLoads.containsKey(regionKey)) continue;
-                if (isRegionLoadRetryBlocked(regionKey)) continue;
-                if (!persistedRegionSources.contains(regionKey)) continue;
-
-                File regionFile = getReadableRegionFile(regionX, regionZ);
-                if (!isUsableImageFile(regionFile)) continue;
-
-                double dx = regionX + 0.5 - centerRegionX;
-                double dz = regionZ + 0.5 - centerRegionZ;
-                candidates.add(new RegionLoadCandidate(regionX, regionZ, dx * dx + dz * dz, regionFile));
-            }
-        }
-
-        candidates.sort(Comparator.comparingDouble(RegionLoadCandidate::centerDistance));
-        for (RegionLoadCandidate candidate : candidates) {
-            if (regionLoadSchedulesLeft <= 0) return;
-            scheduleRegionLoad(key(candidate.regionX(), candidate.regionZ()), candidate.regionX(), candidate.regionZ(),
-                    candidate.regionFile(), true);
-        }
     }
 
     private void consumeReadyRegionLoads(int maxCompletions) {
@@ -193,182 +305,115 @@ public class WorldMapTileManager {
             remaining--;
             consumeReadyRegionLoad(entry.getKey(), pendingLoad);
         }
+        scheduleWaitingRegionLoads(Math.max(1, maxCompletions - remaining));
+    }
+
+    private void consumeReadyRegionSaves(int maxCompletions) {
+        int remaining = maxCompletions;
+        Iterator<Map.Entry<String, PendingRegionSave>> iterator = pendingRegionSaves.entrySet().iterator();
+        while (iterator.hasNext() && remaining > 0) {
+            Map.Entry<String, PendingRegionSave> entry = iterator.next();
+            PendingRegionSave pendingSave = entry.getValue();
+            if (!pendingSave.future().isDone()) continue;
+
+            iterator.remove();
+            remaining--;
+            completeRegionSave(entry.getKey(), pendingSave);
+        }
+    }
+
+    private void completeRegionSave(String regionKey, PendingRegionSave pendingSave) {
+        WorldMapAsync.RegionSaveResult result;
+        try {
+            result = pendingSave.future().join();
+        } catch (Exception ignored) {
+            result = null;
+        }
+
+        boolean success = result != null && result.success();
+        pendingSave.region().finishSave(pendingSave.dirtyVersion(), success);
+        if (!success) {
+            Main.LOGGER.warn("Failed to save world map region {}", regionKey);
+            return;
+        }
+
+        if (!pendingSave.region().isDirty()) {
+            dirtyRegionKeys.remove(regionKey);
+        }
+        persistedRegionSources.add(regionKey);
+        failedRegionLoads.remove(regionKey);
+    }
+
+    private void waitForPendingRegionSaves() {
+        while (!pendingRegionSaves.isEmpty()) {
+            ArrayList<Map.Entry<String, PendingRegionSave>> saves = new ArrayList<>(pendingRegionSaves.entrySet());
+            pendingRegionSaves.clear();
+            for (Map.Entry<String, PendingRegionSave> entry : saves) {
+                completeRegionSave(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    private void saveAllDirtyRegionsAndWait() {
+        int attempts = 0;
+        while (hasDirtyRegions() || !pendingRegionSaves.isEmpty()) {
+            saveDirtyRegions(Integer.MAX_VALUE, true);
+            waitForPendingRegionSaves();
+            attempts++;
+            if (attempts > MAX_LOADED_REGIONS + MAX_PENDING_REGION_SAVES) {
+                break;
+            }
+        }
+    }
+
+    private boolean hasDirtyRegions() {
+        Iterator<String> iterator = dirtyRegionKeys.iterator();
+        while (iterator.hasNext()) {
+            String regionKey = iterator.next();
+            WorldMapRegionTile region = loadedRegions.get(regionKey);
+            if (region != null && region.isDirty()) return true;
+            iterator.remove();
+        }
+        return false;
     }
 
     private WorldMapRegionTile consumeReadyRegionLoad(String regionKey, CachedRegionLoad pendingLoad) {
         pendingRegionLoads.remove(regionKey);
 
-        NativeImage image;
         try {
-            image = pendingLoad.future().join();
-        } catch (Exception ignored) {
-            recordFailedRegionLoad(regionKey);
-            WorldMapDebugProfiler.recordRegionLoadCompleted(false);
-            return null;
-        }
-        if (image == null) {
-            recordFailedRegionLoad(regionKey);
-            WorldMapDebugProfiler.recordRegionLoadCompleted(false);
-            return null;
-        }
+            WorldMapRegionPixels pixels;
+            try {
+                pixels = pendingLoad.future().join();
+            } catch (CancellationException ignored) {
+                return null;
+            } catch (Exception ignored) {
+                recordFailedRegionLoad(regionKey);
+                WorldMapDebugProfiler.recordRegionLoadCompleted(false);
+                return null;
+            }
+            if (pixels == null) {
+                removeMissingRegionSource(regionKey, pendingLoad.regionX(), pendingLoad.regionZ());
+                recordFailedRegionLoad(regionKey);
+                WorldMapDebugProfiler.recordRegionLoadCompleted(false);
+                return null;
+            }
 
-        if (loadedRegions.containsKey(regionKey)) {
-            image.close();
+            if (loadedRegions.containsKey(regionKey)) {
+                WorldMapDebugProfiler.recordRegionLoadCompleted(true);
+                return loadedRegions.get(regionKey);
+            }
+
+            WorldMapRegionTile region = new WorldMapRegionTile(pendingLoad.regionX(), pendingLoad.regionZ());
+            region.loadFromPixels(pixels);
+            touchRegion(region);
+            loadedRegions.put(regionKey, region);
+            persistedRegionSources.add(regionKey);
+            failedRegionLoads.remove(regionKey);
             WorldMapDebugProfiler.recordRegionLoadCompleted(true);
-            return loadedRegions.get(regionKey);
+            return region;
+        } finally {
+            queueRegionWake(regionKey);
         }
-
-        WorldMapRegionTile region = new WorldMapRegionTile(pendingLoad.regionX(), pendingLoad.regionZ());
-        region.loadFromImage(image);
-        region.markAccessed();
-        loadedRegions.put(regionKey, region);
-        persistedRegionSources.add(regionKey);
-        failedRegionLoads.remove(regionKey);
-        lodCache.invalidateRegion(pendingLoad.regionX(), pendingLoad.regionZ());
-        WorldMapDebugProfiler.recordRegionLoadCompleted(true);
-        return region;
-    }
-
-    WorldMapLodCache getLodCache() {
-        return lodCache;
-    }
-
-    NativeImage buildLodImage(int lodTileX, int lodTileZ, int sampleStep) {
-        File sourceDir = this.regionDir;
-        NativeImage lodImage = new NativeImage(
-                NativeImage.Format.RGBA,
-                WorldMapRegionTile.REGION_PIXEL_SIZE,
-                WorldMapRegionTile.REGION_PIXEL_SIZE,
-                false
-        );
-
-        if (sourceDir == null) {
-            clearImage(lodImage);
-            return lodImage;
-        }
-
-        clearImage(lodImage);
-        Set<String> unreadableSourceImages = new HashSet<>();
-
-        int tileWorldSize = WorldMapRegionTile.REGION_PIXEL_SIZE * sampleStep;
-        int startWorldX = lodTileX * tileWorldSize;
-        int startWorldZ = lodTileZ * tileWorldSize;
-        int endWorldX = startWorldX + tileWorldSize - 1;
-        int endWorldZ = startWorldZ + tileWorldSize - 1;
-        int startRegionX = Math.floorDiv(startWorldX, WorldMapRegionTile.REGION_PIXEL_SIZE);
-        int endRegionX = Math.floorDiv(endWorldX, WorldMapRegionTile.REGION_PIXEL_SIZE);
-        int startRegionZ = Math.floorDiv(startWorldZ, WorldMapRegionTile.REGION_PIXEL_SIZE);
-        int endRegionZ = Math.floorDiv(endWorldZ, WorldMapRegionTile.REGION_PIXEL_SIZE);
-
-        boolean foundSource = false;
-        int visiblePixels = 0;
-        for (int regionZ = startRegionZ; regionZ <= endRegionZ; regionZ++) {
-            for (int regionX = startRegionX; regionX <= endRegionX; regionX++) {
-                String regionKey = key(regionX, regionZ);
-                NativeImage sourceImage = copyLoadedRegionImage(regionX, regionZ);
-                if (sourceImage == null) {
-                    sourceImage = readSourceRegionImage(sourceDir, regionX, regionZ, regionKey, unreadableSourceImages);
-                }
-                if (sourceImage == null) continue;
-
-                foundSource = true;
-                try {
-                    visiblePixels += writeSourceRegionToLod(lodImage, sourceImage, regionX, regionZ,
-                            startWorldX, startWorldZ, sampleStep);
-                } finally {
-                    sourceImage.close();
-                }
-            }
-        }
-
-        if (visiblePixels == 0 && !foundSource) {
-            lodImage.close();
-            return null;
-        }
-
-        return lodImage;
-    }
-
-    private int writeSourceRegionToLod(NativeImage lodImage, NativeImage sourceImage,
-                                       int regionX, int regionZ,
-                                       int lodStartWorldX, int lodStartWorldZ,
-                                       int sampleStep) {
-        int sourceWorldX = regionX * WorldMapRegionTile.REGION_PIXEL_SIZE;
-        int sourceWorldZ = regionZ * WorldMapRegionTile.REGION_PIXEL_SIZE;
-        int outputStartX = Math.max(0, (sourceWorldX - lodStartWorldX) / sampleStep);
-        int outputStartZ = Math.max(0, (sourceWorldZ - lodStartWorldZ) / sampleStep);
-        int outputEndX = Math.min(WorldMapRegionTile.REGION_PIXEL_SIZE,
-                (sourceWorldX + WorldMapRegionTile.REGION_PIXEL_SIZE - lodStartWorldX) / sampleStep);
-        int outputEndZ = Math.min(WorldMapRegionTile.REGION_PIXEL_SIZE,
-                (sourceWorldZ + WorldMapRegionTile.REGION_PIXEL_SIZE - lodStartWorldZ) / sampleStep);
-
-        int visiblePixels = 0;
-        for (int z = outputStartZ; z < outputEndZ; z++) {
-            int sourceZ = lodStartWorldZ + z * sampleStep - sourceWorldZ;
-            for (int x = outputStartX; x < outputEndX; x++) {
-                int sourceX = lodStartWorldX + x * sampleStep - sourceWorldX;
-                int color = sampleSourceRegionColor(sourceImage, sourceX, sourceZ, sampleStep);
-                if (isVisible(color)) visiblePixels++;
-                lodImage.setPixelRGBA(x, z, color);
-            }
-        }
-        return visiblePixels;
-    }
-
-    private int sampleSourceRegionColor(NativeImage sourceImage, int sourceX, int sourceZ, int sampleStep) {
-        if (sampleStep <= 1) {
-            return getLocalSourcePixel(sourceImage, sourceX, sourceZ);
-        }
-        return sampleSharpSourceRegionColor(sourceImage, sourceX, sourceZ, sampleStep);
-    }
-
-    private int sampleSharpSourceRegionColor(NativeImage sourceImage, int sourceX, int sourceZ, int sampleStep) {
-        int end = sampleStep - 1;
-        int mid = sampleStep / 2;
-        int center = getLocalSourcePixel(sourceImage, sourceX + mid, sourceZ + mid);
-        if (isVisible(center)) return center;
-
-        int top = getLocalSourcePixel(sourceImage, sourceX + mid, sourceZ);
-        if (isVisible(top)) return top;
-        int bottom = getLocalSourcePixel(sourceImage, sourceX + mid, sourceZ + end);
-        if (isVisible(bottom)) return bottom;
-        int left = getLocalSourcePixel(sourceImage, sourceX, sourceZ + mid);
-        if (isVisible(left)) return left;
-        int right = getLocalSourcePixel(sourceImage, sourceX + end, sourceZ + mid);
-        if (isVisible(right)) return right;
-        return 0x00000000;
-    }
-
-    private static int getLocalSourcePixel(NativeImage image, int x, int z) {
-        if (x < 0 || z < 0 || x >= image.getWidth() || z >= image.getHeight()) {
-            return 0x00000000;
-        }
-        return image.getPixelRGBA(x, z);
-    }
-
-    boolean mayHaveLodSourceData(int lodTileX, int lodTileZ, int sampleStep) {
-        int tileWorldSize = WorldMapRegionTile.REGION_PIXEL_SIZE * sampleStep;
-        int startWorldX = lodTileX * tileWorldSize;
-        int startWorldZ = lodTileZ * tileWorldSize;
-        int endWorldX = startWorldX + tileWorldSize - 1;
-        int endWorldZ = startWorldZ + tileWorldSize - 1;
-
-        int startRegionX = Math.floorDiv(startWorldX, WorldMapRegionTile.REGION_PIXEL_SIZE);
-        int endRegionX = Math.floorDiv(endWorldX, WorldMapRegionTile.REGION_PIXEL_SIZE);
-        int startRegionZ = Math.floorDiv(startWorldZ, WorldMapRegionTile.REGION_PIXEL_SIZE);
-        int endRegionZ = Math.floorDiv(endWorldZ, WorldMapRegionTile.REGION_PIXEL_SIZE);
-
-        for (int regionZ = startRegionZ; regionZ <= endRegionZ; regionZ++) {
-            for (int regionX = startRegionX; regionX <= endRegionX; regionX++) {
-                if (hasRegionSourceInMemory(regionX, regionZ)) return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean hasRegionSourceInMemory(int regionX, int regionZ) {
-        String regionKey = key(regionX, regionZ);
-        return loadedRegions.containsKey(regionKey) || persistedRegionSources.contains(regionKey);
     }
 
     void trimLoadedRegions(int maxRegions) {
@@ -382,14 +427,20 @@ public class WorldMapTileManager {
         }
 
         ArrayList<WorldMapRegionTile> regions = new ArrayList<>(loadedRegions.values());
-        regions.sort(Comparator.comparingLong(WorldMapRegionTile::getLastAccessNanos));
+        regions.sort(Comparator.comparingLong(WorldMapRegionTile::getLastAccessOrder));
 
         for (WorldMapRegionTile region : regions) {
             if (loadedRegions.size() <= maxRegions) return;
             if (region.getRegionX() == protectedRegionX && region.getRegionZ() == protectedRegionZ) continue;
 
-            loadedRegions.remove(key(region.getRegionX(), region.getRegionZ()));
-            saveRegion(region);
+            String regionKey = key(region.getRegionX(), region.getRegionZ());
+            if (region.isDirty() || pendingRegionSaves.containsKey(regionKey)) {
+                saveRegion(region);
+                continue;
+            }
+
+            loadedRegions.remove(regionKey);
+            dirtyRegionKeys.remove(regionKey);
             region.close();
         }
     }
@@ -398,41 +449,106 @@ public class WorldMapTileManager {
         int regionX = WorldMapRegionTile.chunkToRegionCoord(chunk.x);
         int regionZ = WorldMapRegionTile.chunkToRegionCoord(chunk.z);
         WorldMapRegionTile region = getLoadedRegion(regionX, regionZ);
-        if (region == null) region = getOrScheduleCachedRegion(regionX, regionZ);
-        if (region == null || region.getImage() == null) return false;
+        if (region == null) region = getOrScheduleCachedRegion(regionX, regionZ, false, 0L, 0);
+        if (region == null) return false;
 
         int localX = WorldMapRegionTile.chunkLocalCoord(chunk.x) * WorldMapRegionTile.PIXELS_PER_CHUNK
                 + WorldMapRegionTile.PIXELS_PER_CHUNK / 2;
         int localZ = WorldMapRegionTile.chunkLocalCoord(chunk.z) * WorldMapRegionTile.PIXELS_PER_CHUNK
                 + WorldMapRegionTile.PIXELS_PER_CHUNK / 2;
 
-        return ((region.getImage().getPixelRGBA(localX, localZ) >> 24) & 0xFF) > 0;
+        return region.hasVisiblePixel(localX, localZ);
+    }
+
+    public void onChunkLoaded(Level level, ChunkPos chunkPos) {
+        if (!isCurrentClientLevel(level) || chunkPos == null) return;
+
+        markChunkDirty(chunkPos.x, chunkPos.z, false, CHUNK_LOAD_SETTLE_NANOS);
+        wakeChunksWaitingForNeighbor(chunkPos.x, chunkPos.z);
+    }
+
+    public void onChunkUnloaded(Level level, ChunkPos chunkPos) {
+        if (!isCurrentClientLevel(level) || chunkPos == null) return;
+
+        long chunkKey = chunkKey(chunkPos.x, chunkPos.z);
+        forgetChunk(chunkKey);
+
+        for (int dz = -1; dz <= 1; dz++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                if (dx == 0 && dz == 0) continue;
+
+                long dependentChunkKey = chunkKey(chunkPos.x + dx, chunkPos.z + dz);
+                PendingChunkBuild pendingBuild = pendingChunkBuilds.remove(dependentChunkKey);
+                if (pendingBuild == null) continue;
+
+                pendingBuild.builder().cancel();
+                boolean urgentRetry = urgentChunks.remove(dependentChunkKey);
+                if (chunkRevisions.containsKey(dependentChunkKey)
+                        && isChunkLoaded(chunkX(dependentChunkKey), chunkZ(dependentChunkKey))) {
+                    parkChunkForNeighbors(dependentChunkKey, urgentRetry);
+                } else {
+                    forgetChunk(dependentChunkKey);
+                }
+            }
+        }
+    }
+
+    public void onBlockUpdated(Level level, BlockPos pos) {
+        if (!isCurrentClientLevel(level) || pos == null) return;
+
+        int chunkX = pos.getX() >> 4;
+        int chunkZ = pos.getZ() >> 4;
+        markChunkDirty(chunkX, chunkZ, true, BLOCK_UPDATE_SETTLE_NANOS);
+
+        int localX = pos.getX() & 15;
+        int localZ = pos.getZ() & 15;
+        if (localX == 0) markChunkDirty(chunkX - 1, chunkZ, true, BLOCK_UPDATE_SETTLE_NANOS);
+        if (localX == 15) markChunkDirty(chunkX + 1, chunkZ, true, BLOCK_UPDATE_SETTLE_NANOS);
+        if (localZ == 0) markChunkDirty(chunkX, chunkZ - 1, true, BLOCK_UPDATE_SETTLE_NANOS);
+        if (localZ == 15) markChunkDirty(chunkX, chunkZ + 1, true, BLOCK_UPDATE_SETTLE_NANOS);
+        if (localX == 15 && localZ == 15) {
+            markChunkDirty(chunkX + 1, chunkZ + 1, true, BLOCK_UPDATE_SETTLE_NANOS);
+        }
     }
 
     public void close() {
-        saveDirtyRegions();
-        lodCache.close();
+        saveAllDirtyRegionsAndWait();
         closePendingRegionLoads();
+        renderTileCache.close();
+        WorldMapRenderer.releaseSharedResources();
 
         for (WorldMapRegionTile region : loadedRegions.values()) {
             region.close();
         }
         loadedRegions.clear();
+        pendingRegionSaves.clear();
+        dirtyRegionKeys.clear();
         persistedRegionSources.clear();
         failedRegionLoads.clear();
         chunkUpdateQueue.clear();
         queuedChunks.clear();
-        lastChunkUpdateTimes.clear();
-        closeActiveChunkBuilder();
+        urgentChunks.clear();
+        chunkRevisions.clear();
+        chunkReadyNanos.clear();
+        chunksWaitingForNeighbors.clear();
+        chunkWaitingRegions.clear();
+        chunksWaitingByRegion.clear();
+        regionWakeQueue.clear();
+        queuedRegionWakes.clear();
+        discoveredChunks.clear();
+        closePendingChunkBuilds();
         worldMapDir = null;
         regionDir = null;
-        lastQueueRefreshTime = 0L;
+        legacyLevelZeroDir = null;
+        lastDiscoveryTime = 0L;
         lastSaveTime = 0L;
-    }
-
-    public void flush() {
-        saveDirtyRegions();
-        lastSaveTime = System.currentTimeMillis();
+        savePassPending = false;
+        lastEnqueueCenterChunkKey = Long.MIN_VALUE;
+        lastChunkBuildFrameNanos = 0L;
+        nextChunkRevision = 0L;
+        regionAccessSequence = 0L;
+        enqueueOffsetCursor = 0;
+        regionLoadSchedulesLeft = 0;
     }
 
     private WorldMapRegionTile getOrCreateRegion(int regionX, int regionZ) {
@@ -441,13 +557,12 @@ public class WorldMapTileManager {
         if (region == null) {
             CachedRegionLoad pendingLoad = pendingRegionLoads.get(regionKey);
             if (pendingLoad != null) {
-                return pendingLoad.future().isDone() ? consumeReadyRegionLoad(regionKey, pendingLoad) : null;
+                return null;
             }
 
-            File regionFile = getReadableRegionFile(regionX, regionZ);
-            if (isUsableImageFile(regionFile)) {
+            if (persistedRegionSources.contains(regionKey)) {
                 if (!isRegionLoadRetryBlocked(regionKey)) {
-                    scheduleRegionLoad(regionKey, regionX, regionZ, regionFile, false);
+                    scheduleRegionLoad(regionKey, regionX, regionZ, false, false, 0L, 0);
                 }
                 return null;
             }
@@ -456,143 +571,436 @@ public class WorldMapTileManager {
             region.createBlank();
             loadedRegions.put(regionKey, region);
         }
-        region.markAccessed();
-        return region;
+        return touchRegion(region);
     }
 
-    private void enqueueLoadedChunksAroundPlayer(long now) {
+    private void discoverLoadedChunksAroundPlayer() {
         if (mc.level == null || mc.player == null) return;
 
         int centerChunkX = mc.player.chunkPosition().x;
         int centerChunkZ = mc.player.chunkPosition().z;
         int radius = getUpdateRadiusChunks();
+        long centerChunkKey = chunkKey(centerChunkX, centerChunkZ);
 
-        enqueueChunkIfNeeded(centerChunkX, centerChunkZ, now);
-        for (int ring = 1; ring <= radius; ring++) {
-            for (int dx = -ring; dx <= ring; dx++) {
-                enqueueChunkIfNeeded(centerChunkX + dx, centerChunkZ - ring, now);
-                enqueueChunkIfNeeded(centerChunkX + dx, centerChunkZ + ring, now);
+        if (centerChunkKey != lastEnqueueCenterChunkKey) {
+            lastEnqueueCenterChunkKey = centerChunkKey;
+            enqueueOffsetCursor = 0;
+            discardQueuedChunksOutside(centerChunkX, centerChunkZ, radius + 2);
+        }
+
+        discoverChunk(centerChunkX, centerChunkZ);
+
+        long deadlineNanos = System.nanoTime() + CHUNK_ENQUEUE_BUDGET_NANOS;
+        int visitedOffsets = 0;
+        int checkedChunks = 0;
+        while (visitedOffsets < CHUNK_SCAN_OFFSETS.length
+                && checkedChunks < MAX_CHUNK_ENQUEUE_CHECKS_PER_REFRESH
+                && queuedChunks.size() < MAX_QUEUED_CHUNK_UPDATES
+                && System.nanoTime() < deadlineNanos) {
+            ChunkScanOffset offset = CHUNK_SCAN_OFFSETS[enqueueOffsetCursor];
+            enqueueOffsetCursor = (enqueueOffsetCursor + 1) % CHUNK_SCAN_OFFSETS.length;
+            visitedOffsets++;
+
+            if (offset.distanceSquared() > radius * radius) {
+                enqueueOffsetCursor = 0;
+                break;
             }
-            for (int dz = -ring + 1; dz <= ring - 1; dz++) {
-                enqueueChunkIfNeeded(centerChunkX - ring, centerChunkZ + dz, now);
-                enqueueChunkIfNeeded(centerChunkX + ring, centerChunkZ + dz, now);
+
+            checkedChunks++;
+            discoverChunk(centerChunkX + offset.dx(), centerChunkZ + offset.dz());
+        }
+    }
+
+    private void discardQueuedChunksOutside(int centerChunkX, int centerChunkZ, int keepRadius) {
+        int keepRadiusSquared = keepRadius * keepRadius;
+        Iterator<Long> iterator = chunkUpdateQueue.iterator();
+        while (iterator.hasNext()) {
+            long chunkKey = iterator.next();
+            int dx = chunkX(chunkKey) - centerChunkX;
+            int dz = chunkZ(chunkKey) - centerChunkZ;
+            if (dx * dx + dz * dz <= keepRadiusSquared) continue;
+
+            iterator.remove();
+            queuedChunks.remove(chunkKey);
+            urgentChunks.remove(chunkKey);
+            chunkRevisions.remove(chunkKey);
+            chunkReadyNanos.remove(chunkKey);
+            removeChunkFromWaiters(chunkKey);
+            discoveredChunks.remove(chunkKey);
+        }
+
+        Iterator<Map.Entry<Long, PendingChunkBuild>> pendingIterator = pendingChunkBuilds.entrySet().iterator();
+        while (pendingIterator.hasNext()) {
+            Map.Entry<Long, PendingChunkBuild> entry = pendingIterator.next();
+            long chunkKey = entry.getKey();
+            int dx = chunkX(chunkKey) - centerChunkX;
+            int dz = chunkZ(chunkKey) - centerChunkZ;
+            if (dx * dx + dz * dz <= keepRadiusSquared) continue;
+
+            pendingIterator.remove();
+            entry.getValue().builder().cancel();
+            urgentChunks.remove(chunkKey);
+            chunkRevisions.remove(chunkKey);
+            chunkReadyNanos.remove(chunkKey);
+            removeChunkFromWaiters(chunkKey);
+            discoveredChunks.remove(chunkKey);
+        }
+
+        ArrayList<Long> waitingChunks = new ArrayList<>(chunksWaitingForNeighbors);
+        waitingChunks.addAll(chunkWaitingRegions.keySet());
+        for (long chunkKey : waitingChunks) {
+            int dx = chunkX(chunkKey) - centerChunkX;
+            int dz = chunkZ(chunkKey) - centerChunkZ;
+            if (dx * dx + dz * dz > keepRadiusSquared) {
+                forgetChunk(chunkKey);
             }
         }
     }
 
-    private void enqueueChunkIfNeeded(int chunkX, int chunkZ, long now) {
+    private void discoverChunk(int chunkX, int chunkZ) {
         long chunkKey = chunkKey(chunkX, chunkZ);
-        if (queuedChunks.contains(chunkKey)) return;
-        if (activeChunkBuilder != null && activeChunkBuilder.chunkKey() == chunkKey) return;
+        if (discoveredChunks.containsKey(chunkKey) || !isChunkLoaded(chunkX, chunkZ)) return;
 
-        Long lastUpdate = lastChunkUpdateTimes.get(chunkKey);
-        if (lastUpdate != null && now - lastUpdate < CHUNK_REFRESH_INTERVAL_MS) return;
-        if (!isChunkLoaded(chunkX, chunkZ)) return;
-
-        chunkUpdateQueue.addLast(chunkKey);
-        queuedChunks.add(chunkKey);
+        markChunkDirty(chunkX, chunkZ, false, 0L);
     }
 
-    private int processQueuedChunks(long now) {
-        int updatesDone = 0;
-        long deadlineNanos = System.nanoTime() + CHUNK_UPDATE_BUDGET_NANOS;
+    private void markChunkDirty(int chunkX, int chunkZ, boolean urgent, long settleNanos) {
+        if (!isChunkLoaded(chunkX, chunkZ)) return;
 
-        while (updatesDone < CHUNK_UPDATES_PER_TICK && System.nanoTime() < deadlineNanos) {
-            if (activeChunkBuilder == null && !startNextChunkBuilder()) {
-                break;
+        long chunkKey = chunkKey(chunkX, chunkZ);
+        chunkRevisions.put(chunkKey, ++nextChunkRevision);
+        chunkReadyNanos.put(chunkKey, System.nanoTime() + settleNanos);
+        if (enqueueChunkForBuild(chunkKey, urgent)) {
+            discoveredChunks.put(chunkKey, Boolean.TRUE);
+        } else {
+            discoveredChunks.remove(chunkKey);
+        }
+    }
+
+    private boolean enqueueChunkForBuild(long chunkKey) {
+        return enqueueChunkForBuild(chunkKey, false);
+    }
+
+    private boolean enqueueChunkForBuild(long chunkKey, boolean urgent) {
+        if (pendingChunkBuilds.containsKey(chunkKey)) {
+            removeChunkFromWaiters(chunkKey);
+            if (urgent) urgentChunks.add(chunkKey);
+            return true;
+        }
+        if (queuedChunks.contains(chunkKey)) {
+            removeChunkFromWaiters(chunkKey);
+            if (urgent && urgentChunks.add(chunkKey)) {
+                chunkUpdateQueue.remove(chunkKey);
+                chunkUpdateQueue.addFirst(chunkKey);
             }
+            return true;
+        }
+        if (queuedChunks.size() >= MAX_QUEUED_CHUNK_UPDATES) return false;
 
-            if (activeChunkBuilder == null) {
+        removeChunkFromWaiters(chunkKey);
+        queuedChunks.add(chunkKey);
+        if (urgent) {
+            urgentChunks.add(chunkKey);
+            chunkUpdateQueue.addFirst(chunkKey);
+        } else {
+            chunkUpdateQueue.addLast(chunkKey);
+        }
+        return true;
+    }
+
+    private static ChunkScanOffset[] buildChunkScanOffsets() {
+        ArrayList<ChunkScanOffset> offsets = new ArrayList<>();
+        int maxDistanceSquared = MAX_UPDATE_RADIUS_CHUNKS * MAX_UPDATE_RADIUS_CHUNKS;
+        for (int dz = -MAX_UPDATE_RADIUS_CHUNKS; dz <= MAX_UPDATE_RADIUS_CHUNKS; dz++) {
+            for (int dx = -MAX_UPDATE_RADIUS_CHUNKS; dx <= MAX_UPDATE_RADIUS_CHUNKS; dx++) {
+                int distanceSquared = dx * dx + dz * dz;
+                if (distanceSquared == 0 || distanceSquared > maxDistanceSquared) continue;
+                offsets.add(new ChunkScanOffset(dx, dz, distanceSquared));
+            }
+        }
+        offsets.sort(Comparator.comparingInt(ChunkScanOffset::distanceSquared));
+        return offsets.toArray(ChunkScanOffset[]::new);
+    }
+
+    private void scheduleChunkBuilds(int maxSchedules) {
+        if (mc.level == null) return;
+
+        int scheduled = 0;
+        int attempts = 0;
+        int maxAttempts = Math.min(MAX_CHUNK_BUILD_SCHEDULE_ATTEMPTS_PER_TICK, queuedChunks.size());
+        long nowNanos = System.nanoTime();
+        long deadlineNanos = nowNanos + CHUNK_BUILD_SCHEDULE_BUDGET_NANOS;
+        while (scheduled < maxSchedules && pendingChunkBuilds.size() < MAX_PENDING_CHUNK_BUILDS
+                && !queuedChunks.isEmpty() && attempts < maxAttempts && System.nanoTime() < deadlineNanos) {
+            Long nextChunkKey = chunkUpdateQueue.pollFirst();
+            if (nextChunkKey == null) return;
+            attempts++;
+
+            long chunkKey = nextChunkKey;
+            queuedChunks.remove(chunkKey);
+            boolean urgent = urgentChunks.remove(chunkKey);
+
+            Long revision = chunkRevisions.get(chunkKey);
+            if (revision == null) continue;
+
+            long readyNanos = chunkReadyNanos.getOrDefault(chunkKey, 0L);
+            if (nowNanos < readyNanos) {
+                enqueueDeferredChunk(chunkKey, urgent);
                 continue;
             }
 
-            if (!activeChunkBuilder.workUntil(deadlineNanos)) {
-                break;
-            }
-
-            finishActiveChunkBuilder(now);
-            updatesDone++;
-        }
-
-        return updatesDone;
-    }
-
-    private boolean startNextChunkBuilder() {
-        if (mc.level == null) return false;
-
-        while (!chunkUpdateQueue.isEmpty()) {
-            long chunkKey = chunkUpdateQueue.removeFirst();
-            queuedChunks.remove(chunkKey);
-
             int chunkX = chunkX(chunkKey);
             int chunkZ = chunkZ(chunkKey);
-            if (!isChunkLoaded(chunkX, chunkZ)) continue;
+            if (!isChunkLoaded(chunkX, chunkZ)) {
+                chunkRevisions.remove(chunkKey);
+                chunkReadyNanos.remove(chunkKey);
+                discoveredChunks.remove(chunkKey);
+                continue;
+            }
 
             int regionX = WorldMapRegionTile.chunkToRegionCoord(chunkX);
             int regionZ = WorldMapRegionTile.chunkToRegionCoord(chunkZ);
-            if (getOrCreateRegion(regionX, regionZ) == null) continue;
-
-            activeChunkBuilder = new ChunkImageBuilder(mc.level, chunkX, chunkZ, chunkKey);
-            return true;
-        }
-
-        return false;
-    }
-
-    private void finishActiveChunkBuilder(long now) {
-        ChunkImageBuilder builder = activeChunkBuilder;
-        activeChunkBuilder = null;
-        if (builder == null) return;
-
-        try {
-            int chunkX = builder.chunkX();
-            int chunkZ = builder.chunkZ();
-            long chunkKey = builder.chunkKey();
-            if (!isChunkLoaded(chunkX, chunkZ)) {
-                lastChunkUpdateTimes.put(chunkKey, now);
-                return;
+            if (getOrCreateRegion(regionX, regionZ) == null) {
+                parkChunkForRegion(key(regionX, regionZ), chunkKey, urgent);
+                continue;
             }
 
+            ChunkSamplingContext context = ChunkSamplingContext.capture(mc.level, chunkX, chunkZ);
+            if (context == null) {
+                parkChunkForNeighbors(chunkKey, urgent);
+                continue;
+            }
+
+            ChunkImageBuilder builder = ChunkImageBuilder.begin(context, chunkX, chunkZ, chunkKey);
+            pendingChunkBuilds.put(chunkKey, new PendingChunkBuild(context, revision, builder));
+            scheduled++;
+        }
+    }
+
+    private int consumeReadyChunkBuilds(int maxCompletions) {
+        int completed = 0;
+        Iterator<Map.Entry<Long, PendingChunkBuild>> iterator = pendingChunkBuilds.entrySet().iterator();
+        while (iterator.hasNext() && completed < maxCompletions) {
+            Map.Entry<Long, PendingChunkBuild> entry = iterator.next();
+            PendingChunkBuild pendingBuild = entry.getValue();
+            if (!pendingBuild.builder().isDone()) continue;
+
+            iterator.remove();
+            completed++;
+            ChunkBuildResult result = pendingBuild.builder().result();
+
+            long chunkKey = entry.getKey();
+            boolean urgentRetry = urgentChunks.remove(chunkKey);
+            Long currentRevision = chunkRevisions.get(chunkKey);
+            boolean resultIsCurrent = currentRevision != null
+                    && currentRevision == pendingBuild.revision()
+                    && pendingBuild.context().belongsTo(mc.level)
+                    && isChunkLoaded(chunkX(chunkKey), chunkZ(chunkKey));
+            if (resultIsCurrent && result != null) {
+                if (finishChunkBuild(result)) {
+                    chunkRevisions.remove(chunkKey, currentRevision);
+                    chunkReadyNanos.remove(chunkKey);
+                } else {
+                    int regionX = WorldMapRegionTile.chunkToRegionCoord(chunkX(chunkKey));
+                    int regionZ = WorldMapRegionTile.chunkToRegionCoord(chunkZ(chunkKey));
+                    parkChunkForRegion(key(regionX, regionZ), chunkKey, urgentRetry);
+                }
+            } else if (pendingBuild.context().belongsTo(mc.level)
+                    && isChunkLoaded(chunkX(chunkKey), chunkZ(chunkKey))) {
+                enqueueDeferredChunk(chunkKey, urgentRetry);
+            }
+        }
+        return completed;
+    }
+
+    private boolean finishChunkBuild(ChunkBuildResult result) {
+        long finalizeStartNanos = System.nanoTime();
+        long regionWriteNanos = 0L;
+        try {
+            int chunkX = result.chunkX();
+            int chunkZ = result.chunkZ();
             int regionX = WorldMapRegionTile.chunkToRegionCoord(chunkX);
             int regionZ = WorldMapRegionTile.chunkToRegionCoord(chunkZ);
             WorldMapRegionTile region = getOrCreateRegion(regionX, regionZ);
-            if (region == null) return;
-
-            if (!builder.isMeaningful()) {
-                lastChunkUpdateTimes.put(chunkKey, now);
-                return;
+            if (region == null) {
+                return false;
             }
 
-            ChunkImage chunkImage = builder.takeImage();
-            if (chunkImage == null) return;
-
-            try {
-                region.updateFromChunkImage(
-                        chunkImage,
-                        WorldMapRegionTile.chunkLocalCoord(chunkX),
-                        WorldMapRegionTile.chunkLocalCoord(chunkZ)
-                );
-                lodCache.invalidateRegion(regionX, regionZ);
-            } finally {
-                chunkImage.close();
-            }
-
-            lastChunkUpdateTimes.put(chunkKey, now);
+            long regionWriteStartNanos = System.nanoTime();
+            region.updateFromChunkPixels(
+                    result.pixels(),
+                    WorldMapRegionTile.chunkLocalCoord(chunkX),
+                    WorldMapRegionTile.chunkLocalCoord(chunkZ)
+            );
+            renderTileCache.invalidateChunk(
+                    region,
+                    WorldMapRegionTile.chunkLocalCoord(chunkX),
+                    WorldMapRegionTile.chunkLocalCoord(chunkZ),
+                    result.pixels()
+            );
+            dirtyRegionKeys.add(key(regionX, regionZ));
+            regionWriteNanos = System.nanoTime() - regionWriteStartNanos;
+            return true;
         } finally {
-            builder.close();
+            WorldMapDebugProfiler.recordChunkFinalize(
+                    System.nanoTime() - finalizeStartNanos,
+                    regionWriteNanos,
+                    0L
+            );
         }
     }
 
-    private void closeActiveChunkBuilder() {
-        if (activeChunkBuilder == null) return;
-
-        activeChunkBuilder.close();
-        activeChunkBuilder = null;
+    private void enqueueDeferredChunk(long chunkKey, boolean urgent) {
+        if (urgent) {
+            urgentChunks.add(chunkKey);
+        }
+        if (queuedChunks.add(chunkKey)) {
+            if (urgent) {
+                chunkUpdateQueue.addFirst(chunkKey);
+            } else {
+                chunkUpdateQueue.addLast(chunkKey);
+            }
+        } else if (urgent && chunkUpdateQueue.remove(chunkKey)) {
+            chunkUpdateQueue.addFirst(chunkKey);
+        }
     }
 
-    private boolean scheduleRegionLoad(String regionKey, int regionX, int regionZ, File regionFile, boolean useFrameBudget) {
+    private void parkChunkForNeighbors(long chunkKey, boolean urgent) {
+        removeChunkFromRegionWait(chunkKey);
+        chunksWaitingForNeighbors.add(chunkKey);
+        if (urgent) urgentChunks.add(chunkKey);
+    }
+
+    private void wakeChunksWaitingForNeighbor(int loadedChunkX, int loadedChunkZ) {
+        for (int dz = -1; dz <= 1; dz++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                long chunkKey = chunkKey(loadedChunkX + dx, loadedChunkZ + dz);
+                if (!chunksWaitingForNeighbors.remove(chunkKey)) continue;
+
+                boolean urgent = urgentChunks.remove(chunkKey);
+                if (!chunkRevisions.containsKey(chunkKey)
+                        || !isChunkLoaded(chunkX(chunkKey), chunkZ(chunkKey))
+                        || !enqueueChunkForBuild(chunkKey, urgent)) {
+                    forgetChunk(chunkKey);
+                }
+            }
+        }
+    }
+
+    private void parkChunkForRegion(String regionKey, long chunkKey, boolean urgent) {
+        chunksWaitingForNeighbors.remove(chunkKey);
+        removeChunkFromRegionWait(chunkKey);
+        chunkWaitingRegions.put(chunkKey, regionKey);
+        chunksWaitingByRegion.computeIfAbsent(regionKey, ignored -> new HashSet<>()).add(chunkKey);
+        if (urgent) urgentChunks.add(chunkKey);
+    }
+
+    private void queueRegionWake(String regionKey) {
+        if (regionKey != null && queuedRegionWakes.add(regionKey)) {
+            regionWakeQueue.addLast(regionKey);
+        }
+    }
+
+    private void processRegionWakeQueue(int maxChunks, long budgetNanos) {
+        long deadlineNanos = System.nanoTime() + budgetNanos;
+        int processed = 0;
+        while (processed < maxChunks && !regionWakeQueue.isEmpty() && System.nanoTime() < deadlineNanos) {
+            String regionKey = regionWakeQueue.peekFirst();
+            Set<Long> waitingChunks = chunksWaitingByRegion.get(regionKey);
+            if (waitingChunks == null || waitingChunks.isEmpty()) {
+                chunksWaitingByRegion.remove(regionKey);
+                regionWakeQueue.removeFirst();
+                queuedRegionWakes.remove(regionKey);
+                continue;
+            }
+
+            Iterator<Long> iterator = waitingChunks.iterator();
+            long chunkKey = iterator.next();
+            iterator.remove();
+            chunkWaitingRegions.remove(chunkKey, regionKey);
+            if (!chunkRevisions.containsKey(chunkKey) || !isChunkLoaded(chunkX(chunkKey), chunkZ(chunkKey))) {
+                forgetChunk(chunkKey);
+            } else {
+                boolean urgent = urgentChunks.remove(chunkKey);
+                if (!enqueueChunkForBuild(chunkKey, urgent)) {
+                    discoveredChunks.remove(chunkKey);
+                }
+            }
+            processed++;
+        }
+    }
+
+    private void scheduleWaitingRegionLoads(int maxRegions) {
+        if (pendingRegionLoads.size() >= MAX_PENDING_REGION_LOADS || chunksWaitingByRegion.isEmpty()) return;
+
+        int scheduled = 0;
+        for (Map.Entry<String, Set<Long>> entry : new ArrayList<>(chunksWaitingByRegion.entrySet())) {
+            if (scheduled >= maxRegions || pendingRegionLoads.size() >= MAX_PENDING_REGION_LOADS) return;
+
+            String regionKey = entry.getKey();
+            if (pendingRegionLoads.containsKey(regionKey)) continue;
+            if (loadedRegions.containsKey(regionKey)) {
+                queueRegionWake(regionKey);
+                continue;
+            }
+
+            Iterator<Long> waitingChunks = entry.getValue().iterator();
+            if (!waitingChunks.hasNext()) {
+                chunksWaitingByRegion.remove(regionKey);
+                continue;
+            }
+
+            long chunkKey = waitingChunks.next();
+            int regionX = WorldMapRegionTile.chunkToRegionCoord(chunkX(chunkKey));
+            int regionZ = WorldMapRegionTile.chunkToRegionCoord(chunkZ(chunkKey));
+            if (scheduleRegionLoad(regionKey, regionX, regionZ, false, false, 0L, 0)) {
+                scheduled++;
+            }
+        }
+    }
+
+    private void removeChunkFromWaiters(long chunkKey) {
+        chunksWaitingForNeighbors.remove(chunkKey);
+        removeChunkFromRegionWait(chunkKey);
+    }
+
+    private void removeChunkFromRegionWait(long chunkKey) {
+        String regionKey = chunkWaitingRegions.remove(chunkKey);
+        if (regionKey == null) return;
+
+        Set<Long> waitingChunks = chunksWaitingByRegion.get(regionKey);
+        if (waitingChunks == null) return;
+        waitingChunks.remove(chunkKey);
+        if (waitingChunks.isEmpty()) {
+            chunksWaitingByRegion.remove(regionKey);
+        }
+    }
+
+    private void forgetChunk(long chunkKey) {
+        PendingChunkBuild pendingBuild = pendingChunkBuilds.remove(chunkKey);
+        if (pendingBuild != null) {
+            pendingBuild.builder().cancel();
+        }
+        if (queuedChunks.remove(chunkKey)) {
+            chunkUpdateQueue.remove(chunkKey);
+        }
+        urgentChunks.remove(chunkKey);
+        chunkRevisions.remove(chunkKey);
+        chunkReadyNanos.remove(chunkKey);
+        removeChunkFromWaiters(chunkKey);
+        discoveredChunks.remove(chunkKey);
+    }
+
+    private void closePendingChunkBuilds() {
+        for (PendingChunkBuild pendingBuild : pendingChunkBuilds.values()) {
+            pendingBuild.builder().cancel();
+        }
+        pendingChunkBuilds.clear();
+    }
+
+    private boolean scheduleRegionLoad(String regionKey, int regionX, int regionZ, boolean useFrameBudget,
+                                       boolean viewOnly, long generation, int distanceSquared) {
         if (isRegionLoadRetryBlocked(regionKey)) return false;
-        if (!isUsableImageFile(regionFile)) return false;
         if (pendingRegionLoads.containsKey(regionKey)) return false;
         if (pendingRegionLoads.size() >= MAX_PENDING_REGION_LOADS) return false;
         if (useFrameBudget) {
@@ -600,9 +1008,15 @@ public class WorldMapTileManager {
             regionLoadSchedulesLeft--;
         }
 
-        CompletableFuture<NativeImage> future = WorldMapAsync.loadRegion(() -> readRegionImageFileIfPresent(regionFile));
+        File activeRegionFile = getRegionFile(regionX, regionZ);
+        File[] candidates = regionLoadCandidates(regionX, regionZ);
+        CompletableFuture<WorldMapRegionPixels> future = WorldMapAsync.loadRegion(
+                regionX + "," + regionZ,
+                !viewOnly,
+                generation,
+                distanceSquared,
+                () -> readRegionPixelsIfPresent(activeRegionFile, candidates));
         pendingRegionLoads.put(regionKey, new CachedRegionLoad(regionX, regionZ, future));
-        persistedRegionSources.add(regionKey);
         WorldMapDebugProfiler.recordRegionLoadScheduled(useFrameBudget);
         return true;
     }
@@ -621,15 +1035,22 @@ public class WorldMapTileManager {
     }
 
     private void recordDebugState() {
+        int chunkPipelineSize = queuedChunks.size() + pendingChunkBuilds.size()
+                + chunksWaitingForNeighbors.size() + chunkWaitingRegions.size();
         WorldMapDebugProfiler.recordTileManagerState(
                 loadedRegions.size(),
                 pendingRegionLoads.size(),
                 failedRegionLoads.size(),
+                pendingRegionSaves.size(),
                 chunkUpdateQueue.size(),
-                queuedChunks.size(),
-                lodCache.size(),
-                lodCache.pendingCount()
+                chunkPipelineSize,
+                renderTileCache.tileCount(),
+                renderTileCache.pendingCount()
         );
+    }
+
+    private boolean isCurrentClientLevel(Level level) {
+        return level != null && level.isClientSide && level == mc.level;
     }
 
     private boolean isChunkLoaded(int chunkX, int chunkZ) {
@@ -650,91 +1071,41 @@ public class WorldMapTileManager {
         return Math.max(MIN_UPDATE_RADIUS_CHUNKS, Math.min(MAX_UPDATE_RADIUS_CHUNKS, radius));
     }
 
-    private void saveDirtyRegions() {
-        saveDirtyRegions(Integer.MAX_VALUE);
-    }
-
-    private void saveDirtyRegions(int maxRegions) {
-        if (regionDir == null) return;
+    private int saveDirtyRegions(int maxRegions, boolean force) {
+        if (regionDir == null) return 0;
+        long nowNanos = System.nanoTime();
         int saved = 0;
-        for (WorldMapRegionTile region : loadedRegions.values()) {
-            if (region.isDirty()) {
-                saveRegion(region);
-                saved++;
-                if (saved >= maxRegions) return;
+        Iterator<String> iterator = dirtyRegionKeys.iterator();
+        while (iterator.hasNext()) {
+            String regionKey = iterator.next();
+            WorldMapRegionTile region = loadedRegions.get(regionKey);
+            if (region == null || !region.isDirty()) {
+                iterator.remove();
+                continue;
             }
-        }
-    }
-
-    private void saveRegion(WorldMapRegionTile region) {
-        if (region.saveToFile(getRegionFile(region.getRegionX(), region.getRegionZ()))) {
-            String regionKey = key(region.getRegionX(), region.getRegionZ());
-            persistedRegionSources.add(regionKey);
-            failedRegionLoads.remove(regionKey);
-        }
-    }
-
-    private NativeImage readSourceRegionImage(File sourceDir, int regionX, int regionZ, String regionKey,
-                                              Set<String> unreadableSourceImages) {
-        File regionFile = getRegionFile(sourceDir, regionX, regionZ);
-        boolean expectedSource = isUsableImageFile(regionFile);
-        NativeImage image = readRegionImageFileIfPresent(regionFile);
-        if (image != null) return image;
-
-        if (sourceDir != null && regionDir != null && sourceDir.equals(regionDir) && worldMapDir != null) {
-            File legacyRegionFile = getRegionFile(worldMapDir, regionX, regionZ);
-            if (!legacyRegionFile.equals(regionFile)) {
-                expectedSource |= isUsableImageFile(legacyRegionFile);
-                image = readRegionImageFileIfPresent(legacyRegionFile);
-                if (image != null) return image;
-            }
-        }
-
-        if (expectedSource) {
-            unreadableSourceImages.add(regionKey);
-        }
-        return null;
-    }
-
-    private NativeImage copyLoadedRegionImage(int regionX, int regionZ) {
-        WorldMapRegionTile region = loadedRegions.get(key(regionX, regionZ));
-        if (region == null) return null;
-        return region.copyImage();
-    }
-
-    private NativeImage readRegionImageFileIfPresent(File sourceDir, int regionX, int regionZ) {
-        File regionFile = getRegionFile(sourceDir, regionX, regionZ);
-        NativeImage image = readRegionImageFileIfPresent(regionFile);
-        if (image != null) return image;
-
-        if (sourceDir != null && regionDir != null && sourceDir.equals(regionDir) && worldMapDir != null) {
-            File legacyRegionFile = getRegionFile(worldMapDir, regionX, regionZ);
-            if (!legacyRegionFile.equals(regionFile)) {
-                return readRegionImageFileIfPresent(legacyRegionFile);
-            }
-        }
-        return null;
-    }
-
-    private NativeImage readRegionImageFileIfPresent(File regionFile) {
-        if (!isUsableImageFile(regionFile)) return null;
-
-        try {
-            try (FileInputStream stream = new FileInputStream(regionFile)) {
-                NativeImage image = NativeImage.read(stream);
-                if (image.getWidth() != WorldMapRegionTile.REGION_PIXEL_SIZE
-                        || image.getHeight() != WorldMapRegionTile.REGION_PIXEL_SIZE) {
-                    image.close();
-                    Main.LOGGER.warn("Ignoring world map region {} with unexpected size {}x{}",
-                            regionFile, image.getWidth(), image.getHeight());
-                    return null;
+            if (force || region.isReadyForBackgroundSave(nowNanos, REGION_SAVE_QUIET_PERIOD_NANOS)) {
+                if (saveRegion(region)) {
+                    saved++;
                 }
-                return image;
+                if (saved >= maxRegions) break;
             }
-        } catch (IOException | RuntimeException exception) {
-            Main.LOGGER.warn("Failed to load world map region {}", regionFile, exception);
-            return null;
         }
+        return saved;
+    }
+
+    private boolean saveRegion(WorldMapRegionTile region) {
+        String regionKey = key(region.getRegionX(), region.getRegionZ());
+        if (pendingRegionSaves.containsKey(regionKey)) return false;
+        if (pendingRegionSaves.size() >= MAX_PENDING_REGION_SAVES) return false;
+
+        WorldMapRegionTile.SaveSnapshot snapshot = region.beginSaveSnapshot();
+        if (snapshot == null) return false;
+
+        File regionFile = getRegionFile(region.getRegionX(), region.getRegionZ());
+        CompletableFuture<WorldMapAsync.RegionSaveResult> future =
+                WorldMapAsync.saveRegion(regionFile, snapshot);
+        pendingRegionSaves.put(regionKey, new PendingRegionSave(region, snapshot.dirtyVersion(), future));
+        return true;
     }
 
     private File getRegionFile(int regionX, int regionZ) {
@@ -743,9 +1114,44 @@ public class WorldMapTileManager {
 
     private void rebuildRegionSourceIndex() {
         persistedRegionSources.clear();
+        recoverInterruptedRegionSaves(regionDir);
         indexRegionSourceDir(regionDir);
+        recoverInterruptedRegionSaves(legacyLevelZeroDir);
+        indexRegionSourceDir(legacyLevelZeroDir);
         if (worldMapDir != null && !worldMapDir.equals(regionDir)) {
+            recoverInterruptedRegionSaves(worldMapDir);
             indexRegionSourceDir(worldMapDir);
+        }
+    }
+
+    private void recoverInterruptedRegionSaves(File sourceDir) {
+        if (sourceDir == null || !sourceDir.isDirectory()) return;
+
+        File[] temporaryFiles = sourceDir.listFiles(file ->
+                file.getName().endsWith(WorldMapRegionStorage.DATA_EXTENSION + ".new")
+                        || file.getName().endsWith(WorldMapLegacyRegionImporter.IMAGE_EXTENSION + ".new"));
+        if (temporaryFiles == null) return;
+
+        for (File temporaryFile : temporaryFiles) {
+            String originalName = temporaryFile.getName().substring(0, temporaryFile.getName().length() - 4);
+            File destinationFile = new File(sourceDir, originalName);
+            if (destinationFile.exists()) {
+                temporaryFile.delete();
+                continue;
+            }
+            recoverInterruptedRegionSave(temporaryFile, destinationFile);
+        }
+    }
+
+    private void recoverInterruptedRegionSave(File temporaryFile, File destinationFile) {
+        try {
+            try {
+                Files.move(temporaryFile.toPath(), destinationFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException ignored) {
+                Files.move(temporaryFile.toPath(), destinationFile.toPath());
+            }
+        } catch (IOException exception) {
+            Main.LOGGER.debug("Could not recover interrupted world map region save {}", temporaryFile, exception);
         }
     }
 
@@ -764,12 +1170,19 @@ public class WorldMapTileManager {
     }
 
     private static String regionKeyFromFileName(File file) {
-        if (!isUsableImageFile(file)) return null;
+        if (!WorldMapRegionStorage.isUsable(file) && !WorldMapLegacyRegionImporter.isUsable(file)) return null;
 
         String name = file.getName();
-        if (!name.endsWith(".png")) return null;
+        String extension;
+        if (name.endsWith(WorldMapRegionStorage.DATA_EXTENSION)) {
+            extension = WorldMapRegionStorage.DATA_EXTENSION;
+        } else if (name.endsWith(WorldMapLegacyRegionImporter.IMAGE_EXTENSION)) {
+            extension = WorldMapLegacyRegionImporter.IMAGE_EXTENSION;
+        } else {
+            return null;
+        }
 
-        String coords = name.substring(0, name.length() - 4);
+        String coords = name.substring(0, name.length() - extension.length());
         int separator = coords.indexOf('_');
         if (separator <= 0 || separator >= coords.length() - 1) return null;
 
@@ -782,35 +1195,78 @@ public class WorldMapTileManager {
         }
     }
 
-    private File getReadableRegionFile(int regionX, int regionZ) {
-        File primaryRegionFile = getRegionFile(regionX, regionZ);
-        if (isUsableImageFile(primaryRegionFile) || worldMapDir == null) return primaryRegionFile;
+    private WorldMapRegionPixels readRegionPixelsIfPresent(File activeRegionFile, File... candidates) {
+        for (File candidate : candidates) {
+            WorldMapRegionStorage.ReadResult result = WorldMapRegionStorage.read(candidate);
+            if (result.status() == WorldMapRegionStorage.ReadStatus.SUCCESS) {
+                return result.pixels();
+            }
+            if (result.status() == WorldMapRegionStorage.ReadStatus.CORRUPT) {
+                quarantineCorruptRegion(candidate);
+            }
 
-        File legacyRegionFile = getRegionFile(worldMapDir, regionX, regionZ);
-        if (!legacyRegionFile.equals(primaryRegionFile) && isUsableImageFile(legacyRegionFile)) {
-            return legacyRegionFile;
+            int[] pixels = WorldMapLegacyRegionImporter.read(candidate);
+            if (pixels == null) continue;
+
+            migrateLegacyRegion(activeRegionFile, pixels);
+            return WorldMapRegionPixels.fromBase(pixels);
         }
-        return primaryRegionFile;
+        return null;
+    }
+
+    private void removeMissingRegionSource(String regionKey, int regionX, int regionZ) {
+        for (File candidate : regionLoadCandidates(regionX, regionZ)) {
+            if (WorldMapRegionStorage.isUsable(candidate) || WorldMapLegacyRegionImporter.isUsable(candidate)) {
+                return;
+            }
+        }
+        persistedRegionSources.remove(regionKey);
+        failedRegionLoads.remove(regionKey);
+    }
+
+    private void quarantineCorruptRegion(File file) {
+        if (file == null || !file.exists()) return;
+
+        File quarantined = new File(file.getParentFile(), file.getName() + ".corrupt-" + System.currentTimeMillis());
+        try {
+            Files.move(file.toPath(), quarantined.toPath());
+            Main.LOGGER.warn("Moved corrupt world map region {} to {}", file, quarantined);
+        } catch (IOException exception) {
+            Main.LOGGER.warn("Could not quarantine corrupt world map region {}", file, exception);
+        }
+    }
+
+    private void migrateLegacyRegion(File activeRegionFile, int[] pixels) {
+        if (activeRegionFile == null) return;
+
+        try {
+            WorldMapRegionStorage.write(activeRegionFile, pixels);
+        } catch (Exception exception) {
+            Main.LOGGER.debug("Could not migrate legacy world map region {}", activeRegionFile, exception);
+        }
+    }
+
+    private File[] regionLoadCandidates(int regionX, int regionZ) {
+        return new File[]{
+                getRegionFile(regionDir, regionX, regionZ),
+                getLegacyRegionFile(regionDir, regionX, regionZ),
+                getRegionFile(legacyLevelZeroDir, regionX, regionZ),
+                getLegacyRegionFile(legacyLevelZeroDir, regionX, regionZ),
+                getRegionFile(worldMapDir, regionX, regionZ),
+                getLegacyRegionFile(worldMapDir, regionX, regionZ)
+        };
     }
 
     private static File getRegionFile(File sourceDir, int regionX, int regionZ) {
-        return new File(sourceDir, regionX + "_" + regionZ + ".png");
+        return sourceDir == null
+                ? null
+                : new File(sourceDir, regionX + "_" + regionZ + WorldMapRegionStorage.DATA_EXTENSION);
     }
 
-    private static boolean isUsableImageFile(File imageFile) {
-        return imageFile != null && imageFile.exists() && imageFile.length() > 0;
-    }
-
-    private static boolean isVisible(int color) {
-        return ((color >> 24) & 0xFF) > 0;
-    }
-
-    private static void clearImage(NativeImage image) {
-        for (int z = 0; z < image.getHeight(); z++) {
-            for (int x = 0; x < image.getWidth(); x++) {
-                image.setPixelRGBA(x, z, 0x00000000);
-            }
-        }
+    private static File getLegacyRegionFile(File sourceDir, int regionX, int regionZ) {
+        return sourceDir == null
+                ? null
+                : new File(sourceDir, regionX + "_" + regionZ + WorldMapLegacyRegionImporter.IMAGE_EXTENSION);
     }
 
     private static long chunkKey(int chunkX, int chunkZ) {
@@ -829,25 +1285,16 @@ public class WorldMapTileManager {
         return x + "_" + z;
     }
 
-    private void closePendingRegionLoads() {
-        for (CachedRegionLoad pendingLoad : pendingRegionLoads.values()) {
-            closeFutureImage(pendingLoad.future());
-        }
-        pendingRegionLoads.clear();
+    private WorldMapRegionTile touchRegion(WorldMapRegionTile region) {
+        region.markAccessed(++regionAccessSequence);
+        return region;
     }
 
-    private static void closeFutureImage(CompletableFuture<NativeImage> future) {
-        if (future.isDone()) {
-            try {
-                NativeImage image = future.getNow(null);
-                if (image != null) image.close();
-            } catch (Exception ignored) {
-            }
-        } else {
-            future.thenAccept(image -> {
-                if (image != null) image.close();
-            });
+    private void closePendingRegionLoads() {
+        for (CachedRegionLoad pendingLoad : pendingRegionLoads.values()) {
+            pendingLoad.future().cancel(false);
         }
+        pendingRegionLoads.clear();
     }
 
     private static String detectStorageId(Level level) {
@@ -880,9 +1327,17 @@ public class WorldMapTileManager {
         return prefix + "_" + UUID.nameUUIDFromBytes(rawId.getBytes(StandardCharsets.UTF_8));
     }
 
-    private record CachedRegionLoad(int regionX, int regionZ, CompletableFuture<NativeImage> future) {
+    private record CachedRegionLoad(int regionX, int regionZ, CompletableFuture<WorldMapRegionPixels> future) {
     }
 
-    private record RegionLoadCandidate(int regionX, int regionZ, double centerDistance, File regionFile) {
+    private record PendingRegionSave(WorldMapRegionTile region, int dirtyVersion,
+                                     CompletableFuture<WorldMapAsync.RegionSaveResult> future) {
     }
+
+    private record PendingChunkBuild(ChunkSamplingContext context, long revision, ChunkImageBuilder builder) {
+    }
+
+    private record ChunkScanOffset(int dx, int dz, int distanceSquared) {
+    }
+
 }

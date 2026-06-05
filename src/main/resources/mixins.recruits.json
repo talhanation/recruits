@@ -15,6 +15,7 @@
     "WalkNodeEvaluatorMixin"
   ],
   "client": [
+    "client.ClientLevelMixin",
     "MixinMinecraft"
   ],
   "injectors": {

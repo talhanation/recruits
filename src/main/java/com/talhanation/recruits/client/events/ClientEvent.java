@@ -3,6 +3,7 @@ package com.talhanation.recruits.client.events;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.models.RecruitVillagerModel;
+import com.talhanation.recruits.client.gui.worldmap.WorldMapTileManager;
 import com.talhanation.recruits.client.render.RecruitHumanRenderer;
 import com.talhanation.recruits.client.render.RecruitVillagerRenderer;
 import com.talhanation.recruits.client.render.layer.RecruitArmorLayer;
@@ -18,6 +19,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -81,6 +83,11 @@ public class ClientEvent {
         event.registerLayerDefinition(ClientEvent.RECRUIT_OUTER_ARMOR, RecruitArmorLayer::createOuterArmorLayer);
         event.registerLayerDefinition(ClientEvent.RECRUIT_INNER_ARMOR, RecruitArmorLayer::createInnerArmorLayer);
 
+    }
+
+    @SubscribeEvent
+    public static void modelBakingCompleted(ModelEvent.BakingCompleted event) {
+        WorldMapTileManager.getInstance().onClientModelsReloaded();
     }
 
     @Nullable

@@ -11,26 +11,45 @@ import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
 
 final class MapTintSampler implements BlockAndTintGetter {
-    private ClientLevel level;
+    private static final int NO_BIOME_COLOR = Integer.MIN_VALUE + 1;
 
-    MapTintSampler use(ClientLevel level) {
-        this.level = level;
-        return this;
+    private final BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
+    private ChunkSamplingContext context;
+    private BlockState tintState;
+
+    void prepare(ChunkSamplingContext context) {
+        this.context = context;
+    }
+
+    void clear() {
+        context = null;
+        tintState = null;
+    }
+
+    void useTintState(BlockState tintState) {
+        this.tintState = tintState;
     }
 
     @Override
     public BlockEntity getBlockEntity(BlockPos pos) {
-        return level.getBlockEntity(pos);
+        ClientLevel level = level();
+        return level == null ? null : level.getBlockEntity(pos);
     }
 
     @Override
     public BlockState getBlockState(BlockPos pos) {
-        return level.getBlockState(pos);
+        if (tintState != null) return tintState;
+
+        ClientLevel level = level();
+        return level == null ? null : level.getBlockState(pos);
     }
 
     @Override
     public FluidState getFluidState(BlockPos pos) {
-        return level.getFluidState(pos);
+        if (tintState != null) return tintState.getFluidState();
+
+        ClientLevel level = level();
+        return level == null ? null : level.getFluidState(pos);
     }
 
     @Override
@@ -40,22 +59,27 @@ final class MapTintSampler implements BlockAndTintGetter {
 
     @Override
     public LevelLightEngine getLightEngine() {
-        return level.getLightEngine();
+        ClientLevel level = level();
+        return level == null ? null : level.getLightEngine();
     }
 
     @Override
     public int getHeight() {
-        return level.getHeight();
+        ClientLevel level = level();
+        return level == null ? 0 : level.getHeight();
     }
 
     @Override
     public int getMinBuildHeight() {
-        return level.getMinBuildHeight();
+        ClientLevel level = level();
+        return level == null ? 0 : level.getMinBuildHeight();
     }
 
     @Override
     public int getBlockTint(BlockPos pos, ColorResolver resolver) {
-        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
+        if (context == null) return NO_BIOME_COLOR;
+
+        ClientLevel level = context.level();
         int x = pos.getX();
         int y = pos.getY();
         int z = pos.getZ();
@@ -68,19 +92,28 @@ final class MapTintSampler implements BlockAndTintGetter {
             for (int dz = -1; dz <= 1; dz++) {
                 if (dx != 0 && dz != 0) continue;
 
-                mutable.set(x + dx, y, z + dz);
-                var biomeHolder = level.getBiome(mutable);
-                if (biomeHolder == null) continue;
+                int sampleX = x + dx;
+                int sampleZ = z + dz;
+                if (context.getLoadedChunk(sampleX, sampleZ) == null) continue;
 
-                int color = resolver.getColor(biomeHolder.value(), mutable.getX(), mutable.getZ());
-                red += (color >> 16) & 0xFF;
-                green += (color >> 8) & 0xFF;
+                mutable.set(sampleX, y, sampleZ);
+                int color = resolver.getColor(level.getBiome(mutable).value(), sampleX, sampleZ);
+                red += (color >>> 16) & 0xFF;
+                green += (color >>> 8) & 0xFF;
                 blue += color & 0xFF;
                 count++;
             }
         }
 
-        if (count == 0) return -1;
+        if (count == 0) return NO_BIOME_COLOR;
         return ((red / count) << 16) | ((green / count) << 8) | (blue / count);
+    }
+
+    static boolean hasColor(int color) {
+        return color != -1 && color != NO_BIOME_COLOR && (color & 0x00FFFFFF) != 0;
+    }
+
+    private ClientLevel level() {
+        return context == null ? null : context.level();
     }
 }
