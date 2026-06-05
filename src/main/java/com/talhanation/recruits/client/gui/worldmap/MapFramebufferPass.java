@@ -27,9 +27,6 @@ final class MapFramebufferPass implements AutoCloseable {
         guiGraphics.flush();
 
         Frame frame = Frame.fromView(offsetX, offsetZ, scale, screenWidth, screenHeight);
-        if (!frame.offscreen()) {
-            return frame;
-        }
 
         Minecraft minecraft = Minecraft.getInstance();
         ensureFramebuffer(minecraft.getWindow().getWidth(), minecraft.getWindow().getHeight());
@@ -42,10 +39,6 @@ final class MapFramebufferPass implements AutoCloseable {
     }
 
     void endAndBlit(GuiGraphics guiGraphics, Frame frame) {
-        if (!frame.offscreen()) {
-            return;
-        }
-
         guiGraphics.flush();
 
         Minecraft minecraft = Minecraft.getInstance();
@@ -53,8 +46,8 @@ final class MapFramebufferPass implements AutoCloseable {
         minecraft.getMainRenderTarget().bindWrite(true);
 
         framebuffer.bindRead();
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
 
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
@@ -84,7 +77,7 @@ final class MapFramebufferPass implements AutoCloseable {
         }
 
         framebuffer = new TextureTarget(width, height, false, Minecraft.ON_OSX);
-        framebuffer.setFilterMode(GL11.GL_NEAREST);
+        framebuffer.setFilterMode(GL11.GL_LINEAR);
         framebufferWidth = width;
         framebufferHeight = height;
     }
@@ -127,14 +120,10 @@ final class MapFramebufferPass implements AutoCloseable {
             double rightWorld,
             double bottomWorld,
             int screenWidth,
-            int screenHeight,
-            boolean offscreen
+            int screenHeight
     ) {
         private static Frame fromView(double offsetX, double offsetZ, double scale, int screenWidth, int screenHeight) {
             double effectiveScale = Math.max(0.01, scale);
-            if (canRenderDirectly(effectiveScale)) {
-                return direct(offsetX, offsetZ, effectiveScale, screenWidth, screenHeight);
-            }
 
             double fboScale = effectiveScale >= 1.0 ? Math.max(1.0, Math.floor(effectiveScale)) : effectiveScale;
             double secondaryScale = effectiveScale / fboScale;
@@ -184,37 +173,9 @@ final class MapFramebufferPass implements AutoCloseable {
                     rightWorld + padding,
                     bottomWorld + padding,
                     screenWidth,
-                    screenHeight,
-                    true
+                    screenHeight
             );
         }
 
-        private static Frame direct(double offsetX, double offsetZ, double scale,
-                                    int screenWidth, int screenHeight) {
-            double leftWorld = -offsetX / scale;
-            double topWorld = -offsetZ / scale;
-            double rightWorld = leftWorld + screenWidth / scale;
-            double bottomWorld = topWorld + screenHeight / scale;
-            double padding = 2.0 / scale;
-            return new Frame(
-                    scale,
-                    1.0,
-                    offsetX,
-                    offsetZ,
-                    0.0,
-                    0.0,
-                    leftWorld - padding,
-                    topWorld - padding,
-                    rightWorld + padding,
-                    bottomWorld + padding,
-                    screenWidth,
-                    screenHeight,
-                    false
-            );
-        }
-
-        private static boolean canRenderDirectly(double scale) {
-            return scale <= 1.0 || Math.abs(scale - Math.rint(scale)) < 0.0001;
-        }
     }
 }

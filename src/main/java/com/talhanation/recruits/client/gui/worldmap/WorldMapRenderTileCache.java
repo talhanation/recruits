@@ -44,14 +44,15 @@ final class WorldMapRenderTileCache {
     private long visibleGeneration;
     private long accessSequence;
     private WorldMapRenderTileKey lastCenterTile;
+    private boolean lastIncludeAncestors = true;
 
     WorldMapRenderTileCache(WorldMapTileManager tileManager) {
         this.tileManager = tileManager;
     }
 
-    void prepareVisible(List<WorldMapRenderTileKey> requestedTiles) {
+    void prepareVisible(List<WorldMapRenderTileKey> requestedTiles, boolean includeAncestors) {
         consumeReadyBuilds(MAX_BUILD_COMPLETIONS_PER_FRAME);
-        refreshNeededTiles(requestedTiles);
+        refreshNeededTiles(requestedTiles, includeAncestors);
         discardUnneededReadyTiles();
         scheduleBuilds(neededTiles, MAX_BUILD_SCHEDULES_PER_FRAME);
         UploadBudget uploadBudget = new UploadBudget();
@@ -61,10 +62,13 @@ final class WorldMapRenderTileCache {
         WorldMapDebugProfiler.recordLodState(tiles.size(), pendingCount());
     }
 
-    TileView findBestAvailable(WorldMapRenderTileKey requested) {
+    TileView findBestAvailable(WorldMapRenderTileKey requested, boolean allowParentFallback) {
         WorldMapRenderTile exact = tiles.get(requested);
         if (exact != null) {
             return TileView.full(exact.slot(nextAccessOrder()));
+        }
+        if (!allowParentFallback) {
+            return null;
         }
 
         WorldMapRenderTileKey parent = requested.parent();
@@ -76,12 +80,12 @@ final class WorldMapRenderTileCache {
                 int sections = 1 << levelDifference;
                 int localX = Math.floorMod(requested.x(), sections);
                 int localZ = Math.floorMod(requested.z(), sections);
-                float sectionWidth = (slot.u2() - slot.u1()) / sections;
-                float sectionHeight = (slot.v2() - slot.v1()) / sections;
-                float u1 = slot.u1() + localX * sectionWidth;
-                float v1 = slot.v1() + localZ * sectionHeight;
-                float u2 = u1 + sectionWidth;
-                float v2 = v1 + sectionHeight;
+                float atlasPixel = 1.0F / WorldMapTextureAtlas.ATLAS_SIZE;
+                float sectionPixels = (float) WorldMapRenderTileKey.PIXEL_SIZE / sections;
+                float u1 = slot.u1() + localX * sectionPixels * atlasPixel;
+                float v1 = slot.v1() + localZ * sectionPixels * atlasPixel;
+                float u2 = slot.u1() + (localX + 1) * sectionPixels * atlasPixel;
+                float v2 = slot.v1() + (localZ + 1) * sectionPixels * atlasPixel;
                 WorldMapDebugProfiler.recordMissingFallback();
                 return new TileView(slot.atlas().textureId(), u1, v1, u2, v2);
             }
@@ -160,15 +164,17 @@ final class WorldMapRenderTileCache {
         neededTiles.clear();
         neededTileSet.clear();
         lastCenterTile = null;
+        lastIncludeAncestors = true;
         visibleGeneration = 0L;
         accessSequence = 0L;
     }
 
-    private void refreshNeededTiles(List<WorldMapRenderTileKey> requestedTiles) {
-        if (lastRequestedTiles.equals(requestedTiles)) return;
+    private void refreshNeededTiles(List<WorldMapRenderTileKey> requestedTiles, boolean includeAncestors) {
+        if (lastIncludeAncestors == includeAncestors && lastRequestedTiles.equals(requestedTiles)) return;
 
         lastRequestedTiles.clear();
         lastRequestedTiles.addAll(requestedTiles);
+        lastIncludeAncestors = includeAncestors;
         neededTiles.clear();
         neededTileSet.clear();
         if (requestedTiles.isEmpty()) {
@@ -176,14 +182,16 @@ final class WorldMapRenderTileCache {
             return;
         }
 
-        // Publish coarse parents first so a stable map remains visible while
-        // the current zoom level is still loading.
-        for (int targetLevel = WorldMapRenderTileKey.MAX_LEVEL; targetLevel > requestedTiles.get(0).level();
-             targetLevel--) {
-            for (WorldMapRenderTileKey requested : requestedTiles) {
-                WorldMapRenderTileKey ancestor = ancestorAtLevel(requested, targetLevel);
-                if (ancestor != null && neededTileSet.add(ancestor)) {
-                    neededTiles.add(ancestor);
+        if (includeAncestors) {
+            // Publish coarse parents first so a stable map remains visible while
+            // the current zoom level is still loading.
+            for (int targetLevel = WorldMapRenderTileKey.MAX_LEVEL; targetLevel > requestedTiles.get(0).level();
+                 targetLevel--) {
+                for (WorldMapRenderTileKey requested : requestedTiles) {
+                    WorldMapRenderTileKey ancestor = ancestorAtLevel(requested, targetLevel);
+                    if (ancestor != null && neededTileSet.add(ancestor)) {
+                        neededTiles.add(ancestor);
+                    }
                 }
             }
         }

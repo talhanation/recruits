@@ -248,40 +248,8 @@ public class WorldMapScreen extends Screen {
 
         guiGraphics.enableScissor(0, 0, width, height);
 
-        mapRenderer.render(guiGraphics, width, height, offsetX, offsetZ, scale);
-        if (claimTransparency) {
-            ClaimRenderer.renderClaimsOverlayTransparent(guiGraphics, this.selectedClaim, this.offsetX, this.offsetZ, scale);
-        } else {
-            ClaimRenderer.renderClaimsOverlay(guiGraphics, this.selectedClaim, this.offsetX, this.offsetZ, scale);
-        }
-
-        if (contextMenu.isVisible()) {
-            String entryTag = contextMenu.getHoveredEntryTag();
-            if (entryTag != null) {
-                if (entryTag.contains("bufferzone"))
-                    ClaimRenderer.renderBufferZone(guiGraphics, offsetX, offsetZ, scale);
-                if (entryTag.contains("area"))
-                    ClaimRenderer.renderAreaPreview(guiGraphics, getClaimArea(selectedChunk), offsetX, offsetZ, scale);
-                if (entryTag.contains("chunk"))
-                    ClaimRenderer.renderAreaPreview(guiGraphics, getClaimableChunks(selectedChunk, 16), offsetX, offsetZ, scale);
-            }
-        }
-
-        if (player != null) renderPlayerPosition(guiGraphics);
-
-        if (selectedChunk != null && (selectedClaim == null || contextMenu.isVisible())) {
-            renderChunkOutline(guiGraphics, selectedChunk.x, selectedChunk.z, CHUNK_SELECTION_COLOR);
-        }
-
-        if (hoveredChunk != null) renderChunkHighlight(guiGraphics, hoveredChunk.x, hoveredChunk.z);
-
-        if (selectedRoute != null) {
-            RouteRenderer.renderRoute(guiGraphics, selectedRoute, offsetX, offsetZ, scale,
-                    draggingWaypoint, -1);
-            if (isDraggingWaypoint && draggingWaypoint != null) {
-                RouteRenderer.renderDragGhost(guiGraphics, draggingWaypoint, (int) mouseX, (int) mouseY);
-            }
-        }
+        mapRenderer.render(guiGraphics, width, height, offsetX, offsetZ, scale,
+                (mapGraphics, frame) -> renderMapOverlays(mapGraphics, mouseX, mouseY, frame));
 
         guiGraphics.disableScissor();
 
@@ -302,6 +270,51 @@ public class WorldMapScreen extends Screen {
         if (routeNamePopup.isVisible()) routeNamePopup.render(guiGraphics, mouseX, mouseY);
         if (routeEditPopup.isVisible()) routeEditPopup.render(guiGraphics, mouseX, mouseY);
         if (waypointEditPopup.isVisible()) waypointEditPopup.render(guiGraphics, mouseX, mouseY);
+    }
+
+    private void renderMapOverlays(GuiGraphics guiGraphics, int mouseX, int mouseY, MapFramebufferPass.Frame frame) {
+        PoseStack pose = guiGraphics.pose();
+        pose.pushPose();
+        double inverseSecondaryScale = 1.0 / frame.secondaryScale();
+        pose.translate(frame.secondaryOffsetX(), frame.secondaryOffsetZ(), 0.0);
+        pose.scale((float) inverseSecondaryScale, (float) inverseSecondaryScale, 1.0F);
+        try {
+            if (claimTransparency) {
+                ClaimRenderer.renderClaimsOverlayTransparent(guiGraphics, this.selectedClaim, this.offsetX, this.offsetZ, scale);
+            } else {
+                ClaimRenderer.renderClaimsOverlay(guiGraphics, this.selectedClaim, this.offsetX, this.offsetZ, scale);
+            }
+
+            if (contextMenu.isVisible()) {
+                String entryTag = contextMenu.getHoveredEntryTag();
+                if (entryTag != null) {
+                    if (entryTag.contains("bufferzone"))
+                        ClaimRenderer.renderBufferZone(guiGraphics, offsetX, offsetZ, scale);
+                    if (entryTag.contains("area"))
+                        ClaimRenderer.renderAreaPreview(guiGraphics, getClaimArea(selectedChunk), offsetX, offsetZ, scale);
+                    if (entryTag.contains("chunk"))
+                        ClaimRenderer.renderAreaPreview(guiGraphics, getClaimableChunks(selectedChunk, 16), offsetX, offsetZ, scale);
+                }
+            }
+
+            if (player != null) renderPlayerPosition(guiGraphics);
+
+            if (selectedChunk != null && (selectedClaim == null || contextMenu.isVisible())) {
+                renderChunkOutline(guiGraphics, selectedChunk.x, selectedChunk.z, CHUNK_SELECTION_COLOR);
+            }
+
+            if (hoveredChunk != null) renderChunkHighlight(guiGraphics, hoveredChunk.x, hoveredChunk.z);
+
+            if (selectedRoute != null) {
+                RouteRenderer.renderRoute(guiGraphics, selectedRoute, offsetX, offsetZ, scale,
+                        draggingWaypoint, -1);
+                if (isDraggingWaypoint && draggingWaypoint != null) {
+                    RouteRenderer.renderDragGhost(guiGraphics, draggingWaypoint, (int) mouseX, (int) mouseY);
+                }
+            }
+        } finally {
+            pose.popPose();
+        }
     }
 
     private void renderRouteDropdown(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {

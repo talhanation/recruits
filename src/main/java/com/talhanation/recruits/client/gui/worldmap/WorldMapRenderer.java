@@ -28,7 +28,6 @@ final class WorldMapRenderer {
     private static final double THIRD_LOD_SCALE_THRESHOLD = 0.20;
     private static final int PREFETCH_TILE_MARGIN = 0;
     private static final int MAX_TILE_DRAWS_PER_FRAME = ENABLE_ZOOM_OUT_LOD ? 768 : 1536;
-    private static final double TILE_SEAM_GUARD_PIXELS = 0.25;
     private static final double LOG_TWO = Math.log(2.0);
 
     private final WorldMapTileManager tileManager;
@@ -50,7 +49,8 @@ final class WorldMapRenderer {
         this.renderTileCache = tileManager.getRenderTileCache();
     }
 
-    void render(GuiGraphics guiGraphics, int screenWidth, int screenHeight, double offsetX, double offsetZ, double scale) {
+    void render(GuiGraphics guiGraphics, int screenWidth, int screenHeight, double offsetX, double offsetZ, double scale,
+                MapOverlayRenderer overlayRenderer) {
         WorldMapDebugProfiler.beginMapRender(screenWidth, screenHeight, scale);
 
         long framebufferBeginStart = System.nanoTime();
@@ -62,6 +62,10 @@ final class WorldMapRenderer {
         long tileRenderStart = System.nanoTime();
         renderVisibleTiles(guiGraphics, frame, scale, getMapBrightness());
         WorldMapDebugProfiler.recordTileRender(System.nanoTime() - tileRenderStart);
+
+        if (overlayRenderer != null) {
+            overlayRenderer.render(guiGraphics, frame);
+        }
 
         long framebufferBlitStart = System.nanoTime();
         FRAMEBUFFER_PASS.endAndBlit(guiGraphics, frame);
@@ -95,7 +99,8 @@ final class WorldMapRenderer {
                 frame.bottomWorld()
         );
         long regionPrefetchStartNanos = System.nanoTime();
-        renderTileCache.prepareVisible(preparedTileKeys);
+        boolean allowParentFallback = scale < 1.0 || level > 0;
+        renderTileCache.prepareVisible(preparedTileKeys, allowParentFallback);
         WorldMapDebugProfiler.recordRegionPrefetch(System.nanoTime() - regionPrefetchStartNanos);
         WorldMapDebugProfiler.recordRootLevel(level, visible.size());
 
@@ -112,7 +117,8 @@ final class WorldMapRenderer {
         try {
             for (VisibleTile visibleTile : visible) {
                 WorldMapDebugProfiler.recordTileVisit();
-                if (!renderBestAvailable(guiGraphics, visibleTile.key(), frame, budget, measureDetails)) {
+                if (!renderBestAvailable(guiGraphics, visibleTile.key(), frame, budget, measureDetails,
+                        allowParentFallback)) {
                     WorldMapDebugProfiler.recordMissingTile();
                 }
             }
@@ -126,8 +132,8 @@ final class WorldMapRenderer {
 
     private boolean renderBestAvailable(GuiGraphics guiGraphics, WorldMapRenderTileKey requested,
                                         MapFramebufferPass.Frame frame, RenderBudget budget,
-                                        boolean measureDetails) {
-        WorldMapRenderTileCache.TileView best = renderTileCache.findBestAvailable(requested);
+                                        boolean measureDetails, boolean allowParentFallback) {
+        WorldMapRenderTileCache.TileView best = renderTileCache.findBestAvailable(requested, allowParentFallback);
         if (best != null) {
             return renderTile(guiGraphics, requested, best, frame, budget, measureDetails);
         }
@@ -272,16 +278,20 @@ final class WorldMapRenderer {
         double screenSize = key.worldSize() * frame.fboScale();
         if (screenSize < 0.75) return;
 
-        double seamGuard = Math.min(TILE_SEAM_GUARD_PIXELS, screenSize * 0.01);
-        double x1 = screenX - seamGuard;
-        double z1 = screenZ - seamGuard;
-        double x2 = screenX + screenSize + seamGuard;
-        double z2 = screenZ + screenSize + seamGuard;
+        double x1 = screenX;
+        double z1 = screenZ;
+        double x2 = screenX + screenSize;
+        double z2 = screenZ + screenSize;
 
-        buffer.vertex(matrix, (float) x1, (float) z2, 0.0F).uv(tile.u1(), tile.v2()).endVertex();
-        buffer.vertex(matrix, (float) x2, (float) z2, 0.0F).uv(tile.u2(), tile.v2()).endVertex();
-        buffer.vertex(matrix, (float) x2, (float) z1, 0.0F).uv(tile.u2(), tile.v1()).endVertex();
-        buffer.vertex(matrix, (float) x1, (float) z1, 0.0F).uv(tile.u1(), tile.v1()).endVertex();
+        appendQuad(buffer, matrix, x1, z1, x2, z2, tile.u1(), tile.v1(), tile.u2(), tile.v2());
+    }
+
+    private static void appendQuad(BufferBuilder buffer, Matrix4f matrix, double x1, double z1, double x2, double z2,
+                                   float u1, float v1, float u2, float v2) {
+        buffer.vertex(matrix, (float) x1, (float) z2, 0.0F).uv(u1, v2).endVertex();
+        buffer.vertex(matrix, (float) x2, (float) z2, 0.0F).uv(u2, v2).endVertex();
+        buffer.vertex(matrix, (float) x2, (float) z1, 0.0F).uv(u2, v1).endVertex();
+        buffer.vertex(matrix, (float) x1, (float) z1, 0.0F).uv(u1, v1).endVertex();
     }
 
     private static float getMapBrightness() {
@@ -299,6 +309,11 @@ final class WorldMapRenderer {
     }
 
     private record DrawTile(WorldMapRenderTileKey key, WorldMapRenderTileCache.TileView tile) {
+    }
+
+    @FunctionalInterface
+    interface MapOverlayRenderer {
+        void render(GuiGraphics guiGraphics, MapFramebufferPass.Frame frame);
     }
 
     private static final class DrawBatch {
