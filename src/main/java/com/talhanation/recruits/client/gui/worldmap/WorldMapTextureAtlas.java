@@ -107,19 +107,19 @@ final class WorldMapTextureAtlas implements AutoCloseable {
         }
 
         float u1() {
-            return (pixelX() + 0.5F) / ATLAS_SIZE;
+            return (float) pixelX() / ATLAS_SIZE;
         }
 
         float v1() {
-            return (pixelY() + 0.5F) / ATLAS_SIZE;
+            return (float) pixelY() / ATLAS_SIZE;
         }
 
         float u2() {
-            return (pixelX() + WorldMapRenderTileKey.PIXEL_SIZE - 0.5F) / ATLAS_SIZE;
+            return (float) (pixelX() + WorldMapRenderTileKey.PIXEL_SIZE) / ATLAS_SIZE;
         }
 
         float v2() {
-            return (pixelY() + WorldMapRenderTileKey.PIXEL_SIZE - 0.5F) / ATLAS_SIZE;
+            return (float) (pixelY() + WorldMapRenderTileKey.PIXEL_SIZE) / ATLAS_SIZE;
         }
     }
 
@@ -129,7 +129,7 @@ final class WorldMapTextureAtlas implements AutoCloseable {
             TextureUtil.prepareImage(getId(), ATLAS_SIZE, ATLAS_SIZE);
             setFilter(false, false);
             RenderSystem.bindTexture(getId());
-            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
