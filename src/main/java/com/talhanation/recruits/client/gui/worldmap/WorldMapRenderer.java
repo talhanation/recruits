@@ -16,24 +16,38 @@ import org.joml.Matrix4f;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 final class WorldMapRenderer {
-    private static final int MAX_LOD_LEVEL = 2;
-    private static final int MAX_SAMPLE_STEP = 1 << MAX_LOD_LEVEL;
-    private static final int MAX_TILE_DRAWS_PER_FRAME = 384;
-    private static final int MAX_TILE_VISITS_PER_FRAME = 4096;
-    private static final int MAX_TEXTURE_UPLOADS_PER_FRAME = 2;
-    private static final double CHILD_SUBSTITUTION_MIN_PIXELS = 256.0;
-    private static final double MISSING_TILE_FALLBACK_MIN_PIXELS = 24.0;
-    private static final int MAX_MISSING_TILE_FALLBACK_DEPTH = 4;
+    static final boolean ENABLE_ZOOM_OUT_LOD = true;
+    private static final MapFramebufferPass FRAMEBUFFER_PASS = new MapFramebufferPass();
+    private static final int MAX_VISIBLE_TEXTURE_LEVEL = 2;
+    private static final double THIRD_LOD_SCALE_THRESHOLD = 0.20;
+    private static final int PREFETCH_TILE_MARGIN = 0;
+    private static final int MAX_TILE_DRAWS_PER_FRAME = ENABLE_ZOOM_OUT_LOD ? 768 : 1536;
     private static final double TILE_SEAM_GUARD_PIXELS = 0.25;
+    private static final double LOG_TWO = Math.log(2.0);
 
     private final WorldMapTileManager tileManager;
-    private final MapFramebufferPass framebufferPass = new MapFramebufferPass();
+    private final WorldMapRenderTileCache renderTileCache;
+    private final List<VisibleTile> visibleTiles = new ArrayList<>();
+    private final List<VisibleTile> preparedTiles = new ArrayList<>();
+    private final List<WorldMapRenderTileKey> preparedTileKeys = new ArrayList<>();
+    private final Map<ResourceLocation, DrawBatch> drawBatches = new LinkedHashMap<>();
+    private int visibleLevel = -1;
+    private int visibleStartX = Integer.MIN_VALUE;
+    private int visibleEndX = Integer.MIN_VALUE;
+    private int visibleStartZ = Integer.MIN_VALUE;
+    private int visibleEndZ = Integer.MIN_VALUE;
+    private int visibleCenterX = Integer.MIN_VALUE;
+    private int visibleCenterZ = Integer.MIN_VALUE;
 
     WorldMapRenderer(WorldMapTileManager tileManager) {
         this.tileManager = tileManager;
+        this.renderTileCache = tileManager.getRenderTileCache();
     }
 
     void render(GuiGraphics guiGraphics, int screenWidth, int screenHeight, double offsetX, double offsetZ, double scale) {
@@ -41,272 +55,233 @@ final class WorldMapRenderer {
 
         long framebufferBeginStart = System.nanoTime();
         tileManager.beginRenderFrame();
-        MapFramebufferPass.Frame frame = framebufferPass.begin(guiGraphics, offsetX, offsetZ, scale, screenWidth, screenHeight);
+        MapFramebufferPass.Frame frame = FRAMEBUFFER_PASS.begin(guiGraphics, offsetX, offsetZ, scale, screenWidth, screenHeight);
         WorldMapDebugProfiler.recordFramebufferBegin(System.nanoTime() - framebufferBeginStart);
         WorldMapDebugProfiler.recordFramebuffer(frame);
 
         long tileRenderStart = System.nanoTime();
-        renderTileTree(guiGraphics, frame, getMapBrightness());
+        renderVisibleTiles(guiGraphics, frame, scale, getMapBrightness());
         WorldMapDebugProfiler.recordTileRender(System.nanoTime() - tileRenderStart);
 
         long framebufferBlitStart = System.nanoTime();
-        framebufferPass.endAndBlit(guiGraphics, frame);
+        FRAMEBUFFER_PASS.endAndBlit(guiGraphics, frame);
         WorldMapDebugProfiler.recordFramebufferBlit(System.nanoTime() - framebufferBlitStart);
         WorldMapDebugProfiler.finishMapRender();
     }
 
     void close() {
-        framebufferPass.close();
+        visibleTiles.clear();
+        preparedTiles.clear();
+        preparedTileKeys.clear();
+        drawBatches.clear();
     }
 
-    private void renderTileTree(GuiGraphics guiGraphics, MapFramebufferPass.Frame frame, float brightness) {
-        int rootLevel = chooseRootLevel(frame.fboScale());
-        int rootWorldSize = worldSizeForLevel(rootLevel);
-        List<TileCoord> visibleTiles = collectVisibleTiles(
+    static void releaseSharedResources() {
+        FRAMEBUFFER_PASS.close();
+    }
+
+    static void prepareSharedResources() {
+        FRAMEBUFFER_PASS.prepare();
+    }
+
+    private void renderVisibleTiles(GuiGraphics guiGraphics, MapFramebufferPass.Frame frame,
+                                    double scale, float brightness) {
+        int level = selectTextureLevel(scale);
+        List<VisibleTile> visible = collectVisibleTiles(
+                level,
                 frame.leftWorld(),
                 frame.rightWorld(),
                 frame.topWorld(),
-                frame.bottomWorld(),
-                rootWorldSize
+                frame.bottomWorld()
         );
+        long regionPrefetchStartNanos = System.nanoTime();
+        renderTileCache.prepareVisible(preparedTileKeys);
+        WorldMapDebugProfiler.recordRegionPrefetch(System.nanoTime() - regionPrefetchStartNanos);
+        WorldMapDebugProfiler.recordRootLevel(level, visible.size());
 
-        WorldMapLodCache lodCache = tileManager.getLodCache();
-        lodCache.beginFrame();
-        if (rootLevel <= 1) {
-            tileManager.scheduleVisibleRegionLoads(frame.leftWorld(), frame.rightWorld(), frame.topWorld(), frame.bottomWorld());
+        RenderBudget budget = new RenderBudget(MAX_TILE_DRAWS_PER_FRAME);
+        boolean measureDetails = WorldMapDebugProfiler.measureRenderDetails();
+        clearDrawBatches();
+
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(brightness, brightness, brightness, 1.0F);
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
+        try {
+            for (VisibleTile visibleTile : visible) {
+                WorldMapDebugProfiler.recordTileVisit();
+                if (!renderBestAvailable(guiGraphics, visibleTile.key(), frame, budget, measureDetails)) {
+                    WorldMapDebugProfiler.recordMissingTile();
+                }
+            }
+            drawBatches(guiGraphics, frame, measureDetails);
+        } finally {
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+            RenderSystem.depthMask(true);
+            RenderSystem.enableDepthTest();
         }
-        WorldMapDebugProfiler.recordRootLevel(rootLevel, visibleTiles.size());
-        RenderBudget budget = new RenderBudget(
-                MAX_TILE_DRAWS_PER_FRAME,
-                MAX_TILE_VISITS_PER_FRAME,
-                MAX_TEXTURE_UPLOADS_PER_FRAME
-        );
-
-        for (TileCoord tileCoord : visibleTiles) {
-            renderTileTree(guiGraphics, lodCache, budget, rootLevel, tileCoord.x(), tileCoord.z(),
-                    frame.renderOffsetX(), frame.renderOffsetZ(), frame.fboScale(), brightness, 0, true);
-        }
-
-        lodCache.trim();
     }
 
-    private boolean renderTileTree(GuiGraphics guiGraphics, WorldMapLodCache lodCache, RenderBudget budget,
-                                   int level, int tileX, int tileZ,
-                                   double offsetX, double offsetZ, double scale,
-                                   float brightness,
-                                   int missingFallbackDepth, boolean allowScheduling) {
-        if (!budget.tryVisit()) return false;
-
-        int worldSize = worldSizeForLevel(level);
-        double screenSize = worldSize * scale;
-        if (screenSize < 0.75) return false;
-
-        TileTexture texture = acquireTileTexture(lodCache, level, tileX, tileZ, allowScheduling, budget);
-        if (texture != null) {
-            if (shouldSubstituteWithChildren(level, screenSize) && canRenderImmediateChildren(lodCache, level, tileX, tileZ)) {
-                WorldMapDebugProfiler.recordChildSubstitution();
-                return renderImmediateChildren(guiGraphics, lodCache, budget, level, tileX, tileZ, offsetX, offsetZ, scale, brightness);
-            }
-            if (shouldSubstituteWithChildren(level, screenSize) && allowScheduling) {
-                scheduleImmediateChildren(lodCache, level, tileX, tileZ);
-            }
-            if (!budget.tryDraw()) return false;
-            renderWorldTile(guiGraphics, texture.textureId(), texture.worldMinX(), texture.worldMinZ(),
-                    texture.worldSize(), offsetX, offsetZ, scale, brightness);
-            return true;
+    private boolean renderBestAvailable(GuiGraphics guiGraphics, WorldMapRenderTileKey requested,
+                                        MapFramebufferPass.Frame frame, RenderBudget budget,
+                                        boolean measureDetails) {
+        WorldMapRenderTileCache.TileView best = renderTileCache.findBestAvailable(requested);
+        if (best != null) {
+            return renderTile(guiGraphics, requested, best, frame, budget, measureDetails);
         }
-
-        WorldMapDebugProfiler.recordMissingTile();
-
-        boolean shouldFallbackToChildren = level > 0
-                && allowScheduling
-                && missingFallbackDepth < MAX_MISSING_TILE_FALLBACK_DEPTH
-                && screenSize >= MISSING_TILE_FALLBACK_MIN_PIXELS;
-        if (!shouldFallbackToChildren) return false;
-
-        WorldMapDebugProfiler.recordMissingFallback();
-        return renderChildren(guiGraphics, lodCache, budget, level, tileX, tileZ, offsetX, offsetZ, scale,
-                brightness, missingFallbackDepth + 1, false);
+        return renderAvailableChildren(guiGraphics, requested, frame, budget, measureDetails);
     }
 
-    private boolean renderImmediateChildren(GuiGraphics guiGraphics, WorldMapLodCache lodCache, RenderBudget budget,
-                                            int level, int tileX, int tileZ,
-                                            double offsetX, double offsetZ, double scale, float brightness) {
-        if (!budget.hasDrawsLeft(4)) return false;
+    private boolean renderAvailableChildren(GuiGraphics guiGraphics, WorldMapRenderTileKey parent,
+                                            MapFramebufferPass.Frame frame, RenderBudget budget,
+                                            boolean measureDetails) {
+        if (parent.level() <= 0) return false;
 
-        int childLevel = level - 1;
-        int childBaseX = tileX * 2;
-        int childBaseZ = tileZ * 2;
+        boolean rendered = false;
         for (int childZ = 0; childZ < 2; childZ++) {
             for (int childX = 0; childX < 2; childX++) {
-                TileTexture childTexture = acquireTileTexture(lodCache, childLevel, childBaseX + childX, childBaseZ + childZ, false, budget);
-                if (childTexture == null || !budget.tryDraw()) return false;
-                renderWorldTile(guiGraphics, childTexture.textureId(), childTexture.worldMinX(), childTexture.worldMinZ(),
-                        childTexture.worldSize(), offsetX, offsetZ, scale, brightness);
-            }
-        }
-        return true;
-    }
-
-    private boolean renderChildren(GuiGraphics guiGraphics, WorldMapLodCache lodCache, RenderBudget budget,
-                                   int level, int tileX, int tileZ,
-                                   double offsetX, double offsetZ, double scale,
-                                   float brightness,
-                                   int missingFallbackDepth, boolean allowScheduling) {
-        int childLevel = level - 1;
-        int childBaseX = tileX * 2;
-        int childBaseZ = tileZ * 2;
-        boolean renderedChild = false;
-        for (int childZ = 0; childZ < 2; childZ++) {
-            for (int childX = 0; childX < 2; childX++) {
-                renderedChild |= renderTileTree(guiGraphics, lodCache, budget, childLevel,
-                        childBaseX + childX, childBaseZ + childZ,
-                        offsetX, offsetZ, scale, brightness, missingFallbackDepth, allowScheduling);
-            }
-        }
-        return renderedChild;
-    }
-
-    private boolean canRenderImmediateChildren(WorldMapLodCache lodCache, int level, int tileX, int tileZ) {
-        int childLevel = level - 1;
-        int childBaseX = tileX * 2;
-        int childBaseZ = tileZ * 2;
-        for (int childZ = 0; childZ < 2; childZ++) {
-            for (int childX = 0; childX < 2; childX++) {
-                if (acquireTileTexture(lodCache, childLevel, childBaseX + childX, childBaseZ + childZ, false, null) == null) {
-                    return false;
+                WorldMapRenderTileKey child = parent.child(childX, childZ);
+                WorldMapRenderTileCache.TileView exact = renderTileCache.findExact(child);
+                if (exact != null) {
+                    rendered |= renderTile(guiGraphics, child, exact, frame, budget, measureDetails);
+                } else {
+                    rendered |= renderAvailableChildren(guiGraphics, child, frame, budget, measureDetails);
                 }
             }
         }
-        return true;
+        if (rendered) WorldMapDebugProfiler.recordChildSubstitution();
+        return rendered;
     }
 
-    private void scheduleImmediateChildren(WorldMapLodCache lodCache, int level, int tileX, int tileZ) {
-        int childLevel = level - 1;
-        int childBaseX = tileX * 2;
-        int childBaseZ = tileZ * 2;
-        for (int childZ = 0; childZ < 2; childZ++) {
-            for (int childX = 0; childX < 2; childX++) {
-                acquireTileTexture(lodCache, childLevel, childBaseX + childX, childBaseZ + childZ, true, null);
-            }
-        }
+    private boolean renderTile(GuiGraphics guiGraphics, WorldMapRenderTileKey key,
+                               WorldMapRenderTileCache.TileView tile, MapFramebufferPass.Frame frame,
+                               RenderBudget budget, boolean measureDetails) {
+        return queueTile(key, tile, budget);
     }
 
-    private TileTexture acquireTileTexture(WorldMapLodCache lodCache, int level, int tileX, int tileZ,
-                                           boolean allowScheduling, RenderBudget budget) {
-        ResourceLocation textureId;
-        int worldSize = worldSizeForLevel(level);
-        int worldMinX = tileX * worldSize;
-        int worldMinZ = tileZ * worldSize;
-
-        if (level == 0) {
-            WorldMapRegionTile region = tileManager.getLoadedRegion(tileX, tileZ);
-            if (region == null && allowScheduling) {
-                region = tileManager.getOrScheduleCachedRegion(tileX, tileZ);
-            }
-            if (region == null) return null;
-            textureId = region.getTextureId(region.needsTextureUpload() && tryTextureUpload(budget));
-        } else {
-            WorldMapLodTile lodTile = allowScheduling
-                    ? lodCache.getOrSchedule(tileX, tileZ, sampleStepForLevel(level))
-                    : lodCache.getIfPresent(tileX, tileZ, sampleStepForLevel(level));
-            if (lodTile == null) return null;
-            textureId = lodTile.getTextureId(lodTile.hasUploadReady() && tryTextureUpload(budget));
-        }
-
-        if (textureId == null) return null;
-        return new TileTexture(textureId, worldMinX, worldMinZ, worldSize);
-    }
-
-    private static boolean tryTextureUpload(RenderBudget budget) {
-        return budget != null && budget.tryUpload();
-    }
-
-    private static int chooseRootLevel(double scale) {
-        if (scale >= 1.0) return 0;
-
-        double reversedScale = 1.0 / Math.max(scale, 0.01);
-        int level = (int) Math.floor(Math.log(reversedScale) / Math.log(2.0));
-        return Math.max(0, Math.min(level, MAX_LOD_LEVEL));
-    }
-
-    private static boolean shouldSubstituteWithChildren(int level, double screenSize) {
-        return level > 0 && screenSize >= CHILD_SUBSTITUTION_MIN_PIXELS;
-    }
-
-    private static int worldSizeForLevel(int level) {
-        return WorldMapRegionTile.REGION_PIXEL_SIZE * sampleStepForLevel(level);
-    }
-
-    private static int sampleStepForLevel(int level) {
-        int clampedLevel = Math.max(0, Math.min(level, MAX_LOD_LEVEL));
-        return Math.min(MAX_SAMPLE_STEP, 1 << clampedLevel);
-    }
-
-    private static List<TileCoord> collectVisibleTiles(double leftWorld, double rightWorld,
-                                                       double topWorld, double bottomWorld,
-                                                       int tileWorldSize) {
-        int startTileX = (int) Math.floor(leftWorld / tileWorldSize) - 1;
-        int endTileX = (int) Math.ceil(rightWorld / tileWorldSize) + 1;
-        int startTileZ = (int) Math.floor(topWorld / tileWorldSize) - 1;
-        int endTileZ = (int) Math.ceil(bottomWorld / tileWorldSize) + 1;
+    private List<VisibleTile> collectVisibleTiles(int level, double leftWorld, double rightWorld,
+                                                  double topWorld, double bottomWorld) {
+        int tileSize = WorldMapRenderTileKey.PIXEL_SIZE << level;
+        int startX = (int) Math.floor(leftWorld / tileSize);
+        int endX = (int) Math.floor(rightWorld / tileSize);
+        int startZ = (int) Math.floor(topWorld / tileSize);
+        int endZ = (int) Math.floor(bottomWorld / tileSize);
 
         double centerWorldX = (leftWorld + rightWorld) * 0.5;
         double centerWorldZ = (topWorld + bottomWorld) * 0.5;
+        int centerX = (int) Math.floor(centerWorldX / tileSize);
+        int centerZ = (int) Math.floor(centerWorldZ / tileSize);
 
-        List<TileCoord> visibleTiles = new ArrayList<>();
-        for (int tileZ = startTileZ; tileZ <= endTileZ; tileZ++) {
-            for (int tileX = startTileX; tileX <= endTileX; tileX++) {
-                visibleTiles.add(new TileCoord(tileX, tileZ, distanceToCenter(tileX, tileZ, tileWorldSize,
-                        centerWorldX, centerWorldZ)));
+        if (level == visibleLevel
+                && startX == visibleStartX && endX == visibleEndX
+                && startZ == visibleStartZ && endZ == visibleEndZ
+                && centerX == visibleCenterX && centerZ == visibleCenterZ) {
+            return visibleTiles;
+        }
+
+        visibleLevel = level;
+        visibleStartX = startX;
+        visibleEndX = endX;
+        visibleStartZ = startZ;
+        visibleEndZ = endZ;
+        visibleCenterX = centerX;
+        visibleCenterZ = centerZ;
+        visibleTiles.clear();
+        preparedTiles.clear();
+        preparedTileKeys.clear();
+        for (int tileZ = startZ; tileZ <= endZ; tileZ++) {
+            for (int tileX = startX; tileX <= endX; tileX++) {
+                WorldMapRenderTileKey key = new WorldMapRenderTileKey(level, tileX, tileZ);
+                visibleTiles.add(new VisibleTile(key, distanceToCenter(key, centerWorldX, centerWorldZ)));
             }
         }
-        visibleTiles.sort(Comparator.comparingDouble(TileCoord::centerDistance));
+        visibleTiles.sort(Comparator.comparingDouble(VisibleTile::centerDistance));
+        for (int tileZ = startZ - PREFETCH_TILE_MARGIN; tileZ <= endZ + PREFETCH_TILE_MARGIN; tileZ++) {
+            for (int tileX = startX - PREFETCH_TILE_MARGIN; tileX <= endX + PREFETCH_TILE_MARGIN; tileX++) {
+                WorldMapRenderTileKey key = new WorldMapRenderTileKey(level, tileX, tileZ);
+                preparedTiles.add(new VisibleTile(key, distanceToCenter(key, centerWorldX, centerWorldZ)));
+            }
+        }
+        preparedTiles.sort(Comparator.comparingDouble(VisibleTile::centerDistance));
+        for (VisibleTile preparedTile : preparedTiles) {
+            preparedTileKeys.add(preparedTile.key());
+        }
         return visibleTiles;
     }
 
-    private static double distanceToCenter(int tileX, int tileZ, int tileWorldSize,
-                                           double centerWorldX, double centerWorldZ) {
-        double tileCenterWorldX = (tileX + 0.5) * tileWorldSize;
-        double tileCenterWorldZ = (tileZ + 0.5) * tileWorldSize;
+    private static int selectTextureLevel(double scale) {
+        if (!ENABLE_ZOOM_OUT_LOD || scale >= 1.0) return 0;
+        if (scale <= THIRD_LOD_SCALE_THRESHOLD) return MAX_VISIBLE_TEXTURE_LEVEL;
+        double reversedScale = 1.0 / Math.max(0.01, scale);
+        return Mth.clamp((int) Math.floor(Math.log(reversedScale) / LOG_TWO), 0, MAX_VISIBLE_TEXTURE_LEVEL - 1);
+    }
+
+    private static double distanceToCenter(WorldMapRenderTileKey key, double centerWorldX, double centerWorldZ) {
+        double tileCenterWorldX = key.worldMinX() + key.worldSize() * 0.5;
+        double tileCenterWorldZ = key.worldMinZ() + key.worldSize() * 0.5;
         double dx = tileCenterWorldX - centerWorldX;
         double dz = tileCenterWorldZ - centerWorldZ;
         return dx * dx + dz * dz;
     }
 
-    private static void renderWorldTile(GuiGraphics guiGraphics, ResourceLocation textureId,
-                                        int worldMinX, int worldMinZ, int worldSize,
-                                        double offsetX, double offsetZ, double scale, float brightness) {
-        double screenX = offsetX + worldMinX * scale;
-        double screenZ = offsetZ + worldMinZ * scale;
-        double screenSize = worldSize * scale;
-        if (screenSize < 0.75) return;
+    private boolean queueTile(WorldMapRenderTileKey key, WorldMapRenderTileCache.TileView tile,
+                              RenderBudget budget) {
+        if (!budget.tryDraw()) return false;
+        drawBatches.computeIfAbsent(tile.textureId(), DrawBatch::new).tiles.add(new DrawTile(key, tile));
+        return true;
+    }
 
-        double x1 = screenX;
-        double z1 = screenZ;
-        double x2 = screenX + screenSize;
-        double z2 = screenZ + screenSize;
-        double seamGuard = Math.min(TILE_SEAM_GUARD_PIXELS, screenSize * 0.01);
-        x1 -= seamGuard;
-        z1 -= seamGuard;
-        x2 += seamGuard;
-        z2 += seamGuard;
+    private void clearDrawBatches() {
+        for (DrawBatch drawBatch : drawBatches.values()) {
+            drawBatch.tiles.clear();
+        }
+    }
 
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, textureId);
-        RenderSystem.setShaderColor(brightness, brightness, brightness, 1.0F);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-
+    private void drawBatches(GuiGraphics guiGraphics, MapFramebufferPass.Frame frame, boolean measureDetails) {
         Matrix4f matrix = guiGraphics.pose().last().pose();
         BufferBuilder buffer = Tesselator.getInstance().getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        buffer.vertex(matrix, (float) x1, (float) z2, 0.0F).uv(0.0F, 1.0F).endVertex();
-        buffer.vertex(matrix, (float) x2, (float) z2, 0.0F).uv(1.0F, 1.0F).endVertex();
-        buffer.vertex(matrix, (float) x2, (float) z1, 0.0F).uv(1.0F, 0.0F).endVertex();
-        buffer.vertex(matrix, (float) x1, (float) z1, 0.0F).uv(0.0F, 0.0F).endVertex();
-        BufferUploader.drawWithShader(buffer.end());
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        Iterator<DrawBatch> iterator = drawBatches.values().iterator();
+        while (iterator.hasNext()) {
+            DrawBatch drawBatch = iterator.next();
+            if (drawBatch.tiles.isEmpty()) {
+                iterator.remove();
+                continue;
+            }
+
+            long startNanos = measureDetails ? System.nanoTime() : 0L;
+            RenderSystem.setShaderTexture(0, drawBatch.textureId);
+            buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+            for (DrawTile drawTile : drawBatch.tiles) {
+                appendWorldTile(buffer, matrix, drawTile, frame);
+            }
+            BufferUploader.drawWithShader(buffer.end());
+            if (measureDetails) {
+                WorldMapDebugProfiler.recordWorldTileDraw(System.nanoTime() - startNanos);
+            }
+        }
+    }
+
+    private static void appendWorldTile(BufferBuilder buffer, Matrix4f matrix, DrawTile drawTile,
+                                        MapFramebufferPass.Frame frame) {
+        WorldMapRenderTileKey key = drawTile.key;
+        WorldMapRenderTileCache.TileView tile = drawTile.tile;
+        double screenX = frame.renderOffsetX() + key.worldMinX() * frame.fboScale();
+        double screenZ = frame.renderOffsetZ() + key.worldMinZ() * frame.fboScale();
+        double screenSize = key.worldSize() * frame.fboScale();
+        if (screenSize < 0.75) return;
+
+        double seamGuard = Math.min(TILE_SEAM_GUARD_PIXELS, screenSize * 0.01);
+        double x1 = screenX - seamGuard;
+        double z1 = screenZ - seamGuard;
+        double x2 = screenX + screenSize + seamGuard;
+        double z2 = screenZ + screenSize + seamGuard;
+
+        buffer.vertex(matrix, (float) x1, (float) z2, 0.0F).uv(tile.u1(), tile.v2()).endVertex();
+        buffer.vertex(matrix, (float) x2, (float) z2, 0.0F).uv(tile.u2(), tile.v2()).endVertex();
+        buffer.vertex(matrix, (float) x2, (float) z1, 0.0F).uv(tile.u2(), tile.v1()).endVertex();
+        buffer.vertex(matrix, (float) x1, (float) z1, 0.0F).uv(tile.u1(), tile.v1()).endVertex();
     }
 
     private static float getMapBrightness() {
@@ -320,31 +295,26 @@ final class WorldMapRenderer {
         return ambient + (1.0F - ambient) * Mth.clamp(sunBrightness, 0.0F, 1.0F);
     }
 
-    private record TileCoord(int x, int z, double centerDistance) {
+    private record VisibleTile(WorldMapRenderTileKey key, double centerDistance) {
     }
 
-    private record TileTexture(ResourceLocation textureId, int worldMinX, int worldMinZ, int worldSize) {
+    private record DrawTile(WorldMapRenderTileKey key, WorldMapRenderTileCache.TileView tile) {
+    }
+
+    private static final class DrawBatch {
+        private final ResourceLocation textureId;
+        private final List<DrawTile> tiles = new ArrayList<>();
+
+        private DrawBatch(ResourceLocation textureId) {
+            this.textureId = textureId;
+        }
     }
 
     private static final class RenderBudget {
         private int drawsLeft;
-        private int visitsLeft;
-        private int uploadsLeft;
 
-        private RenderBudget(int drawsLeft, int visitsLeft, int uploadsLeft) {
+        private RenderBudget(int drawsLeft) {
             this.drawsLeft = drawsLeft;
-            this.visitsLeft = visitsLeft;
-            this.uploadsLeft = uploadsLeft;
-        }
-
-        private boolean tryVisit() {
-            if (visitsLeft <= 0) {
-                WorldMapDebugProfiler.recordVisitBudgetExhausted();
-                return false;
-            }
-            visitsLeft--;
-            WorldMapDebugProfiler.recordTileVisit();
-            return true;
         }
 
         private boolean tryDraw() {
@@ -354,19 +324,6 @@ final class WorldMapRenderer {
             }
             drawsLeft--;
             WorldMapDebugProfiler.recordTileDraw();
-            return true;
-        }
-
-        private boolean hasDrawsLeft(int requiredDraws) {
-            return drawsLeft >= requiredDraws;
-        }
-
-        private boolean tryUpload() {
-            if (uploadsLeft <= 0) {
-                WorldMapDebugProfiler.recordUploadBudgetExhausted();
-                return false;
-            }
-            uploadsLeft--;
             return true;
         }
     }

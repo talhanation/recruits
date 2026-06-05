@@ -18,6 +18,7 @@
   ],
   "client": [
     "compat.corpse.CorpseRendererMixin",
+    "client.ClientLevelMixin",
     "MixinMinecraft"
   ],
   "injectors": {

@@ -5,6 +5,7 @@ import com.talhanation.recruits.config.RecruitsClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.level.ChunkEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -15,6 +16,16 @@ public class ClientPlayerEvents {
         if (!RecruitsClientConfig.UpdateMapTiles.get()) return;
 
         updateMapTiles();
+    }
+
+    @SubscribeEvent
+    public void onRenderTick(TickEvent.RenderTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
+        if (!RecruitsClientConfig.UpdateMapTiles.get()) return;
+
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null || mc.player == null || mc.level.dimension() != Level.OVERWORLD) return;
+        WorldMapTileManager.getInstance().processChunkBuildFrame();
     }
 
     private void updateMapTiles() {
@@ -36,6 +47,20 @@ public class ClientPlayerEvents {
     public void onWorldUnload(LevelEvent.Unload event) {
         if (event.getLevel().isClientSide()) {
             WorldMapTileManager.getInstance().close();
+        }
+    }
+
+    @SubscribeEvent
+    public void onChunkLoad(ChunkEvent.Load event) {
+        if (event.getLevel() instanceof Level level && level.isClientSide) {
+            WorldMapTileManager.getInstance().onChunkLoaded(level, event.getChunk().getPos());
+        }
+    }
+
+    @SubscribeEvent
+    public void onChunkUnload(ChunkEvent.Unload event) {
+        if (event.getLevel() instanceof Level level && level.isClientSide) {
+            WorldMapTileManager.getInstance().onChunkUnloaded(level, event.getChunk().getPos());
         }
     }
 }
