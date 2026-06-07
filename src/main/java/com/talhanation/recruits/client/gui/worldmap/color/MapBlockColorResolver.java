@@ -1,6 +1,5 @@
 package com.talhanation.recruits.client.gui.worldmap.color;
 
-import com.talhanation.recruits.client.gui.worldmap.debug.WorldMapBuildProfiler;
 import com.talhanation.recruits.client.gui.worldmap.pipeline.ChunkSamplingContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
@@ -12,7 +11,6 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
@@ -22,7 +20,6 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Resolves block texture colors for the map. */
 public final class MapBlockColorResolver {
     private static final int WATER_BLUE = 0x1F5DA8;
     private static final int DEFAULT_TINT_INDEX = 0;
@@ -33,7 +30,6 @@ public final class MapBlockColorResolver {
 
     private MapBlockColorResolver() {}
 
-    /** Returns RGB before native ABGR packing. */
     public static int resolveBaseRgb(
             ChunkSamplingContext context, BlockPos pos, BlockState state, MapTintSampler tintSampler) {
         ClientLevel level = context.level();
@@ -54,7 +50,7 @@ public final class MapBlockColorResolver {
     }
 
     public static void clearCaches() {
-        // Resource reload invalidates sprite averages.
+        // Sprites are replaced on resource reload.
         synchronized (TEXTURE_COLOR_LOCK) {
             TEXTURE_COLOR_CACHE.clear();
             SPRITE_RGB_CACHE.clear();
@@ -111,14 +107,10 @@ public final class MapBlockColorResolver {
         TextureColor cached = cachedTextureColor(state);
         if (cached != null) return cached;
 
-        long startNanos = System.nanoTime();
         TextureColor result = computeTextureColor(state);
         synchronized (TEXTURE_COLOR_LOCK) {
             TEXTURE_COLOR_CACHE.put(state, result);
         }
-        WorldMapBuildProfiler.recordTextureColorMiss(
-                System.nanoTime() - startNanos,
-                String.valueOf(BuiltInRegistries.BLOCK.getKey(state.getBlock())));
         return result;
     }
 

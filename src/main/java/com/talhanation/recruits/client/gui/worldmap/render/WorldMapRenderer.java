@@ -6,7 +6,6 @@ import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import com.talhanation.recruits.client.gui.worldmap.debug.WorldMapDebugProfiler;
 import com.talhanation.recruits.client.gui.worldmap.render.tile.WorldMapRenderTileCache;
 import com.talhanation.recruits.client.gui.worldmap.render.tile.WorldMapRenderTileKey;
 import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapCacheManager;
@@ -25,7 +24,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Renders map tiles and LOD fallbacks. */
 public final class WorldMapRenderer {
     private static final MapFramebufferPass FRAMEBUFFER_PASS = new MapFramebufferPass();
     private static final int MAX_VISIBLE_TEXTURE_LEVEL = WorldMapRenderTileKey.MAX_LEVEL;
@@ -59,27 +57,17 @@ public final class WorldMapRenderer {
             double offsetZ,
             double scale,
             MapOverlayRenderer overlayRenderer) {
-        WorldMapDebugProfiler.beginMapRender(screenWidth, screenHeight, scale);
-
-        long framebufferBeginStart = System.nanoTime();
         mapCache.beginRenderFrame();
         MapFramebufferPass.Frame frame =
                 FRAMEBUFFER_PASS.begin(guiGraphics, offsetX, offsetZ, scale, screenWidth, screenHeight);
-        WorldMapDebugProfiler.recordFramebufferBegin(System.nanoTime() - framebufferBeginStart);
-        WorldMapDebugProfiler.recordFramebuffer(frame);
 
-        long tileRenderStart = System.nanoTime();
         renderVisibleTiles(guiGraphics, frame, scale, getMapBrightness());
-        WorldMapDebugProfiler.recordTileRender(System.nanoTime() - tileRenderStart);
 
         if (overlayRenderer != null) {
             overlayRenderer.render(guiGraphics, frame);
         }
 
-        long framebufferBlitStart = System.nanoTime();
         FRAMEBUFFER_PASS.endAndBlit(guiGraphics, frame);
-        WorldMapDebugProfiler.recordFramebufferBlit(System.nanoTime() - framebufferBlitStart);
-        WorldMapDebugProfiler.finishMapRender();
     }
 
     public void close() {
@@ -106,14 +94,10 @@ public final class WorldMapRenderer {
                 frame.topWorld(),
                 frame.bottomWorld()
         );
-        long regionPrefetchStartNanos = System.nanoTime();
         boolean allowParentFallback = scale < 1.0 || level > 0;
         renderTileCache.prepareVisible(preparedTileKeys, allowParentFallback);
-        WorldMapDebugProfiler.recordRegionPrefetch(System.nanoTime() - regionPrefetchStartNanos);
-        WorldMapDebugProfiler.recordRootLevel(level, visible.size());
 
         RenderBudget budget = new RenderBudget(MAX_TILE_DRAWS_PER_FRAME);
-        boolean measureDetails = WorldMapDebugProfiler.measureRenderDetails();
         clearDrawBatches();
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
@@ -124,12 +108,9 @@ public final class WorldMapRenderer {
         RenderSystem.depthMask(false);
         try {
             for (VisibleTile visibleTile : visible) {
-                WorldMapDebugProfiler.recordTileVisit();
-                if (!renderBestAvailable(visibleTile.key(), budget, allowParentFallback)) {
-                    WorldMapDebugProfiler.recordMissingTile();
-                }
+                renderBestAvailable(visibleTile.key(), budget, allowParentFallback);
             }
-            drawBatches(guiGraphics, frame, measureDetails);
+            drawBatches(guiGraphics, frame);
         } finally {
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             RenderSystem.depthMask(true);
@@ -139,7 +120,7 @@ public final class WorldMapRenderer {
 
     private boolean renderBestAvailable(
             WorldMapRenderTileKey requested, RenderBudget budget, boolean allowParentFallback) {
-        // Use parent/child tiles while the exact tile is missing.
+        // Avoid black gaps while the exact LOD tile is still building.
         WorldMapRenderTileCache.TileView best =
                 renderTileCache.findBestAvailable(requested, allowParentFallback);
         if (best != null) {
@@ -163,7 +144,6 @@ public final class WorldMapRenderer {
                 }
             }
         }
-        if (rendered) WorldMapDebugProfiler.recordChildSubstitution();
         return rendered;
     }
 
@@ -249,8 +229,7 @@ public final class WorldMapRenderer {
         }
     }
 
-    private void drawBatches(
-            GuiGraphics guiGraphics, MapFramebufferPass.Frame frame, boolean measureDetails) {
+    private void drawBatches(GuiGraphics guiGraphics, MapFramebufferPass.Frame frame) {
         Matrix4f matrix = guiGraphics.pose().last().pose();
         BufferBuilder buffer = Tesselator.getInstance().getBuilder();
         Iterator<DrawBatch> iterator = drawBatches.values().iterator();
@@ -261,16 +240,12 @@ public final class WorldMapRenderer {
                 continue;
             }
 
-            long startNanos = measureDetails ? System.nanoTime() : 0L;
             RenderSystem.setShaderTexture(0, drawBatch.textureId);
             buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
             for (DrawTile drawTile : drawBatch.tiles) {
                 appendWorldTile(buffer, matrix, drawTile, frame);
             }
             BufferUploader.drawWithShader(buffer.end());
-            if (measureDetails) {
-                WorldMapDebugProfiler.recordWorldTileDraw(System.nanoTime() - startNanos);
-            }
         }
     }
 
@@ -346,11 +321,9 @@ public final class WorldMapRenderer {
 
         private boolean tryDraw() {
             if (drawsLeft <= 0) {
-                WorldMapDebugProfiler.recordDrawBudgetExhausted();
                 return false;
             }
             drawsLeft--;
-            WorldMapDebugProfiler.recordTileDraw();
             return true;
         }
     }

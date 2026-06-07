@@ -15,7 +15,6 @@ import com.talhanation.recruits.client.gui.worldmap.route.RouteRenderer;
 import com.talhanation.recruits.client.gui.worldmap.route.WaypointEditPopup;
 import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapCacheManager;
 import com.talhanation.recruits.client.gui.worldmap.ui.WorldMapContextMenu;
-import com.talhanation.recruits.client.gui.worldmap.ui.WorldMapPerformanceHud;
 import com.talhanation.recruits.client.gui.worldmap.ui.WorldMapRouteControls;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsFaction;
@@ -38,7 +37,6 @@ public class WorldMapScreen extends Screen {
     private final WorldMapCacheManager mapCache;
     private final WorldMapRenderer mapRenderer;
     private final WorldMapCamera camera;
-    private final WorldMapPerformanceHud performanceHud = new WorldMapPerformanceHud();
     private final WorldMapRouteControls routeControls = new WorldMapRouteControls();
     private final Player player;
     private final WorldMapClaimController claimController;
@@ -75,13 +73,13 @@ public class WorldMapScreen extends Screen {
 
     public WorldMapScreen() {
         super(Component.literal(""));
-        this.contextMenu = new WorldMapContextMenu(this);
-        this.claimInfoMenu = new ClaimInfoMenu(this);
         this.mapCache = WorldMapCacheManager.getInstance();
         this.mapRenderer = new WorldMapRenderer(mapCache);
         this.camera = new WorldMapCamera(this);
         this.player = Minecraft.getInstance().player;
         this.claimController = new WorldMapClaimController(Minecraft.getInstance(), player, camera);
+        this.contextMenu = new WorldMapContextMenu(this);
+        this.claimInfoMenu = new ClaimInfoMenu(this);
     }
 
     public BlockPos getHoveredBlockPos() {
@@ -195,13 +193,11 @@ public class WorldMapScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        performanceHud.beginFrame();
         camera.animate();
         renderBackground(guiGraphics);
 
         guiGraphics.enableScissor(0, 0, width, height);
 
-        long mapRenderStartNanos = System.nanoTime();
         mapRenderer.render(
                 guiGraphics,
                 width,
@@ -210,7 +206,6 @@ public class WorldMapScreen extends Screen {
                 offsetZ,
                 scale,
                 (mapGraphics, frame) -> renderMapOverlays(mapGraphics, mouseX, mouseY, frame));
-        performanceHud.recordMapRender(System.nanoTime() - mapRenderStartNanos);
 
         guiGraphics.disableScissor();
 
@@ -231,7 +226,6 @@ public class WorldMapScreen extends Screen {
         if (routeNamePopup.isVisible()) routeNamePopup.render(guiGraphics, mouseX, mouseY);
         if (routeEditPopup.isVisible()) routeEditPopup.render(guiGraphics, mouseX, mouseY);
         if (waypointEditPopup.isVisible()) waypointEditPopup.render(guiGraphics, mouseX, mouseY);
-        performanceHud.render(guiGraphics, font, width);
     }
 
     private void renderMapOverlays(

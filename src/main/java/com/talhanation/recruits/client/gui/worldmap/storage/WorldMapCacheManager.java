@@ -3,7 +3,6 @@ package com.talhanation.recruits.client.gui.worldmap.storage;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.worldmap.color.MapBlockColorResolver;
 import com.talhanation.recruits.client.gui.worldmap.color.MapStateClassifier;
-import com.talhanation.recruits.client.gui.worldmap.debug.WorldMapDebugProfiler;
 import com.talhanation.recruits.client.gui.worldmap.pipeline.ChunkBuildResult;
 import com.talhanation.recruits.client.gui.worldmap.pipeline.ChunkBuildScratch;
 import com.talhanation.recruits.client.gui.worldmap.pipeline.ChunkImageBuilder;
@@ -28,7 +27,6 @@ import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 
-/** Client-side cache for map regions and chunk builds. */
 public class WorldMapCacheManager {
     private static final int MAX_CHUNK_BUILD_SCHEDULES_PER_TICK = 4;
     private static final int MAX_CHUNK_BUILD_SCHEDULE_ATTEMPTS_PER_TICK = 64;
@@ -121,9 +119,9 @@ public class WorldMapCacheManager {
                 regionRepository.indexedRegionCount());
     }
 
-    /** Refreshes cached block colors after model reload. */
     public void onClientModelsReloaded() {
         boolean resourceReload = initialModelBakeSeen;
+        // First bake is startup; only later reloads need recolor.
         initialModelBakeSeen = true;
 
         WorldMapAsync.prepareWorkers();
@@ -153,7 +151,7 @@ public class WorldMapCacheManager {
             return;
         }
 
-        // Keep old pixels visible until loaded chunks are recolored.
+        // Do not reset regions; replace visible chunks as they are rebuilt.
         clearChunkBuildPipeline();
 
         int enqueued = enqueueNearbyLoadedChunksForColorRefresh();
@@ -178,39 +176,25 @@ public class WorldMapCacheManager {
         if (mc.level == null || mc.player == null) return;
         if (this.worldMapDir == null || isUsingUnknownStorageId()) initialize(mc.level);
 
-        WorldMapDebugProfiler.beginTileUpdate();
-        long debugStartNanos = System.nanoTime();
-        long phaseStartNanos = debugStartNanos;
         consumeReadyRegionLoads(MAX_REGION_LOAD_COMPLETIONS_PER_FRAME);
         regionSaveQueue.consumeReadySaves(MAX_REGION_SAVE_COMPLETIONS_PER_FRAME);
         processRegionWakeQueue(MAX_REGION_WAKE_CHUNKS_PER_TICK, REGION_WAKE_BUDGET_NANOS);
-        long consumeLoadsNanos = System.nanoTime() - phaseStartNanos;
 
         long now = System.currentTimeMillis();
-        long enqueueNanos = 0L;
         if (shouldDiscoverLoadedChunks(now)) {
-            phaseStartNanos = System.nanoTime();
             discoverLoadedChunksAroundPlayer();
-            enqueueNanos = System.nanoTime() - phaseStartNanos;
             lastDiscoveryTime = now;
         }
 
-        phaseStartNanos = System.nanoTime();
         int chunkUpdates = consumeReadyChunkBuilds(MAX_CHUNK_BUILD_COMPLETIONS_PER_TICK);
-        long consumeChunksNanos = System.nanoTime() - phaseStartNanos;
-        phaseStartNanos = System.nanoTime();
         scheduleChunkBuilds(MAX_CHUNK_BUILD_SCHEDULES_PER_TICK);
-        long scheduleChunksNanos = System.nanoTime() - phaseStartNanos;
-        long processChunksNanos = consumeChunksNanos + scheduleChunksNanos;
 
-        long saveNanos = 0L;
         if (now - lastSaveTime >= SAVE_INTERVAL_MS) {
             savePassPending = true;
         }
         if (savePassPending
                 && chunkUpdates == 0
                 && regionSaveQueue.pendingCount() < MAX_PENDING_REGION_SAVES) {
-            phaseStartNanos = System.nanoTime();
             int scheduledSaves =
                     regionSaveQueue.saveDirtyRegions(
                             loadedRegions,
@@ -218,7 +202,6 @@ public class WorldMapCacheManager {
                             false,
                             MAX_PENDING_REGION_SAVES,
                             REGION_SAVE_QUIET_PERIOD_NANOS);
-            saveNanos = System.nanoTime() - phaseStartNanos;
             if (scheduledSaves == 0
                     && regionSaveQueue.pendingCount() == 0
                     && !regionSaveQueue.hasDirtyRegions(loadedRegions)) {
@@ -227,24 +210,7 @@ public class WorldMapCacheManager {
             }
         }
 
-        phaseStartNanos = System.nanoTime();
         trimLoadedRegions(MAX_LOADED_REGIONS);
-        long trimNanos = System.nanoTime() - phaseStartNanos;
-
-        recordDebugState();
-        int chunkPipelineSize = chunkBuildQueue.pipelineSize();
-        WorldMapDebugProfiler.recordTileUpdate(
-                System.nanoTime() - debugStartNanos,
-                chunkUpdates,
-                chunkBuildQueue.queuedChunkCount(),
-                chunkPipelineSize,
-                consumeLoadsNanos,
-                enqueueNanos,
-                processChunksNanos,
-                consumeChunksNanos,
-                scheduleChunksNanos,
-                saveNanos,
-                trimNanos);
     }
 
     private boolean shouldDiscoverLoadedChunks(long now) {
@@ -268,7 +234,6 @@ public class WorldMapCacheManager {
         this.regionLoadSchedulesLeft = MAX_REGION_LOAD_SCHEDULES_PER_FRAME;
         consumeReadyRegionLoads(MAX_REGION_LOAD_COMPLETIONS_PER_FRAME);
         regionSaveQueue.consumeReadySaves(MAX_REGION_SAVE_COMPLETIONS_PER_FRAME);
-        recordDebugState();
     }
 
     public WorldMapRegion getOrSchedulePersistedRegion(
@@ -322,19 +287,16 @@ public class WorldMapCacheManager {
                 return null;
             } catch (Exception ignored) {
                 recordFailedRegionLoad(regionKey);
-                WorldMapDebugProfiler.recordRegionLoadCompleted(false);
                 return null;
             }
             if (pixels == null) {
                 regionRepository.removeMissingSource(
                         regionKey, pendingLoad.regionX(), pendingLoad.regionZ());
                 recordFailedRegionLoad(regionKey);
-                WorldMapDebugProfiler.recordRegionLoadCompleted(false);
                 return null;
             }
 
             if (loadedRegions.containsKey(regionKey)) {
-                WorldMapDebugProfiler.recordRegionLoadCompleted(true);
                 return loadedRegions.get(regionKey);
             }
 
@@ -344,7 +306,6 @@ public class WorldMapCacheManager {
             loadedRegions.put(regionKey, region);
             regionRepository.recordSource(regionKey);
             failedRegionLoads.remove(regionKey);
-            WorldMapDebugProfiler.recordRegionLoadCompleted(true);
             return region;
         } finally {
             queueRegionWake(regionKey);
@@ -575,7 +536,6 @@ public class WorldMapCacheManager {
         return markChunkDirty(chunkX, chunkZ, urgent, settleNanos, false);
     }
 
-    /** Adds a chunk rebuild request to the queue. */
     private boolean markChunkDirty(
             int chunkX, int chunkZ, boolean urgent, long settleNanos, boolean forceRebuild) {
         if (!isChunkLoaded(chunkX, chunkZ)) return false;
@@ -588,6 +548,7 @@ public class WorldMapCacheManager {
         }
 
         long readyNanos = System.nanoTime() + settleNanos;
+        // Chunk load/block events can arrive before the client chunk is stable.
         if (forceRebuild && !urgent && chunkBuildQueue.canMergeForcedReadyTime(chunkKey)) {
             chunkBuildQueue.mergeReadyNanos(chunkKey, readyNanos);
             discoveredChunks.put(chunkKey, Boolean.TRUE);
@@ -665,7 +626,7 @@ public class WorldMapCacheManager {
     private void scheduleChunkBuilds(int maxSchedules) {
         if (mc.level == null || mc.player == null) return;
 
-        // Keep scheduling bounded to avoid frame spikes.
+        // Start only a few async builds per tick; the rest stays queued.
         int scheduled = 0;
         int attempts = 0;
         int maxAttempts =
@@ -732,7 +693,6 @@ public class WorldMapCacheManager {
             ChunkImageBuilder builder = ChunkImageBuilder.begin(context, chunkX, chunkZ, chunkKey);
             CompletableFuture<ChunkBuildResult> future =
                     WorldMapAsync.buildChunk(
-                            chunkX + "," + chunkZ,
                             urgent,
                             distanceSquaredToChunk(chunkKey, centerChunkX, centerChunkZ),
                             builder::buildFully);
@@ -789,36 +749,27 @@ public class WorldMapCacheManager {
     }
 
     private boolean finishChunkBuild(ChunkBuildResult result) {
-        long finalizeStartNanos = System.nanoTime();
-        long regionWriteNanos = 0L;
-        try {
-            int chunkX = result.chunkX();
-            int chunkZ = result.chunkZ();
-            int regionX = WorldMapRegion.chunkToRegionCoord(chunkX);
-            int regionZ = WorldMapRegion.chunkToRegionCoord(chunkZ);
-            WorldMapRegion region = getOrCreateRegion(regionX, regionZ);
-            if (region == null) {
-                return false;
-            }
-
-            long regionWriteStartNanos = System.nanoTime();
-            region.updateFromChunkPixels(
-                    result.pixels(),
-                    WorldMapRegion.chunkLocalCoord(chunkX),
-                    WorldMapRegion.chunkLocalCoord(chunkZ),
-                    mapColorEpoch);
-            renderTileCache.invalidateChunk(
-                    region,
-                    WorldMapRegion.chunkLocalCoord(chunkX),
-                    WorldMapRegion.chunkLocalCoord(chunkZ),
-                    result.pixels());
-            regionSaveQueue.markDirty(WorldMapRegionKey.of(regionX, regionZ));
-            regionWriteNanos = System.nanoTime() - regionWriteStartNanos;
-            return true;
-        } finally {
-            WorldMapDebugProfiler.recordChunkFinalize(
-                    System.nanoTime() - finalizeStartNanos, regionWriteNanos, 0L);
+        int chunkX = result.chunkX();
+        int chunkZ = result.chunkZ();
+        int regionX = WorldMapRegion.chunkToRegionCoord(chunkX);
+        int regionZ = WorldMapRegion.chunkToRegionCoord(chunkZ);
+        WorldMapRegion region = getOrCreateRegion(regionX, regionZ);
+        if (region == null) {
+            return false;
         }
+
+        region.updateFromChunkPixels(
+                result.pixels(),
+                WorldMapRegion.chunkLocalCoord(chunkX),
+                WorldMapRegion.chunkLocalCoord(chunkZ),
+                mapColorEpoch);
+        renderTileCache.invalidateChunk(
+                region,
+                WorldMapRegion.chunkLocalCoord(chunkX),
+                WorldMapRegion.chunkLocalCoord(chunkZ),
+                result.pixels());
+        regionSaveQueue.markDirty(WorldMapRegionKey.of(regionX, regionZ));
+        return true;
     }
 
     private void enqueueDeferredChunk(long chunkKey, boolean urgent) {
@@ -837,7 +788,6 @@ public class WorldMapCacheManager {
         chunkBuildQueue.queueRegionWake(regionKey);
     }
 
-    /** Moves chunks waiting for a region load back to the build queue. */
     private void processRegionWakeQueue(int maxChunks, long budgetNanos) {
         long deadlineNanos = System.nanoTime() + budgetNanos;
         int processed = 0;
@@ -923,13 +873,11 @@ public class WorldMapCacheManager {
 
         CompletableFuture<WorldMapRegionPixels> future =
                 WorldMapAsync.loadRegion(
-                        regionX + "," + regionZ,
                         !viewOnly,
                         generation,
                         distanceSquared,
                         () -> regionRepository.readPixelsIfPresent(regionX, regionZ));
         pendingRegionLoads.put(regionKey, new PendingRegionLoad(regionX, regionZ, future));
-        WorldMapDebugProfiler.recordRegionLoadScheduled(useFrameBudget);
         return true;
     }
 
@@ -944,19 +892,6 @@ public class WorldMapCacheManager {
 
     private void recordFailedRegionLoad(String regionKey) {
         failedRegionLoads.put(regionKey, System.currentTimeMillis());
-    }
-
-    private void recordDebugState() {
-        int chunkPipelineSize = chunkBuildQueue.pipelineSize();
-        WorldMapDebugProfiler.recordMapCacheState(
-                loadedRegions.size(),
-                pendingRegionLoads.size(),
-                failedRegionLoads.size(),
-                regionSaveQueue.pendingCount(),
-                chunkBuildQueue.queuedChunkCount(),
-                chunkPipelineSize,
-                renderTileCache.tileCount(),
-                renderTileCache.pendingCount());
     }
 
     private boolean isCurrentClientLevel(Level level) {

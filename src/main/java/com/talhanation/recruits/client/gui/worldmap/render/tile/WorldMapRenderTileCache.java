@@ -1,7 +1,6 @@
 package com.talhanation.recruits.client.gui.worldmap.render.tile;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.talhanation.recruits.client.gui.worldmap.debug.WorldMapDebugProfiler;
 import com.talhanation.recruits.client.gui.worldmap.pipeline.WorldMapAsync;
 import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapCacheManager;
 import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapRegion;
@@ -75,7 +74,6 @@ public final class WorldMapRenderTileCache {
         publishDirtyTiles(neededTiles, uploadBudget);
         publishReadyTiles(neededTiles, uploadBudget);
         trim(neededTileSet);
-        WorldMapDebugProfiler.recordLodState(tiles.size(), pendingCount());
     }
 
     public TileView findBestAvailable(WorldMapRenderTileKey requested, boolean allowParentFallback) {
@@ -102,7 +100,6 @@ public final class WorldMapRenderTileCache {
                 float v1 = slot.v1() + localZ * sectionPixels * atlasPixel;
                 float u2 = slot.u1() + (localX + 1) * sectionPixels * atlasPixel;
                 float v2 = slot.v1() + (localZ + 1) * sectionPixels * atlasPixel;
-                WorldMapDebugProfiler.recordMissingFallback();
                 return new TileView(slot.atlas().textureId(), u1, v1, u2, v2);
             }
             parent = parent.parent();
@@ -305,7 +302,6 @@ public final class WorldMapRenderTileCache {
             WorldMapRenderTileKey key = request.key();
             CompletableFuture<WorldMapRegion.RenderSnapshot> future =
                     WorldMapAsync.buildRenderTile(
-                            "L" + key.level() + ":" + key.x() + "," + key.z(),
                             visibleGeneration,
                             request.priority(),
                             () ->
@@ -317,7 +313,6 @@ public final class WorldMapRenderTileCache {
                                                     key.localZInRegion(),
                                                     request.sourceVersion()));
             pendingBuilds.put(key, new PendingBuild(request.sourceVersion(), visibleGeneration, future));
-            WorldMapDebugProfiler.recordLodSchedule();
         }
     }
 
@@ -429,7 +424,6 @@ public final class WorldMapRenderTileCache {
             return;
         }
 
-        long trimStartNanos = System.nanoTime();
         ArrayList<WorldMapRenderTile> ordered = new ArrayList<>(tiles.values());
         ordered.sort(Comparator.comparingLong(WorldMapRenderTile::lastAccessOrder));
         for (WorldMapRenderTile tile : ordered) {
@@ -442,7 +436,6 @@ public final class WorldMapRenderTileCache {
         }
         removeUntrackedInvalidations();
         removeEmptyAtlases();
-        WorldMapDebugProfiler.recordLodTrim(System.nanoTime() - trimStartNanos);
     }
 
     private WorldMapTextureAtlas.Slot allocateSlot() {
@@ -556,7 +549,6 @@ public final class WorldMapRenderTileCache {
                     && (uploads == 0 || System.nanoTime() - startedNanos < TEXTURE_UPLOAD_BUDGET_NANOS)) {
                 return true;
             }
-            WorldMapDebugProfiler.recordUploadBudgetExhausted();
             return false;
         }
 
