@@ -1,6 +1,4 @@
 package com.talhanation.recruits.client.gui.worldmap.render.tile;
-
-import com.talhanation.recruits.client.gui.worldmap.debug.WorldMapDebugProfiler;
 import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapRegion;
 
 final class WorldMapRenderTile {
@@ -31,10 +29,8 @@ final class WorldMapRenderTile {
         if (pixels == null) {
             throw new IllegalStateException("World map render snapshot was already consumed");
         }
-        long uploadStartNanos = System.nanoTime();
         try {
             slot.atlas().upload(slot, pixels, uploader);
-            WorldMapDebugProfiler.recordTextureUpload(System.nanoTime() - uploadStartNanos, true);
             return new WorldMapRenderTile(key, snapshot.sourceVersion(), slot, pixels);
         } catch (RuntimeException | Error exception) {
             WorldMapRegion.releaseRenderPixels(pixels);
@@ -52,11 +48,9 @@ final class WorldMapRenderTile {
 
     void update(WorldMapRegion.RenderSnapshot snapshot, WorldMapTextureUploader uploader) {
         System.arraycopy(snapshot.pixels(), 0, pixels, 0, pixels.length);
-        long uploadStartNanos = System.nanoTime();
         slot.atlas().upload(slot, pixels, uploader);
         sourceVersion = snapshot.sourceVersion();
         clearDirty();
-        WorldMapDebugProfiler.recordTextureUpload(System.nanoTime() - uploadStartNanos, false);
     }
 
     void patchChunk(
@@ -93,7 +87,6 @@ final class WorldMapRenderTile {
     boolean uploadPending(WorldMapTextureUploader uploader) {
         if (!isDirty()) return false;
 
-        long uploadStartNanos = System.nanoTime();
         slot.atlas()
                 .uploadRegion(
                         slot,
@@ -104,7 +97,6 @@ final class WorldMapRenderTile {
                         dirtyMaxZ - dirtyMinZ,
                         uploader);
         clearDirty();
-        WorldMapDebugProfiler.recordTextureUpload(System.nanoTime() - uploadStartNanos, false);
         return true;
     }
 

@@ -4,13 +4,11 @@ import com.talhanation.recruits.client.gui.worldmap.color.MapBlockColorResolver;
 import com.talhanation.recruits.client.gui.worldmap.color.MapSample;
 import com.talhanation.recruits.client.gui.worldmap.color.MapStateClassifier;
 import com.talhanation.recruits.client.gui.worldmap.color.MapTerrainColorResolver;
-import com.talhanation.recruits.client.gui.worldmap.debug.WorldMapBuildProfiler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
 
-/** Builds one 16x16 map chunk. */
 public final class ChunkImageBuilder {
     private static final int PIXEL_COUNT = 16 * 16;
     private static final int COLOR_SAMPLE_COUNT = PIXEL_COUNT * 2;
@@ -57,21 +55,14 @@ public final class ChunkImageBuilder {
     public ChunkBuildResult buildFully() {
         if (canceled) return null;
         building = true;
-        WorldMapBuildProfiler.beginChunk(chunkX, chunkZ);
         try {
-            long phaseStartNanos = System.nanoTime();
             sampleColumns();
-            WorldMapBuildProfiler.recordSamplePhase(System.nanoTime() - phaseStartNanos);
             if (canceled || sampleIndex < ChunkBuildScratch.SAMPLE_COUNT) return null;
 
-            phaseStartNanos = System.nanoTime();
             prepareColors();
-            WorldMapBuildProfiler.recordColorPreparePhase(System.nanoTime() - phaseStartNanos);
             if (canceled || colorPrepareIndex < COLOR_SAMPLE_COUNT) return null;
 
-            phaseStartNanos = System.nanoTime();
             renderPixels();
-            WorldMapBuildProfiler.recordRenderPhase(System.nanoTime() - phaseStartNanos);
             if (canceled || pixelIndex < PIXEL_COUNT) return null;
 
             return new ChunkBuildResult(chunkX, chunkZ, chunkKey, pixels);
@@ -79,7 +70,6 @@ public final class ChunkImageBuilder {
             building = false;
             activeSampleChunk = null;
             releaseScratch();
-            WorldMapBuildProfiler.finishChunk();
         }
     }
 
@@ -100,7 +90,7 @@ public final class ChunkImageBuilder {
     private void sampleColumns() {
         MapSample[] surfaces = scratch.surfaceSamples();
         MapSample[] underlays = scratch.underlaySamples();
-        // Extra border samples are used for relief and water edges.
+        // 16 chunk pixels plus a one-pixel border for relief and water edges.
         while (sampleIndex < ChunkBuildScratch.SAMPLE_COUNT && !canceled) {
             if (activeSampleChunk == null
                     && !beginSampleColumn(surfaces[sampleIndex], underlays[sampleIndex])) {
@@ -175,7 +165,7 @@ public final class ChunkImageBuilder {
     }
 
     private boolean beginUnderlayScan(MapSample surface) {
-        // Water and transparent blocks use a lower sample for blending.
+        // Lower scan is bounded so water/leaves cannot stall a worker.
         if (surface.isWaterLike()) {
             sampleStage = SampleStage.WATER_UNDERLAY;
             activeUnderlayChecksLeft = 16;

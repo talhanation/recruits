@@ -1,6 +1,5 @@
 package com.talhanation.recruits.client.gui.worldmap.pipeline;
 
-import com.talhanation.recruits.client.gui.worldmap.debug.WorldMapDebugProfiler;
 import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapRegion;
 import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapRegionPixels;
 import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapRegionStorage;
@@ -57,7 +56,6 @@ public final class WorldMapAsync {
     }
 
     public static CompletableFuture<WorldMapRegionPixels> loadRegion(
-            String detail,
             boolean urgent,
             long generation,
             int distanceSquared,
@@ -65,7 +63,6 @@ public final class WorldMapAsync {
         CompletableFuture<WorldMapRegionPixels> future = new CompletableFuture<>();
         RegionLoadTask task =
                 new RegionLoadTask(
-                        detail,
                         urgent,
                         generation,
                         distanceSquared,
@@ -85,8 +82,6 @@ public final class WorldMapAsync {
     public static CompletableFuture<RegionSaveResult> saveRegion(
             File file, WorldMapRegion.SaveSnapshot snapshot) {
         return timedTask(
-                "region-save",
-                file.getName(),
                 () -> {
                     try {
                         WorldMapRegionStorage.write(file, snapshot.pixels());
@@ -99,14 +94,12 @@ public final class WorldMapAsync {
     }
 
     public static CompletableFuture<WorldMapRegion.RenderSnapshot> buildRenderTile(
-            String detail,
             long generation,
             int distanceSquared,
             Supplier<WorldMapRegion.RenderSnapshot> supplier) {
         CompletableFuture<WorldMapRegion.RenderSnapshot> future = new CompletableFuture<>();
         RenderTileBuildTask task =
                 new RenderTileBuildTask(
-                        detail,
                         generation,
                         distanceSquared,
                         RENDER_TILE_SEQUENCE.getAndIncrement(),
@@ -123,10 +116,9 @@ public final class WorldMapAsync {
     }
 
     public static CompletableFuture<ChunkBuildResult> buildChunk(
-            String detail, boolean urgent, int distanceSquared, Supplier<ChunkBuildResult> supplier) {
+            boolean urgent, int distanceSquared, Supplier<ChunkBuildResult> supplier) {
         CompletableFuture<ChunkBuildResult> future = new CompletableFuture<>();
         ChunkBuildTask task = new ChunkBuildTask(
-                detail,
                 urgent,
                 distanceSquared,
                 CHUNK_BUILD_SEQUENCE.getAndIncrement(),
@@ -142,31 +134,8 @@ public final class WorldMapAsync {
         return future;
     }
 
-    private static <T> CompletableFuture<T> timedTask(String type, String detail, Supplier<T> supplier,
-                                                       ExecutorService executor) {
-        long scheduledNanos = System.nanoTime();
-        return CompletableFuture.supplyAsync(() -> {
-            long startedNanos = System.nanoTime();
-            boolean success = false;
-            try {
-                T result = supplier.get();
-                success = result != null;
-                if (result instanceof Boolean value) {
-                    success = value;
-                } else if (result instanceof RegionSaveResult value) {
-                    success = value.success();
-                }
-                return result;
-            } finally {
-                WorldMapDebugProfiler.recordAsyncTask(
-                        type,
-                        detail,
-                        startedNanos - scheduledNanos,
-                        System.nanoTime() - startedNanos,
-                        success
-                );
-            }
-        }, executor);
+    private static <T> CompletableFuture<T> timedTask(Supplier<T> supplier, ExecutorService executor) {
+        return CompletableFuture.supplyAsync(supplier, executor);
     }
 
     private static ThreadFactory namedDaemonFactory(String namePrefix) {
@@ -192,19 +161,16 @@ public final class WorldMapAsync {
     public record RegionSaveResult(boolean success, int dirtyVersion) {}
 
     private static final class RegionLoadTask implements Runnable, Comparable<RegionLoadTask> {
-        private final String detail;
         private final boolean urgent;
         private final long generation;
         private final int distanceSquared;
         private final long sequence;
         private final Supplier<WorldMapRegionPixels> supplier;
         private final CompletableFuture<WorldMapRegionPixels> future;
-        private final long scheduledNanos = System.nanoTime();
 
-        private RegionLoadTask(String detail, boolean urgent, long generation, int distanceSquared, long sequence,
+        private RegionLoadTask(boolean urgent, long generation, int distanceSquared, long sequence,
                                Supplier<WorldMapRegionPixels> supplier,
                                CompletableFuture<WorldMapRegionPixels> future) {
-            this.detail = detail;
             this.urgent = urgent;
             this.generation = generation;
             this.distanceSquared = distanceSquared;
@@ -217,22 +183,11 @@ public final class WorldMapAsync {
         public void run() {
             if (future.isCancelled()) return;
 
-            long startedNanos = System.nanoTime();
-            boolean success = false;
             try {
                 WorldMapRegionPixels result = supplier.get();
-                success = result != null;
                 future.complete(result);
             } catch (Throwable throwable) {
                 future.completeExceptionally(throwable);
-            } finally {
-                WorldMapDebugProfiler.recordAsyncTask(
-                        "region-load",
-                        detail,
-                        startedNanos - scheduledNanos,
-                        System.nanoTime() - startedNanos,
-                        success
-                );
             }
         }
 
@@ -249,22 +204,18 @@ public final class WorldMapAsync {
     }
 
     private static final class RenderTileBuildTask implements Runnable, Comparable<RenderTileBuildTask> {
-        private final String detail;
         private final long generation;
         private final int distanceSquared;
         private final long sequence;
         private final Supplier<WorldMapRegion.RenderSnapshot> supplier;
         private final CompletableFuture<WorldMapRegion.RenderSnapshot> future;
-        private final long scheduledNanos = System.nanoTime();
 
         private RenderTileBuildTask(
-                String detail,
                 long generation,
                 int distanceSquared,
                 long sequence,
                 Supplier<WorldMapRegion.RenderSnapshot> supplier,
                 CompletableFuture<WorldMapRegion.RenderSnapshot> future) {
-            this.detail = detail;
             this.generation = generation;
             this.distanceSquared = distanceSquared;
             this.sequence = sequence;
@@ -276,24 +227,13 @@ public final class WorldMapAsync {
         public void run() {
             if (future.isCancelled()) return;
 
-            long startedNanos = System.nanoTime();
-            boolean success = false;
             try {
                 WorldMapRegion.RenderSnapshot result = supplier.get();
-                success = result != null;
                 if (!future.complete(result) && result != null) {
                     result.release();
                 }
             } catch (Throwable throwable) {
                 future.completeExceptionally(throwable);
-            } finally {
-                WorldMapDebugProfiler.recordAsyncTask(
-                        "render-tile-build",
-                        detail,
-                        startedNanos - scheduledNanos,
-                        System.nanoTime() - startedNanos,
-                        success
-                );
             }
         }
 
@@ -308,17 +248,14 @@ public final class WorldMapAsync {
     }
 
     private static final class ChunkBuildTask implements Runnable, Comparable<ChunkBuildTask> {
-        private final String detail;
         private final boolean urgent;
         private final int distanceSquared;
         private final long sequence;
         private final Supplier<ChunkBuildResult> supplier;
         private final CompletableFuture<ChunkBuildResult> future;
-        private final long scheduledNanos = System.nanoTime();
 
-        private ChunkBuildTask(String detail, boolean urgent, int distanceSquared, long sequence,
+        private ChunkBuildTask(boolean urgent, int distanceSquared, long sequence,
                                Supplier<ChunkBuildResult> supplier, CompletableFuture<ChunkBuildResult> future) {
-            this.detail = detail;
             this.urgent = urgent;
             this.distanceSquared = distanceSquared;
             this.sequence = sequence;
@@ -330,22 +267,11 @@ public final class WorldMapAsync {
         public void run() {
             if (future.isCancelled()) return;
 
-            long startedNanos = System.nanoTime();
-            boolean success = false;
             try {
                 ChunkBuildResult result = supplier.get();
-                success = result != null;
                 future.complete(result);
             } catch (Throwable throwable) {
                 future.completeExceptionally(throwable);
-            } finally {
-                WorldMapDebugProfiler.recordAsyncTask(
-                        "chunk-build",
-                        detail,
-                        startedNanos - scheduledNanos,
-                        System.nanoTime() - startedNanos,
-                        success
-                );
             }
         }
 

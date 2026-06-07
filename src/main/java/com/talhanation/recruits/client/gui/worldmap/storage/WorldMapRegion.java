@@ -7,7 +7,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicReference;
 
-/** 32x32 chunk region with full-res pixels and render snapshots. */
 public final class WorldMapRegion {
     public static final int CHUNKS_PER_REGION = 32;
     public static final int PIXELS_PER_CHUNK = 16;
@@ -144,7 +143,7 @@ public final class WorldMapRegion {
         WorldMapRegionPixels sourceRegion = pixels;
         int sourceEpoch = mutationEpoch.get();
         try {
-            // Retry snapshot if a chunk write happens during copy.
+            // Retry if pixels changed while copying the snapshot.
             if (sourceRegion == null
                     || (sourceEpoch & 1) != 0
                     || renderVersion(level, tileXInRegion, tileZInRegion) != expectedVersion) {
