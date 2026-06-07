@@ -94,6 +94,10 @@ final class WorldMapRegionPixels {
         return chunk != null && ((chunk[pixelIndex(x, z)] >>> 24) & 0xFF) > 0;
     }
 
+    boolean hasChunkPixels(int chunkX, int chunkZ) {
+        return isValidChunk(chunkX, chunkZ) && chunks.get(chunkIndex(chunkX, chunkZ)) != null;
+    }
+
     void copyArea(int startX, int startZ, int areaSize, int[] target) {
         if (target == null || target.length < areaSize * areaSize) {
             throw new IllegalArgumentException("Target buffer is too small");

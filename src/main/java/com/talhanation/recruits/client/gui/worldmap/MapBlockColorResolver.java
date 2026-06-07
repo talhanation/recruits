@@ -23,9 +23,12 @@ import java.util.Map;
 final class MapBlockColorResolver {
     private static final int WATER_BLUE = 0x1F5DA8;
     private static final int DEFAULT_TINT_INDEX = 0;
-    private static final RandomSource MODEL_RANDOM = RandomSource.create(42L);
+    private static final Object TEXTURE_COLOR_LOCK = new Object();
     private static final Map<BlockState, TextureColor> TEXTURE_COLOR_CACHE = new IdentityHashMap<>();
+    private static final Map<BlockState, Boolean> PENDING_TEXTURE_COLORS = new IdentityHashMap<>();
     private static final Map<TextureAtlasSprite, Integer> SPRITE_RGB_CACHE = new IdentityHashMap<>();
+    private static int textureCacheGeneration;
+    private static volatile TextureAtlasSprite missingSprite;
 
     private MapBlockColorResolver() {
     }
@@ -50,8 +53,39 @@ final class MapBlockColorResolver {
     }
 
     static void clearCaches() {
-        TEXTURE_COLOR_CACHE.clear();
-        SPRITE_RGB_CACHE.clear();
+        synchronized (TEXTURE_COLOR_LOCK) {
+            TEXTURE_COLOR_CACHE.clear();
+            PENDING_TEXTURE_COLORS.clear();
+            SPRITE_RGB_CACHE.clear();
+            textureCacheGeneration++;
+            missingSprite = null;
+        }
+    }
+
+    static boolean hasCachedTextureColor(BlockState state) {
+        synchronized (TEXTURE_COLOR_LOCK) {
+            return TEXTURE_COLOR_CACHE.containsKey(state);
+        }
+    }
+
+    static void requestTextureColor(BlockState state) {
+        int generation;
+        synchronized (TEXTURE_COLOR_LOCK) {
+            if (TEXTURE_COLOR_CACHE.containsKey(state) || PENDING_TEXTURE_COLORS.containsKey(state)) return;
+
+            PENDING_TEXTURE_COLORS.put(state, Boolean.TRUE);
+            generation = textureCacheGeneration;
+        }
+
+        WorldMapAsync.warmBlockColor(() -> {
+            TextureColor result = computeTextureColor(state);
+            synchronized (TEXTURE_COLOR_LOCK) {
+                PENDING_TEXTURE_COLORS.remove(state);
+                if (textureCacheGeneration == generation) {
+                    TEXTURE_COLOR_CACHE.put(state, result);
+                }
+            }
+        });
     }
 
     static int resolveWaterNativeColor(MapSample sample, MapSample floor, int shoreNeighbors, int relief) {
@@ -100,22 +134,40 @@ final class MapBlockColorResolver {
     }
 
     private static TextureColor getTextureColor(BlockState state) {
-        TextureColor cached = TEXTURE_COLOR_CACHE.get(state);
+        TextureColor cached = cachedTextureColor(state);
         if (cached != null) return cached;
 
         long startNanos = System.nanoTime();
-        TextureColor result;
+        TextureColor result = computeTextureColor(state);
+        synchronized (TEXTURE_COLOR_LOCK) {
+            TEXTURE_COLOR_CACHE.put(state, result);
+            PENDING_TEXTURE_COLORS.remove(state);
+        }
+        WorldMapBuildProfiler.recordTextureColorMiss(
+                System.nanoTime() - startNanos,
+                String.valueOf(BuiltInRegistries.BLOCK.getKey(state.getBlock()))
+        );
+        return result;
+    }
+
+    private static TextureColor cachedTextureColor(BlockState state) {
+        synchronized (TEXTURE_COLOR_LOCK) {
+            return TEXTURE_COLOR_CACHE.get(state);
+        }
+    }
+
+    private static TextureColor computeTextureColor(BlockState state) {
         try {
             Minecraft minecraft = Minecraft.getInstance();
             BakedModel model = minecraft.getBlockRenderer().getBlockModelShaper().getBlockModel(state);
-            MODEL_RANDOM.setSeed(42L);
-            List<BakedQuad> upQuads = model.getQuads(state, Direction.UP, MODEL_RANDOM, ModelData.EMPTY, null);
+            RandomSource random = RandomSource.create(42L);
+            List<BakedQuad> upQuads = model.getQuads(state, Direction.UP, random, ModelData.EMPTY, null);
             BakedQuad quad = selectColorQuad(upQuads);
             TextureAtlasSprite sprite = quad != null ? quad.getSprite() : null;
             int tintIndex = quad != null ? quad.getTintIndex() : -1;
             if (quad == null || sprite == null || isMissingSprite(sprite)) {
-                MODEL_RANDOM.setSeed(42L);
-                List<BakedQuad> generalQuads = model.getQuads(state, null, MODEL_RANDOM, ModelData.EMPTY, null);
+                random.setSeed(42L);
+                List<BakedQuad> generalQuads = model.getQuads(state, null, random, ModelData.EMPTY, null);
                 quad = selectColorQuad(generalQuads);
                 if (quad != null) {
                     sprite = quad.getSprite();
@@ -126,25 +178,26 @@ final class MapBlockColorResolver {
                 sprite = model.getParticleIcon(ModelData.EMPTY);
                 tintIndex = DEFAULT_TINT_INDEX;
             }
-            result = isMissingSprite(sprite) ? TextureColor.EMPTY : averageSprite(sprite, tintIndex);
+            return isMissingSprite(sprite) ? TextureColor.EMPTY : averageSprite(sprite, tintIndex);
         } catch (RuntimeException ignored) {
-            result = TextureColor.EMPTY;
+            return TextureColor.EMPTY;
         }
-
-        TEXTURE_COLOR_CACHE.put(state, result);
-        WorldMapBuildProfiler.recordTextureColorMiss(
-                System.nanoTime() - startNanos,
-                String.valueOf(BuiltInRegistries.BLOCK.getKey(state.getBlock()))
-        );
-        return result;
     }
 
     private static boolean isMissingSprite(TextureAtlasSprite sprite) {
         if (sprite == null) return true;
-        TextureAtlasSprite missingSprite = Minecraft.getInstance()
-                .getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
-                .apply(MissingTextureAtlasSprite.getLocation());
-        return sprite == missingSprite;
+        return sprite == missingSprite();
+    }
+
+    private static TextureAtlasSprite missingSprite() {
+        TextureAtlasSprite cached = missingSprite;
+        if (cached == null) {
+            cached = Minecraft.getInstance()
+                    .getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
+                    .apply(MissingTextureAtlasSprite.getLocation());
+            missingSprite = cached;
+        }
+        return cached;
     }
 
     private static BakedQuad selectColorQuad(List<BakedQuad> quads) {
@@ -160,7 +213,10 @@ final class MapBlockColorResolver {
     private static TextureColor averageSprite(TextureAtlasSprite sprite, int tintIndex) {
         if (sprite == null || sprite.contents() == null) return TextureColor.EMPTY;
 
-        Integer cachedRgb = SPRITE_RGB_CACHE.get(sprite);
+        Integer cachedRgb;
+        synchronized (TEXTURE_COLOR_LOCK) {
+            cachedRgb = SPRITE_RGB_CACHE.get(sprite);
+        }
         if (cachedRgb != null) return new TextureColor(cachedRgb, tintIndex);
 
         int width = sprite.contents().width();
@@ -190,7 +246,9 @@ final class MapBlockColorResolver {
         if (count == 0L) return TextureColor.EMPTY;
 
         int rgb = ((int) (red / count) << 16) | ((int) (green / count) << 8) | (int) (blue / count);
-        SPRITE_RGB_CACHE.put(sprite, rgb);
+        synchronized (TEXTURE_COLOR_LOCK) {
+            SPRITE_RGB_CACHE.put(sprite, rgb);
+        }
         return new TextureColor(rgb, tintIndex);
     }
 

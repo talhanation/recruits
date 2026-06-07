@@ -4,9 +4,9 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.level.chunk.LevelChunk;
 
 /**
- * Captures the loaded chunks needed to render one map chunk. Cooperative map
- * building can then sample a stable, bounded set of chunk references without
- * repeatedly querying the client chunk source.
+ * Captures loaded chunks around one map chunk. The center chunk is required,
+ * while neighbors are opportunistic: edge samples use them when available and
+ * fall back to the center chunk when the world frontier has not loaded them yet.
  */
 final class ChunkSamplingContext {
     private static final int NEIGHBOR_RADIUS = 1;
@@ -31,7 +31,8 @@ final class ChunkSamplingContext {
         for (int dz = -NEIGHBOR_RADIUS; dz <= NEIGHBOR_RADIUS; dz++) {
             for (int dx = -NEIGHBOR_RADIUS; dx <= NEIGHBOR_RADIUS; dx++) {
                 LevelChunk chunk = getLoadedChunk(level, centerChunkX + dx, centerChunkZ + dz);
-                if (chunk == null) return null;
+                if (dx == 0 && dz == 0 && chunk == null) return null;
+
                 chunks[index(dx, dz)] = chunk;
             }
         }

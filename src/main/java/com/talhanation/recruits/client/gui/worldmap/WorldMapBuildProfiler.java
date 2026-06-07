@@ -7,12 +7,10 @@ import java.util.Locale;
 final class WorldMapBuildProfiler {
     private static final long CHUNK_BUILD_SPIKE_NANOS = 8_000_000L;
     private static final long SINGLE_OPERATION_SPIKE_NANOS = 4_000_000L;
-    private static final long FRAME_WORK_SPIKE_NANOS = 3_000_000L;
     private static final long LOG_COOLDOWN_NANOS = 1_000_000_000L;
 
     private static final ThreadLocal<ChunkMetrics> ACTIVE = ThreadLocal.withInitial(ChunkMetrics::new);
     private static long lastLogNanos;
-    private static long lastFrameLogNanos;
 
     private WorldMapBuildProfiler() {
     }
@@ -58,20 +56,6 @@ final class WorldMapBuildProfiler {
             metrics.maxTextureColorMissNanos = nanos;
             metrics.slowestTextureBlock = blockName;
         }
-    }
-
-    static void recordFrameWork(long workNanos, long budgetNanos, int pendingBuilds) {
-        if (workNanos < FRAME_WORK_SPIKE_NANOS && workNanos < budgetNanos * 3L) return;
-
-        long now = System.nanoTime();
-        if (now - lastFrameLogNanos < LOG_COOLDOWN_NANOS) return;
-        lastFrameLogNanos = now;
-        Main.LOGGER.warn(
-                "[WorldMapPerf] cooperative chunk work exceeded frame budget: work {} budget {} pending {}",
-                ms(workNanos),
-                ms(budgetNanos),
-                pendingBuilds
-        );
     }
 
     private static String ms(long nanos) {
