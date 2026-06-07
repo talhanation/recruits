@@ -3,7 +3,7 @@ package com.talhanation.recruits.client.events;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.models.RecruitVillagerModel;
-import com.talhanation.recruits.client.gui.worldmap.WorldMapTileManager;
+import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapCacheManager;
 import com.talhanation.recruits.client.render.RecruitHumanRenderer;
 import com.talhanation.recruits.client.render.RecruitVillagerRenderer;
 import com.talhanation.recruits.client.render.layer.RecruitArmorLayer;
@@ -87,7 +87,7 @@ public class ClientEvent {
 
     @SubscribeEvent
     public static void modelBakingCompleted(ModelEvent.BakingCompleted event) {
-        WorldMapTileManager.getInstance().onClientModelsReloaded();
+        WorldMapCacheManager.getInstance().onClientModelsReloaded();
     }
 
     @Nullable

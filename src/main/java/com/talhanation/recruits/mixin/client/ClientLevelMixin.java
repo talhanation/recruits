@@ -1,6 +1,6 @@
 package com.talhanation.recruits.mixin.client;
 
-import com.talhanation.recruits.client.gui.worldmap.WorldMapTileManager;
+import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapCacheManager;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
@@ -16,7 +16,7 @@ public abstract class ClientLevelMixin {
     private void recruits$updateWorldMap(BlockPos pos, BlockState state, int flags, int recursionLeft,
                                          CallbackInfoReturnable<Boolean> cir) {
         if (Boolean.TRUE.equals(cir.getReturnValue())) {
-            WorldMapTileManager.getInstance().onBlockUpdated((ClientLevel) (Object) this, pos);
+            WorldMapCacheManager.getInstance().onBlockUpdated((ClientLevel) (Object) this, pos);
         }
     }
 }

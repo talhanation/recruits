@@ -1,6 +1,6 @@
 package com.talhanation.recruits.client.gui.worldmap;
 
-final class PanInertia {
+public final class PanInertia {
     private static final double DECAY = 0.9;
     private static final double STOP_THRESHOLD = 0.002;
     private static final double MIN_DRAG_DISTANCE = 3.0;
@@ -22,7 +22,7 @@ final class PanInertia {
     private long lastDragSampleNanos;
     private double draggedDistance;
 
-    void begin(double mouseX, double mouseY) {
+    public void begin(double mouseX, double mouseY) {
         reset();
         long now = System.nanoTime();
         previousDragSampleX = mouseX;
@@ -33,7 +33,7 @@ final class PanInertia {
         lastDragSampleNanos = now;
     }
 
-    void recordDrag(double mouseX, double mouseY, double deltaX, double deltaY) {
+    public void recordDrag(double mouseX, double mouseY, double deltaX, double deltaY) {
         draggedDistance += Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
         long now = System.nanoTime();
@@ -47,7 +47,13 @@ final class PanInertia {
         }
     }
 
-    boolean finish(double mouseX, double mouseY, double scale, double minScale, double currentOffsetX, double currentOffsetZ) {
+    public boolean finish(
+            double mouseX,
+            double mouseY,
+            double scale,
+            double minScale,
+            double currentOffsetX,
+            double currentOffsetZ) {
         if (lastDragSampleNanos == 0L || draggedDistance < MIN_DRAG_DISTANCE || scale <= 0.0) {
             reset();
             return false;
@@ -91,30 +97,29 @@ final class PanInertia {
         return true;
     }
 
-    Offset currentOffset() {
+    public Offset currentOffset() {
         return new Offset(
                 currentAnimatedValue(fromOffsetX, targetOffsetX, animationStartNanos),
-                currentAnimatedValue(fromOffsetZ, targetOffsetZ, animationStartNanos)
-        );
+                currentAnimatedValue(fromOffsetZ, targetOffsetZ, animationStartNanos));
     }
 
-    boolean isAtTarget(Offset offset) {
+    public boolean isAtTarget(Offset offset) {
         return offset.x() == targetOffsetX && offset.z() == targetOffsetZ;
     }
 
-    boolean isActive() {
+    public boolean isActive() {
         return active;
     }
 
-    double targetOffsetX() {
+    public double targetOffsetX() {
         return targetOffsetX;
     }
 
-    double targetOffsetZ() {
+    public double targetOffsetZ() {
         return targetOffsetZ;
     }
 
-    void reset() {
+    public void reset() {
         active = false;
         animationStartNanos = 0L;
         previousDragSampleNanos = 0L;
@@ -129,6 +134,5 @@ final class PanInertia {
         return Math.abs(currentOffset) <= STOP_THRESHOLD ? target : target - currentOffset;
     }
 
-    record Offset(double x, double z) {
-    }
+    public record Offset(double x, double z) {}
 }
