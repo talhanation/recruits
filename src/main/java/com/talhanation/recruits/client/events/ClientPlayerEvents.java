@@ -1,6 +1,6 @@
 package com.talhanation.recruits.client.events;
 
-import com.talhanation.recruits.client.gui.worldmap.WorldMapTileManager;
+import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapCacheManager;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.Level;
@@ -23,34 +23,34 @@ public class ClientPlayerEvents {
         if (mc.level == null || mc.player == null) return;
         if (mc.level.dimension() != Level.OVERWORLD) return;
 
-        WorldMapTileManager.getInstance().updateCurrentTile();
+        WorldMapCacheManager.getInstance().updateCurrentTile();
     }
 
     @SubscribeEvent
     public void onWorldLoad(LevelEvent.Load event) {
         if (event.getLevel().isClientSide()) {
-            WorldMapTileManager.getInstance().initialize((Level) event.getLevel());
+            WorldMapCacheManager.getInstance().initialize((Level) event.getLevel());
         }
     }
 
     @SubscribeEvent
     public void onWorldUnload(LevelEvent.Unload event) {
         if (event.getLevel().isClientSide()) {
-            WorldMapTileManager.getInstance().close();
+            WorldMapCacheManager.getInstance().close();
         }
     }
 
     @SubscribeEvent
     public void onChunkLoad(ChunkEvent.Load event) {
         if (event.getLevel() instanceof Level level && level.isClientSide) {
-            WorldMapTileManager.getInstance().onChunkLoaded(level, event.getChunk().getPos());
+            WorldMapCacheManager.getInstance().onChunkLoaded(level, event.getChunk().getPos());
         }
     }
 
     @SubscribeEvent
     public void onChunkUnload(ChunkEvent.Unload event) {
         if (event.getLevel() instanceof Level level && level.isClientSide) {
-            WorldMapTileManager.getInstance().onChunkUnloaded(level, event.getChunk().getPos());
+            WorldMapCacheManager.getInstance().onChunkUnloaded(level, event.getChunk().getPos());
         }
     }
 }

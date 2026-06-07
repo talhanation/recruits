@@ -3,7 +3,7 @@ package com.talhanation.recruits.client.gui.worldmap;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 
-final class WorldMapCamera {
+public final class WorldMapCamera {
     private static final double MIN_SCALE = 0.2;
     private static final double MAX_SCALE = 10.0;
     private static final double DEFAULT_SCALE = 2.0;
@@ -33,11 +33,11 @@ final class WorldMapCamera {
     private double zoomAnchorWorldX;
     private double zoomAnchorWorldZ;
 
-    WorldMapCamera(WorldMapScreen screen) {
+    public WorldMapCamera(WorldMapScreen screen) {
         this.screen = screen;
     }
 
-    void init(Player player, boolean resizeReinit) {
+    public void init(Player player, boolean resizeReinit) {
         if (resizeReinit && savedViewValid) {
             restoreSavedView();
         } else {
@@ -50,7 +50,7 @@ final class WorldMapCamera {
         panInertia.reset();
     }
 
-    void centerOnPlayer(Player player) {
+    public void centerOnPlayer(Player player) {
         if (player == null) return;
         setOffsetX(screen.width / 2.0 - player.getX() * scale());
         setOffsetZ(screen.height / 2.0 - player.getZ() * scale());
@@ -62,7 +62,7 @@ final class WorldMapCamera {
         rememberCurrentView();
     }
 
-    void centerOnClaim(ChunkPos center) {
+    public void centerOnClaim(ChunkPos center) {
         if (center == null) return;
         setOffsetX(-(center.x * 16 * scale()) + screen.width / 2.0);
         setOffsetZ(-(center.z * 16 * scale()) + screen.height / 2.0);
@@ -74,14 +74,14 @@ final class WorldMapCamera {
         rememberCurrentView();
     }
 
-    void resetZoom(Player player) {
+    public void resetZoom(Player player) {
         targetScale = DEFAULT_SCALE;
         setScale(DEFAULT_SCALE);
         zoomAnchored = false;
         centerOnPlayer(player);
     }
 
-    void animate() {
+    public void animate() {
         long now = System.nanoTime();
         if (lastAnimationNanos == 0L) {
             lastAnimationNanos = now;
@@ -128,7 +128,7 @@ final class WorldMapCamera {
         setOffsetZ(smoothValue(offsetZ(), targetOffsetZ, alpha, 0.02));
     }
 
-    void panByScreenDelta(double deltaX, double deltaZ) {
+    public void panByScreenDelta(double deltaX, double deltaZ) {
         panInertia.reset();
         setOffsetX(offsetX() + deltaX);
         setOffsetZ(offsetZ() + deltaZ);
@@ -139,11 +139,11 @@ final class WorldMapCamera {
         rememberCurrentView();
     }
 
-    void beginPanDrag(double mouseX, double mouseY) {
+    public void beginPanDrag(double mouseX, double mouseY) {
         panInertia.begin(mouseX, mouseY);
     }
 
-    void dragByScreenDelta(double mouseX, double mouseY, double deltaX, double deltaZ) {
+    public void dragByScreenDelta(double mouseX, double mouseY, double deltaX, double deltaZ) {
         setOffsetX(offsetX() + deltaX);
         setOffsetZ(offsetZ() + deltaZ);
         targetOffsetX = offsetX();
@@ -154,7 +154,7 @@ final class WorldMapCamera {
         rememberCurrentView();
     }
 
-    void finishPanDrag(double mouseX, double mouseY) {
+    public void finishPanDrag(double mouseX, double mouseY) {
         if (!panInertia.finish(mouseX, mouseY, scale(), MIN_SCALE, offsetX(), offsetZ())) {
             return;
         }
@@ -165,7 +165,7 @@ final class WorldMapCamera {
         rememberCurrentView();
     }
 
-    void zoomAt(double mouseX, double mouseY, double scrollY) {
+    public void zoomAt(double mouseX, double mouseY, double scrollY) {
         panInertia.reset();
         double zoomFactor = Math.pow(ZOOM_STEP_BASE, scrollY);
         double newScale = clampScale(targetScale * zoomFactor);
@@ -185,7 +185,7 @@ final class WorldMapCamera {
         rememberCurrentView();
     }
 
-    void rememberCurrentView() {
+    public void rememberCurrentView() {
         if (screen.width <= 0 || screen.height <= 0 || scale() <= 0.0 || targetScale <= 0.0) return;
 
         savedViewValid = true;

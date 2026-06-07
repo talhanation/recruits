@@ -1,55 +1,51 @@
 package com.talhanation.recruits.client.gui.worldmap;
 
-import com.mojang.blaze3d.platform.Lighting;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
-import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
-import com.talhanation.recruits.client.gui.widgets.DropDownMenu;
-import com.talhanation.recruits.compat.smallships.SmallShips;
-import com.talhanation.recruits.network.MessageDoPayment;
-import com.talhanation.recruits.network.MessageUpdateClaim;
+import com.talhanation.recruits.client.gui.worldmap.claim.ClaimInfoMenu;
+import com.talhanation.recruits.client.gui.worldmap.claim.ClaimRenderer;
+import com.talhanation.recruits.client.gui.worldmap.claim.WorldMapClaimController;
+import com.talhanation.recruits.client.gui.worldmap.render.MapFramebufferPass;
+import com.talhanation.recruits.client.gui.worldmap.render.MapRenderUtil;
+import com.talhanation.recruits.client.gui.worldmap.render.WorldMapPlayerRenderer;
+import com.talhanation.recruits.client.gui.worldmap.render.WorldMapRenderer;
+import com.talhanation.recruits.client.gui.worldmap.route.RouteEditPopup;
+import com.talhanation.recruits.client.gui.worldmap.route.RouteNamePopup;
+import com.talhanation.recruits.client.gui.worldmap.route.RouteRenderer;
+import com.talhanation.recruits.client.gui.worldmap.route.WaypointEditPopup;
+import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapCacheManager;
+import com.talhanation.recruits.client.gui.worldmap.ui.WorldMapContextMenu;
+import com.talhanation.recruits.client.gui.worldmap.ui.WorldMapPerformanceHud;
+import com.talhanation.recruits.client.gui.worldmap.ui.WorldMapRouteControls;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsFaction;
-import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import com.talhanation.recruits.world.RecruitsRoute;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ChunkPos;
-import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
-import java.awt.*;
-import java.util.*;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.List;
 
-import static com.talhanation.recruits.client.ClientManager.ownFaction;
-
 public class WorldMapScreen extends Screen {
-    private static final ResourceLocation MAP_ICONS = new ResourceLocation("textures/map/map_icons.png");
-    private final WorldMapTileManager tileManager;
+    private final WorldMapCacheManager mapCache;
     private final WorldMapRenderer mapRenderer;
     private final WorldMapCamera camera;
+    private final WorldMapPerformanceHud performanceHud = new WorldMapPerformanceHud();
+    private final WorldMapRouteControls routeControls = new WorldMapRouteControls();
     private final Player player;
+    private final WorldMapClaimController claimController;
     private static final double DEFAULT_SCALE = 2.0;
     private static final int CHUNK_HIGHLIGHT_COLOR = 0x40FFFFFF;
     private static final int CHUNK_SELECTION_COLOR = 0xFFFFFFFF;
     private static final int DARK_GRAY_BG = 0xFF101010;
-    private static final double PERF_HUD_SMOOTHING = 0.15;
-    private static final long DEFAULT_FRAME_NANOS = 16_666_667L;
 
     double offsetX = 0, offsetZ = 0;
     public static double scale = DEFAULT_SCALE;
@@ -73,30 +69,19 @@ public class WorldMapScreen extends Screen {
     int snapshotWorldX = 0;
     int snapshotWorldZ = 0;
 
-    // Route UI
-    private static final int ROUTE_UI_X = 10;
-    private static final int ROUTE_UI_Y = 10;
-    private static final int ROUTE_DROPDOWN_W = 140;
-    private static final int ROUTE_BTN_SIZE = 20;
-    private static final int ROUTE_BTN_GAP = 3;
-
-    private DropDownMenu<RecruitsRoute> routeDropDown;
-
     private RouteNamePopup routeNamePopup;
     private RouteEditPopup routeEditPopup;
     private WaypointEditPopup waypointEditPopup;
-    private long lastPerfFrameNanos;
-    private double smoothedFrameNanos = DEFAULT_FRAME_NANOS;
-    private double smoothedMapCostNanos;
 
     public WorldMapScreen() {
         super(Component.literal(""));
         this.contextMenu = new WorldMapContextMenu(this);
         this.claimInfoMenu = new ClaimInfoMenu(this);
-        this.tileManager = WorldMapTileManager.getInstance();
-        this.mapRenderer = new WorldMapRenderer(tileManager);
+        this.mapCache = WorldMapCacheManager.getInstance();
+        this.mapRenderer = new WorldMapRenderer(mapCache);
         this.camera = new WorldMapCamera(this);
         this.player = Minecraft.getInstance().player;
+        this.claimController = new WorldMapClaimController(Minecraft.getInstance(), player, camera);
     }
 
     public BlockPos getHoveredBlockPos() {
@@ -124,7 +109,7 @@ public class WorldMapScreen extends Screen {
         return player.hasPermissions(2) && player.isCreative();
     }
 
-    boolean isPanningMap() {
+    public boolean isPanningMap() {
         return isDragging;
     }
 
@@ -136,11 +121,35 @@ public class WorldMapScreen extends Screen {
         this.selectedChunk = chunk;
     }
 
+    public ChunkPos selectedChunk() {
+        return selectedChunk;
+    }
+
+    public RecruitsClaim selectedClaim() {
+        return selectedClaim;
+    }
+
+    public void clearSelectedChunk() {
+        selectedChunk = null;
+    }
+
+    public void clearSelectedClaim() {
+        selectedClaim = null;
+    }
+
+    public int snapshotWorldX() {
+        return snapshotWorldX;
+    }
+
+    public int snapshotWorldZ() {
+        return snapshotWorldZ;
+    }
+
     @Override
     protected void init() {
         super.init();
         if (minecraft.level != null && player != null) {
-            tileManager.initialize(minecraft.level);
+            mapCache.initialize(minecraft.level);
             camera.init(player, initializedOnce);
         }
         initializedOnce = true;
@@ -153,27 +162,7 @@ public class WorldMapScreen extends Screen {
     }
 
     private void initRouteUI() {
-        List<RecruitsRoute> routes = ClientManager.getRoutesList();
-        List<RecruitsRoute> options = new ArrayList<>();
-        options.add(null);
-        options.addAll(routes);
-
-        routeDropDown = new DropDownMenu<>(
-                selectedRoute,
-                ROUTE_UI_X,
-                ROUTE_UI_Y,
-                ROUTE_DROPDOWN_W,
-                ROUTE_BTN_SIZE,
-                options,
-                r -> r == null ? "-- Route --" : r.getName(),
-                r -> {
-                    selectedRoute = r;
-                }
-        );
-
-        routeDropDown.setBgFill(0x80333333);
-        routeDropDown.setBgFillHovered(0x80555555);
-        routeDropDown.setBgFillSelected(0x80222222);
+        routeControls.refresh(selectedRoute, route -> selectedRoute = route);
     }
 
     public void refreshRouteUI() {
@@ -181,54 +170,12 @@ public class WorldMapScreen extends Screen {
     }
 
     // -------------------------------------------------------------------------
-    // Route buttons (rendered manually to match popup style)
+    // Route UI
     // -------------------------------------------------------------------------
-
-    private int getAddBtnX() {
-        return ROUTE_UI_X + ROUTE_DROPDOWN_W + ROUTE_BTN_GAP;
-    }
-
-    private int getOutlineBtnX() {
-        return getAddBtnX() + ROUTE_BTN_SIZE + ROUTE_BTN_GAP;
-    }
-
-    private int getEditBtnX() {
-        return getOutlineBtnX() + ROUTE_BTN_SIZE + ROUTE_BTN_GAP;
-    }
-
-    public boolean claimTransparency = false;
 
     private void renderRouteUI(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        renderRouteDropdown(guiGraphics, mouseX, mouseY, partialTicks);
-
-        int addX = getAddBtnX();
-        renderRouteButton(guiGraphics, mouseX, mouseY, addX, "+", false);
-
-        int outlineX = getOutlineBtnX();
-        renderRouteButton(guiGraphics, mouseX, mouseY, outlineX, "\u25A1", claimTransparency);
-
-        // ⚙ button (only active when route selected)
-        if (selectedRoute != null) {
-            int editX = getEditBtnX();
-            renderRouteButton(guiGraphics, mouseX, mouseY, editX, "\u2699", false);
-        }
+        routeControls.render(guiGraphics, font, selectedRoute, mouseX, mouseY, partialTicks);
     }
-
-    private void renderRouteButton(GuiGraphics guiGraphics, int mouseX, int mouseY, int x, String label, boolean selected) {
-        boolean hovered = isRouteButtonHovered(mouseX, mouseY, x);
-        int bg = selected ? 0x80555555 : (hovered ? 0x80444444 : 0x80222222);
-        int color = selected ? 0xFFFFAA00 : 0xFFFFFF;
-        guiGraphics.fill(x, ROUTE_UI_Y, x + ROUTE_BTN_SIZE, ROUTE_UI_Y + ROUTE_BTN_SIZE, bg);
-        guiGraphics.renderOutline(x, ROUTE_UI_Y, ROUTE_BTN_SIZE, ROUTE_BTN_SIZE, 0x40FFFFFF);
-        guiGraphics.drawCenteredString(font, label, x + ROUTE_BTN_SIZE / 2, ROUTE_UI_Y + 6, color);
-    }
-
-    private boolean isRouteButtonHovered(double mouseX, double mouseY, int x) {
-        return mouseX >= x && mouseX <= x + ROUTE_BTN_SIZE
-                && mouseY >= ROUTE_UI_Y && mouseY <= ROUTE_UI_Y + ROUTE_BTN_SIZE;
-    }
-
-    // -------------------------------------------------------------------------
 
     // -------------------------------------------------------------------------
     // Lifecycle
@@ -248,21 +195,27 @@ public class WorldMapScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        updatePerfFrameTiming();
+        performanceHud.beginFrame();
         camera.animate();
         renderBackground(guiGraphics);
 
         guiGraphics.enableScissor(0, 0, width, height);
 
         long mapRenderStartNanos = System.nanoTime();
-        mapRenderer.render(guiGraphics, width, height, offsetX, offsetZ, scale,
+        mapRenderer.render(
+                guiGraphics,
+                width,
+                height,
+                offsetX,
+                offsetZ,
+                scale,
                 (mapGraphics, frame) -> renderMapOverlays(mapGraphics, mouseX, mouseY, frame));
-        updateMapPerfTiming(System.nanoTime() - mapRenderStartNanos);
+        performanceHud.recordMapRender(System.nanoTime() - mapRenderStartNanos);
 
         guiGraphics.disableScissor();
 
         renderCoordinatesAndZoom(guiGraphics);
-        // Buttons (+ and ⚙)
+        // Route buttons
         renderRouteUI(guiGraphics, mouseX, mouseY, partialTicks);
 
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
@@ -278,106 +231,23 @@ public class WorldMapScreen extends Screen {
         if (routeNamePopup.isVisible()) routeNamePopup.render(guiGraphics, mouseX, mouseY);
         if (routeEditPopup.isVisible()) routeEditPopup.render(guiGraphics, mouseX, mouseY);
         if (waypointEditPopup.isVisible()) waypointEditPopup.render(guiGraphics, mouseX, mouseY);
-        renderPerformanceHud(guiGraphics);
+        performanceHud.render(guiGraphics, font, width);
     }
 
-    private void updatePerfFrameTiming() {
-        long nowNanos = System.nanoTime();
-        if (lastPerfFrameNanos != 0L) {
-            smoothFrameTiming(nowNanos - lastPerfFrameNanos);
-        }
-        lastPerfFrameNanos = nowNanos;
-    }
-
-    private void updateMapPerfTiming(long mapRenderWallNanos) {
-        WorldMapDebugProfiler.HudStats stats = WorldMapDebugProfiler.hudStats();
-        long measuredMapRenderNanos = Math.max(mapRenderWallNanos, stats.mapRenderNanos());
-        smoothMapTiming(measuredMapRenderNanos + stats.tileUpdateNanos());
-    }
-
-    private void smoothFrameTiming(long frameNanos) {
-        if (frameNanos <= 0L) return;
-        smoothedFrameNanos += (frameNanos - smoothedFrameNanos) * PERF_HUD_SMOOTHING;
-    }
-
-    private void smoothMapTiming(long mapCostNanos) {
-        if (mapCostNanos < 0L) return;
-        if (smoothedMapCostNanos <= 0.0) {
-            smoothedMapCostNanos = mapCostNanos;
-        } else {
-            smoothedMapCostNanos += (mapCostNanos - smoothedMapCostNanos) * PERF_HUD_SMOOTHING;
-        }
-    }
-
-    private void renderPerformanceHud(GuiGraphics guiGraphics) {
-        WorldMapDebugProfiler.HudStats stats = WorldMapDebugProfiler.hudStats();
-        double fps = nanosToFps(smoothedFrameNanos);
-        double mapMs = smoothedMapCostNanos / 1_000_000.0;
-        double frameShare = smoothedFrameNanos <= 0.0
-                ? 0.0
-                : Math.min(999.0, smoothedMapCostNanos * 100.0 / smoothedFrameNanos);
-        double mapFpsCost = estimatedMapFpsCost(fps);
-
-        String line1 = String.format(Locale.ROOT, "FPS: %.0f", fps);
-        String line2 = String.format(Locale.ROOT, "Map: %.1fms | %.0f%% | -%.0f fps", mapMs, frameShare, mapFpsCost);
-        String line3 = String.format(Locale.ROOT,
-                "Upd %.1fms C %.1f/S %.1f",
-                stats.tileUpdateNanos() / 1_000_000.0,
-                stats.consumeChunksNanos() / 1_000_000.0,
-                stats.scheduleChunksNanos() / 1_000_000.0);
-        String line4 = String.format(Locale.ROOT,
-                "Q %d/%d | LOD %d/%d | L%d %d/%d miss %d",
-                stats.chunkQueueSize(),
-                stats.queuedChunkCount(),
-                stats.lodTileCount(),
-                stats.pendingLodTiles(),
-                stats.rootLevel(),
-                stats.tileDraws(),
-                stats.visibleTiles(),
-                stats.missingTiles());
-
-        int textWidth = Math.max(Math.max(font.width(line1), font.width(line2)),
-                Math.max(font.width(line3), font.width(line4)));
-        int hudWidth = textWidth + 12;
-        int hudHeight = 44;
-        int hudX = Math.max(4, width - hudWidth - 8);
-        int hudY = 8;
-        guiGraphics.fill(hudX, hudY, hudX + hudWidth, hudY + hudHeight, 0x90000000);
-        guiGraphics.renderOutline(hudX, hudY, hudWidth, hudHeight, 0x50FFFFFF);
-        guiGraphics.drawString(font, line1, hudX + 6, hudY + 5, 0xFFFFFFFF, false);
-        guiGraphics.drawString(font, line2, hudX + 6, hudY + 15, performanceColor(mapMs), false);
-        guiGraphics.drawString(font, line3, hudX + 6, hudY + 25, 0xFFD8D8D8, false);
-        guiGraphics.drawString(font, line4, hudX + 6, hudY + 35, 0xFFD8D8D8, false);
-    }
-
-    private double estimatedMapFpsCost(double fps) {
-        double withoutMapNanos = smoothedFrameNanos - smoothedMapCostNanos;
-        if (withoutMapNanos <= 1_000_000.0) return 0.0;
-
-        return Math.max(0.0, nanosToFps(withoutMapNanos) - fps);
-    }
-
-    private static double nanosToFps(double nanos) {
-        return nanos <= 0.0 ? 0.0 : 1_000_000_000.0 / nanos;
-    }
-
-    private static int performanceColor(double mapMs) {
-        if (mapMs >= 16.0) return 0xFFFF7070;
-        if (mapMs >= 8.0) return 0xFFFFD060;
-        return 0xFF80FF90;
-    }
-
-    private void renderMapOverlays(GuiGraphics guiGraphics, int mouseX, int mouseY, MapFramebufferPass.Frame frame) {
+    private void renderMapOverlays(
+            GuiGraphics guiGraphics, int mouseX, int mouseY, MapFramebufferPass.Frame frame) {
         PoseStack pose = guiGraphics.pose();
         pose.pushPose();
         double inverseSecondaryScale = 1.0 / frame.secondaryScale();
         pose.translate(frame.secondaryOffsetX(), frame.secondaryOffsetZ(), 0.0);
         pose.scale((float) inverseSecondaryScale, (float) inverseSecondaryScale, 1.0F);
         try {
-            if (claimTransparency) {
-                ClaimRenderer.renderClaimsOverlayTransparent(guiGraphics, this.selectedClaim, this.offsetX, this.offsetZ, scale);
+            if (routeControls.areClaimsTransparent()) {
+                ClaimRenderer.renderClaimsOverlayTransparent(
+                        guiGraphics, this.selectedClaim, this.offsetX, this.offsetZ, scale);
             } else {
-                ClaimRenderer.renderClaimsOverlay(guiGraphics, this.selectedClaim, this.offsetX, this.offsetZ, scale);
+                ClaimRenderer.renderClaimsOverlay(
+                        guiGraphics, this.selectedClaim, this.offsetX, this.offsetZ, scale);
             }
 
             if (contextMenu.isVisible()) {
@@ -386,13 +256,15 @@ public class WorldMapScreen extends Screen {
                     if (entryTag.contains("bufferzone"))
                         ClaimRenderer.renderBufferZone(guiGraphics, offsetX, offsetZ, scale);
                     if (entryTag.contains("area"))
-                        ClaimRenderer.renderAreaPreview(guiGraphics, getClaimArea(selectedChunk), offsetX, offsetZ, scale);
+                        ClaimRenderer.renderAreaPreview(
+                                guiGraphics, getClaimArea(selectedChunk), offsetX, offsetZ, scale);
                     if (entryTag.contains("chunk"))
-                        ClaimRenderer.renderAreaPreview(guiGraphics, getClaimableChunks(selectedChunk, 16), offsetX, offsetZ, scale);
+                        ClaimRenderer.renderAreaPreview(
+                                guiGraphics, getClaimableChunks(selectedChunk, 16), offsetX, offsetZ, scale);
                 }
             }
 
-            if (player != null) renderPlayerPosition(guiGraphics);
+            WorldMapPlayerRenderer.render(guiGraphics, font, player, offsetX, offsetZ, scale);
 
             if (selectedChunk != null && (selectedClaim == null || contextMenu.isVisible())) {
                 renderChunkOutline(guiGraphics, selectedChunk.x, selectedChunk.z, CHUNK_SELECTION_COLOR);
@@ -401,33 +273,14 @@ public class WorldMapScreen extends Screen {
             if (hoveredChunk != null) renderChunkHighlight(guiGraphics, hoveredChunk.x, hoveredChunk.z);
 
             if (selectedRoute != null) {
-                RouteRenderer.renderRoute(guiGraphics, selectedRoute, offsetX, offsetZ, scale,
-                        draggingWaypoint, -1);
+                RouteRenderer.renderRoute(
+                        guiGraphics, selectedRoute, offsetX, offsetZ, scale, draggingWaypoint, -1);
                 if (isDraggingWaypoint && draggingWaypoint != null) {
                     RouteRenderer.renderDragGhost(guiGraphics, draggingWaypoint, (int) mouseX, (int) mouseY);
                 }
             }
         } finally {
             pose.popPose();
-        }
-    }
-
-    private void renderRouteDropdown(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        if (routeDropDown == null) return;
-
-        int ddX = ROUTE_UI_X;
-        int ddY = ROUTE_UI_Y;
-        int ddW = ROUTE_DROPDOWN_W;
-        int ddH = ROUTE_BTN_SIZE;
-
-        guiGraphics.fill(ddX, ddY, ddX + ddW, ddY + ddH, 0x80222222);
-        guiGraphics.renderOutline(ddX, ddY, ddW, ddH, 0x40FFFFFF);
-
-        if (routeDropDown.isOpen()) {
-            routeDropDown.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
-        } else {
-            String label = selectedRoute != null ? selectedRoute.getName() : "--- Routes ---";
-            guiGraphics.drawCenteredString(font, label, ddX + ddW / 2, ddY + (ddH - 8) / 2, 0xFFFFFF);
         }
     }
 
@@ -460,12 +313,13 @@ public class WorldMapScreen extends Screen {
     public boolean canPlaceWaypointAt(int worldX, int worldZ) {
         if (minecraft.level == null) return false;
         ChunkPos chunk = new ChunkPos(worldX >> 4, worldZ >> 4);
-        if (!tileManager.isChunkExplored(chunk)) return false;
+        if (!mapCache.isChunkExplored(chunk)) return false;
         return minecraft.level.getChunkSource().getChunk(chunk.x, chunk.z, false) != null;
     }
 
     public void openWaypointEditPopup(double mouseX, double mouseY) {
-        RecruitsRoute.Waypoint wp = RouteRenderer.getWaypointAt(selectedRoute, mouseX, mouseY, offsetX, offsetZ, scale);
+        RecruitsRoute.Waypoint wp = RouteRenderer.getWaypointAt(
+                selectedRoute, mouseX, mouseY, offsetX, offsetZ, scale);
         if (wp == null) return;
         waypointEditPopup.open(wp);
         contextMenu.close();
@@ -473,7 +327,8 @@ public class WorldMapScreen extends Screen {
 
     public void removeWaypointAt(double mouseX, double mouseY) {
         if (selectedRoute == null) return;
-        RecruitsRoute.Waypoint wp = RouteRenderer.getWaypointAt(selectedRoute, mouseX, mouseY, offsetX, offsetZ, scale);
+        RecruitsRoute.Waypoint wp = RouteRenderer.getWaypointAt(
+                selectedRoute, mouseX, mouseY, offsetX, offsetZ, scale);
         if (wp != null) {
             selectedRoute.removeWaypoint(wp);
             ClientManager.saveRoute(selectedRoute);
@@ -483,79 +338,6 @@ public class WorldMapScreen extends Screen {
     public boolean isWaypointHoveredAt(double mouseX, double mouseY) {
         if (selectedRoute == null) return false;
         return RouteRenderer.getWaypointAt(selectedRoute, mouseX, mouseY, offsetX, offsetZ, scale) != null;
-    }
-
-    // -------------------------------------------------------------------------
-    // Player rendering
-    // -------------------------------------------------------------------------
-
-    private static final ItemStack BOAT_STACK = new ItemStack(Items.OAK_BOAT);
-
-    private void renderPlayerPosition(GuiGraphics guiGraphics) {
-        double playerWorldX = player.getX();
-        double playerWorldZ = player.getZ();
-        double pixelX = offsetX + playerWorldX * scale;
-        double pixelZ = offsetZ + playerWorldZ * scale;
-
-        PoseStack pose = guiGraphics.pose();
-        pose.pushPose();
-        pose.translate(pixelX, pixelZ, 0);
-        if (player.getVehicle() instanceof Boat) renderPlayerBoat(pose, guiGraphics);
-        else renderPlayerIcon(pose, guiGraphics);
-        pose.popPose();
-        renderPlayerNameTag(guiGraphics, pixelX, pixelZ);
-    }
-
-    private void renderPlayerBoat(PoseStack pose, GuiGraphics guiGraphics) {
-        float yaw = player.getYRot() % 360f;
-        if (yaw < -180f) yaw += 360f;
-        if (yaw >= 180f) yaw -= 360f;
-        boolean flipX = yaw > 0;
-        pose.pushPose();
-        if (flipX) pose.scale(-1f, 1f, 1f);
-        pose.scale(1.5f, 1.5f, 1.5f);
-        Lighting.setupForFlatItems();
-        ItemStack boat = BOAT_STACK;
-        if (Main.isSmallShipsLoaded && player.getVehicle() != null && SmallShips.isSmallShip(player.getVehicle())) {
-            boat = SmallShips.getSmallShipsItem();
-        }
-        RenderSystem.disableCull();
-        guiGraphics.renderItem(boat, -8, -8);
-        RenderSystem.enableCull();
-        pose.popPose();
-    }
-
-    private void renderPlayerIcon(PoseStack pose, GuiGraphics guiGraphics) {
-        pose.mulPose(Axis.ZP.rotationDegrees(player.getYRot()));
-        pose.scale(5.0f, 5.0f, 5.0f);
-        int iconIndex = 0;
-        float u0 = (iconIndex % 16) / 16f;
-        float v0 = (iconIndex / 16) / 16f;
-        float u1 = u0 + 1f / 16f;
-        float v1 = v0 + 1f / 16f;
-        guiGraphics.flush();
-        VertexConsumer consumer = guiGraphics.bufferSource().getBuffer(RenderType.text(MAP_ICONS));
-        Matrix4f matrix = pose.last().pose();
-        int light = 0xF000F0;
-        int color = 0xFFFFFFFF;
-        consumer.vertex(matrix, -1f, 1f, 0f).color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF).uv(u0, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix, 1f, 1f, 0f).color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF).uv(u1, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix, 1f, -1f, 0f).color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF).uv(u1, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix, -1f, -1f, 0f).color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF).uv(u0, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, 1).endVertex();
-    }
-
-    private void renderPlayerNameTag(GuiGraphics guiGraphics, double pixelX, double pixelZ) {
-        if (player != null && scale > 1.5) {
-            String playerName = player.getName().getString();
-            float textScale = (float) Math.min(1.0, scale / 1.25);
-            int textWidth = font.width(playerName);
-            int textHeight = font.lineHeight;
-            guiGraphics.pose().pushPose();
-            guiGraphics.pose().translate(pixelX - (textWidth * textScale) / 2.0, pixelZ - (textHeight * textScale) / 2.0 - 10, 0);
-            guiGraphics.pose().scale(textScale, textScale, 1.0f);
-            guiGraphics.drawString(font, playerName, 0, 0, 0xFFFFFF, false);
-            guiGraphics.pose().popPose();
-        }
     }
 
     private void renderChunkHighlight(GuiGraphics guiGraphics, int chunkX, int chunkZ) {
@@ -602,9 +384,7 @@ public class WorldMapScreen extends Screen {
         if (waypointEditPopup.isVisible()) return waypointEditPopup.mouseClicked(mouseX, mouseY);
 
         // Route UI buttons
-        int addBtnX = getAddBtnX();
-        int editBtnX = getEditBtnX();
-        if (isRouteButtonHovered(mouseX, mouseY, addBtnX)) {
+        if (routeControls.isAddButtonHovered(mouseX, mouseY)) {
             hoveredChunk = null;
             selectedChunk = null;
             routeNamePopup.open();
@@ -612,13 +392,12 @@ public class WorldMapScreen extends Screen {
             return true;
         }
 
-        int outlineBtnX = getOutlineBtnX();
-        if (isRouteButtonHovered(mouseX, mouseY, outlineBtnX)) {
-            claimTransparency = !claimTransparency;
+        if (routeControls.isOutlineButtonHovered(mouseX, mouseY)) {
+            routeControls.toggleClaimsTransparency();
             return true;
         }
 
-        if (selectedRoute != null && isRouteButtonHovered(mouseX, mouseY, editBtnX)) {
+        if (selectedRoute != null && routeControls.isEditButtonHovered(mouseX, mouseY)) {
             hoveredChunk = null;
             selectedChunk = null;
             routeEditPopup.open(selectedRoute);
@@ -626,15 +405,16 @@ public class WorldMapScreen extends Screen {
         }
 
         // Route dropdown
-        if (routeDropDown != null && routeDropDown.isMouseOver(mouseX, mouseY)) {
+        if (routeControls.isDropdownHovered(mouseX, mouseY)) {
             hoveredChunk = null;
             selectedChunk = null;
-            routeDropDown.onMouseClick(mouseX, mouseY);
+            routeControls.clickDropdown(mouseX, mouseY);
 
             return true;
         }
 
-        if (claimInfoMenu.isVisible() && claimInfoMenu.mouseClicked(mouseX, mouseY, button)) return true;
+        if (claimInfoMenu.isVisible() && claimInfoMenu.mouseClicked(mouseX, mouseY, button))
+            return true;
 
         if (contextMenu.isVisible()) {
             if (contextMenu.mouseClicked(mouseX, mouseY, button, this)) return true;
@@ -644,9 +424,10 @@ public class WorldMapScreen extends Screen {
 
         RecruitsClaim clickedClaim = ClaimRenderer.getClaimAtPosition(mouseX, mouseY, offsetX, offsetZ, scale);
         if (clickedClaim != null) {
-            boolean canInspect = !ClientManager.configFogOfWarEnabled
-                    || isPlayerAdminAndCreative()
-                    || ClaimRenderer.isClaimExplored(clickedClaim);
+            boolean canInspect =
+                    !ClientManager.configFogOfWarEnabled
+                            || isPlayerAdminAndCreative()
+                            || ClaimRenderer.isClaimExplored(clickedClaim);
             if (canInspect) {
                 selectedClaim = clickedClaim;
                 claimInfoMenu.openForClaim(selectedClaim, (int) mouseX, (int) mouseY);
@@ -673,7 +454,10 @@ public class WorldMapScreen extends Screen {
 
         if (button == 0) {
             // Start waypoint drag if clicking on a waypoint
-            if (!routeNamePopup.isVisible() && !routeEditPopup.isVisible() && !waypointEditPopup.isVisible() && selectedRoute != null) {
+            if (!routeNamePopup.isVisible()
+                    && !routeEditPopup.isVisible()
+                    && !waypointEditPopup.isVisible()
+                    && selectedRoute != null) {
                 RecruitsRoute.Waypoint wpHit = RouteRenderer.getWaypointAt(
                         selectedRoute, mouseX, mouseY, offsetX, offsetZ, scale);
                 if (wpHit != null) {
@@ -718,15 +502,18 @@ public class WorldMapScreen extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (routeNamePopup.isVisible() || routeEditPopup.isVisible() || waypointEditPopup.isVisible()) return true;
+    public boolean mouseDragged(
+            double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (routeNamePopup.isVisible() || routeEditPopup.isVisible() || waypointEditPopup.isVisible())
+            return true;
         if (isDraggingWaypoint && draggingWaypoint != null) {
             hoveredChunk = null;
             selectedChunk = null;
             // Update waypoint world position to follow mouse
             int newWorldX = (int) Math.floor((mouseX - offsetX) / scale);
             int newWorldZ = (int) Math.floor((mouseY - offsetZ) / scale);
-            draggingWaypoint.setPosition(new net.minecraft.core.BlockPos(newWorldX, resolveSurfaceY(newWorldX, newWorldZ), newWorldZ));
+            BlockPos newPosition = new BlockPos(newWorldX, resolveSurfaceY(newWorldX, newWorldZ), newWorldZ);
+            draggingWaypoint.setPosition(newPosition);
             return true;
         }
         if (isDragging) {
@@ -742,7 +529,8 @@ public class WorldMapScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-        if (routeNamePopup.isVisible() || routeEditPopup.isVisible() || waypointEditPopup.isVisible()) return true;
+        if (routeNamePopup.isVisible() || routeEditPopup.isVisible() || waypointEditPopup.isVisible())
+            return true;
         if (claimInfoMenu.isVisible()) claimInfoMenu.close();
         if (contextMenu.isVisible()) contextMenu.close();
 
@@ -756,13 +544,13 @@ public class WorldMapScreen extends Screen {
     public void mouseMoved(double mouseX, double mouseY) {
         this.mouseX = mouseX;
         this.mouseY = mouseY;
-        if (routeDropDown != null) routeDropDown.onMouseMove(mouseX, mouseY);
+        routeControls.mouseMoved(mouseX, mouseY);
 
         // Suppress chunk hover when any popup is open or the dropdown is being hovered
         boolean uiHovered = routeNamePopup.isVisible()
                 || routeEditPopup.isVisible()
                 || waypointEditPopup.isVisible()
-                || (routeDropDown != null && routeDropDown.isMouseOver(mouseX, mouseY));
+                || routeControls.isDropdownHovered(mouseX, mouseY);
 
         if (uiHovered) {
             hoveredChunk = null;
@@ -812,257 +600,127 @@ public class WorldMapScreen extends Screen {
     @Override
     public boolean charTyped(char chr, int modifiers) {
         if (waypointEditPopup.isVisible()) return waypointEditPopup.charTyped(chr);
-        if (routeEditPopup.isVisible())    return routeEditPopup.charTyped(chr, modifiers);
-        if (routeNamePopup.isVisible())    return routeNamePopup.charTyped(chr, modifiers);
+        if (routeEditPopup.isVisible()) return routeEditPopup.charTyped(chr, modifiers);
+        if (routeNamePopup.isVisible()) return routeNamePopup.charTyped(chr, modifiers);
         return super.charTyped(chr, modifiers);
     }
 
-        @Override
-        public void tick() {
-            super.tick();
-            if (routeNamePopup    != null) routeNamePopup.tick();
-            if (routeEditPopup    != null) routeEditPopup.tick();
-            if (waypointEditPopup != null) waypointEditPopup.tick();
-        }
-
-        public void onClose() {
-            camera.rememberCurrentView();
-            mapRenderer.close();
-            super.onClose();
-        }
-
-        @Override
-        public boolean isPauseScreen() {
-            return false;
-        }
-
-        // -------------------------------------------------------------------------
-        // Route helpers
-        // -------------------------------------------------------------------------
-
-        public boolean canAddRoute() {
-            return this.selectedRoute != null;
-        }
-
-        public void addRoute() {
-            routeNamePopup.open();
-            contextMenu.close();
-            ;
-        }
-
-        // -------------------------------------------------------------------------
-        // Faction / claim helpers (unchanged)
-        // -------------------------------------------------------------------------
-
-        public boolean isPlayerFactionLeader() {
-            return this.isPlayerFactionLeader(ownFaction);
-        }
-
-        public boolean isPlayerFactionLeader(RecruitsFaction faction){
-            if (player == null || faction == null) return false;
-            return faction.getTeamLeaderUUID().equals(player.getUUID());
-        }
-
-        public boolean isPlayerClaimLeader() {
-            return this.isPlayerClaimLeader(selectedClaim);
-        }
-
-        public boolean isPlayerClaimLeader(RecruitsClaim claim){
-            if (player == null || claim == null) return false;
-            return claim.getPlayerInfo().getUUID().equals(player.getUUID());
-        }
-
-        public List<ChunkPos> getClaimArea(ChunkPos pos){
-            List<ChunkPos> area = new ArrayList<>();
-            if (pos == null) return area;
-            int range = 2;
-            for (int dx = -range; dx <= range; dx++)
-                for (int dz = -range; dz <= range; dz++)
-                    area.add(new ChunkPos(pos.x + dx, pos.z + dz));
-            return area;
-        }
-
-        public void claimArea() {
-            if (!canPlayerPay(getClaimCost(ownFaction), player)) return;
-            if (!ClientManager.configValueIsClaimingAllowed) return;
-            if (!isPlayerInOverworld()) return;
-
-            List<ChunkPos> area = getClaimArea(this.selectedChunk);
-            RecruitsClaim newClaim = new RecruitsClaim(ownFaction);
-
-            for (ChunkPos pos : area) newClaim.addChunk(pos);
-            newClaim.setCenter(selectedChunk);
-            newClaim.setPlayer(new RecruitsPlayerInfo(player.getUUID(), player.getName().getString(), ownFaction));
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDoPayment(player.getUUID(), getClaimCost(ownFaction)));
-            ClientManager.recruitsClaims.add(newClaim);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(newClaim));
-        }
-
-        public void claimChunk() {
-            if (!canPlayerPay(ClientManager.configValueChunkCost, player)) return;
-            if (!ClientManager.configValueIsClaimingAllowed) return;
-            if (!isPlayerInOverworld()) return;
-            RecruitsClaim neighborClaim = getNeighborClaim(selectedChunk);
-            if (neighborClaim == null) return;
-            if (!Objects.equals(ownFaction.getStringID(), neighborClaim.getOwnerFaction().getStringID())) return;
-            for (RecruitsClaim claim : ClientManager.recruitsClaims) {
-                if (claim.equals(neighborClaim)) {
-                    neighborClaim.addChunk(selectedChunk);
-                    recalculateCenter(neighborClaim);
-                    break;
-                }
-            }
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDoPayment(player.getUUID(), ClientManager.configValueChunkCost));
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(neighborClaim));
-        }
-
-        @Nullable
-        public RecruitsClaim getNeighborClaim(ChunkPos chunk){
-            ChunkPos[] neighbors = {
-                    new ChunkPos(chunk.x + 1, chunk.z), new ChunkPos(chunk.x - 1, chunk.z),
-                    new ChunkPos(chunk.x, chunk.z + 1), new ChunkPos(chunk.x, chunk.z - 1)
-            };
-            for (ChunkPos neighbor : neighbors)
-                for (RecruitsClaim claim : ClientManager.recruitsClaims)
-                    if (claim.containsChunk(neighbor)) return claim;
-            return null;
-        }
-
-        public void recalculateCenter(RecruitsClaim claim){
-            List<ChunkPos> chunks = claim.getClaimedChunks();
-            if (chunks.isEmpty()) return;
-            int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE;
-            int minZ = Integer.MAX_VALUE, maxZ = Integer.MIN_VALUE;
-            for (ChunkPos pos : chunks) {
-                if (pos.x < minX) minX = pos.x;
-                if (pos.x > maxX) maxX = pos.x;
-                if (pos.z < minZ) minZ = pos.z;
-                if (pos.z > maxZ) maxZ = pos.z;
-            }
-            claim.setCenter(new ChunkPos((minX + maxX) / 2, (minZ + maxZ) / 2));
-        }
-
-        public void centerOnClaim(RecruitsClaim claim){
-            if (claim == null || claim.getCenter() == null) return;
-            camera.centerOnClaim(claim.getCenter());
-        }
-
-        public Rectangle getClaimScreenBounds(RecruitsClaim claim){
-            int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE;
-            int minZ = Integer.MAX_VALUE, maxZ = Integer.MIN_VALUE;
-            for (ChunkPos pos : claim.getClaimedChunks()) {
-                minX = Math.min(minX, pos.x);
-                maxX = Math.max(maxX, pos.x);
-                minZ = Math.min(minZ, pos.z);
-                maxZ = Math.max(maxZ, pos.z);
-            }
-            int x1 = (int) (offsetX + minX * 16 * scale);
-            int y1 = (int) (offsetZ + minZ * 16 * scale);
-            int x2 = (int) (offsetX + (maxX + 1) * 16 * scale);
-            int y2 = (int) (offsetZ + (maxZ + 1) * 16 * scale);
-            return new Rectangle(x1, y1, x2 - x1, y2 - y1);
-        }
-
-        public Point getClaimInfoMenuPosition(RecruitsClaim claim,int menuWidth, int menuHeight){
-            Rectangle bounds = getClaimScreenBounds(claim);
-            int margin = 10;
-            int x = bounds.x + bounds.width + margin;
-            int y = bounds.y + bounds.height / 2 - menuHeight / 2;
-            if (x + menuWidth > width) x = bounds.x - menuWidth - margin;
-            if (y < 10) y = 10;
-            if (y + menuHeight > height - 10) y = height - menuHeight - 10;
-            return new Point(x, y);
-        }
-
-        public boolean canRemoveChunk(ChunkPos pos, RecruitsClaim claim){
-            if (pos == null || ownFaction == null) return false;
-            if (isPlayerTooFar(pos)) return false;
-            List<ChunkPos> claimedChunks = claim.getClaimedChunks();
-            if (!claimedChunks.contains(pos)) return false;
-            int unclaimedNeighbors = 0;
-            for (ChunkPos n : new ChunkPos[]{
-                    new ChunkPos(pos.x + 1, pos.z), new ChunkPos(pos.x - 1, pos.z),
-                    new ChunkPos(pos.x, pos.z + 1), new ChunkPos(pos.x, pos.z - 1)}) {
-                if (!claimedChunks.contains(n)) unclaimedNeighbors++;
-            }
-            return unclaimedNeighbors >= 2;
-        }
-
-        private boolean isPlayerTooFar(ChunkPos pos){
-            if (pos == null) return true;
-            int diffX = Math.abs(player.chunkPosition().x) - Math.abs(pos.x);
-            int diffZ = Math.abs(player.chunkPosition().z) - Math.abs(pos.z);
-            return Math.abs(diffZ) > 4 || Math.abs(diffX) > 4;
-        }
-
-        public int getClaimCost(RecruitsFaction ownerTeam){
-            if (!ClientManager.configValueCascadeClaimCost) return ClientManager.configValueClaimCost;
-            int amount = 1;
-            if (ownerTeam != null)
-                for (RecruitsClaim claim : ClientManager.recruitsClaims)
-                    if (claim.getOwnerFaction().getStringID().equals(ownerTeam.getStringID())) amount++;
-            return amount * ClientManager.configValueClaimCost;
-        }
-
-        public boolean canPlayerPay( int cost, Player player){
-            return player.isCreative() || cost <= player.getInventory().countItem(ClientManager.currencyItemStack.getItem());
-        }
-
-        public static boolean isInBufferZone(ChunkPos chunk, RecruitsFaction ownFaction){
-            if (ownFaction == null) return false;
-            for (RecruitsClaim claim : ClientManager.recruitsClaims) {
-                if (claim.getOwnerFaction() == null || claim.getOwnerFaction().getStringID().equals(ownFaction.getStringID()))
-                    continue;
-                for (ChunkPos claimChunk : claim.getClaimedChunks()) {
-                    int dx = Math.abs(chunk.x - claimChunk.x);
-                    int dz = Math.abs(chunk.z - claimChunk.z);
-                    if (dx <= 3 && dz <= 3 && !(dx == 0 && dz == 0)) return true;
-                }
-            }
-            return false;
-        }
-
-        private boolean isPlayerInOverworld () {
-            return minecraft.level != null && minecraft.level.dimension() == net.minecraft.world.level.Level.OVERWORLD;
-        }
-
-        public boolean canClaimChunk(ChunkPos pos){
-            if (!ClientManager.configValueIsClaimingAllowed || pos == null || ClientManager.ownFaction == null)
-                return false;
-            if (isPlayerTooFar(pos)) return false;
-            for (RecruitsClaim c : ClientManager.recruitsClaims) if (c.containsChunk(pos)) return false;
-            RecruitsClaim neighbor = getNeighborClaim(pos);
-            if (neighbor == null || neighbor.getClaimedChunks().size() >= RecruitsClaim.MAX_SIZE) return false;
-            return !isInBufferZone(pos, ClientManager.ownFaction);
-        }
-
-        public boolean canClaimArea(List < ChunkPos > areaChunks) {
-            if (selectedChunk == null || areaChunks == null || areaChunks.isEmpty() || ClientManager.ownFaction == null)
-                return false;
-            if (isPlayerTooFar(selectedChunk)) return false;
-            for (ChunkPos chunk : areaChunks) {
-                for (RecruitsClaim c : ClientManager.recruitsClaims) if (c.containsChunk(chunk)) return false;
-                if (isInBufferZone(chunk, ClientManager.ownFaction)) return false;
-            }
-            return true;
-        }
-
-        public List<ChunkPos> getClaimableChunks(ChunkPos center,int radius){
-            List<ChunkPos> result = new ArrayList<>();
-            if (center == null || ClientManager.ownFaction == null) return result;
-            for (int x = center.x - radius; x <= center.x + radius; x++)
-                for (int z = center.z - radius; z <= center.z + radius; z++) {
-                    ChunkPos chunk = new ChunkPos(x, z);
-                    if (canClaimChunkRaw(chunk)) result.add(chunk);
-                }
-            return result;
-        }
-
-        public boolean canClaimChunkRaw(ChunkPos pos){
-            for (RecruitsClaim c : ClientManager.recruitsClaims) if (c.containsChunk(pos)) return false;
-            RecruitsClaim neighbor = getNeighborClaim(pos);
-            if (neighbor == null) return false;
-            return !isInBufferZone(pos, ClientManager.ownFaction);
-        }
+    @Override
+    public void tick() {
+        super.tick();
+        if (routeNamePopup != null) routeNamePopup.tick();
+        if (routeEditPopup != null) routeEditPopup.tick();
+        if (waypointEditPopup != null) waypointEditPopup.tick();
     }
 
+    @Override
+    public void onClose() {
+        camera.rememberCurrentView();
+        mapRenderer.close();
+        super.onClose();
+    }
+
+    @Override
+    public boolean isPauseScreen() {
+        return false;
+    }
+
+    // -------------------------------------------------------------------------
+    // Route helpers
+    // -------------------------------------------------------------------------
+
+    public boolean canAddRoute() {
+        return this.selectedRoute != null;
+    }
+
+    public void addRoute() {
+        routeNamePopup.open();
+        contextMenu.close();
+    }
+
+    // -------------------------------------------------------------------------
+    // Faction / claim helpers
+    // -------------------------------------------------------------------------
+
+    public boolean isPlayerFactionLeader() {
+        return claimController.isPlayerFactionLeader();
+    }
+
+    public boolean isPlayerFactionLeader(RecruitsFaction faction) {
+        return claimController.isPlayerFactionLeader(faction);
+    }
+
+    public boolean isPlayerClaimLeader() {
+        return this.isPlayerClaimLeader(selectedClaim);
+    }
+
+    public boolean isPlayerClaimLeader(RecruitsClaim claim) {
+        return claimController.isPlayerClaimLeader(claim);
+    }
+
+    public List<ChunkPos> getClaimArea(ChunkPos pos) {
+        return claimController.getClaimArea(pos);
+    }
+
+    public void claimArea() {
+        claimController.claimArea(selectedChunk);
+    }
+
+    public void claimChunk() {
+        claimController.claimChunk(selectedChunk);
+    }
+
+    @Nullable
+    public RecruitsClaim getNeighborClaim(ChunkPos chunk) {
+        return claimController.getNeighborClaim(chunk);
+    }
+
+    public void recalculateCenter(RecruitsClaim claim) {
+        claimController.recalculateCenter(claim);
+    }
+
+    public void centerOnClaim(RecruitsClaim claim) {
+        claimController.centerOnClaim(claim);
+    }
+
+    public Rectangle getClaimScreenBounds(RecruitsClaim claim) {
+        return claimController.getClaimScreenBounds(claim, offsetX, offsetZ, scale);
+    }
+
+    public Point getClaimInfoMenuPosition(RecruitsClaim claim, int menuWidth, int menuHeight) {
+        return claimController.getClaimInfoMenuPosition(
+                claim, menuWidth, menuHeight, width, height, offsetX, offsetZ, scale);
+    }
+
+    public boolean canRemoveChunk(ChunkPos pos, RecruitsClaim claim) {
+        return claimController.canRemoveChunk(pos, claim);
+    }
+
+    public int getClaimCost(RecruitsFaction ownerTeam) {
+        return claimController.getClaimCost(ownerTeam);
+    }
+
+    public boolean canPlayerPay(int cost, Player player) {
+        return claimController.canPlayerPay(cost, player);
+    }
+
+    public static boolean isInBufferZone(ChunkPos chunk, RecruitsFaction ownFaction) {
+        return WorldMapClaimController.isInBufferZone(chunk, ownFaction);
+    }
+
+    public boolean canClaimChunk(ChunkPos pos) {
+        return claimController.canClaimChunk(pos);
+    }
+
+    public boolean canClaimArea(List<ChunkPos> areaChunks) {
+        return claimController.canClaimArea(selectedChunk, areaChunks);
+    }
+
+    public List<ChunkPos> getClaimableChunks(ChunkPos center, int radius) {
+        return claimController.getClaimableChunks(center, radius);
+    }
+
+    public boolean canClaimChunkRaw(ChunkPos pos) {
+        return claimController.canClaimChunkRaw(pos);
+    }
+}
