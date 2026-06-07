@@ -9,6 +9,7 @@ final class WorldMapRegionTile {
     static final int CHUNKS_PER_REGION = 32;
     static final int PIXELS_PER_CHUNK = 16;
     static final int REGION_PIXEL_SIZE = CHUNKS_PER_REGION * PIXELS_PER_CHUNK;
+    private static final int CHUNK_COUNT = CHUNKS_PER_REGION * CHUNKS_PER_REGION;
     private static final int RENDER_PIXEL_COUNT =
             WorldMapRenderTileKey.PIXEL_SIZE * WorldMapRenderTileKey.PIXEL_SIZE;
     private static final int MAX_POOLED_RENDER_BUFFERS = 64;
@@ -20,6 +21,7 @@ final class WorldMapRegionTile {
     private final int regionZ;
     private final AtomicIntegerArray[] renderVersions =
             new AtomicIntegerArray[WorldMapRenderTileKey.MAX_LEVEL + 1];
+    private final AtomicIntegerArray chunkContentEpochs = new AtomicIntegerArray(CHUNK_COUNT);
     private final AtomicInteger mutationEpoch = new AtomicInteger();
     private volatile WorldMapRegionPixels pixels;
     private int saveSnapshotVersion = -1;
@@ -37,28 +39,31 @@ final class WorldMapRegionTile {
         }
     }
 
-    synchronized void createBlank() {
+    synchronized void createBlank(int contentEpoch) {
         this.pixels = WorldMapRegionPixels.blank();
         this.saveSnapshotVersion = -1;
         this.dirty = false;
         this.dirtyVersion = 0;
+        resetChunkContentEpochs(contentEpoch);
         resetRenderVersions();
         this.lastDirtyNanos = 0L;
     }
 
-    void loadFromPixels(WorldMapRegionPixels loadedPixels) {
+    void loadFromPixels(WorldMapRegionPixels loadedPixels, int contentEpoch) {
         if (loadedPixels == null) return;
         synchronized (this) {
             this.pixels = loadedPixels;
             this.saveSnapshotVersion = -1;
             this.dirty = false;
             this.dirtyVersion = 0;
+            resetChunkContentEpochs(contentEpoch);
             resetRenderVersions();
             this.lastDirtyNanos = 0L;
         }
     }
 
-    synchronized void updateFromChunkPixels(int[] chunkPixels, int chunkXInRegion, int chunkZInRegion) {
+    synchronized void updateFromChunkPixels(int[] chunkPixels, int chunkXInRegion, int chunkZInRegion,
+                                            int contentEpoch) {
         if (this.pixels == null || chunkPixels == null
                 || chunkPixels.length != PIXELS_PER_CHUNK * PIXELS_PER_CHUNK) {
             return;
@@ -69,6 +74,7 @@ final class WorldMapRegionTile {
         mutationEpoch.incrementAndGet();
         try {
             this.pixels.updateChunk(chunkPixels, chunkXInRegion, chunkZInRegion);
+            this.chunkContentEpochs.set(chunkIndex(chunkXInRegion, chunkZInRegion), contentEpoch);
             this.dirty = true;
             this.dirtyVersion++;
             markRenderTileDirty(
@@ -115,6 +121,11 @@ final class WorldMapRegionTile {
     boolean hasChunkPixels(int chunkXInRegion, int chunkZInRegion) {
         WorldMapRegionPixels regionPixels = pixels;
         return regionPixels != null && regionPixels.hasChunkPixels(chunkXInRegion, chunkZInRegion);
+    }
+
+    boolean hasFreshChunkPixels(int chunkXInRegion, int chunkZInRegion, int contentEpoch) {
+        return hasChunkPixels(chunkXInRegion, chunkZInRegion)
+                && chunkContentEpochs.get(chunkIndex(chunkXInRegion, chunkZInRegion)) >= contentEpoch;
     }
 
     RenderSnapshot createRenderSnapshot(int level, int tileXInRegion, int tileZInRegion, int expectedVersion) {
@@ -223,6 +234,12 @@ final class WorldMapRegionTile {
         }
     }
 
+    private void resetChunkContentEpochs(int contentEpoch) {
+        for (int index = 0; index < CHUNK_COUNT; index++) {
+            chunkContentEpochs.set(index, contentEpoch);
+        }
+    }
+
     private void markRenderTileDirty(int baseTileX, int baseTileZ) {
         int version = nextContentVersion();
         for (int level = 0; level <= WorldMapRenderTileKey.MAX_LEVEL; level++) {
@@ -234,6 +251,10 @@ final class WorldMapRegionTile {
 
     private static int renderVersionIndex(int level, int tileX, int tileZ) {
         return tileZ * tilesPerSide(level) + tileX;
+    }
+
+    private static int chunkIndex(int chunkX, int chunkZ) {
+        return chunkZ * CHUNKS_PER_REGION + chunkX;
     }
 
     private static boolean isValidRenderTile(int level, int tileX, int tileZ) {

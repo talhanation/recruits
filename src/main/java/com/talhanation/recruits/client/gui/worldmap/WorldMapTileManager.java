@@ -98,6 +98,10 @@ public class WorldMapTileManager {
     private long regionAccessSequence;
     private int enqueueOffsetCursor;
     private int regionLoadSchedulesLeft;
+    private int mapContentEpoch = 1;
+    private boolean cachedRegionsStaleForResourceReload;
+    private boolean sawInitialModelBake;
+    private boolean rebuildLoadedChunksOnNextInitialize;
 
     public static WorldMapTileManager getInstance() {
         if (instance == null) instance = new WorldMapTileManager();
@@ -109,7 +113,13 @@ public class WorldMapTileManager {
 
         String worldName = detectStorageId(level);
         File newWorldMapDir = new File(mc.gameDirectory, "recruits/worldmap/" + worldName);
-        if (this.worldMapDir != null && this.worldMapDir.equals(newWorldMapDir)) return;
+        if (this.worldMapDir != null && this.worldMapDir.equals(newWorldMapDir)) {
+            if (rebuildLoadedChunksOnNextInitialize) {
+                rebuildLoadedChunksOnNextInitialize = false;
+                rebuildLoadedChunksForResourceReload();
+            }
+            return;
+        }
 
         close();
         this.worldMapDir = newWorldMapDir;
@@ -122,17 +132,39 @@ public class WorldMapTileManager {
         WorldMapRegionTile.prepareRenderPixelPool();
         WorldMapRenderer.prepareSharedResources();
         renderTileCache.prepareGpuResources();
+        if (rebuildLoadedChunksOnNextInitialize) {
+            rebuildLoadedChunksOnNextInitialize = false;
+            rebuildLoadedChunksForResourceReload();
+        }
         Main.LOGGER.info("[WorldMap] Initialized direct region cache at {} with {} indexed regions",
                 this.regionDir, this.persistedRegionSources.size());
     }
 
     public void onClientModelsReloaded() {
+        boolean resourceReload = sawInitialModelBake;
+        sawInitialModelBake = true;
+
         WorldMapAsync.prepareWorkers();
         ChunkBuildScratch.preparePool();
         WorldMapRegionTile.prepareRenderPixelPool();
         MapBlockColorResolver.clearCaches();
         MapStateSampler.clearCaches();
-        if (mc.level == null) return;
+        if (!resourceReload) return;
+
+        beginResourceReloadContentEpoch();
+        if (mc.level == null || worldMapDir == null || regionDir == null) {
+            rebuildLoadedChunksOnNextInitialize = true;
+            return;
+        }
+
+        rebuildLoadedChunksForResourceReload();
+    }
+
+    private void rebuildLoadedChunksForResourceReload() {
+        if (mc.level == null || mc.player == null) {
+            rebuildLoadedChunksOnNextInitialize = true;
+            return;
+        }
 
         closePendingChunkBuilds();
         chunkUpdateQueue.clear();
@@ -147,7 +179,18 @@ public class WorldMapTileManager {
         queuedRegionWakes.clear();
         discoveredChunks.clear();
         lastEnqueueCenterChunkKey = Long.MIN_VALUE;
+        lastDiscoveryTime = 0L;
+        nextChunkRevision = 0L;
         enqueueOffsetCursor = 0;
+        regionLoadSchedulesLeft = 0;
+
+        int enqueued = enqueueLoadedChunksForResourceRebuild();
+        Main.LOGGER.info("[WorldMap] Queued {} loaded chunks for map recolor after resource reload", enqueued);
+    }
+
+    private void beginResourceReloadContentEpoch() {
+        mapContentEpoch = mapContentEpoch == Integer.MAX_VALUE ? 1 : mapContentEpoch + 1;
+        cachedRegionsStaleForResourceReload = true;
     }
 
     public void updateCurrentTile() {
@@ -361,7 +404,7 @@ public class WorldMapTileManager {
             }
 
             WorldMapRegionTile region = new WorldMapRegionTile(pendingLoad.regionX(), pendingLoad.regionZ());
-            region.loadFromPixels(pixels);
+            region.loadFromPixels(pixels, loadedRegionContentEpoch());
             touchRegion(region);
             loadedRegions.put(regionKey, region);
             persistedRegionSources.add(regionKey);
@@ -515,7 +558,7 @@ public class WorldMapTileManager {
             }
 
             region = new WorldMapRegionTile(regionX, regionZ);
-            region.createBlank();
+            region.createBlank(mapContentEpoch);
             loadedRegions.put(regionKey, region);
         }
         return touchRegion(region);
@@ -557,6 +600,30 @@ public class WorldMapTileManager {
             checkedChunks++;
             discoverChunk(centerChunkX + offset.dx(), centerChunkZ + offset.dz());
         }
+    }
+
+    private int enqueueLoadedChunksForResourceRebuild() {
+        if (mc.level == null || mc.player == null) return 0;
+
+        int centerChunkX = mc.player.chunkPosition().x;
+        int centerChunkZ = mc.player.chunkPosition().z;
+        int radius = getUpdateRadiusChunks();
+        int enqueued = 0;
+
+        if (markChunkDirty(centerChunkX, centerChunkZ, false, 0L, true)) {
+            enqueued++;
+        }
+
+        for (ChunkScanOffset offset : CHUNK_SCAN_OFFSETS) {
+            if (offset.distanceSquared() > radius * radius || queuedChunks.size() >= MAX_QUEUED_CHUNK_UPDATES) {
+                break;
+            }
+            if (markChunkDirty(centerChunkX + offset.dx(), centerChunkZ + offset.dz(), false, 0L, true)) {
+                enqueued++;
+            }
+        }
+        prioritizeQueuedChunksAround(centerChunkX, centerChunkZ);
+        return enqueued;
     }
 
     private void discardQueuedChunksOutside(int centerChunkX, int centerChunkZ, int keepRadius) {
@@ -631,16 +698,16 @@ public class WorldMapTileManager {
         markChunkDirty(chunkX, chunkZ, false, 0L);
     }
 
-    private void markChunkDirty(int chunkX, int chunkZ, boolean urgent, long settleNanos) {
-        markChunkDirty(chunkX, chunkZ, urgent, settleNanos, false);
+    private boolean markChunkDirty(int chunkX, int chunkZ, boolean urgent, long settleNanos) {
+        return markChunkDirty(chunkX, chunkZ, urgent, settleNanos, false);
     }
 
-    private void markChunkDirty(int chunkX, int chunkZ, boolean urgent, long settleNanos, boolean forceRebuild) {
-        if (!isChunkLoaded(chunkX, chunkZ)) return;
+    private boolean markChunkDirty(int chunkX, int chunkZ, boolean urgent, long settleNanos, boolean forceRebuild) {
+        if (!isChunkLoaded(chunkX, chunkZ)) return false;
 
         long chunkKey = chunkKey(chunkX, chunkZ);
         if (!forceRebuild && !urgent && completeCachedChunkIfLoaded(chunkKey, chunkX, chunkZ)) {
-            return;
+            return true;
         }
 
         long readyNanos = System.nanoTime() + settleNanos;
@@ -649,7 +716,7 @@ public class WorldMapTileManager {
             if (queuedChunks.contains(chunkKey) || chunkWaitingRegions.containsKey(chunkKey)) {
                 chunkReadyNanos.merge(chunkKey, readyNanos, Math::max);
                 discoveredChunks.put(chunkKey, Boolean.TRUE);
-                return;
+                return true;
             }
         }
 
@@ -660,16 +727,14 @@ public class WorldMapTileManager {
         chunkReadyNanos.put(chunkKey, readyNanos);
         if (enqueueChunkForBuild(chunkKey, urgent)) {
             discoveredChunks.put(chunkKey, Boolean.TRUE);
+            return true;
         } else {
             forcedRebuildChunks.remove(chunkKey);
             chunkRevisions.remove(chunkKey);
             chunkReadyNanos.remove(chunkKey);
             discoveredChunks.remove(chunkKey);
+            return false;
         }
-    }
-
-    private boolean enqueueChunkForBuild(long chunkKey) {
-        return enqueueChunkForBuild(chunkKey, false);
     }
 
     private boolean enqueueChunkForBuild(long chunkKey, boolean urgent) {
@@ -710,7 +775,7 @@ public class WorldMapTileManager {
 
         int chunkXInRegion = WorldMapRegionTile.chunkLocalCoord(chunkX);
         int chunkZInRegion = WorldMapRegionTile.chunkLocalCoord(chunkZ);
-        if (!region.hasChunkPixels(chunkXInRegion, chunkZInRegion)) return false;
+        if (!region.hasFreshChunkPixels(chunkXInRegion, chunkZInRegion, mapContentEpoch)) return false;
 
         cancelChunkWork(chunkKey);
         discoveredChunks.put(chunkKey, Boolean.TRUE);
@@ -970,7 +1035,8 @@ public class WorldMapTileManager {
             region.updateFromChunkPixels(
                     result.pixels(),
                     WorldMapRegionTile.chunkLocalCoord(chunkX),
-                    WorldMapRegionTile.chunkLocalCoord(chunkZ)
+                    WorldMapRegionTile.chunkLocalCoord(chunkZ),
+                    mapContentEpoch
             );
             renderTileCache.invalidateChunk(
                     region,
@@ -1204,6 +1270,10 @@ public class WorldMapTileManager {
         return Math.max(MIN_UPDATE_RADIUS_CHUNKS, Math.min(MAX_UPDATE_RADIUS_CHUNKS, radius));
     }
 
+    private int loadedRegionContentEpoch() {
+        return cachedRegionsStaleForResourceReload ? Math.max(0, mapContentEpoch - 1) : mapContentEpoch;
+    }
+
     private int saveDirtyRegions(int maxRegions, boolean force) {
         if (regionDir == null) return 0;
         long nowNanos = System.nanoTime();
@@ -1418,10 +1488,6 @@ public class WorldMapTileManager {
         int dx = chunkX(chunkKey) - centerChunkX;
         int dz = chunkZ(chunkKey) - centerChunkZ;
         return dx * dx + dz * dz;
-    }
-
-    private boolean isPendingBuildUrgent(long chunkKey, PendingChunkBuild pendingBuild) {
-        return pendingBuild.urgent() || urgentChunks.contains(chunkKey);
     }
 
     private boolean consumePendingUrgency(long chunkKey, PendingChunkBuild pendingBuild) {
