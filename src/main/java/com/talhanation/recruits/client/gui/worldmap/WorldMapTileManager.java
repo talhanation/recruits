@@ -31,9 +31,10 @@ import java.util.concurrent.CancellationException;
 
 public class WorldMapTileManager {
     private static final int MAX_CHUNK_BUILD_SCHEDULES_PER_TICK = 4;
-    private static final int MAX_CHUNK_BUILD_SCHEDULE_ATTEMPTS_PER_TICK = 32;
+    private static final int MAX_CHUNK_BUILD_SCHEDULE_ATTEMPTS_PER_TICK = 64;
     private static final int MAX_CHUNK_BUILD_COMPLETIONS_PER_TICK = 16;
     private static final int MAX_PENDING_CHUNK_BUILDS = 8;
+    private static final int MAX_CACHED_CHUNK_COMPLETIONS_PER_TICK = 32;
     private static final int MAX_TRACKED_CHUNKS = 8192;
     private static final int MAX_LOADED_REGIONS = 192;
     private static final int MAX_REGION_LOAD_SCHEDULES_PER_FRAME = 4;
@@ -46,18 +47,14 @@ public class WorldMapTileManager {
     private static final int MAX_UPDATE_RADIUS_CHUNKS = 12;
     private static final int MAX_REGION_SAVES_PER_PASS = 1;
     private static final int MAX_QUEUED_CHUNK_UPDATES = 512;
-    private static final int MAX_CHUNK_ENQUEUE_CHECKS_PER_REFRESH = 160;
-    private static final long CHUNK_ENQUEUE_BUDGET_NANOS = 1_000_000L;
+    private static final int MAX_CHUNK_ENQUEUE_CHECKS_PER_REFRESH = 48;
+    private static final long CHUNK_ENQUEUE_BUDGET_NANOS = 250_000L;
     private static final long CHUNK_BUILD_SCHEDULE_BUDGET_NANOS = 500_000L;
     private static final long REGION_WAKE_BUDGET_NANOS = 500_000L;
-    private static final long TARGET_FRAME_INTERVAL_NANOS = 16_666_667L;
-    private static final long MIN_CHUNK_BUILD_FRAME_BUDGET_NANOS = 250_000L;
-    private static final long MAX_CHUNK_BUILD_FRAME_BUDGET_NANOS = 1_500_000L;
-    private static final int CHUNK_BUILD_IDLE_BUDGET_DIVISOR = 6;
     private static final long CHUNK_LOAD_SETTLE_NANOS = 150_000_000L;
     private static final long BLOCK_UPDATE_SETTLE_NANOS = 75_000_000L;
     private static final long REGION_LOAD_RETRY_DELAY_MS = 1000L;
-    private static final long DISCOVERY_INTERVAL_MS = 1000L;
+    private static final long DISCOVERY_INTERVAL_MS = 250L;
     private static final long SAVE_INTERVAL_MS = 60000L;
     private static final long REGION_SAVE_QUIET_PERIOD_NANOS = 3_000_000_000L;
     private static final ChunkScanOffset[] CHUNK_SCAN_OFFSETS = buildChunkScanOffsets();
@@ -75,9 +72,9 @@ public class WorldMapTileManager {
     private final Deque<Long> chunkUpdateQueue = new ArrayDeque<>();
     private final Set<Long> queuedChunks = new HashSet<>();
     private final Set<Long> urgentChunks = new HashSet<>();
+    private final Set<Long> forcedRebuildChunks = new HashSet<>();
     private final Map<Long, Long> chunkRevisions = new HashMap<>();
     private final Map<Long, Long> chunkReadyNanos = new HashMap<>();
-    private final Set<Long> chunksWaitingForNeighbors = new HashSet<>();
     private final Map<Long, String> chunkWaitingRegions = new HashMap<>();
     private final Map<String, Set<Long>> chunksWaitingByRegion = new HashMap<>();
     private final Deque<String> regionWakeQueue = new ArrayDeque<>();
@@ -97,7 +94,6 @@ public class WorldMapTileManager {
     private long lastSaveTime;
     private boolean savePassPending;
     private long lastEnqueueCenterChunkKey = Long.MIN_VALUE;
-    private long lastChunkBuildFrameNanos;
     private long nextChunkRevision;
     private long regionAccessSequence;
     private int enqueueOffsetCursor;
@@ -121,7 +117,11 @@ public class WorldMapTileManager {
         this.legacyLevelZeroDir = new File(this.regionDir, "l0");
         this.regionDir.mkdirs();
         rebuildRegionSourceIndex();
+        WorldMapAsync.prepareWorkers();
+        ChunkBuildScratch.preparePool();
+        WorldMapRegionTile.prepareRenderPixelPool();
         WorldMapRenderer.prepareSharedResources();
+        renderTileCache.prepareGpuResources();
         Main.LOGGER.info("[WorldMap] Initialized direct region cache at {} with {} indexed regions",
                 this.regionDir, this.persistedRegionSources.size());
     }
@@ -138,9 +138,9 @@ public class WorldMapTileManager {
         chunkUpdateQueue.clear();
         queuedChunks.clear();
         urgentChunks.clear();
+        forcedRebuildChunks.clear();
         chunkRevisions.clear();
         chunkReadyNanos.clear();
-        chunksWaitingForNeighbors.clear();
         chunkWaitingRegions.clear();
         chunksWaitingByRegion.clear();
         regionWakeQueue.clear();
@@ -164,7 +164,7 @@ public class WorldMapTileManager {
 
         long now = System.currentTimeMillis();
         long enqueueNanos = 0L;
-        if (now - lastDiscoveryTime >= DISCOVERY_INTERVAL_MS) {
+        if (shouldDiscoverLoadedChunks(now)) {
             phaseStartNanos = System.nanoTime();
             discoverLoadedChunksAroundPlayer();
             enqueueNanos = System.nanoTime() - phaseStartNanos;
@@ -173,8 +173,11 @@ public class WorldMapTileManager {
 
         phaseStartNanos = System.nanoTime();
         int chunkUpdates = consumeReadyChunkBuilds(MAX_CHUNK_BUILD_COMPLETIONS_PER_TICK);
+        long consumeChunksNanos = System.nanoTime() - phaseStartNanos;
+        phaseStartNanos = System.nanoTime();
         scheduleChunkBuilds(MAX_CHUNK_BUILD_SCHEDULES_PER_TICK);
-        long processChunksNanos = System.nanoTime() - phaseStartNanos;
+        long scheduleChunksNanos = System.nanoTime() - phaseStartNanos;
+        long processChunksNanos = consumeChunksNanos + scheduleChunksNanos;
 
         long saveNanos = 0L;
         if (now - lastSaveTime >= SAVE_INTERVAL_MS) {
@@ -195,64 +198,18 @@ public class WorldMapTileManager {
         long trimNanos = System.nanoTime() - phaseStartNanos;
 
         recordDebugState();
-        int chunkPipelineSize = queuedChunks.size() + pendingChunkBuilds.size()
-                + chunksWaitingForNeighbors.size() + chunkWaitingRegions.size();
+        int chunkPipelineSize = queuedChunks.size() + pendingChunkBuilds.size() + chunkWaitingRegions.size();
         WorldMapDebugProfiler.recordTileUpdate(System.nanoTime() - debugStartNanos, chunkUpdates,
                 chunkUpdateQueue.size(), chunkPipelineSize, consumeLoadsNanos, enqueueNanos,
-                processChunksNanos, saveNanos, trimNanos);
+                processChunksNanos, consumeChunksNanos, scheduleChunksNanos, saveNanos, trimNanos);
     }
 
-    public void processChunkBuildFrame() {
-        if (mc.level == null || mc.player == null || pendingChunkBuilds.isEmpty()) {
-            lastChunkBuildFrameNanos = 0L;
-            return;
-        }
+    private boolean shouldDiscoverLoadedChunks(long now) {
+        if (mc.player == null) return false;
 
-        long workStartNanos = System.nanoTime();
-        long elapsedFrameNanos = lastChunkBuildFrameNanos == 0L
-                ? TARGET_FRAME_INTERVAL_NANOS
-                : Math.min(50_000_000L, workStartNanos - lastChunkBuildFrameNanos);
-        lastChunkBuildFrameNanos = workStartNanos;
-        long idleNanos = Math.max(0L, TARGET_FRAME_INTERVAL_NANOS - elapsedFrameNanos);
-        long frameBudgetNanos = Math.max(
-                MIN_CHUNK_BUILD_FRAME_BUDGET_NANOS,
-                Math.min(
-                        MAX_CHUNK_BUILD_FRAME_BUDGET_NANOS,
-                        MIN_CHUNK_BUILD_FRAME_BUDGET_NANOS + idleNanos / CHUNK_BUILD_IDLE_BUDGET_DIVISOR
-                )
-        );
-        long deadlineNanos = workStartNanos + frameBudgetNanos;
-        Iterator<Map.Entry<Long, PendingChunkBuild>> iterator = pendingChunkBuilds.entrySet().iterator();
-        while (iterator.hasNext() && System.nanoTime() < deadlineNanos) {
-            Map.Entry<Long, PendingChunkBuild> entry = iterator.next();
-            long chunkKey = entry.getKey();
-            PendingChunkBuild pendingBuild = entry.getValue();
-            if (pendingBuild.builder().isDone()) continue;
-
-            Long currentRevision = chunkRevisions.get(chunkKey);
-            boolean stillCurrent = currentRevision != null
-                    && currentRevision == pendingBuild.revision()
-                    && pendingBuild.context().belongsTo(mc.level)
-                    && isChunkLoaded(chunkX(chunkKey), chunkZ(chunkKey));
-            if (!stillCurrent) {
-                iterator.remove();
-                pendingBuild.builder().cancel();
-                boolean urgentRetry = urgentChunks.remove(chunkKey);
-                if (currentRevision != null && isChunkLoaded(chunkX(chunkKey), chunkZ(chunkKey))) {
-                    enqueueDeferredChunk(chunkKey, urgentRetry);
-                } else {
-                    forgetChunk(chunkKey);
-                }
-                continue;
-            }
-
-            pendingBuild.builder().advance(deadlineNanos);
-        }
-        WorldMapBuildProfiler.recordFrameWork(
-                System.nanoTime() - workStartNanos,
-                frameBudgetNanos,
-                pendingChunkBuilds.size()
-        );
+        long centerChunkKey = chunkKey(mc.player.chunkPosition().x, mc.player.chunkPosition().z);
+        return centerChunkKey != lastEnqueueCenterChunkKey
+                || now - lastDiscoveryTime >= DISCOVERY_INTERVAL_MS;
     }
 
     WorldMapRegionTile getLoadedRegion(int regionX, int regionZ) {
@@ -463,8 +420,18 @@ public class WorldMapTileManager {
     public void onChunkLoaded(Level level, ChunkPos chunkPos) {
         if (!isCurrentClientLevel(level) || chunkPos == null) return;
 
-        markChunkDirty(chunkPos.x, chunkPos.z, false, CHUNK_LOAD_SETTLE_NANOS);
-        wakeChunksWaitingForNeighbor(chunkPos.x, chunkPos.z);
+        markChunkDirty(chunkPos.x, chunkPos.z, false, CHUNK_LOAD_SETTLE_NANOS, true);
+        for (int dz = -1; dz <= 1; dz++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                if (dx == 0 && dz == 0) continue;
+
+                int neighborChunkX = chunkPos.x + dx;
+                int neighborChunkZ = chunkPos.z + dz;
+                if (hasLoadedChunkPixels(neighborChunkX, neighborChunkZ)) {
+                    markChunkDirty(neighborChunkX, neighborChunkZ, false, CHUNK_LOAD_SETTLE_NANOS, true);
+                }
+            }
+        }
     }
 
     public void onChunkUnloaded(Level level, ChunkPos chunkPos) {
@@ -472,25 +439,6 @@ public class WorldMapTileManager {
 
         long chunkKey = chunkKey(chunkPos.x, chunkPos.z);
         forgetChunk(chunkKey);
-
-        for (int dz = -1; dz <= 1; dz++) {
-            for (int dx = -1; dx <= 1; dx++) {
-                if (dx == 0 && dz == 0) continue;
-
-                long dependentChunkKey = chunkKey(chunkPos.x + dx, chunkPos.z + dz);
-                PendingChunkBuild pendingBuild = pendingChunkBuilds.remove(dependentChunkKey);
-                if (pendingBuild == null) continue;
-
-                pendingBuild.builder().cancel();
-                boolean urgentRetry = urgentChunks.remove(dependentChunkKey);
-                if (chunkRevisions.containsKey(dependentChunkKey)
-                        && isChunkLoaded(chunkX(dependentChunkKey), chunkZ(dependentChunkKey))) {
-                    parkChunkForNeighbors(dependentChunkKey, urgentRetry);
-                } else {
-                    forgetChunk(dependentChunkKey);
-                }
-            }
-        }
     }
 
     public void onBlockUpdated(Level level, BlockPos pos) {
@@ -528,9 +476,9 @@ public class WorldMapTileManager {
         chunkUpdateQueue.clear();
         queuedChunks.clear();
         urgentChunks.clear();
+        forcedRebuildChunks.clear();
         chunkRevisions.clear();
         chunkReadyNanos.clear();
-        chunksWaitingForNeighbors.clear();
         chunkWaitingRegions.clear();
         chunksWaitingByRegion.clear();
         regionWakeQueue.clear();
@@ -544,7 +492,6 @@ public class WorldMapTileManager {
         lastSaveTime = 0L;
         savePassPending = false;
         lastEnqueueCenterChunkKey = Long.MIN_VALUE;
-        lastChunkBuildFrameNanos = 0L;
         nextChunkRevision = 0L;
         regionAccessSequence = 0L;
         enqueueOffsetCursor = 0;
@@ -586,6 +533,7 @@ public class WorldMapTileManager {
             lastEnqueueCenterChunkKey = centerChunkKey;
             enqueueOffsetCursor = 0;
             discardQueuedChunksOutside(centerChunkX, centerChunkZ, radius + 2);
+            prioritizeQueuedChunksAround(centerChunkX, centerChunkZ);
         }
 
         discoverChunk(centerChunkX, centerChunkZ);
@@ -623,6 +571,7 @@ public class WorldMapTileManager {
             iterator.remove();
             queuedChunks.remove(chunkKey);
             urgentChunks.remove(chunkKey);
+            forcedRebuildChunks.remove(chunkKey);
             chunkRevisions.remove(chunkKey);
             chunkReadyNanos.remove(chunkKey);
             removeChunkFromWaiters(chunkKey);
@@ -638,16 +587,16 @@ public class WorldMapTileManager {
             if (dx * dx + dz * dz <= keepRadiusSquared) continue;
 
             pendingIterator.remove();
-            entry.getValue().builder().cancel();
+            entry.getValue().cancel();
             urgentChunks.remove(chunkKey);
+            forcedRebuildChunks.remove(chunkKey);
             chunkRevisions.remove(chunkKey);
             chunkReadyNanos.remove(chunkKey);
             removeChunkFromWaiters(chunkKey);
             discoveredChunks.remove(chunkKey);
         }
 
-        ArrayList<Long> waitingChunks = new ArrayList<>(chunksWaitingForNeighbors);
-        waitingChunks.addAll(chunkWaitingRegions.keySet());
+        ArrayList<Long> waitingChunks = new ArrayList<>(chunkWaitingRegions.keySet());
         for (long chunkKey : waitingChunks) {
             int dx = chunkX(chunkKey) - centerChunkX;
             int dz = chunkZ(chunkKey) - centerChunkZ;
@@ -655,6 +604,24 @@ public class WorldMapTileManager {
                 forgetChunk(chunkKey);
             }
         }
+    }
+
+    private void prioritizeQueuedChunksAround(int centerChunkX, int centerChunkZ) {
+        if (chunkUpdateQueue.size() < 2) return;
+
+        ArrayList<Long> orderedChunks = new ArrayList<>(chunkUpdateQueue);
+        orderedChunks.sort((left, right) -> {
+            boolean leftUrgent = urgentChunks.contains(left);
+            boolean rightUrgent = urgentChunks.contains(right);
+            if (leftUrgent != rightUrgent) return leftUrgent ? -1 : 1;
+
+            return Integer.compare(
+                    distanceSquaredToChunk(left, centerChunkX, centerChunkZ),
+                    distanceSquaredToChunk(right, centerChunkX, centerChunkZ)
+            );
+        });
+        chunkUpdateQueue.clear();
+        chunkUpdateQueue.addAll(orderedChunks);
     }
 
     private void discoverChunk(int chunkX, int chunkZ) {
@@ -665,14 +632,38 @@ public class WorldMapTileManager {
     }
 
     private void markChunkDirty(int chunkX, int chunkZ, boolean urgent, long settleNanos) {
+        markChunkDirty(chunkX, chunkZ, urgent, settleNanos, false);
+    }
+
+    private void markChunkDirty(int chunkX, int chunkZ, boolean urgent, long settleNanos, boolean forceRebuild) {
         if (!isChunkLoaded(chunkX, chunkZ)) return;
 
         long chunkKey = chunkKey(chunkX, chunkZ);
+        if (!forceRebuild && !urgent && completeCachedChunkIfLoaded(chunkKey, chunkX, chunkZ)) {
+            return;
+        }
+
+        long readyNanos = System.nanoTime() + settleNanos;
+        if (forceRebuild && !urgent && chunkRevisions.containsKey(chunkKey)
+                && forcedRebuildChunks.contains(chunkKey)) {
+            if (queuedChunks.contains(chunkKey) || chunkWaitingRegions.containsKey(chunkKey)) {
+                chunkReadyNanos.merge(chunkKey, readyNanos, Math::max);
+                discoveredChunks.put(chunkKey, Boolean.TRUE);
+                return;
+            }
+        }
+
+        if (forceRebuild) {
+            forcedRebuildChunks.add(chunkKey);
+        }
         chunkRevisions.put(chunkKey, ++nextChunkRevision);
-        chunkReadyNanos.put(chunkKey, System.nanoTime() + settleNanos);
+        chunkReadyNanos.put(chunkKey, readyNanos);
         if (enqueueChunkForBuild(chunkKey, urgent)) {
             discoveredChunks.put(chunkKey, Boolean.TRUE);
         } else {
+            forcedRebuildChunks.remove(chunkKey);
+            chunkRevisions.remove(chunkKey);
+            chunkReadyNanos.remove(chunkKey);
             discoveredChunks.remove(chunkKey);
         }
     }
@@ -708,6 +699,59 @@ public class WorldMapTileManager {
         return true;
     }
 
+    private boolean completeCachedChunkIfLoaded(long chunkKey, int chunkX, int chunkZ) {
+        int regionX = WorldMapRegionTile.chunkToRegionCoord(chunkX);
+        int regionZ = WorldMapRegionTile.chunkToRegionCoord(chunkZ);
+        return completeCachedChunkIfPresent(chunkKey, chunkX, chunkZ, getLoadedRegion(regionX, regionZ));
+    }
+
+    private boolean completeCachedChunkIfPresent(long chunkKey, int chunkX, int chunkZ, WorldMapRegionTile region) {
+        if (region == null || hasRequiredChunkBuild(chunkKey)) return false;
+
+        int chunkXInRegion = WorldMapRegionTile.chunkLocalCoord(chunkX);
+        int chunkZInRegion = WorldMapRegionTile.chunkLocalCoord(chunkZ);
+        if (!region.hasChunkPixels(chunkXInRegion, chunkZInRegion)) return false;
+
+        cancelChunkWork(chunkKey);
+        discoveredChunks.put(chunkKey, Boolean.TRUE);
+        return true;
+    }
+
+    private boolean hasRequiredChunkBuild(long chunkKey) {
+        if (urgentChunks.contains(chunkKey)) return true;
+        if (forcedRebuildChunks.contains(chunkKey)) return true;
+
+        PendingChunkBuild pendingBuild = pendingChunkBuilds.get(chunkKey);
+        return pendingBuild != null && (pendingBuild.urgent() || pendingBuild.forcedRebuild());
+    }
+
+    private void cancelChunkWork(long chunkKey) {
+        PendingChunkBuild pendingBuild = pendingChunkBuilds.remove(chunkKey);
+        if (pendingBuild != null) {
+            pendingBuild.cancel();
+        }
+        if (queuedChunks.remove(chunkKey)) {
+            chunkUpdateQueue.remove(chunkKey);
+        }
+        urgentChunks.remove(chunkKey);
+        forcedRebuildChunks.remove(chunkKey);
+        chunkRevisions.remove(chunkKey);
+        chunkReadyNanos.remove(chunkKey);
+        removeChunkFromWaiters(chunkKey);
+    }
+
+    private boolean hasLoadedChunkPixels(int chunkX, int chunkZ) {
+        int regionX = WorldMapRegionTile.chunkToRegionCoord(chunkX);
+        int regionZ = WorldMapRegionTile.chunkToRegionCoord(chunkZ);
+        WorldMapRegionTile region = loadedRegions.get(key(regionX, regionZ));
+        if (region == null) return false;
+
+        return region.hasChunkPixels(
+                WorldMapRegionTile.chunkLocalCoord(chunkX),
+                WorldMapRegionTile.chunkLocalCoord(chunkZ)
+        );
+    }
+
     private static ChunkScanOffset[] buildChunkScanOffsets() {
         ArrayList<ChunkScanOffset> offsets = new ArrayList<>();
         int maxDistanceSquared = MAX_UPDATE_RADIUS_CHUNKS * MAX_UPDATE_RADIUS_CHUNKS;
@@ -723,58 +767,144 @@ public class WorldMapTileManager {
     }
 
     private void scheduleChunkBuilds(int maxSchedules) {
-        if (mc.level == null) return;
+        if (mc.level == null || mc.player == null) return;
 
         int scheduled = 0;
         int attempts = 0;
         int maxAttempts = Math.min(MAX_CHUNK_BUILD_SCHEDULE_ATTEMPTS_PER_TICK, queuedChunks.size());
         long nowNanos = System.nanoTime();
         long deadlineNanos = nowNanos + CHUNK_BUILD_SCHEDULE_BUDGET_NANOS;
+        int centerChunkX = mc.player.chunkPosition().x;
+        int centerChunkZ = mc.player.chunkPosition().z;
+        int cachedCompletions = 0;
         while (scheduled < maxSchedules && pendingChunkBuilds.size() < MAX_PENDING_CHUNK_BUILDS
                 && !queuedChunks.isEmpty() && attempts < maxAttempts && System.nanoTime() < deadlineNanos) {
-            Long nextChunkKey = chunkUpdateQueue.pollFirst();
-            if (nextChunkKey == null) return;
-            attempts++;
+            BuildCandidate candidate = pollNextChunkForBuild(
+                    nowNanos,
+                    maxAttempts - attempts,
+                    centerChunkX,
+                    centerChunkZ,
+                    deadlineNanos
+            );
+            if (candidate == null) return;
+            attempts += candidate.checkedChunks();
+            if (!candidate.hasChunk()) break;
 
-            long chunkKey = nextChunkKey;
-            queuedChunks.remove(chunkKey);
-            boolean urgent = urgentChunks.remove(chunkKey);
+            long chunkKey = candidate.chunkKey();
+            boolean urgent = candidate.urgent();
 
             Long revision = chunkRevisions.get(chunkKey);
             if (revision == null) continue;
 
             long readyNanos = chunkReadyNanos.getOrDefault(chunkKey, 0L);
             if (nowNanos < readyNanos) {
-                enqueueDeferredChunk(chunkKey, urgent);
+                enqueueDelayedChunk(chunkKey, urgent);
                 continue;
             }
 
             int chunkX = chunkX(chunkKey);
             int chunkZ = chunkZ(chunkKey);
-            if (!isChunkLoaded(chunkX, chunkZ)) {
-                chunkRevisions.remove(chunkKey);
-                chunkReadyNanos.remove(chunkKey);
-                discoveredChunks.remove(chunkKey);
+            boolean forcedRebuild = forcedRebuildChunks.contains(chunkKey);
+            ChunkSamplingContext context = ChunkSamplingContext.capture(mc.level, chunkX, chunkZ);
+            if (context == null) {
+                forgetChunk(chunkKey);
                 continue;
             }
 
             int regionX = WorldMapRegionTile.chunkToRegionCoord(chunkX);
             int regionZ = WorldMapRegionTile.chunkToRegionCoord(chunkZ);
-            if (getOrCreateRegion(regionX, regionZ) == null) {
-                parkChunkForRegion(key(regionX, regionZ), chunkKey, urgent);
+            String regionKey = key(regionX, regionZ);
+            WorldMapRegionTile region = getOrCreateRegion(regionX, regionZ);
+            if (region == null) {
+                parkChunkForRegion(regionKey, chunkKey, urgent);
+                if (pendingRegionLoads.containsKey(regionKey) || persistedRegionSources.contains(regionKey)) {
+                    break;
+                }
                 continue;
             }
-
-            ChunkSamplingContext context = ChunkSamplingContext.capture(mc.level, chunkX, chunkZ);
-            if (context == null) {
-                parkChunkForNeighbors(chunkKey, urgent);
+            if (!urgent && !forcedRebuild && completeCachedChunkIfPresent(chunkKey, chunkX, chunkZ, region)) {
+                cachedCompletions++;
+                if (cachedCompletions >= MAX_CACHED_CHUNK_COMPLETIONS_PER_TICK) {
+                    break;
+                }
                 continue;
             }
 
             ChunkImageBuilder builder = ChunkImageBuilder.begin(context, chunkX, chunkZ, chunkKey);
-            pendingChunkBuilds.put(chunkKey, new PendingChunkBuild(context, revision, builder));
+            CompletableFuture<ChunkBuildResult> future = WorldMapAsync.buildChunk(
+                    chunkX + "," + chunkZ,
+                    urgent,
+                    distanceSquaredToChunk(chunkKey, centerChunkX, centerChunkZ),
+                    builder::buildFully
+            );
+            pendingChunkBuilds.put(chunkKey, new PendingChunkBuild(
+                    context,
+                    revision,
+                    builder,
+                    future,
+                    urgent,
+                    forcedRebuild
+            ));
             scheduled++;
         }
+    }
+
+    private BuildCandidate pollNextChunkForBuild(long nowNanos, int maxAttempts, int centerChunkX, int centerChunkZ,
+                                                 long deadlineNanos) {
+        if (maxAttempts <= 0) return null;
+
+        Long bestChunkKey = null;
+        boolean bestUrgent = false;
+        int bestDistanceSquared = Integer.MAX_VALUE;
+        int checkedChunks = 0;
+        Iterator<Long> iterator = chunkUpdateQueue.iterator();
+        while (iterator.hasNext()
+                && checkedChunks < maxAttempts
+                && System.nanoTime() < deadlineNanos) {
+            long chunkKey = iterator.next();
+            checkedChunks++;
+
+            if (!queuedChunks.contains(chunkKey)) {
+                iterator.remove();
+                continue;
+            }
+
+            Long revision = chunkRevisions.get(chunkKey);
+            if (revision == null) {
+                iterator.remove();
+                queuedChunks.remove(chunkKey);
+                urgentChunks.remove(chunkKey);
+                forcedRebuildChunks.remove(chunkKey);
+                chunkReadyNanos.remove(chunkKey);
+                continue;
+            }
+
+            long readyNanos = chunkReadyNanos.getOrDefault(chunkKey, 0L);
+            if (nowNanos < readyNanos) continue;
+
+            boolean urgent = urgentChunks.contains(chunkKey);
+            int distanceSquared = distanceSquaredToChunk(chunkKey, centerChunkX, centerChunkZ);
+            if (bestChunkKey == null || isHigherPriority(
+                    urgent,
+                    distanceSquared,
+                    chunkKey,
+                    bestUrgent,
+                    bestDistanceSquared,
+                    bestChunkKey
+            )) {
+                bestChunkKey = chunkKey;
+                bestUrgent = urgent;
+                bestDistanceSquared = distanceSquared;
+            }
+        }
+
+        if (bestChunkKey == null) {
+            return new BuildCandidate(Long.MIN_VALUE, false, checkedChunks);
+        }
+
+        chunkUpdateQueue.remove(bestChunkKey);
+        queuedChunks.remove(bestChunkKey);
+        return new BuildCandidate(bestChunkKey, urgentChunks.remove(bestChunkKey) || bestUrgent, checkedChunks);
     }
 
     private int consumeReadyChunkBuilds(int maxCompletions) {
@@ -783,14 +913,23 @@ public class WorldMapTileManager {
         while (iterator.hasNext() && completed < maxCompletions) {
             Map.Entry<Long, PendingChunkBuild> entry = iterator.next();
             PendingChunkBuild pendingBuild = entry.getValue();
-            if (!pendingBuild.builder().isDone()) continue;
+            if (!pendingBuild.future().isDone()) continue;
 
             iterator.remove();
             completed++;
-            ChunkBuildResult result = pendingBuild.builder().result();
+            ChunkBuildResult result;
+            try {
+                result = pendingBuild.future().join();
+            } catch (CancellationException ignored) {
+                pendingBuild.builder().cancel();
+                result = null;
+            } catch (Exception ignored) {
+                pendingBuild.builder().cancel();
+                result = null;
+            }
 
             long chunkKey = entry.getKey();
-            boolean urgentRetry = urgentChunks.remove(chunkKey);
+            boolean urgentRetry = consumePendingUrgency(chunkKey, pendingBuild);
             Long currentRevision = chunkRevisions.get(chunkKey);
             boolean resultIsCurrent = currentRevision != null
                     && currentRevision == pendingBuild.revision()
@@ -800,6 +939,7 @@ public class WorldMapTileManager {
                 if (finishChunkBuild(result)) {
                     chunkRevisions.remove(chunkKey, currentRevision);
                     chunkReadyNanos.remove(chunkKey);
+                    forcedRebuildChunks.remove(chunkKey);
                 } else {
                     int regionX = WorldMapRegionTile.chunkToRegionCoord(chunkX(chunkKey));
                     int regionZ = WorldMapRegionTile.chunkToRegionCoord(chunkZ(chunkKey));
@@ -865,30 +1005,16 @@ public class WorldMapTileManager {
         }
     }
 
-    private void parkChunkForNeighbors(long chunkKey, boolean urgent) {
-        removeChunkFromRegionWait(chunkKey);
-        chunksWaitingForNeighbors.add(chunkKey);
-        if (urgent) urgentChunks.add(chunkKey);
-    }
-
-    private void wakeChunksWaitingForNeighbor(int loadedChunkX, int loadedChunkZ) {
-        for (int dz = -1; dz <= 1; dz++) {
-            for (int dx = -1; dx <= 1; dx++) {
-                long chunkKey = chunkKey(loadedChunkX + dx, loadedChunkZ + dz);
-                if (!chunksWaitingForNeighbors.remove(chunkKey)) continue;
-
-                boolean urgent = urgentChunks.remove(chunkKey);
-                if (!chunkRevisions.containsKey(chunkKey)
-                        || !isChunkLoaded(chunkX(chunkKey), chunkZ(chunkKey))
-                        || !enqueueChunkForBuild(chunkKey, urgent)) {
-                    forgetChunk(chunkKey);
-                }
-            }
+    private void enqueueDelayedChunk(long chunkKey, boolean urgent) {
+        if (urgent) {
+            urgentChunks.add(chunkKey);
+        }
+        if (queuedChunks.add(chunkKey)) {
+            chunkUpdateQueue.addLast(chunkKey);
         }
     }
 
     private void parkChunkForRegion(String regionKey, long chunkKey, boolean urgent) {
-        chunksWaitingForNeighbors.remove(chunkKey);
         removeChunkFromRegionWait(chunkKey);
         chunkWaitingRegions.put(chunkKey, regionKey);
         chunksWaitingByRegion.computeIfAbsent(regionKey, ignored -> new HashSet<>()).add(chunkKey);
@@ -922,6 +1048,14 @@ public class WorldMapTileManager {
                 forgetChunk(chunkKey);
             } else {
                 boolean urgent = urgentChunks.remove(chunkKey);
+                boolean forcedRebuild = forcedRebuildChunks.contains(chunkKey);
+                WorldMapRegionTile region = loadedRegions.get(regionKey);
+                if (!urgent
+                        && !forcedRebuild
+                        && completeCachedChunkIfPresent(chunkKey, chunkX(chunkKey), chunkZ(chunkKey), region)) {
+                    processed++;
+                    continue;
+                }
                 if (!enqueueChunkForBuild(chunkKey, urgent)) {
                     discoveredChunks.remove(chunkKey);
                 }
@@ -960,7 +1094,6 @@ public class WorldMapTileManager {
     }
 
     private void removeChunkFromWaiters(long chunkKey) {
-        chunksWaitingForNeighbors.remove(chunkKey);
         removeChunkFromRegionWait(chunkKey);
     }
 
@@ -979,12 +1112,13 @@ public class WorldMapTileManager {
     private void forgetChunk(long chunkKey) {
         PendingChunkBuild pendingBuild = pendingChunkBuilds.remove(chunkKey);
         if (pendingBuild != null) {
-            pendingBuild.builder().cancel();
+            pendingBuild.cancel();
         }
         if (queuedChunks.remove(chunkKey)) {
             chunkUpdateQueue.remove(chunkKey);
         }
         urgentChunks.remove(chunkKey);
+        forcedRebuildChunks.remove(chunkKey);
         chunkRevisions.remove(chunkKey);
         chunkReadyNanos.remove(chunkKey);
         removeChunkFromWaiters(chunkKey);
@@ -993,7 +1127,7 @@ public class WorldMapTileManager {
 
     private void closePendingChunkBuilds() {
         for (PendingChunkBuild pendingBuild : pendingChunkBuilds.values()) {
-            pendingBuild.builder().cancel();
+            pendingBuild.cancel();
         }
         pendingChunkBuilds.clear();
     }
@@ -1035,8 +1169,7 @@ public class WorldMapTileManager {
     }
 
     private void recordDebugState() {
-        int chunkPipelineSize = queuedChunks.size() + pendingChunkBuilds.size()
-                + chunksWaitingForNeighbors.size() + chunkWaitingRegions.size();
+        int chunkPipelineSize = queuedChunks.size() + pendingChunkBuilds.size() + chunkWaitingRegions.size();
         WorldMapDebugProfiler.recordTileManagerState(
                 loadedRegions.size(),
                 pendingRegionLoads.size(),
@@ -1281,6 +1414,28 @@ public class WorldMapTileManager {
         return (int) chunkKey;
     }
 
+    private static int distanceSquaredToChunk(long chunkKey, int centerChunkX, int centerChunkZ) {
+        int dx = chunkX(chunkKey) - centerChunkX;
+        int dz = chunkZ(chunkKey) - centerChunkZ;
+        return dx * dx + dz * dz;
+    }
+
+    private boolean isPendingBuildUrgent(long chunkKey, PendingChunkBuild pendingBuild) {
+        return pendingBuild.urgent() || urgentChunks.contains(chunkKey);
+    }
+
+    private boolean consumePendingUrgency(long chunkKey, PendingChunkBuild pendingBuild) {
+        boolean queuedUrgent = urgentChunks.remove(chunkKey);
+        return pendingBuild.urgent() || queuedUrgent;
+    }
+
+    private static boolean isHigherPriority(boolean urgent, int distanceSquared, long chunkKey,
+                                            boolean bestUrgent, int bestDistanceSquared, long bestChunkKey) {
+        if (urgent != bestUrgent) return urgent;
+        if (distanceSquared != bestDistanceSquared) return distanceSquared < bestDistanceSquared;
+        return Long.compareUnsigned(chunkKey, bestChunkKey) < 0;
+    }
+
     private static String key(int x, int z) {
         return x + "_" + z;
     }
@@ -1334,7 +1489,19 @@ public class WorldMapTileManager {
                                      CompletableFuture<WorldMapAsync.RegionSaveResult> future) {
     }
 
-    private record PendingChunkBuild(ChunkSamplingContext context, long revision, ChunkImageBuilder builder) {
+    private record PendingChunkBuild(ChunkSamplingContext context, long revision, ChunkImageBuilder builder,
+                                     CompletableFuture<ChunkBuildResult> future, boolean urgent,
+                                     boolean forcedRebuild) {
+        private void cancel() {
+            builder.cancel();
+            future.cancel(false);
+        }
+    }
+
+    private record BuildCandidate(long chunkKey, boolean urgent, int checkedChunks) {
+        private boolean hasChunk() {
+            return chunkKey != Long.MIN_VALUE;
+        }
     }
 
     private record ChunkScanOffset(int dx, int dz, int distanceSquared) {

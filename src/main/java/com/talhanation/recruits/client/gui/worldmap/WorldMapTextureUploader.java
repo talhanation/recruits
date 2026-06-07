@@ -24,6 +24,11 @@ final class WorldMapTextureUploader implements AutoCloseable {
     private int nextBuffer;
     private boolean initialized;
 
+    void prepare() {
+        RenderSystem.assertOnRenderThread();
+        ensureInitialized();
+    }
+
     void upload(int textureId, int xOffset, int yOffset, int[] pixels) {
         uploadRegion(
                 textureId,
@@ -61,7 +66,6 @@ final class WorldMapTextureUploader implements AutoCloseable {
 
         int pixelBuffer = pixelBuffers[nextBuffer];
         nextBuffer = (nextBuffer + 1) % pixelBuffers.length;
-
         GL15.glBindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, pixelBuffer);
         try {
             GL15.glBufferData(GL21.GL_PIXEL_UNPACK_BUFFER, BUFFER_BYTES, GL15.GL_STREAM_DRAW);

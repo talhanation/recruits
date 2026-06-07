@@ -1,7 +1,7 @@
 package com.talhanation.recruits.client.gui.worldmap;
 
 record WorldMapRenderTileKey(int level, int x, int z) {
-    static final int PIXEL_SIZE = 128;
+    static final int PIXEL_SIZE = 64;
     static final int MAX_LEVEL = 2;
 
     int worldSize() {

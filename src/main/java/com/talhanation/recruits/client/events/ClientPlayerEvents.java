@@ -18,16 +18,6 @@ public class ClientPlayerEvents {
         updateMapTiles();
     }
 
-    @SubscribeEvent
-    public void onRenderTick(TickEvent.RenderTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
-        if (!RecruitsClientConfig.UpdateMapTiles.get()) return;
-
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null || mc.player == null || mc.level.dimension() != Level.OVERWORLD) return;
-        WorldMapTileManager.getInstance().processChunkBuildFrame();
-    }
-
     private void updateMapTiles() {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null) return;

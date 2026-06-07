@@ -32,6 +32,7 @@ final class WorldMapDebugProfiler {
     private static final long HIGH_ESTIMATED_TILE_IMAGE_MB = 512L;
 
     private static final Metrics CURRENT = new Metrics();
+    private static volatile HudStats lastHudStats = HudStats.EMPTY;
     private static final Map<String, Long> LAST_ASYNC_LOG_NANOS = new ConcurrentHashMap<>();
     private static final List<GarbageCollectorMXBean> GC_COLLECTORS = ManagementFactory.getGarbageCollectorMXBeans();
     private static final com.sun.management.ThreadMXBean THREAD_ALLOCATION_BEAN = createThreadAllocationBean();
@@ -45,6 +46,8 @@ final class WorldMapDebugProfiler {
     private static long lastConsumeLoadsNanos;
     private static long lastEnqueueNanos;
     private static long lastProcessChunksNanos;
+    private static long lastConsumeChunksNanos;
+    private static long lastScheduleChunksNanos;
     private static long lastSaveNanos;
     private static long lastTrimNanos;
     private static int lastChunkUpdates;
@@ -101,6 +104,8 @@ final class WorldMapDebugProfiler {
         CURRENT.consumeLoadsNanos = lastConsumeLoadsNanos;
         CURRENT.enqueueNanos = lastEnqueueNanos;
         CURRENT.processChunksNanos = lastProcessChunksNanos;
+        CURRENT.consumeChunksNanos = lastConsumeChunksNanos;
+        CURRENT.scheduleChunksNanos = lastScheduleChunksNanos;
         CURRENT.saveNanos = lastSaveNanos;
         CURRENT.trimNanos = lastTrimNanos;
         CURRENT.chunkUpdates = lastChunkUpdates;
@@ -176,6 +181,11 @@ final class WorldMapDebugProfiler {
             lastCoverageLogNanos = now;
             Main.LOGGER.info("[WorldMapPerf] map coverage gap: {} | {}", String.join(", ", coverageReasons), CURRENT.toLogLine());
         }
+        lastHudStats = HudStats.from(CURRENT);
+    }
+
+    static HudStats hudStats() {
+        return lastHudStats;
     }
 
     static void recordRootLevel(int rootLevel, int visibleTiles) {
@@ -286,7 +296,7 @@ final class WorldMapDebugProfiler {
 
     static void recordTileUpdate(long nanos, int chunkUpdates, int chunkQueueSize, int queuedChunkCount,
                                  long consumeLoadsNanos, long enqueueNanos, long processChunksNanos,
-                                 long saveNanos, long trimNanos) {
+                                 long consumeChunksNanos, long scheduleChunksNanos, long saveNanos, long trimNanos) {
         GcDelta gcDelta = tileUpdateGcStart == null
                 ? new GcDelta(0L, 0L)
                 : GcSnapshot.capture().deltaFrom(tileUpdateGcStart);
@@ -295,6 +305,8 @@ final class WorldMapDebugProfiler {
         lastConsumeLoadsNanos = consumeLoadsNanos;
         lastEnqueueNanos = enqueueNanos;
         lastProcessChunksNanos = processChunksNanos;
+        lastConsumeChunksNanos = consumeChunksNanos;
+        lastScheduleChunksNanos = scheduleChunksNanos;
         lastSaveNanos = saveNanos;
         lastTrimNanos = trimNanos;
         lastChunkUpdates = chunkUpdates;
@@ -311,6 +323,8 @@ final class WorldMapDebugProfiler {
         CURRENT.consumeLoadsNanos = consumeLoadsNanos;
         CURRENT.enqueueNanos = enqueueNanos;
         CURRENT.processChunksNanos = processChunksNanos;
+        CURRENT.consumeChunksNanos = consumeChunksNanos;
+        CURRENT.scheduleChunksNanos = scheduleChunksNanos;
         CURRENT.saveNanos = saveNanos;
         CURRENT.trimNanos = trimNanos;
         CURRENT.chunkUpdates = chunkUpdates;
@@ -330,9 +344,10 @@ final class WorldMapDebugProfiler {
             lastTileUpdateLogNanos = now;
             Main.LOGGER.warn(
                     "[WorldMapPerf] tile update spike: update {} phases load {} enqueue {} chunks {} save {} trim {} | " +
-                            "chunkParts work {} finalize {} write {} lodInvalidate {} | chunks {} queue {}/{} | " +
+                            "chunkPipeline consume {} schedule {} | chunkParts work {} finalize {} write {} lodInvalidate {} | chunks {} queue {}/{} | " +
                             "regions {} pending {} saves {} failed {} | lod {} pending {} | gc {}/{}ms alloc {} | mem {} tileImages~{}",
                     ms(nanos), ms(consumeLoadsNanos), ms(enqueueNanos), ms(processChunksNanos), ms(saveNanos), ms(trimNanos),
+                    ms(consumeChunksNanos), ms(scheduleChunksNanos),
                     ms(tileUpdateChunkWorkNanos), ms(tileUpdateChunkFinalizeNanos),
                     ms(tileUpdateChunkRegionWriteNanos), ms(tileUpdateChunkLodInvalidateNanos),
                     chunkUpdates, chunkQueueSize, queuedChunkCount,
@@ -384,6 +399,8 @@ final class WorldMapDebugProfiler {
         return "load " + ms(metrics.consumeLoadsNanos)
                 + " enqueue " + ms(metrics.enqueueNanos)
                 + " chunks " + ms(metrics.processChunksNanos)
+                + " consume " + ms(metrics.consumeChunksNanos)
+                + " schedule " + ms(metrics.scheduleChunksNanos)
                 + " save " + ms(metrics.saveNanos)
                 + " trim " + ms(metrics.trimNanos);
     }
@@ -456,6 +473,33 @@ final class WorldMapDebugProfiler {
     private record GcDelta(long count, long millis) {
     }
 
+    record HudStats(long mapRenderNanos, long tileRenderNanos, long tileUpdateNanos,
+                    long consumeChunksNanos, long scheduleChunksNanos, long textureUploadNanos,
+                    int rootLevel, int visibleTiles, int tileDraws, int missingTiles,
+                    int chunkQueueSize, int queuedChunkCount, int lodTileCount, int pendingLodTiles) {
+        private static final HudStats EMPTY = new HudStats(0L, 0L, 0L, 0L, 0L, 0L,
+                0, 0, 0, 0, 0, 0, 0, 0);
+
+        private static HudStats from(Metrics metrics) {
+            return new HudStats(
+                    metrics.totalRenderNanos,
+                    metrics.tileRenderNanos,
+                    metrics.tileUpdateNanos,
+                    metrics.consumeChunksNanos,
+                    metrics.scheduleChunksNanos,
+                    metrics.textureUploadNanos,
+                    metrics.rootLevel,
+                    metrics.visibleTiles,
+                    metrics.tileDraws,
+                    metrics.missingTiles,
+                    metrics.chunkQueueSize,
+                    metrics.queuedChunkCount,
+                    metrics.lodTileCount,
+                    metrics.pendingLodTiles
+            );
+        }
+    }
+
     private static final class Metrics {
         private long frameStartNanos;
         private long totalRenderNanos;
@@ -474,6 +518,8 @@ final class WorldMapDebugProfiler {
         private long consumeLoadsNanos;
         private long enqueueNanos;
         private long processChunksNanos;
+        private long consumeChunksNanos;
+        private long scheduleChunksNanos;
         private long saveNanos;
         private long trimNanos;
         private double scale;
@@ -544,6 +590,8 @@ final class WorldMapDebugProfiler {
             consumeLoadsNanos = 0L;
             enqueueNanos = 0L;
             processChunksNanos = 0L;
+            consumeChunksNanos = 0L;
+            scheduleChunksNanos = 0L;
             saveNanos = 0L;
             trimNanos = 0L;
             scale = 0.0;

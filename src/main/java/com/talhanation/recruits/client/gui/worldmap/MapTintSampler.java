@@ -9,15 +9,28 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 
 final class MapTintSampler implements BlockAndTintGetter {
+    private static final int MAX_BIOME_CACHE_ENTRIES = 16_384;
     private static final int NO_BIOME_COLOR = Integer.MIN_VALUE + 1;
+    private static final int BIOME_COLOR_CACHE_MISS = Integer.MIN_VALUE;
 
     private final BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
+    private final Reference2ObjectOpenHashMap<ColorResolver, Long2IntOpenHashMap> biomeColorCache =
+            new Reference2ObjectOpenHashMap<>();
     private ChunkSamplingContext context;
+    private ClientLevel cacheLevel;
     private BlockState tintState;
+    private int biomeColorCacheEntries;
 
     void prepare(ChunkSamplingContext context) {
+        ClientLevel level = context.level();
+        if (cacheLevel != level || biomeColorCacheEntries > MAX_BIOME_CACHE_ENTRIES) {
+            clearBiomeColorCache();
+            cacheLevel = level;
+        }
         this.context = context;
     }
 
@@ -96,8 +109,7 @@ final class MapTintSampler implements BlockAndTintGetter {
                 int sampleZ = z + dz;
                 if (context.getLoadedChunk(sampleX, sampleZ) == null) continue;
 
-                mutable.set(sampleX, y, sampleZ);
-                int color = resolver.getColor(level.getBiome(mutable).value(), sampleX, sampleZ);
+                int color = cachedBiomeColor(level, resolver, sampleX, y, sampleZ);
                 red += (color >>> 16) & 0xFF;
                 green += (color >>> 8) & 0xFF;
                 blue += color & 0xFF;
@@ -107,6 +119,34 @@ final class MapTintSampler implements BlockAndTintGetter {
 
         if (count == 0) return NO_BIOME_COLOR;
         return ((red / count) << 16) | ((green / count) << 8) | (blue / count);
+    }
+
+    private int cachedBiomeColor(ClientLevel level, ColorResolver resolver, int x, int y, int z) {
+        Long2IntOpenHashMap resolverCache = biomeColorCache.get(resolver);
+        if (resolverCache == null) {
+            resolverCache = new Long2IntOpenHashMap();
+            resolverCache.defaultReturnValue(BIOME_COLOR_CACHE_MISS);
+            biomeColorCache.put(resolver, resolverCache);
+        }
+
+        long key = xzKey(x, z);
+        int cached = resolverCache.get(key);
+        if (cached != BIOME_COLOR_CACHE_MISS) return cached;
+
+        mutable.set(x, y, z);
+        int color = resolver.getColor(level.getBiome(mutable).value(), x, z);
+        resolverCache.put(key, color);
+        biomeColorCacheEntries++;
+        return color;
+    }
+
+    private static long xzKey(int x, int z) {
+        return ((long) x << 32) ^ (z & 0xFFFFFFFFL);
+    }
+
+    private void clearBiomeColorCache() {
+        biomeColorCache.clear();
+        biomeColorCacheEntries = 0;
     }
 
     static boolean hasColor(int color) {

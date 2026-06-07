@@ -48,6 +48,8 @@ public class WorldMapScreen extends Screen {
     private static final int CHUNK_HIGHLIGHT_COLOR = 0x40FFFFFF;
     private static final int CHUNK_SELECTION_COLOR = 0xFFFFFFFF;
     private static final int DARK_GRAY_BG = 0xFF101010;
+    private static final double PERF_HUD_SMOOTHING = 0.15;
+    private static final long DEFAULT_FRAME_NANOS = 16_666_667L;
 
     double offsetX = 0, offsetZ = 0;
     public static double scale = DEFAULT_SCALE;
@@ -83,6 +85,9 @@ public class WorldMapScreen extends Screen {
     private RouteNamePopup routeNamePopup;
     private RouteEditPopup routeEditPopup;
     private WaypointEditPopup waypointEditPopup;
+    private long lastPerfFrameNanos;
+    private double smoothedFrameNanos = DEFAULT_FRAME_NANOS;
+    private double smoothedMapCostNanos;
 
     public WorldMapScreen() {
         super(Component.literal(""));
@@ -243,13 +248,16 @@ public class WorldMapScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        updatePerfFrameTiming();
         camera.animate();
         renderBackground(guiGraphics);
 
         guiGraphics.enableScissor(0, 0, width, height);
 
+        long mapRenderStartNanos = System.nanoTime();
         mapRenderer.render(guiGraphics, width, height, offsetX, offsetZ, scale,
                 (mapGraphics, frame) -> renderMapOverlays(mapGraphics, mouseX, mouseY, frame));
+        updateMapPerfTiming(System.nanoTime() - mapRenderStartNanos);
 
         guiGraphics.disableScissor();
 
@@ -270,6 +278,93 @@ public class WorldMapScreen extends Screen {
         if (routeNamePopup.isVisible()) routeNamePopup.render(guiGraphics, mouseX, mouseY);
         if (routeEditPopup.isVisible()) routeEditPopup.render(guiGraphics, mouseX, mouseY);
         if (waypointEditPopup.isVisible()) waypointEditPopup.render(guiGraphics, mouseX, mouseY);
+        renderPerformanceHud(guiGraphics);
+    }
+
+    private void updatePerfFrameTiming() {
+        long nowNanos = System.nanoTime();
+        if (lastPerfFrameNanos != 0L) {
+            smoothFrameTiming(nowNanos - lastPerfFrameNanos);
+        }
+        lastPerfFrameNanos = nowNanos;
+    }
+
+    private void updateMapPerfTiming(long mapRenderWallNanos) {
+        WorldMapDebugProfiler.HudStats stats = WorldMapDebugProfiler.hudStats();
+        long measuredMapRenderNanos = Math.max(mapRenderWallNanos, stats.mapRenderNanos());
+        smoothMapTiming(measuredMapRenderNanos + stats.tileUpdateNanos());
+    }
+
+    private void smoothFrameTiming(long frameNanos) {
+        if (frameNanos <= 0L) return;
+        smoothedFrameNanos += (frameNanos - smoothedFrameNanos) * PERF_HUD_SMOOTHING;
+    }
+
+    private void smoothMapTiming(long mapCostNanos) {
+        if (mapCostNanos < 0L) return;
+        if (smoothedMapCostNanos <= 0.0) {
+            smoothedMapCostNanos = mapCostNanos;
+        } else {
+            smoothedMapCostNanos += (mapCostNanos - smoothedMapCostNanos) * PERF_HUD_SMOOTHING;
+        }
+    }
+
+    private void renderPerformanceHud(GuiGraphics guiGraphics) {
+        WorldMapDebugProfiler.HudStats stats = WorldMapDebugProfiler.hudStats();
+        double fps = nanosToFps(smoothedFrameNanos);
+        double mapMs = smoothedMapCostNanos / 1_000_000.0;
+        double frameShare = smoothedFrameNanos <= 0.0
+                ? 0.0
+                : Math.min(999.0, smoothedMapCostNanos * 100.0 / smoothedFrameNanos);
+        double mapFpsCost = estimatedMapFpsCost(fps);
+
+        String line1 = String.format(Locale.ROOT, "FPS: %.0f", fps);
+        String line2 = String.format(Locale.ROOT, "Map: %.1fms | %.0f%% | -%.0f fps", mapMs, frameShare, mapFpsCost);
+        String line3 = String.format(Locale.ROOT,
+                "Upd %.1fms C %.1f/S %.1f",
+                stats.tileUpdateNanos() / 1_000_000.0,
+                stats.consumeChunksNanos() / 1_000_000.0,
+                stats.scheduleChunksNanos() / 1_000_000.0);
+        String line4 = String.format(Locale.ROOT,
+                "Q %d/%d | LOD %d/%d | L%d %d/%d miss %d",
+                stats.chunkQueueSize(),
+                stats.queuedChunkCount(),
+                stats.lodTileCount(),
+                stats.pendingLodTiles(),
+                stats.rootLevel(),
+                stats.tileDraws(),
+                stats.visibleTiles(),
+                stats.missingTiles());
+
+        int textWidth = Math.max(Math.max(font.width(line1), font.width(line2)),
+                Math.max(font.width(line3), font.width(line4)));
+        int hudWidth = textWidth + 12;
+        int hudHeight = 44;
+        int hudX = Math.max(4, width - hudWidth - 8);
+        int hudY = 8;
+        guiGraphics.fill(hudX, hudY, hudX + hudWidth, hudY + hudHeight, 0x90000000);
+        guiGraphics.renderOutline(hudX, hudY, hudWidth, hudHeight, 0x50FFFFFF);
+        guiGraphics.drawString(font, line1, hudX + 6, hudY + 5, 0xFFFFFFFF, false);
+        guiGraphics.drawString(font, line2, hudX + 6, hudY + 15, performanceColor(mapMs), false);
+        guiGraphics.drawString(font, line3, hudX + 6, hudY + 25, 0xFFD8D8D8, false);
+        guiGraphics.drawString(font, line4, hudX + 6, hudY + 35, 0xFFD8D8D8, false);
+    }
+
+    private double estimatedMapFpsCost(double fps) {
+        double withoutMapNanos = smoothedFrameNanos - smoothedMapCostNanos;
+        if (withoutMapNanos <= 1_000_000.0) return 0.0;
+
+        return Math.max(0.0, nanosToFps(withoutMapNanos) - fps);
+    }
+
+    private static double nanosToFps(double nanos) {
+        return nanos <= 0.0 ? 0.0 : 1_000_000_000.0 / nanos;
+    }
+
+    private static int performanceColor(double mapMs) {
+        if (mapMs >= 16.0) return 0xFFFF7070;
+        if (mapMs >= 8.0) return 0xFFFFD060;
+        return 0xFF80FF90;
     }
 
     private void renderMapOverlays(GuiGraphics guiGraphics, int mouseX, int mouseY, MapFramebufferPass.Frame frame) {

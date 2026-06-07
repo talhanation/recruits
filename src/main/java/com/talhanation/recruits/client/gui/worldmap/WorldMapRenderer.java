@@ -24,11 +24,11 @@ import java.util.Map;
 final class WorldMapRenderer {
     static final boolean ENABLE_ZOOM_OUT_LOD = true;
     private static final MapFramebufferPass FRAMEBUFFER_PASS = new MapFramebufferPass();
-    private static final int MAX_VISIBLE_TEXTURE_LEVEL = 2;
-    private static final double THIRD_LOD_SCALE_THRESHOLD = 0.20;
+    private static final int MAX_VISIBLE_TEXTURE_LEVEL = WorldMapRenderTileKey.MAX_LEVEL;
+    private static final double FIRST_LOD_SCALE_THRESHOLD = 0.22;
+    private static final double SECOND_LOD_SCALE_THRESHOLD = 0.11;
     private static final int PREFETCH_TILE_MARGIN = 0;
     private static final int MAX_TILE_DRAWS_PER_FRAME = ENABLE_ZOOM_OUT_LOD ? 768 : 1536;
-    private static final double LOG_TWO = Math.log(2.0);
 
     private final WorldMapTileManager tileManager;
     private final WorldMapRenderTileCache renderTileCache;
@@ -219,9 +219,9 @@ final class WorldMapRenderer {
 
     private static int selectTextureLevel(double scale) {
         if (!ENABLE_ZOOM_OUT_LOD || scale >= 1.0) return 0;
-        if (scale <= THIRD_LOD_SCALE_THRESHOLD) return MAX_VISIBLE_TEXTURE_LEVEL;
-        double reversedScale = 1.0 / Math.max(0.01, scale);
-        return Mth.clamp((int) Math.floor(Math.log(reversedScale) / LOG_TWO), 0, MAX_VISIBLE_TEXTURE_LEVEL - 1);
+        if (scale >= FIRST_LOD_SCALE_THRESHOLD) return 0;
+        if (scale >= SECOND_LOD_SCALE_THRESHOLD) return Math.min(1, MAX_VISIBLE_TEXTURE_LEVEL);
+        return MAX_VISIBLE_TEXTURE_LEVEL;
     }
 
     private static double distanceToCenter(WorldMapRenderTileKey key, double centerWorldX, double centerWorldZ) {

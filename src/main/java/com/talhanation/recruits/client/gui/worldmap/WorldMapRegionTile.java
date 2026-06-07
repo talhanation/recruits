@@ -112,6 +112,11 @@ final class WorldMapRegionTile {
         return regionPixels != null && regionPixels.hasVisiblePixel(x, z);
     }
 
+    boolean hasChunkPixels(int chunkXInRegion, int chunkZInRegion) {
+        WorldMapRegionPixels regionPixels = pixels;
+        return regionPixels != null && regionPixels.hasChunkPixels(chunkXInRegion, chunkZInRegion);
+    }
+
     RenderSnapshot createRenderSnapshot(int level, int tileXInRegion, int tileZInRegion, int expectedVersion) {
         if (!isValidRenderTile(level, tileXInRegion, tileZInRegion)) return null;
 

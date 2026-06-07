@@ -1,5 +1,6 @@
 package com.talhanation.recruits.client.gui.worldmap;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
@@ -19,13 +20,13 @@ import java.util.concurrent.CompletableFuture;
  * while rendering only publishes small fixed-size textures for the current view.
  */
 final class WorldMapRenderTileCache {
-    private static final int MAX_CACHED_TILES = 384;
-    private static final int TRIMMED_CACHED_TILES = 320;
-    private static final int MAX_PENDING_BUILDS = 48;
-    private static final int MAX_READY_TILES = 64;
-    private static final int MAX_BUILD_SCHEDULES_PER_FRAME = 6;
-    private static final int MAX_BUILD_COMPLETIONS_PER_FRAME = 8;
-    private static final int MAX_TEXTURE_UPLOADS_PER_FRAME = 4;
+    private static final int MAX_CACHED_TILES = 768;
+    private static final int TRIMMED_CACHED_TILES = 640;
+    private static final int MAX_PENDING_BUILDS = 96;
+    private static final int MAX_READY_TILES = 128;
+    private static final int MAX_BUILD_SCHEDULES_PER_FRAME = 8;
+    private static final int MAX_BUILD_COMPLETIONS_PER_FRAME = 12;
+    private static final int MAX_TEXTURE_UPLOADS_PER_FRAME = 8;
     private static final int OFFSCREEN_BUILD_GRACE_GENERATIONS = 3;
     private static final long TEXTURE_UPLOAD_BUDGET_NANOS = 1_000_000L;
 
@@ -50,7 +51,17 @@ final class WorldMapRenderTileCache {
         this.tileManager = tileManager;
     }
 
+    void prepareGpuResources() {
+        if (!RenderSystem.isOnRenderThreadOrInit()) return;
+
+        textureUploader.prepare();
+        if (textureAtlases.isEmpty()) {
+            textureAtlases.add(new WorldMapTextureAtlas());
+        }
+    }
+
     void prepareVisible(List<WorldMapRenderTileKey> requestedTiles, boolean includeAncestors) {
+        prepareGpuResources();
         consumeReadyBuilds(MAX_BUILD_COMPLETIONS_PER_FRAME);
         refreshNeededTiles(requestedTiles, includeAncestors);
         discardUnneededReadyTiles();

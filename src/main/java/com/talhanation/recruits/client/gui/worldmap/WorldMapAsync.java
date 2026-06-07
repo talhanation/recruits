@@ -14,6 +14,7 @@ import java.util.function.Supplier;
 final class WorldMapAsync {
     private static final AtomicLong REGION_LOAD_SEQUENCE = new AtomicLong();
     private static final AtomicLong RENDER_TILE_SEQUENCE = new AtomicLong();
+    private static final AtomicLong CHUNK_BUILD_SEQUENCE = new AtomicLong();
     private static final ThreadPoolExecutor REGION_LOAD_EXECUTOR = new ThreadPoolExecutor(
             1,
             1,
@@ -31,6 +32,16 @@ final class WorldMapAsync {
             new PriorityBlockingQueue<>(),
             namedDaemonFactory("recruits-worldmap-render-tile")
     );
+    private static final ThreadPoolExecutor CHUNK_BUILD_EXECUTOR = new ThreadPoolExecutor(
+            1,
+            1,
+            0L,
+            TimeUnit.MILLISECONDS,
+            new PriorityBlockingQueue<>(),
+            namedDaemonFactory("recruits-worldmap-chunk")
+    );
+    private static final ThreadPoolExecutor COLOR_RESOLVE_EXECUTOR =
+            singleThreadExecutor("recruits-worldmap-color");
 
     private WorldMapAsync() {
     }
@@ -39,6 +50,8 @@ final class WorldMapAsync {
         REGION_LOAD_EXECUTOR.prestartAllCoreThreads();
         REGION_SAVE_EXECUTOR.prestartAllCoreThreads();
         RENDER_TILE_EXECUTOR.prestartAllCoreThreads();
+        CHUNK_BUILD_EXECUTOR.prestartAllCoreThreads();
+        COLOR_RESOLVE_EXECUTOR.prestartAllCoreThreads();
     }
 
     static CompletableFuture<WorldMapRegionPixels> loadRegion(String detail, boolean urgent, long generation,
@@ -99,6 +112,34 @@ final class WorldMapAsync {
         });
         RENDER_TILE_EXECUTOR.execute(task);
         return future;
+    }
+
+    static CompletableFuture<ChunkBuildResult> buildChunk(
+            String detail,
+            boolean urgent,
+            int distanceSquared,
+            Supplier<ChunkBuildResult> supplier
+    ) {
+        CompletableFuture<ChunkBuildResult> future = new CompletableFuture<>();
+        ChunkBuildTask task = new ChunkBuildTask(
+                detail,
+                urgent,
+                distanceSquared,
+                CHUNK_BUILD_SEQUENCE.getAndIncrement(),
+                supplier,
+                future
+        );
+        future.whenComplete((ignored, error) -> {
+            if (future.isCancelled()) {
+                CHUNK_BUILD_EXECUTOR.remove(task);
+            }
+        });
+        CHUNK_BUILD_EXECUTOR.execute(task);
+        return future;
+    }
+
+    static void warmBlockColor(Runnable task) {
+        COLOR_RESOLVE_EXECUTOR.execute(task);
     }
 
     private static <T> CompletableFuture<T> timedTask(String type, String detail, Supplier<T> supplier,
@@ -258,6 +299,57 @@ final class WorldMapAsync {
         public int compareTo(RenderTileBuildTask other) {
             int generationOrder = Long.compare(other.generation, generation);
             if (generationOrder != 0) return generationOrder;
+
+            int distanceOrder = Integer.compare(distanceSquared, other.distanceSquared);
+            return distanceOrder != 0 ? distanceOrder : Long.compare(sequence, other.sequence);
+        }
+    }
+
+    private static final class ChunkBuildTask implements Runnable, Comparable<ChunkBuildTask> {
+        private final String detail;
+        private final boolean urgent;
+        private final int distanceSquared;
+        private final long sequence;
+        private final Supplier<ChunkBuildResult> supplier;
+        private final CompletableFuture<ChunkBuildResult> future;
+        private final long scheduledNanos = System.nanoTime();
+
+        private ChunkBuildTask(String detail, boolean urgent, int distanceSquared, long sequence,
+                               Supplier<ChunkBuildResult> supplier, CompletableFuture<ChunkBuildResult> future) {
+            this.detail = detail;
+            this.urgent = urgent;
+            this.distanceSquared = distanceSquared;
+            this.sequence = sequence;
+            this.supplier = supplier;
+            this.future = future;
+        }
+
+        @Override
+        public void run() {
+            if (future.isCancelled()) return;
+
+            long startedNanos = System.nanoTime();
+            boolean success = false;
+            try {
+                ChunkBuildResult result = supplier.get();
+                success = result != null;
+                future.complete(result);
+            } catch (Throwable throwable) {
+                future.completeExceptionally(throwable);
+            } finally {
+                WorldMapDebugProfiler.recordAsyncTask(
+                        "chunk-build",
+                        detail,
+                        startedNanos - scheduledNanos,
+                        System.nanoTime() - startedNanos,
+                        success
+                );
+            }
+        }
+
+        @Override
+        public int compareTo(ChunkBuildTask other) {
+            if (urgent != other.urgent) return urgent ? -1 : 1;
 
             int distanceOrder = Integer.compare(distanceSquared, other.distanceSquared);
             return distanceOrder != 0 ? distanceOrder : Long.compare(sequence, other.sequence);

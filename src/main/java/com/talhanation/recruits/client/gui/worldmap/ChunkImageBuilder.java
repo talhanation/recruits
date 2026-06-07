@@ -8,9 +8,10 @@ import net.minecraft.world.level.levelgen.Heightmap;
 final class ChunkImageBuilder {
     private static final int PIXEL_COUNT = 16 * 16;
     private static final int COLOR_SAMPLE_COUNT = PIXEL_COUNT * 2;
-    private static final int MAX_SAMPLE_COLUMNS_PER_ADVANCE = 16;
-    private static final int MAX_COLOR_SAMPLES_PER_ADVANCE = 32;
-    private static final int MAX_RENDER_PIXELS_PER_ADVANCE = 32;
+    private static final int MAX_SAMPLE_COLUMNS_PER_ADVANCE = 8;
+    private static final int MAX_COLOR_SAMPLES_PER_ADVANCE = 16;
+    private static final int MAX_RENDER_PIXELS_PER_ADVANCE = 24;
+    private static final long MAX_ADVANCE_SLICE_NANOS = 350_000L;
 
     private final ChunkSamplingContext context;
     private final int chunkX;
@@ -33,8 +34,10 @@ final class ChunkImageBuilder {
     private int activeUnderlayChecksLeft;
     private SampleStage sampleStage = SampleStage.SURFACE;
     private ChunkBuildResult result;
-    private boolean canceled;
+    private volatile boolean canceled;
+    private volatile boolean buildingFully;
     private boolean scratchReleased;
+    private boolean deferExpensiveWork = true;
 
     private ChunkImageBuilder(ChunkSamplingContext context, int chunkX, int chunkZ, long chunkKey) {
         this.context = context;
@@ -53,22 +56,26 @@ final class ChunkImageBuilder {
     void advance(long deadlineNanos) {
         if (result != null || canceled) return;
 
+        long nowNanos = System.nanoTime();
+        if (nowNanos >= deadlineNanos) return;
+        long sliceDeadlineNanos = Math.min(deadlineNanos, nowNanos + MAX_ADVANCE_SLICE_NANOS);
+
         WorldMapBuildProfiler.beginChunk(chunkX, chunkZ);
         try {
-            long phaseStartNanos = System.nanoTime();
-            sampleColumns(deadlineNanos);
+            long phaseStartNanos = nowNanos;
+            sampleColumns(sliceDeadlineNanos);
             WorldMapBuildProfiler.recordSamplePhase(System.nanoTime() - phaseStartNanos);
 
-            if (sampleIndex < ChunkBuildScratch.SAMPLE_COUNT || System.nanoTime() >= deadlineNanos) return;
+            if (sampleIndex < ChunkBuildScratch.SAMPLE_COUNT || System.nanoTime() >= sliceDeadlineNanos) return;
 
             phaseStartNanos = System.nanoTime();
-            prepareColors(deadlineNanos);
+            prepareColors(sliceDeadlineNanos);
             WorldMapBuildProfiler.recordColorPreparePhase(System.nanoTime() - phaseStartNanos);
 
-            if (colorPrepareIndex < COLOR_SAMPLE_COUNT || System.nanoTime() >= deadlineNanos) return;
+            if (colorPrepareIndex < COLOR_SAMPLE_COUNT || System.nanoTime() >= sliceDeadlineNanos) return;
 
             phaseStartNanos = System.nanoTime();
-            renderPixels(deadlineNanos);
+            renderPixels(sliceDeadlineNanos);
             WorldMapBuildProfiler.recordRenderPhase(System.nanoTime() - phaseStartNanos);
 
             if (pixelIndex >= PIXEL_COUNT) {
@@ -86,15 +93,36 @@ final class ChunkImageBuilder {
 
     void cancel() {
         canceled = true;
-        activeSampleChunk = null;
-        releaseScratch();
+        if (!buildingFully) {
+            activeSampleChunk = null;
+            releaseScratch();
+        }
     }
 
     ChunkBuildResult result() {
         return result;
     }
 
-    private void releaseScratch() {
+    ChunkBuildResult buildFully() {
+        boolean previousDeferExpensiveWork = deferExpensiveWork;
+        deferExpensiveWork = false;
+        buildingFully = true;
+        try {
+            while (!canceled && result == null) {
+                advance(Long.MAX_VALUE);
+            }
+            return result;
+        } finally {
+            buildingFully = false;
+            deferExpensiveWork = previousDeferExpensiveWork;
+            if (canceled && result == null) {
+                activeSampleChunk = null;
+                releaseScratch();
+            }
+        }
+    }
+
+    private synchronized void releaseScratch() {
         if (scratchReleased) return;
         scratchReleased = true;
         scratch.release();
@@ -105,7 +133,8 @@ final class ChunkImageBuilder {
         MapSample[] underlays = scratch.underlaySamples();
         int sampledColumns = 0;
         while (sampleIndex < ChunkBuildScratch.SAMPLE_COUNT
-                && sampledColumns < MAX_SAMPLE_COLUMNS_PER_ADVANCE) {
+                && sampledColumns < MAX_SAMPLE_COLUMNS_PER_ADVANCE
+                && System.nanoTime() < deadlineNanos) {
             int sampleIndexBefore = sampleIndex;
             if (activeSampleChunk == null && !beginSampleColumn(surfaces[sampleIndex], underlays[sampleIndex])) {
                 sampleIndex++;
@@ -117,6 +146,10 @@ final class ChunkImageBuilder {
             while (activeSampleY >= activeSampleMinY) {
                 samplePos.set(activeSampleWorldX, activeSampleY, activeSampleWorldZ);
                 BlockState state = activeSampleChunk.getBlockState(samplePos);
+                if (deferExpensiveWork && MapStateSampler.needsTraitWarmup(state)) {
+                    MapStateSampler.requestTraitWarmup(state);
+                    return;
+                }
                 if (sampleStage == SampleStage.SURFACE) {
                     if (MapStateSampler.isRenderableMapState(context.level(), samplePos, state)) {
                         MapSample surface = surfaces[sampleIndex];
@@ -164,7 +197,12 @@ final class ChunkImageBuilder {
         activeSampleWorldX = minBlockX + x;
         activeSampleWorldZ = minBlockZ + z;
         activeSampleChunk = context.getLoadedChunk(activeSampleWorldX, activeSampleWorldZ);
-        if (activeSampleChunk == null) return false;
+        if (activeSampleChunk == null) {
+            activeSampleWorldX = minBlockX + Math.max(0, Math.min(15, x));
+            activeSampleWorldZ = minBlockZ + Math.max(0, Math.min(15, z));
+            activeSampleChunk = context.getLoadedChunk(activeSampleWorldX, activeSampleWorldZ);
+            if (activeSampleChunk == null) return false;
+        }
 
         int surfaceHeight = activeSampleChunk.getHeight(
                 Heightmap.Types.WORLD_SURFACE,
@@ -218,7 +256,9 @@ final class ChunkImageBuilder {
         MapSample[] surfaces = scratch.surfaceSamples();
         MapSample[] underlays = scratch.underlaySamples();
         int renderedPixels = 0;
-        while (pixelIndex < PIXEL_COUNT && renderedPixels < MAX_RENDER_PIXELS_PER_ADVANCE) {
+        while (pixelIndex < PIXEL_COUNT
+                && renderedPixels < MAX_RENDER_PIXELS_PER_ADVANCE
+                && System.nanoTime() < deadlineNanos) {
             int x = pixelIndex % 16;
             int z = pixelIndex / 16;
             int sampleCenter = (x + 1) * ChunkBuildScratch.SAMPLE_GRID_SIZE + z + 1;
@@ -259,18 +299,16 @@ final class ChunkImageBuilder {
     }
 
     private void prepareColors(long deadlineNanos) {
-        MapSample[] surfaces = scratch.surfaceSamples();
-        MapSample[] underlays = scratch.underlaySamples();
         int preparedColors = 0;
-        while (colorPrepareIndex < COLOR_SAMPLE_COUNT && preparedColors < MAX_COLOR_SAMPLES_PER_ADVANCE) {
-            int pixel = colorPrepareIndex % PIXEL_COUNT;
-            int x = pixel % 16;
-            int z = pixel / 16;
-            int sampleCenter = (x + 1) * ChunkBuildScratch.SAMPLE_GRID_SIZE + z + 1;
-            MapSample sample = colorPrepareIndex < PIXEL_COUNT
-                    ? surfaces[sampleCenter]
-                    : underlays[sampleCenter];
+        while (colorPrepareIndex < COLOR_SAMPLE_COUNT
+                && preparedColors < MAX_COLOR_SAMPLES_PER_ADVANCE
+                && System.nanoTime() < deadlineNanos) {
+            MapSample sample = colorSample(colorPrepareIndex);
             if (sample.isPresent()) {
+                if (deferExpensiveWork && !MapBlockColorResolver.hasCachedTextureColor(sample.state())) {
+                    MapBlockColorResolver.requestTextureColor(sample.state());
+                    return;
+                }
                 samplePos.set(sample.x(), sample.height(), sample.z());
                 sample.setBaseRgb(MapBlockColorResolver.resolveBaseRgb(
                         context,
@@ -283,6 +321,16 @@ final class ChunkImageBuilder {
             preparedColors++;
             if (System.nanoTime() >= deadlineNanos) return;
         }
+    }
+
+    private MapSample colorSample(int index) {
+        int pixel = index % PIXEL_COUNT;
+        int x = pixel % 16;
+        int z = pixel / 16;
+        int sampleCenter = (x + 1) * ChunkBuildScratch.SAMPLE_GRID_SIZE + z + 1;
+        return index < PIXEL_COUNT
+                ? scratch.surfaceSamples()[sampleCenter]
+                : scratch.underlaySamples()[sampleCenter];
     }
 
     private static int countWaterNeighbors(MapSample[] surfaces, MapSample[] underlays, int center) {

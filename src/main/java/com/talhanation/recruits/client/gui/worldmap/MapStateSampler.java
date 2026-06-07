@@ -11,23 +11,30 @@ import net.minecraft.world.level.block.IceBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.level.material.MapColor;
 
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Set;
 
 final class MapStateSampler {
     private static final float ICE_OVERLAY_ALPHA = 0.52f;
     private static final float TRANSPARENT_OVERLAY_ALPHA = 0.50f;
-    private static final Map<BlockState, Boolean> RENDERABLE_STATE_TRAIT_CACHE = new HashMap<>();
-    private static final Map<BlockState, Boolean> TRANSPARENT_OVERLAY_TRAIT_CACHE = new HashMap<>();
+    private static final Object TRAIT_CACHE_LOCK = new Object();
+    private static final Map<BlockState, StateTraits> STATE_TRAIT_CACHE = new IdentityHashMap<>();
+    private static final Set<BlockState> PENDING_STATE_TRAITS =
+            Collections.newSetFromMap(new IdentityHashMap<>());
+    private static int traitCacheGeneration;
 
     private MapStateSampler() {
     }
 
     static void clearCaches() {
-        RENDERABLE_STATE_TRAIT_CACHE.clear();
-        TRANSPARENT_OVERLAY_TRAIT_CACHE.clear();
+        synchronized (TRAIT_CACHE_LOCK) {
+            STATE_TRAIT_CACHE.clear();
+            PENDING_STATE_TRAITS.clear();
+            traitCacheGeneration++;
+        }
     }
 
     static boolean isWaterLike(BlockState state) {
@@ -37,13 +44,7 @@ final class MapStateSampler {
     static boolean isTransparentOverlay(ClientLevel level, BlockPos pos, BlockState state) {
         if (state == null || state.isAir() || isWaterLike(state)) return false;
 
-        boolean transparent = TRANSPARENT_OVERLAY_TRAIT_CACHE.computeIfAbsent(
-                state, MapStateSampler::computeTransparentOverlayTrait
-        );
-        if (!transparent) return false;
-
-        MapColor mapColor = state.getMapColor(level, pos);
-        return mapColor != null && mapColor.col != 0;
+        return traits(state).transparentOverlay();
     }
 
     private static boolean computeTransparentOverlayTrait(BlockState state) {
@@ -61,13 +62,60 @@ final class MapStateSampler {
     static boolean isRenderableMapState(ClientLevel level, BlockPos pos, BlockState state) {
         if (state == null || state.isAir()) return false;
 
-        boolean renderable = RENDERABLE_STATE_TRAIT_CACHE.computeIfAbsent(
-                state, MapStateSampler::computeRenderableMapStateTrait
-        );
-        if (!renderable || !state.getFluidState().isEmpty()) return renderable;
+        return traits(state).renderable();
+    }
 
-        MapColor mapColor = state.getMapColor(level, pos);
-        return mapColor != null && mapColor.col != 0;
+    static boolean needsTraitWarmup(BlockState state) {
+        if (state == null || state.isAir()) return false;
+
+        synchronized (TRAIT_CACHE_LOCK) {
+            return !STATE_TRAIT_CACHE.containsKey(state);
+        }
+    }
+
+    static void requestTraitWarmup(BlockState state) {
+        if (state == null || state.isAir()) return;
+
+        int generation;
+        synchronized (TRAIT_CACHE_LOCK) {
+            if (STATE_TRAIT_CACHE.containsKey(state) || !PENDING_STATE_TRAITS.add(state)) return;
+
+            generation = traitCacheGeneration;
+        }
+
+        WorldMapAsync.warmBlockColor(() -> {
+            StateTraits traits = computeTraits(state);
+            synchronized (TRAIT_CACHE_LOCK) {
+                PENDING_STATE_TRAITS.remove(state);
+                if (traitCacheGeneration == generation) {
+                    STATE_TRAIT_CACHE.put(state, traits);
+                }
+            }
+        });
+    }
+
+    private static StateTraits traits(BlockState state) {
+        synchronized (TRAIT_CACHE_LOCK) {
+            StateTraits cached = STATE_TRAIT_CACHE.get(state);
+            if (cached != null) return cached;
+        }
+
+        StateTraits computed = computeTraits(state);
+        synchronized (TRAIT_CACHE_LOCK) {
+            PENDING_STATE_TRAITS.remove(state);
+            StateTraits cached = STATE_TRAIT_CACHE.get(state);
+            if (cached != null) return cached;
+
+            STATE_TRAIT_CACHE.put(state, computed);
+            return computed;
+        }
+    }
+
+    private static StateTraits computeTraits(BlockState state) {
+        return new StateTraits(
+                computeRenderableMapStateTrait(state),
+                computeTransparentOverlayTrait(state)
+        );
     }
 
     private static boolean computeRenderableMapStateTrait(BlockState state) {
@@ -87,6 +135,9 @@ final class MapStateSampler {
         } catch (RuntimeException ignored) {
             return false;
         }
+    }
+
+    private record StateTraits(boolean renderable, boolean transparentOverlay) {
     }
 
 }
