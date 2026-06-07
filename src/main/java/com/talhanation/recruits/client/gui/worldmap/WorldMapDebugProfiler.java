@@ -145,11 +145,6 @@ final class WorldMapDebugProfiler {
         CURRENT.regionPrefetchNanos += nanos;
     }
 
-    static void recordTileAcquire(long nanos) {
-        CURRENT.tileAcquireNanos += nanos;
-        CURRENT.maxTileAcquireNanos = Math.max(CURRENT.maxTileAcquireNanos, nanos);
-    }
-
     static void recordWorldTileDraw(long nanos) {
         CURRENT.worldTileDrawNanos += nanos;
         CURRENT.maxWorldTileDrawNanos = Math.max(CURRENT.maxWorldTileDrawNanos, nanos);
@@ -199,10 +194,6 @@ final class WorldMapDebugProfiler {
 
     static void recordTileDraw() {
         CURRENT.tileDraws++;
-    }
-
-    static void recordVisitBudgetExhausted() {
-        CURRENT.visitBudgetExhausted++;
     }
 
     static void recordDrawBudgetExhausted() {
@@ -372,7 +363,6 @@ final class WorldMapDebugProfiler {
         return metrics.pendingRegionLoads >= HIGH_PENDING_REGION_LOADS
                 || metrics.pendingLodTiles >= HIGH_PENDING_LOD_TILES
                 || metrics.pendingRegionSaves >= HIGH_PENDING_REGION_SAVES
-                || metrics.visitBudgetExhausted > 0
                 || metrics.drawBudgetExhausted > 0
                 || metrics.failedRegionLoads > 0
                 || metrics.failedRegionLoadCompletions > 0
@@ -507,8 +497,6 @@ final class WorldMapDebugProfiler {
         private long tileRenderNanos;
         private long framebufferBlitNanos;
         private long regionPrefetchNanos;
-        private long tileAcquireNanos;
-        private long maxTileAcquireNanos;
         private long worldTileDrawNanos;
         private long maxWorldTileDrawNanos;
         private long lodTrimNanos;
@@ -535,7 +523,6 @@ final class WorldMapDebugProfiler {
         private int visibleTiles;
         private int tileVisits;
         private int tileDraws;
-        private int visitBudgetExhausted;
         private int drawBudgetExhausted;
         private int uploadBudgetExhausted;
         private int textureUploads;
@@ -579,8 +566,6 @@ final class WorldMapDebugProfiler {
             tileRenderNanos = 0L;
             framebufferBlitNanos = 0L;
             regionPrefetchNanos = 0L;
-            tileAcquireNanos = 0L;
-            maxTileAcquireNanos = 0L;
             worldTileDrawNanos = 0L;
             maxWorldTileDrawNanos = 0L;
             lodTrimNanos = 0L;
@@ -607,7 +592,6 @@ final class WorldMapDebugProfiler {
             visibleTiles = 0;
             tileVisits = 0;
             tileDraws = 0;
-            visitBudgetExhausted = 0;
             drawBudgetExhausted = 0;
             uploadBudgetExhausted = 0;
             textureUploads = 0;
@@ -671,7 +655,6 @@ final class WorldMapDebugProfiler {
             if (pendingRegionLoads >= HIGH_PENDING_REGION_LOADS) reasons.add("regionBacklog=" + pendingRegionLoads);
             if (pendingLodTiles >= HIGH_PENDING_LOD_TILES) reasons.add("lodBacklog=" + pendingLodTiles);
             if (pendingRegionSaves >= HIGH_PENDING_REGION_SAVES) reasons.add("saveBacklog=" + pendingRegionSaves);
-            if (visitBudgetExhausted > 0) reasons.add("visitBudgetHit=" + visitBudgetExhausted);
             if (drawBudgetExhausted > 0) reasons.add("drawBudgetHit=" + drawBudgetExhausted);
             if (uploadBudgetExhausted > 0 && hasRenderTimingSpike(this)) {
                 reasons.add("uploadBudgetHit=" + uploadBudgetExhausted);
@@ -716,22 +699,21 @@ final class WorldMapDebugProfiler {
         private String toLogLine() {
             return String.format(Locale.ROOT,
                     "scale %.3f fbo %.3fx%.3f root L%d | render %s begin %s tiles %s blit %s " +
-                            "tileParts prefetch %s acquire %s/max %s draw %s/max %s trim %s uploads %d/%s max %s new/update %d/%d | " +
+                            "tileParts prefetch %s draw %s/max %s trim %s uploads %d/%s max %s new/update %d/%d | " +
                             "update %s (%s) chunks %d queue %d/%d chunkParts work %s finalize %s write %s lodInvalidate %s " +
                             "gc render %d/%dms update %d/%dms alloc render %s update %s | " +
-                            "visible %d visits %d draws %d budgets v/d/u %d/%d/%d | missing %d fallback %d childSub %d | " +
+                            "visible %d visits %d draws %d budgets draw/upload %d/%d | missing %d fallback %d childSub %d | " +
                             "lod %d pending %d sched %d | regions %d pending %d saves %d failed %d loads %d/%d complete %d failedComplete %d | " +
                             "view %.0f,%.0f -> %.0f,%.0f %dx%d | mem %s tileImages~%s",
                     scale, fboScale, secondaryScale, rootLevel,
                     ms(totalRenderNanos), ms(framebufferBeginNanos), ms(tileRenderNanos), ms(framebufferBlitNanos),
-                    ms(regionPrefetchNanos), ms(tileAcquireNanos), ms(maxTileAcquireNanos),
-                    ms(worldTileDrawNanos), ms(maxWorldTileDrawNanos), ms(lodTrimNanos),
+                    ms(regionPrefetchNanos), ms(worldTileDrawNanos), ms(maxWorldTileDrawNanos), ms(lodTrimNanos),
                     textureUploads, ms(textureUploadNanos), ms(maxTextureUploadNanos), texturePublishes, textureUpdates,
                     ms(tileUpdateNanos), phaseLine(this), chunkUpdates, chunkQueueSize, queuedChunkCount,
                     ms(chunkWorkNanos), ms(chunkFinalizeNanos), ms(chunkRegionWriteNanos), ms(chunkLodInvalidateNanos),
                     renderGcCount, renderGcMillis, tileUpdateGcCount, tileUpdateGcMillis,
                     allocatedMb(renderAllocatedBytes), allocatedMb(tileUpdateAllocatedBytes),
-                    visibleTiles, tileVisits, tileDraws, visitBudgetExhausted, drawBudgetExhausted, uploadBudgetExhausted,
+                    visibleTiles, tileVisits, tileDraws, drawBudgetExhausted, uploadBudgetExhausted,
                     missingTiles, missingFallbacks, childSubstitutions,
                     lodTileCount, pendingLodTiles, lodSchedules,
                     loadedRegions, pendingRegionLoads, pendingRegionSaves, failedRegionLoads,

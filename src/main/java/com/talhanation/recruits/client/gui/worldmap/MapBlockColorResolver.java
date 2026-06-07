@@ -25,9 +25,7 @@ final class MapBlockColorResolver {
     private static final int DEFAULT_TINT_INDEX = 0;
     private static final Object TEXTURE_COLOR_LOCK = new Object();
     private static final Map<BlockState, TextureColor> TEXTURE_COLOR_CACHE = new IdentityHashMap<>();
-    private static final Map<BlockState, Boolean> PENDING_TEXTURE_COLORS = new IdentityHashMap<>();
     private static final Map<TextureAtlasSprite, Integer> SPRITE_RGB_CACHE = new IdentityHashMap<>();
-    private static int textureCacheGeneration;
     private static volatile TextureAtlasSprite missingSprite;
 
     private MapBlockColorResolver() {
@@ -55,37 +53,9 @@ final class MapBlockColorResolver {
     static void clearCaches() {
         synchronized (TEXTURE_COLOR_LOCK) {
             TEXTURE_COLOR_CACHE.clear();
-            PENDING_TEXTURE_COLORS.clear();
             SPRITE_RGB_CACHE.clear();
-            textureCacheGeneration++;
             missingSprite = null;
         }
-    }
-
-    static boolean hasCachedTextureColor(BlockState state) {
-        synchronized (TEXTURE_COLOR_LOCK) {
-            return TEXTURE_COLOR_CACHE.containsKey(state);
-        }
-    }
-
-    static void requestTextureColor(BlockState state) {
-        int generation;
-        synchronized (TEXTURE_COLOR_LOCK) {
-            if (TEXTURE_COLOR_CACHE.containsKey(state) || PENDING_TEXTURE_COLORS.containsKey(state)) return;
-
-            PENDING_TEXTURE_COLORS.put(state, Boolean.TRUE);
-            generation = textureCacheGeneration;
-        }
-
-        WorldMapAsync.warmBlockColor(() -> {
-            TextureColor result = computeTextureColor(state);
-            synchronized (TEXTURE_COLOR_LOCK) {
-                PENDING_TEXTURE_COLORS.remove(state);
-                if (textureCacheGeneration == generation) {
-                    TEXTURE_COLOR_CACHE.put(state, result);
-                }
-            }
-        });
     }
 
     static int resolveWaterNativeColor(MapSample sample, MapSample floor, int shoreNeighbors, int relief) {
@@ -141,7 +111,6 @@ final class MapBlockColorResolver {
         TextureColor result = computeTextureColor(state);
         synchronized (TEXTURE_COLOR_LOCK) {
             TEXTURE_COLOR_CACHE.put(state, result);
-            PENDING_TEXTURE_COLORS.remove(state);
         }
         WorldMapBuildProfiler.recordTextureColorMiss(
                 System.nanoTime() - startNanos,

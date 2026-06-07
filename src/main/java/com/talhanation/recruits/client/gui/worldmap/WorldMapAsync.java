@@ -40,8 +40,6 @@ final class WorldMapAsync {
             new PriorityBlockingQueue<>(),
             namedDaemonFactory("recruits-worldmap-chunk")
     );
-    private static final ThreadPoolExecutor COLOR_RESOLVE_EXECUTOR =
-            singleThreadExecutor("recruits-worldmap-color");
 
     private WorldMapAsync() {
     }
@@ -51,7 +49,6 @@ final class WorldMapAsync {
         REGION_SAVE_EXECUTOR.prestartAllCoreThreads();
         RENDER_TILE_EXECUTOR.prestartAllCoreThreads();
         CHUNK_BUILD_EXECUTOR.prestartAllCoreThreads();
-        COLOR_RESOLVE_EXECUTOR.prestartAllCoreThreads();
     }
 
     static CompletableFuture<WorldMapRegionPixels> loadRegion(String detail, boolean urgent, long generation,
@@ -136,10 +133,6 @@ final class WorldMapAsync {
         });
         CHUNK_BUILD_EXECUTOR.execute(task);
         return future;
-    }
-
-    static void warmBlockColor(Runnable task) {
-        COLOR_RESOLVE_EXECUTOR.execute(task);
     }
 
     private static <T> CompletableFuture<T> timedTask(String type, String detail, Supplier<T> supplier,

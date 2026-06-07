@@ -22,18 +22,15 @@ import java.util.List;
 import java.util.Map;
 
 final class WorldMapRenderer {
-    static final boolean ENABLE_ZOOM_OUT_LOD = true;
     private static final MapFramebufferPass FRAMEBUFFER_PASS = new MapFramebufferPass();
     private static final int MAX_VISIBLE_TEXTURE_LEVEL = WorldMapRenderTileKey.MAX_LEVEL;
     private static final double FIRST_LOD_SCALE_THRESHOLD = 0.22;
     private static final double SECOND_LOD_SCALE_THRESHOLD = 0.11;
-    private static final int PREFETCH_TILE_MARGIN = 0;
-    private static final int MAX_TILE_DRAWS_PER_FRAME = ENABLE_ZOOM_OUT_LOD ? 768 : 1536;
+    private static final int MAX_TILE_DRAWS_PER_FRAME = 768;
 
     private final WorldMapTileManager tileManager;
     private final WorldMapRenderTileCache renderTileCache;
     private final List<VisibleTile> visibleTiles = new ArrayList<>();
-    private final List<VisibleTile> preparedTiles = new ArrayList<>();
     private final List<WorldMapRenderTileKey> preparedTileKeys = new ArrayList<>();
     private final Map<ResourceLocation, DrawBatch> drawBatches = new LinkedHashMap<>();
     private int visibleLevel = -1;
@@ -75,7 +72,6 @@ final class WorldMapRenderer {
 
     void close() {
         visibleTiles.clear();
-        preparedTiles.clear();
         preparedTileKeys.clear();
         drawBatches.clear();
     }
@@ -117,8 +113,7 @@ final class WorldMapRenderer {
         try {
             for (VisibleTile visibleTile : visible) {
                 WorldMapDebugProfiler.recordTileVisit();
-                if (!renderBestAvailable(guiGraphics, visibleTile.key(), frame, budget, measureDetails,
-                        allowParentFallback)) {
+                if (!renderBestAvailable(visibleTile.key(), budget, allowParentFallback)) {
                     WorldMapDebugProfiler.recordMissingTile();
                 }
             }
@@ -130,19 +125,16 @@ final class WorldMapRenderer {
         }
     }
 
-    private boolean renderBestAvailable(GuiGraphics guiGraphics, WorldMapRenderTileKey requested,
-                                        MapFramebufferPass.Frame frame, RenderBudget budget,
-                                        boolean measureDetails, boolean allowParentFallback) {
+    private boolean renderBestAvailable(WorldMapRenderTileKey requested, RenderBudget budget,
+                                        boolean allowParentFallback) {
         WorldMapRenderTileCache.TileView best = renderTileCache.findBestAvailable(requested, allowParentFallback);
         if (best != null) {
-            return renderTile(guiGraphics, requested, best, frame, budget, measureDetails);
+            return renderTile(requested, best, budget);
         }
-        return renderAvailableChildren(guiGraphics, requested, frame, budget, measureDetails);
+        return renderAvailableChildren(requested, budget);
     }
 
-    private boolean renderAvailableChildren(GuiGraphics guiGraphics, WorldMapRenderTileKey parent,
-                                            MapFramebufferPass.Frame frame, RenderBudget budget,
-                                            boolean measureDetails) {
+    private boolean renderAvailableChildren(WorldMapRenderTileKey parent, RenderBudget budget) {
         if (parent.level() <= 0) return false;
 
         boolean rendered = false;
@@ -151,9 +143,9 @@ final class WorldMapRenderer {
                 WorldMapRenderTileKey child = parent.child(childX, childZ);
                 WorldMapRenderTileCache.TileView exact = renderTileCache.findExact(child);
                 if (exact != null) {
-                    rendered |= renderTile(guiGraphics, child, exact, frame, budget, measureDetails);
+                    rendered |= renderTile(child, exact, budget);
                 } else {
-                    rendered |= renderAvailableChildren(guiGraphics, child, frame, budget, measureDetails);
+                    rendered |= renderAvailableChildren(child, budget);
                 }
             }
         }
@@ -161,9 +153,7 @@ final class WorldMapRenderer {
         return rendered;
     }
 
-    private boolean renderTile(GuiGraphics guiGraphics, WorldMapRenderTileKey key,
-                               WorldMapRenderTileCache.TileView tile, MapFramebufferPass.Frame frame,
-                               RenderBudget budget, boolean measureDetails) {
+    private boolean renderTile(WorldMapRenderTileKey key, WorldMapRenderTileCache.TileView tile, RenderBudget budget) {
         return queueTile(key, tile, budget);
     }
 
@@ -195,7 +185,6 @@ final class WorldMapRenderer {
         visibleCenterX = centerX;
         visibleCenterZ = centerZ;
         visibleTiles.clear();
-        preparedTiles.clear();
         preparedTileKeys.clear();
         for (int tileZ = startZ; tileZ <= endZ; tileZ++) {
             for (int tileX = startX; tileX <= endX; tileX++) {
@@ -204,21 +193,14 @@ final class WorldMapRenderer {
             }
         }
         visibleTiles.sort(Comparator.comparingDouble(VisibleTile::centerDistance));
-        for (int tileZ = startZ - PREFETCH_TILE_MARGIN; tileZ <= endZ + PREFETCH_TILE_MARGIN; tileZ++) {
-            for (int tileX = startX - PREFETCH_TILE_MARGIN; tileX <= endX + PREFETCH_TILE_MARGIN; tileX++) {
-                WorldMapRenderTileKey key = new WorldMapRenderTileKey(level, tileX, tileZ);
-                preparedTiles.add(new VisibleTile(key, distanceToCenter(key, centerWorldX, centerWorldZ)));
-            }
-        }
-        preparedTiles.sort(Comparator.comparingDouble(VisibleTile::centerDistance));
-        for (VisibleTile preparedTile : preparedTiles) {
-            preparedTileKeys.add(preparedTile.key());
+        for (VisibleTile visibleTile : visibleTiles) {
+            preparedTileKeys.add(visibleTile.key());
         }
         return visibleTiles;
     }
 
     private static int selectTextureLevel(double scale) {
-        if (!ENABLE_ZOOM_OUT_LOD || scale >= 1.0) return 0;
+        if (scale >= 1.0) return 0;
         if (scale >= FIRST_LOD_SCALE_THRESHOLD) return 0;
         if (scale >= SECOND_LOD_SCALE_THRESHOLD) return Math.min(1, MAX_VISIBLE_TEXTURE_LEVEL);
         return MAX_VISIBLE_TEXTURE_LEVEL;

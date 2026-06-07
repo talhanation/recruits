@@ -8,10 +8,6 @@ import net.minecraft.world.level.levelgen.Heightmap;
 final class ChunkImageBuilder {
     private static final int PIXEL_COUNT = 16 * 16;
     private static final int COLOR_SAMPLE_COUNT = PIXEL_COUNT * 2;
-    private static final int MAX_SAMPLE_COLUMNS_PER_ADVANCE = 8;
-    private static final int MAX_COLOR_SAMPLES_PER_ADVANCE = 16;
-    private static final int MAX_RENDER_PIXELS_PER_ADVANCE = 24;
-    private static final long MAX_ADVANCE_SLICE_NANOS = 350_000L;
 
     private final ChunkSamplingContext context;
     private final int chunkX;
@@ -33,11 +29,9 @@ final class ChunkImageBuilder {
     private int activeSampleMinY;
     private int activeUnderlayChecksLeft;
     private SampleStage sampleStage = SampleStage.SURFACE;
-    private ChunkBuildResult result;
     private volatile boolean canceled;
-    private volatile boolean buildingFully;
+    private volatile boolean building;
     private boolean scratchReleased;
-    private boolean deferExpensiveWork = true;
 
     private ChunkImageBuilder(ChunkSamplingContext context, int chunkX, int chunkZ, long chunkKey) {
         this.context = context;
@@ -53,72 +47,40 @@ final class ChunkImageBuilder {
         return new ChunkImageBuilder(context, chunkX, chunkZ, chunkKey);
     }
 
-    void advance(long deadlineNanos) {
-        if (result != null || canceled) return;
-
-        long nowNanos = System.nanoTime();
-        if (nowNanos >= deadlineNanos) return;
-        long sliceDeadlineNanos = Math.min(deadlineNanos, nowNanos + MAX_ADVANCE_SLICE_NANOS);
-
+    ChunkBuildResult buildFully() {
+        if (canceled) return null;
+        building = true;
         WorldMapBuildProfiler.beginChunk(chunkX, chunkZ);
         try {
-            long phaseStartNanos = nowNanos;
-            sampleColumns(sliceDeadlineNanos);
+            long phaseStartNanos = System.nanoTime();
+            sampleColumns();
             WorldMapBuildProfiler.recordSamplePhase(System.nanoTime() - phaseStartNanos);
-
-            if (sampleIndex < ChunkBuildScratch.SAMPLE_COUNT || System.nanoTime() >= sliceDeadlineNanos) return;
+            if (canceled || sampleIndex < ChunkBuildScratch.SAMPLE_COUNT) return null;
 
             phaseStartNanos = System.nanoTime();
-            prepareColors(sliceDeadlineNanos);
+            prepareColors();
             WorldMapBuildProfiler.recordColorPreparePhase(System.nanoTime() - phaseStartNanos);
-
-            if (colorPrepareIndex < COLOR_SAMPLE_COUNT || System.nanoTime() >= sliceDeadlineNanos) return;
+            if (canceled || colorPrepareIndex < COLOR_SAMPLE_COUNT) return null;
 
             phaseStartNanos = System.nanoTime();
-            renderPixels(sliceDeadlineNanos);
+            renderPixels();
             WorldMapBuildProfiler.recordRenderPhase(System.nanoTime() - phaseStartNanos);
+            if (canceled || pixelIndex < PIXEL_COUNT) return null;
 
-            if (pixelIndex >= PIXEL_COUNT) {
-                result = new ChunkBuildResult(chunkX, chunkZ, chunkKey, pixels);
-                releaseScratch();
-            }
+            return new ChunkBuildResult(chunkX, chunkZ, chunkKey, pixels);
         } finally {
+            building = false;
+            activeSampleChunk = null;
+            releaseScratch();
             WorldMapBuildProfiler.finishChunk();
         }
     }
 
-    boolean isDone() {
-        return result != null;
-    }
-
     void cancel() {
         canceled = true;
-        if (!buildingFully) {
+        if (!building) {
             activeSampleChunk = null;
             releaseScratch();
-        }
-    }
-
-    ChunkBuildResult result() {
-        return result;
-    }
-
-    ChunkBuildResult buildFully() {
-        boolean previousDeferExpensiveWork = deferExpensiveWork;
-        deferExpensiveWork = false;
-        buildingFully = true;
-        try {
-            while (!canceled && result == null) {
-                advance(Long.MAX_VALUE);
-            }
-            return result;
-        } finally {
-            buildingFully = false;
-            deferExpensiveWork = previousDeferExpensiveWork;
-            if (canceled && result == null) {
-                activeSampleChunk = null;
-                releaseScratch();
-            }
         }
     }
 
@@ -128,30 +90,20 @@ final class ChunkImageBuilder {
         scratch.release();
     }
 
-    private void sampleColumns(long deadlineNanos) {
+    private void sampleColumns() {
         MapSample[] surfaces = scratch.surfaceSamples();
         MapSample[] underlays = scratch.underlaySamples();
-        int sampledColumns = 0;
-        while (sampleIndex < ChunkBuildScratch.SAMPLE_COUNT
-                && sampledColumns < MAX_SAMPLE_COLUMNS_PER_ADVANCE
-                && System.nanoTime() < deadlineNanos) {
-            int sampleIndexBefore = sampleIndex;
+        while (sampleIndex < ChunkBuildScratch.SAMPLE_COUNT && !canceled) {
             if (activeSampleChunk == null && !beginSampleColumn(surfaces[sampleIndex], underlays[sampleIndex])) {
                 sampleIndex++;
-                sampledColumns++;
-                if (System.nanoTime() >= deadlineNanos) return;
                 continue;
             }
 
             while (activeSampleY >= activeSampleMinY) {
                 samplePos.set(activeSampleWorldX, activeSampleY, activeSampleWorldZ);
                 BlockState state = activeSampleChunk.getBlockState(samplePos);
-                if (deferExpensiveWork && MapStateSampler.needsTraitWarmup(state)) {
-                    MapStateSampler.requestTraitWarmup(state);
-                    return;
-                }
                 if (sampleStage == SampleStage.SURFACE) {
-                    if (MapStateSampler.isRenderableMapState(context.level(), samplePos, state)) {
+                    if (MapStateSampler.isRenderableMapState(state)) {
                         MapSample surface = surfaces[sampleIndex];
                         surface.set(activeSampleWorldX, activeSampleWorldZ, state, activeSampleY);
                         if (!beginUnderlayScan(surface)) {
@@ -174,16 +126,12 @@ final class ChunkImageBuilder {
                         break;
                     }
                 }
-                if (System.nanoTime() >= deadlineNanos) return;
+                if (canceled) return;
             }
 
             if (activeSampleChunk != null && activeSampleY < activeSampleMinY) {
                 finishSampleColumn();
             }
-            if (sampleIndex > sampleIndexBefore) {
-                sampledColumns += sampleIndex - sampleIndexBefore;
-            }
-            if (System.nanoTime() >= deadlineNanos) return;
         }
     }
 
@@ -221,7 +169,7 @@ final class ChunkImageBuilder {
         if (surface.isWaterLike()) {
             sampleStage = SampleStage.WATER_UNDERLAY;
             activeUnderlayChecksLeft = 16;
-        } else if (MapStateSampler.isTransparentOverlay(context.level(), samplePos, surface.state())) {
+        } else if (MapStateSampler.isTransparentOverlay(surface.state())) {
             surface.setTransparentOverlay(true);
             sampleStage = SampleStage.TRANSPARENT_UNDERLAY;
             activeUnderlayChecksLeft = 32;
@@ -237,12 +185,12 @@ final class ChunkImageBuilder {
         if (sampleStage == SampleStage.WATER_UNDERLAY) {
             return !state.isAir()
                     && !MapStateSampler.isWaterLike(state)
-                    && MapStateSampler.isRenderableMapState(context.level(), samplePos, state);
+                    && MapStateSampler.isRenderableMapState(state);
         }
         return !state.isAir()
-                && !MapStateSampler.isTransparentOverlay(context.level(), samplePos, state)
+                && !MapStateSampler.isTransparentOverlay(state)
                 && (MapStateSampler.isWaterLike(state)
-                || MapStateSampler.isRenderableMapState(context.level(), samplePos, state));
+                || MapStateSampler.isRenderableMapState(state));
     }
 
     private void finishSampleColumn() {
@@ -252,13 +200,10 @@ final class ChunkImageBuilder {
         sampleIndex++;
     }
 
-    private void renderPixels(long deadlineNanos) {
+    private void renderPixels() {
         MapSample[] surfaces = scratch.surfaceSamples();
         MapSample[] underlays = scratch.underlaySamples();
-        int renderedPixels = 0;
-        while (pixelIndex < PIXEL_COUNT
-                && renderedPixels < MAX_RENDER_PIXELS_PER_ADVANCE
-                && System.nanoTime() < deadlineNanos) {
+        while (pixelIndex < PIXEL_COUNT && !canceled) {
             int x = pixelIndex % 16;
             int z = pixelIndex / 16;
             int sampleCenter = (x + 1) * ChunkBuildScratch.SAMPLE_GRID_SIZE + z + 1;
@@ -293,22 +238,13 @@ final class ChunkImageBuilder {
 
             pixels[pixelIndex] = color;
             pixelIndex++;
-            renderedPixels++;
-            if (System.nanoTime() >= deadlineNanos) return;
         }
     }
 
-    private void prepareColors(long deadlineNanos) {
-        int preparedColors = 0;
-        while (colorPrepareIndex < COLOR_SAMPLE_COUNT
-                && preparedColors < MAX_COLOR_SAMPLES_PER_ADVANCE
-                && System.nanoTime() < deadlineNanos) {
+    private void prepareColors() {
+        while (colorPrepareIndex < COLOR_SAMPLE_COUNT && !canceled) {
             MapSample sample = colorSample(colorPrepareIndex);
             if (sample.isPresent()) {
-                if (deferExpensiveWork && !MapBlockColorResolver.hasCachedTextureColor(sample.state())) {
-                    MapBlockColorResolver.requestTextureColor(sample.state());
-                    return;
-                }
                 samplePos.set(sample.x(), sample.height(), sample.z());
                 sample.setBaseRgb(MapBlockColorResolver.resolveBaseRgb(
                         context,
@@ -318,8 +254,6 @@ final class ChunkImageBuilder {
                 ));
             }
             colorPrepareIndex++;
-            preparedColors++;
-            if (System.nanoTime() >= deadlineNanos) return;
         }
     }
 
