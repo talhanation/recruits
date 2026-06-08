@@ -33,6 +33,8 @@ public class MessageUpdateClaim implements Message<MessageUpdateClaim> {
         RecruitsClaim updatedClaim = RecruitsClaim.fromNBT(this.claimNBT);
         if(!RecruitsServerConfig.AllowClaiming.get()) return;
         if(context.getSender().level().dimension() != Level.OVERWORLD) return;
+        if (!updatedClaim.isRemoved
+                && updatedClaim.getClaimedChunks().size() > RecruitsServerConfig.MaxClaimChunks.get()) return;
 
         ClaimEvents.recruitsClaimManager.addOrUpdateClaim((ServerLevel) context.getSender().getCommandSenderWorld(), updatedClaim);
     }

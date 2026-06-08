@@ -24,6 +24,7 @@ public class ClientManager {
     public static Map<UUID, String> embargoMap = new HashMap<>();
     public static int configValueClaimCost;
     public static int configValueChunkCost;
+    public static int configValueMaxClaimChunks = RecruitsClaim.DEFAULT_MAX_SIZE;
     public static boolean configValueCascadeClaimCost;
     public static ItemStack currencyItemStack;
     public static boolean isFactionEditingAllowed;

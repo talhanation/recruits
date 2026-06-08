@@ -2,6 +2,7 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.api.ClientClaimEvent;
+import com.talhanation.recruits.client.gui.worldmap.claim.WorldMapClaimIndex;
 import com.talhanation.recruits.world.RecruitsClaim;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
@@ -39,6 +40,7 @@ public class MessageToClientUpdateClaim implements Message<MessageToClientUpdate
             RecruitsClaim existing = ClientManager.recruitsClaims.get(i);
             if (existing.getUUID().equals(newClaim.getUUID())) {
                 ClientManager.recruitsClaims.set(i, newClaim);
+                WorldMapClaimIndex.invalidate();
 
                 boolean isCurrentClaim = ClientManager.currentClaim != null
                         && ClientManager.currentClaim.getUUID().equals(newClaim.getUUID());
@@ -56,6 +58,7 @@ public class MessageToClientUpdateClaim implements Message<MessageToClientUpdate
         }
 
         ClientManager.recruitsClaims.add(newClaim);
+        WorldMapClaimIndex.invalidate();
         ClientManager.updateActiveSiege(newClaim);
         MinecraftForge.EVENT_BUS.post(
                 new ClientClaimEvent.DataUpdated(newClaim, false));

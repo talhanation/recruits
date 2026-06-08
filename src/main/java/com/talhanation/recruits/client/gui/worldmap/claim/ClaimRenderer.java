@@ -3,17 +3,17 @@ package com.talhanation.recruits.client.gui.worldmap.claim;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.faction.FactionEditScreen;
+import com.talhanation.recruits.client.gui.worldmap.claim.WorldMapClaimController.ClaimPreviewChunk;
 import com.talhanation.recruits.client.gui.worldmap.render.MapRenderUtil;
 import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapCacheManager;
 import com.talhanation.recruits.world.RecruitsClaim;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.level.ChunkPos;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class ClaimRenderer {
 
@@ -65,8 +65,10 @@ public class ClaimRenderer {
     }
 
     public static boolean isClaimExplored(RecruitsClaim claim) {
+        if (claim == null || claim.getClaimedChunks() == null) return false;
         WorldMapCacheManager mapCache = WorldMapCacheManager.getInstance();
         for (ChunkPos chunk : claim.getClaimedChunks()) {
+            if (chunk == null) continue;
             if (mapCache.isChunkExplored(chunk)) return true;
         }
         return false;
@@ -74,13 +76,14 @@ public class ClaimRenderer {
 
     private static void renderClaimFill(
             GuiGraphics guiGraphics, RecruitsClaim claim, double offsetX, double offsetZ, double scale) {
-        if (claim.getClaimedChunks().isEmpty()) return;
+        if (claim == null || claim.getClaimedChunks() == null || claim.getClaimedChunks().isEmpty()) return;
 
         int factionFillColor = (190 << 24) | (getClaimColor(claim) & 0x00FFFFFF);
         boolean adminCreative = isAdminCreative();
         WorldMapCacheManager mapCache = WorldMapCacheManager.getInstance();
 
         for (ChunkPos chunk : claim.getClaimedChunks()) {
+            if (chunk == null) continue;
             boolean explored = adminCreative || mapCache.isChunkExplored(chunk);
             renderChunk(
                     guiGraphics,
@@ -99,6 +102,8 @@ public class ClaimRenderer {
             double offsetX,
             double offsetZ,
             double scale) {
+        if (chunk == null) return;
+
         double worldX = chunk.x * 16.0;
         double worldZ = chunk.z * 16.0;
 
@@ -112,9 +117,12 @@ public class ClaimRenderer {
 
     private static void renderClaimPassiveOutline(
             GuiGraphics guiGraphics, RecruitsClaim claim, double offsetX, double offsetZ, double scale) {
-        if (claim.getClaimedChunks().isEmpty()) return;
+        if (claim == null || claim.getClaimedChunks() == null || claim.getClaimedChunks().isEmpty()) return;
 
-        Set<ChunkPos> chunkSet = new HashSet<>(claim.getClaimedChunks());
+        LongOpenHashSet chunkSet = new LongOpenHashSet(claim.getClaimedChunks().size());
+        for (ChunkPos chunk : claim.getClaimedChunks()) {
+            if (chunk != null) chunkSet.add(WorldMapClaimIndex.chunkKey(chunk));
+        }
 
         int factionOutlineColor = (200 << 24) | (getClaimColor(claim) & 0x00FFFFFF);
         int thickness = Math.max(1, (int) Math.round(scale * 0.5));
@@ -122,14 +130,15 @@ public class ClaimRenderer {
         WorldMapCacheManager mapCache = WorldMapCacheManager.getInstance();
 
         for (ChunkPos chunk : claim.getClaimedChunks()) {
+            if (chunk == null) continue;
             boolean explored =
                     adminCreative || !ClientManager.configFogOfWarEnabled || mapCache.isChunkExplored(chunk);
             int outlineColor = explored ? factionOutlineColor : FOG_OUTLINE_COLOR;
 
-            boolean hasTop = chunkSet.contains(new ChunkPos(chunk.x, chunk.z - 1));
-            boolean hasBottom = chunkSet.contains(new ChunkPos(chunk.x, chunk.z + 1));
-            boolean hasLeft = chunkSet.contains(new ChunkPos(chunk.x - 1, chunk.z));
-            boolean hasRight = chunkSet.contains(new ChunkPos(chunk.x + 1, chunk.z));
+            boolean hasTop = chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x, chunk.z - 1));
+            boolean hasBottom = chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x, chunk.z + 1));
+            boolean hasLeft = chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x - 1, chunk.z));
+            boolean hasRight = chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x + 1, chunk.z));
 
             double worldX1 = chunk.x * 16.0;
             double worldZ1 = chunk.z * 16.0;
@@ -156,21 +165,22 @@ public class ClaimRenderer {
 
     private static void renderClaimSelectedOutline(
             GuiGraphics guiGraphics, RecruitsClaim claim, double offsetX, double offsetZ, double scale) {
-        if (claim.getClaimedChunks().isEmpty()) return;
+        if (claim == null || claim.getClaimedChunks() == null || claim.getClaimedChunks().isEmpty()) return;
 
-        Set<String> chunkSet = new HashSet<>();
+        LongOpenHashSet chunkSet = new LongOpenHashSet(claim.getClaimedChunks().size());
         for (ChunkPos chunk : claim.getClaimedChunks()) {
-            chunkSet.add(chunk.x + "," + chunk.z);
+            if (chunk != null) chunkSet.add(WorldMapClaimIndex.chunkKey(chunk));
         }
 
         int borderColor = 0xFFFFFFFF;
         int borderThickness = Math.max(1, (int) (2 * scale / 2.0));
 
         for (ChunkPos chunk : claim.getClaimedChunks()) {
-            boolean hasTop = chunkSet.contains(chunk.x + "," + (chunk.z - 1));
-            boolean hasBottom = chunkSet.contains(chunk.x + "," + (chunk.z + 1));
-            boolean hasLeft = chunkSet.contains((chunk.x - 1) + "," + chunk.z);
-            boolean hasRight = chunkSet.contains((chunk.x + 1) + "," + chunk.z);
+            if (chunk == null) continue;
+            boolean hasTop = chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x, chunk.z - 1));
+            boolean hasBottom = chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x, chunk.z + 1));
+            boolean hasLeft = chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x - 1, chunk.z));
+            boolean hasRight = chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x + 1, chunk.z));
 
             if (hasTop && hasBottom && hasLeft && hasRight) {
                 continue;
@@ -203,7 +213,8 @@ public class ClaimRenderer {
 
     public static void renderClaimName(
             GuiGraphics guiGraphics, RecruitsClaim claim, double offsetX, double offsetZ, double scale) {
-        if (claim.getClaimedChunks().isEmpty() || scale < 1.0) return;
+        if (claim == null || claim.getClaimedChunks() == null || claim.getClaimedChunks().isEmpty() || scale < 1.0)
+            return;
 
         boolean explored =
                 !ClientManager.configFogOfWarEnabled || isAdminCreative() || isClaimExplored(claim);
@@ -218,11 +229,13 @@ public class ClaimRenderer {
         int maxZ = Integer.MIN_VALUE;
 
         for (ChunkPos pos : claim.getClaimedChunks()) {
+            if (pos == null) continue;
             minX = Math.min(minX, pos.x);
             maxX = Math.max(maxX, pos.x);
             minZ = Math.min(minZ, pos.z);
             maxZ = Math.max(maxZ, pos.z);
         }
+        if (minX == Integer.MAX_VALUE) return;
 
         double centerWorldX = (minX + maxX + 1) * 16.0 / 2.0;
         double centerWorldZ = (minZ + maxZ + 1) * 16.0 / 2.0;
@@ -249,10 +262,12 @@ public class ClaimRenderer {
     }
 
     public static int getClaimColor(RecruitsClaim claim) {
-        if (claim.getOwnerFaction() == null) return 0xFF888888;
+        if (claim == null || claim.getOwnerFaction() == null) return 0xFF888888;
 
-        byte colorKey = claim.getOwnerFaction().getUnitColor();
-        return FactionEditScreen.unitColors.get(colorKey).getRGB();
+        int colorKey = claim.getOwnerFaction().getUnitColor();
+        if (colorKey < 0 || colorKey >= FactionEditScreen.unitColors.size()) return 0xFF888888;
+        java.awt.Color color = FactionEditScreen.unitColors.get(colorKey);
+        return color == null ? 0xFF888888 : color.getRGB();
     }
 
     public static RecruitsClaim getClaimAtPosition(
@@ -262,35 +277,32 @@ public class ClaimRenderer {
 
         int chunkX = (int) Math.floor(worldX / 16);
         int chunkZ = (int) Math.floor(worldZ / 16);
-        ChunkPos mouseChunk = new ChunkPos(chunkX, chunkZ);
 
-        for (RecruitsClaim claim : ClientManager.recruitsClaims) {
-            if (claim.containsChunk(mouseChunk)) {
-                return claim;
-            }
-        }
-
-        return null;
+        return WorldMapClaimIndex.getClaimAt(chunkX, chunkZ);
     }
 
     public static void renderBufferZone(
             GuiGraphics guiGraphics, double offsetX, double offsetZ, double scale) {
         if (ClientManager.ownFaction == null) return;
-        Set<String> renderedBufferChunks = new HashSet<>();
+        LongOpenHashSet renderedBufferChunks = new LongOpenHashSet();
         int bufferColor = 0x44FF4444;
 
-        Set<String> ownClaimedChunks = new HashSet<>();
+        LongOpenHashSet ownClaimedChunks = new LongOpenHashSet();
         for (RecruitsClaim claim : ClientManager.recruitsClaims) {
-            if (claim.getOwnerFaction() != null
+            if (claim != null
+                    && claim.getOwnerFaction() != null
+                    && claim.getClaimedChunks() != null
                     && claim.getOwnerFaction().getStringID().equals(ClientManager.ownFaction.getStringID())) {
                 for (ChunkPos chunk : claim.getClaimedChunks()) {
-                    ownClaimedChunks.add(chunk.x + "," + chunk.z);
+                    if (chunk != null) ownClaimedChunks.add(WorldMapClaimIndex.chunkKey(chunk));
                 }
             }
         }
 
         for (RecruitsClaim foreignClaim : ClientManager.recruitsClaims) {
-            if (foreignClaim.getOwnerFaction() == null
+            if (foreignClaim == null
+                    || foreignClaim.getOwnerFaction() == null
+                    || foreignClaim.getClaimedChunks() == null
                     || foreignClaim
                             .getOwnerFaction()
                             .getStringID()
@@ -299,6 +311,7 @@ public class ClaimRenderer {
             }
 
             for (ChunkPos claimChunk : foreignClaim.getClaimedChunks()) {
+                if (claimChunk == null) continue;
                 for (int dx = -3; dx <= 3; dx++) {
                     for (int dz = -3; dz <= 3; dz++) {
 
@@ -306,7 +319,7 @@ public class ClaimRenderer {
 
                         int bufferX = claimChunk.x + dx;
                         int bufferZ = claimChunk.z + dz;
-                        String chunkKey = bufferX + "," + bufferZ;
+                        long chunkKey = WorldMapClaimIndex.chunkKey(bufferX, bufferZ);
 
                         if (renderedBufferChunks.contains(chunkKey)) continue;
 
@@ -319,6 +332,20 @@ public class ClaimRenderer {
                     }
                 }
             }
+        }
+    }
+
+    public static void renderClaimPreview(
+            GuiGraphics guiGraphics,
+            List<ClaimPreviewChunk> previewChunks,
+            double offsetX,
+            double offsetZ,
+            double scale) {
+        if (previewChunks == null || previewChunks.isEmpty()) return;
+
+        for (ClaimPreviewChunk preview : previewChunks) {
+            if (preview == null || preview.chunk() == null || preview.status() == null) continue;
+            renderChunk(guiGraphics, preview.chunk(), preview.status().previewColor(), offsetX, offsetZ, scale);
         }
     }
 

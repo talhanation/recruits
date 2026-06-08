@@ -5,6 +5,7 @@ import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.diplomacy.DiplomacyEditScreen;
 import com.talhanation.recruits.client.gui.worldmap.WorldMapScreen;
 import com.talhanation.recruits.client.gui.worldmap.claim.ClaimEditScreen;
+import com.talhanation.recruits.client.gui.worldmap.claim.WorldMapClaimIndex;
 import com.talhanation.recruits.network.MessageTeleportPlayer;
 import com.talhanation.recruits.network.MessageUpdateClaim;
 import net.minecraft.client.Minecraft;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class WorldMapContextMenu {
 
@@ -63,21 +65,21 @@ public class WorldMapContextMenu {
         );
 
         addEntry(TEXT_CLAIM_CHUNK.getString(),
-                () -> this.worldMapScreen.canClaimChunk(worldMapScreen.selectedChunk())
-                        && (this.worldMapScreen.isPlayerFactionLeader()
-                                || this.worldMapScreen.isPlayerClaimLeader(
-                                        worldMapScreen.getNeighborClaim(worldMapScreen.selectedChunk()))),
+                this.worldMapScreen::canShowClaimChunkEntry,
+                this.worldMapScreen::canExecuteClaimChunkEntry,
                 WorldMapScreen::claimChunk,
                 itemStackClaimChunk,
-                "bufferzone, chunk"
+                "bufferzone, chunk",
+                this.worldMapScreen::getClaimChunkDisabledReason
         );
 
         addEntry(TEXT_CLAIM_AREA.getString(),
-                () -> this.worldMapScreen.canClaimArea(worldMapScreen.getClaimArea(worldMapScreen.selectedChunk()))
-                        && this.worldMapScreen.isPlayerFactionLeader(),
+                this.worldMapScreen::canShowClaimAreaEntry,
+                this.worldMapScreen::canExecuteClaimAreaEntry,
                 WorldMapScreen::claimArea,
                 itemStackClaimArea,
-                "bufferzone, area"
+                "bufferzone, area",
+                this.worldMapScreen::getClaimAreaDisabledReason
         );
 
         addEntry("Add Waypoint",
@@ -121,6 +123,7 @@ public class WorldMapContextMenu {
                 (screen) -> {
                     if (screen.selectedClaim().containsChunk(screen.selectedChunk())) {
                         screen.selectedClaim().removeChunk(screen.selectedChunk());
+                        WorldMapClaimIndex.invalidate();
                         screen.clearSelectedChunk();
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(screen.selectedClaim()));
                     }
@@ -139,6 +142,7 @@ public class WorldMapContextMenu {
                 (screen) -> {
                     if (screen.selectedClaim().containsChunk(screen.selectedChunk())) {
                         screen.selectedClaim().removeChunk(screen.selectedChunk());
+                        WorldMapClaimIndex.invalidate();
                         screen.clearSelectedChunk();
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(screen.selectedClaim()));
                     }
@@ -150,6 +154,7 @@ public class WorldMapContextMenu {
                 () -> this.worldMapScreen.isPlayerAdminAndCreative() && this.worldMapScreen.selectedClaim() != null,
                 (screen) -> {
                     screen.selectedClaim().isRemoved = true;
+                    WorldMapClaimIndex.invalidate();
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(screen.selectedClaim()));
                     screen.clearSelectedClaim();
                 },
@@ -169,15 +174,33 @@ public class WorldMapContextMenu {
             Consumer<WorldMapScreen> action,
             ItemStack itemStack,
             String tag) {
-        entries.add(new ContextMenuEntry(Component.literal(text), condition, action, itemStack, tag));
+        addEntry(text, condition, () -> true, action, itemStack, tag, Component::empty);
+    }
+
+    public void addEntry(
+            String text,
+            BooleanSupplier visibleCondition,
+            BooleanSupplier enabledCondition,
+            Consumer<WorldMapScreen> action,
+            ItemStack itemStack,
+            String tag,
+            Supplier<Component> disabledReason) {
+        entries.add(new ContextMenuEntry(
+                Component.literal(text),
+                visibleCondition,
+                enabledCondition,
+                action,
+                itemStack,
+                tag,
+                disabledReason));
     }
 
     public void addEntry(String text, BooleanSupplier condition, Consumer<WorldMapScreen> action, String tag) {
-        entries.add(new ContextMenuEntry(Component.literal(text), condition, action, ItemStack.EMPTY, tag));
+        addEntry(text, condition, () -> true, action, ItemStack.EMPTY, tag, Component::empty);
     }
 
     public void addEntry(String text, BooleanSupplier condition, Consumer<WorldMapScreen> action) {
-        entries.add(new ContextMenuEntry(Component.literal(text), condition, action, ItemStack.EMPTY, ""));
+        addEntry(text, condition, () -> true, action, ItemStack.EMPTY, "", Component::empty);
     }
 
     public void addEntry(String text, Consumer<WorldMapScreen> action) {
@@ -214,16 +237,21 @@ public class WorldMapContextMenu {
         guiGraphics.renderOutline(x, y, width, height, 0xFF555555);
 
         int entryY = y;
+        ContextMenuEntry hoveredDisabledEntry = null;
         for (ContextMenuEntry entry : entries) {
             if (entry.shouldShow(screen)) {
                 boolean hovered = isMouseOverEntry(x, entryY);
+                boolean enabled = entry.isEnabled(screen);
                 if (hovered) hoveredEntryTag = entry.getTag();
+                if (hovered && !enabled) hoveredDisabledEntry = entry;
 
                 guiGraphics.fill(
                         x, entryY, x + width, entryY + entryHeight, hovered ? 0xFF333333 : 0xFF1A1A1A);
 
                 int textColor;
-                if (entry.getTag().equals("admin")) {
+                if (!enabled) {
+                    textColor = 0xFF777777;
+                } else if (entry.getTag().equals("admin")) {
                     textColor = hovered ? 0xFFFF5555 : 0xFFAA4444;
                 } else {
                     textColor = hovered ? 0xFFFFFF : 0xCCCCCC;
@@ -240,6 +268,10 @@ public class WorldMapContextMenu {
                 entryY += entryHeight;
             }
         }
+
+        if (hoveredDisabledEntry != null) {
+            renderDisabledReason(guiGraphics, screen, hoveredDisabledEntry.getDisabledReason());
+        }
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button, WorldMapScreen screen) {
@@ -252,6 +284,9 @@ public class WorldMapContextMenu {
                         && mouseX <= x + width
                         && mouseY >= entryY
                         && mouseY <= entryY + entryHeight) {
+                    if (!entry.isEnabled(screen)) {
+                        return true;
+                    }
                     entry.execute(screen);
                     close();
                     return true;
@@ -273,14 +308,38 @@ public class WorldMapContextMenu {
                 && mouseY <= entryY + entryHeight;
     }
 
+    private void renderDisabledReason(GuiGraphics guiGraphics, WorldMapScreen screen, Component reason) {
+        if (reason == null || reason.getString().isBlank()) return;
+
+        int padding = 5;
+        int textWidth = screen.getMinecraft().font.width(reason);
+        int tooltipWidth = textWidth + padding * 2;
+        int tooltipHeight = 18;
+        int tooltipX = x + width + 6;
+        if (tooltipX + tooltipWidth > screen.width - 6) {
+            tooltipX = Math.max(6, x - tooltipWidth - 6);
+        }
+        int tooltipY = Math.max(6, Math.min((int) worldMapScreen.mouseY - 8, screen.height - tooltipHeight - 6));
+
+        guiGraphics.fill(tooltipX, tooltipY, tooltipX + tooltipWidth, tooltipY + tooltipHeight, 0xDD101010);
+        guiGraphics.renderOutline(tooltipX, tooltipY, tooltipWidth, tooltipHeight, 0xFF555555);
+        guiGraphics.drawString(screen.getMinecraft().font, reason, tooltipX + padding, tooltipY + 5, 0xFFE0E0E0);
+    }
+
     private record ContextMenuEntry(
             Component text,
-            BooleanSupplier condition,
+            BooleanSupplier visibleCondition,
+            BooleanSupplier enabledCondition,
             Consumer<WorldMapScreen> action,
             ItemStack stack,
-            String tag) {
-        public String getTag() { return tag; }
-        public boolean shouldShow(WorldMapScreen screen) { return condition.getAsBoolean(); }
+            String tag,
+            Supplier<Component> disabledReasonSupplier) {
+        public String getTag() { return tag == null ? "" : tag; }
+        public boolean shouldShow(WorldMapScreen screen) { return visibleCondition.getAsBoolean(); }
+        public boolean isEnabled(WorldMapScreen screen) { return enabledCondition.getAsBoolean(); }
         public void execute(WorldMapScreen screen) { action.accept(screen); }
+        public Component getDisabledReason() {
+            return disabledReasonSupplier == null ? Component.empty() : disabledReasonSupplier.get();
+        }
     }
 }

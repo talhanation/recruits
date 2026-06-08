@@ -1,14 +1,32 @@
 package com.talhanation.recruits.client.gui.worldmap.claim;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.component.BannerRenderer;
 import com.talhanation.recruits.client.gui.worldmap.WorldMapScreen;
 import com.talhanation.recruits.world.RecruitsClaim;
+import com.talhanation.recruits.world.RecruitsDiplomacyManager;
+import com.talhanation.recruits.world.RecruitsFaction;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+
+import java.util.Objects;
 
 public class ClaimInfoMenu {
     private static final ResourceLocation SIEGE_ICON = new ResourceLocation("recruits:textures/gui/image/enemy.png");
+    private static final int PANEL_BACKGROUND = 0xD0000000;
+    private static final int PANEL_OUTLINE = 0xFFFFFFFF;
+    private static final int LABEL_COLOR = 0xFFB8B8B8;
+    private static final int VALUE_COLOR = 0xFFFFFFFF;
+    private static final int ALLOWED_COLOR = 0xFF55FF77;
+    private static final int DENIED_COLOR = 0xFFFF7777;
+    private static final int WARNING_COLOR = 0xFFFFAA44;
+    private static final int SAFE_BOTTOM_MARGIN = 42;
+    private static final int SIDE_BANNER_WIDTH = 58;
+    private static final int LABEL_COLUMN_WIDTH = 76;
+
     private final WorldMapScreen parent;
     private boolean visible = false;
     private boolean underSiege;
@@ -16,7 +34,7 @@ public class ClaimInfoMenu {
     private BannerRenderer bannerRenderer;
     private BannerRenderer bannerRendererAttacker;
     public int x, y;
-    public int width = 120, height = 215;
+    public int width = 180, height = 178;
 
     public ClaimInfoMenu(WorldMapScreen parent) {
         this.parent = parent;
@@ -28,13 +46,20 @@ public class ClaimInfoMenu {
     }
 
     public void openForClaim(RecruitsClaim claim, int x, int y) {
+        if (claim == null) {
+            close();
+            return;
+        }
+
         this.currentClaim = claim;
         this.visible = true;
-        bannerRenderer.setRecruitsFaction(claim.getOwnerFaction());
         this.underSiege = claim.isUnderSiege;
+        this.bannerRenderer.setRecruitsFaction(claim.getOwnerFaction());
 
-        if (!claim.attackingParties.isEmpty() && claim.attackingParties.get(0) != null) {
-            bannerRendererAttacker.setRecruitsFaction(claim.attackingParties.get(0));
+        if (claim.attackingParties != null && !claim.attackingParties.isEmpty() && claim.attackingParties.get(0) != null) {
+            this.bannerRendererAttacker.setRecruitsFaction(claim.attackingParties.get(0));
+        } else {
+            this.bannerRendererAttacker.setRecruitsFaction(null);
         }
 
         this.x = x;
@@ -50,8 +75,10 @@ public class ClaimInfoMenu {
         if (x < 10) {
             x = 10;
         }
-        if (y + height > parent.height) {
-            y = parent.height - height - 10;
+
+        int bottomLimit = Math.max(10, parent.height - SAFE_BOTTOM_MARGIN);
+        if (y + height > bottomLimit) {
+            y = bottomLimit - height;
         }
         if (y < 10) {
             y = 10;
@@ -61,65 +88,214 @@ public class ClaimInfoMenu {
     public void render(GuiGraphics guiGraphics) {
         if (!visible || currentClaim == null) return;
 
-        guiGraphics.fill(x, y, x + width, y + height, 0xCC000000);
-        guiGraphics.renderOutline(x, y, width, height, 0xFFFFFFFF);
+        Font font = parent.getMinecraft().font;
 
-        guiGraphics.drawCenteredString(
-                parent.getMinecraft().font, currentClaim.getName(), x + width / 2, y + 5, 0xFFFFFF);
+        guiGraphics.fill(x, y, x + width, y + height, PANEL_BACKGROUND);
+        guiGraphics.renderOutline(x, y, width, height, PANEL_OUTLINE);
+
+        int headerTextWidth = width - SIDE_BANNER_WIDTH - 18;
+        drawTrimmedString(guiGraphics, font, currentClaim.getName(), x + 8, y + 8, headerTextWidth, VALUE_COLOR);
+        drawTrimmedString(guiGraphics, font, getStatusText(), x + 8, y + 21, headerTextWidth, getStatusColor());
+        drawTrimmedString(guiGraphics, font, getRelationText(), x + 8, y + 34, headerTextWidth, getRelationColor());
+        renderBanners(guiGraphics);
+
+        int dividerY = y + 55;
+        guiGraphics.fill(x + 8, dividerY, x + width - 8, dividerY + 1, 0x66FFFFFF);
+
+        int textY = y + 64;
+        drawInfoRow(guiGraphics, font, textY, "gui.recruits.map.claim_info.faction", getFactionName(), VALUE_COLOR);
+        textY += 12;
+        drawInfoRow(guiGraphics, font, textY, "gui.recruits.map.claim_info.owner", getOwnerName(), VALUE_COLOR);
+        textY += 12;
+        drawInfoRow(guiGraphics, font, textY, "gui.recruits.map.claim_info.members", Integer.toString(getFactionMemberCount()), VALUE_COLOR);
+        textY += 12;
+        drawInfoRow(guiGraphics, font, textY, "gui.recruits.map.claim_info.claims", Integer.toString(getFactionClaimCount()), VALUE_COLOR);
+        textY += 12;
+
+        int chunkCount = getChunkCount();
+        int maxClaimChunks = getMaxClaimChunks();
+        int chunkTextColor = chunkCount >= maxClaimChunks ? WARNING_COLOR : VALUE_COLOR;
+        drawInfoRow(guiGraphics, font, textY, "gui.recruits.map.claim_info.chunks", chunkCount + "/" + maxClaimChunks, chunkTextColor);
+        textY += 11;
+        renderChunkProgress(guiGraphics, x + 8, textY, width - 16, 4, chunkCount, maxClaimChunks);
+        textY += 13;
+
+        drawPermissionRow(guiGraphics, font, textY, "gui.recruits.map.claim_info.block_place", currentClaim.isBlockPlacementAllowed());
+        textY += 12;
+        drawPermissionRow(guiGraphics, font, textY, "gui.recruits.map.claim_info.block_break", currentClaim.isBlockBreakingAllowed());
+        textY += 12;
+        drawPermissionRow(guiGraphics, font, textY, "gui.recruits.map.claim_info.block_use", currentClaim.isBlockInteractionAllowed());
+    }
+
+    private void renderBanners(GuiGraphics guiGraphics) {
+        int bannerX = x + width - SIDE_BANNER_WIDTH + 2;
+        int bannerY = y + 23;
+        int bannerWidth = SIDE_BANNER_WIDTH - 6;
+        int bannerHeight = 50;
 
         if (this.underSiege) {
-            bannerRenderer.renderBanner(
-                    guiGraphics, x - 7 - 35 + width / 2, y + 65, this.width, this.height, 40);
-            bannerRendererAttacker.renderBanner(
-                    guiGraphics, x - 7 + 30 + width / 2, y + 65, this.width, this.height, 40);
+            bannerRenderer.renderBanner(guiGraphics, bannerX + 4, bannerY, this.width, this.height, 19);
+            bannerRendererAttacker.renderBanner(guiGraphics, bannerX + 28, bannerY, this.width, this.height, 19);
+        } else {
+            bannerRenderer.renderBanner(guiGraphics, bannerX + 10, bannerY, this.width, this.height, 29);
+        }
+
+        if (this.underSiege) {
             RenderSystem.setShaderTexture(0, SIEGE_ICON);
-            int iconSize = 18;
+            int iconSize = 12;
             guiGraphics.blit(
                     SIEGE_ICON,
-                    x + width / 2 - iconSize / 2,
-                    y + 50,
+                    bannerX + bannerWidth / 2 - iconSize / 2,
+                    bannerY + bannerHeight - iconSize,
                     0,
                     0,
                     iconSize,
                     iconSize,
                     iconSize,
                     iconSize);
-        } else {
-            bannerRenderer.renderBanner(guiGraphics, x - 7 + width / 2, y + 70, this.width, this.height, 50);
+        }
+    }
+
+    private void drawInfoRow(GuiGraphics guiGraphics, Font font, int rowY, String labelKey, String value, int valueColor) {
+        String label = Component.translatable(labelKey).getString();
+        int labelX = x + 8;
+        int valueX = labelX + LABEL_COLUMN_WIDTH;
+        int maxValueWidth = x + width - 8 - valueX;
+
+        guiGraphics.drawString(font, trimToWidth(font, label, LABEL_COLUMN_WIDTH - 4), labelX, rowY, LABEL_COLOR);
+        guiGraphics.drawString(font, trimToWidth(font, value, maxValueWidth), valueX, rowY, valueColor);
+    }
+
+    private void drawPermissionRow(GuiGraphics guiGraphics, Font font, int rowY, String labelKey, boolean allowed) {
+        drawInfoRow(
+                guiGraphics,
+                font,
+                rowY,
+                labelKey,
+                Component.translatable(allowed
+                        ? "gui.recruits.map.claim_info.allowed"
+                        : "gui.recruits.map.claim_info.denied").getString(),
+                allowed ? ALLOWED_COLOR : DENIED_COLOR);
+    }
+
+    private void renderChunkProgress(
+            GuiGraphics guiGraphics, int barX, int barY, int barWidth, int barHeight, int chunks, int maxChunks) {
+        guiGraphics.fill(barX, barY, barX + barWidth, barY + barHeight, 0x80333333);
+
+        if (maxChunks > 0 && chunks > 0) {
+            int fillWidth = Math.min(barWidth, Math.round(barWidth * (chunks / (float) maxChunks)));
+            int fillColor = chunks >= maxChunks ? WARNING_COLOR : ALLOWED_COLOR;
+            guiGraphics.fill(barX, barY, barX + fillWidth, barY + barHeight, fillColor);
         }
 
-        int textY = y + 120;
-        guiGraphics.drawString(parent.getMinecraft().font,
-                "Faction: " + (currentClaim.getOwnerFaction() != null ?
-                        currentClaim.getOwnerFaction().getTeamDisplayName() : "None"),
-                x + 5, textY, 0xFFFFFF);
+        guiGraphics.renderOutline(barX, barY, barWidth, barHeight, 0x80777777);
+    }
 
-        textY += 15;
-        guiGraphics.drawString(parent.getMinecraft().font,
-                "Owner: " + (currentClaim.getPlayerInfo() != null ?
-                        currentClaim.getPlayerInfo().getName() : "Unknown"),
-                x + 5, textY, 0xFFFFFF);
+    private void drawTrimmedString(
+            GuiGraphics guiGraphics, Font font, String text, int textX, int textY, int maxWidth, int color) {
+        String trimmed = trimToWidth(font, text == null ? "" : text, maxWidth);
+        guiGraphics.drawString(font, trimmed, textX, textY, color);
+    }
 
-        textY += 15;
-        guiGraphics.drawString(parent.getMinecraft().font,
-                "Block-Place: " + currentClaim.isBlockPlacementAllowed(),
-                x + 5, textY, 0xFFFFFF);
+    private String trimToWidth(Font font, String text, int maxWidth) {
+        if (text == null || maxWidth <= 0) return "";
+        if (font.width(text) <= maxWidth) return text;
 
-        textY += 15;
-        guiGraphics.drawString(parent.getMinecraft().font,
-                "Block-Break: " + currentClaim.isBlockBreakingAllowed(),
-                x + 5, textY, 0xFFFFFF);
+        String ellipsis = "...";
+        int allowedWidth = Math.max(0, maxWidth - font.width(ellipsis));
+        String trimmed = text;
+        while (!trimmed.isEmpty() && font.width(trimmed) > allowedWidth) {
+            trimmed = trimmed.substring(0, trimmed.length() - 1);
+        }
+        return trimmed + ellipsis;
+    }
 
-        textY += 15;
-        guiGraphics.drawString(parent.getMinecraft().font,
-                "Block-Use: " + currentClaim.isBlockInteractionAllowed(),
-                x + 5, textY, 0xFFFFFF);
+    private String getStatusText() {
+        return Component.translatable(this.underSiege
+                ? "gui.recruits.map.claim_info.status_siege"
+                : "gui.recruits.map.claim_info.status_secure").getString();
+    }
 
-        textY += 15;
-        guiGraphics.drawString(parent.getMinecraft().font,
-                "Chunks: " + currentClaim.getClaimedChunks().size() + "/50",
-                x + 5, textY, 0xFFFFFF);
+    private int getStatusColor() {
+        return this.underSiege ? DENIED_COLOR : ALLOWED_COLOR;
+    }
 
+    private String getFactionName() {
+        RecruitsFaction faction = currentClaim.getOwnerFaction();
+        if (faction == null) return Component.translatable("gui.recruits.map.claim_info.none").getString();
+        return faction.getTeamDisplayName();
+    }
+
+    private String getOwnerName() {
+        if (currentClaim.getPlayerInfo() == null) {
+            return Component.translatable("gui.recruits.map.claim_info.unknown").getString();
+        }
+        return currentClaim.getPlayerInfo().getName();
+    }
+
+    private String getRelationText() {
+        return Component.translatable(getRelationTranslationKey()).getString();
+    }
+
+    private int getRelationColor() {
+        RecruitsFaction ownerFaction = currentClaim.getOwnerFaction();
+        if (sameFaction(ClientManager.ownFaction, ownerFaction)) return ALLOWED_COLOR;
+        if (ClientManager.ownFaction == null || ownerFaction == null) return VALUE_COLOR;
+
+        return switch (ClientManager.getRelation(ClientManager.ownFaction.getStringID(), ownerFaction.getStringID())) {
+            case ALLY -> ALLOWED_COLOR;
+            case ENEMY -> DENIED_COLOR;
+            case NEUTRAL -> WARNING_COLOR;
+        };
+    }
+
+    private String getRelationTranslationKey() {
+        RecruitsFaction ownerFaction = currentClaim.getOwnerFaction();
+        if (sameFaction(ClientManager.ownFaction, ownerFaction)) {
+            return "gui.recruits.map.claim_info.relation_own";
+        }
+        if (ClientManager.ownFaction == null || ownerFaction == null) {
+            return "gui.recruits.map.claim_info.unknown";
+        }
+
+        RecruitsDiplomacyManager.DiplomacyStatus status =
+                ClientManager.getRelation(ClientManager.ownFaction.getStringID(), ownerFaction.getStringID());
+        return switch (status) {
+            case ALLY -> "gui.recruits.map.claim_info.relation_ally";
+            case ENEMY -> "gui.recruits.map.claim_info.relation_enemy";
+            case NEUTRAL -> "gui.recruits.map.claim_info.relation_neutral";
+        };
+    }
+
+    private int getFactionMemberCount() {
+        RecruitsFaction faction = currentClaim.getOwnerFaction();
+        return faction == null || faction.getMembers() == null ? 0 : faction.getMembers().size();
+    }
+
+    private int getFactionClaimCount() {
+        RecruitsFaction faction = currentClaim.getOwnerFaction();
+        if (faction == null) return 0;
+
+        int count = 0;
+        for (RecruitsClaim claim : ClientManager.recruitsClaims) {
+            if (claim != null && sameFaction(faction, claim.getOwnerFaction())) count++;
+        }
+        return count;
+    }
+
+    private int getChunkCount() {
+        return currentClaim.getClaimedChunks() == null ? 0 : currentClaim.getClaimedChunks().size();
+    }
+
+    private int getMaxClaimChunks() {
+        return ClientManager.configValueMaxClaimChunks > 0
+                ? ClientManager.configValueMaxClaimChunks
+                : RecruitsClaim.DEFAULT_MAX_SIZE;
+    }
+
+    private static boolean sameFaction(RecruitsFaction left, RecruitsFaction right) {
+        if (left == null || right == null) return false;
+        return Objects.equals(left.getStringID(), right.getStringID());
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
@@ -147,7 +323,8 @@ public class ClaimInfoMenu {
     public void close() {
         this.visible = false;
         this.currentClaim = null;
-        this.bannerRenderer.setRecruitsFaction(null);
+        if (this.bannerRenderer != null) this.bannerRenderer.setRecruitsFaction(null);
+        if (this.bannerRendererAttacker != null) this.bannerRendererAttacker.setRecruitsFaction(null);
     }
 
     public boolean isVisible() {
@@ -157,5 +334,6 @@ public class ClaimInfoMenu {
     public void setPosition(int x, int y) {
         this.x = x;
         this.y = y;
+        ensureWithinScreen();
     }
 }

@@ -219,12 +219,18 @@ public class WorldMapScreen extends Screen {
 
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
 
-        contextMenu.render(guiGraphics, this);
-
-        if (selectedClaim != null && claimInfoMenu.isVisible()) {
-            Point p = getClaimInfoMenuPosition(selectedClaim, claimInfoMenu.width, claimInfoMenu.height);
-            claimInfoMenu.setPosition(p.x, p.y);
-            claimInfoMenu.render(guiGraphics);
+        PoseStack overlayPose = guiGraphics.pose();
+        overlayPose.pushPose();
+        try {
+            overlayPose.translate(0.0F, 0.0F, 400.0F);
+            if (selectedClaim != null && claimInfoMenu.isVisible()) {
+                Point p = getClaimInfoMenuPosition(selectedClaim, claimInfoMenu.width, claimInfoMenu.height);
+                claimInfoMenu.setPosition(p.x, p.y);
+                claimInfoMenu.render(guiGraphics);
+            }
+            contextMenu.render(guiGraphics, this);
+        } finally {
+            overlayPose.popPose();
         }
 
         if (routeNamePopup.isVisible()) routeNamePopup.render(guiGraphics, mouseX, mouseY);
@@ -254,11 +260,11 @@ public class WorldMapScreen extends Screen {
                     if (entryTag.contains("bufferzone"))
                         ClaimRenderer.renderBufferZone(guiGraphics, offsetX, offsetZ, scale);
                     if (entryTag.contains("area"))
-                        ClaimRenderer.renderAreaPreview(
-                                guiGraphics, getClaimArea(selectedChunk), offsetX, offsetZ, scale);
+                        ClaimRenderer.renderClaimPreview(
+                                guiGraphics, getClaimAreaPreview(selectedChunk), offsetX, offsetZ, scale);
                     if (entryTag.contains("chunk"))
-                        ClaimRenderer.renderAreaPreview(
-                                guiGraphics, getClaimableChunks(selectedChunk, 16), offsetX, offsetZ, scale);
+                        ClaimRenderer.renderClaimPreview(
+                                guiGraphics, getClaimRadiusPreview(selectedChunk, 16), offsetX, offsetZ, scale);
                 }
             }
 
@@ -728,12 +734,44 @@ public class WorldMapScreen extends Screen {
         return claimController.canClaimChunk(pos);
     }
 
+    public boolean canShowClaimChunkEntry() {
+        return claimController.canShowClaimChunkEntry(selectedChunk);
+    }
+
+    public boolean canExecuteClaimChunkEntry() {
+        return claimController.canExecuteClaimChunk(selectedChunk);
+    }
+
+    public Component getClaimChunkDisabledReason() {
+        return claimController.getClaimChunkDisabledReason(selectedChunk);
+    }
+
+    public boolean canShowClaimAreaEntry() {
+        return claimController.canShowClaimAreaEntry(selectedChunk);
+    }
+
+    public boolean canExecuteClaimAreaEntry() {
+        return claimController.canExecuteClaimArea(selectedChunk);
+    }
+
+    public Component getClaimAreaDisabledReason() {
+        return claimController.getClaimAreaDisabledReason(selectedChunk);
+    }
+
     public boolean canClaimArea(List<ChunkPos> areaChunks) {
         return claimController.canClaimArea(selectedChunk, areaChunks);
     }
 
     public List<ChunkPos> getClaimableChunks(ChunkPos center, int radius) {
         return claimController.getClaimableChunks(center, radius);
+    }
+
+    public List<WorldMapClaimController.ClaimPreviewChunk> getClaimAreaPreview(ChunkPos center) {
+        return claimController.getClaimAreaPreview(center);
+    }
+
+    public List<WorldMapClaimController.ClaimPreviewChunk> getClaimRadiusPreview(ChunkPos center, int radius) {
+        return claimController.getClaimRadiusPreview(center, radius);
     }
 
     public boolean canClaimChunkRaw(ChunkPos pos) {

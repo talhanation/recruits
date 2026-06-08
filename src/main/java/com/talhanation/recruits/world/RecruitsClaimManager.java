@@ -130,6 +130,7 @@ public class RecruitsClaimManager {
                             this.getAllClaims(),
                             RecruitsServerConfig.ClaimingCost.get(),
                             RecruitsServerConfig.ChunkCost.get(),
+                            RecruitsServerConfig.MaxClaimChunks.get(),
                             RecruitsServerConfig.CascadeThePriceOfClaims.get(),
                             RecruitsServerConfig.AllowClaiming.get(),
                             RecruitsServerConfig.FogOfWarEnabled.get(),

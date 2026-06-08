@@ -1,6 +1,7 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.client.ClientManager;
+import com.talhanation.recruits.client.gui.worldmap.claim.WorldMapClaimIndex;
 import com.talhanation.recruits.world.RecruitsClaim;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
@@ -16,6 +17,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
     private CompoundTag claimsListNBT;
     private int claimCost;
     private int chunkCost;
+    private int maxClaimChunks;
     private boolean cascadeOfCost;
     private boolean allowClaiming;
     private boolean fogOfWarEnabled;
@@ -23,10 +25,11 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
     public MessageToClientUpdateClaims() {
     }
 
-    public MessageToClientUpdateClaims(List<RecruitsClaim> list, int claimCost, int chunkCost, boolean cascadeOfCost, boolean allowClaiming, boolean fogOfWarEnabled, ItemStack currencyItemStack) {
+    public MessageToClientUpdateClaims(List<RecruitsClaim> list, int claimCost, int chunkCost, int maxClaimChunks, boolean cascadeOfCost, boolean allowClaiming, boolean fogOfWarEnabled, ItemStack currencyItemStack) {
         this.claimsListNBT = RecruitsClaim.toNBT(list);
         this.claimCost = claimCost;
         this.chunkCost = chunkCost;
+        this.maxClaimChunks = maxClaimChunks;
         this.cascadeOfCost = cascadeOfCost;
         this.currencyItemStack = currencyItemStack;
         this.allowClaiming = allowClaiming;
@@ -42,8 +45,10 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
     @OnlyIn(Dist.CLIENT)
     public void executeClientSide(NetworkEvent.Context context) {
         ClientManager.recruitsClaims = RecruitsClaim.getListFromNBT(claimsListNBT);
+        WorldMapClaimIndex.invalidate();
         ClientManager.configValueClaimCost = this.claimCost;
         ClientManager.configValueChunkCost = this.chunkCost;
+        ClientManager.configValueMaxClaimChunks = this.maxClaimChunks;
         ClientManager.configValueCascadeClaimCost = this.cascadeOfCost;
         ClientManager.currencyItemStack = this.currencyItemStack;
         ClientManager.configValueIsClaimingAllowed = this.allowClaiming;
@@ -57,6 +62,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
         this.claimsListNBT = buf.readNbt();
         this.claimCost = buf.readInt();
         this.chunkCost = buf.readInt();
+        this.maxClaimChunks = buf.readInt();
         this.cascadeOfCost = buf.readBoolean();
         this.currencyItemStack = buf.readItem();
         this.allowClaiming = buf.readBoolean();
@@ -69,6 +75,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
         buf.writeNbt(this.claimsListNBT);
         buf.writeInt(this.claimCost);
         buf.writeInt(this.chunkCost);
+        buf.writeInt(this.maxClaimChunks);
         buf.writeBoolean(this.cascadeOfCost);
         buf.writeItemStack(this.currencyItemStack, false);
         buf.writeBoolean(this.allowClaiming);
