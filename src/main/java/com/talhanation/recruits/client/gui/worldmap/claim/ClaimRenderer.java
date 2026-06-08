@@ -16,6 +16,7 @@ import net.minecraft.world.level.ChunkPos;
 import java.util.List;
 
 public class ClaimRenderer {
+    private static final int CLAIM_FILL_ALPHA = 160;
 
     public static void renderClaimsOverlay(
             GuiGraphics guiGraphics, RecruitsClaim selectedClaim, double offsetX, double offsetZ, double scale) {
@@ -78,7 +79,7 @@ public class ClaimRenderer {
             GuiGraphics guiGraphics, RecruitsClaim claim, double offsetX, double offsetZ, double scale) {
         if (claim == null || claim.getClaimedChunks() == null || claim.getClaimedChunks().isEmpty()) return;
 
-        int factionFillColor = (190 << 24) | (getClaimColor(claim) & 0x00FFFFFF);
+        int factionFillColor = (CLAIM_FILL_ALPHA << 24) | (getClaimColor(claim) & 0x00FFFFFF);
         boolean adminCreative = isAdminCreative();
         WorldMapCacheManager mapCache = WorldMapCacheManager.getInstance();
 
@@ -161,6 +162,19 @@ public class ClaimRenderer {
                 MapRenderUtil.fill(guiGraphics, x2 - thickness, z1, x2, z2, outlineColor);
             }
         }
+
+        renderConcaveBoundaryCornerCaps(
+                guiGraphics,
+                claim.getClaimedChunks(),
+                chunkSet,
+                offsetX,
+                offsetZ,
+                scale,
+                thickness,
+                factionOutlineColor,
+                FOG_OUTLINE_COLOR,
+                adminCreative,
+                mapCache);
     }
 
     private static void renderClaimSelectedOutline(
@@ -209,6 +223,189 @@ public class ClaimRenderer {
                 MapRenderUtil.fill(guiGraphics, x2 - borderThickness, z1, x2, z2, borderColor);
             }
         }
+
+        renderConcaveBoundaryCornerCaps(
+                guiGraphics,
+                claim.getClaimedChunks(),
+                chunkSet,
+                offsetX,
+                offsetZ,
+                scale,
+                borderThickness,
+                borderColor,
+                borderColor,
+                true,
+                null);
+    }
+
+    private static void renderConcaveBoundaryCornerCaps(
+            GuiGraphics guiGraphics,
+            List<ChunkPos> claimedChunks,
+            LongOpenHashSet chunkSet,
+            double offsetX,
+            double offsetZ,
+            double scale,
+            double thickness,
+            int exploredColor,
+            int unexploredColor,
+            boolean adminCreative,
+            WorldMapCacheManager mapCache) {
+        LongOpenHashSet renderedCorners = new LongOpenHashSet();
+        double capSize = Math.max(1.0, thickness);
+
+        for (ChunkPos chunk : claimedChunks) {
+            if (chunk == null) continue;
+
+            renderConcaveBoundaryCornerCap(
+                    guiGraphics,
+                    chunkSet,
+                    renderedCorners,
+                    chunk.x,
+                    chunk.z,
+                    offsetX,
+                    offsetZ,
+                    scale,
+                    capSize,
+                    exploredColor,
+                    unexploredColor,
+                    adminCreative,
+                    mapCache);
+            renderConcaveBoundaryCornerCap(
+                    guiGraphics,
+                    chunkSet,
+                    renderedCorners,
+                    chunk.x + 1,
+                    chunk.z,
+                    offsetX,
+                    offsetZ,
+                    scale,
+                    capSize,
+                    exploredColor,
+                    unexploredColor,
+                    adminCreative,
+                    mapCache);
+            renderConcaveBoundaryCornerCap(
+                    guiGraphics,
+                    chunkSet,
+                    renderedCorners,
+                    chunk.x,
+                    chunk.z + 1,
+                    offsetX,
+                    offsetZ,
+                    scale,
+                    capSize,
+                    exploredColor,
+                    unexploredColor,
+                    adminCreative,
+                    mapCache);
+            renderConcaveBoundaryCornerCap(
+                    guiGraphics,
+                    chunkSet,
+                    renderedCorners,
+                    chunk.x + 1,
+                    chunk.z + 1,
+                    offsetX,
+                    offsetZ,
+                    scale,
+                    capSize,
+                    exploredColor,
+                    unexploredColor,
+                    adminCreative,
+                    mapCache);
+        }
+    }
+
+    private static void renderConcaveBoundaryCornerCap(
+            GuiGraphics guiGraphics,
+            LongOpenHashSet chunkSet,
+            LongOpenHashSet renderedCorners,
+            int gridX,
+            int gridZ,
+            double offsetX,
+            double offsetZ,
+            double scale,
+            double capSize,
+            int exploredColor,
+            int unexploredColor,
+            boolean adminCreative,
+            WorldMapCacheManager mapCache) {
+        long cornerKey = gridKey(gridX, gridZ);
+        if (!renderedCorners.add(cornerKey)) return;
+
+        boolean nw = hasClaimChunk(chunkSet, gridX - 1, gridZ - 1);
+        boolean ne = hasClaimChunk(chunkSet, gridX, gridZ - 1);
+        boolean sw = hasClaimChunk(chunkSet, gridX - 1, gridZ);
+        boolean se = hasClaimChunk(chunkSet, gridX, gridZ);
+        int count = (nw ? 1 : 0) + (ne ? 1 : 0) + (sw ? 1 : 0) + (se ? 1 : 0);
+        if (count != 3) return;
+
+        double pixelX = offsetX + gridX * 16.0 * scale;
+        double pixelZ = offsetZ + gridZ * 16.0 * scale;
+        int color = getConcaveCornerColor(
+                chunkSet, gridX, gridZ, exploredColor, unexploredColor, adminCreative, mapCache);
+
+        if (!nw) {
+            MapRenderUtil.fill(
+                    guiGraphics,
+                    pixelX,
+                    pixelZ,
+                    pixelX + capSize,
+                    pixelZ + capSize,
+                    color);
+        } else if (!ne) {
+            MapRenderUtil.fill(
+                    guiGraphics,
+                    pixelX - capSize,
+                    pixelZ,
+                    pixelX,
+                    pixelZ + capSize,
+                    color);
+        } else if (!sw) {
+            MapRenderUtil.fill(
+                    guiGraphics,
+                    pixelX,
+                    pixelZ - capSize,
+                    pixelX + capSize,
+                    pixelZ,
+                    color);
+        } else if (!se) {
+            MapRenderUtil.fill(
+                    guiGraphics,
+                    pixelX - capSize,
+                    pixelZ - capSize,
+                    pixelX,
+                    pixelZ,
+                    color);
+        }
+    }
+
+    private static int getConcaveCornerColor(
+            LongOpenHashSet chunkSet,
+            int gridX,
+            int gridZ,
+            int exploredColor,
+            int unexploredColor,
+            boolean adminCreative,
+            WorldMapCacheManager mapCache) {
+        if (adminCreative || !ClientManager.configFogOfWarEnabled || mapCache == null) return exploredColor;
+        if (isClaimChunkExplored(chunkSet, mapCache, gridX - 1, gridZ - 1)) return exploredColor;
+        if (isClaimChunkExplored(chunkSet, mapCache, gridX, gridZ - 1)) return exploredColor;
+        if (isClaimChunkExplored(chunkSet, mapCache, gridX - 1, gridZ)) return exploredColor;
+        if (isClaimChunkExplored(chunkSet, mapCache, gridX, gridZ)) return exploredColor;
+        return unexploredColor;
+    }
+
+    private static boolean isClaimChunkExplored(
+            LongOpenHashSet chunkSet, WorldMapCacheManager mapCache, int chunkX, int chunkZ) {
+        return hasClaimChunk(chunkSet, chunkX, chunkZ) && mapCache.isChunkExplored(new ChunkPos(chunkX, chunkZ));
+    }
+
+    private static boolean hasClaimChunk(LongOpenHashSet chunkSet, int chunkX, int chunkZ) {
+        return chunkSet.contains(WorldMapClaimIndex.chunkKey(chunkX, chunkZ));
+    }
+
+    private static long gridKey(int gridX, int gridZ) {
+        return (gridX & 0xFFFFFFFFL) | ((gridZ & 0xFFFFFFFFL) << 32);
     }
 
     public static void renderClaimName(

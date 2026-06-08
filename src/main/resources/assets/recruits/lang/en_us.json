@@ -582,6 +582,7 @@
   "gui.recruits.map.settings.player_arrow": "Player arrow",
   "gui.recruits.map.settings.night_shading": "Night shading",
   "gui.recruits.map.settings.coordinates": "Coordinates",
+  "gui.recruits.map.settings.claim_fill": "Territory fill",
   "gui.recruits.map.readout.zoom": "Zoom: %s",
 
   "description.recruits.peaceTreaty": "When accepting this treaty both factions cannot attack each other for the duration.",

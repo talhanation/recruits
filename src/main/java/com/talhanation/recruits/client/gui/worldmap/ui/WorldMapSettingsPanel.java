@@ -9,7 +9,7 @@ public final class WorldMapSettingsPanel {
     private static final int MARGIN = 10;
     private static final int BUTTON_SIZE = 20;
     private static final int PANEL_WIDTH = 178;
-    private static final int PANEL_HEIGHT = 134;
+    private static final int PANEL_HEIGHT = 154;
     private static final int PANEL_TOP = MARGIN + BUTTON_SIZE + 4;
     private static final int ROW_START = 24;
     private static final int ROW_HEIGHT = 20;
@@ -28,6 +28,7 @@ public final class WorldMapSettingsPanel {
     private static final Component PLAYER_ARROW = Component.translatable("gui.recruits.map.settings.player_arrow");
     private static final Component NIGHT_SHADING = Component.translatable("gui.recruits.map.settings.night_shading");
     private static final Component COORDINATES = Component.translatable("gui.recruits.map.settings.coordinates");
+    private static final Component CLAIM_FILL = Component.translatable("gui.recruits.map.settings.claim_fill");
 
     private boolean open;
 
@@ -81,6 +82,14 @@ public final class WorldMapSettingsPanel {
                 COORDINATES,
                 RecruitsClientConfig.WorldMapShowCoordinates.get(),
                 isRowHovered(mouseX, mouseY, 4, screenWidth, screenHeight));
+        renderCheckBox(
+                guiGraphics,
+                font,
+                panelX,
+                PANEL_TOP + ROW_START + ROW_HEIGHT * 5,
+                CLAIM_FILL,
+                RecruitsClientConfig.WorldMapClaimFill.get(),
+                isRowHovered(mouseX, mouseY, 5, screenWidth, screenHeight));
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button, int screenWidth, int screenHeight) {
@@ -105,6 +114,8 @@ public final class WorldMapSettingsPanel {
             RecruitsClientConfig.WorldMapNightShading.set(!RecruitsClientConfig.WorldMapNightShading.get());
         } else if (isRowHovered(mouseX, mouseY, 4, screenWidth, screenHeight)) {
             RecruitsClientConfig.WorldMapShowCoordinates.set(!RecruitsClientConfig.WorldMapShowCoordinates.get());
+        } else if (isRowHovered(mouseX, mouseY, 5, screenWidth, screenHeight)) {
+            RecruitsClientConfig.WorldMapClaimFill.set(!RecruitsClientConfig.WorldMapClaimFill.get());
         }
         return true;
     }

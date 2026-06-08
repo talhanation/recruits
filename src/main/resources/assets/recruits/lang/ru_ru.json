@@ -579,6 +579,7 @@
   "gui.recruits.map.settings.player_arrow": "Стрелка игрока",
   "gui.recruits.map.settings.night_shading": "Ночное затемнение",
   "gui.recruits.map.settings.coordinates": "Координаты",
+  "gui.recruits.map.settings.claim_fill": "Заливка территорий",
   "gui.recruits.map.readout.zoom": "Масштаб: %s",
   "description.recruits.peaceTreaty": "При принятии этого договора\nобе фракции не смогут атаковать\nдруг друга на протяжении действия.",
   "chat.recruits.text.messenger_target_player_not_accepted": "%s: Я прибыл, но %s не принял наше мирное предложение.",

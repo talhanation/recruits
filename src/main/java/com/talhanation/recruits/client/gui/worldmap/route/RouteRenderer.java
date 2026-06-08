@@ -22,6 +22,9 @@ public class RouteRenderer {
 
     private static final int COLOR_NORMAL = 0xFFFFFFFF; // white
     private static final int COLOR_NOT_LOADED = 0xFFFF4444; // red
+    private static final int ROUTE_LINE_COLOR = 0xE6FFFFFF;
+    private static final int ROUTE_LINE_SHADOW_COLOR = 0xAA000000;
+    private static final int INSERT_LINE_COLOR = 0xFF00FFFF;
     private static final int ICON_INDEX = 6;
 
     // -------------------------------------------------------------------------
@@ -88,7 +91,7 @@ public class RouteRenderer {
             double z1 = offsetZ + a.getPosition().getZ() * scale;
             double x2 = offsetX + b.getPosition().getX() * scale;
             double z2 = offsetZ + b.getPosition().getZ() * scale;
-            MapRenderUtil.line(guiGraphics, x1, z1, x2, z2, 1.0, 0xAAFFFFFF);
+            renderRouteLine(guiGraphics, x1, z1, x2, z2, ROUTE_LINE_COLOR);
         }
     }
 
@@ -110,25 +113,29 @@ public class RouteRenderer {
         Waypoint next = clampedIdx < without.size() ? without.get(clampedIdx) : null;
 
         if (prev != null) {
-            MapRenderUtil.line(
+            renderRouteLine(
                     guiGraphics,
                     offsetX + prev.getPosition().getX() * scale,
                     offsetZ + prev.getPosition().getZ() * scale,
                     offsetX + draggingWaypoint.getPosition().getX() * scale,
                     offsetZ + draggingWaypoint.getPosition().getZ() * scale,
-                    1.0,
-                    0xFF00FFFF);
+                    INSERT_LINE_COLOR);
         }
         if (next != null) {
-            MapRenderUtil.line(
+            renderRouteLine(
                     guiGraphics,
                     offsetX + draggingWaypoint.getPosition().getX() * scale,
                     offsetZ + draggingWaypoint.getPosition().getZ() * scale,
                     offsetX + next.getPosition().getX() * scale,
                     offsetZ + next.getPosition().getZ() * scale,
-                    1.0,
-                    0xFF00FFFF);
+                    INSERT_LINE_COLOR);
         }
+    }
+
+    private static void renderRouteLine(
+            GuiGraphics guiGraphics, double x1, double z1, double x2, double z2, int color) {
+        MapRenderUtil.line(guiGraphics, x1, z1, x2, z2, 3.0, ROUTE_LINE_SHADOW_COLOR);
+        MapRenderUtil.line(guiGraphics, x1, z1, x2, z2, 1.5, color);
     }
 
     private static void renderWaypointIcon(

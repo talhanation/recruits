@@ -26,6 +26,7 @@ public class RecruitsClientConfig {
     public static ForgeConfigSpec.BooleanValue WorldMapLoadViewedRegions;
     public static ForgeConfigSpec.BooleanValue WorldMapNightShading;
     public static ForgeConfigSpec.BooleanValue WorldMapShowCoordinates;
+    public static ForgeConfigSpec.BooleanValue WorldMapClaimFill;
     public static ForgeConfigSpec.EnumValue<MapPlayerIconStyle> WorldMapPlayerIconStyle;
 
     static{
@@ -111,6 +112,12 @@ public class RecruitsClientConfig {
                         Show the coordinates and zoom readout on the world map.
                         default: true""")
                 .define("WorldMapShowCoordinates", true);
+
+        WorldMapClaimFill = BUILDER.comment("""
+                        ----WorldMapClaimFill----
+                        Draw the filled territory overlay on the world map.
+                        default: true""")
+                .define("WorldMapClaimFill", true);
 
         WorldMapPlayerIconStyle = BUILDER.comment("""
                         ----WorldMapPlayerIconStyle----
