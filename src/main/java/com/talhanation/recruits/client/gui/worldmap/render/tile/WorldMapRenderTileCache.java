@@ -407,10 +407,10 @@ public final class WorldMapRenderTileCache {
 
     private WorldMapRegion resolveRegion(WorldMapRenderTileKey key, int priority) {
         WorldMapRegion region = mapCache.getLoadedRegion(key.regionX(), key.regionZ());
-        return region != null
-                ? region
-                : mapCache.getOrSchedulePersistedRegion(
-                        key.regionX(), key.regionZ(), visibleGeneration, priority);
+        if (region != null) return region;
+        if (!mapCache.shouldLoadViewedRegions()) return null;
+        return mapCache.getOrSchedulePersistedRegion(
+                key.regionX(), key.regionZ(), visibleGeneration, priority);
     }
 
     private static int sourceVersion(WorldMapRenderTileKey key, WorldMapRegion region) {

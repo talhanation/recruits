@@ -16,6 +16,8 @@ import com.talhanation.recruits.client.gui.worldmap.route.WaypointEditPopup;
 import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapCacheManager;
 import com.talhanation.recruits.client.gui.worldmap.ui.WorldMapContextMenu;
 import com.talhanation.recruits.client.gui.worldmap.ui.WorldMapRouteControls;
+import com.talhanation.recruits.client.gui.worldmap.ui.WorldMapSettingsPanel;
+import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsFaction;
 import com.talhanation.recruits.world.RecruitsRoute;
@@ -38,6 +40,7 @@ public class WorldMapScreen extends Screen {
     private final WorldMapRenderer mapRenderer;
     private final WorldMapCamera camera;
     private final WorldMapRouteControls routeControls = new WorldMapRouteControls();
+    private final WorldMapSettingsPanel settingsPanel = new WorldMapSettingsPanel();
     private final Player player;
     private final WorldMapClaimController claimController;
     private static final double DEFAULT_SCALE = 2.0;
@@ -212,6 +215,7 @@ public class WorldMapScreen extends Screen {
         renderCoordinatesAndZoom(guiGraphics);
         // Route buttons
         renderRouteUI(guiGraphics, mouseX, mouseY, partialTicks);
+        settingsPanel.render(guiGraphics, font, width, height, mouseX, mouseY);
 
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
 
@@ -258,7 +262,8 @@ public class WorldMapScreen extends Screen {
                 }
             }
 
-            WorldMapPlayerRenderer.render(guiGraphics, font, player, offsetX, offsetZ, scale);
+            WorldMapPlayerRenderer.render(
+                    guiGraphics, font, player, offsetX, offsetZ, scale, settingsPanel.usePlayerArrow());
 
             if (selectedChunk != null && (selectedClaim == null || contextMenu.isVisible())) {
                 renderChunkOutline(guiGraphics, selectedChunk.x, selectedChunk.z, CHUNK_SELECTION_COLOR);
@@ -353,9 +358,12 @@ public class WorldMapScreen extends Screen {
     }
 
     private void renderCoordinatesAndZoom(GuiGraphics guiGraphics) {
+        if (!RecruitsClientConfig.WorldMapShowCoordinates.get()) return;
+
         int hoverY = resolveSurfaceY(hoverBlockX, hoverBlockZ);
         String coords = String.format("X: %d, Y: %d, Z: %d", hoverBlockX, hoverY, hoverBlockZ);
-        String zoom = String.format("Zoom: %.1fx", scale);
+        String zoomValue = String.format(java.util.Locale.ROOT, "%.1fx", scale);
+        String zoom = Component.translatable("gui.recruits.map.readout.zoom", zoomValue).getString();
         String combined = coords + " | " + zoom;
         int textWidth = font.width(combined);
         int bgX = width / 2 - textWidth / 2 - 8;
@@ -376,6 +384,14 @@ public class WorldMapScreen extends Screen {
         if (routeNamePopup.isVisible()) return routeNamePopup.mouseClicked(mouseX, mouseY);
         if (routeEditPopup.isVisible()) return routeEditPopup.mouseClicked(mouseX, mouseY);
         if (waypointEditPopup.isVisible()) return waypointEditPopup.mouseClicked(mouseX, mouseY);
+
+        if (settingsPanel.mouseClicked(mouseX, mouseY, button, width, height)) {
+            hoveredChunk = null;
+            selectedChunk = null;
+            contextMenu.close();
+            claimInfoMenu.close();
+            return true;
+        }
 
         // Route UI buttons
         if (routeControls.isAddButtonHovered(mouseX, mouseY)) {
@@ -525,6 +541,7 @@ public class WorldMapScreen extends Screen {
     public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
         if (routeNamePopup.isVisible() || routeEditPopup.isVisible() || waypointEditPopup.isVisible())
             return true;
+        if (settingsPanel.isMouseBlocking(mouseX, mouseY, width, height)) return true;
         if (claimInfoMenu.isVisible()) claimInfoMenu.close();
         if (contextMenu.isVisible()) contextMenu.close();
 
@@ -544,7 +561,8 @@ public class WorldMapScreen extends Screen {
         boolean uiHovered = routeNamePopup.isVisible()
                 || routeEditPopup.isVisible()
                 || waypointEditPopup.isVisible()
-                || routeControls.isDropdownHovered(mouseX, mouseY);
+                || routeControls.isDropdownHovered(mouseX, mouseY)
+                || settingsPanel.isMouseBlocking(mouseX, mouseY, width, height);
 
         if (uiHovered) {
             hoveredChunk = null;
@@ -563,6 +581,10 @@ public class WorldMapScreen extends Screen {
         if (routeNamePopup.isVisible()) return routeNamePopup.keyPressed(keyCode);
 
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+            if (settingsPanel.isOpen()) {
+                settingsPanel.close();
+                return true;
+            }
             if (claimInfoMenu.isVisible()) {
                 claimInfoMenu.close();
                 return true;

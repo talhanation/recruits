@@ -9,6 +9,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import com.talhanation.recruits.client.gui.worldmap.render.tile.WorldMapRenderTileCache;
 import com.talhanation.recruits.client.gui.worldmap.render.tile.WorldMapRenderTileKey;
 import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapCacheManager;
+import com.talhanation.recruits.config.RecruitsClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -284,6 +285,10 @@ public final class WorldMapRenderer {
     }
 
     private static float getMapBrightness() {
+        if (!RecruitsClientConfig.WorldMapNightShading.get()) {
+            return 1.0F;
+        }
+
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null || level.dimensionType() == null || !level.dimensionType().hasSkyLight()) {
             return 1.0F;
