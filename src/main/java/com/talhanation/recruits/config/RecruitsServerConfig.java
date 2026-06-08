@@ -84,6 +84,7 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.BooleanValue CascadeThePriceOfClaims;
     public static ForgeConfigSpec.IntValue ClaimingCost;
     public static ForgeConfigSpec.IntValue ChunkCost;
+    public static ForgeConfigSpec.IntValue MaxClaimChunks;
     public static ForgeConfigSpec.IntValue SiegeClaimsRecruitsAmount;
     public static ForgeConfigSpec.IntValue SiegeClaimsConquerTime;
     public static ForgeConfigSpec.BooleanValue NobleVillagerNeedsVillagers;
@@ -799,6 +800,14 @@ public class RecruitsServerConfig {
                         \tdefault: 20""")
                 .worldRestart()
                 .defineInRange("ChunkCost", 15, 0, 1453);
+
+        MaxClaimChunks = BUILDER.comment("""
+                        The maximum amount of chunks a single claim territory can contain.
+                        The default claim area is 5x5 chunks, so values below 25 are not allowed.
+                        \t(takes effect after restart)
+                        \tdefault: 50""")
+                .worldRestart()
+                .defineInRange("MaxClaimChunks", 50, 25, 4096);
 
         CascadeThePriceOfClaims = BUILDER.comment("""
                         Should the price of claiming an area increase by the specified amount?

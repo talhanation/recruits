@@ -9,7 +9,9 @@ import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsFaction;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 
 import javax.annotation.Nullable;
@@ -20,6 +22,9 @@ import java.util.List;
 import java.util.Objects;
 
 public final class WorldMapClaimController {
+    private static final int CLAIM_AREA_RANGE = 2;
+    private static final int MAX_PLAYER_CLAIM_DISTANCE_CHUNKS = 4;
+
     private final Minecraft minecraft;
     private final Player player;
     private final WorldMapCamera camera;
@@ -36,20 +41,19 @@ public final class WorldMapClaimController {
 
     public boolean isPlayerFactionLeader(RecruitsFaction faction) {
         if (player == null || faction == null) return false;
-        return faction.getTeamLeaderUUID().equals(player.getUUID());
+        return Objects.equals(faction.getTeamLeaderUUID(), player.getUUID());
     }
 
     public boolean isPlayerClaimLeader(RecruitsClaim claim) {
-        if (player == null || claim == null) return false;
-        return claim.getPlayerInfo().getUUID().equals(player.getUUID());
+        if (player == null || claim == null || claim.getPlayerInfo() == null) return false;
+        return Objects.equals(claim.getPlayerInfo().getUUID(), player.getUUID());
     }
 
     public List<ChunkPos> getClaimArea(ChunkPos pos) {
         List<ChunkPos> area = new ArrayList<>();
         if (pos == null) return area;
-        int range = 2;
-        for (int dx = -range; dx <= range; dx++) {
-            for (int dz = -range; dz <= range; dz++) {
+        for (int dx = -CLAIM_AREA_RANGE; dx <= CLAIM_AREA_RANGE; dx++) {
+            for (int dz = -CLAIM_AREA_RANGE; dz <= CLAIM_AREA_RANGE; dz++) {
                 area.add(new ChunkPos(pos.x + dx, pos.z + dz));
             }
         }
@@ -57,9 +61,7 @@ public final class WorldMapClaimController {
     }
 
     public void claimArea(ChunkPos selectedChunk) {
-        if (!canPlayerPay(getClaimCost(ClientManager.ownFaction), player)) return;
-        if (!ClientManager.configValueIsClaimingAllowed) return;
-        if (!isPlayerInOverworld()) return;
+        if (!canExecuteClaimArea(selectedChunk)) return;
 
         List<ChunkPos> area = getClaimArea(selectedChunk);
         RecruitsClaim newClaim = new RecruitsClaim(ClientManager.ownFaction);
@@ -72,25 +74,20 @@ public final class WorldMapClaimController {
         Main.SIMPLE_CHANNEL.sendToServer(
                 new MessageDoPayment(player.getUUID(), getClaimCost(ClientManager.ownFaction)));
         ClientManager.recruitsClaims.add(newClaim);
+        WorldMapClaimIndex.invalidate();
         Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(newClaim));
     }
 
     public void claimChunk(ChunkPos selectedChunk) {
-        if (!canPlayerPay(ClientManager.configValueChunkCost, player)) return;
-        if (!ClientManager.configValueIsClaimingAllowed) return;
-        if (!isPlayerInOverworld()) return;
+        if (!canExecuteClaimChunk(selectedChunk)) return;
+
         RecruitsClaim neighborClaim = getNeighborClaim(selectedChunk);
         if (neighborClaim == null) return;
-        if (!Objects.equals(
-                ClientManager.ownFaction.getStringID(), neighborClaim.getOwnerFaction().getStringID()))
-            return;
-        for (RecruitsClaim claim : ClientManager.recruitsClaims) {
-            if (claim.equals(neighborClaim)) {
-                neighborClaim.addChunk(selectedChunk);
-                recalculateCenter(neighborClaim);
-                break;
-            }
-        }
+
+        neighborClaim.addChunk(selectedChunk);
+        recalculateCenter(neighborClaim);
+        WorldMapClaimIndex.invalidate();
+
         Main.SIMPLE_CHANNEL.sendToServer(
                 new MessageDoPayment(player.getUUID(), ClientManager.configValueChunkCost));
         Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(neighborClaim));
@@ -98,29 +95,24 @@ public final class WorldMapClaimController {
 
     @Nullable
     public RecruitsClaim getNeighborClaim(ChunkPos chunk) {
-        ChunkPos[] neighbors = {
-            new ChunkPos(chunk.x + 1, chunk.z), new ChunkPos(chunk.x - 1, chunk.z),
-            new ChunkPos(chunk.x, chunk.z + 1), new ChunkPos(chunk.x, chunk.z - 1)
-        };
-        for (ChunkPos neighbor : neighbors) {
-            for (RecruitsClaim claim : ClientManager.recruitsClaims) {
-                if (claim.containsChunk(neighbor)) return claim;
-            }
-        }
-        return null;
+        return WorldMapClaimIndex.getNeighborClaim(chunk);
     }
 
     public void recalculateCenter(RecruitsClaim claim) {
+        if (claim == null || claim.getClaimedChunks() == null) return;
+
         List<ChunkPos> chunks = claim.getClaimedChunks();
         if (chunks.isEmpty()) return;
         int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE;
         int minZ = Integer.MAX_VALUE, maxZ = Integer.MIN_VALUE;
         for (ChunkPos pos : chunks) {
+            if (pos == null) continue;
             if (pos.x < minX) minX = pos.x;
             if (pos.x > maxX) maxX = pos.x;
             if (pos.z < minZ) minZ = pos.z;
             if (pos.z > maxZ) maxZ = pos.z;
         }
+        if (minX == Integer.MAX_VALUE) return;
         claim.setCenter(new ChunkPos((minX + maxX) / 2, (minZ + maxZ) / 2));
     }
 
@@ -131,14 +123,21 @@ public final class WorldMapClaimController {
 
     public Rectangle getClaimScreenBounds(
             RecruitsClaim claim, double offsetX, double offsetZ, double scale) {
+        if (claim == null || claim.getClaimedChunks() == null || claim.getClaimedChunks().isEmpty()) {
+            return new Rectangle(0, 0, 0, 0);
+        }
+
         int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE;
         int minZ = Integer.MAX_VALUE, maxZ = Integer.MIN_VALUE;
         for (ChunkPos pos : claim.getClaimedChunks()) {
+            if (pos == null) continue;
             minX = Math.min(minX, pos.x);
             maxX = Math.max(maxX, pos.x);
             minZ = Math.min(minZ, pos.z);
             maxZ = Math.max(maxZ, pos.z);
         }
+        if (minX == Integer.MAX_VALUE) return new Rectangle(0, 0, 0, 0);
+
         int x1 = (int) (offsetX + minX * 16 * scale);
         int y1 = (int) (offsetZ + minZ * 16 * scale);
         int x2 = (int) (offsetX + (maxX + 1) * 16 * scale);
@@ -166,10 +165,10 @@ public final class WorldMapClaimController {
     }
 
     public boolean canRemoveChunk(ChunkPos pos, RecruitsClaim claim) {
-        if (pos == null || ClientManager.ownFaction == null) return false;
+        if (pos == null || claim == null || ClientManager.ownFaction == null) return false;
         if (isPlayerTooFar(pos)) return false;
         List<ChunkPos> claimedChunks = claim.getClaimedChunks();
-        if (!claimedChunks.contains(pos)) return false;
+        if (claimedChunks == null || !claimedChunks.contains(pos)) return false;
         int unclaimedNeighbors = 0;
         for (ChunkPos neighbor :
                 new ChunkPos[] {
@@ -186,23 +185,30 @@ public final class WorldMapClaimController {
         int amount = 1;
         if (ownerTeam != null) {
             for (RecruitsClaim claim : ClientManager.recruitsClaims) {
-                if (claim.getOwnerFaction().getStringID().equals(ownerTeam.getStringID())) amount++;
+                if (claim == null || claim.getOwnerFaction() == null) continue;
+                if (sameFaction(claim.getOwnerFaction(), ownerTeam)) amount++;
             }
         }
         return amount * ClientManager.configValueClaimCost;
     }
 
     public boolean canPlayerPay(int cost, Player player) {
-        return player.isCreative()
-                || cost <= player.getInventory().countItem(ClientManager.currencyItemStack.getItem());
+        if (player == null) return false;
+        if (player.isCreative()) return true;
+
+        ItemStack currency = ClientManager.currencyItemStack;
+        return currency != null
+                && !currency.isEmpty()
+                && cost <= player.getInventory().countItem(currency.getItem());
     }
 
     public static boolean isInBufferZone(ChunkPos chunk, RecruitsFaction ownFaction) {
-        if (ownFaction == null) return false;
+        if (chunk == null || ownFaction == null) return false;
         for (RecruitsClaim claim : ClientManager.recruitsClaims) {
-            if (claim.getOwnerFaction() == null
-                    || claim.getOwnerFaction().getStringID().equals(ownFaction.getStringID())) continue;
+            if (claim == null || claim.getOwnerFaction() == null || claim.getClaimedChunks() == null) continue;
+            if (sameFaction(claim.getOwnerFaction(), ownFaction)) continue;
             for (ChunkPos claimChunk : claim.getClaimedChunks()) {
+                if (claimChunk == null) continue;
                 int dx = Math.abs(chunk.x - claimChunk.x);
                 int dz = Math.abs(chunk.z - claimChunk.z);
                 if (dx <= 3 && dz <= 3 && !(dx == 0 && dz == 0)) return true;
@@ -212,30 +218,11 @@ public final class WorldMapClaimController {
     }
 
     public boolean canClaimChunk(ChunkPos pos) {
-        if (!ClientManager.configValueIsClaimingAllowed
-                || pos == null
-                || ClientManager.ownFaction == null) return false;
-        if (isPlayerTooFar(pos)) return false;
-        for (RecruitsClaim claim : ClientManager.recruitsClaims)
-            if (claim.containsChunk(pos)) return false;
-        RecruitsClaim neighbor = getNeighborClaim(pos);
-        if (neighbor == null || neighbor.getClaimedChunks().size() >= RecruitsClaim.MAX_SIZE)
-            return false;
-        return !isInBufferZone(pos, ClientManager.ownFaction);
+        return getClaimChunkStatus(pos, true) == ClaimPreviewStatus.VALID;
     }
 
     public boolean canClaimArea(ChunkPos selectedChunk, List<ChunkPos> areaChunks) {
-        if (selectedChunk == null
-                || areaChunks == null
-                || areaChunks.isEmpty()
-                || ClientManager.ownFaction == null) return false;
-        if (isPlayerTooFar(selectedChunk)) return false;
-        for (ChunkPos chunk : areaChunks) {
-            for (RecruitsClaim claim : ClientManager.recruitsClaims)
-                if (claim.containsChunk(chunk)) return false;
-            if (isInBufferZone(chunk, ClientManager.ownFaction)) return false;
-        }
-        return true;
+        return getClaimAreaStatus(selectedChunk, areaChunks) == ClaimPreviewStatus.VALID;
     }
 
     public List<ChunkPos> getClaimableChunks(ChunkPos center, int radius) {
@@ -251,22 +238,177 @@ public final class WorldMapClaimController {
     }
 
     public boolean canClaimChunkRaw(ChunkPos pos) {
-        for (RecruitsClaim claim : ClientManager.recruitsClaims)
-            if (claim.containsChunk(pos)) return false;
+        return getClaimChunkStatus(pos, false) == ClaimPreviewStatus.VALID;
+    }
+
+    public boolean canShowClaimChunkEntry(ChunkPos pos) {
+        return pos != null && ClientManager.ownFaction != null;
+    }
+
+    public boolean canExecuteClaimChunk(ChunkPos pos) {
+        if (getClaimChunkStatus(pos, true) != ClaimPreviewStatus.VALID) return false;
+        if (!canPlayerPay(ClientManager.configValueChunkCost, player)) return false;
+
+        RecruitsClaim neighborClaim = getNeighborClaim(pos);
+        return isPlayerFactionLeader() || isPlayerClaimLeader(neighborClaim);
+    }
+
+    public Component getClaimChunkDisabledReason(ChunkPos pos) {
+        ClaimPreviewStatus status = getClaimChunkStatus(pos, true);
+        if (status != ClaimPreviewStatus.VALID) return status.message();
+        if (!canPlayerPay(ClientManager.configValueChunkCost, player)) {
+            return ClaimPreviewStatus.NOT_ENOUGH_PAYMENT.message();
+        }
+
+        RecruitsClaim neighborClaim = getNeighborClaim(pos);
+        if (!isPlayerFactionLeader() && !isPlayerClaimLeader(neighborClaim)) {
+            return ClaimPreviewStatus.NO_PERMISSION.message();
+        }
+        return ClaimPreviewStatus.VALID.message();
+    }
+
+    public boolean canShowClaimAreaEntry(ChunkPos selectedChunk) {
+        return selectedChunk != null && ClientManager.ownFaction != null;
+    }
+
+    public boolean canExecuteClaimArea(ChunkPos selectedChunk) {
+        List<ChunkPos> areaChunks = getClaimArea(selectedChunk);
+        if (getClaimAreaStatus(selectedChunk, areaChunks) != ClaimPreviewStatus.VALID) return false;
+        if (!isPlayerFactionLeader()) return false;
+        return canPlayerPay(getClaimCost(ClientManager.ownFaction), player);
+    }
+
+    public Component getClaimAreaDisabledReason(ChunkPos selectedChunk) {
+        List<ChunkPos> areaChunks = getClaimArea(selectedChunk);
+        ClaimPreviewStatus status = getClaimAreaStatus(selectedChunk, areaChunks);
+        if (status != ClaimPreviewStatus.VALID) return status.message();
+        if (!isPlayerFactionLeader()) return ClaimPreviewStatus.NO_PERMISSION.message();
+        if (!canPlayerPay(getClaimCost(ClientManager.ownFaction), player)) {
+            return ClaimPreviewStatus.NOT_ENOUGH_PAYMENT.message();
+        }
+        return ClaimPreviewStatus.VALID.message();
+    }
+
+    public ClaimPreviewStatus getClaimChunkStatus(ChunkPos pos, boolean requirePlayerDistance) {
+        if (!ClientManager.configValueIsClaimingAllowed) return ClaimPreviewStatus.CLAIMING_DISABLED;
+        if (pos == null) return ClaimPreviewStatus.NO_CHUNK;
+        if (ClientManager.ownFaction == null) return ClaimPreviewStatus.NO_FACTION;
+        if (!isPlayerInOverworld()) return ClaimPreviewStatus.WRONG_DIMENSION;
+        if (requirePlayerDistance && isPlayerTooFar(pos)) return ClaimPreviewStatus.TOO_FAR;
+        if (WorldMapClaimIndex.isClaimed(pos)) return ClaimPreviewStatus.OCCUPIED;
+
         RecruitsClaim neighbor = getNeighborClaim(pos);
-        if (neighbor == null) return false;
-        return !isInBufferZone(pos, ClientManager.ownFaction);
+        if (neighbor == null) return ClaimPreviewStatus.NO_NEIGHBOR;
+        if (neighbor.getOwnerFaction() == null || !sameFaction(neighbor.getOwnerFaction(), ClientManager.ownFaction)) {
+            return ClaimPreviewStatus.WRONG_FACTION;
+        }
+        if (neighbor.getClaimedChunks() == null || neighbor.getClaimedChunks().size() >= getMaxClaimChunks()) {
+            return ClaimPreviewStatus.CLAIM_FULL;
+        }
+        if (isInBufferZone(pos, ClientManager.ownFaction)) return ClaimPreviewStatus.BUFFER_ZONE;
+        return ClaimPreviewStatus.VALID;
+    }
+
+    public ClaimPreviewStatus getClaimAreaStatus(ChunkPos selectedChunk, List<ChunkPos> areaChunks) {
+        if (!ClientManager.configValueIsClaimingAllowed) return ClaimPreviewStatus.CLAIMING_DISABLED;
+        if (selectedChunk == null || areaChunks == null || areaChunks.isEmpty()) return ClaimPreviewStatus.NO_CHUNK;
+        if (ClientManager.ownFaction == null) return ClaimPreviewStatus.NO_FACTION;
+        if (!isPlayerInOverworld()) return ClaimPreviewStatus.WRONG_DIMENSION;
+        if (isPlayerTooFar(selectedChunk)) return ClaimPreviewStatus.TOO_FAR;
+        if (areaChunks.size() > getMaxClaimChunks()) return ClaimPreviewStatus.CLAIM_FULL;
+
+        for (ChunkPos chunk : areaChunks) {
+            ClaimPreviewStatus status = getClaimAreaChunkStatus(selectedChunk, chunk);
+            if (status != ClaimPreviewStatus.VALID) return status;
+        }
+        return ClaimPreviewStatus.VALID;
+    }
+
+    public ClaimPreviewStatus getClaimAreaChunkStatus(ChunkPos selectedChunk, ChunkPos chunk) {
+        if (!ClientManager.configValueIsClaimingAllowed) return ClaimPreviewStatus.CLAIMING_DISABLED;
+        if (selectedChunk == null || chunk == null) return ClaimPreviewStatus.NO_CHUNK;
+        if (ClientManager.ownFaction == null) return ClaimPreviewStatus.NO_FACTION;
+        if (!isPlayerInOverworld()) return ClaimPreviewStatus.WRONG_DIMENSION;
+        if (isPlayerTooFar(selectedChunk)) return ClaimPreviewStatus.TOO_FAR;
+        if (WorldMapClaimIndex.isClaimed(chunk)) return ClaimPreviewStatus.OCCUPIED;
+        if (isInBufferZone(chunk, ClientManager.ownFaction)) return ClaimPreviewStatus.BUFFER_ZONE;
+        return ClaimPreviewStatus.VALID;
+    }
+
+    public List<ClaimPreviewChunk> getClaimAreaPreview(ChunkPos selectedChunk) {
+        List<ClaimPreviewChunk> preview = new ArrayList<>();
+        for (ChunkPos chunk : getClaimArea(selectedChunk)) {
+            preview.add(new ClaimPreviewChunk(chunk, getClaimAreaChunkStatus(selectedChunk, chunk)));
+        }
+        return preview;
+    }
+
+    public List<ClaimPreviewChunk> getClaimRadiusPreview(ChunkPos center, int radius) {
+        List<ClaimPreviewChunk> preview = new ArrayList<>();
+        if (center == null) return preview;
+        for (int x = center.x - radius; x <= center.x + radius; x++) {
+            for (int z = center.z - radius; z <= center.z + radius; z++) {
+                ChunkPos chunk = new ChunkPos(x, z);
+                preview.add(new ClaimPreviewChunk(chunk, getClaimChunkStatus(chunk, true)));
+            }
+        }
+        return preview;
     }
 
     private boolean isPlayerTooFar(ChunkPos pos) {
-        if (pos == null) return true;
-        int diffX = Math.abs(player.chunkPosition().x) - Math.abs(pos.x);
-        int diffZ = Math.abs(player.chunkPosition().z) - Math.abs(pos.z);
-        return Math.abs(diffZ) > 4 || Math.abs(diffX) > 4;
+        if (player == null || pos == null) return true;
+        int diffX = Math.abs(player.chunkPosition().x - pos.x);
+        int diffZ = Math.abs(player.chunkPosition().z - pos.z);
+        return diffZ > MAX_PLAYER_CLAIM_DISTANCE_CHUNKS || diffX > MAX_PLAYER_CLAIM_DISTANCE_CHUNKS;
     }
 
     private boolean isPlayerInOverworld() {
         return minecraft.level != null
                 && minecraft.level.dimension() == net.minecraft.world.level.Level.OVERWORLD;
     }
+
+    private int getMaxClaimChunks() {
+        return ClientManager.configValueMaxClaimChunks > 0
+                ? ClientManager.configValueMaxClaimChunks
+                : RecruitsClaim.DEFAULT_MAX_SIZE;
+    }
+
+    private static boolean sameFaction(RecruitsFaction left, RecruitsFaction right) {
+        if (left == null || right == null) return false;
+        return Objects.equals(left.getStringID(), right.getStringID());
+    }
+
+    public enum ClaimPreviewStatus {
+        VALID("gui.recruits.map.claim_preview.valid", 0x4433FF66),
+        OCCUPIED("gui.recruits.map.claim_preview.occupied", 0x66FF4444),
+        BUFFER_ZONE("gui.recruits.map.claim_preview.buffer", 0x66FF4444),
+        TOO_FAR("gui.recruits.map.claim_preview.too_far", 0x66888888),
+        NO_FACTION("gui.recruits.map.claim_preview.no_faction", 0x66888888),
+        CLAIMING_DISABLED("gui.recruits.map.claim_preview.disabled", 0x66888888),
+        NO_NEIGHBOR("gui.recruits.map.claim_preview.no_neighbor", 0x66555555),
+        WRONG_FACTION("gui.recruits.map.claim_preview.wrong_faction", 0x66FF8844),
+        CLAIM_FULL("gui.recruits.map.claim_preview.full", 0x66FFAA00),
+        NO_PERMISSION("gui.recruits.map.claim_preview.no_permission", 0x66888888),
+        NOT_ENOUGH_PAYMENT("gui.recruits.map.claim_preview.no_payment", 0x66888888),
+        NO_CHUNK("gui.recruits.map.claim_preview.no_chunk", 0x66888888),
+        WRONG_DIMENSION("gui.recruits.map.claim_preview.wrong_dimension", 0x66888888);
+
+        private final String translationKey;
+        private final int previewColor;
+
+        ClaimPreviewStatus(String translationKey, int previewColor) {
+            this.translationKey = translationKey;
+            this.previewColor = previewColor;
+        }
+
+        public Component message() {
+            return Component.translatable(translationKey);
+        }
+
+        public int previewColor() {
+            return previewColor;
+        }
+    }
+
+    public record ClaimPreviewChunk(ChunkPos chunk, ClaimPreviewStatus status) {}
 }
