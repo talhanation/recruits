@@ -9,6 +9,11 @@ import java.nio.file.Path;
 
 @Mod.EventBusSubscriber
 public class RecruitsClientConfig {
+    public enum MapPlayerIconStyle {
+        VANILLA,
+        OVERHAULED
+    }
+
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static ForgeConfigSpec CLIENT;
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
@@ -17,6 +22,11 @@ public class RecruitsClientConfig {
     public static ForgeConfigSpec.BooleanValue UpdateCheckerClientside;
     public static ForgeConfigSpec.BooleanValue DisableClaimGUIOverlay;
     public static ForgeConfigSpec.BooleanValue UpdateMapTiles;
+    public static ForgeConfigSpec.BooleanValue WorldMapUpdateAroundPlayer;
+    public static ForgeConfigSpec.BooleanValue WorldMapLoadViewedRegions;
+    public static ForgeConfigSpec.BooleanValue WorldMapNightShading;
+    public static ForgeConfigSpec.BooleanValue WorldMapShowCoordinates;
+    public static ForgeConfigSpec.EnumValue<MapPlayerIconStyle> WorldMapPlayerIconStyle;
 
     static{
         BUILDER.comment("Recruits Config Client Side:").push("RecruitsClientSide");
@@ -77,6 +87,36 @@ public class RecruitsClientConfig {
                         default: true""")
                 .worldRestart()
                 .define("UpdateMapTiles", true);
+
+        WorldMapUpdateAroundPlayer = BUILDER.comment("""
+                        ----WorldMapUpdateAroundPlayer----
+                        Load and refresh map chunks around the player.
+                        default: true""")
+                .define("WorldMapUpdateAroundPlayer", true);
+
+        WorldMapLoadViewedRegions = BUILDER.comment("""
+                        ----WorldMapLoadViewedRegions----
+                        Load saved map regions while looking around the world map.
+                        default: true""")
+                .define("WorldMapLoadViewedRegions", true);
+
+        WorldMapNightShading = BUILDER.comment("""
+                        ----WorldMapNightShading----
+                        Darken the world map at night.
+                        default: true""")
+                .define("WorldMapNightShading", true);
+
+        WorldMapShowCoordinates = BUILDER.comment("""
+                        ----WorldMapShowCoordinates----
+                        Show the coordinates and zoom readout on the world map.
+                        default: true""")
+                .define("WorldMapShowCoordinates", true);
+
+        WorldMapPlayerIconStyle = BUILDER.comment("""
+                        ----WorldMapPlayerIconStyle----
+                        Player icon style on the world map.
+                        default: OVERHAULED""")
+                .defineEnum("WorldMapPlayerIconStyle", MapPlayerIconStyle.OVERHAULED);
 
         BUILDER.pop();
         CLIENT = BUILDER.build();

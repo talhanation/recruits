@@ -19,9 +19,20 @@ import net.minecraft.world.item.Items;
 import org.joml.Matrix4f;
 
 public final class WorldMapPlayerRenderer {
-    private static final ResourceLocation MAP_ICONS =
-            new ResourceLocation("textures/map/map_icons.png");
+    private static final ResourceLocation MAP_ICONS = new ResourceLocation("textures/map/map_icons.png");
     private static final ItemStack BOAT_STACK = new ItemStack(Items.OAK_BOAT);
+    private static final float PLAYER_ARROW_BASE_SCALE = 0.55F;
+    private static final float PLAYER_ARROW_MIN_SCALE = 0.18F;
+    private static final float PLAYER_ARROW_MAX_SCALE = 0.55F;
+    private static final int[][] PLAYER_ARROW_SPANS = {
+            {0, 2, 23, 25}, {0, 4, 21, 25}, {0, 6, 19, 25}, {1, 8, 17, 24}, {1, 10, 15, 24},
+            {2, 23, -1, -1}, {2, 23, -1, -1}, {3, 22, -1, -1}, {3, 22, -1, -1},
+            {4, 21, -1, -1}, {4, 21, -1, -1}, {5, 20, -1, -1}, {5, 20, -1, -1},
+            {6, 19, -1, -1}, {6, 19, -1, -1}, {7, 18, -1, -1}, {7, 18, -1, -1},
+            {7, 18, -1, -1}, {8, 17, -1, -1}, {9, 16, -1, -1}, {9, 16, -1, -1},
+            {10, 15, -1, -1}, {10, 15, -1, -1}, {10, 15, -1, -1}, {11, 14, -1, -1},
+            {11, 14, -1, -1}, {12, 13, -1, -1}
+    };
 
     private WorldMapPlayerRenderer() {}
 
@@ -31,7 +42,8 @@ public final class WorldMapPlayerRenderer {
             Player player,
             double offsetX,
             double offsetZ,
-            double scale) {
+            double scale,
+            boolean usePlayerArrow) {
         if (player == null) return;
 
         double playerWorldX = player.getX();
@@ -43,7 +55,7 @@ public final class WorldMapPlayerRenderer {
         pose.pushPose();
         pose.translate(pixelX, pixelZ, 0);
         if (player.getVehicle() instanceof Boat) renderBoat(pose, guiGraphics, player);
-        else renderIcon(pose, guiGraphics, player);
+        else renderIcon(pose, guiGraphics, player, scale, usePlayerArrow);
         pose.popPose();
         renderNameTag(guiGraphics, font, player, pixelX, pixelZ, scale);
     }
@@ -69,7 +81,16 @@ public final class WorldMapPlayerRenderer {
         pose.popPose();
     }
 
-    private static void renderIcon(PoseStack pose, GuiGraphics guiGraphics, Player player) {
+    private static void renderIcon(
+            PoseStack pose, GuiGraphics guiGraphics, Player player, double scale, boolean usePlayerArrow) {
+        if (usePlayerArrow) {
+            renderPlayerArrowIcon(pose, guiGraphics, player, scale);
+            return;
+        }
+        renderVanillaIcon(pose, guiGraphics, player);
+    }
+
+    private static void renderVanillaIcon(PoseStack pose, GuiGraphics guiGraphics, Player player) {
         pose.mulPose(Axis.ZP.rotationDegrees(player.getYRot()));
         pose.scale(5.0f, 5.0f, 5.0f);
         int iconIndex = 0;
@@ -114,6 +135,42 @@ public final class WorldMapPlayerRenderer {
                 .uv2(light)
                 .normal(0, 0, 1)
                 .endVertex();
+    }
+
+    private static void renderPlayerArrowIcon(
+            PoseStack pose, GuiGraphics guiGraphics, Player player, double mapScale) {
+        float arrowScale = getPlayerArrowScale(mapScale);
+
+        pose.pushPose();
+        pose.translate(0, 2.0F * arrowScale, 0);
+        pose.mulPose(Axis.ZP.rotationDegrees(player.getYRot()));
+        pose.scale(arrowScale, arrowScale, 1.0F);
+        renderPlayerArrowMask(guiGraphics, 0xE0000000);
+        pose.popPose();
+
+        pose.pushPose();
+        pose.mulPose(Axis.ZP.rotationDegrees(player.getYRot()));
+        pose.scale(arrowScale, arrowScale, 1.0F);
+        renderPlayerArrowMask(guiGraphics, 0xFF2BEA68);
+        pose.popPose();
+        guiGraphics.flush();
+    }
+
+    private static float getPlayerArrowScale(double mapScale) {
+        float scale = (float) mapScale * PLAYER_ARROW_BASE_SCALE;
+        return Math.max(PLAYER_ARROW_MIN_SCALE, Math.min(PLAYER_ARROW_MAX_SCALE, scale));
+    }
+
+    private static void renderPlayerArrowMask(GuiGraphics guiGraphics, int color) {
+        for (int row = 0; row < PLAYER_ARROW_SPANS.length; row++) {
+            int[] spans = PLAYER_ARROW_SPANS[row];
+            drawPlayerArrowSpan(guiGraphics, spans[0], spans[1], row, color);
+            if (spans[2] >= 0) drawPlayerArrowSpan(guiGraphics, spans[2], spans[3], row, color);
+        }
+    }
+
+    private static void drawPlayerArrowSpan(GuiGraphics guiGraphics, int startX, int endX, int row, int color) {
+        MapRenderUtil.fill(guiGraphics, startX - 13, row - 5, endX - 12, row - 4, color);
     }
 
     private static void renderNameTag(

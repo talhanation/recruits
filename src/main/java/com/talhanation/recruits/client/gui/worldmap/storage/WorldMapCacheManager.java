@@ -12,6 +12,7 @@ import com.talhanation.recruits.client.gui.worldmap.pipeline.WorldMapAsync;
 import com.talhanation.recruits.client.gui.worldmap.pipeline.WorldMapChunkBuildQueue;
 import com.talhanation.recruits.client.gui.worldmap.render.WorldMapRenderer;
 import com.talhanation.recruits.client.gui.worldmap.render.tile.WorldMapRenderTileCache;
+import com.talhanation.recruits.config.RecruitsClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
@@ -88,6 +89,7 @@ public class WorldMapCacheManager {
     private boolean persistedRegionsUsePreviousColorEpoch;
     private boolean initialModelBakeSeen;
     private boolean pendingColorRefresh;
+    private boolean previousPlayerAreaUpdatesEnabled = true;
 
     public static WorldMapCacheManager getInstance() {
         if (instance == null) instance = new WorldMapCacheManager();
@@ -176,18 +178,28 @@ public class WorldMapCacheManager {
         if (mc.level == null || mc.player == null) return;
         if (this.worldMapDir == null || isUsingUnknownStorageId()) initialize(mc.level);
 
+        boolean updatePlayerArea = shouldUpdateAroundPlayer();
+        if (!updatePlayerArea && previousPlayerAreaUpdatesEnabled) {
+            clearChunkBuildPipeline();
+        }
+        previousPlayerAreaUpdatesEnabled = updatePlayerArea;
+
         consumeReadyRegionLoads(MAX_REGION_LOAD_COMPLETIONS_PER_FRAME);
         regionSaveQueue.consumeReadySaves(MAX_REGION_SAVE_COMPLETIONS_PER_FRAME);
-        processRegionWakeQueue(MAX_REGION_WAKE_CHUNKS_PER_TICK, REGION_WAKE_BUDGET_NANOS);
 
+        int chunkUpdates = 0;
         long now = System.currentTimeMillis();
-        if (shouldDiscoverLoadedChunks(now)) {
-            discoverLoadedChunksAroundPlayer();
-            lastDiscoveryTime = now;
-        }
+        if (updatePlayerArea) {
+            processRegionWakeQueue(MAX_REGION_WAKE_CHUNKS_PER_TICK, REGION_WAKE_BUDGET_NANOS);
 
-        int chunkUpdates = consumeReadyChunkBuilds(MAX_CHUNK_BUILD_COMPLETIONS_PER_TICK);
-        scheduleChunkBuilds(MAX_CHUNK_BUILD_SCHEDULES_PER_TICK);
+            if (shouldDiscoverLoadedChunks(now)) {
+                discoverLoadedChunksAroundPlayer();
+                lastDiscoveryTime = now;
+            }
+
+            chunkUpdates = consumeReadyChunkBuilds(MAX_CHUNK_BUILD_COMPLETIONS_PER_TICK);
+            scheduleChunkBuilds(MAX_CHUNK_BUILD_SCHEDULES_PER_TICK);
+        }
 
         if (now - lastSaveTime >= SAVE_INTERVAL_MS) {
             savePassPending = true;
@@ -228,6 +240,10 @@ public class WorldMapCacheManager {
 
     public WorldMapRenderTileCache getRenderTileCache() {
         return renderTileCache;
+    }
+
+    public boolean shouldLoadViewedRegions() {
+        return RecruitsClientConfig.WorldMapLoadViewedRegions.get();
     }
 
     public void beginRenderFrame() {
@@ -361,6 +377,7 @@ public class WorldMapCacheManager {
 
     public void onChunkLoaded(Level level, ChunkPos chunkPos) {
         if (!isCurrentClientLevel(level) || chunkPos == null) return;
+        if (!shouldUpdateAroundPlayer()) return;
 
         markChunkDirty(chunkPos.x, chunkPos.z, false, CHUNK_LOAD_SETTLE_NANOS, true);
         for (int dz = -1; dz <= 1; dz++) {
@@ -385,6 +402,7 @@ public class WorldMapCacheManager {
 
     public void onBlockUpdated(Level level, BlockPos pos) {
         if (!isCurrentClientLevel(level) || pos == null) return;
+        if (!shouldUpdateAroundPlayer()) return;
 
         int chunkX = pos.getX() >> 4;
         int chunkZ = pos.getZ() >> 4;
@@ -428,6 +446,7 @@ public class WorldMapCacheManager {
         regionAccessSequence = 0L;
         enqueueOffsetCursor = 0;
         regionLoadSchedulesLeft = 0;
+        previousPlayerAreaUpdatesEnabled = true;
     }
 
     private WorldMapRegion getOrCreateRegion(int regionX, int regionZ) {
@@ -956,6 +975,11 @@ public class WorldMapCacheManager {
 
     private boolean isUsingUnknownStorageId() {
         return worldMapDir != null && "unknown".equals(worldMapDir.getName());
+    }
+
+    private static boolean shouldUpdateAroundPlayer() {
+        return RecruitsClientConfig.UpdateMapTiles.get()
+                && RecruitsClientConfig.WorldMapUpdateAroundPlayer.get();
     }
 
     private record PendingRegionLoad(
