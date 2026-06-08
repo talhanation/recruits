@@ -18,7 +18,6 @@ public final class WorldMapRouteControls {
     private static final int ROUTE_BTN_GAP = 3;
 
     private DropDownMenu<RecruitsRoute> routeDropDown;
-    private boolean claimsTransparent;
 
     public void refresh(RecruitsRoute selectedRoute, Consumer<RecruitsRoute> routeSelector) {
         List<RecruitsRoute> routes = ClientManager.getRoutesList();
@@ -51,8 +50,6 @@ public final class WorldMapRouteControls {
         renderRouteDropdown(guiGraphics, font, selectedRoute, mouseX, mouseY, partialTicks);
 
         renderRouteButton(guiGraphics, font, mouseX, mouseY, addButtonX(), "+", false);
-        renderRouteButton(
-                guiGraphics, font, mouseX, mouseY, outlineButtonX(), "□", claimsTransparent);
 
         if (selectedRoute != null) {
             renderRouteButton(guiGraphics, font, mouseX, mouseY, editButtonX(), "⚙", false);
@@ -61,10 +58,6 @@ public final class WorldMapRouteControls {
 
     public boolean isAddButtonHovered(double mouseX, double mouseY) {
         return isRouteButtonHovered(mouseX, mouseY, addButtonX());
-    }
-
-    public boolean isOutlineButtonHovered(double mouseX, double mouseY) {
-        return isRouteButtonHovered(mouseX, mouseY, outlineButtonX());
     }
 
     public boolean isEditButtonHovered(double mouseX, double mouseY) {
@@ -87,24 +80,12 @@ public final class WorldMapRouteControls {
         }
     }
 
-    public boolean areClaimsTransparent() {
-        return claimsTransparent;
-    }
-
-    public void toggleClaimsTransparency() {
-        claimsTransparent = !claimsTransparent;
-    }
-
     private static int addButtonX() {
         return ROUTE_UI_X + ROUTE_DROPDOWN_W + ROUTE_BTN_GAP;
     }
 
-    private static int outlineButtonX() {
-        return addButtonX() + ROUTE_BTN_SIZE + ROUTE_BTN_GAP;
-    }
-
     private static int editButtonX() {
-        return outlineButtonX() + ROUTE_BTN_SIZE + ROUTE_BTN_GAP;
+        return addButtonX() + ROUTE_BTN_SIZE + ROUTE_BTN_GAP;
     }
 
     private void renderRouteDropdown(

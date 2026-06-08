@@ -246,11 +246,11 @@ public class WorldMapScreen extends Screen {
         pose.translate(frame.secondaryOffsetX(), frame.secondaryOffsetZ(), 0.0);
         pose.scale((float) inverseSecondaryScale, (float) inverseSecondaryScale, 1.0F);
         try {
-            if (routeControls.areClaimsTransparent()) {
-                ClaimRenderer.renderClaimsOverlayTransparent(
+            if (RecruitsClientConfig.WorldMapClaimFill.get()) {
+                ClaimRenderer.renderClaimsOverlay(
                         guiGraphics, this.selectedClaim, this.offsetX, this.offsetZ, scale);
             } else {
-                ClaimRenderer.renderClaimsOverlay(
+                ClaimRenderer.renderClaimsOverlayTransparent(
                         guiGraphics, this.selectedClaim, this.offsetX, this.offsetZ, scale);
             }
 
@@ -405,11 +405,6 @@ public class WorldMapScreen extends Screen {
             selectedChunk = null;
             routeNamePopup.open();
             contextMenu.close();
-            return true;
-        }
-
-        if (routeControls.isOutlineButtonHovered(mouseX, mouseY)) {
-            routeControls.toggleClaimsTransparency();
             return true;
         }
 
