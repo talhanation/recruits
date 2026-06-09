@@ -34,6 +34,8 @@ public class WorldMapContextMenu {
     private static final Component TEXT_TELEPORT_ADMIN = Component.translatable("gui.recruits.map.teleport_admin");
 
     private final List<ContextMenuEntry> entries = new ArrayList<>();
+    private final List<ContextMenuEntry> visibleEntries = new ArrayList<>();
+    private final List<Boolean> visibleEntryEnabled = new ArrayList<>();
     private int x, y;
     private boolean visible = false;
     private final int width = 150;
@@ -208,17 +210,23 @@ public class WorldMapContextMenu {
     }
 
     public void openAt(int x, int y) {
-        int visibleEntries =
-                Math.max(1, (int) entries.stream().filter(entry -> entry.shouldShow(worldMapScreen)).count());
+        // Snapshot mouse position at open time for waypoint hit-detection.
+        this.snapshotMouseX = x;
+        this.snapshotMouseY = y;
+        rebuildVisibleEntries(worldMapScreen);
+
+        int visibleEntryCount = Math.max(1, visibleEntries.size());
         this.x = Math.max(10, Math.min(x, worldMapScreen.width - width - 10));
-        this.y = Math.max(10, Math.min(y, worldMapScreen.height - visibleEntries * entryHeight - 10));
+        this.y = Math.max(10, Math.min(y, worldMapScreen.height - visibleEntryCount * entryHeight - 10));
         this.visible = true;
-        // Snapshot mouse position at open time
-        this.snapshotMouseX = worldMapScreen.mouseX;
-        this.snapshotMouseY = worldMapScreen.mouseY;
     }
 
-    public void close() { this.visible = false; }
+    public void close() {
+        this.visible = false;
+        this.hoveredEntryTag = null;
+        this.visibleEntries.clear();
+        this.visibleEntryEnabled.clear();
+    }
     public boolean isVisible() { return visible; }
 
     private String hoveredEntryTag = null;
@@ -230,43 +238,41 @@ public class WorldMapContextMenu {
 
         hoveredEntryTag = null;
 
-        int visibleEntries = (int) entries.stream().filter(e -> e.shouldShow(screen)).count();
-        int height = visibleEntries * entryHeight;
+        int height = visibleEntries.size() * entryHeight;
 
         guiGraphics.fill(x, y, x + width, y + height, 0xFF1A1A1A);
         guiGraphics.renderOutline(x, y, width, height, 0xFF555555);
 
         int entryY = y;
         ContextMenuEntry hoveredDisabledEntry = null;
-        for (ContextMenuEntry entry : entries) {
-            if (entry.shouldShow(screen)) {
-                boolean hovered = isMouseOverEntry(x, entryY);
-                boolean enabled = entry.isEnabled(screen);
-                if (hovered) hoveredEntryTag = entry.getTag();
-                if (hovered && !enabled) hoveredDisabledEntry = entry;
+        for (int i = 0; i < visibleEntries.size(); i++) {
+            ContextMenuEntry entry = visibleEntries.get(i);
+            boolean hovered = isMouseOverEntry(x, entryY);
+            boolean enabled = visibleEntryEnabled.get(i);
+            if (hovered) hoveredEntryTag = entry.getTag();
+            if (hovered && !enabled) hoveredDisabledEntry = entry;
 
-                guiGraphics.fill(
-                        x, entryY, x + width, entryY + entryHeight, hovered ? 0xFF333333 : 0xFF1A1A1A);
+            guiGraphics.fill(
+                    x, entryY, x + width, entryY + entryHeight, hovered ? 0xFF333333 : 0xFF1A1A1A);
 
-                int textColor;
-                if (!enabled) {
-                    textColor = 0xFF777777;
-                } else if (entry.getTag().equals("admin")) {
-                    textColor = hovered ? 0xFFFF5555 : 0xFFAA4444;
-                } else {
-                    textColor = hovered ? 0xFFFFFF : 0xCCCCCC;
-                }
-
-                guiGraphics.drawString(screen.getMinecraft().font, entry.text(), x + 8, entryY + 6, textColor);
-
-                if (!entry.stack.isEmpty()) {
-                    guiGraphics.renderFakeItem(entry.stack, x + width - 20, entryY + 1);
-                    guiGraphics.renderItemDecorations(
-                            screen.getMinecraft().font, entry.stack, x + width - 20, entryY + 1);
-                }
-
-                entryY += entryHeight;
+            int textColor;
+            if (!enabled) {
+                textColor = 0xFF777777;
+            } else if (entry.getTag().equals("admin")) {
+                textColor = hovered ? 0xFFFF5555 : 0xFFAA4444;
+            } else {
+                textColor = hovered ? 0xFFFFFF : 0xCCCCCC;
             }
+
+            guiGraphics.drawString(screen.getMinecraft().font, entry.text(), x + 8, entryY + 6, textColor);
+
+            if (!entry.stack.isEmpty()) {
+                guiGraphics.renderFakeItem(entry.stack, x + width - 20, entryY + 1);
+                guiGraphics.renderItemDecorations(
+                        screen.getMinecraft().font, entry.stack, x + width - 20, entryY + 1);
+            }
+
+            entryY += entryHeight;
         }
 
         if (hoveredDisabledEntry != null) {
@@ -278,25 +284,34 @@ public class WorldMapContextMenu {
         if (!visible || button != 0) return false;
 
         int entryY = y;
-        for (ContextMenuEntry entry : entries) {
-            if (entry.shouldShow(screen)) {
-                if (mouseX >= x
-                        && mouseX <= x + width
-                        && mouseY >= entryY
-                        && mouseY <= entryY + entryHeight) {
-                    if (!entry.isEnabled(screen)) {
-                        return true;
-                    }
-                    entry.execute(screen);
-                    close();
+        for (ContextMenuEntry entry : visibleEntries) {
+            if (mouseX >= x
+                    && mouseX <= x + width
+                    && mouseY >= entryY
+                    && mouseY <= entryY + entryHeight) {
+                if (!entry.isEnabled(screen)) {
                     return true;
                 }
-                entryY += entryHeight;
+                entry.execute(screen);
+                close();
+                return true;
             }
+            entryY += entryHeight;
         }
 
         close();
         return false;
+    }
+
+    private void rebuildVisibleEntries(WorldMapScreen screen) {
+        visibleEntries.clear();
+        visibleEntryEnabled.clear();
+        for (ContextMenuEntry entry : entries) {
+            if (entry.shouldShow(screen)) {
+                visibleEntries.add(entry);
+                visibleEntryEnabled.add(entry.isEnabled(screen));
+            }
+        }
     }
 
     private boolean isMouseOverEntry(int entryX, int entryY) {
