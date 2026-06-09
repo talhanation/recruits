@@ -1,13 +1,20 @@
 package com.talhanation.recruits.client.gui.worldmap.route;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.talhanation.recruits.client.gui.worldmap.render.MapRenderUtil;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapCacheManager;
 import com.talhanation.recruits.world.RecruitsRoute;
 import com.talhanation.recruits.world.RecruitsRoute.Waypoint;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
@@ -134,8 +141,66 @@ public class RouteRenderer {
 
     private static void renderRouteLine(
             GuiGraphics guiGraphics, double x1, double z1, double x2, double z2, int color) {
-        MapRenderUtil.line(guiGraphics, x1, z1, x2, z2, 3.0, ROUTE_LINE_SHADOW_COLOR);
-        MapRenderUtil.line(guiGraphics, x1, z1, x2, z2, 1.5, color);
+        if (Math.hypot(x2 - x1, z2 - z1) < 0.0001) return;
+
+        guiGraphics.flush();
+
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
+        RenderSystem.disableCull();
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+
+        try {
+            Matrix4f matrix = guiGraphics.pose().last().pose();
+            BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+            buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+            appendLineQuad(buffer, matrix, x1, z1, x2, z2, 3.0, ROUTE_LINE_SHADOW_COLOR);
+            appendLineQuad(buffer, matrix, x1, z1, x2, z2, 1.25, color);
+            BufferUploader.drawWithShader(buffer.end());
+        } finally {
+            RenderSystem.depthMask(true);
+            RenderSystem.enableCull();
+            RenderSystem.enableDepthTest();
+        }
+    }
+
+    private static void appendLineQuad(
+            BufferBuilder buffer,
+            Matrix4f matrix,
+            double x1,
+            double y1,
+            double x2,
+            double y2,
+            double thickness,
+            int color) {
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+        double length = Math.hypot(dx, dy);
+        if (length < 0.0001) return;
+
+        double half = thickness * 0.5;
+        double nx = -dy / length * half;
+        double ny = dx / length * half;
+
+        int alpha = (color >>> 24) & 0xFF;
+        int red = (color >>> 16) & 0xFF;
+        int green = (color >>> 8) & 0xFF;
+        int blue = color & 0xFF;
+
+        buffer.vertex(matrix, (float) (x1 - nx), (float) (y1 - ny), 0.0F)
+                .color(red, green, blue, alpha)
+                .endVertex();
+        buffer.vertex(matrix, (float) (x2 - nx), (float) (y2 - ny), 0.0F)
+                .color(red, green, blue, alpha)
+                .endVertex();
+        buffer.vertex(matrix, (float) (x2 + nx), (float) (y2 + ny), 0.0F)
+                .color(red, green, blue, alpha)
+                .endVertex();
+        buffer.vertex(matrix, (float) (x1 + nx), (float) (y1 + ny), 0.0F)
+                .color(red, green, blue, alpha)
+                .endVertex();
     }
 
     private static void renderWaypointIcon(
@@ -158,14 +223,7 @@ public class RouteRenderer {
 
         // Number label
         String numStr = String.valueOf(number);
-        int textWidth = Minecraft.getInstance().font.width(numStr);
-        guiGraphics.drawString(
-                Minecraft.getInstance().font,
-                numStr,
-                (int) Math.round(pixelX - textWidth / 2.0),
-                (int) Math.round(pixelZ - 10.0),
-                argb,
-                false);
+        renderCenteredTextAt(guiGraphics, numStr, pixelX, pixelZ - 10.0, argb);
 
         // Status / action label below icon, only when zoomed in and not being dragged
         if (scale > 2.0 && !isDragging) {
@@ -176,16 +234,19 @@ public class RouteRenderer {
                 label = waypoint.getAction().toString();
             }
             if (label != null) {
-                int labelW = Minecraft.getInstance().font.width(label);
-                guiGraphics.drawString(
-                        Minecraft.getInstance().font,
-                        label,
-                        (int) Math.round(pixelX - labelW / 2.0),
-                        (int) Math.round(pixelZ + 5.0),
-                        argb,
-                        false);
+                renderCenteredTextAt(guiGraphics, label, pixelX, pixelZ + 5.0, argb);
             }
         }
+    }
+
+    private static void renderCenteredTextAt(
+            GuiGraphics guiGraphics, String text, double centerX, double y, int color) {
+        Font font = Minecraft.getInstance().font;
+        PoseStack pose = guiGraphics.pose();
+        pose.pushPose();
+        pose.translate(centerX, y, 0.0);
+        guiGraphics.drawString(font, text, -font.width(text) / 2, 0, color, false);
+        pose.popPose();
     }
 
     private static boolean isChunkLoaded(Waypoint waypoint) {
