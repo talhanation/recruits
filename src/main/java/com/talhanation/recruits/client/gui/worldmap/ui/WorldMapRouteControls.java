@@ -16,8 +16,17 @@ public final class WorldMapRouteControls {
     private static final int ROUTE_DROPDOWN_W = 140;
     private static final int ROUTE_BTN_SIZE = 20;
     private static final int ROUTE_BTN_GAP = 3;
+    private static final String ROUTES_LABEL = "--- Routes ---";
+    private static final String ADD_LABEL = "+";
+    private static final String EDIT_LABEL = "⚙";
 
     private DropDownMenu<RecruitsRoute> routeDropDown;
+    private Font cachedFont;
+    private String cachedCollapsedLabel = "";
+    private int cachedCollapsedLabelX;
+    private int cachedAddLabelX;
+    private int cachedEditLabelX;
+    private boolean labelLayoutDirty = true;
 
     public void refresh(RecruitsRoute selectedRoute, Consumer<RecruitsRoute> routeSelector) {
         List<RecruitsRoute> routes = ClientManager.getRoutesList();
@@ -38,6 +47,7 @@ public final class WorldMapRouteControls {
         routeDropDown.setBgFill(0x80333333);
         routeDropDown.setBgFillHovered(0x80555555);
         routeDropDown.setBgFillSelected(0x80222222);
+        labelLayoutDirty = true;
     }
 
     public void render(
@@ -47,12 +57,13 @@ public final class WorldMapRouteControls {
             int mouseX,
             int mouseY,
             float partialTicks) {
+        updateLabelLayout(font, selectedRoute);
         renderRouteDropdown(guiGraphics, font, selectedRoute, mouseX, mouseY, partialTicks);
 
-        renderRouteButton(guiGraphics, font, mouseX, mouseY, addButtonX(), "+", false);
+        renderRouteButton(guiGraphics, mouseX, mouseY, addButtonX(), ADD_LABEL, cachedAddLabelX, false);
 
         if (selectedRoute != null) {
-            renderRouteButton(guiGraphics, font, mouseX, mouseY, editButtonX(), "⚙", false);
+            renderRouteButton(guiGraphics, mouseX, mouseY, editButtonX(), EDIT_LABEL, cachedEditLabelX, false);
         }
     }
 
@@ -108,23 +119,18 @@ public final class WorldMapRouteControls {
         if (routeDropDown.isOpen()) {
             routeDropDown.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
         } else {
-            String label = selectedRoute != null ? selectedRoute.getName() : "--- Routes ---";
-            guiGraphics.drawCenteredString(
-                    font,
-                    label,
-                    ROUTE_UI_X + ROUTE_DROPDOWN_W / 2,
-                    ROUTE_UI_Y + (ROUTE_BTN_SIZE - 8) / 2,
-                    0xFFFFFF);
+            guiGraphics.drawString(
+                    font, cachedCollapsedLabel, cachedCollapsedLabelX, ROUTE_UI_Y + (ROUTE_BTN_SIZE - 8) / 2, 0xFFFFFF);
         }
     }
 
     private void renderRouteButton(
             GuiGraphics guiGraphics,
-            Font font,
             int mouseX,
             int mouseY,
             int x,
             String label,
+            int labelX,
             boolean selected) {
         boolean hovered = isRouteButtonHovered(mouseX, mouseY, x);
         int bg = selected ? 0x80555555 : (hovered ? 0x80444444 : 0x80222222);
@@ -132,7 +138,20 @@ public final class WorldMapRouteControls {
 
         guiGraphics.fill(x, ROUTE_UI_Y, x + ROUTE_BTN_SIZE, ROUTE_UI_Y + ROUTE_BTN_SIZE, bg);
         guiGraphics.renderOutline(x, ROUTE_UI_Y, ROUTE_BTN_SIZE, ROUTE_BTN_SIZE, 0x40FFFFFF);
-        guiGraphics.drawCenteredString(font, label, x + ROUTE_BTN_SIZE / 2, ROUTE_UI_Y + 6, color);
+        guiGraphics.drawString(cachedFont, label, labelX, ROUTE_UI_Y + 6, color);
+    }
+
+    private void updateLabelLayout(Font font, RecruitsRoute selectedRoute) {
+        String label = selectedRoute != null ? selectedRoute.getName() : ROUTES_LABEL;
+        if (label == null) label = "";
+        if (!labelLayoutDirty && font == cachedFont && label.equals(cachedCollapsedLabel)) return;
+
+        cachedFont = font;
+        cachedCollapsedLabel = label;
+        cachedCollapsedLabelX = ROUTE_UI_X + (ROUTE_DROPDOWN_W - font.width(cachedCollapsedLabel)) / 2;
+        cachedAddLabelX = addButtonX() + (ROUTE_BTN_SIZE - font.width(ADD_LABEL)) / 2;
+        cachedEditLabelX = editButtonX() + (ROUTE_BTN_SIZE - font.width(EDIT_LABEL)) / 2;
+        labelLayoutDirty = false;
     }
 
     private static boolean isRouteButtonHovered(double mouseX, double mouseY, int x) {

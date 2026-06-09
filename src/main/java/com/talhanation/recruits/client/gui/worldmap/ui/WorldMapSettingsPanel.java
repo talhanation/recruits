@@ -31,6 +31,10 @@ public final class WorldMapSettingsPanel {
     private static final Component CLAIM_FILL = Component.translatable("gui.recruits.map.settings.claim_fill");
 
     private boolean open;
+    private Font cachedToggleFont;
+    private int cachedToggleScreenWidth = -1;
+    private int cachedSettingsIconX;
+    private int cachedCloseIconX;
 
     public void render(GuiGraphics guiGraphics, Font font, int screenWidth, int screenHeight, int mouseX, int mouseY) {
         renderToggleButton(guiGraphics, font, screenWidth, mouseX, mouseY);
@@ -38,6 +42,7 @@ public final class WorldMapSettingsPanel {
 
         int panelX = panelX(screenWidth);
         int panelHeight = panelHeight(screenHeight);
+        int hoveredRow = getHoveredRow(mouseX, mouseY, screenWidth, screenHeight);
         guiGraphics.fill(panelX, PANEL_TOP, panelX + PANEL_WIDTH, PANEL_TOP + panelHeight, BG_COLOR);
         guiGraphics.renderOutline(panelX, PANEL_TOP, PANEL_WIDTH, panelHeight, OUTLINE_COLOR);
         guiGraphics.drawString(font, TITLE, panelX + 8, PANEL_TOP + 7, TEXT_COLOR, false);
@@ -49,7 +54,7 @@ public final class WorldMapSettingsPanel {
                 PANEL_TOP + ROW_START,
                 LOAD_PLAYER_AREA,
                 RecruitsClientConfig.WorldMapUpdateAroundPlayer.get(),
-                isRowHovered(mouseX, mouseY, 0, screenWidth, screenHeight));
+                hoveredRow == 0);
         renderCheckBox(
                 guiGraphics,
                 font,
@@ -57,7 +62,7 @@ public final class WorldMapSettingsPanel {
                 PANEL_TOP + ROW_START + ROW_HEIGHT,
                 LOAD_VIEWED_MAP,
                 RecruitsClientConfig.WorldMapLoadViewedRegions.get(),
-                isRowHovered(mouseX, mouseY, 1, screenWidth, screenHeight));
+                hoveredRow == 1);
         renderCheckBox(
                 guiGraphics,
                 font,
@@ -65,7 +70,7 @@ public final class WorldMapSettingsPanel {
                 PANEL_TOP + ROW_START + ROW_HEIGHT * 2,
                 PLAYER_ARROW,
                 usePlayerArrow(),
-                isRowHovered(mouseX, mouseY, 2, screenWidth, screenHeight));
+                hoveredRow == 2);
         renderCheckBox(
                 guiGraphics,
                 font,
@@ -73,7 +78,7 @@ public final class WorldMapSettingsPanel {
                 PANEL_TOP + ROW_START + ROW_HEIGHT * 3,
                 NIGHT_SHADING,
                 RecruitsClientConfig.WorldMapNightShading.get(),
-                isRowHovered(mouseX, mouseY, 3, screenWidth, screenHeight));
+                hoveredRow == 3);
         renderCheckBox(
                 guiGraphics,
                 font,
@@ -81,7 +86,7 @@ public final class WorldMapSettingsPanel {
                 PANEL_TOP + ROW_START + ROW_HEIGHT * 4,
                 COORDINATES,
                 RecruitsClientConfig.WorldMapShowCoordinates.get(),
-                isRowHovered(mouseX, mouseY, 4, screenWidth, screenHeight));
+                hoveredRow == 4);
         renderCheckBox(
                 guiGraphics,
                 font,
@@ -89,7 +94,7 @@ public final class WorldMapSettingsPanel {
                 PANEL_TOP + ROW_START + ROW_HEIGHT * 5,
                 CLAIM_FILL,
                 RecruitsClientConfig.WorldMapClaimFill.get(),
-                isRowHovered(mouseX, mouseY, 5, screenWidth, screenHeight));
+                hoveredRow == 5);
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button, int screenWidth, int screenHeight) {
@@ -102,19 +107,20 @@ public final class WorldMapSettingsPanel {
         if (!open) return false;
         if (!isPanelHovered(mouseX, mouseY, screenWidth, screenHeight)) return false;
 
-        if (isRowHovered(mouseX, mouseY, 0, screenWidth, screenHeight)) {
+        int hoveredRow = getHoveredRow(mouseX, mouseY, screenWidth, screenHeight);
+        if (hoveredRow == 0) {
             RecruitsClientConfig.WorldMapUpdateAroundPlayer.set(
                     !RecruitsClientConfig.WorldMapUpdateAroundPlayer.get());
-        } else if (isRowHovered(mouseX, mouseY, 1, screenWidth, screenHeight)) {
+        } else if (hoveredRow == 1) {
             RecruitsClientConfig.WorldMapLoadViewedRegions.set(
                     !RecruitsClientConfig.WorldMapLoadViewedRegions.get());
-        } else if (isRowHovered(mouseX, mouseY, 2, screenWidth, screenHeight)) {
+        } else if (hoveredRow == 2) {
             togglePlayerIconStyle();
-        } else if (isRowHovered(mouseX, mouseY, 3, screenWidth, screenHeight)) {
+        } else if (hoveredRow == 3) {
             RecruitsClientConfig.WorldMapNightShading.set(!RecruitsClientConfig.WorldMapNightShading.get());
-        } else if (isRowHovered(mouseX, mouseY, 4, screenWidth, screenHeight)) {
+        } else if (hoveredRow == 4) {
             RecruitsClientConfig.WorldMapShowCoordinates.set(!RecruitsClientConfig.WorldMapShowCoordinates.get());
-        } else if (isRowHovered(mouseX, mouseY, 5, screenWidth, screenHeight)) {
+        } else if (hoveredRow == 5) {
             RecruitsClientConfig.WorldMapClaimFill.set(!RecruitsClientConfig.WorldMapClaimFill.get());
         }
         return true;
@@ -147,12 +153,12 @@ public final class WorldMapSettingsPanel {
 
     private void renderToggleButton(GuiGraphics guiGraphics, Font font, int screenWidth, int mouseX, int mouseY) {
         int x = toggleButtonX(screenWidth);
+        updateToggleLayout(font, screenWidth, x);
         boolean hovered = isToggleButtonHovered(mouseX, mouseY, screenWidth);
         int color = hovered || open ? BUTTON_HOVERED_COLOR : BUTTON_COLOR;
         guiGraphics.fill(x, MARGIN, x + BUTTON_SIZE, MARGIN + BUTTON_SIZE, color);
         guiGraphics.renderOutline(x, MARGIN, BUTTON_SIZE, BUTTON_SIZE, OUTLINE_COLOR);
-        guiGraphics.drawCenteredString(
-                font, open ? CLOSE_ICON : SETTINGS_ICON, x + BUTTON_SIZE / 2, MARGIN + 6, TEXT_COLOR);
+        guiGraphics.drawString(font, open ? CLOSE_ICON : SETTINGS_ICON, open ? cachedCloseIconX : cachedSettingsIconX, MARGIN + 6, TEXT_COLOR);
     }
 
     private void renderCheckBox(
@@ -190,13 +196,31 @@ public final class WorldMapSettingsPanel {
     }
 
     private static boolean isRowHovered(double mouseX, double mouseY, int row, int screenWidth, int screenHeight) {
+        return getHoveredRow(mouseX, mouseY, screenWidth, screenHeight) == row;
+    }
+
+    private static int getHoveredRow(double mouseX, double mouseY, int screenWidth, int screenHeight) {
+        if (!isPanelHovered(mouseX, mouseY, screenWidth, screenHeight)) return -1;
+
         int panelX = panelX(screenWidth);
-        int rowY = PANEL_TOP + ROW_START + ROW_HEIGHT * row;
-        return mouseX >= panelX + 4
-                && mouseX <= panelX + PANEL_WIDTH - 4
-                && mouseY >= rowY - 2
-                && mouseY <= rowY + ROW_HEIGHT - 2
-                && isPanelHovered(mouseX, mouseY, screenWidth, screenHeight);
+        if (mouseX < panelX + 4 || mouseX > panelX + PANEL_WIDTH - 4) return -1;
+
+        for (int row = 0; row < 6; row++) {
+            int rowY = PANEL_TOP + ROW_START + ROW_HEIGHT * row;
+            if (mouseY >= rowY - 2 && mouseY <= rowY + ROW_HEIGHT - 2) {
+                return row;
+            }
+        }
+        return -1;
+    }
+
+    private void updateToggleLayout(Font font, int screenWidth, int x) {
+        if (font == cachedToggleFont && screenWidth == cachedToggleScreenWidth) return;
+
+        cachedToggleFont = font;
+        cachedToggleScreenWidth = screenWidth;
+        cachedSettingsIconX = x + (BUTTON_SIZE - font.width(SETTINGS_ICON)) / 2;
+        cachedCloseIconX = x + (BUTTON_SIZE - font.width(CLOSE_ICON)) / 2;
     }
 
     private static int toggleButtonX(int screenWidth) {

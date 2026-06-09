@@ -73,6 +73,15 @@ public class WorldMapScreen extends Screen {
     private RouteNamePopup routeNamePopup;
     private RouteEditPopup routeEditPopup;
     private WaypointEditPopup waypointEditPopup;
+    private int cachedReadoutBlockX = Integer.MIN_VALUE;
+    private int cachedReadoutBlockZ = Integer.MIN_VALUE;
+    private int cachedReadoutScaleTenths = Integer.MIN_VALUE;
+    private int cachedReadoutScreenWidth = -1;
+    private int cachedReadoutScreenHeight = -1;
+    private String cachedReadoutText = "";
+    private int cachedReadoutBgX;
+    private int cachedReadoutBgY;
+    private int cachedReadoutBgWidth;
 
     public WorldMapScreen() {
         super(Component.literal(""));
@@ -366,18 +375,39 @@ public class WorldMapScreen extends Screen {
     private void renderCoordinatesAndZoom(GuiGraphics guiGraphics) {
         if (!RecruitsClientConfig.WorldMapShowCoordinates.get()) return;
 
+        int scaleTenths = (int) Math.round(scale * 10.0);
+        if (hoverBlockX != cachedReadoutBlockX
+                || hoverBlockZ != cachedReadoutBlockZ
+                || scaleTenths != cachedReadoutScaleTenths
+                || width != cachedReadoutScreenWidth
+                || height != cachedReadoutScreenHeight) {
+            rebuildCoordinatesReadout(scaleTenths);
+        }
+
+        guiGraphics.fill(
+                cachedReadoutBgX,
+                cachedReadoutBgY,
+                cachedReadoutBgX + cachedReadoutBgWidth,
+                cachedReadoutBgY + 20,
+                0x80000000);
+        guiGraphics.renderOutline(cachedReadoutBgX, cachedReadoutBgY, cachedReadoutBgWidth, 20, 0x40FFFFFF);
+        guiGraphics.drawString(font, cachedReadoutText, cachedReadoutBgX + 8, height - 25, 0xFFFFFF);
+    }
+
+    private void rebuildCoordinatesReadout(int scaleTenths) {
         int hoverY = resolveSurfaceY(hoverBlockX, hoverBlockZ);
-        String coords = String.format("X: %d, Y: %d, Z: %d", hoverBlockX, hoverY, hoverBlockZ);
-        String zoomValue = String.format(java.util.Locale.ROOT, "%.1fx", scale);
+        String zoomValue = String.format(java.util.Locale.ROOT, "%.1fx", scaleTenths / 10.0);
         String zoom = Component.translatable("gui.recruits.map.readout.zoom", zoomValue).getString();
-        String combined = coords + " | " + zoom;
-        int textWidth = font.width(combined);
-        int bgX = width / 2 - textWidth / 2 - 8;
-        int bgY = height - 30;
-        int bgWidth = textWidth + 16;
-        guiGraphics.fill(bgX, bgY, bgX + bgWidth, bgY + 20, 0x80000000);
-        guiGraphics.renderOutline(bgX, bgY, bgWidth, 20, 0x40FFFFFF);
-        guiGraphics.drawCenteredString(font, combined, width / 2, height - 25, 0xFFFFFF);
+        cachedReadoutText = "X: " + hoverBlockX + ", Y: " + hoverY + ", Z: " + hoverBlockZ + " | " + zoom;
+        int textWidth = font.width(cachedReadoutText);
+        cachedReadoutBgWidth = textWidth + 16;
+        cachedReadoutBgX = width / 2 - cachedReadoutBgWidth / 2;
+        cachedReadoutBgY = height - 30;
+        cachedReadoutBlockX = hoverBlockX;
+        cachedReadoutBlockZ = hoverBlockZ;
+        cachedReadoutScaleTenths = scaleTenths;
+        cachedReadoutScreenWidth = width;
+        cachedReadoutScreenHeight = height;
     }
 
     // -------------------------------------------------------------------------
@@ -456,10 +486,10 @@ public class WorldMapScreen extends Screen {
             double worldZ = (mouseY - offsetZ) / scale;
             clickedBlockX = (int) Math.floor(worldX);
             clickedBlockZ = (int) Math.floor(worldZ);
-            this.contextMenu = new WorldMapContextMenu(this);
-            contextMenu.openAt((int) mouseX, (int) mouseY);
             snapshotWorldX = clickedBlockX;
             snapshotWorldZ = clickedBlockZ;
+            this.contextMenu = new WorldMapContextMenu(this);
+            contextMenu.openAt((int) mouseX, (int) mouseY);
             claimInfoMenu.close();
         }
 
