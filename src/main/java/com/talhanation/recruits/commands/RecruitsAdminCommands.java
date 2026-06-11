@@ -304,7 +304,7 @@ public class RecruitsAdminCommands {
                             ServerPlayer player = ctx.getSource().getPlayerOrException();
 
                             ChunkPos chunkPos = player.chunkPosition();
-                            RecruitsClaim claim = RecruitsClaimManager.getClaimAt(chunkPos, ClaimEvents.recruitsClaimManager.getAllClaims().stream().toList());
+                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
 
                             if (claim == null) {
                                 ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
@@ -325,7 +325,7 @@ public class RecruitsAdminCommands {
                                     boolean isAdmin = BoolArgumentType.getBool(ctx, "isAdmin");
 
                                     ChunkPos chunkPos = player.chunkPosition();
-                                    RecruitsClaim claim = RecruitsClaimManager.getClaimAt(chunkPos, ClaimEvents.recruitsClaimManager.getAllClaims().stream().toList());
+                                    RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
 
                                     if (claim == null) {
                                         ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
@@ -335,7 +335,7 @@ public class RecruitsAdminCommands {
                                     claim.setAdminClaim(isAdmin);
                                     ctx.getSource().sendSuccess(() ->
                                             Component.literal("Claim [" + claim + "] is now set to admin = " + isAdmin), false);
-                                    ClaimEvents.recruitsClaimManager.broadcastClaimsToAll(ctx.getSource().getLevel());
+                                    ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(ctx.getSource().getLevel(), claim);
                                     return 1;
                                 })
                         )
@@ -347,7 +347,7 @@ public class RecruitsAdminCommands {
                             int amount = IntegerArgumentType.getInteger(ctx, "amount");
 
                             ChunkPos chunkPos = player.chunkPosition();
-                            RecruitsClaim claim = RecruitsClaimManager.getClaimAt(chunkPos, ClaimEvents.recruitsClaimManager.getAllClaims().stream().toList());
+                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
 
                             if (claim == null) {
                                 ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
@@ -357,7 +357,7 @@ public class RecruitsAdminCommands {
                             claim.setHealth(amount);
                             ctx.getSource().sendSuccess(() ->
                                     Component.literal("Claim health was set to " + claim.getHealth()), false);
-                            ClaimEvents.recruitsClaimManager.broadcastClaimsToAll(ctx.getSource().getLevel());
+                            ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(ctx.getSource().getLevel(), claim);
                             return 1;
                         })
                     )
@@ -367,7 +367,7 @@ public class RecruitsAdminCommands {
                             ServerPlayer player = ctx.getSource().getPlayerOrException();
 
                             ChunkPos chunkPos = player.chunkPosition();
-                            RecruitsClaim claim = RecruitsClaimManager.getClaimAt(chunkPos, ClaimEvents.recruitsClaimManager.getAllClaims().stream().toList());
+                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
 
                             if (claim == null) {
                                 ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
@@ -387,17 +387,20 @@ public class RecruitsAdminCommands {
                                 boolean siege = BoolArgumentType.getBool(ctx, "siege");
 
                                 ChunkPos chunkPos = player.chunkPosition();
-                                RecruitsClaim claim = RecruitsClaimManager.getClaimAt(chunkPos, ClaimEvents.recruitsClaimManager.getAllClaims().stream().toList());
+                                RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
 
                                 if (claim == null) {
                                     ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
                                     return 0;
                                 }
 
-                                claim.setAdminClaim(siege);
+                                claim.setUnderSiege(siege, ctx.getSource().getLevel());
+                                if (!claim.isUnderSiege) {
+                                    claim.setSiegeSpeedPercent(0F);
+                                }
                                 ctx.getSource().sendSuccess(() ->
-                                        Component.literal("Claim [" + claim + "] is setSiege= " + siege), false);
-                                ClaimEvents.recruitsClaimManager.broadcastClaimsToAll(ctx.getSource().getLevel());
+                                        Component.literal("Claim [" + claim + "] is setSiege= " + claim.isUnderSiege), false);
+                                ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(ctx.getSource().getLevel(), claim);
                                 return 1;
                             })
                         )
@@ -407,18 +410,17 @@ public class RecruitsAdminCommands {
                             ServerPlayer player = ctx.getSource().getPlayerOrException();
 
                             ChunkPos chunkPos = player.chunkPosition();
-                            RecruitsClaim claim = RecruitsClaimManager.getClaimAt(chunkPos, ClaimEvents.recruitsClaimManager.getAllClaims().stream().toList());
+                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
 
                             if (claim == null) {
                                 ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
                                 return 0;
                             }
 
-                            ClaimEvents.recruitsClaimManager.removeClaim(claim);
+                            ClaimEvents.recruitsClaimManager.removeClaim(ctx.getSource().getLevel(), claim.getUUID());
 
                             ctx.getSource().sendSuccess(() ->
                                     Component.literal("Claim [" + claim + "] is now deleted."), false);
-                            ClaimEvents.recruitsClaimManager.broadcastClaimsToAll(ctx.getSource().getLevel());
                             return 1;
                         })
 
@@ -441,7 +443,7 @@ public class RecruitsAdminCommands {
 
                             ctx.getSource().sendSuccess(() ->
                                     Component.literal("Claim [" + claim + "] has now block breaking = " + should), false);
-                            ClaimEvents.recruitsClaimManager.broadcastClaimsToAll(ctx.getSource().getLevel());
+                            ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(ctx.getSource().getLevel(), claim);
                             return 1;
                         })
                     )
@@ -464,7 +466,7 @@ public class RecruitsAdminCommands {
 
                             ctx.getSource().sendSuccess(() ->
                                     Component.literal("Claim [" + claim + "] has now block placing = " + should), false);
-                            ClaimEvents.recruitsClaimManager.broadcastClaimsToAll(ctx.getSource().getLevel());
+                            ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(ctx.getSource().getLevel(), claim);
                             return 1;
                         })
                     )
@@ -487,7 +489,7 @@ public class RecruitsAdminCommands {
 
                             ctx.getSource().sendSuccess(() ->
                                     Component.literal("Claim [" + claim + "] has now block interaction = " + should), false);
-                            ClaimEvents.recruitsClaimManager.broadcastClaimsToAll(ctx.getSource().getLevel());
+                            ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(ctx.getSource().getLevel(), claim);
                             return 1;
                         })
                     )

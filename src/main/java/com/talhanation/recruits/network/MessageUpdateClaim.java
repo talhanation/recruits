@@ -1,11 +1,10 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.ClaimEvents;
-import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.config.RecruitsServerConfig;
+import com.talhanation.recruits.network.codec.ClaimNetworkCodec;
 import com.talhanation.recruits.world.RecruitsClaim;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
@@ -15,14 +14,14 @@ import net.minecraftforge.network.NetworkEvent;
 
 public class MessageUpdateClaim implements Message<MessageUpdateClaim> {
 
-    private CompoundTag claimNBT;
+    private RecruitsClaim claim;
 
     public MessageUpdateClaim(){
 
     }
 
     public MessageUpdateClaim(RecruitsClaim claim) {
-        this.claimNBT = claim.toNBT();
+        this.claim = claim;
     }
 
     public Dist getExecutingSide() {
@@ -30,7 +29,8 @@ public class MessageUpdateClaim implements Message<MessageUpdateClaim> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        RecruitsClaim updatedClaim = RecruitsClaim.fromNBT(this.claimNBT);
+        RecruitsClaim updatedClaim = this.claim;
+        if (updatedClaim == null || context.getSender() == null) return;
         if(!RecruitsServerConfig.AllowClaiming.get()) return;
         if(context.getSender().level().dimension() != Level.OVERWORLD) return;
         if (!updatedClaim.isRemoved
@@ -39,11 +39,11 @@ public class MessageUpdateClaim implements Message<MessageUpdateClaim> {
         ClaimEvents.recruitsClaimManager.addOrUpdateClaim((ServerLevel) context.getSender().getCommandSenderWorld(), updatedClaim);
     }
     public MessageUpdateClaim fromBytes(FriendlyByteBuf buf) {
-        this.claimNBT = buf.readNbt();
+        this.claim = ClaimNetworkCodec.readNullableClaim(buf);
         return this;
     }
 
     public void toBytes(FriendlyByteBuf buf) {
-        buf.writeNbt(claimNBT);
+        ClaimNetworkCodec.writeNullableClaim(buf, this.claim);
     }
 }

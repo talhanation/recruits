@@ -51,6 +51,10 @@ public class RecruitsClaim {
         this.isAdmin = false;
     }
 
+    public static RecruitsClaim fromNetwork(UUID uuid, String name, RecruitsFaction ownerFaction) {
+        return new RecruitsClaim(uuid, name, ownerFaction);
+    }
+
     public RecruitsClaim(RecruitsFaction faction) {
         this(faction.getTeamDisplayName(), faction);
     }
