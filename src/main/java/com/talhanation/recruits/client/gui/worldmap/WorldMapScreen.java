@@ -321,7 +321,9 @@ public class WorldMapScreen extends Screen {
         if (minecraft.level == null
                 || minecraft.level.getChunkSource().getChunk(chunk.x, chunk.z, false) == null) return;
 
-        String name = "WP " + (selectedRoute.getWaypoints().size() + 1);
+        String name = Component.translatable(
+                "gui.recruits.map.waypoint.default_name",
+                selectedRoute.getWaypoints().size() + 1).getString();
         selectedRoute.addWaypoint(new RecruitsRoute.Waypoint(name, pos, null));
         ClientManager.saveRoute(selectedRoute);
     }

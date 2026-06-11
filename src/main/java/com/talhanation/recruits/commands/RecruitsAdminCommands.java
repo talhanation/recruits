@@ -375,7 +375,7 @@ public class RecruitsAdminCommands {
                             }
 
                             ctx.getSource().sendSuccess(() ->
-                                    Component.literal(claim + " has " + claim.getHealth() + "health"), false);
+                                    Component.literal(claim + " has " + claim.getHealth() + " health"), false);
 
                             return 1;
                         })

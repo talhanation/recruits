@@ -27,10 +27,11 @@ public class WorldMapContextMenu {
     private static final Component TEXT_EDIT_CLAIM = Component.translatable("gui.recruits.map.edit_claim");
     private static final Component TEXT_REMOVE_CHUNK = Component.translatable("gui.recruits.map.remove_chunk");
     private static final Component TEXT_CENTER_MAP = Component.translatable("gui.recruits.map.center_map");
-    private static final Component TEXT_REMOVE_CHUNK_ADMIN =
-            Component.translatable("gui.recruits.map.remove_chunk_admin");
-    private static final Component TEXT_DELETE_CLAIM_ADMIN =
-            Component.translatable("gui.recruits.map.delete_claim_admin");
+    private static final Component TEXT_ADD_WAYPOINT = Component.translatable("gui.recruits.map.waypoint.add");
+    private static final Component TEXT_REMOVE_WAYPOINT = Component.translatable("gui.recruits.map.waypoint.remove");
+    private static final Component TEXT_EDIT_WAYPOINT = Component.translatable("gui.recruits.map.waypoint.edit");
+    private static final Component TEXT_REMOVE_CHUNK_ADMIN = Component.translatable("gui.recruits.map.remove_chunk_admin");
+    private static final Component TEXT_DELETE_CLAIM_ADMIN = Component.translatable("gui.recruits.map.delete_claim_admin");
     private static final Component TEXT_TELEPORT_ADMIN = Component.translatable("gui.recruits.map.teleport_admin");
 
     private final List<ContextMenuEntry> entries = new ArrayList<>();
@@ -56,7 +57,7 @@ public class WorldMapContextMenu {
         ItemStack itemStackClaimArea = new ItemStack(ClientManager.currencyItemStack.getItem());
         itemStackClaimArea.setCount(worldMapScreen.getClaimCost(ClientManager.ownFaction));
 
-        addEntry(TEXT_DIPLOMACY.getString(),
+        addEntry(TEXT_DIPLOMACY,
                 () -> ClientManager.ownFaction != null
                         && this.worldMapScreen.selectedClaim() != null
                         && this.worldMapScreen.selectedClaim().getOwnerFaction() != null
@@ -66,7 +67,7 @@ public class WorldMapContextMenu {
                         .setScreen(new DiplomacyEditScreen(screen, screen.selectedClaim().getOwnerFaction()))
         );
 
-        addEntry(TEXT_CLAIM_CHUNK.getString(),
+        addEntry(TEXT_CLAIM_CHUNK,
                 this.worldMapScreen::canShowClaimChunkEntry,
                 this.worldMapScreen::canExecuteClaimChunkEntry,
                 WorldMapScreen::claimChunk,
@@ -75,7 +76,7 @@ public class WorldMapContextMenu {
                 this.worldMapScreen::getClaimChunkDisabledReason
         );
 
-        addEntry(TEXT_CLAIM_AREA.getString(),
+        addEntry(TEXT_CLAIM_AREA,
                 this.worldMapScreen::canShowClaimAreaEntry,
                 this.worldMapScreen::canExecuteClaimAreaEntry,
                 WorldMapScreen::claimArea,
@@ -84,7 +85,7 @@ public class WorldMapContextMenu {
                 this.worldMapScreen::getClaimAreaDisabledReason
         );
 
-        addEntry("Add Waypoint",
+        addEntry(TEXT_ADD_WAYPOINT,
                 () -> this.worldMapScreen.selectedRoute != null
                         && this.worldMapScreen.canPlaceWaypointAt(
                                 this.worldMapScreen.snapshotWorldX(),
@@ -92,19 +93,19 @@ public class WorldMapContextMenu {
                 WorldMapScreen::addWaypointAtClicked
         );
 
-        addEntry("Remove Waypoint",
+        addEntry(TEXT_REMOVE_WAYPOINT,
                 () -> this.worldMapScreen.selectedRoute != null
                         && this.worldMapScreen.isWaypointHoveredAt(snapshotMouseX, snapshotMouseY),
                 (screen) -> screen.removeWaypointAt(snapshotMouseX, snapshotMouseY)
         );
 
-        addEntry("Edit Waypoint",
+        addEntry(TEXT_EDIT_WAYPOINT,
                 () -> this.worldMapScreen.selectedRoute != null
                         && this.worldMapScreen.isWaypointHoveredAt(snapshotMouseX, snapshotMouseY),
                 (screen) -> screen.openWaypointEditPopup(snapshotMouseX, snapshotMouseY)
         );
 
-        addEntry(TEXT_EDIT_CLAIM.getString(),
+        addEntry(TEXT_EDIT_CLAIM,
                 () -> (this.worldMapScreen.selectedClaim() != null
                         && this.worldMapScreen.isPlayerFactionLeader(
                                 this.worldMapScreen.selectedClaim().getOwnerFaction()))
@@ -116,7 +117,7 @@ public class WorldMapContextMenu {
                 }
         );
 
-        addEntry(TEXT_REMOVE_CHUNK.getString(),
+        addEntry(TEXT_REMOVE_CHUNK,
                 () -> this.worldMapScreen.selectedChunk() != null
                         && this.worldMapScreen.selectedClaim() != null
                         && worldMapScreen.canRemoveChunk(worldMapScreen.selectedChunk(), worldMapScreen.selectedClaim())
@@ -132,9 +133,9 @@ public class WorldMapContextMenu {
                 }
         );
 
-        addEntry(TEXT_CENTER_MAP.getString(), WorldMapScreen::centerOnPlayer);
+        addEntry(TEXT_CENTER_MAP, WorldMapScreen::centerOnPlayer);
 
-        addEntry(TEXT_REMOVE_CHUNK_ADMIN.getString(),
+        addEntry(TEXT_REMOVE_CHUNK_ADMIN,
                 () -> this.worldMapScreen.selectedChunk() != null
                         && this.worldMapScreen.selectedClaim() != null
                         && this.worldMapScreen.isPlayerAdminAndCreative()
@@ -152,7 +153,7 @@ public class WorldMapContextMenu {
                 "admin"
         );
 
-        addEntry(TEXT_DELETE_CLAIM_ADMIN.getString(),
+        addEntry(TEXT_DELETE_CLAIM_ADMIN,
                 () -> this.worldMapScreen.isPlayerAdminAndCreative() && this.worldMapScreen.selectedClaim() != null,
                 (screen) -> {
                     screen.selectedClaim().isRemoved = true;
@@ -163,7 +164,7 @@ public class WorldMapContextMenu {
                 "admin"
         );
 
-        addEntry(TEXT_TELEPORT_ADMIN.getString(),
+        addEntry(TEXT_TELEPORT_ADMIN,
                 worldMapScreen::isPlayerAdminAndCreative,
                 (screen) -> Main.SIMPLE_CHANNEL.sendToServer(new MessageTeleportPlayer(screen.getClickedBlockPos())),
                 "admin"
@@ -171,7 +172,7 @@ public class WorldMapContextMenu {
     }
 
     public void addEntry(
-            String text,
+            Component text,
             BooleanSupplier condition,
             Consumer<WorldMapScreen> action,
             ItemStack itemStack,
@@ -180,7 +181,7 @@ public class WorldMapContextMenu {
     }
 
     public void addEntry(
-            String text,
+            Component text,
             BooleanSupplier visibleCondition,
             BooleanSupplier enabledCondition,
             Consumer<WorldMapScreen> action,
@@ -188,7 +189,7 @@ public class WorldMapContextMenu {
             String tag,
             Supplier<Component> disabledReason) {
         entries.add(new ContextMenuEntry(
-                Component.literal(text),
+                text,
                 visibleCondition,
                 enabledCondition,
                 action,
@@ -197,15 +198,15 @@ public class WorldMapContextMenu {
                 disabledReason));
     }
 
-    public void addEntry(String text, BooleanSupplier condition, Consumer<WorldMapScreen> action, String tag) {
+    public void addEntry(Component text, BooleanSupplier condition, Consumer<WorldMapScreen> action, String tag) {
         addEntry(text, condition, () -> true, action, ItemStack.EMPTY, tag, Component::empty);
     }
 
-    public void addEntry(String text, BooleanSupplier condition, Consumer<WorldMapScreen> action) {
+    public void addEntry(Component text, BooleanSupplier condition, Consumer<WorldMapScreen> action) {
         addEntry(text, condition, () -> true, action, ItemStack.EMPTY, "", Component::empty);
     }
 
-    public void addEntry(String text, Consumer<WorldMapScreen> action) {
+    public void addEntry(Component text, Consumer<WorldMapScreen> action) {
         addEntry(text, () -> true, action);
     }
 
