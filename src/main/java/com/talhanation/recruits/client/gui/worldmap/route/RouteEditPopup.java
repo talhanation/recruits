@@ -16,6 +16,15 @@ import org.lwjgl.glfw.GLFW;
 
 public class RouteEditPopup {
 
+    private static final Component TITLE = Component.translatable("gui.recruits.map.route.edit");
+    private static final Component SAVE = Component.translatable("gui.recruits.map.route.save");
+    private static final Component TRANSFER_ROUTE = Component.translatable("gui.recruits.map.route.transfer_route");
+    private static final Component TRANSFER = Component.translatable("gui.recruits.map.route.transfer");
+    private static final Component TRANSFER_TO_PLAYER = Component.translatable("gui.recruits.map.route.transfer_to_player");
+    private static final Component TRANSFER_TOOLTIP = Component.translatable("gui.recruits.map.route.transfer_tooltip");
+    private static final Component DELETE = Component.translatable("gui.recruits.map.route.delete");
+    private static final Component BACK = Component.translatable("gui.recruits.map.route.back");
+
     private static final int WIDTH = 200;
     private static final int HEIGHT = 134;
     private static final int BG_COLOR = 0x80000000;
@@ -84,9 +93,9 @@ public class RouteEditPopup {
         SelectPlayerScreen transferScreen = new SelectPlayerScreen(
                 parent,
                 player,
-                Component.literal("Transfer Route"),
-                Component.literal("Transfer"),
-                Component.literal("Transfer this route to the selected player"),
+                TRANSFER_ROUTE,
+                TRANSFER,
+                TRANSFER_TOOLTIP,
                 false,
                 PlayersList.FilterType.NONE,
                 (playerInfo) -> {
@@ -118,7 +127,7 @@ public class RouteEditPopup {
         guiGraphics.fill(px, py, px + WIDTH, py + HEIGHT, BG_COLOR);
         guiGraphics.renderOutline(px, py, WIDTH, HEIGHT, OUTLINE_COLOR);
 
-        guiGraphics.drawCenteredString(Minecraft.getInstance().font, "Edit Route", px + WIDTH / 2, py + 6, TEXT_COLOR);
+        guiGraphics.drawCenteredString(Minecraft.getInstance().font, TITLE, px + WIDTH / 2, py + 6, TEXT_COLOR);
 
         // Name field
         int fieldY = py + 18;
@@ -127,16 +136,16 @@ public class RouteEditPopup {
         if (nameField != null) nameField.render(guiGraphics, mouseX, mouseY, 0);
 
         int y = fieldY + 18;
-        renderButton(guiGraphics, mouseX, mouseY, "Save", x, y, BTN_W_FULL, BTN_H, false);
+        renderButton(guiGraphics, mouseX, mouseY, SAVE, x, y, BTN_W_FULL, BTN_H, false);
         y += BTN_H + 4;
-        renderButton(guiGraphics, mouseX, mouseY, "Transfer to Player", x, y, BTN_W_FULL, BTN_H, false);
+        renderButton(guiGraphics, mouseX, mouseY, TRANSFER_TO_PLAYER, x, y, BTN_W_FULL, BTN_H, false);
         y += BTN_H + 4;
-        renderButton(guiGraphics, mouseX, mouseY, "Delete Route", x, y, BTN_W_FULL, BTN_H, true);
+        renderButton(guiGraphics, mouseX, mouseY, DELETE, x, y, BTN_W_FULL, BTN_H, true);
         y += BTN_H + 4;
-        renderButton(guiGraphics, mouseX, mouseY, "Back", x, y, BTN_W_FULL, BTN_H, false);
+        renderButton(guiGraphics, mouseX, mouseY, BACK, x, y, BTN_W_FULL, BTN_H, false);
     }
 
-    private void renderButton(GuiGraphics guiGraphics, int mouseX, int mouseY, String label,
+    private void renderButton(GuiGraphics guiGraphics, int mouseX, int mouseY, Component label,
                               int x, int y, int w, int h, boolean red) {
         boolean hovered = mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
         int bg =

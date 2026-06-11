@@ -11,6 +11,13 @@ import org.lwjgl.glfw.GLFW;
 
 public class WaypointEditPopup {
 
+    private static final Component ACTION = Component.translatable("gui.recruits.map.waypoint.action");
+    private static final Component ACTION_NONE = Component.translatable("gui.recruits.map.waypoint.action.none");
+    private static final Component ACTION_WAIT = Component.translatable("gui.recruits.map.waypoint.action.wait");
+    private static final Component SECONDS = Component.translatable("gui.recruits.map.waypoint.seconds");
+    private static final Component OK = Component.translatable("gui.recruits.map.route.ok");
+    private static final Component CANCEL = Component.translatable("gui.recruits.map.route.cancel");
+
     private static final int WIDTH = 210;
     private static final int HEIGHT = 90;
     private static final int BG_COLOR = 0x80000000;
@@ -22,6 +29,7 @@ public class WaypointEditPopup {
     private static final int TEXT_MUTED = 0xAAAAAA;
     private static final int BTN_H = 14;
     private static final int BTN_W = 62;
+    private static final int ACTION_BUTTON_X = 72;
 
     private final WorldMapScreen parent;
 
@@ -123,19 +131,19 @@ public class WaypointEditPopup {
                 Minecraft.getInstance().font, waypoint.getName(), px + WIDTH / 2, py + 6, TEXT_COLOR);
 
         int rowY = py + 22;
-        guiGraphics.drawString(Minecraft.getInstance().font, "Action:", px + 8, rowY + 3, TEXT_MUTED, false);
+        guiGraphics.drawString(Minecraft.getInstance().font, ACTION, px + 8, rowY + 3, TEXT_MUTED, false);
 
-        renderActionButton(guiGraphics, mouseX, mouseY, "None", null, px + 56, rowY);
+        renderActionButton(guiGraphics, mouseX, mouseY, ACTION_NONE, null, px + ACTION_BUTTON_X, rowY);
         renderActionButton(
-                guiGraphics, mouseX, mouseY, "Wait",
+                guiGraphics, mouseX, mouseY, ACTION_WAIT,
                 RecruitsRoute.WaypointAction.Type.WAIT,
-                px + 56 + BTN_W + 4,
+                px + ACTION_BUTTON_X + BTN_W + 4,
                 rowY);
 
         if (actionType == RecruitsRoute.WaypointAction.Type.WAIT) {
             ensureWaitField();
             int fieldY = rowY + 20;
-            guiGraphics.drawString(Minecraft.getInstance().font, "Seconds:", px + 8, fieldY + 2, TEXT_MUTED, false);
+            guiGraphics.drawString(Minecraft.getInstance().font, SECONDS, px + 8, fieldY + 2, TEXT_MUTED, false);
             int fieldX = px + 66;
             int fieldW = 54;
             guiGraphics.fill(fieldX - 1, fieldY - 1, fieldX + fieldW + 1, fieldY + 13, 0x80303030);
@@ -144,15 +152,15 @@ public class WaypointEditPopup {
         }
 
         int btnY = py + HEIGHT - 18;
-        renderButton(guiGraphics, mouseX, mouseY, "OK", px + 8, btnY, 80, BTN_H);
-        renderButton(guiGraphics, mouseX, mouseY, "Cancel", px + WIDTH - 88, btnY, 80, BTN_H);
+        renderButton(guiGraphics, mouseX, mouseY, OK, px + 8, btnY, 80, BTN_H);
+        renderButton(guiGraphics, mouseX, mouseY, CANCEL, px + WIDTH - 88, btnY, 80, BTN_H);
     }
 
     private void renderActionButton(
             GuiGraphics guiGraphics,
             int mouseX,
             int mouseY,
-            String label,
+            Component label,
             RecruitsRoute.WaypointAction.Type type,
             int x,
             int y) {
@@ -166,7 +174,7 @@ public class WaypointEditPopup {
     }
 
     private void renderButton(
-            GuiGraphics guiGraphics, int mouseX, int mouseY, String label, int x, int y, int w, int h) {
+            GuiGraphics guiGraphics, int mouseX, int mouseY, Component label, int x, int y, int w, int h) {
         boolean hovered = mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
         guiGraphics.fill(x, y, x + w, y + h, hovered ? BTN_HOVERED_COLOR : BTN_COLOR);
         guiGraphics.renderOutline(x, y, w, h, OUTLINE_COLOR);
@@ -187,8 +195,8 @@ public class WaypointEditPopup {
         int rowY = py + 22;
 
         // Action: None
-        if (mouseX >= px + 56
-                && mouseX <= px + 56 + BTN_W
+        if (mouseX >= px + ACTION_BUTTON_X
+                && mouseX <= px + ACTION_BUTTON_X + BTN_W
                 && mouseY >= rowY
                 && mouseY <= rowY + BTN_H) {
             actionType = null;
@@ -197,8 +205,8 @@ public class WaypointEditPopup {
             return true;
         }
         // Action: Wait
-        if (mouseX >= px + 56 + BTN_W + 4
-                && mouseX <= px + 56 + BTN_W * 2 + 4
+        if (mouseX >= px + ACTION_BUTTON_X + BTN_W + 4
+                && mouseX <= px + ACTION_BUTTON_X + BTN_W * 2 + 4
                 && mouseY >= rowY
                 && mouseY <= rowY + BTN_H) {
             if (actionType != RecruitsRoute.WaypointAction.Type.WAIT) {

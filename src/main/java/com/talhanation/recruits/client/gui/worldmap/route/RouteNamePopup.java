@@ -11,6 +11,10 @@ import org.lwjgl.glfw.GLFW;
 
 public class RouteNamePopup {
 
+    private static final Component TITLE = Component.translatable("gui.recruits.map.route.name");
+    private static final Component OK = Component.translatable("gui.recruits.map.route.ok");
+    private static final Component CANCEL = Component.translatable("gui.recruits.map.route.cancel");
+
     private static final int WIDTH = 200;
     private static final int HEIGHT = 64;
     private static final int BG_COLOR = 0x80000000;
@@ -80,7 +84,7 @@ public class RouteNamePopup {
         guiGraphics.fill(px, py, px + WIDTH, py + HEIGHT, BG_COLOR);
         guiGraphics.renderOutline(px, py, WIDTH, HEIGHT, OUTLINE_COLOR);
 
-        guiGraphics.drawCenteredString(Minecraft.getInstance().font, "Route Name:", px + WIDTH / 2, py + 6, TEXT_COLOR);
+        guiGraphics.drawCenteredString(Minecraft.getInstance().font, TITLE, px + WIDTH / 2, py + 6, TEXT_COLOR);
 
         int fieldX = px + 8;
         int fieldY = py + 20;
@@ -91,12 +95,12 @@ public class RouteNamePopup {
         if (nameField != null) nameField.render(guiGraphics, mouseX, mouseY, 0);
 
         int btnY = py + HEIGHT - 18;
-        renderButton(guiGraphics, mouseX, mouseY, "OK", px + 8, btnY, 80, 14);
-        renderButton(guiGraphics, mouseX, mouseY, "Cancel", px + WIDTH - 88, btnY, 80, 14);
+        renderButton(guiGraphics, mouseX, mouseY, OK, px + 8, btnY, 80, 14);
+        renderButton(guiGraphics, mouseX, mouseY, CANCEL, px + WIDTH - 88, btnY, 80, 14);
     }
 
     private void renderButton(
-            GuiGraphics guiGraphics, int mouseX, int mouseY, String label, int x, int y, int w, int h) {
+            GuiGraphics guiGraphics, int mouseX, int mouseY, Component label, int x, int y, int w, int h) {
         boolean hovered = mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
         guiGraphics.fill(x, y, x + w, y + h, hovered ? BTN_HOVERED_COLOR : BTN_COLOR);
         guiGraphics.renderOutline(x, y, w, h, OUTLINE_COLOR);

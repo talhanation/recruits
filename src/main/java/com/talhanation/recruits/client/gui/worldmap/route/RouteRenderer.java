@@ -17,6 +17,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import org.joml.Matrix4f;
@@ -69,7 +70,7 @@ public class RouteRenderer {
         if (waypoint == null) return;
         renderIconAt(guiGraphics, mouseX, mouseY, ICON_INDEX, COLOR_NORMAL, 0xFF);
         if (waypoint.getAction() != null) {
-            String label = waypoint.getAction().toString();
+            String label = getActionLabel(waypoint.getAction());
             int textWidth = Minecraft.getInstance().font.width(label);
             guiGraphics.drawString(
                     Minecraft.getInstance().font,
@@ -229,14 +230,23 @@ public class RouteRenderer {
         if (scale > 2.0 && !isDragging) {
             String label = null;
             if (!loaded) {
-                label = "not loaded";
+                label = Component.translatable("gui.recruits.map.waypoint.not_loaded").getString();
             } else if (waypoint.getAction() != null) {
-                label = waypoint.getAction().toString();
+                label = getActionLabel(waypoint.getAction());
             }
             if (label != null) {
                 renderCenteredTextAt(guiGraphics, label, pixelX, pixelZ + 5.0, argb);
             }
         }
+    }
+
+    private static String getActionLabel(RecruitsRoute.WaypointAction action) {
+        if (action.getType() == RecruitsRoute.WaypointAction.Type.WAIT) {
+            return Component.translatable(
+                    "gui.recruits.map.waypoint.action.wait_label",
+                    action.getWaitSeconds()).getString();
+        }
+        return action.toString();
     }
 
     private static void renderCenteredTextAt(

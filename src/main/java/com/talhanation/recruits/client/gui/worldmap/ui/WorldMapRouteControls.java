@@ -5,6 +5,7 @@ import com.talhanation.recruits.client.gui.widgets.DropDownMenu;
 import com.talhanation.recruits.world.RecruitsRoute;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,8 @@ public final class WorldMapRouteControls {
     private static final int ROUTE_DROPDOWN_W = 140;
     private static final int ROUTE_BTN_SIZE = 20;
     private static final int ROUTE_BTN_GAP = 3;
-    private static final String ROUTES_LABEL = "--- Routes ---";
+    private static final Component ROUTES_LABEL = Component.translatable("gui.recruits.map.route.selector");
+    private static final Component EMPTY_ROUTE_LABEL = Component.translatable("gui.recruits.map.route.none");
     private static final String ADD_LABEL = "+";
     private static final String EDIT_LABEL = "⚙";
 
@@ -41,7 +43,7 @@ public final class WorldMapRouteControls {
                 ROUTE_DROPDOWN_W,
                 ROUTE_BTN_SIZE,
                 options,
-                route -> route == null ? "-- Route --" : route.getName(),
+                route -> route == null ? EMPTY_ROUTE_LABEL.getString() : route.getName(),
                 routeSelector);
 
         routeDropDown.setBgFill(0x80333333);
@@ -142,7 +144,7 @@ public final class WorldMapRouteControls {
     }
 
     private void updateLabelLayout(Font font, RecruitsRoute selectedRoute) {
-        String label = selectedRoute != null ? selectedRoute.getName() : ROUTES_LABEL;
+        String label = selectedRoute != null ? selectedRoute.getName() : ROUTES_LABEL.getString();
         if (label == null) label = "";
         if (!labelLayoutDirty && font == cachedFont && label.equals(cachedCollapsedLabel)) return;
 
