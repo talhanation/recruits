@@ -81,8 +81,8 @@ public class ClaimEvents {
     public void onPlayerJoin(EntityJoinLevelEvent event){
         if(event.getLevel().isClientSide()) return;
 
-        if(event.getEntity() instanceof Player){
-            recruitsClaimManager.broadcastClaimsToAll(server.overworld());
+        if(event.getEntity() instanceof ServerPlayer player){
+            recruitsClaimManager.sendClaimsTo(player);
         }
     }
 
@@ -132,7 +132,7 @@ public class ClaimEvents {
                 claim.attackingParties.clear();
                 claim.defendingParties.clear();
                 recruitsClaimManager.removeActiveSiege(claim);
-                recruitsClaimManager.broadcastClaimsToAll(level);
+                recruitsClaimManager.broadcastClaimUpdateToAll(level, claim);
                 siegeOverVillagers(level, claim);
                 continue;
             }
@@ -155,7 +155,7 @@ public class ClaimEvents {
                 claim.setSiegeSpeedPercent(0f);
                 claim.setSiegeSuccess(level);
                 recruitsClaimManager.removeActiveSiege(claim);
-                recruitsClaimManager.broadcastClaimsToAll(level);
+                recruitsClaimManager.broadcastClaimUpdateToAll(level, claim);
                 siegeOverVillagers(level, claim);
                 continue;
             }
@@ -212,7 +212,7 @@ public class ClaimEvents {
                 }
                 claim.setUnderSiege(true, level);
                 recruitsClaimManager.addActiveSiege(claim);
-                recruitsClaimManager.broadcastClaimsToAll(level);
+                recruitsClaimManager.broadcastClaimUpdateToAll(level, claim);
                 sendVillagersHome(level, claim);
             }
         }

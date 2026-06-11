@@ -2,19 +2,21 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.worldmap.claim.WorldMapClaimIndex;
+import com.talhanation.recruits.network.codec.ClaimNetworkCodec;
 import com.talhanation.recruits.world.RecruitsClaim;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class MessageToClientUpdateClaims implements Message<MessageToClientUpdateClaims> {
-    private CompoundTag claimsListNBT;
+    private List<RecruitsClaim> claims = Collections.emptyList();
     private int claimCost;
     private int chunkCost;
     private int maxClaimChunks;
@@ -26,7 +28,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
     }
 
     public MessageToClientUpdateClaims(List<RecruitsClaim> list, int claimCost, int chunkCost, int maxClaimChunks, boolean cascadeOfCost, boolean allowClaiming, boolean fogOfWarEnabled, ItemStack currencyItemStack) {
-        this.claimsListNBT = RecruitsClaim.toNBT(list);
+        this.claims = list == null ? Collections.emptyList() : new ArrayList<>(list);
         this.claimCost = claimCost;
         this.chunkCost = chunkCost;
         this.maxClaimChunks = maxClaimChunks;
@@ -44,7 +46,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
     @Override
     @OnlyIn(Dist.CLIENT)
     public void executeClientSide(NetworkEvent.Context context) {
-        ClientManager.recruitsClaims = RecruitsClaim.getListFromNBT(claimsListNBT);
+        ClientManager.recruitsClaims = new ArrayList<>(this.claims);
         WorldMapClaimIndex.invalidate();
         ClientManager.configValueClaimCost = this.claimCost;
         ClientManager.configValueChunkCost = this.chunkCost;
@@ -59,7 +61,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
 
     @Override
     public MessageToClientUpdateClaims fromBytes(FriendlyByteBuf buf) {
-        this.claimsListNBT = buf.readNbt();
+        this.claims = ClaimNetworkCodec.readClaimList(buf);
         this.claimCost = buf.readInt();
         this.chunkCost = buf.readInt();
         this.maxClaimChunks = buf.readInt();
@@ -72,7 +74,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
 
     @Override
     public void toBytes(FriendlyByteBuf buf) {
-        buf.writeNbt(this.claimsListNBT);
+        ClaimNetworkCodec.writeClaimList(buf, this.claims);
         buf.writeInt(this.claimCost);
         buf.writeInt(this.chunkCost);
         buf.writeInt(this.maxClaimChunks);

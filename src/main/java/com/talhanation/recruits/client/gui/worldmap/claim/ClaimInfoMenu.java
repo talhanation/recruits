@@ -29,7 +29,6 @@ public class ClaimInfoMenu {
 
     private final WorldMapScreen parent;
     private boolean visible = false;
-    private boolean underSiege;
     private RecruitsClaim currentClaim;
     private BannerRenderer bannerRenderer;
     private BannerRenderer bannerRendererAttacker;
@@ -43,6 +42,7 @@ public class ClaimInfoMenu {
     public void init() {
         this.bannerRenderer = new BannerRenderer(null);
         this.bannerRendererAttacker = new BannerRenderer(null);
+        updateBanners();
     }
 
     public void openForClaim(RecruitsClaim claim, int x, int y) {
@@ -51,21 +51,42 @@ public class ClaimInfoMenu {
             return;
         }
 
-        this.currentClaim = claim;
         this.visible = true;
-        this.underSiege = claim.isUnderSiege;
-        this.bannerRenderer.setRecruitsFaction(claim.getOwnerFaction());
-
-        if (claim.attackingParties != null && !claim.attackingParties.isEmpty() && claim.attackingParties.get(0) != null) {
-            this.bannerRendererAttacker.setRecruitsFaction(claim.attackingParties.get(0));
-        } else {
-            this.bannerRendererAttacker.setRecruitsFaction(null);
-        }
-
+        setClaim(claim);
         this.x = x;
         this.y = y;
 
         ensureWithinScreen();
+    }
+
+    public void setClaim(RecruitsClaim claim) {
+        if (claim == null) {
+            close();
+            return;
+        }
+
+        this.currentClaim = claim;
+        updateBanners();
+    }
+
+    private void updateBanners() {
+        if (bannerRenderer == null || bannerRendererAttacker == null) return;
+
+        if (currentClaim == null) {
+            bannerRenderer.setRecruitsFaction(null);
+            bannerRendererAttacker.setRecruitsFaction(null);
+            return;
+        }
+
+        bannerRenderer.setRecruitsFaction(currentClaim.getOwnerFaction());
+
+        if (currentClaim.attackingParties != null
+                && !currentClaim.attackingParties.isEmpty()
+                && currentClaim.attackingParties.get(0) != null) {
+            bannerRendererAttacker.setRecruitsFaction(currentClaim.attackingParties.get(0));
+        } else {
+            bannerRendererAttacker.setRecruitsFaction(null);
+        }
     }
 
     private void ensureWithinScreen() {
@@ -133,14 +154,14 @@ public class ClaimInfoMenu {
         int bannerWidth = SIDE_BANNER_WIDTH - 6;
         int bannerHeight = 50;
 
-        if (this.underSiege) {
+        if (isUnderSiege()) {
             bannerRenderer.renderBanner(guiGraphics, bannerX + 4, bannerY, this.width, this.height, 19);
             bannerRendererAttacker.renderBanner(guiGraphics, bannerX + 28, bannerY, this.width, this.height, 19);
         } else {
             bannerRenderer.renderBanner(guiGraphics, bannerX + 10, bannerY, this.width, this.height, 29);
         }
 
-        if (this.underSiege) {
+        if (isUnderSiege()) {
             RenderSystem.setShaderTexture(0, SIEGE_ICON);
             int iconSize = 12;
             guiGraphics.blit(
@@ -211,13 +232,17 @@ public class ClaimInfoMenu {
     }
 
     private String getStatusText() {
-        return Component.translatable(this.underSiege
+        return Component.translatable(isUnderSiege()
                 ? "gui.recruits.map.claim_info.status_siege"
                 : "gui.recruits.map.claim_info.status_secure").getString();
     }
 
     private int getStatusColor() {
-        return this.underSiege ? DENIED_COLOR : ALLOWED_COLOR;
+        return isUnderSiege() ? DENIED_COLOR : ALLOWED_COLOR;
+    }
+
+    private boolean isUnderSiege() {
+        return currentClaim != null && currentClaim.isUnderSiege;
     }
 
     private String getFactionName() {

@@ -34,6 +34,7 @@ import javax.annotation.Nullable;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.List;
+import java.util.UUID;
 
 public class WorldMapScreen extends Screen {
     private final WorldMapCacheManager mapCache;
@@ -206,6 +207,7 @@ public class WorldMapScreen extends Screen {
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         camera.animate();
+        refreshSelectedClaim();
         renderBackground(guiGraphics);
 
         guiGraphics.enableScissor(0, 0, width, height);
@@ -408,6 +410,36 @@ public class WorldMapScreen extends Screen {
         cachedReadoutScaleTenths = scaleTenths;
         cachedReadoutScreenWidth = width;
         cachedReadoutScreenHeight = height;
+    }
+
+    private void refreshSelectedClaim() {
+        if (selectedClaim == null) return;
+
+        RecruitsClaim latestClaim = findClientClaim(selectedClaim.getUUID());
+        if (latestClaim == null || latestClaim.isRemoved) {
+            selectedClaim = null;
+            claimInfoMenu.close();
+            return;
+        }
+
+        if (latestClaim != selectedClaim) {
+            selectedClaim = latestClaim;
+            if (claimInfoMenu.isVisible()) {
+                claimInfoMenu.setClaim(latestClaim);
+            }
+        }
+    }
+
+    @Nullable
+    private RecruitsClaim findClientClaim(UUID claimId) {
+        if (claimId == null || ClientManager.recruitsClaims == null) return null;
+
+        for (RecruitsClaim claim : ClientManager.recruitsClaims) {
+            if (claim != null && claimId.equals(claim.getUUID())) {
+                return claim;
+            }
+        }
+        return null;
     }
 
     // -------------------------------------------------------------------------
