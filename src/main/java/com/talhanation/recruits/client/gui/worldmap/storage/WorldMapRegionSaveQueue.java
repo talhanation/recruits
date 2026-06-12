@@ -98,7 +98,8 @@ final class WorldMapRegionSaveQueue {
 
         CompletableFuture<WorldMapAsync.RegionSaveResult> future =
                 WorldMapAsync.saveRegion(
-                        repository.regionFile(region.getRegionX(), region.getRegionZ()), snapshot);
+                        repository.regionFile(region.getRegionX(), region.getRegionZ()),
+                        snapshot);
         pendingRegionSaves.put(
                 regionKey, new PendingRegionSave(region, snapshot.dirtyVersion(), future));
         return true;

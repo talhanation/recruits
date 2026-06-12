@@ -124,10 +124,14 @@ public final class WorldMapRenderer {
         // Avoid black gaps while the exact LOD tile is still building.
         WorldMapRenderTileCache.TileView best =
                 renderTileCache.findBestAvailable(requested, allowParentFallback);
+        boolean rendered = false;
         if (best != null) {
-            return renderTile(requested, best, budget);
+            rendered = renderTile(requested, best, budget);
+            if (!allowParentFallback || requested.level() <= 0) {
+                return rendered;
+            }
         }
-        return renderAvailableChildren(requested, budget);
+        return renderAvailableChildren(requested, budget) || rendered;
     }
 
     private boolean renderAvailableChildren(WorldMapRenderTileKey parent, RenderBudget budget) {

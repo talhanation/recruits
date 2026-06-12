@@ -1,11 +1,14 @@
 package com.talhanation.recruits.client.gui.worldmap.render.tile;
+
 import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapRegion;
 
 final class WorldMapRenderTile {
     private final WorldMapRenderTileKey key;
     private final WorldMapTextureAtlas.Slot slot;
+    // Keep a CPU copy so chunk updates can patch atlas rectangles.
     private final int[] pixels;
     private int sourceVersion;
+    private boolean hasVisiblePixels;
     private long lastAccessOrder;
     private int dirtyMinX = WorldMapRenderTileKey.PIXEL_SIZE;
     private int dirtyMinZ = WorldMapRenderTileKey.PIXEL_SIZE;
@@ -18,6 +21,7 @@ final class WorldMapRenderTile {
         this.sourceVersion = sourceVersion;
         this.slot = slot;
         this.pixels = pixels;
+        this.hasVisiblePixels = containsVisiblePixels(pixels);
     }
 
     static WorldMapRenderTile publish(
@@ -46,10 +50,38 @@ final class WorldMapRenderTile {
         return sourceVersion;
     }
 
+    boolean hasVisiblePixels() {
+        return hasVisiblePixels;
+    }
+
+    boolean hasVisiblePixels(int sectionX, int sectionZ, int sections) {
+        if (sections <= 0
+                || sectionX < 0
+                || sectionZ < 0
+                || sectionX >= sections
+                || sectionZ >= sections) {
+            return false;
+        }
+
+        int sectionSize = WorldMapRenderTileKey.PIXEL_SIZE / sections;
+        int startX = sectionX * sectionSize;
+        int startZ = sectionZ * sectionSize;
+        int endX = startX + sectionSize;
+        int endZ = startZ + sectionSize;
+        for (int z = startZ; z < endZ; z++) {
+            int row = z * WorldMapRenderTileKey.PIXEL_SIZE;
+            for (int x = startX; x < endX; x++) {
+                if ((pixels[row + x] >>> 24) != 0) return true;
+            }
+        }
+        return false;
+    }
+
     void update(WorldMapRegion.RenderSnapshot snapshot, WorldMapTextureUploader uploader) {
         System.arraycopy(snapshot.pixels(), 0, pixels, 0, pixels.length);
         slot.atlas().upload(slot, pixels, uploader);
         sourceVersion = snapshot.sourceVersion();
+        hasVisiblePixels = containsVisiblePixels(pixels);
         clearDirty();
     }
 
@@ -74,6 +106,9 @@ final class WorldMapRenderTile {
                                 patchX * scale,
                                 patchZ * scale,
                                 scale);
+                if ((pixels[targetRow + patchX] >>> 24) != 0) {
+                    hasVisiblePixels = true;
+                }
             }
         }
 
@@ -150,5 +185,12 @@ final class WorldMapRenderTile {
         int green = (int) ((greenSum + alphaSum / 2L) / alphaSum);
         int blue = (int) ((blueSum + alphaSum / 2L) / alphaSum);
         return alpha << 24 | blue << 16 | green << 8 | red;
+    }
+
+    private static boolean containsVisiblePixels(int[] pixels) {
+        for (int color : pixels) {
+            if ((color >>> 24) != 0) return true;
+        }
+        return false;
     }
 }

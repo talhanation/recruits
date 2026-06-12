@@ -27,6 +27,8 @@ public final class WorldMapRegion {
     private final AtomicIntegerArray chunkColorEpochs = new AtomicIntegerArray(CHUNK_COUNT);
     private final AtomicInteger mutationEpoch = new AtomicInteger();
     private volatile WorldMapRegionPixels pixels;
+    // Source is saved; pixels can be thrown away and rebuilt.
+    private volatile WorldMapSourceRegion source;
     private int saveSnapshotVersion = -1;
     private boolean dirty;
     private int dirtyVersion;
@@ -44,6 +46,7 @@ public final class WorldMapRegion {
 
     synchronized void createBlank(int colorEpoch) {
         this.pixels = WorldMapRegionPixels.blank();
+        this.source = WorldMapSourceRegion.blank();
         this.saveSnapshotVersion = -1;
         this.dirty = false;
         this.dirtyVersion = 0;
@@ -53,9 +56,15 @@ public final class WorldMapRegion {
     }
 
     void loadFromPixels(WorldMapRegionPixels loadedPixels, int colorEpoch) {
+        loadFromPixelsAndSource(loadedPixels, null, colorEpoch);
+    }
+
+    void loadFromPixelsAndSource(
+            WorldMapRegionPixels loadedPixels, WorldMapSourceRegion loadedSource, int colorEpoch) {
         if (loadedPixels == null) return;
         synchronized (this) {
             this.pixels = loadedPixels;
+            this.source = loadedSource;
             this.saveSnapshotVersion = -1;
             this.dirty = false;
             this.dirtyVersion = 0;
@@ -67,6 +76,15 @@ public final class WorldMapRegion {
 
     synchronized void updateFromChunkPixels(
             int[] chunkPixels, int chunkXInRegion, int chunkZInRegion, int colorEpoch) {
+        updateFromChunkPixelsAndSource(chunkPixels, null, chunkXInRegion, chunkZInRegion, colorEpoch);
+    }
+
+    synchronized void updateFromChunkPixelsAndSource(
+            int[] chunkPixels,
+            WorldMapSourceChunk sourceChunk,
+            int chunkXInRegion,
+            int chunkZInRegion,
+            int colorEpoch) {
         if (this.pixels == null
                 || chunkPixels == null
                 || chunkPixels.length != PIXELS_PER_CHUNK * PIXELS_PER_CHUNK) {
@@ -78,6 +96,12 @@ public final class WorldMapRegion {
         mutationEpoch.incrementAndGet();
         try {
             this.pixels.updateChunk(chunkPixels, chunkXInRegion, chunkZInRegion);
+            if (sourceChunk != null) {
+                if (this.source == null) {
+                    this.source = WorldMapSourceRegion.blank();
+                }
+                this.source.updateChunk(sourceChunk, chunkXInRegion, chunkZInRegion);
+            }
             this.chunkColorEpochs.set(chunkIndex(chunkXInRegion, chunkZInRegion), colorEpoch);
             this.dirty = true;
             this.dirtyVersion++;
@@ -89,11 +113,56 @@ public final class WorldMapRegion {
         }
     }
 
+    synchronized void updateSourceBackedChunks(
+            WorldMapRegionPixels rebuiltPixels, WorldMapSourceRegion rebuiltSource, int colorEpoch) {
+        if (rebuiltPixels == null || rebuiltSource == null || this.pixels == null) return;
+
+        boolean changed = false;
+        mutationEpoch.incrementAndGet();
+        try {
+            if (this.source == null) {
+                this.source = WorldMapSourceRegion.blank();
+            }
+            for (int chunkZ = 0; chunkZ < CHUNKS_PER_REGION; chunkZ++) {
+                for (int chunkX = 0; chunkX < CHUNKS_PER_REGION; chunkX++) {
+                    if (!rebuiltSource.hasChunkSource(chunkX, chunkZ)) continue;
+
+                    int[] chunkPixels = rebuiltPixels.copyChunkPixels(chunkX, chunkZ);
+                    if (chunkPixels == null) continue;
+
+                    this.pixels.updateChunk(chunkPixels, chunkX, chunkZ);
+                    WorldMapSourceChunk sourceChunk = rebuiltSource.chunkSource(chunkX, chunkZ);
+                    if (sourceChunk != null) {
+                        this.source.updateChunk(sourceChunk, chunkX, chunkZ);
+                    }
+                    this.chunkColorEpochs.set(chunkIndex(chunkX, chunkZ), colorEpoch);
+                    changed = true;
+                }
+            }
+
+            if (changed) {
+                resetRenderVersions();
+                this.dirty = true;
+                this.dirtyVersion++;
+                this.lastDirtyNanos = System.nanoTime();
+            }
+        } finally {
+            mutationEpoch.incrementAndGet();
+        }
+    }
+
     synchronized SaveSnapshot beginSaveSnapshot() {
-        if (this.pixels == null || !this.dirty || this.saveSnapshotVersion >= 0) return null;
+        if (this.source == null
+                || !this.source.hasAnySource()
+                || !this.dirty
+                || this.saveSnapshotVersion >= 0) {
+            return null;
+        }
 
         this.saveSnapshotVersion = this.dirtyVersion;
-        return new SaveSnapshot(this.pixels.snapshot(), this.saveSnapshotVersion);
+        return new SaveSnapshot(
+                this.source == null ? null : this.source.snapshot(),
+                this.saveSnapshotVersion);
     }
 
     synchronized void finishSave(int savedVersion, boolean success) {
@@ -125,9 +194,25 @@ public final class WorldMapRegion {
         return regionPixels != null && regionPixels.hasChunkPixels(chunkXInRegion, chunkZInRegion);
     }
 
+    boolean hasChunkSource(int chunkXInRegion, int chunkZInRegion) {
+        WorldMapSourceRegion regionSource = source;
+        return regionSource != null && regionSource.hasChunkSource(chunkXInRegion, chunkZInRegion);
+    }
+
+    boolean hasSourceData() {
+        WorldMapSourceRegion regionSource = source;
+        return regionSource != null && regionSource.hasAnySource();
+    }
+
+    WorldMapSourceRegion sourceData() {
+        return source;
+    }
+
     boolean hasChunkPixelsForColorEpoch(
             int chunkXInRegion, int chunkZInRegion, int colorEpoch) {
+        // Pixel-only chunks should not pass a resource reload.
         return hasChunkPixels(chunkXInRegion, chunkZInRegion)
+                && hasChunkSource(chunkXInRegion, chunkZInRegion)
                 && chunkColorEpochs.get(chunkIndex(chunkXInRegion, chunkZInRegion)) >= colorEpoch;
     }
 
@@ -191,6 +276,7 @@ public final class WorldMapRegion {
 
     synchronized void close() {
         pixels = null;
+        source = null;
         saveSnapshotVersion = -1;
     }
 
@@ -275,7 +361,9 @@ public final class WorldMapRegion {
         return REGION_PIXEL_SIZE / (WorldMapRenderTileKey.PIXEL_SIZE << level);
     }
 
-    public record SaveSnapshot(WorldMapRegionPixels.Snapshot pixels, int dirtyVersion) {}
+    public record SaveSnapshot(
+            WorldMapSourceRegion.Snapshot source,
+            int dirtyVersion) {}
 
     public static final class RenderSnapshot {
         private final AtomicReference<int[]> pixels;

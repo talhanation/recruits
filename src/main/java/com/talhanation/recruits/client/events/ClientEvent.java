@@ -11,6 +11,7 @@ import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelLayerLocation;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -20,6 +21,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ModelEvent;
+import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -88,6 +90,13 @@ public class ClientEvent {
     @SubscribeEvent
     public static void modelBakingCompleted(ModelEvent.BakingCompleted event) {
         WorldMapCacheManager.getInstance().onClientModelsReloaded();
+    }
+
+    @SubscribeEvent
+    public static void textureStitchCompleted(TextureStitchEvent.Post event) {
+        if (TextureAtlas.LOCATION_BLOCKS.equals(event.getAtlas().location())) {
+            WorldMapCacheManager.getInstance().onClientBlockAtlasStitched();
+        }
     }
 
     @Nullable
