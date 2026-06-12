@@ -1,8 +1,7 @@
 package com.talhanation.recruits.client.gui.worldmap.pipeline;
 
 import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapRegion;
-import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapRegionPixels;
-import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapRegionStorage;
+import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapSourceRegionStorage;
 
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
@@ -55,13 +54,13 @@ public final class WorldMapAsync {
         CHUNK_BUILD_EXECUTOR.prestartAllCoreThreads();
     }
 
-    public static CompletableFuture<WorldMapRegionPixels> loadRegion(
+    public static <T> CompletableFuture<T> loadRegion(
             boolean urgent,
             long generation,
             int distanceSquared,
-            Supplier<WorldMapRegionPixels> supplier) {
-        CompletableFuture<WorldMapRegionPixels> future = new CompletableFuture<>();
-        RegionLoadTask task =
+            Supplier<T> supplier) {
+        CompletableFuture<T> future = new CompletableFuture<>();
+        RegionLoadTask<T> task =
                 new RegionLoadTask(
                         urgent,
                         generation,
@@ -84,13 +83,20 @@ public final class WorldMapAsync {
         return timedTask(
                 () -> {
                     try {
-                        WorldMapRegionStorage.write(file, snapshot.pixels());
+                        if (snapshot.source() == null) {
+                            return new RegionSaveResult(false, snapshot.dirtyVersion());
+                        }
+                        WorldMapSourceRegionStorage.write(file, snapshot.source());
                         return new RegionSaveResult(true, snapshot.dirtyVersion());
                     } catch (Exception ignored) {
                         return new RegionSaveResult(false, snapshot.dirtyVersion());
                     }
                 },
                 REGION_SAVE_EXECUTOR);
+    }
+
+    public static <T> CompletableFuture<T> recolorSourceRegion(Supplier<T> supplier) {
+        return loadRegion(false, 0L, 0, supplier);
     }
 
     public static CompletableFuture<WorldMapRegion.RenderSnapshot> buildRenderTile(
@@ -160,17 +166,17 @@ public final class WorldMapAsync {
 
     public record RegionSaveResult(boolean success, int dirtyVersion) {}
 
-    private static final class RegionLoadTask implements Runnable, Comparable<RegionLoadTask> {
+    private static final class RegionLoadTask<T> implements Runnable, Comparable<RegionLoadTask<T>> {
         private final boolean urgent;
         private final long generation;
         private final int distanceSquared;
         private final long sequence;
-        private final Supplier<WorldMapRegionPixels> supplier;
-        private final CompletableFuture<WorldMapRegionPixels> future;
+        private final Supplier<T> supplier;
+        private final CompletableFuture<T> future;
 
         private RegionLoadTask(boolean urgent, long generation, int distanceSquared, long sequence,
-                               Supplier<WorldMapRegionPixels> supplier,
-                               CompletableFuture<WorldMapRegionPixels> future) {
+                               Supplier<T> supplier,
+                               CompletableFuture<T> future) {
             this.urgent = urgent;
             this.generation = generation;
             this.distanceSquared = distanceSquared;
@@ -184,7 +190,7 @@ public final class WorldMapAsync {
             if (future.isCancelled()) return;
 
             try {
-                WorldMapRegionPixels result = supplier.get();
+                T result = supplier.get();
                 future.complete(result);
             } catch (Throwable throwable) {
                 future.completeExceptionally(throwable);
@@ -192,7 +198,7 @@ public final class WorldMapAsync {
         }
 
         @Override
-        public int compareTo(RegionLoadTask other) {
+        public int compareTo(RegionLoadTask<T> other) {
             if (urgent != other.urgent) return urgent ? -1 : 1;
 
             int generationOrder = Long.compare(other.generation, generation);

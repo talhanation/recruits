@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
 
-public final class MapTintSampler implements BlockAndTintGetter {
+public final class MapTintSampler implements BlockAndTintGetter, MapTintStateOverride {
     private static final int MAX_BIOME_CACHE_ENTRIES = 16_384;
     private static final int NO_BIOME_COLOR = Integer.MIN_VALUE + 1;
     private static final int BIOME_COLOR_CACHE_MISS = Integer.MIN_VALUE;
@@ -40,6 +40,7 @@ public final class MapTintSampler implements BlockAndTintGetter {
         tintState = null;
     }
 
+    @Override
     public void useTintState(BlockState tintState) {
         this.tintState = tintState;
     }

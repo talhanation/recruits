@@ -3,7 +3,6 @@ package com.talhanation.recruits.client.gui.worldmap.color;
 import com.talhanation.recruits.client.gui.worldmap.pipeline.ChunkSamplingContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlas;
@@ -12,6 +11,7 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.client.model.data.ModelData;
@@ -32,16 +32,20 @@ public final class MapBlockColorResolver {
 
     public static int resolveBaseRgb(
             ChunkSamplingContext context, BlockPos pos, BlockState state, MapTintSampler tintSampler) {
-        ClientLevel level = context.level();
+        return resolveBaseRgb(tintSampler, pos, state);
+    }
+
+    public static int resolveBaseRgb(
+            BlockAndTintGetter tintGetter, BlockPos pos, BlockState state) {
         TextureColor textureColor = getTextureColor(state);
         int base = textureColor.rgb();
         if (base == 0) {
-            MapColor mapColor = state.getMapColor(level, pos);
+            MapColor mapColor = state.getMapColor(tintGetter, pos);
             base = mapColor != null ? mapColor.col : 0;
         }
         if ((base & 0x00FFFFFF) == 0) return 0;
 
-        int tint = resolveBiomeTint(pos, state, textureColor.tintIndex(), tintSampler);
+        int tint = resolveBiomeTint(pos, state, textureColor.tintIndex(), tintGetter);
         if (MapTintSampler.hasColor(tint)) {
             base = multiplyBiomeTint(base, tint & 0x00FFFFFF);
         }
@@ -91,15 +95,19 @@ public final class MapBlockColorResolver {
     }
 
     private static int resolveBiomeTint(
-            BlockPos pos, BlockState state, int tintIndex, MapTintSampler tintSampler) {
+            BlockPos pos, BlockState state, int tintIndex, BlockAndTintGetter tintGetter) {
         if (tintIndex < 0) return -1;
 
         BlockColors blockColors = Minecraft.getInstance().getBlockColors();
-        tintSampler.useTintState(state);
+        if (tintGetter instanceof MapTintStateOverride tintStateOverride) {
+            tintStateOverride.useTintState(state);
+        }
         try {
-            return blockColors.getColor(state, tintSampler, pos, tintIndex);
+            return blockColors.getColor(state, tintGetter, pos, tintIndex);
         } finally {
-            tintSampler.useTintState(null);
+            if (tintGetter instanceof MapTintStateOverride tintStateOverride) {
+                tintStateOverride.useTintState(null);
+            }
         }
     }
 

@@ -78,7 +78,7 @@ public final class WorldMapRenderTileCache {
 
     public TileView findBestAvailable(WorldMapRenderTileKey requested, boolean allowParentFallback) {
         WorldMapRenderTile exact = tiles.get(requested);
-        if (exact != null) {
+        if (exact != null && exact.hasVisiblePixels()) {
             return TileView.full(exact.slot(nextAccessOrder()));
         }
         if (!allowParentFallback) {
@@ -90,10 +90,17 @@ public final class WorldMapRenderTileCache {
         while (parent != null) {
             WorldMapRenderTile parentTile = tiles.get(parent);
             if (parentTile != null) {
-                WorldMapTextureAtlas.Slot slot = parentTile.slot(nextAccessOrder());
                 int sections = 1 << levelDifference;
                 int localX = Math.floorMod(requested.x(), sections);
                 int localZ = Math.floorMod(requested.z(), sections);
+                // Empty parent sections look worse than waiting for the exact tile.
+                if (!parentTile.hasVisiblePixels(localX, localZ, sections)) {
+                    parent = parent.parent();
+                    levelDifference++;
+                    continue;
+                }
+
+                WorldMapTextureAtlas.Slot slot = parentTile.slot(nextAccessOrder());
                 float atlasPixel = 1.0F / WorldMapTextureAtlas.ATLAS_SIZE;
                 float sectionPixels = (float) WorldMapRenderTileKey.PIXEL_SIZE / sections;
                 float u1 = slot.u1() + localX * sectionPixels * atlasPixel;
@@ -110,7 +117,9 @@ public final class WorldMapRenderTileCache {
 
     public TileView findExact(WorldMapRenderTileKey key) {
         WorldMapRenderTile tile = tiles.get(key);
-        return tile == null ? null : TileView.full(tile.slot(nextAccessOrder()));
+        return tile == null || !tile.hasVisiblePixels()
+                ? null
+                : TileView.full(tile.slot(nextAccessOrder()));
     }
 
     public int tileCount() {
@@ -148,6 +157,67 @@ public final class WorldMapRenderTileCache {
         }
     }
 
+    public void invalidateRegion(WorldMapRegion region) {
+        if (region == null) return;
+
+        Iterator<Map.Entry<WorldMapRenderTileKey, PendingBuild>> pendingIterator =
+                pendingBuilds.entrySet().iterator();
+        while (pendingIterator.hasNext()) {
+            Map.Entry<WorldMapRenderTileKey, PendingBuild> entry = pendingIterator.next();
+            if (!belongsToRegion(entry.getKey(), region)) continue;
+
+            cancelPendingBuild(entry.getValue());
+            pendingIterator.remove();
+        }
+
+        Iterator<Map.Entry<WorldMapRenderTileKey, WorldMapRegion.RenderSnapshot>> readyIterator =
+                readyTiles.entrySet().iterator();
+        while (readyIterator.hasNext()) {
+            Map.Entry<WorldMapRenderTileKey, WorldMapRegion.RenderSnapshot> entry = readyIterator.next();
+            if (!belongsToRegion(entry.getKey(), region)) continue;
+
+            entry.getValue().release();
+            readyIterator.remove();
+        }
+
+        Iterator<Map.Entry<WorldMapRenderTileKey, WorldMapRenderTile>> tileIterator =
+                tiles.entrySet().iterator();
+        while (tileIterator.hasNext()) {
+            Map.Entry<WorldMapRenderTileKey, WorldMapRenderTile> entry = tileIterator.next();
+            if (!belongsToRegion(entry.getKey(), region)) continue;
+
+            entry.getValue().releaseSlot();
+            tileIterator.remove();
+            dirtyTiles.remove(entry.getKey());
+            invalidatedTiles.remove(entry.getKey());
+        }
+    }
+
+    public void clearTiles() {
+        for (PendingBuild pendingBuild : pendingBuilds.values()) {
+            cancelPendingBuild(pendingBuild);
+        }
+        pendingBuilds.clear();
+
+        for (WorldMapRegion.RenderSnapshot snapshot : readyTiles.values()) {
+            snapshot.release();
+        }
+        readyTiles.clear();
+        invalidatedTiles.clear();
+        dirtyTiles.clear();
+
+        for (WorldMapRenderTile tile : tiles.values()) {
+            tile.releaseSlot();
+        }
+        tiles.clear();
+        lastRequestedTiles.clear();
+        neededTiles.clear();
+        neededTileSet.clear();
+        lastCenterTile = null;
+        lastIncludeAncestors = true;
+        visibleGeneration++;
+    }
+
     public void close() {
         for (PendingBuild pendingBuild : pendingBuilds.values()) {
             cancelPendingBuild(pendingBuild);
@@ -177,6 +247,10 @@ public final class WorldMapRenderTileCache {
         lastIncludeAncestors = true;
         visibleGeneration = 0L;
         accessSequence = 0L;
+    }
+
+    private static boolean belongsToRegion(WorldMapRenderTileKey key, WorldMapRegion region) {
+        return key.regionX() == region.getRegionX() && key.regionZ() == region.getRegionZ();
     }
 
     private void refreshNeededTiles(

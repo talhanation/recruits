@@ -4,7 +4,12 @@ import com.talhanation.recruits.client.gui.worldmap.color.MapBlockColorResolver;
 import com.talhanation.recruits.client.gui.worldmap.color.MapSample;
 import com.talhanation.recruits.client.gui.worldmap.color.MapStateClassifier;
 import com.talhanation.recruits.client.gui.worldmap.color.MapTerrainColorResolver;
+import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapSourceChunk;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -65,7 +70,7 @@ public final class ChunkImageBuilder {
             renderPixels();
             if (canceled || pixelIndex < PIXEL_COUNT) return null;
 
-            return new ChunkBuildResult(chunkX, chunkZ, chunkKey, pixels);
+            return new ChunkBuildResult(chunkX, chunkZ, chunkKey, pixels, createSourceChunk());
         } finally {
             building = false;
             activeSampleChunk = null;
@@ -264,6 +269,44 @@ public final class ChunkImageBuilder {
         return index < PIXEL_COUNT
                 ? scratch.surfaceSamples()[sampleCenter]
                 : scratch.underlaySamples()[sampleCenter];
+    }
+
+    private WorldMapSourceChunk createSourceChunk() {
+        // Keep enough source info to rebuild colors after a resource-pack reload.
+        WorldMapSourceChunk.Builder builder = WorldMapSourceChunk.builder();
+        Registry<Biome> biomeRegistry = context.level().registryAccess().registryOrThrow(Registries.BIOME);
+        MapSample[] surfaces = scratch.surfaceSamples();
+        MapSample[] underlays = scratch.underlaySamples();
+
+        for (int pixelIndex = 0; pixelIndex < PIXEL_COUNT; pixelIndex++) {
+            int x = pixelIndex % 16;
+            int z = pixelIndex / 16;
+            int sampleCenter = (x + 1) * ChunkBuildScratch.SAMPLE_GRID_SIZE + z + 1;
+            writeSourceSample(builder, pixelIndex, surfaces[sampleCenter], biomeRegistry, true);
+            writeSourceSample(builder, pixelIndex, underlays[sampleCenter], biomeRegistry, false);
+        }
+
+        return builder.build();
+    }
+
+    private void writeSourceSample(
+            WorldMapSourceChunk.Builder builder,
+            int pixelIndex,
+            MapSample sample,
+            Registry<Biome> biomeRegistry,
+            boolean surface) {
+        if (!sample.isPresent()) return;
+
+        int stateId = Block.BLOCK_STATE_REGISTRY.getId(sample.state());
+        if (stateId < 0) return;
+
+        samplePos.set(sample.x(), sample.height(), sample.z());
+        int biomeId = biomeRegistry.getId(context.level().getBiome(samplePos).value());
+        if (surface) {
+            builder.setSurface(pixelIndex, stateId, biomeId, sample.height());
+        } else {
+            builder.setUnderlay(pixelIndex, stateId, biomeId, sample.height());
+        }
     }
 
     private static int countWaterNeighbors(MapSample[] surfaces, MapSample[] underlays, int center) {
