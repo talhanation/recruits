@@ -95,7 +95,7 @@ public final class WorldMapRenderer {
                 frame.topWorld(),
                 frame.bottomWorld()
         );
-        boolean allowParentFallback = scale < 1.0 || level > 0;
+        boolean allowParentFallback = true;
         renderTileCache.prepareVisible(preparedTileKeys, allowParentFallback);
 
         RenderBudget budget = new RenderBudget(MAX_TILE_DRAWS_PER_FRAME);

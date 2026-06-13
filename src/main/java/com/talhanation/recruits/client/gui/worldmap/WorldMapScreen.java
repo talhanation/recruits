@@ -172,6 +172,12 @@ public class WorldMapScreen extends Screen {
         waypointEditPopup = new WaypointEditPopup(this);
     }
 
+    @Override
+    public void resize(Minecraft minecraft, int width, int height) {
+        camera.rememberCurrentView();
+        super.resize(minecraft, width, height);
+    }
+
     private void initRouteUI() {
         routeControls.refresh(selectedRoute, route -> selectedRoute = route);
     }
