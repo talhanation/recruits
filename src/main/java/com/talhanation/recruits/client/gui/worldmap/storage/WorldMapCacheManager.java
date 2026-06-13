@@ -325,7 +325,7 @@ public class WorldMapCacheManager {
     }
 
     public boolean shouldLoadViewedRegions() {
-        return RecruitsClientConfig.WorldMapLoadViewedRegions.get();
+        return RecruitsClientConfig.UpdateMapTiles.get();
     }
 
     public void beginRenderFrame() {

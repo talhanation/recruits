@@ -23,8 +23,8 @@ public final class WorldMapSettingsPanel {
     private static final String CLOSE_ICON = "✕";
     private static final String SETTINGS_ICON = "⚙";
     private static final Component TITLE = Component.translatable("gui.recruits.map.settings.title");
-    private static final Component LOAD_PLAYER_AREA = Component.translatable("gui.recruits.map.settings.load_player_area");
-    private static final Component LOAD_VIEWED_MAP = Component.translatable("gui.recruits.map.settings.load_viewed_map");
+    private static final Component LOAD_MAP = Component.translatable("gui.recruits.map.settings.load_map");
+    private static final Component BACKGROUND_LOADING = Component.translatable("gui.recruits.map.settings.background_loading");
     private static final Component PLAYER_ARROW = Component.translatable("gui.recruits.map.settings.player_arrow");
     private static final Component NIGHT_SHADING = Component.translatable("gui.recruits.map.settings.night_shading");
     private static final Component COORDINATES = Component.translatable("gui.recruits.map.settings.coordinates");
@@ -52,16 +52,16 @@ public final class WorldMapSettingsPanel {
                 font,
                 panelX,
                 PANEL_TOP + ROW_START,
-                LOAD_PLAYER_AREA,
-                RecruitsClientConfig.WorldMapUpdateAroundPlayer.get(),
+                LOAD_MAP,
+                RecruitsClientConfig.UpdateMapTiles.get(),
                 hoveredRow == 0);
         renderCheckBox(
                 guiGraphics,
                 font,
                 panelX,
                 PANEL_TOP + ROW_START + ROW_HEIGHT,
-                LOAD_VIEWED_MAP,
-                RecruitsClientConfig.WorldMapLoadViewedRegions.get(),
+                BACKGROUND_LOADING,
+                RecruitsClientConfig.WorldMapUpdateAroundPlayer.get(),
                 hoveredRow == 1);
         renderCheckBox(
                 guiGraphics,
@@ -109,11 +109,10 @@ public final class WorldMapSettingsPanel {
 
         int hoveredRow = getHoveredRow(mouseX, mouseY, screenWidth, screenHeight);
         if (hoveredRow == 0) {
+            RecruitsClientConfig.UpdateMapTiles.set(!RecruitsClientConfig.UpdateMapTiles.get());
+        } else if (hoveredRow == 1) {
             RecruitsClientConfig.WorldMapUpdateAroundPlayer.set(
                     !RecruitsClientConfig.WorldMapUpdateAroundPlayer.get());
-        } else if (hoveredRow == 1) {
-            RecruitsClientConfig.WorldMapLoadViewedRegions.set(
-                    !RecruitsClientConfig.WorldMapLoadViewedRegions.get());
         } else if (hoveredRow == 2) {
             togglePlayerIconStyle();
         } else if (hoveredRow == 3) {
