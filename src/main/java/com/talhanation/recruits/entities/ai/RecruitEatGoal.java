@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -20,6 +21,8 @@ public class RecruitEatGoal extends Goal {
 
     @Override
     public boolean canUse() {
+        if(!this.recruit.getCommandSenderWorld().isClientSide() && !RecruitsServerConfig.RecruitsUpdateHungerAndMorale.get()) return false;
+
         long i = this.recruit.getCommandSenderWorld().getGameTime();
         if(i - this.lastCanUseCheckMorale >= 1200L){
             this.lastCanUseCheckMorale = i;

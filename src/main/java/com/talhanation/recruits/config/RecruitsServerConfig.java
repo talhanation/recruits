@@ -92,6 +92,7 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.BooleanValue AllowClaiming;
     public static ForgeConfigSpec.BooleanValue FogOfWarEnabled;
     public static ForgeConfigSpec.BooleanValue RecruitsStarving;
+    public static ForgeConfigSpec.BooleanValue RecruitsUpdateHungerAndMorale;
     public static ForgeConfigSpec.BooleanValue SiegeRequiresOwnerOnline;
 
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
@@ -323,7 +324,7 @@ public class RecruitsServerConfig {
                 .define("RecruitsChunkLoading", true);
 
         RecruitsStarving = BUILDER.comment("""
-                        RecruitsChunkLoading
+                        RecruitsStarving
                         \t(takes effect after restart)
                         \t
                         Should recruit-starve to death if their hunger drops to 0 ?
@@ -331,6 +332,16 @@ public class RecruitsServerConfig {
 
                 .worldRestart()
                 .define("RecruitsStarving", false);
+
+        RecruitsUpdateHungerAndMorale = BUILDER.comment("""
+                        RecruitsStarving
+                        \t(takes effect after restart)
+                        \t
+                        Should recruits update hunger and morale state?
+                        default: false""")
+
+                .worldRestart()
+                .define("RecruitsUpdateHungerAndMorale", true);
         /*
         Village Config
          */
