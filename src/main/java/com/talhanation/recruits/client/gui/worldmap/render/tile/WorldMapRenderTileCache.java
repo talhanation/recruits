@@ -32,6 +32,7 @@ public final class WorldMapRenderTileCache {
     private static final int MAX_TEXTURE_UPLOADS_PER_FRAME = 8;
     private static final int OFFSCREEN_BUILD_GRACE_GENERATIONS = 3;
     private static final long TEXTURE_UPLOAD_BUDGET_NANOS = 1_000_000L;
+    private static final float ATLAS_HALF_TEXEL = 0.5F / WorldMapTextureAtlas.ATLAS_SIZE;
 
     private final WorldMapCacheManager mapCache;
     private final WorldMapTextureUploader textureUploader = new WorldMapTextureUploader();
@@ -50,6 +51,10 @@ public final class WorldMapRenderTileCache {
     private long accessSequence;
     private WorldMapRenderTileKey lastCenterTile;
     private boolean lastIncludeAncestors = true;
+
+    // -------------------------------------------------------------------------
+    // Lifecycle
+    // -------------------------------------------------------------------------
 
     public WorldMapRenderTileCache(WorldMapCacheManager mapCache) {
         this.mapCache = mapCache;
@@ -75,6 +80,10 @@ public final class WorldMapRenderTileCache {
         publishReadyTiles(neededTiles, uploadBudget);
         trim(neededTileSet);
     }
+
+    // -------------------------------------------------------------------------
+    // Lookup
+    // -------------------------------------------------------------------------
 
     public TileView findBestAvailable(WorldMapRenderTileKey requested, boolean allowParentFallback) {
         WorldMapRenderTile exact = tiles.get(requested);
@@ -103,10 +112,10 @@ public final class WorldMapRenderTileCache {
                 WorldMapTextureAtlas.Slot slot = parentTile.slot(nextAccessOrder());
                 float atlasPixel = 1.0F / WorldMapTextureAtlas.ATLAS_SIZE;
                 float sectionPixels = (float) WorldMapRenderTileKey.PIXEL_SIZE / sections;
-                float u1 = slot.u1() + localX * sectionPixels * atlasPixel;
-                float v1 = slot.v1() + localZ * sectionPixels * atlasPixel;
-                float u2 = slot.u1() + (localX + 1) * sectionPixels * atlasPixel;
-                float v2 = slot.v1() + (localZ + 1) * sectionPixels * atlasPixel;
+                float u1 = slot.u1() + localX * sectionPixels * atlasPixel + ATLAS_HALF_TEXEL;
+                float v1 = slot.v1() + localZ * sectionPixels * atlasPixel + ATLAS_HALF_TEXEL;
+                float u2 = slot.u1() + (localX + 1) * sectionPixels * atlasPixel - ATLAS_HALF_TEXEL;
+                float v2 = slot.v1() + (localZ + 1) * sectionPixels * atlasPixel - ATLAS_HALF_TEXEL;
                 return new TileView(slot.atlas().textureId(), u1, v1, u2, v2);
             }
             parent = parent.parent();
@@ -129,6 +138,10 @@ public final class WorldMapRenderTileCache {
     public int pendingCount() {
         return pendingBuilds.size() + readyTiles.size();
     }
+
+    // -------------------------------------------------------------------------
+    // Invalidation
+    // -------------------------------------------------------------------------
 
     public void invalidateChunk(
             WorldMapRegion region, int chunkXInRegion, int chunkZInRegion, int[] chunkPixels) {
@@ -249,6 +262,10 @@ public final class WorldMapRenderTileCache {
         accessSequence = 0L;
     }
 
+    // -------------------------------------------------------------------------
+    // View set
+    // -------------------------------------------------------------------------
+
     private static boolean belongsToRegion(WorldMapRenderTileKey key, WorldMapRegion region) {
         return key.regionX() == region.getRegionX() && key.regionZ() == region.getRegionZ();
     }
@@ -307,6 +324,10 @@ public final class WorldMapRenderTileCache {
         }
         return ancestor;
     }
+
+    // -------------------------------------------------------------------------
+    // Builds
+    // -------------------------------------------------------------------------
 
     private void pruneOffscreenPendingBuilds(boolean makeRoom) {
         int targetSize =
@@ -426,6 +447,10 @@ public final class WorldMapRenderTileCache {
         trimReadyTiles();
     }
 
+    // -------------------------------------------------------------------------
+    // Uploads
+    // -------------------------------------------------------------------------
+
     private void publishDirtyTiles(
             List<WorldMapRenderTileKey> neededTiles, UploadBudget uploadBudget) {
         for (WorldMapRenderTileKey key : neededTiles) {
@@ -490,6 +515,10 @@ public final class WorldMapRenderTileCache {
     private static int sourceVersion(WorldMapRenderTileKey key, WorldMapRegion region) {
         return region.renderVersion(key.level(), key.localXInRegion(), key.localZInRegion());
     }
+
+    // -------------------------------------------------------------------------
+    // Cleanup
+    // -------------------------------------------------------------------------
 
     private void trim(Set<WorldMapRenderTileKey> protectedTiles) {
         if (tiles.size() <= MAX_CACHED_TILES) {
@@ -600,9 +629,18 @@ public final class WorldMapRenderTileCache {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Data
+    // -------------------------------------------------------------------------
+
     public record TileView(ResourceLocation textureId, float u1, float v1, float u2, float v2) {
         private static TileView full(WorldMapTextureAtlas.Slot slot) {
-            return new TileView(slot.atlas().textureId(), slot.u1(), slot.v1(), slot.u2(), slot.v2());
+            return new TileView(
+                    slot.atlas().textureId(),
+                    slot.u1() + ATLAS_HALF_TEXEL,
+                    slot.v1() + ATLAS_HALF_TEXEL,
+                    slot.u2() - ATLAS_HALF_TEXEL,
+                    slot.v2() - ATLAS_HALF_TEXEL);
         }
     }
 

@@ -207,7 +207,8 @@ public class Main {
                 MessageAddEmbargo.class,
                 MessageRemoveEmbargo.class,
                 MessageToClientUpdateEmbargoes.class,
-                MessageAddEmbargoFaction.class
+                MessageAddEmbargoFaction.class,
+                MessageToClientWorldMapIdentity.class
         };
 
 

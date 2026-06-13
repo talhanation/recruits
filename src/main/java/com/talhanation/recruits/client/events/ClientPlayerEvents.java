@@ -1,6 +1,7 @@
 package com.talhanation.recruits.client.events;
 
 import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapCacheManager;
+import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapStorageId;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.Level;
@@ -37,6 +38,7 @@ public class ClientPlayerEvents {
     public void onWorldUnload(LevelEvent.Unload event) {
         if (event.getLevel().isClientSide()) {
             WorldMapCacheManager.getInstance().close();
+            WorldMapStorageId.clearServerWorldId();
         }
     }
 

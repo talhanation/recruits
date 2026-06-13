@@ -38,10 +38,13 @@ public class MessageTransferRoute implements Message<MessageTransferRoute> {
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer sender = Objects.requireNonNull(context.getSender());
+        RecruitsRoute route = RecruitsRoute.fromNBT(routeNBT);
+        if (route == null) return;
+
         ServerPlayer target = sender.getServer().getPlayerList().getPlayer(targetPlayerUUID);
         if (target == null) return;
         SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> target),
-                new MessageToClientReceiveRoute(routeNBT));
+                new MessageToClientReceiveRoute(route.toNBT()));
     }
 
     @Override

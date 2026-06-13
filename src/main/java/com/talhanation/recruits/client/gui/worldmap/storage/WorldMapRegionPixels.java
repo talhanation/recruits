@@ -46,6 +46,17 @@ public final class WorldMapRegionPixels {
         return isValidChunk(chunkX, chunkZ) && chunks.get(chunkIndex(chunkX, chunkZ)) != null;
     }
 
+    boolean hasVisibleChunkPixels(int chunkX, int chunkZ) {
+        if (!isValidChunk(chunkX, chunkZ)) return false;
+
+        int[] chunk = chunks.get(chunkIndex(chunkX, chunkZ));
+        if (chunk == null) return false;
+        for (int color : chunk) {
+            if ((color >>> 24) != 0) return true;
+        }
+        return false;
+    }
+
     int[] copyChunkPixels(int chunkX, int chunkZ) {
         if (!isValidChunk(chunkX, chunkZ)) return null;
 
@@ -141,11 +152,9 @@ public final class WorldMapRegionPixels {
         }
 
         if (alphaSum == 0) return 0;
-        int sampleCount = areaSize * areaSize;
-        int alpha = (alphaSum + sampleCount / 2) / sampleCount;
         int red = (int) ((redSum + alphaSum / 2L) / alphaSum);
         int green = (int) ((greenSum + alphaSum / 2L) / alphaSum);
         int blue = (int) ((blueSum + alphaSum / 2L) / alphaSum);
-        return alpha << 24 | blue << 16 | green << 8 | red;
+        return 0xFF000000 | blue << 16 | green << 8 | red;
     }
 }

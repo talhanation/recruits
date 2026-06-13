@@ -23,7 +23,6 @@ public class RecruitsClientConfig {
     public static ForgeConfigSpec.BooleanValue DisableClaimGUIOverlay;
     public static ForgeConfigSpec.BooleanValue UpdateMapTiles;
     public static ForgeConfigSpec.BooleanValue WorldMapUpdateAroundPlayer;
-    public static ForgeConfigSpec.BooleanValue WorldMapLoadViewedRegions;
     public static ForgeConfigSpec.BooleanValue WorldMapNightShading;
     public static ForgeConfigSpec.BooleanValue WorldMapShowCoordinates;
     public static ForgeConfigSpec.BooleanValue WorldMapClaimFill;
@@ -91,15 +90,9 @@ public class RecruitsClientConfig {
 
         WorldMapUpdateAroundPlayer = BUILDER.comment("""
                         ----WorldMapUpdateAroundPlayer----
-                        Load and refresh map chunks around the player.
+                        Load and refresh map chunks around the player in the background.
                         default: true""")
                 .define("WorldMapUpdateAroundPlayer", true);
-
-        WorldMapLoadViewedRegions = BUILDER.comment("""
-                        ----WorldMapLoadViewedRegions----
-                        Load saved map regions while looking around the world map.
-                        default: true""")
-                .define("WorldMapLoadViewedRegions", true);
 
         WorldMapNightShading = BUILDER.comment("""
                         ----WorldMapNightShading----
