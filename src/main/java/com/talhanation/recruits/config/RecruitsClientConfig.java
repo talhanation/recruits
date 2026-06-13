@@ -90,7 +90,7 @@ public class RecruitsClientConfig {
 
         WorldMapUpdateAroundPlayer = BUILDER.comment("""
                         ----WorldMapUpdateAroundPlayer----
-                        Load and refresh map chunks around the player.
+                        Load and refresh map chunks around the player in the background.
                         default: true""")
                 .define("WorldMapUpdateAroundPlayer", true);
 

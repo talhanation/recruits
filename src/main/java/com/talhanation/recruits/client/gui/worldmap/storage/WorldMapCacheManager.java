@@ -1,6 +1,7 @@
 package com.talhanation.recruits.client.gui.worldmap.storage;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.gui.worldmap.WorldMapScreen;
 import com.talhanation.recruits.client.gui.worldmap.color.MapBlockColorResolver;
 import com.talhanation.recruits.client.gui.worldmap.color.MapStateClassifier;
 import com.talhanation.recruits.client.gui.worldmap.pipeline.ChunkBuildResult;
@@ -63,6 +64,7 @@ public class WorldMapCacheManager {
     private static final long CHUNK_LOAD_SETTLE_NANOS = 100_000_000L;
     private static final long BLOCK_UPDATE_SETTLE_NANOS = 75_000_000L;
     private static final long INCOMPLETE_CHUNK_RETRY_NANOS = 100_000_000L;
+    private static final long MISSING_NEIGHBOR_RETRY_NANOS = 200_000_000L;
     private static final long REGION_LOAD_RETRY_DELAY_MS = 1000L;
     private static final long DISCOVERY_INTERVAL_MS = 100L;
     private static final long SAVE_INTERVAL_MS = 60000L;
@@ -464,17 +466,13 @@ public class WorldMapCacheManager {
         if (!isCurrentClientLevel(level) || chunkPos == null) return;
         if (!shouldUpdateAroundPlayer()) return;
 
-        markChunkDirty(chunkPos.x, chunkPos.z, false, CHUNK_LOAD_SETTLE_NANOS, true);
-        // New neighbors can improve the one-pixel border on nearby chunks.
+        markChunkAndNeighborsDirty(chunkPos.x, chunkPos.z, false, CHUNK_LOAD_SETTLE_NANOS);
+    }
+
+    private void markChunkAndNeighborsDirty(int chunkX, int chunkZ, boolean urgent, long settleNanos) {
         for (int dz = -1; dz <= 1; dz++) {
             for (int dx = -1; dx <= 1; dx++) {
-                if (dx == 0 && dz == 0) continue;
-
-                int neighborChunkX = chunkPos.x + dx;
-                int neighborChunkZ = chunkPos.z + dz;
-                if (hasFreshChunkPixels(neighborChunkX, neighborChunkZ)) {
-                    markChunkDirty(neighborChunkX, neighborChunkZ, false, CHUNK_LOAD_SETTLE_NANOS, true);
-                }
+                markChunkDirty(chunkX + dx, chunkZ + dz, urgent, settleNanos, true);
             }
         }
     }
@@ -800,8 +798,9 @@ public class WorldMapCacheManager {
             ChunkSamplingContext context = ChunkSamplingContext.capture(mc.level, chunkX, chunkZ);
             if (context == null) {
                 if (isChunkLoaded(chunkX, chunkZ)) {
-                    chunkBuildQueue.removeBuildMetadata(chunkKey);
-                    discoveredChunks.remove(chunkKey);
+                    chunkBuildQueue.mergeReadyNanos(
+                            chunkKey, System.nanoTime() + MISSING_NEIGHBOR_RETRY_NANOS);
+                    enqueueDelayedChunk(chunkKey, urgent);
                 } else {
                     forgetChunk(chunkKey);
                 }
@@ -1211,7 +1210,11 @@ public class WorldMapCacheManager {
 
     private static boolean shouldUpdateAroundPlayer() {
         return RecruitsClientConfig.UpdateMapTiles.get()
-                && RecruitsClientConfig.WorldMapUpdateAroundPlayer.get();
+                && (RecruitsClientConfig.WorldMapUpdateAroundPlayer.get() || isWorldMapScreenOpen());
+    }
+
+    private static boolean isWorldMapScreenOpen() {
+        return Minecraft.getInstance().screen instanceof WorldMapScreen;
     }
 
     private static RegionCoords parseRegionKey(String regionKey) {

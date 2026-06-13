@@ -150,12 +150,7 @@ public final class ChunkImageBuilder {
         activeSampleWorldX = minBlockX + x;
         activeSampleWorldZ = minBlockZ + z;
         activeSampleChunk = context.getLoadedChunk(activeSampleWorldX, activeSampleWorldZ);
-        if (activeSampleChunk == null) {
-            activeSampleWorldX = minBlockX + Math.max(0, Math.min(15, x));
-            activeSampleWorldZ = minBlockZ + Math.max(0, Math.min(15, z));
-            activeSampleChunk = context.getLoadedChunk(activeSampleWorldX, activeSampleWorldZ);
-            if (activeSampleChunk == null) return false;
-        }
+        if (activeSampleChunk == null) return false;
 
         int surfaceHeight =
                 activeSampleChunk.getHeight(

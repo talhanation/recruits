@@ -152,11 +152,9 @@ public final class WorldMapRegionPixels {
         }
 
         if (alphaSum == 0) return 0;
-        int sampleCount = areaSize * areaSize;
-        int alpha = (alphaSum + sampleCount / 2) / sampleCount;
         int red = (int) ((redSum + alphaSum / 2L) / alphaSum);
         int green = (int) ((greenSum + alphaSum / 2L) / alphaSum);
         int blue = (int) ((blueSum + alphaSum / 2L) / alphaSum);
-        return alpha << 24 | blue << 16 | green << 8 | red;
+        return 0xFF000000 | blue << 16 | green << 8 | red;
     }
 }

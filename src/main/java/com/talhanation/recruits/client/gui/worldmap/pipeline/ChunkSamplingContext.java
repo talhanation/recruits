@@ -5,7 +5,7 @@ import net.minecraft.world.level.chunk.EmptyLevelChunk;
 import net.minecraft.world.level.chunk.LevelChunk;
 
 /**
- * Center chunk is required. Missing border neighbors are clamped by the builder.
+ * The builder needs the full 3x3 grid. Otherwise water/relief edges get baked from clamped samples.
  */
 public final class ChunkSamplingContext {
     private static final int NEIGHBOR_RADIUS = 1;
@@ -31,10 +31,7 @@ public final class ChunkSamplingContext {
         for (int dz = -NEIGHBOR_RADIUS; dz <= NEIGHBOR_RADIUS; dz++) {
             for (int dx = -NEIGHBOR_RADIUS; dx <= NEIGHBOR_RADIUS; dx++) {
                 LevelChunk chunk = getLoadedChunk(level, centerChunkX + dx, centerChunkZ + dz);
-                if (chunk == null || chunk instanceof EmptyLevelChunk) {
-                    if (dx == 0 && dz == 0) return null;
-                    continue;
-                }
+                if (chunk == null || chunk instanceof EmptyLevelChunk) return null;
 
                 chunks[index(dx, dz)] = chunk;
             }
