@@ -194,6 +194,11 @@ public final class WorldMapRegion {
         return regionPixels != null && regionPixels.hasChunkPixels(chunkXInRegion, chunkZInRegion);
     }
 
+    boolean hasVisibleChunkPixels(int chunkXInRegion, int chunkZInRegion) {
+        WorldMapRegionPixels regionPixels = pixels;
+        return regionPixels != null && regionPixels.hasVisibleChunkPixels(chunkXInRegion, chunkZInRegion);
+    }
+
     boolean hasChunkSource(int chunkXInRegion, int chunkZInRegion) {
         WorldMapSourceRegion regionSource = source;
         return regionSource != null && regionSource.hasChunkSource(chunkXInRegion, chunkZInRegion);
@@ -211,7 +216,7 @@ public final class WorldMapRegion {
     boolean hasChunkPixelsForColorEpoch(
             int chunkXInRegion, int chunkZInRegion, int colorEpoch) {
         // Pixel-only chunks should not pass a resource reload.
-        return hasChunkPixels(chunkXInRegion, chunkZInRegion)
+        return hasVisibleChunkPixels(chunkXInRegion, chunkZInRegion)
                 && hasChunkSource(chunkXInRegion, chunkZInRegion)
                 && chunkColorEpochs.get(chunkIndex(chunkXInRegion, chunkZInRegion)) >= colorEpoch;
     }

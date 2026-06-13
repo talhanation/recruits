@@ -81,6 +81,13 @@ public final class WorldMapChunkBuildQueue {
         return chunkRevisions.containsKey(chunkKey);
     }
 
+    public boolean hasWork(long chunkKey) {
+        return chunkRevisions.containsKey(chunkKey)
+                || queuedChunks.contains(chunkKey)
+                || pendingChunkBuilds.containsKey(chunkKey)
+                || chunkWaitingRegions.containsKey(chunkKey);
+    }
+
     public boolean canMergeForcedReadyTime(long chunkKey) {
         return chunkRevisions.containsKey(chunkKey)
                 && forcedRebuildChunks.contains(chunkKey)
@@ -221,13 +228,9 @@ public final class WorldMapChunkBuildQueue {
         chunkUpdateQueue.addAll(orderedChunks);
     }
 
-    public BuildCandidate pollNextForBuild(
-            long nowNanos, int maxAttempts, int centerChunkX, int centerChunkZ, long deadlineNanos) {
+    public BuildCandidate pollNextForBuild(long nowNanos, int maxAttempts, long deadlineNanos) {
         if (maxAttempts <= 0) return null;
 
-        Long bestChunkKey = null;
-        boolean bestUrgent = false;
-        int bestDistanceSquared = Integer.MAX_VALUE;
         int checkedChunks = 0;
         Iterator<Long> iterator = chunkUpdateQueue.iterator();
         while (iterator.hasNext() && checkedChunks < maxAttempts && System.nanoTime() < deadlineNanos) {
@@ -252,24 +255,12 @@ public final class WorldMapChunkBuildQueue {
             if (nowNanos < readyNanos) continue;
 
             boolean urgent = urgentChunks.contains(chunkKey);
-            int distanceSquared = distanceSquaredToChunk(chunkKey, centerChunkX, centerChunkZ);
-            if (bestChunkKey == null
-                    || isHigherPriority(
-                            urgent, distanceSquared, chunkKey, bestUrgent, bestDistanceSquared, bestChunkKey)) {
-                bestChunkKey = chunkKey;
-                bestUrgent = urgent;
-                bestDistanceSquared = distanceSquared;
-            }
+            iterator.remove();
+            queuedChunks.remove(chunkKey);
+            return new BuildCandidate(chunkKey, urgentChunks.remove(chunkKey) || urgent, checkedChunks);
         }
 
-        if (bestChunkKey == null) {
-            return new BuildCandidate(Long.MIN_VALUE, false, checkedChunks);
-        }
-
-        chunkUpdateQueue.remove(bestChunkKey);
-        queuedChunks.remove(bestChunkKey);
-        return new BuildCandidate(
-                bestChunkKey, urgentChunks.remove(bestChunkKey) || bestUrgent, checkedChunks);
+        return new BuildCandidate(Long.MIN_VALUE, false, checkedChunks);
     }
 
     public void putPendingBuild(long chunkKey, PendingChunkBuild pendingBuild) {
@@ -408,19 +399,6 @@ public final class WorldMapChunkBuildQueue {
     private static int chunkZ(long chunkKey) {
         return (int) chunkKey;
     }
-
-    private static boolean isHigherPriority(
-            boolean urgent,
-            int distanceSquared,
-            long chunkKey,
-            boolean bestUrgent,
-            int bestDistanceSquared,
-            long bestChunkKey) {
-        if (urgent != bestUrgent) return urgent;
-        if (distanceSquared != bestDistanceSquared) return distanceSquared < bestDistanceSquared;
-        return Long.compareUnsigned(chunkKey, bestChunkKey) < 0;
-    }
-
     public record BuildCandidate(long chunkKey, boolean urgent, int checkedChunks) {
         public boolean hasChunk() {
             return chunkKey != Long.MIN_VALUE;

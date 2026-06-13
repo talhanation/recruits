@@ -37,7 +37,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class WorldMapCacheManager {
     private static final int MAX_CHUNK_BUILD_SCHEDULES_PER_TICK = 8;
-    private static final int MAX_CHUNK_BUILD_SCHEDULE_ATTEMPTS_PER_TICK = 160;
+    private static final int MAX_CHUNK_BUILD_SCHEDULE_ATTEMPTS_PER_TICK = 512;
     private static final int MAX_CHUNK_BUILD_COMPLETIONS_PER_TICK = 24;
     private static final int MAX_PENDING_CHUNK_BUILDS = 12;
     private static final int MAX_CACHED_CHUNK_COMPLETIONS_PER_TICK = 64;
@@ -53,14 +53,14 @@ public class WorldMapCacheManager {
     private static final int MAX_SOURCE_RECOLOR_COMPLETIONS_PER_TICK = 4;
     private static final int MAX_PENDING_SOURCE_RECOLORS = 2;
     private static final int MIN_UPDATE_RADIUS_CHUNKS = 5;
-    private static final int MAX_UPDATE_RADIUS_CHUNKS = 12;
+    private static final int MAX_UPDATE_RADIUS_CHUNKS = 16;
     private static final int MAX_REGION_SAVES_PER_PASS = 1;
-    private static final int MAX_QUEUED_CHUNK_UPDATES = 512;
-    private static final int MAX_CHUNK_ENQUEUE_CHECKS_PER_REFRESH = 192;
-    private static final long CHUNK_ENQUEUE_BUDGET_NANOS = 1_000_000L;
+    private static final int MAX_QUEUED_CHUNK_UPDATES = 1024;
+    private static final int MAX_CHUNK_ENQUEUE_CHECKS_PER_REFRESH = 512;
+    private static final long CHUNK_ENQUEUE_BUDGET_NANOS = 2_000_000L;
     private static final long CHUNK_BUILD_SCHEDULE_BUDGET_NANOS = 1_000_000L;
     private static final long REGION_WAKE_BUDGET_NANOS = 500_000L;
-    private static final long CHUNK_LOAD_SETTLE_NANOS = 250_000_000L;
+    private static final long CHUNK_LOAD_SETTLE_NANOS = 100_000_000L;
     private static final long BLOCK_UPDATE_SETTLE_NANOS = 75_000_000L;
     private static final long INCOMPLETE_CHUNK_RETRY_NANOS = 100_000_000L;
     private static final long REGION_LOAD_RETRY_DELAY_MS = 1000L;
@@ -105,6 +105,7 @@ public class WorldMapCacheManager {
     private boolean previousPlayerAreaUpdatesEnabled = true;
     private int sourceRecolorTotalRegions;
     private int sourceRecolorCompletedRegions;
+    private int chunkScanOffsetCursor;
 
     public static WorldMapCacheManager getInstance() {
         if (instance == null) instance = new WorldMapCacheManager();
@@ -221,6 +222,7 @@ public class WorldMapCacheManager {
         lastEnqueueCenterChunkKey = Long.MIN_VALUE;
         lastDiscoveryTime = 0L;
         regionLoadSchedulesLeft = 0;
+        chunkScanOffsetCursor = 0;
     }
 
     private void clearSourceRecolorPipeline() {
@@ -463,14 +465,14 @@ public class WorldMapCacheManager {
         if (!shouldUpdateAroundPlayer()) return;
 
         markChunkDirty(chunkPos.x, chunkPos.z, false, CHUNK_LOAD_SETTLE_NANOS, true);
-        // Sampling needs center + neighbors, so one loaded chunk can unblock nearby builds.
+        // New neighbors can improve the one-pixel border on nearby chunks.
         for (int dz = -1; dz <= 1; dz++) {
             for (int dx = -1; dx <= 1; dx++) {
                 if (dx == 0 && dz == 0) continue;
 
                 int neighborChunkX = chunkPos.x + dx;
                 int neighborChunkZ = chunkPos.z + dz;
-                if (isChunkLoaded(neighborChunkX, neighborChunkZ)) {
+                if (hasFreshChunkPixels(neighborChunkX, neighborChunkZ)) {
                     markChunkDirty(neighborChunkX, neighborChunkZ, false, CHUNK_LOAD_SETTLE_NANOS, true);
                 }
             }
@@ -529,6 +531,7 @@ public class WorldMapCacheManager {
         lastSaveTime = 0L;
         savePassPending = false;
         lastEnqueueCenterChunkKey = Long.MIN_VALUE;
+        chunkScanOffsetCursor = 0;
         regionAccessSequence = 0L;
         regionLoadSchedulesLeft = 0;
         previousPlayerAreaUpdatesEnabled = true;
@@ -569,6 +572,7 @@ public class WorldMapCacheManager {
 
         if (centerChunkKey != lastEnqueueCenterChunkKey) {
             lastEnqueueCenterChunkKey = centerChunkKey;
+            chunkScanOffsetCursor = 0;
             discardQueuedChunksOutside(centerChunkX, centerChunkZ, radius + 2);
             prioritizeQueuedChunksAround(centerChunkX, centerChunkZ);
         }
@@ -578,20 +582,26 @@ public class WorldMapCacheManager {
         long deadlineNanos = System.nanoTime() + CHUNK_ENQUEUE_BUDGET_NANOS;
         int checkedChunks = 0;
         int radiusSquared = radius * radius;
-        for (ChunkScanOffset offset : CHUNK_SCAN_OFFSETS) {
-            if (offset.distanceSquared() > radiusSquared) break;
-            if (chunkBuildQueue.queuedChunkCount() >= MAX_QUEUED_CHUNK_UPDATES
-                    || System.nanoTime() >= deadlineNanos) {
-                break;
-            }
+        int scanLimit = chunkScanOffsetLimit(radiusSquared);
+        if (chunkScanOffsetCursor >= scanLimit) chunkScanOffsetCursor = 0;
+
+        int visitedOffsets = 0;
+        while (visitedOffsets < scanLimit
+                && checkedChunks < MAX_CHUNK_ENQUEUE_CHECKS_PER_REFRESH
+                && chunkBuildQueue.queuedChunkCount() < MAX_QUEUED_CHUNK_UPDATES
+                && System.nanoTime() < deadlineNanos) {
+            ChunkScanOffset offset = CHUNK_SCAN_OFFSETS[chunkScanOffsetCursor];
+            chunkScanOffsetCursor++;
+            if (chunkScanOffsetCursor >= scanLimit) chunkScanOffsetCursor = 0;
+            visitedOffsets++;
 
             int chunkX = centerChunkX + offset.dx();
             int chunkZ = centerChunkZ + offset.dz();
-            if (discoveredChunks.containsKey(chunkKey(chunkX, chunkZ))) continue;
-            if (checkedChunks++ >= MAX_CHUNK_ENQUEUE_CHECKS_PER_REFRESH) break;
+            checkedChunks++;
 
             discoverChunk(chunkX, chunkZ);
         }
+        prioritizeQueuedChunksAround(centerChunkX, centerChunkZ);
     }
 
     private int enqueueNearbyLoadedChunksForColorRefresh() {
@@ -630,7 +640,11 @@ public class WorldMapCacheManager {
 
     private void discoverChunk(int chunkX, int chunkZ) {
         long chunkKey = chunkKey(chunkX, chunkZ);
-        if (discoveredChunks.containsKey(chunkKey) || !isChunkLoaded(chunkX, chunkZ)) return;
+        if (!isChunkLoaded(chunkX, chunkZ)) return;
+        if (discoveredChunks.containsKey(chunkKey)) {
+            if (hasFreshChunkPixels(chunkX, chunkZ) || chunkBuildQueue.hasWork(chunkKey)) return;
+            discoveredChunks.remove(chunkKey);
+        }
 
         markChunkDirty(chunkX, chunkZ, false, CHUNK_LOAD_SETTLE_NANOS);
     }
@@ -680,6 +694,17 @@ public class WorldMapCacheManager {
                 chunkKey, chunkX, chunkZ, getLoadedRegion(regionX, regionZ));
     }
 
+    private boolean hasFreshChunkPixels(int chunkX, int chunkZ) {
+        int regionX = WorldMapRegion.chunkToRegionCoord(chunkX);
+        int regionZ = WorldMapRegion.chunkToRegionCoord(chunkZ);
+        WorldMapRegion region = loadedRegions.get(WorldMapRegionKey.of(regionX, regionZ));
+        return region != null
+                && region.hasChunkPixelsForColorEpoch(
+                        WorldMapRegion.chunkLocalCoord(chunkX),
+                        WorldMapRegion.chunkLocalCoord(chunkZ),
+                        mapColorEpoch);
+    }
+
     private boolean completeChunkFromRegionIfFresh(
             long chunkKey, int chunkX, int chunkZ, WorldMapRegion region) {
         if (region == null || hasRequiredChunkBuild(chunkKey)) return false;
@@ -722,6 +747,15 @@ public class WorldMapCacheManager {
         return (int) Math.round((Math.atan2(dz, dx) + Math.PI) * 1024.0);
     }
 
+    private static int chunkScanOffsetLimit(int radiusSquared) {
+        int limit = 0;
+        while (limit < CHUNK_SCAN_OFFSETS.length
+                && CHUNK_SCAN_OFFSETS[limit].distanceSquared() <= radiusSquared) {
+            limit++;
+        }
+        return limit;
+    }
+
     private void scheduleChunkBuilds(int maxSchedules) {
         if (mc.level == null || mc.player == null) return;
 
@@ -735,6 +769,7 @@ public class WorldMapCacheManager {
         int centerChunkX = mc.player.chunkPosition().x;
         int centerChunkZ = mc.player.chunkPosition().z;
         int cachedCompletions = 0;
+        prioritizeQueuedChunksAround(centerChunkX, centerChunkZ);
         while (scheduled < maxSchedules
                 && chunkBuildQueue.pendingBuildCount() < MAX_PENDING_CHUNK_BUILDS
                 && chunkBuildQueue.hasQueuedChunks()
@@ -742,7 +777,7 @@ public class WorldMapCacheManager {
                 && System.nanoTime() < deadlineNanos) {
             WorldMapChunkBuildQueue.BuildCandidate candidate =
                     chunkBuildQueue.pollNextForBuild(
-                            nowNanos, maxAttempts - attempts, centerChunkX, centerChunkZ, deadlineNanos);
+                            nowNanos, maxAttempts - attempts, deadlineNanos);
             if (candidate == null) return;
             attempts += candidate.checkedChunks();
             if (!candidate.hasChunk()) break;
@@ -765,9 +800,8 @@ public class WorldMapCacheManager {
             ChunkSamplingContext context = ChunkSamplingContext.capture(mc.level, chunkX, chunkZ);
             if (context == null) {
                 if (isChunkLoaded(chunkX, chunkZ)) {
-                    chunkBuildQueue.mergeReadyNanos(
-                            chunkKey, System.nanoTime() + INCOMPLETE_CHUNK_RETRY_NANOS);
-                    enqueueDeferredChunk(chunkKey, urgent);
+                    chunkBuildQueue.removeBuildMetadata(chunkKey);
+                    discoveredChunks.remove(chunkKey);
                 } else {
                     forgetChunk(chunkKey);
                 }
@@ -780,9 +814,6 @@ public class WorldMapCacheManager {
             WorldMapRegion region = getOrCreateRegion(regionX, regionZ);
             if (region == null) {
                 parkChunkForRegion(regionKey, chunkKey, urgent);
-                if (pendingRegionLoads.containsKey(regionKey) || regionRepository.hasSource(regionKey)) {
-                    break;
-                }
                 continue;
             }
             if (!urgent

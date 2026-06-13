@@ -5,9 +5,7 @@ import net.minecraft.world.level.chunk.EmptyLevelChunk;
 import net.minecraft.world.level.chunk.LevelChunk;
 
 /**
- * Captures a stable 3x3 loaded chunk neighborhood around one map chunk.
- * Waiting for the full neighborhood avoids writing jagged frontier chunks while
- * the client is still receiving the next ring of chunk data.
+ * Center chunk is required. Missing border neighbors are clamped by the builder.
  */
 public final class ChunkSamplingContext {
     private static final int NEIGHBOR_RADIUS = 1;
@@ -33,7 +31,10 @@ public final class ChunkSamplingContext {
         for (int dz = -NEIGHBOR_RADIUS; dz <= NEIGHBOR_RADIUS; dz++) {
             for (int dx = -NEIGHBOR_RADIUS; dx <= NEIGHBOR_RADIUS; dx++) {
                 LevelChunk chunk = getLoadedChunk(level, centerChunkX + dx, centerChunkZ + dz);
-                if (chunk == null || chunk instanceof EmptyLevelChunk) return null;
+                if (chunk == null || chunk instanceof EmptyLevelChunk) {
+                    if (dx == 0 && dz == 0) return null;
+                    continue;
+                }
 
                 chunks[index(dx, dz)] = chunk;
             }
