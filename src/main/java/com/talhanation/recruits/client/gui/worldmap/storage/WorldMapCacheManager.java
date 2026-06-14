@@ -264,7 +264,7 @@ public class WorldMapCacheManager {
 
     public void updateCurrentTile() {
         if (mc.level == null || mc.player == null) return;
-        if (this.worldMapDir == null || isUsingUnknownStorageId()) initialize(mc.level);
+        if (this.worldMapDir == null || isUsingTemporaryStorageId()) initialize(mc.level);
 
         boolean updatePlayerArea = shouldUpdateAroundPlayer();
         if (!updatePlayerArea && previousPlayerAreaUpdatesEnabled) {
@@ -1248,8 +1248,8 @@ public class WorldMapCacheManager {
         pendingSourceRecolors.clear();
     }
 
-    private boolean isUsingUnknownStorageId() {
-        return worldMapDir != null && "unknown".equals(worldMapDir.getName());
+    private boolean isUsingTemporaryStorageId() {
+        return worldMapDir != null && WorldMapStorageId.isTemporary(worldMapDir.getName());
     }
 
     private static boolean shouldUpdateAroundPlayer() {

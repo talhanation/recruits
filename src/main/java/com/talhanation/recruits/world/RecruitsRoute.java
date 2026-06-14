@@ -1,7 +1,7 @@
 package com.talhanation.recruits.world;
 
+import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapStorageId;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.UUID;
 
 public class RecruitsRoute {
+    public static final int MAX_WAYPOINTS = 512;
+
     private UUID id;
     private String name;
     private List<Waypoint> waypoints;
@@ -28,7 +30,12 @@ public class RecruitsRoute {
     public RecruitsRoute(UUID id, String name, List<Waypoint> waypoints) {
         this.id = id;
         this.name = name;
-        this.waypoints = waypoints;
+        this.waypoints = new ArrayList<>();
+        if (waypoints != null) {
+            for (Waypoint waypoint : waypoints) {
+                addWaypoint(waypoint);
+            }
+        }
     }
 
     public UUID getId() {
@@ -48,6 +55,7 @@ public class RecruitsRoute {
     }
 
     public void addWaypoint(Waypoint waypoint) {
+        if (waypoint == null || waypoints.size() >= MAX_WAYPOINTS) return;
         waypoints.add(waypoint);
     }
 
@@ -71,12 +79,13 @@ public class RecruitsRoute {
     public static RecruitsRoute fromNBT(CompoundTag nbt) {
         if (nbt == null || nbt.isEmpty()) return null;
 
-        UUID id = nbt.getUUID("ID");
+        UUID id = nbt.hasUUID("ID") ? nbt.getUUID("ID") : UUID.randomUUID();
         String name = nbt.getString("Name");
 
         List<Waypoint> waypoints = new ArrayList<>();
         ListTag waypointList = nbt.getList("Waypoints", 10);
-        for (int i = 0; i < waypointList.size(); i++) {
+        int waypointCount = Math.min(waypointList.size(), MAX_WAYPOINTS);
+        for (int i = 0; i < waypointCount; i++) {
             Waypoint waypoint = Waypoint.fromNBT(waypointList.getCompound(i));
             if (waypoint != null) waypoints.add(waypoint);
         }
@@ -85,13 +94,19 @@ public class RecruitsRoute {
 
     public void saveToFile(File directory) throws IOException {
         if (!directory.exists()) directory.mkdirs();
-        File routeFile = new File(directory, sanitiseName(name) + ".nbt");
+        File routeFile = routeFile(directory);
         NbtIo.write(this.toNBT(), routeFile);
+
+        File legacyFile = legacyRouteFile(directory);
+        if (!legacyFile.equals(routeFile) && legacyFile.exists()) legacyFile.delete();
     }
 
     public void deleteFile(File directory) {
-        File routeFile = new File(directory, sanitiseName(name) + ".nbt");
+        File routeFile = routeFile(directory);
         if (routeFile.exists()) routeFile.delete();
+
+        File legacyFile = legacyRouteFile(directory);
+        if (!legacyFile.equals(routeFile) && legacyFile.exists()) legacyFile.delete();
     }
 
     @Nullable
@@ -109,32 +124,36 @@ public class RecruitsRoute {
         if (files == null) return routes;
         for (File file : files) {
             RecruitsRoute route = loadFromFile(file);
-            if (route != null) routes.add(route);
+            if (route != null) {
+                routes.add(route);
+                if (!isCurrentRouteFile(file, route)) {
+                    route.saveToFile(directory);
+                    file.delete();
+                }
+            }
         }
         return routes;
     }
 
     public static File getRoutesDirectory() {
-        return new File(Minecraft.getInstance().gameDirectory, "recruits/routes/" + detectStorageId());
-    }
-
-    private static String detectStorageId() {
-        try {
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.getSingleplayerServer() != null) {
-                String levelName = mc.getSingleplayerServer().getWorldData().getLevelName();
-                if (levelName != null && !levelName.isEmpty())
-                    return levelName.replaceAll("[^a-zA-Z0-9_\\-\\.]", "_");
-            }
-            ServerData sd = mc.getCurrentServer();
-            if (sd != null && sd.ip != null && !sd.ip.isEmpty())
-                return sd.ip.replaceAll("[^a-zA-Z0-9_\\-\\.]", "_");
-        } catch (Exception ignored) {}
-        return "unknown";
+        return new File(Minecraft.getInstance().gameDirectory, "recruits/routes/" + WorldMapStorageId.detectCurrent());
     }
 
     public static String sanitiseName(String name) {
+        if (name == null || name.isEmpty()) return "route";
         return name.replaceAll("[^a-zA-Z0-9_\\-\\.]", "_");
+    }
+
+    private File routeFile(File directory) {
+        return new File(directory, id + ".nbt");
+    }
+
+    private File legacyRouteFile(File directory) {
+        return new File(directory, sanitiseName(name) + ".nbt");
+    }
+
+    private static boolean isCurrentRouteFile(File file, RecruitsRoute route) {
+        return file.getName().equals(route.getId() + ".nbt");
     }
 
     // -------------------------------------------------------------------------

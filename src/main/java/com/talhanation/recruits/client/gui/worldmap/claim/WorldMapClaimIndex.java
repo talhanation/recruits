@@ -22,6 +22,7 @@ public final class WorldMapClaimIndex {
         indexedClaimCount = -1;
         indexedChunkCount = -1;
         CLAIM_BY_CHUNK.clear();
+        ClaimRenderer.invalidateShapeCache();
     }
 
     @Nullable

@@ -13,29 +13,38 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.level.ChunkPos;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class ClaimRenderer {
     private static final int CLAIM_FILL_ALPHA = 160;
+    private static final Map<UUID, ClaimShape> CLAIM_SHAPES = new HashMap<>();
+
+    public static void invalidateShapeCache() {
+        CLAIM_SHAPES.clear();
+    }
 
     public static void renderClaimsOverlay(
             GuiGraphics guiGraphics, RecruitsClaim selectedClaim, double offsetX, double offsetZ, double scale) {
         if (ClientManager.recruitsClaims.isEmpty()) return;
 
+        RenderBounds bounds = RenderBounds.fromScreen(offsetX, offsetZ, scale);
         for (RecruitsClaim claim : ClientManager.recruitsClaims) {
-            renderClaimFill(guiGraphics, claim, offsetX, offsetZ, scale);
+            renderClaimFill(guiGraphics, claim, offsetX, offsetZ, scale, bounds);
         }
 
         for (RecruitsClaim claim : ClientManager.recruitsClaims) {
-            renderClaimPassiveOutline(guiGraphics, claim, offsetX, offsetZ, scale);
+            renderClaimPassiveOutline(guiGraphics, claim, offsetX, offsetZ, scale, bounds);
         }
 
         for (RecruitsClaim claim : ClientManager.recruitsClaims) {
-            renderClaimName(guiGraphics, claim, offsetX, offsetZ, scale);
+            renderClaimName(guiGraphics, claim, offsetX, offsetZ, scale, bounds);
         }
 
         if (selectedClaim != null) {
-            renderClaimSelectedOutline(guiGraphics, selectedClaim, offsetX, offsetZ, scale);
+            renderClaimSelectedOutline(guiGraphics, selectedClaim, offsetX, offsetZ, scale, bounds);
         }
     }
 
@@ -47,17 +56,18 @@ public class ClaimRenderer {
             GuiGraphics guiGraphics, RecruitsClaim selectedClaim, double offsetX, double offsetZ, double scale) {
         if (ClientManager.recruitsClaims.isEmpty()) return;
 
+        RenderBounds bounds = RenderBounds.fromScreen(offsetX, offsetZ, scale);
         // Skip fill; only draw outlines and selection so the claim boundaries stay visible.
         for (RecruitsClaim claim : ClientManager.recruitsClaims) {
-            renderClaimPassiveOutline(guiGraphics, claim, offsetX, offsetZ, scale);
+            renderClaimPassiveOutline(guiGraphics, claim, offsetX, offsetZ, scale, bounds);
         }
 
         for (RecruitsClaim claim : ClientManager.recruitsClaims) {
-            renderClaimName(guiGraphics, claim, offsetX, offsetZ, scale);
+            renderClaimName(guiGraphics, claim, offsetX, offsetZ, scale, bounds);
         }
 
         if (selectedClaim != null) {
-            renderClaimSelectedOutline(guiGraphics, selectedClaim, offsetX, offsetZ, scale);
+            renderClaimSelectedOutline(guiGraphics, selectedClaim, offsetX, offsetZ, scale, bounds);
         }
     }
 
@@ -80,8 +90,14 @@ public class ClaimRenderer {
     }
 
     private static void renderClaimFill(
-            GuiGraphics guiGraphics, RecruitsClaim claim, double offsetX, double offsetZ, double scale) {
-        if (claim == null || claim.getClaimedChunks() == null || claim.getClaimedChunks().isEmpty()) return;
+            GuiGraphics guiGraphics,
+            RecruitsClaim claim,
+            double offsetX,
+            double offsetZ,
+            double scale,
+            RenderBounds bounds) {
+        ClaimShape shape = getShape(claim);
+        if (shape == null || !bounds.intersects(shape)) return;
 
         int factionFillColor = (CLAIM_FILL_ALPHA << 24) | (getClaimColor(claim) & 0x00FFFFFF);
         boolean adminCreative = isAdminCreative();
@@ -96,7 +112,8 @@ public class ClaimRenderer {
                     explored ? factionFillColor : FOG_FILL_COLOR,
                     offsetX,
                     offsetZ,
-                    scale);
+                    scale,
+                    bounds);
         }
     }
 
@@ -106,8 +123,10 @@ public class ClaimRenderer {
             int color,
             double offsetX,
             double offsetZ,
-            double scale) {
+            double scale,
+            RenderBounds bounds) {
         if (chunk == null) return;
+        if (bounds != null && !bounds.contains(chunk)) return;
 
         double worldX = chunk.x * 16.0;
         double worldZ = chunk.z * 16.0;
@@ -121,13 +140,14 @@ public class ClaimRenderer {
     }
 
     private static void renderClaimPassiveOutline(
-            GuiGraphics guiGraphics, RecruitsClaim claim, double offsetX, double offsetZ, double scale) {
-        if (claim == null || claim.getClaimedChunks() == null || claim.getClaimedChunks().isEmpty()) return;
-
-        LongOpenHashSet chunkSet = new LongOpenHashSet(claim.getClaimedChunks().size());
-        for (ChunkPos chunk : claim.getClaimedChunks()) {
-            if (chunk != null) chunkSet.add(WorldMapClaimIndex.chunkKey(chunk));
-        }
+            GuiGraphics guiGraphics,
+            RecruitsClaim claim,
+            double offsetX,
+            double offsetZ,
+            double scale,
+            RenderBounds bounds) {
+        ClaimShape shape = getShape(claim);
+        if (shape == null || !bounds.intersects(shape)) return;
 
         int factionOutlineColor = (200 << 24) | (getClaimColor(claim) & 0x00FFFFFF);
         int thickness = Math.max(1, (int) Math.round(scale * 0.5));
@@ -136,14 +156,15 @@ public class ClaimRenderer {
 
         for (ChunkPos chunk : claim.getClaimedChunks()) {
             if (chunk == null) continue;
+            if (!bounds.contains(chunk)) continue;
             boolean explored =
                     adminCreative || !ClientManager.configFogOfWarEnabled || mapCache.isChunkExplored(chunk);
             int outlineColor = explored ? factionOutlineColor : FOG_OUTLINE_COLOR;
 
-            boolean hasTop = chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x, chunk.z - 1));
-            boolean hasBottom = chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x, chunk.z + 1));
-            boolean hasLeft = chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x - 1, chunk.z));
-            boolean hasRight = chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x + 1, chunk.z));
+            boolean hasTop = shape.chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x, chunk.z - 1));
+            boolean hasBottom = shape.chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x, chunk.z + 1));
+            boolean hasLeft = shape.chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x - 1, chunk.z));
+            boolean hasRight = shape.chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x + 1, chunk.z));
 
             double worldX1 = chunk.x * 16.0;
             double worldZ1 = chunk.z * 16.0;
@@ -170,7 +191,7 @@ public class ClaimRenderer {
         renderConcaveBoundaryCornerCaps(
                 guiGraphics,
                 claim.getClaimedChunks(),
-                chunkSet,
+                shape.chunkSet,
                 offsetX,
                 offsetZ,
                 scale,
@@ -178,27 +199,30 @@ public class ClaimRenderer {
                 factionOutlineColor,
                 FOG_OUTLINE_COLOR,
                 adminCreative,
-                mapCache);
+                mapCache,
+                bounds);
     }
 
     private static void renderClaimSelectedOutline(
-            GuiGraphics guiGraphics, RecruitsClaim claim, double offsetX, double offsetZ, double scale) {
-        if (claim == null || claim.getClaimedChunks() == null || claim.getClaimedChunks().isEmpty()) return;
-
-        LongOpenHashSet chunkSet = new LongOpenHashSet(claim.getClaimedChunks().size());
-        for (ChunkPos chunk : claim.getClaimedChunks()) {
-            if (chunk != null) chunkSet.add(WorldMapClaimIndex.chunkKey(chunk));
-        }
+            GuiGraphics guiGraphics,
+            RecruitsClaim claim,
+            double offsetX,
+            double offsetZ,
+            double scale,
+            RenderBounds bounds) {
+        ClaimShape shape = getShape(claim);
+        if (shape == null || !bounds.intersects(shape)) return;
 
         int borderColor = 0xFFFFFFFF;
         int borderThickness = Math.max(1, (int) (2 * scale / 2.0));
 
         for (ChunkPos chunk : claim.getClaimedChunks()) {
             if (chunk == null) continue;
-            boolean hasTop = chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x, chunk.z - 1));
-            boolean hasBottom = chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x, chunk.z + 1));
-            boolean hasLeft = chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x - 1, chunk.z));
-            boolean hasRight = chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x + 1, chunk.z));
+            if (!bounds.contains(chunk)) continue;
+            boolean hasTop = shape.chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x, chunk.z - 1));
+            boolean hasBottom = shape.chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x, chunk.z + 1));
+            boolean hasLeft = shape.chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x - 1, chunk.z));
+            boolean hasRight = shape.chunkSet.contains(WorldMapClaimIndex.chunkKey(chunk.x + 1, chunk.z));
 
             if (hasTop && hasBottom && hasLeft && hasRight) {
                 continue;
@@ -231,7 +255,7 @@ public class ClaimRenderer {
         renderConcaveBoundaryCornerCaps(
                 guiGraphics,
                 claim.getClaimedChunks(),
-                chunkSet,
+                shape.chunkSet,
                 offsetX,
                 offsetZ,
                 scale,
@@ -239,7 +263,8 @@ public class ClaimRenderer {
                 borderColor,
                 borderColor,
                 true,
-                null);
+                null,
+                bounds);
     }
 
     private static void renderConcaveBoundaryCornerCaps(
@@ -253,12 +278,14 @@ public class ClaimRenderer {
             int exploredColor,
             int unexploredColor,
             boolean adminCreative,
-            WorldMapCacheManager mapCache) {
+            WorldMapCacheManager mapCache,
+            RenderBounds bounds) {
         LongOpenHashSet renderedCorners = new LongOpenHashSet();
         double capSize = Math.max(1.0, thickness);
 
         for (ChunkPos chunk : claimedChunks) {
             if (chunk == null) continue;
+            if (!bounds.isNear(chunk, 1)) continue;
 
             renderConcaveBoundaryCornerCap(
                     guiGraphics,
@@ -413,9 +440,16 @@ public class ClaimRenderer {
     }
 
     public static void renderClaimName(
-            GuiGraphics guiGraphics, RecruitsClaim claim, double offsetX, double offsetZ, double scale) {
-        if (claim == null || claim.getClaimedChunks() == null || claim.getClaimedChunks().isEmpty() || scale < 1.0)
-            return;
+            GuiGraphics guiGraphics,
+            RecruitsClaim claim,
+            double offsetX,
+            double offsetZ,
+            double scale,
+            RenderBounds bounds) {
+        if (scale < 1.0) return;
+
+        ClaimShape shape = getShape(claim);
+        if (shape == null || !bounds.intersects(shape)) return;
 
         boolean explored =
                 !ClientManager.configFogOfWarEnabled || isAdminCreative() || isClaimExplored(claim);
@@ -424,22 +458,8 @@ public class ClaimRenderer {
         String name = explored ? claim.getName() : "???";
         int nameColor = explored ? 0xFFFFFF : 0x888888;
 
-        int minX = Integer.MAX_VALUE;
-        int maxX = Integer.MIN_VALUE;
-        int minZ = Integer.MAX_VALUE;
-        int maxZ = Integer.MIN_VALUE;
-
-        for (ChunkPos pos : claim.getClaimedChunks()) {
-            if (pos == null) continue;
-            minX = Math.min(minX, pos.x);
-            maxX = Math.max(maxX, pos.x);
-            minZ = Math.min(minZ, pos.z);
-            maxZ = Math.max(maxZ, pos.z);
-        }
-        if (minX == Integer.MAX_VALUE) return;
-
-        double centerWorldX = (minX + maxX + 1) * 16.0 / 2.0;
-        double centerWorldZ = (minZ + maxZ + 1) * 16.0 / 2.0;
+        double centerWorldX = (shape.minX + shape.maxX + 1) * 16.0 / 2.0;
+        double centerWorldZ = (shape.minZ + shape.maxZ + 1) * 16.0 / 2.0;
 
         double pixelX = offsetX + centerWorldX * scale;
         double pixelZ = offsetZ + centerWorldZ * scale;
@@ -487,6 +507,7 @@ public class ClaimRenderer {
         if (ClientManager.ownFaction == null) return;
         LongOpenHashSet renderedBufferChunks = new LongOpenHashSet();
         int bufferColor = 0x44FF4444;
+        RenderBounds bounds = RenderBounds.fromScreen(offsetX, offsetZ, scale);
 
         LongOpenHashSet ownClaimedChunks = new LongOpenHashSet();
         for (RecruitsClaim claim : ClientManager.recruitsClaims) {
@@ -520,6 +541,8 @@ public class ClaimRenderer {
 
                         int bufferX = claimChunk.x + dx;
                         int bufferZ = claimChunk.z + dz;
+                        if (!bounds.contains(bufferX, bufferZ)) continue;
+
                         long chunkKey = WorldMapClaimIndex.chunkKey(bufferX, bufferZ);
 
                         if (renderedBufferChunks.contains(chunkKey)) continue;
@@ -529,7 +552,7 @@ public class ClaimRenderer {
                         renderedBufferChunks.add(chunkKey);
 
                         ChunkPos bufferChunk = new ChunkPos(bufferX, bufferZ);
-                        renderChunk(guiGraphics, bufferChunk, bufferColor, offsetX, offsetZ, scale);
+                        renderChunk(guiGraphics, bufferChunk, bufferColor, offsetX, offsetZ, scale, bounds);
                     }
                 }
             }
@@ -544,9 +567,107 @@ public class ClaimRenderer {
             double scale) {
         if (previewChunks == null || previewChunks.isEmpty()) return;
 
+        RenderBounds bounds = RenderBounds.fromScreen(offsetX, offsetZ, scale);
         for (ClaimPreviewChunk preview : previewChunks) {
             if (preview == null || preview.chunk() == null || preview.status() == null) continue;
-            renderChunk(guiGraphics, preview.chunk(), preview.status().previewColor(), offsetX, offsetZ, scale);
+            renderChunk(guiGraphics, preview.chunk(), preview.status().previewColor(), offsetX, offsetZ, scale, bounds);
+        }
+    }
+
+    private static ClaimShape getShape(RecruitsClaim claim) {
+        if (claim == null || claim.getClaimedChunks() == null || claim.getClaimedChunks().isEmpty()) return null;
+
+        UUID claimId = claim.getUUID();
+        if (claimId != null) {
+            ClaimShape cached = CLAIM_SHAPES.get(claimId);
+            if (cached != null && cached.claim == claim) return cached;
+        }
+
+        ClaimShape shape = ClaimShape.build(claim);
+        if (shape != null && claimId != null) {
+            CLAIM_SHAPES.put(claimId, shape);
+        }
+        return shape;
+    }
+
+    private static final class ClaimShape {
+        private final RecruitsClaim claim;
+        private final LongOpenHashSet chunkSet;
+        private final int minX;
+        private final int maxX;
+        private final int minZ;
+        private final int maxZ;
+
+        private ClaimShape(
+                RecruitsClaim claim, LongOpenHashSet chunkSet, int minX, int maxX, int minZ, int maxZ) {
+            this.claim = claim;
+            this.chunkSet = chunkSet;
+            this.minX = minX;
+            this.maxX = maxX;
+            this.minZ = minZ;
+            this.maxZ = maxZ;
+        }
+
+        private static ClaimShape build(RecruitsClaim claim) {
+            List<ChunkPos> chunks = claim.getClaimedChunks();
+            LongOpenHashSet chunkSet = new LongOpenHashSet(chunks.size());
+            int minX = Integer.MAX_VALUE;
+            int maxX = Integer.MIN_VALUE;
+            int minZ = Integer.MAX_VALUE;
+            int maxZ = Integer.MIN_VALUE;
+
+            for (ChunkPos chunk : chunks) {
+                if (chunk == null) continue;
+                chunkSet.add(WorldMapClaimIndex.chunkKey(chunk));
+                minX = Math.min(minX, chunk.x);
+                maxX = Math.max(maxX, chunk.x);
+                minZ = Math.min(minZ, chunk.z);
+                maxZ = Math.max(maxZ, chunk.z);
+            }
+
+            if (minX == Integer.MAX_VALUE) return null;
+            return new ClaimShape(claim, chunkSet, minX, maxX, minZ, maxZ);
+        }
+    }
+
+    private record RenderBounds(int minChunkX, int maxChunkX, int minChunkZ, int maxChunkZ) {
+        private static RenderBounds fromScreen(double offsetX, double offsetZ, double scale) {
+            if (scale <= 0.0) {
+                return new RenderBounds(Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE);
+            }
+
+            Minecraft minecraft = Minecraft.getInstance();
+            int width = minecraft.getWindow().getGuiScaledWidth();
+            int height = minecraft.getWindow().getGuiScaledHeight();
+            double margin = Math.max(256.0, Math.max(width, height));
+
+            int minChunkX = (int) Math.floor(((-margin - offsetX) / scale) / 16.0) - 1;
+            int maxChunkX = (int) Math.floor(((width + margin - offsetX) / scale) / 16.0) + 1;
+            int minChunkZ = (int) Math.floor(((-margin - offsetZ) / scale) / 16.0) - 1;
+            int maxChunkZ = (int) Math.floor(((height + margin - offsetZ) / scale) / 16.0) + 1;
+            return new RenderBounds(minChunkX, maxChunkX, minChunkZ, maxChunkZ);
+        }
+
+        private boolean intersects(ClaimShape shape) {
+            return shape.maxX >= minChunkX
+                    && shape.minX <= maxChunkX
+                    && shape.maxZ >= minChunkZ
+                    && shape.minZ <= maxChunkZ;
+        }
+
+        private boolean contains(ChunkPos chunk) {
+            return contains(chunk.x, chunk.z);
+        }
+
+        private boolean contains(int chunkX, int chunkZ) {
+            return chunkX >= minChunkX && chunkX <= maxChunkX && chunkZ >= minChunkZ && chunkZ <= maxChunkZ;
+        }
+
+        private boolean isNear(ChunkPos chunk, int marginChunks) {
+            return chunk.x >= minChunkX - marginChunks
+                    && chunk.x <= maxChunkX + marginChunks
+                    && chunk.z >= minChunkZ - marginChunks
+                    && chunk.z <= maxChunkZ + marginChunks;
         }
     }
 

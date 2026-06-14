@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.UUID;
 
 public class RecruitsClaimManager {
+    private static final int CLAIMS_PER_SYNC_PACKET = 256;
+
     private final Map<ChunkPos, RecruitsClaim> claims = new HashMap<>();
     private final Map<UUID, RecruitsClaim> claimsById = new HashMap<>();
     private final Map<UUID, RecruitsClaim> activeSieges = new HashMap<>();
@@ -176,6 +178,21 @@ public class RecruitsClaimManager {
     }
 
     private void sendClaimsTo(ServerPlayer player, List<RecruitsClaim> claims) {
+        if (claims == null || claims.isEmpty()) {
+            sendClaimBatch(player, List.of(), true, true);
+            return;
+        }
+
+        for (int start = 0; start < claims.size(); start += CLAIMS_PER_SYNC_PACKET) {
+            int end = Math.min(start + CLAIMS_PER_SYNC_PACKET, claims.size());
+            boolean reset = start == 0;
+            boolean complete = end >= claims.size();
+            sendClaimBatch(player, claims.subList(start, end), reset, complete);
+        }
+    }
+
+    private void sendClaimBatch(
+            ServerPlayer player, List<RecruitsClaim> claims, boolean resetClaims, boolean syncComplete) {
         Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
                 new MessageToClientUpdateClaims(
                         claims,
@@ -185,7 +202,9 @@ public class RecruitsClaimManager {
                         RecruitsServerConfig.CascadeThePriceOfClaims.get(),
                         RecruitsServerConfig.AllowClaiming.get(),
                         RecruitsServerConfig.FogOfWarEnabled.get(),
-                        FactionEvents.getCurrency()
+                        FactionEvents.getCurrency(),
+                        resetClaims,
+                        syncComplete
                 ));
     }
 
