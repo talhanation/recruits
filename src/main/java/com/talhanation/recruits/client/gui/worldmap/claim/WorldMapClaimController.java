@@ -221,26 +221,6 @@ public final class WorldMapClaimController {
         return getClaimChunkStatus(pos, true) == ClaimPreviewStatus.VALID;
     }
 
-    public boolean canClaimArea(ChunkPos selectedChunk, List<ChunkPos> areaChunks) {
-        return getClaimAreaStatus(selectedChunk, areaChunks) == ClaimPreviewStatus.VALID;
-    }
-
-    public List<ChunkPos> getClaimableChunks(ChunkPos center, int radius) {
-        List<ChunkPos> result = new ArrayList<>();
-        if (center == null || ClientManager.ownFaction == null) return result;
-        for (int x = center.x - radius; x <= center.x + radius; x++) {
-            for (int z = center.z - radius; z <= center.z + radius; z++) {
-                ChunkPos chunk = new ChunkPos(x, z);
-                if (canClaimChunkRaw(chunk)) result.add(chunk);
-            }
-        }
-        return result;
-    }
-
-    public boolean canClaimChunkRaw(ChunkPos pos) {
-        return getClaimChunkStatus(pos, false) == ClaimPreviewStatus.VALID;
-    }
-
     public boolean canShowClaimChunkEntry(ChunkPos pos) {
         return pos != null && ClientManager.ownFaction != null;
     }

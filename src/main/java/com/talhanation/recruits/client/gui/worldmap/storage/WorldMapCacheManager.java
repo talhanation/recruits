@@ -109,6 +109,10 @@ public class WorldMapCacheManager {
     private int sourceRecolorCompletedRegions;
     private int chunkScanOffsetCursor;
 
+    // -------------------------------------------------------------------------
+    // Setup / reload
+    // -------------------------------------------------------------------------
+
     public static WorldMapCacheManager getInstance() {
         if (instance == null) instance = new WorldMapCacheManager();
         return instance;
@@ -254,6 +258,10 @@ public class WorldMapCacheManager {
         mapColorEpoch = mapColorEpoch == Integer.MAX_VALUE ? 1 : mapColorEpoch + 1;
     }
 
+    // -------------------------------------------------------------------------
+    // Tick
+    // -------------------------------------------------------------------------
+
     public void updateCurrentTile() {
         if (mc.level == null || mc.player == null) return;
         if (this.worldMapDir == null || isUsingUnknownStorageId()) initialize(mc.level);
@@ -308,6 +316,10 @@ public class WorldMapCacheManager {
 
         trimLoadedRegions(MAX_LOADED_REGIONS);
     }
+
+    // -------------------------------------------------------------------------
+    // Regions
+    // -------------------------------------------------------------------------
 
     private boolean shouldDiscoverLoadedChunks(long now) {
         if (mc.player == null) return false;
@@ -462,6 +474,10 @@ public class WorldMapCacheManager {
         return region.hasVisiblePixel(localX, localZ);
     }
 
+    // -------------------------------------------------------------------------
+    // Chunk events
+    // -------------------------------------------------------------------------
+
     public void onChunkLoaded(Level level, ChunkPos chunkPos) {
         if (!isCurrentClientLevel(level) || chunkPos == null) return;
         if (!shouldUpdateAroundPlayer()) return;
@@ -503,6 +519,10 @@ public class WorldMapCacheManager {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Shutdown
+    // -------------------------------------------------------------------------
+
     public void close() {
         regionSaveQueue.saveAllDirtyRegionsAndWait(
                 loadedRegions,
@@ -536,6 +556,10 @@ public class WorldMapCacheManager {
         sourceRecolorTotalRegions = 0;
         sourceRecolorCompletedRegions = 0;
     }
+
+    // -------------------------------------------------------------------------
+    // Chunk discovery
+    // -------------------------------------------------------------------------
 
     private WorldMapRegion getOrCreateRegion(int regionX, int regionZ) {
         String regionKey = WorldMapRegionKey.of(regionX, regionZ);
@@ -754,6 +778,10 @@ public class WorldMapCacheManager {
         return limit;
     }
 
+    // -------------------------------------------------------------------------
+    // Chunk builds
+    // -------------------------------------------------------------------------
+
     private void scheduleChunkBuilds(int maxSchedules) {
         if (mc.level == null || mc.player == null) return;
 
@@ -918,6 +946,10 @@ public class WorldMapCacheManager {
         return true;
     }
 
+    // -------------------------------------------------------------------------
+    // Source recolor
+    // -------------------------------------------------------------------------
+
     private void scheduleSourceRecolors(int maxSchedules) {
         if (mc.level == null || !regionRepository.isReady()) return;
 
@@ -1015,6 +1047,10 @@ public class WorldMapCacheManager {
         regionRepository.recordSourceData(regionKey);
     }
 
+    // -------------------------------------------------------------------------
+    // Queue plumbing
+    // -------------------------------------------------------------------------
+
     private void enqueueDeferredChunk(long chunkKey, boolean urgent) {
         chunkBuildQueue.enqueueDeferred(chunkKey, urgent);
     }
@@ -1098,6 +1134,10 @@ public class WorldMapCacheManager {
         discoveredChunks.remove(chunkKey);
     }
 
+    // -------------------------------------------------------------------------
+    // Region loading
+    // -------------------------------------------------------------------------
+
     private boolean scheduleRegionLoad(
             String regionKey,
             int regionX,
@@ -1139,6 +1179,10 @@ public class WorldMapCacheManager {
     private void recordFailedRegionLoad(String regionKey) {
         failedRegionLoads.put(regionKey, System.currentTimeMillis());
     }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
 
     private boolean isCurrentClientLevel(Level level) {
         return level != null && level.isClientSide && level == mc.level;
@@ -1229,6 +1273,10 @@ public class WorldMapCacheManager {
             return null;
         }
     }
+
+    // -------------------------------------------------------------------------
+    // Data
+    // -------------------------------------------------------------------------
 
     private record PendingRegionLoad(
             int regionX,

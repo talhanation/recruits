@@ -48,6 +48,7 @@ public class WorldMapScreen extends Screen {
     private static final int CHUNK_HIGHLIGHT_COLOR = 0x40FFFFFF;
     private static final int CHUNK_SELECTION_COLOR = 0xFFFFFFFF;
     private static final int DARK_GRAY_BG = 0xFF101010;
+    private static final int CLAIM_SCAN_PREVIEW_RADIUS = 16;
 
     double offsetX = 0, offsetZ = 0;
     public static double scale = DEFAULT_SCALE;
@@ -245,7 +246,7 @@ public class WorldMapScreen extends Screen {
                 claimInfoMenu.setPosition(p.x, p.y);
                 claimInfoMenu.render(guiGraphics);
             }
-            contextMenu.render(guiGraphics, this);
+            contextMenu.render(guiGraphics, this, mouseX, mouseY);
         } finally {
             overlayPose.popPose();
         }
@@ -272,17 +273,18 @@ public class WorldMapScreen extends Screen {
             }
 
             if (contextMenu.isVisible()) {
-                String entryTag = contextMenu.getHoveredEntryTag();
-                if (entryTag != null) {
-                    if (entryTag.contains("bufferzone"))
-                        ClaimRenderer.renderBufferZone(guiGraphics, offsetX, offsetZ, scale);
-                    if (entryTag.contains("area"))
-                        ClaimRenderer.renderClaimPreview(
-                                guiGraphics, getClaimAreaPreview(selectedChunk), offsetX, offsetZ, scale);
-                    if (entryTag.contains("chunk"))
-                        ClaimRenderer.renderClaimPreview(
-                                guiGraphics, getClaimRadiusPreview(selectedChunk, 16), offsetX, offsetZ, scale);
-                }
+                if (contextMenu.hasHoveredEntryTag(WorldMapContextMenu.TAG_BUFFER_ZONE))
+                    ClaimRenderer.renderBufferZone(guiGraphics, offsetX, offsetZ, scale);
+                if (contextMenu.hasHoveredEntryTag(WorldMapContextMenu.TAG_CLAIM_AREA))
+                    ClaimRenderer.renderClaimPreview(
+                            guiGraphics, getClaimAreaPreview(selectedChunk), offsetX, offsetZ, scale);
+                if (contextMenu.hasHoveredEntryTag(WorldMapContextMenu.TAG_CLAIM_SCAN))
+                    ClaimRenderer.renderClaimPreview(
+                            guiGraphics,
+                            getClaimScanPreview(selectedChunk, CLAIM_SCAN_PREVIEW_RADIUS),
+                            offsetX,
+                            offsetZ,
+                            scale);
             }
 
             WorldMapPlayerRenderer.render(
@@ -620,12 +622,8 @@ public class WorldMapScreen extends Screen {
         return true;
     }
 
-    public double mouseX, mouseY;
-
     @Override
     public void mouseMoved(double mouseX, double mouseY) {
-        this.mouseX = mouseX;
-        this.mouseY = mouseY;
         routeControls.mouseMoved(mouseX, mouseY);
 
         // Suppress chunk hover when any popup is open or the dropdown is being hovered
@@ -710,19 +708,6 @@ public class WorldMapScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
-    }
-
-    // -------------------------------------------------------------------------
-    // Route helpers
-    // -------------------------------------------------------------------------
-
-    public boolean canAddRoute() {
-        return this.selectedRoute != null;
-    }
-
-    public void addRoute() {
-        routeNamePopup.open();
-        contextMenu.close();
     }
 
     // -------------------------------------------------------------------------
@@ -823,23 +808,11 @@ public class WorldMapScreen extends Screen {
         return claimController.getClaimAreaDisabledReason(selectedChunk);
     }
 
-    public boolean canClaimArea(List<ChunkPos> areaChunks) {
-        return claimController.canClaimArea(selectedChunk, areaChunks);
-    }
-
-    public List<ChunkPos> getClaimableChunks(ChunkPos center, int radius) {
-        return claimController.getClaimableChunks(center, radius);
-    }
-
     public List<WorldMapClaimController.ClaimPreviewChunk> getClaimAreaPreview(ChunkPos center) {
         return claimController.getClaimAreaPreview(center);
     }
 
-    public List<WorldMapClaimController.ClaimPreviewChunk> getClaimRadiusPreview(ChunkPos center, int radius) {
+    public List<WorldMapClaimController.ClaimPreviewChunk> getClaimScanPreview(ChunkPos center, int radius) {
         return claimController.getClaimRadiusPreview(center, radius);
-    }
-
-    public boolean canClaimChunkRaw(ChunkPos pos) {
-        return claimController.canClaimChunkRaw(pos);
     }
 }

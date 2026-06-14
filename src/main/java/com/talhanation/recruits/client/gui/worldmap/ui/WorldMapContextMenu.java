@@ -21,6 +21,11 @@ import java.util.function.Supplier;
 
 public class WorldMapContextMenu {
 
+    public static final String TAG_BUFFER_ZONE = "bufferzone";
+    public static final String TAG_CLAIM_AREA = "claim_area";
+    public static final String TAG_CLAIM_SCAN = "claim_scan";
+    public static final String TAG_ADMIN = "admin";
+
     private static final Component TEXT_DIPLOMACY = Component.translatable("gui.recruits.map.diplomacy");
     private static final Component TEXT_CLAIM_CHUNK = Component.translatable("gui.recruits.map.claim_chunk");
     private static final Component TEXT_CLAIM_AREA = Component.translatable("gui.recruits.map.claim_area");
@@ -72,7 +77,7 @@ public class WorldMapContextMenu {
                 this.worldMapScreen::canExecuteClaimChunkEntry,
                 WorldMapScreen::claimChunk,
                 itemStackClaimChunk,
-                "bufferzone, chunk",
+                tags(TAG_BUFFER_ZONE, TAG_CLAIM_SCAN),
                 this.worldMapScreen::getClaimChunkDisabledReason
         );
 
@@ -81,7 +86,7 @@ public class WorldMapContextMenu {
                 this.worldMapScreen::canExecuteClaimAreaEntry,
                 WorldMapScreen::claimArea,
                 itemStackClaimArea,
-                "bufferzone, area",
+                tags(TAG_BUFFER_ZONE, TAG_CLAIM_AREA),
                 this.worldMapScreen::getClaimAreaDisabledReason
         );
 
@@ -150,7 +155,7 @@ public class WorldMapContextMenu {
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(screen.selectedClaim()));
                     }
                 },
-                "admin"
+                TAG_ADMIN
         );
 
         addEntry(TEXT_DELETE_CLAIM_ADMIN,
@@ -161,13 +166,13 @@ public class WorldMapContextMenu {
                     Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(screen.selectedClaim()));
                     screen.clearSelectedClaim();
                 },
-                "admin"
+                TAG_ADMIN
         );
 
         addEntry(TEXT_TELEPORT_ADMIN,
                 worldMapScreen::isPlayerAdminAndCreative,
                 (screen) -> Main.SIMPLE_CHANNEL.sendToServer(new MessageTeleportPlayer(screen.getClickedBlockPos())),
-                "admin"
+                TAG_ADMIN
         );
     }
 
@@ -232,9 +237,11 @@ public class WorldMapContextMenu {
 
     private String hoveredEntryTag = null;
 
-    public String getHoveredEntryTag() { return hoveredEntryTag; }
+    public boolean hasHoveredEntryTag(String tag) {
+        return containsTag(hoveredEntryTag, tag);
+    }
 
-    public void render(GuiGraphics guiGraphics, WorldMapScreen screen) {
+    public void render(GuiGraphics guiGraphics, WorldMapScreen screen, double mouseX, double mouseY) {
         if (!visible) return;
 
         hoveredEntryTag = null;
@@ -248,7 +255,7 @@ public class WorldMapContextMenu {
         ContextMenuEntry hoveredDisabledEntry = null;
         for (int i = 0; i < visibleEntries.size(); i++) {
             ContextMenuEntry entry = visibleEntries.get(i);
-            boolean hovered = isMouseOverEntry(x, entryY);
+            boolean hovered = isMouseOverEntry(mouseX, mouseY, x, entryY);
             boolean enabled = visibleEntryEnabled.get(i);
             if (hovered) hoveredEntryTag = entry.getTag();
             if (hovered && !enabled) hoveredDisabledEntry = entry;
@@ -259,7 +266,7 @@ public class WorldMapContextMenu {
             int textColor;
             if (!enabled) {
                 textColor = 0xFF777777;
-            } else if (entry.getTag().equals("admin")) {
+            } else if (entry.hasTag(TAG_ADMIN)) {
                 textColor = hovered ? 0xFFFF5555 : 0xFFAA4444;
             } else {
                 textColor = hovered ? 0xFFFFFF : 0xCCCCCC;
@@ -277,7 +284,7 @@ public class WorldMapContextMenu {
         }
 
         if (hoveredDisabledEntry != null) {
-            renderDisabledReason(guiGraphics, screen, hoveredDisabledEntry.getDisabledReason());
+            renderDisabledReason(guiGraphics, screen, hoveredDisabledEntry.getDisabledReason(), mouseY);
         }
     }
 
@@ -315,16 +322,14 @@ public class WorldMapContextMenu {
         }
     }
 
-    private boolean isMouseOverEntry(int entryX, int entryY) {
-        double mouseX = this.worldMapScreen.mouseX;
-        double mouseY = this.worldMapScreen.mouseY;
+    private boolean isMouseOverEntry(double mouseX, double mouseY, int entryX, int entryY) {
         return mouseX >= entryX
                 && mouseX <= entryX + width
                 && mouseY >= entryY
                 && mouseY <= entryY + entryHeight;
     }
 
-    private void renderDisabledReason(GuiGraphics guiGraphics, WorldMapScreen screen, Component reason) {
+    private void renderDisabledReason(GuiGraphics guiGraphics, WorldMapScreen screen, Component reason, double mouseY) {
         if (reason == null || reason.getString().isBlank()) return;
 
         int padding = 5;
@@ -335,11 +340,23 @@ public class WorldMapContextMenu {
         if (tooltipX + tooltipWidth > screen.width - 6) {
             tooltipX = Math.max(6, x - tooltipWidth - 6);
         }
-        int tooltipY = Math.max(6, Math.min((int) worldMapScreen.mouseY - 8, screen.height - tooltipHeight - 6));
+        int tooltipY = Math.max(6, Math.min((int) mouseY - 8, screen.height - tooltipHeight - 6));
 
         guiGraphics.fill(tooltipX, tooltipY, tooltipX + tooltipWidth, tooltipY + tooltipHeight, 0xDD101010);
         guiGraphics.renderOutline(tooltipX, tooltipY, tooltipWidth, tooltipHeight, 0xFF555555);
         guiGraphics.drawString(screen.getMinecraft().font, reason, tooltipX + padding, tooltipY + 5, 0xFFE0E0E0);
+    }
+
+    private static String tags(String... tags) {
+        return String.join(",", tags);
+    }
+
+    private static boolean containsTag(String tags, String expectedTag) {
+        if (tags == null || expectedTag == null || expectedTag.isBlank()) return false;
+        for (String tag : tags.split(",")) {
+            if (tag.trim().equals(expectedTag)) return true;
+        }
+        return false;
     }
 
     private record ContextMenuEntry(
@@ -351,6 +368,7 @@ public class WorldMapContextMenu {
             String tag,
             Supplier<Component> disabledReasonSupplier) {
         public String getTag() { return tag == null ? "" : tag; }
+        public boolean hasTag(String expectedTag) { return containsTag(tag, expectedTag); }
         public boolean shouldShow(WorldMapScreen screen) { return visibleCondition.getAsBoolean(); }
         public boolean isEnabled(WorldMapScreen screen) { return enabledCondition.getAsBoolean(); }
         public void execute(WorldMapScreen screen) { action.accept(screen); }

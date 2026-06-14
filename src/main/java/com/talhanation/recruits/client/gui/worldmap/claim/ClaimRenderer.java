@@ -52,6 +52,10 @@ public class ClaimRenderer {
             renderClaimPassiveOutline(guiGraphics, claim, offsetX, offsetZ, scale);
         }
 
+        for (RecruitsClaim claim : ClientManager.recruitsClaims) {
+            renderClaimName(guiGraphics, claim, offsetX, offsetZ, scale);
+        }
+
         if (selectedClaim != null) {
             renderClaimSelectedOutline(guiGraphics, selectedClaim, offsetX, offsetZ, scale);
         }
@@ -546,18 +550,4 @@ public class ClaimRenderer {
         }
     }
 
-    public static void renderAreaPreview(
-            GuiGraphics guiGraphics,
-            List<ChunkPos> areaChunks,
-            double offsetX,
-            double offsetZ,
-            double scale) {
-        if (areaChunks == null || areaChunks.isEmpty()) return;
-
-        int previewColor = 0x33FFFFFF;
-
-        for (ChunkPos chunk : areaChunks) {
-            renderChunk(guiGraphics, chunk, previewColor, offsetX, offsetZ, scale);
-        }
-    }
 }

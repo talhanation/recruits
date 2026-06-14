@@ -194,10 +194,6 @@ public final class WorldMapSettingsPanel {
                 && mouseY <= PANEL_TOP + panelHeight;
     }
 
-    private static boolean isRowHovered(double mouseX, double mouseY, int row, int screenWidth, int screenHeight) {
-        return getHoveredRow(mouseX, mouseY, screenWidth, screenHeight) == row;
-    }
-
     private static int getHoveredRow(double mouseX, double mouseY, int screenWidth, int screenHeight) {
         if (!isPanelHovered(mouseX, mouseY, screenWidth, screenHeight)) return -1;
 
