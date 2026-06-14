@@ -19,7 +19,7 @@ final class ClaimPayloadCodec {
     private static final int FLAG_UNDER_SIEGE = 1 << 4;
     private static final int FLAG_REMOVED = 1 << 5;
     private static final int MAX_CLAIM_PARTIES = 1024;
-    private static final int MAX_CHUNKS_PER_CLAIM = 65536;
+    private static final int MAX_CHUNKS_PER_CLAIM = 4096;
 
     private ClaimPayloadCodec() {}
 

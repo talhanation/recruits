@@ -1,7 +1,5 @@
 package com.talhanation.recruits.world;
 
-import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapStorageId;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -133,10 +131,6 @@ public class RecruitsRoute {
             }
         }
         return routes;
-    }
-
-    public static File getRoutesDirectory() {
-        return new File(Minecraft.getInstance().gameDirectory, "recruits/routes/" + WorldMapStorageId.detectCurrent());
     }
 
     public static String sanitiseName(String name) {

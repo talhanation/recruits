@@ -3,7 +3,6 @@ package com.talhanation.recruits.client.gui.worldmap.claim;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.worldmap.WorldMapCamera;
-import com.talhanation.recruits.network.MessageDoPayment;
 import com.talhanation.recruits.network.MessageUpdateClaim;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsFaction;
@@ -71,8 +70,6 @@ public final class WorldMapClaimController {
         newClaim.setPlayer(
                 new RecruitsPlayerInfo(
                         player.getUUID(), player.getName().getString(), ClientManager.ownFaction));
-        Main.SIMPLE_CHANNEL.sendToServer(
-                new MessageDoPayment(player.getUUID(), getClaimCost(ClientManager.ownFaction)));
         ClientManager.recruitsClaims.add(newClaim);
         WorldMapClaimIndex.invalidate();
         Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(newClaim));
@@ -88,8 +85,6 @@ public final class WorldMapClaimController {
         recalculateCenter(neighborClaim);
         WorldMapClaimIndex.invalidate();
 
-        Main.SIMPLE_CHANNEL.sendToServer(
-                new MessageDoPayment(player.getUUID(), ClientManager.configValueChunkCost));
         Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(neighborClaim));
     }
 

@@ -514,6 +514,9 @@ public class FactionEvents {
     }
 
     public static void doPayment(Player player, int costs){
+        if (!(player instanceof ServerPlayer serverPlayer) || costs <= 0 || player.isCreative()) return;
+        if (!playerHasEnoughEmeralds(serverPlayer, costs)) return;
+
         Inventory playerInv = player.getInventory();
         int playerEmeralds = 0;
 

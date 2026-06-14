@@ -1,5 +1,6 @@
 package com.talhanation.recruits.client;
 
+import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapStorageId;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.world.*;
 import net.minecraft.client.Minecraft;
@@ -9,6 +10,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -134,7 +136,7 @@ public class ClientManager {
     public static void loadRoutes() {
         routesMap.clear();
         try {
-            List<RecruitsRoute> loaded = RecruitsRoute.loadAllRoutes(RecruitsRoute.getRoutesDirectory());
+            List<RecruitsRoute> loaded = RecruitsRoute.loadAllRoutes(getRoutesDirectory());
             for (RecruitsRoute route : loaded) routesMap.put(route.getId().toString(), route);
         } catch (IOException e) {
             // start with empty map
@@ -144,7 +146,7 @@ public class ClientManager {
     @OnlyIn(Dist.CLIENT)
     public static void saveRoute(RecruitsRoute route) {
         try {
-            route.saveToFile(RecruitsRoute.getRoutesDirectory());
+            route.saveToFile(getRoutesDirectory());
             routesMap.put(route.getId().toString(), route);
         } catch (IOException e) {
             // could not save
@@ -153,7 +155,7 @@ public class ClientManager {
 
     @OnlyIn(Dist.CLIENT)
     public static void renameRoute(RecruitsRoute route, String newName) {
-        route.deleteFile(RecruitsRoute.getRoutesDirectory());
+        route.deleteFile(getRoutesDirectory());
         route.setName(newName);
         saveRoute(route);
     }
@@ -161,11 +163,15 @@ public class ClientManager {
     @OnlyIn(Dist.CLIENT)
     public static void deleteRoute(RecruitsRoute route) {
         routesMap.remove(route.getId().toString());
-        route.deleteFile(RecruitsRoute.getRoutesDirectory());
+        route.deleteFile(getRoutesDirectory());
     }
 
     @OnlyIn(Dist.CLIENT)
     public static List<RecruitsRoute> getRoutesList() {
         return new ArrayList<>(routesMap.values());
+    }
+
+    private static File getRoutesDirectory() {
+        return new File(Minecraft.getInstance().gameDirectory, "recruits/routes/" + WorldMapStorageId.detectCurrent());
     }
 }

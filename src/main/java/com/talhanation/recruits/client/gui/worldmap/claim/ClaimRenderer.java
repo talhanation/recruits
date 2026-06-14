@@ -105,7 +105,8 @@ public class ClaimRenderer {
 
         for (ChunkPos chunk : claim.getClaimedChunks()) {
             if (chunk == null) continue;
-            boolean explored = adminCreative || mapCache.isChunkExplored(chunk);
+            boolean explored =
+                    adminCreative || !ClientManager.configFogOfWarEnabled || mapCache.isChunkExplored(chunk);
             renderChunk(
                     guiGraphics,
                     chunk,

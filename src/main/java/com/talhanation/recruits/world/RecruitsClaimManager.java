@@ -22,6 +22,7 @@ import java.util.UUID;
 
 public class RecruitsClaimManager {
     private static final int CLAIMS_PER_SYNC_PACKET = 256;
+    private static final int CLAIM_CHUNKS_PER_SYNC_PACKET = 8192;
 
     private final Map<ChunkPos, RecruitsClaim> claims = new HashMap<>();
     private final Map<UUID, RecruitsClaim> claimsById = new HashMap<>();
@@ -183,11 +184,29 @@ public class RecruitsClaimManager {
             return;
         }
 
-        for (int start = 0; start < claims.size(); start += CLAIMS_PER_SYNC_PACKET) {
-            int end = Math.min(start + CLAIMS_PER_SYNC_PACKET, claims.size());
-            boolean reset = start == 0;
-            boolean complete = end >= claims.size();
-            sendClaimBatch(player, claims.subList(start, end), reset, complete);
+        boolean resetClaims = true;
+        int batchChunkCount = 0;
+        List<RecruitsClaim> batch = new ArrayList<>();
+
+        for (RecruitsClaim claim : claims) {
+            int claimChunkCount = chunkCount(claim);
+            boolean batchFull = batch.size() >= CLAIMS_PER_SYNC_PACKET;
+            boolean chunkBudgetFull =
+                    !batch.isEmpty()
+                            && batchChunkCount + claimChunkCount > CLAIM_CHUNKS_PER_SYNC_PACKET;
+            if (batchFull || chunkBudgetFull) {
+                sendClaimBatch(player, batch, resetClaims, false);
+                resetClaims = false;
+                batch = new ArrayList<>();
+                batchChunkCount = 0;
+            }
+
+            batch.add(claim);
+            batchChunkCount += claimChunkCount;
+        }
+
+        if (!batch.isEmpty()) {
+            sendClaimBatch(player, batch, resetClaims, true);
         }
     }
 
@@ -232,5 +251,9 @@ public class RecruitsClaimManager {
                 this.claims.remove(pos);
             }
         }
+    }
+
+    private static int chunkCount(RecruitsClaim claim) {
+        return claim == null || claim.getClaimedChunks() == null ? 0 : claim.getClaimedChunks().size();
     }
 }

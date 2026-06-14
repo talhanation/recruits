@@ -32,10 +32,12 @@ public class MessageDoPayment implements Message<MessageDoPayment> {
         if(serverPlayer == null) return;
 
         if(!serverPlayer.getUUID().equals(uuid)) return;
+        if(this.amount <= 0) return;
 
         if(serverPlayer.isCreative() && serverPlayer.hasPermissions(2)){
             return;
         }
+        if(!FactionEvents.playerHasEnoughEmeralds(serverPlayer, this.amount)) return;
 
         FactionEvents.doPayment(serverPlayer, this.amount);
     }
