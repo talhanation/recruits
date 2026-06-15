@@ -278,7 +278,7 @@ public class RecruitEvents {
 
         if (projectile instanceof AbstractArrow arrow && arrow.getPierceLevel() > 0) {
 
-            if (!canAttack((LivingEntity) owner, impactLiving)) {
+            if (owner instanceof LivingEntity livingOwner && !canAttack(livingOwner, impactLiving)) {
                 event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
                 canceledProjectiles.add(projectile);
                 return;
