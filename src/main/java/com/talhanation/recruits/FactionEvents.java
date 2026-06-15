@@ -562,11 +562,11 @@ public class FactionEvents {
         Team team = oldOwner.getTeam();
 
         if(team != null){
-           Collection<String> list = team.getPlayers().stream().toList();
-           List<ServerPlayer> playerList = level.players();
+            Collection<String> list = team.getPlayers().stream().toList();
+            List<ServerPlayer> playerList = level.players();
 
-           boolean playerNotFound = false;
-           ServerPlayer newOwner = playerList.stream().filter(player -> player.getUUID().equals(newOwnerUUID)).findFirst().orElse(null);
+            boolean playerNotFound = false;
+            ServerPlayer newOwner = playerList.stream().filter(player -> player.getUUID().equals(newOwnerUUID)).findFirst().orElse(null);
 
             if(newOwner != null){
                 if(list.contains(newOwner.getName().getString())){
@@ -580,6 +580,14 @@ public class FactionEvents {
                     Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> newOwner), new MessageToClientSetToast(0, oldOwner.getName().getString()));
 
                     recruit.hire(newOwner, null, true);
+
+                    // Reconcile both players' counts from their actually owned recruits so the
+                    // personal limit can't drift after the ownership transfer.
+                    MinecraftServer server = level.getServer();
+                    if(server != null){
+                        RecruitEvents.recruitsPlayerUnitManager.recountRecruits(server, oldOwner.getUUID());
+                        RecruitEvents.recruitsPlayerUnitManager.recountRecruits(server, newOwnerUUID);
+                    }
                 }
                 else
                     playerNotFound = true;

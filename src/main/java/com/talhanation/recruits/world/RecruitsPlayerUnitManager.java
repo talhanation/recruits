@@ -3,10 +3,13 @@ package com.talhanation.recruits.world;
 import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.config.RecruitsServerConfig;
+import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.network.MessageToClientUpdateUnitInfo;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraftforge.network.PacketDistributor;
 
 import java.util.*;
@@ -47,6 +50,21 @@ public class RecruitsPlayerUnitManager {
     public void removeRecruits(UUID playerUUID, int count) {
         recruitCountMap.put(playerUUID, Math.max(getRecruitCount(playerUUID) - count, 0));
 
+    }
+
+    public void recountRecruits(MinecraftServer server, UUID playerUUID) {
+        if (server == null || playerUUID == null) return;
+
+        int owned = 0;
+        for (ServerLevel level : server.getAllLevels()) {
+            for (AbstractRecruitEntity recruit : level.getEntities(EntityTypeTest.forClass(AbstractRecruitEntity.class), r -> true)) {
+                if (recruit.isAlive() && recruit.isOwned() && playerUUID.equals(recruit.getOwnerUUID())) {
+                    owned++;
+                }
+            }
+        }
+
+        recruitCountMap.put(playerUUID, owned);
     }
 
     public boolean canPlayerRecruit(String stringId, UUID playerUUID) {

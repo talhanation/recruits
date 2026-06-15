@@ -32,6 +32,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -870,7 +871,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setOwnerUUID(Optional.empty());
 
         if (this.getTeam() != null && !keepTeam){
-                FactionEvents.removeRecruitFromTeam(this, this.getTeam(), (ServerLevel) this.getCommandSenderWorld());
+            FactionEvents.removeRecruitFromTeam(this, this.getTeam(), (ServerLevel) this.getCommandSenderWorld());
         }
 
         if(this.getGroup() != null){
@@ -1178,7 +1179,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public boolean isOwnedBy(Player player){
-       return player.getUUID() == this.getOwnerUUID() || player == this.getOwner();
+        return player.getUUID() == this.getOwnerUUID() || player == this.getOwner();
     }
 
     ////////////////////////////////////ON FUNCTIONS////////////////////////////////////
@@ -1825,9 +1826,9 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void disableShield() {
-            this.blockCoolDown = this.getBlockCoolDown();
-            this.stopUsingItem();
-            this.getCommandSenderWorld().broadcastEntityEvent(this, (byte) 30);
+        this.blockCoolDown = this.getBlockCoolDown();
+        this.stopUsingItem();
+        this.getCommandSenderWorld().broadcastEntityEvent(this, (byte) 30);
     }
 
     public boolean canBlock(){
@@ -2056,6 +2057,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void assignToPlayer(UUID newOwner, UUID newGroupUUID){
+        UUID oldOwner = this.getOwnerUUID();
+
         RecruitsGroup currentGroup = RecruitEvents.recruitsGroupsManager.getGroup(this.getGroup());
         if(currentGroup != null){
             currentGroup.removeMember(this.getUUID());
@@ -2071,6 +2074,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if(getOwner() != null){
             this.hire(getOwner(), newGroup, true);
             this.setFollowState(1);
+        }
+
+        // Reconcile counts from the actually owned recruits so the personal limit can't drift,
+        // regardless of disband/hire ordering or any early-return inside them.
+        if(!this.getCommandSenderWorld().isClientSide()){
+            MinecraftServer server = this.getServer();
+            if(server != null){
+                if(oldOwner != null) RecruitEvents.recruitsPlayerUnitManager.recountRecruits(server, oldOwner);
+                if(newOwner != null) RecruitEvents.recruitsPlayerUnitManager.recountRecruits(server, newOwner);
+            }
         }
     }
 
@@ -2159,10 +2172,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public boolean canMountEntity(Entity mount) {
-       return mount instanceof AbstractHorse ||
-               RecruitsServerConfig.MountWhiteList.get().contains(mount.getEncodeId()) ||
-               this instanceof SiegeEngineerEntity && SiegeWeapon.isSiegeWeapon(mount)||
-               this instanceof CaptainEntity && SmallShips.isSmallShip(mount);
+        return mount instanceof AbstractHorse ||
+                RecruitsServerConfig.MountWhiteList.get().contains(mount.getEncodeId()) ||
+                this instanceof SiegeEngineerEntity && SiegeWeapon.isSiegeWeapon(mount)||
+                this instanceof CaptainEntity && SmallShips.isSmallShip(mount);
     }
 
     public static enum ArmPose {
