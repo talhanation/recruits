@@ -20,7 +20,7 @@ public final class WorldMapRouteControls {
     private static final Component ROUTES_LABEL = Component.translatable("gui.recruits.map.route.selector");
     private static final Component EMPTY_ROUTE_LABEL = Component.translatable("gui.recruits.map.route.none");
     private static final String ADD_LABEL = "+";
-    private static final String EDIT_LABEL = "⚙";
+    private static final String EDIT_LABEL = "\u2699";
 
     private DropDownMenu<RecruitsRoute> routeDropDown;
     private Font cachedFont;

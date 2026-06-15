@@ -20,8 +20,8 @@ public final class WorldMapSettingsPanel {
     private static final int SELECTED_COLOR = 0xFFFFAA00;
     private static final int TEXT_COLOR = 0xFFFFFF;
     private static final int OUTLINE_COLOR = 0x40FFFFFF;
-    private static final String CLOSE_ICON = "✕";
-    private static final String SETTINGS_ICON = "⚙";
+    private static final String CLOSE_ICON = "\u2715";
+    private static final String SETTINGS_ICON = "\u2699";
     private static final Component TITLE = Component.translatable("gui.recruits.map.settings.title");
     private static final Component LOAD_MAP = Component.translatable("gui.recruits.map.settings.load_map");
     private static final Component BACKGROUND_LOADING = Component.translatable("gui.recruits.map.settings.background_loading");
