@@ -186,27 +186,52 @@ public class Catapult extends SiegeWeapon {
     public int getProjectileIndex(SiegeEngineerEntity siegeEngineer) {
         SimpleContainer inventory = siegeEngineer.getInventory();
 
+        // Scan the whole inventory first and remember the slot of each ammo type, instead of
+        // returning on the first matching slot. Otherwise cobblestone in an earlier slot would
+        // always win and the special projectiles (fire / explosive / cobble cluster) could never
+        // be loaded depending on inventory order.
+        int fireSlot = -1;
+        int explosiveSlot = -1;
+        int clusterSlot = -1;
+        int cobbleSlot = -1;
+
         for(int i = 0; i < inventory.getContainerSize(); i++){
             ItemStack stack = inventory.getItem(i);
+            if(stack.isEmpty()) continue;
+
             String name = stack.getDescriptionId();
-            if(name.contains("siegeweapons") || stack.is(Items.COBBLESTONE)){
-                if(stack.is(Items.COBBLESTONE)){
-                    stack.shrink(1);
-                    return 1;
-                }
-                else if(name.contains("fire_pot_item")){
-                    stack.shrink(1);
-                    return 2;
-                }
-                else if(name.contains("explosive_pot_item")){
-                    stack.shrink(1);
-                    return 3;
-                }
-                else if(name.contains("cobble_cluster_item")){
-                    stack.shrink(1);
-                    return 4;
-                }
+            boolean isSiegeAmmo = name.contains("siegeweapons");
+
+            if(isSiegeAmmo && name.contains("fire_pot_item")){
+                if(fireSlot == -1) fireSlot = i;
             }
+            else if(isSiegeAmmo && name.contains("explosion_pot_item")){
+                if(explosiveSlot == -1) explosiveSlot = i;
+            }
+            else if(isSiegeAmmo && name.contains("cobble_cluster_item")){
+                if(clusterSlot == -1) clusterSlot = i;
+            }
+            else if(stack.is(Items.COBBLESTONE)){
+                if(cobbleSlot == -1) cobbleSlot = i;
+            }
+        }
+
+        // Priority: special projectiles first, plain cobblestone only as a fallback.
+        if(fireSlot != -1){
+            inventory.getItem(fireSlot).shrink(1);
+            return 2;
+        }
+        if(explosiveSlot != -1){
+            inventory.getItem(explosiveSlot).shrink(1);
+            return 3;
+        }
+        if(clusterSlot != -1){
+            inventory.getItem(clusterSlot).shrink(1);
+            return 4;
+        }
+        if(cobbleSlot != -1){
+            inventory.getItem(cobbleSlot).shrink(1);
+            return 1;
         }
 
         return 0;
