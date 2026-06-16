@@ -9,6 +9,7 @@
   "entity.recruits.captain": "Captain",
   "entity.recruits.commander": "Commander",
   "entity.recruits.messenger": "Messenger",
+  "entity.recruits.siege_engineer": "Siege Engineer",
   "item.recruits.recruit_spawn_egg": "Recruit Spawn Egg",
   "item.recruits.bowman_spawn_egg": "Bowman Spawn Egg",
   "item.recruits.nomad_spawn_egg": "Nomad Spawn Egg",
@@ -529,6 +530,8 @@
   "description.recruits.captain": "The Captain is master of the ship.\nHe can sail to chosen places and take command of the cannons on board.\nHis shots are precise against enemy ships and can also strike targets on land.\nIn close battle, he fights well with sword and shield.",
   "description.recruits.title.commander": "Commander",
   "description.recruits.commander": "The Commander is a strong leader.\nHe can patrol chosen positions and guide a group of recruits, leading them from point to point.\nWith him at the front, his men move with order and strength.",
+  "description.recruits.siege_engineer": "The Siege Engineer is a strong unit for medieval warefare.\nHe can operate Siege Weapons like Catapults and Ballistae. He can shoot, repair and reload the machines. With their target priorization they are needed in every siege."
+  "description.recruits.siege_engineer": "Siege Engineer",
   "gui.recruits.command.text.shields": "",
   "gui.recruits.command.tooltip.shields": "",
   "gui.recruits.inv.tooltip.assignGroupToTeamMate": "",
