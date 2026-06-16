@@ -10,6 +10,7 @@ import com.talhanation.recruits.entities.ai.controller.siegeengineer.SiegeWeapon
 import com.talhanation.recruits.entities.ai.controller.siegeengineer.SiegeWeaponCatapultController;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -118,10 +119,12 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
 
     @Override
     public void initSpawn() {
+        if(this.getCustomName() == null || this.getCustomName().getString().isEmpty()) this.setCustomName(Component.literal("Siege Engineer"));
         this.setPersistenceRequired();
-        if(this.getOwner() != null)this.setOwnerName(this.getOwner().getName().getString());
+        if(this.getOwner() != null) this.setOwnerName(this.getOwner().getName().getString());
         AbstractRecruitEntity.applySpawnValues(this);
     }
+
 
     public Predicate<ItemEntity> getAllowedItems(){
         return ALLOWED_ITEMS;
