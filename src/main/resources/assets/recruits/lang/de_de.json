@@ -527,6 +527,8 @@
   "description.recruits.captain": "Der Kapitän ist Herr seines Schiffes.\nEr kann das Schiff steuern und die Kanonen bedienen.\nSeine Schüsse treffen feindliche Schiffe oder auch Ziele an Land.\nIm Nahkampf kämpft er mit Schwert und Schild.",
   "description.recruits.title.commander": "Kommandant",
   "description.recruits.commander": "Der Kommandant ist ein starker Anführer.\nEr kann Positionen patrouillieren und eine Gruppe von Rekruten führen.\nUnter seiner Führung marschieren seine Männer mit Ordnung und Entschlossenheit.",
+  "description.recruits.siege_engineer": "Der Belagerungs Ingenieur ist eine sehr wichtige Einheit für die mittelalterliche Kriegsführung.\nDie Einheit kann Katapulte und Ballisten bedienenen, womit diese dann geschossen, nachgeladen und repariert werden können. Mit ihrer Zielpriorizierung sind sie bei Belagerungen nicht weg zu Denken.",
+  "description.recruits.title.siege_engineer": "Belagerungs Ingenieur",
   "gui.recruits.command.text.shields": "Schilde!",
   "gui.recruits.command.tooltip.shields": "Lassen Sie die Rekruten ihre Schilde heben/senken.",
   "gui.recruits.inv.tooltip.assignGroupToTeamMate": "Weisen Sie diesen Rekruten und nahegelegene Rekruten derselben Gruppe einem nahegelegenen Fraktionsmitglied zu.",

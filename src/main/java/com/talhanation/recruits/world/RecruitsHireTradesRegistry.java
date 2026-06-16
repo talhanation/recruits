@@ -8,7 +8,6 @@ import net.minecraft.resources.ResourceLocation;
 import javax.annotation.Nullable;
 import java.util.*;
 public class RecruitsHireTradesRegistry {
-    public static int totalTraderTypes = 2;// 0 inclusive
     private static final Component TITLE_RECRUIT = Component.translatable("description.recruits.title.recruit");
     private static final Component TITLE_SHIELDMAN = Component.translatable("description.recruits.title.shieldman");
     private static final Component TITLE_BOWMAN = Component.translatable("description.recruits.title.bowman");
@@ -58,7 +57,7 @@ public class RecruitsHireTradesRegistry {
         addTrade("infantry", 2, HORSEMAN);
         addTrade("infantry", 3, CAPTAIN, PATROL_LEADER);
 
-         // === Trader Type 1 ===
+        // === Trader Type 1 ===
         addTrade("infantry2", 1, RECRUIT, SHIELDMAN);
         addTrade("infantry2", 2, SCOUT);
         addTrade("infantry2", 3, SIEGE_ENGINEER, MESSENGER);
@@ -73,6 +72,7 @@ public class RecruitsHireTradesRegistry {
         addTrade("ranged2", 2, SHIELDMAN);
         addTrade("ranged2", 3, MESSENGER, SCOUT);
 
+    }
     public static void addTrade(String traderType, int level, RecruitsHireTrade... units) {
         TRADES.computeIfAbsent(traderType, k -> new HashMap<>())
                 .put(level, Arrays.asList(units));
