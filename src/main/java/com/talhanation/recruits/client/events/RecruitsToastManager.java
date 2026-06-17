@@ -3,6 +3,7 @@ package com.talhanation.recruits.client.events;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.gui.component.ImageToast;
 import com.talhanation.recruits.client.gui.component.RecruitsTeamImageToast;
+import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -23,6 +24,8 @@ public class RecruitsToastManager {
     public static Images savedTeamForPlayer;//dirty fix calling twice bug
     public static Images savedForPlayer;//dirty fix for calling twice bug
     public static void setTeamToastForPlayer(Images id, @Nullable Component title, @Nullable Component text, RecruitsFaction team){
+        if(!RecruitsClientConfig.RecruitsToasts.get()) return;
+
         if(savedTeamForPlayer == id){
             savedTeamForPlayer = null;
             return;
@@ -60,6 +63,8 @@ public class RecruitsToastManager {
         minecraft.getToasts().addToast(toast);
     }
     public static void setToastForPlayer(Images id, @Nullable Component title, @Nullable Component text){
+        if(!RecruitsClientConfig.RecruitsToasts.get()) return;
+
         if(savedForPlayer == id){
             savedForPlayer = null;
             return;

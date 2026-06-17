@@ -36,7 +36,7 @@ mixin{
     overwriteErrorLevel = 'error'
 }
 
-version = '1.15.1.1'
+version = '1.15.1.2'
 
 group = 'com.talhanation.recruits'
 archivesBaseName = 'recruits-1.20.1'
@@ -125,7 +125,7 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
     implementation fg.deobf("curse.maven:corpse-316582:5157034")
-    
+
     implementation fg.deobf("curse.maven:epic-knights-armor-and-weapons-509041:5254836")
     implementation fg.deobf("curse.maven:architectury-api-419699:5137938")
     implementation fg.deobf("curse.maven:cloth-config-348521:4973441")

@@ -26,6 +26,7 @@ public class RecruitsClientConfig {
     public static ForgeConfigSpec.BooleanValue WorldMapNightShading;
     public static ForgeConfigSpec.BooleanValue WorldMapShowCoordinates;
     public static ForgeConfigSpec.BooleanValue WorldMapClaimFill;
+    public static ForgeConfigSpec.BooleanValue RecruitsToasts;
     public static ForgeConfigSpec.EnumValue<MapPlayerIconStyle> WorldMapPlayerIconStyle;
 
     static{
@@ -56,6 +57,16 @@ public class RecruitsClientConfig {
 
                 .worldRestart()
                 .define("CommandScreenToggle", false);
+
+        RecruitsToasts = BUILDER.comment("""
+                        ----RecruitsToasts----
+                        \t(takes effect after restart)
+                        \t
+                        Should important events be shown on the HUD by toast notifications?""
+                        default: true""")
+
+                .worldRestart()
+                .define("RecruitsToasts", true);
 
         UpdateCheckerClientside = BUILDER.comment("""
                         ----UpdateCheckerClientside----
