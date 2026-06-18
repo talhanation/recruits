@@ -74,7 +74,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
         clearTeam(zeroLeftPos, zeroTopPos);
         teamColorButton(zeroLeftPos, zeroTopPos);
         disband(zeroLeftPos, zeroTopPos);
-
+        debugPath(zeroLeftPos, zeroTopPos);
         Component name = Component.literal("Name");
         if(recruit.getCustomName() != null) name = recruit.getCustomName();
 
@@ -260,6 +260,12 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
     private void disband(int zeroLeftPos, int zeroTopPos){
         addRenderableWidget(new ExtendedButton(zeroLeftPos + 80, zeroTopPos + (20 + 5) * 7, 40, 20, Component.literal("c owner"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(26, recruit.getUUID(), textField.getValue()));
+        }));
+    }
+
+    private void debugPath(int zeroLeftPos, int zeroTopPos){
+        addRenderableWidget(new ExtendedButton(zeroLeftPos + 80, zeroTopPos + (20 + 5) * 8, 40, 20, Component.literal("path debug"), button -> {
+            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(27, recruit.getUUID(), textField.getValue()));
         }));
     }
 

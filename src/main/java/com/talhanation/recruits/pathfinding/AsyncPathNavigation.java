@@ -32,6 +32,20 @@ public abstract class AsyncPathNavigation extends PathNavigation {
     private final PathFinder pathFinder;
     private boolean isStuck;
 
+    /**
+     * True when the last processed path did NOT end exactly on the target, so we
+     * only walked to the closest reachable point. We then keep retrying a fresh
+     * path from the new position toward the real target until we land exactly
+     * (or genuinely cannot get any closer).
+     */
+    private boolean awaitingExactRetry;
+    private long lastExactRetry;
+    /** end position of the previous fallback path, to detect "no progress". */
+    @Nullable
+    private BlockPos lastFallbackEnd;
+    private int noProgressRetries;
+    private static final int MAX_NO_PROGRESS_RETRIES = 3;
+
     public AsyncPathNavigation(PathfinderMob p_26515_, Level p_26516_) {
         super(p_26515_, p_26516_);
         int i = Mth.floor(p_26515_.getAttributeValue(Attributes.FOLLOW_RANGE) * 16.0D);
@@ -55,25 +69,25 @@ public abstract class AsyncPathNavigation extends PathNavigation {
         return this.createPath(p_26557_.collect(Collectors.toSet()), 8, false, p_26558_);
     }
 
-    
+
     @Nullable
     public Path createPath(Set<BlockPos> p_26549_, int p_26550_) {
         return this.createPath(p_26549_, 8, false, p_26550_);
     }
 
-    
+
     @Nullable
     public Path createPath(BlockPos p_26546_, int p_26547_) {
         return this.createPath(ImmutableSet.of(p_26546_), 8, false, p_26547_);
     }
 
-    
+
     @Nullable
     public Path createPath(BlockPos p_148219_, int p_148220_, int p_148221_) {
         return this.createPath(ImmutableSet.of(p_148219_), 8, false, p_148220_, (float) p_148221_);
     }
 
-    
+
     @Nullable
     public Path createPath(Entity p_26534_, int p_26535_) {
         return this.createPath(ImmutableSet.of(p_26534_.blockPosition()), 16, true, p_26535_);
@@ -101,7 +115,11 @@ public abstract class AsyncPathNavigation extends PathNavigation {
             return this.path;
         } else {
             BlockPos blockpos = p_148225_ ? this.mob.blockPosition().above() : this.mob.blockPosition();
-            int i = (int)(p_148227_ + (float)p_148224_);
+            // Enlarge the region generously. A detour that actually lands on the
+            // target can be much longer than the straight-line follow range, and
+            // the region is a hard wall for the search, so we pad it well beyond
+            // the old followRange+offset.
+            int i = (int) ((p_148227_ + (float) p_148224_) * 1.5F) + 16;
             PathNavigationRegion pathnavigationregion = new PathNavigationRegion(this.level, blockpos.offset(-i, -i, -i), blockpos.offset(i, i, i));
             float maxVisitedNodesMultiplier = 1.0F;
             Path path = this.pathFinder.findPath(pathnavigationregion, this.mob, p_148223_, p_148227_, p_148226_, maxVisitedNodesMultiplier);
@@ -120,6 +138,27 @@ public abstract class AsyncPathNavigation extends PathNavigation {
                         this.targetPos = processedPath.getTarget();
                         this.reachRange = p_148226_;
                         this.resetStuckTimeout();
+
+                        boolean reachedExact = processedPath.canReach();
+                        if (reachedExact) {
+                            this.awaitingExactRetry = false;
+                            this.noProgressRetries = 0;
+                            this.lastFallbackEnd = null;
+                        } else {
+                            // Detect lack of progress: if this fallback ends at
+                            // the same block as the previous one, we are not
+                            // getting closer -> stop retrying after a few tries.
+                            BlockPos end = processedPath.getEndNode() != null
+                                    ? processedPath.getEndNode().asBlockPos()
+                                    : null;
+                            if (end != null && end.equals(this.lastFallbackEnd)) {
+                                this.noProgressRetries++;
+                            } else {
+                                this.noProgressRetries = 0;
+                            }
+                            this.lastFallbackEnd = end;
+                            this.awaitingExactRetry = this.noProgressRetries < MAX_NO_PROGRESS_RETRIES;
+                        }
                     }
                 });
             }
@@ -129,8 +168,29 @@ public abstract class AsyncPathNavigation extends PathNavigation {
 
     @Override
     public boolean moveTo(double p_26520_, double p_26521_, double p_26522_, double p_26523_) {
-        Path path = this.createPath(new BlockPos((int) p_26520_, (int) p_26521_, (int) p_26522_), 1);
-        return this.moveTo(path, p_26523_);
+        // Route coordinate moves through the SAME path as moveTo(Entity) (used by
+        // follow, which works very well): higher accuracy (16), canTargetUseTouch
+        // = true, and the failure throttling below. Previously this used a leaner
+        // createPath(pos, 1) with accuracy 8 and no touch, which is why move felt
+        // worse than follow.
+        if (Thread.currentThread().getThreadGroup() != SidedThreadGroups.SERVER) return false;
+        long currentTick = this.level.getGameTime();
+        if (this.pathfindFailures > 10 && this.path == null && currentTick < this.lastFailure + 40) {
+            return false;
+        }
+
+        BlockPos target = new BlockPos((int) p_26520_, (int) p_26521_, (int) p_26522_);
+        Path path = this.createPath(ImmutableSet.of(target), 16, true, 1);
+
+        if (path != null && this.moveTo(path, p_26523_)) {
+            this.lastFailure = 0;
+            this.pathfindFailures = 0;
+            return true;
+        } else {
+            this.pathfindFailures++;
+            this.lastFailure = currentTick;
+            return false;
+        }
     }
 
     // Paper start - optimise pathfinding
@@ -216,6 +276,20 @@ public abstract class AsyncPathNavigation extends PathNavigation {
         }
 
         if (this.path instanceof AsyncPath asyncPath && !asyncPath.isProcessed()) return;
+
+        // Exact-arrival retry: we walked to the closest reachable point but did
+        // not land on the target. Once that fallback path is finished (or we are
+        // stuck on it), recompute toward the real target from where we now are.
+        // A short cooldown prevents spamming the pathfinder every tick.
+        if (this.awaitingExactRetry && this.targetPos != null) {
+            boolean fallbackFinished = this.isDone() || this.isStuck();
+            if (fallbackFinished && this.level.getGameTime() - this.lastExactRetry > 10L) {
+                this.lastExactRetry = this.level.getGameTime();
+                this.awaitingExactRetry = false; // re-armed by the next callback if still not exact
+                this.path = this.createPath(this.targetPos, this.reachRange);
+                return;
+            }
+        }
 
         if (!this.isDone()) {
             if (this.canUpdatePath()) {

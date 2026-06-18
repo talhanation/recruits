@@ -1,6 +1,7 @@
 package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
+import com.talhanation.recruits.client.events.ClientPathDebug;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.ICompanion;
 import net.minecraft.server.level.ServerLevel;
@@ -89,6 +90,12 @@ public class DebugEvents {
 
             case 26 -> {
                 recruits.disband(recruits.getOwner(), true, false);
+            }
+
+            case 27 -> {
+                // toggle the client-side pathfinder debug overlay
+                // (works in local/integrated-server testing: same JVM)
+                ClientPathDebug.toggle();
             }
 
             case 99 ->{

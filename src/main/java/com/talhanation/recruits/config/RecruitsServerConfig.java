@@ -3,14 +3,19 @@ package com.talhanation.recruits.config;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.event.level.ExplosionEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Mod.EventBusSubscriber
 public class RecruitsServerConfig {
@@ -47,7 +52,7 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.ConfigValue<List<List<String>>> NomadStartEquipments;
     public static ForgeConfigSpec.ConfigValue<List<String>> AcceptedDamagesourceImmunity;
     public static ForgeConfigSpec.ConfigValue<List<String>> FoodBlackList;
-    public static ForgeConfigSpec.BooleanValue ShouldRecruitPatrolsSpawn;
+    public static ForgeConfigSpec.ConfigValue<List<String>> PreferredPathBlocks;    public static ForgeConfigSpec.BooleanValue ShouldRecruitPatrolsSpawn;
     public static ForgeConfigSpec.BooleanValue ShouldPillagerPatrolsSpawn;
     public static ForgeConfigSpec.DoubleValue RecruitPatrolsSpawnChance;
     public static ForgeConfigSpec.DoubleValue PillagerPatrolsSpawnChance;
@@ -100,6 +105,8 @@ public class RecruitsServerConfig {
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin", "corpse:corpse", "minecraft:armorstand"));
     public static ArrayList<String> FOOD_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:poisonous_potato", "minecraft:spider_eye", "minecraft:pufferfish"));
+    public static ArrayList<String> PREFERRED_PATH_BLOCKS = new ArrayList<>(
+            Arrays.asList("minecraft:dirt_path", "minecraft:gravel", "minecraft:cobblestone"));
     public static ArrayList<String> MOUNTS = new ArrayList<>(
             Arrays.asList("minecraft:camel", "minecraft:mule", "minecraft:donkey", "minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "smallships:galley", "smallships:drakkar", "siegeweapons:catapult", "siegeweapons:ballista"));
     public static ArrayList<List<String>> START_EQUIPMENT_RECRUIT = new ArrayList<>(
@@ -190,6 +197,16 @@ public class RecruitsServerConfig {
                         \tFood items in this list will not be eaten by recruits and also not be picked up from upkeep.""")
                 .worldRestart()
                 .define("FoodBlackList", FOOD_BLACKLIST);
+
+        PreferredPathBlocks = BUILDER.comment("""
+                        
+                        Preferred Path Blocks
+                        \t(takes effect after restart)
+                        \tWhen a recruit walks ON TOP of one of these blocks, that step is cheaper, so it
+                        \tprefers routes along them (roads, gravel paths, ...). These are ADDED ON TOP of the
+                        \tbuilt-in defaults (dirt_path, gravel, cobblestone). Example: ["minecraft:stone_bricks", "minecraft:packed_mud"]""")
+                .worldRestart()
+                .define("PreferredPathBlocks", PREFERRED_PATH_BLOCKS);
 
         MountWhiteList = BUILDER.comment("""
                         
@@ -872,5 +889,50 @@ public class RecruitsServerConfig {
         configData.load();
         spec.setConfig(configData);
     }
-}
 
+    /**
+     * Cached set of blocks that recruits prefer to walk on top of. Built from
+     * the built-in defaults plus whatever the user added in PreferredPathBlocks.
+     * Resolved lazily on first use (config is loaded by then) and reusable
+     * across the per-node cost lookups without re-parsing strings every time.
+     */
+    private static Set<Block> preferredPathBlocksCache;
+
+    public static Set<Block> getPreferredPathBlocks() {
+        if (preferredPathBlocksCache == null) {
+            Set<Block> resolved = new HashSet<>();
+
+            // defaults always apply
+            for (String id : PREFERRED_PATH_BLOCKS) {
+                addBlock(resolved, id);
+            }
+            // config entries are added on top of the defaults
+            if (PreferredPathBlocks != null) {
+                try {
+                    for (String id : PreferredPathBlocks.get()) {
+                        addBlock(resolved, id);
+                    }
+                } catch (IllegalStateException ignored) {
+                    // config not loaded yet; fall back to defaults only
+                }
+            }
+            preferredPathBlocksCache = resolved;
+        }
+        return preferredPathBlocksCache;
+    }
+
+    private static void addBlock(Set<Block> set, String id) {
+        if (id == null || id.isBlank()) return;
+        ResourceLocation rl = ResourceLocation.tryParse(id.trim());
+        if (rl == null) return;
+        Block block = ForgeRegistries.BLOCKS.getValue(rl);
+        if (block != null) {
+            set.add(block);
+        }
+    }
+
+    /** call if the config is reloaded at runtime so the cache rebuilds. */
+    public static void invalidatePreferredPathBlocks() {
+        preferredPathBlocksCache = null;
+    }
+}

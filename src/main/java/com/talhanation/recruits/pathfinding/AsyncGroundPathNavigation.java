@@ -49,31 +49,59 @@ public class AsyncGroundPathNavigation extends AsyncPathNavigation {
         return new Vec3(this.mob.getX(), this.getSurfaceY(), this.mob.getZ());
     }
 
+    /**
+     * Resolve the requested block into a standable target WITHOUT ever moving
+     * the target upward.
+     *
+     * The vanilla/petal version walked upward out of solid blocks, which turned
+     * an underground / in-cave target into a point on the surface above it — so
+     * the recruit ran up the mountain instead of into the cave. We never do that
+     * anymore:
+     *
+     *   - air target  -> drop down to the first standable block (so we path to
+     *     the floor the target is standing on / above)
+     *   - solid target-> drop down to the first open space with ground under it
+     *     (i.e. step INTO the cave / opening), never climb out the top.
+     *
+     * If nothing standable is found downward we keep the original block and let
+     * the pathfinder get as close as it can.
+     */
     public Path createPath(BlockPos p_26475_, int p_26476_) {
-        if (this.level.getBlockState(p_26475_).isAir()) {
-            BlockPos blockpos;
-            for(blockpos = p_26475_.below(); blockpos.getY() > this.level.getMinBuildHeight() && this.level.getBlockState(blockpos).isAir(); blockpos = blockpos.below()) {}
+        BlockPos resolved = resolveTargetDownwards(p_26475_);
+        return super.createPath(resolved, p_26476_);
+    }
 
-            if (blockpos.getY() > this.level.getMinBuildHeight()) {
-                return super.createPath(blockpos.above(), p_26476_);
+    private BlockPos resolveTargetDownwards(BlockPos pos) {
+        int minY = this.level.getMinBuildHeight();
+
+        // Case A: target is in open space (air / non-solid). Find the floor it
+        // belongs to by scanning DOWN to the first standable block.
+        if (!this.level.getBlockState(pos).isSolid()) {
+            BlockPos.MutableBlockPos m = pos.mutable();
+            while (m.getY() > minY) {
+                BlockState below = this.level.getBlockState(m.below());
+                boolean hereOpen = !this.level.getBlockState(m).isSolid();
+                if (hereOpen && below.isSolid()) {
+                    return m.immutable(); // standable: open here, solid floor below
+                }
+                m.move(0, -1, 0);
             }
-
-            while(blockpos.getY() < this.level.getMaxBuildHeight() && this.level.getBlockState(blockpos).isAir()) {
-                blockpos = blockpos.above();
-            }
-
-            p_26475_ = blockpos;
+            return pos; // nothing solid below; keep as-is
         }
 
-        if (!this.level.getBlockState(p_26475_).isSolid()) {
-            return super.createPath(p_26475_, p_26476_);
-        } else {
-            BlockPos blockpos1;
-            for(blockpos1 = p_26475_.above(); blockpos1.getY() < this.level.getMaxBuildHeight() && this.level.getBlockState(blockpos1).isSolid(); blockpos1 = blockpos1.above()) {
+        // Case B: target is inside a solid block (typical underground / wall).
+        // Scan DOWN looking for an open space that has a solid floor, so we step
+        // into the cavity rather than climbing onto the surface above.
+        BlockPos.MutableBlockPos m = pos.mutable();
+        while (m.getY() > minY) {
+            BlockState here = this.level.getBlockState(m);
+            BlockState below = this.level.getBlockState(m.below());
+            if (!here.isSolid() && below.isSolid()) {
+                return m.immutable();
             }
-
-            return super.createPath(blockpos1, p_26476_);
+            m.move(0, -1, 0);
         }
+        return pos; // give up: let the pathfinder approach the solid block
     }
 
     public Path createPath(Entity p_26465_, int p_26466_) {

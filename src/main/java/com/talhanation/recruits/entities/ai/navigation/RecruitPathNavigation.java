@@ -5,7 +5,6 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.recruits.pathfinding.AsyncPathfinder;
 import com.talhanation.recruits.pathfinding.NodeEvaluatorGenerator;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.NodeEvaluator;
@@ -48,8 +47,16 @@ public class RecruitPathNavigation extends AsyncGroundPathNavigation {
     }
 
     public boolean moveTo(double x, double y, double z, double speed) {
-        this.recruit.setMaxFallDistance(1);
+        // Allow the pathfinder to descend up to the evaluator's safe-fall limit
+        // (see RecruitsPathNodeEvaluator.MAX_SAFE_FALL). With the old value of 1
+        // the vanilla open-block scan turned any drop > 1 into a BLOCKED node, so
+        // recruits could never step down into a cave / lower terrain and instead
+        // hugged the surface. The graded fall malus still discourages big drops.
+        this.recruit.setMaxFallDistance(3);
         ((RecruitsPathNodeEvaluator) this.nodeEvaluator).setTarget((int) x, (int) y, (int) z);
-        return this.moveTo(this.createPath(new BlockPos((int) x, (int) y, (int) z), 0), speed);
+        // Delegate to the unified coordinate moveTo (now identical to the follow
+        // path: accuracy 16, touch, failure throttling) instead of building a
+        // separate lean path here.
+        return super.moveTo(x, y, z, speed);
     }
 }
