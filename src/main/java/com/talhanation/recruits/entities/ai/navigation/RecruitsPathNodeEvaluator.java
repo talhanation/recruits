@@ -2,6 +2,8 @@ package com.talhanation.recruits.entities.ai.navigation;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import java.util.EnumSet;
@@ -60,9 +62,17 @@ public class RecruitsPathNodeEvaluator extends NodeEvaluator {
     private static final float HARD_FALL_MALUS = 12.0F;
     private static final int MAX_SAFE_FALL = 5;
 
-    private static final int WATER_SCAN_RADIUS = 4;
-    private static final int WATER_MIN_DIST = 4;
-    private static final float WATER_MALUS_PER_BLOCK = 16.0F;
+    // Water crossing: a single block of water (a stream, a puddle) should be
+    // CROSSABLE at a price; wide water (lakes, rivers) should stay avoided. We
+    // measure how many water blocks are in a row and scale the cost up steeply.
+    /** malus for standing on a land node directly beside water (shoreline). */
+    private static final float WATER_ADJACENT_MALUS = 4.0F;
+    /** base malus for the first water block of a crossing. */
+    private static final float WATER_CROSS_BASE = 8.0F;
+    /** each additional consecutive water block multiplies the cost by this. */
+    private static final float WATER_CROSS_GROWTH = 6.0F;
+    /** how far we probe for the far bank before treating it as "wide water". */
+    private static final int WATER_CROSS_MAX_PROBE = 4;
 
     private static final int DEAD_END_EXITS = 1;
     private static final float DEAD_END_MALUS = 4.0F;
@@ -82,8 +92,14 @@ public class RecruitsPathNodeEvaluator extends NodeEvaluator {
         if (mob.isVehicle()) {
             this.entityHeight = Mth.floor(mob.getBbHeight() + (float) getEntityHeight());
         }
-        mob.setPathfindingMalus(BlockPathTypes.WATER, 128.0F);
-        mob.setPathfindingMalus(BlockPathTypes.WATER_BORDER, 128.0F);
+        this.shapedPositions.clear();
+        // Water is traversable but expensive. The real avoidance of WIDE water
+        // is done per-node in getNode() via width-scaled cost; a hard 128 here
+        // made even a single stream block effectively impassable, so recruits
+        // never set foot in water at all. Keep a modest base so shallow crossings
+        // are allowed when clearly shorter.
+        mob.setPathfindingMalus(BlockPathTypes.WATER, WATER_CROSS_BASE);
+        mob.setPathfindingMalus(BlockPathTypes.WATER_BORDER, WATER_ADJACENT_MALUS);
         mob.setPathfindingMalus(BlockPathTypes.TRAPDOOR, -1.0F);
         mob.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, 32.0F);
         mob.setPathfindingMalus(BlockPathTypes.DAMAGE_CAUTIOUS, 32.0F);
@@ -118,6 +134,14 @@ public class RecruitsPathNodeEvaluator extends NodeEvaluator {
         node.type = blockpathtypes;
         node.costMalus = Math.max(node.costMalus, f);
 
+        // Vanilla returns the SAME Node instance for a given position, and A*
+        // queries each node many times. Only run the (relatively expensive)
+        // custom cost shaping once per position per search.
+        long key = net.minecraft.core.BlockPos.asLong(x, y, z);
+        if (!this.shapedPositions.add(key)) {
+            return node;
+        }
+
         BlockPos pos = new BlockPos(x, y, z);
 
         // --- fall depth -----------------------------------------------------
@@ -132,14 +156,25 @@ public class RecruitsPathNodeEvaluator extends NodeEvaluator {
             node.costMalus += SOFT_FALL_MALUS;
         }
 
-        // --- water distance -------------------------------------------------
-        // Progressive malus: the closer to water, the disproportionately more
-        // expensive, so the search makes a WIDE detour instead of hugging the
-        // shoreline. (closeness^2 * perBlock)
-        int waterDist = nearestWaterDistance(pos, WATER_SCAN_RADIUS);
-        if (waterDist >= 0 && waterDist < WATER_MIN_DIST) {
-            int closeness = WATER_MIN_DIST - waterDist; // 1..WATER_MIN_DIST
-            node.costMalus += (closeness * closeness) * WATER_MALUS_PER_BLOCK;
+        // --- water -----------------------------------------------------------
+        if (blockpathtypes == BlockPathTypes.WATER) {
+            // node.costMalus already carries the base WATER malus (WATER_CROSS_BASE)
+            // from the pathfinding malus set in prepare(). Here we only ADD the
+            // width-dependent surcharge: a single block stays at ~base, a lake
+            // becomes effectively impassable.
+            int width = waterCrossingWidth(pos);
+            if (width >= WATER_CROSS_MAX_PROBE) {
+                // far bank not found within probe range -> wide water; make it
+                // prohibitive (but not hard-blocked, so a recruit already in
+                // water can still path out).
+                node.costMalus += WATER_CROSS_GROWTH * WATER_CROSS_MAX_PROBE * 4.0F;
+            } else {
+                // each block beyond the first adds growth
+                node.costMalus += (width - 1) * WATER_CROSS_GROWTH;
+            }
+        } else if (isWaterAdjacent(pos)) {
+            // Land node next to water: small nudge away from the shoreline.
+            node.costMalus += WATER_ADJACENT_MALUS;
         }
 
         // --- dead-end / corridor preference + preferred path-block bonus ----
@@ -174,22 +209,50 @@ public class RecruitsPathNodeEvaluator extends NodeEvaluator {
     }
 
     /** distance in blocks to the closest water within radius, or -1 if none. */
-    private int nearestWaterDistance(BlockPos pos, int radius) {
+    /** true if any of the 4 horizontal neighbours (at foot level) is water. */
+    private boolean isWaterAdjacent(BlockPos pos) {
         BlockPos.MutableBlockPos m = new BlockPos.MutableBlockPos();
-        int best = -1;
-        for (int dx = -radius; dx <= radius; dx++) {
-            for (int dz = -radius; dz <= radius; dz++) {
-                for (int dy = -1; dy <= 1; dy++) {
-                    m.set(pos.getX() + dx, pos.getY() + dy, pos.getZ() + dz);
-                    FluidState fluid = this.level.getFluidState(m);
-                    if (fluid.is(FluidTags.WATER)) {
-                        int d = Math.abs(dx) + Math.abs(dz);
-                        if (best < 0 || d < best) best = d;
-                    }
-                }
+        for (Direction dir : Direction.Plane.HORIZONTAL) {
+            m.set(pos.getX() + dir.getStepX(), pos.getY(), pos.getZ() + dir.getStepZ());
+            if (this.level.getFluidState(m).is(FluidTags.WATER)) {
+                return true;
             }
         }
-        return best;
+        return false;
+    }
+
+    /**
+     * Narrowest water span (in blocks) that passes through {@code pos}, measured
+     * along the X axis and the Z axis, taking the smaller of the two. A 1-wide
+     * stream returns 1 even if it is long, so brooks stay cheap to cross while
+     * open water (wide in both axes) returns a large number / the probe cap.
+     *
+     * Cheap: at most ~2 * WATER_CROSS_MAX_PROBE fluid lookups per axis.
+     */
+    private int waterCrossingWidth(BlockPos pos) {
+        int alongX = waterSpanAlongAxis(pos, 1, 0);
+        int alongZ = waterSpanAlongAxis(pos, 0, 1);
+        return Math.min(alongX, alongZ);
+    }
+
+    /** consecutive water blocks through pos along (dx,dz), capped at the probe range. */
+    private int waterSpanAlongAxis(BlockPos pos, int dx, int dz) {
+        BlockPos.MutableBlockPos m = new BlockPos.MutableBlockPos();
+        int span = 1; // pos itself is water
+
+        // forward
+        for (int n = 1; n <= WATER_CROSS_MAX_PROBE; n++) {
+            m.set(pos.getX() + dx * n, pos.getY(), pos.getZ() + dz * n);
+            if (this.level.getFluidState(m).is(FluidTags.WATER)) span++;
+            else break;
+        }
+        // backward
+        for (int n = 1; n <= WATER_CROSS_MAX_PROBE; n++) {
+            m.set(pos.getX() - dx * n, pos.getY(), pos.getZ() - dz * n);
+            if (this.level.getFluidState(m).is(FluidTags.WATER)) span++;
+            else break;
+        }
+        return span;
     }
 
     /** count horizontal neighbours that are walkable (not blocked / allowed for this mob). */
@@ -276,11 +339,14 @@ public class RecruitsPathNodeEvaluator extends NodeEvaluator {
     private static final double DEFAULT_MOB_JUMP_HEIGHT = 1.125D;
     private final Long2ObjectMap<BlockPathTypes> pathTypesByPosCache = new Long2ObjectOpenHashMap<>();
     private final Object2BooleanMap<AABB> collisionCache = new Object2BooleanOpenHashMap<>();
+    /** positions whose custom cost shaping has already been applied this search. */
+    private final LongSet shapedPositions = new LongOpenHashSet();
 
     public void done() {
         this.mob.onPathfindingDone();
         this.pathTypesByPosCache.clear();
         this.collisionCache.clear();
+        this.shapedPositions.clear();
         super.done();
     }
 

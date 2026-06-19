@@ -50,58 +50,12 @@ public class AsyncGroundPathNavigation extends AsyncPathNavigation {
     }
 
     /**
-     * Resolve the requested block into a standable target WITHOUT ever moving
-     * the target upward.
-     *
-     * The vanilla/petal version walked upward out of solid blocks, which turned
-     * an underground / in-cave target into a point on the surface above it — so
-     * the recruit ran up the mountain instead of into the cave. We never do that
-     * anymore:
-     *
-     *   - air target  -> drop down to the first standable block (so we path to
-     *     the floor the target is standing on / above)
-     *   - solid target-> drop down to the first open space with ground under it
-     *     (i.e. step INTO the cave / opening), never climb out the top.
-     *
-     * If nothing standable is found downward we keep the original block and let
-     * the pathfinder get as close as it can.
+     * The target is used EXACTLY as requested. We do not move it up or down
+     * anymore: the pathfinder must find a path that ends on this precise block,
+     * or (failing that) the closest reachable node, with a retry from there.
      */
     public Path createPath(BlockPos p_26475_, int p_26476_) {
-        BlockPos resolved = resolveTargetDownwards(p_26475_);
-        return super.createPath(resolved, p_26476_);
-    }
-
-    private BlockPos resolveTargetDownwards(BlockPos pos) {
-        int minY = this.level.getMinBuildHeight();
-
-        // Case A: target is in open space (air / non-solid). Find the floor it
-        // belongs to by scanning DOWN to the first standable block.
-        if (!this.level.getBlockState(pos).isSolid()) {
-            BlockPos.MutableBlockPos m = pos.mutable();
-            while (m.getY() > minY) {
-                BlockState below = this.level.getBlockState(m.below());
-                boolean hereOpen = !this.level.getBlockState(m).isSolid();
-                if (hereOpen && below.isSolid()) {
-                    return m.immutable(); // standable: open here, solid floor below
-                }
-                m.move(0, -1, 0);
-            }
-            return pos; // nothing solid below; keep as-is
-        }
-
-        // Case B: target is inside a solid block (typical underground / wall).
-        // Scan DOWN looking for an open space that has a solid floor, so we step
-        // into the cavity rather than climbing onto the surface above.
-        BlockPos.MutableBlockPos m = pos.mutable();
-        while (m.getY() > minY) {
-            BlockState here = this.level.getBlockState(m);
-            BlockState below = this.level.getBlockState(m.below());
-            if (!here.isSolid() && below.isSolid()) {
-                return m.immutable();
-            }
-            m.move(0, -1, 0);
-        }
-        return pos; // give up: let the pathfinder approach the solid block
+        return super.createPath(p_26475_, p_26476_);
     }
 
     public Path createPath(Entity p_26465_, int p_26466_) {

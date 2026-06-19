@@ -171,7 +171,7 @@ public class ClientManager {
         return new ArrayList<>(routesMap.values());
     }
 
-    private static File getRoutesDirectory() {
+    public static File getRoutesDirectory() {
         return new File(Minecraft.getInstance().gameDirectory, "recruits/routes/" + WorldMapStorageId.detectCurrent());
     }
 }

@@ -110,13 +110,35 @@ public class AsyncPathfinder extends PathFinder {
         int i = 0;
         List<Map.Entry<Target, BlockPos>> reachedExactly = Lists.newArrayListWithExpectedSize(p_164719_.size());
 
-        // Generous budget: keep exploring for an EXACT hit before settling for a
-        // partial path. We are async so this extra work is acceptable.
-        int budget = (int) ((float) this.maxVisitedNodes * p_164722_ * EXACT_SEARCH_BUDGET);
+        // Adaptive budget. Most paths (open terrain) hit the target exactly
+        // within the cheap base budget and break out immediately. The expensive
+        // full budget is only spent while the search keeps getting closer to the
+        // target. An unreachable target (walled in, in lava, dead mob) stalls and
+        // stops shortly after the base budget instead of grinding to 8x every
+        // time - exactly the mass-battle spike case.
+        int baseBudget = (int) ((float) this.maxVisitedNodes * p_164722_);
+        int fullBudget = (int) (baseBudget * EXACT_SEARCH_BUDGET);
+
+        // How many nodes we allow to pass WITHOUT getting closer before giving
+        // up on the expensive phase. Scaled off the base budget so small/large
+        // searches behave proportionally.
+        int noProgressLimit = Math.max(64, baseBudget / 2);
+
+        float bestHSeen = Float.MAX_VALUE;
+        int nodesSinceImprovement = 0;
+
+        // Track the closest node to the (single) target by TRUE distance, to use
+        // as the fallback endpoint. Kept separate from Target.getBestNode(),
+        // which is chosen by the Y-weighted heuristic and would bias the fallback
+        // toward raised blocks on flat ground.
+        Node closestTrueNode = p_164718_;
+        float closestTrueDist = Float.MAX_VALUE;
+        Target primaryTarget = p_164719_.get(0).getKey();
+        Node reachedNode = null; // the node that actually reached the target
 
         while (!openSet.isEmpty()) {
             ++i;
-            if (i >= budget) {
+            if (i >= fullBudget) {
                 break;
             }
 
@@ -128,12 +150,19 @@ public class AsyncPathfinder extends PathFinder {
                         node.x, node.y, node.z, node.f, node.costMalus, false));
             }
 
-            // EXACT hit only: a node that sits on the target block itself.
+            // EXACT hit: a node on the target block itself, OR standing directly
+            // on top of it (target + 1 in Y, same X/Z). Move orders point at the
+            // surface block, which is solid - you cannot stand INSIDE it, so the
+            // standable spot is one above. Without this, ground targets never
+            // register as reached and always fell through to the fallback (which
+            // is Y-biased and would climb onto the nearest raised block).
             for (final Map.Entry<Target, BlockPos> entry : p_164719_) {
                 Target target = entry.getKey();
-                if (node.x == target.x && node.y == target.y && node.z == target.z) {
+                boolean sameColumn = node.x == target.x && node.z == target.z;
+                if (sameColumn && (node.y == target.y || node.y == target.y + 1)) {
                     target.setReached();
                     reachedExactly.add(entry);
+                    reachedNode = node; // the actual standable spot we hit
                 }
             }
 
@@ -141,9 +170,28 @@ public class AsyncPathfinder extends PathFinder {
                 break;
             }
 
-            // NOTE: no early "distanceTo(start) >= followRange" cutoff here. The
-            // old guard stopped expansion at the follow range and was a reason
-            // long ways around were never found. The budget above bounds us.
+            // Track progress toward the target (node.h holds the scaled heuristic).
+            if (node.h < bestHSeen) {
+                bestHSeen = node.h;
+                nodesSinceImprovement = 0;
+            } else {
+                nodesSinceImprovement++;
+            }
+
+            // Track the truly-closest node (for an unbiased fallback endpoint).
+            float td = trueDistance(node, primaryTarget);
+            if (td < closestTrueDist) {
+                closestTrueDist = td;
+                closestTrueNode = node;
+            }
+
+            // Past the cheap base budget, bail out once we have gone a whole
+            // no-progress window without getting any closer. Before the base
+            // budget we always keep going (cheap, and usually finds the hit).
+            if (i >= baseBudget && nodesSinceImprovement >= noProgressLimit) {
+                break;
+            }
+
             int k = p_164717_.getNeighbors(neighbors, node);
 
             for (int l = 0; l < k; ++l) {
@@ -167,36 +215,20 @@ public class AsyncPathfinder extends PathFinder {
 
         boolean exact = !reachedExactly.isEmpty();
 
-        Path best = null;
-        float bestScore = Float.MAX_VALUE;
+        Path best;
 
         if (exact) {
-            // We have at least one path that ends exactly on a target. Pick the
-            // cheapest by walked distance; reached = true.
-            for (Map.Entry<Target, BlockPos> entry : reachedExactly) {
-                Node end = entry.getKey().getBestNode();
-                Path path = this.reconstructPath(end, entry.getValue(), true);
-                float score = end.g + path.getNodeCount();
-                if (best == null || score < bestScore) {
-                    best = path;
-                    bestScore = score;
-                }
-            }
+            // Reached: build the path to the node that actually hit the target
+            // (the standable spot), not the Y-weighted getBestNode.
+            best = this.reconstructPath(reachedNode, p_164719_.get(0).getValue(), true);
         } else {
-            // No exact hit within budget. Fall back to the closest reachable
-            // node (Y-weighted), but flag the path NOT reached so the navigation
-            // knows to retry from there toward the real target.
-            for (Map.Entry<Target, BlockPos> entry : p_164719_) {
-                Target target = entry.getKey();
-                Node bestNode = target.getBestNode();
-                Path path = this.reconstructPath(bestNode, entry.getValue(), false);
-                float endDist = weightedDistance(bestNode, target);
-                float score = endDist * 1000.0F + path.getNodeCount();
-                if (best == null || score < bestScore) {
-                    best = path;
-                    bestScore = score;
-                }
-            }
+            // No exact hit within budget. Fall back to the node that is truly
+            // closest to the target (tracked above by unweighted distance), and
+            // flag the path NOT reached so the navigation retries from there.
+            // Using true distance (not the Y-weighted heuristic / getBestNode)
+            // stops the recruit from preferring to climb onto the nearest raised
+            // block on flat ground.
+            best = this.reconstructPath(closestTrueNode, p_164719_.get(0).getValue(), false);
         }
 
         // publish for the client-side overlay (no-op if disabled)
@@ -247,6 +279,14 @@ public class AsyncPathfinder extends PathFinder {
     private float weightedDistance(Node node, Target target) {
         float dx = (float) target.x - node.x;
         float dy = ((float) target.y - node.y) * Y_WEIGHT;
+        float dz = (float) target.z - node.z;
+        return (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+
+    /** Plain Euclidean distance, no axis weighting (used for fallback ranking). */
+    private float trueDistance(Node node, Target target) {
+        float dx = (float) target.x - node.x;
+        float dy = (float) target.y - node.y;
         float dz = (float) target.z - node.z;
         return (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
