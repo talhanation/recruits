@@ -1,6 +1,7 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.RecruitEvents;
+import com.talhanation.recruits.command.RecruitCommandAuthority;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.world.RecruitsGroup;
 import de.maxhenkel.corelib.net.Message;
@@ -32,16 +33,14 @@ public class MessageGroup implements Message<MessageGroup> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                player.getBoundingBox().inflate(100),
-                (recruit) -> recruit.getUUID().equals(this.recruitUUID)
-        ).forEach((recruit) -> this.setGroup(recruit, player, groupUUID));
+        RecruitCommandTargetResolver.resolveOwnedRecruit(player, this.recruitUUID, 100D)
+                .ifPresent((recruit) -> this.setGroup(recruit, player, groupUUID));
     }
 
     public void setGroup(AbstractRecruitEntity recruit, ServerPlayer player , UUID groupUUID){
         RecruitsGroup oldGroup = RecruitEvents.recruitsGroupsManager.getGroup(recruit.getGroup());
-        RecruitsGroup newGroup = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
+        RecruitsGroup newGroup = RecruitCommandAuthority.ownedGroup(player, groupUUID);
+        if (newGroup == null) return;
         if(oldGroup != null && newGroup != null && oldGroup.getUUID().equals(newGroup.getUUID())) return;
 
         if(oldGroup != null) RecruitEvents.recruitsGroupsManager.removeMember(oldGroup.getUUID(), recruit.getUUID(), player.serverLevel());

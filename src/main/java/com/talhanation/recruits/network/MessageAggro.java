@@ -1,18 +1,18 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.CommandEvents;
+import com.talhanation.recruits.command.CommandIntent;
+import com.talhanation.recruits.command.CommandIntentDispatcher;
+import com.talhanation.recruits.command.CommandIntentPriority;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.phys.AABB;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.Function;
 
 public class MessageAggro implements Message<MessageAggro> {
 
@@ -47,16 +47,18 @@ public class MessageAggro implements Message<MessageAggro> {
         }
 
 
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                player.getBoundingBox().inflate(boundBoxInflateModifier)
-        ).forEach((recruit) -> {
-            if (fromGui && !recruit.getUUID().equals(this.recruit)) {
-                return;
-            }
-
-            CommandEvents.onAggroCommand(this.player, recruit, this.state, group, fromGui);
-        });
+        List<AbstractRecruitEntity> recruits = fromGui
+                ? RecruitCommandTargetResolver.resolveOwnedRecruit(player, this.recruit, boundBoxInflateModifier).map(List::of).orElse(List.of())
+                : RecruitCommandTargetResolver.resolveGroupTargets(player, this.player, this.group, boundBoxInflateModifier);
+        CommandIntent intent = new CommandIntent.Aggro(
+                player.getCommandSenderWorld().getGameTime(),
+                CommandIntentPriority.NORMAL,
+                false,
+                this.state,
+                this.group,
+                this.fromGui
+        );
+        CommandIntentDispatcher.dispatch(player, intent, recruits);
     }
 
     public MessageAggro fromBytes(FriendlyByteBuf buf) {

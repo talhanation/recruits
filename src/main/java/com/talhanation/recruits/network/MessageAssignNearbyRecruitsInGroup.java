@@ -1,6 +1,7 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.RecruitEvents;
+import com.talhanation.recruits.command.RecruitCommandAuthority;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.world.RecruitsGroup;
 import de.maxhenkel.corelib.net.Message;
@@ -29,7 +30,7 @@ public class MessageAssignNearbyRecruitsInGroup implements Message<MessageAssign
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        RecruitsGroup newGroup = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
+        RecruitsGroup newGroup = RecruitCommandAuthority.ownedGroup(player, groupUUID);
         if(newGroup == null) return;
 
         player.getCommandSenderWorld().getEntitiesOfClass(
