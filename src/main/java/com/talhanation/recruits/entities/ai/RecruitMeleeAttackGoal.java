@@ -60,6 +60,11 @@ public class RecruitMeleeAttackGoal extends Goal {
         if (target == null || !target.isAlive()) {
             return false;
         } else if (!this.recruit.getSensing().hasLineOfSight(target)) {
+            // Option 2: drop the target when line of sight is lost so the recruit does not keep
+            // it queued while behind cover. The move-towards goal is also LoS-gated, so once sight
+            // is gone nothing chases; the next search re-acquires only if the target becomes
+            // visible again.
+            this.recruit.setTarget(null);
             return false;
         } else {
             boolean canAttackHoldPos = canAttackHoldPos();

@@ -45,6 +45,13 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
                 this.crossBowman.switchMainHandItem(RecruitRangedCrossbowAttackGoal::isCrossbow);
                 return false;
             }
+            // Option 2: only engage a visible target. Without line of sight the target is dropped
+            // so the crossbowman does not chase enemies behind cover. Strategic fire (no concrete
+            // target) is handled in the else branch and stays unaffected.
+            if(!this.crossBowman.getSensing().hasLineOfSight(target)){
+                this.crossBowman.setTarget(null);
+                return crossBowman.getShouldStrategicFire();
+            }
             return target.distanceTo(this.crossBowman) >= stopRange && this.canAttackMovePos() && !this.crossBowman.needsToGetFood() && !this.crossBowman.getShouldMount();
         } else {
             return crossBowman.getShouldStrategicFire();
@@ -120,115 +127,115 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
         if(isWeaponInMainHand()) {
             if(crossBowman.getShouldStrategicFire() && target == null) {
                 BlockPos pos = crossBowman.getStrategicFirePos();
-                    switch (state) {
-                        case IDLE -> {
-                            if (weapon.isLoaded(crossBowman.getMainHandItem())) {
-                                if (pos != null) {
-                                    this.state = State.AIMING;
-                                }
-                            } else if(hasArrows()) this.state = State.RELOAD;
-                        }
-
-                        case RELOAD -> {
-                            this.crossBowman.startUsingItem(InteractionHand.MAIN_HAND);
-
-                            int i = this.crossBowman.getTicksUsingItem();
-                            if (i >= weapon.getWeaponLoadTime()) {
-                                this.crossBowman.releaseUsingItem();
-                                this.crossBowman.playSound(this.weapon.getLoadSound(), 1.0F, 1.0F / (crossBowman.getRandom().nextFloat() * 0.4F + 0.8F));
-                                CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), true);
-
+                switch (state) {
+                    case IDLE -> {
+                        if (weapon.isLoaded(crossBowman.getMainHandItem())) {
+                            if (pos != null) {
                                 this.state = State.AIMING;
                             }
+                        } else if(hasArrows()) this.state = State.RELOAD;
+                    }
+
+                    case RELOAD -> {
+                        this.crossBowman.startUsingItem(InteractionHand.MAIN_HAND);
+
+                        int i = this.crossBowman.getTicksUsingItem();
+                        if (i >= weapon.getWeaponLoadTime()) {
+                            this.crossBowman.releaseUsingItem();
+                            this.crossBowman.playSound(this.weapon.getLoadSound(), 1.0F, 1.0F / (crossBowman.getRandom().nextFloat() * 0.4F + 0.8F));
+                            CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), true);
+
+                            this.state = State.AIMING;
                         }
+                    }
 
-                        case AIMING -> {
-                            if (pos != null) {
-                                this.crossBowman.setAggressive(true);
-                                this.crossBowman.getLookControl().setLookAt(pos.getX(), pos.getY(), pos.getZ());
+                    case AIMING -> {
+                        if (pos != null) {
+                            this.crossBowman.setAggressive(true);
+                            this.crossBowman.getLookControl().setLookAt(pos.getX(), pos.getY(), pos.getZ());
 
-                                if (++this.seeTime > weapon.getWeaponLoadTime()) {
+                            if (++this.seeTime > weapon.getWeaponLoadTime()) {
+                                this.state = State.SHOOT;
+                                this.seeTime = 0;
+                            }
+                        }
+                    }
+
+                    case SHOOT -> {
+                        if (pos != null) {
+                            this.weapon.performRangedAttackIWeapon(this.crossBowman, pos.getX(), pos.getY(), pos.getZ(), weapon.getProjectileSpeed());
+                            CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), false);
+                        }
+                        this.state = State.IDLE; //RESUPPLY
+                    }
+                }
+            }
+            else {
+                switch (state) {
+                    case IDLE -> {
+                        if (weapon.isLoaded(crossBowman.getMainHandItem())) {
+                            if (target != null && target.isAlive()) {
+                                this.state = State.AIMING;
+                            }
+                        } else if(hasArrows()) this.state = State.RELOAD;
+                    }
+                    case RELOAD -> {
+                        this.crossBowman.startUsingItem(InteractionHand.MAIN_HAND);
+
+                        int i = this.crossBowman.getTicksUsingItem();
+                        if (i >= weapon.getWeaponLoadTime()) {
+                            this.crossBowman.releaseUsingItem();
+                            this.crossBowman.playSound(this.weapon.getLoadSound(), 1.0F, 1.0F / (crossBowman.getRandom().nextFloat() * 0.4F + 0.8F));
+                            CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), true);
+
+                            this.state = State.AIMING;
+                        }
+                    }
+
+                    case AIMING -> {
+                        if (target != null && target.isAlive()) {
+                            boolean canSee = this.crossBowman.getSensing().hasLineOfSight(target);
+                            this.crossBowman.setAggressive(true);
+                            this.crossBowman.getLookControl().setLookAt(target);
+
+                            if (canSee) {
+                                if (++this.seeTime >= weapon.getWeaponLoadTime()) {
                                     this.state = State.SHOOT;
                                     this.seeTime = 0;
                                 }
+                            } else if (crossBowman.getShouldHoldPos()) {
+                                this.crossBowman.setTarget(null);
                             }
-                        }
-
-                        case SHOOT -> {
-                            if (pos != null) {
-                                this.weapon.performRangedAttackIWeapon(this.crossBowman, pos.getX(), pos.getY(), pos.getZ(), weapon.getProjectileSpeed());
-                                CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), false);
-                            }
-                            this.state = State.IDLE; //RESUPPLY
+                        } else {
+                            this.crossBowman.setAggressive(false);
+                            seeTime = 0;
                         }
                     }
-                }
-                else {
-                    switch (state) {
-                        case IDLE -> {
-                            if (weapon.isLoaded(crossBowman.getMainHandItem())) {
-                                if (target != null && target.isAlive()) {
-                                    this.state = State.AIMING;
+
+                    case SHOOT -> {
+                        LivingEntity savedTarget = null;
+                        if (target != null && target.isAlive() && this.crossBowman.canAttack(target) && this.crossBowman.getState() != 3) {
+                            this.crossBowman.getLookControl().setLookAt(target);
+
+                            if(AttackUtil.canPerformHorseAttack(this.crossBowman, target)){
+                                if(target.getVehicle() instanceof LivingEntity) {
+                                    savedTarget = target;
+                                    target = (LivingEntity) target.getVehicle();
                                 }
-                            } else if(hasArrows()) this.state = State.RELOAD;
-                        }
-                        case RELOAD -> {
-                            this.crossBowman.startUsingItem(InteractionHand.MAIN_HAND);
-
-                            int i = this.crossBowman.getTicksUsingItem();
-                            if (i >= weapon.getWeaponLoadTime()) {
-                                this.crossBowman.releaseUsingItem();
-                                this.crossBowman.playSound(this.weapon.getLoadSound(), 1.0F, 1.0F / (crossBowman.getRandom().nextFloat() * 0.4F + 0.8F));
-                                CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), true);
-
-                                this.state = State.AIMING;
                             }
-                        }
 
-                        case AIMING -> {
-                            if (target != null && target.isAlive()) {
-                                boolean canSee = this.crossBowman.getSensing().hasLineOfSight(target);
-                                this.crossBowman.setAggressive(true);
-                                this.crossBowman.getLookControl().setLookAt(target);
+                            this.weapon.performRangedAttackIWeapon(this.crossBowman, target.getX(), target.getY() + target.getEyeHeight(), target.getZ(), weapon.getProjectileSpeed());
 
-                                if (canSee) {
-                                    if (++this.seeTime >= weapon.getWeaponLoadTime()) {
-                                        this.state = State.SHOOT;
-                                        this.seeTime = 0;
-                                    }
-                                } else if (crossBowman.getShouldHoldPos()) {
-                                    this.crossBowman.setTarget(null);
-                                }
-                            } else {
-                                this.crossBowman.setAggressive(false);
-                                seeTime = 0;
+                            if(savedTarget != null){
+                                target = savedTarget;
                             }
+
+                            CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), false);
                         }
-
-                        case SHOOT -> {
-                            LivingEntity savedTarget = null;
-                            if (target != null && target.isAlive() && this.crossBowman.canAttack(target) && this.crossBowman.getState() != 3) {
-                                this.crossBowman.getLookControl().setLookAt(target);
-
-                                if(AttackUtil.canPerformHorseAttack(this.crossBowman, target)){
-                                    if(target.getVehicle() instanceof LivingEntity) {
-                                        savedTarget = target;
-                                        target = (LivingEntity) target.getVehicle();
-                                    }
-                                }
-
-                                this.weapon.performRangedAttackIWeapon(this.crossBowman, target.getX(), target.getY() + target.getEyeHeight(), target.getZ(), weapon.getProjectileSpeed());
-
-                                if(savedTarget != null){
-                                    target = savedTarget;
-                                }
-
-                                CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), false);
-                            }
-                            this.state = State.IDLE;
-                        }
+                        this.state = State.IDLE;
                     }
                 }
+            }
         }
     }
 

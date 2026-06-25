@@ -2,7 +2,6 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.pathfinding.AsyncPathfinderMob;
 import net.minecraft.tags.FluidTags;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
 
 import java.util.EnumSet;

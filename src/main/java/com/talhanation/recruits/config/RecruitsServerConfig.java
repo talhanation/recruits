@@ -68,7 +68,6 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.BooleanValue UseAsyncPathfinding;
     public static ForgeConfigSpec.IntValue AsyncPathfindingThreadsCount;
     public static ForgeConfigSpec.BooleanValue UseAsyncTargetFinding;
-    public static ForgeConfigSpec.IntValue AsyncTargetFindingThreadsCount;
     public static ForgeConfigSpec.IntValue MaxPlayersInFaction;
     public static ForgeConfigSpec.IntValue MaxNPCsInFaction;
     public static ForgeConfigSpec.BooleanValue ShouldFactionEditingBeAllowed;
@@ -755,26 +754,6 @@ public class RecruitsServerConfig {
                         \tdefault: 1""")
                 .worldRestart()
                 .defineInRange("AsyncPathfindingThreadsCount", 1, 1, Runtime.getRuntime().availableProcessors());
-
-        UseAsyncTargetFinding = BUILDER.comment("""
-                        Use asynchronous target finding run on multithread executor.
-                        Improves TPS on huge numbers of recruits (and somehow FPS) a lot,
-                            but useless if machine has only one physical core available.
-                        Can lead to some small delays in target finding (recruits finding who to attack),
-                            but I have seen none of case when I was testing so should work fine.
-                        \t(takes effect after restart)
-                        \tdefault: true""")
-                .worldRestart()
-                .define("UseAsyncTargetFinding", true);
-
-        AsyncTargetFindingThreadsCount = BUILDER.comment("""
-                        How much threads to use for target finding.
-                        Needs to be calibrated manually.
-                        Usually good value is n/6, where n is amount of logical cores (threads) you have on CPU.
-                        \t(takes effect after restart)
-                        \tdefault: 1""")
-                .worldRestart()
-                .defineInRange("AsyncTargetFindingThreadsCount", 1, 1, Runtime.getRuntime().availableProcessors());
 
         BUILDER.pop();
         BUILDER.pop();

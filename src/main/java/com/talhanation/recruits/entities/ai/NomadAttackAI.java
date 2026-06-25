@@ -31,7 +31,17 @@ public class NomadAttackAI extends Goal {
         this.consumeArrows = RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get();
     }
     public boolean canUse() {
-        return nomad.getVehicle() instanceof AbstractHorse && nomad.getTarget() != null && !nomad.needsToGetFood() && !nomad.getShouldMount() && isHoldingBow() && nomad.getShouldRanged();
+        LivingEntity target = nomad.getTarget();
+        if(nomad.getVehicle() instanceof AbstractHorse && target != null && !nomad.needsToGetFood() && !nomad.getShouldMount() && isHoldingBow() && nomad.getShouldRanged()){
+            // Option 2: only engage a visible target. Without line of sight the target is dropped
+            // so the mounted archer does not chase enemies behind cover.
+            if(!nomad.getSensing().hasLineOfSight(target)){
+                nomad.setTarget(null);
+                return false;
+            }
+            return true;
+        }
+        return false;
     }
 
     public boolean canContinueToUse() {
@@ -129,4 +139,3 @@ public class NomadAttackAI extends Goal {
         }
     }
 }
-
