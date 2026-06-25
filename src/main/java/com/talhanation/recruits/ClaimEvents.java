@@ -128,9 +128,9 @@ public class ClaimEvents {
             int attackerSize = attackers.size();
             int defenderSize = defenders.size();
 
-            updateParties(claim, attackers, defenders);
-
             if(attackerSize < RecruitsServerConfig.SiegeClaimsRecruitsAmount.get()){
+                // Siege aborts: notify the parties that were besieging BEFORE clearing them.
+                // (setUnderSiege(false) -> notifyAttackersSiegeFailed reads the still-populated list.)
                 claim.setUnderSiege(false, level);
                 claim.resetHealth();
                 claim.setSiegeSpeedPercent(0f);
@@ -141,6 +141,10 @@ public class ClaimEvents {
                 siegeOverVillagers(level, claim);
                 continue;
             }
+
+            // Siege continues: rebuild parties from who is currently present (clears stale entries
+            // and orders attackers by present unit count, so get(0) is the dominant attacker).
+            updateParties(claim, attackers, defenders);
 
             // Siege-Speed prozentual berechnen basierend auf Ratio
             float speedPercent = calculateSiegeSpeedPercent(attackerSize, defenderSize);
@@ -194,8 +198,6 @@ public class ClaimEvents {
 
             int attackerSize = attackers.size();
 
-            updateParties(claim, attackers, defenders);
-
             if(attackerSize >= RecruitsServerConfig.SiegeClaimsRecruitsAmount.get()){
                 if (RecruitsServerConfig.SiegeRequiresOwnerOnline.get()) {
                     RecruitsPlayerInfo ownerInfo = claim.getPlayerInfo();
@@ -215,6 +217,12 @@ public class ClaimEvents {
                         }
                     }
                 }
+                // (2) Build parties from who is present RIGHT NOW, immediately before the siege
+                // starts, so the bossbar/overlay is correct on the very first entry. Doing this
+                // only here (instead of every tick for every claim) also avoids the stale buildup
+                // that previously let a passing third faction end up as attackingParties.get(0).
+                updateParties(claim, attackers, defenders);
+
                 claim.setUnderSiege(true, level);
                 recruitsClaimManager.addActiveSiege(claim);
                 recruitsClaimManager.broadcastClaimUpdateToAll(level, claim);
@@ -245,9 +253,37 @@ public class ClaimEvents {
     }
 
     /**
-     * Fügt die Fraktionen der Angreifer/Verteidiger als Parteien zum Claim hinzu.
+     * Rebuilds the attacking/defending party lists for the claim from the entities that are
+     * CURRENTLY inside it.
+     *
+     * <p>Behaviour:
+     * <ul>
+     *   <li>Both lists are cleared first, so factions that merely passed through earlier (or a
+     *       previous siege left behind) can no longer linger as stale entries.</li>
+     *   <li>The MAIN attacker ({@code attackingParties.get(0)} - what the bossbar shows and what
+     *       conquers on success) is <b>stable</b>: the faction that holds it keeps it as long as it
+     *       is still present and still at/above the siege threshold. A faction that joins later
+     *       with more units does NOT take over the siege ("no siege stealing").</li>
+     *   <li>The main attacker only changes when the current holder drops below the threshold (or
+     *       leaves): then the strongest faction that is itself at/above the threshold takes over;
+     *       if none qualifies, the strongest present attacker is used.</li>
+     *   <li>Remaining attacker factions are listed after the main one, ordered by present unit
+     *       count (for the secondary banner row).</li>
+     * </ul>
      */
     private void updateParties(RecruitsClaim claim, List<LivingEntity> attackers, List<LivingEntity> defenders){
+        int threshold = RecruitsServerConfig.SiegeClaimsRecruitsAmount.get();
+
+        // remember who was the main attacker BEFORE we clear, so we can keep them if still valid
+        String previousMainId = (claim.attackingParties != null && !claim.attackingParties.isEmpty()
+                && claim.attackingParties.get(0) != null)
+                ? claim.attackingParties.get(0).getStringID()
+                : null;
+
+        claim.attackingParties.clear();
+        claim.defendingParties.clear();
+
+        // defenders: presence is enough, order is irrelevant for them
         for(LivingEntity livingEntity : defenders){
             if(livingEntity.getTeam() == null) continue;
             RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getFactionByStringID(livingEntity.getTeam().getName());
@@ -255,11 +291,61 @@ public class ClaimEvents {
             if(!claim.getOwnerFaction().equalsFaction(recruitsFaction)) claim.addParty(claim.defendingParties, recruitsFaction);
         }
 
+        // count present units per attacking faction (keyed by stringID; RecruitsFaction has no
+        // equals/hashCode so the object itself is not a safe map key)
+        java.util.Map<String, Integer> attackerCounts = new java.util.LinkedHashMap<>();
+        java.util.Map<String, RecruitsFaction> attackerFactions = new java.util.LinkedHashMap<>();
         for(LivingEntity livingEntity : attackers){
             if(livingEntity.getTeam() == null) continue;
             RecruitsFaction recruitsFaction = FactionEvents.recruitsFactionManager.getFactionByStringID(livingEntity.getTeam().getName());
             if(recruitsFaction == null) continue;
-            claim.addParty(claim.attackingParties, recruitsFaction);
+            String id = recruitsFaction.getStringID();
+            attackerCounts.merge(id, 1, Integer::sum);
+            attackerFactions.putIfAbsent(id, recruitsFaction);
+        }
+
+        if(attackerCounts.isEmpty()) return;
+
+        // factions ordered by present unit count, strongest first
+        List<String> orderedIds = attackerCounts.entrySet().stream()
+                .sorted(java.util.Map.Entry.<String, Integer>comparingByValue().reversed())
+                .map(java.util.Map.Entry::getKey)
+                .collect(java.util.stream.Collectors.toList());
+
+        // decide the main attacker (strict anti-steal interpretation)
+        String mainId;
+        boolean previousStillPresent = previousMainId != null && attackerCounts.containsKey(previousMainId);
+
+        if(previousStillPresent && attackerCounts.get(previousMainId) >= threshold){
+            // holder still present AND still above threshold -> keep it (no stealing)
+            mainId = previousMainId;
+        } else {
+            // holder dropped below threshold or is gone. The title only moves to a faction that is
+            // ITSELF at/above the threshold ("...only if faction B is above the threshold at that
+            // time"). If no one qualifies:
+            //   - keep the previous holder if it is at least still present (it merely shrank), so a
+            //     weaker late-joiner can't steal a siege just because the initiator thinned out;
+            //   - only if the previous holder is entirely gone do we fall back to the strongest
+            //     present attacker (otherwise there would be no main attacker at all).
+            String strongestAboveThreshold = orderedIds.stream()
+                    .filter(id -> attackerCounts.get(id) >= threshold)
+                    .findFirst()
+                    .orElse(null);
+
+            if(strongestAboveThreshold != null){
+                mainId = strongestAboveThreshold;
+            } else if(previousStillPresent){
+                mainId = previousMainId;
+            } else {
+                mainId = orderedIds.get(0);
+            }
+        }
+
+        // add main attacker first, then the rest in strength order
+        claim.addParty(claim.attackingParties, attackerFactions.get(mainId));
+        for(String id : orderedIds){
+            if(id.equals(mainId)) continue;
+            claim.addParty(claim.attackingParties, attackerFactions.get(id));
         }
     }
 
