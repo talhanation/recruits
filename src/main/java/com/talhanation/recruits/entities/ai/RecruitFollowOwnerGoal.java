@@ -30,7 +30,7 @@ public class RecruitFollowOwnerGoal extends Goal {
             this.lastCanUseCheck = i;
             LivingEntity livingentity = this.recruit.getOwner();
             LivingEntity target = this.recruit.getTarget();
-            double start = target == null ? startDistance : startDistance + 100;
+            double start = target == null ? startDistance : startDistance + 50;
             if (livingentity == null) {
                 return false;
             }

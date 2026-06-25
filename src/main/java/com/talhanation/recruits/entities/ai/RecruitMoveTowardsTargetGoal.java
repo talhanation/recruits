@@ -41,6 +41,13 @@ public class RecruitMoveTowardsTargetGoal extends Goal {
         else if (this.target.distanceToSqr(this.recruit) > (double)(this.within * this.within)) {
             return false;
         }
+        else if (!this.recruit.getSensing().hasLineOfSight(this.target)) {
+            // Option 2: only approach a target the recruit can actually see. Without line of sight
+            // the recruit does not chase enemies behind walls. The expensive LoS raycast is cached
+            // per tick by EntitySensing, and the attack goals query it too, so this adds no extra
+            // raycast in practice.
+            return false;
+        }
         else {
             Vec3 vec3 = DefaultRandomPos.getPosTowards(this.recruit, 16, 7, this.target.position(), (double)((float)Math.PI / 2F));
             if (vec3 == null) {
@@ -58,7 +65,7 @@ public class RecruitMoveTowardsTargetGoal extends Goal {
         if (this.recruit.isFollowing()){
             return false;
         }
-        return !this.recruit.getNavigation().isDone() && this.target.isAlive() && this.target.distanceToSqr(this.recruit) < (double)(this.within * this.within);
+        return !this.recruit.getNavigation().isDone() && this.target.isAlive() && this.target.distanceToSqr(this.recruit) < (double)(this.within * this.within) && this.recruit.getSensing().hasLineOfSight(this.target);
     }
 
     public void stop() {

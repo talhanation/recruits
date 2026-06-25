@@ -46,7 +46,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity> extends Goal {
         if (livingentity != null && livingentity.isAlive()) {
             if(!isHoldingBow(this.recruit)){
                 recruit.switchMainHandItem(RecruitRangedBowAttackGoal::isBow);
-                
+
                 return false;
             }
 
@@ -59,6 +59,10 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity> extends Goal {
             boolean notPassive = this.recruit.getState() != 3;
             boolean notNeedsToGetFood = !this.recruit.needsToGetFood();
             boolean canSee = this.recruit.getSensing().hasLineOfSight(target);
+            // Option 2: only engage targets that are actually visible. Without line of sight
+            // the target is dropped so the recruit does not chase enemies behind walls.
+            // (LoS in the area search is disabled; this goal-level check is the single source
+            // of truth for "may I act on this target".)
             if(!canSee){
                 recruit.setTarget(null);
                 return false;
@@ -70,7 +74,7 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity> extends Goal {
     }
 
     public static boolean isHoldingBow(LivingEntity mob) {
-         return mob.isHolding(RecruitRangedBowAttackGoal::isBow);
+        return mob.isHolding(RecruitRangedBowAttackGoal::isBow);
     }
 
     public static boolean isBow(ItemStack stack){

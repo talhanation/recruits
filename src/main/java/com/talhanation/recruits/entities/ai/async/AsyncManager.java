@@ -1,14 +1,12 @@
 package com.talhanation.recruits.entities.ai.async;
 
-import com.talhanation.recruits.config.RecruitsServerConfig;
-
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class AsyncManager {
-    public static final int THREADS = RecruitsServerConfig.AsyncTargetFindingThreadsCount.get();
+    public static final int THREADS = 1;
     private static final AtomicInteger threadCount = new AtomicInteger(1);
 
     private static final ThreadFactory threadFactory = runnable -> {
