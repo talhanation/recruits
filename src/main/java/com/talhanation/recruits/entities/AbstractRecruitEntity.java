@@ -32,7 +32,6 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -56,6 +55,7 @@ import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.VillagerType;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
@@ -1157,7 +1157,51 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         recruit.setVariant(variant);
     }
 
-    ////////////////////////////////////is FUNCTIONS////////////////////////////////////
+    /**
+     * Applies the biome skin + variant to a recruit based on the {@link VillagerType} of the
+     * villager it was created from, so a desert villager yields a desert recruit, a savanna
+     * villager a savanna recruit, and so on. This mirrors the biome -> (biomeByte, variant range)
+     * mapping used by {@link #applyBiomeAndVariant}, but keyed off the villager's actual type
+     * instead of the recruit's current position (which may not be set yet at creation time, and
+     * would otherwise sample whatever biome the recruit happens to stand in).
+     */
+    public static void applyVariantFromVillager(AbstractRecruitEntity recruit, Villager villager){
+        VillagerType type = villager.getVillagerData().getType();
+        byte biomeByte;
+        int variant;
+
+        if(type == VillagerType.DESERT){
+            biomeByte = 0;
+            variant = recruit.random.nextInt(15, 19);
+        }
+        else if(type == VillagerType.JUNGLE){
+            biomeByte = 1;
+            variant = recruit.random.nextInt(15, 19);
+        }
+        else if(type == VillagerType.SAVANNA){
+            biomeByte = 3;
+            variant = recruit.random.nextInt(15, 19);
+        }
+        else if(type == VillagerType.SNOW){
+            biomeByte = 4;
+            variant = recruit.random.nextInt(5, 10);
+        }
+        else if(type == VillagerType.SWAMP){
+            biomeByte = 5;
+            variant = recruit.random.nextInt(5, 14);
+        }
+        else if(type == VillagerType.TAIGA){
+            biomeByte = 6;
+            variant = recruit.random.nextInt(5, 14);
+        }
+        else { // VillagerType.PLAINS and any unknown/modded type fall back to plains
+            biomeByte = 2;
+            variant = recruit.random.nextInt(0, 14);
+        }
+
+        recruit.setBiome(biomeByte);
+        recruit.setVariant(variant);
+    }
 
     public boolean isEffectedByCommand(UUID player_uuid) {
         return isEffectedByCommand(player_uuid, null);
@@ -1237,7 +1281,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             }
             else if(this.isOwned() && this.getTeam() != null && !player.getUUID().equals(this.getOwnerUUID()) &&
                     FactionEvents.recruitsFactionManager.getFactionByStringID(this.getTeam().getName()).getTeamLeaderUUID().equals(player.getUUID())){
-                    Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientOpenTakeOverScreen(this.getUUID()));
+                Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new MessageToClientOpenTakeOverScreen(this.getUUID()));
             }
             else if (!this.isOwned() && !isPlayerTarget && this.canBeHired()) {
                 this.openHireGUI(player);
@@ -1425,8 +1469,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 .add(Attributes.FOLLOW_RANGE, 32.0D);
     */
     /**
-        Important for mod compat: See smallships or siege weapons mod
-    **/
+     Important for mod compat: See smallships or siege weapons mod
+     **/
     public boolean isAlliedTo(@Nullable Team team) {
         if(team == null) return false;
         Team recTeam = this.getTeam();
@@ -1649,7 +1693,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         boolean hasHeadArmor = !headArmor.isEmpty();
 
         if (((!(damageSource.is(DamageTypes.IN_FIRE) && (damageSource.is(DamageTypes.ON_FIRE))) || !headArmor.getItem().isFireResistant()) && headArmor.getItem() instanceof ArmorItem)){
-        //damage
+            //damage
             headArmor.hurtAndBreak(1, this, (recruit) -> {
                 recruit.broadcastBreakEvent(EquipmentSlot.HEAD);
             });

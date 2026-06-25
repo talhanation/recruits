@@ -170,6 +170,7 @@ public class VillagerEvents {
             abstractRecruit.copyPosition(villager);
 
             abstractRecruit.initSpawn();
+            AbstractRecruitEntity.applyVariantFromVillager(abstractRecruit, villager);
 
             for(ItemStack itemStack : villager.getInventory().items){
                 abstractRecruit.getInventory().addItem(itemStack);
@@ -200,6 +201,7 @@ public class VillagerEvents {
             nobleEntity.copyPosition(villager);
 
             nobleEntity.initSpawn();
+            AbstractRecruitEntity.applyVariantFromVillager(nobleEntity, villager);
             nobleEntity.setFollowState(0);
 
             for(ItemStack itemStack : villager.getInventory().items){
@@ -235,6 +237,7 @@ public class VillagerEvents {
         if(abstractRecruit == null) return;
 
         abstractRecruit.initSpawn();
+        AbstractRecruitEntity.applyVariantFromVillager(abstractRecruit, villager);
 
         Component name = villager.getCustomName();
 
