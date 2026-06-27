@@ -273,6 +273,8 @@ public class ClaimOverlayManager {
         ClientManager.recruitsClaims.clear();
         ClientManager.activeSiegeClaims.clear();
         ClientManager.currentClaim = null;
+        ClientManager.groupAggroState.clear();
+        ClientManager.groupMoveState.clear();
         currentState = OverlayState.HIDDEN;
         lastPlayerChunk = null;
         tickCounter = 0;

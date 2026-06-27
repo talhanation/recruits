@@ -1,6 +1,7 @@
 package com.talhanation.recruits.client.gui.commandscreen;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.CommandScreen;
 import com.talhanation.recruits.client.gui.group.RecruitsCommandButton;
 import com.talhanation.recruits.network.*;
@@ -36,6 +37,10 @@ public class CombatCategory implements ICommandCategory {
     private static final MutableComponent TEXT_HOLD_STRATEGIC_FIRE = Component.translatable("gui.recruits.command.text.hold_strategic_fire");
     private static final MutableComponent TEXT_FIRE_AT_WILL = Component.translatable("gui.recruits.command.text.fire_at_will");
     private static final MutableComponent TEXT_HOLD_FIRE = Component.translatable("gui.recruits.command.text.hold_fire");
+
+    public static final String SPECIAL_HOLD_FIRE = "hold_fire";
+    public static final String SPECIAL_STRATEGIC_FIRE = "strategic_fire";
+    public static final String SPECIAL_SHIELDS_UP = "shields_up";
     private static final MutableComponent TEXT_CLEAR_TARGET = Component.translatable("gui.recruits.command.text.clearTargets");
     private static final MutableComponent TOOLTIP_COMBAT = Component.translatable("gui.recruits.command.tooltip.combat");
 
@@ -62,6 +67,7 @@ public class CombatCategory implements ICommandCategory {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
                                 Main.SIMPLE_CHANNEL.sendToServer(new MessageStrategicFire(player.getUUID(), group.getUUID(), true));
+                                ClientManager.addGroupSpecialState(group.getUUID(), SPECIAL_STRATEGIC_FIRE);
                             }
                         }
                         screen.sendCommandInChat(72);
@@ -79,6 +85,7 @@ public class CombatCategory implements ICommandCategory {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
                                 Main.SIMPLE_CHANNEL.sendToServer(new MessageStrategicFire(player.getUUID(), group.getUUID(), false));
+                                ClientManager.removeGroupSpecialState(group.getUUID(), SPECIAL_STRATEGIC_FIRE);
                             }
                         }
                         screen.sendCommandInChat(73);
@@ -96,6 +103,7 @@ public class CombatCategory implements ICommandCategory {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
                                 Main.SIMPLE_CHANNEL.sendToServer(new MessageRangedFire(player.getUUID(), group.getUUID(), true));
+                                ClientManager.removeGroupSpecialState(group.getUUID(), SPECIAL_HOLD_FIRE);
                             }
                         }
                         screen.sendCommandInChat(70);
@@ -113,6 +121,8 @@ public class CombatCategory implements ICommandCategory {
                             if (!group.isDisabled()) {
                                 Main.SIMPLE_CHANNEL.sendToServer(new MessageStrategicFire(player.getUUID(), group.getUUID(), false));
                                 Main.SIMPLE_CHANNEL.sendToServer(new MessageRangedFire(player.getUUID(), group.getUUID(), false));
+                                ClientManager.addGroupSpecialState(group.getUUID(), SPECIAL_HOLD_FIRE);
+                                ClientManager.removeGroupSpecialState(group.getUUID(), SPECIAL_STRATEGIC_FIRE);
                             }
                         }
                         screen.sendCommandInChat(71);
@@ -129,6 +139,7 @@ public class CombatCategory implements ICommandCategory {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
                                 Main.SIMPLE_CHANNEL.sendToServer(new MessageShields(player.getUUID(), group.getUUID(), true));
+                                ClientManager.addGroupSpecialState(group.getUUID(), SPECIAL_SHIELDS_UP);
                             }
                         }
                         screen.sendCommandInChat(74);
@@ -145,6 +156,7 @@ public class CombatCategory implements ICommandCategory {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
                                 Main.SIMPLE_CHANNEL.sendToServer(new MessageShields(player.getUUID(), group.getUUID(), false));
+                                ClientManager.removeGroupSpecialState(group.getUUID(), SPECIAL_SHIELDS_UP);
                             }
                         }
                         screen.sendCommandInChat(75);
@@ -193,6 +205,7 @@ public class CombatCategory implements ICommandCategory {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
                                 Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 3, group.getUUID()));
+                                ClientManager.setGroupAggroState(group.getUUID(), TEXT_PASSIVE.copy().withStyle(net.minecraft.ChatFormatting.RED));
                             }
                         }
                         screen.sendCommandInChat(13);
@@ -209,6 +222,7 @@ public class CombatCategory implements ICommandCategory {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
                                 Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 0, group.getUUID()));
+                                ClientManager.setGroupAggroState(group.getUUID(), TEXT_NEUTRAL);
                             }
                         }
                         screen.sendCommandInChat(10);
@@ -225,6 +239,7 @@ public class CombatCategory implements ICommandCategory {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
                                 Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 2, group.getUUID()));
+                                ClientManager.setGroupAggroState(group.getUUID(), TEXT_RAID);
                             }
                         }
                         screen.sendCommandInChat(12);
@@ -241,6 +256,7 @@ public class CombatCategory implements ICommandCategory {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
                                 Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 1, group.getUUID()));
+                                ClientManager.setGroupAggroState(group.getUUID(), TEXT_AGGRESSIVE);
                             }
                         }
                         screen.sendCommandInChat(11);
@@ -251,4 +267,3 @@ public class CombatCategory implements ICommandCategory {
         screen.addRenderableWidget(aggressiveButton);
     }
 }
-

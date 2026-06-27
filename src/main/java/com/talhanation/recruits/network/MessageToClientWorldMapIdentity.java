@@ -38,6 +38,7 @@ public class MessageToClientWorldMapIdentity implements Message<MessageToClientW
             WorldMapCacheManager.getInstance().initialize(mc.level);
         }
         ClientManager.loadRoutes();
+        ClientManager.loadSpecialStates();
     }
 
     @Override

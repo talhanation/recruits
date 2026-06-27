@@ -53,35 +53,17 @@ public class RecruitsAdminCommands {
         LiteralArgumentBuilder<CommandSourceStack> literalBuilder = Commands.literal("recruits").requires((source) -> source.hasPermission(2));
         //TeamCommand
         literalBuilder.then(Commands.literal("admin")
-            .then(Commands.literal("tpRecruitsToOwner")
-                .then(Commands.argument("Owner", ScoreHolderArgument.scoreHolders()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS).executes((conetext) -> {
+                .then(Commands.literal("tpRecruitsToOwner")
+                        .then(Commands.argument("Owner", ScoreHolderArgument.scoreHolders()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS).executes((conetext) -> {
 
-                    ServerLevel level = conetext.getSource().getLevel();
+                            ServerLevel level = conetext.getSource().getLevel();
 
 
-                    return tpToOwner(level, ScoreHolderArgument.getNamesWithDefaultWildcard(conetext, "Owner"));
-            })))
-            .then(Commands.literal("unitsManager")
-                .then(Commands.literal("getUnitsCount")
-                        .then(Commands.argument("Player", ScoreHolderArgument.scoreHolders()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS)
-                            .executes((context) -> {
-                                String playerName = ScoreHolderArgument.getName(context, "Player");
-                                ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayerByName(playerName);
-
-                                if(player == null) {
-                                    context.getSource().sendFailure(Component.literal("No Player found!").withStyle(ChatFormatting.RED));
-                                    return 0;
-                                }
-
-                                int unitCount = getUnitsCount(player);
-                                context.getSource().sendSuccess(() ->
-                                        Component.literal(player.getName().getString() + " has " + unitCount + " from max. " + RecruitsServerConfig.MaxRecruitsForPlayer.get()), false);
-                                return 1;
-                            }))
-                )
-                .then(Commands.literal("setUnitsCount")
-                        .then(Commands.argument("Player", ScoreHolderArgument.scoreHolders()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS)
-                                .then(Commands.argument("Amount", IntegerArgumentType.integer(0))
+                            return tpToOwner(level, ScoreHolderArgument.getNamesWithDefaultWildcard(conetext, "Owner"));
+                        })))
+                .then(Commands.literal("unitsManager")
+                        .then(Commands.literal("getUnitsCount")
+                                .then(Commands.argument("Player", ScoreHolderArgument.scoreHolders()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS)
                                         .executes((context) -> {
                                             String playerName = ScoreHolderArgument.getName(context, "Player");
                                             ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayerByName(playerName);
@@ -91,32 +73,35 @@ public class RecruitsAdminCommands {
                                                 return 0;
                                             }
 
-                                            int amount = IntegerArgumentType.getInteger(context, "Amount");
+                                            int unitCount = getUnitsCount(player);
+                                            context.getSource().sendSuccess(() ->
+                                                    Component.literal(player.getName().getString() + " has " + unitCount + " from max. " + RecruitsServerConfig.MaxRecruitsForPlayer.get()), false);
+                                            return 1;
+                                        }))
+                        )
+                        .then(Commands.literal("setUnitsCount")
+                                .then(Commands.argument("Player", ScoreHolderArgument.scoreHolders()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS)
+                                        .then(Commands.argument("Amount", IntegerArgumentType.integer(0))
+                                                .executes((context) -> {
+                                                    String playerName = ScoreHolderArgument.getName(context, "Player");
+                                                    ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayerByName(playerName);
 
-                                            return setUnitsCount(context, player, amount);
-                                        })
+                                                    if(player == null) {
+                                                        context.getSource().sendFailure(Component.literal("No Player found!").withStyle(ChatFormatting.RED));
+                                                        return 0;
+                                                    }
+
+                                                    int amount = IntegerArgumentType.getInteger(context, "Amount");
+
+                                                    return setUnitsCount(context, player, amount);
+                                                })
+                                        )
                                 )
                         )
                 )
-            )
-            .then(Commands.literal("factionManager")
-                .then(Commands.literal("getNPCCount")
-                        .then(Commands.argument("Faction", TeamArgument.team())
-                                .executes((context) -> {
-                                    PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
-                                    RecruitsFaction faction = FactionEvents.recruitsFactionManager.getFactionByStringID(playerTeam.getName());
-                                    if(faction == null) {
-                                        context.getSource().sendFailure(Component.literal("No Faction found!").withStyle(ChatFormatting.RED));
-                                        return 0;
-                                    }
-                                    context.getSource().sendSuccess(() ->
-                                            Component.literal(faction.getTeamDisplayName() + " has " + faction.npcs + " from max. " + faction.maxNPCs), false);
-                                    return 1;
-                                }))
-                )
-                .then(Commands.literal("setNPCCount")
-                        .then(Commands.argument("Faction", TeamArgument.team())
-                                .then(Commands.argument("Amount", IntegerArgumentType.integer(0))
+                .then(Commands.literal("factionManager")
+                        .then(Commands.literal("getNPCCount")
+                                .then(Commands.argument("Faction", TeamArgument.team())
                                         .executes((context) -> {
                                             PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
                                             RecruitsFaction faction = FactionEvents.recruitsFactionManager.getFactionByStringID(playerTeam.getName());
@@ -124,205 +109,199 @@ public class RecruitsAdminCommands {
                                                 context.getSource().sendFailure(Component.literal("No Faction found!").withStyle(ChatFormatting.RED));
                                                 return 0;
                                             }
-                                            int amount = IntegerArgumentType.getInteger(context, "Amount");
+                                            context.getSource().sendSuccess(() ->
+                                                    Component.literal(faction.getTeamDisplayName() + " has " + faction.npcs + " from max. " + faction.maxNPCs), false);
+                                            return 1;
+                                        }))
+                        )
+                        .then(Commands.literal("setNPCCount")
+                                .then(Commands.argument("Faction", TeamArgument.team())
+                                        .then(Commands.argument("Amount", IntegerArgumentType.integer(0))
+                                                .executes((context) -> {
+                                                    PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
+                                                    RecruitsFaction faction = FactionEvents.recruitsFactionManager.getFactionByStringID(playerTeam.getName());
+                                                    if(faction == null) {
+                                                        context.getSource().sendFailure(Component.literal("No Faction found!").withStyle(ChatFormatting.RED));
+                                                        return 0;
+                                                    }
+                                                    int amount = IntegerArgumentType.getInteger(context, "Amount");
 
-                                            return setFactionNPCsCount(context, faction, amount);
+                                                    return setFactionNPCsCount(context, faction, amount);
+                                                })
+                                        )
+                                )
+                        )
+                        .then(Commands.literal("getLeader")
+                                .then(Commands.argument("Faction", TeamArgument.team())
+                                        .executes((context) -> {
+                                            PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
+                                            RecruitsFaction faction = FactionEvents.recruitsFactionManager.getFactionByStringID(playerTeam.getName());
+                                            if(faction == null) {
+                                                context.getSource().sendFailure(Component.literal("No Faction found!").withStyle(ChatFormatting.RED));
+                                                return 0;
+                                            }
+                                            context.getSource().sendSuccess(() ->
+                                                    Component.literal("The Leader of " + faction.getTeamDisplayName() + " is " + faction.getTeamLeaderName()), false);
+                                            return 1;
+                                        }))
+                        )
+                        .then(Commands.literal("setLeader")
+                                .then(Commands.argument("Faction", TeamArgument.team())
+                                        .then(Commands.argument("Player", ScoreHolderArgument.scoreHolders()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS)
+                                                .executes((context) -> {
+                                                    PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
+                                                    RecruitsFaction faction = FactionEvents.recruitsFactionManager.getFactionByStringID(playerTeam.getName());
+
+                                                    String playerName = ScoreHolderArgument.getName(context, "Player");
+                                                    ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayerByName(playerName);
+
+                                                    if(faction == null) {
+                                                        context.getSource().sendFailure(Component.literal("No Faction found!").withStyle(ChatFormatting.RED));
+                                                        return 0;
+                                                    }
+
+                                                    if(player == null) {
+                                                        context.getSource().sendFailure(Component.literal("No Player found!").withStyle(ChatFormatting.RED));
+                                                        return 0;
+                                                    }
+
+                                                    if(FactionEvents.isPlayerAlreadyAFactionLeader(player)){
+                                                        context.getSource().sendFailure(Component.literal("Player is already a Leader of another Faction!").withStyle(ChatFormatting.RED));
+                                                        return 0;
+                                                    }
+
+                                                    if(!playerTeam.getPlayers().contains(playerName)){
+                                                        FactionEvents.addPlayerToTeam(null, context.getSource().getLevel(), faction.getStringID(), playerName);
+                                                    }
+
+                                                    faction.setTeamLeaderID(player.getUUID());
+                                                    faction.setTeamLeaderName(player.getName().getString());
+
+                                                    FactionEvents.modifyTeam(context.getSource().getLevel(), faction.getStringID(), faction, context.getSource().getPlayer(), 0);
+
+                                                    FactionEvents.recruitsFactionManager.save(context.getSource().getLevel());
+
+                                                    context.getSource().sendSuccess(() ->
+                                                            Component.literal("The Leader of " + faction.getTeamDisplayName() + " is now " + faction.getTeamLeaderName()), false);
+                                                    return 1;
+                                                })))
+                        )
+                        .then(Commands.literal("delete")
+                                .then(Commands.argument("Faction", StringArgumentType.greedyString())
+                                        .executes((context) -> {
+                                            String userInput = StringArgumentType.getString(context, "Faction");
+                                            RecruitsFaction faction = FactionEvents.recruitsFactionManager.getFactionByStringID(userInput);
+
+                                            if(faction == null) {
+                                                context.getSource().sendFailure(Component.literal("No Faction found!").withStyle(ChatFormatting.RED));
+                                                return 0;
+                                            }
+                                            FactionEvents.recruitsFactionManager.removeTeam(faction.getStringID());
+                                            FactionEvents.recruitsFactionManager.save(context.getSource().getLevel());
+
+                                            try{
+                                                PlayerTeam team = context.getSource().getLevel().getScoreboard().getPlayerTeam(userInput);
+                                                if(team != null) context.getSource().getLevel().getScoreboard().removePlayerTeam(team);
+                                            }
+                                            catch (Exception ignored){
+
+                                            }
+
+                                            context.getSource().sendSuccess(() ->
+                                                    Component.literal("Faction (" + userInput + ") was deleted"), false);
+                                            return 1;
+                                        }))
+                        )
+                )
+                .then(Commands.literal("diplomacyManager")
+                        /*
+                        .then(Commands.literal("getRelations")
+                                .then(Commands.argument("Faction", TeamArgument.team())
+                                        .executes((context) -> {
+                                            PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
+                                            return 1;
                                         })
                                 )
                         )
+                         */
+
+                        .then(Commands.literal("setRelations")
+                                .then(Commands.argument("Faction1", TeamArgument.team())
+                                        .then(Commands.argument("Faction2", TeamArgument.team())
+                                                .then(Commands.argument("Relation", EnumArgument.enumArgument(RecruitsDiplomacyManager.DiplomacyStatus.class))
+                                                        .executes((context) -> {
+                                                            PlayerTeam playerTeam1 = TeamArgument.getTeam(context, "Faction1");
+                                                            PlayerTeam playerTeam2 = TeamArgument.getTeam(context, "Faction2");
+                                                            RecruitsDiplomacyManager.DiplomacyStatus status = context.getArgument("Relation", RecruitsDiplomacyManager.DiplomacyStatus.class);
+
+                                                            if(playerTeam1.equals(playerTeam2)){
+                                                                context.getSource().sendFailure(Component.literal("Cannot set Diplomacy of same Faction!").withStyle(ChatFormatting.RED));
+                                                                return 0;
+                                                            }
+
+                                                            if(FactionEvents.recruitsDiplomacyManager == null){
+                                                                context.getSource().sendFailure(Component.literal("recruitsDiplomacyManager == null!").withStyle(ChatFormatting.RED));
+                                                                return 0;
+                                                            }
+
+                                                            FactionEvents.recruitsDiplomacyManager.setRelation(playerTeam1.getName(), playerTeam2.getName(), status, context.getSource().getLevel());
+                                                            FactionEvents.recruitsDiplomacyManager.setRelation(playerTeam2.getName(), playerTeam1.getName(), status, context.getSource().getLevel());
+
+                                                            context.getSource().sendSuccess(() ->
+                                                                    Component.literal(playerTeam1.getName() + " and " + playerTeam2.getName() + " are now " + status), false);
+                                                            return 1;
+                                                        })
+                                                )
+                                        )
+                                )
+                        )
+                        .then(Commands.literal("getTreatyTime")
+                                .then(Commands.argument("Faction1", TeamArgument.team())
+                                        .then(Commands.argument("Faction2", TeamArgument.team())
+                                                .executes((context) -> {
+                                                    PlayerTeam playerTeam1 = TeamArgument.getTeam(context, "Faction1");
+                                                    PlayerTeam playerTeam2 = TeamArgument.getTeam(context, "Faction2");
+
+                                                    if (FactionEvents.recruitsTreatyManager == null) {
+                                                        context.getSource().sendFailure(Component.literal("recruitsTreatyManager == null!").withStyle(ChatFormatting.RED));
+                                                        return 0;
+                                                    }
+
+                                                    return getTreatyTime(context, playerTeam1.getName(), playerTeam2.getName());
+                                                })
+                                        )
+                                )
+                        )
+                        .then(Commands.literal("setTreatyTime")
+                                .then(Commands.argument("Faction1", TeamArgument.team())
+                                        .then(Commands.argument("Faction2", TeamArgument.team())
+                                                .then(Commands.argument("Minutes", IntegerArgumentType.integer(0))
+                                                        .executes((context) -> {
+                                                            PlayerTeam playerTeam1 = TeamArgument.getTeam(context, "Faction1");
+                                                            PlayerTeam playerTeam2 = TeamArgument.getTeam(context, "Faction2");
+                                                            int minutes = IntegerArgumentType.getInteger(context, "Minutes");
+
+                                                            if (playerTeam1.equals(playerTeam2)) {
+                                                                context.getSource().sendFailure(Component.literal("Cannot set treaty between the same Faction!").withStyle(ChatFormatting.RED));
+                                                                return 0;
+                                                            }
+
+                                                            if (FactionEvents.recruitsTreatyManager == null) {
+                                                                context.getSource().sendFailure(Component.literal("recruitsTreatyManager == null!").withStyle(ChatFormatting.RED));
+                                                                return 0;
+                                                            }
+
+                                                            return setTreatyTime(context, playerTeam1.getName(), playerTeam2.getName(), minutes);
+                                                        })
+                                                )
+                                        )
+                                )
+                        )
                 )
-                .then(Commands.literal("getLeader")
-                        .then(Commands.argument("Faction", TeamArgument.team())
-                                .executes((context) -> {
-                                    PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
-                                    RecruitsFaction faction = FactionEvents.recruitsFactionManager.getFactionByStringID(playerTeam.getName());
-                                    if(faction == null) {
-                                        context.getSource().sendFailure(Component.literal("No Faction found!").withStyle(ChatFormatting.RED));
-                                        return 0;
-                                    }
-                                    context.getSource().sendSuccess(() ->
-                                            Component.literal("The Leader of " + faction.getTeamDisplayName() + " is " + faction.getTeamLeaderName()), false);
-                                    return 1;
-                                }))
-                )
-                .then(Commands.literal("setLeader")
-                    .then(Commands.argument("Faction", TeamArgument.team())
-                        .then(Commands.argument("Player", ScoreHolderArgument.scoreHolders()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS)
-                            .executes((context) -> {
-                                PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
-                                RecruitsFaction faction = FactionEvents.recruitsFactionManager.getFactionByStringID(playerTeam.getName());
-
-                                String playerName = ScoreHolderArgument.getName(context, "Player");
-                                ServerPlayer player = context.getSource().getLevel().getServer().getPlayerList().getPlayerByName(playerName);
-
-                                if(faction == null) {
-                                    context.getSource().sendFailure(Component.literal("No Faction found!").withStyle(ChatFormatting.RED));
-                                    return 0;
-                                }
-
-                                if(player == null) {
-                                    context.getSource().sendFailure(Component.literal("No Player found!").withStyle(ChatFormatting.RED));
-                                    return 0;
-                                }
-
-                                if(FactionEvents.isPlayerAlreadyAFactionLeader(player)){
-                                    context.getSource().sendFailure(Component.literal("Player is already a Leader of another Faction!").withStyle(ChatFormatting.RED));
-                                    return 0;
-                                }
-
-                                if(!playerTeam.getPlayers().contains(playerName)){
-                                    FactionEvents.addPlayerToTeam(null, context.getSource().getLevel(), faction.getStringID(), playerName);
-                                }
-
-                                faction.setTeamLeaderID(player.getUUID());
-                                faction.setTeamLeaderName(player.getName().getString());
-
-                                FactionEvents.modifyTeam(context.getSource().getLevel(), faction.getStringID(), faction, context.getSource().getPlayer(), 0);
-
-                                FactionEvents.recruitsFactionManager.save(context.getSource().getLevel());
-
-                                context.getSource().sendSuccess(() ->
-                                        Component.literal("The Leader of " + faction.getTeamDisplayName() + " is now " + faction.getTeamLeaderName()), false);
-                                return 1;
-                            })))
-                )
-                .then(Commands.literal("delete")
-                        .then(Commands.argument("Faction", StringArgumentType.greedyString())
-                                .executes((context) -> {
-                                    String userInput = StringArgumentType.getString(context, "Faction");
-                                    RecruitsFaction faction = FactionEvents.recruitsFactionManager.getFactionByStringID(userInput);
-
-                                    if(faction == null) {
-                                        context.getSource().sendFailure(Component.literal("No Faction found!").withStyle(ChatFormatting.RED));
-                                        return 0;
-                                    }
-                                    FactionEvents.recruitsFactionManager.removeTeam(faction.getStringID());
-                                    FactionEvents.recruitsFactionManager.save(context.getSource().getLevel());
-
-                                    try{
-                                        PlayerTeam team = context.getSource().getLevel().getScoreboard().getPlayerTeam(userInput);
-                                        if(team != null) context.getSource().getLevel().getScoreboard().removePlayerTeam(team);
-                                    }
-                                    catch (Exception ignored){
-
-                                    }
-
-                                    context.getSource().sendSuccess(() ->
-                                            Component.literal("Faction (" + userInput + ") was deleted"), false);
-                                    return 1;
-                                }))
-                )
-            )
-            .then(Commands.literal("diplomacyManager")
-                    /*
-                    .then(Commands.literal("getRelations")
-                            .then(Commands.argument("Faction", TeamArgument.team())
-                                    .executes((context) -> {
-                                        PlayerTeam playerTeam = TeamArgument.getTeam(context, "Faction");
-                                        return 1;
-                                    })
-                            )
-                    )
-                     */
-
-                    .then(Commands.literal("setRelations")
-                            .then(Commands.argument("Faction1", TeamArgument.team())
-                                    .then(Commands.argument("Faction2", TeamArgument.team())
-                                            .then(Commands.argument("Relation", EnumArgument.enumArgument(RecruitsDiplomacyManager.DiplomacyStatus.class))
-                                                    .executes((context) -> {
-                                                        PlayerTeam playerTeam1 = TeamArgument.getTeam(context, "Faction1");
-                                                        PlayerTeam playerTeam2 = TeamArgument.getTeam(context, "Faction2");
-                                                        RecruitsDiplomacyManager.DiplomacyStatus status = context.getArgument("Relation", RecruitsDiplomacyManager.DiplomacyStatus.class);
-
-                                                        if(playerTeam1.equals(playerTeam2)){
-                                                            context.getSource().sendFailure(Component.literal("Cannot set Diplomacy of same Faction!").withStyle(ChatFormatting.RED));
-                                                            return 0;
-                                                        }
-
-                                                        if(FactionEvents.recruitsDiplomacyManager == null){
-                                                            context.getSource().sendFailure(Component.literal("recruitsDiplomacyManager == null!").withStyle(ChatFormatting.RED));
-                                                            return 0;
-                                                        }
-
-                                                        FactionEvents.recruitsDiplomacyManager.setRelation(playerTeam1.getName(), playerTeam2.getName(), status, context.getSource().getLevel());
-                                                        FactionEvents.recruitsDiplomacyManager.setRelation(playerTeam2.getName(), playerTeam1.getName(), status, context.getSource().getLevel());
-
-                                                        context.getSource().sendSuccess(() ->
-                                                                Component.literal(playerTeam1.getName() + " and " + playerTeam2.getName() + " are now " + status), false);
-                                                        return 1;
-                                                    })
-                                            )
-                                    )
-                            )
-                    )
-                    .then(Commands.literal("getTreatyTime")
-                            .then(Commands.argument("Faction1", TeamArgument.team())
-                                    .then(Commands.argument("Faction2", TeamArgument.team())
-                                            .executes((context) -> {
-                                                PlayerTeam playerTeam1 = TeamArgument.getTeam(context, "Faction1");
-                                                PlayerTeam playerTeam2 = TeamArgument.getTeam(context, "Faction2");
-
-                                                if (FactionEvents.recruitsTreatyManager == null) {
-                                                    context.getSource().sendFailure(Component.literal("recruitsTreatyManager == null!").withStyle(ChatFormatting.RED));
-                                                    return 0;
-                                                }
-
-                                                return getTreatyTime(context, playerTeam1.getName(), playerTeam2.getName());
-                                            })
-                                    )
-                            )
-                    )
-                    .then(Commands.literal("setTreatyTime")
-                            .then(Commands.argument("Faction1", TeamArgument.team())
-                                    .then(Commands.argument("Faction2", TeamArgument.team())
-                                            .then(Commands.argument("Minutes", IntegerArgumentType.integer(0))
-                                                    .executes((context) -> {
-                                                        PlayerTeam playerTeam1 = TeamArgument.getTeam(context, "Faction1");
-                                                        PlayerTeam playerTeam2 = TeamArgument.getTeam(context, "Faction2");
-                                                        int minutes = IntegerArgumentType.getInteger(context, "Minutes");
-
-                                                        if (playerTeam1.equals(playerTeam2)) {
-                                                            context.getSource().sendFailure(Component.literal("Cannot set treaty between the same Faction!").withStyle(ChatFormatting.RED));
-                                                            return 0;
-                                                        }
-
-                                                        if (FactionEvents.recruitsTreatyManager == null) {
-                                                            context.getSource().sendFailure(Component.literal("recruitsTreatyManager == null!").withStyle(ChatFormatting.RED));
-                                                            return 0;
-                                                        }
-
-                                                        return setTreatyTime(context, playerTeam1.getName(), playerTeam2.getName(), minutes);
-                                                    })
-                                            )
-                                    )
-                            )
-                    )
-            )
-            .then(Commands.literal("claimManager")
-                .then(Commands.literal("getClaimAtPosition")
-                        .executes(ctx -> {
-                            ServerPlayer player = ctx.getSource().getPlayerOrException();
-
-                            ChunkPos chunkPos = player.chunkPosition();
-                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
-
-                            if (claim == null) {
-                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
-                                return 0;
-                            }
-
-                            ctx.getSource().sendSuccess(() ->
-                                    Component.literal("Claim: [" + claim + "]"), false);
-
-                            return 1;
-                        })
-
-                )
-                .then(Commands.literal("setAdminChunk")
-                        .then(Commands.argument("isAdmin", BoolArgumentType.bool())
+                .then(Commands.literal("claimManager")
+                        .then(Commands.literal("getClaimAtPosition")
                                 .executes(ctx -> {
                                     ServerPlayer player = ctx.getSource().getPlayerOrException();
-                                    boolean isAdmin = BoolArgumentType.getBool(ctx, "isAdmin");
 
                                     ChunkPos chunkPos = player.chunkPosition();
                                     RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
@@ -332,313 +311,417 @@ public class RecruitsAdminCommands {
                                         return 0;
                                     }
 
-                                    claim.setAdminClaim(isAdmin);
                                     ctx.getSource().sendSuccess(() ->
-                                            Component.literal("Claim [" + claim + "] is now set to admin = " + isAdmin), false);
-                                    ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(ctx.getSource().getLevel(), claim);
+                                            Component.literal("Claim: [" + claim + "]"), false);
+
+                                    return 1;
+                                })
+
+                        )
+                        .then(Commands.literal("setAdminChunk")
+                                .then(Commands.argument("isAdmin", BoolArgumentType.bool())
+                                        .executes(ctx -> {
+                                            ServerPlayer player = ctx.getSource().getPlayerOrException();
+                                            boolean isAdmin = BoolArgumentType.getBool(ctx, "isAdmin");
+
+                                            ChunkPos chunkPos = player.chunkPosition();
+                                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
+
+                                            if (claim == null) {
+                                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
+                                                return 0;
+                                            }
+
+                                            claim.setAdminClaim(isAdmin);
+                                            ctx.getSource().sendSuccess(() ->
+                                                    Component.literal("Claim [" + claim + "] is now set to admin = " + isAdmin), false);
+                                            ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(ctx.getSource().getLevel(), claim);
+                                            return 1;
+                                        })
+                                )
+                        )
+                        .then(Commands.literal("setHealth")
+                                .then(Commands.argument("amount", IntegerArgumentType.integer())
+                                        .executes(ctx -> {
+                                            ServerPlayer player = ctx.getSource().getPlayerOrException();
+                                            int amount = IntegerArgumentType.getInteger(ctx, "amount");
+
+                                            ChunkPos chunkPos = player.chunkPosition();
+                                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
+
+                                            if (claim == null) {
+                                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
+                                                return 0;
+                                            }
+
+                                            claim.setHealth(amount);
+                                            ctx.getSource().sendSuccess(() ->
+                                                    Component.literal("Claim health was set to " + claim.getHealth()), false);
+                                            ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(ctx.getSource().getLevel(), claim);
+                                            return 1;
+                                        })
+                                )
+                        )
+                        .then(Commands.literal("getHealth")
+                                .executes(ctx -> {
+                                    ServerPlayer player = ctx.getSource().getPlayerOrException();
+
+                                    ChunkPos chunkPos = player.chunkPosition();
+                                    RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
+
+                                    if (claim == null) {
+                                        ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
+                                        return 0;
+                                    }
+
+                                    ctx.getSource().sendSuccess(() ->
+                                            Component.literal(claim + " has " + claim.getHealth() + " health"), false);
+
                                     return 1;
                                 })
                         )
-                )
-                .then(Commands.literal("setHealth")
-                    .then(Commands.argument("amount", IntegerArgumentType.integer())
-                        .executes(ctx -> {
-                            ServerPlayer player = ctx.getSource().getPlayerOrException();
-                            int amount = IntegerArgumentType.getInteger(ctx, "amount");
+                        .then(Commands.literal("setSiege")
+                                .then(Commands.argument("siege", BoolArgumentType.bool())
+                                        .executes(ctx -> {
+                                            ServerPlayer player = ctx.getSource().getPlayerOrException();
+                                            boolean siege = BoolArgumentType.getBool(ctx, "siege");
 
-                            ChunkPos chunkPos = player.chunkPosition();
-                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
+                                            ChunkPos chunkPos = player.chunkPosition();
+                                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
 
-                            if (claim == null) {
-                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
-                                return 0;
-                            }
+                                            if (claim == null) {
+                                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
+                                                return 0;
+                                            }
 
-                            claim.setHealth(amount);
-                            ctx.getSource().sendSuccess(() ->
-                                    Component.literal("Claim health was set to " + claim.getHealth()), false);
-                            ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(ctx.getSource().getLevel(), claim);
-                            return 1;
-                        })
-                    )
-                )
-                .then(Commands.literal("getHealth")
-                        .executes(ctx -> {
-                            ServerPlayer player = ctx.getSource().getPlayerOrException();
-
-                            ChunkPos chunkPos = player.chunkPosition();
-                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
-
-                            if (claim == null) {
-                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
-                                return 0;
-                            }
-
-                            ctx.getSource().sendSuccess(() ->
-                                    Component.literal(claim + " has " + claim.getHealth() + " health"), false);
-
-                            return 1;
-                        })
-                )
-                .then(Commands.literal("setSiege")
-                        .then(Commands.argument("siege", BoolArgumentType.bool())
-                            .executes(ctx -> {
-                                ServerPlayer player = ctx.getSource().getPlayerOrException();
-                                boolean siege = BoolArgumentType.getBool(ctx, "siege");
-
-                                ChunkPos chunkPos = player.chunkPosition();
-                                RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
-
-                                if (claim == null) {
-                                    ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
-                                    return 0;
-                                }
-
-                                claim.setUnderSiege(siege, ctx.getSource().getLevel());
-                                if (!claim.isUnderSiege) {
-                                    claim.setSiegeSpeedPercent(0F);
-                                }
-                                ctx.getSource().sendSuccess(() ->
-                                        Component.literal("Claim [" + claim + "] is setSiege= " + claim.isUnderSiege), false);
-                                ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(ctx.getSource().getLevel(), claim);
-                                return 1;
-                            })
+                                            claim.setUnderSiege(siege, ctx.getSource().getLevel());
+                                            if (!claim.isUnderSiege) {
+                                                claim.setSiegeSpeedPercent(0F);
+                                            }
+                                            ctx.getSource().sendSuccess(() ->
+                                                    Component.literal("Claim [" + claim + "] is setSiege= " + claim.isUnderSiege), false);
+                                            ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(ctx.getSource().getLevel(), claim);
+                                            return 1;
+                                        })
+                                )
                         )
-                )
-                .then(Commands.literal("deleteClaim")
-                        .executes(ctx -> {
-                            ServerPlayer player = ctx.getSource().getPlayerOrException();
+                        .then(Commands.literal("setFaction")
+                                .then(Commands.argument("faction", TeamArgument.team())
+                                        .executes(ctx -> {
+                                            ServerPlayer player = ctx.getSource().getPlayerOrException();
 
-                            ChunkPos chunkPos = player.chunkPosition();
-                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
+                                            ChunkPos chunkPos = player.chunkPosition();
+                                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
 
-                            if (claim == null) {
-                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
-                                return 0;
-                            }
+                                            if (claim == null) {
+                                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
+                                                return 0;
+                                            }
 
-                            ClaimEvents.recruitsClaimManager.removeClaim(ctx.getSource().getLevel(), claim.getUUID());
+                                            PlayerTeam playerTeam = TeamArgument.getTeam(ctx, "faction");
+                                            RecruitsFaction faction = FactionEvents.recruitsFactionManager.getFactionByStringID(playerTeam.getName());
 
-                            ctx.getSource().sendSuccess(() ->
-                                    Component.literal("Claim [" + claim + "] is now deleted."), false);
-                            return 1;
-                        })
+                                            if (faction == null) {
+                                                ctx.getSource().sendFailure(Component.literal("No Faction found!").withStyle(ChatFormatting.RED));
+                                                return 0;
+                                            }
 
-                )
-                .then(Commands.literal("setBlockBreaking")
-                    .then(Commands.argument("true/false", BoolArgumentType.bool())
-                        .executes(ctx -> {
-                            ServerPlayer player = ctx.getSource().getPlayerOrException();
-                            boolean should = BoolArgumentType.getBool(ctx, "true/false");
+                                            claim.setOwnerFaction(faction);
 
-                            ChunkPos chunkPos = player.chunkPosition();
-                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
+                                            ctx.getSource().sendSuccess(() ->
+                                                    Component.literal("Claim [" + claim + "] is now owned by faction " + faction.getTeamDisplayName()), false);
+                                            ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(ctx.getSource().getLevel(), claim);
+                                            return 1;
+                                        })
+                                )
+                        )
+                        .then(Commands.literal("setOwner")
+                                .then(Commands.argument("owner", ScoreHolderArgument.scoreHolders()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS)
+                                        .executes(ctx -> {
+                                            ServerPlayer player = ctx.getSource().getPlayerOrException();
+                                            ServerLevel level = ctx.getSource().getLevel();
 
-                            if (claim == null) {
-                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
-                                return 0;
-                            }
+                                            ChunkPos chunkPos = player.chunkPosition();
+                                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
 
-                            claim.setBlockBreakingAllowed(should);
+                                            if (claim == null) {
+                                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
+                                                return 0;
+                                            }
 
-                            ctx.getSource().sendSuccess(() ->
-                                    Component.literal("Claim [" + claim + "] has now block breaking = " + should), false);
-                            ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(ctx.getSource().getLevel(), claim);
-                            return 1;
-                        })
-                    )
-                )
-                .then(Commands.literal("setBlockPlacing")
-                    .then(Commands.argument("true/false", BoolArgumentType.bool())
-                        .executes(ctx -> {
-                            ServerPlayer player = ctx.getSource().getPlayerOrException();
-                            boolean should = BoolArgumentType.getBool(ctx, "true/false");
+                                            Collection<String> ownerNames = ScoreHolderArgument.getNamesWithDefaultWildcard(ctx, "owner");
+                                            String ownerName = ownerNames.stream().findFirst().orElse(null);
 
-                            ChunkPos chunkPos = player.chunkPosition();
-                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
+                                            if (ownerName == null) {
+                                                ctx.getSource().sendFailure(Component.literal("No owner found!").withStyle(ChatFormatting.RED));
+                                                return 0;
+                                            }
 
-                            if (claim == null) {
-                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
-                                return 0;
-                            }
+                                            // Faction + UUID des neuen Owners über die Mitgliederlisten der Factions auflösen
+                                            // (funktioniert unabhängig davon, ob der Spieler online ist).
+                                            RecruitsFaction faction = null;
+                                            RecruitsPlayerInfo memberInfo = null;
 
-                            claim.setBlockPlacementAllowed(should);
+                                            for (RecruitsFaction f : FactionEvents.recruitsFactionManager.getFactions()) {
+                                                for (RecruitsPlayerInfo member : f.getMembers()) {
+                                                    if (member.getName().equalsIgnoreCase(ownerName)) {
+                                                        faction = f;
+                                                        memberInfo = member;
+                                                        break;
+                                                    }
+                                                }
+                                                if (faction != null) break;
+                                            }
 
-                            ctx.getSource().sendSuccess(() ->
-                                    Component.literal("Claim [" + claim + "] has now block placing = " + should), false);
-                            ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(ctx.getSource().getLevel(), claim);
-                            return 1;
-                        })
-                    )
-                )
-                .then(Commands.literal("setBlockInteraction")
-                    .then(Commands.argument("true/false", BoolArgumentType.bool())
-                        .executes(ctx -> {
-                            ServerPlayer player = ctx.getSource().getPlayerOrException();
-                            boolean should = BoolArgumentType.getBool(ctx, "true/false");
+                                            if (faction == null || memberInfo == null) {
+                                                ctx.getSource().sendFailure(Component.literal(ownerName + " is not a member of any faction!").withStyle(ChatFormatting.RED));
+                                                return 0;
+                                            }
 
-                            ChunkPos chunkPos = player.chunkPosition();
-                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
+                                            claim.setOwnerFaction(faction);
+                                            claim.setPlayer(new RecruitsPlayerInfo(memberInfo.getUUID(), memberInfo.getName(), faction));
 
-                            if (claim == null) {
-                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
-                                return 0;
-                            }
+                                            ctx.getSource().sendSuccess(() ->
+                                                    Component.literal("Claim [" + claim + "] owner is now " + ownerName), false);
+                                            ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(level, claim);
+                                            return 1;
+                                        })
+                                )
+                        )
+                        .then(Commands.literal("deleteClaim")
+                                .executes(ctx -> {
+                                    ServerPlayer player = ctx.getSource().getPlayerOrException();
 
-                            claim.setBlockInteractionAllowed(should);
+                                    ChunkPos chunkPos = player.chunkPosition();
+                                    RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
 
-                            ctx.getSource().sendSuccess(() ->
-                                    Component.literal("Claim [" + claim + "] has now block interaction = " + should), false);
-                            ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(ctx.getSource().getLevel(), claim);
-                            return 1;
-                        })
-                    )
-                )
-            )
-            .then(Commands.literal("debugManager")
-                .then(Commands.literal("spawnFromEgg")
-                    .then(Commands.argument("Amount", IntegerArgumentType.integer(0))
-                        .executes((context) -> {
-                            int amount = IntegerArgumentType.getInteger(context, "Amount");
-                            ServerPlayer player = context.getSource().getPlayer();
-                            ServerLevel serverLevel = context.getSource().getLevel();
-                            if(player == null) return 0;
-
-                            ItemStack handItem = player.getMainHandItem();
-
-                            if(handItem.getItem() instanceof RecruitsSpawnEgg recruitsSpawnEgg){
-                                BlockPos pos = player.getOnPos();
-                                EntityType<?> entitytype = recruitsSpawnEgg.getType(handItem.getTag());
-                                List<AbstractRecruitEntity> recruitEntities = new ArrayList<>();
-
-                                for(int i = 0; i < amount; i++){
-                                    Entity entity = entitytype.create(serverLevel);
-                                    CompoundTag entityTag = handItem.getTag();
-
-                                    if(entity instanceof AbstractRecruitEntity recruit && entityTag != null) {
-                                        RecruitsSpawnEgg.fillRecruit(recruit, entityTag, pos);
-                                        recruitEntities.add((AbstractRecruitEntity)entity);
-                                    }
-                                }
-
-                                //FormationUtils.squareFormation(player, recruitEntities, pos.getCenter());
-
-                                for(Entity entity : recruitEntities){
-                                    serverLevel.addFreshEntity(entity);
-                                }
-
-                            }
-                            else{
-                                context.getSource().sendFailure(Component.literal("No Spawn Egg found!").withStyle(ChatFormatting.RED));
-                                return 0;
-                            }
-                            return 1;
-                        })
-                    )
-                )
-            )
-            .then(Commands.literal("nobleVillagerManager")
-                .then(Commands.literal("addNobleTrade")
-                    .then(Commands.argument("Resource", ResourceLocationArgument.id())
-                        .then(Commands.argument("MaxUses", IntegerArgumentType.integer())
-                            .then(Commands.argument("VillagerNoble", EntityArgument.entity())
-                                .executes((context) -> {
-                                    Entity entity = EntityArgument.getEntity(context, "VillagerNoble");
-                                    if(entity instanceof VillagerNobleEntity nobleVillager){
-                                        ResourceLocation resourceLocation = ResourceLocationArgument.getId(context, "Resource");
-
-                                        RecruitsHireTrade hireTrade = RecruitsHireTradesRegistry.getByResourceLocation(resourceLocation);
-
-                                        if(hireTrade == null) {
-                                            context.getSource().sendFailure(Component.literal("No Trade for " + resourceLocation + " found!"));
-                                            return 0;
-                                        }
-                                        if(nobleVillager.hasTrade(resourceLocation)){
-                                            nobleVillager.removeTrade(resourceLocation);
-                                        }
-
-                                        int maxUses = IntegerArgumentType.getInteger(context, "MaxUses");
-                                        hireTrade.maxUses = maxUses;
-                                        hireTrade.uses = maxUses;
-                                        nobleVillager.addTrade(hireTrade);
-                                    }
-                                    else{
-                                        context.getSource().sendFailure(Component.literal("Not a Noble Villager."));
+                                    if (claim == null) {
+                                        ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
                                         return 0;
                                     }
-                                    context.getSource().sendSuccess(() -> Component.literal("Trade added!"), false);
+
+                                    ClaimEvents.recruitsClaimManager.removeClaim(ctx.getSource().getLevel(), claim.getUUID());
+
+                                    ctx.getSource().sendSuccess(() ->
+                                            Component.literal("Claim [" + claim + "] is now deleted."), false);
                                     return 1;
                                 })
-                            )
-                        )
-                    )
-                )
-                .then(Commands.literal("refreshAllTrades")
-                        .then(Commands.argument("VillagerNoble", EntityArgument.entity())
-                                .executes((context) -> {
-                                    Entity entity = EntityArgument.getEntity(context, "VillagerNoble");
-                                    if(entity instanceof VillagerNobleEntity nobleVillager){
-                                        List<RecruitsHireTrade> list = nobleVillager.getTrades();
 
-                                        for (RecruitsHireTrade trade : list) {
-                                             trade.uses = trade.maxUses;
-                                        }
+                        )
+                        .then(Commands.literal("setBlockBreaking")
+                                .then(Commands.argument("true/false", BoolArgumentType.bool())
+                                        .executes(ctx -> {
+                                            ServerPlayer player = ctx.getSource().getPlayerOrException();
+                                            boolean should = BoolArgumentType.getBool(ctx, "true/false");
 
-                                        nobleVillager.setTrades(list);
-                                    }
-                                    else{
-                                        context.getSource().sendFailure(Component.literal("Not a Noble Villager."));
-                                        return 0;
-                                    }
-                                    context.getSource().sendSuccess(() -> Component.literal("Trades refreshed!"), false);
-                                    return 1;
-                                })
+                                            ChunkPos chunkPos = player.chunkPosition();
+                                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
+
+                                            if (claim == null) {
+                                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
+                                                return 0;
+                                            }
+
+                                            claim.setBlockBreakingAllowed(should);
+
+                                            ctx.getSource().sendSuccess(() ->
+                                                    Component.literal("Claim [" + claim + "] has now block breaking = " + should), false);
+                                            ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(ctx.getSource().getLevel(), claim);
+                                            return 1;
+                                        })
+                                )
+                        )
+                        .then(Commands.literal("setBlockPlacing")
+                                .then(Commands.argument("true/false", BoolArgumentType.bool())
+                                        .executes(ctx -> {
+                                            ServerPlayer player = ctx.getSource().getPlayerOrException();
+                                            boolean should = BoolArgumentType.getBool(ctx, "true/false");
+
+                                            ChunkPos chunkPos = player.chunkPosition();
+                                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
+
+                                            if (claim == null) {
+                                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
+                                                return 0;
+                                            }
+
+                                            claim.setBlockPlacementAllowed(should);
+
+                                            ctx.getSource().sendSuccess(() ->
+                                                    Component.literal("Claim [" + claim + "] has now block placing = " + should), false);
+                                            ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(ctx.getSource().getLevel(), claim);
+                                            return 1;
+                                        })
+                                )
+                        )
+                        .then(Commands.literal("setBlockInteraction")
+                                .then(Commands.argument("true/false", BoolArgumentType.bool())
+                                        .executes(ctx -> {
+                                            ServerPlayer player = ctx.getSource().getPlayerOrException();
+                                            boolean should = BoolArgumentType.getBool(ctx, "true/false");
+
+                                            ChunkPos chunkPos = player.chunkPosition();
+                                            RecruitsClaim claim = ClaimEvents.recruitsClaimManager.getClaim(chunkPos);
+
+                                            if (claim == null) {
+                                                ctx.getSource().sendFailure(Component.literal("No claim found at your position."));
+                                                return 0;
+                                            }
+
+                                            claim.setBlockInteractionAllowed(should);
+
+                                            ctx.getSource().sendSuccess(() ->
+                                                    Component.literal("Claim [" + claim + "] has now block interaction = " + should), false);
+                                            ClaimEvents.recruitsClaimManager.broadcastClaimUpdateToAll(ctx.getSource().getLevel(), claim);
+                                            return 1;
+                                        })
+                                )
                         )
                 )
-                .then(Commands.literal("levelup")
-                        .then(Commands.argument("VillagerNoble", EntityArgument.entity())
-                                .executes((context) -> {
-                                    Entity entity = EntityArgument.getEntity(context, "VillagerNoble");
-                                    if(entity instanceof VillagerNobleEntity nobleVillager){
-                                        nobleVillager.addTraderProgress(100);
-                                    }
-                                    else{
-                                        context.getSource().sendFailure(Component.literal("Not a Noble Villager."));
-                                        return 0;
-                                    }
-                                    context.getSource().sendSuccess(() -> Component.literal("Leveled up!"), false);
-                                    return 1;
-                                })
+                .then(Commands.literal("debugManager")
+                        .then(Commands.literal("spawnFromEgg")
+                                .then(Commands.argument("Amount", IntegerArgumentType.integer(0))
+                                        .executes((context) -> {
+                                            int amount = IntegerArgumentType.getInteger(context, "Amount");
+                                            ServerPlayer player = context.getSource().getPlayer();
+                                            ServerLevel serverLevel = context.getSource().getLevel();
+                                            if(player == null) return 0;
+
+                                            ItemStack handItem = player.getMainHandItem();
+
+                                            if(handItem.getItem() instanceof RecruitsSpawnEgg recruitsSpawnEgg){
+                                                BlockPos pos = player.getOnPos();
+                                                EntityType<?> entitytype = recruitsSpawnEgg.getType(handItem.getTag());
+                                                List<AbstractRecruitEntity> recruitEntities = new ArrayList<>();
+
+                                                for(int i = 0; i < amount; i++){
+                                                    Entity entity = entitytype.create(serverLevel);
+                                                    CompoundTag entityTag = handItem.getTag();
+
+                                                    if(entity instanceof AbstractRecruitEntity recruit && entityTag != null) {
+                                                        RecruitsSpawnEgg.fillRecruit(recruit, entityTag, pos);
+                                                        recruitEntities.add((AbstractRecruitEntity)entity);
+                                                    }
+                                                }
+
+                                                //FormationUtils.squareFormation(player, recruitEntities, pos.getCenter());
+
+                                                for(Entity entity : recruitEntities){
+                                                    serverLevel.addFreshEntity(entity);
+                                                }
+
+                                            }
+                                            else{
+                                                context.getSource().sendFailure(Component.literal("No Spawn Egg found!").withStyle(ChatFormatting.RED));
+                                                return 0;
+                                            }
+                                            return 1;
+                                        })
+                                )
                         )
                 )
-                .then(Commands.literal("removeNobleTrade")
-                    .then(Commands.argument("Resource", ResourceLocationArgument.id())
-                        .then(Commands.argument("VillagerNoble", EntityArgument.entity())
-                            .executes((context) -> {
-                                Entity entity = EntityArgument.getEntity(context, "VillagerNoble");
+                .then(Commands.literal("nobleVillagerManager")
+                        .then(Commands.literal("addNobleTrade")
+                                .then(Commands.argument("Resource", ResourceLocationArgument.id())
+                                        .then(Commands.argument("MaxUses", IntegerArgumentType.integer())
+                                                .then(Commands.argument("VillagerNoble", EntityArgument.entity())
+                                                        .executes((context) -> {
+                                                            Entity entity = EntityArgument.getEntity(context, "VillagerNoble");
+                                                            if(entity instanceof VillagerNobleEntity nobleVillager){
+                                                                ResourceLocation resourceLocation = ResourceLocationArgument.getId(context, "Resource");
 
-                                if(entity instanceof VillagerNobleEntity nobleVillager){
-                                    ResourceLocation resourceLocation = ResourceLocationArgument.getId(context, "Resource");
+                                                                RecruitsHireTrade hireTrade = RecruitsHireTradesRegistry.getByResourceLocation(resourceLocation);
 
-                                    if(nobleVillager.hasTrade(resourceLocation)){
-                                        nobleVillager.removeTrade(resourceLocation);
-                                        context.getSource().sendSuccess(() -> Component.literal("Trade was removed!"), false);
-                                    }
-                                    else {
-                                        context.getSource().sendFailure(Component.literal("No Trade for " + resourceLocation + " found!"));
-                                        return 0;
-                                    }
-                                }
-                                else{
-                                    context.getSource().sendFailure(Component.literal("Not a Noble Villager."));
-                                    return 0;
-                                }
-                                return 1;
-                            })
+                                                                if(hireTrade == null) {
+                                                                    context.getSource().sendFailure(Component.literal("No Trade for " + resourceLocation + " found!"));
+                                                                    return 0;
+                                                                }
+                                                                if(nobleVillager.hasTrade(resourceLocation)){
+                                                                    nobleVillager.removeTrade(resourceLocation);
+                                                                }
+
+                                                                int maxUses = IntegerArgumentType.getInteger(context, "MaxUses");
+                                                                hireTrade.maxUses = maxUses;
+                                                                hireTrade.uses = maxUses;
+                                                                nobleVillager.addTrade(hireTrade);
+                                                            }
+                                                            else{
+                                                                context.getSource().sendFailure(Component.literal("Not a Noble Villager."));
+                                                                return 0;
+                                                            }
+                                                            context.getSource().sendSuccess(() -> Component.literal("Trade added!"), false);
+                                                            return 1;
+                                                        })
+                                                )
+                                        )
+                                )
                         )
-                    )
+                        .then(Commands.literal("refreshAllTrades")
+                                .then(Commands.argument("VillagerNoble", EntityArgument.entity())
+                                        .executes((context) -> {
+                                            Entity entity = EntityArgument.getEntity(context, "VillagerNoble");
+                                            if(entity instanceof VillagerNobleEntity nobleVillager){
+                                                List<RecruitsHireTrade> list = nobleVillager.getTrades();
+
+                                                for (RecruitsHireTrade trade : list) {
+                                                    trade.uses = trade.maxUses;
+                                                }
+
+                                                nobleVillager.setTrades(list);
+                                            }
+                                            else{
+                                                context.getSource().sendFailure(Component.literal("Not a Noble Villager."));
+                                                return 0;
+                                            }
+                                            context.getSource().sendSuccess(() -> Component.literal("Trades refreshed!"), false);
+                                            return 1;
+                                        })
+                                )
+                        )
+                        .then(Commands.literal("levelup")
+                                .then(Commands.argument("VillagerNoble", EntityArgument.entity())
+                                        .executes((context) -> {
+                                            Entity entity = EntityArgument.getEntity(context, "VillagerNoble");
+                                            if(entity instanceof VillagerNobleEntity nobleVillager){
+                                                nobleVillager.addTraderProgress(100);
+                                            }
+                                            else{
+                                                context.getSource().sendFailure(Component.literal("Not a Noble Villager."));
+                                                return 0;
+                                            }
+                                            context.getSource().sendSuccess(() -> Component.literal("Leveled up!"), false);
+                                            return 1;
+                                        })
+                                )
+                        )
+                        .then(Commands.literal("removeNobleTrade")
+                                .then(Commands.argument("Resource", ResourceLocationArgument.id())
+                                        .then(Commands.argument("VillagerNoble", EntityArgument.entity())
+                                                .executes((context) -> {
+                                                    Entity entity = EntityArgument.getEntity(context, "VillagerNoble");
+
+                                                    if(entity instanceof VillagerNobleEntity nobleVillager){
+                                                        ResourceLocation resourceLocation = ResourceLocationArgument.getId(context, "Resource");
+
+                                                        if(nobleVillager.hasTrade(resourceLocation)){
+                                                            nobleVillager.removeTrade(resourceLocation);
+                                                            context.getSource().sendSuccess(() -> Component.literal("Trade was removed!"), false);
+                                                        }
+                                                        else {
+                                                            context.getSource().sendFailure(Component.literal("No Trade for " + resourceLocation + " found!"));
+                                                            return 0;
+                                                        }
+                                                    }
+                                                    else{
+                                                        context.getSource().sendFailure(Component.literal("Not a Noble Villager."));
+                                                        return 0;
+                                                    }
+                                                    return 1;
+                                                })
+                                        )
+                                )
+                        )
                 )
-            )
         );
         dispatcher.register(literalBuilder);
     }

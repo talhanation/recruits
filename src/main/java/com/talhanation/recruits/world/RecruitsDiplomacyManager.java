@@ -57,6 +57,8 @@ public class RecruitsDiplomacyManager {
         if(notifyPlayers) this.notifyPlayersInTeam(team, otherTeam, relation, level);
 
         this.save(level);
+
+        com.talhanation.recruits.ClaimEvents.onRelationChanged(level, team, otherTeam);
     }
 
     public DiplomacyStatus getRelation(String team, String otherTeam) {

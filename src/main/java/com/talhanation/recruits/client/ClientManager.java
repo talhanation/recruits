@@ -4,6 +4,7 @@ import com.talhanation.recruits.client.gui.worldmap.storage.WorldMapStorageId;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.world.*;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -42,6 +43,48 @@ public class ClientManager {
     @Nullable
     public static RecruitsClaim currentClaim;
     public static boolean configValueIsClaimingAllowed;
+
+    public static final Map<UUID, Component> groupAggroState = new HashMap<>();
+    public static final Map<UUID, Component> groupMoveState = new HashMap<>();
+
+    public static final Map<UUID, Set<String>> groupSpecialStates = new HashMap<>();
+
+    public static void setGroupAggroState(UUID groupUUID, Component state) {
+        if (groupUUID != null) groupAggroState.put(groupUUID, state);
+    }
+
+    public static void setGroupMoveState(UUID groupUUID, Component state) {
+        if (groupUUID != null) groupMoveState.put(groupUUID, state);
+    }
+
+    public static Component getGroupAggroState(UUID groupUUID) {
+        return groupUUID == null ? null : groupAggroState.get(groupUUID);
+    }
+
+    public static Component getGroupMoveState(UUID groupUUID) {
+        return groupUUID == null ? null : groupMoveState.get(groupUUID);
+    }
+
+    public static void addGroupSpecialState(UUID groupUUID, String key) {
+        if (groupUUID == null || key == null) return;
+        groupSpecialStates.computeIfAbsent(groupUUID, k -> new LinkedHashSet<>()).add(key);
+        saveSpecialStates();
+    }
+
+    public static void removeGroupSpecialState(UUID groupUUID, String key) {
+        if (groupUUID == null || key == null) return;
+        Set<String> set = groupSpecialStates.get(groupUUID);
+        if (set != null) {
+            set.remove(key);
+            if (set.isEmpty()) groupSpecialStates.remove(groupUUID);
+            saveSpecialStates();
+        }
+    }
+
+    public static Set<String> getGroupSpecialStates(UUID groupUUID) {
+        if (groupUUID == null) return java.util.Collections.emptySet();
+        return groupSpecialStates.getOrDefault(groupUUID, java.util.Collections.emptySet());
+    }
     public static boolean configFogOfWarEnabled;
 
     public static Map<String, RecruitsRoute> routesMap = new HashMap<>();
@@ -173,5 +216,55 @@ public class ClientManager {
 
     private static File getRoutesDirectory() {
         return new File(Minecraft.getInstance().gameDirectory, "recruits/routes/" + WorldMapStorageId.detectCurrent());
+    }
+
+    private static File getSpecialStatesFile() {
+        File dir = new File(Minecraft.getInstance().gameDirectory, "recruits/groupstates/" + WorldMapStorageId.detectCurrent());
+        if (!dir.exists()) dir.mkdirs();
+        return new File(dir, "special_states.txt");
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static void loadSpecialStates() {
+        groupSpecialStates.clear();
+        File file = getSpecialStatesFile();
+        if (!file.exists()) return;
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
+                int eq = line.indexOf('=');
+                if (eq <= 0) continue;
+                try {
+                    UUID uuid = UUID.fromString(line.substring(0, eq).trim());
+                    String[] keys = line.substring(eq + 1).split(",");
+                    Set<String> set = new LinkedHashSet<>();
+                    for (String k : keys) {
+                        String key = k.trim();
+                        if (!key.isEmpty()) set.add(key);
+                    }
+                    if (!set.isEmpty()) groupSpecialStates.put(uuid, set);
+                } catch (IllegalArgumentException ignored) {
+                    // skip malformed line
+                }
+            }
+        } catch (IOException e) {
+            // start with empty map
+        }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static void saveSpecialStates() {
+        File file = getSpecialStatesFile();
+        try (java.io.BufferedWriter writer = new java.io.BufferedWriter(new java.io.FileWriter(file))) {
+            for (Map.Entry<UUID, Set<String>> entry : groupSpecialStates.entrySet()) {
+                if (entry.getValue().isEmpty()) continue;
+                writer.write(entry.getKey().toString() + "=" + String.join(",", entry.getValue()));
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            // could not save
+        }
     }
 }

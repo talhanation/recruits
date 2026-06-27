@@ -49,6 +49,8 @@ public class DropDownMenu<T> extends AbstractWidget {
 
         guiGraphics.drawCenteredString(Minecraft.getInstance().font, getSelectedText(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, displayColor);
 
+        renderArrow(guiGraphics, this.getX() + this.width - 10, this.getY() + this.height / 2, isOpen, displayColor);
+
         if (isOpen) {
             for (int i = 0; i < options.size(); i++) {
                 int optionY = this.getY() + this.height + i * optionHeight;
@@ -69,6 +71,18 @@ public class DropDownMenu<T> extends AbstractWidget {
     @Override
     public void onClick(double mouseX, double mouseY) {
         // Do not use
+    }
+
+    public static void renderArrow(GuiGraphics guiGraphics, int cx, int cy, boolean pointingUp, int color) {
+        int halfW = 3;     // half width of the triangle base (base = 7px)
+        int rows = halfW + 1;
+        int top = cy - 2;  // vertically center the ~4px tall glyph
+
+        for (int r = 0; r < rows; r++) {
+            int w = pointingUp ? r : (halfW - r);
+            int yRow = top + r;
+            guiGraphics.fill(cx - w, yRow, cx + w + 1, yRow + 1, color);
+        }
     }
 
     public void onMouseClick(double mouseX, double mouseY) {

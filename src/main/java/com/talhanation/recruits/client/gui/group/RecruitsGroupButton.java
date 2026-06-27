@@ -1,6 +1,7 @@
 package com.talhanation.recruits.client.gui.group;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.world.RecruitsGroup;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -104,5 +105,47 @@ public class RecruitsGroupButton extends ExtendedButton {
         guiGraphics.pose().scale(scale, scale, 1.0f);
         guiGraphics.drawString(mc.font, Language.getInstance().getVisualOrder(FormattedText.of(groupCount)), 0, 0, getFGColor(), false);
         guiGraphics.pose().popPose();
+
+        Component aggroState = ClientManager.getGroupAggroState(group.getUUID());
+        Component moveState = ClientManager.getGroupMoveState(group.getUUID());
+        java.util.Set<String> specialStates = ClientManager.getGroupSpecialStates(group.getUUID());
+
+        float infoScale = 0.5f;
+        int lineY = this.getY() + this.height + 1;
+
+        if (aggroState != null) {
+            lineY = drawStateLine(guiGraphics, mc, aggroState, infoScale, lineY, 0xFFB0B0B0);
+        }
+        if (moveState != null) {
+            lineY = drawStateLine(guiGraphics, mc, moveState, infoScale, lineY, 0xFF9AC0E0);
+        }
+        for (String key : specialStates) {
+            Component label = specialStateLabel(key);
+            if (label != null) {
+                lineY = drawStateLine(guiGraphics, mc, label, infoScale, lineY, 0xFFE0534A);
+            }
+        }
+    }
+
+    private static Component specialStateLabel(String key) {
+        return switch (key) {
+            case "hold_fire" -> Component.translatableWithFallback("gui.recruits.command.state.holding_fire", "Holding Fire");
+            case "strategic_fire" -> Component.translatableWithFallback("gui.recruits.command.state.strategic_fire", "Strategic Fire");
+            case "shields_up" -> Component.translatableWithFallback("gui.recruits.command.state.shields_up", "Shields Up");
+            default -> null;
+        };
+    }
+
+    private int drawStateLine(GuiGraphics guiGraphics, Minecraft mc, Component text, float scale, int y, int color) {
+        int textWidth = (int)(mc.font.width(text) * scale);
+        int textX = this.getX() + (this.width - textWidth) / 2;
+
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(textX, y, 0);
+        guiGraphics.pose().scale(scale, scale, 1.0f);
+        guiGraphics.drawString(mc.font, text.getVisualOrderText(), 0, 0, color, false);
+        guiGraphics.pose().popPose();
+
+        return y + (int)(mc.font.lineHeight * scale) + 1;
     }
 }

@@ -56,11 +56,11 @@ public class WorldMapScreen extends Screen {
     private boolean isDragging = false;
     private boolean initializedOnce = false;
     private ChunkPos hoveredChunk = null;
-    ChunkPos selectedChunk = null;
+    public ChunkPos selectedChunk = null;
     private int clickedBlockX = 0, clickedBlockZ = 0;
     private int hoverBlockX = 0, hoverBlockZ = 0;
-    private WorldMapContextMenu contextMenu;
-    RecruitsClaim selectedClaim = null;
+    public WorldMapContextMenu contextMenu;
+    public RecruitsClaim selectedClaim = null;
     private ClaimInfoMenu claimInfoMenu;
     public RecruitsRoute selectedRoute;
 
@@ -72,9 +72,9 @@ public class WorldMapScreen extends Screen {
     int snapshotWorldX = 0;
     int snapshotWorldZ = 0;
 
-    private RouteNamePopup routeNamePopup;
-    private RouteEditPopup routeEditPopup;
-    private WaypointEditPopup waypointEditPopup;
+    public RouteNamePopup routeNamePopup;
+    public RouteEditPopup routeEditPopup;
+    public WaypointEditPopup waypointEditPopup;
     private int cachedReadoutBlockX = Integer.MIN_VALUE;
     private int cachedReadoutBlockZ = Integer.MIN_VALUE;
     private int cachedReadoutScaleTenths = Integer.MIN_VALUE;

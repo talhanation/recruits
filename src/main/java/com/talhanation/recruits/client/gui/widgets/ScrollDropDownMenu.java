@@ -1,6 +1,6 @@
 package com.talhanation.recruits.client.gui.widgets;
 
-import com.mojang.blaze3d.systems.RenderSystem; 
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -58,6 +58,8 @@ public class ScrollDropDownMenu<T> extends AbstractWidget {
         }
 
         guiGraphics.drawCenteredString(Minecraft.getInstance().font, getSelectedText(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, displayColor);
+
+        DropDownMenu.renderArrow(guiGraphics, this.getX() + this.width - 10, this.getY() + this.height / 2, isOpen, displayColor);
 
         if (isOpen) {
             int dropdownHeight = maxVisibleOptions * optionHeight;
@@ -172,7 +174,7 @@ public class ScrollDropDownMenu<T> extends AbstractWidget {
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if(!visible) return false;
-        
+
         if (isScrolling) {
             isScrolling = false;
             return true;

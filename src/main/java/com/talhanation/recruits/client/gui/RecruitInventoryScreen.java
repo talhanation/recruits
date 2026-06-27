@@ -115,13 +115,13 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         this.clearWidgets();
         //PASSIVE
         ExtendedButton buttonPassive = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 0, 80, 20, TEXT_PASSIVE,
-            button -> {
-                this.aggro = recruit.getState();
-                if (this.aggro != 3) {
-                    this.aggro = 3;
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(aggro, recruit.getUUID()));
-                }
-            });
+                button -> {
+                    this.aggro = recruit.getState();
+                    if (this.aggro != 3) {
+                        this.aggro = 3;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(aggro, recruit.getUUID()));
+                    }
+                });
         buttonPassive.setTooltip(Tooltip.create(TOOLTIP_PASSIVE));
         addRenderableWidget(buttonPassive);
 
@@ -174,10 +174,10 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
 
         //MOUNT
         ExtendedButton buttonMount =  new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 5, 80, 20, TEXT_MOUNT,
-            button -> {
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntityGui(recruit.getUUID(), false));
-            }
-            );
+                button -> {
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntityGui(recruit.getUUID(), false));
+                }
+        );
         buttonMount.setTooltip(Tooltip.create(TOOLTIP_MOUNT));
         buttonMount.active = !(recruit instanceof VillagerNobleEntity);
         addRenderableWidget(buttonMount);
@@ -282,11 +282,11 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         this.clearUpkeep.active = this.recruit.hasUpkeep();
 
         //LISTEN
-         leftListenButton =  new ExtendedButton(leftPos + 77, topPos + 100, 12, 12, Component.literal("<"), button -> {
+        leftListenButton =  new ExtendedButton(leftPos + 77, topPos + 100, 12, 12, Component.literal("<"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
-         });
-         leftListenButton.active = !(recruit instanceof VillagerNobleEntity);
-         addRenderableWidget(leftListenButton);
+        });
+        leftListenButton.active = !(recruit instanceof VillagerNobleEntity);
+        addRenderableWidget(leftListenButton);
 
         rightListenButton = new ExtendedButton(leftPos + 77 + 81, topPos + 100, 12, 12, Component.literal(">"), button -> {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
@@ -359,11 +359,11 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
             this.currentGroup = ClientManager.getGroup(recruit.getGroup());
 
             groupSelectionDropDownMenu = new ScrollDropDownMenu<>(currentGroup, leftPos + 77,topPos + 114,  93, 12, ClientManager.groups,
-                RecruitsGroup::getName,
-                (selected) ->{
-                    this.currentGroup = selected;
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(currentGroup.getUUID(), recruit.getUUID()));
-                }
+                    RecruitsGroup::getName,
+                    (selected) ->{
+                        this.currentGroup = selected;
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(currentGroup.getUUID(), recruit.getUUID()));
+                    }
             );
             groupSelectionDropDownMenu.setBgFillSelected(FastColor.ARGB32.color(255, 139, 139, 139));
             groupSelectionDropDownMenu.visible = Minecraft.getInstance().player.getUUID().equals(recruit.getOwnerUUID());
@@ -482,10 +482,11 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         ItemStack profItem1 = null;
         ItemStack profItem2 = null;
 
-        if (this instanceof IVillagerWorker worker){
+        if (this.recruit instanceof IVillagerWorker worker) {
             profItem1 = worker.getCustomProfessionItem();
+            profItem2 = worker.getCustomProfessionItem2();
         }
-        if(this.recruit instanceof HorsemanEntity){
+        else if(this.recruit instanceof HorsemanEntity){
             profItem1 = Items.IRON_SWORD.getDefaultInstance();
             profItem2 = Items.SADDLE.getDefaultInstance();
         }
@@ -496,9 +497,6 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         else if(this.recruit instanceof RecruitShieldmanEntity){
             profItem1 = Items.IRON_SWORD.getDefaultInstance();
             profItem2 = Items.SHIELD.getDefaultInstance();
-        }
-        else if(this.recruit instanceof RecruitEntity){
-            profItem1 = Items.IRON_SWORD.getDefaultInstance();
         }
         else if(this.recruit instanceof BowmanEntity){
             profItem1 = Items.BOW.getDefaultInstance();
@@ -516,6 +514,9 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         }
         else if(this.recruit instanceof CaptainEntity){
             profItem1 = SmallShips.getSmallShipsItem();
+        }
+        else if(this.recruit instanceof RecruitEntity){
+            profItem1 = Items.IRON_SWORD.getDefaultInstance();
         }
         guiGraphics.pose().pushPose();
         guiGraphics.pose().scale(0.8F, 0.8F, 1F);

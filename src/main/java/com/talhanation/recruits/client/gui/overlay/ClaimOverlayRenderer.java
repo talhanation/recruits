@@ -42,7 +42,7 @@ public class ClaimOverlayRenderer {
         guiGraphics.fill(x, y, x + panelWidth, y + panelHeight, backgroundColor);
 
         if (claim.isUnderSiege) {
-            renderSiegeContent(guiGraphics, claim, x, y, panelWidth, panelHeight, font, alpha);
+            renderSiegeContent(guiGraphics, claim, x, y, panelWidth, panelHeight, font, alpha, state);
         } else {
             if (state == ClaimOverlayManager.OverlayState.FULL) {
                 renderNormalFullContent(guiGraphics, claim, x, y, panelWidth, panelHeight, font, alpha);
@@ -105,7 +105,7 @@ public class ClaimOverlayRenderer {
         guiGraphics.drawString(font, displayText, textX, textY, textColor, false);
     }
 
-    private void renderSiegeContent(GuiGraphics guiGraphics, RecruitsClaim claim, int x, int y, int width, int height, Font font, float alpha) {
+    private void renderSiegeContent(GuiGraphics guiGraphics, RecruitsClaim claim, int x, int y, int width, int height, Font font, float alpha, ClaimOverlayManager.OverlayState state) {
         int textAlpha = (int)(0xFF * alpha);
         int normalTextColor = (textAlpha << 24) | 0xFFFFFF;
 
@@ -152,6 +152,58 @@ public class ClaimOverlayRenderer {
 
         int iconSize = 18;
         guiGraphics.blit(SIEGE_ICON, x + width / 2 - iconSize / 2, y + 14, 0, 0, iconSize, iconSize, iconSize, iconSize);
+
+        if (state != ClaimOverlayManager.OverlayState.FULL) return;
+
+        int miniSize = bannerSize / 2;   // half the size of the main banner
+        int miniGap = 2;
+
+
+        java.util.List<RecruitsFaction> otherDefenders = new java.util.ArrayList<>();
+        for (RecruitsFaction f : claim.defendingParties) {
+            if (f == null) continue;
+            if (claim.getOwnerFaction() != null && claim.getOwnerFaction().equalsFaction(f)) continue;
+            otherDefenders.add(f);
+        }
+        renderPartyBannerRow(guiGraphics, otherDefenders, x + offsetA, bannerY + yOffset, miniGap, false, width);
+
+        if (claim.attackingParties.size() > 1) {
+            java.util.List<RecruitsFaction> otherAttackers =
+                    new java.util.ArrayList<>(claim.attackingParties.subList(1, claim.attackingParties.size()));
+            renderPartyBannerRow(guiGraphics, otherAttackers, x + width - offsetB, bannerY + yOffset, 10, true, width);
+        }
+    }
+    int offsetA = 19;
+    int offsetB = 39;
+    int yOffset = -5;
+    int miniBannerScale = 8;
+    private void renderPartyBannerRow(GuiGraphics guiGraphics, java.util.List<RecruitsFaction> factions, int anchorX, int rowY, int gap, boolean rightAligned, int width) {
+        if (factions == null || factions.isEmpty()) return;
+
+        int maxPerSide = 3;
+        int count = Math.min(factions.size(), maxPerSide);
+
+        for (int i = 0; i < count; i++) {
+            BannerRenderer banner = getBannerRenderer(factions.get(i));
+            if (banner == null) continue;
+
+            int bx = rightAligned
+                    ? anchorX - i * gap
+                    : anchorX + i * gap;
+
+            banner.renderBanner(guiGraphics, bx, rowY, 14, 14, miniBannerScale);
+        }
+
+        int remaining = factions.size() - count;
+        if (remaining > 0) {
+            String more = "+" + remaining;
+            Font font = Minecraft.getInstance().font;
+            int textY = rowY + (12 - 9) / 2;
+            int tx = rightAligned
+                    ? anchorX - count * (12 + gap) - font.width(more)
+                    : anchorX + count * (12 + gap);
+            guiGraphics.drawString(font, more, tx, textY, 0xFFAAAAAA, false);
+        }
     }
 
     private String truncateText(Font font, String text, int maxWidth) {

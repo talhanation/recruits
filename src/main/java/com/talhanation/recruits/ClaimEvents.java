@@ -355,6 +355,44 @@ public class ClaimEvents {
         return (float) attackerCount / (float) defenderCount;
     }
 
+    public static void onRelationChanged(ServerLevel level, String factionA, String factionB) {
+        if (level == null || recruitsClaimManager == null) return;
+
+        ServerLevel claimLevel = (server != null) ? server.overworld() : level;
+
+        ClaimEvents instance = new ClaimEvents();
+
+        for (RecruitsClaim claim : recruitsClaimManager.getAllClaims()) {
+            if (claim == null || claim.getOwnerFaction() == null) continue;
+
+            String owner = claim.getOwnerFactionStringID();
+
+            boolean ownerAffected = owner.equals(factionA) || owner.equals(factionB);
+            boolean participantAffected = involvesFaction(claim, factionA) || involvesFaction(claim, factionB);
+            if (!ownerAffected && !participantAffected) continue;
+
+            List<LivingEntity> entities = ClaimUtil.getLivingEntitiesInClaim(claimLevel, claim, LivingEntity::isAlive);
+            List<LivingEntity> attackers = new ArrayList<>();
+            List<LivingEntity> defenders = new ArrayList<>();
+
+            instance.classifyEntities(entities, claim, attackers, defenders);
+            instance.updateParties(claim, attackers, defenders);
+
+            recruitsClaimManager.broadcastClaimUpdateToAll(claimLevel, claim);
+        }
+    }
+
+    private static boolean involvesFaction(RecruitsClaim claim, String factionId) {
+        if (factionId == null) return false;
+        for (RecruitsFaction f : claim.attackingParties) {
+            if (f != null && factionId.equals(f.getStringID())) return true;
+        }
+        for (RecruitsFaction f : claim.defendingParties) {
+            if (f != null && factionId.equals(f.getStringID())) return true;
+        }
+        return false;
+    }
+
     private void takeOverVillager(ServerLevel level, RecruitsClaim claim, LivingEntity livingEntity) {
         if(!(livingEntity instanceof Villager || livingEntity instanceof VillagerNobleEntity)) return;
         if(!livingEntity.isAlive()) return;
@@ -528,5 +566,4 @@ public class ClaimEvents {
             }
         }
     }
-
 }

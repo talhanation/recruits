@@ -1,6 +1,7 @@
 package com.talhanation.recruits.client.gui.commandscreen;
 
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.CommandScreen;
 import com.talhanation.recruits.client.gui.group.RecruitsCommandButton;
 import com.talhanation.recruits.client.gui.group.RecruitsFormationButton;
@@ -41,6 +42,10 @@ public class MovementCategory implements ICommandCategory {
     private static final MutableComponent TEXT_FORMATION_MOVEMENT = Component.translatable("gui.recruits.command.text.formation_movement");
     private static final MutableComponent TEXT_FORMATION_NONE = Component.translatable("gui.recruits.command.text.formation_none");
     private static final MutableComponent TEXT_HOLD_MY_POS = Component.translatable("gui.recruits.command.text.holdMyPos");
+
+    private static final Component DISPLAY_HOLDING = Component.translatableWithFallback("gui.recruits.command.state.holding", "Holding");
+    private static final Component DISPLAY_FOLLOWING = Component.translatableWithFallback("gui.recruits.command.state.following", "Following");
+    private static final Component DISPLAY_WANDERING = Component.translatableWithFallback("gui.recruits.command.state.wandering", "Wandering");
     private static final MutableComponent TOOLTIP_MOVE = Component.translatable("gui.recruits.command.tooltip.move_hold");
     private static final MutableComponent TOOLTIP_FORWARD = Component.translatable("gui.recruits.command.tooltip.forward");
     private static final MutableComponent TOOLTIP_FORMATION = Component.translatable("gui.recruits.command.tooltip.formation");
@@ -73,6 +78,9 @@ public class MovementCategory implements ICommandCategory {
                 button -> {
                     screen.sendMovementCommandToServer(6);
                     screen.sendCommandInChat(6);
+                    for (RecruitsGroup group : groups) {
+                        if (!group.isDisabled()) ClientManager.setGroupMoveState(group.getUUID(), DISPLAY_HOLDING);
+                    }
                 });
         moveButton.setTooltip(Tooltip.create(TOOLTIP_MOVE));
         moveButton.active = isOneGroupActive && screen.rayBlockPos != null;
@@ -93,6 +101,9 @@ public class MovementCategory implements ICommandCategory {
                 button -> {
                     screen.sendMovementCommandToServer(7);
                     screen.sendCommandInChat(7);
+                    for (RecruitsGroup group : groups) {
+                        if (!group.isDisabled()) ClientManager.setGroupMoveState(group.getUUID(), DISPLAY_HOLDING);
+                    }
                 });
         forwardButton.setTooltip(Tooltip.create(TOOLTIP_FORWARD));
         forwardButton.active = isOneGroupActive;
@@ -112,6 +123,9 @@ public class MovementCategory implements ICommandCategory {
                         screen.sendMovementCommandToServer(1);
                     }
                     screen.sendCommandInChat(1);
+                    for (RecruitsGroup group : groups) {
+                        if (!group.isDisabled()) ClientManager.setGroupMoveState(group.getUUID(), DISPLAY_FOLLOWING);
+                    }
                 });
         followButton.setTooltip(Tooltip.create(TOOLTIP_FOLLOW));
         followButton.active = isOneGroupActive;
@@ -122,6 +136,9 @@ public class MovementCategory implements ICommandCategory {
                 button -> {
                     screen.sendMovementCommandToServer(0);
                     screen.sendCommandInChat(0);
+                    for (RecruitsGroup group : groups) {
+                        if (!group.isDisabled()) ClientManager.setGroupMoveState(group.getUUID(), DISPLAY_WANDERING);
+                    }
 
                 });
         wanderButton.setTooltip(Tooltip.create(TOOLTIP_WANDER));
@@ -133,6 +150,9 @@ public class MovementCategory implements ICommandCategory {
                 button -> {
                     screen.sendMovementCommandToServer(3);
                     screen.sendCommandInChat(3);
+                    for (RecruitsGroup group : groups) {
+                        if (!group.isDisabled()) ClientManager.setGroupMoveState(group.getUUID(), DISPLAY_HOLDING);
+                    }
 
                 });
         backToPosButton.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_POS));
@@ -144,6 +164,9 @@ public class MovementCategory implements ICommandCategory {
                 button -> {
                     screen.sendMovementCommandToServer(2);
                     screen.sendCommandInChat(2);
+                    for (RecruitsGroup group : groups) {
+                        if (!group.isDisabled()) ClientManager.setGroupMoveState(group.getUUID(), DISPLAY_HOLDING);
+                    }
                 });
         holdPosButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_POS));
         holdPosButton.active = isOneGroupActive;
@@ -154,6 +177,9 @@ public class MovementCategory implements ICommandCategory {
                 button -> {
                     screen.sendMovementCommandToServer(8);
                     screen.sendCommandInChat(8);
+                    for (RecruitsGroup group : groups) {
+                        if (!group.isDisabled()) ClientManager.setGroupMoveState(group.getUUID(), DISPLAY_HOLDING);
+                    }
                 });
         backwardButton.setTooltip(Tooltip.create(TOOLTIP_BACKWARD));
         backwardButton.active = isOneGroupActive;
