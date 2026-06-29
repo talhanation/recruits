@@ -1,9 +1,10 @@
 {
   "homepage": "https://modrinth.com/mod/villager-recruits/versions",
   "promos": {
-    "1.20.1-recommended": "1.15.1"
+    "1.20.1-recommended": "1.15.2"
   },
   "1.20.1": {
+    "1.15.1": "Improved Target Finder Perforamnace, bug and crash fixes",
     "1.15.1": "Improved World-Map, bug and crash fixes",
     "1.15.0": "Siege Engineer and Treaties. Performance improvements and bug fixes",
     "1.14.2.3": "Claim and Siege Update: fix crash when siege success, fix hud not shooing attacker faction",
