@@ -11,10 +11,7 @@ import java.util.Set;
 public final class OptionalCompatMixinPlugin implements IMixinConfigPlugin {
 
     // Optional compat mixins must not be applied when their target mod is missing.
-    private static final Map<String, String> OPTIONAL_TARGETS = Map.of(
-            "com.talhanation.recruits.mixin.compat.corpse.CorpseEntityAccessor", "de.maxhenkel.corpse.entities.CorpseEntity",
-            "com.talhanation.recruits.mixin.compat.corpse.CorpseRendererMixin", "de.maxhenkel.corpse.entities.CorpseRenderer"
-    );
+    private static final Map<String, String> OPTIONAL_TARGETS = Map.of();
 
     @Override
     public void onLoad(String mixinPackage) {

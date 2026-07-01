@@ -23,8 +23,8 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.block.AbstractSkullBlock;
 import net.minecraft.world.level.block.SkullBlock;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.Map;
 
@@ -70,13 +70,7 @@ public class VillagerRecruitCustomHeadLayer<T extends LivingEntity, M extends En
                 poseStack.scale(f2, -f2, -f2);
                 poseStack.translate(0.0D, 0.0625D, 0.0D);
 
-                GameProfile gameprofile = null;
-                if (itemstack.hasTag()) {
-                    CompoundTag compoundtag = itemstack.getTag();
-                    if (compoundtag.contains("SkullOwner", 10)) {
-                        gameprofile = NbtUtils.readGameProfile(compoundtag.getCompound("SkullOwner"));
-                    }
-                }
+                net.minecraft.world.item.component.ResolvableProfile gameprofile = itemstack.get(net.minecraft.core.component.DataComponents.PROFILE);
 
                 poseStack.translate(-0.5D, 0.0D, -0.5D);
                 SkullBlock.Type skullblock$type = ((AbstractSkullBlock) ((BlockItem) item).getBlock()).getType();

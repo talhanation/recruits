@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
@@ -25,13 +26,13 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 @OnlyIn(Dist.CLIENT)
 public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
-    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/recruit_gui.png" );
+    private static final ResourceLocation RESOURCE_LOCATION = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/gui/recruit_gui.png" );
 
     private static final MutableComponent TEXT_HEALTH = Component.translatable("gui.recruits.inv.health");
     private static final MutableComponent TEXT_LEVEL = Component.translatable("gui.recruits.inv.level");
@@ -119,7 +120,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                     this.aggro = recruit.getState();
                     if (this.aggro != 3) {
                         this.aggro = 3;
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(aggro, recruit.getUUID()));
+                        NetUtils.sendToServer(new MessageAggroGui(aggro, recruit.getUUID()));
                     }
                 });
         buttonPassive.setTooltip(Tooltip.create(TOOLTIP_PASSIVE));
@@ -131,7 +132,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                     this.aggro = recruit.getState();
                     if (this.aggro != 0) {
                         this.aggro = 0;
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(aggro, recruit.getUUID()));
+                        NetUtils.sendToServer(new MessageAggroGui(aggro, recruit.getUUID()));
                     }
                 });
         buttonNeutral.setTooltip(Tooltip.create(TOOLTIP_NEUTRAL));
@@ -143,7 +144,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                     this.aggro = recruit.getState();
                     if (this.aggro != 1) {
                         this.aggro = 1;
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(aggro, recruit.getUUID()));
+                        NetUtils.sendToServer(new MessageAggroGui(aggro, recruit.getUUID()));
                     }
                 });
         buttonAggressive.setTooltip(Tooltip.create(TOOLTIP_AGGRESSIVE));
@@ -156,7 +157,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                     this.aggro = recruit.getState();
                     if (this.aggro != 2) {
                         this.aggro = 2;
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAggroGui(aggro, recruit.getUUID()));
+                        NetUtils.sendToServer(new MessageAggroGui(aggro, recruit.getUUID()));
                     }
                 });
         buttonRaid.setTooltip(Tooltip.create(TOOLTIP_RAID));
@@ -166,7 +167,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         //CLEAR TARGET
         ExtendedButton buttonClearTarget = new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 4, 80, 20, TEXT_CLEAR_TARGET,
                 button -> {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTargetGui(playerInventory.player.getUUID(), recruit.getUUID()));
+                    NetUtils.sendToServer(new MessageClearTargetGui(playerInventory.player.getUUID(), recruit.getUUID()));
                 });
         buttonClearTarget.setTooltip(Tooltip.create(TOOLTIP_CLEAR_TARGET));
         addRenderableWidget(buttonClearTarget);
@@ -175,7 +176,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         //MOUNT
         ExtendedButton buttonMount =  new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 5, 80, 20, TEXT_MOUNT,
                 button -> {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntityGui(recruit.getUUID(), false));
+                    NetUtils.sendToServer(new MessageMountEntityGui(recruit.getUUID(), false));
                 }
         );
         buttonMount.setTooltip(Tooltip.create(TOOLTIP_MOUNT));
@@ -189,7 +190,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                     this.follow = recruit.getFollowState();
                     if (this.follow != 0) {
                         this.follow = 0;
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
+                        NetUtils.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
                     }
                 });
         buttonWander.setTooltip(Tooltip.create(TOOLTIP_WANDER));
@@ -202,7 +203,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                     this.follow = recruit.getFollowState();
                     if (this.follow != 1) {
                         this.follow = 1;
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
+                        NetUtils.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
                     }
                 });
         buttonFollow.setTooltip(Tooltip.create(TOOLTIP_FOLLOW));
@@ -216,7 +217,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                     this.follow = recruit.getFollowState();
                     if (this.follow != 2) {
                         this.follow = 2;
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
+                        NetUtils.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
                     }
                 });
         buttonHoldPos.setTooltip(Tooltip.create(TOOLTIP_HOLD_POS));
@@ -229,7 +230,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                     this.follow = recruit.getFollowState();
                     if (this.follow != 3) {
                         this.follow = 3;
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
+                        NetUtils.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
                     }
                 });
         buttonBackToPos.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_POS));
@@ -242,7 +243,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                     this.follow = recruit.getFollowState();
                     if (this.follow != 4) {
                         this.follow = 4;
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
+                        NetUtils.sendToServer(new MessageFollowGui(follow, recruit.getUUID()));
                     }
                 });
         buttonHoldMyPos.setTooltip(Tooltip.create(TOOLTIP_HOLD_MY_POS));
@@ -255,7 +256,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                     this.follow = recruit.getFollowState();
                     if (this.follow != 4) {
                         this.follow = 4;
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageDismountGui(playerInventory.player.getUUID(), recruit.getUUID()));
+                        NetUtils.sendToServer(new MessageDismountGui(playerInventory.player.getUUID(), recruit.getUUID()));
                     }
                 });
         buttonDismount.setTooltip(Tooltip.create(TOOLTIP_DISMOUNT));
@@ -264,7 +265,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         //BACK TO MOUNT
         ExtendedButton backToMount = addRenderableWidget(new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 6, 80, 20, TEXT_BACK_TO_MOUNT,
                 button -> {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageMountEntityGui(recruit.getUUID(), true));
+                    NetUtils.sendToServer(new MessageMountEntityGui(recruit.getUUID(), true));
                 }
         ));
         backToMount.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_MOUNT));
@@ -274,7 +275,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         //CLEAR UPKEEP
         this.clearUpkeep = addRenderableWidget(new ExtendedButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 6, 80, 20, TEXT_CLEAR_UPKEEP,
                 button -> {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageClearUpkeepGui(recruit.getUUID()));
+                    NetUtils.sendToServer(new MessageClearUpkeepGui(recruit.getUUID()));
                     clearUpkeep.active = false;
                 }
         ));
@@ -283,13 +284,13 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
 
         //LISTEN
         leftListenButton =  new ExtendedButton(leftPos + 77, topPos + 100, 12, 12, Component.literal("<"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
+            NetUtils.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         });
         leftListenButton.active = !(recruit instanceof VillagerNobleEntity);
         addRenderableWidget(leftListenButton);
 
         rightListenButton = new ExtendedButton(leftPos + 77 + 81, topPos + 100, 12, 12, Component.literal(">"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
+            NetUtils.sendToServer(new MessageListen(!recruit.getListen(), recruit.getUUID()));
         });
         rightListenButton.active = !(recruit instanceof VillagerNobleEntity);
         addRenderableWidget(rightListenButton);
@@ -330,7 +331,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                             this.minecraft.setScreen(worker.getSpecialScreen(recruit, getMinecraft().player));
                             return;
                         }
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenSpecialScreen(this.playerInventory.player, recruit.getUUID()));
+                        NetUtils.sendToServer(new MessageOpenSpecialScreen(this.playerInventory.player, recruit.getUUID()));
                         this.onClose();
                     }
             ));
@@ -362,7 +363,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                     RecruitsGroup::getName,
                     (selected) ->{
                         this.currentGroup = selected;
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageGroup(currentGroup.getUUID(), recruit.getUUID()));
+                        NetUtils.sendToServer(new MessageGroup(currentGroup.getUUID(), recruit.getUUID()));
                     }
             );
             groupSelectionDropDownMenu.setBgFillSelected(FastColor.ARGB32.color(255, 139, 139, 139));
@@ -391,9 +392,9 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         return super.mouseClicked(mouseX, mouseY, button);
     }
     @Override
-    public boolean mouseScrolled(double x, double y, double d) {
-        if(groupSelectionDropDownMenu != null) groupSelectionDropDownMenu.mouseScrolled(x,y,d);
-        return super.mouseScrolled(x, y, d);
+    public boolean mouseScrolled(double x, double y, double scrollX, double d) {
+        if(groupSelectionDropDownMenu != null) groupSelectionDropDownMenu.mouseScrolled(x,y,0,d);
+        return super.mouseScrolled(x, y, scrollX, d);
     }
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
@@ -538,6 +539,6 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
 
-        InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, i + 50, j + 82, 30, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.recruit);
+        InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, i + 20, j + 42, i + 80, j + 122, 30, 0.0625F, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.recruit);
     }
 }

@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui.worldmap.claim;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
@@ -72,7 +73,7 @@ public final class WorldMapClaimController {
                         player.getUUID(), player.getName().getString(), ClientManager.ownFaction));
         ClientManager.recruitsClaims.add(newClaim);
         WorldMapClaimIndex.invalidate();
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(newClaim));
+        NetUtils.sendToServer(new MessageUpdateClaim(newClaim));
     }
 
     public void claimChunk(ChunkPos selectedChunk) {
@@ -85,7 +86,7 @@ public final class WorldMapClaimController {
         recalculateCenter(neighborClaim);
         WorldMapClaimIndex.invalidate();
 
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(neighborClaim));
+        NetUtils.sendToServer(new MessageUpdateClaim(neighborClaim));
     }
 
     @Nullable

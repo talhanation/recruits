@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
@@ -16,12 +17,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 import org.lwjgl.glfw.GLFW;
 
 public class MessengerTreatyScreen extends RecruitsScreenBase {
 
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_big.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/gui_big.png");
     private static final int FONT_COLOR_FIELD = FastColor.ARGB32.color(255, 255, 255, 255);
 
     private static final Component TITLE = Component.translatable("gui.recruits.messenger.treaty_title");
@@ -125,7 +126,7 @@ public class MessengerTreatyScreen extends RecruitsScreenBase {
                                 selectedFaction.getTeamLeaderName(),
                                 selectedFaction
                         );
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageSendTreaty(messenger.getUUID(), leaderInfo, durationHours, true));
+                        NetUtils.sendToServer(new MessageSendTreaty(messenger.getUUID(), leaderInfo, durationHours, true));
                         this.onClose();
                     }
                 }

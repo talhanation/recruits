@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
@@ -17,7 +18,7 @@ import net.minecraft.world.entity.player.Player;
 
 public class SiegeEngineerScreen extends RecruitsScreenBase {
 
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_big.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/gui_big.png");
     private static final Component TITLE = Component.translatable("gui.recruits.more_screen.title");
     private static final MutableComponent TEXT_PRIO_CLOSEST_ENEMY = Component.translatable("gui.recruits.inv.text.prioClosestEnemy");
     private static final MutableComponent TOOLTIP_PRIO_CLOSEST_ENEMY = Component.translatable("gui.recruits.inv.tooltip.prioClosestEnemy");
@@ -118,7 +119,7 @@ public class SiegeEngineerScreen extends RecruitsScreenBase {
     }
 
     private void sendUpdate() {
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageSetTargetPrio(siegeEngineer.getUUID(), this.prioIndex));
+        NetUtils.sendToServer(new MessageSetTargetPrio(siegeEngineer.getUUID(), this.prioIndex));
         setButtons();
     }
 

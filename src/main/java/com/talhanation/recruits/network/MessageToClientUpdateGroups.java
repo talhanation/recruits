@@ -1,13 +1,15 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.world.RecruitsGroup;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.neoforged.api.distmarker.Dist;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +17,8 @@ import java.util.UUID;
 
 
 public class MessageToClientUpdateGroups implements Message<MessageToClientUpdateGroups> {
+    public static final CustomPacketPayload.Type<MessageToClientUpdateGroups> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagetoclientupdategroups"));
     private CompoundTag nbt;
     public MessageToClientUpdateGroups() {
 
@@ -25,12 +29,12 @@ public class MessageToClientUpdateGroups implements Message<MessageToClientUpdat
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.CLIENT;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.CLIENTBOUND;
     }
 
     @Override
-    public void executeClientSide(NetworkEvent.Context context) {
+    public void executeClientSide(IPayloadContext context) {
         List<RecruitsGroup> updated = RecruitsGroup.listFromNbt(this.nbt);
 
         Map<UUID, RecruitsGroup> updatedMap = new HashMap<>();
@@ -66,14 +70,19 @@ public class MessageToClientUpdateGroups implements Message<MessageToClientUpdat
     }
 
     @Override
-    public MessageToClientUpdateGroups fromBytes(FriendlyByteBuf buf) {
+    public MessageToClientUpdateGroups fromBytes(RegistryFriendlyByteBuf buf) {
         this.nbt = buf.readNbt();
         return this;
     }
 
     @Override
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeNbt(nbt);
     }
 
+
+    @Override
+    public CustomPacketPayload.Type<MessageToClientUpdateGroups> type() {
+        return TYPE;
+    }
 }

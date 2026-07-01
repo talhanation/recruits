@@ -1,17 +1,21 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import java.util.Objects;
 import java.util.UUID;
 
 public class MessageClearTargetGui implements Message<MessageClearTargetGui> {
+    public static final CustomPacketPayload.Type<MessageClearTargetGui> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagecleartargetgui"));
     private UUID recruit;
     private UUID player;
 
@@ -23,12 +27,12 @@ public class MessageClearTargetGui implements Message<MessageClearTargetGui> {
         this.recruit = recruit;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = Objects.requireNonNull(((ServerPlayer) context.player()));
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(16.0D),
@@ -36,15 +40,20 @@ public class MessageClearTargetGui implements Message<MessageClearTargetGui> {
         ).forEach((recruit) -> CommandEvents.onClearTargetButton(this.player, recruit, null));
     }
 
-    public MessageClearTargetGui fromBytes(FriendlyByteBuf buf) {
+    public MessageClearTargetGui fromBytes(RegistryFriendlyByteBuf buf) {
         this.player = buf.readUUID();
         this.recruit = buf.readUUID();
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(this.player);
         buf.writeUUID(this.recruit);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageClearTargetGui> type() {
+        return TYPE;
     }
 }
 

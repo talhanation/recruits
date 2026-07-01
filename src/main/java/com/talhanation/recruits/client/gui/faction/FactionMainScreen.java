@@ -11,14 +11,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 @OnlyIn(Dist.CLIENT)
 public class FactionMainScreen extends RecruitsScreenBase {
 
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID,"textures/gui/gui_small.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/gui/gui_small.png");
     private static final MutableComponent CREATE_TEAM = Component.translatable("gui.recruits.team_creation.create_team");
     private static final MutableComponent INSPECT_TEAM = Component.translatable("gui.recruits.team_creation.inspect_team");
     private static final MutableComponent TEAMS_LIST = Component.translatable("gui.recruits.team_creation.teams_list");

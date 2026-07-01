@@ -1,0 +1,38 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "${mod_license}"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "${mod_name}"
+updateJSONURL = "https://raw.githubusercontent.com/talhanation/recruits/main/update.json"
+displayURL = "https://modrinth.com/mod/villager-recruits/versions"
+logoFile = "logo.png"
+credits = "talhanation, messire, kaiserroman"
+authors = "${mod_authors}"
+description = '''${mod_description}'''
+
+[[mixins]]
+config = "mixins.recruits.json"
+
+[[dependencies."${mod_id}"]]
+modId = "neoforge"
+type = "REQUIRED"
+versionRange = "${loader_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies."${mod_id}"]]
+modId = "minecraft"
+type = "REQUIRED"
+versionRange = "${minecraft_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies."${mod_id}"]]
+modId = "corelib"
+type = "REQUIRED"
+versionRange = "[1.21.1-2.1.4,)"
+ordering = "AFTER"
+side = "BOTH"

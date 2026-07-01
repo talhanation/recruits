@@ -30,7 +30,7 @@ import net.minecraft.world.item.UseAnim;
 public class RecruitVillagerRenderer extends MobRenderer<AbstractRecruitEntity, HumanoidModel<AbstractRecruitEntity>> {
 
     private static final ResourceLocation[] TEXTURE = {
-            new ResourceLocation(Main.MOD_ID,"textures/entity/villager/villager_1.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/villager/villager_1.png"),
     };
     public ResourceLocation getTextureLocation(AbstractRecruitEntity recruit) {
         return TEXTURE[0];

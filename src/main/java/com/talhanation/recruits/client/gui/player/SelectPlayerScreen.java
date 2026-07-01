@@ -14,14 +14,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 import java.util.Locale;
 import java.util.function.Consumer;
 
 public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelection{
 
-    protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_player.png");
+    protected static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/select_player.png");
     public static final Component TITLE = Component.translatable("gui.recruits.select_player_screen.title");
     public static final Component BUTTON_SELECT = Component.translatable("gui.recruits.select_player_screen.selectPlayer");
     public static final Component BUTTON_SELECT_TOOLTIP = Component.translatable("gui.recruits.select_player_screen.selectPlayerTooltip");
@@ -76,7 +76,7 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
         ySize = HEADER_SIZE + units * UNIT_SIZE + FOOTER_SIZE;
 
         if (playerList != null) {
-            playerList.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
+            playerList.updateSizeAndPosition(width, units * UNIT_SIZE - SEARCH_HEIGHT, guiTop + HEADER_SIZE + SEARCH_HEIGHT);
         } else {
             playerList = new PlayersList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, filterType, player, includeSelf);
         }
@@ -118,7 +118,6 @@ public class SelectPlayerScreen extends ListScreenBase implements IPlayerSelecti
     @Override
     public void tick() {
         super.tick();
-        if (searchBox != null)  searchBox.tick();
         if (playerList != null) playerList.tick();
     }
 

@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui.worldmap.claim;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
@@ -20,7 +21,7 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 import java.util.List;
 
@@ -149,7 +150,7 @@ public class ClaimEditScreen extends RecruitsScreenBase {
                     this.claim.setBlockPlacementAllowed(this.allowBlockPlacing);
                     this.claim.setBlockBreakingAllowed(this.allowBlockBreaking);
 
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(this.claim));
+                    NetUtils.sendToServer(new MessageUpdateClaim(this.claim));
 
                     this.minecraft.setScreen(this.parent);
                 });
@@ -160,7 +161,7 @@ public class ClaimEditScreen extends RecruitsScreenBase {
         deleteButton = new ExtendedButton(x - 75 + 35, y + 112, 70, 20, BUTTON_DELETE,
                 button -> {
                     ClientManager.recruitsClaims.remove(this.claim);
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageDeleteClaim(this.claim));
+                    NetUtils.sendToServer(new MessageDeleteClaim(this.claim));
 
                     this.minecraft.setScreen(this.parent);
                 });

@@ -1,19 +1,23 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 public class MessageStrategicFire implements Message<MessageStrategicFire> {
 
+    public static final CustomPacketPayload.Type<MessageStrategicFire> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagestrategicfire"));
     private UUID player;
     private UUID group;
     private boolean should;
@@ -27,12 +31,12 @@ public class MessageStrategicFire implements Message<MessageStrategicFire> {
         this.should = should;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer serverPlayer = Objects.requireNonNull(((ServerPlayer) context.player()));
         serverPlayer.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 serverPlayer.getBoundingBox().inflate(200)
@@ -47,16 +51,21 @@ public class MessageStrategicFire implements Message<MessageStrategicFire> {
         );
     }
 
-    public MessageStrategicFire fromBytes(FriendlyByteBuf buf) {
+    public MessageStrategicFire fromBytes(RegistryFriendlyByteBuf buf) {
         this.player = buf.readUUID();
         this.group = buf.readUUID();
         this.should = buf.readBoolean();
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(this.player);
         buf.writeUUID(this.group);
         buf.writeBoolean(this.should);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageStrategicFire> type() {
+        return TYPE;
     }
 }

@@ -12,8 +12,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -97,9 +97,9 @@ public class DiplomacyTeamEntry extends ListScreenEntryBase<DiplomacyTeamEntry> 
         ResourceLocation location;
 
         switch (this.status){
-            default -> location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/neutral.png");
-            case ALLY ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/ally.png");
-            case ENEMY ->  location = new ResourceLocation(Main.MOD_ID, "textures/gui/image/enemy.png");
+            default -> location = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/neutral.png");
+            case ALLY ->  location = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/ally.png");
+            case ENEMY ->  location = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/enemy.png");
         }
         return location;
     }

@@ -1,4 +1,8 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.ClaimEvents;
 import com.talhanation.recruits.FactionEvents;
@@ -9,16 +13,15 @@ import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsFaction;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
@@ -27,6 +30,8 @@ import java.util.Set;
 
 
 public class MessageUpdateClaim implements Message<MessageUpdateClaim> {
+    public static final CustomPacketPayload.Type<MessageUpdateClaim> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messageupdateclaim"));
     private static final int CLAIM_AREA_RANGE = 2;
     private static final int MAX_PLAYER_CLAIM_DISTANCE_CHUNKS = 4;
     private static final int BUFFER_ZONE_RADIUS = 3;
@@ -42,12 +47,12 @@ public class MessageUpdateClaim implements Message<MessageUpdateClaim> {
         this.claim = claim;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
-        ServerPlayer sender = context.getSender();
+    public void executeServerSide(IPayloadContext context){
+        ServerPlayer sender = ((ServerPlayer) context.player());
         RecruitsClaim updatedClaim = this.claim;
         if (updatedClaim == null || sender == null) return;
         if(!RecruitsServerConfig.AllowClaiming.get()) return;
@@ -436,9 +441,7 @@ public class MessageUpdateClaim implements Message<MessageUpdateClaim> {
             reply.isRemoved = true;
         }
 
-        Main.SIMPLE_CHANNEL.send(
-                PacketDistributor.PLAYER.with(() -> sender),
-                new MessageToClientUpdateClaim(reply));
+        de.maxhenkel.corelib.net.NetUtils.sendTo(sender, new MessageToClientUpdateClaim(reply));
     }
 
     private static String safeClaimName(String name, String fallback) {
@@ -454,12 +457,17 @@ public class MessageUpdateClaim implements Message<MessageUpdateClaim> {
         return Objects.equals(left.getStringID(), right.getStringID());
     }
 
-    public MessageUpdateClaim fromBytes(FriendlyByteBuf buf) {
+    public MessageUpdateClaim fromBytes(RegistryFriendlyByteBuf buf) {
         this.claim = ClaimNetworkCodec.readNullableClaim(buf);
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         ClaimNetworkCodec.writeNullableClaim(buf, this.claim);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageUpdateClaim> type() {
+        return TYPE;
     }
 }

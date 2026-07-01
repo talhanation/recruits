@@ -1,17 +1,21 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.FactionEvents;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import java.util.Objects;
 
 public class MessageRemoveFromTeam implements Message<MessageRemoveFromTeam> {
 
+    public static final CustomPacketPayload.Type<MessageRemoveFromTeam> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messageremovefromteam"));
     private String player;
 
     public MessageRemoveFromTeam() {
@@ -21,12 +25,12 @@ public class MessageRemoveFromTeam implements Message<MessageRemoveFromTeam> {
         this.player = player;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer sender = Objects.requireNonNull(context.getSender());
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer sender = Objects.requireNonNull(((ServerPlayer) context.player()));
         ServerLevel level = sender.serverLevel();
 
         boolean foundOnline = false;
@@ -50,12 +54,17 @@ public class MessageRemoveFromTeam implements Message<MessageRemoveFromTeam> {
         }
     }
 
-    public MessageRemoveFromTeam fromBytes(FriendlyByteBuf buf) {
+    public MessageRemoveFromTeam fromBytes(RegistryFriendlyByteBuf buf) {
         this.player = buf.readUtf();
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUtf(player);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageRemoveFromTeam> type() {
+        return TYPE;
     }
 }

@@ -1,18 +1,22 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.world.RecruitsGroup;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import java.util.Objects;
 import java.util.UUID;
 
 public class MessageSplitGroup implements Message<MessageSplitGroup> {
 
+    public static final CustomPacketPayload.Type<MessageSplitGroup> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagesplitgroup"));
     private UUID groupUUID;
 
     public MessageSplitGroup() {
@@ -22,12 +26,12 @@ public class MessageSplitGroup implements Message<MessageSplitGroup> {
         this.groupUUID = groupUUID;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = Objects.requireNonNull(((ServerPlayer) context.player()));
         RecruitsGroup groupToSplit = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
 
         if(groupToSplit == null) return;
@@ -35,12 +39,17 @@ public class MessageSplitGroup implements Message<MessageSplitGroup> {
         RecruitEvents.recruitsGroupsManager.splitGroup(groupToSplit, player.serverLevel());
     }
 
-    public MessageSplitGroup fromBytes(FriendlyByteBuf buf) {
+    public MessageSplitGroup fromBytes(RegistryFriendlyByteBuf buf) {
         this.groupUUID = buf.readUUID();
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(groupUUID);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageSplitGroup> type() {
+        return TYPE;
     }
 }

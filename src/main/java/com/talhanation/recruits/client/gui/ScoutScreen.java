@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
@@ -16,7 +17,7 @@ import net.minecraft.world.entity.player.Player;
 
 public class ScoutScreen extends RecruitsScreenBase {
 
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_big.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/gui_big.png");
     private static final Component TITLE = Component.translatable("gui.recruits.more_screen.title");
     private final Player player;
     private final ScoutEntity scout;
@@ -45,7 +46,7 @@ public class ScoutScreen extends RecruitsScreenBase {
         checkBoxScouting = new RecruitsCheckBox(guiLeft + 32, guiTop + ySize - 120 - 7, 130, 20, SCOUTING, this.scouting,
         (bool) -> {
                 this.scouting = bool;
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageScoutTask(scout.getUUID(), scouting ? 1 : 0));
+                NetUtils.sendToServer(new MessageScoutTask(scout.getUUID(), scouting ? 1 : 0));
             }
         );
         checkBoxScouting.setTooltip(Tooltip.create(TOOLTIP_SCOUTING));

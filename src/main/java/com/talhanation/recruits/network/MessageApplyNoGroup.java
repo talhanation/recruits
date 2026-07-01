@@ -1,18 +1,22 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import java.util.*;
 
 public class MessageApplyNoGroup implements Message<MessageApplyNoGroup> {
 
+    public static final CustomPacketPayload.Type<MessageApplyNoGroup> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messageapplynogroup"));
     private UUID owner;
     private UUID groupID;
 
@@ -24,12 +28,12 @@ public class MessageApplyNoGroup implements Message<MessageApplyNoGroup> {
         this.groupID = groupID;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = Objects.requireNonNull(((ServerPlayer) context.player()));
         List<AbstractRecruitEntity> recruitList = new ArrayList<>();
 
         ServerLevel serverLevel = (ServerLevel) player.getCommandSenderWorld();
@@ -43,15 +47,20 @@ public class MessageApplyNoGroup implements Message<MessageApplyNoGroup> {
             recruit.setGroupUUID(null);
         }
     }
-    public MessageApplyNoGroup fromBytes(FriendlyByteBuf buf) {
+    public MessageApplyNoGroup fromBytes(RegistryFriendlyByteBuf buf) {
         this.owner = buf.readUUID();
         this.groupID = buf.readUUID();
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(this.owner);
         buf.writeUUID(this.groupID);
     }
 
+
+    @Override
+    public CustomPacketPayload.Type<MessageApplyNoGroup> type() {
+        return TYPE;
+    }
 }

@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui.faction;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
@@ -30,7 +31,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 import org.lwjgl.glfw.GLFW;
 
 
@@ -43,7 +44,7 @@ import static com.talhanation.recruits.client.gui.faction.FactionInspectionScree
 import static com.talhanation.recruits.client.ClientManager.*;
 public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
 
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/team/team_create_gui.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/team/team_create_gui.png");
     private static final Component EDIT = Component.translatable("gui.recruits.team.edit");
     private static final Component BACK = Component.translatable("gui.recruits.button.back");
     private static final Component SAVE = Component.translatable("gui.recruits.button.save");
@@ -228,9 +229,6 @@ public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
     @Override
     public void containerTick() {
         super.containerTick();
-
-        if(textFieldTeamName != null) textFieldTeamName.tick();
-
         if(postInit) {
             this.postInit();
             postInit = false;
@@ -338,7 +336,7 @@ public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
             saveButton = new ExtendedButton(guiLeft + 30, guiTop + imageHeight - 102, 162, 20, CREATE,
                 btn -> {
                     String text = textFieldTeamName.getValue().strip();
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageCreateTeam(this.getCorrectFormatStringID(text), this.getCorrectFormatName(text), banner, teamColor, unitColors.indexOf(unitColor)));
+                    NetUtils.sendToServer(new MessageCreateTeam(this.getCorrectFormatStringID(text), this.getCorrectFormatName(text), banner, teamColor, unitColors.indexOf(unitColor)));
                     leaderInfo = null;
                     minecraft.setScreen(new FactionInspectionScreen(new FactionMainScreen(player), player));
                 }
@@ -362,12 +360,12 @@ public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
                     ownFaction.setTeamDisplayName(textFieldTeamName.getValue());
                     ownFaction.setTeamColor(teamColor.getId());
                     if(banner != null && !banner.isEmpty()){
-                        ownFaction.setBanner(banner.serializeNBT());
+                        ownFaction.setBanner(((net.minecraft.nbt.CompoundTag) banner.save(net.minecraft.client.Minecraft.getInstance().level.registryAccess())));
                     }
                     ownFaction.setUnitColor((byte) unitColors.indexOf(unitColor));
                     ownFaction.setMaxNPCsPerPlayer(maxRecruitsPerPlayer);
 
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveTeamSettings(ownFaction, totalCost));
+                    NetUtils.sendToServer(new MessageSaveTeamSettings(ownFaction, totalCost));
 
                     minecraft.setScreen(new FactionInspectionScreen(new FactionMainScreen(player), player));
                 }
@@ -417,7 +415,7 @@ public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
                 hasChanges = true;
             }
 
-            if(banner != null && !banner.isEmpty() && !ownFaction.getBanner().equals(banner.serializeNBT())){
+            if(banner != null && !banner.isEmpty() && !ownFaction.getBanner().equals(((net.minecraft.nbt.CompoundTag) banner.save(net.minecraft.client.Minecraft.getInstance().level.registryAccess())))){
                 totalCost += factionCreationPrice;
                 hasChanges = true;
             }
@@ -536,7 +534,7 @@ public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
         boolean nameLength = this.textFieldTeamName != null && this.textFieldTeamName.getValue().length() >= 3 && this.textFieldTeamName.getValue().length() <= 32;
         boolean sufficientEmeralds = player.isCreative() || getPlayerCurrencyAmount() >= factionCreationPrice;
         boolean bannerNotEmpty = this.banner != null && !this.banner.isEmpty() && !RecruitsFactionManager.isBannerBlank(this.banner);
-        boolean bannerNotInUse = this.banner != null && !RecruitsFactionManager.isBannerInUse(this.banner.serializeNBT(), factions);
+        boolean bannerNotInUse = this.banner != null && !RecruitsFactionManager.isBannerInUse(((net.minecraft.nbt.CompoundTag) this.banner.save(net.minecraft.client.Minecraft.getInstance().level.registryAccess())), factions);
         boolean factionNameOK = !RecruitsFactionManager.isNameInUse(this.textFieldTeamName.getValue(), factions);
 
         return bannerNotInUse && bannerNotEmpty && factionNameOK && nameLength && leaderInfo != null && sufficientEmeralds;
@@ -553,12 +551,12 @@ public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
             if(RecruitsFactionManager.isBannerBlank(banner)) {
                 bannerNotEmpty = false;
             }
-            else if (!ItemStack.isSameItemSameTags(banner, ItemStack.of(ownFaction.getBanner())) && RecruitsFactionManager.isBannerInUse(banner.serializeNBT(), factions)) {
+            else if (!ItemStack.isSameItemSameComponents(banner, ItemStack.parseOptional(net.minecraft.client.Minecraft.getInstance().level.registryAccess(), ownFaction.getBanner())) && RecruitsFactionManager.isBannerInUse(((net.minecraft.nbt.CompoundTag) banner.save(net.minecraft.client.Minecraft.getInstance().level.registryAccess())), factions)) {
                 bannerNotEmpty = false;
             }
         }
 
-        boolean bannerNotInUse = this.banner != null && !RecruitsFactionManager.isBannerInUse(this.banner.serializeNBT(), factions);
+        boolean bannerNotInUse = this.banner != null && !RecruitsFactionManager.isBannerInUse(((net.minecraft.nbt.CompoundTag) this.banner.save(net.minecraft.client.Minecraft.getInstance().level.registryAccess())), factions);
 
         return bannerNotInUse && bannerNotEmpty && nameLength && leaderInfo != null && sufficientEmeralds && hasChanges && displayNameOK;
     }
@@ -581,7 +579,7 @@ public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
     public void onBannerPlaced(){
         if(menu.getBanner() != null && bannerRenderer != null){
             if(menu.getBanner().isEmpty()){
-                if(ownFaction != null) bannerRenderer.setBannerItem(ItemStack.of(ownFaction.getBanner()));
+                if(ownFaction != null) bannerRenderer.setBannerItem(ItemStack.parseOptional(net.minecraft.client.Minecraft.getInstance().level.registryAccess(), ownFaction.getBanner()));
                 this.banner = null;
             }
             else{
@@ -652,7 +650,7 @@ public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
         if (banner == null || banner.isEmpty() || RecruitsFactionManager.isBannerBlank(banner)) {
             errors.add(FactionCreationError.BANNER_EMPTY);
         }
-        else if (RecruitsFactionManager.isBannerInUse(banner.serializeNBT(), factions)) {
+        else if (RecruitsFactionManager.isBannerInUse(((net.minecraft.nbt.CompoundTag) banner.save(net.minecraft.client.Minecraft.getInstance().level.registryAccess())), factions)) {
             errors.add(FactionCreationError.BANNER_IN_USE);
         }
 
@@ -687,7 +685,7 @@ public class FactionEditScreen extends ScreenBase<TeamEditMenu> {
             if(RecruitsFactionManager.isBannerBlank(banner)) {
                 errors.add(FactionCreationError.BANNER_EMPTY);
             }
-            else if (!ItemStack.isSameItemSameTags(banner, ItemStack.of(ownFaction.getBanner())) && RecruitsFactionManager.isBannerInUse(banner.serializeNBT(), factions)) {
+            else if (!ItemStack.isSameItemSameComponents(banner, ItemStack.parseOptional(net.minecraft.client.Minecraft.getInstance().level.registryAccess(), ownFaction.getBanner())) && RecruitsFactionManager.isBannerInUse(((net.minecraft.nbt.CompoundTag) banner.save(net.minecraft.client.Minecraft.getInstance().level.registryAccess())), factions)) {
                 errors.add(FactionCreationError.BANNER_IN_USE);
             }
         }

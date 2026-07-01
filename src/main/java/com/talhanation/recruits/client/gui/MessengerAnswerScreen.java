@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
@@ -13,11 +14,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 public class MessengerAnswerScreen extends RecruitsScreenBase {
 
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/professions/blank_gui.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/professions/blank_gui.png");
     private final Player player;
     private final MessengerEntity messenger;
     private RecruitsMultiLineEditBox textFieldMessage;
@@ -47,7 +48,6 @@ public class MessengerAnswerScreen extends RecruitsScreenBase {
     }
     public void tick() {
         super.tick();
-        if(textFieldMessage != null) this.textFieldMessage.tick();
     }
 
     public boolean mouseClicked(double p_100753_, double p_100754_, int p_100755_) {
@@ -57,7 +57,7 @@ public class MessengerAnswerScreen extends RecruitsScreenBase {
     private void setOKButton() {
         Button sendButton = addRenderableWidget(new ExtendedButton(guiLeft + 33, guiTop + ySize - 50, 128, 20, BUTTON_OK,
                 button -> {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageAnswerMessenger(messenger.getUUID()));
+                    NetUtils.sendToServer(new MessageAnswerMessenger(messenger.getUUID()));
 
                     onClose();
                 }

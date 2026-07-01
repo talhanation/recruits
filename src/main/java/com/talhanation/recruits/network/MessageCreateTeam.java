@@ -1,17 +1,21 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.FactionEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 public class MessageCreateTeam implements Message<MessageCreateTeam> {
 
+    public static final CustomPacketPayload.Type<MessageCreateTeam> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagecreateteam"));
     private String teamName;
     private String displayName;
     private ChatFormatting color;
@@ -29,30 +33,35 @@ public class MessageCreateTeam implements Message<MessageCreateTeam> {
         this.index = index;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = context.getSender();
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = ((ServerPlayer) context.player());
         ServerLevel world = player.serverLevel();
-        FactionEvents.createTeam(true, context.getSender(), world, this.teamName, this.displayName, player.getName().getString(), this.banner, this.color, (byte) index);
+        FactionEvents.createTeam(true, ((ServerPlayer) context.player()), world, this.teamName, this.displayName, player.getName().getString(), this.banner, this.color, (byte) index);
     }
 
-    public MessageCreateTeam fromBytes(FriendlyByteBuf buf) {
+    public MessageCreateTeam fromBytes(RegistryFriendlyByteBuf buf) {
         this.teamName = buf.readUtf();
         this.displayName = buf.readUtf();
-        this.banner = buf.readItem();
+        this.banner = net.minecraft.world.item.ItemStack.OPTIONAL_STREAM_CODEC.decode(buf);
         this.color = ChatFormatting.getById(buf.readInt());
         this.index = buf.readInt();
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUtf(this.teamName);
         buf.writeUtf(this.displayName);
-        buf.writeItemStack(this.banner, false);
+        net.minecraft.world.item.ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, this.banner);
         buf.writeInt(this.color.getId());
         buf.writeInt(this.index);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageCreateTeam> type() {
+        return TYPE;
     }
 }

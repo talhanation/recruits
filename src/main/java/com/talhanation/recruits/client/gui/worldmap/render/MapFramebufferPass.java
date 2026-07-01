@@ -95,13 +95,13 @@ public final class MapFramebufferPass implements AutoCloseable {
         float right = left + frame.screenWidth();
         float bottom = top + frame.screenHeight();
 
-        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        buffer.vertex(matrix, left, bottom, 0.0F).uv(0.0F, 0.0F).endVertex();
-        buffer.vertex(matrix, right, bottom, 0.0F).uv(1.0F, 0.0F).endVertex();
-        buffer.vertex(matrix, right, top, 0.0F).uv(1.0F, 1.0F).endVertex();
-        buffer.vertex(matrix, left, top, 0.0F).uv(0.0F, 1.0F).endVertex();
-        BufferUploader.drawWithShader(buffer.end());
+        BufferBuilder buffer;
+        buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        buffer.addVertex(matrix, left, bottom, 0.0F).setUv(0.0F, 0.0F);
+        buffer.addVertex(matrix, right, bottom, 0.0F).setUv(1.0F, 0.0F);
+        buffer.addVertex(matrix, right, top, 0.0F).setUv(1.0F, 1.0F);
+        buffer.addVertex(matrix, left, top, 0.0F).setUv(0.0F, 1.0F);
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 
     @Override
