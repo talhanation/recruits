@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui.faction;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
@@ -15,9 +16,9 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 import java.util.Locale;
 import static com.talhanation.recruits.client.events.RecruitsToastManager.*;
@@ -26,7 +27,7 @@ import static com.talhanation.recruits.client.events.RecruitsToastManager.*;
 @OnlyIn(Dist.CLIENT)
 public class RecruitsFactionListScreen extends ListScreenBase implements IFactionSelection{
 
-    protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_player.png");
+    protected static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/select_player.png");
     protected static final Component TITLE = Component.translatable("gui.recruits.team_creation.teams_list");
     protected static final Component JOIN_BUTTON = Component.translatable("gui.recruits.button.join");
     protected static final Component BACK_BUTTON = Component.translatable("gui.recruits.button.back");
@@ -68,7 +69,7 @@ public class RecruitsFactionListScreen extends ListScreenBase implements IFactio
         units = Math.max(minUnits, (height - HEADER_SIZE - FOOTER_SIZE - gapTop - gapBottom - SEARCH_HEIGHT) / UNIT_SIZE);
 
         if (teamList != null) {
-            teamList.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
+            teamList.updateSizeAndPosition(width, units * UNIT_SIZE - SEARCH_HEIGHT, guiTop + HEADER_SIZE + SEARCH_HEIGHT);
         } else {
             teamList = new RecruitsFactionList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this, true, true);
         }
@@ -96,7 +97,7 @@ public class RecruitsFactionListScreen extends ListScreenBase implements IFactio
                 button -> {
                     RecruitsToastManager.setTeamToastForPlayer(RecruitsToastManager.Images.LETTER, TOAST_SENT_JOIN_REQUEST_TITLE, TOAST_TO(selected.getTeamDisplayName()), selected);
 
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageSendJoinRequestTeam(parent.getMinecraft().player.getUUID(), selected.getStringID()));
+                    NetUtils.sendToServer(new MessageSendJoinRequestTeam(parent.getMinecraft().player.getUUID(), selected.getStringID()));
                 });
         sendJoinRequestButton.active = false;
 
@@ -107,7 +108,6 @@ public class RecruitsFactionListScreen extends ListScreenBase implements IFactio
     public void tick() {
         super.tick();
         if(searchBox != null){
-            searchBox.tick();
         }
         if(teamList != null){
             teamList.tick();

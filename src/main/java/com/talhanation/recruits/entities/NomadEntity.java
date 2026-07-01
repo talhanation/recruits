@@ -25,7 +25,7 @@ import net.minecraft.world.entity.animal.camel.Camel;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraftforge.common.ForgeMod;
+import net.neoforged.neoforge.common.NeoForgeMod;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -39,9 +39,9 @@ public class NomadEntity extends BowmanEntity {
         super(entityType, world);
     }
 
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(HAD_HORSE, false);
+    protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(HAD_HORSE, false);
     }
 
     @Override
@@ -76,21 +76,21 @@ public class NomadEntity extends BowmanEntity {
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.32D)
-                .add(ForgeMod.SWIM_SPEED.get(), 0.3D)
+                .add(NeoForgeMod.SWIM_SPEED, 0.3D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
                 .add(Attributes.FOLLOW_RANGE, 64.0D)
-                .add(ForgeMod.ENTITY_REACH.get(), 0D)
+                .add(Attributes.ENTITY_INTERACTION_RANGE, 0D)
                 .add(Attributes.ATTACK_SPEED);
 
     }
 
     @Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data, @Nullable CompoundTag nbt) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data) {
         RandomSource randomsource = world.getRandom();
-        SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
+        SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data);
         ((AsyncGroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
-        this.populateDefaultEquipmentEnchantments(randomsource, difficultyInstance);
+        this.populateDefaultEquipmentEnchantments(world, randomsource, difficultyInstance);
 
         this.initSpawn();
 
@@ -125,7 +125,7 @@ public class NomadEntity extends BowmanEntity {
                     Camel camel = new Camel(EntityType.CAMEL, this.getCommandSenderWorld());
                     camel.setPos(this.getX(), this.getY(), this.getZ());
                     camel.setTamed(true);
-                    camel.equipSaddle(null);
+                    camel.equipSaddle(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.SADDLE), null);
                     this.startRiding(camel);
                     this.getCommandSenderWorld().addFreshEntity(camel);
                     this.setHadHorse(true);
@@ -134,7 +134,7 @@ public class NomadEntity extends BowmanEntity {
                     Horse horse = new Horse(EntityType.HORSE, this.getCommandSenderWorld());
                     horse.setPos(this.getX(), this.getY(), this.getZ());
                     horse.setTamed(true);
-                    horse.equipSaddle(null);
+                    horse.equipSaddle(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.SADDLE), null);
 
                     Variant variant = Util.getRandom(Variant.values(), this.getRandom());
                     Markings markings = Util.getRandom(Markings.values(), this.getRandom());
@@ -153,7 +153,7 @@ public class NomadEntity extends BowmanEntity {
     public void aiStep() {
         super.aiStep();
         this.getCommandSenderWorld().getProfiler().push("looting");
-        if (!this.getCommandSenderWorld().isClientSide && this.canPickUpLoot() && this.isAlive() && !this.dead && net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(this.getCommandSenderWorld(), this)) {
+        if (!this.getCommandSenderWorld().isClientSide && this.canPickUpLoot() && this.isAlive() && !this.dead && this.getCommandSenderWorld().getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_MOBGRIEFING)) {
             this.getCommandSenderWorld().getEntitiesOfClass(
                     ItemEntity.class,
                     this.getBoundingBox().inflate(2.5D, 2.5D, 2.5D),

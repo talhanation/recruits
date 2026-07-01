@@ -1,18 +1,23 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.server.level.ServerPlayer;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.neoforged.api.distmarker.Dist;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 public class MessageFaceCommand implements Message<MessageFaceCommand> {
 
+    public static final CustomPacketPayload.Type<MessageFaceCommand> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagefacecommand"));
     private UUID player_uuid;
     private UUID group;
     private int formation;
@@ -30,18 +35,18 @@ public class MessageFaceCommand implements Message<MessageFaceCommand> {
         this.hold = hold;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
+    public void executeServerSide(IPayloadContext context){
+        List<AbstractRecruitEntity> list = Objects.requireNonNull(((ServerPlayer) context.player())).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, ((ServerPlayer) context.player()).getBoundingBox().inflate(100));
         list.removeIf(recruit -> !recruit.isEffectedByCommand(this.player_uuid, this.group));
 
-        CommandEvents.onFaceCommand(context.getSender(), list, this.formation, this.tight, this.hold);
+        CommandEvents.onFaceCommand(((ServerPlayer) context.player()), list, this.formation, this.tight, this.hold);
     }
 
-    public MessageFaceCommand fromBytes(FriendlyByteBuf buf) {
+    public MessageFaceCommand fromBytes(RegistryFriendlyByteBuf buf) {
         this.player_uuid = buf.readUUID();
         this.group = buf.readUUID();
         this.formation = buf.readInt();
@@ -50,7 +55,7 @@ public class MessageFaceCommand implements Message<MessageFaceCommand> {
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(this.player_uuid);
         buf.writeUUID(this.group);
         buf.writeInt(this.formation);
@@ -58,4 +63,9 @@ public class MessageFaceCommand implements Message<MessageFaceCommand> {
         buf.writeBoolean(this.hold);
     }
 
+
+    @Override
+    public CustomPacketPayload.Type<MessageFaceCommand> type() {
+        return TYPE;
+    }
 }

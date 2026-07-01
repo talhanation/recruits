@@ -3,97 +3,95 @@ package com.talhanation.recruits.config;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.event.level.ExplosionEvent;
-import net.minecraftforge.fml.common.Mod;
-
+import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.neoforge.event.level.ExplosionEvent;
+import net.neoforged.fml.common.Mod;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@Mod.EventBusSubscriber
 public class RecruitsServerConfig {
-    private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
-    public static ForgeConfigSpec SERVER;
-    public static ForgeConfigSpec.BooleanValue RecruitTablesPOIReleasing;
-    public static ForgeConfigSpec.BooleanValue OverrideIronGolemSpawn;
-    public static ForgeConfigSpec.BooleanValue PillagerFriendlyFire;
-    public static ForgeConfigSpec.BooleanValue PillagerSpawn;
-    public static ForgeConfigSpec.BooleanValue PillagerAttackMonsters;
-    public static ForgeConfigSpec.BooleanValue ShouldPillagersRaidNaturally;
-    public static ForgeConfigSpec.BooleanValue MonstersAttackPillagers;
-    public static ForgeConfigSpec.IntValue MaxSpawnRecruitsInVillage;
-    public static ForgeConfigSpec.IntValue MaxRecruitsForPlayer;
-    public static ForgeConfigSpec.IntValue RecruitsMaxXpForLevelUp;
-    public static ForgeConfigSpec.IntValue RecruitsMaxXpLevel;
-    public static ForgeConfigSpec.BooleanValue PillagerIncreasedCombatRange;
-    public static ForgeConfigSpec.BooleanValue VindicatorSpawnItems;
-    public static ForgeConfigSpec.BooleanValue PillagerSpawnItems;
-    public static ForgeConfigSpec.IntValue MaxAssassinCount;
-    public static ForgeConfigSpec.IntValue RecruitCost;
-    public static ForgeConfigSpec.IntValue BowmanCost;
-    public static ForgeConfigSpec.IntValue ShieldmanCost;
-    public static ForgeConfigSpec.IntValue NomadCost;
-    public static ForgeConfigSpec.IntValue HorsemanCost;
-    public static ForgeConfigSpec.IntValue CrossbowmanCost;
-    public static ForgeConfigSpec.ConfigValue<List<String>> TargetBlackList;
-    public static ForgeConfigSpec.ConfigValue<List<String>> MountWhiteList;
-    public static ForgeConfigSpec.ConfigValue<List<List<String>>> RecruitStartEquipments;
-    public static ForgeConfigSpec.ConfigValue<List<List<String>>> ShieldmanStartEquipments;
-    public static ForgeConfigSpec.ConfigValue<List<List<String>>> BowmanStartEquipments;
-    public static ForgeConfigSpec.ConfigValue<List<List<String>>> CrossbowmanStartEquipments;
-    public static ForgeConfigSpec.ConfigValue<List<List<String>>> HorsemanStartEquipments;
-    public static ForgeConfigSpec.ConfigValue<List<List<String>>> NomadStartEquipments;
-    public static ForgeConfigSpec.ConfigValue<List<String>> AcceptedDamagesourceImmunity;
-    public static ForgeConfigSpec.ConfigValue<List<String>> FoodBlackList;
-    public static ForgeConfigSpec.BooleanValue ShouldRecruitPatrolsSpawn;
-    public static ForgeConfigSpec.BooleanValue ShouldPillagerPatrolsSpawn;
-    public static ForgeConfigSpec.DoubleValue RecruitPatrolsSpawnChance;
-    public static ForgeConfigSpec.DoubleValue PillagerPatrolsSpawnChance;
-    public static ForgeConfigSpec.ConfigValue<String> RecruitCurrency;
-    public static ForgeConfigSpec.BooleanValue NoDamageImmunity;
-    public static ForgeConfigSpec.IntValue PillagerPatrolSpawnInterval;
-    public static ForgeConfigSpec.IntValue RecruitPatrolSpawnInterval;
-    public static ForgeConfigSpec.IntValue RecruitPatrolDespawnTime;
-    public static ForgeConfigSpec.IntValue FactionCreationCost;
-    public static ForgeConfigSpec.BooleanValue GlobalTeamFriendlyFireSetting;
-    public static ForgeConfigSpec.BooleanValue GlobalTeamSeeFriendlyInvisibleSetting;
-    public static ForgeConfigSpec.BooleanValue GlobalTeamSetting;
-    public static ForgeConfigSpec.BooleanValue RecruitHorseUnitsHorse;
-    public static ForgeConfigSpec.BooleanValue RangedRecruitsNeedArrowsToShoot;
-    public static ForgeConfigSpec.BooleanValue RecruitsChunkLoading;
-    public static ForgeConfigSpec.BooleanValue UpdateCheckerServerside;
-    public static ForgeConfigSpec.BooleanValue CompatCorpseMod;
-    public static ForgeConfigSpec.BooleanValue UseAsyncPathfinding;
-    public static ForgeConfigSpec.IntValue AsyncPathfindingThreadsCount;
-    public static ForgeConfigSpec.BooleanValue UseAsyncTargetFinding;
-    public static ForgeConfigSpec.IntValue MaxPlayersInFaction;
-    public static ForgeConfigSpec.IntValue MaxNPCsInFaction;
-    public static ForgeConfigSpec.BooleanValue ShouldFactionEditingBeAllowed;
-    public static ForgeConfigSpec.BooleanValue ShouldFactionManagingBeAllowed;
-    public static ForgeConfigSpec.BooleanValue AllowArrowCleaning;
-    public static ForgeConfigSpec.BooleanValue RecruitsPayment;
-    public static ForgeConfigSpec.IntValue RecruitsPaymentInterval;
-    public static ForgeConfigSpec.IntValue RecruitsPaymentAmount;
-    public static ForgeConfigSpec.EnumValue<AbstractRecruitEntity.NoPaymentAction> RecruitsNoPaymentAction;
-    public static ForgeConfigSpec.BooleanValue QuickStartPillagerRaid;
-    public static ForgeConfigSpec.BooleanValue BlockPlacingBreakingOnlyWhenClaimed;
-    public static ForgeConfigSpec.BooleanValue ExplosionProtectionInClaims;
-    public static ForgeConfigSpec.BooleanValue CascadeThePriceOfClaims;
-    public static ForgeConfigSpec.IntValue ClaimingCost;
-    public static ForgeConfigSpec.IntValue ChunkCost;
-    public static ForgeConfigSpec.IntValue MaxClaimChunks;
-    public static ForgeConfigSpec.IntValue SiegeClaimsRecruitsAmount;
-    public static ForgeConfigSpec.IntValue SiegeClaimsConquerTime;
-    public static ForgeConfigSpec.BooleanValue NobleVillagerNeedsVillagers;
-    public static ForgeConfigSpec.BooleanValue ShouldProfessionBlocksTrade;
-    public static ForgeConfigSpec.BooleanValue NobleVillagerSpawn;
-    public static ForgeConfigSpec.BooleanValue AllowClaiming;
-    public static ForgeConfigSpec.BooleanValue FogOfWarEnabled;
-    public static ForgeConfigSpec.BooleanValue RecruitsStarving;
-    public static ForgeConfigSpec.BooleanValue RecruitsUpdateHungerAndMorale;
-    public static ForgeConfigSpec.BooleanValue SiegeRequiresOwnerOnline;
+    private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
+    public static ModConfigSpec SERVER;
+    public static ModConfigSpec.BooleanValue RecruitTablesPOIReleasing;
+    public static ModConfigSpec.BooleanValue OverrideIronGolemSpawn;
+    public static ModConfigSpec.BooleanValue PillagerFriendlyFire;
+    public static ModConfigSpec.BooleanValue PillagerSpawn;
+    public static ModConfigSpec.BooleanValue PillagerAttackMonsters;
+    public static ModConfigSpec.BooleanValue ShouldPillagersRaidNaturally;
+    public static ModConfigSpec.BooleanValue MonstersAttackPillagers;
+    public static ModConfigSpec.IntValue MaxSpawnRecruitsInVillage;
+    public static ModConfigSpec.IntValue MaxRecruitsForPlayer;
+    public static ModConfigSpec.IntValue RecruitsMaxXpForLevelUp;
+    public static ModConfigSpec.IntValue RecruitsMaxXpLevel;
+    public static ModConfigSpec.BooleanValue PillagerIncreasedCombatRange;
+    public static ModConfigSpec.BooleanValue VindicatorSpawnItems;
+    public static ModConfigSpec.BooleanValue PillagerSpawnItems;
+    public static ModConfigSpec.IntValue MaxAssassinCount;
+    public static ModConfigSpec.IntValue RecruitCost;
+    public static ModConfigSpec.IntValue BowmanCost;
+    public static ModConfigSpec.IntValue ShieldmanCost;
+    public static ModConfigSpec.IntValue NomadCost;
+    public static ModConfigSpec.IntValue HorsemanCost;
+    public static ModConfigSpec.IntValue CrossbowmanCost;
+    public static ModConfigSpec.ConfigValue<List<String>> TargetBlackList;
+    public static ModConfigSpec.ConfigValue<List<String>> MountWhiteList;
+    public static ModConfigSpec.ConfigValue<List<List<String>>> RecruitStartEquipments;
+    public static ModConfigSpec.ConfigValue<List<List<String>>> ShieldmanStartEquipments;
+    public static ModConfigSpec.ConfigValue<List<List<String>>> BowmanStartEquipments;
+    public static ModConfigSpec.ConfigValue<List<List<String>>> CrossbowmanStartEquipments;
+    public static ModConfigSpec.ConfigValue<List<List<String>>> HorsemanStartEquipments;
+    public static ModConfigSpec.ConfigValue<List<List<String>>> NomadStartEquipments;
+    public static ModConfigSpec.ConfigValue<List<String>> AcceptedDamagesourceImmunity;
+    public static ModConfigSpec.ConfigValue<List<String>> FoodBlackList;
+    public static ModConfigSpec.BooleanValue ShouldRecruitPatrolsSpawn;
+    public static ModConfigSpec.BooleanValue ShouldPillagerPatrolsSpawn;
+    public static ModConfigSpec.DoubleValue RecruitPatrolsSpawnChance;
+    public static ModConfigSpec.DoubleValue PillagerPatrolsSpawnChance;
+    public static ModConfigSpec.ConfigValue<String> RecruitCurrency;
+    public static ModConfigSpec.BooleanValue NoDamageImmunity;
+    public static ModConfigSpec.IntValue PillagerPatrolSpawnInterval;
+    public static ModConfigSpec.IntValue RecruitPatrolSpawnInterval;
+    public static ModConfigSpec.IntValue RecruitPatrolDespawnTime;
+    public static ModConfigSpec.IntValue FactionCreationCost;
+    public static ModConfigSpec.BooleanValue GlobalTeamFriendlyFireSetting;
+    public static ModConfigSpec.BooleanValue GlobalTeamSeeFriendlyInvisibleSetting;
+    public static ModConfigSpec.BooleanValue GlobalTeamSetting;
+    public static ModConfigSpec.BooleanValue RecruitHorseUnitsHorse;
+    public static ModConfigSpec.BooleanValue RangedRecruitsNeedArrowsToShoot;
+    public static ModConfigSpec.BooleanValue RecruitsChunkLoading;
+    public static ModConfigSpec.BooleanValue UpdateCheckerServerside;
+    public static ModConfigSpec.BooleanValue CompatCorpseMod;
+    public static ModConfigSpec.BooleanValue UseAsyncPathfinding;
+    public static ModConfigSpec.IntValue AsyncPathfindingThreadsCount;
+    public static ModConfigSpec.BooleanValue UseAsyncTargetFinding;
+    public static ModConfigSpec.IntValue MaxPlayersInFaction;
+    public static ModConfigSpec.IntValue MaxNPCsInFaction;
+    public static ModConfigSpec.BooleanValue ShouldFactionEditingBeAllowed;
+    public static ModConfigSpec.BooleanValue ShouldFactionManagingBeAllowed;
+    public static ModConfigSpec.BooleanValue AllowArrowCleaning;
+    public static ModConfigSpec.BooleanValue RecruitsPayment;
+    public static ModConfigSpec.IntValue RecruitsPaymentInterval;
+    public static ModConfigSpec.IntValue RecruitsPaymentAmount;
+    public static ModConfigSpec.EnumValue<AbstractRecruitEntity.NoPaymentAction> RecruitsNoPaymentAction;
+    public static ModConfigSpec.BooleanValue QuickStartPillagerRaid;
+    public static ModConfigSpec.BooleanValue BlockPlacingBreakingOnlyWhenClaimed;
+    public static ModConfigSpec.BooleanValue ExplosionProtectionInClaims;
+    public static ModConfigSpec.BooleanValue CascadeThePriceOfClaims;
+    public static ModConfigSpec.IntValue ClaimingCost;
+    public static ModConfigSpec.IntValue ChunkCost;
+    public static ModConfigSpec.IntValue MaxClaimChunks;
+    public static ModConfigSpec.IntValue SiegeClaimsRecruitsAmount;
+    public static ModConfigSpec.IntValue SiegeClaimsConquerTime;
+    public static ModConfigSpec.BooleanValue NobleVillagerNeedsVillagers;
+    public static ModConfigSpec.BooleanValue ShouldProfessionBlocksTrade;
+    public static ModConfigSpec.BooleanValue NobleVillagerSpawn;
+    public static ModConfigSpec.BooleanValue AllowClaiming;
+    public static ModConfigSpec.BooleanValue FogOfWarEnabled;
+    public static ModConfigSpec.BooleanValue RecruitsStarving;
+    public static ModConfigSpec.BooleanValue RecruitsUpdateHungerAndMorale;
+    public static ModConfigSpec.BooleanValue SiegeRequiresOwnerOnline;
 
     public static ArrayList<String> TARGET_BLACKLIST = new ArrayList<>(
             Arrays.asList("minecraft:creeper", "minecraft:ghast", "minecraft:enderman", "minecraft:zombified_piglin", "corpse:corpse", "minecraft:armorstand"));
@@ -842,14 +840,8 @@ public class RecruitsServerConfig {
         SERVER = BUILDER.build();
     }
 
-    public static void loadConfig(ForgeConfigSpec spec, Path path) {
-        CommentedFileConfig configData = CommentedFileConfig.builder(path)
-                .sync()
-                .autosave()
-                .writingMode(WritingMode.REPLACE)
-                .build();
-        configData.load();
-        spec.setConfig(configData);
+    public static void loadConfig(ModConfigSpec spec, Path path) {
+        // NeoForge loads registered configs automatically via ModContainer.registerConfig.
     }
 }
 

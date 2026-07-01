@@ -2,11 +2,11 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.world.RecruitsClaim;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.eventbus.api.Cancelable;
-import net.minecraftforge.eventbus.api.Event;
+import net.neoforged.bus.api.ICancellableEvent;
+import net.neoforged.bus.api.Event;
 
 /**
- * Siege-Events werden auf dem {@code MinecraftForge.EVENT_BUS} gepostet
+ * Siege-Events werden auf dem {@code NeoForge.EVENT_BUS} gepostet
  * und können von anderen Mods abonniert werden.
  *
  * <pre>
@@ -43,8 +43,7 @@ public abstract class SiegeEvent extends Event {
      * Wird gefeuert, kurz bevor ein Siege startet.
      * <p>Ist cancelable: {@code event.setCanceled(true)} verhindert den Start.</p>
      */
-    @Cancelable
-    public static class Start extends SiegeEvent {
+    public static class Start extends SiegeEvent implements ICancellableEvent {
         public Start(RecruitsClaim claim, ServerLevel level) {
             super(claim, level);
         }
@@ -94,8 +93,7 @@ public abstract class SiegeEvent extends Event {
      *   }
      * </pre>
      */
-    @Cancelable
-    public static class Tick extends SiegeEvent {
+    public static class Tick extends SiegeEvent implements ICancellableEvent {
         private final int attackerCount;
         private final int defenderCount;
         private int damage;

@@ -6,7 +6,9 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.InteractionHand;
 
 import javax.annotation.Nullable;
@@ -51,12 +53,23 @@ public class RecruitQuaffGoal extends Goal {
         recruit.inventory.addItem(Items.GLASS_BOTTLE.getDefaultInstance());
     }
 
+    private static boolean isBeneficialPotion(ItemStack stack) {
+        PotionContents pc = stack.get(DataComponents.POTION_CONTENTS);
+        if (pc == null) return false;
+        boolean any = false;
+        for (MobEffectInstance instance : pc.getAllEffects()) {
+            any = true;
+            if (instance.getEffect().value().getCategory() == MobEffectCategory.HARMFUL) return false;
+        }
+        return any;
+    }
+
     private boolean hasPotionInInv(){
         SimpleContainer inventory = recruit.getInventory();
 
         for(int i = 0; i < inventory.getContainerSize(); i++){
             ItemStack itemStack = inventory.getItem(i);
-            if (PotionUtils.getMobEffects(itemStack).size() > 0 && PotionUtils.getMobEffects(itemStack).stream().noneMatch(instance -> instance.getEffect().getCategory().equals(MobEffectCategory.HARMFUL))) {
+            if (isBeneficialPotion(itemStack)) {
                 return true;
             }
         }
@@ -69,7 +82,7 @@ public class RecruitQuaffGoal extends Goal {
         ItemStack itemStack = null;
         for(int i = 0; i < inventory.getContainerSize(); i++){
             itemStack = inventory.getItem(i);
-            if (PotionUtils.getMobEffects(itemStack).size() > 0 && PotionUtils.getMobEffects(itemStack).stream().noneMatch(instance -> instance.getEffect().getCategory().equals(MobEffectCategory.HARMFUL))) {
+            if (isBeneficialPotion(itemStack)) {
                 slotID = i;
                 recruit.inventory.removeItemNoUpdate(i);
                 return itemStack;

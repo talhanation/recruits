@@ -10,15 +10,12 @@ import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 public abstract class ListScreenListBase<T extends ListScreenEntryBase<T>> extends ContainerObjectSelectionList<T> {
 
     public ListScreenListBase(int width, int height, int x, int y, int size) {
-        super(Minecraft.getInstance(), width, height, x, y, size);
+        super(Minecraft.getInstance(), width, y - x, x, size);
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int x, int y, float partialTicks) {
-        double scale = minecraft.getWindow().getGuiScale();
-        RenderSystem.enableScissor((int) ((double) getRowLeft() * scale), (int) ((double) (height - y1) * scale), (int) ((double) (getScrollbarPosition() + 6) * scale), (int) ((double) (height - (height - y1) - y0 - 4) * scale));
-        super.render(guiGraphics, x, y, partialTicks);
-        RenderSystem.disableScissor();
+    public void renderWidget(GuiGraphics guiGraphics, int x, int y, float partialTicks) {
+        super.renderWidget(guiGraphics, x, y, partialTicks);
     }
 
 }

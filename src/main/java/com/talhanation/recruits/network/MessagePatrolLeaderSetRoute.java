@@ -1,13 +1,15 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
@@ -21,6 +23,8 @@ import java.util.UUID;
  */
 public class MessagePatrolLeaderSetRoute implements Message<MessagePatrolLeaderSetRoute> {
 
+    public static final CustomPacketPayload.Type<MessagePatrolLeaderSetRoute> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagepatrolleadersetroute"));
     private UUID recruit;
     @Nullable private UUID routeId;       // null = clear route
     private List<BlockPos> waypoints;     // ordered waypoint positions
@@ -45,13 +49,13 @@ public class MessagePatrolLeaderSetRoute implements Message<MessagePatrolLeaderS
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
     @Override
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = Objects.requireNonNull(((ServerPlayer) context.player()));
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractLeaderEntity.class,
                 player.getBoundingBox().inflate(64.0D),
@@ -67,21 +71,26 @@ public class MessagePatrolLeaderSetRoute implements Message<MessagePatrolLeaderS
     }
 
     @Override
-    public MessagePatrolLeaderSetRoute fromBytes(FriendlyByteBuf buf) {
+    public MessagePatrolLeaderSetRoute fromBytes(RegistryFriendlyByteBuf buf) {
         this.recruit     = buf.readUUID();
         boolean hasRoute = buf.readBoolean();
         this.routeId     = hasRoute ? buf.readUUID() : null;
-        this.waypoints   = buf.readList(FriendlyByteBuf::readBlockPos);
-        this.waitSeconds = buf.readList(FriendlyByteBuf::readVarInt);
+        this.waypoints   = buf.readList(x -> buf.readBlockPos());
+        this.waitSeconds = buf.readList(x -> buf.readVarInt());
         return this;
     }
 
     @Override
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(this.recruit);
         buf.writeBoolean(this.routeId != null);
         if (this.routeId != null) buf.writeUUID(this.routeId);
-        buf.writeCollection(this.waypoints, FriendlyByteBuf::writeBlockPos);
-        buf.writeCollection(this.waitSeconds, FriendlyByteBuf::writeVarInt);
+        buf.writeCollection(this.waypoints, (b, pos) -> buf.writeBlockPos(pos));
+        buf.writeCollection(this.waitSeconds, (b, v) -> buf.writeVarInt(v));
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessagePatrolLeaderSetRoute> type() {
+        return TYPE;
     }
 }

@@ -1,20 +1,24 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import java.util.Objects;
 
 public class MessageAssassinate implements Message<MessageAssassinate> {
 
+    public static final CustomPacketPayload.Type<MessageAssassinate> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messageassassinate"));
     //private UUID target;
     private int count;
     private int costs;
@@ -30,12 +34,12 @@ public class MessageAssassinate implements Message<MessageAssassinate> {
         this.name = name;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = Objects.requireNonNull(((ServerPlayer) context.player()));
         ServerLevel world = player.serverLevel();
         MinecraftServer server = world.getServer();
         PlayerList list = server.getPlayerList();
@@ -52,7 +56,7 @@ public class MessageAssassinate implements Message<MessageAssassinate> {
         }
     }
 
-    public MessageAssassinate fromBytes(FriendlyByteBuf buf) {
+    public MessageAssassinate fromBytes(RegistryFriendlyByteBuf buf) {
         //this.target = buf.readUUID();
         this.count = buf.readInt();
         this.costs = buf.readInt();
@@ -60,11 +64,16 @@ public class MessageAssassinate implements Message<MessageAssassinate> {
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         //buf.writeUUID(this.target);
         buf.writeInt(this.count);
         buf.writeInt(this.costs);
         buf.writeUtf(this.name);
     }
 
+
+    @Override
+    public CustomPacketPayload.Type<MessageAssassinate> type() {
+        return TYPE;
+    }
 }

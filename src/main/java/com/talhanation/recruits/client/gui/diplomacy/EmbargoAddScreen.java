@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui.diplomacy;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
@@ -15,11 +16,11 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 public class EmbargoAddScreen extends RecruitsScreenBase {
 
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_big.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/gui_big.png");
 
     private static final Component TITLE        = Component.translatable("gui.recruits.embargo.add_title");
     private static final Component BUTTON_PLAYER  = Component.translatable("gui.recruits.embargo.button_player");
@@ -62,7 +63,7 @@ public class EmbargoAddScreen extends RecruitsScreenBase {
                         false, PlayersList.FilterType.NONE,
                         (playerInfo) -> {
                             if (playerInfo != null) {
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageAddEmbargo(playerInfo.getUUID()));
+                                NetUtils.sendToServer(new MessageAddEmbargo(playerInfo.getUUID()));
                             }
                             minecraft.setScreen(embargoScreen);
                         }
@@ -77,7 +78,7 @@ public class EmbargoAddScreen extends RecruitsScreenBase {
                         SELECT_FACTION_TITLE, SELECT_FACTION_BUTTON, SELECT_FACTION_TOOLTIP,
                         (faction) -> {
                             if (faction != null) {
-                                Main.SIMPLE_CHANNEL.sendToServer(
+                                NetUtils.sendToServer(
                                         new MessageAddEmbargoFaction(faction.getStringID())
                                 );
                             }

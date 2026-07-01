@@ -143,7 +143,7 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
                         if (i >= weapon.getWeaponLoadTime()) {
                             this.crossBowman.releaseUsingItem();
                             this.crossBowman.playSound(this.weapon.getLoadSound(), 1.0F, 1.0F / (crossBowman.getRandom().nextFloat() * 0.4F + 0.8F));
-                            CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), true);
+                            this.crossBowman.getMainHandItem().set(net.minecraft.core.component.DataComponents.CHARGED_PROJECTILES, net.minecraft.world.item.component.ChargedProjectiles.of(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.ARROW)));
 
                             this.state = State.AIMING;
                         }
@@ -164,7 +164,7 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
                     case SHOOT -> {
                         if (pos != null) {
                             this.weapon.performRangedAttackIWeapon(this.crossBowman, pos.getX(), pos.getY(), pos.getZ(), weapon.getProjectileSpeed());
-                            CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), false);
+                            this.crossBowman.getMainHandItem().set(net.minecraft.core.component.DataComponents.CHARGED_PROJECTILES, net.minecraft.world.item.component.ChargedProjectiles.EMPTY);
                         }
                         this.state = State.IDLE; //RESUPPLY
                     }
@@ -186,7 +186,7 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
                         if (i >= weapon.getWeaponLoadTime()) {
                             this.crossBowman.releaseUsingItem();
                             this.crossBowman.playSound(this.weapon.getLoadSound(), 1.0F, 1.0F / (crossBowman.getRandom().nextFloat() * 0.4F + 0.8F));
-                            CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), true);
+                            this.crossBowman.getMainHandItem().set(net.minecraft.core.component.DataComponents.CHARGED_PROJECTILES, net.minecraft.world.item.component.ChargedProjectiles.of(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.ARROW)));
 
                             this.state = State.AIMING;
                         }
@@ -230,7 +230,7 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
                                 target = savedTarget;
                             }
 
-                            CrossbowItem.setCharged(this.crossBowman.getMainHandItem(), false);
+                            this.crossBowman.getMainHandItem().set(net.minecraft.core.component.DataComponents.CHARGED_PROJECTILES, net.minecraft.world.item.component.ChargedProjectiles.EMPTY);
                         }
                         this.state = State.IDLE;
                     }

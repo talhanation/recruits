@@ -1,14 +1,16 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -16,6 +18,8 @@ import java.util.function.Function;
 
 public class MessageAggro implements Message<MessageAggro> {
 
+    public static final CustomPacketPayload.Type<MessageAggro> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messageaggro"));
     private UUID player;
     private UUID recruit;
     private int state;
@@ -34,12 +38,12 @@ public class MessageAggro implements Message<MessageAggro> {
         this.recruit = null;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = Objects.requireNonNull(((ServerPlayer) context.player()));
 
         double boundBoxInflateModifier = 16.0D;
         if(!fromGui) {
@@ -59,7 +63,7 @@ public class MessageAggro implements Message<MessageAggro> {
         });
     }
 
-    public MessageAggro fromBytes(FriendlyByteBuf buf) {
+    public MessageAggro fromBytes(RegistryFriendlyByteBuf buf) {
         this.player = buf.readUUID();
         this.state = buf.readInt();
         this.group = buf.readUUID();
@@ -68,11 +72,16 @@ public class MessageAggro implements Message<MessageAggro> {
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(this.player);
         buf.writeInt(this.state);
         buf.writeUUID(this.group);
         buf.writeBoolean(this.fromGui);
         if (this.recruit != null) buf.writeUUID(this.recruit);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageAggro> type() {
+        return TYPE;
     }
 }

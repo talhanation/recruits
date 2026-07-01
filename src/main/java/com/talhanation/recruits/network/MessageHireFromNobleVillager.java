@@ -1,4 +1,8 @@
 package com.talhanation.recruits.network;
+import de.maxhenkel.corelib.net.NetUtils;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
@@ -8,22 +12,23 @@ import com.talhanation.recruits.entities.VillagerNobleEntity;
 import com.talhanation.recruits.world.RecruitsGroup;
 import com.talhanation.recruits.world.RecruitsHireTrade;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
 public class MessageHireFromNobleVillager implements Message<MessageHireFromNobleVillager> {
+    public static final CustomPacketPayload.Type<MessageHireFromNobleVillager> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagehirefromnoblevillager"));
     private UUID nobleUUID;
     private UUID villagerUUID;
     private int cost;
@@ -44,19 +49,19 @@ public class MessageHireFromNobleVillager implements Message<MessageHireFromNobl
         }
         else{
             this.cost = 0;
-            this.resource = new ResourceLocation("","");
+            this.resource = ResourceLocation.fromNamespaceAndPath("","");
         }
 
         this.needsVillager = needsVillager;
         this.closing = closing;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = Objects.requireNonNull(((ServerPlayer) context.player()));
         ServerLevel serverLevel = player.serverLevel();
         VillagerNobleEntity villagerNoble = player.getCommandSenderWorld().getEntitiesOfClass(
                 VillagerNobleEntity.class,
@@ -88,7 +93,7 @@ public class MessageHireFromNobleVillager implements Message<MessageHireFromNobl
 
         String stringID = player.getTeam() != null ? player.getTeam().getName() : "";
         boolean canHire = RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(stringID, player.getUUID());
-        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> player), new MessageToClientUpdateHireState(canHire));
+        NetUtils.sendTo(player, new MessageToClientUpdateHireState(canHire));
     }
     public void createRecruit(ServerLevel serverLevel, Villager villager, VillagerNobleEntity villagerNoble, Player player, RecruitsGroup group){
         String string = resource.toString();
@@ -101,7 +106,7 @@ public class MessageHireFromNobleVillager implements Message<MessageHireFromNobl
         villagerNoble.doTrade(resource);
     }
 
-    public MessageHireFromNobleVillager fromBytes(FriendlyByteBuf buf) {
+    public MessageHireFromNobleVillager fromBytes(RegistryFriendlyByteBuf buf) {
         this.nobleUUID = buf.readUUID();
         this.villagerUUID = buf.readUUID();
         this.cost = buf.readInt();
@@ -112,7 +117,7 @@ public class MessageHireFromNobleVillager implements Message<MessageHireFromNobl
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(this.nobleUUID);
         buf.writeUUID(this.villagerUUID);
         buf.writeInt(this.cost);
@@ -120,5 +125,10 @@ public class MessageHireFromNobleVillager implements Message<MessageHireFromNobl
         buf.writeBoolean(needsVillager);
         buf.writeBoolean(closing);
         buf.writeUUID(this.groupUUID);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageHireFromNobleVillager> type() {
+        return TYPE;
     }
 }

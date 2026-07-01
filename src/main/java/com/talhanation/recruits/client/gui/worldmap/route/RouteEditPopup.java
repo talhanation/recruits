@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui.worldmap.route;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
@@ -99,7 +100,7 @@ public class RouteEditPopup {
                 false,
                 PlayersList.FilterType.NONE,
                 (playerInfo) -> {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageTransferRoute(playerInfo.getUUID(), route));
+                    NetUtils.sendToServer(new MessageTransferRoute(playerInfo.getUUID(), route));
                     Minecraft.getInstance().setScreen(parent);
                 });
         Minecraft.getInstance().setScreen(transferScreen);
@@ -113,7 +114,6 @@ public class RouteEditPopup {
     }
 
     public void tick() {
-        if (visible && nameField != null) nameField.tick();
     }
 
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY) {

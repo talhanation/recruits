@@ -1,17 +1,21 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.FactionEvents;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import java.util.UUID;
 
 
 public class MessageDoPayment implements Message<MessageDoPayment> {
 
+    public static final CustomPacketPayload.Type<MessageDoPayment> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagedopayment"));
     private int amount;
     private UUID uuid;
     public MessageDoPayment(){
@@ -23,12 +27,12 @@ public class MessageDoPayment implements Message<MessageDoPayment> {
         this.uuid = uuid;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
-        ServerPlayer serverPlayer = context.getSender();
+    public void executeServerSide(IPayloadContext context){
+        ServerPlayer serverPlayer = ((ServerPlayer) context.player());
         if(serverPlayer == null) return;
 
         if(!serverPlayer.getUUID().equals(uuid)) return;
@@ -41,14 +45,19 @@ public class MessageDoPayment implements Message<MessageDoPayment> {
 
         FactionEvents.doPayment(serverPlayer, this.amount);
     }
-    public MessageDoPayment fromBytes(FriendlyByteBuf buf) {
+    public MessageDoPayment fromBytes(RegistryFriendlyByteBuf buf) {
         this.uuid = buf.readUUID();
         this.amount = buf.readInt();
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(uuid);
         buf.writeInt(amount);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageDoPayment> type() {
+        return TYPE;
     }
 }

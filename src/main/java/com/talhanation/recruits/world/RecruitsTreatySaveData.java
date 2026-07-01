@@ -1,4 +1,5 @@
 package com.talhanation.recruits.world;
+import net.minecraft.core.HolderLookup;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -17,17 +18,17 @@ public class RecruitsTreatySaveData extends SavedData {
     }
 
     public static RecruitsTreatySaveData get(ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(RecruitsTreatySaveData::load, RecruitsTreatySaveData::new, DATA_NAME);
+        return level.getDataStorage().computeIfAbsent(new SavedData.Factory<>(RecruitsTreatySaveData::new, RecruitsTreatySaveData::load), DATA_NAME);
     }
 
-    public static RecruitsTreatySaveData load(CompoundTag nbt) {
+    public static RecruitsTreatySaveData load(CompoundTag nbt, HolderLookup.Provider provider) {
         RecruitsTreatySaveData data = new RecruitsTreatySaveData();
         data.treaties = RecruitsTreatyManager.mapFromNbt(nbt.getCompound("treaties"));
         return data;
     }
 
     @Override
-    public CompoundTag save(CompoundTag nbt) {
+    public CompoundTag save(CompoundTag nbt, HolderLookup.Provider provider) {
         nbt.put("treaties", RecruitsTreatyManager.mapToNbt(treaties));
         return nbt;
     }

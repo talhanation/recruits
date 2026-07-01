@@ -14,9 +14,9 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 import java.util.Locale;
 
@@ -25,7 +25,7 @@ import static com.talhanation.recruits.client.ClientManager.ownFaction;
 @OnlyIn(Dist.CLIENT)
 public class DiplomacyTeamListScreen extends ListScreenBase {
 
-    protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/select_with_filter.png");
+    protected static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/select_with_filter.png");
     protected static final Component TITLE = Component.translatable("gui.recruits.diplomacy.teams_list");
     protected static final Component SET_STANCE = Component.translatable("gui.recruits.button.setRelation");
     protected static final Component SHOW_STANCE = Component.translatable("gui.recruits.button.showRelation");
@@ -83,7 +83,7 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
 
         if (list != null) {
 
-            list.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
+            list.updateSizeAndPosition(width, units * UNIT_SIZE - SEARCH_HEIGHT, guiTop + HEADER_SIZE + SEARCH_HEIGHT);
         } else {
             list = new DiplomacyTeamList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT, this);
         }
@@ -126,7 +126,7 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
                     else{
                         diplomacyFilter = DiplomacyTeamList.DiplomacyFilter.ALL;
                     }
-                    listUpdateFilter();;
+                    listUpdateFilter();
                 });
 
         neutralsButton = new RecruitsDiplomacyButton(RecruitsDiplomacyManager.DiplomacyStatus.NEUTRAL,guiLeft + buttonX + 21, guiTop + buttonY2, 21, 21, Component.literal(""),
@@ -167,7 +167,6 @@ public class DiplomacyTeamListScreen extends ListScreenBase {
     public void tick() {
         super.tick();
         if (searchBox != null) {
-            searchBox.tick();
         }
         if (list != null) {
             list.tick();

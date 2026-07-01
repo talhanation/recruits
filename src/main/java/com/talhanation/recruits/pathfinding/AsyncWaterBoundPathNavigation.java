@@ -35,7 +35,7 @@ public class AsyncWaterBoundPathNavigation extends AsyncPathNavigation {
     }
 
     protected boolean canUpdatePath() {
-        return this.allowBreaching || this.isInLiquid();
+        return this.allowBreaching || this.mob.isInLiquid();
     }
 
     protected @NotNull Vec3 getTempMobPos() {

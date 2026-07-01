@@ -26,7 +26,7 @@ final class WorldMapTextureAtlas implements AutoCloseable {
 
     private final PixelTexture texture = new PixelTexture();
     private final ResourceLocation textureId =
-            new ResourceLocation(Main.MOD_ID, "worldmap/atlas_" + ATLAS_SEQUENCE.incrementAndGet());
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "worldmap/atlas_" + ATLAS_SEQUENCE.incrementAndGet());
     private final BitSet usedSlots = new BitSet(CAPACITY);
 
     WorldMapTextureAtlas() {

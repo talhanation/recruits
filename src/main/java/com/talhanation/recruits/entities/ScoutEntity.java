@@ -25,7 +25,7 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ForgeMod;
+import net.neoforged.neoforge.common.NeoForgeMod;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -48,10 +48,10 @@ public class ScoutEntity extends BowmanEntity implements ICompanion {
     public ScoutEntity(EntityType<? extends AbstractRecruitEntity> entityType, Level world) {
         super(entityType, world);
     }
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(OWNER_NAME, "");
-        this.entityData.define(TASK_STATE, (byte) 0);
+    protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(OWNER_NAME, "");
+        builder.define(TASK_STATE, (byte) 0);
     }
     @Override
     protected void registerGoals() {
@@ -79,18 +79,18 @@ public class ScoutEntity extends BowmanEntity implements ICompanion {
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
-                .add(ForgeMod.SWIM_SPEED.get(), 0.3D)
+                .add(NeoForgeMod.SWIM_SPEED, 0.3D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.1D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
                 .add(Attributes.FOLLOW_RANGE, 128.0D)
-                .add(ForgeMod.ENTITY_REACH.get(), 0D)
+                .add(Attributes.ENTITY_INTERACTION_RANGE, 0D)
                 .add(Attributes.ATTACK_SPEED);
     }
 
 
     @Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data, @Nullable CompoundTag nbt) {
-        SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data) {
+        SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data);
         ((GroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
 
         this.initSpawn();

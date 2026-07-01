@@ -1,20 +1,24 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.world.RecruitsGroup;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import java.util.Objects;
 import java.util.UUID;
 
 public class MessageGroup implements Message<MessageGroup> {
 
+    public static final CustomPacketPayload.Type<MessageGroup> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagegroup"));
     private UUID groupUUID;
     private UUID recruitUUID;
 
@@ -26,12 +30,12 @@ public class MessageGroup implements Message<MessageGroup> {
         this.recruitUUID = recruitUUID;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = Objects.requireNonNull(((ServerPlayer) context.player()));
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(100),
@@ -50,14 +54,19 @@ public class MessageGroup implements Message<MessageGroup> {
         recruit.setGroupUUID(newGroup.getUUID());
     }
 
-    public MessageGroup fromBytes(FriendlyByteBuf buf) {
+    public MessageGroup fromBytes(RegistryFriendlyByteBuf buf) {
         this.groupUUID = buf.readUUID();
         this.recruitUUID = buf.readUUID();
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(groupUUID);
         buf.writeUUID(recruitUUID);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageGroup> type() {
+        return TYPE;
     }
 }

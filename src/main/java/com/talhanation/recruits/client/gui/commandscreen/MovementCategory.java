@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui.commandscreen;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
@@ -13,7 +14,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -118,7 +119,7 @@ public class MovementCategory implements ICommandCategory {
                             if (!group.isDisabled()) activeGroups.add(group.getUUID());
                         }
 
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveFormationFollowMovement(player.getUUID(), activeGroups, CommandScreen.formation.getIndex()));
+                        NetUtils.sendToServer(new MessageSaveFormationFollowMovement(player.getUUID(), activeGroups, CommandScreen.formation.getIndex()));
                     } else {
                         screen.sendMovementCommandToServer(1);
                     }

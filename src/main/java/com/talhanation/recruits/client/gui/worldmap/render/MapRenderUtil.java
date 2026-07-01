@@ -53,9 +53,9 @@ public final class MapRenderUtil {
 
         VertexConsumer consumer = graphics.bufferSource().getBuffer(RenderType.gui());
         Matrix4f matrix = graphics.pose().last().pose();
-        consumer.vertex(matrix, (float) x1, (float) y1, 0.0F).color(red, green, blue, alpha).endVertex();
-        consumer.vertex(matrix, (float) x2, (float) y2, 0.0F).color(red, green, blue, alpha).endVertex();
-        consumer.vertex(matrix, (float) x3, (float) y3, 0.0F).color(red, green, blue, alpha).endVertex();
-        consumer.vertex(matrix, (float) x4, (float) y4, 0.0F).color(red, green, blue, alpha).endVertex();
+        consumer.addVertex(matrix, (float) x1, (float) y1, 0.0F).setColor(red, green, blue, alpha);
+        consumer.addVertex(matrix, (float) x2, (float) y2, 0.0F).setColor(red, green, blue, alpha);
+        consumer.addVertex(matrix, (float) x3, (float) y3, 0.0F).setColor(red, green, blue, alpha);
+        consumer.addVertex(matrix, (float) x4, (float) y4, 0.0F).setColor(red, green, blue, alpha);
     }
 }

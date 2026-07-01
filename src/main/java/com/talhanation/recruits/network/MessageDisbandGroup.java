@@ -1,20 +1,24 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.world.RecruitsGroup;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 public class MessageDisbandGroup implements Message<MessageDisbandGroup> {
 
+    public static final CustomPacketPayload.Type<MessageDisbandGroup> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagedisbandgroup"));
     private UUID owner;
     private UUID groupUUID;
     private boolean keepTeam;
@@ -28,12 +32,12 @@ public class MessageDisbandGroup implements Message<MessageDisbandGroup> {
         this.keepTeam = keepTeam;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = Objects.requireNonNull(((ServerPlayer) context.player()));
         RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
         if(group == null) return;
 
@@ -51,16 +55,21 @@ public class MessageDisbandGroup implements Message<MessageDisbandGroup> {
         }
     }
 
-    public MessageDisbandGroup fromBytes(FriendlyByteBuf buf) {
+    public MessageDisbandGroup fromBytes(RegistryFriendlyByteBuf buf) {
         this.owner = buf.readUUID();
         this.groupUUID = buf.readUUID();
         this.keepTeam = buf.readBoolean();
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(owner);
         buf.writeUUID(groupUUID);
         buf.writeBoolean(keepTeam);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageDisbandGroup> type() {
+        return TYPE;
     }
 }

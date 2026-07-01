@@ -1,17 +1,21 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import java.util.Objects;
 import java.util.UUID;
 
 public class MessageDisband implements Message<MessageDisband> {
 
+    public static final CustomPacketPayload.Type<MessageDisband> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagedisband"));
     private UUID recruit;
     private boolean keepTeam;
 
@@ -23,27 +27,32 @@ public class MessageDisband implements Message<MessageDisband> {
         this.keepTeam = keepTeam;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = Objects.requireNonNull(((ServerPlayer) context.player()));
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(16D),
                 (recruit) -> recruit.getUUID().equals(this.recruit)
-        ).forEach((recruit) -> recruit.disband(context.getSender(), keepTeam, true));
+        ).forEach((recruit) -> recruit.disband(((ServerPlayer) context.player()), keepTeam, true));
     }
 
-    public MessageDisband fromBytes(FriendlyByteBuf buf) {
+    public MessageDisband fromBytes(RegistryFriendlyByteBuf buf) {
         this.recruit = buf.readUUID();
         this.keepTeam = buf.readBoolean();
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(recruit);
         buf.writeBoolean(keepTeam);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageDisband> type() {
+        return TYPE;
     }
 }

@@ -47,7 +47,7 @@ public class RecruitsHireTrade {
 
     public static RecruitsHireTrade fromNbt(CompoundTag tag) {
         int cost = tag.getInt("cost");
-        ResourceLocation recruitType = new ResourceLocation(tag.getString("recruitType"));
+        ResourceLocation recruitType = ResourceLocation.parse(tag.getString("recruitType"));
         int maxUses = tag.getInt("maxUses");
         int uses = tag.getInt("uses");
 

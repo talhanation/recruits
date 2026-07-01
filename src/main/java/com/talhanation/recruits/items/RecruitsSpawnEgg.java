@@ -16,7 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.ForgeSpawnEggItem;
+import net.neoforged.neoforge.common.DeferredSpawnEggItem;
 import net.minecraft.world.phys.Vec3;
 
 import net.minecraft.world.scores.PlayerTeam;
@@ -27,7 +27,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 
-public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
+public class RecruitsSpawnEgg extends DeferredSpawnEggItem {
     private final Supplier<? extends EntityType<? extends AbstractRecruitEntity>> entityType;
 
     public RecruitsSpawnEgg(Supplier<? extends EntityType<? extends AbstractRecruitEntity>> entityType, int primaryColor, int secondaryColor, Properties properties) {
@@ -35,12 +35,12 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
         this.entityType = entityType;
     }
     @Override
-    public @NotNull EntityType<?> getType(CompoundTag compound){
-        if(compound != null && compound.contains("EntityTag", 10)) {
-            CompoundTag entityTag = compound.getCompound("EntityTag");
-
-            if(entityTag.contains("id", 8)) {
-                return EntityType.byString(entityTag.getString("id")).orElse(this.entityType.get());
+    public @NotNull EntityType<?> getType(net.minecraft.world.item.ItemStack stack){
+        net.minecraft.world.item.component.CustomData entityData = stack.get(net.minecraft.core.component.DataComponents.ENTITY_DATA);
+        if(entityData != null) {
+            CompoundTag tag = entityData.copyTag();
+            if(tag.contains("id", 8)) {
+                return EntityType.byString(tag.getString("id")).orElse(this.entityType.get());
             }
         }
         return this.entityType.get();
@@ -55,11 +55,11 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
         else{
             ItemStack stack = context.getItemInHand();
             BlockPos pos = context.getClickedPos();
-            EntityType<?> entitytype = this.getType(stack.getTag());
+            EntityType<?> entitytype = this.getType(stack);
             Entity entity = entitytype.create(world);
 
 
-            CompoundTag entityTag = stack.getTag();
+            CompoundTag entityTag = stack.getOrDefault(net.minecraft.core.component.DataComponents.ENTITY_DATA, net.minecraft.world.item.component.CustomData.EMPTY).copyTag();
             if(entity instanceof AbstractRecruitEntity recruit && entityTag != null && !entityTag.isEmpty()) {
 
                 fillRecruit(recruit, entityTag, pos);
@@ -72,7 +72,22 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
                 return InteractionResult.SUCCESS;
             }
             else{
-                return super.useOn(context);
+                // Spawn the recruit WITHOUT copying the egg's custom name onto it. Vanilla's
+                // spawn-egg path transfers a stack CUSTOM_NAME to the mob AFTER finalizeSpawn,
+                // which overrode the name the recruit assigns itself and made recruits appear
+                // named after their egg (e.g. "... Spawn Egg"). The stack-less spawn overload
+                // runs finalizeSpawn but skips that name transfer.
+                if (world instanceof ServerLevel serverLevel) {
+                    net.minecraft.core.Direction face = context.getClickedFace();
+                    BlockPos spawnPos = world.getBlockState(pos).getCollisionShape(world, pos).isEmpty()
+                            ? pos
+                            : pos.relative(face);
+                    Entity spawned = entitytype.spawn(serverLevel, spawnPos, net.minecraft.world.entity.MobSpawnType.SPAWN_EGG);
+                    if (spawned != null && context.getPlayer() != null && !context.getPlayer().isCreative()) {
+                        stack.shrink(1);
+                    }
+                }
+                return InteractionResult.SUCCESS;
             }
         }
     }
@@ -189,20 +204,20 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
             CompoundTag compoundnbt = listnbt.getCompound(i);
             int j = compoundnbt.getByte("Slot") & 255;
             if (j < recruit.inventory.getContainerSize()) {
-                recruit.inventory.setItem(j, ItemStack.of(compoundnbt));
+                recruit.inventory.setItem(j, ItemStack.parseOptional(recruit.registryAccess(), compoundnbt));
             }
         }
 
         ListTag armorItems = nbt.getList("ArmorItems", 10);
         for (int i = 0; i < recruit.armorItems.size(); ++i) {
-            int index = recruit.getInventorySlotIndex(Mob.getEquipmentSlotForItem(ItemStack.of(armorItems.getCompound(i))));
-            recruit.setItemSlot(recruit.getEquipmentSlotIndex(index), ItemStack.of(armorItems.getCompound(i)));
+            int index = recruit.getInventorySlotIndex(com.talhanation.recruits.entities.AbstractInventoryEntity.getEquipmentSlotForRecruit(ItemStack.parseOptional(recruit.registryAccess(), armorItems.getCompound(i))));
+            recruit.setItemSlot(recruit.getEquipmentSlotIndex(index), ItemStack.parseOptional(recruit.registryAccess(), armorItems.getCompound(i)));
         }
 
         ListTag handItems = nbt.getList("HandItems", 10);
         for (int i = 0; i < recruit.handItems.size(); ++i) {
             int index = i == 0 ? 5 : 4; //5 = mainhand 4 = offhand
-            recruit.setItemSlot(recruit.getEquipmentSlotIndex(index), ItemStack.of(handItems.getCompound(i)));
+            recruit.setItemSlot(recruit.getEquipmentSlotIndex(index), ItemStack.parseOptional(recruit.registryAccess(), handItems.getCompound(i)));
         }
 
         recruit.setPos(pos.getX() + 0.5, pos.getY() + 1 , pos.getZ() + 0.5);

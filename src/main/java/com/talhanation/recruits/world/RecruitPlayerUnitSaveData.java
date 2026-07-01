@@ -1,4 +1,5 @@
 package com.talhanation.recruits.world;
+import net.minecraft.core.HolderLookup;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
@@ -18,7 +19,7 @@ public class RecruitPlayerUnitSaveData extends SavedData {
         this.setDirty();
     }
 
-    public static RecruitPlayerUnitSaveData load(CompoundTag nbt) {
+    public static RecruitPlayerUnitSaveData load(CompoundTag nbt, HolderLookup.Provider provider) {
         RecruitPlayerUnitSaveData data = new RecruitPlayerUnitSaveData();
         CompoundTag recruitCounts = nbt.getCompound("recruitCounts");
 
@@ -32,7 +33,7 @@ public class RecruitPlayerUnitSaveData extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag nbt) {
+    public CompoundTag save(CompoundTag nbt, HolderLookup.Provider provider) {
         CompoundTag recruitCounts = new CompoundTag();
 
         for (Map.Entry<UUID, Integer> entry : recruitCountMap.entrySet()) {
@@ -54,6 +55,6 @@ public class RecruitPlayerUnitSaveData extends SavedData {
     public static RecruitPlayerUnitSaveData get(ServerLevel level) {
         return level
                 .getDataStorage()
-                .computeIfAbsent(RecruitPlayerUnitSaveData::load, RecruitPlayerUnitSaveData::new, DATA_NAME);
+                .computeIfAbsent(new SavedData.Factory<>(RecruitPlayerUnitSaveData::new, RecruitPlayerUnitSaveData::load), DATA_NAME);
     }
 }

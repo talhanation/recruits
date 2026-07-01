@@ -1,19 +1,23 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.world.RecruitsFaction;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import java.util.Objects;
 import java.util.UUID;
 
 public class MessageRemoveEmbargo implements Message<MessageRemoveEmbargo> {
 
+    public static final CustomPacketPayload.Type<MessageRemoveEmbargo> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messageremoveembargo"));
     private UUID embargoedPlayerUUID;
 
     public MessageRemoveEmbargo() {
@@ -24,13 +28,13 @@ public class MessageRemoveEmbargo implements Message<MessageRemoveEmbargo> {
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
     @Override
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = Objects.requireNonNull(((ServerPlayer) context.player()));
         ServerLevel level = (ServerLevel) player.level();
 
         RecruitsFaction ownFaction = FactionEvents.recruitsFactionManager.getFactionByStringID(
@@ -42,13 +46,18 @@ public class MessageRemoveEmbargo implements Message<MessageRemoveEmbargo> {
     }
 
     @Override
-    public MessageRemoveEmbargo fromBytes(FriendlyByteBuf buf) {
+    public MessageRemoveEmbargo fromBytes(RegistryFriendlyByteBuf buf) {
         this.embargoedPlayerUUID = buf.readUUID();
         return this;
     }
 
     @Override
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(embargoedPlayerUUID);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageRemoveEmbargo> type() {
+        return TYPE;
     }
 }

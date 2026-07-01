@@ -1,19 +1,23 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.client.events.RecruitsToastManager;
 import com.talhanation.recruits.world.RecruitsFaction;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import static com.talhanation.recruits.client.events.RecruitsToastManager.*;
 
 
 public class MessageToClientSetDiplomaticToast implements Message<MessageToClientSetDiplomaticToast> {
 
+    public static final CustomPacketPayload.Type<MessageToClientSetDiplomaticToast> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagetoclientsetdiplomatictoast"));
     private int x;
     private String s;
     private CompoundTag nbt;
@@ -30,13 +34,13 @@ public class MessageToClientSetDiplomaticToast implements Message<MessageToClien
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.CLIENT;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.CLIENTBOUND;
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void executeClientSide(NetworkEvent.Context context) {
+    public void executeClientSide(IPayloadContext context) {
         RecruitsFaction team = RecruitsFaction.fromNBT(nbt);
         switch (x){
             case 0 -> RecruitsToastManager.setTeamToastForPlayer(Images.NEUTRAL, TOAST_NEUTRAL_TITLE, TOAST_NEUTRAL_SET(s), team);
@@ -64,7 +68,7 @@ public class MessageToClientSetDiplomaticToast implements Message<MessageToClien
     }
 
     @Override
-    public MessageToClientSetDiplomaticToast fromBytes(FriendlyByteBuf buf) {
+    public MessageToClientSetDiplomaticToast fromBytes(RegistryFriendlyByteBuf buf) {
        this.x = buf.readInt();
        this.s = buf.readUtf();
        this.nbt = buf.readNbt();
@@ -72,9 +76,14 @@ public class MessageToClientSetDiplomaticToast implements Message<MessageToClien
     }
 
     @Override
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeInt(x);
         buf.writeUtf(s);
         buf.writeNbt(nbt);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageToClientSetDiplomaticToast> type() {
+        return TYPE;
     }
 }

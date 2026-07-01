@@ -1,4 +1,5 @@
 package com.talhanation.recruits.world;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.talhanation.recruits.ClaimEvent;
 import com.talhanation.recruits.FactionEvents;
@@ -9,8 +10,8 @@ import com.talhanation.recruits.network.MessageToClientUpdateClaims;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -54,7 +55,7 @@ public class RecruitsClaimManager {
         // ClaimEvent.Updated feuern – cancelable
         boolean isNew = !claimsById.containsKey(claim.getUUID());
         ClaimEvent.Updated updateEvent = new ClaimEvent.Updated(claim, level, isNew);
-        if (MinecraftForge.EVENT_BUS.post(updateEvent)) return;
+        if (NeoForge.EVENT_BUS.post(updateEvent).isCanceled()) return;
 
         this.removeClaimFromIndexes(claim.getUUID());
 
@@ -67,7 +68,7 @@ public class RecruitsClaimManager {
 
     public void removeClaim(RecruitsClaim claim) {
         if (claim == null) return;
-        ServerLevel level = net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer().overworld();
+        ServerLevel level = net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer().overworld();
         this.removeClaim(level, claim);
     }
 
@@ -83,7 +84,7 @@ public class RecruitsClaimManager {
 
     private void removeClaim(ServerLevel level, RecruitsClaim claim) {
         // ClaimEvent.Removed feuern
-        MinecraftForge.EVENT_BUS.post(new ClaimEvent.Removed(claim, level));
+        NeoForge.EVENT_BUS.post(new ClaimEvent.Removed(claim, level));
 
         this.removeClaimFromIndexes(claim.getUUID());
         activeSieges.remove(claim.getUUID());
@@ -164,8 +165,7 @@ public class RecruitsClaimManager {
         if (claim == null || players == null || players.isEmpty()) return;
 
         for (ServerPlayer player : players) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
-                    new MessageToClientUpdateClaim(claim));
+            NetUtils.sendTo(player, new MessageToClientUpdateClaim(claim));
         }
     }
 
@@ -173,8 +173,7 @@ public class RecruitsClaimManager {
         if (level == null || claim == null) return;
 
         for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
-                    new MessageToClientUpdateClaim(claim));
+            NetUtils.sendTo(player, new MessageToClientUpdateClaim(claim));
         }
     }
 
@@ -212,8 +211,7 @@ public class RecruitsClaimManager {
 
     private void sendClaimBatch(
             ServerPlayer player, List<RecruitsClaim> claims, boolean resetClaims, boolean syncComplete) {
-        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
-                new MessageToClientUpdateClaims(
+        NetUtils.sendTo(player, new MessageToClientUpdateClaims(
                         claims,
                         RecruitsServerConfig.ClaimingCost.get(),
                         RecruitsServerConfig.ChunkCost.get(),

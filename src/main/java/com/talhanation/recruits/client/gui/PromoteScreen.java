@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
@@ -14,7 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 import org.lwjgl.glfw.GLFW;
 
@@ -22,7 +23,7 @@ import org.lwjgl.glfw.GLFW;
 public class PromoteScreen extends ScreenBase<PromoteContainer> {
 
 
-    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/professions/professions_main_gui.png");
+    private static final ResourceLocation RESOURCE_LOCATION = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/professions/professions_main_gui.png");
     private final Player player;
     private final AbstractRecruitEntity recruit;
     private EditBox textField;
@@ -80,7 +81,6 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
 
     protected void containerTick() {
         super.containerTick();
-        if(textField != null) textField.tick();
     }
 
 
@@ -132,7 +132,7 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
                             name = recruit.getName().getString();
                         }
 
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessagePromoteRecruit(this.recruit.getUUID(), professionID, name));
+                        NetUtils.sendToServer(new MessagePromoteRecruit(this.recruit.getUUID(), professionID, name));
                         onClose();
                     }
                 }

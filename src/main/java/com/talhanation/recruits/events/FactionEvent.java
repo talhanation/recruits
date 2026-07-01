@@ -3,14 +3,14 @@ package com.talhanation.recruits;
 import com.talhanation.recruits.world.RecruitsFaction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.eventbus.api.Cancelable;
-import net.minecraftforge.eventbus.api.Event;
+import net.neoforged.bus.api.ICancellableEvent;
+import net.neoforged.bus.api.Event;
 
 import javax.annotation.Nullable;
 
 /**
  * Events für den Lebenszyklus von Fraktionen. Alle Sub-Events werden auf dem
- * {@code MinecraftForge.EVENT_BUS} gepostet und sind server-side only.
+ * {@code NeoForge.EVENT_BUS} gepostet und sind server-side only.
  *
  * <pre>
  *   {@code @SubscribeEvent}
@@ -46,8 +46,7 @@ public abstract class FactionEvent extends Event {
      * Wird gefeuert, kurz nachdem eine Fraktion erfolgreich erstellt wurde.
      * <p>Cancelable: {@code setCanceled(true)} rollt die Erstellung zurück.</p>
      */
-    @Cancelable
-    public static class Created extends FactionEvent {
+    public static class Created extends FactionEvent implements ICancellableEvent {
         @Nullable
         private final ServerPlayer creator;
 
@@ -80,8 +79,7 @@ public abstract class FactionEvent extends Event {
      * Wird gefeuert, kurz bevor ein Spieler einer Fraktion beitritt.
      * <p>Cancelable: {@code setCanceled(true)} verhindert den Beitritt.</p>
      */
-    @Cancelable
-    public static class PlayerJoined extends FactionEvent {
+    public static class PlayerJoined extends FactionEvent implements ICancellableEvent {
         private final ServerPlayer player;
 
         public PlayerJoined(RecruitsFaction faction, ServerLevel level, ServerPlayer player) {

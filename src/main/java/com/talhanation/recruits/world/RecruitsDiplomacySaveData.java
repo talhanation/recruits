@@ -1,4 +1,5 @@
 package com.talhanation.recruits.world;
+import net.minecraft.core.HolderLookup;
 
 import com.talhanation.recruits.world.RecruitsDiplomacyManager.DiplomacyStatus;
 import net.minecraft.nbt.CompoundTag;
@@ -21,10 +22,10 @@ public class RecruitsDiplomacySaveData extends SavedData {
     }
 
     public static RecruitsDiplomacySaveData get(ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(RecruitsDiplomacySaveData::load, RecruitsDiplomacySaveData::new, DATA_NAME);
+        return level.getDataStorage().computeIfAbsent(new SavedData.Factory<>(RecruitsDiplomacySaveData::new, RecruitsDiplomacySaveData::load), DATA_NAME);
     }
 
-    public static RecruitsDiplomacySaveData load(CompoundTag nbt) {
+    public static RecruitsDiplomacySaveData load(CompoundTag nbt, HolderLookup.Provider provider) {
         RecruitsDiplomacySaveData data = new RecruitsDiplomacySaveData();
 
         CompoundTag teamsTag = nbt.getCompound("teams");
@@ -50,7 +51,7 @@ public class RecruitsDiplomacySaveData extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag nbt) {
+    public CompoundTag save(CompoundTag nbt, HolderLookup.Provider provider) {
         CompoundTag teamsTag = new CompoundTag();
         for (Map.Entry<String, Map<String, DiplomacyStatus>> teamEntry : diplomacyMap.entrySet()) {
             CompoundTag relationsTag = new CompoundTag();
