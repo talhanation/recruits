@@ -1,4 +1,8 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
@@ -7,18 +11,18 @@ import com.talhanation.recruits.entities.ICompanion;
 import com.talhanation.recruits.util.NPCArmy;
 import com.talhanation.recruits.world.RecruitsGroup;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import java.util.List;
 import java.util.UUID;
 
 public class MessageAssignGroupToCompanion implements Message<MessageAssignGroupToCompanion> {
 
+    public static final CustomPacketPayload.Type<MessageAssignGroupToCompanion> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messageassigngrouptocompanion"));
     private UUID ownerUUID;
     private UUID companionUUID;
     public MessageAssignGroupToCompanion(){
@@ -29,12 +33,12 @@ public class MessageAssignGroupToCompanion implements Message<MessageAssignGroup
         this.companionUUID = companionUUID;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer serverPlayer =  context.getSender();
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer serverPlayer =  ((ServerPlayer) context.player());
         ServerLevel serverLevel =  serverPlayer.serverLevel();
 
         AbstractLeaderEntity companionEntity = null;
@@ -70,15 +74,20 @@ public class MessageAssignGroupToCompanion implements Message<MessageAssignGroup
         RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(serverPlayer);
     }
 
-    public MessageAssignGroupToCompanion fromBytes(FriendlyByteBuf buf) {
+    public MessageAssignGroupToCompanion fromBytes(RegistryFriendlyByteBuf buf) {
         this.ownerUUID = buf.readUUID();
         this.companionUUID = buf.readUUID();
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(this.ownerUUID);
         buf.writeUUID(this.companionUUID);
     }
 
+
+    @Override
+    public CustomPacketPayload.Type<MessageAssignGroupToCompanion> type() {
+        return TYPE;
+    }
 }

@@ -1,16 +1,20 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 public class MessageTeleportPlayer implements Message<MessageTeleportPlayer> {
 
+    public static final CustomPacketPayload.Type<MessageTeleportPlayer> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messageteleportplayer"));
     public BlockPos pos;
     public MessageTeleportPlayer() {
     }
@@ -20,13 +24,13 @@ public class MessageTeleportPlayer implements Message<MessageTeleportPlayer> {
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
     @Override
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = context.getSender();
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = ((ServerPlayer) context.player());
 
         if (player == null || this.pos == null) return;
         if (!player.isCreative() || !player.hasPermissions(2)) return;
@@ -44,14 +48,19 @@ public class MessageTeleportPlayer implements Message<MessageTeleportPlayer> {
     }
 
     @Override
-    public MessageTeleportPlayer fromBytes(FriendlyByteBuf buf) {
+    public MessageTeleportPlayer fromBytes(RegistryFriendlyByteBuf buf) {
         this.pos = buf.readBlockPos();
         return this;
     }
 
     @Override
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeBlockPos(pos);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageTeleportPlayer> type() {
+        return TYPE;
     }
 }
 

@@ -2,7 +2,6 @@ package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.FactionEvents;
-import com.talhanation.recruits.compat.corpse.RecruitCorpseSpawner;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.inventory.RecruitSimpleContainer;
 import com.talhanation.recruits.pathfinding.AsyncPathfinderMob;
@@ -39,7 +38,6 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
 
     public RecruitSimpleContainer inventory;
     private int beforeItemSlot = -1;
-    private net.minecraftforge.common.util.LazyOptional<?> itemHandler = null;
 
     public AbstractInventoryEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
@@ -59,9 +57,9 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
 
     ////////////////////////////////////DATA////////////////////////////////////
 
-    protected void defineSynchedData() {
+    protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
 
-        super.defineSynchedData();
+        super.defineSynchedData(builder);
     }
 
     public void addAdditionalSaveData(CompoundTag nbt) {
@@ -72,7 +70,7 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
             if (!itemstack.isEmpty()) {
                 CompoundTag compoundnbt = new CompoundTag();
                 compoundnbt.putByte("Slot", (byte) i);
-                itemstack.save(compoundnbt);
+                itemstack.save(this.registryAccess(), compoundnbt);
                 listnbt.add(compoundnbt);
             }
         }
@@ -90,20 +88,20 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
             CompoundTag compoundnbt = listnbt.getCompound(i);
             int j = compoundnbt.getByte("Slot") & 255;
             if (j < this.inventory.getContainerSize()) {
-                this.inventory.setItem(j, ItemStack.of(compoundnbt));
+                this.inventory.setItem(j, ItemStack.parseOptional(this.registryAccess(), compoundnbt));
             }
         }
 
         ListTag armorItems = nbt.getList("ArmorItems", 10);
         for (int i = 0; i < this.armorItems.size(); ++i) {
-            int index = this.getInventorySlotIndex(Mob.getEquipmentSlotForItem(ItemStack.of(armorItems.getCompound(i))));
-            this.inventory.setItem(index, ItemStack.of(armorItems.getCompound(i)));
+            int index = this.getInventorySlotIndex(getEquipmentSlotForRecruit(ItemStack.parseOptional(this.registryAccess(), armorItems.getCompound(i))));
+            this.inventory.setItem(index, ItemStack.parseOptional(this.registryAccess(), armorItems.getCompound(i)));
         }
 
         ListTag handItems = nbt.getList("HandItems", 10);
         for (int i = 0; i < this.handItems.size(); ++i) {
             int index = i == 0 ? 5 : 4; //5 = mainhand 4 = offhand
-            this.inventory.setItem(index, ItemStack.of(handItems.getCompound(i)));
+            this.inventory.setItem(index, ItemStack.parseOptional(this.registryAccess(), handItems.getCompound(i)));
         }
         int beforeItemSlot = nbt.getInt("BeforeItemSlot");
         this.setBeforeItemSlot(beforeItemSlot);
@@ -247,16 +245,10 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
                 }
             }
         }
-        this.itemHandler = net.minecraftforge.common.util.LazyOptional.of(() -> new net.minecraftforge.items.wrapper.InvWrapper(this.inventory));
     }
 
     public void die(DamageSource dmg) {
         super.die(dmg);
-
-        boolean shouldUseCorpse = Main.isCorpseLoaded && !Main.isRPGZLoaded && !this.getCommandSenderWorld().isClientSide() && RecruitsServerConfig.CompatCorpseMod.get();
-        if (shouldUseCorpse && RecruitCorpseSpawner.spawnCorpse(this)) {
-            return;
-        }
 
         if (this.getCommandSenderWorld().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
             for (int i = 0; i < this.inventory.getContainerSize(); i++) {
@@ -291,7 +283,7 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
         }
     }
     public void equipItem(ItemStack itemStack) {
-        EquipmentSlot equipmentslot = getEquipmentSlotForItem(itemStack);
+        EquipmentSlot equipmentslot = getEquipmentSlotForRecruit(itemStack);
         ItemStack currentArmor = this.getItemBySlot(equipmentslot);
         this.spawnAtLocation(currentArmor);
         this.setItemSlot(equipmentslot, itemStack);
@@ -302,7 +294,7 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
     }
     public boolean canEquipItem(@NotNull ItemStack itemStack) {
         if(!itemStack.isEmpty()) {
-            EquipmentSlot equipmentslot = getEquipmentSlotForItem(itemStack);
+            EquipmentSlot equipmentslot = getEquipmentSlotForRecruit(itemStack);
                 ItemStack currentArmor = this.getItemBySlot(equipmentslot);
                 boolean flag = this.canReplaceCurrentItem(itemStack, currentArmor);
                 return flag && this.canHoldItem(itemStack);
@@ -336,33 +328,28 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
     @Override
     public boolean wantsToPickUp(@NotNull ItemStack itemStack){
        if (itemStack.getItem() instanceof ArmorItem){
-           EquipmentSlot equipmentslot = getEquipmentSlotForItem(itemStack);
+           EquipmentSlot equipmentslot = getEquipmentSlotForRecruit(itemStack);
 
            return this.getItemBySlot(equipmentslot).isEmpty() && !hasSameTypeOfItem(itemStack) && canEquipItem(itemStack);
        }
        else
-           return itemStack.isEdible();
+           return itemStack.has(net.minecraft.core.component.DataComponents.FOOD);
     }
     @NotNull
-    public static EquipmentSlot getEquipmentSlotForItem(ItemStack itemStack) {
-        final EquipmentSlot slot = itemStack.getEquipmentSlot();
-        if (slot != null) return slot; // FORGE: Allow modders to set a non-default equipment slot for a stack; e.g. a non-armor chestplate-slot item
+    public static EquipmentSlot getEquipmentSlotForRecruit(ItemStack itemStack) {
         Item item = itemStack.getItem();
-        if (!itemStack.is(Items.CARVED_PUMPKIN) && (!(item instanceof BlockItem) || !(((BlockItem)item).getBlock() instanceof AbstractSkullBlock))) {
-            if (item instanceof ArmorItem) {
-                return ((ArmorItem)item).getEquipmentSlot();
-            }
-            else if (itemStack.is(Items.ELYTRA)) {
-                return EquipmentSlot.CHEST;
-            }
-            else if(item instanceof SwordItem) {
-                return EquipmentSlot.MAINHAND;
-            }
-            else {
-                return itemStack.canPerformAction(net.minecraftforge.common.ToolActions.SHIELD_BLOCK)? EquipmentSlot.OFFHAND : EquipmentSlot.MAINHAND;
-            }
-        } else {
+        if (item instanceof ArmorItem armor) {
+            return armor.getEquipmentSlot();
+        } else if (itemStack.is(Items.ELYTRA)) {
+            return EquipmentSlot.CHEST;
+        } else if (item instanceof BlockItem bi && bi.getBlock() instanceof AbstractSkullBlock) {
             return EquipmentSlot.HEAD;
+        } else if (itemStack.is(Items.CARVED_PUMPKIN)) {
+            return EquipmentSlot.HEAD;
+        } else if (item instanceof SwordItem) {
+            return EquipmentSlot.MAINHAND;
+        } else {
+            return itemStack.canPerformAction(net.neoforged.neoforge.common.ItemAbilities.SHIELD_BLOCK) ? EquipmentSlot.OFFHAND : EquipmentSlot.MAINHAND;
         }
     }
 
@@ -372,8 +359,8 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
             return true;
         } else if (current.getItem() instanceof DiggerItem digger && replacer.getItem() instanceof SwordItem sword) {
 
-            if (digger.getAttackDamage() != sword.getDamage()) {
-                return digger.getAttackDamage() < sword.getDamage();
+            if (digger.getTier().getAttackDamageBonus() != sword.getTier().getAttackDamageBonus()) {
+                return digger.getTier().getAttackDamageBonus() < sword.getTier().getAttackDamageBonus();
             }
             return this.canReplaceEqualItem(replacer, current);
         }
@@ -384,8 +371,8 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
             } else {
                 SwordItem sworditem = (SwordItem)replacer.getItem();
                 SwordItem sworditem1 = (SwordItem)current.getItem();
-                if (sworditem.getDamage() != sworditem1.getDamage()) {
-                    return sworditem.getDamage() > sworditem1.getDamage();
+                if (sworditem.getTier().getAttackDamageBonus() != sworditem1.getTier().getAttackDamageBonus()) {
+                    return sworditem.getTier().getAttackDamageBonus() > sworditem1.getTier().getAttackDamageBonus();
                 } else {
                     return this.canReplaceEqualItem(replacer, current);
                 }
@@ -401,7 +388,7 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
         }
 
         else if (replacer.getItem() instanceof ArmorItem) {
-            if (EnchantmentHelper.hasBindingCurse(current)) {
+            if (false) {
                 return false;
             } else if (!(current.getItem() instanceof ArmorItem)) {
                 return true;
@@ -425,8 +412,8 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
                 if (current.getItem() instanceof DiggerItem) {
                     DiggerItem diggeritem = (DiggerItem)replacer.getItem();
                     DiggerItem diggeritem1 = (DiggerItem)current.getItem();
-                    if (diggeritem.getAttackDamage() != diggeritem1.getAttackDamage()) {
-                        return diggeritem.getAttackDamage() > diggeritem1.getAttackDamage();
+                    if (diggeritem.getTier().getAttackDamageBonus() != diggeritem1.getTier().getAttackDamageBonus()) {
+                        return diggeritem.getTier().getAttackDamageBonus() > diggeritem1.getTier().getAttackDamageBonus();
                     }
 
                     return this.canReplaceEqualItem(replacer, current);
@@ -441,22 +428,6 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
     public abstract Predicate<ItemEntity> getAllowedItems();
 
     public abstract void openGUI(Player player);
-
-    public <T> net.minecraftforge.common.util.LazyOptional<T> getCapability(net.minecraftforge.common.capabilities.Capability<T> capability, @Nullable net.minecraft.core.Direction facing) {
-        if (this.isAlive() && capability == net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER && itemHandler != null)
-            return itemHandler.cast();
-        return super.getCapability(capability, facing);
-    }
-
-    @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        if (itemHandler != null) {
-            net.minecraftforge.common.util.LazyOptional<?> oldHandler = itemHandler;
-            itemHandler = null;
-            oldHandler.invalidate();
-        }
-    }
 
     public void consumeArrow(){
         for(ItemStack itemStack : this.inventory.items){

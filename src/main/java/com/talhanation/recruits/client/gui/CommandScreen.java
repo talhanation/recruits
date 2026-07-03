@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
@@ -26,9 +27,9 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +39,7 @@ import java.util.*;
 @OnlyIn(Dist.CLIENT)
 public class CommandScreen extends ScreenBase<CommandMenu> {
 
-    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID, "textures/gui/command_gui.png");
+    private static final ResourceLocation RESOURCE_LOCATION = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/command_gui.png");
     private static final MutableComponent TEXT_EVERYONE = Component.translatable("gui.recruits.command.text.everyone");
     private static final int fontColor = 16250871;
     public final Player player;
@@ -173,7 +174,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     public void sendFaceCommandToServer() {
         if(!ClientManager.groups.isEmpty()){
             for(RecruitsGroup group : getActiveGroups()){
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageFaceCommand(player.getUUID(), group.getUUID(), formation.getIndex(), tightFormation, holdFormation));
+                NetUtils.sendToServer(new MessageFaceCommand(player.getUUID(), group.getUUID(), formation.getIndex(), tightFormation, holdFormation));
             }
         }
     }
@@ -220,11 +221,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
 
     public void sendMovementCommandToServer(int state) {
         if(state != 1){
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveFormationFollowMovement(player.getUUID(), new ArrayList<>(), -1));
+            NetUtils.sendToServer(new MessageSaveFormationFollowMovement(player.getUUID(), new ArrayList<>(), -1));
         }
         if(!ClientManager.groups.isEmpty()){
             for(RecruitsGroup group : getActiveGroups()){
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), state, group.getUUID(), formation.getIndex(), tightFormation, holdFormation));
+                NetUtils.sendToServer(new MessageMovement(player.getUUID(), state, group.getUUID(), formation.getIndex(), tightFormation, holdFormation));
             }
         }
     }
@@ -449,7 +450,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     }
 
     @Override
-    public boolean mouseScrolled(double p_94686_, double p_94687_, double p_94688_) {
+    public boolean mouseScrolled(double p_94686_, double p_94687_, double scrollX, double p_94688_) {
         if(p_94688_ > 0){
             this.setCurrentCategory(CommandCategoryManager.getPrevious(currentCategory));
         }
@@ -457,7 +458,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             this.setCurrentCategory(CommandCategoryManager.getNext(currentCategory));
         }
 
-        return super.mouseScrolled(p_94686_, p_94687_, p_94688_);
+        return super.mouseScrolled(p_94686_, p_94687_, scrollX, p_94688_);
     }
 
     private void invertGroups() {

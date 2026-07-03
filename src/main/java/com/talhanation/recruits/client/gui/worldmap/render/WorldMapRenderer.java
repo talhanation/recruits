@@ -236,7 +236,7 @@ public final class WorldMapRenderer {
 
     private void drawBatches(GuiGraphics guiGraphics, MapFramebufferPass.Frame frame) {
         Matrix4f matrix = guiGraphics.pose().last().pose();
-        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+        BufferBuilder buffer;
         Iterator<DrawBatch> iterator = drawBatches.values().iterator();
         while (iterator.hasNext()) {
             DrawBatch drawBatch = iterator.next();
@@ -246,11 +246,11 @@ public final class WorldMapRenderer {
             }
 
             RenderSystem.setShaderTexture(0, drawBatch.textureId);
-            buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+            buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
             for (DrawTile drawTile : drawBatch.tiles) {
                 appendWorldTile(buffer, matrix, drawTile, frame);
             }
-            BufferUploader.drawWithShader(buffer.end());
+            BufferUploader.drawWithShader(buffer.buildOrThrow());
         }
     }
 
@@ -282,10 +282,10 @@ public final class WorldMapRenderer {
             float v1,
             float u2,
             float v2) {
-        buffer.vertex(matrix, (float) x1, (float) z2, 0.0F).uv(u1, v2).endVertex();
-        buffer.vertex(matrix, (float) x2, (float) z2, 0.0F).uv(u2, v2).endVertex();
-        buffer.vertex(matrix, (float) x2, (float) z1, 0.0F).uv(u2, v1).endVertex();
-        buffer.vertex(matrix, (float) x1, (float) z1, 0.0F).uv(u1, v1).endVertex();
+        buffer.addVertex(matrix, (float) x1, (float) z2, 0.0F).setUv(u1, v2);
+        buffer.addVertex(matrix, (float) x2, (float) z2, 0.0F).setUv(u2, v2);
+        buffer.addVertex(matrix, (float) x2, (float) z1, 0.0F).setUv(u2, v1);
+        buffer.addVertex(matrix, (float) x1, (float) z1, 0.0F).setUv(u1, v1);
     }
 
     private static float getMapBrightness() {

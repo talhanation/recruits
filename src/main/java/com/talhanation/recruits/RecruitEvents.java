@@ -1,4 +1,5 @@
 package com.talhanation.recruits;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.talhanation.recruits.compat.musketmod.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
@@ -13,7 +14,7 @@ import com.talhanation.recruits.inventory.PromoteContainer;
 import com.talhanation.recruits.network.MessageOpenPromoteScreen;
 import com.talhanation.recruits.world.*;
 import com.talhanation.recruits.RecruitEvent;
-import net.minecraftforge.common.MinecraftForge;
+import net.neoforged.neoforge.common.NeoForge;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -33,24 +34,23 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.scores.Team;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
-import net.minecraftforge.event.entity.EntityTeleportEvent;
-import net.minecraftforge.event.entity.ProjectileImpactEvent;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.event.server.ServerStartedEvent;
-import net.minecraftforge.event.server.ServerStartingEvent;
-import net.minecraftforge.event.server.ServerStoppingEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.network.NetworkHooks;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
+import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
+import net.neoforged.neoforge.event.entity.ProjectileImpactEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -74,7 +74,7 @@ public class RecruitEvents {
 
     public static void promoteRecruit(AbstractRecruitEntity recruit, int profession, String name, ServerPlayer player) {
         RecruitEvent.Promoted promoteEvent = new RecruitEvent.Promoted(recruit, profession, name, player);
-        MinecraftForge.EVENT_BUS.post(promoteEvent);
+        NeoForge.EVENT_BUS.post(promoteEvent);
         if (promoteEvent.isCanceled()) return;
 
         EntityType<? extends AbstractRecruitEntity> companionType = entitiesByProfession.get(profession);
@@ -103,7 +103,7 @@ public class RecruitEvents {
 
     public static void openPromoteScreen(Player player, AbstractRecruitEntity recruit) {
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
+            ((ServerPlayer) player).openMenu(new MenuProvider() {
                 @Override
                 public @NotNull Component getDisplayName()  {
                     return recruit.getName();
@@ -117,7 +117,7 @@ public class RecruitEvents {
                 packetBuffer.writeUUID(recruit.getUUID());
             });
         } else {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageOpenPromoteScreen(player, recruit.getUUID()));
+            NetUtils.sendToServer(new MessageOpenPromoteScreen(player, recruit.getUUID()));
         }
     }
 
@@ -207,8 +207,8 @@ public class RecruitEvents {
     }
 
     @SubscribeEvent
-    public void onServerTick(TickEvent.LevelTickEvent event) {
-        if (!event.level.isClientSide && event.level instanceof ServerLevel serverWorld) {
+    public void onServerTick(LevelTickEvent.Post event) {
+        if (!event.getLevel().isClientSide && event.getLevel() instanceof ServerLevel serverWorld) {
             if (RecruitsServerConfig.ShouldRecruitPatrolsSpawn.get()) {
                 RECRUIT_PATROL.computeIfAbsent(serverWorld,
                         serverLevel -> new RecruitsPatrolSpawn(serverWorld));
@@ -268,7 +268,7 @@ public class RecruitEvents {
         Entity impactEntity = ((EntityHitResult) rayTrace).getEntity();
         String encode = impactEntity.getEncodeId();
         if (encode != null && encode.contains("corpse:corpse")) {
-            event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
+            event.setCanceled(true);
             return;
         }
 
@@ -279,7 +279,7 @@ public class RecruitEvents {
         if (projectile instanceof AbstractArrow arrow && arrow.getPierceLevel() > 0) {
 
             if (owner instanceof LivingEntity livingOwner && !canAttack(livingOwner, impactLiving)) {
-                event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
+                event.setCanceled(true);
                 canceledProjectiles.add(projectile);
                 return;
             }
@@ -292,21 +292,21 @@ public class RecruitEvents {
                 if (passenger instanceof AbstractRecruitEntity passengerRecruit) {
                     if (!canAttack(recruit, passengerRecruit)) {
 
-                        event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
+                        event.setCanceled(true);
                         return;
                     }
                 }
                 else if (passenger instanceof Player player) {
                     if (!canAttack(recruit, player)) {
 
-                        event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
+                        event.setCanceled(true);
                         return;
                     }
                 }
             }
 
             if (!canAttack(recruit, impactLiving)) {
-                event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
+                event.setCanceled(true);
                 return;
             }
             else {
@@ -317,7 +317,7 @@ public class RecruitEvents {
 
         if (owner instanceof AbstractIllager illager && !RecruitsServerConfig.PillagerFriendlyFire.get()) {
             if (illager.isAlliedTo(impactLiving)) {
-                event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
+                event.setCanceled(true);
                 canceledProjectiles.add(projectile);
                 return;
             }
@@ -325,7 +325,7 @@ public class RecruitEvents {
 
         if (owner instanceof Player player) {
             if (!canHarmTeam(player, impactLiving)) {
-                event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
+                event.setCanceled(true);
                 return;
             }
         }
@@ -365,7 +365,7 @@ public class RecruitEvents {
     }
 
     @SubscribeEvent
-    public void onLivingHurt(LivingHurtEvent event) {
+    public void onLivingHurt(LivingIncomingDamageEvent event) {
         if(event.getEntity().getCommandSenderWorld().isClientSide()) return;
 
         if (Main.isMusketModLoaded) {
@@ -402,7 +402,7 @@ public class RecruitEvents {
     private static final double DAMAGE_THRESHOLD_PERCENTAGE = 0.75;
 
     @SubscribeEvent
-    public void onLivingAttack(LivingAttackEvent event) {
+    public void onLivingAttack(LivingIncomingDamageEvent event) {
         if(event.getEntity().getCommandSenderWorld().isClientSide()) return;
 
         Entity target = event.getEntity();
@@ -618,10 +618,9 @@ public class RecruitEvents {
     private int tickCounter = 0;
 
     @SubscribeEvent
-    public void onWorldTickArrowCleaner(TickEvent.LevelTickEvent event) {//for 1.18 and 1.19 use TickEvent.WorldTickEvent
-        if (event.level.isClientSide()) return;
+    public void onWorldTickArrowCleaner(LevelTickEvent.Post event) {//for 1.18 and 1.19 use TickEvent.WorldTickEvent
+        if (event.getLevel().isClientSide()) return;
         if (!RecruitsServerConfig.AllowArrowCleaning.get()) return;
-        if (event.phase != TickEvent.Phase.END) return;
         if (server == null) return;
 
 
@@ -629,7 +628,10 @@ public class RecruitEvents {
         tickCounter = 0;
 
 
-        List<AbstractArrow> arrows = event.level.getEntitiesOfClass(AbstractArrow.class, event.level.getWorldBorder().getCollisionShape().bounds());
+        // Enumerate all arrows in the level directly. Querying by the world border's
+        // collision-shape bounds yields an infinite AABB in 1.21 (rejected by vanilla/Sable).
+        List<? extends AbstractArrow> arrows = ((ServerLevel) event.getLevel())
+                .getEntities(EntityTypeTest.<Entity, AbstractArrow>forClass(AbstractArrow.class), arrow -> true);
         trackedArrows.addAll(arrows);
 
 

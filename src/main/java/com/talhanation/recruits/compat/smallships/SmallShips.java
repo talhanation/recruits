@@ -18,7 +18,7 @@ import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import javax.annotation.Nullable;
 
@@ -455,7 +455,7 @@ public class SmallShips {
 
     @Nullable
     public static ItemStack getSmallShipsItem() {
-        return ForgeRegistries.ITEMS.getDelegateOrThrow(ResourceLocation.tryParse("smallships:oak_cog")).get().getDefaultInstance();
+        return BuiltInRegistries.ITEM.get(ResourceLocation.tryParse("smallships:oak_cog")).getDefaultInstance();
     }
 
     public void repairShip(CaptainEntity captain) {

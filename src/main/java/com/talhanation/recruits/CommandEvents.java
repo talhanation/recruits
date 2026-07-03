@@ -1,4 +1,5 @@
 package com.talhanation.recruits;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.controller.SmallShipsController;
@@ -26,11 +27,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.*;
 import net.minecraft.world.phys.*;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -437,7 +437,7 @@ public class CommandEvents {
 
     public static void openCommandScreen(Player player) {
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
+            ((ServerPlayer) player).openMenu(new MenuProvider() {
 
                 @Override
                 public @NotNull Component getDisplayName() {
@@ -450,12 +450,12 @@ public class CommandEvents {
                 }
             }, packetBuffer -> {packetBuffer.writeUUID(player.getUUID());});
         } else {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageCommandScreen(player));
+            NetUtils.sendToServer(new MessageCommandScreen(player));
         }
     }
     @SubscribeEvent
-    public void onServerPlayerTick(TickEvent.PlayerTickEvent event){
-        if(event.player instanceof ServerPlayer serverPlayer && serverPlayer.tickCount % 20 == 0){
+    public void onServerPlayerTick(PlayerTickEvent.Post event){
+        if(event.getEntity() instanceof ServerPlayer serverPlayer && serverPlayer.tickCount % 20 == 0){
             int formation = getSavedFormation(serverPlayer);
 
             if(formation > 0){
@@ -493,7 +493,7 @@ public class CommandEvents {
     }
 
     @SubscribeEvent
-    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+    public void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         CompoundTag playerData = event.getEntity().getPersistentData();
         CompoundTag data = playerData.getCompound(Player.PERSISTED_NBT_TAG);
             if (!data.contains("MaxRecruits")) data.putInt("MaxRecruits", RecruitsServerConfig.MaxRecruitsForPlayer.get());
@@ -601,7 +601,7 @@ public class CommandEvents {
         int playerEmeralds = 0;
 
         String str = RecruitsServerConfig.RecruitCurrency.get();
-        Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
+        Optional<Holder.Reference<Item>> holder = BuiltInRegistries.ITEM.getHolder(ResourceLocation.tryParse(str));
 
         ItemStack currencyItemStack = holder.map(itemHolder -> itemHolder.value().getDefaultInstance()).orElseGet(Items.EMERALD::getDefaultInstance);
 
@@ -644,7 +644,7 @@ public class CommandEvents {
 
                 if(player.getTeam() != null){
                     if(player.getCommandSenderWorld().isClientSide){
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageAddRecruitToTeam(player.getTeam().getName(), 1));
+                        NetUtils.sendToServer(new MessageAddRecruitToTeam(player.getTeam().getName(), 1));
                     }
                     else {
                         ServerPlayer serverPlayer = (ServerPlayer) player;

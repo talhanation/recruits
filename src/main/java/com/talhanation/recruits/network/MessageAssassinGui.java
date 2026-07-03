@@ -1,18 +1,22 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.neoforged.api.distmarker.Dist;
 import java.util.Objects;
 import java.util.UUID;
 
 public class MessageAssassinGui implements Message<MessageAssassinGui> {
 
+    public static final CustomPacketPayload.Type<MessageAssassinGui> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messageassassingui"));
     private UUID uuid;
     private UUID recruit;
 
@@ -27,13 +31,13 @@ public class MessageAssassinGui implements Message<MessageAssassinGui> {
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
     @Override
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = Objects.requireNonNull(((ServerPlayer) context.player()));
         if (!player.getUUID().equals(uuid)) {
             return;
         }
@@ -46,15 +50,20 @@ public class MessageAssassinGui implements Message<MessageAssassinGui> {
     }
 
     @Override
-    public MessageAssassinGui fromBytes(FriendlyByteBuf buf) {
+    public MessageAssassinGui fromBytes(RegistryFriendlyByteBuf buf) {
         this.uuid = buf.readUUID();
         this.recruit = buf.readUUID();
         return this;
     }
 
     @Override
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(uuid);
         buf.writeUUID(recruit);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageAssassinGui> type() {
+        return TYPE;
     }
 }

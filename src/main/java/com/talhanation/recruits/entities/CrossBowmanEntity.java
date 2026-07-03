@@ -26,8 +26,8 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.NeoForgeMod;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -53,11 +53,11 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
 
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_IS_CHARGING_CROSSBOW, false);
-        this.entityData.define(STRATEGIC_FIRE_POS, Optional.empty());
-        this.entityData.define(SHOULD_STRATEGIC_FIRE, false);
+    protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_IS_CHARGING_CROSSBOW, false);
+        builder.define(STRATEGIC_FIRE_POS, Optional.empty());
+        builder.define(SHOULD_STRATEGIC_FIRE, false);
     }
 
     @Override
@@ -105,21 +105,21 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
         return Mob.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
-                .add(ForgeMod.SWIM_SPEED.get(), 0.3D)
+                .add(NeoForgeMod.SWIM_SPEED, 0.3D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
                 .add(Attributes.ATTACK_DAMAGE, 1.5D)
                 .add(Attributes.FOLLOW_RANGE, 64.0D)
-                .add(ForgeMod.ENTITY_REACH.get(), 0D)
+                .add(Attributes.ENTITY_INTERACTION_RANGE, 0D)
                 .add(Attributes.ATTACK_SPEED);
     }
 
     @Override
     @Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data, @Nullable CompoundTag nbt) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data) {
         RandomSource randomsource = world.getRandom();
-        SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
+        SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data);
         ((AsyncGroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
-        this.populateDefaultEquipmentEnchantments(randomsource, difficultyInstance);
+        this.populateDefaultEquipmentEnchantments(world, randomsource, difficultyInstance);
         this.initSpawn();
         return ilivingentitydata;
     }
@@ -135,7 +135,7 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
         if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get()){
             if(isMusketModLoaded && IWeapon.isMusketModWeapon(this.getMainHandItem())){
                 int i = this.getRandom().nextInt(32);
-                ItemStack arrows = ForgeRegistries.ITEMS.getDelegateOrThrow(ResourceLocation.tryParse("musketmod:cartridge")).get().getDefaultInstance();
+                ItemStack arrows = BuiltInRegistries.ITEM.get(ResourceLocation.tryParse("musketmod:cartridge")).getDefaultInstance();
                 arrows.setCount(14 + i);
                 this.inventory.setItem(6, arrows);
             }
@@ -174,11 +174,6 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
         return 5D;
     }
 
-    //Pillager
-    @Override
-    public void shootCrossbowProjectile(@NotNull LivingEntity target, @NotNull ItemStack stack, @NotNull Projectile projectile, float f) {
-        this.shootCrossbowProjectile(this, target, projectile, f, 1.6F);
-    }
 
     private boolean getChargingCrossbow() {
         return this.entityData.get(DATA_IS_CHARGING_CROSSBOW);

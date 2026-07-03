@@ -1,19 +1,23 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.world.RecruitsGroup;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import java.util.Objects;
 import java.util.UUID;
 
 public class MessageAssignNearbyRecruitsInGroup implements Message<MessageAssignNearbyRecruitsInGroup> {
 
+    public static final CustomPacketPayload.Type<MessageAssignNearbyRecruitsInGroup> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messageassignnearbyrecruitsingroup"));
     private UUID groupUUID;
 
     public MessageAssignNearbyRecruitsInGroup() {
@@ -23,12 +27,12 @@ public class MessageAssignNearbyRecruitsInGroup implements Message<MessageAssign
         this.groupUUID = group;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = Objects.requireNonNull(((ServerPlayer) context.player()));
         RecruitsGroup newGroup = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
         if(newGroup == null) return;
 
@@ -55,12 +59,17 @@ public class MessageAssignNearbyRecruitsInGroup implements Message<MessageAssign
         recruit.setGroupUUID(groupUUID);
     }
 
-    public MessageAssignNearbyRecruitsInGroup fromBytes(FriendlyByteBuf buf) {
+    public MessageAssignNearbyRecruitsInGroup fromBytes(RegistryFriendlyByteBuf buf) {
         this.groupUUID = buf.readUUID();
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(groupUUID);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageAssignNearbyRecruitsInGroup> type() {
+        return TYPE;
     }
 }

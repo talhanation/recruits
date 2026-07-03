@@ -1,14 +1,16 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.world.RecruitsGroup;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
@@ -20,6 +22,8 @@ import java.util.UUID;
  */
 public class MessageSetLeaderGroup implements Message<MessageSetLeaderGroup> {
 
+    public static final CustomPacketPayload.Type<MessageSetLeaderGroup> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagesetleadergroup"));
     private UUID leaderUUID;
     @Nullable
     private UUID groupUUID;
@@ -32,13 +36,13 @@ public class MessageSetLeaderGroup implements Message<MessageSetLeaderGroup> {
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
     @Override
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = Objects.requireNonNull(((ServerPlayer) context.player()));
         player.serverLevel().getEntitiesOfClass(
                 AbstractLeaderEntity.class,
                 player.getBoundingBox().inflate(100D),
@@ -56,7 +60,7 @@ public class MessageSetLeaderGroup implements Message<MessageSetLeaderGroup> {
     }
 
     @Override
-    public MessageSetLeaderGroup fromBytes(FriendlyByteBuf buf) {
+    public MessageSetLeaderGroup fromBytes(RegistryFriendlyByteBuf buf) {
         this.leaderUUID = buf.readUUID();
         boolean hasGroup = buf.readBoolean();
         this.groupUUID  = hasGroup ? buf.readUUID() : null;
@@ -64,9 +68,14 @@ public class MessageSetLeaderGroup implements Message<MessageSetLeaderGroup> {
     }
 
     @Override
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(this.leaderUUID);
         buf.writeBoolean(this.groupUUID != null);
         if (this.groupUUID != null) buf.writeUUID(this.groupUUID);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageSetLeaderGroup> type() {
+        return TYPE;
     }
 }

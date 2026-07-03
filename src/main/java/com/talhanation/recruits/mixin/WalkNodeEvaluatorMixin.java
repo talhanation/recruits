@@ -5,7 +5,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.level.PathNavigationRegion;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.pathfinder.NodeEvaluator;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,15 +20,15 @@ public abstract class WalkNodeEvaluatorMixin extends NodeEvaluator {
         if(mob instanceof AbstractHorse horse && horse.isVehicle() && horse.getControllingPassenger() instanceof AbstractRecruitEntity recruit){
             this.entityHeight = Mth.floor(horse.getBbHeight() + 2.0F);
 
-            horse.setPathfindingMalus(BlockPathTypes.WATER, 32.0F);
-            horse.setPathfindingMalus(BlockPathTypes.TRAPDOOR, -1.0F);
-            horse.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, 32.0F);
-            horse.setPathfindingMalus(BlockPathTypes.DAMAGE_CAUTIOUS, 32.0F);
-            horse.setPathfindingMalus(BlockPathTypes.DANGER_POWDER_SNOW, -1.0F);
-            horse.setPathfindingMalus(BlockPathTypes.DOOR_WOOD_CLOSED, 0.0F);
-            horse.setPathfindingMalus(BlockPathTypes.FENCE, -1.0F);
-            horse.setPathfindingMalus(BlockPathTypes.LAVA, -1.0F);
-            horse.setPathfindingMalus(BlockPathTypes.LEAVES, -1.0F);
+            horse.setPathfindingMalus(PathType.WATER, 32.0F);
+            horse.setPathfindingMalus(PathType.TRAPDOOR, -1.0F);
+            horse.setPathfindingMalus(PathType.DAMAGE_FIRE, 32.0F);
+            horse.setPathfindingMalus(PathType.DAMAGE_CAUTIOUS, 32.0F);
+            horse.setPathfindingMalus(PathType.DANGER_POWDER_SNOW, -1.0F);
+            horse.setPathfindingMalus(PathType.DOOR_WOOD_CLOSED, 0.0F);
+            horse.setPathfindingMalus(PathType.FENCE, -1.0F);
+            horse.setPathfindingMalus(PathType.LAVA, -1.0F);
+            horse.setPathfindingMalus(PathType.LEAVES, -1.0F);
         }
     }
 

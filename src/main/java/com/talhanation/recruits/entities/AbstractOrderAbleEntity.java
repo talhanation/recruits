@@ -86,7 +86,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     }
 
     @Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance diff, MobSpawnType reason, @Nullable SpawnGroupData spawnData, @Nullable CompoundTag nbt) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance diff, MobSpawnType reason, @Nullable SpawnGroupData spawnData) {
         return spawnData;
     }
 
@@ -122,15 +122,15 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Monster.class, false));
     }
 
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_REMAINING_ANGER_TIME, 0);
-        this.entityData.define(FLEEING, false);
-        this.entityData.define(XP, 0);
-        this.entityData.define(KILLS, 0);
-        this.entityData.define(LEVEL, 1);
-        this.entityData.define(isEating, true);
-        this.entityData.define(isInOrder,false);
+    protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_REMAINING_ANGER_TIME, 0);
+        builder.define(FLEEING, false);
+        builder.define(XP, 0);
+        builder.define(KILLS, 0);
+        builder.define(LEVEL, 1);
+        builder.define(isEating, true);
+        builder.define(isInOrder,false);
         //IS IN ORDER
         //IS LEADER
         //UUID OPFER optional
@@ -206,7 +206,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     }
 
     protected float getStandingEyeHeight(Pose pos, EntityDimensions size) {
-        return size.height * 0.9F;
+        return size.height() * 0.9F;
     }
 
     public int getMaxHeadXRot() {
@@ -286,7 +286,6 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     public boolean doHurtTarget(Entity entity) {
         boolean flag = entity.hurt(this.damageSources().mobAttack(this), (float)((int)this.getAttributeValue(Attributes.ATTACK_DAMAGE)));
         if (flag) {
-            this.doEnchantDamageEffects(this, entity);
         }
         this.addXp(2);
         this.checkLevel();
@@ -297,14 +296,24 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     public void addLevelBuffs(){
         int level = getXpLevel();
         if(level <= 10){
-            getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("heath_bonus_level", 3D, AttributeModifier.Operation.ADDITION));
-            getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(new AttributeModifier("attack_bonus_level", 0.15D, AttributeModifier.Operation.ADDITION));
-            getAttribute(Attributes.KNOCKBACK_RESISTANCE).addPermanentModifier(new AttributeModifier("knockback_bonus_level", 0.01D, AttributeModifier.Operation.ADDITION));
-            getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(new AttributeModifier("speed_bonus_level", 0.01D, AttributeModifier.Operation.ADDITION));
+            addStackingLevelModifier(Attributes.MAX_HEALTH, "heath_bonus_level", level, 3D);
+            addStackingLevelModifier(Attributes.ATTACK_DAMAGE, "attack_bonus_level", level, 0.15D);
+            addStackingLevelModifier(Attributes.KNOCKBACK_RESISTANCE, "knockback_bonus_level", level, 0.01D);
+            addStackingLevelModifier(Attributes.MOVEMENT_SPEED, "speed_bonus_level", level, 0.01D);
         }
         if(level > 10){
-            getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("heath_bonus_level", 2D, AttributeModifier.Operation.ADDITION));
+            addStackingLevelModifier(Attributes.MAX_HEALTH, "heath_bonus_level", level, 2D);
         }
+    }
+
+    // See AbstractRecruitEntity#addStackingLevelModifier: per-level boosts must stack, so each
+    // level gets its own modifier id; remove-before-add guards against processing a level twice.
+    private void addStackingLevelModifier(net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> attribute, String path, int levelKey, double amount) {
+        net.minecraft.world.entity.ai.attributes.AttributeInstance instance = getAttribute(attribute);
+        if (instance == null) return;
+        net.minecraft.resources.ResourceLocation id = net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("recruits", path + "_" + levelKey);
+        instance.removeModifier(id);
+        instance.addPermanentModifier(new AttributeModifier(id, amount, AttributeModifier.Operation.ADD_VALUE));
     }
 
     public boolean wantsToAttack(LivingEntity target, LivingEntity owner) {
@@ -349,7 +358,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
     }
 
     @Override
-    public boolean canBeLeashed(Player player) {
+    public boolean canBeLeashed() {
         return false;
     }
 
@@ -363,7 +372,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
             }
             for (int i = 11; i < 15; ++i) {//11,12,13,14 = armor
                 ItemStack itemstack = this.inventory.getItem(i);
-                if ((!(damageSource.is(DamageTypes.IN_FIRE) && (damageSource.is(DamageTypes.ON_FIRE))) || !itemstack.getItem().isFireResistant()) && itemstack.getItem() instanceof ArmorItem) {
+                if ((!(damageSource.is(DamageTypes.IN_FIRE) && (damageSource.is(DamageTypes.ON_FIRE))) || !itemstack.has(net.minecraft.core.component.DataComponents.FIRE_RESISTANT)) && itemstack.getItem() instanceof ArmorItem) {
                     itemstack.setDamageValue((int) damage);
                 }
             }
@@ -389,7 +398,7 @@ public abstract class AbstractOrderAbleEntity extends AbstractInventoryEntity{
         if (this.useItem.getItem() instanceof ShieldItem) {
             int i = 1 + Mth.floor(damage);
             InteractionHand hand = this.getUsedItemHand();
-            this.useItem.hurtAndBreak(i, this, (entity) -> entity.broadcastBreakEvent(hand));
+            this.useItem.hurtAndBreak(i, this, hand == net.minecraft.world.InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
             if (this.useItem.isEmpty()) {
                 if (hand == InteractionHand.MAIN_HAND) {
                     this.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);

@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class RouteRenderer {
-    private static final ResourceLocation MAP_ICONS = new ResourceLocation("textures/map/map_icons.png");
+    private static final ResourceLocation MAP_ICONS = ResourceLocation.parse("textures/map/map_icons.png");
 
     private static final int COLOR_NORMAL = 0xFFFFFFFF; // white
     private static final int COLOR_NOT_LOADED = 0xFFFF4444; // red
@@ -155,11 +155,11 @@ public class RouteRenderer {
 
         try {
             Matrix4f matrix = guiGraphics.pose().last().pose();
-            BufferBuilder buffer = Tesselator.getInstance().getBuilder();
-            buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+            BufferBuilder buffer;
+            buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
             appendLineQuad(buffer, matrix, x1, z1, x2, z2, 3.0, ROUTE_LINE_SHADOW_COLOR);
             appendLineQuad(buffer, matrix, x1, z1, x2, z2, 1.25, color);
-            BufferUploader.drawWithShader(buffer.end());
+            BufferUploader.drawWithShader(buffer.buildOrThrow());
         } finally {
             RenderSystem.depthMask(true);
             RenderSystem.enableCull();
@@ -190,18 +190,18 @@ public class RouteRenderer {
         int green = (color >>> 8) & 0xFF;
         int blue = color & 0xFF;
 
-        buffer.vertex(matrix, (float) (x1 - nx), (float) (y1 - ny), 0.0F)
-                .color(red, green, blue, alpha)
-                .endVertex();
-        buffer.vertex(matrix, (float) (x2 - nx), (float) (y2 - ny), 0.0F)
-                .color(red, green, blue, alpha)
-                .endVertex();
-        buffer.vertex(matrix, (float) (x2 + nx), (float) (y2 + ny), 0.0F)
-                .color(red, green, blue, alpha)
-                .endVertex();
-        buffer.vertex(matrix, (float) (x1 + nx), (float) (y1 + ny), 0.0F)
-                .color(red, green, blue, alpha)
-                .endVertex();
+        buffer.addVertex(matrix, (float) (x1 - nx), (float) (y1 - ny), 0.0F)
+                .setColor(red, green, blue, alpha)
+                ;
+        buffer.addVertex(matrix, (float) (x2 - nx), (float) (y2 - ny), 0.0F)
+                .setColor(red, green, blue, alpha)
+                ;
+        buffer.addVertex(matrix, (float) (x2 + nx), (float) (y2 + ny), 0.0F)
+                .setColor(red, green, blue, alpha)
+                ;
+        buffer.addVertex(matrix, (float) (x1 + nx), (float) (y1 + ny), 0.0F)
+                .setColor(red, green, blue, alpha)
+                ;
     }
 
     private static void renderWaypointIcon(
@@ -291,37 +291,37 @@ public class RouteRenderer {
         Matrix4f matrix = pose.last().pose();
         int light = 0xF000F0;
         consumer
-                .vertex(matrix, -1f, 1f, 0f)
-                .color(r, g, b, a)
-                .uv(u0, v0)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(light)
-                .normal(0, 0, 1)
-                .endVertex();
+                .addVertex(matrix, -1f, 1f, 0f)
+                .setColor(r, g, b, a)
+                .setUv(u0, v0)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(0, 0, 1)
+                ;
         consumer
-                .vertex(matrix, 1f, 1f, 0f)
-                .color(r, g, b, a)
-                .uv(u1, v0)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(light)
-                .normal(0, 0, 1)
-                .endVertex();
+                .addVertex(matrix, 1f, 1f, 0f)
+                .setColor(r, g, b, a)
+                .setUv(u1, v0)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(0, 0, 1)
+                ;
         consumer
-                .vertex(matrix, 1f, -1f, 0f)
-                .color(r, g, b, a)
-                .uv(u1, v1)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(light)
-                .normal(0, 0, 1)
-                .endVertex();
+                .addVertex(matrix, 1f, -1f, 0f)
+                .setColor(r, g, b, a)
+                .setUv(u1, v1)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(0, 0, 1)
+                ;
         consumer
-                .vertex(matrix, -1f, -1f, 0f)
-                .color(r, g, b, a)
-                .uv(u0, v1)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(light)
-                .normal(0, 0, 1)
-                .endVertex();
+                .addVertex(matrix, -1f, -1f, 0f)
+                .setColor(r, g, b, a)
+                .setUv(u0, v1)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(0, 0, 1)
+                ;
         guiGraphics.flush();
 
         pose.popPose();

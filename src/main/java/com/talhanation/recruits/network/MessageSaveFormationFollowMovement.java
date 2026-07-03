@@ -1,18 +1,23 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.server.level.ServerPlayer;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.world.RecruitsGroup;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.neoforged.api.distmarker.Dist;
 import java.util.List;
 import java.util.UUID;
 
 public class MessageSaveFormationFollowMovement implements Message<MessageSaveFormationFollowMovement> {
 
+    public static final CustomPacketPayload.Type<MessageSaveFormationFollowMovement> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagesaveformationfollowmovement"));
     private UUID player_uuid;
 
     private CompoundTag groups;
@@ -27,26 +32,31 @@ public class MessageSaveFormationFollowMovement implements Message<MessageSaveFo
         this.formation = formation;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
-        CommandEvents.saveFormation(context.getSender(), formation);
-        CommandEvents.saveUUIDList(context.getSender(), "ActiveGroups", RecruitsGroup.uuidListFromNbt(groups));
+    public void executeServerSide(IPayloadContext context){
+        CommandEvents.saveFormation(((ServerPlayer) context.player()), formation);
+        CommandEvents.saveUUIDList(((ServerPlayer) context.player()), "ActiveGroups", RecruitsGroup.uuidListFromNbt(groups));
     }
 
-    public MessageSaveFormationFollowMovement fromBytes(FriendlyByteBuf buf) {
+    public MessageSaveFormationFollowMovement fromBytes(RegistryFriendlyByteBuf buf) {
         this.player_uuid = buf.readUUID();
         this.groups = buf.readNbt();
         this.formation = buf.readInt();
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(this.player_uuid);
         buf.writeNbt(this.groups);
         buf.writeInt(this.formation);
     }
 
+
+    @Override
+    public CustomPacketPayload.Type<MessageSaveFormationFollowMovement> type() {
+        return TYPE;
+    }
 }

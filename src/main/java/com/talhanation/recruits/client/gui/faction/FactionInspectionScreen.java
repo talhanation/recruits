@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui.faction;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -27,15 +28,15 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 @OnlyIn(Dist.CLIENT)
 public class FactionInspectionScreen extends ListScreenBase implements IPlayerSelection {
 
-    protected static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/team/team_inspect.png");
-    protected static final ResourceLocation LEADER_CROWN = new ResourceLocation(Main.MOD_ID, "textures/gui/image/leader_crown.png");
+    protected static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/team/team_inspect.png");
+    protected static final ResourceLocation LEADER_CROWN = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/image/leader_crown.png");
     private static final Component CLAIM_BUTTON = Component.translatable("gui.recruits.team.claim");
     private static final Component LEAVE_BUTTON = Component.translatable("gui.recruits.team.leave");
     private static final Component DELETE_BUTTON = Component.translatable("gui.recruits.team.delete_team");
@@ -92,7 +93,7 @@ public class FactionInspectionScreen extends ListScreenBase implements IPlayerSe
         ySize = HEADER_SIZE + units * UNIT_SIZE + FOOTER_SIZE;
 
         if (playerList != null) {
-            playerList.updateSize(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE);
+            playerList.updateSizeAndPosition(width, units * UNIT_SIZE - SEARCH_HEIGHT, guiTop + HEADER_SIZE + SEARCH_HEIGHT);
         } else {
             playerList = new PlayersList(width, height, guiTop + HEADER_SIZE + SEARCH_HEIGHT, guiTop + HEADER_SIZE + units * UNIT_SIZE, CELL_HEIGHT,  this, PlayersList.FilterType.SAME_TEAM, player, true);
         }
@@ -144,7 +145,7 @@ public class FactionInspectionScreen extends ListScreenBase implements IPlayerSe
             button -> {
                 if(isTeamLeader){
                     if(deleteActive){
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
+                        NetUtils.sendToServer(new MessageLeaveTeam());
                         ClientManager.ownFaction = null;
                         minecraft.setScreen(new FactionMainScreen(player));
                         return;
@@ -156,8 +157,8 @@ public class FactionInspectionScreen extends ListScreenBase implements IPlayerSe
                                 team.setTeamLeaderID(playerInfo.getUUID());
                                 team.setTeamLeaderName(playerInfo.getName());
 
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageSaveTeamSettings(team, 0));
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
+                                NetUtils.sendToServer(new MessageSaveTeamSettings(team, 0));
+                                NetUtils.sendToServer(new MessageLeaveTeam());
                                 ClientManager.ownFaction = null;
                                 onClose();
                             }
@@ -166,7 +167,7 @@ public class FactionInspectionScreen extends ListScreenBase implements IPlayerSe
 
                 }
                 else {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageLeaveTeam());
+                    NetUtils.sendToServer(new MessageLeaveTeam());
                     ClientManager.ownFaction = null;
                     onClose();
                 }

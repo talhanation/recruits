@@ -1,4 +1,5 @@
 package com.talhanation.recruits.world;
+import net.minecraft.world.entity.SpawnPlacementTypes;
 
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.config.RecruitsServerConfig;
@@ -15,7 +16,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.SpawnPlacements.Type;
 import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.entity.animal.horse.Mule;
@@ -311,7 +311,7 @@ public class RecruitsPatrolSpawn {
     private static AbstractRecruitEntity buildPatrolRecruit(ServerLevel world, BlockPos pos, String name) {
         RecruitEntity e = ModEntityTypes.RECRUIT.get().create(world);
         e.moveTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
-        e.finalizeSpawn(world, world.getCurrentDifficultyAt(pos), MobSpawnType.PATROL, null, null);
+        e.finalizeSpawn(world, world.getCurrentDifficultyAt(pos), MobSpawnType.PATROL, null);
         if (random.nextInt(2) == 0) setPatrolRecruitEquipment(e);
         applyCommonValues(e, 9, 80, 65, name);
         return e;
@@ -320,7 +320,7 @@ public class RecruitsPatrolSpawn {
     private static AbstractRecruitEntity buildPatrolShieldman(ServerLevel world, BlockPos pos, String name, boolean banner) {
         RecruitShieldmanEntity e = ModEntityTypes.RECRUIT_SHIELDMAN.get().create(world);
         e.moveTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
-        e.finalizeSpawn(world, world.getCurrentDifficultyAt(pos), MobSpawnType.PATROL, null, null);
+        e.finalizeSpawn(world, world.getCurrentDifficultyAt(pos), MobSpawnType.PATROL, null);
         if (random.nextInt(2) == 0) setPatrolShieldmanEquipment(e);
         applyCommonValues(e, 12, 80, 65, name);
         if (banner) e.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.GREEN_BANNER));
@@ -330,7 +330,7 @@ public class RecruitsPatrolSpawn {
     private static AbstractRecruitEntity buildPatrolBowman(ServerLevel world, BlockPos pos) {
         BowmanEntity e = ModEntityTypes.BOWMAN.get().create(world);
         e.moveTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
-        e.finalizeSpawn(world, world.getCurrentDifficultyAt(pos), MobSpawnType.PATROL, null, null);
+        e.finalizeSpawn(world, world.getCurrentDifficultyAt(pos), MobSpawnType.PATROL, null);
         if (random.nextInt(2) == 0) setPatrolBowmanEquipment(e);
         applyCommonValues(e, 16, 80, 65, "Patrol");
         return e;
@@ -339,7 +339,7 @@ public class RecruitsPatrolSpawn {
     private static AbstractRecruitEntity buildPatrolCrossbowman(ServerLevel world, BlockPos pos) {
         CrossBowmanEntity e = ModEntityTypes.CROSSBOWMAN.get().create(world);
         e.moveTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
-        e.finalizeSpawn(world, world.getCurrentDifficultyAt(pos), MobSpawnType.PATROL, null, null);
+        e.finalizeSpawn(world, world.getCurrentDifficultyAt(pos), MobSpawnType.PATROL, null);
         setPatrolCrossbowmanEquipment(e);
         applyCommonValues(e, 16, 80, 65, "Patrol");
         return e;
@@ -348,7 +348,7 @@ public class RecruitsPatrolSpawn {
     private static AbstractRecruitEntity buildPatrolHorseman(ServerLevel world, BlockPos pos, String name, boolean banner) {
         HorsemanEntity e = ModEntityTypes.HORSEMAN.get().create(world);
         e.moveTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
-        e.finalizeSpawn(world, world.getCurrentDifficultyAt(pos), MobSpawnType.PATROL, null, null);
+        e.finalizeSpawn(world, world.getCurrentDifficultyAt(pos), MobSpawnType.PATROL, null);
         if (random.nextInt(2) == 0) setPatrolShieldmanEquipment(e);
         e.isPatrol = true;
         applyCommonValues(e, 30, 80, 75, name);
@@ -359,7 +359,7 @@ public class RecruitsPatrolSpawn {
     private static AbstractRecruitEntity buildPatrolNomad(ServerLevel world, BlockPos pos, String name) {
         NomadEntity e = ModEntityTypes.NOMAD.get().create(world);
         e.moveTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
-        e.finalizeSpawn(world, world.getCurrentDifficultyAt(pos), MobSpawnType.PATROL, null, null);
+        e.finalizeSpawn(world, world.getCurrentDifficultyAt(pos), MobSpawnType.PATROL, null);
         if (random.nextInt(2) == 0) setPatrolBowmanEquipment(e);
         e.isPatrol = true;
         applyCommonValues(e, 30, 80, 75, name);
@@ -387,7 +387,7 @@ public class RecruitsPatrolSpawn {
     public static void createWanderingTrader(ServerLevel world, BlockPos upPos, AbstractLeaderEntity leader) {
         WanderingTrader villager = EntityType.WANDERING_TRADER.create(world);
         villager.moveTo(upPos.getX() + 0.5, upPos.getY() + 0.5, upPos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
-        villager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        villager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null);
         villager.setPersistenceRequired();
         villager.goalSelector.addGoal(0, new FollowCaravanOwner(villager, leader.getUUID()));
         world.addFreshEntity(villager);
@@ -396,10 +396,10 @@ public class RecruitsPatrolSpawn {
     public static void createHorse(ServerLevel world, BlockPos upPos, Villager villager) {
         Horse horse = EntityType.HORSE.create(world);
         horse.moveTo(upPos.getX() + 0.5, upPos.getY() + 0.5, upPos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
-        horse.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        horse.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null);
         horse.setPersistenceRequired();
         horse.setTamed(true);
-        horse.equipSaddle(null);
+        horse.equipSaddle(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.SADDLE), null);
         horse.setLeashedTo(villager, true);
         world.addFreshEntity(horse);
     }
@@ -407,7 +407,7 @@ public class RecruitsPatrolSpawn {
     public static Villager createVillager(ServerLevel world, BlockPos upPos, AbstractLeaderEntity leader) {
         Villager villager = EntityType.VILLAGER.create(world);
         villager.moveTo(upPos.getX() + 0.5, upPos.getY() + 0.5, upPos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
-        villager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        villager.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null);
         villager.setPersistenceRequired();
         villager.goalSelector.addGoal(0, new FollowCaravanOwner(villager, leader.getUUID()));
         world.addFreshEntity(villager);
@@ -417,7 +417,7 @@ public class RecruitsPatrolSpawn {
     public static void createLlama(ServerLevel world, BlockPos upPos, Villager villager) {
         Llama llama = EntityType.LLAMA.create(world);
         llama.moveTo(upPos.getX() + 0.5, upPos.getY() + 0.5, upPos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
-        llama.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        llama.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null);
         llama.setPersistenceRequired();
         llama.setTamed(true);
         llama.setChest(true);
@@ -452,7 +452,7 @@ public class RecruitsPatrolSpawn {
     public static void createMule(ServerLevel world, BlockPos upPos, LivingEntity owner) {
         Mule mule = EntityType.MULE.create(world);
         mule.moveTo(upPos.getX() + 0.5, upPos.getY() + 0.5, upPos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
-        mule.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        mule.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null);
         mule.setPersistenceRequired();
         mule.setTamed(true);
         mule.setChest(true);
@@ -481,7 +481,7 @@ public class RecruitsPatrolSpawn {
     public static CommanderEntity createCompanionPatrolLeader(BlockPos upPos, ServerLevel world) {
         CommanderEntity leader = ModEntityTypes.PATROL_LEADER.get().create(world);
         leader.moveTo(upPos.getX() + 0.5, upPos.getY() + 0.5, upPos.getZ() + 0.5, random.nextFloat() * 360 - 180, 0);
-        leader.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null, null);
+        leader.finalizeSpawn(world, world.getCurrentDifficultyAt(upPos), MobSpawnType.PATROL, null);
         AbstractRecruitEntity.applySpawnValues(leader);
 
         setPatrolLeaderEquipment(leader);
@@ -599,7 +599,7 @@ public class RecruitsPatrolSpawn {
             int z = center.getZ() + random.nextInt(spread * 2) - spread;
             int y = world.getHeight(Types.WORLD_SURFACE, x, z);
             BlockPos pos = new BlockPos(x, y, z);
-            if (NaturalSpawner.isSpawnPositionOk(Type.ON_GROUND, world, pos, EntityType.WANDERING_TRADER)) {
+            if (SpawnPlacementTypes.ON_GROUND.isSpawnPositionOk(world, pos, EntityType.WANDERING_TRADER)) {
                 return pos;
             }
         }

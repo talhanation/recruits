@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
@@ -18,7 +19,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +33,7 @@ public class PatrolLeaderScreen extends RecruitsScreenBase {
     private static final MutableComponent TT_STOP      = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_stop");
     private static final MutableComponent TT_PAUSE     = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_pause");
     private static final MutableComponent TT_RESUME    = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_resume");
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/professions/blank_gui.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/professions/blank_gui.png");
     private static final int TEXTURE_W = 195;
     private static final int TEXTURE_H = 160;
     private static final int FONT_COLOR = 4210752;
@@ -125,7 +126,7 @@ public class PatrolLeaderScreen extends RecruitsScreenBase {
         Button startButton = addRenderableWidget(new ExtendedButton(x, y, btnW, btnH, startLabel, btn -> {
             patrolState = AbstractLeaderEntity.State.PATROLLING;
             sendRouteToServer(selectedRoute);
-            Main.SIMPLE_CHANNEL.sendToServer(
+            NetUtils.sendToServer(
                     new MessagePatrolLeaderSetPatrolState(leaderEntity.getUUID(), (byte) 1));
             buildWidgets();
         }));
@@ -137,7 +138,7 @@ public class PatrolLeaderScreen extends RecruitsScreenBase {
             patrolState = isPatrolling
                     ? AbstractLeaderEntity.State.PAUSED
                     : AbstractLeaderEntity.State.STOPPED;
-            Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetPatrolState(
+            NetUtils.sendToServer(new MessagePatrolLeaderSetPatrolState(
                     leaderEntity.getUUID(), (byte) patrolState.getIndex()));
             buildWidgets();
         }));
@@ -156,7 +157,7 @@ public class PatrolLeaderScreen extends RecruitsScreenBase {
         addRenderableWidget(new ExtendedButton(x, y, fullW, btnH,
                 Component.literal(infoLabel), btn -> {
                     infoMode = infoMode.getNext();
-                    Main.SIMPLE_CHANNEL.sendToServer(
+                    NetUtils.sendToServer(
                             new MessagePatrolLeaderSetInfoMode(leaderEntity.getUUID(), infoMode.getIndex()));
                     buildWidgets();
                 }));
@@ -171,7 +172,7 @@ public class PatrolLeaderScreen extends RecruitsScreenBase {
         addRenderableWidget(new ExtendedButton(x, y, fullW, btnH,
                 Component.literal(actionLabel), btn -> {
                     enemyAction = enemyAction.getNext();
-                    Main.SIMPLE_CHANNEL.sendToServer(
+                    NetUtils.sendToServer(
                             new MessagePatrolLeaderSetEnemyAction(leaderEntity.getUUID(), enemyAction.getIndex()));
                     buildWidgets();
                 }));
@@ -193,14 +194,14 @@ public class PatrolLeaderScreen extends RecruitsScreenBase {
 
                     if (g != null) {
                         // Set group on leader then assign recruits automatically
-                        Main.SIMPLE_CHANNEL.sendToServer(
+                        NetUtils.sendToServer(
                                 new MessageSetLeaderGroup(leaderEntity.getUUID(), g.getUUID()));
-                        Main.SIMPLE_CHANNEL.sendToServer(
+                        NetUtils.sendToServer(
                                 new MessageAssignGroupToCompanion(player.getUUID(), leaderEntity.getUUID()));
                         g.leaderUUID = leaderEntity.getUUID();
                     } else if (previous != null) {
                         // Deselected — unassign recruits
-                        Main.SIMPLE_CHANNEL.sendToServer(
+                        NetUtils.sendToServer(
                                 new MessageRemoveAssignedGroupFromCompanion(player.getUUID(), leaderEntity.getUUID()));
                         previous.leaderUUID = null;
                     }
@@ -239,7 +240,7 @@ public class PatrolLeaderScreen extends RecruitsScreenBase {
                 waits.add(sec);
             }
         }
-        Main.SIMPLE_CHANNEL.sendToServer(new MessagePatrolLeaderSetRoute(
+        NetUtils.sendToServer(new MessagePatrolLeaderSetRoute(
                 leaderEntity.getUUID(),
                 route != null ? route.getId() : null,
                 positions,

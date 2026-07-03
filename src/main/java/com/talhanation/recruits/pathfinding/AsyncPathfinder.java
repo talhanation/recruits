@@ -58,7 +58,7 @@ public class AsyncPathfinder extends PathFinder {
             // Paper start - remove streams - and optimize collection
             List<Map.Entry<Target, BlockPos>> map = Lists.newArrayList();
             for (BlockPos pos : p_77430_) {
-                map.add(new java.util.AbstractMap.SimpleEntry<>(nodeEvaluator.getGoal(pos.getX(), pos.getY(), pos.getZ()), pos));
+                map.add(new java.util.AbstractMap.SimpleEntry<>(nodeEvaluator.getTarget(pos.getX(), pos.getY(), pos.getZ()), pos));
             }
             // Paper end
             // petal start

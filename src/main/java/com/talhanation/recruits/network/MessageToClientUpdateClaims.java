@@ -1,21 +1,25 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.worldmap.claim.WorldMapClaimIndex;
 import com.talhanation.recruits.network.codec.ClaimNetworkCodec;
 import com.talhanation.recruits.world.RecruitsClaim;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class MessageToClientUpdateClaims implements Message<MessageToClientUpdateClaims> {
+    public static final CustomPacketPayload.Type<MessageToClientUpdateClaims> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagetoclientupdateclaims"));
     private List<RecruitsClaim> claims = Collections.emptyList();
     private int claimCost;
     private int chunkCost;
@@ -58,13 +62,13 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.CLIENT;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.CLIENTBOUND;
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void executeClientSide(NetworkEvent.Context context) {
+    public void executeClientSide(IPayloadContext context) {
         if (resetClaims) {
             ClientManager.recruitsClaims = new ArrayList<>(this.claims);
             ClientManager.activeSiegeClaims.clear();
@@ -86,13 +90,13 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
     }
 
     @Override
-    public MessageToClientUpdateClaims fromBytes(FriendlyByteBuf buf) {
+    public MessageToClientUpdateClaims fromBytes(RegistryFriendlyByteBuf buf) {
         this.claims = ClaimNetworkCodec.readClaimList(buf);
         this.claimCost = buf.readInt();
         this.chunkCost = buf.readInt();
         this.maxClaimChunks = buf.readInt();
         this.cascadeOfCost = buf.readBoolean();
-        this.currencyItemStack = buf.readItem();
+        this.currencyItemStack = net.minecraft.world.item.ItemStack.OPTIONAL_STREAM_CODEC.decode(buf);
         this.allowClaiming = buf.readBoolean();
         this.fogOfWarEnabled = buf.readBoolean();
         this.resetClaims = buf.readBoolean();
@@ -101,17 +105,22 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
     }
 
     @Override
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         ClaimNetworkCodec.writeClaimList(buf, this.claims);
         buf.writeInt(this.claimCost);
         buf.writeInt(this.chunkCost);
         buf.writeInt(this.maxClaimChunks);
         buf.writeBoolean(this.cascadeOfCost);
-        buf.writeItemStack(this.currencyItemStack, false);
+        net.minecraft.world.item.ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, this.currencyItemStack);
         buf.writeBoolean(this.allowClaiming);
         buf.writeBoolean(this.fogOfWarEnabled);
         buf.writeBoolean(this.resetClaims);
         buf.writeBoolean(this.syncComplete);
     }
 
+
+    @Override
+    public CustomPacketPayload.Type<MessageToClientUpdateClaims> type() {
+        return TYPE;
+    }
 }

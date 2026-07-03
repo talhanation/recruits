@@ -4,9 +4,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 @OnlyIn(Dist.CLIENT)
 public class RecruitsCategoryButton extends ExtendedButton {
@@ -22,8 +22,8 @@ public class RecruitsCategoryButton extends ExtendedButton {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int p_93658_, int p_93659_, float p_93660_) {
-        super.render(guiGraphics, p_93658_, p_93659_, p_93660_);
+    public void renderWidget(GuiGraphics guiGraphics, int p_93658_, int p_93659_, float p_93660_) {
+        super.renderWidget(guiGraphics, p_93658_, p_93659_, p_93660_);
         guiGraphics.renderFakeItem(renderItem, this.x, this.y);
     }
 

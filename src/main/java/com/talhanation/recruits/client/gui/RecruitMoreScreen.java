@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
@@ -17,11 +18,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 public class RecruitMoreScreen extends RecruitsScreenBase {
 
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_big.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/gui_big.png");
     private static final Component TITLE = Component.translatable("gui.recruits.more_screen.title");
     private Player player;
     private AbstractRecruitEntity recruit;
@@ -62,13 +63,13 @@ public class RecruitMoreScreen extends RecruitsScreenBase {
                     if(this.recruit != null) {
                         if(this.recruit.getTeam() != null) {
                             minecraft.setScreen(new ConfirmScreen(DISBAND, TOOLTIP_KEEP_TEAM,
-                                    () -> Main.SIMPLE_CHANNEL.sendToServer(new MessageDisband(this.recruit.getUUID(), true)),
-                                    () -> Main.SIMPLE_CHANNEL.sendToServer(new MessageDisband(this.recruit.getUUID(), false)),
+                                    () -> NetUtils.sendToServer(new MessageDisband(this.recruit.getUUID(), true)),
+                                    () -> NetUtils.sendToServer(new MessageDisband(this.recruit.getUUID(), false)),
                                     () -> minecraft.setScreen(RecruitMoreScreen.this)
                             ));
                         }
                         else
-                            Main.SIMPLE_CHANNEL.sendToServer(new MessageDisband(this.recruit.getUUID(), false));
+                            NetUtils.sendToServer(new MessageDisband(this.recruit.getUUID(), false));
                     }
                 }
         );
@@ -80,7 +81,7 @@ public class RecruitMoreScreen extends RecruitsScreenBase {
                 if(recruit != null) {
                     minecraft.setScreen(new SelectPlayerScreen(this, player, ASSIGN_TO_PLAYER, ASSIGN_TO_PLAYER, TOOLTIP_ASSIGN_GROUP_TO_PLAYER, false, PlayersList.FilterType.NONE,
                         (playerInfo) -> {
-                            Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignRecruitToPlayer(this.recruit.getUUID(), playerInfo.getUUID()));
+                            NetUtils.sendToServer(new MessageAssignRecruitToPlayer(this.recruit.getUUID(), playerInfo.getUUID()));
                             onClose();
                         })
                     );

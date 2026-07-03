@@ -38,7 +38,6 @@ public abstract class RecruitsScreenBase extends Screen{
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        renderBackground(guiGraphics);
         renderBackground(guiGraphics, mouseX, mouseY, delta);
         super.render(guiGraphics, mouseX, mouseY, delta);
         renderForeground(guiGraphics, mouseX, mouseY, delta);

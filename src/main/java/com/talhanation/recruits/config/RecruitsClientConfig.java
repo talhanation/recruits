@@ -2,32 +2,30 @@ package com.talhanation.recruits.config;
 
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.common.Mod;
-
+import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.fml.common.Mod;
 import java.nio.file.Path;
 
-@Mod.EventBusSubscriber
 public class RecruitsClientConfig {
     public enum MapPlayerIconStyle {
         VANILLA,
         OVERHAULED
     }
 
-    private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
-    public static ForgeConfigSpec CLIENT;
-    public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
-    public static ForgeConfigSpec.BooleanValue CommandScreenToggle;
-    public static ForgeConfigSpec.BooleanValue RecruitsLookLikeVillagers;
-    public static ForgeConfigSpec.BooleanValue UpdateCheckerClientside;
-    public static ForgeConfigSpec.BooleanValue DisableClaimGUIOverlay;
-    public static ForgeConfigSpec.BooleanValue UpdateMapTiles;
-    public static ForgeConfigSpec.BooleanValue WorldMapUpdateAroundPlayer;
-    public static ForgeConfigSpec.BooleanValue WorldMapNightShading;
-    public static ForgeConfigSpec.BooleanValue WorldMapShowCoordinates;
-    public static ForgeConfigSpec.BooleanValue WorldMapClaimFill;
-    public static ForgeConfigSpec.BooleanValue RecruitsToasts;
-    public static ForgeConfigSpec.EnumValue<MapPlayerIconStyle> WorldMapPlayerIconStyle;
+    private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
+    public static ModConfigSpec CLIENT;
+    public static ModConfigSpec.BooleanValue PlayVillagerAmbientSound;
+    public static ModConfigSpec.BooleanValue CommandScreenToggle;
+    public static ModConfigSpec.BooleanValue RecruitsLookLikeVillagers;
+    public static ModConfigSpec.BooleanValue UpdateCheckerClientside;
+    public static ModConfigSpec.BooleanValue DisableClaimGUIOverlay;
+    public static ModConfigSpec.BooleanValue UpdateMapTiles;
+    public static ModConfigSpec.BooleanValue WorldMapUpdateAroundPlayer;
+    public static ModConfigSpec.BooleanValue WorldMapNightShading;
+    public static ModConfigSpec.BooleanValue WorldMapShowCoordinates;
+    public static ModConfigSpec.BooleanValue WorldMapClaimFill;
+    public static ModConfigSpec.BooleanValue RecruitsToasts;
+    public static ModConfigSpec.EnumValue<MapPlayerIconStyle> WorldMapPlayerIconStyle;
 
     static{
         BUILDER.comment("Recruits Config Client Side:").push("RecruitsClientSide");
@@ -134,13 +132,7 @@ public class RecruitsClientConfig {
     }
 
 
-    public static void loadConfig(ForgeConfigSpec spec, Path path) {
-        CommentedFileConfig configData = CommentedFileConfig.builder(path)
-                .sync()
-                .autosave()
-                .writingMode(WritingMode.REPLACE)
-                .build();
-        configData.load();
-        spec.setConfig(configData);
+    public static void loadConfig(ModConfigSpec spec, Path path) {
+        // NeoForge loads registered configs automatically via ModContainer.registerConfig.
     }
 }

@@ -24,9 +24,6 @@ public class RecruitsFactionList extends ListScreenListBase<RecruitsFactionEntry
         this.filter = "";
         this.showPlayerCount = showPlayerCount;
         this.includeOwn = includeOwn;
-        setRenderBackground(false);
-        setRenderTopAndBottom(false);
-        setRenderSelection(true);
     }
     public void tick() {
         if(ClientManager.factions != null){

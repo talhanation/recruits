@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui.commandscreen;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
@@ -66,7 +67,7 @@ public class CombatCategory implements ICommandCategory {
                     if (!groups.isEmpty()) {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageStrategicFire(player.getUUID(), group.getUUID(), true));
+                                NetUtils.sendToServer(new MessageStrategicFire(player.getUUID(), group.getUUID(), true));
                                 ClientManager.addGroupSpecialState(group.getUUID(), SPECIAL_STRATEGIC_FIRE);
                             }
                         }
@@ -84,7 +85,7 @@ public class CombatCategory implements ICommandCategory {
                     if (!groups.isEmpty()) {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageStrategicFire(player.getUUID(), group.getUUID(), false));
+                                NetUtils.sendToServer(new MessageStrategicFire(player.getUUID(), group.getUUID(), false));
                                 ClientManager.removeGroupSpecialState(group.getUUID(), SPECIAL_STRATEGIC_FIRE);
                             }
                         }
@@ -102,7 +103,7 @@ public class CombatCategory implements ICommandCategory {
                     if (!groups.isEmpty()) {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageRangedFire(player.getUUID(), group.getUUID(), true));
+                                NetUtils.sendToServer(new MessageRangedFire(player.getUUID(), group.getUUID(), true));
                                 ClientManager.removeGroupSpecialState(group.getUUID(), SPECIAL_HOLD_FIRE);
                             }
                         }
@@ -119,8 +120,8 @@ public class CombatCategory implements ICommandCategory {
                     if (!groups.isEmpty()) {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageStrategicFire(player.getUUID(), group.getUUID(), false));
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageRangedFire(player.getUUID(), group.getUUID(), false));
+                                NetUtils.sendToServer(new MessageStrategicFire(player.getUUID(), group.getUUID(), false));
+                                NetUtils.sendToServer(new MessageRangedFire(player.getUUID(), group.getUUID(), false));
                                 ClientManager.addGroupSpecialState(group.getUUID(), SPECIAL_HOLD_FIRE);
                                 ClientManager.removeGroupSpecialState(group.getUUID(), SPECIAL_STRATEGIC_FIRE);
                             }
@@ -138,7 +139,7 @@ public class CombatCategory implements ICommandCategory {
                     if (!groups.isEmpty()) {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageShields(player.getUUID(), group.getUUID(), true));
+                                NetUtils.sendToServer(new MessageShields(player.getUUID(), group.getUUID(), true));
                                 ClientManager.addGroupSpecialState(group.getUUID(), SPECIAL_SHIELDS_UP);
                             }
                         }
@@ -155,7 +156,7 @@ public class CombatCategory implements ICommandCategory {
                     if (!groups.isEmpty()) {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageShields(player.getUUID(), group.getUUID(), false));
+                                NetUtils.sendToServer(new MessageShields(player.getUUID(), group.getUUID(), false));
                                 ClientManager.removeGroupSpecialState(group.getUUID(), SPECIAL_SHIELDS_UP);
                             }
                         }
@@ -172,7 +173,7 @@ public class CombatCategory implements ICommandCategory {
                     if (!groups.isEmpty()) {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageAttack(player.getUUID(), group.getUUID()));
+                                NetUtils.sendToServer(new MessageAttack(player.getUUID(), group.getUUID()));
                             }
                         }
                         screen.sendCommandInChat(69);
@@ -188,7 +189,7 @@ public class CombatCategory implements ICommandCategory {
                     if (!groups.isEmpty()) {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageClearTarget(player.getUUID(), group.getUUID()));
+                                NetUtils.sendToServer(new MessageClearTarget(player.getUUID(), group.getUUID()));
                             }
                         }
                         screen.sendCommandInChat(9);
@@ -204,7 +205,7 @@ public class CombatCategory implements ICommandCategory {
                     if (!groups.isEmpty()) {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 3, group.getUUID()));
+                                NetUtils.sendToServer(new MessageAggro(player.getUUID(), 3, group.getUUID()));
                                 ClientManager.setGroupAggroState(group.getUUID(), TEXT_PASSIVE.copy().withStyle(net.minecraft.ChatFormatting.RED));
                             }
                         }
@@ -221,7 +222,7 @@ public class CombatCategory implements ICommandCategory {
                     if (!groups.isEmpty()) {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 0, group.getUUID()));
+                                NetUtils.sendToServer(new MessageAggro(player.getUUID(), 0, group.getUUID()));
                                 ClientManager.setGroupAggroState(group.getUUID(), TEXT_NEUTRAL);
                             }
                         }
@@ -238,7 +239,7 @@ public class CombatCategory implements ICommandCategory {
                     if (!groups.isEmpty()) {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 2, group.getUUID()));
+                                NetUtils.sendToServer(new MessageAggro(player.getUUID(), 2, group.getUUID()));
                                 ClientManager.setGroupAggroState(group.getUUID(), TEXT_RAID);
                             }
                         }
@@ -255,7 +256,7 @@ public class CombatCategory implements ICommandCategory {
                     if (!groups.isEmpty()) {
                         for (RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
-                                Main.SIMPLE_CHANNEL.sendToServer(new MessageAggro(player.getUUID(), 1, group.getUUID()));
+                                NetUtils.sendToServer(new MessageAggro(player.getUUID(), 1, group.getUUID()));
                                 ClientManager.setGroupAggroState(group.getUUID(), TEXT_AGGRESSIVE);
                             }
                         }

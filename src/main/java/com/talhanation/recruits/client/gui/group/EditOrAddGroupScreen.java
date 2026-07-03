@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui.group;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.recruits.Main;
@@ -20,7 +21,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 import static com.talhanation.recruits.client.gui.RecruitMoreScreen.TOOLTIP_ASSIGN_GROUP_TO_PLAYER;
 import static com.talhanation.recruits.client.gui.RecruitMoreScreen.TOOLTIP_KEEP_TEAM;
@@ -35,7 +36,7 @@ public class EditOrAddGroupScreen extends Screen {
     private int topPos;
     private int imageWidth;
     private int imageHeight;
-    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/gui_big.png");
+    private static final ResourceLocation RESOURCE_LOCATION = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/gui/gui_big.png");
     private static final MutableComponent TEXT_CANCEL = Component.translatable("gui.recruits.groups.cancel");
     private static final MutableComponent TEXT_SAVE = Component.translatable("gui.recruits.groups.save");
     private static final MutableComponent TEXT_ADD = Component.translatable("gui.recruits.groups.add");
@@ -99,8 +100,8 @@ public class EditOrAddGroupScreen extends Screen {
         Button buttonDisbandGroup = new ExtendedButton(leftPos + 7, topPos + 50, 180, 20, DISBAND_GROUP,
             btn -> {
                 minecraft.setScreen(new ConfirmScreen(DISBAND_GROUP, TOOLTIP_KEEP_TEAM,
-                        () ->  Main.SIMPLE_CHANNEL.sendToServer(new MessageDisbandGroup(this.player.getUUID(), this.groupToEdit.getUUID(), true)),
-                        () ->  Main.SIMPLE_CHANNEL.sendToServer(new MessageDisbandGroup(this.player.getUUID(), this.groupToEdit.getUUID(), false)),
+                        () ->  NetUtils.sendToServer(new MessageDisbandGroup(this.player.getUUID(), this.groupToEdit.getUUID(), true)),
+                        () ->  NetUtils.sendToServer(new MessageDisbandGroup(this.player.getUUID(), this.groupToEdit.getUUID(), false)),
                         () ->  minecraft.setScreen(EditOrAddGroupScreen.this)
                 ));
             }
@@ -113,7 +114,7 @@ public class EditOrAddGroupScreen extends Screen {
                 btn -> {
                     minecraft.setScreen(new SelectPlayerScreen(this, player, ASSIGN_GROUP_TO_PLAYER, ASSIGN_GROUP_TO_PLAYER, TOOLTIP_ASSIGN_GROUP_TO_PLAYER, false, PlayersList.FilterType.NONE,
                         (playerInfo) -> {
-                            Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignGroupToPlayer(this.player.getUUID(), playerInfo, this.groupToEdit.getUUID()));
+                            NetUtils.sendToServer(new MessageAssignGroupToPlayer(this.player.getUUID(), playerInfo, this.groupToEdit.getUUID()));
                             onClose();
                         } )
                     );
@@ -126,7 +127,7 @@ public class EditOrAddGroupScreen extends Screen {
             btn -> {
                 minecraft.setScreen(new SelectGroupScreen(this, groupToEdit, TITLE_MERGE_GROUP, BUTTON_MERGE, TOOLTIP_MERGE_GROUP,
                         (selectedGroup) -> {
-                            Main.SIMPLE_CHANNEL.sendToServer(new MessageMergeGroup(this.groupToEdit.getUUID(), selectedGroup.getUUID()));
+                            NetUtils.sendToServer(new MessageMergeGroup(this.groupToEdit.getUUID(), selectedGroup.getUUID()));
                             minecraft.setScreen(this.parent);
                         }));
             }
@@ -137,7 +138,7 @@ public class EditOrAddGroupScreen extends Screen {
 
         Button splitButton = new ExtendedButton(leftPos + 97, topPos + 90, 90, 20, BUTTON_SPLIT,
             btn -> {
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageSplitGroup(this.groupToEdit.getUUID()));
+                NetUtils.sendToServer(new MessageSplitGroup(this.groupToEdit.getUUID()));
                 minecraft.setScreen(this.parent);
             }
         );
@@ -146,7 +147,7 @@ public class EditOrAddGroupScreen extends Screen {
 
         Button putRecruits = new ExtendedButton(leftPos + 7, topPos + 110, 180, 20, BUTTON_NEARBY,
             btn -> {
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageAssignNearbyRecruitsInGroup(this.groupToEdit.getUUID()));
+                NetUtils.sendToServer(new MessageAssignNearbyRecruitsInGroup(this.groupToEdit.getUUID()));
                 minecraft.setScreen(this.parent);
             }
         );
@@ -180,7 +181,7 @@ public class EditOrAddGroupScreen extends Screen {
         if (!groupName.isEmpty()) {
             int image = RecruitsGroup.IMAGES.indexOf(this.image);
             RecruitsGroup newGroup = new RecruitsGroup(groupName, ClientManager.getPlayerInfo(), image);
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateGroup(newGroup));
+            NetUtils.sendToServer(new MessageUpdateGroup(newGroup));
             ClientManager.groups.add(newGroup);
 
             this.minecraft.setScreen(this.parent);
@@ -192,7 +193,7 @@ public class EditOrAddGroupScreen extends Screen {
         if (!newName.isEmpty() && groupToEdit != null) {
             groupToEdit.setName(newName);
 
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateGroup(groupToEdit));
+            NetUtils.sendToServer(new MessageUpdateGroup(groupToEdit));
 
             this.minecraft.setScreen(this.parent);
         }
@@ -201,7 +202,6 @@ public class EditOrAddGroupScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
-        groupNameField.tick();
     }
 
     @Override
@@ -228,7 +228,7 @@ public class EditOrAddGroupScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, delta);
         this.renderBackground(guiGraphics, mouseX, mouseY, delta);
         super.render(guiGraphics, mouseX, mouseY, delta);
         this.renderForeground(guiGraphics, mouseX, mouseY, delta);

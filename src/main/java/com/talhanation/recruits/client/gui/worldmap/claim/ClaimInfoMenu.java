@@ -15,7 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.Objects;
 
 public class ClaimInfoMenu {
-    private static final ResourceLocation SIEGE_ICON = new ResourceLocation("recruits:textures/gui/image/enemy.png");
+    private static final ResourceLocation SIEGE_ICON = ResourceLocation.parse("recruits:textures/gui/image/enemy.png");
     private static final int PANEL_BACKGROUND = 0xD0000000;
     private static final int PANEL_OUTLINE = 0xFFFFFFFF;
     private static final int LABEL_COLOR = 0xFFB8B8B8;

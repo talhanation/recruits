@@ -1,4 +1,8 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.entities.MessengerEntity;
@@ -6,19 +10,19 @@ import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsFaction;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.scores.Team;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 public class MessageAnswerTreaty implements Message<MessageAnswerTreaty> {
 
+    public static final CustomPacketPayload.Type<MessageAnswerTreaty> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messageanswertreaty"));
     private UUID recruit;
     private boolean accepted;
 
@@ -31,13 +35,13 @@ public class MessageAnswerTreaty implements Message<MessageAnswerTreaty> {
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
     @Override
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = Objects.requireNonNull(((ServerPlayer) context.player()));
         ServerLevel level = (ServerLevel) player.getCommandSenderWorld();
 
         List<MessengerEntity> list = level.getEntitiesOfClass(
@@ -81,15 +85,20 @@ public class MessageAnswerTreaty implements Message<MessageAnswerTreaty> {
     }
 
     @Override
-    public MessageAnswerTreaty fromBytes(FriendlyByteBuf buf) {
+    public MessageAnswerTreaty fromBytes(RegistryFriendlyByteBuf buf) {
         this.recruit = buf.readUUID();
         this.accepted = buf.readBoolean();
         return this;
     }
 
     @Override
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(recruit);
         buf.writeBoolean(accepted);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageAnswerTreaty> type() {
+        return TYPE;
     }
 }

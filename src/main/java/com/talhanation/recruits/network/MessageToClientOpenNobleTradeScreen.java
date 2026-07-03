@@ -1,20 +1,24 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.client.gui.NobleTradeScreen;
 import com.talhanation.recruits.entities.VillagerNobleEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import java.util.UUID;
 
 public class MessageToClientOpenNobleTradeScreen implements Message<MessageToClientOpenNobleTradeScreen> {
 
+    public static final CustomPacketPayload.Type<MessageToClientOpenNobleTradeScreen> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagetoclientopennobletradescreen"));
     private UUID recruit_uuid;
 
     public MessageToClientOpenNobleTradeScreen() {
@@ -26,13 +30,13 @@ public class MessageToClientOpenNobleTradeScreen implements Message<MessageToCli
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.CLIENT;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.CLIENTBOUND;
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void executeClientSide(NetworkEvent.Context context) {
+    public void executeClientSide(IPayloadContext context) {
         Player player = Minecraft.getInstance().player;
         player.getCommandSenderWorld().getEntitiesOfClass(VillagerNobleEntity.class, player.getBoundingBox()
                         .inflate(16.0D), v -> v
@@ -45,13 +49,18 @@ public class MessageToClientOpenNobleTradeScreen implements Message<MessageToCli
     }
 
     @Override
-    public MessageToClientOpenNobleTradeScreen fromBytes(FriendlyByteBuf buf) {
+    public MessageToClientOpenNobleTradeScreen fromBytes(RegistryFriendlyByteBuf buf) {
         this.recruit_uuid = buf.readUUID();
         return this;
     }
 
     @Override
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(recruit_uuid);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageToClientOpenNobleTradeScreen> type() {
+        return TYPE;
     }
 }

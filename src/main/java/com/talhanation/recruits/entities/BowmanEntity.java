@@ -31,7 +31,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ForgeMod;
+import net.neoforged.neoforge.common.NeoForgeMod;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -50,10 +50,10 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
         super(entityType, world);
     }
 
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(STRATEGIC_FIRE_POS, Optional.empty());
-        this.entityData.define(SHOULD_STRATEGIC_FIRE, false);
+    protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(STRATEGIC_FIRE_POS, Optional.empty());
+        builder.define(SHOULD_STRATEGIC_FIRE, false);
     }
 
     @Override
@@ -100,20 +100,20 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
         return Mob.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.31D)
-                .add(ForgeMod.SWIM_SPEED.get(), 0.3D)
+                .add(NeoForgeMod.SWIM_SPEED, 0.3D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.05D)
                 .add(Attributes.ATTACK_DAMAGE, 0.5D)
                 .add(Attributes.FOLLOW_RANGE, 64.0D) //do not change as ranged ai dependants on it
-                .add(ForgeMod.ENTITY_REACH.get(), 0D)
+                .add(Attributes.ENTITY_INTERACTION_RANGE, 0D)
                 .add(Attributes.ATTACK_SPEED);
     }
 
     @Override
     @Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data, @Nullable CompoundTag nbt) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data) {
         RandomSource randomsource = world.getRandom();
-        SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
-        this.populateDefaultEquipmentEnchantments(randomsource, difficultyInstance);
+        SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data);
+        this.populateDefaultEquipmentEnchantments(world, randomsource, difficultyInstance);
         this.initSpawn();
         return ilivingentitydata;
     }
@@ -151,17 +151,15 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
 
             ItemStack itemstack = this.getProjectile(this.getItemInHand(InteractionHand.MAIN_HAND));
 
-            AbstractArrow arrow = ProjectileUtil.getMobArrow(this, itemstack, v);
-            arrow = ((net.minecraft.world.item.BowItem) this.getMainHandItem().getItem()).customArrow(arrow);
+            AbstractArrow arrow = ProjectileUtil.getMobArrow(this, itemstack, v, this.getMainHandItem());
+            arrow = ((net.minecraft.world.item.BowItem) this.getMainHandItem().getItem()).customArrow(arrow, itemstack, this.getMainHandItem());
 
-            int powerLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.POWER_ARROWS, itemstack);
+            int powerLevel = enchLevel(Enchantments.POWER, itemstack);
             arrow.setBaseDamage(arrow.getBaseDamage() + (double) powerLevel * 0.5D + 0.5D + this.arrowDamageModifier());
 
-            int punchLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.PUNCH_ARROWS, itemstack);
-            if (punchLevel > 0) arrow.setKnockback(punchLevel);
-
-            int fireLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FLAMING_ARROWS, itemstack);
-            if (fireLevel > 0) arrow.setSecondsOnFire(100);
+            int punchLevel = enchLevel(Enchantments.PUNCH, itemstack);
+            int fireLevel = enchLevel(Enchantments.FLAME, itemstack);
+            if (fireLevel > 0) arrow.igniteForSeconds(100);
 
             double distance = this.distanceToSqr(target.getX(), target.getY(), target.getZ());
             double heightDiff = target.getY() - this.getY();
@@ -180,7 +178,7 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
             arrow.shoot(d0, d1 + d3 * angle, d2, force, accuracy);
 
             if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get()){
-                int k = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.INFINITY_ARROWS, this.getMainHandItem());
+                int k = enchLevel(Enchantments.INFINITY, this.getMainHandItem());
                 if (k == 0) {
                     this.consumeArrow();
                     arrow.pickup = AbstractArrow.Pickup.ALLOWED;
@@ -195,6 +193,12 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
         }
     }
 
+
+    private int enchLevel(net.minecraft.resources.ResourceKey<net.minecraft.world.item.enchantment.Enchantment> key, net.minecraft.world.item.ItemStack stack) {
+        return EnchantmentHelper.getItemEnchantmentLevel(
+                this.level().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT).getOrThrow(key), stack);
+    }
+
     public double arrowDamageModifier() {
         return 1.0D;
     }
@@ -204,17 +208,15 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
         if (this.getMainHandItem().getItem() instanceof BowItem) {
             ItemStack itemstack = this.getProjectile(this.getItemInHand(InteractionHand.MAIN_HAND));
 
-            AbstractArrow arrow = ProjectileUtil.getMobArrow(this, itemstack, v);
-            arrow = ((net.minecraft.world.item.BowItem) this.getMainHandItem().getItem()).customArrow(arrow);
+            AbstractArrow arrow = ProjectileUtil.getMobArrow(this, itemstack, v, this.getMainHandItem());
+            arrow = ((net.minecraft.world.item.BowItem) this.getMainHandItem().getItem()).customArrow(arrow, itemstack, this.getMainHandItem());
 
-            int powerLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.POWER_ARROWS, itemstack);
+            int powerLevel = enchLevel(Enchantments.POWER, itemstack);
             if (powerLevel > 0) arrow.setBaseDamage(arrow.getBaseDamage() + (double) powerLevel * 0.5D + 0.5D + this.arrowDamageModifier());
 
-            int punchLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.PUNCH_ARROWS, itemstack);
-            if (punchLevel > 0) arrow.setKnockback(punchLevel);
-
-            int fireLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FLAMING_ARROWS, itemstack);
-            if (fireLevel > 0) arrow.setSecondsOnFire(100);
+            int punchLevel = enchLevel(Enchantments.PUNCH, itemstack);
+            int fireLevel = enchLevel(Enchantments.FLAME, itemstack);
+            if (fireLevel > 0) arrow.igniteForSeconds(100);
 
             double d0 = x - this.getX();
             double d1 = y - this.getY();

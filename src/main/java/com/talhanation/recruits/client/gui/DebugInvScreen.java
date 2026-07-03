@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
@@ -18,11 +19,11 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
-import net.minecraftforge.client.gui.widget.ExtendedButton;
-import net.minecraftforge.common.ForgeMod;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.common.NeoForgeMod;
 import org.lwjgl.glfw.GLFW;
 
 
@@ -32,7 +33,7 @@ import java.text.DecimalFormat;
 @OnlyIn(Dist.CLIENT)
 public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
 
-    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/debug_gui.png" );
+    private static final ResourceLocation RESOURCE_LOCATION = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/gui/debug_gui.png" );
 
     private static final int fontColor = 4210752;
     private EditBox textField;
@@ -91,7 +92,6 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
 
     protected void containerTick() {
         super.containerTick();
-        if(textField != null) textField.tick();
     }
 
 
@@ -116,101 +116,101 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
     public void onClose() {
         super.onClose();
 
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(99, recruit.getUUID(), textField.getValue()));
+        NetUtils.sendToServer(new MessageDebugGui(99, recruit.getUUID(), textField.getValue()));
     }
 
     private void xpButton(int zeroLeftPos, int zeroTopPos){
         addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 0, 40, 20, Component.literal("+xp"), button -> {
-                Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(0, recruit.getUUID(), textField.getValue()));
+                NetUtils.sendToServer(new MessageDebugGui(0, recruit.getUUID(), textField.getValue()));
         }));
         addRenderableWidget(new ExtendedButton(zeroLeftPos - 160, zeroTopPos + (20 + 5) * 0, 40, 20, Component.literal("+10xp"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(21, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(21, recruit.getUUID(), textField.getValue()));
         }));
     }
 
     private void lvlButton(int zeroLeftPos, int zeroTopPos){
         addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 1, 40, 20, Component.literal("+lvl"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(1, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(1, recruit.getUUID(), textField.getValue()));
         }));
         addRenderableWidget(new ExtendedButton(zeroLeftPos - 160, zeroTopPos + (20 + 5) * 1, 40, 20, Component.literal("+5lvl"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(22, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(22, recruit.getUUID(), textField.getValue()));
         }));
     }
 
     private void costButton(int zeroLeftPos, int zeroTopPos){
         //increase cost
         addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 2, 40, 20, Component.literal("+cost"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(2, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(2, recruit.getUUID(), textField.getValue()));
         }));
         //decrease cost
         addRenderableWidget(new ExtendedButton(zeroLeftPos - 160, zeroTopPos + (20 + 5) * 2, 40, 20, Component.literal("-cost"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(3, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(3, recruit.getUUID(), textField.getValue()));
 
         }));
     }
     private void hungerButton(int zeroLeftPos, int zeroTopPos){
         //increase hunger
         addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 3, 40, 20, Component.literal("+hunger"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(4, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(4, recruit.getUUID(), textField.getValue()));
         }));
 
         //decrease hunger
         addRenderableWidget(new ExtendedButton(zeroLeftPos - 160, zeroTopPos + (20 + 5) * 3, 40, 20, Component.literal("-hunger"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(5, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(5, recruit.getUUID(), textField.getValue()));
         }));
     }
 
     private void moralButton(int zeroLeftPos, int zeroTopPos){
         //increase moral
         addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 4, 40, 20, Component.literal("+morale"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(6, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(6, recruit.getUUID(), textField.getValue()));
         }));
 
         //decrease moral
         addRenderableWidget(new ExtendedButton(zeroLeftPos - 160, zeroTopPos + (20 + 5) * 4, 40, 20, Component.literal("-morale"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(7, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(7, recruit.getUUID(), textField.getValue()));
         }));
     }
 
     private void healthButton(int zeroLeftPos, int zeroTopPos){
         //increase health
         addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 5, 40, 20, Component.literal("+health"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(8, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(8, recruit.getUUID(), textField.getValue()));
         }));
 
         //decrease health
         addRenderableWidget(new ExtendedButton(zeroLeftPos - 160, zeroTopPos + (20 + 5) * 5, 40, 20, Component.literal("-health"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(9, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(9, recruit.getUUID(), textField.getValue()));
         }));
     }
 
     private void variantButton(int zeroLeftPos, int zeroTopPos){
         addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 6, 40, 20, Component.literal("+variant"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(10, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(10, recruit.getUUID(), textField.getValue()));
         }));
 
         addRenderableWidget(new ExtendedButton(zeroLeftPos - 160, zeroTopPos + (20 + 5) * 6, 40, 20, Component.literal("-variant"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(11, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(11, recruit.getUUID(), textField.getValue()));
         }));
     }
 
     private void biomeButton(int zeroLeftPos, int zeroTopPos){
         addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 7, 40, 20, Component.literal("+biome"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(12, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(12, recruit.getUUID(), textField.getValue()));
         }));
 
         addRenderableWidget(new ExtendedButton(zeroLeftPos - 160, zeroTopPos + (20 + 5) * 7, 40, 20, Component.literal("-biome"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(13, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(13, recruit.getUUID(), textField.getValue()));
         }));
     }
 
     private void teamColorButton(int zeroLeftPos, int zeroTopPos){
         addRenderableWidget(new ExtendedButton(zeroLeftPos - 210, zeroTopPos + (20 + 5) * 8, 40, 20, Component.literal("+tcolor"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(24, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(24, recruit.getUUID(), textField.getValue()));
         }));
 
         addRenderableWidget(new ExtendedButton(zeroLeftPos - 160, zeroTopPos + (20 + 5) * 8, 40, 20, Component.literal("-tcolor"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(25, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(25, recruit.getUUID(), textField.getValue()));
         }));
     }
 
@@ -218,48 +218,48 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
 
     private void killHealButton(int zeroLeftPos, int zeroTopPos){
         addRenderableWidget(new ExtendedButton(zeroLeftPos + 130, zeroTopPos + (20 + 5) * 2, 40, 20, Component.literal("heal"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(14, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(14, recruit.getUUID(), textField.getValue()));
         }));
 
         addRenderableWidget(new ExtendedButton(zeroLeftPos + 80, zeroTopPos + (20 + 5) * 2, 40, 20, Component.literal("-kill"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(15, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(15, recruit.getUUID(), textField.getValue()));
         }));
     }
 
     private void clearButton(int zeroLeftPos, int zeroTopPos) {
         addRenderableWidget(new ExtendedButton(zeroLeftPos + 130, zeroTopPos + (20 + 5) * 3, 40, 20, Component.literal("c upkeep"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(16, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(16, recruit.getUUID(), textField.getValue()));
         }));
 
         addRenderableWidget(new ExtendedButton(zeroLeftPos + 80, zeroTopPos + (20 + 5) * 3, 40, 20, Component.literal("c hold"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(17, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(17, recruit.getUUID(), textField.getValue()));
         }));
     }
     private void clearButton2(int zeroLeftPos, int zeroTopPos){
         addRenderableWidget(new ExtendedButton(zeroLeftPos + 130, zeroTopPos + (20 + 5) * 4, 40, 20, Component.literal("c prot"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(18, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(18, recruit.getUUID(), textField.getValue()));
         }));
 
         addRenderableWidget(new ExtendedButton(zeroLeftPos + 80, zeroTopPos + (20 + 5) * 4, 40, 20, Component.literal("c mount"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(19, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(19, recruit.getUUID(), textField.getValue()));
         }));
     }
 
     private void promoteButton(int zeroLeftPos, int zeroTopPos){
         addRenderableWidget(new ExtendedButton(zeroLeftPos + 80, zeroTopPos + (20 + 5) * 5, 40, 20, Component.literal("pro"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(20, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(20, recruit.getUUID(), textField.getValue()));
         }));
     }
 
     private void clearTeam(int zeroLeftPos, int zeroTopPos){
         addRenderableWidget(new ExtendedButton(zeroLeftPos + 80, zeroTopPos + (20 + 5) * 6, 40, 20, Component.literal("c team"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(23, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(23, recruit.getUUID(), textField.getValue()));
         }));
     }
 
     private void disband(int zeroLeftPos, int zeroTopPos){
         addRenderableWidget(new ExtendedButton(zeroLeftPos + 80, zeroTopPos + (20 + 5) * 7, 40, 20, Component.literal("c owner"), button -> {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageDebugGui(26, recruit.getUUID(), textField.getValue()));
+            NetUtils.sendToServer(new MessageDebugGui(26, recruit.getUUID(), textField.getValue()));
         }));
     }
 
@@ -270,7 +270,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
         int maxHealth = Mth.ceil(recruit.getMaxHealth());
         int moral = Mth.ceil(recruit.getMorale());
 
-        double attackReach = recruit.getAttributeValue(ForgeMod.ENTITY_REACH.get());
+        double attackReach = recruit.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE);
         double attackSpeed = recruit.getAttributeValue(Attributes.ATTACK_SPEED);
         double attackDamage = recruit.getAttackDamage();
         DecimalFormat decimalformat = new DecimalFormat("##.#");

@@ -8,7 +8,6 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.world.ForgeChunkManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -91,7 +90,7 @@ public abstract class AbstractChunkLoaderEntity extends BowmanEntity {
     ////////////////////////////////////SET////////////////////////////////////
 
     private void setForceChunk(RecruitsChunk chunk, boolean add) {
-        ForgeChunkManager.forceChunk((ServerLevel) this.getCommandSenderWorld(), Main.MOD_ID, this, chunk.x, chunk.z, add, false);
+        ((ServerLevel) this.getCommandSenderWorld()).setChunkForced(chunk.x, chunk.z, add);
     }
 
     public void die(DamageSource dmg) {

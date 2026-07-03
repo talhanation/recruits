@@ -8,16 +8,17 @@ import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.AssassinLeaderEntity;
 import com.talhanation.recruits.inventory.*;
 import net.minecraft.client.gui.screens.MenuScreens;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.extensions.IForgeMenuType;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -28,22 +29,22 @@ import java.util.UUID;
 
 public class ModScreens {
     private static final Logger logger = LogManager.getLogger(Main.MOD_ID);
-    public static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(ForgeRegistries.MENU_TYPES, Main.MOD_ID);
+    public static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(BuiltInRegistries.MENU, Main.MOD_ID);
 
-    public static void registerMenus() {
-        registerMenu(RECRUIT_CONTAINER_TYPE.get(), RecruitInventoryScreen::new);
-        registerMenu(DEBUG_CONTAINER_TYPE.get(), DebugInvScreen::new);
-        registerMenu(COMMAND_CONTAINER_TYPE.get(), CommandScreen::new);
-        registerMenu(ASSASSIN_CONTAINER_TYPE.get(), AssassinLeaderScreen::new);
-        registerMenu(HIRE_CONTAINER_TYPE.get(), RecruitHireScreen::new);
-        registerMenu(TEAM_EDIT_TYPE.get(), FactionEditScreen::new);
-        registerMenu(PROMOTE.get(), PromoteScreen::new);
+    public static void registerMenus(RegisterMenuScreensEvent event) {
+        registerMenu(event, RECRUIT_CONTAINER_TYPE.get(), RecruitInventoryScreen::new);
+        registerMenu(event, DEBUG_CONTAINER_TYPE.get(), DebugInvScreen::new);
+        registerMenu(event, COMMAND_CONTAINER_TYPE.get(), CommandScreen::new);
+        registerMenu(event, ASSASSIN_CONTAINER_TYPE.get(), AssassinLeaderScreen::new);
+        registerMenu(event, HIRE_CONTAINER_TYPE.get(), RecruitHireScreen::new);
+        registerMenu(event, TEAM_EDIT_TYPE.get(), FactionEditScreen::new);
+        registerMenu(event, PROMOTE.get(), PromoteScreen::new);
 
         logger.info("MenuScreens registered");
     }
 
-    public static final RegistryObject<MenuType<RecruitInventoryMenu>> RECRUIT_CONTAINER_TYPE =
-        MENU_TYPES.register("recruit_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
+    public static final DeferredHolder<MenuType<?>, MenuType<RecruitInventoryMenu>> RECRUIT_CONTAINER_TYPE =
+        MENU_TYPES.register("recruit_container", () -> IMenuTypeExtension.create((windowId, inv, data) -> {
             try {
                 UUID workerId = data.readUUID();
                 logger.info("{} is opening hire container for {}", inv.player.getDisplayName().getString(), workerId);
@@ -63,8 +64,8 @@ public class ModScreens {
             }
     }));
 
-    public static final RegistryObject<MenuType<CommandMenu>> COMMAND_CONTAINER_TYPE =
-        MENU_TYPES.register("command_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
+    public static final DeferredHolder<MenuType<?>, MenuType<CommandMenu>> COMMAND_CONTAINER_TYPE =
+        MENU_TYPES.register("command_container", () -> IMenuTypeExtension.create((windowId, inv, data) -> {
             try {
                 UUID player_uuid = inv.player.getUUID();
                 logger.info("{} is opening command container for {}", inv.player.getDisplayName().getString(), player_uuid);
@@ -83,8 +84,8 @@ public class ModScreens {
                 return null;
             }
     }));
-    public static final RegistryObject<MenuType<AssassinLeaderMenu>> ASSASSIN_CONTAINER_TYPE =
-        MENU_TYPES.register("assassin_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
+    public static final DeferredHolder<MenuType<?>, MenuType<AssassinLeaderMenu>> ASSASSIN_CONTAINER_TYPE =
+        MENU_TYPES.register("assassin_container", () -> IMenuTypeExtension.create((windowId, inv, data) -> {
             try {
                 UUID workerId = data.readUUID();
                 AssassinLeaderEntity rec = getAssassinByUUID(inv.player, workerId);
@@ -106,8 +107,8 @@ public class ModScreens {
             }
     }));
 
-    public static final RegistryObject<MenuType<RecruitHireMenu>> HIRE_CONTAINER_TYPE =
-            MENU_TYPES.register("hire_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
+    public static final DeferredHolder<MenuType<?>, MenuType<RecruitHireMenu>> HIRE_CONTAINER_TYPE =
+            MENU_TYPES.register("hire_container", () -> IMenuTypeExtension.create((windowId, inv, data) -> {
                 try {
                     UUID workerId = data.readUUID();
                     Player playerEntity = inv.player;
@@ -132,8 +133,8 @@ public class ModScreens {
                 }
             }));
 
-    public static final RegistryObject<MenuType<DebugInvMenu>> DEBUG_CONTAINER_TYPE =
-            MENU_TYPES.register("debug_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
+    public static final DeferredHolder<MenuType<?>, MenuType<DebugInvMenu>> DEBUG_CONTAINER_TYPE =
+            MENU_TYPES.register("debug_container", () -> IMenuTypeExtension.create((windowId, inv, data) -> {
                 try {
                     UUID workerId = data.readUUID();
                     Player playerEntity = inv.player;
@@ -158,14 +159,14 @@ public class ModScreens {
                 }
             }));
 
-    public static final RegistryObject<MenuType<TeamEditMenu>> TEAM_EDIT_TYPE =
-            MENU_TYPES.register("team_edit", () -> IForgeMenuType.create((windowId, inv, data) -> {
+    public static final DeferredHolder<MenuType<?>, MenuType<TeamEditMenu>> TEAM_EDIT_TYPE =
+            MENU_TYPES.register("team_edit", () -> IMenuTypeExtension.create((windowId, inv, data) -> {
 
                 return new TeamEditMenu(windowId, inv);
             }));
 
-    public static final RegistryObject<MenuType<DisbandContainer>> DISBAND =
-            MENU_TYPES.register("disband_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
+    public static final DeferredHolder<MenuType<?>, MenuType<DisbandContainer>> DISBAND =
+            MENU_TYPES.register("disband_container", () -> IMenuTypeExtension.create((windowId, inv, data) -> {
                 try {
                     UUID workerId = data.readUUID();
                     Player playerEntity = inv.player;
@@ -181,8 +182,8 @@ public class ModScreens {
                 }
             }));
 
-    public static final RegistryObject<MenuType<PromoteContainer>> PROMOTE =
-            MENU_TYPES.register("promote_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
+    public static final DeferredHolder<MenuType<?>, MenuType<PromoteContainer>> PROMOTE =
+            MENU_TYPES.register("promote_container", () -> IMenuTypeExtension.create((windowId, inv, data) -> {
                 try {
                     UUID workerId = data.readUUID();
                     Player playerEntity = inv.player;
@@ -198,8 +199,8 @@ public class ModScreens {
                 }
             }));
 
-    public static final RegistryObject<MenuType<PatrolLeaderContainer>> PATROL_LEADER =
-            MENU_TYPES.register("patrol_leader_container", () -> IForgeMenuType.create((windowId, inv, data) -> {
+    public static final DeferredHolder<MenuType<?>, MenuType<PatrolLeaderContainer>> PATROL_LEADER =
+            MENU_TYPES.register("patrol_leader_container", () -> IMenuTypeExtension.create((windowId, inv, data) -> {
                 try {
                     UUID workerId = data.readUUID();
                     Player playerEntity = inv.player;
@@ -220,8 +221,8 @@ public class ModScreens {
      *
      * It has a try/catch block because the Forge screen constructor fails silently.
      */
-    private static <M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>> void registerMenu(MenuType<? extends M> menuType, MenuScreens.ScreenConstructor<M, U> screenConstructor) {
-        MenuScreens.register(menuType, (MenuScreens.ScreenConstructor<M, U>) (menu, inventory, title) -> {
+    private static <M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>> void registerMenu(RegisterMenuScreensEvent event, MenuType<? extends M> menuType, MenuScreens.ScreenConstructor<M, U> screenConstructor) {
+        event.register(menuType, (MenuScreens.ScreenConstructor<M, U>) (menu, inventory, title) -> {
             try {
                 return screenConstructor.create(menu, inventory, title);
             } catch (Exception e) {

@@ -1,13 +1,16 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.client.ClientManager;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
-
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.neoforged.api.distmarker.Dist;
 public class MessageToClientUpdateUnitInfo implements Message<MessageToClientUpdateUnitInfo> {
+    public static final CustomPacketPayload.Type<MessageToClientUpdateUnitInfo> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagetoclientupdateunitinfo"));
     private boolean configValueNobleNeedsVillagers;
     private int availableRecruitsToHire;
     public MessageToClientUpdateUnitInfo() {
@@ -20,27 +23,32 @@ public class MessageToClientUpdateUnitInfo implements Message<MessageToClientUpd
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.CLIENT;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.CLIENTBOUND;
     }
 
     @Override
-    public void executeClientSide(NetworkEvent.Context context) {
+    public void executeClientSide(IPayloadContext context) {
         ClientManager.configValueNobleNeedsVillagers = configValueNobleNeedsVillagers;
         ClientManager.availableRecruitsToHire = availableRecruitsToHire;
     }
 
     @Override
-    public MessageToClientUpdateUnitInfo fromBytes(FriendlyByteBuf buf) {
+    public MessageToClientUpdateUnitInfo fromBytes(RegistryFriendlyByteBuf buf) {
         this.configValueNobleNeedsVillagers = buf.readBoolean();
         this.availableRecruitsToHire = buf.readInt();
         return this;
     }
 
     @Override
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeBoolean(this.configValueNobleNeedsVillagers);
         buf.writeInt(this.availableRecruitsToHire);
     }
 
+
+    @Override
+    public CustomPacketPayload.Type<MessageToClientUpdateUnitInfo> type() {
+        return TYPE;
+    }
 }

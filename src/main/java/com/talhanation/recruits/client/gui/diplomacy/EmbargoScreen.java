@@ -1,4 +1,5 @@
 package com.talhanation.recruits.client.gui.diplomacy;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
@@ -10,7 +11,7 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 public class EmbargoScreen extends SelectPlayerScreen {
 
@@ -52,7 +53,7 @@ public class EmbargoScreen extends SelectPlayerScreen {
         if (selected == null) {
             minecraft.setScreen(new EmbargoAddScreen(this, player));
         } else {
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageRemoveEmbargo(selected.getUUID()));
+            NetUtils.sendToServer(new MessageRemoveEmbargo(selected.getUUID()));
             playerList.setFocused(null);
             playerList.updateEntryList();
             selected = null;

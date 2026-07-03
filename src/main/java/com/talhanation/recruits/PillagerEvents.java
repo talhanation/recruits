@@ -27,9 +27,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.entity.EntityEvent;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 
 import java.util.EnumSet;
 import java.util.Random;
@@ -145,7 +144,7 @@ public class PillagerEvents {
     //Raider
 
     @SubscribeEvent
-    public void raidStartOnBurningOminous(EntityEvent event) {
+    public void raidStartOnBurningOminous(net.neoforged.neoforge.event.tick.EntityTickEvent.Post event) {
         if(!RecruitsServerConfig.QuickStartPillagerRaid.get()) return;
         Entity entity = event.getEntity();
 
@@ -155,7 +154,7 @@ public class PillagerEvents {
             Level level = itemEntity.getCommandSenderWorld();
             if (itemStack.getItem() instanceof BannerItem) {
 
-                if (itemEntity.isOnFire() && ItemStack.matches(itemStack, Raid.getLeaderBannerInstance())) {
+                if (itemEntity.isOnFire() && ItemStack.matches(itemStack, Raid.getLeaderBannerInstance(level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.BANNER_PATTERN)))) {
                     Player player = level.getNearestPlayer(itemEntity, 16D);
                     if (player != null) {
                         MobEffectInstance effectinstance1 = player.getEffect(MobEffects.BAD_OMEN);
