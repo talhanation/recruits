@@ -1,6 +1,5 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -27,11 +26,7 @@ public class MessageClearUpkeepGui implements Message<MessageClearUpkeepGui> {
 
     public void executeServerSide(NetworkEvent.Context context){
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                player.getBoundingBox().inflate(16.0D),
-                (recruit) -> recruit.getUUID().equals(this.uuid)
-        ).forEach((recruit) -> {
+        RecruitCommandTargetResolver.resolveOwnedRecruit(player, this.uuid, 16.0D).ifPresent((recruit) -> {
             recruit.clearUpkeepPos();
             recruit.clearUpkeepEntity();
         });

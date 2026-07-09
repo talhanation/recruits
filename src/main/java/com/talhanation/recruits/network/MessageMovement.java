@@ -1,6 +1,8 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.CommandEvents;
+import com.talhanation.recruits.command.CommandIntent;
+import com.talhanation.recruits.command.CommandIntentDispatcher;
+import com.talhanation.recruits.command.CommandIntentPriority;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -37,12 +39,19 @@ public class MessageMovement implements Message<MessageMovement> {
     }
 
     public void executeServerSide(NetworkEvent.Context context){
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(100));
-        list.removeIf(recruit -> !recruit.isEffectedByCommand(this.player_uuid, this.group));
-
-
-
-        CommandEvents.onMovementCommand(context.getSender(), list, this.state, this.formation, this.tight, this.hold);
+        var sender = Objects.requireNonNull(context.getSender());
+        List<AbstractRecruitEntity> list = RecruitCommandTargetResolver.resolveGroupTargets(sender, this.player_uuid, this.group, 100D);
+        CommandIntent intent = new CommandIntent.Movement(
+                sender.getCommandSenderWorld().getGameTime(),
+                CommandIntentPriority.NORMAL,
+                false,
+                this.state,
+                this.formation,
+                this.tight,
+                this.hold,
+                null
+        );
+        CommandIntentDispatcher.dispatch(sender, intent, list);
     }
 
     public MessageMovement fromBytes(FriendlyByteBuf buf) {

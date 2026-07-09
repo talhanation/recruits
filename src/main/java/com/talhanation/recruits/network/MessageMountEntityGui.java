@@ -41,15 +41,12 @@ public class MessageMountEntityGui implements Message<MessageMountEntityGui> {
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
 
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                player.getBoundingBox().inflate(32.0D),
-                v -> v.getUUID().equals(this.recruit) && v.isAlive()
-        ).forEach(this::mount);
+        RecruitCommandTargetResolver.resolveOwnedRecruit(player, this.recruit, 32.0D)
+                .ifPresent(recruit -> this.mount(player, recruit));
     }
 
     @SuppressWarnings({"all"})
-    private void mount(AbstractRecruitEntity recruit) {
+    private void mount(ServerPlayer player, AbstractRecruitEntity recruit) {
         if (this.back && recruit.getMountUUID() != null) {
             recruit.shouldMount(true, recruit.getMountUUID());
         } else if (recruit.getVehicle() == null) {
@@ -71,7 +68,7 @@ public class MessageMountEntityGui implements Message<MessageMountEntityGui> {
             }
 
             if (horse == null) {
-                recruit.getOwner().sendSystemMessage(TEXT_NO_MOUNT(recruit.getName().getString()));
+                player.sendSystemMessage(TEXT_NO_MOUNT(recruit.getName().getString()));
                 return;
             }
 

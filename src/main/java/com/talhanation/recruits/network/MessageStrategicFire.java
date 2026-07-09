@@ -1,6 +1,8 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.CommandEvents;
+import com.talhanation.recruits.command.CommandIntent;
+import com.talhanation.recruits.command.CommandIntentDispatcher;
+import com.talhanation.recruits.command.CommandIntentPriority;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
@@ -33,18 +35,15 @@ public class MessageStrategicFire implements Message<MessageStrategicFire> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
-        serverPlayer.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractRecruitEntity.class,
-                serverPlayer.getBoundingBox().inflate(200)
-        ).forEach((recruit) ->
-                CommandEvents.onStrategicFireCommand(
-                        serverPlayer,
-                        this.player,
-                        recruit,
-                        group,
-                        should
-                )
+        List<AbstractRecruitEntity> recruits = RecruitCommandTargetResolver.resolveGroupTargets(serverPlayer, this.player, this.group, 200D);
+        CommandIntent intent = new CommandIntent.StrategicFire(
+                serverPlayer.getCommandSenderWorld().getGameTime(),
+                CommandIntentPriority.NORMAL,
+                false,
+                this.group,
+                this.should
         );
+        CommandIntentDispatcher.dispatch(serverPlayer, intent, recruits);
     }
 
     public MessageStrategicFire fromBytes(FriendlyByteBuf buf) {

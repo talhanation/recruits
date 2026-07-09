@@ -1,9 +1,7 @@
 package com.talhanation.recruits.network;
 
-import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.world.RecruitsGroup;
-import com.talhanation.recruits.world.RecruitsGroupsManager;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -32,6 +30,10 @@ public class MessageUpdateGroup implements Message<MessageUpdateGroup> {
     public void executeServerSide(NetworkEvent.Context context){
         RecruitsGroup updatedGroup = RecruitsGroup.fromNBT(this.groupNBT);
         ServerPlayer serverPLayer = context.getSender();
+        if (serverPLayer == null || updatedGroup == null) return;
+        if (!serverPLayer.getUUID().equals(updatedGroup.getPlayerUUID())) return;
+        RecruitsGroup existingGroup = RecruitEvents.recruitsGroupsManager.getGroup(updatedGroup.getUUID());
+        if (existingGroup != null && !serverPLayer.getUUID().equals(existingGroup.getPlayerUUID())) return;
 
         RecruitEvents.recruitsGroupsManager.addOrUpdateGroup((ServerLevel) serverPLayer.getCommandSenderWorld(), serverPLayer, updatedGroup);
     }
