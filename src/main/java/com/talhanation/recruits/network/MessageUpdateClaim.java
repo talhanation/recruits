@@ -225,7 +225,7 @@ public class MessageUpdateClaim implements Message<MessageUpdateClaim> {
     }
 
     private static boolean takePayment(ServerPlayer sender, int cost) {
-        if (cost <= 0 || sender.isCreative()) return true;
+        if (cost <= 0 || isAdminCreative(sender)) return true;
         if (!FactionEvents.playerHasEnoughEmeralds(sender, cost)) return false;
         FactionEvents.doPayment(sender, cost);
         return true;

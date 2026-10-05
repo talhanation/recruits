@@ -39,6 +39,7 @@ public class MessageDebugScreen implements Message<MessageDebugScreen> {
         if (!player.getUUID().equals(uuid)) {
             return;
         }
+        if (!player.isCreative() || !player.hasPermissions(2)) return;
 
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,

@@ -33,6 +33,8 @@ public class MessageDebugGui implements Message<MessageDebugGui> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
+        if (!player.isCreative() || !player.hasPermissions(2)) return;
+
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 context.getSender().getBoundingBox().inflate(16.0D),

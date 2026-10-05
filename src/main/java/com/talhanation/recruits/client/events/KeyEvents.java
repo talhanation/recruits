@@ -46,7 +46,7 @@ public class KeyEvents {
         if(event.isPickBlock()){
             Minecraft minecraft = Minecraft.getInstance();
             LocalPlayer clientPlayerEntity = minecraft.player;
-            if (clientPlayerEntity == null || !clientPlayerEntity.isCreative())
+            if (clientPlayerEntity == null || !clientPlayerEntity.isCreative() || !clientPlayerEntity.hasPermissions(2))
                 return;
             
 

@@ -1236,7 +1236,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             boolean flag = this.isOwnedBy(player) || !this.canBeHired();
             return flag ? InteractionResult.CONSUME : InteractionResult.PASS;
         } else {
-            if (player.isCreative() && player.getItemInHand(hand).getItem().equals(ModItems.RECRUIT_SPAWN_EGG.get())){
+            if (player.isCreative() && player.hasPermissions(2) && player.getItemInHand(hand).getItem().equals(ModItems.RECRUIT_SPAWN_EGG.get())){
                 openDebugScreen(player);
                 //Main.LOGGER.warn("" + this.getName().getString() + " Target: " + getTarget());
 
@@ -1906,6 +1906,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     public void openDebugScreen(Player player) {
+        if (!player.isCreative() || !player.hasPermissions(2)) return;
+
         if (player instanceof ServerPlayer) {
             NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
                 @Override
