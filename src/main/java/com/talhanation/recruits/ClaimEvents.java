@@ -13,7 +13,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.Container;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.decoration.LeashFenceKnotEntity;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -23,17 +27,20 @@ import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.DaylightDetectorBlock;
 import net.minecraft.world.level.block.DiodeBlock;
 import net.minecraft.world.level.block.LeverBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.ProjectileImpactEvent;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.FillBucketEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
@@ -414,12 +421,16 @@ public class ClaimEvents {
                 .filter(recruit -> recruit.isAlive() && recruit.getTeam() != null && teamId.equals(recruit.getTeam().getName()))
                 .toList();
     }
+    private static RecruitsClaim getClaimAt(LevelAccessor level, BlockPos pos) {
+        if(recruitsClaimManager == null) return null;
+        if(!(level instanceof Level lvl) || lvl.dimension() != Level.OVERWORLD) return null;
+        return recruitsClaimManager.getClaim(new ChunkPos(pos));
+    }
     @SubscribeEvent
     public void onBlockBreakEvent(BlockEvent.BreakEvent event) {
         if(event.getLevel().isClientSide()) return;
 
-        ChunkAccess access = server.overworld().getChunk(event.getPos());
-        RecruitsClaim claim = recruitsClaimManager.getClaim(access.getPos());
+        RecruitsClaim claim = getClaimAt(event.getLevel(), event.getPos());
         Player player = event.getPlayer();
 
         if(player.isCreative() && player.hasPermissions(2)){
@@ -443,8 +454,7 @@ public class ClaimEvents {
     public void onBlockPlaceEvent(BlockEvent.EntityPlaceEvent event) {
         if(event.getLevel().isClientSide()) return;
 
-        ChunkAccess access = server.overworld().getChunk(event.getPos());
-        RecruitsClaim claim = recruitsClaimManager.getClaim(access.getPos());
+        RecruitsClaim claim = getClaimAt(event.getLevel(), event.getPos());
         Entity entity = event.getEntity();
 
         if(entity instanceof Player player && player.isCreative() && player.hasPermissions(2)){
@@ -463,12 +473,10 @@ public class ClaimEvents {
         }
     }
     @SubscribeEvent
-    public void onExplosion(ExplosionEvent event) {
+    public void onExplosion(ExplosionEvent.Start event) {
         if(event.getLevel().isClientSide()) return;
-        Vec3 vec = event.getExplosion().getPosition();
-        BlockPos pos = new BlockPos((int) vec.x, (int) vec.y, (int) vec.z);
-        ChunkAccess access = server.overworld().getChunk(pos);
-        RecruitsClaim claim = recruitsClaimManager.getClaim(access.getPos());
+        BlockPos pos = BlockPos.containing(event.getExplosion().getPosition());
+        RecruitsClaim claim = getClaimAt(event.getLevel(), pos);
 
         Entity entity = event.getExplosion().getDirectSourceEntity();
         if(entity instanceof Player player && player.isCreative() && player.hasPermissions(2)){
@@ -484,11 +492,9 @@ public class ClaimEvents {
         if(event.getLevel().isClientSide()) return;
         if(event.getTarget() == null) return;
 
-        Vec3 vec = event.getTarget().getLocation();
-        BlockPos pos = new BlockPos((int) vec.x, (int) vec.y, (int) vec.z);
+        BlockPos pos = BlockPos.containing(event.getTarget().getLocation());
 
-        ChunkAccess access = server.overworld().getChunk(pos);
-        RecruitsClaim claim = recruitsClaimManager.getClaim(access.getPos());
+        RecruitsClaim claim = getClaimAt(event.getLevel(), pos);
         if(claim == null) return;
 
         Player player = event.getEntity();
@@ -504,41 +510,95 @@ public class ClaimEvents {
     @SubscribeEvent
     public void onBlockInteract(PlayerInteractEvent.RightClickBlock event) {
         if(event.getLevel().isClientSide()) return;
-        ChunkAccess access = server.overworld().getChunk(event.getPos());
-        RecruitsClaim claim = recruitsClaimManager.getClaim(access.getPos());
-        if(claim == null) return;
-
-        BlockPos pos = event.getHitVec().getBlockPos();
         Player player = event.getEntity();
 
         if(player.isCreative() && player.hasPermissions(2)){
             return;
         }
 
+        RecruitsClaim claim = getClaimAt(event.getLevel(), event.getPos());
+        if(claim == null) return;
+
+        BlockPos pos = event.getHitVec().getBlockPos();
         if(claim.isBlockInteractionAllowed()) return;
 
         BlockState selectedBlock = player.getCommandSenderWorld().getBlockState(pos);
         BlockEntity blockEntity = player.getCommandSenderWorld().getBlockEntity(pos);
 
-        if (selectedBlock.is(BlockTags.BUTTONS)
-                || selectedBlock.is(BlockTags.DOORS)
-                || selectedBlock.is(BlockTags.WOODEN_TRAPDOORS)
-                || selectedBlock.is(BlockTags.WOODEN_BUTTONS)
-                || selectedBlock.is(BlockTags.WOODEN_DOORS)
-                || selectedBlock.is(BlockTags.SHULKER_BOXES)
-                || selectedBlock.is(BlockTags.FENCE_GATES)
-                || selectedBlock.is(BlockTags.ANVIL)
-                || (selectedBlock.getBlock() instanceof LeverBlock)
-                || (selectedBlock.getBlock() instanceof DiodeBlock)
-                || (selectedBlock.getBlock() instanceof DaylightDetectorBlock)
-                || (blockEntity instanceof Container)
-        )
-        {
-            {
-                boolean isInTeam = player.getTeam() != null && player.getTeam().getName().equals(claim.getOwnerFactionStringID());
-                if(!isInTeam) event.setCanceled(true);
-            }
+        if (isProtectedInteractionBlock(selectedBlock, blockEntity) && !isClaimMember(player, claim)) {
+            event.setCanceled(true);
         }
+    }
+
+    /**
+     * Blocks that non-members may not use when block interaction is disabled in a claim.
+     * Shared with the client-side blocker (ClientClaimProtectionEvents), so both sides stay in sync.
+     */
+    public static boolean isProtectedInteractionBlock(BlockState state, BlockEntity blockEntity) {
+        return state.is(BlockTags.BUTTONS)
+                || state.is(BlockTags.DOORS)
+                || state.is(BlockTags.WOODEN_TRAPDOORS)
+                || state.is(BlockTags.WOODEN_BUTTONS)
+                || state.is(BlockTags.WOODEN_DOORS)
+                || state.is(BlockTags.SHULKER_BOXES)
+                || state.is(BlockTags.FENCE_GATES)
+                || state.is(BlockTags.ANVIL)
+                || (state.getBlock() instanceof LeverBlock)
+                || (state.getBlock() instanceof DiodeBlock)
+                || (state.getBlock() instanceof DaylightDetectorBlock)
+                || (blockEntity instanceof Container);
+    }
+
+    /** Member = in the claim owner's team (same rule as all claim checks). */
+    public static boolean isClaimMember(Entity entity, RecruitsClaim claim) {
+        return entity instanceof LivingEntity living && living.getTeam() != null
+                && living.getTeam().getName().equals(claim.getOwnerFactionStringID());
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Leash knot protection: a lead tied to a fence is an entity (LeashFenceKnotEntity), so the block
+    // break/interact checks above don't cover it. Non-members could destroy it by left-click,
+    // right-click (vanilla removes the knot) or by shooting it. Same rule as block breaking.
+    // ---------------------------------------------------------------------------------------------
+
+    @SubscribeEvent
+    public void onAttackLeashKnot(AttackEntityEvent event) {
+        if(event.getEntity().level().isClientSide()) return;
+        if(isLeashKnotProtectedFrom(event.getTarget(), event.getEntity())) event.setCanceled(true);
+    }
+
+    @SubscribeEvent
+    public void onInteractLeashKnot(PlayerInteractEvent.EntityInteract event) {
+        if(event.getLevel().isClientSide()) return;
+        if(isLeashKnotProtectedFrom(event.getTarget(), event.getEntity())){
+            event.setCancellationResult(InteractionResult.FAIL);
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public void onProjectileHitLeashKnot(ProjectileImpactEvent event) {
+        if(!(event.getRayTraceResult() instanceof EntityHitResult hit)) return;
+        Projectile projectile = event.getProjectile();
+        if(projectile.level().isClientSide()) return;
+
+        // owner == null (e.g. dispenser) counts as non-member
+        if(isLeashKnotProtectedFrom(hit.getEntity(), projectile.getOwner())){
+            event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
+        }
+    }
+
+    private static boolean isLeashKnotProtectedFrom(Entity target, Entity actor) {
+        if(!(target instanceof LeashFenceKnotEntity)) return false;
+
+        RecruitsClaim claim = getClaimAt(target.level(), target.blockPosition());
+        if(claim == null || claim.isBlockBreakingAllowed()) return false;
+
+        if(actor instanceof Player player && player.isCreative() && player.hasPermissions(2)) return false;
+
+        boolean isInTeam = actor instanceof LivingEntity living && living.getTeam() != null
+                && living.getTeam().getName().equals(claim.getOwnerFactionStringID());
+        return !isInTeam;
     }
 
     public static void sendVillagersHome(ServerLevel level, RecruitsClaim claim) {

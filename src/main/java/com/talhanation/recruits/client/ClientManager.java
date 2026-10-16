@@ -86,6 +86,7 @@ public class ClientManager {
         return groupSpecialStates.getOrDefault(groupUUID, java.util.Collections.emptySet());
     }
     public static boolean configFogOfWarEnabled;
+    public static boolean configValueBlockPlacingBreakingOnlyWhenClaimed;
 
     public static Map<String, RecruitsRoute> routesMap = new HashMap<>();
     public static boolean canPlayerHire;

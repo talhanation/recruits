@@ -1,5 +1,6 @@
 package com.talhanation.recruits;
 
+import com.talhanation.recruits.client.events.ClientClaimProtectionEvents;
 import com.talhanation.recruits.client.gui.overlay.ClaimOverlayManager;
 import com.talhanation.recruits.client.events.CommandCategoryManager;
 import com.talhanation.recruits.client.events.KeyEvents;
@@ -243,6 +244,7 @@ public class Main {
         event.enqueueWork(ModScreens::registerMenus);
         MinecraftForge.EVENT_BUS.register(new KeyEvents());
         MinecraftForge.EVENT_BUS.register(new ClientPlayerEvents());
+        MinecraftForge.EVENT_BUS.register(new ClientClaimProtectionEvents());
         MinecraftForge.EVENT_BUS.register(new ClaimOverlayManager());
 
         CommandCategoryManager.register(new MovementCategory(), -2);

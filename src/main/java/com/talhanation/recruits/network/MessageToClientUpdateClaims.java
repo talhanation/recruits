@@ -2,6 +2,7 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.worldmap.claim.WorldMapClaimIndex;
+import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.network.codec.ClaimNetworkCodec;
 import com.talhanation.recruits.world.RecruitsClaim;
 import de.maxhenkel.corelib.net.Message;
@@ -26,6 +27,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
     private ItemStack currencyItemStack;
     private boolean resetClaims = true;
     private boolean syncComplete = true;
+    private boolean blockPlacingBreakingOnlyWhenClaimed;
 
     public MessageToClientUpdateClaims() {
     }
@@ -55,6 +57,8 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
         this.fogOfWarEnabled = fogOfWarEnabled;
         this.resetClaims = resetClaims;
         this.syncComplete = syncComplete;
+        // constructors only run on the server side, so the server config is available here
+        this.blockPlacingBreakingOnlyWhenClaimed = RecruitsServerConfig.BlockPlacingBreakingOnlyWhenClaimed.get();
     }
 
     @Override
@@ -79,6 +83,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
         ClientManager.currencyItemStack = this.currencyItemStack;
         ClientManager.configValueIsClaimingAllowed = this.allowClaiming;
         ClientManager.configFogOfWarEnabled = this.fogOfWarEnabled;
+        ClientManager.configValueBlockPlacingBreakingOnlyWhenClaimed = this.blockPlacingBreakingOnlyWhenClaimed;
 
         if (syncComplete) {
             ClientManager.rebuildActiveSieges();
@@ -97,6 +102,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
         this.fogOfWarEnabled = buf.readBoolean();
         this.resetClaims = buf.readBoolean();
         this.syncComplete = buf.readBoolean();
+        this.blockPlacingBreakingOnlyWhenClaimed = buf.readBoolean();
         return this;
     }
 
@@ -112,6 +118,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
         buf.writeBoolean(this.fogOfWarEnabled);
         buf.writeBoolean(this.resetClaims);
         buf.writeBoolean(this.syncComplete);
+        buf.writeBoolean(this.blockPlacingBreakingOnlyWhenClaimed);
     }
 
 }
